@@ -31,9 +31,10 @@ jobs:
         with:
           path: example/build/web
 
-  # Deploys only once the repo is public: GitHub Pages is unavailable
-  # on private repos under the free plan, so until then this job is
-  # skipped and the build job doubles as a wasm CI check.
+  # Skipped while the repo is private (Pages needs a public repo on
+  # the free plan); the build job doubles as a wasm CI check. The
+  # Pages site itself was created once via the API - GITHUB_TOKEN
+  # cannot create it (no admin scope), only deploy to it.
   deploy:
     needs: build
     if: ${{ !github.event.repository.private }}
@@ -42,8 +43,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - id: deployment
         uses: actions/deploy-pages@v4
