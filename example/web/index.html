@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="morph - the example tour: identity-based widget-to-overlay morphs on springs.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="morph">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>morph</title>
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <!--
+    Static hosts (GitHub Pages) cannot send COOP/COEP, which skwasm
+    needs for SharedArrayBuffer threads. coi.js is a service worker
+    that re-adds the headers; the page reloads once when it first
+    takes control. Skipped entirely when the server already isolates.
+  -->
+  <script>
+    (() => {
+      if (crossOriginIsolated || !('serviceWorker' in navigator)) return;
+      if (!navigator.serviceWorker.controller) {
+        navigator.serviceWorker.addEventListener('controllerchange', () =>
+          window.location.reload());
+      }
+      navigator.serviceWorker.register('coi.js').then((registration) => {
+        if (registration.active && !navigator.serviceWorker.controller) {
+          window.location.reload();
+        }
+      });
+    })();
+  </script>
+  <!--
+    Manual bootstrap instead of flutter_bootstrap.js: loading without
+    serviceWorkerSettings keeps Flutter's offline-cache worker out of
+    coi.js's scope (one service worker per scope; the later
+    registration would evict the earlier one).
+  -->
+  <script>
+    {{flutter_js}}
+    {{flutter_build_config}}
+    _flutter.loader.load();
+  </script>
+</body>
+</html>

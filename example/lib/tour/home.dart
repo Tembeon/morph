@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'package:morph/morph.dart';
@@ -206,6 +207,10 @@ class TourHome extends StatelessWidget {
                         color: scheme.onSurfaceVariant,
                       ),
                     ),
+                    if (kIsWeb) ...<Widget>[
+                      const SizedBox(height: 10),
+                      const _WebPerfNote(),
+                    ],
                   ],
                 ),
               ),
@@ -225,6 +230,41 @@ class TourHome extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The web-only note under the header: the browser build is for
+/// getting a feel, not for judging performance - a native release
+/// build runs the same scenes far smoother.
+class _WebPerfNote extends StatelessWidget {
+  const _WebPerfNote();
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme scheme = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+      ),
+      child: Padding(
+        padding: const .symmetric(horizontal: 12, vertical: 8),
+        child: Row(
+          mainAxisSize: .min,
+          children: <Widget>[
+            Icon(Icons.speed_rounded, size: 16, color: scheme.onSurfaceVariant),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                'Web build: judge the motion here, not the frame rate - '
+                'a native release build runs far smoother.',
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+              ),
+            ),
+          ],
         ),
       ),
     );
