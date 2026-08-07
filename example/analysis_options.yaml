@@ -1,0 +1,3 @@
+# The example is held to the same bar as the package itself, including
+# public_member_api_docs: the teaching code is part of the product.
+include: ../analysis_options.yaml
