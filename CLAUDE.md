@@ -5,7 +5,9 @@ overlay (dialog, sheet), plus a "liquid" skin that fuses nearby surfaces
 into one organic shape. No Navigator coupling. Physics comes from the
 `motor` package.
 
-Not published yet (`publish_to: none`); the API is still allowed to break.
+Not on pub.dev by design (`publish_to: none`); releases are git tags
+following semver, and the API follows the owner's app. Owner-local
+context (roadmap, priorities) lives in `CLAUDE.local.md`, untracked.
 
 ## Architecture (lib/src/)
 
@@ -540,23 +542,3 @@ worst-case cluster re-traces in 2.0 ms with the eval budget (fits
 120 Hz) vs 8.6 ms unbounded (would blow it) - the budget is what keeps
 the worst frame inside the envelope. AOT runs ~9x faster than the JIT
 test VM across every scene.
-
-## Known debt and roadmap
-
-- Moving-source tracking lags by 1 frame; a full solution (LayerLink or
-  a custom follower) should land together with a scrolling-list demo.
-- Sibling choreography (neighbors collapsing on the same spring) is a
-  candidate awaiting a real consumer.
-- A per-layer frame cost breakdown (performance passport) before
-  publishing; the tracing microbenchmarks in benchmark/ are its first
-  installment.
-- Contour tracking (surface following, O(perimeter) instead of the
-  O(area) grid) - only if benchmarks ever show the clustered grid is
-  not enough.
-- Morph-route next steps: named-route/deep-link entry (a MorphPageRoute
-  pushed without a laid-out tag needs a fallback source), a result-typed
-  pop demo, and an on-device Android pass over predictive back (the
-  hooks are wired and tested; the feel of depth 0.18 needs real
-  hardware).
-- README/CHANGELOG/LICENSE are intentionally absent for now; required
-  before publishing.
