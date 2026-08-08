@@ -372,16 +372,21 @@ class RenderMorphSkin extends RenderBox
       <MorphFlight, VoidCallback>{};
 
   /// The launch fellowship of each active flight: ids of the pieces
-  /// whose mass was connected to the flying piece at launch
-  /// (transitively, resting-rect gap <= k). The companion blob necks
-  /// only to these - a flight stays attached to what it was PART OF,
-  /// not to whatever it happens to pass on the way.
+  /// whose mass formed one body with the flying piece when the skin
+  /// subscribed - the connectivity component over solid pieces AND
+  /// their MorphLink bridges, the same predicate the tracer clusters
+  /// by. The companion blob necks only to these: a flight stays
+  /// attached to what it was PART OF, not to whatever it passes.
+  /// Entries outlive subscription blips (a tag deactivating for a
+  /// frame) and are erased only when the flight closes or the skin
+  /// detaches.
   final Map<MorphFlight, Set<Object>> _flightFellowship =
       <MorphFlight, Set<Object>>{};
 
-  /// How many companion blobs the last paint poured into the field - a
-  /// debug instrument for tests.
-  int debugLastFlightBlobCount = 0;
+  /// How many companion blobs the last paint poured into the field -
+  /// an instrument for tests, same convention as
+  /// [LiquidTracer.lastMissCount].
+  int lastFlightBlobCount = 0;
 
   /// An animating skin must not repaint ancestors: the group owns its
   /// layer.
@@ -591,16 +596,8 @@ class RenderMorphSkin extends RenderBox
   /// The live flight launched under the piece's id, if the scope has
   /// one.
   MorphFlight? _flightFor(MorphPiece piece) {
-    final MorphFlight? flight = _scope?.flightOf(piece.id);
+    final MorphFlight? flight = _scope?.liveFlightOf(piece.id);
     if (flight == null || flight.isFinished) {
-      return null;
-    }
-    // A flight whose tag left the tree is a stray from a previous
-    // incarnation of the screen (the scope owns flights; a disposing
-    // tag only unregisters). It cannot land onto this piece, and its
-    // defunct tag can no longer answer shape or bump questions - the
-    // skin ignores it entirely.
-    if (!flight.tag.isTreeActive) {
       return null;
     }
     return flight;
@@ -612,21 +609,19 @@ class RenderMorphSkin extends RenderBox
   /// Unsubscription happens on flight completion (closed runs before
   /// the controller's deferred dispose) or on detach.
   void _syncFlightSubscriptions() {
-    final Map<MorphFlight, MorphPiece> active = <MorphFlight, MorphPiece>{
-      for (final MorphPiece piece in _pieces)
-        if (_flightFor(piece) case final MorphFlight flight) flight: piece,
-    };
-    for (final MorphFlight flight in _flightSubs.keys.toList()) {
-      if (!active.containsKey(flight)) {
-        flight.frameTicks.removeListener(_flightSubs.remove(flight)!);
-        _flightFellowship.remove(flight);
+    // Runs on every geometry change (the pieces setter fires per frame
+    // of an app-driven drag): allocate nothing until a flight exists.
+    Set<MorphFlight>? active;
+    for (final MorphPiece piece in _pieces) {
+      final MorphFlight? flight = _flightFor(piece);
+      if (flight == null) {
+        continue;
       }
-    }
-    for (final MorphFlight flight in active.keys) {
+      (active ??= <MorphFlight>{}).add(flight);
       if (_flightSubs.containsKey(flight)) {
         continue;
       }
-      _flightFellowship[flight] = _launchFellowship(active[flight]!);
+      _flightFellowship.putIfAbsent(flight, () => _launchFellowship(piece));
       assert(() {
         final (double scale, double recoil) = flight.tag.resolvedBump;
         if (scale != 0 || recoil != 0) {
@@ -655,29 +650,53 @@ class RenderMorphSkin extends RenderBox
         }
       });
     }
-  }
-
-  /// The pieces connected to [origin]'s mass at this moment:
-  /// transitive closure over solid pieces with a resting-rect gap of
-  /// at most k. Captured once per flight, at launch.
-  Set<Object> _launchFellowship(MorphPiece origin) {
-    final Set<Object> fellow = <Object>{};
-    final Set<Object> seen = <Object>{origin.id};
-    final List<MorphPiece> frontier = <MorphPiece>[origin];
-    while (frontier.isNotEmpty) {
-      final MorphPiece from = frontier.removeLast();
-      for (final MorphPiece other in _pieces) {
-        if (seen.contains(other.id) || !other.solid) {
-          continue;
-        }
-        if (liquidRectGap(from.rect, other.rect) <= _k) {
-          seen.add(other.id);
-          fellow.add(other.id);
-          frontier.add(other);
+    if (_flightSubs.isNotEmpty) {
+      for (final MorphFlight flight in _flightSubs.keys.toList()) {
+        if (!(active?.contains(flight) ?? false)) {
+          flight.frameTicks.removeListener(_flightSubs.remove(flight)!);
         }
       }
     }
-    return fellow;
+  }
+
+  /// The pieces forming one body with [origin] at this moment: the
+  /// connectivity component over solid pieces AND their MorphLink
+  /// bridges, labeled by [liquidConnectivityLabels] - the exact
+  /// predicate the tracer clusters by, so a bridged piece is a fellow
+  /// even across a gap wider than k. Captured once per flight, at
+  /// subscription.
+  Set<Object> _launchFellowship(MorphPiece origin) {
+    final List<MorphPiece> solid = <MorphPiece>[
+      for (final MorphPiece piece in _pieces)
+        if (piece.solid) piece,
+    ];
+    final Map<Object, int> indexOf = <Object, int>{
+      for (int i = 0; i < solid.length; i++) solid[i].id: i,
+    };
+    final int? originIndex = indexOf[origin.id];
+    if (originIndex == null) {
+      return const <Object>{};
+    }
+    final List<Rect> rects = <Rect>[
+      for (final MorphPiece piece in solid) piece.rect,
+      for (final MorphLink link in _links)
+        if (indexOf[link.from] case final int from?)
+          if (indexOf[link.to] case final int to?)
+            LiquidBridge(
+              solid[from].rect.center,
+              solid[to].rect.center,
+              radius:
+                  (link.width ??
+                      _defaultBridgeWidth(solid[from].rect, solid[to].rect)) /
+                  2,
+            ).outerRect,
+    ];
+    final List<int> labels = liquidConnectivityLabels(rects, _k);
+    final int home = labels[originIndex];
+    return <Object>{
+      for (int i = 0; i < solid.length; i++)
+        if (i != originIndex && labels[i] == home) solid[i].id,
+    };
   }
 
   @override
@@ -909,7 +928,7 @@ class RenderMorphSkin extends RenderBox
   void _paintSkinAndChildren(PaintingContext context, Offset offset) {
     final List<_ResolvedPiece> resolved = _resolvePieces();
     final List<LiquidShape> blobs = _flightBlobs(resolved);
-    debugLastFlightBlobCount = blobs.length;
+    lastFlightBlobCount = blobs.length;
     final List<double> signature = _computeSignature(resolved, blobs);
     if (!_signaturesMatch(signature)) {
       _signature = signature;

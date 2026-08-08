@@ -346,8 +346,8 @@ void main() {
     for (int i = 0; i < 200; i++) {
       await tester.pump(const Duration(milliseconds: 8));
       expect(tester.takeException(), isNull);
-      if (skin.debugLastFlightBlobCount > maxBlobs) {
-        maxBlobs = skin.debugLastFlightBlobCount;
+      if (skin.lastFlightBlobCount > maxBlobs) {
+        maxBlobs = skin.lastFlightBlobCount;
       }
       if (!tester.binding.hasScheduledFrame) {
         break;
@@ -442,11 +442,16 @@ void main() {
     // the stray flight as none at all: no defunct-tag access in the
     // debug assert, no companion blob, no exceptions.
     await tester.pumpWidget(stage(withSkin: true));
+    // Both doors: observers still see the stray, engine consumers
+    // (the skin, a retarget in MorphFlight.launch) see nothing.
+    final MorphScopeState scope = tester.state(find.byType(MorphScope));
+    expect(scope.flightOf('hero'), isNotNull);
+    expect(scope.liveFlightOf('hero'), isNull);
     final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
     for (int i = 0; i < 300; i++) {
       await tester.pump(const Duration(milliseconds: 8));
       expect(tester.takeException(), isNull);
-      expect(skin.debugLastFlightBlobCount, 0);
+      expect(skin.lastFlightBlobCount, 0);
       if (!tester.binding.hasScheduledFrame) {
         break;
       }

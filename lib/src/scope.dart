@@ -72,6 +72,21 @@ class MorphScopeState extends State<MorphScope> with TickerProviderStateMixin {
   /// The live flight of the tag with [id], or null.
   MorphFlight? flightOf(Object id) => _flights[id];
 
+  /// Like [flightOf], but null when the flight's source tag has left
+  /// the active tree. A flight can outlive its tag (a screen torn down
+  /// mid-flight: the scope owns flights, a disposing tag only
+  /// unregisters) - such a stray stays visible to observers through
+  /// [flightOf], but engine consumers that would touch the tag (the
+  /// skin's neck, a retarget) must treat it as absent.
+  @internal
+  MorphFlight? liveFlightOf(Object id) {
+    final MorphFlight? flight = _flights[id];
+    if (flight == null || !flight.tag.isTreeActive) {
+      return null;
+    }
+    return flight;
+  }
+
   /// Registers a mounted tag; ids must be unique within the scope.
   @internal
   void registerTag(Object id, MorphTagState tag) {
@@ -456,7 +471,7 @@ class MorphTagState extends State<MorphTag> {
   /// previous frame's result).
   @internal
   Rect? tryCaptureRect(RenderBox overlayBox) {
-    if (!_treeActive || !mounted) {
+    if (!isTreeActive) {
       return null;
     }
     final RenderObject? renderObject = context.findRenderObject();

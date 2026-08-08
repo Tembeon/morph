@@ -20,6 +20,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart' show debugPrint;
+import 'package:meta/meta.dart';
 
 /// A named bundle of fusion knobs - in the spirit of MorphMotion
 /// presets. k and cell are distances in pixels: the presets are
@@ -356,33 +357,50 @@ class _FieldSampler {
 /// between clusters because at a midpoint both distances exceed k/2
 /// while smin dips at most k/4 below the plain min. The split is
 /// therefore not an approximation.
+/// Connectivity labels over [rects]: rects whose gap is at most [k]
+/// share a label (transitively), labels are dense from zero. The ONE
+/// implementation of the body predicate - the tracer's cluster split
+/// and the skin's launch fellowship both delegate here, so the two
+/// notions of "one body" cannot drift apart.
+@internal
+List<int> liquidConnectivityLabels(List<Rect> rects, double k) {
+  final int n = rects.length;
+  final List<int> labels = .filled(n, -1);
+  int count = 0;
+  final List<int> queue = <int>[];
+  for (int seed = 0; seed < n; seed++) {
+    if (labels[seed] != -1) {
+      continue;
+    }
+    final int id = count++;
+    labels[seed] = id;
+    queue.add(seed);
+    while (queue.isNotEmpty) {
+      final int current = queue.removeLast();
+      for (int other = 0; other < n; other++) {
+        if (labels[other] == -1 &&
+            liquidRectGap(rects[current], rects[other]) <= k) {
+          labels[other] = id;
+          queue.add(other);
+        }
+      }
+    }
+  }
+  return labels;
+}
+
 List<List<LiquidShape>> _clusterShapes(List<LiquidShape> shapes, double k) {
   final int n = shapes.length;
   if (n <= 1) {
     return <List<LiquidShape>>[shapes];
   }
-  final List<Rect> rects = <Rect>[
+  final List<int> cluster = liquidConnectivityLabels(<Rect>[
     for (final LiquidShape shape in shapes) shape.outerRect,
-  ];
-  final List<int> cluster = .filled(n, -1);
+  ], k);
   int clusterCount = 0;
-  final List<int> queue = <int>[];
-  for (int seed = 0; seed < n; seed++) {
-    if (cluster[seed] != -1) {
-      continue;
-    }
-    final int id = clusterCount++;
-    cluster[seed] = id;
-    queue.add(seed);
-    while (queue.isNotEmpty) {
-      final int current = queue.removeLast();
-      for (int other = 0; other < n; other++) {
-        if (cluster[other] == -1 &&
-            liquidRectGap(rects[current], rects[other]) <= k) {
-          cluster[other] = id;
-          queue.add(other);
-        }
-      }
+  for (final int id in cluster) {
+    if (id >= clusterCount) {
+      clusterCount = id + 1;
     }
   }
   if (clusterCount == 1) {

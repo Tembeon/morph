@@ -295,7 +295,9 @@ class MorphFlight {
     OverlayState? overlay,
   }) {
     final MorphScopeState scope = MorphScope.of(context);
-    final MorphFlight? existing = scope.flightOf(from);
+    // liveFlightOf, not flightOf: retargeting a stray flight whose tag
+    // was disposed would drive show/hide on a defunct State.
+    final MorphFlight? existing = scope.liveFlightOf(from);
     if (existing != null) {
       if (motion != null) {
         existing.controller.motion = motion;

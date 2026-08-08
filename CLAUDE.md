@@ -177,23 +177,29 @@ context (roadmap, priorities) lives in `CLAUDE.local.md`, untracked.
   value, size by progress, radius via the concentric lerp with its cap;
   coordinates translated through the group's localToGlobal); explicit
   links of the flying piece detach. LAUNCH FELLOWSHIP: at subscription
-  the skin captures the transitive cluster of the flying piece over
-  resting rects (gap <= k, solid pieces only), and the blob necks ONLY
-  to those - a flight stays attached to what it was part of, not to
-  whatever it passes (a dialog opened from an isolated pill must not
-  goo onto its neighbor; a launch out of a fused body keeps its neck,
-  including a body fused moments earlier by a drag). Landing: the mass
-  is home and the rect squashes via `morphBumpedRect`. Perf gate: if
-  `liquidRectGap` to every FELLOW piece exceeds k, the neck provably
-  cannot exist and the blob is skipped. Instrumented via
-  debugLastFlightBlobCount (pinned by morph_skin_test's fellowship
-  pair). STRAY FLIGHTS: a flight can outlive its tag (the scope owns
-  flights; a disposing tag only unregisters) - `_flightFor` ignores a
-  flight whose tag is not tree-active (MorphTagState.isTreeActive),
-  otherwise a rebuilt screen's fresh skin touches the defunct tag's
-  context/widget (the toolbar-lesson attach crash; pinned by the
-  stray-flight test). Outside a MorphScope the group degrades to pure
-  fusion (`MorphScope.maybeOf`).
+  the skin captures the connectivity component of the flying piece
+  over solid pieces AND their MorphLink bridges (labeled by
+  `liquidConnectivityLabels` - the ONE body predicate the tracer's
+  cluster split also delegates to), and the blob necks ONLY to those -
+  a flight stays attached to what it was part of, not to whatever it
+  passes (a dialog opened from an isolated pill must not goo onto its
+  neighbor; a launch out of a fused body keeps its neck, including a
+  body fused moments earlier by a drag). Fellowship entries outlive
+  subscription blips and are erased only on flight close or skin
+  detach. Landing: the mass is home and the rect squashes via
+  `morphBumpedRect`. Perf gate: if `liquidRectGap` to every FELLOW
+  piece exceeds k, the neck provably cannot exist and the blob is
+  skipped. Instrumented via lastFlightBlobCount (pinned by
+  morph_skin_test's fellowship pair). STRAY FLIGHTS: a flight can
+  outlive its tag (the scope owns flights; a disposing tag only
+  unregisters) - engine consumers go through
+  `MorphScopeState.liveFlightOf` (null when the tag is not
+  tree-active), which guards BOTH doors: the skin's `_flightFor` and
+  the retarget lookup in `MorphFlight.launch`; the public `flightOf`
+  stays honest for observers/HUDs. Otherwise a rebuilt screen touches
+  the defunct tag's context/widget (the toolbar-lesson attach crash;
+  pinned by the stray-flight test). Outside a MorphScope the group
+  degrades to pure fusion (`MorphScope.maybeOf`).
 - **Surface model and ambient defaults** (`MorphSurfaceSpec`,
   `MorphTheme` in theme.dart): the surface model (shape, color,
   elevation) is a first-class value declared ONCE at the tag

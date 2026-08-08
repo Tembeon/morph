@@ -2,6 +2,51 @@ import 'package:flutter/material.dart';
 
 import 'package:morph/morph.dart';
 
+/// The surface-less sibling of [MorphSurface], for content inside a
+/// [MorphPiece]: the skin IS the surface there ("one mass - one
+/// shadow"), so this recipe adds only what the glass cannot - button
+/// semantics, a click cursor and the tap, with the same
+/// context-under-the-tag contract that lets showMorph* omit `from:`.
+/// A Material here would paint a second outline that splits from the
+/// mass the moment anything deforms it.
+class MorphTapTarget extends StatelessWidget {
+  /// Creates a tap target for content whose surface the skin draws.
+  const MorphTapTarget({
+    super.key,
+    required this.label,
+    this.onTap,
+    required this.child,
+  });
+
+  /// The button's semantic label.
+  final String label;
+
+  /// Receives a context inside the tag's subtree - pass it straight to
+  /// showMorph*/showMorphRoute.
+  final void Function(BuildContext context)? onTap;
+
+  /// The content the skin's mass sits behind.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (BuildContext context) => Semantics(
+        button: onTap != null,
+        label: label,
+        child: MouseRegion(
+          cursor: onTap == null ? MouseCursor.defer : SystemMouseCursors.click,
+          child: GestureDetector(
+            behavior: .opaque,
+            onTap: onTap == null ? null : () => onTap!(context),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// A recipe, deliberately not package API - copy it into your app and
 /// standardize it there.
 ///

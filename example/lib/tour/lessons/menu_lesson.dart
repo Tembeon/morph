@@ -2,8 +2,19 @@ import 'package:flutter/material.dart';
 
 import 'package:morph/morph.dart';
 
+import 'package:morph_example/ui/morph_surface.dart';
 import 'package:morph_example/ui/spring_button.dart';
 import 'package:morph_example/ui/tug.dart';
+
+/// One pill of the demo: identity, geometry, chrome and its menu.
+typedef _Pill = ({
+  String id,
+  Rect home,
+  IconData icon,
+  String label,
+  List<(IconData, String)> items,
+  bool dangerLast,
+});
 
 /// The iOS 26 staple: a button that becomes ITS OWN menu. The pill's
 /// surface expands into the popover (anchored to where the button
@@ -24,60 +35,86 @@ class MenuLesson extends StatefulWidget {
 
 class _MenuLessonState extends State<MenuLesson> {
   static const Color _glass = Color(0xFF2A2440);
-  // The blend is the reach of the fusion - a distance in px, tuned per
-  // scene (goo's 42 suits dock-scale bodies; button-scale UI wants
-  // less). Here it demoes the floating-button-near-a-bar case: the
-  // pills rest 17 px apart with blend 14 - just far enough to stay
-  // provably separate and out of each other's launch fellowship - and
-  // these pills ride a longer leash (cap 0.28) so a full tug can push
-  // one into the other: contact, not just a neck.
-  static const double _blend = 14;
-  static const double _tugCap = 0.28;
-  static const Rect _optionsHome = Rect.fromLTWH(29, 53, 132, 44);
-  static const Rect _shareHome = Rect.fromLTWH(178, 53, 112, 44);
   static const MorphSurfaceSpec _menu = MorphSurfaceSpec(
     shape: RoundedRectangleBorder(borderRadius: .all(.circular(20))),
     color: Color(0xFF262038),
     elevation: 16,
   );
 
-  static const List<(IconData, String)> _optionItems = <(IconData, String)>[
-    (Icons.push_pin_outlined, 'Pin'),
-    (Icons.drive_file_rename_outline_rounded, 'Rename'),
-    (Icons.copy_rounded, 'Duplicate'),
-    (Icons.ios_share_rounded, 'Share'),
-    (Icons.delete_outline_rounded, 'Delete'),
+  // The blend is the reach of the fusion - a distance in px, tuned per
+  // scene (goo's 42 suits dock-scale bodies; button-scale UI wants
+  // less). Here it demoes the floating-button-near-a-bar case: the
+  // pills rest 17 px apart with blend 14 - just far enough to stay
+  // provably separate and out of each other's launch fellowship - and
+  // they ride a longer leash (cap 0.28) so a full tug can push one
+  // into the other: contact, not just a neck.
+  static const double _blend = 14;
+  static const double _tugCap = 0.28;
+
+  static const List<_Pill> _pills = <_Pill>[
+    (
+      id: 'menu-pill',
+      home: Rect.fromLTWH(29, 53, 132, 44),
+      icon: Icons.tune_rounded,
+      label: 'Options',
+      items: <(IconData, String)>[
+        (Icons.push_pin_outlined, 'Pin'),
+        (Icons.drive_file_rename_outline_rounded, 'Rename'),
+        (Icons.copy_rounded, 'Duplicate'),
+        (Icons.ios_share_rounded, 'Share'),
+        (Icons.delete_outline_rounded, 'Delete'),
+      ],
+      dangerLast: true,
+    ),
+    (
+      id: 'share-pill',
+      home: Rect.fromLTWH(178, 53, 112, 44),
+      icon: Icons.ios_share_rounded,
+      label: 'Share',
+      items: <(IconData, String)>[
+        (Icons.wifi_tethering_rounded, 'AirDrop'),
+        (Icons.link_rounded, 'Copy link'),
+        (Icons.image_outlined, 'Save image'),
+      ],
+      dangerLast: false,
+    ),
   ];
-  static const List<(IconData, String)> _shareItems = <(IconData, String)>[
-    (Icons.wifi_tethering_rounded, 'AirDrop'),
-    (Icons.link_rounded, 'Copy link'),
-    (Icons.image_outlined, 'Save image'),
+
+  // Pulls live in a notifier, not in setState: a tug reports on every
+  // frame of a drag, and only the piece RECTS depend on it - the pill
+  // content below is built once and reused, so a drag re-traces the
+  // skin without rebuilding the lesson subtree.
+  final ValueNotifier<Map<String, TugPull>> _pulls =
+      ValueNotifier<Map<String, TugPull>>(const <String, TugPull>{});
+
+  late final List<Widget> _contents = <Widget>[
+    for (final _Pill pill in _pills) _pillContent(pill),
   ];
 
   String _lastAction = 'nothing yet';
-  final Map<String, TugPull> _pulls = <String, TugPull>{};
 
-  Rect _rectFor(String id, Rect home) {
-    final TugPull? p = _pulls[id];
+  @override
+  void dispose() {
+    _pulls.dispose();
+    super.dispose();
+  }
+
+  Rect _rectFor(_Pill pill) {
+    final TugPull? p = _pulls.value[pill.id];
     if (p == null) {
-      return home;
+      return pill.home;
     }
     // The tug moves and stretches the REAL piece rect: the skin traces
     // the displaced mass, so pulling one pill toward the other grows a
     // genuine neck - geometry, not a paint effect.
     return Rect.fromCenter(
-      center: home.center + p.offset,
-      width: home.width * p.scaleX,
-      height: home.height * p.scaleY,
+      center: pill.home.center + p.offset,
+      width: pill.home.width * p.scaleX,
+      height: pill.home.height * p.scaleY,
     );
   }
 
-  void _openMenu(
-    BuildContext buttonContext, {
-    required String label,
-    required List<(IconData, String)> items,
-    required bool dangerLast,
-  }) {
+  void _openMenu(BuildContext buttonContext, _Pill pill) {
     // The popover anchors to the button: capture its rect NOW and close
     // the target spec over it. A tugged pill anchors its menu wherever
     // it currently stands - the tag rect already carries the tug.
@@ -87,17 +124,17 @@ class _MenuLessonState extends State<MenuLesson> {
       buttonContext,
       motion: widget.motion,
       maxScrimOpacity: 0.2,
-      semanticLabel: label,
+      semanticLabel: '${pill.label} menu',
       target: MorphTargetSpec.popover(
         anchor: anchor,
-        size: Size(250, 48.0 * items.length + 24),
+        size: Size(250, 48.0 * pill.items.length + 24),
         surface: _menu,
       ),
       builder: (BuildContext context, MorphFlight flight) => _MenuContent(
         flight: flight,
         onAction: _onAction,
-        items: items,
-        dangerLast: dangerLast,
+        items: pill.items,
+        dangerLast: pill.dangerLast,
       ),
     );
   }
@@ -106,6 +143,35 @@ class _MenuLessonState extends State<MenuLesson> {
     if (mounted) {
       setState(() => _lastAction = action);
     }
+  }
+
+  Widget _pillContent(_Pill pill) {
+    return Tug(
+      motion: widget.motion,
+      cap: _tugCap,
+      onPull: (TugPull p) =>
+          _pulls.value = <String, TugPull>{..._pulls.value, pill.id: p},
+      // The skin IS the surface ("one mass - one shadow"): the piece
+      // content carries no Material of its own - a second surface
+      // would split from the mass the moment the tug deforms it.
+      child: MorphTapTarget(
+        label: pill.label,
+        onTap: (BuildContext buttonContext) => _openMenu(buttonContext, pill),
+        child: Center(
+          child: Row(
+            mainAxisSize: .min,
+            children: <Widget>[
+              Icon(pill.icon, size: 17),
+              const SizedBox(width: 8),
+              Text(
+                pill.label,
+                style: const TextStyle(fontSize: 13.5, fontWeight: .w600),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -120,28 +186,22 @@ class _MenuLessonState extends State<MenuLesson> {
         SizedBox(
           width: 320,
           height: 150,
-          child: MorphSkin(
-            blend: _blend,
-            color: _glass,
-            elevation: 3,
-            pieces: <MorphPiece>[
-              _pillPiece(
-                id: 'menu-pill',
-                home: _optionsHome,
-                icon: Icons.tune_rounded,
-                label: 'Options',
-                items: _optionItems,
-                dangerLast: true,
-              ),
-              _pillPiece(
-                id: 'share-pill',
-                home: _shareHome,
-                icon: Icons.ios_share_rounded,
-                label: 'Share',
-                items: _shareItems,
-                dangerLast: false,
-              ),
-            ],
+          child: ListenableBuilder(
+            listenable: _pulls,
+            builder: (BuildContext context, Widget? child) => MorphSkin(
+              blend: _blend,
+              color: _glass,
+              elevation: 3,
+              pieces: <MorphPiece>[
+                for (int i = 0; i < _pills.length; i++)
+                  MorphPiece.morphable(
+                    id: _pills[i].id,
+                    rect: _rectFor(_pills[i]),
+                    radius: _rectFor(_pills[i]).height / 2,
+                    child: _contents[i],
+                  ),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 8),
@@ -161,64 +221,6 @@ class _MenuLessonState extends State<MenuLesson> {
           ),
         ),
       ],
-    );
-  }
-
-  MorphPiece _pillPiece({
-    required String id,
-    required Rect home,
-    required IconData icon,
-    required String label,
-    required List<(IconData, String)> items,
-    required bool dangerLast,
-  }) {
-    final Rect rect = _rectFor(id, home);
-    return MorphPiece.morphable(
-      id: id,
-      rect: rect,
-      radius: rect.height / 2,
-      child: Tug(
-        motion: widget.motion,
-        cap: _tugCap,
-        onPull: (TugPull p) => setState(() => _pulls[id] = p),
-        // The skin IS the surface ("one mass - one shadow"): the piece
-        // content carries no Material of its own - a second surface
-        // would split from the mass the moment the tug deforms it.
-        child: Builder(
-          builder: (BuildContext tapContext) => Semantics(
-            button: true,
-            label: label,
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              child: GestureDetector(
-                behavior: .opaque,
-                onTap: () => _openMenu(
-                  tapContext,
-                  label: '$label menu',
-                  items: items,
-                  dangerLast: dangerLast,
-                ),
-                child: Center(
-                  child: Row(
-                    mainAxisSize: .min,
-                    children: <Widget>[
-                      Icon(icon, size: 17),
-                      const SizedBox(width: 8),
-                      Text(
-                        label,
-                        style: const TextStyle(
-                          fontSize: 13.5,
-                          fontWeight: .w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -249,38 +251,60 @@ class _MenuContent extends StatelessWidget {
             MorphReveal(
               from: 0.3 + i * 0.1,
               to: 0.7 + i * 0.06,
-              child: SpringButton(
+              child: _MenuRow(
+                icon: items[i].$1,
+                label: items[i].$2,
+                danger: dangerLast && i == items.length - 1,
                 onPressed: () {
                   onAction(items[i].$2.toLowerCase());
                   flight.close();
                 },
-                child: Padding(
-                  padding: const .symmetric(horizontal: 20, vertical: 11),
-                  child: Row(
-                    children: <Widget>[
-                      Icon(
-                        items[i].$1,
-                        size: 18,
-                        color: dangerLast && i == items.length - 1
-                            ? const Color(0xFFFF7A83)
-                            : Colors.white.withValues(alpha: 0.8),
-                      ),
-                      const SizedBox(width: 14),
-                      Text(
-                        items[i].$2,
-                        style: TextStyle(
-                          fontSize: 13.5,
-                          color: dangerLast && i == items.length - 1
-                              ? const Color(0xFFFF7A83)
-                              : null,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _MenuRow extends StatelessWidget {
+  const _MenuRow({
+    required this.icon,
+    required this.label,
+    required this.danger,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool danger;
+  final VoidCallback onPressed;
+
+  static const Color _dangerTint = Color(0xFFFF7A83);
+
+  @override
+  Widget build(BuildContext context) {
+    return SpringButton(
+      onPressed: onPressed,
+      child: Padding(
+        padding: const .symmetric(horizontal: 20, vertical: 11),
+        child: Row(
+          children: <Widget>[
+            Icon(
+              icon,
+              size: 18,
+              color: danger ? _dangerTint : Colors.white.withValues(alpha: 0.8),
+            ),
+            const SizedBox(width: 14),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13.5,
+                color: danger ? _dangerTint : null,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

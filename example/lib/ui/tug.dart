@@ -11,6 +11,18 @@ import 'package:motor/motor.dart';
 /// [MorphPiece] rect.
 typedef TugPull = ({Offset offset, double scaleX, double scaleY});
 
+/// The full internal model of a pull, before it is packed for a
+/// consumer: the tether and the growth separately (data mode
+/// compensates content by the growth), the axis deformations without
+/// the press, and the press sink.
+typedef _TugModel = ({
+  Offset tether,
+  Offset growth,
+  double deformX,
+  double deformY,
+  double sink,
+});
+
 /// A glass surface on a short tether - a weight on a rubber leash, not
 /// a soap bubble.
 ///
@@ -26,15 +38,20 @@ typedef TugPull = ({Offset offset, double scaleX, double scaleY});
 ///   Retargeting a controller per event starves the simulation - a
 ///   high-frequency mouse restarts it before it ever ticks and the
 ///   surface freezes; and without any follow spring a grab near the
-///   edge would teleport straight to full extension.
+///   edge would teleport straight to full extension. At rest under a
+///   motionless finger the tick snaps to the target once and stops
+///   writing - a held button costs nothing per frame.
 /// - Inside a dead zone ([dead], 0.24 of the side) nothing moves: a
 ///   press that is only a press cannot shiver, and breaking free gives
 ///   the pull a beginning.
 /// - Past it the offset is `cap * tanh((d - dead) / cap)` along the
 ///   same vector, with [cap] only 0.16 of the side. Asymptotic - near
-///   1:1 while small, never a wall. Travel and stretch trade against
-///   each other, and the balance here leans hard toward shape: the
-///   surface is being stretched, not relocated.
+///   1:1 while small, never a wall. (Deliberately tanh and not the
+///   package's [morphRubberband]: tanh saturates noticeably faster,
+///   and this exact hand feel is the one that was tuned by eye.)
+///   Travel and stretch trade against each other, and the balance here
+///   leans hard toward shape: the surface is being stretched, not
+///   relocated.
 /// - The deformation locks to the SCREEN axes - no ellipse rotated
 ///   into the drag. Each axis grows on its own displacement, squared
 ///   (`1 + stretch * e^2`), and neither axis ever squashes: the
@@ -123,29 +140,34 @@ class Tug extends StatefulWidget {
 }
 
 class _TugState extends State<Tug> with TickerProviderStateMixin {
-  late final SingleMotionController _x = _spring(0);
-  late final SingleMotionController _y = _spring(0);
-  late final SingleMotionController _press = _spring(1);
-  late final Listenable _frame = Listenable.merge(<Listenable>[_x, _y, _press]);
+  late final MotionController<Offset> _xy = MotionController<Offset>(
+    motion: (widget.motion ?? MorphMotion.normal).closeMotion,
+    vsync: this,
+    converter: MotionConverter.offset,
+    initialValue: .zero,
+  );
+  late final SingleMotionController _press = SingleMotionController(
+    motion: (widget.motion ?? MorphMotion.normal).closeMotion,
+    vsync: this,
+    initialValue: 1,
+  );
+  late final Listenable _frame = Listenable.merge(<Listenable>[_xy, _press]);
 
   Offset _homeCenter = .zero;
   Size _size = Size.zero;
-  double _side = 0;
-  double _capPx = 1;
-  double _deadPx = 0;
 
   // The chase: pointer events move the target, the ticker integrates.
   late final Ticker _chase = createTicker(_chaseTick);
   Duration _chaseLast = .zero;
   Offset _target = .zero;
   Offset _chaseVelocity = .zero;
+  bool _chaseResting = false;
   static const double _chaseStiffness = 900;
+  static const double _chaseDamping = 60; // 2 * sqrt(stiffness): critical.
 
-  SingleMotionController _spring(double initial) => SingleMotionController(
-    motion: (widget.motion ?? MorphMotion.normal).closeMotion,
-    vsync: this,
-    initialValue: initial,
-  );
+  double get _side => _size.shortestSide;
+  double get _capPx => math.max(widget.cap * _side, 1);
+  double get _deadPx => widget.dead * _side;
 
   @override
   void initState() {
@@ -157,50 +179,39 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
   void dispose() {
     _frame.removeListener(_report);
     _chase.dispose();
-    _x.dispose();
-    _y.dispose();
+    _xy.dispose();
     _press.dispose();
     super.dispose();
   }
 
-  ({Offset tether, Offset growth, double deformX, double deformY, double sink})
-  _model() {
-    final Offset pull = Offset(_x.value, _y.value);
-    // Vector clamp BEFORE the axis split: the return spring overshoots
-    // its own cap chasing a moving target, and per-axis clamping would
+  _TugModel _model() {
+    final Offset pull = _xy.value;
+    // Vector clamp BEFORE the axis split: the chase spring overshoots
+    // its own cap following a fast circle, and per-axis clamping would
     // square off the tether's circle.
     final Offset e0 = pull / _capPx;
     final double m = e0.distance;
     final Offset e = m > 1 ? e0 / m : e0;
-    final double sink = _press.value;
     // The growth is an ABSOLUTE amount scaled by the shorter side (a
     // wide pill must not stretch further than a tall one). Half of
     // each axis's growth rides the offset, signed by the pull (e * |e|
     // keeps it continuous through zero): the trailing edge stays
     // planted and all visible growth reaches toward the finger.
     final double grow = _side * widget.stretch;
-    final Offset growth = Offset(
-      grow * e.dx * e.dx.abs() / 2,
-      grow * e.dy * e.dy.abs() / 2,
-    );
     return (
       tether: pull,
-      growth: growth,
+      growth: Offset(
+        grow * e.dx * e.dx.abs() / 2,
+        grow * e.dy * e.dy.abs() / 2,
+      ),
       deformX: 1 + grow * e.dx * e.dx / math.max(_size.width, 1),
       deformY: 1 + grow * e.dy * e.dy / math.max(_size.height, 1),
-      sink: sink,
+      sink: _press.value,
     );
   }
 
   TugPull _compute() {
-    final ({
-      Offset tether,
-      Offset growth,
-      double deformX,
-      double deformY,
-      double sink,
-    })
-    m = _model();
+    final _TugModel m = _model();
     return (
       offset: m.tether + m.growth,
       scaleX: m.deformX * m.sink,
@@ -220,9 +231,6 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
   void _grab(DragStartDetails details) {
     final RenderBox box = context.findRenderObject()! as RenderBox;
     _size = box.size;
-    _side = math.min(box.size.width, box.size.height);
-    _capPx = math.max(widget.cap * _side, 1);
-    _deadPx = widget.dead * _side;
     // Home center: the box's current global center minus whatever pull
     // already applies. In paint mode the transform hangs BELOW this
     // box, so the box never moves; in data mode the geometry carries
@@ -231,8 +239,9 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     _homeCenter = widget.onPull == null ? center : center - _compute().offset;
     // Seed the chase from wherever the surface is, carrying a
     // mid-return spring's velocity into the grab.
-    _target = Offset(_x.value, _y.value);
-    _chaseVelocity = Offset(_x.velocity, _y.velocity);
+    _target = _xy.value;
+    _chaseVelocity = _xy.velocity;
+    _chaseResting = false;
     _chaseLast = .zero;
     if (!_chase.isActive) {
       _chase.start();
@@ -246,6 +255,7 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
         ? 0
         : _capPx * _tanh((len - _deadPx) / _capPx);
     _target = len == 0 ? .zero : raw * (applied / len);
+    _chaseResting = false;
   }
 
   void _chaseTick(Duration elapsed) {
@@ -256,41 +266,35 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
       1 / 30,
     );
     _chaseLast = elapsed;
-    if (dt <= 0) {
+    if (dt <= 0 || _chaseResting) {
       return;
     }
-    // Critically damped (damping = 2*sqrt(k)): tight under the finger,
-    // no oscillation of its own - character belongs to the return.
-    final double damping = 2 * math.sqrt(_chaseStiffness);
-    final Offset pos = Offset(_x.value, _y.value);
+    final Offset pos = _xy.value;
     final Offset delta = _target - pos;
-    _chaseVelocity += (delta * _chaseStiffness - _chaseVelocity * damping) * dt;
-    final Offset next = pos + _chaseVelocity * dt;
-    _x.value = next.dx;
-    _y.value = next.dy;
-  }
-
-  void _release(DragEndDetails details) {
-    _restorePress();
-    _home();
+    // Rest guard: under a motionless finger the chase converges, and
+    // without this the epsilon writes would notify every frame - and
+    // in data mode re-trace the skin at full rate for invisible
+    // motion. Snap to the target exactly once and go quiet.
+    if (delta.distanceSquared < 0.01 && _chaseVelocity.distanceSquared < 0.25) {
+      _chaseVelocity = .zero;
+      _chaseResting = true;
+      if (pos != _target) {
+        _xy.value = _target;
+      }
+      return;
+    }
+    _chaseVelocity +=
+        (delta * _chaseStiffness - _chaseVelocity * _chaseDamping) * dt;
+    _xy.value = pos + _chaseVelocity * dt;
   }
 
   void _drop() {
     _restorePress();
-    _home();
-  }
-
-  void _home() {
-    if (_chase.isActive) {
-      _chase.stop();
-    }
+    _chase.stop();
     // The chase's velocity carries into the return springs: a flick
     // lands with its momentum.
-    final Motion close = (widget.motion ?? MorphMotion.normal).closeMotion;
-    _x.motion = close;
-    _y.motion = close;
-    _x.animateTo(0, withVelocity: _chaseVelocity.dx);
-    _y.animateTo(0, withVelocity: _chaseVelocity.dy);
+    _xy.motion = (widget.motion ?? MorphMotion.normal).closeMotion;
+    _xy.animateTo(.zero, withVelocity: _chaseVelocity);
     _chaseVelocity = .zero;
   }
 
@@ -308,69 +312,57 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final Widget body = widget.onPull != null
-        // Data mode: the owner grows the real geometry, and the child
-        // box grows with it - so the content inside would re-center
-        // and read as the glass growing BOTH ways. Compensate: the
-        // content rides the rigid body (tether only) while the mass
-        // alone reaches for the finger; the press sinks it in full and
-        // [follow] of the stretch deforms it.
-        ? ListenableBuilder(
-            listenable: _frame,
-            child: widget.child,
-            builder: (BuildContext context, Widget? child) {
-              final ({
-                Offset tether,
-                Offset growth,
-                double deformX,
-                double deformY,
-                double sink,
-              })
-              m = _model();
-              return Transform.translate(
-                offset: -m.growth,
-                child: Transform.scale(
-                  scaleX: m.sink * (1 + widget.follow * (m.deformX - 1)),
-                  scaleY: m.sink * (1 + widget.follow * (m.deformY - 1)),
-                  child: child,
-                ),
-              );
-            },
-          )
-        : ListenableBuilder(
-            listenable: _frame,
-            child: widget.child,
-            builder: (BuildContext context, Widget? child) {
-              // The wrapper chain is structurally IDENTICAL for every
-              // pull, including rest (all transforms degrade to
-              // identity): swapping to a bare child at zero would
-              // remount the subtree, and a MorphTag inside would lose
-              // its state and desync from a live flight.
-              final TugPull p = _compute();
-              return Transform.translate(
-                offset: p.offset,
-                child: Transform.scale(
-                  scaleX: p.scaleX,
-                  scaleY: p.scaleY,
-                  child: Transform.rotate(
-                    angle:
-                        widget.lean *
-                        math.pi /
-                        180 *
-                        (_capPx == 1 ? 0 : (p.offset.dx / _capPx).clamp(-1, 1)),
-                    child: child,
-                  ),
-                ),
-              );
-            },
-          );
     return GestureDetector(
       onPanDown: _down,
       onPanStart: _grab,
       onPanUpdate: _pull,
-      onPanEnd: _release,
+      onPanEnd: (DragEndDetails details) => _drop(),
       onPanCancel: _drop,
-      child: body,
+      child: ListenableBuilder(
+        listenable: _frame,
+        child: widget.child,
+        builder: (BuildContext context, Widget? child) {
+          final _TugModel m = _model();
+          // Data mode: the owner grows the real geometry, and the
+          // child box grows with it - so the content inside would
+          // re-center and read as the glass growing BOTH ways.
+          // Compensate: the content rides the rigid body (tether
+          // only) while the mass alone reaches for the finger; the
+          // press sinks it in full and [follow] of the stretch
+          // deforms it.
+          if (widget.onPull != null) {
+            return Transform.translate(
+              offset: -m.growth,
+              child: Transform.scale(
+                scaleX: m.sink * (1 + widget.follow * (m.deformX - 1)),
+                scaleY: m.sink * (1 + widget.follow * (m.deformY - 1)),
+                child: child,
+              ),
+            );
+          }
+          // Paint mode. The wrapper chain is structurally IDENTICAL
+          // for every pull, including rest (all transforms degrade to
+          // identity): swapping to a bare child at zero would remount
+          // the subtree, and a MorphTag inside would lose its state
+          // and desync from a live flight.
+          final Offset offset = m.tether + m.growth;
+          return Transform.translate(
+            offset: offset,
+            child: Transform.scale(
+              scaleX: m.deformX * m.sink,
+              scaleY: m.deformY * m.sink,
+              child: Transform.rotate(
+                angle:
+                    widget.lean *
+                    math.pi /
+                    180 *
+                    (offset.dx / _capPx).clamp(-1, 1),
+                child: child,
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
