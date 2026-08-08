@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/foundation.dart';
 
 /// The surface-less sibling of [MorphSurface], for content inside a
 /// [MorphPiece]: the skin IS the surface there ("one mass - one
@@ -47,23 +47,19 @@ class MorphTapTarget extends StatelessWidget {
   }
 }
 
-/// A recipe, deliberately not package API - copy it into your app and
-/// standardize it there.
+/// The Material adapter of the widget layer: renders the visible
+/// surface of the nearest [MorphTag] FROM its declared spec
+/// (Material + InkWell with the spec's shape), so the button and the
+/// flight can never disagree about the surface. The tap handler
+/// receives a context UNDER the tag, which is why showMorph* can omit
+/// `from:` - the morph flies from the surface the finger is already
+/// on.
 ///
-/// Renders the visible surface of the nearest [MorphTag] FROM its
-/// declared spec (Material + InkWell with the spec's shape), so the
-/// button and the flight can never disagree about the surface. The tap
-/// handler receives a context UNDER the tag, which is why showMorph*
-/// can omit `from:` - the morph flies from the surface the finger is
-/// already on.
-///
-/// Why this is example code and not a library widget: Material + Ink
-/// is one design system's answer (a Cupertino or custom-canvas app
-/// renders its surfaces differently), and button accessibility is an
-/// app-wide decision - this recipe adds `Semantics(button:)`, but your
-/// app may want labels, traversal order or platform-specific
-/// affordances the library cannot guess. The engine's contract ends at
-/// MorphTag.specOf; everything below it is yours.
+/// An opinion, not the contract: Material + Ink is one design system's
+/// answer, and button accessibility is an app-wide decision - fork
+/// this if your app renders surfaces differently. The ENGINE's
+/// contract ends at MorphTag.specOf; everything below it is
+/// replaceable.
 class MorphSurface extends StatelessWidget {
   /// Creates a surface for the enclosing tag's spec.
   const MorphSurface({super.key, this.onTap, required this.child});

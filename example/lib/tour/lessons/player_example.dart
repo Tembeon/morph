@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
-
-import 'package:morph_example/ui/morph_surface.dart';
+import 'package:morph/widgets.dart';
 
 /// A realistic music player: the mini bar morphs into the full player
 /// and the album art travels between them (MorphSharedElement) while

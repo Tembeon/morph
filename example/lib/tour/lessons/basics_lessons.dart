@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 
 import 'package:morph_example/tour/lessons/dialog_contents.dart';
 import 'package:morph_example/tour/lessons/comet_example.dart';
-import 'package:morph_example/ui/morph_surface.dart';
 
 /// 01 - Identity: one MorphTag, one showMorph call. The button becomes
 /// the dialog; closing lands back into the button with the full-wave

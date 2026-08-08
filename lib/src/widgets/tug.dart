@@ -3,7 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/foundation.dart';
+import 'package:morph/src/widgets/chase_spring.dart';
 import 'package:motor/motor.dart';
 
 /// The pull a [Tug] reports in data mode: the tether offset plus the
@@ -158,12 +159,8 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
 
   // The chase: pointer events move the target, the ticker integrates.
   late final Ticker _chase = createTicker(_chaseTick);
+  final ChaseSpring _spring = ChaseSpring();
   Duration _chaseLast = .zero;
-  Offset _target = .zero;
-  Offset _chaseVelocity = .zero;
-  bool _chaseResting = false;
-  static const double _chaseStiffness = 900;
-  static const double _chaseDamping = 60; // 2 * sqrt(stiffness): critical.
 
   double get _side => _size.shortestSide;
   double get _capPx => math.max(widget.cap * _side, 1);
@@ -239,9 +236,7 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     _homeCenter = widget.onPull == null ? center : center - _compute().offset;
     // Seed the chase from wherever the surface is, carrying a
     // mid-return spring's velocity into the grab.
-    _target = _xy.value;
-    _chaseVelocity = _xy.velocity;
-    _chaseResting = false;
+    _spring.grab(_xy.value, velocity: _xy.velocity);
     _chaseLast = .zero;
     if (!_chase.isActive) {
       _chase.start();
@@ -254,8 +249,7 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     final double applied = len <= _deadPx
         ? 0
         : _capPx * _tanh((len - _deadPx) / _capPx);
-    _target = len == 0 ? .zero : raw * (applied / len);
-    _chaseResting = false;
+    _spring.target = len == 0 ? .zero : raw * (applied / len);
   }
 
   void _chaseTick(Duration elapsed) {
@@ -266,26 +260,13 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
       1 / 30,
     );
     _chaseLast = elapsed;
-    if (dt <= 0 || _chaseResting) {
-      return;
+    // The chase's own rest guard keeps a motionless finger free: once
+    // it snaps onto the target, tick reports no change and the
+    // controller is not written - in data mode that is what stops the
+    // skin from re-tracing epsilon motion at full frame rate.
+    if (_spring.tick(dt)) {
+      _xy.value = _spring.value;
     }
-    final Offset pos = _xy.value;
-    final Offset delta = _target - pos;
-    // Rest guard: under a motionless finger the chase converges, and
-    // without this the epsilon writes would notify every frame - and
-    // in data mode re-trace the skin at full rate for invisible
-    // motion. Snap to the target exactly once and go quiet.
-    if (delta.distanceSquared < 0.01 && _chaseVelocity.distanceSquared < 0.25) {
-      _chaseVelocity = .zero;
-      _chaseResting = true;
-      if (pos != _target) {
-        _xy.value = _target;
-      }
-      return;
-    }
-    _chaseVelocity +=
-        (delta * _chaseStiffness - _chaseVelocity * _chaseDamping) * dt;
-    _xy.value = pos + _chaseVelocity * dt;
   }
 
   void _drop() {
@@ -294,8 +275,7 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     // The chase's velocity carries into the return springs: a flick
     // lands with its momentum.
     _xy.motion = (widget.motion ?? MorphMotion.normal).closeMotion;
-    _xy.animateTo(.zero, withVelocity: _chaseVelocity);
-    _chaseVelocity = .zero;
+    _xy.animateTo(.zero, withVelocity: _spring.velocity);
   }
 
   void _restorePress() {

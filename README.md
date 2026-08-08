@@ -27,12 +27,21 @@ flutter run -d macos   # or any device
 
 Recipes and applied patterns live there, not in this README.
 
-## Not a component kit
+## Two layers, Flutter-style
 
-morph ships the engine - identity, flights, retargeting, the liquid
-skin - and no ready-made patterns. It does not set out to reproduce
-iOS widgets or Liquid Glass: the iOS-flavored demos in the example
-apply the engine, they are not features of the library.
+- `package:morph/morph.dart` (alias of `foundation.dart`) - the
+  engine: identity, flights, retargeting, the liquid skin. No
+  opinions.
+- `package:morph/widgets.dart` - opinionated widgets built on it:
+  `showMorphMenu` (a control becomes its own menu), the `Tug` glass
+  tether, `SpringButton`, the Material adapter `MorphSurface`.
+  Interesting uses of the engine, taste included; the knobs move with
+  my app.
+
+The engine never depends on the widget layer. And morph still does not
+set out to reproduce iOS widgets or Liquid Glass: there is no glass
+shader here and none is planned - the widget layer is about USING
+morph well, not about a platform's surface shading.
 
 ## Install
 
@@ -53,7 +62,8 @@ MaterialApp(
 ```
 
 Physics comes from [motor](https://pub.dev/packages/motor); its
-minimal motion vocabulary is re-exported.
+minimal motion vocabulary is re-exported. The opinionated widgets are
+one import away: `package:morph/widgets.dart`.
 
 ## The API is a ladder
 

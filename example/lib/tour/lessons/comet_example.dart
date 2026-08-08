@@ -4,7 +4,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 
 /// The goo comet: a chain of pieces chases the pointer, each link a
 /// critically-damped spring tracking the previous one with softer
@@ -28,15 +28,16 @@ class _CometExampleState extends State<CometExample>
   late final Ticker _ticker;
   Duration _last = .zero;
   Offset _target = const Offset(300, 200);
-  final List<Offset> _positions = <Offset>[];
-  final List<Offset> _velocities = <Offset>[];
+  // One chase per link, stiffness falling down the tail so the comet
+  // stretches under motion and regroups at rest ([ChaseSpring] is
+  // critically damped by construction).
+  final List<ChaseSpring> _chain = <ChaseSpring>[];
 
   @override
   void initState() {
     super.initState();
     for (int i = 0; i < _links; i++) {
-      _positions.add(_target);
-      _velocities.add(Offset.zero);
+      _chain.add(ChaseSpring(stiffness: 340.0 / (1 + i * 0.55))..grab(_target));
     }
     _ticker = createTicker(_tick)..start();
   }
@@ -50,20 +51,17 @@ class _CometExampleState extends State<CometExample>
     if (dt <= 0) {
       return;
     }
-    setState(() {
-      Offset lead = _target;
-      for (int i = 0; i < _links; i++) {
-        // A critically damped spring per link (damping = 2*sqrt(k)),
-        // stiffness falling down the tail so the comet stretches under
-        // motion and regroups at rest.
-        final double stiffness = 340.0 / (1 + i * 0.55);
-        final double damping = 2 * math.sqrt(stiffness);
-        final Offset delta = lead - _positions[i];
-        _velocities[i] += (delta * stiffness - _velocities[i] * damping) * dt;
-        _positions[i] += _velocities[i] * dt;
-        lead = _positions[i];
-      }
-    });
+    Offset lead = _target;
+    bool moved = false;
+    for (final ChaseSpring link in _chain) {
+      link.target = lead;
+      moved = link.tick(dt) || moved;
+      lead = link.value;
+    }
+    // The chain at rest costs nothing: no chase moved, no rebuild.
+    if (moved) {
+      setState(() {});
+    }
   }
 
   @override
@@ -90,7 +88,7 @@ class _CometExampleState extends State<CometExample>
               MorphPiece(
                 id: i,
                 rect: .fromCenter(
-                  center: _positions[i],
+                  center: _chain[i].value,
                   width: 54.0 - i * 4.6,
                   height: 54.0 - i * 4.6,
                 ),

@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
-
-import 'package:morph_example/ui/morph_surface.dart';
-import 'package:morph_example/ui/spring_button.dart';
+import 'package:morph/widgets.dart';
 
 /// One chapter of the tour: a single mechanism, a live demo, and the
 /// taste notes - when the morph earns its place and when it does not.

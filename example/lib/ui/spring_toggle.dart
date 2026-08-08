@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 import 'package:motor/motor.dart';
 
 /// A switch whose knob rides a spring (motor's [SingleMotionController]:

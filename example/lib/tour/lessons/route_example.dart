@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
-
-import 'package:morph_example/ui/morph_surface.dart';
+import 'package:morph/widgets.dart';
 
 /// The morph ROUTE: the destination is a real Navigator route, the
 /// flight is only its transition. The route is pushed immediately - the

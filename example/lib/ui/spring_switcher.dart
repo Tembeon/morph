@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 
 /// Content switching on the engine's own physics: a [MorphController]
 /// drives a crossfade-and-rise, and a swap MID-FLIGHT stays continuous

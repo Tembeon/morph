@@ -9,6 +9,33 @@ Not on pub.dev by design (`publish_to: none`); releases are git tags
 following semver, and the API follows the owner's app. Owner-local
 context (roadmap, priorities) lives in `CLAUDE.local.md`, untracked.
 
+## Layers
+
+Flutter-style split, two entrypoints:
+- `lib/foundation.dart` - the ENGINE export (former morph.dart;
+  `lib/morph.dart` remains as a one-line alias so the conventional
+  import keeps working).
+- `lib/widgets.dart` - the opinionated widget layer
+  (`lib/src/widgets/`): showMorphMenu/MorphMenuItem (the worked-through
+  chapter-04 pattern as one call: a control becomes its own menu,
+  popover anchored to the control's current box, rows cascading via
+  MorphReveal, onSelected fires before the close), SpringButton, Tug
+  (the glass tether), MorphSurface/MorphTapTarget (the Material
+  adapter and its surface-less sibling), ChaseSpring
+  (the moving-target integrator: per-event controller retargets
+  starve - a high-frequency mouse restarts the sim before it ticks;
+  the chase inverts the flow, events move the target and the owner
+  integrates per frame; critically damped, rest guard included).
+  BOUNDARY: widgets import foundation and motor, the engine NEVER
+  imports widgets. Taste knobs in widgets are API but expected to move
+  with the owner's app (semver majors are cheap pre-1.0). No glass
+  shader lives here and none is planned - the layer is about USING
+  morph well, not reproducing a platform's shading. The bar for
+  promotion: worked through and pointed at a real use (SpringToggle,
+  SpringSwitcher and GooSelector stayed in example as lab chrome -
+  shell furniture, not worked through). The example keeps its chrome
+  in example/lib/ui/ and consumes the layer like any app.
+
 ## Architecture (lib/src/)
 
 - `motion.dart` - `MorphMotion`: a pair of `Motion`s from **motor**
@@ -291,7 +318,8 @@ Lab: the whole canvas is a sandbox builder:
   pieces missing from a snapshot stay put;
 - sidebar sections: MOTION / LANDING / SANDBOX / KEYFRAMES / LIQUID /
   STRESS;
-- THE SHELL ITSELF RUNS ON THE ENGINE (example/lib/ui/): every
+- THE SHELL ITSELF RUNS ON THE WIDGETS LAYER (lib/widgets.dart, plus
+  the lab chrome in example/lib/ui/lab_chrome.dart): every
   segmented control is a GooSelector (liquid track + selection blob on
   a retargetable spring, slightly proud of the track; a null selection
   deflates the blob - mass, not opacity; label emphasis is a pure
@@ -368,13 +396,15 @@ Hard-won rules already enforced in the core:
   deliberately NOT republished by the shuttle - dialog content names
   its source explicitly). Calls from elsewhere (morphable pieces, list
   controllers) keep the explicit id.
-- Surface RENDERING stays an app-side recipe by design: the example's
-  MorphSurface (example/lib/ui/morph_surface.dart) is the copyable
-  Material answer (Material+InkWell from specOf, Semantics(button:),
-  onTap receives an under-the-tag context so from: is inferred) - it is
-  deliberately NOT package API, because Material+Ink is one design
-  system's answer and button a11y is an app-wide decision. The engine's
-  contract ends at MorphTag.specOf.
+- Surface RENDERING is an opinion, not engine contract: MorphSurface
+  (lib/src/widgets/morph_surface.dart, widgets layer) is the Material
+  adapter (Material+InkWell from specOf, Semantics(button:), onTap
+  receives an under-the-tag context so from: is inferred);
+  MorphTapTarget is its surface-less sibling for skin pieces ("one
+  mass - one shadow": a second Material would split from the mass).
+  Both live in widgets.dart - fork them if the design system differs.
+  The ENGINE's contract still ends at MorphTag.specOf, and the core
+  never depends on the widget layer.
 - MorphPageRoute.barrierLabel is the localized dismiss label (passed by
   showMorphRoute), NOT the route name - that is semanticLabel.
 
@@ -444,8 +474,10 @@ Hard-won rules already enforced in the core:
 - **Shader/blur-based liquid neck** (SDF shader, blur+threshold
   metaballs): halos and mush on small-into-large morphs. The CPU vector
   path (marching squares) replaced it and is the only supported way.
-- **Prebuilt drag widget**: gesture policy belongs to the app. The
-  primitives in gesture.dart plus the scrub API remain.
+- **Prebuilt drag widget**: gesture policy for DISMISSING A FLIGHT
+  belongs to the app. The primitives in gesture.dart plus the scrub
+  API remain. (The widgets layer's Tug is not this: a tactile tether
+  recipe, not a dismiss policy.)
 - **Snapshot ghost by default**: a frozen ripple looks worse than a live
   widget replica. Kept as opt-in for heavy content.
 - **"Position leads, size follows"** and back-out on position: not
@@ -493,7 +525,7 @@ by a test).
   `Object.hashAll` in an int context.
 - Example layout: `tour/` (home, lesson framework, lessons/ - all
   chapter demos and dialog_contents.dart), `playground/` (the sandbox,
-  stress rig, HUD and the chapter shell), `ui/` (spring recipes),
+  stress rig, HUD and the chapter shell), `ui/` (lab chrome: LabActionButton, SpringToggle/Tile, SpringSwitcher, GooSelector; the promoted recipes live in lib/widgets.dart),
   `perf/` (the release bench), flags.dart, main.dart. The historical
   gallery/ and demo/ directories are gone.
 - Dartdoc speaks to the CONSUMER in the present tense: behavior,

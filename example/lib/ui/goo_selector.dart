@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 import 'package:motor/motor.dart';
-
-import 'package:morph_example/ui/spring_button.dart';
 
 /// The lab's segmented control, rebuilt on the liquid engine: one skin
 /// fuses a track with a selection blob riding a spring between

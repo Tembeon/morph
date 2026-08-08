@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
-
-import 'package:morph_example/ui/morph_surface.dart';
-import 'package:morph_example/ui/spring_button.dart';
-import 'package:morph_example/ui/tug.dart';
+import 'package:morph/widgets.dart';
 
 /// One pill of the demo: identity, geometry, chrome and its menu.
 typedef _Pill = ({
@@ -115,27 +111,25 @@ class _MenuLessonState extends State<MenuLesson> {
   }
 
   void _openMenu(BuildContext buttonContext, _Pill pill) {
-    // The popover anchors to the button: capture its rect NOW and close
-    // the target spec over it. A tugged pill anchors its menu wherever
-    // it currently stands - the tag rect already carries the tug.
-    final RenderBox box = buttonContext.findRenderObject()! as RenderBox;
-    final Rect anchor = box.localToGlobal(.zero) & box.size;
-    showMorph(
+    // One call: the popover anchors to the button's CURRENT box (a
+    // tugged pill opens its menu wherever it stands), rows cascade on
+    // the flight's own spring.
+    showMorphMenu(
       buttonContext,
       motion: widget.motion,
-      maxScrimOpacity: 0.2,
       semanticLabel: '${pill.label} menu',
-      target: MorphTargetSpec.popover(
-        anchor: anchor,
-        size: Size(250, 48.0 * pill.items.length + 24),
-        surface: _menu,
-      ),
-      builder: (BuildContext context, MorphFlight flight) => _MenuContent(
-        flight: flight,
-        onAction: _onAction,
-        items: pill.items,
-        dangerLast: pill.dangerLast,
-      ),
+      surface: _menu,
+      items: <MorphMenuItem>[
+        for (int i = 0; i < pill.items.length; i++)
+          MorphMenuItem(
+            icon: pill.items[i].$1,
+            label: pill.items[i].$2,
+            tint: pill.dangerLast && i == pill.items.length - 1
+                ? const Color(0xFFFF7A83)
+                : null,
+            onSelected: () => _onAction(pill.items[i].$2.toLowerCase()),
+          ),
+      ],
     );
   }
 
@@ -221,91 +215,6 @@ class _MenuLessonState extends State<MenuLesson> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _MenuContent extends StatelessWidget {
-  const _MenuContent({
-    required this.flight,
-    required this.onAction,
-    required this.items,
-    required this.dangerLast,
-  });
-
-  final MorphFlight flight;
-  final ValueChanged<String> onAction;
-  final List<(IconData, String)> items;
-  final bool dangerLast;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const .symmetric(vertical: 10),
-      child: Column(
-        mainAxisSize: .min,
-        children: <Widget>[
-          for (int i = 0; i < items.length; i++)
-            // Each row unfolds on its own sub-range of the ONE spring:
-            // the cascade is the menu's opening, not a separate clock.
-            MorphReveal(
-              from: 0.3 + i * 0.1,
-              to: 0.7 + i * 0.06,
-              child: _MenuRow(
-                icon: items[i].$1,
-                label: items[i].$2,
-                danger: dangerLast && i == items.length - 1,
-                onPressed: () {
-                  onAction(items[i].$2.toLowerCase());
-                  flight.close();
-                },
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MenuRow extends StatelessWidget {
-  const _MenuRow({
-    required this.icon,
-    required this.label,
-    required this.danger,
-    required this.onPressed,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool danger;
-  final VoidCallback onPressed;
-
-  static const Color _dangerTint = Color(0xFFFF7A83);
-
-  @override
-  Widget build(BuildContext context) {
-    return SpringButton(
-      onPressed: onPressed,
-      child: Padding(
-        padding: const .symmetric(horizontal: 20, vertical: 11),
-        child: Row(
-          children: <Widget>[
-            Icon(
-              icon,
-              size: 18,
-              color: danger ? _dangerTint : Colors.white.withValues(alpha: 0.8),
-            ),
-            const SizedBox(width: 14),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 13.5,
-                color: danger ? _dangerTint : null,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

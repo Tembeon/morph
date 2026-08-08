@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
+
+import 'package:morph_example/ui/goo_selector.dart';
+import 'package:morph_example/ui/lab_chrome.dart';
+import 'package:morph_example/ui/spring_switcher.dart';
+import 'package:morph_example/ui/spring_toggle.dart';
 
 import 'package:morph_example/tour/lessons/dialog_contents.dart';
 import 'package:morph_example/playground/hud.dart';
 import 'package:morph_example/playground/sandbox.dart';
 import 'package:morph_example/playground/stress_lab.dart';
 import 'package:morph_example/flags.dart';
-import 'package:morph_example/ui/goo_selector.dart';
-import 'package:morph_example/ui/spring_button.dart';
-import 'package:morph_example/ui/spring_switcher.dart';
-import 'package:morph_example/ui/spring_toggle.dart';
 
 /// Motion family for the lab: the engine accepts any Motion,
 /// the lab shows the three vocabularies shipped with motor.
