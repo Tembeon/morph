@@ -303,4 +303,153 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  Widget fellowshipHost({required Rect neighbor}) {
+    return MaterialApp(
+      builder: (BuildContext context, Widget? child) =>
+          MorphScope(child: child!),
+      home: Scaffold(
+        body: MorphSkin(
+          blend: 24,
+          color: const Color(0xFF2A2440),
+          pieces: <MorphPiece>[
+            MorphPiece(id: 'bystander', rect: neighbor),
+            MorphPiece.morphable(
+              id: 'hero',
+              rect: const .fromLTWH(170, 310, 110, 50),
+              child: Builder(
+                builder: (BuildContext context) => TextButton(
+                  onPressed: () {
+                    showMorphDialog(
+                      context,
+                      from: 'hero',
+                      width: 500,
+                      height: 420,
+                      builder: (BuildContext context, MorphFlight flight) =>
+                          const Text('dialog'),
+                    );
+                  },
+                  child: const Text('fly'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<int> maxBlobsDuringFlight(WidgetTester tester) async {
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    int maxBlobs = 0;
+    await tester.tap(find.text('fly'));
+    for (int i = 0; i < 200; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(tester.takeException(), isNull);
+      if (skin.debugLastFlightBlobCount > maxBlobs) {
+        maxBlobs = skin.debugLastFlightBlobCount;
+      }
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+    return maxBlobs;
+  }
+
+  testWidgets('flight blob ignores pieces outside the launch fellowship', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    // The bystander is far from the hero at launch (gap >> k), but the
+    // opening dialog grows right past it - and must not goo onto it.
+    await tester.pumpWidget(
+      fellowshipHost(neighbor: const Rect.fromLTWH(200, 100, 120, 70)),
+    );
+    expect(await maxBlobsDuringFlight(tester), 0);
+  });
+
+  testWidgets('flight blob keeps the neck to a fused launch fellowship', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    // Fused at rest (gap 10 <= k 24): the neighbor is part of the body
+    // the hero launches out of, so the blob necks to it.
+    await tester.pumpWidget(
+      fellowshipHost(neighbor: const Rect.fromLTWH(40, 300, 120, 70)),
+    );
+    expect(await maxBlobsDuringFlight(tester), greaterThan(0));
+  });
+
+  testWidgets('a stray flight of a disposed tag is ignored by a new skin', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    Widget stage({required bool withSkin}) {
+      return MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: !withSkin
+              ? const SizedBox()
+              : MorphSkin(
+                  blend: 24,
+                  color: const Color(0xFF2A2440),
+                  pieces: <MorphPiece>[
+                    MorphPiece.morphable(
+                      id: 'hero',
+                      rect: const .fromLTWH(170, 310, 110, 50),
+                      child: Builder(
+                        builder: (BuildContext context) => TextButton(
+                          onPressed: () {
+                            showMorphDialog(
+                              context,
+                              from: 'hero',
+                              builder:
+                                  (BuildContext context, MorphFlight flight) =>
+                                      const Text('dialog'),
+                            );
+                          },
+                          child: const Text('fly'),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      );
+    }
+
+    await tester.pumpWidget(stage(withSkin: true));
+    await tester.tap(find.text('fly'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 60));
+
+    // The screen is torn down mid-flight: the tag disposes, the flight
+    // lives on (the scope owns it)...
+    await tester.pumpWidget(stage(withSkin: false));
+    await tester.pump(const Duration(milliseconds: 16));
+
+    // ...and a fresh skin mounts with the same piece id. It must treat
+    // the stray flight as none at all: no defunct-tag access in the
+    // debug assert, no companion blob, no exceptions.
+    await tester.pumpWidget(stage(withSkin: true));
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    for (int i = 0; i < 300; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(tester.takeException(), isNull);
+      expect(skin.debugLastFlightBlobCount, 0);
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+  });
 }

@@ -373,6 +373,14 @@ class MorphTagState extends State<MorphTag> {
   /// yet disposed.
   bool _treeActive = true;
 
+  /// Whether the tag still lives in an active tree. False while
+  /// deactivated or after dispose - a flight can outlive its tag (the
+  /// scope owns flights, a disposing tag only unregisters), and
+  /// consumers such as the skin must not touch a defunct tag's context
+  /// or widget.
+  @internal
+  bool get isTreeActive => _treeActive && mounted;
+
   @override
   void activate() {
     super.activate();

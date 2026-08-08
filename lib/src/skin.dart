@@ -371,6 +371,18 @@ class RenderMorphSkin extends RenderBox
   final Map<MorphFlight, VoidCallback> _flightSubs =
       <MorphFlight, VoidCallback>{};
 
+  /// The launch fellowship of each active flight: ids of the pieces
+  /// whose mass was connected to the flying piece at launch
+  /// (transitively, resting-rect gap <= k). The companion blob necks
+  /// only to these - a flight stays attached to what it was PART OF,
+  /// not to whatever it happens to pass on the way.
+  final Map<MorphFlight, Set<Object>> _flightFellowship =
+      <MorphFlight, Set<Object>>{};
+
+  /// How many companion blobs the last paint poured into the field - a
+  /// debug instrument for tests.
+  int debugLastFlightBlobCount = 0;
+
   /// An animating skin must not repaint ancestors: the group owns its
   /// layer.
   @override
@@ -567,6 +579,7 @@ class RenderMorphSkin extends RenderBox
       sub.key.frameTicks.removeListener(sub.value);
     }
     _flightSubs.clear();
+    _flightFellowship.clear();
     super.detach();
   }
 
@@ -582,6 +595,14 @@ class RenderMorphSkin extends RenderBox
     if (flight == null || flight.isFinished) {
       return null;
     }
+    // A flight whose tag left the tree is a stray from a previous
+    // incarnation of the screen (the scope owns flights; a disposing
+    // tag only unregisters). It cannot land onto this piece, and its
+    // defunct tag can no longer answer shape or bump questions - the
+    // skin ignores it entirely.
+    if (!flight.tag.isTreeActive) {
+      return null;
+    }
     return flight;
   }
 
@@ -591,18 +612,21 @@ class RenderMorphSkin extends RenderBox
   /// Unsubscription happens on flight completion (closed runs before
   /// the controller's deferred dispose) or on detach.
   void _syncFlightSubscriptions() {
-    final Set<MorphFlight> active = <MorphFlight>{
-      for (final MorphPiece piece in _pieces) ?_flightFor(piece),
+    final Map<MorphFlight, MorphPiece> active = <MorphFlight, MorphPiece>{
+      for (final MorphPiece piece in _pieces)
+        if (_flightFor(piece) case final MorphFlight flight) flight: piece,
     };
     for (final MorphFlight flight in _flightSubs.keys.toList()) {
-      if (!active.contains(flight)) {
+      if (!active.containsKey(flight)) {
         flight.frameTicks.removeListener(_flightSubs.remove(flight)!);
+        _flightFellowship.remove(flight);
       }
     }
-    for (final MorphFlight flight in active) {
+    for (final MorphFlight flight in active.keys) {
       if (_flightSubs.containsKey(flight)) {
         continue;
       }
+      _flightFellowship[flight] = _launchFellowship(active[flight]!);
       assert(() {
         final (double scale, double recoil) = flight.tag.resolvedBump;
         if (scale != 0 || recoil != 0) {
@@ -625,11 +649,35 @@ class RenderMorphSkin extends RenderBox
         if (sub != null) {
           flight.frameTicks.removeListener(sub);
         }
+        _flightFellowship.remove(flight);
         if (attached) {
           markNeedsPaint();
         }
       });
     }
+  }
+
+  /// The pieces connected to [origin]'s mass at this moment:
+  /// transitive closure over solid pieces with a resting-rect gap of
+  /// at most k. Captured once per flight, at launch.
+  Set<Object> _launchFellowship(MorphPiece origin) {
+    final Set<Object> fellow = <Object>{};
+    final Set<Object> seen = <Object>{origin.id};
+    final List<MorphPiece> frontier = <MorphPiece>[origin];
+    while (frontier.isNotEmpty) {
+      final MorphPiece from = frontier.removeLast();
+      for (final MorphPiece other in _pieces) {
+        if (seen.contains(other.id) || !other.solid) {
+          continue;
+        }
+        if (liquidRectGap(from.rect, other.rect) <= _k) {
+          seen.add(other.id);
+          fellow.add(other.id);
+          frontier.add(other);
+        }
+      }
+    }
+    return fellow;
   }
 
   @override
@@ -704,9 +752,12 @@ class RenderMorphSkin extends RenderBox
   /// geometry (center by value, size by progress, radius via the
   /// concentric lerp with its cap) translated into the group's local
   /// coordinates. The blob is hidden under the shuttle for most of the
-  /// flight - only the neck tail shows. Perf gate: when the gap to every
-  /// solid piece exceeds k, the neck provably cannot exist and the blob
-  /// is not poured in (a pure function of geometry, not of time).
+  /// flight - only the neck tail shows. The blob necks ONLY to the
+  /// flight's launch fellowship - the pieces its mass was connected to
+  /// when it took off; a dialog flying past an unrelated piece must not
+  /// goo onto it. Perf gate: when the gap to every fellow piece exceeds
+  /// k, the neck provably cannot exist and the blob is not poured in (a
+  /// pure function of geometry, not of time).
   List<LiquidShape> _flightBlobs(List<_ResolvedPiece> resolved) {
     final List<LiquidShape> blobs = <LiquidShape>[];
     Offset? origin;
@@ -742,13 +793,14 @@ class RenderMorphSkin extends RenderBox
         flight.controller.progress,
         flying,
       );
-      final bool nearNeighbor = resolved.any(
+      final Set<Object> fellow = _flightFellowship[flight] ?? const <Object>{};
+      final bool nearFellow = resolved.any(
         (_ResolvedPiece other) =>
             other.solid &&
-            other.piece.id != r.piece.id &&
+            fellow.contains(other.piece.id) &&
             liquidRectGap(flying, other.rect) <= _k,
       );
-      if (nearNeighbor) {
+      if (nearFellow) {
         blobs.add(LiquidBox(flying, radius: radius));
       }
     }
@@ -857,6 +909,7 @@ class RenderMorphSkin extends RenderBox
   void _paintSkinAndChildren(PaintingContext context, Offset offset) {
     final List<_ResolvedPiece> resolved = _resolvePieces();
     final List<LiquidShape> blobs = _flightBlobs(resolved);
+    debugLastFlightBlobCount = blobs.length;
     final List<double> signature = _computeSignature(resolved, blobs);
     if (!_signaturesMatch(signature)) {
       _signature = signature;
