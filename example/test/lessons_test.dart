@@ -4,6 +4,7 @@ import 'package:morph/morph.dart';
 import 'package:morph_example/tour/lessons/chips_example.dart';
 import 'package:morph_example/tour/lessons/comet_example.dart';
 import 'package:morph_example/tour/lessons/goo_dock_example.dart';
+import 'package:morph_example/tour/lessons/menu_lesson.dart';
 import 'package:morph_example/tour/lessons/player_example.dart';
 import 'package:morph_example/tour/lessons/route_example.dart';
 
@@ -39,6 +40,55 @@ void main() {
       }
     }
     expect(find.text('Neon Waves - Midnight City'), findsOneWidget);
+  });
+
+  testWidgets('menu: tugged skin pills survive a drag and still morph', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1000, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host(const MenuLesson(motion: .normal)));
+    // Tug Options toward Share: the piece rect moves, the skin
+    // re-traces (necking exercised), no asserts may fire.
+    final Offset start = tester.getCenter(find.text('Options'));
+    final TestGesture gesture = await tester.startGesture(start);
+    await gesture.moveBy(const Offset(20, 0));
+    await tester.pump();
+    await gesture.moveBy(const Offset(60, 0));
+    // The offset chases the finger on a follow spring - give it a few
+    // frames to arrive before measuring.
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(
+      (tester.getCenter(find.text('Options')) - start).distance,
+      greaterThan(5),
+    );
+    await gesture.up();
+    for (int i = 0; i < 300; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(tester.takeException(), isNull);
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+    expect(
+      (tester.getCenter(find.text('Options')) - start).distance,
+      lessThan(1),
+    );
+    // The pill still morphs into its menu from the piece.
+    await tester.tap(find.text('Share'));
+    await tester.pump();
+    for (int i = 0; i < 300; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(tester.takeException(), isNull);
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+    expect(find.text('Copy link'), findsOneWidget);
   });
 
   testWidgets('goo dock: tapping a tab springs the blob, retarget mid-flight', (
