@@ -4,9 +4,10 @@ Identity-based, spring-driven, interruptible widget-to-overlay morphs
 for Flutter, plus a liquid skin that fuses nearby surfaces into one
 organic shape. No Navigator coupling.
 
-<!-- hero.gif: the Card to page scene - the mini player morphs into
-     the full card, artwork travelling as a shared element. -->
-![morph hero](doc/media/hero.gif)
+<!-- hero.gif: the Card to page scene - a library card morphs into
+     the full player and back, artwork travelling as a shared
+     element. -->
+<img src="doc/media/hero.gif" alt="morph hero" width="300">
 
 > I build this for an app of mine, and the API develops in whatever
 > direction that app needs. There is no pub.dev release; versions are
