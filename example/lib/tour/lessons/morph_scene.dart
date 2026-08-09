@@ -59,21 +59,24 @@ class _MorphSceneState extends State<MorphScene> {
     );
   }
 
-  /// The same flight with an ANCHORED target: the popover grows out of
-  /// the button's own edge instead of a centered rect, so the height
-  /// growth reads as the surface opening upward - the pinned edge
-  /// never lets it look like the button deformed.
+  /// The same spring flying to a COMPACT anchored popover. The lever
+  /// that changes how a morph reads is the SIZE DELTA, not the anchor:
+  /// a target that nearly fills the phone is a centered dialog no
+  /// matter what it is anchored to, while a compact popover keeps the
+  /// container near the button's own aspect for most of the flight -
+  /// the calm morph.
   MorphFlight _openNote(BuildContext context) {
     return showMorph(
       context,
       target: MorphTargetSpec.popover(
         anchor: morphAnchorRect(context),
-        size: const Size(306, 420),
+        size: const Size(260, 240),
+        gap: 8,
       ),
       motion: _motion,
       semanticLabel: 'Quick note',
       builder: (BuildContext context, MorphFlight flight) =>
-          ComposeDialogContent(flight: flight),
+          _QuickNoteContent(flight: flight),
     );
   }
 
@@ -148,11 +151,12 @@ class _MorphSceneState extends State<MorphScene> {
           ),
         ),
         const PanelHint(
-          'Two buttons, one flight, different TARGETS: New message opens '
-          'a centered dialog (the container stretches through the '
-          'pill\'s aspect on its way), Quick note opens a popover '
-          'anchored to the button - the pinned edge makes the growth '
-          'read as opening, never as deforming.',
+          'Two buttons, one spring, two TARGETS: New message flies to a '
+          'full centered dialog and pays the stretch phase (the '
+          'container must cross from the pill\'s aspect to the '
+          'dialog\'s), Quick note opens a compact popover hugging the '
+          'button - a small size delta keeps the flight near the '
+          'pill\'s own shape. The calm morph is a target-size choice.',
         ),
       ],
     );
@@ -425,6 +429,69 @@ class _MailRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The compact popover content: sized for a note, not a form - the
+/// point of the twin button is the small size delta.
+class _QuickNoteContent extends StatelessWidget {
+  const _QuickNoteContent({required this.flight});
+
+  final MorphFlight flight;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const .fromLTRB(16, 14, 16, 12),
+      child: Column(
+        crossAxisAlignment: .start,
+        children: <Widget>[
+          const Text(
+            'New note',
+            style: TextStyle(fontSize: 15, fontWeight: .w700),
+          ),
+          const SizedBox(height: 10),
+          MorphReveal(
+            from: 0.4,
+            to: 0.9,
+            child: TextField(
+              maxLines: 3,
+              decoration: InputDecoration(
+                hintText: 'Jot it down...',
+                filled: true,
+                fillColor: Colors.white.withValues(alpha: 0.06),
+                border: OutlineInputBorder(
+                  borderRadius: .circular(12),
+                  borderSide: .none,
+                ),
+              ),
+            ),
+          ),
+          const Spacer(),
+          MorphReveal(
+            from: 0.55,
+            to: 1,
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: SpringButton(
+                onPressed: flight.close,
+                child: Container(
+                  padding: const .symmetric(horizontal: 16, vertical: 9),
+                  decoration: const ShapeDecoration(
+                    shape: StadiumBorder(),
+                    color: Color(0xFF4CC5B8),
+                  ),
+                  child: const Text(
+                    'Done',
+                    style: TextStyle(fontSize: 12.5, fontWeight: .w700),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
