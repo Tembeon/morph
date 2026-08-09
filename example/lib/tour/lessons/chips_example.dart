@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
+import 'package:morph_example/tour/device.dart';
 
-/// The layout-as-targets probe: a row of filter chips fused by one
-/// skin. The LAYOUT (a trivial left-to-right flow over content-sized
-/// widths) only computes target slots; every chip rides its own spring
-/// toward its slot. Two liquid-native choices give the row its feel:
+/// The living-layout scene: a search app whose filter chips are one
+/// fused row. The LAYOUT (a trivial left-to-right flow over
+/// content-sized widths) only computes target slots; every chip rides
+/// its own spring toward its slot. Two liquid-native choices give the
+/// row its feel:
 ///
 ///  - Births and deaths are mass, not position: a new chip inflates
 ///    from nothing at its slot (the skin absorbs the droplet as it
@@ -236,6 +238,27 @@ class _ChipsExampleState extends State<ChipsExample>
 
   @override
   Widget build(BuildContext context) {
+    return SceneScaffold(
+      controls: const Column(
+        crossAxisAlignment: .start,
+        children: <Widget>[
+          PanelHint(
+            'Tap + to add a filter, tap a filter to remove it. Births '
+            'and deaths are MASS: a newborn inflates at its slot, a '
+            'removed one deflates in place while the neighbors pour in.',
+          ),
+          PanelHint(
+            'Edits ripple as a stiffness wave - near chips absorb the '
+            'change briskly, far ones lazily. The layout only computes '
+            'target slots; springs and mass do everything else.',
+          ),
+        ],
+      ),
+      phone: PhoneFrame(app: (BuildContext context) => _searchApp()),
+    );
+  }
+
+  Widget _searchApp() {
     final double rowWidth = _chips.isEmpty
         ? 0
         : _chips
@@ -243,43 +266,95 @@ class _ChipsExampleState extends State<ChipsExample>
               .reduce((double a, double b) => a > b ? a : b);
     final int alive = _chips.where((_Chip c) => !c.dying).length;
     return Column(
-      mainAxisAlignment: .center,
+      crossAxisAlignment: .start,
       children: <Widget>[
+        Padding(
+          padding: const .fromLTRB(16, 12, 16, 4),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Container(
+                  padding: const .symmetric(horizontal: 14, vertical: 11),
+                  decoration: BoxDecoration(
+                    borderRadius: .circular(16),
+                    color: Colors.white.withValues(alpha: 0.06),
+                  ),
+                  child: Row(
+                    children: <Widget>[
+                      Icon(
+                        Icons.search_rounded,
+                        size: 17,
+                        color: Colors.white.withValues(alpha: 0.4),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'late night mixes',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.55),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              SpringButton(
+                onPressed: alive >= 8 ? null : _add,
+                child: Container(
+                  padding: const .all(10),
+                  decoration: ShapeDecoration(
+                    shape: const CircleBorder(),
+                    color: alive >= 8
+                        ? Colors.white.withValues(alpha: 0.04)
+                        : const Color(0xFF7C5CFF).withValues(alpha: 0.8),
+                  ),
+                  child: const Icon(Icons.add_rounded, size: 18),
+                ),
+              ),
+            ],
+          ),
+        ),
         SizedBox(
-          height: _height + 60,
-          width: .infinity,
-          child: Center(
-            child: SizedBox(
-              width: rowWidth + 40,
-              height: _height + 60,
-              child: MorphSkin(
-                blend: 18,
-                color: const Color(0xFF241F35),
-                elevation: 3,
-                pieces: <MorphPiece>[
-                  for (final _Chip chip in _chips)
-                    MorphPiece(
-                      id: chip.id,
-                      rect: _rectOf(chip),
-                      radius: _rectOf(chip).shortestSide / 2,
-                      child: Opacity(
-                        opacity: chip.scale.clamp(0.0, 1.0),
-                        child: OverflowBox(
-                          minWidth: chip.width,
-                          maxWidth: chip.width,
-                          minHeight: _height,
-                          maxHeight: _height,
-                          child: Transform.scale(
-                            scale: chip.scale.clamp(0.0, 1.2),
-                            child: InkWell(
-                              customBorder: const StadiumBorder(),
-                              onTap: chip.dying ? null : () => _remove(chip),
-                              child: Center(
-                                child: Text(
-                                  chip.label,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: .w600,
+          height: _height + 56,
+          child: ListView(
+            scrollDirection: .horizontal,
+            padding: const .symmetric(horizontal: 10),
+            children: <Widget>[
+              SizedBox(
+                width: rowWidth + 40,
+                height: _height + 56,
+                child: MorphSkin(
+                  blend: 18,
+                  color: const Color(0xFF241F35),
+                  elevation: 3,
+                  pieces: <MorphPiece>[
+                    for (final _Chip chip in _chips)
+                      MorphPiece(
+                        id: chip.id,
+                        rect: _rectOf(chip),
+                        radius: _rectOf(chip).shortestSide / 2,
+                        child: Opacity(
+                          opacity: chip.scale.clamp(0.0, 1.0),
+                          child: OverflowBox(
+                            minWidth: chip.width,
+                            maxWidth: chip.width,
+                            minHeight: _height,
+                            maxHeight: _height,
+                            child: Transform.scale(
+                              scale: chip.scale.clamp(0.0, 1.2),
+                              child: MorphTapTarget(
+                                label: chip.label,
+                                onTap: chip.dying
+                                    ? null
+                                    : (BuildContext context) => _remove(chip),
+                                child: Center(
+                                  child: Text(
+                                    chip.label,
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: .w600,
+                                    ),
                                   ),
                                 ),
                               ),
@@ -287,24 +362,58 @@ class _ChipsExampleState extends State<ChipsExample>
                           ),
                         ),
                       ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const .fromLTRB(16, 4, 16, 14),
+            itemCount: 5,
+            itemBuilder: (BuildContext context, int index) => Padding(
+              padding: const .only(bottom: 10),
+              child: Row(
+                children: <Widget>[
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      borderRadius: .circular(10),
+                      color: Colors.white.withValues(
+                        alpha: 0.05 + 0.03 * (index % 3),
+                      ),
                     ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      children: <Widget>[
+                        Container(
+                          height: 10,
+                          width: 120.0 + (index * 43) % 90,
+                          decoration: BoxDecoration(
+                            borderRadius: .circular(5),
+                            color: Colors.white.withValues(alpha: 0.14),
+                          ),
+                        ),
+                        const SizedBox(height: 7),
+                        Container(
+                          height: 8,
+                          width: 80.0 + (index * 67) % 120,
+                          decoration: BoxDecoration(
+                            borderRadius: .circular(4),
+                            color: Colors.white.withValues(alpha: 0.06),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ),
-        ),
-        const SizedBox(height: 18),
-        FilledButton.tonalIcon(
-          onPressed: alive >= 8 ? null : _add,
-          icon: const Icon(Icons.add_rounded, size: 18),
-          label: const Text('Add chip'),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'tap a chip to remove it - it deflates, neighbors pour in',
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.white.withValues(alpha: 0.4),
           ),
         ),
       ],

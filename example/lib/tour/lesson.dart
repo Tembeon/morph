@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:morph/widgets.dart';
 
-/// One chapter of the tour: a single mechanism, a live demo, and the
-/// taste notes - when the morph earns its place and when it does not.
-/// The Widget-of-the-Week format: short, focused, interactive.
+/// One chapter of the tour: a question on the card, a scene that
+/// answers it. Short, focused, interactive.
 class Lesson {
   /// Creates a chapter description.
   const Lesson({
@@ -13,8 +12,6 @@ class Lesson {
     required this.icon,
     required this.title,
     required this.tagline,
-    required this.when,
-    required this.avoid,
     required this.demo,
   });
 
@@ -30,16 +27,10 @@ class Lesson {
   /// Chapter title; shared between card and page header.
   final String title;
 
-  /// One line on the card.
+  /// The question on the card that the scene answers.
   final String tagline;
 
-  /// "Use it when": the honest situations.
-  final String when;
-
-  /// "Skip it when": the taste boundary.
-  final String avoid;
-
-  /// Builds the live demo of the chapter page.
+  /// Builds the live scene of the chapter page.
   final WidgetBuilder demo;
 }
 
@@ -147,8 +138,8 @@ class LessonCard extends StatelessWidget {
   }
 }
 
-/// The opened chapter: header with a back that plays the close flight,
-/// the taste notes, and the live demo. Content unfolds in a MorphReveal
+/// The opened chapter: a header whose back button plays the close
+/// flight, and the live scene. Content unfolds in a MorphReveal
 /// cascade riding the SAME spring as the container.
 class LessonPage extends StatelessWidget {
   /// Creates the page for [lesson].
@@ -207,86 +198,11 @@ class LessonPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            MorphReveal(
-              from: 0.35,
-              to: 0.8,
-              child: Row(
-                crossAxisAlignment: .start,
-                children: <Widget>[
-                  Expanded(
-                    child: _TasteNote(
-                      label: 'USE IT WHEN',
-                      text: lesson.when,
-                      color: scheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _TasteNote(
-                      label: 'SKIP IT WHEN',
-                      text: lesson.avoid,
-                      color: scheme.tertiary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
             Expanded(
-              child: MorphReveal(
-                from: 0.45,
-                to: 1,
-                child: lesson.demo(context),
-              ),
+              child: MorphReveal(from: 0.4, to: 1, child: lesson.demo(context)),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _TasteNote extends StatelessWidget {
-  const _TasteNote({
-    required this.label,
-    required this.text,
-    required this.color,
-  });
-
-  final String label;
-  final String text;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const .all(12),
-      decoration: BoxDecoration(
-        borderRadius: .circular(14),
-        color: Colors.white.withValues(alpha: 0.035),
-      ),
-      child: Column(
-        crossAxisAlignment: .start,
-        children: <Widget>[
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 10,
-              letterSpacing: 1.5,
-              fontWeight: .w700,
-              color: color,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            text,
-            style: TextStyle(
-              fontSize: 11.5,
-              height: 1.35,
-              color: Colors.white.withValues(alpha: 0.75),
-            ),
-          ),
-        ],
       ),
     );
   }

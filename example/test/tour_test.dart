@@ -22,37 +22,40 @@ void main() {
 
     await tester.pumpWidget(const MorphTourApp());
     await tester.pump();
-    expect(find.text('Identity'), findsOneWidget);
+    expect(find.text('The morph'), findsOneWidget);
 
-    await tester.tap(find.text('Identity'));
+    await tester.tap(find.text('The morph'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 60));
     // The chapter title is a shared element: it must be FLYING between
     // the card and the page header mid-morph.
     expect(
-      find.byKey(
-        const ValueKey<String>('morph-shared-fly-lesson-identity-title'),
-      ),
+      find.byKey(const ValueKey<String>('morph-shared-fly-lesson-morph-title')),
       findsOneWidget,
     );
     await settle(tester);
-    // The chapter page is a real route with the taste notes and demo.
-    expect(find.text('USE IT WHEN'), findsOneWidget);
+    // The chapter page is a real route with the scene inside.
+    expect(find.text('Inbox'), findsOneWidget);
     expect(find.text('New message'), findsOneWidget);
 
-    // The demo inside the routed page still flies its own morphs.
+    // The demo inside the routed page still flies its own morphs -
+    // inside the phone frame's own scope and overlay.
     await tester.tap(find.text('New message'));
     await settle(tester);
     expect(find.text('Save'), findsOneWidget);
-    await tester.tapAt(const Offset(20, 400));
+    // Dismiss through the scrim inside the phone.
+    await tester.tapAt(
+      tester.getTopLeft(find.text('Inbox')) + const Offset(2, 40),
+    );
     await settle(tester);
+    expect(find.text('Save'), findsNothing);
 
     // Back plays the close flight into the card.
     await tester.tap(find.byIcon(Icons.arrow_back_rounded));
     await settle(tester);
-    expect(find.text('USE IT WHEN'), findsNothing);
+    expect(find.text('Inbox'), findsNothing);
     expect(find.text('Morph'), findsOneWidget);
-    expect(find.text('Identity'), findsOneWidget);
+    expect(find.text('The morph'), findsOneWidget);
   });
 
   testWidgets('the playground chapter opens with the sandbox inside', (
@@ -64,6 +67,7 @@ void main() {
 
     await tester.pumpWidget(const MorphTourApp());
     await tester.pump();
+    await tester.scrollUntilVisible(find.text('Playground'), 200);
     await tester.tap(find.text('Playground'));
     await settle(tester);
     expect(find.text('MOTION'), findsOneWidget);

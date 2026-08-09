@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:morph/widgets.dart';
+import 'package:morph_example/tour/device.dart';
 
 /// One pill of the demo: identity, geometry, chrome and its menu.
 typedef _Pill = ({
@@ -156,47 +157,122 @@ class _MenuLessonState extends State<MenuLesson> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: .center,
-      children: <Widget>[
-        // One skin, two morphable pieces: the tug (channel mode) moves
-        // the real piece mass through its geometry channel, so
-        // dragging a pill toward its neighbor necks the two into one
-        // body - and each pill still morphs into its own menu from
-        // wherever it stands.
-        SizedBox(
-          width: 320,
-          height: 150,
-          child: MorphSkin(
-            blend: _blend,
-            color: _glass,
-            elevation: 3,
-            pieces: <MorphPiece>[
-              for (int i = 0; i < _pills.length; i++)
-                MorphPiece.morphable(
-                  id: _pills[i].id,
-                  rect: _pills[i].home,
-                  radius: _pills[i].home.height / 2,
-                  channel: _channels[_pills[i].id],
-                  child: _contents[i],
+    return SceneScaffold(
+      controls: Column(
+        crossAxisAlignment: .start,
+        children: <Widget>[
+          const PanelHint(
+            'Tap a pill: its own surface expands into the popover, '
+            'anchored to wherever the pill currently stands - the thing '
+            'you touch becomes the menu you use. Rows cascade on the '
+            'same spring.',
+          ),
+          const PanelHint(
+            'The pills ride a leash (Tug in channel mode): drag one '
+            'into the other and the skin necks them into one body - '
+            'real mass, not a paint effect.',
+          ),
+          PanelSection(
+            label: 'LAST ACTION',
+            child: Text(
+              _lastAction,
+              style: const TextStyle(fontSize: 12.5, fontWeight: .w600),
+            ),
+          ),
+        ],
+      ),
+      phone: PhoneFrame(
+        app: (BuildContext context) => Stack(
+          children: <Widget>[
+            const _Gallery(),
+            // One skin, two morphable pieces: the tug (channel mode)
+            // moves the real piece mass through its geometry channel,
+            // so dragging a pill toward its neighbor necks the two into
+            // one body - and each pill still morphs into its own menu
+            // from wherever it stands.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Center(
+                child: SizedBox(
+                  width: 320,
+                  height: 150,
+                  child: MorphSkin(
+                    blend: _blend,
+                    color: _glass,
+                    elevation: 3,
+                    pieces: <MorphPiece>[
+                      for (int i = 0; i < _pills.length; i++)
+                        MorphPiece.morphable(
+                          id: _pills[i].id,
+                          rect: _pills[i].home,
+                          radius: _pills[i].home.height / 2,
+                          channel: _channels[_pills[i].id],
+                          child: _contents[i],
+                        ),
+                    ],
+                  ),
                 ),
-            ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The set dressing: a photo grid the toolbar pills float over.
+class _Gallery extends StatelessWidget {
+  const _Gallery();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: .start,
+      children: <Widget>[
+        const Padding(
+          padding: .fromLTRB(20, 12, 20, 10),
+          child: Text(
+            'Recents',
+            style: TextStyle(fontSize: 24, fontWeight: .w800),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'last action: $_lastAction',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.white.withValues(alpha: 0.45),
-          ),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          'the pills ride a leash: tug one into the other, then tap',
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.white.withValues(alpha: 0.3),
+        Expanded(
+          child: GridView.builder(
+            padding: const .fromLTRB(14, 0, 14, 130),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 6,
+              crossAxisSpacing: 6,
+            ),
+            itemCount: 15,
+            itemBuilder: (BuildContext context, int index) {
+              final Color a = Color.lerp(
+                const Color(0xFF7C5CFF),
+                const Color(0xFF4CC5B8),
+                (index % 7) / 6,
+              )!;
+              final Color b = Color.lerp(
+                const Color(0xFF2A2440),
+                const Color(0xFF1C3A45),
+                ((index * 3) % 5) / 4,
+              )!;
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: .circular(10),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: <Color>[
+                      a.withValues(alpha: 0.35),
+                      b.withValues(alpha: 0.8),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ],

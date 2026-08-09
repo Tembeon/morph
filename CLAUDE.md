@@ -12,9 +12,7 @@ context (roadmap, priorities) lives in `CLAUDE.local.md`, untracked.
 ## Layers
 
 Flutter-style split, two entrypoints:
-- `lib/foundation.dart` - the ENGINE export (former morph.dart; the
-  alias was deleted 2026-08-09 - two honest entrypoints, and the
-  hosted dartdoc lists exactly two libraries).
+- `lib/foundation.dart` - the ENGINE export.
 - `lib/widgets.dart` - the opinionated widget layer
   (`lib/src/widgets/`): showMorphMenu/MorphMenuItem (the worked-through
   chapter-04 pattern as one call: a control becomes its own menu,
@@ -70,9 +68,16 @@ Flutter-style split, two entrypoints:
 - `show.dart` / `anchor.dart` - imperative `showMorph*` (escape hatch)
   and declarative `MorphAnchor(isOpen, onDismiss)` - the morph as a
   function of state; identity is the State itself unless an explicit
-  `tagId` is given.
+  `tagId` is given. Overlay flights render in the NEAREST enclosing
+  Overlay: the flight belongs to the world its scope lives in, so a
+  nested navigator (a tab, an embedded device mockup) keeps its
+  flights inside itself; in a single-navigator app that is the root
+  overlay anyway.
 - `route.dart` - `showMorphRoute`/`MorphPageRoute`: the destination as
   a REAL Navigator route with the flight as its transition. The route
+  pushes into the NEAREST enclosing navigator (a page belongs to the
+  navigator that owns its context; `useRootNavigator:` opts into the
+  root). The route
   is pushed immediately (back button, predictive machinery and further
   pushes behave like on any page; the flight overlay is passed
   `navigator.overlay` explicitly - the navigator's context sits ABOVE
@@ -90,7 +95,12 @@ Flutter-style split, two entrypoints:
   opacity on both latches (the route's modal barrier stays transparent
   and only contributes dismiss taps and semantics); pre-latch scrim
   taps route through the Navigator (onDismissRequested -> pop) so the
-  route lifecycle stays the single source of truth. PREDICTIVE BACK:
+  route lifecycle stays the single source of truth. The settled page
+  applies the DISPLACEMENT CHANNEL with the same rigid-body shift,
+  recede and scrim math as the shuttle, driven by the same frameTicks
+  stream - a drag feels identical on both sides of the second latch,
+  and a commit hands off to the shuttle's close pixel-continuously.
+  PREDICTIVE BACK:
   the route reimplements the PredictiveBackRoute hooks on the flight
   (the default TransitionRoute impl drives the route's zero-duration
   shell controller) - the gesture hands the content back to the shuttle
@@ -331,17 +341,35 @@ Flutter-style split, two entrypoints:
 
 Example: the app is a TOUR - an introduction to the library where the
 app itself is the first exhibit (`example/lib/tour/`). The home is a
-grid of chapter cards; every card opens AS a morph route (container
-transform via showMorphRoute, fullscreen target) - the navigation is
-the thesis. Each chapter (Widget-of-the-Week format) = one mechanism +
-a live demo + taste notes ("use it when / skip it when" - the design
-philosophy as content). Chapters: identity, retargeting (comet +
-torture), landing knobs, BUTTON-TO-MENU (iOS 26: the pill expands into
-its own popover - a custom MorphTargetSpec closed over the button's
-rect), TOOLBAR MERGE (iOS 26: scroll-driven liquid fusion of actions
-into one pill on a single retargetable merge spring), player
-(shared elements + displacement drag), liquid dock, liquid chips, the
-real route, and the Playground. The honesty criterion that shaped
+SECTIONED grid of chapter cards, each card a QUESTION its scene
+answers; every card opens AS a morph route (container transform via
+showMorphRoute, fullscreen target) - the navigation is the thesis.
+ONE SCENE = ONE USE CASE, styled as a real app mockup inside a
+`PhoneFrame` (device.dart): the frame hosts its OWN MorphScope +
+Navigator, so every flight, popover and route stays inside the glass
+(this is what forced nearest-overlay/nearest-navigator engine
+semantics). `SceneScaffold` is the responsive chapter layout: lesson
+chrome (layer tabs, knobs, hints via PanelSection/PanelKnob/PanelHint)
+sits beside the phone on wide screens, above it on narrow - the
+mockup never carries lesson chrome. Engine PROPERTIES are layers and
+toggles inside one scene, never separate lookalike screens:
+- THE MORPH (morph_scene.dart): a mail app, compose pill -> dialog;
+  layers Motion (profile selector) / Interrupt (torture storm) /
+  Landing (bump knobs) all drive the same flight.
+- BUTTON TO MENU (menu_lesson.dart): photo app, floating pills on a
+  Tug leash -> their own popovers (iOS 26 pattern).
+- TOOLBAR MERGE (toolbar_lesson.dart): reading list; scroll fuses the
+  actions into one pill on a single retargetable merge spring.
+- CARD TO PAGE (page_scene.dart): a music library; the overlay/route
+  TOGGLE holds everything else constant, so the difference IS the
+  demo (Lyrics stacks only on the route; shared covers + displacement
+  drag in both).
+- LIQUID SELECTION (goo_dock_example.dart) and LIVING LAYOUT
+  (chips_example.dart): the skin family - feed app dock, search app
+  filter chips.
+- PLAYGROUND: the lab, always last (the autodemo opens it by
+  position).
+The honesty criterion that shaped
 this: a morph must TRANSFORM IDENTITY (the thing you touch becomes the
 surface you use); spring-skinning ordinary controls is animation, not
 morph - segmented controls as goo were rejected for the chrome and
@@ -376,14 +404,12 @@ Lab: the whole canvas is a sandbox builder:
   outgoing layer keeps its exact opacity. Sliders deliberately stay
   plain: a slider is direct manipulation, the finger owns it 1:1 -
   springs do not belong there;
-- the chapter demos live in example/lib/tour/lessons/ (Player: shared
-  elements + the displacement drag channel; Goo dock; Comet; Chips:
-  layout-as-targets with mass births/deaths and the stiffness wave -
-  sims evaluated at t*rate, rate falling by slot distance; NOTE the
-  ticker-clock trap: Ticker.elapsed restarts from zero on every
-  start(), so idle-restart flows must reset their own clock or springs
-  evaluate at negative time and thrash) and example/lib/tour/lessons/
-  (identity/retarget/landing + the two iOS 26 chapters);
+- the chapter scenes live in example/lib/tour/lessons/ (see the tour
+  overview above; Chips is layout-as-targets with mass births/deaths
+  and the stiffness wave - sims evaluated at t*rate, rate falling by
+  slot distance; NOTE the ticker-clock trap: Ticker.elapsed restarts
+  from zero on every start(), so idle-restart flows must reset their
+  own clock or springs evaluate at negative time and thrash);
 - stress mode (example/lib/playground/stress_lab.dart): N pieces on
   deterministic golden-angle orbits re-trace the skin every frame, with
   an on-screen FPS meter (average + worst frame per window). Measures
@@ -565,11 +591,13 @@ by a test).
   constraints widened and a small port to the analyzer 14 AST names),
   apply its findings, then remove it. It has one known false positive:
   `Object.hashAll` in an int context.
-- Example layout: `tour/` (home, lesson framework, lessons/ - all
-  chapter demos and dialog_contents.dart), `playground/` (the sandbox,
-  stress rig, HUD and the chapter shell), `ui/` (lab chrome: LabActionButton, SpringToggle/Tile, SpringSwitcher, GooSelector; the promoted recipes live in lib/widgets.dart),
-  `perf/` (the release bench), flags.dart, main.dart. The historical
-  gallery/ and demo/ directories are gone.
+- Example layout: `tour/` (home, lesson framework, device.dart - the
+  PhoneFrame/SceneScaffold/Panel* chapter chrome, lessons/ - all
+  chapter scenes and dialog_contents.dart), `playground/` (the
+  sandbox, stress rig, HUD and the chapter shell), `ui/` (lab chrome:
+  LabActionButton, SpringToggle/Tile, SpringSwitcher, GooSelector; the
+  promoted recipes live in lib/widgets.dart), `perf/` (the release
+  bench), flags.dart, main.dart.
 - Dartdoc speaks to the CONSUMER in the present tense: behavior,
   contract, the constraint the code cannot show. Design history, bug
   archaeology and test pointers live HERE (CLAUDE.md) and in commit
@@ -579,6 +607,11 @@ by a test).
   (ranges like `[0, 1]` are backticked), no caps-shouting for
   emphasis.
 - `dart doc --dry-run` must report zero warnings (broken references).
+  Because widgets.dart re-exports the whole engine, every engine
+  symbol is pinned canonical in foundation via the `{@canonicalFor}`
+  block in foundation.dart's library doc - a NEW engine export needs
+  its line there or the gate warns; dartdoc_options.yaml silences the
+  scorer's coin-toss over the src library entities themselves.
 
 ## Verification workflow
 

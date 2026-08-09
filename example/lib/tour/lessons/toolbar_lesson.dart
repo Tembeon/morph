@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:morph/widgets.dart';
+import 'package:morph_example/tour/device.dart';
 import 'package:motor/motor.dart';
 
 /// The iOS 26 toolbar behavior: while the content scrolls, the three
@@ -109,43 +110,68 @@ class _ToolbarLessonState extends State<ToolbarLesson>
 
   @override
   Widget build(BuildContext context) {
-    final ColorScheme scheme = Theme.of(context).colorScheme;
+    return SceneScaffold(
+      controls: const Column(
+        crossAxisAlignment: .start,
+        children: <Widget>[
+          PanelHint(
+            'Scroll the list down - the three actions fuse into one '
+            'quiet pill; stop, or scroll back up, and it splits into '
+            'buttons again, necks stretching and ripping on the way.',
+          ),
+          PanelHint(
+            'One retargetable merge spring drives everything; the '
+            'scroll only moves its target. The raw overshooting value '
+            'feeds the geometry - the bounce IS the overshoot.',
+          ),
+        ],
+      ),
+      phone: PhoneFrame(app: (BuildContext context) => _readerApp()),
+    );
+  }
+
+  Widget _readerApp() {
     const double buttonSize = 52.0;
     const double barWidth = 76.0 * 3 + 40;
-    return Column(
+    return Stack(
+      alignment: Alignment.bottomCenter,
       children: <Widget>[
-        Expanded(
-          child: Stack(
-            alignment: Alignment.bottomCenter,
+        Positioned.fill(
+          child: Column(
+            crossAxisAlignment: .start,
             children: <Widget>[
-              Positioned.fill(
-                child: ClipRRect(
-                  borderRadius: .circular(18),
-                  child: NotificationListener<ScrollNotification>(
-                    onNotification: _onScroll,
-                    child: ListView.builder(
-                      padding: const .fromLTRB(4, 4, 4, 96),
-                      itemCount: 24,
-                      itemBuilder: (BuildContext context, int index) => Padding(
-                        padding: const .only(bottom: 10),
-                        child: Container(
-                          height: 64,
-                          decoration: BoxDecoration(
-                            borderRadius: .circular(16),
-                            color: Color.lerp(
-                              const Color(0xFF201B31),
-                              const Color(0xFF2A2340),
-                              (index % 5) / 4,
-                            ),
+              const Padding(
+                padding: .fromLTRB(20, 12, 20, 10),
+                child: Text(
+                  'Reading list',
+                  style: TextStyle(fontSize: 24, fontWeight: .w800),
+                ),
+              ),
+              Expanded(
+                child: NotificationListener<ScrollNotification>(
+                  onNotification: _onScroll,
+                  child: ListView.builder(
+                    padding: const .fromLTRB(14, 0, 14, 96),
+                    itemCount: 24,
+                    itemBuilder: (BuildContext context, int index) => Padding(
+                      padding: const .only(bottom: 10),
+                      child: Container(
+                        height: 62,
+                        decoration: BoxDecoration(
+                          borderRadius: .circular(16),
+                          color: Color.lerp(
+                            const Color(0xFF201B31),
+                            const Color(0xFF2A2340),
+                            (index % 5) / 4,
                           ),
-                          alignment: Alignment.centerLeft,
-                          padding: const .symmetric(horizontal: 18),
-                          child: Text(
-                            'Item ${index + 1} - scroll me',
-                            style: TextStyle(
-                              fontSize: 12.5,
-                              color: Colors.white.withValues(alpha: 0.5),
-                            ),
+                        ),
+                        alignment: Alignment.centerLeft,
+                        padding: const .symmetric(horizontal: 16),
+                        child: Text(
+                          'Item ${index + 1} - scroll me',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: Colors.white.withValues(alpha: 0.5),
                           ),
                         ),
                       ),
@@ -153,63 +179,55 @@ class _ToolbarLessonState extends State<ToolbarLesson>
                   ),
                 ),
               ),
-              Padding(
-                padding: const .only(bottom: 14),
-                child: SizedBox(
-                  width: barWidth,
-                  height: buttonSize + 24,
-                  child: MorphSkin(
-                    blend: 24,
-                    color: const Color(0xFF2A2440),
-                    elevation: 6,
-                    pieces: <MorphPiece>[
-                      for (int i = 0; i < _actions.length; i++)
-                        MorphPiece(
-                          id: i,
-                          rect: .fromCenter(
-                            center: Offset(
-                              barWidth / 2 + (i - 1) * 76.0,
-                              12 + buttonSize / 2,
-                            ),
-                            width: buttonSize,
-                            height: buttonSize,
-                          ),
-                          radius: buttonSize / 2,
-                          channel: _channels[i],
-                          child: ListenableBuilder(
-                            listenable: _merge,
-                            builder: (BuildContext context, Widget? child) {
-                              final double m = _merge.value;
-                              final double mVisual = m.clamp(0.0, 1.0);
-                              return Opacity(
-                                // Side icons dissolve INTO the merged
-                                // pill; the center one stays as its face.
-                                opacity: i == 1
-                                    ? 1
-                                    : (1 - mVisual).clamp(0.0, 1.0),
-                                child: Icon(
-                                  i == 1 && m > 0.6
-                                      ? Icons.more_horiz_rounded
-                                      : _actions[i].$1,
-                                  size: 20,
-                                  color: Colors.white.withValues(alpha: 0.85),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'scroll down - the toolbar fuses into one pill; release and it '
-          'splits back',
-          style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
+        Padding(
+          padding: const .only(bottom: 12),
+          child: SizedBox(
+            width: barWidth,
+            height: buttonSize + 24,
+            child: MorphSkin(
+              blend: 24,
+              color: const Color(0xFF2A2440),
+              elevation: 6,
+              pieces: <MorphPiece>[
+                for (int i = 0; i < _actions.length; i++)
+                  MorphPiece(
+                    id: i,
+                    rect: .fromCenter(
+                      center: Offset(
+                        barWidth / 2 + (i - 1) * 76.0,
+                        12 + buttonSize / 2,
+                      ),
+                      width: buttonSize,
+                      height: buttonSize,
+                    ),
+                    radius: buttonSize / 2,
+                    channel: _channels[i],
+                    child: ListenableBuilder(
+                      listenable: _merge,
+                      builder: (BuildContext context, Widget? child) {
+                        final double m = _merge.value;
+                        final double mVisual = m.clamp(0.0, 1.0);
+                        return Opacity(
+                          // Side icons dissolve INTO the merged pill;
+                          // the center one stays as its face.
+                          opacity: i == 1 ? 1 : (1 - mVisual).clamp(0.0, 1.0),
+                          child: Icon(
+                            i == 1 && m > 0.6
+                                ? Icons.more_horiz_rounded
+                                : _actions[i].$1,
+                            size: 20,
+                            color: Colors.white.withValues(alpha: 0.85),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
       ],
     );

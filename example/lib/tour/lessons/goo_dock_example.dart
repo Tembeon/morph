@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
 
 import 'package:morph/widgets.dart';
+import 'package:morph_example/tour/device.dart';
 import 'package:motor/motor.dart';
 
-/// A gooey dock: five tabs fused by one liquid skin, with a selection
-/// blob riding a spring between slots - the neck stretches toward
-/// the new tab, rips, and the blob lands with the spring's own
-/// character. Tapping mid-flight retargets with velocity carry-over:
-/// the whole system-wide interruption philosophy in one tap bar.
+/// The liquid-selection scene: a feed app whose tab dock is one fused
+/// mass, with the selection blob riding a spring between slots - the
+/// neck stretches toward the new tab, rips, and the blob lands with
+/// the spring's own character. Tapping mid-flight retargets with
+/// velocity carry-over.
 ///
 /// The blob rides its piece geometry channel: the spring tick writes
 /// an offset and the skin re-traces - no widget rebuilds per frame.
-/// setState fires only on the actual selection change (icon tints).
+/// setState fires only on the actual selection change (icon tints and
+/// the feed swap).
 class GooDockExample extends StatefulWidget {
-  /// Creates the chapter demo.
+  /// Creates the chapter scene.
   const GooDockExample({super.key, required this.motion});
 
-  /// Motion profile of the demo springs and flights.
+  /// Motion profile of the selection spring.
   final MorphMotion motion;
 
   @override
@@ -25,16 +27,17 @@ class GooDockExample extends StatefulWidget {
 
 class _GooDockExampleState extends State<GooDockExample>
     with SingleTickerProviderStateMixin {
-  static const List<IconData> _icons = <IconData>[
-    Icons.home_rounded,
-    Icons.search_rounded,
-    Icons.add_circle_outline_rounded,
-    Icons.favorite_rounded,
-    Icons.person_rounded,
+  static const List<(IconData, String)> _tabs = <(IconData, String)>[
+    (Icons.home_rounded, 'For you'),
+    (Icons.search_rounded, 'Search'),
+    (Icons.add_circle_outline_rounded, 'Create'),
+    (Icons.favorite_rounded, 'Saved'),
+    (Icons.person_rounded, 'Profile'),
   ];
 
-  static const double _slot = 84;
-  static const double _dockHeight = 72;
+  static const double _slot = 64;
+  static const double _dockHeight = 58;
+  static const double _dockWidth = _slot * 5;
 
   late final SingleMotionController _x = SingleMotionController(
     motion: widget.motion.closeMotion,
@@ -77,58 +80,173 @@ class _GooDockExampleState extends State<GooDockExample>
 
   @override
   Widget build(BuildContext context) {
-    const double width = _slot * 5;
-    return Align(
-      alignment: const Alignment(0, 0.7),
-      child: SizedBox(
-        width: width,
-        height: _dockHeight + 40,
-        child: MorphSkin(
-          blend: 26,
-          color: const Color(0xFF241F35),
-          elevation: 4,
-          pieces: <MorphPiece>[
-            // The dock body: one long stadium.
-            const MorphPiece(
-              id: 'dock',
-              rect: .fromLTWH(0, 20, width, _dockHeight),
-              radius: _dockHeight / 2,
-              solid: true,
-            ),
-            // The selection blob: pure mass on a spring, delivered
-            // through the geometry channel. Slightly proud of the dock
-            // so the bulge reads on the silhouette.
-            MorphPiece(
-              id: 'blob',
-              rect: .fromCenter(
-                center: Offset(_slotCenter(0), 20 + _dockHeight / 2 - 14),
-                width: 56,
-                height: 56,
-              ),
-              radius: 28,
-              channel: _blob,
-            ),
-            // Tabs are contentful but massless: the dock provides the
-            // mass, the icons just sit on it.
-            for (int i = 0; i < _icons.length; i++)
-              MorphPiece(
-                id: 'tab-$i',
-                rect: .fromLTWH(_slot * i, 20, _slot, _dockHeight),
-                solid: false,
-                child: IconButton(
-                  onPressed: () => _select(i),
-                  icon: Icon(
-                    _icons[i],
-                    size: 26,
-                    color: i == _selected
-                        ? Colors.white
-                        : Colors.white.withValues(alpha: 0.45),
-                  ),
+    return SceneScaffold(
+      controls: const Column(
+        crossAxisAlignment: .start,
+        children: <Widget>[
+          PanelHint(
+            'Tap tabs - fast. The blob is MASS shared with the dock: the '
+            'neck stretches, rips, and lands with the spring\'s own '
+            'bounce, and every mid-flight tap retargets from the current '
+            'position and velocity.',
+          ),
+          PanelHint(
+            'One MorphSkin, one channel write per frame: the dock body, '
+            'the blob and the necks are a single traced contour - one '
+            'mass, one shadow.',
+          ),
+        ],
+      ),
+      phone: PhoneFrame(
+        app: (BuildContext context) => Stack(
+          children: <Widget>[
+            _Feed(tab: _tabs[_selected].$2, seed: _selected),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 8,
+              child: Center(
+                child: SizedBox(
+                  width: _dockWidth,
+                  height: _dockHeight + 36,
+                  child: _dock(),
                 ),
               ),
+            ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _dock() {
+    return MorphSkin(
+      blend: 24,
+      color: const Color(0xFF241F35),
+      elevation: 6,
+      pieces: <MorphPiece>[
+        const MorphPiece(
+          id: 'dock',
+          rect: .fromLTWH(0, 24, _dockWidth, _dockHeight),
+          radius: _dockHeight / 2,
+        ),
+        // The selection blob: pure mass on a spring, delivered through
+        // the geometry channel. Slightly proud of the dock so the bulge
+        // reads on the silhouette.
+        MorphPiece(
+          id: 'blob',
+          rect: .fromCenter(
+            center: Offset(_slotCenter(0), 24 + _dockHeight / 2 - 12),
+            width: 46,
+            height: 46,
+          ),
+          radius: 23,
+          channel: _blob,
+        ),
+        for (int i = 0; i < _tabs.length; i++)
+          MorphPiece(
+            id: 'tab-$i',
+            rect: .fromLTWH(_slot * i, 24, _slot, _dockHeight),
+            solid: false,
+            child: IconButton(
+              onPressed: () => _select(i),
+              icon: Icon(
+                _tabs[i].$1,
+                size: 23,
+                color: i == _selected
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: 0.45),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+/// The set dressing: a feed skeleton that swaps with the tab, so the
+/// dock reads as navigation, not as an isolated toy.
+class _Feed extends StatelessWidget {
+  const _Feed({required this.tab, required this.seed});
+
+  final String tab;
+  final int seed;
+
+  @override
+  Widget build(BuildContext context) {
+    final Color tint = Color.lerp(
+      const Color(0xFF7C5CFF),
+      const Color(0xFF4CC5B8),
+      (seed % 5) / 4,
+    )!;
+    return Column(
+      crossAxisAlignment: .start,
+      children: <Widget>[
+        Padding(
+          padding: const .fromLTRB(20, 12, 20, 10),
+          child: Text(
+            tab,
+            style: const TextStyle(fontSize: 24, fontWeight: .w800),
+          ),
+        ),
+        Expanded(
+          child: ListView.builder(
+            padding: const .fromLTRB(14, 0, 14, 110),
+            itemCount: 6,
+            itemBuilder: (BuildContext context, int index) => Padding(
+              padding: const .only(bottom: 10),
+              child: Container(
+                height: 92,
+                padding: const .all(12),
+                decoration: BoxDecoration(
+                  borderRadius: .circular(16),
+                  color: Colors.white.withValues(alpha: 0.035),
+                ),
+                child: Row(
+                  crossAxisAlignment: .start,
+                  children: <Widget>[
+                    Container(
+                      width: 66,
+                      height: 66,
+                      decoration: BoxDecoration(
+                        borderRadius: .circular(12),
+                        color: tint.withValues(
+                          alpha: 0.14 + 0.1 * ((index + seed) % 3),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: .start,
+                        children: <Widget>[
+                          Container(
+                            height: 11,
+                            width: 130.0 + ((index * 37 + seed * 19) % 80),
+                            decoration: BoxDecoration(
+                              borderRadius: .circular(6),
+                              color: Colors.white.withValues(alpha: 0.16),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            height: 9,
+                            width: 90.0 + ((index * 53 + seed * 31) % 110),
+                            decoration: BoxDecoration(
+                              borderRadius: .circular(5),
+                              color: Colors.white.withValues(alpha: 0.07),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
