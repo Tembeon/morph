@@ -281,8 +281,7 @@ void main() {
       expect(profile().hashCode, profile().hashCode);
       expect(profile(), isNot(MorphMotion.normal));
 
-      MorphSkinStyle style() =>
-          MorphSkinStyle(name: tuned, blend: 30, cell: 5);
+      MorphSkinStyle style() => MorphSkinStyle(name: tuned, blend: 30, cell: 5);
       expect(style(), style());
       expect(style(), isNot(MorphSkinStyle.goo));
       expect(
