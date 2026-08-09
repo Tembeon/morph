@@ -9,6 +9,12 @@ import 'package:motor/motor.dart';
 /// splits back into buttons, necks stretching and ripping on the way.
 /// Every geometric property is a pure function of the single merge
 /// value; the scroll only retargets it.
+///
+/// The merge value reaches the masses through the piece geometry
+/// channels (one per action): a spring tick writes three deltas and
+/// the skin re-traces - the list, the bar and the piece widgets never
+/// rebuild. Only the icons, whose opacity and glyph derive from the
+/// same value, listen to the spring themselves.
 class ToolbarLesson extends StatefulWidget {
   /// Creates the chapter demo.
   const ToolbarLesson({super.key, required this.motion});
@@ -40,11 +46,42 @@ class _ToolbarLessonState extends State<ToolbarLesson>
     vsync: this,
     initialValue: 0,
   );
+  final List<MorphPieceChannel> _channels = <MorphPieceChannel>[
+    MorphPieceChannel(),
+    MorphPieceChannel(),
+    MorphPieceChannel(),
+  ];
   double _target = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _merge.addListener(_syncChannels);
+  }
+
+  /// Geometry eats the RAW spring value: clamping it here would strip
+  /// the overshoot - and the overshoot IS the bounce (the buttons
+  /// squeeze past the merge point and pop back on the split). Mass
+  /// squeezes slightly toward the merged state so arrivals read in the
+  /// silhouette, not just in the positions.
+  void _syncChannels() {
+    final double m = _merge.value;
+    final double scale = 1 - 0.12 * m;
+    for (int i = 0; i < _channels.length; i++) {
+      _channels[i].update(
+        offset: Offset((i - 1) * -58.0 * m, 0),
+        scaleX: scale,
+        scaleY: scale,
+      );
+    }
+  }
 
   @override
   void dispose() {
     _merge.dispose();
+    for (final MorphPieceChannel channel in _channels) {
+      channel.dispose();
+    }
     super.dispose();
   }
 
@@ -73,25 +110,7 @@ class _ToolbarLessonState extends State<ToolbarLesson>
   @override
   Widget build(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
-    return ListenableBuilder(
-      listenable: _merge,
-      builder: (BuildContext context, Widget? child) => _buildBody(scheme),
-    );
-  }
-
-  Widget _buildBody(ColorScheme scheme) {
-    // Geometry eats the RAW spring value: clamping it here would strip
-    // the overshoot - and the overshoot IS the bounce (the buttons
-    // squeeze past the merge point and pop back on the split). Only
-    // opacity clamps.
-    final double m = _merge.value;
-    final double mVisual = m.clamp(0.0, 1.0);
     const double buttonSize = 52.0;
-    final double spread = 76 - 58 * m;
-    // Mass squeezes slightly toward the merged state: with the raw
-    // value the squeeze overshoots too, so arrivals read in the
-    // silhouette, not just in the positions.
-    final double size = buttonSize * (1 - 0.12 * m);
     const double barWidth = 76.0 * 3 + 40;
     return Column(
       children: <Widget>[
@@ -149,24 +168,34 @@ class _ToolbarLessonState extends State<ToolbarLesson>
                           id: i,
                           rect: .fromCenter(
                             center: Offset(
-                              barWidth / 2 + (i - 1) * spread,
+                              barWidth / 2 + (i - 1) * 76.0,
                               12 + buttonSize / 2,
                             ),
-                            width: size,
-                            height: size,
+                            width: buttonSize,
+                            height: buttonSize,
                           ),
-                          radius: size / 2,
-                          child: Opacity(
-                            // Side icons dissolve INTO the merged pill;
-                            // the center one stays as its face.
-                            opacity: i == 1 ? 1 : (1 - mVisual).clamp(0.0, 1.0),
-                            child: Icon(
-                              i == 1 && m > 0.6
-                                  ? Icons.more_horiz_rounded
-                                  : _actions[i].$1,
-                              size: 20,
-                              color: Colors.white.withValues(alpha: 0.85),
-                            ),
+                          radius: buttonSize / 2,
+                          channel: _channels[i],
+                          child: ListenableBuilder(
+                            listenable: _merge,
+                            builder: (BuildContext context, Widget? child) {
+                              final double m = _merge.value;
+                              final double mVisual = m.clamp(0.0, 1.0);
+                              return Opacity(
+                                // Side icons dissolve INTO the merged
+                                // pill; the center one stays as its face.
+                                opacity: i == 1
+                                    ? 1
+                                    : (1 - mVisual).clamp(0.0, 1.0),
+                                child: Icon(
+                                  i == 1 && m > 0.6
+                                      ? Icons.more_horiz_rounded
+                                      : _actions[i].$1,
+                                  size: 20,
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                ),
+                              );
+                            },
                           ),
                         ),
                     ],

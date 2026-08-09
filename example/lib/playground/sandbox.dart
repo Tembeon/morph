@@ -49,6 +49,11 @@ class SandboxPiece {
   /// Corner radius knob; only meaningful for [SandboxShape.box].
   double radius;
 
+  /// Transient drag displacement: dragBy writes here per pointer event
+  /// (the skin repaints with no controller notify and no rebuild);
+  /// endDrag commits it into [rect] and resets it.
+  final MorphPieceChannel channel = MorphPieceChannel();
+
   /// For the stadium and circle the radius is derived from geometry
   /// (the SDF clamps it to half the shorter side anyway).
   double get effectiveRadius => switch (kind) {
@@ -249,7 +254,13 @@ class SandboxController extends ChangeNotifier {
       return;
     }
     _stopMorph();
-    pieces.removeWhere((SandboxPiece p) => p.id == id);
+    pieces.removeWhere((SandboxPiece p) {
+      if (p.id != id) {
+        return false;
+      }
+      p.channel.dispose();
+      return true;
+    });
     links.removeWhere((SandboxLink l) => l.involves(id));
     selectedId = null;
     linkArming = false;
@@ -325,21 +336,41 @@ class SandboxController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Moves the dragged piece by [delta], clamped to the stage.
+  /// Moves the dragged piece by [delta] through its geometry channel,
+  /// clamped to the stage: the per-frame displacement rides the
+  /// channel (no notify, no rebuild), endDrag commits it into the
+  /// rect.
   void dragBy(int id, Offset delta) {
     for (final SandboxPiece p in pieces) {
       if (p.id != id) {
         continue;
       }
       final double slack = stageSize.width * 0.03;
-      final Rect moved = p.rect.shift(delta);
-      p.rect = .fromLTWH(
-        moved.left.clamp(-slack, stageSize.width - moved.width + slack),
-        moved.top.clamp(-slack, stageSize.height - moved.height + slack),
-        moved.width,
-        moved.height,
+      final Rect moved = p.rect.shift(p.channel.offset + delta);
+      p.channel.update(
+        offset:
+            Offset(
+              moved.left.clamp(-slack, stageSize.width - moved.width + slack),
+              moved.top.clamp(-slack, stageSize.height - moved.height + slack),
+            ) -
+            p.rect.topLeft,
       );
-      notifyListeners();
+      return;
+    }
+  }
+
+  /// Commits the drag displacement into the piece rect: one rebuild
+  /// per gesture instead of one per pointer event.
+  void endDrag(int id) {
+    for (final SandboxPiece p in pieces) {
+      if (p.id != id) {
+        continue;
+      }
+      if (!p.channel.isIdentity) {
+        p.rect = p.rect.shift(p.channel.offset);
+        p.channel.reset();
+        notifyListeners();
+      }
       return;
     }
   }
@@ -457,6 +488,9 @@ class SandboxController extends ChangeNotifier {
   @override
   void dispose() {
     _ticker?.dispose();
+    for (final SandboxPiece p in pieces) {
+      p.channel.dispose();
+    }
     super.dispose();
   }
 }
@@ -568,6 +602,8 @@ class _SandboxStageState extends State<SandboxStage>
       onPanStart: (DragStartDetails details) => controller.beginDrag(piece.id),
       onPanUpdate: (DragUpdateDetails details) =>
           controller.dragBy(piece.id, details.delta),
+      onPanEnd: (DragEndDetails details) => controller.endDrag(piece.id),
+      onPanCancel: () => controller.endDrag(piece.id),
       child: MouseRegion(
         cursor: SystemMouseCursors.grab,
         child: DecoratedBox(
@@ -627,6 +663,7 @@ class _SandboxStageState extends State<SandboxStage>
                       radius: p.effectiveRadius,
                       bumpScale: widget.bumpScale,
                       bumpRecoil: widget.bumpRecoil,
+                      channel: p.channel,
                       child: _pieceContent(p, p.id == controller.selectedId),
                     ),
                 ],

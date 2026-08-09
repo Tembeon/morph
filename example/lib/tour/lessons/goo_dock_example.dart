@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'package:morph/morph.dart';
+import 'package:motor/motor.dart';
 
 /// A gooey dock: five tabs fused by one liquid skin, with a selection
 /// blob riding a spring between slots - the neck stretches toward
 /// the new tab, rips, and the blob lands with the spring's own
 /// character. Tapping mid-flight retargets with velocity carry-over:
 /// the whole system-wide interruption philosophy in one tap bar.
+///
+/// The blob rides its piece geometry channel: the spring tick writes
+/// an offset and the skin re-traces - no widget rebuilds per frame.
+/// setState fires only on the actual selection change (icon tints).
 class GooDockExample extends StatefulWidget {
   /// Creates the chapter demo.
   const GooDockExample({super.key, required this.motion});
@@ -32,59 +36,42 @@ class _GooDockExampleState extends State<GooDockExample>
   static const double _slot = 84;
   static const double _dockHeight = 72;
 
-  late final Ticker _ticker;
-  Simulation? _sim;
+  late final SingleMotionController _x = SingleMotionController(
+    motion: widget.motion.closeMotion,
+    vsync: this,
+    initialValue: _slotCenter(0),
+  );
+  final MorphPieceChannel _blob = MorphPieceChannel();
   int _selected = 0;
-  double _blobX = 0;
-  double _velocity = 0;
 
   @override
   void initState() {
     super.initState();
-    _blobX = _slotCenter(0);
-    _ticker = createTicker(_tick);
+    // The spring drives the channel, the channel drives the mass: the
+    // dock's per-frame path never touches the widget tree.
+    _x.addListener(
+      () => _blob.update(offset: Offset(_x.value - _slotCenter(0), 0)),
+    );
   }
 
-  double _slotCenter(int index) => _slot * index + _slot / 2;
+  static double _slotCenter(int index) => _slot * index + _slot / 2;
 
   void _select(int index) {
-    if (index == _selected && !_ticker.isActive) {
-      return;
+    if (index != _selected) {
+      setState(() => _selected = index);
     }
-    setState(() => _selected = index);
     // Retarget from the CURRENT position and velocity - the same
-    // interruption contract as the flights.
-    _sim = widget.motion.closeMotion.createSimulation(
-      start: _blobX,
-      end: _slotCenter(index),
-      velocity: _velocity,
-    );
-    _ticker
-      ..stop()
-      ..start();
-  }
-
-  void _tick(Duration elapsed) {
-    final Simulation? sim = _sim;
-    if (sim == null) {
-      _ticker.stop();
-      return;
-    }
-    final double t = elapsed.inMicroseconds / Duration.microsecondsPerSecond;
-    setState(() {
-      _blobX = sim.x(t);
-      _velocity = sim.dx(t);
-    });
-    if (sim.isDone(t)) {
-      _ticker.stop();
-      _sim = null;
-      _velocity = 0;
-    }
+    // interruption contract as the flights (SingleMotionController
+    // carries the velocity over on its own).
+    _x
+      ..motion = widget.motion.closeMotion
+      ..animateTo(_slotCenter(index));
   }
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _x.dispose();
+    _blob.dispose();
     super.dispose();
   }
 
@@ -108,16 +95,18 @@ class _GooDockExampleState extends State<GooDockExample>
               radius: _dockHeight / 2,
               solid: true,
             ),
-            // The selection blob: pure mass on a spring. Slightly proud
-            // of the dock so the bulge reads on the silhouette.
+            // The selection blob: pure mass on a spring, delivered
+            // through the geometry channel. Slightly proud of the dock
+            // so the bulge reads on the silhouette.
             MorphPiece(
               id: 'blob',
               rect: .fromCenter(
-                center: Offset(_blobX, 20 + _dockHeight / 2 - 14),
+                center: Offset(_slotCenter(0), 20 + _dockHeight / 2 - 14),
                 width: 56,
                 height: 56,
               ),
               radius: 28,
+              channel: _blob,
             ),
             // Tabs are contentful but massless: the dock provides the
             // mass, the icons just sit on it.

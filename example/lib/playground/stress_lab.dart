@@ -6,9 +6,12 @@ import 'package:morph/morph.dart';
 
 /// Stress rig for the liquid skin: N pieces orbiting deterministic
 /// paths on one canvas, so necks form and rip continuously while the
-/// tracing pipeline recomputes every frame. Complements the isolated
-/// microbenchmarks in benchmark/ by measuring the FULL frame (tracing +
-/// shadow + raster + everything around it) via the on-screen FPS meter.
+/// tracing pipeline recomputes every frame. The orbits ride the piece
+/// geometry channels - the ticker writes offsets, the skin re-traces,
+/// and not a single widget rebuilds or relayouts per frame.
+/// Complements the isolated microbenchmarks in benchmark/ by measuring
+/// the FULL frame (tracing + shadow + raster + everything around it)
+/// via the on-screen FPS meter.
 ///
 /// Motion is a pure function of elapsed time with per-piece phases from
 /// the golden angle - runs are reproducible, no randomness.
@@ -41,27 +44,47 @@ class StressLab extends StatefulWidget {
   State<StressLab> createState() => _StressLabState();
 }
 
+typedef _Grid = ({
+  int cols,
+  double stepX,
+  double stepY,
+  double ampX,
+  double ampY,
+});
+
 class _StressLabState extends State<StressLab>
     with SingleTickerProviderStateMixin {
+  static const double _goldenAngle = 2.399963229728653;
+
   late final Ticker _ticker;
-  double _time = 0;
+  List<MorphPieceChannel> _channels = <MorphPieceChannel>[];
+  Size _stage = Size.zero;
 
   @override
   void initState() {
     super.initState();
-    _ticker = createTicker(
-      (Duration elapsed) => setState(() {
-        _time = elapsed.inMicroseconds / Duration.microsecondsPerSecond;
-      }),
-    );
+    _channels = _createChannels(widget.count);
+    _ticker = createTicker(_tick);
     if (widget.animate) {
       _ticker.start();
     }
   }
 
+  static List<MorphPieceChannel> _createChannels(int count) {
+    return <MorphPieceChannel>[
+      for (int i = 0; i < count; i++) MorphPieceChannel(),
+    ];
+  }
+
   @override
   void didUpdateWidget(StressLab oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.count != oldWidget.count) {
+      for (final MorphPieceChannel channel in _channels) {
+        channel.dispose();
+      }
+      _channels = _createChannels(widget.count);
+    }
     if (widget.animate != oldWidget.animate) {
       if (widget.animate) {
         _ticker.start();
@@ -74,11 +97,26 @@ class _StressLabState extends State<StressLab>
   @override
   void dispose() {
     _ticker.dispose();
+    for (final MorphPieceChannel channel in _channels) {
+      channel.dispose();
+    }
     super.dispose();
   }
 
-  List<MorphPiece> _pieces(Size size) {
-    final int count = widget.count;
+  // The whole per-frame path: N channel writes, zero rebuilds. The
+  // skin subscribes to the channels and re-traces on paint.
+  void _tick(Duration elapsed) {
+    if (_stage.isEmpty) {
+      return;
+    }
+    final double t = elapsed.inMicroseconds / Duration.microsecondsPerSecond;
+    final _Grid grid = _gridFor(_stage, widget.count);
+    for (int i = 0; i < _channels.length; i++) {
+      _channels[i].update(offset: _orbit(grid, i, t));
+    }
+  }
+
+  static _Grid _gridFor(Size size, int count) {
     final int cols = math.max(
       1,
       math.sqrt(count * size.width / math.max(1, size.height)).round(),
@@ -89,34 +127,42 @@ class _StressLabState extends State<StressLab>
     // The orbit amplitude deliberately exceeds half the lattice spacing
     // so neighbors keep crossing each other's blend reach: necks must
     // form and rip, not just wobble in place.
-    final double ampX = stepX * 0.42;
-    final double ampY = stepY * 0.42;
-    const double goldenAngle = 2.399963229728653;
+    return (
+      cols: cols,
+      stepX: stepX,
+      stepY: stepY,
+      ampX: stepX * 0.42,
+      ampY: stepY * 0.42,
+    );
+  }
 
+  static Offset _orbit(_Grid grid, int i, double t) {
+    final double phase = i * _goldenAngle;
+    final double w1 = 0.5 + (i % 5) * 0.11;
+    final double w2 = 0.4 + (i % 3) * 0.17;
+    return Offset(
+      math.sin(t * w1 + phase) * grid.ampX,
+      math.cos(t * w2 + phase * 1.7) * grid.ampY,
+    );
+  }
+
+  List<MorphPiece> _pieces(Size size) {
+    final _Grid grid = _gridFor(size, widget.count);
     return <MorphPiece>[
-      for (int i = 0; i < count; i++)
-        () {
-          final double phase = i * goldenAngle;
-          final double w1 = 0.5 + (i % 5) * 0.11;
-          final double w2 = 0.4 + (i % 3) * 0.17;
-          final Offset base = Offset(
-            stepX * (1 + i % cols),
-            stepY * (1 + i ~/ cols),
-          );
-          final Offset orbit = Offset(
-            math.sin(_time * w1 + phase) * ampX,
-            math.cos(_time * w2 + phase * 1.7) * ampY,
-          );
-          return MorphPiece(
-            id: i,
-            rect: .fromCenter(
-              center: base + orbit,
-              width: 46 + (i % 4) * 18,
-              height: 34 + (i % 3) * 14,
+      for (int i = 0; i < widget.count; i++)
+        MorphPiece(
+          id: i,
+          rect: .fromCenter(
+            center: Offset(
+              grid.stepX * (1 + i % grid.cols),
+              grid.stepY * (1 + i ~/ grid.cols),
             ),
-            radius: 12 + (i % 3) * 6.0,
-          );
-        }(),
+            width: 46 + (i % 4) * 18,
+            height: 34 + (i % 3) * 14,
+          ),
+          radius: 12 + (i % 3) * 6.0,
+          channel: _channels[i],
+        ),
     ];
   }
 
@@ -124,6 +170,7 @@ class _StressLabState extends State<StressLab>
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
+        _stage = constraints.biggest;
         return Stack(
           children: <Widget>[
             Positioned.fill(

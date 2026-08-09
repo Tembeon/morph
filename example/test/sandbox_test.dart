@@ -71,10 +71,17 @@ void main() {
       final SandboxController c = SandboxController();
       c.stageSize = const Size(500, 300);
       c.dragBy(3, const Offset(5000, 5000));
-      final Rect r = c.pieces.firstWhere((SandboxPiece p) => p.id == 3).rect;
+      final SandboxPiece p = c.pieces.firstWhere((SandboxPiece p) => p.id == 3);
       final double slack = 500 * 0.03;
-      expect(r.left, closeTo(500 - r.width + slack, 0.001));
-      expect(r.top, closeTo(300 - r.height + slack, 0.001));
+      // Mid-gesture the clamped displacement rides the geometry
+      // channel; the rect itself has not moved yet.
+      final Rect dragged = p.channel.apply(p.rect);
+      expect(dragged.left, closeTo(500 - dragged.width + slack, 0.001));
+      expect(dragged.top, closeTo(300 - dragged.height + slack, 0.001));
+      c.endDrag(3);
+      expect(p.channel.isIdentity, isTrue);
+      expect(p.rect.left, closeTo(500 - p.rect.width + slack, 0.001));
+      expect(p.rect.top, closeTo(300 - p.rect.height + slack, 0.001));
     });
 
     test('resizeSelected keeps the circle square', () {
