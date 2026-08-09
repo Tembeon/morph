@@ -52,8 +52,10 @@ MorphFlight showMorphMenu(
   double maxScrimOpacity = 0.2,
   String? semanticLabel,
 }) {
-  final RenderBox box = context.findRenderObject()! as RenderBox;
-  final Rect anchor = box.localToGlobal(.zero) & box.size;
+  // Overlay-relative, not screen-relative: inside a nested navigator
+  // the two differ, and the popover must anchor in the space the
+  // flight renders in.
+  final Rect anchor = morphAnchorRect(context);
   return showMorph(
     context,
     from: from,

@@ -87,10 +87,18 @@ void main() {
       lessThan(1),
     );
     // The pill still morphs into its menu from the piece.
+    final Offset pill = tester.getCenter(find.text('Share'));
     await tester.tap(find.text('Share'));
     await tester.pump();
     await settle(tester);
     expect(find.text('Copy link'), findsOneWidget);
+    // The popover anchors to the pill INSIDE the phone's overlay: an
+    // anchor captured in screen coordinates would drift by the phone's
+    // own offset and end up clamped to an edge.
+    expect(
+      (tester.getCenter(find.text('Copy link')).dx - pill.dx).abs(),
+      lessThan(80),
+    );
   });
 
   testWidgets('goo dock: tapping a tab springs the blob, retarget mid-flight', (

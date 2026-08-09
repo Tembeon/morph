@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
@@ -75,16 +77,16 @@ void main() {
     }
   });
 
-  test('crossfade: endpoint holds, the dissolve lives in the middle', () {
-    // Full opacity HOLDS near both homes: a slow spring tail shows the
-    // true endpoint content, never a washed-out replica.
-    expect(frameAt(0.08).sourceOpacity, 1);
+  test('crossfade: a short home hold, dissolved before aspects diverge', () {
+    // The source holds solid over the spring's settle-dwell zone only,
+    // and is GONE by 0.30 - past that the container's aspect no longer
+    // matches the button and opaque source content would read as a
+    // second surface. The target holds from 0.90.
+    expect(frameAt(0.04).sourceOpacity, 1);
     expect(frameAt(0.95).targetOpacity, 1);
-    // The unreadable midstate stays unshown: both sides are nearly
-    // gone around the swap point.
-    expect(frameAt(0.4).sourceOpacity, moreOrLessEquals(0, epsilon: 0.01));
+    expect(frameAt(0.3).sourceOpacity, moreOrLessEquals(0, epsilon: 0.01));
     expect(frameAt(0.35).targetOpacity, moreOrLessEquals(0, epsilon: 0.02));
-    expect(frameAt(0.2).sourceOpacity, greaterThan(0));
+    expect(frameAt(0.15).sourceOpacity, greaterThan(0));
     expect(frameAt(0.7).targetOpacity, greaterThan(0.4));
     expect(frameAt(0.7).targetScale, greaterThan(0.95));
   });
@@ -138,9 +140,9 @@ void main() {
     );
     expect(start.elevation, 6);
     expect(frameAt(1).elevation, 24);
-    // The lerp rides p squared: at value 0.5 the shadow carries only a
-    // quarter of the climb - a nearly-home container must not float on
-    // a borrowed dialog shadow.
+    // The lerp rides p^1.5: sub-linear near home (a nearly-home
+    // container must not float on a borrowed dialog shadow) while the
+    // middle keeps enough depth to read as a card.
     final MorphFrame mid = computeMorphFrame(
       value: 0.5,
       sourceRect: source,
@@ -153,7 +155,7 @@ void main() {
       sourceElevation: 6,
       targetElevation: 24,
     );
-    expect(mid.elevation, moreOrLessEquals(6 + 18 * 0.25));
+    expect(mid.elevation, moreOrLessEquals(6 + 18 * 0.5 * math.sqrt(0.5)));
   });
 
   test('a pure function of the value: one value - one frame', () {

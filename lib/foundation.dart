@@ -66,6 +66,7 @@
 /// {@canonicalFor skin.MorphPieceChannel}
 /// {@canonicalFor skin.MorphSkin}
 /// {@canonicalFor target.MorphTargetSpec}
+/// {@canonicalFor target.morphAnchorRect}
 /// {@canonicalFor theme.MorphTheme}
 library;
 

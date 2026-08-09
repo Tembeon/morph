@@ -59,13 +59,17 @@ class MorphFrame {
 /// progress (Material's fade-through split: outgoing 0-30%, incoming
 /// 30-100%) but strictly symmetric: Material's direction-dependent
 /// thresholds would break continuity on a mid-flight reversal.
-// Both fades HOLD at their home end: the source stays fully opaque
-// below 0.10 and the target is fully opaque above 0.90, so a slow
-// spring tail shows the true endpoint content instead of a washed-out
-// replica hovering at partial opacity (visible at glacial). The
-// dissolve itself lives in the middle stretch - the unreadable
-// midstate around 0.37 stays unshown, as before.
-const Interval _sourceFade = Interval(0.10, 0.40, curve: Curves.easeOut);
+// Both fades HOLD at their home end, but the source hold is SHORT
+// (0.05): a spring dwells near zero, so the hold covers exactly the
+// settle tail where the container still matches the button - the true
+// content shows, no washed-out replica. Past it the source dissolves
+// BEFORE the container's aspect diverges from the button's: with a
+// wide pill flying into a tall dialog the rect is +85% taller by
+// p=0.10 already, and fully opaque button content inside that box
+// reads as a second surface. The target holds from 0.90 (its box has
+// the target's own aspect long before that). The unreadable midstate
+// around the swap stays unshown, as before.
+const Interval _sourceFade = Interval(0.05, 0.30, curve: Curves.easeOut);
 const Interval _targetFade = Interval(0.35, 0.90, curve: Curves.easeOut);
 const Interval _surfaceBlend = Interval(0.05, 0.55);
 const Interval _scrimFade = Interval(0, 0.7);
@@ -178,13 +182,16 @@ MorphFrame computeMorphFrame({
     // container-transform guideline): the shuttle starts with exactly
     // the button's shadow and grows it continuously into the container
     // one - no shadow pop when the tag hides or at handoff. The lerp
-    // rides p SQUARED, not p: linear shadow reads as a hover near the
-    // source end (a button-sized container still carrying a quarter of
-    // the dialog's elevation floats a layer above its resting self, and
-    // a slow profile makes that a scene). Squaring sheds the borrowed
-    // shadow early on close and gathers it late on open - symmetric,
-    // still a pure function of the value.
-    elevation: lerpDouble(sourceElevation, targetElevation, p * p)!,
+    // rides p^1.5, not p: linear shadow reads as a hover near the
+    // source end (a button-sized container carrying a quarter of the
+    // dialog's elevation floats a layer above its resting self, and a
+    // slow profile makes that a scene), while too-flat a curve starves
+    // the middle of the "card" cue - a big surface with a button's
+    // shadow reads as the button deformed, not a dialog materializing.
+    // p^1.5 keeps the settle tail at the button's own shadow and gives
+    // the mid-flight surface its card depth; symmetric, still a pure
+    // function of the value.
+    elevation: lerpDouble(sourceElevation, targetElevation, p * math.sqrt(p))!,
     surfaceColor: Color.lerp(
       sourceColor,
       targetColor,

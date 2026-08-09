@@ -105,8 +105,10 @@ class MorphTargetSpec {
   /// A popover anchored to the control that summoned it (the iOS 26
   /// button-to-menu shape). Prefers sitting below the anchor, flips
   /// above when there is no room, and stays inside the overlay with
-  /// [margin]. Capture the anchor rect at tap time:
-  /// `(context.findRenderObject()! as RenderBox).localToGlobal(...)`.
+  /// [margin]. Capture the anchor rect at tap time with
+  /// [morphAnchorRect] - it measures in the coordinates of the overlay
+  /// the flight renders in, so a popover inside a nested navigator
+  /// stays anchored instead of drifting by the navigator's own offset.
   factory MorphTargetSpec.popover({
     required Rect anchor,
     Size size = const Size(260, 300),
@@ -169,4 +171,20 @@ class MorphTargetSpec {
       },
     );
   }
+}
+
+/// The rect of [context]'s render box in the coordinate space of the
+/// enclosing [Overlay] - the space every flight, and therefore every
+/// [MorphTargetSpec.rectFor], works in. Use it to capture popover
+/// anchors at tap time: a raw `localToGlobal` returns SCREEN
+/// coordinates, which silently drift from overlay coordinates the
+/// moment the morph lives inside a nested navigator.
+Rect morphAnchorRect(BuildContext context) {
+  final RenderBox box = context.findRenderObject()! as RenderBox;
+  final RenderObject? overlay = Overlay.of(context).context.findRenderObject();
+  return box.localToGlobal(
+        Offset.zero,
+        ancestor: overlay is RenderBox ? overlay : null,
+      ) &
+      box.size;
 }
