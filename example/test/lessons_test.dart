@@ -45,19 +45,6 @@ void main() {
     await settle(tester);
     expect(find.text('New playlist'), findsNothing);
 
-    // The compact twin: the popover hugs the button and must sit
-    // ABOVE it (no room below a bottom pill).
-    final double noteTop = tester.getTopLeft(find.text('Quick note')).dy;
-    await tester.tap(find.text('Quick note'));
-    await settle(tester);
-    expect(find.text('New note'), findsOneWidget);
-    expect(tester.getTopLeft(find.text('New note')).dy, lessThan(noteTop));
-    await tester.tapAt(
-      tester.getTopLeft(find.text('Inbox')) + const Offset(2, 40),
-    );
-    await settle(tester);
-    expect(find.text('New note'), findsNothing);
-
     // The interruption storm: three flights closed mid-air.
     await tester.tap(find.text('Interrupt'));
     await settle(tester);

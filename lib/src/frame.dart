@@ -71,13 +71,15 @@ class MorphFrame {
 // around the swap stays unshown, as before.
 const Interval _sourceFade = Interval(0.05, 0.30, curve: Curves.easeOut);
 const Interval _targetFade = Interval(0.35, 0.90, curve: Curves.easeOut);
-// The surface color completes its journey WITH the source dissolve
-// (same end point, 0.30-0.35): color lagging behind the content made
-// the transformation two staggered events - a container already
-// dialog-shaped and dialog-filled still dragging the button's tint.
-// Synchronized, the whole cross hides inside the dead zone where
-// neither content reads.
-const Interval _surfaceBlend = Interval(0.05, 0.35);
+// The color cross sits in the MIDDLE band, which both directions
+// traverse fast: a spring dwells at its ends, so a cross placed near
+// either end plays in slow motion exactly where the eye rests. Below
+// 0.30 the surface is fully the SOURCE color - on close the container
+// is button-colored before the whole visible landing phase begins
+// (and the source content, gone by 0.30, never sits on a foreign
+// surface); by 0.55 it is fully the target's, under the arriving
+// target content.
+const Interval _surfaceBlend = Interval(0.30, 0.55);
 const Interval _scrimFade = Interval(0, 0.7);
 
 /// The geometric core of one flight frame: the rect plus the raw
