@@ -4,9 +4,8 @@ Identity-based, spring-driven, interruptible widget-to-overlay morphs
 for Flutter, plus a liquid skin that fuses nearby surfaces into one
 organic shape. No Navigator coupling.
 
-<!-- hero.gif: tour chapter 06 (shared elements + drag) - the
-     mini-player morphs into the full card, artwork travelling as a
-     shared element. -->
+<!-- hero.gif: the Card to page scene - the mini player morphs into
+     the full card, artwork travelling as a shared element. -->
 ![morph hero](doc/media/hero.gif)
 
 > I build this for an app of mine, and the API develops in whatever
@@ -15,8 +14,10 @@ organic shape. No Navigator coupling.
 
 ## Start with the example
 
-A guided tour: ten chapters, each one mechanism with a live demo and
-taste notes, the last one a sandbox playground. Live build:
+A guided tour: seven scenes, each an app mockup in a phone frame
+answering one question (the compose button that becomes its dialog,
+the library card that becomes a real page, the dock whose selection
+is mass), the last one a sandbox playground. Live build:
 <https://tembeon.github.io/morph/> (wasm - a native release build runs
 far smoother). API docs live next to it:
 <https://tembeon.github.io/morph/docs/>.
@@ -30,9 +31,8 @@ Recipes and applied patterns live there, not in this README.
 
 ## Two layers, Flutter-style
 
-- `package:morph/morph.dart` (alias of `foundation.dart`) - the
-  engine: identity, flights, retargeting, the liquid skin. No
-  opinions.
+- `package:morph/foundation.dart` - the engine: identity, flights,
+  retargeting, the liquid skin. No opinions.
 - `package:morph/widgets.dart` - opinionated widgets built on it:
   `showMorphMenu` (a control becomes its own menu), the `Tug` glass
   tether, `SpringButton`, the Material adapter `MorphSurface`.
@@ -91,7 +91,7 @@ showMorphDialog(context, builder: (context, flight) {
 
 Motion, scrim and shape come with defaults; scrim tap, Esc and the
 Android back gesture close it. Most screens stop here.
-(chapters [01-03](example/lib/tour/lessons/basics_lessons.dart))
+(scene [The morph](example/lib/tour/lessons/morph_scene.dart))
 
 **2. State instead of calls** - `MorphAnchor(isOpen: ..., onDismiss:
 ...)`: the same morph, driven by your state instead of a call.
@@ -106,8 +106,7 @@ speed profile, `MorphTheme` the app-wide defaults.
 route: back button, predictive back and pop results work, state
 survives. `MorphSharedElement` flies content between the two sides,
 and `flight.beginDrag`/`dragBy`/`endDrag` is a ready drag-to-dismiss.
-([player](example/lib/tour/lessons/player_example.dart),
-[a real route](example/lib/tour/lessons/route_example.dart))
+([card to page](example/lib/tour/lessons/page_scene.dart))
 
 **5. Raw parts** - `MorphController` is a standalone retargetable
 spring, `MorphSkin` fuses widgets into one liquid mass, and the
