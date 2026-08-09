@@ -163,6 +163,7 @@ class MorphFlight {
   // history. Without the entry, Esc under a morph route popped the
   // route while the flight kept hanging above it, orphaned.
   LocalHistoryEntry? _historyEntry;
+  ModalRoute<Object?>? _historyRoute;
   bool _removingHistory = false;
 
   void _addHistoryEntry(BuildContext context) {
@@ -173,6 +174,11 @@ class MorphFlight {
     if (route == null) {
       return;
     }
+    _historyRoute = route;
+    _pushHistoryEntry(route);
+  }
+
+  void _pushHistoryEntry(ModalRoute<Object?> route) {
     _historyEntry = LocalHistoryEntry(
       onRemove: () {
         _historyEntry = null;
@@ -186,12 +192,32 @@ class MorphFlight {
     route.addLocalHistoryEntry(_historyEntry!);
   }
 
+  /// Re-registers the entry after an interrupted close: close() removes
+  /// it immediately, so a close -> open retarget must put it back or
+  /// the next system pop reaches the page UNDER the visible overlay.
+  void _restoreHistoryEntry() {
+    final ModalRoute<Object?>? route = _historyRoute;
+    if (_routeContentKey != null ||
+        _historyEntry != null ||
+        route == null ||
+        !route.isActive) {
+      return;
+    }
+    _pushHistoryEntry(route);
+  }
+
   void _removeHistoryEntry() {
     final LocalHistoryEntry? entry = _historyEntry;
     if (entry != null) {
       _historyEntry = null;
       _removingHistory = true;
-      entry.remove();
+      // The owning route survives a pushReplacement/removeRoute only as
+      // a corpse: its modal barrier is already disposed and
+      // removeLocalHistoryEntry would trip markNeedsBuild on it. The
+      // entry dies with its route - dropping the reference is enough.
+      if (_historyRoute?.isActive ?? false) {
+        entry.remove();
+      }
       _removingHistory = false;
     }
   }
@@ -245,11 +271,21 @@ class MorphFlight {
   /// Starts finger ownership of the container displacement. The morph
   /// value is untouched: grabbing a still-opening overlay lets it keep
   /// materializing while it follows the hand.
-  void beginDrag() => _drag.begin();
+  void beginDrag() {
+    if (_finished) {
+      return;
+    }
+    _drag.begin();
+  }
 
   /// Feeds a pointer delta 1:1: the whole container - surface, shadow,
   /// content, shared elements - moves as one rigid body.
-  void dragBy(Offset delta) => _drag.moveBy(delta);
+  void dragBy(Offset delta) {
+    if (_finished) {
+      return;
+    }
+    _drag.moveBy(delta);
+  }
 
   /// Releases the finger. The displacement always springs back to zero
   /// with the carried velocity; whether the close flight plays too is
@@ -257,7 +293,7 @@ class MorphFlight {
   /// against [morphDragCommitDistance] / [morphDragCommitVelocity] -
   /// or forced either way with [commit].
   void endDrag(Offset velocityPerSecond, {bool? commit}) {
-    if (!_drag.isActive) {
+    if (_finished || !_drag.isActive) {
       return;
     }
     final Offset offset = _drag.offset;
@@ -357,6 +393,7 @@ class MorphFlight {
     if (_entry == null) {
       _insertEntry();
     }
+    _restoreHistoryEntry();
     controller.open(velocity: velocity);
   }
 
@@ -373,8 +410,12 @@ class MorphFlight {
     // Value space normalizes distance, so the flight's pixel scale
     // re-enters the physics here: a far close gets a bigger velocity
     // injection - it lands heavier and bounces more visibly. Only from
-    // rest: a live interruption has its own velocity.
-    if (v == null && !controller.isAnimating && !controller.isScrubbing) {
+    // rest: a live interruption has its own velocity. A scrub whose
+    // value stands still (a committed predictive back) counts as rest -
+    // its zero velocity would starve the landing bump.
+    if (v == null &&
+        !controller.isAnimating &&
+        (!controller.isScrubbing || controller.velocity == 0)) {
       final double travel =
           (lastTargetRect.center - sourceRect.center).distance;
       v =
@@ -479,8 +520,13 @@ class MorphFlight {
   }
 
   void _removeEntry() {
-    _entry?.remove();
+    final OverlayEntry? entry = _entry;
     _entry = null;
+    if (entry != null) {
+      entry
+        ..remove()
+        ..dispose();
+    }
   }
 
   void _onHandoff() {
@@ -491,17 +537,33 @@ class MorphFlight {
   }
 
   void _onTick() {
-    if (!_finished && controller.target == 0 && !controller.isAnimating) {
+    // A scrub parks the ticker with the target still at 0: that is an
+    // interruption of the close, not its end.
+    if (!_finished &&
+        controller.target == 0 &&
+        !controller.isAnimating &&
+        !controller.isScrubbing) {
       _finalize();
     }
   }
 
   void _disposeDrag() => _drag.reset();
 
+  /// Any teardown that skips the handoff latch must return the source
+  /// widget itself: the only other un-hide lives on the latch, and a
+  /// hidden tag with no flight would stay invisible forever.
+  void _revealTagIfAirborne() {
+    if (!controller.hasHandedOff && tag.mounted) {
+      tag.reveal();
+    }
+  }
+
   void _finalize() {
     _finished = true;
     controller.removeListener(_onTick);
+    _revealTagIfAirborne();
     _removeHistoryEntry();
+    _historyRoute = null;
     _removeEntry();
     _disposeSnapshot();
     _disposeDrag();
@@ -515,7 +577,9 @@ class MorphFlight {
     if (!_finished) {
       _finished = true;
       controller.removeListener(_onTick);
+      _revealTagIfAirborne();
       _removeHistoryEntry();
+      _historyRoute = null;
       _removeEntry();
       _disposeSnapshot();
       _disposeDrag();

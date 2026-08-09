@@ -105,6 +105,21 @@ class MorphScopeState extends State<MorphScope> with TickerProviderStateMixin {
     }
   }
 
+  /// Moves a live flight to the tag's new id when the tag re-keys
+  /// mid-flight. [MorphFlight.tagId] reads the tag's CURRENT id, so an
+  /// un-moved registry entry would be orphaned under the old key:
+  /// retireFlight would probe the new key and remove nothing, and every
+  /// later launch from the old id would retarget the dead flight
+  /// forever.
+  @internal
+  void retagFlight(Object oldId, MorphTagState tag) {
+    final MorphFlight? flight = _flights[oldId];
+    if (flight != null && flight.tag == tag) {
+      _flights.remove(oldId);
+      _flights[flight.tagId] = flight;
+    }
+  }
+
   /// Records a newly launched flight and publishes it on [lastFlight].
   @internal
   void adoptFlight(MorphFlight flight) {
@@ -453,6 +468,7 @@ class MorphTagState extends State<MorphTag> {
     if (oldWidget.id != widget.id) {
       _scope?.unregisterTag(oldWidget.id, this);
       _scope?.registerTag(widget.id, this);
+      _scope?.retagFlight(oldWidget.id, this);
     }
   }
 
@@ -512,6 +528,21 @@ class MorphTagState extends State<MorphTag> {
       _bumpSource = controller;
       _impactAxis = impactAxis.distance < 1 ? const Offset(0, 1) : impactAxis;
     });
+  }
+
+  /// Un-hides the widget without a landing: the return path of every
+  /// teardown that skips the handoff latch (abort, a scrub-interrupted
+  /// finalize) - the latch's [revealWithBump] is the only other
+  /// un-hide, and a tag left hidden with no flight would stay
+  /// invisible forever.
+  @internal
+  void reveal() {
+    if (_hidden && mounted) {
+      setState(() {
+        _hidden = false;
+        _bumpSource = null;
+      });
+    }
   }
 
   /// Stops mirroring the landing bump after finalization.
