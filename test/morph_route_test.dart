@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 
@@ -315,6 +316,70 @@ void main() {
     expect(flight.isFinished, isTrue);
     route.handleStartBackGesture();
     expect(flight.controller.isScrubbing, isFalse);
+  });
+
+  testWidgets('predictive back arrives through the real binding bridge', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    // The system events enter through the platform channel, exactly as
+    // Android sends them: the _RouteBackGestureObserver must claim the
+    // gesture (a PopupRoute is never wrapped by the material detector,
+    // so nobody else would deliver it).
+    Future<void> backEvent(String method, [Map<String, Object?>? args]) {
+      return tester.binding.defaultBinaryMessenger.handlePlatformMessage(
+        SystemChannels.backGesture.name,
+        const StandardMethodCodec().encodeMethodCall(MethodCall(method, args)),
+        (ByteData? _) {},
+      );
+    }
+
+    Map<String, Object?> touch(double progress) => <String, Object?>{
+      'touchOffset': <double>[12, 400],
+      'progress': progress,
+      'swipeEdge': 0,
+    };
+
+    await tester.pumpWidget(host());
+    await tester.tap(find.text('go'));
+    await tester.pump();
+    final MorphScopeState scope = tester.state<MorphScopeState>(
+      find.byType(MorphScope),
+    );
+    final MorphFlight flight = scope.flightOf('card')!;
+    await settle(tester);
+    expect(flight.routeOwnsContent.value, isTrue);
+
+    // Start + drag: the observer claims the gesture and the flight
+    // scrubs shallowly under the finger.
+    await backEvent('startBackGesture', touch(0));
+    await tester.pump();
+    expect(flight.controller.isScrubbing, isTrue);
+    expect(flight.routeOwnsContent.value, isFalse);
+    await backEvent('updateBackGestureProgress', touch(1));
+    await tester.pump();
+    expect(flight.controller.value, lessThan(0.9));
+
+    // Cancel: springs back, the page re-adopts the content.
+    await backEvent('cancelBackGesture');
+    await settle(tester);
+    expect(flight.controller.value, closeTo(1, 0.01));
+    expect(flight.routeOwnsContent.value, isTrue);
+
+    // A second gesture, committed: the route pops and the ordinary
+    // close plays from the scrubbed value.
+    await backEvent('startBackGesture', touch(0));
+    await backEvent('updateBackGestureProgress', touch(0.6));
+    await tester.pump();
+    await backEvent('commitBackGesture');
+    await tester.pump();
+    expect(flight.controller.isClosing, isTrue);
+    await settle(tester);
+    expect(flight.isFinished, isTrue);
+    expect(find.text('go'), findsOneWidget);
   });
 
   testWidgets('a cover pushed over a still-opening route gets the latch', (

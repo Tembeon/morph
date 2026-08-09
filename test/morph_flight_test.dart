@@ -158,6 +158,81 @@ void main() {
     );
   });
 
+  testWidgets('RETARGET CONTRACT: a second showMorph keeps the flight', (
+    WidgetTester tester,
+  ) async {
+    final List<MorphFlight> launches = <MorphFlight>[];
+    late BuildContext tagContext;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: MorphTag(
+            id: 'btn',
+            child: Builder(
+              builder: (BuildContext context) {
+                tagContext = context;
+                return const Text('anchor');
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+
+    launches.add(
+      showMorphDialog(
+        tagContext,
+        from: 'btn',
+        builder: (BuildContext context, MorphFlight f) =>
+            const Text('first-content'),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(find.text('first-content'), findsOneWidget);
+
+    // The second call mid-air, from the same tag but a DIFFERENT
+    // builder/motion: same flight, same content, one shuttle; only the
+    // motion profile is updated (content lives in the shuttle and
+    // cannot be swapped).
+    launches.add(
+      showMorphDialog(
+        tagContext,
+        from: 'btn',
+        motion: .glacial,
+        builder: (BuildContext context, MorphFlight f) =>
+            const Text('second-content'),
+      ),
+    );
+    await tester.pump();
+    expect(launches, hasLength(2));
+    expect(launches[1], same(launches[0]));
+    expect(find.text('first-content'), findsOneWidget);
+    expect(find.text('second-content'), findsNothing);
+    expect(launches[0].controller.motion, MorphMotion.glacial);
+
+    final MorphScopeState scope = tester.state<MorphScopeState>(
+      find.byType(MorphScope),
+    );
+    expect(scope.liveFlights, hasLength(1));
+
+    // The repeated launch must not stack a second pop entry: one pop
+    // closes the flight, the next one has nothing left to pop.
+    final NavigatorState nav = tester.state<NavigatorState>(
+      find.byType(Navigator),
+    );
+    expect(nav.canPop(), isTrue);
+    await settle(tester);
+    // Close on a quick profile so settle() converges within its window.
+    launches[0].controller.motion = MorphMotion.instant;
+    unawaited(nav.maybePop());
+    await settle(tester);
+    expect(launches[0].isFinished, isTrue);
+    expect(nav.canPop(), isFalse);
+  });
+
   testWidgets('closed completes with the close result', (
     WidgetTester tester,
   ) async {
