@@ -75,12 +75,18 @@ void main() {
     }
   });
 
-  test('crossfade: a fast early sub-range, no double exposure', () {
-    expect(frameAt(0.3).sourceOpacity, moreOrLessEquals(0, epsilon: 0.01));
-    expect(frameAt(0.3).targetOpacity, moreOrLessEquals(0, epsilon: 0.01));
-    expect(frameAt(0.15).sourceOpacity, greaterThan(0));
-    expect(frameAt(0.6).targetOpacity, greaterThan(0.4));
-    expect(frameAt(0.6).targetScale, greaterThan(0.95));
+  test('crossfade: endpoint holds, the dissolve lives in the middle', () {
+    // Full opacity HOLDS near both homes: a slow spring tail shows the
+    // true endpoint content, never a washed-out replica.
+    expect(frameAt(0.08).sourceOpacity, 1);
+    expect(frameAt(0.95).targetOpacity, 1);
+    // The unreadable midstate stays unshown: both sides are nearly
+    // gone around the swap point.
+    expect(frameAt(0.4).sourceOpacity, moreOrLessEquals(0, epsilon: 0.01));
+    expect(frameAt(0.35).targetOpacity, moreOrLessEquals(0, epsilon: 0.02));
+    expect(frameAt(0.2).sourceOpacity, greaterThan(0));
+    expect(frameAt(0.7).targetOpacity, greaterThan(0.4));
+    expect(frameAt(0.7).targetScale, greaterThan(0.95));
   });
 
   test('beyond the travel range the morph shifts but does not stretch', () {

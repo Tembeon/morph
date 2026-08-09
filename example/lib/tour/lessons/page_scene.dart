@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:morph/widgets.dart';
@@ -211,7 +213,7 @@ class _AlbumCard extends StatelessWidget {
                 child: MorphSharedElement(
                   id: 'cover-$index',
                   fade: .none,
-                  child: _Cover(colors: album.colors, radius: 12, iconSize: 32),
+                  child: _Cover(colors: album.colors, radius: 12),
                 ),
               ),
               const SizedBox(height: 8),
@@ -258,7 +260,7 @@ class _MiniBar extends StatelessWidget {
               SizedBox(
                 width: 36,
                 height: 36,
-                child: _Cover(colors: album.colors, radius: 18, iconSize: 15),
+                child: _Cover(colors: album.colors, radius: 18),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -510,39 +512,42 @@ class _LyricsPage extends StatelessWidget {
 }
 
 /// The album art: a gradient stand-in so the example stays asset-free.
-/// Without an explicit [size] it FILLS whatever box it is given -
-/// a Container shrink-wraps its icon otherwise.
+/// Without an explicit [size] it FILLS whatever box it is given.
+///
+/// The icon scales WITH the box (a fixed fraction of the shorter
+/// side): both sides of a shared pair are geometrically similar, so
+/// the solo-flying copy lands pixel-identical to the real marker - a
+/// fixed icon size would pop at the handoff.
 class _Cover extends StatelessWidget {
-  const _Cover({
-    required this.colors,
-    required this.radius,
-    this.size,
-    this.iconSize = 40,
-  });
+  const _Cover({required this.colors, required this.radius, this.size});
 
   final List<Color> colors;
   final double radius;
   final double? size;
-  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size ?? .infinity,
-      height: size ?? .infinity,
-      decoration: BoxDecoration(
-        borderRadius: .circular(radius),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: colors,
-        ),
-      ),
-      child: Icon(
-        Icons.graphic_eq_rounded,
-        size: iconSize,
-        color: Colors.white.withValues(alpha: 0.8),
-      ),
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final double side = size ?? constraints.biggest.shortestSide;
+        return Container(
+          width: size ?? .infinity,
+          height: size ?? .infinity,
+          decoration: BoxDecoration(
+            borderRadius: .circular(radius),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: colors,
+            ),
+          ),
+          child: Icon(
+            Icons.graphic_eq_rounded,
+            size: math.max(12, side * 0.21),
+            color: Colors.white.withValues(alpha: 0.8),
+          ),
+        );
+      },
     );
   }
 }

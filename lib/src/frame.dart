@@ -59,8 +59,14 @@ class MorphFrame {
 /// progress (Material's fade-through split: outgoing 0-30%, incoming
 /// 30-100%) but strictly symmetric: Material's direction-dependent
 /// thresholds would break continuity on a mid-flight reversal.
-const Interval _sourceFade = Interval(0, 0.30, curve: Curves.easeOut);
-const Interval _targetFade = Interval(0.30, 1, curve: Curves.easeOut);
+// Both fades HOLD at their home end: the source stays fully opaque
+// below 0.10 and the target is fully opaque above 0.90, so a slow
+// spring tail shows the true endpoint content instead of a washed-out
+// replica hovering at partial opacity (visible at glacial). The
+// dissolve itself lives in the middle stretch - the unreadable
+// midstate around 0.37 stays unshown, as before.
+const Interval _sourceFade = Interval(0.10, 0.40, curve: Curves.easeOut);
+const Interval _targetFade = Interval(0.35, 0.90, curve: Curves.easeOut);
 const Interval _surfaceBlend = Interval(0.05, 0.55);
 const Interval _scrimFade = Interval(0, 0.7);
 
