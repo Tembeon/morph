@@ -32,6 +32,13 @@ class MorphTourApp extends StatelessWidget {
               brightness: .dark,
             ),
             scaffoldBackgroundColor: const Color(0xFF12101A),
+            // Touch feedback in this app is springs and mass, not ink:
+            // a Material ripple on top of a spring press is a second
+            // design language. Hover and focus stay - those are
+            // pointer/a11y affordances, not decoration.
+            splashFactory: NoSplash.splashFactory,
+            splashColor: Colors.transparent,
+            highlightColor: Colors.transparent,
           ),
           builder: (BuildContext context, Widget? child) {
             final MediaQueryData mq = MediaQuery.of(context);
