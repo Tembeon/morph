@@ -44,10 +44,16 @@ class MorphAnchor extends StatefulWidget {
     required this.closedBuilder,
     required this.openBuilder,
     this.tagId,
+    this.spec,
     this.shape = const RoundedRectangleBorder(),
     this.surfaceColor,
+    this.elevation = 0,
+    this.replica,
+    this.snapshotGhost = false,
     this.motion,
     this.barrierDismissible = true,
+    this.maxScrimOpacity,
+    this.semanticLabel,
   });
 
   /// Whether the overlay should be open; changes retarget the flight.
@@ -63,8 +69,10 @@ class MorphAnchor extends StatefulWidget {
   /// Builds the inline widget (the flight's source).
   final WidgetBuilder closedBuilder;
 
-  /// Builds the overlay content.
-  final WidgetBuilder openBuilder;
+  /// Builds the overlay content. Rebuilt when the anchor rebuilds, so
+  /// content derived from the owner's state stays fresh in the open
+  /// overlay.
+  final MorphContentBuilder openBuilder;
 
   /// An explicit tag id instead of identity-by-State. Needed when the
   /// anchor's flight must be visible to outside consumers by name - for
@@ -72,17 +80,40 @@ class MorphAnchor extends StatefulWidget {
   /// free. Must stay stable for the anchor's whole lifetime.
   final Object? tagId;
 
+  /// The source surface model as one value ([MorphTag.spec] semantics:
+  /// wins over [shape]/[surfaceColor]/[elevation]).
+  final MorphSurfaceSpec? spec;
+
   /// The source outline the shuttle takes off from.
   final ShapeBorder shape;
 
   /// The source surface color.
   final Color? surfaceColor;
 
+  /// The source elevation ([MorphTag.elevation] semantics): a source
+  /// with its own shadow must declare it, or the shadow pops at launch
+  /// and handoff.
+  final double elevation;
+
+  /// The in-flight copy for the shuttle ([MorphTag.replica] semantics).
+  final Widget? replica;
+
+  /// Fly a pixel snapshot instead of a widget replica
+  /// ([MorphTag.snapshotGhost] semantics).
+  final bool snapshotGhost;
+
   /// Motion profile; null resolves MorphTheme, then the default.
   final MorphMotion? motion;
 
   /// Whether scrim taps and Esc request dismissal.
   final bool barrierDismissible;
+
+  /// Scrim ceiling; null resolves MorphTheme, then the default.
+  final double? maxScrimOpacity;
+
+  /// Accessibility name of the opened overlay (screen readers announce
+  /// it).
+  final String? semanticLabel;
 
   @override
   State<MorphAnchor> createState() => _MorphAnchorState();
@@ -121,6 +152,21 @@ class _MorphAnchorState extends State<MorphAnchor> {
           _flight?.close();
         }
       });
+    } else {
+      // The anchor rebuilt while open: the overlay content derives from
+      // the owner's state exactly like the inline widget does, so it
+      // rebuilds with the anchor - an OverlayEntry does not follow the
+      // owner's build on its own. The entry is no ancestor of this
+      // subtree, so marking it during build is illegal - defer, like
+      // the isOpen sync above.
+      if (_flight != null && !_flight!.isFinished) {
+        WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+          final MorphFlight? flight = _flight;
+          if (mounted && flight != null && !flight.isFinished) {
+            flight.markNeedsBuild();
+          }
+        });
+      }
     }
   }
 
@@ -131,9 +177,11 @@ class _MorphAnchorState extends State<MorphAnchor> {
       target: widget.target,
       motion: widget.motion,
       barrierDismissible: widget.barrierDismissible,
+      maxScrimOpacity: widget.maxScrimOpacity,
       onDismissRequested: widget.onDismiss,
+      semanticLabel: widget.semanticLabel,
       builder: (BuildContext context, MorphFlight flight) =>
-          widget.openBuilder(context),
+          widget.openBuilder(context, flight),
     );
   }
 
@@ -148,8 +196,12 @@ class _MorphAnchorState extends State<MorphAnchor> {
   Widget build(BuildContext context) {
     return MorphTag(
       id: _tagId,
+      spec: widget.spec,
       shape: widget.shape,
       surfaceColor: widget.surfaceColor,
+      elevation: widget.elevation,
+      replica: widget.replica,
+      snapshotGhost: widget.snapshotGhost,
       child: Builder(builder: widget.closedBuilder),
     );
   }

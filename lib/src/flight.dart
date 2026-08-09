@@ -456,6 +456,13 @@ class MorphFlight {
     }
   }
 
+  /// Rebuilds the shuttle's content subtree from the current builder
+  /// closure. Overlay content does not follow its owner's build on its
+  /// own (an OverlayEntry is an island): a state owner whose open
+  /// content derives from that state calls this after setState -
+  /// [MorphAnchor] does it on every rebuild.
+  void markNeedsBuild() => _entry?.markNeedsBuild();
+
   /// Routes a dismissal through [onDismissRequested] when set,
   /// otherwise calls [close] - the single funnel for scrim taps, Esc
   /// and back.

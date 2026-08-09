@@ -36,7 +36,8 @@ class _AnchorHostState extends State<_AnchorHost> {
               onPressed: () => open = true,
               child: const Text('anchor-button'),
             ),
-            openBuilder: (BuildContext context) => const Text('anchor-sheet'),
+            openBuilder: (BuildContext context, MorphFlight flight) =>
+                const Text('anchor-sheet'),
           ),
         ),
       ),
@@ -133,7 +134,7 @@ void main() {
                   target: MorphTargetSpec.sheet(),
                   closedBuilder: (BuildContext context) =>
                       const Text('anchor-btn'),
-                  openBuilder: (BuildContext context) =>
+                  openBuilder: (BuildContext context, MorphFlight flight) =>
                       const Text('anchor-sheet'),
                 ),
               );
@@ -161,6 +162,90 @@ void main() {
     expect(find.text('anchor-sheet'), findsNothing);
     flight.controller.removeListener(listener);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('an anchor rebuild refreshes the open overlay content', (
+    WidgetTester tester,
+  ) async {
+    int counter = 0;
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              rebuild = setState;
+              return Center(
+                child: MorphAnchor(
+                  isOpen: true,
+                  onDismiss: () {},
+                  target: MorphTargetSpec.sheet(),
+                  closedBuilder: (BuildContext context) =>
+                      const Text('anchor-btn'),
+                  openBuilder: (BuildContext context, MorphFlight flight) =>
+                      Text('count-$counter'),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await settle(tester);
+    expect(find.text('count-0'), findsOneWidget);
+
+    rebuild(() => counter = 7);
+    await tester.pump();
+    await tester.pump();
+    expect(
+      find.text('count-7'),
+      findsOneWidget,
+      reason:
+          'overlay content derives from the owner state like the '
+          'inline widget does - it must rebuild with the anchor',
+    );
+  });
+
+  testWidgets('the anchor declares the full source surface', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Center(
+            child: MorphAnchor(
+              isOpen: true,
+              onDismiss: () {},
+              target: MorphTargetSpec.sheet(),
+              spec: const MorphSurfaceSpec(
+                shape: StadiumBorder(),
+                elevation: 6,
+              ),
+              semanticLabel: 'Share sheet',
+              closedBuilder: (BuildContext context) => const Text('anchor-btn'),
+              openBuilder: (BuildContext context, MorphFlight flight) =>
+                  const Text('anchor-sheet'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 30));
+
+    final MorphScopeState scope = MorphScope.of(
+      tester.element(find.text('anchor-sheet')),
+    );
+    final MorphFlight flight = scope.lastFlight.value!;
+    expect(flight.tag.elevation, 6);
+    expect(flight.tag.shape, isA<StadiumBorder>());
+    expect(flight.semanticLabel, 'Share sheet');
+    await settle(tester);
   });
 
   testWidgets('tapping the scrim calls onDismiss, not closing by itself', (

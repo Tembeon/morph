@@ -233,7 +233,8 @@ void main() {
                     onDismiss: () => rebuild(() => open = false),
                     target: MorphTargetSpec.sheet(),
                     closedBuilder: (BuildContext context) => const Text('pill'),
-                    openBuilder: (BuildContext context) => const Text('sheet'),
+                    openBuilder: (BuildContext context, MorphFlight flight) =>
+                        const Text('sheet'),
                   );
                 },
               ),
