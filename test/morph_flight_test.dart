@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
@@ -154,6 +156,83 @@ void main() {
       findsNothing,
       reason: 'the bump is removed after finalization',
     );
+  });
+
+  testWidgets('closed completes with the close result', (
+    WidgetTester tester,
+  ) async {
+    MorphFlight? flight;
+    await tester.pumpWidget(_Host(onFlight: (MorphFlight f) => flight = f));
+    await tester.tap(find.text('open-me'));
+    await tester.pump();
+    await settle(tester);
+
+    Object? received;
+    unawaited(flight!.closed.then((Object? value) => received = value));
+    flight!.close(result: 'picked');
+    await settle(tester);
+    expect(flight!.isFinished, isTrue);
+    expect(received, 'picked');
+  });
+
+  testWidgets('closeAll lands every live flight', (WidgetTester tester) async {
+    MorphFlight? flight;
+    await tester.pumpWidget(_Host(onFlight: (MorphFlight f) => flight = f));
+    await tester.tap(find.text('open-me'));
+    await tester.pump();
+    await settle(tester);
+    final MorphScopeState scope = tester.state<MorphScopeState>(
+      find.byType(MorphScope),
+    );
+    expect(scope.liveFlights.single, same(flight));
+
+    scope.closeAll();
+    await settle(tester);
+    expect(flight!.isFinished, isTrue);
+    expect(scope.liveFlights, isEmpty);
+    expect(find.text('sheet-content'), findsNothing);
+    expect(find.text('open-me'), findsOneWidget);
+  });
+
+  testWidgets('the sheet and dialog presets accept a surface model', (
+    WidgetTester tester,
+  ) async {
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: MorphTag(
+            id: 'btn',
+            child: Builder(
+              builder: (BuildContext context) => ElevatedButton(
+                onPressed: () => flight = showMorphDialog(
+                  context,
+                  from: 'btn',
+                  surface: const MorphSurfaceSpec(
+                    shape: StadiumBorder(),
+                    color: Color(0xFF102030),
+                    elevation: 12,
+                  ),
+                  builder: (BuildContext context, MorphFlight f) =>
+                      const Text('dialog-content'),
+                ),
+                child: const Text('open-me'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-me'));
+    await tester.pump();
+    expect(flight!.target.shape, isA<StadiumBorder>());
+    expect(flight!.target.surfaceColor, const Color(0xFF102030));
+    expect(flight!.target.elevation, 12);
+    await settle(tester);
+    flight!.close();
+    await settle(tester);
   });
 
   testWidgets('tapping the scrim mid-flight interrupts open', (

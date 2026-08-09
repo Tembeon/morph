@@ -307,9 +307,11 @@ class MorphPageRoute<T> extends PopupRoute<T> {
     if (flight != null && !flight.isFinished) {
       // Hand the content back to the shuttle in the same frame the page
       // goes away, then play the ordinary close. close() is a no-op if
-      // the flight is already closing.
+      // the flight is already closing. The pop result rides the
+      // flight's own closed future too, so both calling conventions
+      // agree.
       flight.routeOwnsContent.value = false;
-      flight.close();
+      flight.close(result: result);
     }
     return super.didPop(result);
   }

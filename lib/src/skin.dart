@@ -781,7 +781,7 @@ class RenderMorphSkin extends RenderBox
       void tick() => markNeedsPaint();
       _flightSubs[flight] = tick;
       flight.frameTicks.addListener(tick);
-      flight.closed.then((void _) {
+      flight.closed.then((Object? _) {
         final VoidCallback? sub = _flightSubs.remove(flight);
         if (sub != null) {
           flight.frameTicks.removeListener(sub);

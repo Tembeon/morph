@@ -72,6 +72,23 @@ class MorphScopeState extends State<MorphScope> with TickerProviderStateMixin {
   /// The live flight of the tag with [id], or null.
   MorphFlight? flightOf(Object id) => _flights[id];
 
+  /// A snapshot of every live flight in this scope, one per tag.
+  Iterable<MorphFlight> get liveFlights =>
+      List<MorphFlight>.unmodifiable(_flights.values);
+
+  /// Closes every live flight - the app-level "nothing stays open"
+  /// path (logout, deep link, tab switch, test teardown). [animate]
+  /// false tears them down instantly via [MorphFlight.abort].
+  void closeAll({bool animate = true}) {
+    for (final MorphFlight flight in _flights.values.toList()) {
+      if (animate) {
+        flight.close();
+      } else {
+        flight.abort();
+      }
+    }
+  }
+
   /// Like [flightOf], but null when the flight's source tag has left
   /// the active tree. A flight can outlive its tag (a screen torn down
   /// mid-flight: the scope owns flights, a disposing tag only

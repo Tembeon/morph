@@ -54,10 +54,13 @@ MorphFlight showMorphSheet(
   double? height,
   double heightFactor = 0.5,
   double maxWidth = 560,
+  MorphSurfaceSpec? surface,
   ShapeBorder? shape,
   Color? surfaceColor,
   MorphMotion? motion,
   bool barrierDismissible = true,
+  double? maxScrimOpacity,
+  VoidCallback? onDismissRequested,
   String? semanticLabel,
 }) {
   assert(
@@ -78,12 +81,15 @@ MorphFlight showMorphSheet(
       height: height,
       heightFactor: heightFactor,
       maxWidth: maxWidth,
+      surface: surface,
       shape: shape ?? theme.shape,
       surfaceColor: surfaceColor ?? theme.backgroundColor,
     ),
     builder: builder,
     motion: motion,
     barrierDismissible: barrierDismissible,
+    maxScrimOpacity: maxScrimOpacity,
+    onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
   );
 }
@@ -96,10 +102,13 @@ MorphFlight showMorphDialog(
   required MorphContentBuilder builder,
   double width = 440,
   double height = 360,
+  MorphSurfaceSpec? surface,
   ShapeBorder? shape,
   Color? surfaceColor,
   MorphMotion? motion,
   bool barrierDismissible = true,
+  double? maxScrimOpacity,
+  VoidCallback? onDismissRequested,
   String? semanticLabel,
 }) {
   assert(
@@ -113,12 +122,15 @@ MorphFlight showMorphDialog(
     target: MorphTargetSpec.dialog(
       width: width,
       height: height,
+      surface: surface,
       shape: shape ?? theme.shape,
       surfaceColor: surfaceColor ?? theme.backgroundColor,
     ),
     builder: builder,
     motion: motion,
     barrierDismissible: barrierDismissible,
+    maxScrimOpacity: maxScrimOpacity,
+    onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
   );
 }

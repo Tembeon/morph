@@ -84,7 +84,8 @@ class MorphFlight {
 
   bool _finished = false;
   bool _controllerDisposed = false;
-  final Completer<void> _closedCompleter = Completer<void>();
+  Object? _result;
+  final Completer<Object?> _closedCompleter = Completer<Object?>();
 
   /// Marked shared elements on both sides of this flight (see
   /// [MorphSharedElement]).
@@ -103,8 +104,12 @@ class MorphFlight {
   /// The source tag's id.
   Object get tagId => tag.id;
 
-  /// Completes when the flight finalizes (landed or aborted).
-  Future<void> get closed => _closedCompleter.future;
+  /// Completes when the flight finalizes (landed or aborted), with the
+  /// result of the [close] that landed it - the overlay counterpart of
+  /// awaiting showDialog. A dismissal (scrim tap, Esc, back) closes
+  /// with null; in route mode the value passed to Navigator.pop rides
+  /// here too.
+  Future<Object?> get closed => _closedCompleter.future;
 
   /// Whether the flight has finalized.
   bool get isFinished => _finished;
@@ -407,10 +412,15 @@ class MorphFlight {
   /// Retargets the spring toward closed; from rest the close velocity
   /// hint scales with the flight's pixel travel so a far close lands
   /// heavier.
-  void close({double? velocity}) {
+  ///
+  /// [result] is what [closed] completes with at finalization - "what
+  /// did the user pick". Every close overwrites it (a dismissal after
+  /// a value-carrying close honestly reports null).
+  void close({double? velocity, Object? result}) {
     if (_finished || (controller.target == 0 && !controller.isScrubbing)) {
       return;
     }
+    _result = result;
     _removeHistoryEntry();
     refreshSourceRect();
     double? v = velocity;
@@ -583,7 +593,7 @@ class MorphFlight {
     _disposeDrag();
     tag.clearBump();
     scope.retireFlight(this);
-    _closedCompleter.complete();
+    _closedCompleter.complete(_result);
   }
 
   /// Tears the flight down without animation.
@@ -600,7 +610,7 @@ class MorphFlight {
       controller.stop();
       scope.retireFlight(this);
       if (!_closedCompleter.isCompleted) {
-        _closedCompleter.complete();
+        _closedCompleter.complete(_result);
       }
     }
     // Disposing the controller is deferred to the scope's retire
