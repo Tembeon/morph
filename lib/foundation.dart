@@ -57,6 +57,7 @@
 /// {@canonicalFor scope.MorphTag}
 /// {@canonicalFor scope.MorphTagState}
 /// {@canonicalFor shared.MorphSharedElement}
+/// {@canonicalFor shared.MorphSharedFade}
 /// {@canonicalFor show.showMorph}
 /// {@canonicalFor show.showMorphDialog}
 /// {@canonicalFor show.showMorphSheet}
@@ -90,7 +91,7 @@ export 'src/liquid_field.dart'
     show LiquidBox, LiquidBridge, LiquidShape, MorphSkinStyle;
 export 'src/reveal.dart';
 export 'src/route.dart' show MorphPageRoute, showMorphRoute;
-export 'src/shared.dart' show MorphSharedElement;
+export 'src/shared.dart' show MorphSharedElement, MorphSharedFade;
 export 'src/scope.dart'
     show MorphScope, MorphScopeState, MorphSurfaceSpec, MorphTag, MorphTagState;
 export 'src/show.dart';

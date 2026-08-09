@@ -125,6 +125,83 @@ void main() {
     expect(find.text('mini'), findsOneWidget);
   });
 
+  testWidgets('fade none: the target side flies alone at full opacity', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Center(
+            child: MorphTag(
+              id: 'solo',
+              child: Builder(
+                builder: (BuildContext context) => TextButton(
+                  onPressed: () => showMorphDialog(
+                    context,
+                    from: 'solo',
+                    width: 400,
+                    height: 400,
+                    motion: .glacial,
+                    builder: (BuildContext context, MorphFlight flight) =>
+                        const Center(
+                          child: MorphSharedElement(
+                            id: 'badge',
+                            child: SizedBox(
+                              width: 180,
+                              height: 60,
+                              child: Text('badge-target'),
+                            ),
+                          ),
+                        ),
+                  ),
+                  child: const MorphSharedElement(
+                    id: 'badge',
+                    // One side declaring no-fade covers the pair.
+                    fade: .none,
+                    child: SizedBox(
+                      width: 90,
+                      height: 30,
+                      child: Text('badge-source'),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('badge-source'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    final Finder flying = find.byKey(
+      const ValueKey<String>('morph-shared-fly-badge'),
+    );
+    expect(flying, findsOneWidget);
+    // Solo mode: only the TARGET copy rides the flying frame, at full
+    // opacity for the whole flight - no fade-through dip.
+    expect(
+      find.descendant(of: flying, matching: find.text('badge-target')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: flying, matching: find.text('badge-source')),
+      findsNothing,
+    );
+    final Opacity fader = tester.widget<Opacity>(
+      find.descendant(of: flying, matching: find.byType(Opacity)).first,
+    );
+    expect(fader.opacity, 1);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('an unpaired id degrades to plain rendering', (
     WidgetTester tester,
   ) async {

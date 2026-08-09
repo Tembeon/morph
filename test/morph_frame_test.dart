@@ -132,6 +132,22 @@ void main() {
     );
     expect(start.elevation, 6);
     expect(frameAt(1).elevation, 24);
+    // The lerp rides p squared: at value 0.5 the shadow carries only a
+    // quarter of the climb - a nearly-home container must not float on
+    // a borrowed dialog shadow.
+    final MorphFrame mid = computeMorphFrame(
+      value: 0.5,
+      sourceRect: source,
+      targetRect: target,
+      sourceShape: const CircleBorder(),
+      targetShape: const RoundedRectangleBorder(),
+      sourceColor: Colors.black,
+      targetColor: Colors.white,
+      maxScrimOpacity: 0.45,
+      sourceElevation: 6,
+      targetElevation: 24,
+    );
+    expect(mid.elevation, moreOrLessEquals(6 + 18 * 0.25));
   });
 
   test('a pure function of the value: one value - one frame', () {

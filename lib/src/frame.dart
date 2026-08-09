@@ -171,8 +171,14 @@ MorphFrame computeMorphFrame({
     // The shadow belongs to the morphing container (the Material
     // container-transform guideline): the shuttle starts with exactly
     // the button's shadow and grows it continuously into the container
-    // one - no shadow pop when the tag hides or at handoff.
-    elevation: lerpDouble(sourceElevation, targetElevation, p)!,
+    // one - no shadow pop when the tag hides or at handoff. The lerp
+    // rides p SQUARED, not p: linear shadow reads as a hover near the
+    // source end (a button-sized container still carrying a quarter of
+    // the dialog's elevation floats a layer above its resting self, and
+    // a slow profile makes that a scene). Squaring sheds the borrowed
+    // shadow early on close and gathers it late on open - symmetric,
+    // still a pure function of the value.
+    elevation: lerpDouble(sourceElevation, targetElevation, p * p)!,
     surfaceColor: Color.lerp(
       sourceColor,
       targetColor,

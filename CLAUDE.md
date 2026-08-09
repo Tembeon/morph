@@ -307,6 +307,12 @@ Flutter-style split, two entrypoints:
   the flying frame is a lerp of endpoint rects by the RAW spring value
   (interruption-continuous by construction), crossfaded on the same
   fade-through curves and clipped by the morphing container shape.
+  `MorphSharedFade.none` (declared by EITHER side - one side knowing
+  the pair is identical is enough) renders the TARGET copy alone at
+  full opacity: fade-through dims both faders mid-flight, so applying
+  it to identical content reads as a blink. Elevation in the frame
+  lerps on p SQUARED, not p - linear shadow makes a nearly-home
+  container float on a borrowed dialog shadow (visible at glacial).
   Registry lives on the flight; sides register via SharedSideScope
   (internal). Degradations: an unpaired id renders in place;
   snapshotGhost has no live source markers so pairs do not form; marker

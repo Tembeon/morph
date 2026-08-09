@@ -114,6 +114,7 @@ class LessonCard extends StatelessWidget {
               // scales the glyphs between the two type sizes.
               MorphSharedElement(
                 id: '${lesson.id}-title',
+                fade: .none,
                 child: Text(
                   lesson.title,
                   style: const TextStyle(fontSize: 14.5, fontWeight: .w700),
@@ -188,6 +189,7 @@ class LessonPage extends StatelessWidget {
                     alignment: Alignment.centerLeft,
                     child: MorphSharedElement(
                       id: '${lesson.id}-title',
+                      fade: .none,
                       child: Text(
                         lesson.title,
                         style: const TextStyle(fontSize: 17, fontWeight: .w700),

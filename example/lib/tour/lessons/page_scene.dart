@@ -210,6 +210,7 @@ class _AlbumCard extends StatelessWidget {
               Expanded(
                 child: MorphSharedElement(
                   id: 'cover-$index',
+                  fade: .none,
                   child: _Cover(colors: album.colors, radius: 12, iconSize: 32),
                 ),
               ),
@@ -317,6 +318,7 @@ class _PlayerBody extends StatelessWidget {
           children: <Widget>[
             MorphSharedElement(
               id: 'cover-$index',
+              fade: .none,
               child: _Cover(colors: album.colors, radius: 20, size: 190),
             ),
             const SizedBox(height: 18),

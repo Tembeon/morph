@@ -32,16 +32,40 @@ import 'package:morph/src/scope.dart';
 ///    flying layer).
 class MorphSharedElement extends StatefulWidget {
   /// Marks [child] as one side of the shared pair [id].
-  const MorphSharedElement({super.key, required this.id, required this.child});
+  const MorphSharedElement({
+    super.key,
+    required this.id,
+    this.fade = .through,
+    required this.child,
+  });
 
   /// Pair identity; the same id on both sides of a flight forms a pair.
   final Object id;
+
+  /// How the two sides blend while flying; either side declaring
+  /// [MorphSharedFade.none] applies it to the whole pair.
+  final MorphSharedFade fade;
 
   /// The content that flies between its endpoint rects.
   final Widget child;
 
   @override
   State<MorphSharedElement> createState() => MorphSharedElementState();
+}
+
+/// How a shared pair blends during the flight.
+enum MorphSharedFade {
+  /// The container's fade-through curves: the source side dissolves
+  /// early, the target side arrives late. Right when the two sides
+  /// genuinely differ - the unreadable midstate is never shown.
+  through,
+
+  /// No fade at all: the TARGET side renders alone at full opacity for
+  /// the whole flight. Declare this when the content is the SAME on
+  /// both sides (a cover, a title) - fade-through would dim it
+  /// mid-flight into a visible blink, and identical content has no
+  /// midstate to hide.
+  none,
 }
 
 /// Registration and measurement side of a [MorphSharedElement].
@@ -233,6 +257,12 @@ List<Widget> buildSharedFlightLayers({
       targetOverlay,
       flight.controller.value,
     )!.shift(-frame.rect.topLeft);
+    // Either side declaring no-fade applies it to the pair: the
+    // declaration means "this content is the same on both sides", and
+    // one side knowing that is enough.
+    final bool solo =
+        source.widget.fade == MorphSharedFade.none ||
+        target.widget.fade == MorphSharedFade.none;
     layers.add(
       Positioned.fromRect(
         key: ValueKey<String>('morph-shared-fly-$id'),
@@ -241,10 +271,12 @@ List<Widget> buildSharedFlightLayers({
           child: Stack(
             fit: .expand,
             children: <Widget>[
-              // The same fade-through curves as the surface crossfade:
-              // identical children make the swap invisible, differing
-              // ones swap symmetrically (interruption-safe).
-              if (frame.sourceOpacity > 0)
+              // Fade-through swaps DIFFERING sides without ever showing
+              // the unreadable midstate; identical sides opt out via
+              // MorphSharedFade.none instead - both faders dip together
+              // mid-flight, so a fade-through of the same content reads
+              // as a blink.
+              if (!solo && frame.sourceOpacity > 0)
                 Opacity(
                   opacity: frame.sourceOpacity,
                   child: FittedBox(
@@ -258,8 +290,10 @@ List<Widget> buildSharedFlightLayers({
                     ),
                   ),
                 ),
+              // The target side is the one that lands (the Hero
+              // precedent); solo mode renders it alone at full opacity.
               Opacity(
-                opacity: frame.targetOpacity,
+                opacity: solo ? 1 : frame.targetOpacity,
                 child: FittedBox(
                   fit: .fill,
                   child: SizedBox.fromSize(
