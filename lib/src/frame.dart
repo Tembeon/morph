@@ -71,7 +71,13 @@ class MorphFrame {
 // around the swap stays unshown, as before.
 const Interval _sourceFade = Interval(0.05, 0.30, curve: Curves.easeOut);
 const Interval _targetFade = Interval(0.35, 0.90, curve: Curves.easeOut);
-const Interval _surfaceBlend = Interval(0.05, 0.55);
+// The surface color completes its journey WITH the source dissolve
+// (same end point, 0.30-0.35): color lagging behind the content made
+// the transformation two staggered events - a container already
+// dialog-shaped and dialog-filled still dragging the button's tint.
+// Synchronized, the whole cross hides inside the dead zone where
+// neither content reads.
+const Interval _surfaceBlend = Interval(0.05, 0.35);
 const Interval _scrimFade = Interval(0, 0.7);
 
 /// The geometric core of one flight frame: the rect plus the raw
