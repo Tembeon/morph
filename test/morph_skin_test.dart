@@ -682,4 +682,117 @@ void main() {
     expect(channel.apply(const Rect.fromLTWH(10, 10, 100, 50)).isEmpty, isTrue);
     channel.dispose();
   });
+
+  testWidgets('a link into a channel-deflated piece paints, not asserts', (
+    WidgetTester tester,
+  ) async {
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: MorphSkin(
+            color: const Color(0xFF2A2440),
+            links: const <MorphLink>[MorphLink(from: 'a', to: 'b')],
+            pieces: <MorphPiece>[
+              const MorphPiece(id: 'a', rect: Rect.fromLTWH(40, 40, 100, 50)),
+              MorphPiece(
+                id: 'b',
+                rect: const Rect.fromLTWH(240, 40, 100, 50),
+                channel: channel,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(tester.takeException(), isNull);
+    // Deflate: the default bridge width derives from the collapsed
+    // height - the pipe must vanish with the mass, not trip the
+    // bridge's radius assert on every paint.
+    channel.update(scaleX: 0, scaleY: 0);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    channel.update(scaleX: 1, scaleY: 1);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('the flight blob lands in group space under a nested overlay', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    // The nearest Overlay is offset from the window origin - the
+    // embedded-device-frame case. The flight's rects live in overlay
+    // coordinates; the blob must translate them into group space
+    // through the overlay, not assume the two origins coincide.
+    const Rect heroRect = Rect.fromLTWH(170, 310, 110, 50);
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Padding(
+            padding: const EdgeInsets.only(left: 60, top: 90),
+            child: Overlay(
+              initialEntries: <OverlayEntry>[
+                OverlayEntry(
+                  builder: (BuildContext context) => MorphSkin(
+                    blend: 24,
+                    color: const Color(0xFF2A2440),
+                    pieces: <MorphPiece>[
+                      const MorphPiece(
+                        id: 'bystander',
+                        rect: Rect.fromLTWH(170, 380, 110, 50),
+                      ),
+                      MorphPiece.morphable(
+                        id: 'hero',
+                        rect: heroRect,
+                        child: Builder(
+                          builder: (BuildContext context) => TextButton(
+                            onPressed: () => showMorphDialog(
+                              context,
+                              from: 'hero',
+                              builder:
+                                  (BuildContext context, MorphFlight flight) =>
+                                      const Text('dialog'),
+                            ),
+                            child: const Text('fly'),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    await tester.tap(find.text('fly'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 8));
+    expect(skin.lastFlightBlobCount, 1);
+    // Early in the flight the blob still hugs the launch rect. A
+    // coordinate-space mixup would displace it by the overlay offset.
+    final Rect blob = skin.lastFlightBlobRects.single;
+    expect(
+      (blob.center - heroRect.center).distance,
+      lessThan(30),
+      reason:
+          'the blob must sit at the hero piece, not shifted by the '
+          'nested overlay origin',
+    );
+    for (int i = 0; i < 600; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+  });
 }

@@ -1,5 +1,6 @@
 import 'dart:ui' show lerpDouble;
 
+import 'package:flutter/foundation.dart' show clampDouble;
 import 'package:flutter/widgets.dart';
 
 import 'package:morph/src/flight.dart';
@@ -85,8 +86,11 @@ class MorphReveal extends StatelessWidget {
         final Offset shift = slideOffset * (1 - t);
         final double sx = lerpDouble(scaleFrom, 1, t)!;
         final double sy = lerpDouble(scaleFrom * squashFrom, 1, t)!;
+        // An overshooting curve (easeOutBack) may leave [0, 1]: the
+        // transform rides it - that is the point - but Opacity asserts
+        // on it.
         return Opacity(
-          opacity: t,
+          opacity: clampDouble(t, 0, 1),
           child: Transform(
             alignment: alignment,
             transform: Matrix4.identity()

@@ -490,6 +490,13 @@ class MorphFlight {
     return box is RenderBox ? box : null;
   }
 
+  /// The box of the overlay the shuttle renders in - the coordinate
+  /// space [sourceRect] and [lastTargetRect] live in. Consumers in a
+  /// DIFFERENT space (the skin's mirror blob) translate through it; a
+  /// nested overlay does not sit at the window origin.
+  @internal
+  RenderBox? get overlayBox => _overlayBox;
+
   void _insertEntry() {
     refreshSourceRect();
     if (tag.widget.snapshotGhost) {

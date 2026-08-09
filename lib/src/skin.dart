@@ -113,6 +113,10 @@ class MorphPiece {
   /// A morph-source piece: the group installs a MorphTag around the
   /// content itself and plays the flight neck whenever a flight is
   /// launched with this piece's id.
+  // The child is required BY TYPE: the MorphTag that gives the piece
+  // its flight identity wraps the child, so a childless piece would
+  // register no tag and showMorph*(from: id) could never find the
+  // source.
   const MorphPiece.morphable({
     required this.id,
     required this.rect,
@@ -121,7 +125,7 @@ class MorphPiece {
     this.bumpScale = 0.6,
     this.bumpRecoil = 140,
     this.channel,
-    this.child,
+    required Widget this.child,
   }) : morphable = true;
 
   /// Identity within the group; also the flight id for morphable pieces.
@@ -236,6 +240,11 @@ class MorphSkin extends StatelessWidget {
        assert(
          smoothPasses == null || smoothPasses >= 0,
          'smoothPasses cannot be negative.',
+       ),
+       assert(
+         evalBudget == null || evalBudget > 0,
+         'evalBudget is a positive per-cluster evaluation cap; '
+         'pass null to disable it.',
        ),
        assert(elevation >= 0, 'elevation cannot be negative.');
 
@@ -478,6 +487,12 @@ class RenderMorphSkin extends RenderBox
   /// [LiquidTracer.lastMissCount].
   int lastFlightBlobCount = 0;
 
+  /// The group-local outer rects of the blobs from the last paint -
+  /// the coordinate-translation instrument (a nested overlay must not
+  /// displace the neck).
+  @visibleForTesting
+  List<Rect> lastFlightBlobRects = const <Rect>[];
+
   /// The per-cluster trace cache - exposed for its instruments
   /// ([LiquidTracer.lastMissCount], [LiquidTracer.lastClusterCount]),
   /// which tests use to pin re-trace isolation.
@@ -699,8 +714,13 @@ class RenderMorphSkin extends RenderBox
 
   /// A channel tick is paint-only by contract: geometry change is not a
   /// subscription change, so no flight resync and no allocation runs
-  /// here.
-  void _onChannelTick() => markNeedsPaint();
+  /// here. Semantics do recompute - the channel displaces the geometry
+  /// applyPaintTransform reports, and assistive tech reads through the
+  /// same transform (a no-op while semantics are off).
+  void _onChannelTick() {
+    markNeedsPaint();
+    markNeedsSemanticsUpdate();
+  }
 
   /// Subscriptions to the piece geometry channels; one shared handler
   /// serves them all. Synced on attach/detach and when the piece list
@@ -829,14 +849,15 @@ class RenderMorphSkin extends RenderBox
       for (final MorphLink link in _links)
         if (indexOf[link.from] case final int from?)
           if (indexOf[link.to] case final int to?)
-            LiquidBridge(
-              effective[from].center,
-              effective[to].center,
-              radius:
-                  (link.width ??
-                      _defaultBridgeWidth(effective[from], effective[to])) /
-                  2,
-            ).outerRect,
+            if ((link.width ??
+                        _defaultBridgeWidth(effective[from], effective[to])) /
+                    2
+                case final double radius when radius > 0)
+              LiquidBridge(
+                effective[from].center,
+                effective[to].center,
+                radius: radius,
+              ).outerRect,
     ];
     final List<int> labels = liquidConnectivityLabels(rects, _k);
     final int home = labels[originIndex];
@@ -926,6 +947,7 @@ class RenderMorphSkin extends RenderBox
   /// pure function of geometry, not of time).
   List<LiquidShape> _flightBlobs(List<_ResolvedPiece> resolved) {
     final List<LiquidShape> blobs = <LiquidShape>[];
+    lastFlightBlobRects = const <Rect>[];
     Offset? origin;
     for (final _ResolvedPiece r in resolved) {
       final MorphFlight? flight = r.flight;
@@ -933,12 +955,18 @@ class RenderMorphSkin extends RenderBox
         continue;
       }
       origin ??= localToGlobal(.zero);
+      // The flight rects live in ITS overlay's coordinates, not global
+      // ones: under a nested Overlay (an embedded device frame) the two
+      // spaces differ by the overlay's own offset.
+      final RenderBox? overlayBox = flight.overlayBox;
+      final Offset delta =
+          (overlayBox?.localToGlobal(Offset.zero) ?? Offset.zero) - origin;
       final Rect source = flight.sourceRect == .zero
           ? r.rect
-          : flight.sourceRect.shift(-origin);
+          : flight.sourceRect.shift(delta);
       final Rect target = flight.lastTargetRect == .zero
           ? source
-          : flight.lastTargetRect.shift(-origin);
+          : flight.lastTargetRect.shift(delta);
       // The SAME geometry the shuttle renders (morphFlightGeometry),
       // shifted by the displacement channel - the mirror blob cannot
       // drift from the visible container by construction. An offset
@@ -970,6 +998,11 @@ class RenderMorphSkin extends RenderBox
         blobs.add(LiquidBox(flying, radius: radius));
       }
     }
+    if (blobs.isNotEmpty) {
+      lastFlightBlobRects = <Rect>[
+        for (final LiquidShape blob in blobs) blob.outerRect,
+      ];
+    }
     return blobs;
   }
 
@@ -1000,11 +1033,17 @@ class RenderMorphSkin extends RenderBox
         ..add(r.top)
         ..add(r.width)
         ..add(r.height);
+      // The kind tags the entry: a box and a bridge can share an
+      // outerRect and radius yet trace different contours.
       switch (shape) {
         case LiquidBox(:final double radius):
-          sig.add(radius);
+          sig
+            ..add(0)
+            ..add(radius);
         case LiquidBridge(:final double radius):
-          sig.add(radius);
+          sig
+            ..add(1)
+            ..add(radius);
       }
     }
     return sig;
@@ -1020,16 +1059,15 @@ class RenderMorphSkin extends RenderBox
         if (r.solid) LiquidBox(r.rect, radius: r.piece.radius),
       // Bridges of non-solid (including flown-away) pieces detach on
       // their own: they are absent from byId - a pipe stretched to the
-      // flight target would be an artifact.
+      // flight target would be an artifact. A pipe into a deflated
+      // piece (channel scale 0 collapses the height the default width
+      // derives from) has no mass and is skipped, not asserted on.
       for (final MorphLink link in _links)
         if (byId[link.from] case final _ResolvedPiece from?)
           if (byId[link.to] case final _ResolvedPiece to?)
-            LiquidBridge(
-              from.rect.center,
-              to.rect.center,
-              radius:
-                  (link.width ?? _defaultBridgeWidth(from.rect, to.rect)) / 2,
-            ),
+            if ((link.width ?? _defaultBridgeWidth(from.rect, to.rect)) / 2
+                case final double radius when radius > 0)
+              LiquidBridge(from.rect.center, to.rect.center, radius: radius),
       ..._extraShapes,
       ...blobs,
     ];
@@ -1164,6 +1202,12 @@ class RenderMorphSkin extends RenderBox
       clipBehavior: _clipBehavior,
     );
   }
+
+  /// The clip paint applies is described to semantics too, so
+  /// assistive tech does not reach content the eye cannot see.
+  @override
+  Rect? describeApproximatePaintClip(covariant RenderObject child) =>
+      _clipBehavior == .none ? null : Offset.zero & size;
 
   /// localToGlobal must see the exact transform paint applies: a
   /// [MorphTag] inside a channel-displaced piece measures its launch

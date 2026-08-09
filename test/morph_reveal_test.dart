@@ -226,4 +226,46 @@ void main() {
     expect(find.text('count-1'), findsOneWidget);
     flight.abort();
   });
+
+  testWidgets('an overshooting curve stays legal for Opacity', (
+    WidgetTester tester,
+  ) async {
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Center(
+            child: MorphTag(
+              id: 'btn',
+              child: Builder(
+                builder: (BuildContext context) => ElevatedButton(
+                  onPressed: () => flight = showMorphSheet(
+                    context,
+                    from: 'btn',
+                    builder: (BuildContext context, MorphFlight f) =>
+                        const MorphReveal(
+                          curve: Curves.easeOutBack,
+                          child: Text('springy-block'),
+                        ),
+                  ),
+                  child: const Text('open-me'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-me'));
+    await tester.pump();
+    // The back-curve overshoots past 1 inside its range: the transform
+    // rides the overshoot, Opacity must see a clamped value. settle()
+    // asserts no exception on every frame.
+    await settle(tester);
+    expect(find.text('springy-block'), findsOneWidget);
+    flight!.close();
+    await settle(tester);
+  });
 }
