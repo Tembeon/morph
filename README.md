@@ -18,7 +18,8 @@ organic shape. No Navigator coupling.
 A guided tour: ten chapters, each one mechanism with a live demo and
 taste notes, the last one a sandbox playground. Live build:
 <https://tembeon.github.io/morph/> (wasm - a native release build runs
-far smoother).
+far smoother). API docs live next to it:
+<https://tembeon.github.io/morph/docs/>.
 
 ```bash
 cd example

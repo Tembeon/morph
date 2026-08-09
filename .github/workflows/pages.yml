@@ -27,6 +27,13 @@ jobs:
       - name: Build the example (wasm)
         run: flutter build web --release --wasm --base-href /morph/
         working-directory: example
+      # API docs ride the same site at /morph/docs/ - the package is
+      # not on pub.dev, so this is the only hosted dartdoc.
+      - name: Generate API docs
+        run: |
+          flutter pub get
+          dart doc
+          mv doc/api example/build/web/docs
       - uses: actions/upload-pages-artifact@v3
         with:
           path: example/build/web
