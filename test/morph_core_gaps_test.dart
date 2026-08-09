@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/foundation.dart';
 
 /// Coverage for three core paths that had none: the snapshot ghost, the
 /// entry-removal timing at the handoff latch, and two concurrent

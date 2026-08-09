@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 // The bench measures package INTERNALS by design - it is an instrument
 // of the package, living in the example only to get an AOT build.
 // ignore: implementation_imports

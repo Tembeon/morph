@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/lessons/dialog_contents.dart';
 
 /// The playground sandbox: the whole canvas is one builder. Pieces (box,

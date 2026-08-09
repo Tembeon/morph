@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/foundation.dart';
 
 class Counter extends StatefulWidget {
   const Counter({super.key});

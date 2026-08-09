@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/foundation.dart';
 
 const Rect source = .fromLTWH(0, 500, 100, 50);
 const Rect target = .fromLTWH(200, 100, 400, 300);

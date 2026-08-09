@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 
 import 'package:morph_example/flags.dart';
 import 'package:morph_example/perf/release_bench.dart';

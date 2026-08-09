@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 
 class _Sample {
   const _Sample(this.t, this.value, this.velocity, this.phase);

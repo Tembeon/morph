@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 import 'package:motor/motor.dart';
 
 /// The iOS 26 toolbar behavior: while the content scrolls, the three

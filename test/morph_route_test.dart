@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/foundation.dart';
 
 /// The morph route: pushed immediately, the flight plays as the
 /// transition, the SECOND latch hands the live content subtree to the

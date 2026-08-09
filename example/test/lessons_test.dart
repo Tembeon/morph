@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/lessons/chips_example.dart';
 import 'package:morph_example/tour/lessons/comet_example.dart';
 import 'package:morph_example/tour/lessons/goo_dock_example.dart';

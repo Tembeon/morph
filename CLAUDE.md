@@ -12,9 +12,9 @@ context (roadmap, priorities) lives in `CLAUDE.local.md`, untracked.
 ## Layers
 
 Flutter-style split, two entrypoints:
-- `lib/foundation.dart` - the ENGINE export (former morph.dart;
-  `lib/morph.dart` remains as a one-line alias so the conventional
-  import keeps working).
+- `lib/foundation.dart` - the ENGINE export (former morph.dart; the
+  alias was deleted 2026-08-09 - two honest entrypoints, and the
+  hosted dartdoc lists exactly two libraries).
 - `lib/widgets.dart` - the opinionated widget layer
   (`lib/src/widgets/`): showMorphMenu/MorphMenuItem (the worked-through
   chapter-04 pattern as one call: a control becomes its own menu,
@@ -416,7 +416,7 @@ Hard-won rules already enforced in the core:
 - The motion profile parameter is `motion:` everywhere (never "speed" -
   a profile carries character, not just tempo). MorphController.motion /
   effectiveMotion follow suit.
-- Export diet: morph.dart is the whole public surface; liquid_field
+- Export diet: foundation.dart is the whole engine surface; liquid_field
   internals, RenderMorphSkin and the shared-element machinery are not
   exported (package-internal tests import src/ directly). The minimal
   motor vocabulary (Motion, CupertinoMotion, MaterialSpringMotion,

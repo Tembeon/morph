@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 
 /// Stress rig for the liquid skin: N pieces orbiting deterministic
 /// paths on one canvas, so necks form and rip continuously while the

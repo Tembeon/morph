@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/morph.dart';
+import 'package:morph/foundation.dart';
 
 class _Host extends StatelessWidget {
   const _Host({required this.onFlight});

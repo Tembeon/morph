@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 
 /// Surface color of the player dialog.
 const Color kPlayerColor = Color(0xFF2A2440);

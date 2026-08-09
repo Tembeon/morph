@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import 'package:morph/morph.dart';
+import 'package:morph/widgets.dart';
 
 /// The layout-as-targets probe: a row of filter chips fused by one
 /// skin. The LAYOUT (a trivial left-to-right flow over content-sized
