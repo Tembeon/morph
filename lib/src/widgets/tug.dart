@@ -271,11 +271,14 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
 
   void _drop() {
     _restorePress();
-    _chase.stop();
     // The chase's velocity carries into the return springs: a flick
-    // lands with its momentum.
+    // lands with its momentum. Only THIS gesture's velocity though: a
+    // drop without a grab (a cancelled tap) must not replay the
+    // previous flick into a resting surface.
+    final Offset carried = _chase.isActive ? _spring.velocity : Offset.zero;
+    _chase.stop();
     _xy.motion = (widget.motion ?? MorphMotion.normal).closeMotion;
-    _xy.animateTo(.zero, withVelocity: _spring.velocity);
+    _xy.animateTo(.zero, withVelocity: carried);
   }
 
   void _restorePress() {
@@ -286,6 +289,12 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
   }
 
   static double _tanh(double x) {
+    // exp overflows to infinity near x = 355 and the ratio becomes
+    // NaN - a NaN offset would poison the channel and the skin tracer.
+    // tanh is 1.0 to machine precision long before that.
+    if (x > 20) {
+      return 1;
+    }
     final double e = math.exp(2 * x);
     return (e - 1) / (e + 1);
   }

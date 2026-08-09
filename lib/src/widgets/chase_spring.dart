@@ -54,20 +54,32 @@ class ChaseSpring {
   /// target once), so the owner can skip downstream work instead of
   /// re-rendering epsilon motion every frame under a motionless
   /// finger.
+  ///
+  /// The frame is integrated in slices: semi-implicit Euler at this
+  /// stiffness is stable only for steps under ~sqrt(stiffness)/0.83
+  /// seconds, and a 30 fps frame is already past that - one whole-frame
+  /// step would make the chase diverge with growing oscillation
+  /// instead of converging.
   bool tick(double dt) {
     if (_resting || dt <= 0) {
       return false;
     }
-    final Offset delta = _target - value;
-    if (delta.distanceSquared < 0.01 && velocity.distanceSquared < 0.25) {
-      value = _target;
-      velocity = .zero;
-      _resting = true;
-      return true;
-    }
+    final double maxStep = 0.25 / math.sqrt(stiffness);
     final double damping = 2 * math.sqrt(stiffness);
-    velocity += (delta * stiffness - velocity * damping) * dt;
-    value += velocity * dt;
+    double remaining = dt;
+    while (remaining > 0) {
+      final Offset delta = _target - value;
+      if (delta.distanceSquared < 0.01 && velocity.distanceSquared < 0.25) {
+        value = _target;
+        velocity = .zero;
+        _resting = true;
+        return true;
+      }
+      final double h = remaining < maxStep ? remaining : maxStep;
+      velocity += (delta * stiffness - velocity * damping) * h;
+      value += velocity * h;
+      remaining -= h;
+    }
     return true;
   }
 }

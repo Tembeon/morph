@@ -34,12 +34,18 @@ class MorphTapTarget extends StatelessWidget {
       builder: (BuildContext context) => Semantics(
         button: onTap != null,
         label: label,
-        child: MouseRegion(
-          cursor: onTap == null ? MouseCursor.defer : SystemMouseCursors.click,
-          child: GestureDetector(
-            behavior: .opaque,
-            onTap: onTap == null ? null : () => onTap!(context),
-            child: child,
+        // The label IS the semantic content: without the exclusion a
+        // text child is announced twice ("Compose. Compose. Button").
+        child: ExcludeSemantics(
+          child: MouseRegion(
+            cursor: onTap == null
+                ? MouseCursor.defer
+                : SystemMouseCursors.click,
+            child: GestureDetector(
+              behavior: .opaque,
+              onTap: onTap == null ? null : () => onTap!(context),
+              child: child,
+            ),
           ),
         ),
       ),
@@ -80,7 +86,12 @@ class MorphSurface extends StatelessWidget {
           button: onTap != null,
           child: Material(
             shape: spec.shape,
-            color: spec.color,
+            // The same fallback the flight resolves a null color to:
+            // Material's own default (canvas) would pop to the engine's
+            // at the first frame of a launch.
+            color:
+                spec.color ??
+                Theme.of(context).colorScheme.surfaceContainerHigh,
             elevation: spec.elevation,
             clipBehavior: .antiAlias,
             child: InkWell(

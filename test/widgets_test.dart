@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
 
@@ -166,5 +167,178 @@ void main() {
     await settle(tester);
     expect(find.text('Delete'), findsNothing);
     expect(find.text('open'), findsOneWidget);
+  });
+
+  test('ChaseSpring converges at a 30 fps step', () {
+    final ChaseSpring spring = ChaseSpring()
+      ..grab(Offset.zero)
+      ..target = const Offset(10, 0);
+    // At one whole-frame Euler step this stiffness diverges (10, 0,
+    // 20, -10, 40, -40...). Sliced integration must converge instead.
+    double maxAbs = 0;
+    for (int i = 0; i < 60; i++) {
+      spring.tick(1 / 30);
+      maxAbs = spring.value.dx.abs() > maxAbs ? spring.value.dx.abs() : maxAbs;
+    }
+    expect(maxAbs, lessThan(15), reason: 'no growing oscillation');
+    expect((spring.value - const Offset(10, 0)).distance, lessThan(0.5));
+  });
+
+  Widget menuHost({
+    required int itemCount,
+    ValueChanged<String>? onSelected,
+    double textScale = 1,
+  }) {
+    return MaterialApp(
+      theme: ThemeData(brightness: .dark),
+      builder: (BuildContext context, Widget? child) => MorphScope(
+        child: MediaQuery(
+          data: MediaQuery.of(
+            context,
+          ).copyWith(textScaler: TextScaler.linear(textScale)),
+          child: child!,
+        ),
+      ),
+      home: Scaffold(
+        body: Center(
+          child: MorphTag(
+            id: 'menu-button',
+            shape: const StadiumBorder(),
+            child: Builder(
+              builder: (BuildContext context) => TextButton(
+                onPressed: () {
+                  showMorphMenu(
+                    context,
+                    items: <MorphMenuItem>[
+                      for (int i = 0; i < itemCount; i++)
+                        MorphMenuItem(
+                          icon: Icons.circle_outlined,
+                          label: 'Item with a fairly long label $i',
+                          onSelected: () => onSelected?.call('item-$i'),
+                        ),
+                    ],
+                  );
+                },
+                child: const Text('open'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  testWidgets('showMorphMenu: seven items cascade inside the contract', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(menuHost(itemCount: 7));
+    await tester.tap(find.text('open'));
+    // settle() asserts no exception per frame: the fixed-step cascade
+    // used to walk row seven past to = 1 and trip MorphReveal's range
+    // assert while the shuttle builds.
+    await settle(tester);
+    expect(find.text('Item with a fairly long label 6'), findsOneWidget);
+  });
+
+  testWidgets('showMorphMenu: accessibility text scale does not overflow', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(menuHost(itemCount: 4, textScale: 2));
+    await tester.tap(find.text('open'));
+    // settle() asserts no exception per frame: fixed 48 px rows used
+    // to overflow the popover at doubled text sizes.
+    await settle(tester);
+    expect(find.textContaining('label 3'), findsOneWidget);
+  });
+
+  testWidgets('SpringButton: focusable, Enter activates, announces button', (
+    WidgetTester tester,
+  ) async {
+    final SemanticsHandle semantics = tester.ensureSemantics();
+    int presses = 0;
+    await tester.pumpWidget(
+      host(SpringButton(onPressed: () => presses++, child: const Text('go'))),
+    );
+    expect(
+      tester.getSemantics(find.text('go')),
+      matchesSemantics(
+        isButton: true,
+        isEnabled: true,
+        hasEnabledState: true,
+        isFocusable: true,
+        hasTapAction: true,
+        hasFocusAction: true,
+        label: 'go',
+      ),
+    );
+
+    Focus.of(tester.element(find.text('go'))).requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await tester.pump();
+    expect(presses, 1);
+    await settle(tester);
+    semantics.dispose();
+  });
+
+  testWidgets('an open overlay blocks semantics of the page behind', (
+    WidgetTester tester,
+  ) async {
+    final SemanticsHandle semantics = tester.ensureSemantics();
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Column(
+            children: <Widget>[
+              const Text('page-text'),
+              MorphTag(
+                id: 'btn',
+                child: Builder(
+                  builder: (BuildContext context) => TextButton(
+                    onPressed: () => flight = showMorphDialog(
+                      context,
+                      from: 'btn',
+                      builder: (BuildContext context, MorphFlight f) =>
+                          const Text('dialog-content'),
+                    ),
+                    child: const Text('open-me'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    expect(find.semantics.byLabel('page-text'), findsOne);
+    await tester.tap(find.text('open-me'));
+    await tester.pump();
+    await settle(tester);
+
+    // The page behind the scrim must be gone from the semantics tree,
+    // like behind any modal barrier.
+    expect(find.text('page-text'), findsOneWidget);
+    expect(find.semantics.byLabel('page-text'), findsNothing);
+    expect(find.semantics.byLabel('dialog-content'), findsOne);
+
+    flight!.close();
+    await settle(tester);
+    expect(find.semantics.byLabel('page-text'), findsOne);
+    semantics.dispose();
   });
 }

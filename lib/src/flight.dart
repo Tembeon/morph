@@ -650,16 +650,22 @@ class _ShuttleScrim extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      label: flight.barrierDismissible
-          ? MaterialLocalizations.of(context).modalBarrierDismissLabel
-          : null,
-      container: flight.barrierDismissible,
-      onDismiss: flight.barrierDismissible ? flight.requestDismiss : null,
-      child: GestureDetector(
-        behavior: .opaque,
-        onTap: flight.barrierDismissible ? flight.requestDismiss : null,
-        child: ColoredBox(color: Colors.black.withValues(alpha: opacity)),
+    // BlockSemantics, like ModalBarrier's: the scrim blocks POINTERS
+    // to the page underneath, and assistive tech must not keep a
+    // side door - without the block a screen reader swipes past the
+    // open overlay into the page and activates it.
+    return BlockSemantics(
+      child: Semantics(
+        label: flight.barrierDismissible
+            ? MaterialLocalizations.of(context).modalBarrierDismissLabel
+            : null,
+        container: flight.barrierDismissible,
+        onDismiss: flight.barrierDismissible ? flight.requestDismiss : null,
+        child: GestureDetector(
+          behavior: .opaque,
+          onTap: flight.barrierDismissible ? flight.requestDismiss : null,
+          child: ColoredBox(color: Colors.black.withValues(alpha: opacity)),
+        ),
       ),
     );
   }
