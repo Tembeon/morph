@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
+import 'package:morph_example/tour/home.dart';
 // The bench measures package INTERNALS by design - it is an instrument
 // of the package, living in the example only to get an AOT build.
 // ignore: implementation_imports
@@ -25,8 +26,15 @@ Future<void> runReleaseBench(BuildContext context) async {
       : 'debug';
   _report('mode=$mode platform=${Platform.operatingSystem}');
 
-  _tracingOps();
-  await _frameTimings(context);
+  try {
+    _tracingOps();
+    await _frameTimings(context);
+  } on Object catch (error) {
+    // A passport that half-prints and hangs is worse than one that
+    // says why: never let a launch failure skip the exit below (the
+    // process is grepped for BENCH and must terminate).
+    _report('error $error');
+  }
 
   _report('done');
   exit(0);
@@ -99,7 +107,7 @@ Future<void> _frameTimings(BuildContext context) async {
 
   final MorphFlight flight = showMorphDialog(
     context,
-    from: 'lesson-identity',
+    from: TourHome.sections.first.$2.first.id,
     width: 520,
     height: 420,
     motion: .glacial,

@@ -318,8 +318,9 @@ Flutter-style split, two entrypoints:
   the pair is identical is enough) renders the TARGET copy alone at
   full opacity: fade-through dims both faders mid-flight, so applying
   it to identical content reads as a blink. Elevation in the frame
-  lerps on p SQUARED, not p - linear shadow makes a nearly-home
-  container float on a borrowed dialog shadow (visible at glacial).
+  lerps on p^1.5 (`p * sqrt(p)`), not p - linear shadow makes a
+  nearly-home container float on a borrowed dialog shadow (visible at
+  glacial); pinned by morph_frame_test's continuity check.
   Registry lives on the flight; sides register via SharedSideScope
   (internal). Degradations: an unpaired id renders in place;
   snapshotGhost has no live source markers so pairs do not form; marker
@@ -450,8 +451,12 @@ Hard-won rules already enforced in the core:
   spoken of as "the skin": `MorphSkin`/`MorphPiece`/`MorphLink`/
   `MorphSkinStyle`, knob `blend:` (the widget name for the smin k;
   the internal math layer keeps `k` - SDF literature language).
-  "Liquid" survives as the technique name in liquid_field.dart, which
-  is no longer exported.
+  "Liquid" survives as the technique name in liquid_field.dart. That
+  file's mass-shape vocabulary (`LiquidShape`/`LiquidBox`/`LiquidBridge`
+  for `MorphSkin.extraShapes`, plus `liquidDefaultEvalBudget`) is the
+  one deliberate `Liquid*` exception in the public export - raw SDF
+  masses have no morph identity, so the Morph* rename would misname
+  them.
 - The motion profile parameter is `motion:` everywhere (never "speed" -
   a profile carries character, not just tempo). MorphController.motion /
   effectiveMotion follow suit.

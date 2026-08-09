@@ -260,9 +260,9 @@ class ShareSheetContent extends StatelessWidget {
             from: 0.45,
             to: 0.8,
             child: Text(
-              'The sheet is opened declaratively: MorphAnchor(isOpen: bool), '
-              'and content blocks appear as a MorphReveal cascade - each on '
-              'its own sub-range of the same spring.',
+              'The sheet morphs out of the control with showMorphSheet, and '
+              'content blocks appear as a MorphReveal cascade - each on its '
+              'own sub-range of the same spring.',
               style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
             ),
           ),

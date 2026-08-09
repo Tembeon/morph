@@ -106,6 +106,7 @@ class _GooSelectorState extends State<GooSelector>
       height: h + 12,
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
+          final double previousWidth = _width;
           _width = constraints.maxWidth;
           // The position spring needs a laid-out slot to be born in.
           _x ??= SingleMotionController(
@@ -113,6 +114,16 @@ class _GooSelectorState extends State<GooSelector>
             vsync: this,
             initialValue: _slotCenter(widget.index ?? 0),
           )..addListener(_syncBlob);
+          // The spring holds an ABSOLUTE position; a width change moves
+          // every slot center, so a resting blob must be re-anchored to
+          // the current selection's new center (a live animation keeps
+          // its own target).
+          if (previousWidth != _width &&
+              previousWidth != 0 &&
+              widget.index != null &&
+              !_x!.isAnimating) {
+            _x!.value = _slotCenter(widget.index!);
+          }
           // Re-aim the channel after layout changes; a no-op tick when
           // nothing moved.
           _syncBlob();

@@ -10,9 +10,11 @@ import 'package:morph/src/frame.dart';
 import 'package:morph/src/theme.dart';
 
 /// The registry of tags and flights. Installed once near the top of the
-/// tree (not necessarily above the Navigator, but inside MaterialApp -
-/// the shuttle lives in the root Overlay). Also serves as the
-/// TickerProvider for all flights.
+/// tree (not necessarily above the Navigator, but inside MaterialApp).
+/// A flight's shuttle renders in the NEAREST enclosing [Overlay], so a
+/// nested navigator keeps its flights inside itself; in a
+/// single-navigator app that is the root overlay anyway. Also serves as
+/// the TickerProvider for all flights.
 class MorphScope extends StatefulWidget {
   /// Creates the scope; place it once, inside MaterialApp.builder.
   const MorphScope({super.key, required this.child});

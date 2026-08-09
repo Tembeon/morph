@@ -58,6 +58,58 @@ void main() {
     await settle(tester);
   });
 
+  testWidgets('GooSelector: the blob re-anchors after a width change', (
+    WidgetTester tester,
+  ) async {
+    double width = 300;
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(brightness: .dark),
+        home: Scaffold(
+          body: Center(
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                rebuild = setState;
+                return SizedBox(
+                  width: width,
+                  child: GooSelector(
+                    labels: const <String>['one', 'two', 'three'],
+                    index: 2,
+                    onSelect: (int _) {},
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    await settle(tester);
+
+    // Emphasis is a pure function of the blob position: the selected
+    // label sits under the blob and reads brightest.
+    double alphaOf(String label) {
+      final Text text = tester.widget<Text>(find.text(label));
+      return (text.style!.color!.a);
+    }
+
+    expect(alphaOf('three'), greaterThan(alphaOf('one')));
+
+    // Shrink the track: every slot center moves left. A blob stuck at
+    // its old absolute position would drift off slot 2 and dim its
+    // label; re-anchoring keeps 'three' the brightest.
+    rebuild(() => width = 150);
+    await tester.pump();
+    await settle(tester);
+    expect(tester.takeException(), isNull);
+    expect(
+      alphaOf('three'),
+      greaterThan(alphaOf('one')),
+      reason: 'the blob re-anchored to slot 2 at the new width',
+    );
+  });
+
   testWidgets('SpringSwitcher: swap mid-flight stays continuous', (
     WidgetTester tester,
   ) async {
