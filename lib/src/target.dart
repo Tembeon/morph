@@ -71,11 +71,20 @@ class MorphTargetSpec {
           const RoundedRectangleBorder(borderRadius: .all(.circular(28))),
       surfaceColor: surfaceColor,
       rectFor: (Size size, EdgeInsets padding) {
-        final double w = math.min(maxWidth, size.width - margin * 2);
+        // Floors at zero: an overlay narrower than its margins (a
+        // collapsing split pane) must degrade to an empty rect, not
+        // feed negative constraints to the shuttle.
+        final double w = math.max(
+          0,
+          math.min(maxWidth, size.width - margin * 2),
+        );
         final double desired = height ?? size.height * heightFactor;
-        final double h = math.min(
-          desired,
-          size.height - padding.top - margin * 2,
+        final double h = math.max(
+          0,
+          math.min(
+            desired,
+            size.height - padding.top - padding.bottom - margin * 2,
+          ),
         );
         return Rect.fromLTWH(
           (size.width - w) / 2,
@@ -125,18 +134,28 @@ class MorphTargetSpec {
           const RoundedRectangleBorder(borderRadius: .all(.circular(20))),
       surfaceColor: surfaceColor,
       rectFor: (Size overlay, EdgeInsets padding) {
+        // All four safe-area sides count: a home indicator or a
+        // landscape notch is system chrome the popover must not sit
+        // under.
+        final double leftMin = padding.left + margin;
+        final double leftMax = math.max(
+          leftMin,
+          overlay.width - padding.right - size.width - margin,
+        );
         final double left = (anchor.center.dx - size.width / 2).clamp(
-          margin,
-          math.max(margin, overlay.width - size.width - margin),
+          leftMin,
+          leftMax,
         );
         double top = anchor.bottom + gap;
-        if (top + size.height > overlay.height - margin) {
+        if (top + size.height > overlay.height - padding.bottom - margin) {
           top = anchor.top - gap - size.height;
         }
-        top = top.clamp(
-          padding.top + margin,
-          math.max(padding.top + margin, overlay.height - size.height - margin),
+        final double topMin = padding.top + margin;
+        final double topMax = math.max(
+          topMin,
+          overlay.height - padding.bottom - size.height - margin,
         );
+        top = top.clamp(topMin, topMax);
         return Rect.fromLTWH(left, top, size.width, size.height);
       },
     );
@@ -158,8 +177,11 @@ class MorphTargetSpec {
           const RoundedRectangleBorder(borderRadius: .all(.circular(24))),
       surfaceColor: surfaceColor,
       rectFor: (Size size, EdgeInsets padding) {
-        final double w = math.min(width, size.width - margin * 2);
-        final double h = math.min(height, size.height - margin * 2);
+        final double w = math.max(0, math.min(width, size.width - margin * 2));
+        final double h = math.max(
+          0,
+          math.min(height, size.height - margin * 2),
+        );
         return Rect.fromCenter(
           center: Offset(
             size.width / 2,
@@ -180,11 +202,33 @@ class MorphTargetSpec {
 /// coordinates, which silently drift from overlay coordinates the
 /// moment the morph lives inside a nested navigator.
 Rect morphAnchorRect(BuildContext context) {
-  final RenderBox box = context.findRenderObject()! as RenderBox;
-  final RenderObject? overlay = Overlay.of(context).context.findRenderObject();
-  return box.localToGlobal(
+  final Rect? rect = maybeMorphAnchorRect(context);
+  assert(
+    rect != null,
+    'morphAnchorRect: the context has no laid-out RenderBox (called '
+    'before the first layout, or from a removed widget). Capture the '
+    'anchor at tap time, or use maybeMorphAnchorRect to degrade.',
+  );
+  return rect!;
+}
+
+/// Like [morphAnchorRect], but null when the context has no laid-out
+/// box - for callers that can fall back (a centered dialog instead of
+/// an anchored popover) rather than crash.
+Rect? maybeMorphAnchorRect(BuildContext context) {
+  if (!context.mounted) {
+    return null;
+  }
+  final RenderObject? render = context.findRenderObject();
+  if (render is! RenderBox || !render.attached || !render.hasSize) {
+    return null;
+  }
+  final RenderObject? overlay = Overlay.maybeOf(
+    context,
+  )?.context.findRenderObject();
+  return render.localToGlobal(
         Offset.zero,
         ancestor: overlay is RenderBox ? overlay : null,
       ) &
-      box.size;
+      render.size;
 }
