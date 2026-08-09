@@ -64,7 +64,14 @@ Flutter-style split, two entrypoints:
   toImage asserts, and a hidden tag never repaints so the dirt would be
   permanent; the shuttle's replica covers the extra visible frames),
   `MorphFlightScope` for
-  content. Semantic getters `isAirborne`/`isLanding`/`impactAxis`.
+  content. The replica RIDES the container geometry (uniform scale by
+  the width ratio; exactly 1 at the home end, so the latch swap stays
+  pixel-identical) and renders from the source spec with elevation
+  ZEROED: a natural-size copy floating inside a grown container, or
+  one casting its own shadow, reads as a second surface layered on
+  the card - "one mass, one shadow" holds INSIDE the shuttle too
+  (pinned by morph_shuttle_render_test).
+  Semantic getters `isAirborne`/`isLanding`/`impactAxis`.
 - `show.dart` / `anchor.dart` - imperative `showMorph*` (escape hatch)
   and declarative `MorphAnchor(isOpen, onDismiss)` - the morph as a
   function of state; identity is the State itself unless an explicit

@@ -579,42 +579,59 @@ class _SourceGhost extends StatelessWidget {
   const _SourceGhost({
     required this.flight,
     required this.opacity,
+    required this.scale,
     required this.anchorKey,
   });
 
   final MorphFlight flight;
   final double opacity;
+
+  /// The container's growth since launch (width ratio). The replica
+  /// RIDES the geometry: a button-sized copy floating at natural size
+  /// inside a grown container reads as a second surface layered on the
+  /// card, at any opacity. Scaled, the replica and the container are
+  /// one body; at the home end the scale is exactly 1, so the latch
+  /// swap is pixel-identical.
+  final double scale;
   final GlobalKey anchorKey;
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: OverflowBox(
-        minWidth: flight.sourceRect.width,
-        maxWidth: flight.sourceRect.width,
-        minHeight: flight.sourceRect.height,
-        maxHeight: flight.sourceRect.height,
-        child: KeyedSubtree(
-          key: anchorKey,
-          child: IgnorePointer(
-            child: Opacity(
-              opacity: opacity,
-              child: flight.sourceSnapshot != null
-                  ? RawImage(
-                      image: flight.sourceSnapshot,
-                      width: flight.sourceRect.width,
-                      height: flight.sourceRect.height,
-                      fit: .fill,
-                    )
-                  : MorphSurfaceSpecScope(
-                      spec: flight.tag.surfaceSpec,
-                      child: SharedSideScope(
-                        flight: flight,
-                        isTarget: false,
-                        anchorKey: anchorKey,
-                        child: flight.tag.replica,
+      child: Transform.scale(
+        scale: scale,
+        child: OverflowBox(
+          minWidth: flight.sourceRect.width,
+          maxWidth: flight.sourceRect.width,
+          minHeight: flight.sourceRect.height,
+          maxHeight: flight.sourceRect.height,
+          child: KeyedSubtree(
+            key: anchorKey,
+            child: IgnorePointer(
+              child: Opacity(
+                opacity: opacity,
+                child: flight.sourceSnapshot != null
+                    ? RawImage(
+                        image: flight.sourceSnapshot,
+                        width: flight.sourceRect.width,
+                        height: flight.sourceRect.height,
+                        fit: .fill,
+                      )
+                    : MorphSurfaceSpecScope(
+                        // One mass - one shadow: the container casts THE
+                        // shadow, so the spec the replica renders from
+                        // carries no elevation - a spec-driven button
+                        // must not cast a second shadow inside the
+                        // shuttle.
+                        spec: flight.tag.surfaceSpec.copyWith(elevation: 0),
+                        child: SharedSideScope(
+                          flight: flight,
+                          isTarget: false,
+                          anchorKey: anchorKey,
+                          child: flight.tag.replica,
+                        ),
                       ),
-                    ),
+              ),
             ),
           ),
         ),
@@ -1011,6 +1028,10 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                                   _SourceGhost(
                                     flight: flight,
                                     opacity: frame.sourceOpacity,
+                                    scale: flight.sourceRect.width <= 0
+                                        ? 1
+                                        : frame.rect.width /
+                                              flight.sourceRect.width,
                                     anchorKey: _sourceAnchorKey,
                                   ),
                                   ...buildSharedFlightLayers(
