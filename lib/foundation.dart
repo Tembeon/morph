@@ -23,6 +23,49 @@
 /// springs, liquid selection, glass tethers) is
 /// `package:morph/widgets.dart` and depends on this one, never the
 /// other way around.
+///
+/// Every engine symbol is canonical HERE, not in the widgets library
+/// that re-exports it - the directives below pin dartdoc's choice.
+/// {@canonicalFor anchor.MorphAnchor}
+/// {@canonicalFor controller.MorphController}
+/// {@canonicalFor controller.MorphDirection}
+/// {@canonicalFor controller.MorphPhase}
+/// {@canonicalFor flight.MorphContentBuilder}
+/// {@canonicalFor flight.MorphFlight}
+/// {@canonicalFor flight.MorphFlightScope}
+/// {@canonicalFor frame.MorphFrame}
+/// {@canonicalFor frame.computeMorphFrame}
+/// {@canonicalFor frame.morphBumpedRect}
+/// {@canonicalFor frame.morphLandingBump}
+/// {@canonicalFor frame.uniformMorphRadius}
+/// {@canonicalFor gesture.morphCloseHintScale}
+/// {@canonicalFor gesture.morphDragArm}
+/// {@canonicalFor gesture.morphDragRecede}
+/// {@canonicalFor gesture.morphProjectValue}
+/// {@canonicalFor gesture.morphRubberband}
+/// {@canonicalFor liquid_field.LiquidBox}
+/// {@canonicalFor liquid_field.LiquidBridge}
+/// {@canonicalFor liquid_field.LiquidShape}
+/// {@canonicalFor liquid_field.MorphSkinStyle}
+/// {@canonicalFor motion.MorphMotion}
+/// {@canonicalFor reveal.MorphReveal}
+/// {@canonicalFor route.MorphPageRoute}
+/// {@canonicalFor route.showMorphRoute}
+/// {@canonicalFor scope.MorphScope}
+/// {@canonicalFor scope.MorphScopeState}
+/// {@canonicalFor scope.MorphSurfaceSpec}
+/// {@canonicalFor scope.MorphTag}
+/// {@canonicalFor scope.MorphTagState}
+/// {@canonicalFor shared.MorphSharedElement}
+/// {@canonicalFor show.showMorph}
+/// {@canonicalFor show.showMorphDialog}
+/// {@canonicalFor show.showMorphSheet}
+/// {@canonicalFor skin.MorphLink}
+/// {@canonicalFor skin.MorphPiece}
+/// {@canonicalFor skin.MorphPieceChannel}
+/// {@canonicalFor skin.MorphSkin}
+/// {@canonicalFor target.MorphTargetSpec}
+/// {@canonicalFor theme.MorphTheme}
 library;
 
 // The motion vocabulary a custom MorphMotion is built from: re-exported

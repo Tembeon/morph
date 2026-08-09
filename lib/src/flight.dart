@@ -328,7 +328,11 @@ class MorphFlight {
             builder: builder,
             barrierDismissible: barrierDismissible,
             maxScrimOpacity: maxScrimOpacity,
-            overlay: overlay ?? Overlay.of(context, rootOverlay: true),
+            // The NEAREST overlay: the flight belongs to the world its
+            // scope lives in. A nested navigator (a tab, an embedded
+            // device mockup) keeps its flights inside itself; in a
+            // single-navigator app this is the root overlay anyway.
+            overlay: overlay ?? Overlay.of(context),
             motion: motion ?? .normal,
             disableAnimations:
                 MediaQuery.maybeDisableAnimationsOf(context) ?? false,

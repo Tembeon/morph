@@ -3,6 +3,7 @@ import 'package:flutter/services.dart' show PredictiveBackEvent;
 
 import 'package:morph/src/controller.dart';
 import 'package:morph/src/flight.dart';
+import 'package:morph/src/gesture.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/target.dart';
@@ -27,6 +28,11 @@ import 'package:morph/src/theme.dart';
 /// latches, so the handovers are invisible.
 /// [from] may be omitted when called inside the source tag's subtree,
 /// mirroring [showMorph].
+///
+/// The route pushes into the NEAREST enclosing navigator: a page
+/// belongs to the navigator that owns its context, so a morph route
+/// launched inside a nested navigator (a tab, an embedded flow) stays
+/// there. Pass [useRootNavigator] to push above everything instead.
 Future<T?> showMorphRoute<T>(
   BuildContext context, {
   Object? from,
@@ -34,11 +40,12 @@ Future<T?> showMorphRoute<T>(
   MorphTargetSpec? target,
   MorphMotion? motion,
   bool barrierDismissible = true,
+  bool useRootNavigator = false,
   double? maxScrimOpacity,
   String? semanticLabel,
 }) {
   final MorphTheme? theme = MorphTheme.maybeOf(context);
-  return Navigator.of(context, rootNavigator: true).push(
+  return Navigator.of(context, rootNavigator: useRootNavigator).push(
     MorphPageRoute<T>(
       from: from ?? MorphTag.idOf(context),
       builder: builder,
@@ -337,40 +344,59 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
             // Keep the flight's belief fresh while the route owns the
             // layout: a pop closes FROM this rect.
             flight.lastTargetRect = rect;
-            return Stack(
-              children: <Widget>[
-                // The visual scrim only: taps fall through to the
-                // route's transparent modal barrier, which owns dismiss
-                // behavior and semantics.
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: ColoredBox(
-                      color: Colors.black.withValues(
-                        alpha: flight.maxScrimOpacity,
+            // The displacement channel works on the settled page too:
+            // the same rigid-body shift, recede and scrim math the
+            // shuttle applies, driven by the same frame stream - a
+            // drag feels identical on both sides of the second latch.
+            return ListenableBuilder(
+              listenable: flight.frameTicks,
+              builder: (BuildContext context, Widget? child) {
+                final Offset drag = flight.appliedDragOffset;
+                final double recede = morphDragRecede(drag.distance);
+                final double arm = morphDragArm(flight.dragOffset.distance);
+                return Stack(
+                  children: <Widget>[
+                    // The visual scrim only: taps fall through to the
+                    // route's transparent modal barrier, which owns
+                    // dismiss behavior and semantics.
+                    Positioned.fill(
+                      child: IgnorePointer(
+                        child: ColoredBox(
+                          color: Colors.black.withValues(
+                            alpha:
+                                flight.maxScrimOpacity *
+                                (1 - 0.5 * recede) *
+                                (1 - 0.35 * arm),
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-                Positioned.fromRect(
-                  rect: rect,
-                  child: Material(
-                    color: spec.color,
-                    shape: spec.shape,
-                    clipBehavior: .antiAlias,
-                    elevation: spec.elevation,
-                    shadowColor: Colors.black.withValues(alpha: 0.6),
-                    // The SAME chain the shuttle mounts, from the one
-                    // shared builder: the route-mode reparent preserves
-                    // state only while the chains match, and now they
-                    // cannot drift.
-                    child: buildMorphTargetContent(
-                      flight: flight,
-                      spec: spec,
-                      anchorKey: _anchorKey,
+                    Positioned.fromRect(
+                      rect: rect.shift(drag),
+                      child: Transform.scale(
+                        scale: 1 - 0.08 * recede - 0.05 * arm,
+                        child: child,
+                      ),
                     ),
-                  ),
+                  ],
+                );
+              },
+              child: Material(
+                color: spec.color,
+                shape: spec.shape,
+                clipBehavior: .antiAlias,
+                elevation: spec.elevation,
+                shadowColor: Colors.black.withValues(alpha: 0.6),
+                // The SAME chain the shuttle mounts, from the one
+                // shared builder: the route-mode reparent preserves
+                // state only while the chains match, and now they
+                // cannot drift.
+                child: buildMorphTargetContent(
+                  flight: flight,
+                  spec: spec,
+                  anchorKey: _anchorKey,
                 ),
-              ],
+              ),
             );
           },
         );

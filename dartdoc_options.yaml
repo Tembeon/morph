@@ -1,0 +1,6 @@
+dartdoc:
+  # widgets.dart re-exports the whole engine, so every src library has
+  # two public homes. Symbol pages are pinned to foundation via
+  # {@canonicalFor} directives there; this silences the scorer's
+  # remaining coin-toss warnings about the library entities themselves.
+  ambiguousReexportScorerMinConfidence: 0.0
