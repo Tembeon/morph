@@ -317,6 +317,66 @@ void main() {
     expect(flight.controller.isScrubbing, isFalse);
   });
 
+  testWidgets('a cover pushed over a still-opening route gets the latch', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host());
+    final NavigatorState nav = tester.state<NavigatorState>(
+      find.byType(Navigator),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pump();
+    final MorphScopeState scope = tester.state<MorphScopeState>(
+      find.byType(MorphScope),
+    );
+    final MorphFlight flight = scope.flightOf('card')!;
+    await tester.pump(const Duration(milliseconds: 30));
+    expect(flight.routeOwnsContent.value, isFalse);
+
+    // Cover the still-opening morph route with a plain page.
+    int taps = 0;
+    unawaited(
+      nav.push(
+        MaterialPageRoute<void>(
+          builder: (BuildContext context) => Scaffold(
+            body: Center(
+              child: TextButton(
+                onPressed: () => taps++,
+                child: const Text('top-button'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await settle(tester);
+
+    // The spring settled under the cover: the latch must still fire -
+    // otherwise the shuttle (scrim included) parks above the cover and
+    // swallows its input forever.
+    expect(flight.routeOwnsContent.value, isTrue);
+    expect(shuttleFinder, findsNothing);
+    await tester.tap(find.text('top-button'));
+    expect(taps, 1);
+
+    // Popping back lands on a live, latched morph page.
+    nav.pop();
+    await settle(tester);
+    expect(flight.routeOwnsContent.value, isTrue);
+    await tester.tap(find.text('count-0'));
+    await tester.pump();
+    expect(find.text('count-1'), findsOneWidget);
+
+    nav.pop();
+    await settle(tester);
+    expect(flight.isFinished, isTrue);
+    expect(find.text('go'), findsOneWidget);
+  });
+
   testWidgets('an overlay flight above the route pops FIRST', (
     WidgetTester tester,
   ) async {

@@ -335,6 +335,13 @@ class MorphFlight {
     // was disposed would drive show/hide on a defunct State.
     final MorphFlight? existing = scope.liveFlightOf(from);
     if (existing != null) {
+      assert(
+        !routeMode || existing.routeContentKey != null,
+        'showMorphRoute(from: $from): an overlay flight is already live '
+        'for this tag. A route cannot adopt an overlay flight mid-air - '
+        'the content ownership chains differ. Close the overlay first, '
+        'or retarget it with showMorph.',
+      );
       if (motion != null) {
         existing.controller.motion = motion;
       }

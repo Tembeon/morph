@@ -248,11 +248,7 @@ class MorphPageRoute<T> extends PopupRoute<T> {
       return;
     }
     if (!flight.routeOwnsContent.value) {
-      // The second latch: the open spring has settled and this route is
-      // on top - the page adopts the content.
-      if (c.target >= 1 && !c.isAnimating && !c.isScrubbing && isCurrent) {
-        flight.routeOwnsContent.value = true;
-      }
+      _syncSecondLatch();
     } else if (c.target == 0) {
       // A close launched from the flight side (a button calling
       // flight.close): hand the content back for the landing and retire
@@ -262,6 +258,40 @@ class MorphPageRoute<T> extends PopupRoute<T> {
         navigator?.removeRoute(this);
       }
     }
+  }
+
+  /// The second latch: the open spring has settled and this route is
+  /// still in the stack - the page adopts the content. isActive, not
+  /// isCurrent: settling UNDER a covering route must still hand the
+  /// content to the page, otherwise the shuttle (the topmost overlay
+  /// entry, scrim included) stays parked above the covering route and
+  /// swallows its input - and with the spring settled there are no
+  /// more ticks to retry on.
+  void _syncSecondLatch() {
+    final MorphFlight? flight = _flight;
+    if (flight == null || flight.isFinished || flight.routeOwnsContent.value) {
+      return;
+    }
+    final MorphController c = flight.controller;
+    if (c.target >= 1 && !c.isAnimating && !c.isScrubbing && isActive) {
+      flight.routeOwnsContent.value = true;
+    }
+  }
+
+  // The latch condition also moves when the ROUTE moves while the
+  // spring stands still (a cover pushed over a settling route, a
+  // cover popped away): re-evaluate on the route lifecycle, not only
+  // on controller ticks.
+  @override
+  void didChangeNext(Route<dynamic>? nextRoute) {
+    super.didChangeNext(nextRoute);
+    _syncSecondLatch();
+  }
+
+  @override
+  void didPopNext(Route<dynamic> nextRoute) {
+    super.didPopNext(nextRoute);
+    _syncSecondLatch();
   }
 
   @override
