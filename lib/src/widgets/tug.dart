@@ -7,14 +7,9 @@ import 'package:morph/foundation.dart';
 import 'package:morph/src/widgets/chase_spring.dart';
 import 'package:motor/motor.dart';
 
-/// The pull a [Tug] reports in data mode: the tether offset plus the
-/// glass deformation, ready to apply to real geometry such as a
-/// [MorphPiece] rect.
-typedef TugPull = ({Offset offset, double scaleX, double scaleY});
-
 /// The full internal model of a pull, before it is packed for a
-/// consumer: the tether and the growth separately (data mode
-/// compensates content by the growth), the axis deformations without
+/// consumer: the tether and the growth separately (channel mode
+/// corrects content by the growth), the axis deformations without
 /// the press, and the press sink.
 typedef _TugModel = ({
   Offset tether,
@@ -77,14 +72,15 @@ typedef _TugModel = ({
 /// - Default: the pull paints as a render transform above [child]. A
 ///   [MorphTag] inside rides along, so a flight launches from wherever
 ///   the surface stands.
-/// - Data mode ([onPull] set): nothing paints; the pull is reported so
-///   the owner moves REAL geometry - a [MorphPiece] rect inside a
-///   [MorphSkin]. The mass itself then carries the tether: pull one
-///   piece toward another and the skin necks them into one body,
-///   which no paint transform can do. The content inside rides the
-///   rigid body, sinks with the press in full, and follows [follow] of
-///   the surface stretch - glass deforms what is printed on it, a
-///   little.
+/// - Channel mode ([channel] set): the pull is written straight into a
+///   [MorphPieceChannel], so the skin moves REAL mass geometry - a
+///   [MorphPiece] inside a [MorphSkin]. The mass itself then carries
+///   the tether: pull one piece toward another and the skin necks them
+///   into one body, which no paint transform can do. The skin paints
+///   the content with the full channel transform (one rigid body);
+///   [Tug] corrects it from inside so the content rides the tether,
+///   sinks with the press in full, and follows only [follow] of the
+///   surface stretch - glass deforms what is printed on it, a little.
 class Tug extends StatefulWidget {
   /// Creates a glass tether around [child].
   const Tug({
@@ -97,7 +93,7 @@ class Tug extends StatefulWidget {
     this.press = 0.97,
     this.follow = 0.6,
     this.motion,
-    this.onPull,
+    this.channel,
   });
 
   /// The tuggable surface.
@@ -122,7 +118,7 @@ class Tug extends StatefulWidget {
   /// Scale while the pointer is down: glass compresses, never pops.
   final double press;
 
-  /// How much of the surface stretch the content rides in data mode
+  /// How much of the surface stretch the content rides in channel mode
   /// (the press sink always applies in full). Zero keeps the content
   /// rigid; one glues it to the glass.
   final double follow;
@@ -131,10 +127,12 @@ class Tug extends StatefulWidget {
   /// [MorphMotion.normal].
   final MorphMotion? motion;
 
-  /// When set, [Tug] paints nothing and reports the pull instead -
-  /// for owners that move real geometry (a [MorphPiece] rect). Fixed
-  /// for the widget's lifetime: toggling it swaps the tree shape.
-  final ValueChanged<TugPull>? onPull;
+  /// When set, [Tug] writes the pull into this channel and the skin
+  /// moves the real mass geometry; the widget itself paints only the
+  /// content correction. Fixed for the widget's lifetime: toggling it
+  /// swaps the tree shape. The channel's value is not reset on
+  /// unmount - the owner of the channel owns its value.
+  final MorphPieceChannel? channel;
 
   @override
   State<Tug> createState() => _TugState();
@@ -207,17 +205,17 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     );
   }
 
-  TugPull _compute() {
+  void _report() {
+    final MorphPieceChannel? channel = widget.channel;
+    if (channel == null) {
+      return;
+    }
     final _TugModel m = _model();
-    return (
+    channel.update(
       offset: m.tether + m.growth,
       scaleX: m.deformX * m.sink,
       scaleY: m.deformY * m.sink,
     );
-  }
-
-  void _report() {
-    widget.onPull?.call(_compute());
   }
 
   void _down(DragDownDetails details) {
@@ -230,10 +228,12 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     _size = box.size;
     // Home center: the box's current global center minus whatever pull
     // already applies. In paint mode the transform hangs BELOW this
-    // box, so the box never moves; in data mode the geometry carries
-    // the pull and must be subtracted.
+    // box, so the box never moves; in channel mode the skin's paint
+    // transform carries the pull (localToGlobal sees it) and it must
+    // be subtracted.
     final Offset center = box.localToGlobal(box.size.center(.zero));
-    _homeCenter = widget.onPull == null ? center : center - _compute().offset;
+    final MorphPieceChannel? channel = widget.channel;
+    _homeCenter = channel == null ? center : center - channel.offset;
     // Seed the chase from wherever the surface is, carrying a
     // mid-return spring's velocity into the grab.
     _spring.grab(_xy.value, velocity: _xy.velocity);
@@ -262,8 +262,8 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     _chaseLast = elapsed;
     // The chase's own rest guard keeps a motionless finger free: once
     // it snaps onto the target, tick reports no change and the
-    // controller is not written - in data mode that is what stops the
-    // skin from re-tracing epsilon motion at full frame rate.
+    // controller is not written - in channel mode that is what stops
+    // the skin from re-tracing epsilon motion at full frame rate.
     if (_spring.tick(dt)) {
       _xy.value = _spring.value;
     }
@@ -303,19 +303,22 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
         child: widget.child,
         builder: (BuildContext context, Widget? child) {
           final _TugModel m = _model();
-          // Data mode: the owner grows the real geometry, and the
-          // child box grows with it - so the content inside would
-          // re-center and read as the glass growing BOTH ways.
-          // Compensate: the content rides the rigid body (tether
-          // only) while the mass alone reaches for the finger; the
-          // press sinks it in full and [follow] of the stretch
-          // deforms it.
-          if (widget.onPull != null) {
+          // Channel mode: the skin paints this subtree with the FULL
+          // channel transform (mass and content as one rigid body), so
+          // the raw stretch would deform the content 1:1 and the
+          // growth would read as the glass growing both ways. Correct
+          // from inside by desired/applied: the content rides the
+          // tether alone while the mass reaches for the finger, the
+          // press sinks it in full (sink cancels out of the ratio),
+          // and [follow] of the stretch deforms it.
+          if (widget.channel != null) {
+            final double appliedX = m.deformX * m.sink;
+            final double appliedY = m.deformY * m.sink;
             return Transform.translate(
-              offset: -m.growth,
+              offset: Offset(-m.growth.dx / appliedX, -m.growth.dy / appliedY),
               child: Transform.scale(
-                scaleX: m.sink * (1 + widget.follow * (m.deformX - 1)),
-                scaleY: m.sink * (1 + widget.follow * (m.deformY - 1)),
+                scaleX: (1 + widget.follow * (m.deformX - 1)) / m.deformX,
+                scaleY: (1 + widget.follow * (m.deformY - 1)) / m.deformY,
                 child: child,
               ),
             );

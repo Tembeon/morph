@@ -76,12 +76,12 @@ class _MenuLessonState extends State<MenuLesson> {
     ),
   ];
 
-  // Pulls live in a notifier, not in setState: a tug reports on every
-  // frame of a drag, and only the piece RECTS depend on it - the pill
-  // content below is built once and reused, so a drag re-traces the
-  // skin without rebuilding the lesson subtree.
-  final ValueNotifier<Map<String, TugPull>> _pulls =
-      ValueNotifier<Map<String, TugPull>>(const <String, TugPull>{});
+  // Each pill's tug writes its geometry channel directly: the skin
+  // re-traces the displaced mass on every frame of a drag with no
+  // lesson rebuild at all - the pieces list below is built once.
+  final Map<String, MorphPieceChannel> _channels = <String, MorphPieceChannel>{
+    for (final _Pill pill in _pills) pill.id: MorphPieceChannel(),
+  };
 
   late final List<Widget> _contents = <Widget>[
     for (final _Pill pill in _pills) _pillContent(pill),
@@ -91,23 +91,10 @@ class _MenuLessonState extends State<MenuLesson> {
 
   @override
   void dispose() {
-    _pulls.dispose();
-    super.dispose();
-  }
-
-  Rect _rectFor(_Pill pill) {
-    final TugPull? p = _pulls.value[pill.id];
-    if (p == null) {
-      return pill.home;
+    for (final MorphPieceChannel channel in _channels.values) {
+      channel.dispose();
     }
-    // The tug moves and stretches the REAL piece rect: the skin traces
-    // the displaced mass, so pulling one pill toward the other grows a
-    // genuine neck - geometry, not a paint effect.
-    return Rect.fromCenter(
-      center: pill.home.center + p.offset,
-      width: pill.home.width * p.scaleX,
-      height: pill.home.height * p.scaleY,
-    );
+    super.dispose();
   }
 
   void _openMenu(BuildContext buttonContext, _Pill pill) {
@@ -143,8 +130,7 @@ class _MenuLessonState extends State<MenuLesson> {
     return Tug(
       motion: widget.motion,
       cap: _tugCap,
-      onPull: (TugPull p) =>
-          _pulls.value = <String, TugPull>{..._pulls.value, pill.id: p},
+      channel: _channels[pill.id],
       // The skin IS the surface ("one mass - one shadow"): the piece
       // content carries no Material of its own - a second surface
       // would split from the mass the moment the tug deforms it.
@@ -173,29 +159,28 @@ class _MenuLessonState extends State<MenuLesson> {
     return Column(
       mainAxisAlignment: .center,
       children: <Widget>[
-        // One skin, two morphable pieces: the tug (data mode) moves
-        // the real piece rects, so dragging a pill toward its neighbor
-        // necks the two into one body - and each pill still morphs
-        // into its own menu from wherever it stands.
+        // One skin, two morphable pieces: the tug (channel mode) moves
+        // the real piece mass through its geometry channel, so
+        // dragging a pill toward its neighbor necks the two into one
+        // body - and each pill still morphs into its own menu from
+        // wherever it stands.
         SizedBox(
           width: 320,
           height: 150,
-          child: ListenableBuilder(
-            listenable: _pulls,
-            builder: (BuildContext context, Widget? child) => MorphSkin(
-              blend: _blend,
-              color: _glass,
-              elevation: 3,
-              pieces: <MorphPiece>[
-                for (int i = 0; i < _pills.length; i++)
-                  MorphPiece.morphable(
-                    id: _pills[i].id,
-                    rect: _rectFor(_pills[i]),
-                    radius: _rectFor(_pills[i]).height / 2,
-                    child: _contents[i],
-                  ),
-              ],
-            ),
+          child: MorphSkin(
+            blend: _blend,
+            color: _glass,
+            elevation: 3,
+            pieces: <MorphPiece>[
+              for (int i = 0; i < _pills.length; i++)
+                MorphPiece.morphable(
+                  id: _pills[i].id,
+                  rect: _pills[i].home,
+                  radius: _pills[i].home.height / 2,
+                  channel: _channels[_pills[i].id],
+                  child: _contents[i],
+                ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
