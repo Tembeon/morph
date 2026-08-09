@@ -59,6 +59,24 @@ class _MorphSceneState extends State<MorphScene> {
     );
   }
 
+  /// The same flight with an ANCHORED target: the popover grows out of
+  /// the button's own edge instead of a centered rect, so the height
+  /// growth reads as the surface opening upward - the pinned edge
+  /// never lets it look like the button deformed.
+  MorphFlight _openNote(BuildContext context) {
+    return showMorph(
+      context,
+      target: MorphTargetSpec.popover(
+        anchor: morphAnchorRect(context),
+        size: const Size(306, 420),
+      ),
+      motion: _motion,
+      semanticLabel: 'Quick note',
+      builder: (BuildContext context, MorphFlight flight) =>
+          ComposeDialogContent(flight: flight),
+    );
+  }
+
   /// The interruption storm: opens the compose flight and closes it
   /// mid-air, three times with shrinking patience - the retarget
   /// contract, visible without fast fingers.
@@ -100,6 +118,7 @@ class _MorphSceneState extends State<MorphScene> {
             bumpScale: _bumpScale,
             bumpRecoil: _bumpRecoil,
             onCompose: _openCompose,
+            onNote: _openNote,
           );
         },
       ),
@@ -127,6 +146,13 @@ class _MorphSceneState extends State<MorphScene> {
               _ => _landingLayer(),
             },
           ),
+        ),
+        const PanelHint(
+          'Two buttons, one flight, different TARGETS: New message opens '
+          'a centered dialog (the container stretches through the '
+          'pill\'s aspect on its way), Quick note opens a popover '
+          'anchored to the button - the pinned edge makes the growth '
+          'read as opening, never as deforming.',
         ),
       ],
     );
@@ -225,11 +251,13 @@ class _MailApp extends StatelessWidget {
     required this.bumpScale,
     required this.bumpRecoil,
     required this.onCompose,
+    required this.onNote,
   });
 
   final double bumpScale;
   final double bumpRecoil;
   final void Function(BuildContext context) onCompose;
+  final void Function(BuildContext context) onNote;
 
   static const List<(String, String, String)> _mail =
       <(String, String, String)>[
@@ -258,13 +286,46 @@ class _MailApp extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const .only(bottom: 90),
+                padding: const .only(bottom: 140),
                 itemCount: _mail.length,
                 itemBuilder: (BuildContext context, int index) =>
                     _MailRow(mail: _mail[index], index: index),
               ),
             ),
           ],
+        ),
+        // The anchored twin: same spring, same content, but the target
+        // is a popover growing out of THIS button's edge.
+        Positioned(
+          right: 14,
+          bottom: 66,
+          child: MorphTag(
+            id: 'mail-note',
+            spec: const MorphSurfaceSpec(
+              shape: StadiumBorder(),
+              color: Color(0xFF4CC5B8),
+              elevation: 4,
+            ),
+            bumpScale: bumpScale,
+            bumpRecoil: bumpRecoil,
+            child: MorphSurface(
+              onTap: onNote,
+              child: const Padding(
+                padding: .symmetric(horizontal: 18, vertical: 13),
+                child: Row(
+                  mainAxisSize: .min,
+                  children: <Widget>[
+                    Icon(Icons.sticky_note_2_outlined, size: 16),
+                    SizedBox(width: 8),
+                    Text(
+                      'Quick note',
+                      style: TextStyle(fontSize: 13, fontWeight: .w600),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
         Positioned(
           right: 14,
