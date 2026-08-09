@@ -20,7 +20,9 @@ Flutter-style split, two entrypoints:
   chapter-04 pattern as one call: a control becomes its own menu,
   popover anchored to the control's current box, rows cascading via
   MorphReveal, onSelected fires before the close), SpringButton, Tug
-  (the glass tether), MorphSurface/MorphTapTarget (the Material
+  (the glass tether; paint mode transforms above the child, channel
+  mode writes a MorphPieceChannel directly and paints only the content
+  correction inside), MorphSurface/MorphTapTarget (the Material
   adapter and its surface-less sibling), ChaseSpring
   (the moving-target integrator: per-event controller retargets
   starve - a high-frequency mouse restarts the sim before it ticks;
@@ -164,8 +166,10 @@ Flutter-style split, two entrypoints:
 - **Render-object implementation**: `MorphSkin` is a thin stateless
   facade over `RenderMorphSkin` (public API unchanged). Spring ticks
   call markNeedsPaint ONLY - no widget rebuild and no relayout in an
-  animation frame; the group is its own repaint boundary, so an
-  animating skin never repaints ancestors. The landing squash deforms
+  animation frame - and app-driven geometry has the same citizenship
+  through the piece geometry channel (next bullet); the group is its
+  own repaint boundary, so an animating skin never repaints ancestors.
+  The landing squash deforms
   content via a child-local paint transform (mirroring the skin's mass)
   with transform-aware hit testing; layout runs solely when piece
   geometry changes from the outside. Flight subscriptions live in
@@ -176,7 +180,45 @@ Flutter-style split, two entrypoints:
   test/golden_dump_helper.dart) and seeded fuzz
   (test/liquid_fuzz_test.dart); the frame benchmark
   (benchmark/group_frame_benchmark_test.dart) measures the full
-  build+layout+paint cost per pumped frame during a glacial flight.
+  build+layout+paint cost per pumped frame during a glacial flight,
+  plus the orbit scene both ways (rebuild-driven vs channel-driven).
+- **Piece geometry channel**: `MorphPieceChannel` (skin.dart, on
+  `MorphPiece.channel`) - "frameTicks for pieces". The payload is
+  (offset, scaleX, scaleY) over the base rect, applied about its
+  center; no rotation by construction (SDF boxes are axis-aligned).
+  Scale ZERO is legal and deflates the mass to nothing - births and
+  deaths are mass, not opacity (the selection-blob pattern); a
+  degenerate content transform paints nothing and hit testing skips
+  it (non-invertible matrix).
+  A write is markNeedsPaint ONLY: no rebuild, no relayout, no
+  _syncFlightSubscriptions, no allocation (channel identity is part of
+  piece geometry equality, so a swap resyncs; subscriptions live in
+  attach/detach with one shared handler). EFFECTIVE rects (base +
+  channel) feed the whole pipeline: resolve, trace signature (a stale
+  contour is impossible), launch fellowship (captured at flight
+  subscription from that moment's effective rects - a launch out of a
+  body fused by a live drag keeps its neck), bridge endpoints, blob
+  fallback. Content rides as ONE RIGID BODY on the same child-local
+  paint transform as the landing squash (the two compose; scales
+  multiply, kick adds); layout stays at the base rect - content
+  paint-scales, text does not rewrap: the channel's contract, fine at
+  tether scales. applyPaintTransform mirrors the paint transform, so
+  localToGlobal / MorphTag measurement / popover anchoring see the
+  displaced rect - without that override a flight would launch from
+  the base position while the pill visibly stands elsewhere. Transient
+  motion commits into the base rect at rest (the sandbox pattern:
+  dragBy writes the channel, endDrag commits and resets - one rebuild
+  per gesture). Consumers: Tug's channel mode (writes the full pull
+  and paints only the desired/applied content correction inside),
+  the sandbox drag, the stress orbits, the dock/selector selection
+  blobs and the toolbar merge. The companion pattern for CONTENT whose
+  values derive from the same spring (label emphasis, icon
+  opacity/glyph): the content listens to the spring itself inside a
+  stable piece child - tiny text/icon rebuilds, the skin and the piece
+  list untouched. Pinned by the channel group in
+  morph_skin_test (re-trace isolation via LiquidTracer.lastMissCount,
+  no-rebuild/no-relayout counters, displaced launch rect, fellowship
+  from displaced geometry, resubscription).
 - **Per-cluster cache**: `LiquidTracer` (one per MorphSkin State) -
   only clusters whose geometry changed re-trace; the rest reuse their
   loops. Keys are full per-cluster signatures compared element-wise on
@@ -550,7 +592,7 @@ cd example && flutter run -d macos --dart-define=MORPH_AUTODEMO=true
 Every step must be green after each change (analyze from the package
 root also covers example). Animations are judged by eye only by a human
 (the glacial profile is the magnifier mode); agent self-verification is
-the tests (151 in the package + 28 in example) plus the autodemo with no
+the tests (162 in the package + 29 in example) plus the autodemo with no
 EXCEPTION in the log (autodemo: opens the Playground chapter AS a
 morph route - exercising the card flight and the second latch - then a
 dialog flight from a piece -> interruption torture -> 4 keyframe

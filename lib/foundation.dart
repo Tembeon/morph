@@ -42,7 +42,7 @@ export 'src/frame.dart'
         morphLandingBump,
         uniformMorphRadius;
 export 'src/gesture.dart';
-export 'src/skin.dart' show MorphSkin, MorphLink, MorphPiece;
+export 'src/skin.dart' show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin;
 export 'src/liquid_field.dart'
     show LiquidBox, LiquidBridge, LiquidShape, MorphSkinStyle;
 export 'src/reveal.dart';

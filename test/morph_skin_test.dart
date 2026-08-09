@@ -304,7 +304,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  Widget fellowshipHost({required Rect neighbor}) {
+  Widget fellowshipHost({required Rect neighbor, MorphPieceChannel? channel}) {
     return MaterialApp(
       builder: (BuildContext context, Widget? child) =>
           MorphScope(child: child!),
@@ -317,6 +317,7 @@ void main() {
             MorphPiece.morphable(
               id: 'hero',
               rect: const .fromLTWH(170, 310, 110, 50),
+              channel: channel,
               child: Builder(
                 builder: (BuildContext context) => TextButton(
                   onPressed: () {
@@ -456,5 +457,228 @@ void main() {
         break;
       }
     }
+  });
+
+  testWidgets('channel: a write re-traces its own cluster, no rebuild, '
+      'no relayout, hit test follows', (WidgetTester tester) async {
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+    int builds = 0;
+    int layouts = 0;
+    int taps = 0;
+    await tester.pumpWidget(
+      host(
+        MorphSkin(
+          blend: 20,
+          color: const Color(0xFF2A2440),
+          pieces: <MorphPiece>[
+            MorphPiece(
+              id: 'a',
+              rect: const .fromLTWH(20, 20, 100, 60),
+              channel: channel,
+              child: Builder(
+                builder: (BuildContext context) {
+                  builds++;
+                  return TextButton(
+                    onPressed: () => taps++,
+                    child: const Text('tap'),
+                  );
+                },
+              ),
+            ),
+            MorphPiece(
+              id: 'b',
+              rect: const .fromLTWH(220, 120, 100, 60),
+              child: LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) {
+                  layouts++;
+                  return const SizedBox();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    final RenderMorphSkin skin = tester.renderObject<RenderMorphSkin>(
+      find.byType(MorphSkin),
+    );
+    expect(skin.tracer.lastClusterCount, 2);
+    final int buildsBefore = builds;
+    final int layoutsBefore = layouts;
+    final Offset origin = tester.getTopLeft(find.byType(MorphSkin));
+
+    channel.update(offset: const Offset(0, 80));
+    await tester.pump();
+
+    // The tick stayed on the paint path: nothing rebuilt, nothing
+    // relaid out, and only the moved piece's cluster re-traced.
+    expect(builds, buildsBefore);
+    expect(layouts, layoutsBefore);
+    expect(skin.tracer.lastClusterCount, 2);
+    expect(skin.tracer.lastMissCount, 1);
+
+    // Hit testing follows the displaced content: the base center
+    // misses, the displaced center hits.
+    await tester.tapAt(origin + const Offset(70, 50));
+    expect(taps, 0);
+    await tester.tapAt(origin + const Offset(70, 130));
+    expect(taps, 1);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('channel: the flight launches from the displaced rect and '
+      'the landing composes with the delta', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: MorphSkin(
+            blend: 24,
+            color: const Color(0xFF2A2440),
+            pieces: <MorphPiece>[
+              .morphable(
+                id: 'hero',
+                rect: const .fromLTWH(170, 310, 110, 50),
+                channel: channel,
+                child: Builder(
+                  builder: (BuildContext context) => TextButton(
+                    onPressed: () {
+                      flight = showMorphDialog(
+                        context,
+                        from: 'hero',
+                        width: 400,
+                        height: 300,
+                        builder: (BuildContext context, MorphFlight flight) =>
+                            const Text('dialog'),
+                      );
+                    },
+                    child: const Text('fly'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    channel.update(offset: const Offset(60, 30));
+    await tester.pump();
+
+    // localToGlobal sees the channel transform (applyPaintTransform):
+    // the tap lands on the displaced pill and the flight measures its
+    // source there.
+    await tester.tap(find.text('fly'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    final RenderBox skinBox = tester.renderObject<RenderMorphSkin>(
+      find.byType(MorphSkin),
+    );
+    final Rect expected =
+        skinBox.localToGlobal(const Offset(170 + 60, 310 + 30)) &
+        const Size(110, 50);
+    expect(flight!.sourceRect.left, moreOrLessEquals(expected.left));
+    expect(flight!.sourceRect.top, moreOrLessEquals(expected.top));
+    expect(flight!.sourceRect.width, moreOrLessEquals(expected.width));
+    expect(flight!.sourceRect.height, moreOrLessEquals(expected.height));
+
+    // The close plays the landing bump on top of the still-displaced
+    // channel - the composed content transform must stay exception
+    // free all the way to settle.
+    for (int i = 0; i < 200; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(tester.takeException(), isNull);
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+    flight!.close();
+    for (int i = 0; i < 400; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(tester.takeException(), isNull);
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+    expect(flight!.isFinished, isTrue);
+  });
+
+  testWidgets('channel: fellowship is captured from the displaced geometry', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    // The same far-neighbor scene that yields ZERO blobs undisplaced
+    // (pinned above): dragged into contact through the channel before
+    // launch, the bystander joins the launch fellowship and the blob
+    // necks to it.
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+    await tester.pumpWidget(
+      fellowshipHost(
+        neighbor: const Rect.fromLTWH(200, 100, 120, 70),
+        channel: channel,
+      ),
+    );
+    channel.update(offset: const Offset(30, -135));
+    await tester.pump();
+    expect(await maxBlobsDuringFlight(tester), greaterThan(0));
+  });
+
+  testWidgets('channel: swapping the channel object resubscribes', (
+    WidgetTester tester,
+  ) async {
+    final MorphPieceChannel first = MorphPieceChannel();
+    final MorphPieceChannel second = MorphPieceChannel();
+    addTearDown(first.dispose);
+    addTearDown(second.dispose);
+    Widget build(MorphPieceChannel channel) {
+      return host(
+        MorphSkin(
+          blend: 20,
+          color: const Color(0xFF2A2440),
+          pieces: <MorphPiece>[
+            MorphPiece(
+              id: 'p',
+              rect: const .fromLTWH(40, 60, 200, 100),
+              channel: channel,
+            ),
+          ],
+        ),
+      );
+    }
+
+    await tester.pumpWidget(build(first));
+    first.update(offset: const Offset(10, 0));
+    expect(tester.binding.hasScheduledFrame, isTrue);
+    await tester.pump();
+
+    await tester.pumpWidget(build(second));
+    first.update(offset: const Offset(20, 0));
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    second.update(offset: const Offset(10, 0));
+    expect(tester.binding.hasScheduledFrame, isTrue);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  test('channel rejects negative scales; zero deflates to empty mass', () {
+    final MorphPieceChannel channel = MorphPieceChannel();
+    expect(() => channel.update(scaleX: -1), throwsAssertionError);
+    expect(() => channel.update(scaleY: -0.1), throwsAssertionError);
+    channel.update(scaleX: 0, scaleY: 0);
+    expect(channel.apply(const Rect.fromLTWH(10, 10, 100, 50)).isEmpty, isTrue);
+    channel.dispose();
   });
 }

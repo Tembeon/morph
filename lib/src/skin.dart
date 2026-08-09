@@ -7,6 +7,85 @@ import 'package:morph/src/liquid_field.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/theme.dart';
 
+/// A per-frame geometry channel for a [MorphPiece]: a translation plus
+/// per-axis scales over the piece's base [MorphPiece.rect], written by
+/// the app (a drag, a tether, an orbit) and consumed by the skin's
+/// render object directly. A write repaints and re-traces the skin with
+/// no widget rebuild and no relayout - the same citizenship flight
+/// ticks have.
+///
+/// The delta lives in the group's local pixels and applies about the
+/// base rect's center. The skin mirrors it onto the piece's mass and,
+/// as a child-local paint transform, onto the content: one rigid body.
+/// The content paint-scales rather than reflows (text does not rewrap
+/// at a stretched width) - the contract of the channel, invisible at
+/// tether scales. A [MorphTag] inside the content measures itself
+/// through the same transform, so a flight launches from wherever the
+/// piece currently stands; hit testing follows the displaced content,
+/// which must stay within the group's own box to remain reachable.
+///
+/// The app owns the channel: create it in a State, dispose it there,
+/// hand it to [MorphPiece.channel]. Transient motion (a drag) commits
+/// into the base rect at rest and calls [reset] - the channel carries
+/// the live delta, the rect carries the truth.
+class MorphPieceChannel extends ChangeNotifier {
+  Offset _offset = .zero;
+  double _scaleX = 1;
+  double _scaleY = 1;
+
+  /// Translation of the piece's base rect, in group-local px.
+  Offset get offset => _offset;
+
+  /// Horizontal scale about the base rect's center.
+  double get scaleX => _scaleX;
+
+  /// Vertical scale about the base rect's center.
+  double get scaleY => _scaleY;
+
+  /// Whether the channel currently displaces nothing.
+  bool get isIdentity => _offset == .zero && _scaleX == 1 && _scaleY == 1;
+
+  /// Writes the delta; omitted fields keep their value. Notifies only
+  /// when something actually changed, so an idle writer costs nothing.
+  ///
+  /// A scale of ZERO is legal and deflates the mass to nothing -
+  /// births and deaths are mass, not opacity (the selection-blob
+  /// pattern). Content of a fully deflated piece paints as nothing and
+  /// is skipped by hit testing (the transform degenerates).
+  void update({Offset? offset, double? scaleX, double? scaleY}) {
+    assert(scaleX == null || scaleX >= 0, 'channel scaleX cannot be negative.');
+    assert(scaleY == null || scaleY >= 0, 'channel scaleY cannot be negative.');
+    final Offset nextOffset = offset ?? _offset;
+    final double nextScaleX = scaleX ?? _scaleX;
+    final double nextScaleY = scaleY ?? _scaleY;
+    if (nextOffset == _offset &&
+        nextScaleX == _scaleX &&
+        nextScaleY == _scaleY) {
+      return;
+    }
+    _offset = nextOffset;
+    _scaleX = nextScaleX;
+    _scaleY = nextScaleY;
+    notifyListeners();
+  }
+
+  /// Returns the channel to identity.
+  void reset() => update(offset: .zero, scaleX: 1, scaleY: 1);
+
+  /// [base] displaced by the current delta: shifted by [offset], scaled
+  /// about its center by [scaleX] and [scaleY].
+  Rect apply(Rect base) {
+    if (isIdentity) {
+      return base;
+    }
+    return .fromCenter(
+      center: base.center + _offset,
+      width: base.width * _scaleX,
+      height: base.height * _scaleY,
+    );
+  }
+}
+
 /// A piece of a liquid group: explicit geometry (no tree measurement,
 /// like the rest of the morph system) plus live content on top of the
 /// skin. rect and radius are plain frame data: an animating consumer
@@ -27,6 +106,7 @@ class MorphPiece {
     this.solid = true,
     this.bumpScale = 0.6,
     this.bumpRecoil = 140,
+    this.channel,
     this.child,
   }) : morphable = false;
 
@@ -40,6 +120,7 @@ class MorphPiece {
     this.solid = true,
     this.bumpScale = 0.6,
     this.bumpRecoil = 140,
+    this.channel,
     this.child,
   }) : morphable = true;
 
@@ -67,6 +148,11 @@ class MorphPiece {
   /// Landing kick-off distance in px ([MorphTag.bumpRecoil] semantics).
   final double bumpRecoil;
 
+  /// App-driven per-frame geometry over [rect]: when set, the skin
+  /// subscribes and mirrors the channel's delta onto the mass and the
+  /// content with no widget rebuild. See [MorphPieceChannel].
+  final MorphPieceChannel? channel;
+
   /// Live content laid out over the piece's [rect].
   final Widget? child;
 
@@ -77,7 +163,8 @@ class MorphPiece {
         solid == other.solid &&
         morphable == other.morphable &&
         bumpScale == other.bumpScale &&
-        bumpRecoil == other.bumpRecoil;
+        bumpRecoil == other.bumpRecoil &&
+        identical(channel, other.channel);
   }
 }
 
@@ -114,10 +201,13 @@ class MorphLink {
 /// itself. Outside a MorphScope the group degrades to pure fusion.
 ///
 /// Implemented as a render object: spring ticks mark paint only - no
-/// widget rebuild, no relayout participates in an animation frame. The
-/// landing squash is a paint transform of the content, mirroring the
-/// skin's mass deformation. The group is its own repaint boundary, so
-/// an animating skin never repaints its ancestors.
+/// widget rebuild, no relayout participates in an animation frame.
+/// App-driven geometry gets the same citizenship through
+/// [MorphPieceChannel]: a channel write repaints and re-traces without
+/// touching the widget tree. The landing squash (and the channel
+/// delta) is a paint transform of the content, mirroring the skin's
+/// mass deformation. The group is its own repaint boundary, so an
+/// animating skin never repaints its ancestors.
 class MorphSkin extends StatelessWidget {
   /// Creates a skin over [pieces], optionally bridged by [links].
   const MorphSkin({
@@ -388,6 +478,12 @@ class RenderMorphSkin extends RenderBox
   /// [LiquidTracer.lastMissCount].
   int lastFlightBlobCount = 0;
 
+  /// The per-cluster trace cache - exposed for its instruments
+  /// ([LiquidTracer.lastMissCount], [LiquidTracer.lastClusterCount]),
+  /// which tests use to pin re-trace isolation.
+  @visibleForTesting
+  LiquidTracer get tracer => _tracer;
+
   /// An animating skin must not repaint ancestors: the group owns its
   /// layer.
   @override
@@ -414,6 +510,7 @@ class RenderMorphSkin extends RenderBox
     _pieces = value;
     if (!sameGeometry) {
       _syncFlightSubscriptions();
+      _syncChannelSubscriptions();
       markNeedsLayout();
       markNeedsPaint();
     }
@@ -575,6 +672,7 @@ class RenderMorphSkin extends RenderBox
     super.attach(owner);
     _scope?.lastFlight.addListener(_onFlightLaunched);
     _syncFlightSubscriptions();
+    _syncChannelSubscriptions();
   }
 
   @override
@@ -585,12 +683,56 @@ class RenderMorphSkin extends RenderBox
     }
     _flightSubs.clear();
     _flightFellowship.clear();
+    for (final MorphPieceChannel channel in _channelSubs) {
+      channel.removeListener(_onChannelTick);
+    }
+    _channelSubs.clear();
     super.detach();
   }
 
   void _onFlightLaunched() {
     _syncFlightSubscriptions();
     markNeedsPaint();
+  }
+
+  final Set<MorphPieceChannel> _channelSubs = <MorphPieceChannel>{};
+
+  /// A channel tick is paint-only by contract: geometry change is not a
+  /// subscription change, so no flight resync and no allocation runs
+  /// here.
+  void _onChannelTick() => markNeedsPaint();
+
+  /// Subscriptions to the piece geometry channels; one shared handler
+  /// serves them all. Synced on attach/detach and when the piece list
+  /// itself changes - never on a tick.
+  void _syncChannelSubscriptions() {
+    Set<MorphPieceChannel>? active;
+    for (final MorphPiece piece in _pieces) {
+      final MorphPieceChannel? channel = piece.channel;
+      if (channel == null) {
+        continue;
+      }
+      (active ??= <MorphPieceChannel>{}).add(channel);
+      if (attached && _channelSubs.add(channel)) {
+        channel.addListener(_onChannelTick);
+      }
+    }
+    if (_channelSubs.isNotEmpty) {
+      _channelSubs.removeWhere((MorphPieceChannel channel) {
+        if (active?.contains(channel) ?? false) {
+          return false;
+        }
+        channel.removeListener(_onChannelTick);
+        return true;
+      });
+    }
+  }
+
+  /// The piece's base rect displaced by its channel - the geometry the
+  /// whole pipeline (mass, signature, fellowship, bridges, blobs) sees.
+  Rect _effectiveRect(MorphPiece piece) {
+    final MorphPieceChannel? channel = piece.channel;
+    return channel == null ? piece.rect : channel.apply(piece.rect);
   }
 
   /// The live flight launched under the piece's id, if the scope has
@@ -664,7 +806,9 @@ class RenderMorphSkin extends RenderBox
   /// bridges, labeled by [liquidConnectivityLabels] - the exact
   /// predicate the tracer clusters by, so a bridged piece is a fellow
   /// even across a gap wider than k. Captured once per flight, at
-  /// subscription.
+  /// subscription, from the EFFECTIVE rects of that moment (base +
+  /// channel): a launch out of a body fused by a live drag keeps its
+  /// neck.
   Set<Object> _launchFellowship(MorphPiece origin) {
     final List<MorphPiece> solid = <MorphPiece>[
       for (final MorphPiece piece in _pieces)
@@ -677,17 +821,20 @@ class RenderMorphSkin extends RenderBox
     if (originIndex == null) {
       return const <Object>{};
     }
+    final List<Rect> effective = <Rect>[
+      for (final MorphPiece piece in solid) _effectiveRect(piece),
+    ];
     final List<Rect> rects = <Rect>[
-      for (final MorphPiece piece in solid) piece.rect,
+      ...effective,
       for (final MorphLink link in _links)
         if (indexOf[link.from] case final int from?)
           if (indexOf[link.to] case final int to?)
             LiquidBridge(
-              solid[from].rect.center,
-              solid[to].rect.center,
+              effective[from].center,
+              effective[to].center,
               radius:
                   (link.width ??
-                      _defaultBridgeWidth(solid[from].rect, solid[to].rect)) /
+                      _defaultBridgeWidth(effective[from], effective[to])) /
                   2,
             ).outerRect,
     ];
@@ -739,32 +886,32 @@ class RenderMorphSkin extends RenderBox
   List<_ResolvedPiece> _resolvePieces() {
     return <_ResolvedPiece>[
       for (final MorphPiece piece in _pieces)
-        switch (_flightFor(piece)) {
-          null => _ResolvedPiece(
-            piece: piece,
-            rect: piece.rect,
-            solid: piece.solid,
-          ),
-          final MorphFlight flight when flight.isAirborne => _ResolvedPiece(
-            piece: piece,
-            rect: piece.rect,
-            solid: false,
-            flight: flight,
-          ),
-          final MorphFlight flight => _ResolvedPiece(
-            piece: piece,
-            rect: morphBumpedRect(
-              piece.rect,
-              value: flight.controller.value,
-              impactAxis: flight.impactAxis,
-              bumpScale: piece.bumpScale,
-              bumpRecoil: piece.bumpRecoil,
-            ),
-            solid: piece.solid,
-            flight: flight,
-          ),
-        },
+        _resolvePiece(piece, _effectiveRect(piece)),
     ];
+  }
+
+  _ResolvedPiece _resolvePiece(MorphPiece piece, Rect base) {
+    return switch (_flightFor(piece)) {
+      null => _ResolvedPiece(piece: piece, rect: base, solid: piece.solid),
+      final MorphFlight flight when flight.isAirborne => _ResolvedPiece(
+        piece: piece,
+        rect: base,
+        solid: false,
+        flight: flight,
+      ),
+      final MorphFlight flight => _ResolvedPiece(
+        piece: piece,
+        rect: morphBumpedRect(
+          base,
+          value: flight.controller.value,
+          impactAxis: flight.impactAxis,
+          bumpScale: piece.bumpScale,
+          bumpRecoil: piece.bumpRecoil,
+        ),
+        solid: piece.solid,
+        flight: flight,
+      ),
+    };
   }
 
   /// Companion blobs of flown-away pieces: a mirror of the flight frame
@@ -787,7 +934,7 @@ class RenderMorphSkin extends RenderBox
       }
       origin ??= localToGlobal(.zero);
       final Rect source = flight.sourceRect == .zero
-          ? r.piece.rect
+          ? r.rect
           : flight.sourceRect.shift(-origin);
       final Rect target = flight.lastTargetRect == .zero
           ? source
@@ -899,30 +1046,44 @@ class RenderMorphSkin extends RenderBox
     return h * 0.5;
   }
 
-  /// The landing squash as a child-local paint transform: the content
-  /// deforms exactly with the skin's mass instead of being relaid out.
-  Matrix4? _landingTransform(MorphPiece piece) {
-    final MorphFlight? flight = _flightFor(piece);
-    if (flight == null || !flight.isLanding) {
-      return null;
+  /// The channel delta and the landing squash as ONE child-local paint
+  /// transform: the content deforms exactly with the skin's mass
+  /// instead of being relaid out. Scales multiply and translations add
+  /// (the bump plays about the channel-displaced center), so each part
+  /// degrades to identity independently.
+  Matrix4? _contentTransform(MorphPiece piece) {
+    double scaleX = 1;
+    double scaleY = 1;
+    double dx = 0;
+    double dy = 0;
+    final MorphPieceChannel? channel = piece.channel;
+    if (channel != null) {
+      scaleX = channel.scaleX;
+      scaleY = channel.scaleY;
+      dx = channel.offset.dx;
+      dy = channel.offset.dy;
     }
-    final ({double scaleX, double scaleY, Offset kick}) bump = morphLandingBump(
-      value: flight.controller.value,
-      impactAxis: flight.impactAxis,
-      bumpScale: piece.bumpScale,
-      bumpRecoil: piece.bumpRecoil,
-    );
-    if (bump.scaleX == 1 && bump.scaleY == 1 && bump.kick == .zero) {
+    final MorphFlight? flight = _flightFor(piece);
+    if (flight != null && flight.isLanding) {
+      final ({double scaleX, double scaleY, Offset kick}) bump =
+          morphLandingBump(
+            value: flight.controller.value,
+            impactAxis: flight.impactAxis,
+            bumpScale: piece.bumpScale,
+            bumpRecoil: piece.bumpRecoil,
+          );
+      scaleX *= bump.scaleX;
+      scaleY *= bump.scaleY;
+      dx += bump.kick.dx;
+      dy += bump.kick.dy;
+    }
+    if (scaleX == 1 && scaleY == 1 && dx == 0 && dy == 0) {
       return null;
     }
     final double cx = piece.rect.width / 2;
     final double cy = piece.rect.height / 2;
-    return Matrix4.diagonal3Values(bump.scaleX, bump.scaleY, 1)
-      ..setTranslationRaw(
-        cx * (1 - bump.scaleX) + bump.kick.dx,
-        cy * (1 - bump.scaleY) + bump.kick.dy,
-        0,
-      );
+    return Matrix4.diagonal3Values(scaleX, scaleY, 1)
+      ..setTranslationRaw(cx * (1 - scaleX) + dx, cy * (1 - scaleY) + dy, 0);
   }
 
   void _paintSkinAndChildren(PaintingContext context, Offset offset) {
@@ -960,7 +1121,7 @@ class RenderMorphSkin extends RenderBox
           child.parentData! as _LiquidChildParentData;
       final Matrix4? transform = pd.piece == null
           ? null
-          : _landingTransform(pd.piece!);
+          : _contentTransform(pd.piece!);
       if (transform == null) {
         context.paintChild(child, pd.offset + offset);
       } else {
@@ -1004,6 +1165,25 @@ class RenderMorphSkin extends RenderBox
     );
   }
 
+  /// localToGlobal must see the exact transform paint applies: a
+  /// [MorphTag] inside a channel-displaced piece measures its launch
+  /// rect through here, and a popover anchored to a displaced control
+  /// aims through here too.
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    final _LiquidChildParentData pd =
+        child.parentData! as _LiquidChildParentData;
+    transform.translateByDouble(pd.offset.dx, pd.offset.dy, 0, 1);
+    final MorphPiece? piece = pd.piece;
+    if (piece == null) {
+      return;
+    }
+    final Matrix4? content = _contentTransform(piece);
+    if (content != null) {
+      transform.multiply(content);
+    }
+  }
+
   @override
   bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
     RenderBox? child = lastChild;
@@ -1012,7 +1192,7 @@ class RenderMorphSkin extends RenderBox
           child.parentData! as _LiquidChildParentData;
       final Matrix4? transform = pd.piece == null
           ? null
-          : _landingTransform(pd.piece!);
+          : _contentTransform(pd.piece!);
       final RenderBox current = child;
       final bool isHit;
       if (transform == null) {
