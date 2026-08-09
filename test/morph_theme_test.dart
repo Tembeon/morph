@@ -256,5 +256,39 @@ void main() {
       expect(mid.bumpScale, closeTo(0.4, 1e-9));
       expect(mid.maxScrimOpacity, closeTo(0.4, 1e-9));
     });
+
+    test('runtime-built profiles and styles compare by value', () {
+      // MorphTheme compares by ==: a runtime-tuned profile that only
+      // compared by identity would turn every ThemeData rebuild into
+      // "a theme change" and every motion re-install into a spurious
+      // retarget.
+      // Deliberately non-const (the runtime-built name forbids it):
+      // canonicalized instances would be identical and prove nothing.
+      final String tuned = 'tuned-${1 + 1}';
+      MorphMotion profile() => MorphMotion(
+        name: tuned,
+        openMotion: const CupertinoMotion.smooth(
+          duration: Duration(milliseconds: 300),
+        ),
+        closeMotion: const CupertinoMotion(
+          duration: Duration(milliseconds: 500),
+          bounce: 0.2,
+        ),
+        closeVelocityHint: -1,
+      );
+      expect(identical(profile(), profile()), isFalse);
+      expect(profile(), profile());
+      expect(profile().hashCode, profile().hashCode);
+      expect(profile(), isNot(MorphMotion.normal));
+
+      MorphSkinStyle style() =>
+          MorphSkinStyle(name: tuned, blend: 30, cell: 5);
+      expect(style(), style());
+      expect(style(), isNot(MorphSkinStyle.goo));
+      expect(
+        MorphTheme(motion: profile(), skinStyle: style()),
+        MorphTheme(motion: profile(), skinStyle: style()),
+      );
+    });
   });
 }

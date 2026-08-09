@@ -71,6 +71,20 @@ class MorphSkinStyle {
     goo,
   ];
 
+  // Value equality: MorphTheme compares by ==, and an identity-compared
+  // custom style would make every theme rebuild read as a change.
+  @override
+  bool operator ==(Object other) {
+    return other is MorphSkinStyle &&
+        other.name == name &&
+        other.blend == blend &&
+        other.cell == cell &&
+        other.smoothPasses == smoothPasses;
+  }
+
+  @override
+  int get hashCode => Object.hash(name, blend, cell, smoothPasses);
+
   @override
   String toString() => 'MorphSkinStyle.$name';
 }

@@ -131,6 +131,24 @@ class MorphMotion {
     instant,
   ];
 
+  // Value equality, because ambient plumbing compares profiles by ==:
+  // MorphTheme equality feeds ThemeData change detection, and the
+  // controller's motion setter short-circuits on an equal profile. An
+  // identity-compared runtime-built profile would make every theme
+  // rebuild "a change" and every re-install a spurious retarget.
+  @override
+  bool operator ==(Object other) {
+    return other is MorphMotion &&
+        other.name == name &&
+        other.openMotion == openMotion &&
+        other.closeMotion == closeMotion &&
+        other.closeVelocityHint == closeVelocityHint;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(name, openMotion, closeMotion, closeVelocityHint);
+
   @override
   String toString() => 'MorphMotion.$name';
 }
