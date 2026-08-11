@@ -300,9 +300,13 @@ Flutter-style split, two entrypoints:
   parameter > MorphTheme > builtin, everywhere (showMorph*, MorphTag
   bump, MorphSkin knobs). scrimColor is a hue whose own opacity
   COMPOSES with the animated scrim opacity; shadowColor is applied
-  verbatim (opacity included, builtin 60% black) - a MorphSkin with a
-  custom shadowColor wants the same hue here, or the shadow tint snaps
-  when a piece launches a flight. No new
+  verbatim (opacity included) and resolved by BOTH flights and
+  MorphSkin - one theme value keeps the launch tint-stable, because
+  Material elevation and the skin draw through the same
+  canvas.drawShadow primitive (verified in the 3.44 SDK:
+  RenderPhysicalShape.paint). Unset, each keeps its builtin: 60% black
+  for flights, opaque black for the skin (aligning them changes the
+  current look - an eyeball decision, still open). No new
   scopes: MorphScope stays an identity/flight registry only. The SAME
   surface model describes both ends of a flight: MorphTargetSpec
   accepts `surface: MorphSurfaceSpec` (winning over its individual

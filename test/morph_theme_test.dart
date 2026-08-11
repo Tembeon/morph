@@ -247,6 +247,49 @@ void main() {
       expect(group.cell, MorphSkinStyle.goo.cell);
     });
 
+    testWidgets('MorphSkin shadowColor resolves explicit > theme > builtin', (
+      WidgetTester tester,
+    ) async {
+      const Color themed = Color(0x80403020);
+      const Color explicit = Color(0xCC112233);
+      Widget skin({Color? shadowColor}) => SizedBox(
+        width: 300,
+        height: 200,
+        child: MorphSkin(
+          color: const Color(0xFF2A2440),
+          shadowColor: shadowColor,
+          pieces: const <MorphPiece>[
+            MorphPiece(id: 'a', rect: .fromLTWH(20, 20, 100, 60)),
+          ],
+        ),
+      );
+      RenderMorphSkin group() =>
+          tester.renderObject<RenderMorphSkin>(find.byType(MorphSkin));
+
+      await tester.pumpWidget(
+        host(
+          theme: const MorphTheme(shadowColor: themed),
+          child: skin(),
+        ),
+      );
+      expect(group().shadowColor, themed);
+
+      await tester.pumpWidget(
+        host(
+          theme: const MorphTheme(shadowColor: themed),
+          child: skin(shadowColor: explicit),
+        ),
+      );
+      expect(group().shadowColor, explicit);
+
+      // The MaterialApp animates theme swaps (AnimatedTheme, 200 ms) and
+      // a disappearing extension lerps as "keep the old one": pump the
+      // transition out before reading the resolved builtin.
+      await tester.pumpWidget(host(child: skin()));
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(group().shadowColor, const Color(0xFF000000));
+    });
+
     test('copyWith and lerp behave', () {
       const MorphTheme a = MorphTheme(
         bumpScale: 0.2,

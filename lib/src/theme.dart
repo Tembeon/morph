@@ -61,11 +61,13 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   /// color supplies the hue.
   final Color? scrimColor;
 
-  /// Default shadow color of the flying surface (60% black when
-  /// unset), applied verbatim - its opacity is part of the value.
+  /// Default shadow color, applied verbatim - its opacity is part of
+  /// the value.
   ///
-  /// A [MorphSkin] with its own `shadowColor` wants the same hue here,
-  /// or the shadow tint snaps when a piece launches a flight.
+  /// Both flights and [MorphSkin] resolve this slot, so one value keeps
+  /// the shadow tint stable when a piece launches a flight. When unset,
+  /// each keeps its own builtin: 60% black for flights, opaque black
+  /// for the skin.
   final Color? shadowColor;
 
   /// Default knob bundle for [MorphSkin]s without a style or explicit

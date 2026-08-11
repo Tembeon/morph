@@ -227,7 +227,7 @@ class MorphSkin extends StatelessWidget {
     required this.color,
     this.gradient,
     this.elevation = 0,
-    this.shadowColor = const Color(0xFF000000),
+    this.shadowColor,
     this.clipBehavior = .none,
   }) : assert(
          blend == null || blend >= 0,
@@ -292,8 +292,9 @@ class MorphSkin extends StatelessWidget {
   /// Shadow of the unified contour: one mass, one shadow.
   final double elevation;
 
-  /// Color of the [elevation] shadow.
-  final Color shadowColor;
+  /// Color of the [elevation] shadow, opacity included; null resolves
+  /// [MorphTheme.shadowColor], then opaque black.
+  final Color? shadowColor;
 
   /// The skin bulges past the piece bounds by up to ~k; not clipped by
   /// default.
@@ -301,8 +302,8 @@ class MorphSkin extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final MorphSkinStyle? effectiveStyle =
-        style ?? MorphTheme.maybeOf(context)?.skinStyle;
+    final MorphTheme? theme = MorphTheme.maybeOf(context);
+    final MorphSkinStyle? effectiveStyle = style ?? theme?.skinStyle;
     return _RawMorphSkin(
       pieces: pieces,
       links: links,
@@ -314,7 +315,7 @@ class MorphSkin extends StatelessWidget {
       color: color,
       gradient: gradient,
       elevation: elevation,
-      shadowColor: shadowColor,
+      shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0xFF000000),
       clipBehavior: clipBehavior,
       scope: MorphScope.maybeOf(context),
       children: <Widget>[
