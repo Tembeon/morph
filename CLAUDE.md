@@ -244,12 +244,13 @@ Flutter-style split, two entrypoints:
   piece animates (a flight blob re-traces its own cluster, not the
   scene). Instrumented via lastMissCount/lastClusterCount.
 - **Bounded worst frame**: `evalBudget` (default
-  `liquidDefaultEvalBudget` = 200k field evaluations per cluster) -
-  when a scene exceeds it (a screen-wide blob of dozens of fused
-  pieces), the grid coarsens by exactly the overshoot factor: quality
-  degrades before the frame rate does. Deterministic function of
-  geometry (no time, no hysteresis); null disables. Exposed on
-  MorphSkin and the tracing functions.
+  `MorphSkin.defaultEvalBudget` = 200k field evaluations per cluster;
+  internally the `liquidDefaultEvalBudget` const) - when a scene
+  exceeds it (a screen-wide blob of dozens of fused pieces), the grid
+  coarsens by exactly the overshoot factor: quality degrades before
+  the frame rate does. Deterministic function of geometry (no time, no
+  hysteresis); null disables. Exposed on MorphSkin and the tracing
+  functions.
 - **Fill rule is evenOdd**: interior holes (a ring of linked pieces)
   must stay hollow; the stitcher walks loops in arbitrary directions,
   so the default nonZero rule filled holes by winding accident and
@@ -462,12 +463,17 @@ Hard-won rules already enforced in the core:
   spoken of as "the skin": `MorphSkin`/`MorphPiece`/`MorphLink`/
   `MorphSkinStyle`, knob `blend:` (the widget name for the smin k;
   the internal math layer keeps `k` - SDF literature language).
-  "Liquid" survives as the technique name in liquid_field.dart. That
-  file's mass-shape vocabulary (`LiquidShape`/`LiquidBox`/`LiquidBridge`
-  for `MorphSkin.extraShapes`, plus `liquidDefaultEvalBudget`) is the
-  one deliberate `Liquid*` exception in the public export - raw SDF
-  masses have no morph identity, so the Morph* rename would misname
-  them.
+  "Liquid" survives as the technique name INSIDE liquid_field.dart
+  only; nothing `Liquid*` is exported. Raw SDF masses for
+  `MorphSkin.extraMasses` are `MorphMass` - ONE sealed type with const
+  redirecting factories `.box(rect, radius:)` and
+  `.bridge(a, b, radius:)`, subclasses private (2026-08-11; formerly
+  the exported LiquidShape/LiquidBox/LiquidBridge exception). The
+  "mass" wording keeps the honesty the old exception protected - a
+  mass has no morph identity, it cannot fly - while staying inside
+  the one vocabulary; skin.dart reads mass parameters through the
+  @internal `liquidMassSignature` (full parameters, exact - two
+  diagonal bridges can share an outerRect).
 - The motion profile parameter is `motion:` everywhere (never "speed" -
   a profile carries character, not just tempo). MorphController.motion /
   effectiveMotion follow suit.

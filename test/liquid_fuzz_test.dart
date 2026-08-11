@@ -45,7 +45,14 @@ void main() {
         path.getBounds(),
         reason: 'seed $seed: tracer diverged from pure liquidPath',
       );
-      final LiquidField nudged = _nudgeFirstShape(field);
+      // The nudged variant replays the same seed, so the scene is
+      // identical except the first mass shifted (MorphMass keeps its
+      // parameters private - the scene is nudged at generation, not by
+      // destructuring).
+      final LiquidField nudged = _randomField(
+        math.Random(seed),
+        nudge: const Offset(3, 2),
+      );
       expect(
         tracer.trace(nudged, cell: 4).getBounds(),
         liquidPath(nudged, cell: 4).getBounds(),
@@ -55,30 +62,29 @@ void main() {
   }
 }
 
-LiquidField _randomField(math.Random random) {
+LiquidField _randomField(math.Random random, {Offset nudge = Offset.zero}) {
   final int shapeCount = 2 + random.nextInt(5);
   final double k = 6 + random.nextDouble() * 40;
-  final List<LiquidShape> shapes = <LiquidShape>[];
+  final List<MorphMass> shapes = <MorphMass>[];
   for (int i = 0; i < shapeCount; i++) {
+    final Offset shift = i == 0 ? nudge : Offset.zero;
     if (random.nextDouble() < 0.8) {
       shapes.add(
-        LiquidBox(
-          .fromLTWH(
+        .box(
+          Rect.fromLTWH(
             random.nextDouble() * 400,
             random.nextDouble() * 300,
             30 + random.nextDouble() * 140,
             24 + random.nextDouble() * 100,
-          ),
+          ).shift(shift),
           radius: random.nextDouble() * 40,
         ),
       );
     } else {
-      final Offset a = Offset(
-        random.nextDouble() * 400,
-        random.nextDouble() * 300,
-      );
+      final Offset a =
+          Offset(random.nextDouble() * 400, random.nextDouble() * 300) + shift;
       shapes.add(
-        LiquidBridge(
+        .bridge(
           a,
           a +
               Offset(
@@ -91,22 +97,4 @@ LiquidField _randomField(math.Random random) {
     }
   }
   return LiquidField(shapes, k: k);
-}
-
-LiquidField _nudgeFirstShape(LiquidField field) {
-  final List<LiquidShape> shapes = .of(field.shapes);
-  final LiquidShape first = shapes.first;
-  shapes[0] = switch (first) {
-    LiquidBox(:final Rect rect, :final double radius) => LiquidBox(
-      rect.shift(const Offset(3, 2)),
-      radius: radius,
-    ),
-    LiquidBridge(:final Offset a, :final Offset b, :final double radius) =>
-      LiquidBridge(
-        a + const Offset(3, 2),
-        b + const Offset(3, 2),
-        radius: radius,
-      ),
-  };
-  return LiquidField(shapes, k: field.k);
 }

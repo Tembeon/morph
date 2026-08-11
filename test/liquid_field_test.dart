@@ -95,15 +95,15 @@ void main() {
 
   group('LiquidField', () {
     test('bounds expands by k + pad: headroom for the fusion bulge', () {
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 100, 60)),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 100, 60)),
       ], k: 20);
       expect(field.bounds(), const Rect.fromLTRB(-20, -20, 120, 80));
       expect(field.bounds(pad: 5), const Rect.fromLTRB(-25, -25, 125, 85));
     });
 
     test('empty field: infinity and a zero rect', () {
-      const LiquidField field = LiquidField(<LiquidShape>[]);
+      const LiquidField field = LiquidField(<MorphMass>[]);
       expect(field.eval(.zero), double.infinity);
       expect(field.bounds(), Rect.zero);
     });
@@ -112,8 +112,8 @@ void main() {
   group('liquidContours / liquidPath', () {
     test('a single box is traced by one loop close to its rect', () {
       const Rect rect = .fromLTWH(20, 20, 120, 80);
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(rect, radius: 16),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(rect, radius: 16),
       ], k: 8);
       final List<List<Offset>> loops = liquidContours(field, cell: 4);
       expect(loops, hasLength(1));
@@ -130,9 +130,9 @@ void main() {
     });
 
     test('small k: distant boxes stay separate islands', () {
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 60, 40), radius: 10),
-        LiquidBox(.fromLTWH(100, 0, 60, 40), radius: 10),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 60, 40), radius: 10),
+        .box(.fromLTWH(100, 0, 60, 40), radius: 10),
       ], k: 5);
       expect(liquidContours(field, cell: 4), hasLength(2));
     });
@@ -140,9 +140,9 @@ void main() {
     test('large k fuses the same boxes into a single loop', () {
       // Blend depth at the middle of a gap is ~k/4: closing a gap of 40
       // (20 from each side) needs k well above 80.
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 60, 40), radius: 10),
-        LiquidBox(.fromLTWH(100, 0, 60, 40), radius: 10),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 60, 40), radius: 10),
+        .box(.fromLTWH(100, 0, 60, 40), radius: 10),
       ], k: 90);
       final List<List<Offset>> loops = liquidContours(field, cell: 4);
       expect(loops, hasLength(1));
@@ -152,18 +152,18 @@ void main() {
     });
 
     test('a bridge connects the islands even at small k', () {
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 60, 40), radius: 10),
-        LiquidBox(.fromLTWH(140, 0, 60, 40), radius: 10),
-        LiquidBridge(Offset(30, 20), Offset(170, 20), radius: 8),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 60, 40), radius: 10),
+        .box(.fromLTWH(140, 0, 60, 40), radius: 10),
+        .bridge(Offset(30, 20), Offset(170, 20), radius: 8),
       ], k: 5);
       expect(liquidContours(field, cell: 4), hasLength(1));
     });
 
     test('smoothing does not inflate the contour bounds', () {
       const Rect rect = .fromLTWH(0, 0, 100, 60);
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(rect, radius: 12),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(rect, radius: 12),
       ], k: 6);
       final Rect raw = liquidPath(field, cell: 4, smoothPasses: 0).getBounds();
       final Rect smoothed = liquidPath(field, cell: 4).getBounds();

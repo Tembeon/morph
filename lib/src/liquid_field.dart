@@ -136,31 +136,38 @@ double liquidRectGap(Rect a, Rect b) {
   return math.sqrt(dx * dx + dy * dy);
 }
 
-/// A raw SDF mass poured into a skin. Sealed: [LiquidBox] and
-/// [LiquidBridge] are the whole vocabulary.
-sealed class LiquidShape {
-  const LiquidShape();
+/// A raw SDF mass poured into a skin - contentless geometry fused into
+/// the contour alongside the pieces ([MorphSkin.extraMasses]). A mass
+/// has no morph identity: it cannot fly, it only adds to the shape.
+/// Sealed: [MorphMass.box] and [MorphMass.bridge] are the whole
+/// vocabulary.
+sealed class MorphMass {
+  const MorphMass();
 
-  /// Signed distance from [p] to the shape surface (negative inside).
+  /// A rounded-box mass over [rect]. [radius] is the corner radius,
+  /// clamped to the half-extents - a large radius yields a stadium.
+  const factory MorphMass.box(Rect rect, {double radius}) = _BoxMass;
+
+  /// An explicit bridge: a capsule pipe of half-width [radius] between
+  /// [a] and [b], for fusing two distant masses when proximity fusion
+  /// is not enough.
+  const factory MorphMass.bridge(Offset a, Offset b, {required double radius}) =
+      _BridgeMass;
+
+  /// Signed distance from [p] to the mass surface (negative inside).
   double distance(Offset p);
 
-  /// The shape's own bounds, blend excluded: padding by k is added by
+  /// The mass's own bounds, blend excluded: padding by k is added by
   /// [LiquidField.bounds].
   Rect get outerRect;
 }
 
-/// A rounded-box mass (a stadium when the radius reaches the shorter
-/// half-extent).
-class LiquidBox extends LiquidShape {
-  /// Creates a rounded-box mass.
-  const LiquidBox(this.rect, {this.radius = 0})
+class _BoxMass extends MorphMass {
+  const _BoxMass(this.rect, {this.radius = 0})
     : assert(radius >= 0, 'radius cannot be negative.');
 
-  /// The box geometry.
   final Rect rect;
 
-  /// Corner radius; clamped to the half-extents, so a large radius
-  /// yields a stadium.
   final double radius;
 
   @override
@@ -170,20 +177,14 @@ class LiquidBox extends LiquidShape {
   Rect get outerRect => rect;
 }
 
-/// An explicit "bridge": a pipe between two distant shapes when
-/// proximity fusion is not enough.
-class LiquidBridge extends LiquidShape {
-  /// Creates a capsule mass between [a] and [b].
-  const LiquidBridge(this.a, this.b, {required this.radius})
+class _BridgeMass extends MorphMass {
+  const _BridgeMass(this.a, this.b, {required this.radius})
     : assert(radius > 0, 'a bridge with no radius has no mass.');
 
-  /// One capsule endpoint.
   final Offset a;
 
-  /// The other capsule endpoint.
   final Offset b;
 
-  /// Half the capsule width.
   final double radius;
 
   @override
@@ -191,6 +192,32 @@ class LiquidBridge extends LiquidShape {
 
   @override
   Rect get outerRect => Rect.fromPoints(a, b).inflate(radius);
+}
+
+/// Appends [mass]'s kind tag and full scalar parameters to [out] - the
+/// skin's input-signature plumbing. Full parameters, not the outer
+/// rect: two bridges along opposite diagonals share an outer rect and
+/// a radius yet trace different capsules.
+@internal
+void liquidMassSignature(MorphMass mass, List<double> out) {
+  switch (mass) {
+    case _BoxMass(:final Rect rect, :final double radius):
+      out
+        ..add(0)
+        ..add(rect.left)
+        ..add(rect.top)
+        ..add(rect.width)
+        ..add(rect.height)
+        ..add(radius);
+    case _BridgeMass(:final Offset a, :final Offset b, :final double radius):
+      out
+        ..add(1)
+        ..add(a.dx)
+        ..add(a.dy)
+        ..add(b.dx)
+        ..add(b.dy)
+        ..add(radius);
+  }
 }
 
 /// A group of shapes as one field: the smooth union of all [shapes] with
@@ -202,7 +229,7 @@ class LiquidField {
     : assert(k >= 0, 'k (blend) is a distance in px and cannot be negative.');
 
   /// The masses of the field.
-  final List<LiquidShape> shapes;
+  final List<MorphMass> shapes;
 
   /// Blend width in field pixels. It is a distance: when the scene is
   /// scaled, k scales along with it.
@@ -243,10 +270,10 @@ class LiquidField {
 /// during a morph) this is the difference between a silent GC hum and
 /// none at all.
 class _FieldSampler {
-  factory _FieldSampler(List<LiquidShape> shapes, double k) {
+  factory _FieldSampler(List<MorphMass> shapes, double k) {
     int boxCount = 0;
-    for (final LiquidShape shape in shapes) {
-      if (shape is LiquidBox) {
+    for (final MorphMass shape in shapes) {
+      if (shape is _BoxMass) {
         boxCount++;
       }
     }
@@ -256,9 +283,9 @@ class _FieldSampler {
     final Float64List bridges = Float64List((shapes.length - boxCount) * 6);
     int bi = 0;
     int gi = 0;
-    for (final LiquidShape shape in shapes) {
+    for (final MorphMass shape in shapes) {
       switch (shape) {
-        case LiquidBox(:final Rect rect, :final double radius):
+        case _BoxMass(:final Rect rect, :final double radius):
           final double hw = rect.width / 2;
           final double hh = rect.height / 2;
           boxes[bi++] = rect.center.dx;
@@ -266,7 +293,7 @@ class _FieldSampler {
           boxes[bi++] = hw;
           boxes[bi++] = hh;
           boxes[bi++] = math.min(radius, math.min(hw, hh));
-        case LiquidBridge(
+        case _BridgeMass(
           :final Offset a,
           :final Offset b,
           :final double radius,
@@ -403,13 +430,13 @@ List<int> liquidConnectivityLabels(List<Rect> rects, double k) {
   return labels;
 }
 
-List<List<LiquidShape>> _clusterShapes(List<LiquidShape> shapes, double k) {
+List<List<MorphMass>> _clusterShapes(List<MorphMass> shapes, double k) {
   final int n = shapes.length;
   if (n <= 1) {
-    return <List<LiquidShape>>[shapes];
+    return <List<MorphMass>>[shapes];
   }
   final List<int> cluster = liquidConnectivityLabels(<Rect>[
-    for (final LiquidShape shape in shapes) shape.outerRect,
+    for (final MorphMass shape in shapes) shape.outerRect,
   ], k);
   int clusterCount = 0;
   for (final int id in cluster) {
@@ -418,10 +445,10 @@ List<List<LiquidShape>> _clusterShapes(List<LiquidShape> shapes, double k) {
     }
   }
   if (clusterCount == 1) {
-    return <List<LiquidShape>>[shapes];
+    return <List<MorphMass>>[shapes];
   }
-  final List<List<LiquidShape>> result = <List<LiquidShape>>[
-    for (int i = 0; i < clusterCount; i++) <LiquidShape>[],
+  final List<List<MorphMass>> result = <List<MorphMass>>[
+    for (int i = 0; i < clusterCount; i++) <MorphMass>[],
   ];
   for (int i = 0; i < n; i++) {
     result[cluster[i]].add(shapes[i]);
@@ -500,7 +527,8 @@ Offset _zeroCrossing(
 /// screen-wide blob of dozens of fused pieces) coarsen their grid just
 /// enough to fit, so the worst frame cost is bounded. A deterministic
 /// function of geometry - no time, no hysteresis; the same scene always
-/// traces identically.
+/// traces identically. Surfaced publicly as `MorphSkin.defaultEvalBudget`.
+@internal
 const int liquidDefaultEvalBudget = 200000;
 
 /// Traces the zero iso-contour: closed point loops in field coordinates.
@@ -528,10 +556,7 @@ List<List<Offset>> liquidContours(
   );
   final double step = math.max(2, cell);
   final List<List<Offset>> loops = <List<Offset>>[];
-  for (final List<LiquidShape> cluster in _clusterShapes(
-    field.shapes,
-    field.k,
-  )) {
+  for (final List<MorphMass> cluster in _clusterShapes(field.shapes, field.k)) {
     loops.addAll(
       _tracedAndSmoothed(cluster, field.k, step, smoothPasses, evalBudget),
     );
@@ -540,7 +565,7 @@ List<List<Offset>> liquidContours(
 }
 
 List<List<Offset>> _tracedAndSmoothed(
-  List<LiquidShape> cluster,
+  List<MorphMass> cluster,
   double k,
   double step,
   int smoothPasses,
@@ -596,13 +621,13 @@ class LiquidTracer {
     final Path path = Path()..fillType = .evenOdd;
     final Map<int, List<_ClusterCacheEntry>> next =
         <int, List<_ClusterCacheEntry>>{};
-    final List<List<LiquidShape>> clusters = _clusterShapes(
+    final List<List<MorphMass>> clusters = _clusterShapes(
       field.shapes,
       field.k,
     );
     lastClusterCount = clusters.length;
     int misses = 0;
-    for (final List<LiquidShape> cluster in clusters) {
+    for (final List<MorphMass> cluster in clusters) {
       final Float64List signature = _clusterSignature(
         cluster,
         field.k,
@@ -668,7 +693,7 @@ class LiquidTracer {
   /// Fold order matters (chained smin is order-dependent), so the
   /// signature captures shapes in their cluster order, kind-tagged.
   static Float64List _clusterSignature(
-    List<LiquidShape> cluster,
+    List<MorphMass> cluster,
     double k,
     double cell,
     int smoothPasses,
@@ -680,16 +705,16 @@ class LiquidTracer {
     sig[i++] = cell;
     sig[i++] = smoothPasses.toDouble();
     sig[i++] = (evalBudget ?? -1).toDouble();
-    for (final LiquidShape shape in cluster) {
+    for (final MorphMass shape in cluster) {
       switch (shape) {
-        case LiquidBox(:final Rect rect, :final double radius):
+        case _BoxMass(:final Rect rect, :final double radius):
           sig[i++] = 0;
           sig[i++] = rect.left;
           sig[i++] = rect.top;
           sig[i++] = rect.width;
           sig[i++] = rect.height;
           sig[i++] = radius;
-        case LiquidBridge(
+        case _BridgeMass(
           :final Offset a,
           :final Offset b,
           :final double radius,
@@ -723,7 +748,7 @@ class _ClusterTrace {
 }
 
 _ClusterTrace _traceCluster(
-  List<LiquidShape> shapes,
+  List<MorphMass> shapes,
   double k,
   double baseStep,
   int? evalBudget,

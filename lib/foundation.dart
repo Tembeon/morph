@@ -45,11 +45,8 @@
 /// {@canonicalFor gesture.morphDragScrimFactor}
 /// {@canonicalFor gesture.morphProjectValue}
 /// {@canonicalFor gesture.morphRubberband}
-/// {@canonicalFor liquid_field.LiquidBox}
-/// {@canonicalFor liquid_field.LiquidBridge}
-/// {@canonicalFor liquid_field.LiquidShape}
+/// {@canonicalFor liquid_field.MorphMass}
 /// {@canonicalFor liquid_field.MorphSkinStyle}
-/// {@canonicalFor liquid_field.liquidDefaultEvalBudget}
 /// {@canonicalFor motion.MorphMotion}
 /// {@canonicalFor reveal.MorphReveal}
 /// {@canonicalFor route.MorphPageRoute}
@@ -92,13 +89,7 @@ export 'src/frame.dart'
         uniformMorphRadius;
 export 'src/gesture.dart';
 export 'src/skin.dart' show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin;
-export 'src/liquid_field.dart'
-    show
-        LiquidBox,
-        LiquidBridge,
-        LiquidShape,
-        MorphSkinStyle,
-        liquidDefaultEvalBudget;
+export 'src/liquid_field.dart' show MorphMass, MorphSkinStyle;
 export 'src/reveal.dart';
 export 'src/route.dart' show MorphPageRoute, showMorphRoute;
 export 'src/shared.dart' show MorphSharedElement, MorphSharedFade;

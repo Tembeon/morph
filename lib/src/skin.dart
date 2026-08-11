@@ -218,12 +218,12 @@ class MorphSkin extends StatelessWidget {
     super.key,
     required this.pieces,
     this.links = const <MorphLink>[],
-    this.extraShapes = const <LiquidShape>[],
+    this.extraMasses = const <MorphMass>[],
     this.style,
     this.blend,
     this.cell,
     this.smoothPasses,
-    this.evalBudget = liquidDefaultEvalBudget,
+    this.evalBudget = defaultEvalBudget,
     required this.color,
     this.gradient,
     this.elevation = 0,
@@ -254,9 +254,9 @@ class MorphSkin extends StatelessWidget {
   /// Explicit bridges between distant pieces.
   final List<MorphLink> links;
 
-  /// Extra contentless mass: raw SDF shapes poured into the skin
+  /// Extra contentless mass: raw SDF masses poured into the skin
   /// alongside the pieces.
-  final List<LiquidShape> extraShapes;
+  final List<MorphMass> extraMasses;
 
   /// A ready-made knob bundle; explicit [blend]/[cell]/[smoothPasses]
   /// win over it. null falls back to [MorphTheme.skinStyle], then to
@@ -274,11 +274,17 @@ class MorphSkin extends StatelessWidget {
   /// Chaikin smoothing passes over the traced contour.
   final int? smoothPasses;
 
-  /// Cap on field evaluations per cluster per trace (see
-  /// [liquidDefaultEvalBudget]): extreme scenes coarsen their grid so
-  /// the worst frame stays bounded - quality degrades before the frame
+  /// Cap on field evaluations per cluster per trace (default
+  /// [defaultEvalBudget]): extreme scenes coarsen their grid so the
+  /// worst frame stays bounded - quality degrades before the frame
   /// rate does. null disables the cap.
   final int? evalBudget;
+
+  /// The default [evalBudget]: the cap on field evaluations (grid
+  /// vertices x shapes) per cluster per trace. A deterministic
+  /// function of geometry - no time, no hysteresis; the same scene
+  /// always traces identically.
+  static const int defaultEvalBudget = liquidDefaultEvalBudget;
 
   /// Fill color of the skin; also the surface color that shuttles of
   /// morphable pieces take off from.
@@ -309,7 +315,7 @@ class MorphSkin extends StatelessWidget {
     return _RawMorphSkin(
       pieces: pieces,
       links: links,
-      extraShapes: extraShapes,
+      extraMasses: extraMasses,
       k: blend ?? effectiveStyle?.blend ?? 24,
       cell: cell ?? effectiveStyle?.cell ?? 6,
       smoothPasses: smoothPasses ?? effectiveStyle?.smoothPasses ?? 2,
@@ -354,7 +360,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
   const _RawMorphSkin({
     required this.pieces,
     required this.links,
-    required this.extraShapes,
+    required this.extraMasses,
     required this.k,
     required this.cell,
     required this.smoothPasses,
@@ -370,7 +376,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
 
   final List<MorphPiece> pieces;
   final List<MorphLink> links;
-  final List<LiquidShape> extraShapes;
+  final List<MorphMass> extraMasses;
   final double k;
   final double cell;
   final int smoothPasses;
@@ -387,7 +393,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
     return RenderMorphSkin(
       pieces: pieces,
       links: links,
-      extraShapes: extraShapes,
+      extraMasses: extraMasses,
       k: k,
       cell: cell,
       smoothPasses: smoothPasses,
@@ -406,7 +412,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
     renderObject
       ..pieces = pieces
       ..links = links
-      ..extraShapes = extraShapes
+      ..extraMasses = extraMasses
       ..k = k
       ..cell = cell
       ..smoothPasses = smoothPasses
@@ -453,7 +459,7 @@ class RenderMorphSkin extends RenderBox
   RenderMorphSkin({
     required this._pieces,
     required this._links,
-    required this._extraShapes,
+    required this._extraMasses,
     required this._k,
     required this._cell,
     required this._smoothPasses,
@@ -560,12 +566,12 @@ class RenderMorphSkin extends RenderBox
     }
   }
 
-  List<LiquidShape> _extraShapes;
+  List<MorphMass> _extraMasses;
 
   /// The live extra mass shapes; changes re-trace the skin.
-  List<LiquidShape> get extraShapes => _extraShapes;
-  set extraShapes(List<LiquidShape> value) {
-    _extraShapes = value;
+  List<MorphMass> get extraMasses => _extraMasses;
+  set extraMasses(List<MorphMass> value) {
+    _extraMasses = value;
     markNeedsPaint();
   }
 
@@ -856,7 +862,7 @@ class RenderMorphSkin extends RenderBox
                         _defaultBridgeWidth(effective[from], effective[to])) /
                     2
                 case final double radius when radius > 0)
-              LiquidBridge(
+              MorphMass.bridge(
                 effective[from].center,
                 effective[to].center,
                 radius: radius,
@@ -948,8 +954,8 @@ class RenderMorphSkin extends RenderBox
   /// goo onto it. Perf gate: when the gap to every fellow piece exceeds
   /// k, the neck provably cannot exist and the blob is not poured in (a
   /// pure function of geometry, not of time).
-  List<LiquidShape> _flightBlobs(List<_ResolvedPiece> resolved) {
-    final List<LiquidShape> blobs = <LiquidShape>[];
+  List<MorphMass> _flightBlobs(List<_ResolvedPiece> resolved) {
+    final List<MorphMass> blobs = <MorphMass>[];
     lastFlightBlobRects = const <Rect>[];
     Offset? origin;
     for (final _ResolvedPiece r in resolved) {
@@ -998,12 +1004,12 @@ class RenderMorphSkin extends RenderBox
             liquidRectGap(flying, other.rect) <= _k,
       );
       if (nearFellow) {
-        blobs.add(LiquidBox(flying, radius: radius));
+        blobs.add(.box(flying, radius: radius));
       }
     }
     if (blobs.isNotEmpty) {
       lastFlightBlobRects = <Rect>[
-        for (final LiquidShape blob in blobs) blob.outerRect,
+        for (final MorphMass blob in blobs) blob.outerRect,
       ];
     }
     return blobs;
@@ -1011,7 +1017,7 @@ class RenderMorphSkin extends RenderBox
 
   List<double> _computeSignature(
     List<_ResolvedPiece> resolved,
-    List<LiquidShape> blobs,
+    List<MorphMass> blobs,
   ) {
     final List<double> sig = <double>[
       _k,
@@ -1029,37 +1035,20 @@ class RenderMorphSkin extends RenderBox
         ..add(r.piece.radius)
         ..add(r.solid ? 1 : 0);
     }
-    for (final LiquidShape shape in <LiquidShape>[..._extraShapes, ...blobs]) {
-      final Rect r = shape.outerRect;
-      sig
-        ..add(r.left)
-        ..add(r.top)
-        ..add(r.width)
-        ..add(r.height);
-      // The kind tags the entry: a box and a bridge can share an
-      // outerRect and radius yet trace different contours.
-      switch (shape) {
-        case LiquidBox(:final double radius):
-          sig
-            ..add(0)
-            ..add(radius);
-        case LiquidBridge(:final double radius):
-          sig
-            ..add(1)
-            ..add(radius);
-      }
+    for (final MorphMass mass in <MorphMass>[..._extraMasses, ...blobs]) {
+      liquidMassSignature(mass, sig);
     }
     return sig;
   }
 
-  Path _rebuildPath(List<_ResolvedPiece> resolved, List<LiquidShape> blobs) {
+  Path _rebuildPath(List<_ResolvedPiece> resolved, List<MorphMass> blobs) {
     final Map<Object, _ResolvedPiece> byId = <Object, _ResolvedPiece>{
       for (final _ResolvedPiece r in resolved)
         if (r.solid) r.piece.id: r,
     };
-    final List<LiquidShape> shapes = <LiquidShape>[
+    final List<MorphMass> shapes = <MorphMass>[
       for (final _ResolvedPiece r in resolved)
-        if (r.solid) LiquidBox(r.rect, radius: r.piece.radius),
+        if (r.solid) .box(r.rect, radius: r.piece.radius),
       // Bridges of non-solid (including flown-away) pieces detach on
       // their own: they are absent from byId - a pipe stretched to the
       // flight target would be an artifact. A pipe into a deflated
@@ -1070,8 +1059,8 @@ class RenderMorphSkin extends RenderBox
           if (byId[link.to] case final _ResolvedPiece to?)
             if ((link.width ?? _defaultBridgeWidth(from.rect, to.rect)) / 2
                 case final double radius when radius > 0)
-              LiquidBridge(from.rect.center, to.rect.center, radius: radius),
-      ..._extraShapes,
+              .bridge(from.rect.center, to.rect.center, radius: radius),
+      ..._extraMasses,
       ...blobs,
     ];
     return _tracer.trace(
@@ -1129,7 +1118,7 @@ class RenderMorphSkin extends RenderBox
 
   void _paintSkinAndChildren(PaintingContext context, Offset offset) {
     final List<_ResolvedPiece> resolved = _resolvePieces();
-    final List<LiquidShape> blobs = _flightBlobs(resolved);
+    final List<MorphMass> blobs = _flightBlobs(resolved);
     lastFlightBlobCount = blobs.length;
     final List<double> signature = _computeSignature(resolved, blobs);
     if (!_signaturesMatch(signature)) {

@@ -34,16 +34,13 @@ void main() {
   });
 
   test('liquid knobs reject nonsense distances', () {
+    expect(() => LiquidField(const <MorphMass>[], k: -1), throwsAssertionError);
     expect(
-      () => LiquidField(const <LiquidShape>[], k: -1),
+      () => MorphMass.box(const Rect.fromLTWH(0, 0, 10, 10), radius: -1),
       throwsAssertionError,
     );
     expect(
-      () => LiquidBox(const Rect.fromLTWH(0, 0, 10, 10), radius: -1),
-      throwsAssertionError,
-    );
-    expect(
-      () => LiquidBridge(Offset.zero, const Offset(10, 0), radius: 0),
+      () => MorphMass.bridge(Offset.zero, const Offset(10, 0), radius: 0),
       throwsAssertionError,
     );
   });

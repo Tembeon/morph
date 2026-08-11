@@ -54,44 +54,44 @@ double loopArea(List<Offset> loop) {
 void main() {
   group('contour/field sign consistency', () {
     test('fused pair (goo k)', () {
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 120, 70), radius: 16),
-        LiquidBox(.fromLTWH(136, 20, 90, 50), radius: 20),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 120, 70), radius: 16),
+        .box(.fromLTWH(136, 20, 90, 50), radius: 20),
       ], k: 40);
       expectContourMatchesField(field);
     });
 
     test('separate islands (gap > k)', () {
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 100, 60), radius: 12),
-        LiquidBox(.fromLTWH(180, 10, 80, 40), radius: 10),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 100, 60), radius: 12),
+        .box(.fromLTWH(180, 10, 80, 40), radius: 10),
       ], k: 20);
       expect(liquidContours(field, cell: 4), hasLength(2));
       expectContourMatchesField(field);
     });
 
     test('chain of three with mixed gaps', () {
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 90, 50), radius: 12),
-        LiquidBox(.fromLTWH(100, 6, 90, 50), radius: 12),
-        LiquidBox(.fromLTWH(320, 0, 90, 50), radius: 12),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 90, 50), radius: 12),
+        .box(.fromLTWH(100, 6, 90, 50), radius: 12),
+        .box(.fromLTWH(320, 0, 90, 50), radius: 12),
       ], k: 26);
       expectContourMatchesField(field);
     });
 
     test('distant pair connected by a bridge', () {
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 80, 50), radius: 10),
-        LiquidBox(.fromLTWH(220, 0, 80, 50), radius: 10),
-        LiquidBridge(Offset(40, 25), Offset(260, 25), radius: 9),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 80, 50), radius: 10),
+        .box(.fromLTWH(220, 0, 80, 50), radius: 10),
+        .bridge(Offset(40, 25), Offset(260, 25), radius: 9),
       ], k: 8);
       expect(liquidContours(field, cell: 4), hasLength(1));
       expectContourMatchesField(field);
     });
 
     test('stadium via radius clamp', () {
-      const LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromLTWH(0, 0, 140, 48), radius: 500),
+      const LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 140, 48), radius: 500),
       ], k: 12);
       expectContourMatchesField(field);
     });
@@ -105,13 +105,13 @@ void main() {
       const Offset a = Offset(20, 20);
       const Offset b = Offset(220, 20);
       const Offset c = Offset(120, 180);
-      final LiquidField field = LiquidField(<LiquidShape>[
-        LiquidBox(.fromCenter(center: a, width: 44, height: 44), radius: 14),
-        LiquidBox(.fromCenter(center: b, width: 44, height: 44), radius: 14),
-        LiquidBox(.fromCenter(center: c, width: 44, height: 44), radius: 14),
-        const LiquidBridge(a, b, radius: 10),
-        const LiquidBridge(b, c, radius: 10),
-        const LiquidBridge(a, c, radius: 10),
+      final LiquidField field = LiquidField(<MorphMass>[
+        .box(.fromCenter(center: a, width: 44, height: 44), radius: 14),
+        .box(.fromCenter(center: b, width: 44, height: 44), radius: 14),
+        .box(.fromCenter(center: c, width: 44, height: 44), radius: 14),
+        const MorphMass.bridge(a, b, radius: 10),
+        const MorphMass.bridge(b, c, radius: 10),
+        const MorphMass.bridge(a, c, radius: 10),
       ], k: 10);
 
       final Offset centroid = Offset(
@@ -147,8 +147,8 @@ void main() {
         for (int i = 0; i < 40; i++)
           .fromLTWH((i % 8) * 110.0, (i ~/ 8) * 110.0, 100, 100),
       ];
-      final LiquidField field = LiquidField(<LiquidShape>[
-        for (final Rect rect in rects) LiquidBox(rect, radius: 16),
+      final LiquidField field = LiquidField(<MorphMass>[
+        for (final Rect rect in rects) .box(rect, radius: 16),
       ], k: 20);
       const int budget = 30000;
       // The overshoot factor here coarsens the grid ~6x; deep interiors
@@ -167,9 +167,9 @@ void main() {
     });
 
     test('budgeted tracing is deterministic', () {
-      final LiquidField field = LiquidField(<LiquidShape>[
+      final LiquidField field = LiquidField(<MorphMass>[
         for (int i = 0; i < 24; i++)
-          LiquidBox(
+          .box(
             .fromLTWH((i % 6) * 120.0, (i ~/ 6) * 120.0, 100, 80),
             radius: 14,
           ),
@@ -181,12 +181,12 @@ void main() {
   });
 
   group('LiquidTracer (per-cluster cache)', () {
-    List<LiquidShape> scene({double movedX = 0}) {
-      return <LiquidShape>[
-        LiquidBox(.fromLTWH(0 + movedX, 0, 100, 60), radius: 12),
-        const LiquidBox(.fromLTWH(90, 20, 80, 50), radius: 12),
-        const LiquidBox(.fromLTWH(400, 0, 100, 60), radius: 14),
-        const LiquidBox(.fromLTWH(0, 300, 90, 55), radius: 10),
+    List<MorphMass> scene({double movedX = 0}) {
+      return <MorphMass>[
+        .box(.fromLTWH(0 + movedX, 0, 100, 60), radius: 12),
+        const MorphMass.box(.fromLTWH(90, 20, 80, 50), radius: 12),
+        const MorphMass.box(.fromLTWH(400, 0, 100, 60), radius: 14),
+        const MorphMass.box(.fromLTWH(0, 300, 90, 55), radius: 10),
       ];
     }
 
@@ -234,12 +234,12 @@ void main() {
       const Rect left = .fromLTWH(0, 0, 100, 60);
       const Rect right = .fromLTWH(118, 0, 100, 60);
 
-      const LiquidField pair = LiquidField(<LiquidShape>[
-        LiquidBox(left, radius: 12),
-        LiquidBox(right, radius: 12),
+      const LiquidField pair = LiquidField(<MorphMass>[
+        .box(left, radius: 12),
+        .box(right, radius: 12),
       ], k: k);
-      const LiquidField solo = LiquidField(<LiquidShape>[
-        LiquidBox(left, radius: 12),
+      const LiquidField solo = LiquidField(<MorphMass>[
+        .box(left, radius: 12),
       ], k: k);
 
       final List<List<Offset>> loops = liquidContours(pair, cell: 3);
@@ -273,12 +273,12 @@ void main() {
       const Rect left = .fromLTWH(0, 0, 100, 60);
       const Rect right = .fromLTWH(140 + 20, 0, 100, 60);
 
-      const LiquidField pair = LiquidField(<LiquidShape>[
-        LiquidBox(left, radius: 12),
-        LiquidBox(right, radius: 12),
+      const LiquidField pair = LiquidField(<MorphMass>[
+        .box(left, radius: 12),
+        .box(right, radius: 12),
       ], k: k);
-      const LiquidField solo = LiquidField(<LiquidShape>[
-        LiquidBox(left, radius: 12),
+      const LiquidField solo = LiquidField(<MorphMass>[
+        .box(left, radius: 12),
       ], k: k);
 
       final List<List<Offset>> loops = liquidContours(pair, cell: 4);
