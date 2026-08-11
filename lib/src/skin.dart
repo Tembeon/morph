@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 
@@ -473,7 +475,7 @@ class RenderMorphSkin extends RenderBox
   });
 
   final LiquidTracer _tracer = LiquidTracer();
-  List<double>? _signature;
+  Float64List? _signature;
   Path _path = Path();
 
   final Map<MorphFlight, VoidCallback> _flightSubs =
@@ -1015,28 +1017,34 @@ class RenderMorphSkin extends RenderBox
     return blobs;
   }
 
-  List<double> _computeSignature(
+  Float64List _computeSignature(
     List<_ResolvedPiece> resolved,
     List<MorphMass> blobs,
   ) {
-    final List<double> sig = <double>[
-      _k,
-      _cell,
-      _smoothPasses.toDouble(),
-      (_evalBudget ?? -1).toDouble(),
-      _linksEpoch.toDouble(),
-    ];
+    final Float64List sig = Float64List(
+      5 +
+          resolved.length * 6 +
+          (_extraMasses.length + blobs.length) * liquidMassSignatureStride,
+    );
+    int i = 0;
+    sig[i++] = _k;
+    sig[i++] = _cell;
+    sig[i++] = _smoothPasses.toDouble();
+    sig[i++] = (_evalBudget ?? -1).toDouble();
+    sig[i++] = _linksEpoch.toDouble();
     for (final _ResolvedPiece r in resolved) {
-      sig
-        ..add(r.rect.left)
-        ..add(r.rect.top)
-        ..add(r.rect.width)
-        ..add(r.rect.height)
-        ..add(r.piece.radius)
-        ..add(r.solid ? 1 : 0);
+      sig[i++] = r.rect.left;
+      sig[i++] = r.rect.top;
+      sig[i++] = r.rect.width;
+      sig[i++] = r.rect.height;
+      sig[i++] = r.piece.radius;
+      sig[i++] = r.solid ? 1 : 0;
     }
-    for (final MorphMass mass in <MorphMass>[..._extraMasses, ...blobs]) {
-      liquidMassSignature(mass, sig);
+    for (final MorphMass mass in _extraMasses) {
+      i = liquidMassSignature(mass, sig, i);
+    }
+    for (final MorphMass mass in blobs) {
+      i = liquidMassSignature(mass, sig, i);
     }
     return sig;
   }
@@ -1120,7 +1128,7 @@ class RenderMorphSkin extends RenderBox
     final List<_ResolvedPiece> resolved = _resolvePieces();
     final List<MorphMass> blobs = _flightBlobs(resolved);
     lastFlightBlobCount = blobs.length;
-    final List<double> signature = _computeSignature(resolved, blobs);
+    final Float64List signature = _computeSignature(resolved, blobs);
     if (!_signaturesMatch(signature)) {
       _signature = signature;
       _path = _rebuildPath(resolved, blobs);
@@ -1167,8 +1175,8 @@ class RenderMorphSkin extends RenderBox
     }
   }
 
-  bool _signaturesMatch(List<double> signature) {
-    final List<double>? previous = _signature;
+  bool _signaturesMatch(Float64List signature) {
+    final Float64List? previous = _signature;
     if (previous == null || previous.length != signature.length) {
       return false;
     }

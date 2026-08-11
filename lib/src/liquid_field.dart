@@ -194,30 +194,37 @@ class _BridgeMass extends MorphMass {
   Rect get outerRect => Rect.fromPoints(a, b).inflate(radius);
 }
 
-/// Appends [mass]'s kind tag and full scalar parameters to [out] - the
-/// skin's input-signature plumbing. Full parameters, not the outer
-/// rect: two bridges along opposite diagonals share an outer rect and
-/// a radius yet trace different capsules.
+/// Doubles per mass in the canonical flat encoding
+/// ([liquidMassSignature]): the kind tag plus five scalar parameters.
 @internal
-void liquidMassSignature(MorphMass mass, List<double> out) {
+const int liquidMassSignatureStride = 6;
+
+/// Writes [mass]'s canonical flat encoding into [out] at [i] and
+/// returns the index past it ([liquidMassSignatureStride] doubles).
+/// The ONE flattening of a mass into numbers: the tracer's cluster
+/// keys and the skin's input signature both write through here. Full
+/// parameters, not the outer rect: two bridges along opposite
+/// diagonals share an outer rect and a radius yet trace different
+/// capsules.
+@internal
+int liquidMassSignature(MorphMass mass, Float64List out, int i) {
   switch (mass) {
     case _BoxMass(:final Rect rect, :final double radius):
-      out
-        ..add(0)
-        ..add(rect.left)
-        ..add(rect.top)
-        ..add(rect.width)
-        ..add(rect.height)
-        ..add(radius);
+      out[i] = 0;
+      out[i + 1] = rect.left;
+      out[i + 2] = rect.top;
+      out[i + 3] = rect.width;
+      out[i + 4] = rect.height;
+      out[i + 5] = radius;
     case _BridgeMass(:final Offset a, :final Offset b, :final double radius):
-      out
-        ..add(1)
-        ..add(a.dx)
-        ..add(a.dy)
-        ..add(b.dx)
-        ..add(b.dy)
-        ..add(radius);
+      out[i] = 1;
+      out[i + 1] = a.dx;
+      out[i + 2] = a.dy;
+      out[i + 3] = b.dx;
+      out[i + 4] = b.dy;
+      out[i + 5] = radius;
   }
+  return i + liquidMassSignatureStride;
 }
 
 /// A group of shapes as one field: the smooth union of all [shapes] with
@@ -699,33 +706,16 @@ class LiquidTracer {
     int smoothPasses,
     int? evalBudget,
   ) {
-    final Float64List sig = Float64List(4 + cluster.length * 6);
+    final Float64List sig = Float64List(
+      4 + cluster.length * liquidMassSignatureStride,
+    );
     int i = 0;
     sig[i++] = k;
     sig[i++] = cell;
     sig[i++] = smoothPasses.toDouble();
     sig[i++] = (evalBudget ?? -1).toDouble();
     for (final MorphMass shape in cluster) {
-      switch (shape) {
-        case _BoxMass(:final Rect rect, :final double radius):
-          sig[i++] = 0;
-          sig[i++] = rect.left;
-          sig[i++] = rect.top;
-          sig[i++] = rect.width;
-          sig[i++] = rect.height;
-          sig[i++] = radius;
-        case _BridgeMass(
-          :final Offset a,
-          :final Offset b,
-          :final double radius,
-        ):
-          sig[i++] = 1;
-          sig[i++] = a.dx;
-          sig[i++] = a.dy;
-          sig[i++] = b.dx;
-          sig[i++] = b.dy;
-          sig[i++] = radius;
-      }
+      i = liquidMassSignature(shape, sig, i);
     }
     return sig;
   }

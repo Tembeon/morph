@@ -471,9 +471,14 @@ Hard-won rules already enforced in the core:
   the exported LiquidShape/LiquidBox/LiquidBridge exception). The
   "mass" wording keeps the honesty the old exception protected - a
   mass has no morph identity, it cannot fly - while staying inside
-  the one vocabulary; skin.dart reads mass parameters through the
-  @internal `liquidMassSignature` (full parameters, exact - two
-  diagonal bridges can share an outerRect).
+  the one vocabulary. The flat "kind + 5 params" record (stride
+  `liquidMassSignatureStride`) is the CANONICAL mass flattening:
+  @internal `liquidMassSignature` is its one implementation, written
+  into both the tracer's cluster keys and the skin's input signature
+  (a preallocated Float64List; exact - full parameters, because two
+  diagonal bridges can share an outerRect yet trace differently). The
+  only remaining kind-switch outside it is the field sampler, which
+  exists precisely to keep per-vertex math free of dispatch.
 - The motion profile parameter is `motion:` everywhere (never "speed" -
   a profile carries character, not just tempo). MorphController.motion /
   effectiveMotion follow suit.
