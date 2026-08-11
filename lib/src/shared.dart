@@ -126,13 +126,18 @@ class MorphSharedElementState extends State<MorphSharedElement> {
     }
     // Inside the shuttle: the original hides while the flying layer
     // owns the element, and hands back at the ends (opacity keeps the
-    // layout slot).
+    // layout slot). The hide predicate is canFly - the SAME condition
+    // under which the flying layer can render - not hasPair: the pair
+    // forms during the shuttle's first build, but the flying layer
+    // cannot measure until that frame's layout has run, so a marker
+    // hiding on registration alone leaves the element visible NOWHERE
+    // for one frame - a blink on every launch.
     return ListenableBuilder(
       listenable: side.flight.controller,
       child: widget.child,
       builder: (BuildContext context, Widget? child) {
         final bool flying =
-            side.flight.sharedElements.hasPair(widget.id) &&
+            side.flight.sharedElements.canFly(widget.id) &&
             (side.flight.controller.isAnimating ||
                 side.flight.controller.isScrubbing);
         return Opacity(opacity: flying ? 0 : 1, child: child);
@@ -151,6 +156,21 @@ class SharedElementRegistry {
 
   /// Whether both sides of [id] are registered.
   bool hasPair(Object id) => _source.containsKey(id) && _target.containsKey(id);
+
+  final Set<Object> _measured = <Object>{};
+
+  /// Whether [id] rendered as a flying layer in the last shuttle
+  /// build - the marker-hide predicate. Recorded by
+  /// [buildSharedFlightLayers] as it measures (the markers sit deeper
+  /// in the same build pass, so they read the same frame's verdict);
+  /// deliberately NOT computed from the marker elements - the markers
+  /// must never touch render objects themselves, because during the
+  /// route-mode reparent their subtree is briefly inactive. Hiding on
+  /// [hasPair] alone left the element visible NOWHERE on the
+  /// shuttle's first frame (the pair registers during that build, but
+  /// nothing is measurable until its layout has run) - a blink on
+  /// every launch.
+  bool canFly(Object id) => _measured.contains(id);
 
   /// Ids registered on both sides, in target-registration order.
   Iterable<Object> get pairedIds =>
@@ -225,6 +245,11 @@ List<Widget> buildSharedFlightLayers({
   required Rect targetRect,
   required MorphSurfaceSpec targetSpec,
 }) {
+  // The measured set mirrors THIS build exactly: an id is in it iff a
+  // flying layer for it is in the returned list - the markers hide by
+  // that set ([SharedElementRegistry.canFly]), so the element is
+  // always visible in exactly one place.
+  flight.sharedElements._measured.clear();
   if (!(flight.controller.isAnimating || flight.controller.isScrubbing)) {
     return const <Widget>[];
   }
@@ -250,6 +275,7 @@ List<Widget> buildSharedFlightLayers({
     if (sourceLocal == null || targetLocal == null) {
       continue;
     }
+    flight.sharedElements._measured.add(id);
     final Rect sourceOverlay = sourceLocal.shift(sourceRect.topLeft);
     final Rect targetOverlay = targetLocal.shift(targetRect.topLeft);
     final Rect flying = Rect.lerp(

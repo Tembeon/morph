@@ -202,6 +202,64 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('the launch never leaves the element visible nowhere', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host());
+    await tester.tap(find.text('mini'));
+
+    // Frame by frame through the launch window: at EVERY frame the
+    // element must be visible somewhere - as a live marker (the first
+    // shuttle frame: the pair registers during its build but cannot
+    // measure until its layout, so the ghost marker must stay
+    // visible) or as the flying layer (every frame after). Markers
+    // hiding on registration alone left the element nowhere for one
+    // frame - a blink on every launch.
+    for (int f = 0; f < 4; f++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      double best = 0;
+      for (final Element e in find.text('art').evaluate()) {
+        double opacity = 1;
+        e.visitAncestorElements((Element ancestor) {
+          final Widget w = ancestor.widget;
+          if (w is Opacity) {
+            opacity *= w.opacity;
+          }
+          if (w is FadeTransition) {
+            opacity *= w.opacity.value;
+          }
+          return true;
+        });
+        if (opacity > best) {
+          best = opacity;
+        }
+      }
+      expect(
+        best,
+        greaterThan(0.9),
+        reason: 'frame $f: the shared element vanished from every copy',
+      );
+    }
+    // And the handoff is real: by now the flying layer owns the
+    // element.
+    expect(
+      find.byKey(const ValueKey<String>('morph-shared-fly-cover')),
+      findsOneWidget,
+    );
+
+    for (int i = 0; i < 600; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('an unpaired id degrades to plain rendering', (
     WidgetTester tester,
   ) async {

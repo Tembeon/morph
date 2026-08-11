@@ -334,7 +334,17 @@ Flutter-style split, two entrypoints:
   nearly-home container float on a borrowed dialog shadow (visible at
   glacial); pinned by morph_frame_test's continuity check.
   Registry lives on the flight; sides register via SharedSideScope
-  (internal). Degradations: an unpaired id renders in place;
+  (internal). Markers hide by the registry's canFly - the set of ids
+  the fly-layer builder ACTUALLY measured this shuttle build - not by
+  hasPair: the pair registers during the shuttle's first build but
+  nothing is measurable until its layout runs, so hasPair-hiding left
+  the element visible NOWHERE for one frame (a blink on every launch;
+  found by eye on the tour's album covers, pinned by
+  morph_shared_element_test's launch-continuity test). The verdict is
+  recorded BY the fly-layer builder and read by the deeper markers in
+  the same build pass; markers must never touch render objects
+  themselves - during the route-mode reparent their subtree is
+  briefly inactive and findRenderObject asserts. Degradations: an unpaired id renders in place;
   snapshotGhost has no live source markers so pairs do not form; marker
   children must not carry GlobalKeys. The shuttle republishes the
   SOURCE tag's surface spec around the replica, so specOf-rendered
@@ -693,7 +703,7 @@ cd example && flutter run -d macos --dart-define=MORPH_AUTODEMO=true
 Every step must be green after each change (analyze from the package
 root also covers example). Animations are judged by eye only by a human
 (the glacial profile is the magnifier mode); agent self-verification is
-the tests (216 in the package + 33 in example) plus the autodemo with no
+the tests (217 in the package + 33 in example) plus the autodemo with no
 EXCEPTION in the log (autodemo: opens the Playground chapter AS a
 morph route - exercising the card flight and the second latch - then a
 dialog flight from a piece -> interruption torture -> 4 keyframe
