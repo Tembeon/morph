@@ -353,7 +353,16 @@ Flutter-style split, two entrypoints:
   semantic route (scopesRoute, and namesRoute when `semanticLabel` is
   passed to showMorph* - screen readers announce the opening); a
   FocusScope + FocusTraversalGroup trap Tab traversal inside the open
-  overlay; Esc and focus restore were already there.
+  overlay; Esc and focus restore were already there. The source ghost
+  is ExcludeFocus'd: the live replica stays mounted INSIDE the trap
+  for the whole flight (shared markers must keep measuring), and
+  before the exclusion Tab reached the invisible copy and Enter fired
+  its onTap (pinned by morph_focus_test). An explicit FocusNode in the
+  tag child still ATTACHES to the replica mid-flight (the copy shares
+  the widget config; undetectable, GlobalKey's benign cousin - GK
+  crashes, so it is asserted; this one only lies about node.context
+  transiently) - but focus cannot enter and requestFocus is a no-op
+  while airborne.
 - **Layer-1 API (typical cases without ceremony)**:
   `MorphPiece.morphable(...)` - an auto-MorphTag (piece id, shape from
   its radius, skin color/elevation, tag bump zeroed - the skin plays the
@@ -673,7 +682,7 @@ cd example && flutter run -d macos --dart-define=MORPH_AUTODEMO=true
 Every step must be green after each change (analyze from the package
 root also covers example). Animations are judged by eye only by a human
 (the glacial profile is the magnifier mode); agent self-verification is
-the tests (214 in the package + 30 in example) plus the autodemo with no
+the tests (216 in the package + 30 in example) plus the autodemo with no
 EXCEPTION in the log (autodemo: opens the Playground chapter AS a
 morph route - exercising the card flight and the second latch - then a
 dialog flight from a piece -> interruption torture -> 4 keyframe

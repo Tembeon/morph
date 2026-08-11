@@ -307,6 +307,14 @@ class MorphTag extends StatefulWidget {
   final Object id;
 
   /// The tagged widget; replicated in the shuttle during flight.
+  ///
+  /// The replica is pixels-only: it takes no pointer and no focus. An
+  /// explicit [FocusNode] inside the child is nevertheless attached to
+  /// the replica for the duration of the flight (the copy shares this
+  /// widget configuration), so the node may transiently report the
+  /// shuttle as its context; focus itself cannot enter the replica,
+  /// and requestFocus on such a node is ignored while the flight is
+  /// up.
   final Widget child;
 
   /// The surface model declared as one value; when set it wins over

@@ -725,30 +725,40 @@ class _SourceGhost extends StatelessWidget {
           maxHeight: flight.sourceRect.height,
           child: KeyedSubtree(
             key: anchorKey,
+            // The ghost is a pixels-only copy: pointer is ignored and
+            // focus is excluded SYMMETRICALLY. The live replica shares
+            // the source widget config, and it stays mounted inside
+            // the overlay's own Tab trap for the whole flight -
+            // without the exclusion Tab reaches the invisible copy and
+            // Enter fires its onTap (and an explicit source FocusNode,
+            // attached to the replica for the duration, would let
+            // requestFocus pull focus into the shuttle).
             child: IgnorePointer(
-              child: Opacity(
-                opacity: opacity,
-                child: flight.sourceSnapshot != null
-                    ? RawImage(
-                        image: flight.sourceSnapshot,
-                        width: flight.sourceRect.width,
-                        height: flight.sourceRect.height,
-                        fit: .fill,
-                      )
-                    : MorphSurfaceSpecScope(
-                        // One mass - one shadow: the container casts THE
-                        // shadow, so the spec the replica renders from
-                        // carries no elevation - a spec-driven button
-                        // must not cast a second shadow inside the
-                        // shuttle.
-                        spec: flight.tag.surfaceSpec.copyWith(elevation: 0),
-                        child: SharedSideScope(
-                          flight: flight,
-                          isTarget: false,
-                          anchorKey: anchorKey,
-                          child: flight.tag.replica,
+              child: ExcludeFocus(
+                child: Opacity(
+                  opacity: opacity,
+                  child: flight.sourceSnapshot != null
+                      ? RawImage(
+                          image: flight.sourceSnapshot,
+                          width: flight.sourceRect.width,
+                          height: flight.sourceRect.height,
+                          fit: .fill,
+                        )
+                      : MorphSurfaceSpecScope(
+                          // One mass - one shadow: the container casts THE
+                          // shadow, so the spec the replica renders from
+                          // carries no elevation - a spec-driven button
+                          // must not cast a second shadow inside the
+                          // shuttle.
+                          spec: flight.tag.surfaceSpec.copyWith(elevation: 0),
+                          child: SharedSideScope(
+                            flight: flight,
+                            isTarget: false,
+                            anchorKey: anchorKey,
+                            child: flight.tag.replica,
+                          ),
                         ),
-                      ),
+                ),
               ),
             ),
           ),

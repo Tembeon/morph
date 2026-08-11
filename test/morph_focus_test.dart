@@ -194,4 +194,136 @@ void main() {
       reason: 'keyboard navigation continues from where the morph began',
     );
   });
+
+  testWidgets('keyboard cannot activate the ghost replica of the source', (
+    WidgetTester tester,
+  ) async {
+    int sourcePresses = 0;
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Center(
+            child: MorphTag(
+              id: 'btn',
+              child: Builder(
+                builder: (BuildContext context) => ElevatedButton(
+                  onPressed: () {
+                    sourcePresses++;
+                    flight ??= showMorphDialog(
+                      context,
+                      from: 'btn',
+                      builder: (BuildContext context, MorphFlight f) => Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          TextButton(
+                            onPressed: () {},
+                            child: const Text('row-a'),
+                          ),
+                          TextButton(
+                            onPressed: () {},
+                            child: const Text('row-b'),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  child: const Text('open-me'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-me'));
+    await tester.pump();
+    await settle(tester);
+    expect(sourcePresses, 1);
+    // The ghost keeps the live replica MOUNTED for the whole flight
+    // (shared-element markers must keep measuring), so a copy of the
+    // source button exists inside the shuttle - inside the overlay's
+    // own Tab trap.
+    expect(find.text('open-me'), findsNWidgets(2));
+
+    // Cycle the trapped traversal and activate whatever gets focus:
+    // only the overlay CONTENT may respond; the replica is pixels-only
+    // (IgnorePointer already blocks the mouse - the keyboard must be
+    // blocked symmetrically).
+    for (int i = 0; i < 8; i++) {
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+    }
+    expect(
+      sourcePresses,
+      1,
+      reason:
+          'Tab+Enter inside the open overlay reached the hidden source '
+          'replica and fired its onPressed',
+    );
+    flight!.close();
+    await settle(tester);
+  });
+
+  testWidgets('an explicit source FocusNode cannot pull focus into the ghost', (
+    WidgetTester tester,
+  ) async {
+    final FocusNode node = FocusNode(debugLabel: 'source-button');
+    addTearDown(node.dispose);
+    MorphFlight? flight;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Center(
+            child: MorphTag(
+              id: 'btn',
+              child: Builder(
+                builder: (BuildContext context) => ElevatedButton(
+                  focusNode: node,
+                  onPressed: () => flight ??= showMorphDialog(
+                    context,
+                    from: 'btn',
+                    builder: (BuildContext context, MorphFlight f) =>
+                        const TextField(autofocus: true),
+                  ),
+                  child: const Text('open-me'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-me'));
+    await tester.pump();
+    await settle(tester);
+    expect(inMorphScope(FocusManager.instance.primaryFocus), isTrue);
+
+    // The replica shares the source widget config - the node included,
+    // so during the flight the node is attached to the ghost copy. A
+    // requestFocus while the overlay is up must land nowhere: the real
+    // button is hidden and the replica is pixels-only.
+    node.requestFocus();
+    await tester.pump();
+    expect(
+      node.hasPrimaryFocus,
+      isFalse,
+      reason:
+          'requestFocus on the source node focused the ghost replica '
+          'inside the shuttle',
+    );
+    expect(
+      inMorphScope(FocusManager.instance.primaryFocus),
+      isTrue,
+      reason: 'focus must stay with the overlay content',
+    );
+    flight!.close();
+    await settle(tester);
+  });
 }
