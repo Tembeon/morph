@@ -519,6 +519,14 @@ Hard-won rules already enforced in the core:
   only place the target wrapper chain exists; the shuttle and the
   route page both mount it - the route-mode reparent preserves state
   only while the chains match, and now they cannot diverge.
+- ONE drag composition: `morphDragScrimFactor` + `morphDragScale`
+  (gesture.dart) are the only implementations of how a live drag dims
+  the scrim and recedes the card; the shuttle and the settled route
+  page both call them. THE RULE OF THREE HOMES for visual constants:
+  a taste knob users may tune lives in MorphTheme; a value drawn by
+  more than one stack lives in ONE named implementation (this bullet
+  and the three above); a local literal is legal ONLY while exactly
+  one paint site uses it - a second consumer forces the promotion.
 - The displacement channel is `_DragChannel`, a ChangeNotifier owned by
   the flight (data lives where its nature says, not accreted onto the
   flight); the flight's public drag API delegates.

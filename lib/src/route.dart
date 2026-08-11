@@ -414,8 +414,7 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
                             alpha:
                                 flight.scrimColor.a *
                                 flight.maxScrimOpacity *
-                                (1 - 0.5 * recede) *
-                                (1 - 0.35 * arm),
+                                morphDragScrimFactor(recede, arm),
                           ),
                         ),
                       ),
@@ -423,7 +422,7 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
                     Positioned.fromRect(
                       rect: rect.shift(drag),
                       child: Transform.scale(
-                        scale: 1 - 0.08 * recede - 0.05 * arm,
+                        scale: morphDragScale(recede, arm),
                         child: child,
                       ),
                     ),

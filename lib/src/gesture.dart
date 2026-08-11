@@ -87,6 +87,22 @@ double morphDragRecede(double distance, {double dimension = 400}) {
   return distance / (distance + dimension);
 }
 
+/// The scrim attenuation of a live drag: the factor the displacement
+/// multiplies into the scrim opacity - thinning with [morphDragRecede]
+/// and thinning further as [morphDragArm] rises. The one implementation
+/// of the composition, shared by the shuttle and the settled route
+/// page, so a drag dims identically on both sides of the second latch.
+double morphDragScrimFactor(double recede, double arm) {
+  return (1 - 0.5 * recede) * (1 - 0.35 * arm);
+}
+
+/// The container scale of a live drag: a subtle recede into the hand,
+/// deepened by the arm cue. Shared by the shuttle and the settled route
+/// page for the same reason as [morphDragScrimFactor].
+double morphDragScale(double recede, double arm) {
+  return 1 - 0.08 * recede - 0.05 * arm;
+}
+
 /// Scales closeVelocityHint by the pixel travel of the flight: value
 /// space normalizes distance, so without this multiplier a near and a
 /// far close would bounce identically. A far close lands heavier and

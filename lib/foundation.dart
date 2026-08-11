@@ -41,6 +41,8 @@
 /// {@canonicalFor gesture.morphCloseHintScale}
 /// {@canonicalFor gesture.morphDragArm}
 /// {@canonicalFor gesture.morphDragRecede}
+/// {@canonicalFor gesture.morphDragScale}
+/// {@canonicalFor gesture.morphDragScrimFactor}
 /// {@canonicalFor gesture.morphProjectValue}
 /// {@canonicalFor gesture.morphRubberband}
 /// {@canonicalFor liquid_field.LiquidBox}

@@ -1119,8 +1119,7 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                           flight: flight,
                           opacity:
                               frame.scrimOpacity *
-                              (1 - 0.5 * recede) *
-                              (1 - 0.35 * arm),
+                              morphDragScrimFactor(recede, arm),
                         ),
                       ),
                       Positioned.fromRect(
@@ -1128,7 +1127,7 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                         child: IgnorePointer(
                           ignoring: !interactive,
                           child: Transform.scale(
-                            scale: 1 - 0.08 * recede - 0.05 * arm,
+                            scale: morphDragScale(recede, arm),
                             child: Semantics(
                               // The overlay is a semantic route: focus and
                               // reading scope in, and a label announces the
