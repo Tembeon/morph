@@ -228,4 +228,99 @@ void main() {
     await settle(tester, limit: 600);
     expect(find.text('Neon Waves - Midnight City'), findsNothing);
   });
+
+  testWidgets('pages: flinging the mini bar up seeds the flight with the '
+      'throw', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    // The phone hosts its own MorphScope; the bar's flights live there.
+    final MorphScopeState scope = tester.state(find.byType(MorphScope).last);
+    final Finder bar = find.byIcon(Icons.pause_rounded);
+
+    // Baseline: a tap-open of the SAME tag, sampled at a fixed instant.
+    await tester.tap(bar);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 96));
+    final double tappedValue = scope.flightOf('album-bar')!.controller.value;
+    scope.flightOf('album-bar')!.close();
+    await settle(tester);
+
+    // The fling: same travel, same sampling instant - but the release
+    // velocity is injected one frame after launch, so the thrown
+    // player must be measurably ahead of the tapped one.
+    await tester.fling(bar, const Offset(0, -120), 1800);
+    // Frame 1 launches the flight and, post-frame, injects the
+    // velocity (a retarget restarts the ticker, whose first tick lands
+    // at elapsed zero) - so frame 2 is the seeded sim's zero point and
+    // the 96 ms are measured from THERE, symmetrically with the
+    // baseline.
+    await tester.pump();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 96));
+    final MorphFlight flight = scope.flightOf('album-bar')!;
+    expect(
+      flight.controller.velocity,
+      greaterThan(0),
+      reason: 'the seeded spring must still carry the throw',
+    );
+    expect(
+      flight.controller.value,
+      greaterThan(tappedValue + 0.05),
+      reason: 'the release velocity must seed the open spring',
+    );
+    await settle(tester);
+    expect(find.text('Neon Waves - Midnight City'), findsOneWidget);
+  });
+
+  testWidgets('pages: a gentle mini bar drag springs back without a launch', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    final MorphScopeState scope = tester.state(find.byType(MorphScope).last);
+
+    // Slow and short: velocity alone commits a launch, so a slow pull
+    // (whatever its distance) never opens - the bar gives a few px
+    // and springs home.
+    await tester.timedDrag(
+      find.byIcon(Icons.pause_rounded),
+      const Offset(0, -40),
+      const Duration(milliseconds: 400),
+    );
+    await tester.pump();
+    expect(scope.flightOf('album-bar'), isNull);
+    await settle(tester);
+    expect(find.text('Neon Waves - Midnight City'), findsNothing);
+  });
+
+  testWidgets('pages: the mini bar fling launches in route mode too', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    await tester.tap(find.text('Real route'));
+    await settle(tester);
+    final MorphScopeState scope = tester.state(find.byType(MorphScope).last);
+
+    await tester.fling(
+      find.byIcon(Icons.pause_rounded),
+      const Offset(0, -120),
+      1800,
+    );
+    await tester.pump();
+    expect(scope.flightOf('album-bar'), isNotNull);
+    await settle(tester);
+    expect(find.text('Neon Waves - Midnight City'), findsOneWidget);
+    // A real page underneath: Lyrics is unlocked.
+    expect(find.text('Lyrics'), findsOneWidget);
+  });
 }

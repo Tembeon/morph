@@ -398,7 +398,18 @@ toggles inside one scene, never separate lookalike screens:
 - CARD TO PAGE (page_scene.dart): a music library; the overlay/route
   TOGGLE holds everything else constant, so the difference IS the
   demo (Lyrics stacks only on the route; shared covers + displacement
-  drag in both).
+  drag in both). The mini bar is the fling-to-open recipe on the
+  expert path: a FLICK (commit by release velocity ALONE - a slow
+  pull meets ~14px of heavy give and springs back, because the player
+  does not exist yet and there is nothing to drag 1:1; the slingshot
+  variant was built and rejected by eye - a rubberband promises
+  manipulation it cannot deliver), with the release velocity injected
+  one frame later via controller.open(velocity:) once the shuttle has
+  measured both rects (px/s -> value/s by flight distance). NOTE the retarget-clock nuance the fling test pins: a
+  retarget restarts the controller's ticker and Ticker.elapsed
+  restarts from zero, so the first post-retarget tick evaluates the
+  sim at t=0 - one held frame, invisible live, but a test sampling
+  right after the injection frame must pump once more.
 - LIQUID SELECTION (goo_dock_example.dart) and LIVING LAYOUT
   (chips_example.dart): the skin family - feed app dock, search app
   filter chips.
@@ -682,7 +693,7 @@ cd example && flutter run -d macos --dart-define=MORPH_AUTODEMO=true
 Every step must be green after each change (analyze from the package
 root also covers example). Animations are judged by eye only by a human
 (the glacial profile is the magnifier mode); agent self-verification is
-the tests (216 in the package + 30 in example) plus the autodemo with no
+the tests (216 in the package + 33 in example) plus the autodemo with no
 EXCEPTION in the log (autodemo: opens the Playground chapter AS a
 morph route - exercising the card flight and the second latch - then a
 dialog flight from a piece -> interruption torture -> 4 keyframe

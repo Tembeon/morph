@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:motor/motor.dart';
 
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
@@ -14,7 +15,10 @@ import 'package:morph_example/ui/goo_selector.dart';
 /// back gesture, and live as history. The cover travels either way
 /// (MorphSharedElement), and the open card follows the finger 1:1 on
 /// the flight's displacement channel - release past the threshold and
-/// it flies home out of the hand.
+/// it flies home out of the hand. The mini bar closes the gesture
+/// loop from the other side: a FLICK up launches the player with the
+/// throw's momentum (fling-to-open on the velocity seam; velocity
+/// alone commits - a slow pull only meets a hint of give).
 class PageScene extends StatefulWidget {
   /// Creates the chapter scene.
   const PageScene({super.key, required this.motion});
@@ -121,11 +125,18 @@ class _PageSceneState extends State<PageScene> {
                       'Lyrics is locked. Drag the open card down and let '
                       'go: it flies home out of the hand.',
           ),
+          const PanelHint(
+            'FLICK the mini bar up: the player takes off WITH the '
+            'throw - the release velocity seeds the open spring. A '
+            'slow pull only meets a little give and settles back: '
+            'velocity alone commits, so tap and flick coexist. Works '
+            'in both modes.',
+          ),
         ],
       ),
       phone: PhoneFrame(
         app: (BuildContext context) =>
-            _LibraryApp(albums: _albums, onOpen: _open),
+            _LibraryApp(albums: _albums, onOpen: _open, motion: widget.motion),
       ),
     );
   }
@@ -133,10 +144,15 @@ class _PageSceneState extends State<PageScene> {
 
 /// The library mockup: album grid plus the mini player bar.
 class _LibraryApp extends StatelessWidget {
-  const _LibraryApp({required this.albums, required this.onOpen});
+  const _LibraryApp({
+    required this.albums,
+    required this.onOpen,
+    required this.motion,
+  });
 
   final List<_Album> albums;
   final void Function(BuildContext context, int index) onOpen;
+  final MorphMotion motion;
 
   @override
   Widget build(BuildContext context) {
@@ -175,7 +191,7 @@ class _LibraryApp extends StatelessWidget {
           left: 14,
           right: 14,
           bottom: 12,
-          child: _MiniBar(album: albums[0], onOpen: onOpen),
+          child: _MiniBar(album: albums[0], onOpen: onOpen, motion: motion),
         ),
       ],
     );
@@ -236,54 +252,184 @@ class _AlbumCard extends StatelessWidget {
   }
 }
 
-class _MiniBar extends StatelessWidget {
-  const _MiniBar({required this.album, required this.onOpen});
+/// The mini player bar: tap opens the player, a FLICK up launches it
+/// with the throw's momentum - the fling-to-open recipe on the expert
+/// path.
+///
+/// The gesture is a flick, not a drag-open: commit is by release
+/// VELOCITY alone (the engine's threshold), so a slow pull can never
+/// launch - it only meets a few px of heavy give, the affordance that
+/// says "flick me", and springs back. A flick has no standing
+/// midstates by definition (the finger is already gone), which is
+/// what makes it honest under the one-spring doctrine; the
+/// interactive slow-open of a real music app is value scrubbing with
+/// midstates designed per content - a different, rejected trade. On
+/// commit the flight launches and, one frame later - when the shuttle
+/// has measured both endpoint rects - the release velocity is
+/// projected onto the flight direction, normalized px/s -> value/s by
+/// the flight distance, and injected via controller.open(velocity:):
+/// a retarget, continuous by construction.
+class _MiniBar extends StatefulWidget {
+  const _MiniBar({
+    required this.album,
+    required this.onOpen,
+    required this.motion,
+  });
 
   final _Album album;
   final void Function(BuildContext context, int index) onOpen;
+  final MorphMotion motion;
+
+  @override
+  State<_MiniBar> createState() => _MiniBarState();
+}
+
+class _MiniBarState extends State<_MiniBar>
+    with SingleTickerProviderStateMixin {
+  /// A few px of heavy give - an affordance, not manipulation: the
+  /// player does not exist yet, so there is nothing to drag 1:1.
+  static const double _liftRange = 14;
+
+  late final SingleMotionController _lift = SingleMotionController(
+    motion: widget.motion.closeMotion,
+    vsync: this,
+  );
+
+  /// Raw upward finger travel of the current drag in px, pre-rubberband.
+  double _raw = 0;
+
+  @override
+  void dispose() {
+    _lift.dispose();
+    super.dispose();
+  }
+
+  void _dragStart(DragStartDetails details) {
+    _lift.stop();
+    // Re-grabbing a returning bar: seed the raw travel with the
+    // rubberband inverse, so the lift continues from where it stands.
+    final double lift = math.min(_lift.value, _liftRange - 1);
+    _raw = lift <= 0 ? 0 : lift * _liftRange / (0.55 * (_liftRange - lift));
+  }
+
+  void _dragUpdate(DragUpdateDetails details) {
+    _raw = math.max(0, _raw - details.delta.dy);
+    _lift.value = morphRubberband(_raw, dimension: _liftRange);
+  }
+
+  void _dragEnd(BuildContext tagContext, DragEndDetails details) {
+    final double releaseDy = details.velocity.pixelsPerSecond.dy;
+    final double upVelocity = math.max(0, -releaseDy);
+    // Velocity alone decides: only a flick launches (the engine's
+    // named threshold). Distance deliberately does not commit - a
+    // slow pull is not a manipulation of anything real.
+    final bool commit = upVelocity > morphDragCommitVelocity;
+    _raw = 0;
+    _lift.animateTo(0, withVelocity: -releaseDy);
+    if (!commit) {
+      return;
+    }
+    widget.onOpen(tagContext, 0);
+    _seedFlightVelocity(tagContext, upVelocity);
+  }
+
+  /// The velocity seam: showMorph* launched the flight at rest; the
+  /// endpoint rects it needs for normalization exist one frame later.
+  void _seedFlightVelocity(BuildContext tagContext, double upVelocity) {
+    final MorphScopeState? scope = MorphScope.maybeOf(tagContext);
+    if (scope == null) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!scope.mounted) {
+        return;
+      }
+      final MorphFlight? flight = scope.flightOf('album-bar');
+      if (flight == null || flight.isFinished || !flight.isOpenOrOpening) {
+        return;
+      }
+      final Offset travel =
+          flight.lastTargetRect.center - flight.sourceRect.center;
+      final double distance = travel.distance;
+      if (distance < 1) {
+        return;
+      }
+      // Project the throw onto the flight direction (a throw ACROSS
+      // the path contributes nothing), then px/s -> value/s by the
+      // flight distance.
+      final double along = -upVelocity * travel.dy / distance;
+      final double valueVelocity = along / distance;
+      if (valueVelocity <= 0) {
+        return;
+      }
+      flight.controller.open(velocity: valueVelocity);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MorphTag(
-      id: 'album-bar',
-      spec: const MorphSurfaceSpec(
-        shape: StadiumBorder(),
-        color: Color(0xFF241F35),
-        elevation: 6,
-      ),
-      child: MorphSurface(
-        onTap: (BuildContext context) => onOpen(context, 0),
-        child: Padding(
-          padding: const .fromLTRB(8, 8, 16, 8),
-          child: Row(
-            children: <Widget>[
-              SizedBox(
-                width: 36,
-                height: 36,
-                child: _Cover(colors: album.colors, radius: 18),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: .start,
-                  children: <Widget>[
-                    Text(
-                      album.title,
-                      style: const TextStyle(fontSize: 12, fontWeight: .w600),
-                    ),
-                    Text(
-                      album.artist,
-                      style: TextStyle(
-                        fontSize: 10.5,
-                        color: Colors.white.withValues(alpha: 0.5),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(Icons.pause_rounded, size: 20),
-            ],
+    return ListenableBuilder(
+      listenable: _lift,
+      builder: (BuildContext context, Widget? child) =>
+          Transform.translate(offset: Offset(0, -_lift.value), child: child),
+      child: MorphTag(
+        id: 'album-bar',
+        spec: const MorphSurfaceSpec(
+          shape: StadiumBorder(),
+          color: Color(0xFF241F35),
+          elevation: 6,
+        ),
+        child: Builder(
+          builder: (BuildContext tagContext) => GestureDetector(
+            onVerticalDragStart: _dragStart,
+            onVerticalDragUpdate: _dragUpdate,
+            onVerticalDragEnd: (DragEndDetails details) =>
+                _dragEnd(tagContext, details),
+            onVerticalDragCancel: () {
+              _raw = 0;
+              _lift.animateTo(0);
+            },
+            child: _barBody(),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _barBody() {
+    final _Album album = widget.album;
+    return MorphSurface(
+      onTap: (BuildContext context) => widget.onOpen(context, 0),
+      child: Padding(
+        padding: const .fromLTRB(8, 8, 16, 8),
+        child: Row(
+          children: <Widget>[
+            SizedBox(
+              width: 36,
+              height: 36,
+              child: _Cover(colors: album.colors, radius: 18),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: .start,
+                children: <Widget>[
+                  Text(
+                    album.title,
+                    style: const TextStyle(fontSize: 12, fontWeight: .w600),
+                  ),
+                  Text(
+                    album.artist,
+                    style: TextStyle(
+                      fontSize: 10.5,
+                      color: Colors.white.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.pause_rounded, size: 20),
+          ],
         ),
       ),
     );
