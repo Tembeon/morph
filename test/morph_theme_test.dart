@@ -248,13 +248,154 @@ void main() {
     });
 
     test('copyWith and lerp behave', () {
-      const MorphTheme a = MorphTheme(bumpScale: 0.2, maxScrimOpacity: 0.2);
-      const MorphTheme b = MorphTheme(bumpScale: 0.6, maxScrimOpacity: 0.6);
+      const MorphTheme a = MorphTheme(
+        bumpScale: 0.2,
+        maxScrimOpacity: 0.2,
+        scrimColor: Color(0xFF000000),
+        shadowColor: Color(0x00000000),
+      );
+      const MorphTheme b = MorphTheme(
+        bumpScale: 0.6,
+        maxScrimOpacity: 0.6,
+        scrimColor: Color(0xFFFFFFFF),
+        shadowColor: Color(0xFF000000),
+      );
       expect(a.copyWith(bumpScale: 1).bumpScale, 1);
       expect(a.copyWith(bumpScale: 1).maxScrimOpacity, 0.2);
+      expect(a.copyWith(bumpScale: 1).scrimColor, const Color(0xFF000000));
+      expect(
+        a.copyWith(scrimColor: const Color(0xFF112233)).scrimColor,
+        const Color(0xFF112233),
+      );
       final MorphTheme mid = a.lerp(b, 0.5);
       expect(mid.bumpScale, closeTo(0.4, 1e-9));
       expect(mid.maxScrimOpacity, closeTo(0.4, 1e-9));
+      expect(mid.scrimColor, Color.lerp(a.scrimColor, b.scrimColor, 0.5));
+      expect(mid.shadowColor, Color.lerp(a.shadowColor, b.shadowColor, 0.5));
+    });
+
+    testWidgets('theme scrim and shadow colors reach the shuttle', (
+      WidgetTester tester,
+    ) async {
+      const Color scrim = Color(0x80102030);
+      const Color shadow = Color(0x80403020);
+      MorphFlight? flight;
+      await tester.pumpWidget(
+        host(
+          theme: const MorphTheme(scrimColor: scrim, shadowColor: shadow),
+          child: MorphTag(
+            id: 'pill',
+            child: Builder(
+              builder: (BuildContext context) => TextButton(
+                onPressed: () {
+                  flight = showMorphDialog(
+                    context,
+                    from: 'pill',
+                    builder: (BuildContext context, MorphFlight flight) =>
+                        const Text('dialog'),
+                  );
+                },
+                child: const Text('go'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pump();
+      expect(flight!.scrimColor, scrim);
+      expect(flight!.shadowColor, shadow);
+      for (int i = 0; i < 600; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+        if (!tester.binding.hasScheduledFrame) {
+          break;
+        }
+      }
+      final ColoredBox box = tester.widget<ColoredBox>(
+        find.descendant(
+          of: find.byType(BlockSemantics),
+          matching: find.byType(ColoredBox),
+        ),
+      );
+      // The hue is the theme's; the color's own opacity composes with
+      // the settled scrim opacity (the 0.45 builtin ceiling).
+      expect(box.color.withValues(alpha: 1), scrim.withValues(alpha: 1));
+      expect(box.color.a, closeTo(scrim.a * 0.45, 1e-3));
+      final bool shuttleShadow = tester
+          .widgetList<Material>(find.byType(Material))
+          .any((Material m) => m.shadowColor == shadow);
+      expect(shuttleShadow, isTrue);
+      flight!.abort();
+    });
+
+    testWidgets('explicit scrim and shadow colors win over the theme', (
+      WidgetTester tester,
+    ) async {
+      const Color explicitScrim = Color(0xFF445566);
+      const Color explicitShadow = Color(0xCC112233);
+      MorphFlight? flight;
+      await tester.pumpWidget(
+        host(
+          theme: const MorphTheme(
+            scrimColor: Color(0xFF102030),
+            shadowColor: Color(0x80403020),
+          ),
+          child: MorphTag(
+            id: 'pill',
+            child: Builder(
+              builder: (BuildContext context) => TextButton(
+                onPressed: () {
+                  flight = showMorphDialog(
+                    context,
+                    from: 'pill',
+                    scrimColor: explicitScrim,
+                    shadowColor: explicitShadow,
+                    builder: (BuildContext context, MorphFlight flight) =>
+                        const Text('dialog'),
+                  );
+                },
+                child: const Text('go'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pump();
+      expect(flight!.scrimColor, explicitScrim);
+      expect(flight!.shadowColor, explicitShadow);
+      flight!.abort();
+    });
+
+    testWidgets('builtin scrim and shadow colors hold without a theme', (
+      WidgetTester tester,
+    ) async {
+      MorphFlight? flight;
+      await tester.pumpWidget(
+        host(
+          child: MorphTag(
+            id: 'pill',
+            child: Builder(
+              builder: (BuildContext context) => TextButton(
+                onPressed: () {
+                  flight = showMorphDialog(
+                    context,
+                    from: 'pill',
+                    builder: (BuildContext context, MorphFlight flight) =>
+                        const Text('dialog'),
+                  );
+                },
+                child: const Text('go'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('go'));
+      await tester.pump();
+      expect(flight!.scrimColor, Colors.black);
+      expect(flight!.shadowColor, const Color(0x99000000));
+      flight!.abort();
     });
 
     test('runtime-built profiles and styles compare by value', () {

@@ -35,6 +35,8 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
     this.bumpScale,
     this.bumpRecoil,
     this.maxScrimOpacity,
+    this.scrimColor,
+    this.shadowColor,
     this.skinStyle,
   });
 
@@ -52,6 +54,20 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   /// Default scrim ceiling for flights.
   final double? maxScrimOpacity;
 
+  /// Default scrim color for flights (black when unset).
+  ///
+  /// The color's own opacity composes with the animated scrim opacity:
+  /// the frame drives the dimming (up to [maxScrimOpacity]) and this
+  /// color supplies the hue.
+  final Color? scrimColor;
+
+  /// Default shadow color of the flying surface (60% black when
+  /// unset), applied verbatim - its opacity is part of the value.
+  ///
+  /// A [MorphSkin] with its own `shadowColor` wants the same hue here,
+  /// or the shadow tint snaps when a piece launches a flight.
+  final Color? shadowColor;
+
   /// Default knob bundle for [MorphSkin]s without a style or explicit
   /// knobs.
   final MorphSkinStyle? skinStyle;
@@ -66,6 +82,8 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
     double? bumpScale,
     double? bumpRecoil,
     double? maxScrimOpacity,
+    Color? scrimColor,
+    Color? shadowColor,
     MorphSkinStyle? skinStyle,
   }) {
     return MorphTheme(
@@ -73,6 +91,8 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
       bumpScale: bumpScale ?? this.bumpScale,
       bumpRecoil: bumpRecoil ?? this.bumpRecoil,
       maxScrimOpacity: maxScrimOpacity ?? this.maxScrimOpacity,
+      scrimColor: scrimColor ?? this.scrimColor,
+      shadowColor: shadowColor ?? this.shadowColor,
       skinStyle: skinStyle ?? this.skinStyle,
     );
   }
@@ -89,6 +109,8 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
       bumpScale: lerpDouble(bumpScale, other.bumpScale, t),
       bumpRecoil: lerpDouble(bumpRecoil, other.bumpRecoil, t),
       maxScrimOpacity: lerpDouble(maxScrimOpacity, other.maxScrimOpacity, t),
+      scrimColor: Color.lerp(scrimColor, other.scrimColor, t),
+      shadowColor: Color.lerp(shadowColor, other.shadowColor, t),
       skinStyle: t < 0.5 ? skinStyle : other.skinStyle,
     );
   }
@@ -100,10 +122,19 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
         other.bumpScale == bumpScale &&
         other.bumpRecoil == bumpRecoil &&
         other.maxScrimOpacity == maxScrimOpacity &&
+        other.scrimColor == scrimColor &&
+        other.shadowColor == shadowColor &&
         other.skinStyle == skinStyle;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(motion, bumpScale, bumpRecoil, maxScrimOpacity, skinStyle);
+  int get hashCode => Object.hash(
+    motion,
+    bumpScale,
+    bumpRecoil,
+    maxScrimOpacity,
+    scrimColor,
+    shadowColor,
+    skinStyle,
+  );
 }

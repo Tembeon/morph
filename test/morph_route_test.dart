@@ -581,4 +581,73 @@ void main() {
     expect(nav.canPop(), isFalse);
     expect(find.text('go'), findsOneWidget);
   });
+
+  testWidgets('scrim and shadow colors survive the second latch', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    const Color scrim = Color(0x80102030);
+    const Color shadow = Color(0xCC445566);
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: MorphTag(
+              id: 'card',
+              child: Builder(
+                builder: (BuildContext context) => TextButton(
+                  onPressed: () => showMorphRoute<void>(
+                    context,
+                    from: 'card',
+                    scrimColor: scrim,
+                    shadowColor: shadow,
+                    builder: (BuildContext context, MorphFlight flight) =>
+                        const Text('content'),
+                  ),
+                  child: const Text('go'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pump();
+    final MorphScopeState scope = tester.state<MorphScopeState>(
+      find.byType(MorphScope),
+    );
+    final MorphFlight flight = scope.flightOf('card')!;
+    expect(flight.scrimColor, scrim);
+    expect(flight.shadowColor, shadow);
+    await settle(tester);
+
+    // The route page owns the settled state and paints the same colors
+    // the shuttle flew with: the same hue on the scrim, the same shadow
+    // on the surface.
+    expect(flight.routeOwnsContent.value, isTrue);
+    expect(shuttleFinder, findsNothing);
+    final bool scrimPainted = tester
+        .widgetList<ColoredBox>(find.byType(ColoredBox))
+        .any(
+          (ColoredBox b) =>
+              b.color.a > 0 &&
+              b.color.withValues(alpha: 1) == scrim.withValues(alpha: 1),
+        );
+    expect(scrimPainted, isTrue);
+    final bool shadowPainted = tester
+        .widgetList<Material>(find.byType(Material))
+        .any((Material m) => m.shadowColor == shadow);
+    expect(shadowPainted, isTrue);
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await settle(tester);
+    expect(flight.isFinished, isTrue);
+  });
 }

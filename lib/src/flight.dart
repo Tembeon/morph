@@ -32,6 +32,8 @@ class MorphFlight {
     required this.builder,
     required this.barrierDismissible,
     required this.maxScrimOpacity,
+    required this.scrimColor,
+    required this.shadowColor,
     required this._overlay,
     required MorphMotion motion,
     required bool disableAnimations,
@@ -59,6 +61,13 @@ class MorphFlight {
 
   /// Scrim opacity in the fully open state.
   final double maxScrimOpacity;
+
+  /// Scrim hue; its own opacity composes with the animated scrim
+  /// opacity.
+  final Color scrimColor;
+
+  /// Shadow color of the flying surface, opacity included.
+  final Color shadowColor;
   final OverlayState _overlay;
 
   /// The declarative close route: when set, a scrim tap or Esc does not
@@ -327,6 +336,8 @@ class MorphFlight {
     MorphMotion? motion,
     bool barrierDismissible = true,
     double maxScrimOpacity = 0.45,
+    Color scrimColor = Colors.black,
+    Color shadowColor = const Color(0x99000000),
     VoidCallback? onDismissRequested,
     String? semanticLabel,
     bool routeMode = false,
@@ -376,6 +387,8 @@ class MorphFlight {
             builder: builder,
             barrierDismissible: barrierDismissible,
             maxScrimOpacity: maxScrimOpacity,
+            scrimColor: scrimColor,
+            shadowColor: shadowColor,
             // The NEAREST overlay: the flight belongs to the world its
             // scope lives in. A nested navigator (a tab, an embedded
             // device mockup) keeps its flights inside itself; in a
@@ -664,7 +677,11 @@ class _ShuttleScrim extends StatelessWidget {
         child: GestureDetector(
           behavior: .opaque,
           onTap: flight.barrierDismissible ? flight.requestDismiss : null,
-          child: ColoredBox(color: Colors.black.withValues(alpha: opacity)),
+          child: ColoredBox(
+            color: flight.scrimColor.withValues(
+              alpha: flight.scrimColor.a * opacity,
+            ),
+          ),
         ),
       ),
     );
@@ -1131,9 +1148,7 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                                 animationDuration: .zero,
                                 clipBehavior: .antiAlias,
                                 elevation: frame.elevation,
-                                shadowColor: Colors.black.withValues(
-                                  alpha: 0.6,
-                                ),
+                                shadowColor: flight.shadowColor,
                                 child: Stack(
                                   fit: .expand,
                                   children: <Widget>[

@@ -42,6 +42,8 @@ Future<T?> showMorphRoute<T>(
   bool barrierDismissible = true,
   bool useRootNavigator = false,
   double? maxScrimOpacity,
+  Color? scrimColor,
+  Color? shadowColor,
   String? semanticLabel,
 }) {
   final MorphTheme? theme = MorphTheme.maybeOf(context);
@@ -54,6 +56,8 @@ Future<T?> showMorphRoute<T>(
       barrierDismissible: barrierDismissible,
       barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
       maxScrimOpacity: maxScrimOpacity ?? theme?.maxScrimOpacity ?? 0.45,
+      scrimColor: scrimColor ?? theme?.scrimColor ?? Colors.black,
+      shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
       semanticLabel: semanticLabel,
     ),
   );
@@ -83,6 +87,8 @@ class MorphPageRoute<T> extends PopupRoute<T> {
     this._barrierDismissible = true,
     this._barrierLabel,
     this.maxScrimOpacity = 0.45,
+    this.scrimColor = Colors.black,
+    this.shadowColor = const Color(0x99000000),
     this.semanticLabel,
     super.settings,
   });
@@ -103,6 +109,14 @@ class MorphPageRoute<T> extends PopupRoute<T> {
 
   /// Scrim opacity in the settled state.
   final double maxScrimOpacity;
+
+  /// Scrim hue; its own opacity composes with the animated scrim
+  /// opacity. This constructor does not consult [MorphTheme].
+  final Color scrimColor;
+
+  /// Shadow color of the flying surface and the settled page, opacity
+  /// included. This constructor does not consult [MorphTheme].
+  final Color shadowColor;
 
   /// Accessibility name of the route (screen readers announce it).
   final String? semanticLabel;
@@ -215,6 +229,8 @@ class MorphPageRoute<T> extends PopupRoute<T> {
       motion: motion,
       barrierDismissible: _barrierDismissible,
       maxScrimOpacity: maxScrimOpacity,
+      scrimColor: scrimColor,
+      shadowColor: shadowColor,
       semanticLabel: semanticLabel,
       routeMode: true,
       overlay: nav.overlay,
@@ -394,8 +410,9 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
                     Positioned.fill(
                       child: IgnorePointer(
                         child: ColoredBox(
-                          color: Colors.black.withValues(
+                          color: flight.scrimColor.withValues(
                             alpha:
+                                flight.scrimColor.a *
                                 flight.maxScrimOpacity *
                                 (1 - 0.5 * recede) *
                                 (1 - 0.35 * arm),
@@ -418,7 +435,7 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
                 shape: spec.shape,
                 clipBehavior: .antiAlias,
                 elevation: spec.elevation,
-                shadowColor: Colors.black.withValues(alpha: 0.6),
+                shadowColor: flight.shadowColor,
                 // The SAME chain the shuttle mounts, from the one
                 // shared builder: the route-mode reparent preserves
                 // state only while the chains match, and now they

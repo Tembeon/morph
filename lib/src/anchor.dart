@@ -53,6 +53,8 @@ class MorphAnchor extends StatefulWidget {
     this.motion,
     this.barrierDismissible = true,
     this.maxScrimOpacity,
+    this.scrimColor,
+    this.shadowColor,
     this.semanticLabel,
   });
 
@@ -110,6 +112,13 @@ class MorphAnchor extends StatefulWidget {
 
   /// Scrim ceiling; null resolves MorphTheme, then the default.
   final double? maxScrimOpacity;
+
+  /// Scrim hue; null resolves MorphTheme, then black.
+  final Color? scrimColor;
+
+  /// Shadow color of the flying surface, opacity included; null
+  /// resolves MorphTheme, then 60% black.
+  final Color? shadowColor;
 
   /// Accessibility name of the opened overlay (screen readers announce
   /// it).
@@ -178,6 +187,8 @@ class _MorphAnchorState extends State<MorphAnchor> {
       motion: widget.motion,
       barrierDismissible: widget.barrierDismissible,
       maxScrimOpacity: widget.maxScrimOpacity,
+      scrimColor: widget.scrimColor,
+      shadowColor: widget.shadowColor,
       onDismissRequested: widget.onDismiss,
       semanticLabel: widget.semanticLabel,
       builder: (BuildContext context, MorphFlight flight) =>

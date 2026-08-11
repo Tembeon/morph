@@ -295,9 +295,14 @@ Flutter-style split, two entrypoints:
   design system (Material adapters are app-side recipes). App-wide
   archetype vocabularies belong in the APP's own ThemeExtension holding
   spec values. Engine defaults live in the `MorphTheme` ThemeExtension
-  (motion, bumpScale/bumpRecoil, maxScrimOpacity, skinStyle) with the
-  resolution order explicit parameter > MorphTheme > builtin,
-  everywhere (showMorph*, MorphTag bump, MorphSkin knobs). No new
+  (motion, bumpScale/bumpRecoil, maxScrimOpacity, scrimColor,
+  shadowColor, skinStyle) with the resolution order explicit
+  parameter > MorphTheme > builtin, everywhere (showMorph*, MorphTag
+  bump, MorphSkin knobs). scrimColor is a hue whose own opacity
+  COMPOSES with the animated scrim opacity; shadowColor is applied
+  verbatim (opacity included, builtin 60% black) - a MorphSkin with a
+  custom shadowColor wants the same hue here, or the shadow tint snaps
+  when a piece launches a flight. No new
   scopes: MorphScope stays an identity/flight registry only. The SAME
   surface model describes both ends of a flight: MorphTargetSpec
   accepts `surface: MorphSurfaceSpec` (winning over its individual

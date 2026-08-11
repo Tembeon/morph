@@ -27,6 +27,8 @@ MorphFlight showMorph(
   MorphMotion? motion,
   bool barrierDismissible = true,
   double? maxScrimOpacity,
+  Color? scrimColor,
+  Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
 }) {
@@ -39,6 +41,8 @@ MorphFlight showMorph(
     motion: motion ?? theme?.motion,
     barrierDismissible: barrierDismissible,
     maxScrimOpacity: maxScrimOpacity ?? theme?.maxScrimOpacity ?? 0.45,
+    scrimColor: scrimColor ?? theme?.scrimColor ?? Colors.black,
+    shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
   );
@@ -60,6 +64,8 @@ MorphFlight showMorphSheet(
   MorphMotion? motion,
   bool barrierDismissible = true,
   double? maxScrimOpacity,
+  Color? scrimColor,
+  Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
 }) {
@@ -89,6 +95,8 @@ MorphFlight showMorphSheet(
     motion: motion,
     barrierDismissible: barrierDismissible,
     maxScrimOpacity: maxScrimOpacity,
+    scrimColor: scrimColor,
+    shadowColor: shadowColor,
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
   );
@@ -108,6 +116,8 @@ MorphFlight showMorphDialog(
   MorphMotion? motion,
   bool barrierDismissible = true,
   double? maxScrimOpacity,
+  Color? scrimColor,
+  Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
 }) {
@@ -130,6 +140,8 @@ MorphFlight showMorphDialog(
     motion: motion,
     barrierDismissible: barrierDismissible,
     maxScrimOpacity: maxScrimOpacity,
+    scrimColor: scrimColor,
+    shadowColor: shadowColor,
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
   );
