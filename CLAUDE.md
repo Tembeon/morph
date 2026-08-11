@@ -301,12 +301,14 @@ Flutter-style split, two entrypoints:
   bump, MorphSkin knobs). scrimColor is a hue whose own opacity
   COMPOSES with the animated scrim opacity; shadowColor is applied
   verbatim (opacity included) and resolved by BOTH flights and
-  MorphSkin - one theme value keeps the launch tint-stable, because
-  Material elevation and the skin draw through the same
-  canvas.drawShadow primitive (verified in the 3.44 SDK:
-  RenderPhysicalShape.paint). Unset, each keeps its builtin: 60% black
-  for flights, opaque black for the skin (aligning them changes the
-  current look - an eyeball decision, still open). No new
+  MorphSkin against ONE builtin (60% black) - the tint and darkness
+  hold at launch by default, because Material elevation and the skin
+  draw through the same canvas.drawShadow primitive (verified in the
+  3.44 SDK: RenderPhysicalShape.paint). History: the skin's builtin
+  was opaque black until 2026-08-11; converging DOWN to the flights'
+  0x99 was chosen because skins sit at elevation 2-6 (a subtle
+  lightening) while flights reach 24 (converging up would visibly
+  darken every dialog). No new
   scopes: MorphScope stays an identity/flight registry only. The SAME
   surface model describes both ends of a flight: MorphTargetSpec
   accepts `surface: MorphSurfaceSpec` (winning over its individual

@@ -64,10 +64,9 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   /// Default shadow color, applied verbatim - its opacity is part of
   /// the value.
   ///
-  /// Both flights and [MorphSkin] resolve this slot, so one value keeps
-  /// the shadow tint stable when a piece launches a flight. When unset,
-  /// each keeps its own builtin: 60% black for flights, opaque black
-  /// for the skin.
+  /// Both flights and [MorphSkin] resolve this slot (one builtin, 60%
+  /// black, when unset), so the shadow tint holds when a piece launches
+  /// a flight.
   final Color? shadowColor;
 
   /// Default knob bundle for [MorphSkin]s without a style or explicit

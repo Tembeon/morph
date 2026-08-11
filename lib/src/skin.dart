@@ -293,7 +293,9 @@ class MorphSkin extends StatelessWidget {
   final double elevation;
 
   /// Color of the [elevation] shadow, opacity included; null resolves
-  /// [MorphTheme.shadowColor], then opaque black.
+  /// [MorphTheme.shadowColor], then 60% black - the same builtin
+  /// flights use, so a launch out of a piece keeps its shadow tint
+  /// with no theme installed.
   final Color? shadowColor;
 
   /// The skin bulges past the piece bounds by up to ~k; not clipped by
@@ -315,7 +317,7 @@ class MorphSkin extends StatelessWidget {
       color: color,
       gradient: gradient,
       elevation: elevation,
-      shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0xFF000000),
+      shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
       clipBehavior: clipBehavior,
       scope: MorphScope.maybeOf(context),
       children: <Widget>[

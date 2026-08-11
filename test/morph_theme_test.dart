@@ -284,10 +284,12 @@ void main() {
 
       // The MaterialApp animates theme swaps (AnimatedTheme, 200 ms) and
       // a disappearing extension lerps as "keep the old one": pump the
-      // transition out before reading the resolved builtin.
+      // transition out before reading the resolved builtin. The builtin
+      // is the SAME 60% black flights use - a launch out of a piece
+      // keeps its shadow with no theme installed.
       await tester.pumpWidget(host(child: skin()));
       await tester.pump(const Duration(milliseconds: 250));
-      expect(group().shadowColor, const Color(0xFF000000));
+      expect(group().shadowColor, const Color(0x99000000));
     });
 
     test('copyWith and lerp behave', () {
