@@ -662,7 +662,7 @@ cd example && flutter run -d macos --dart-define=MORPH_AUTODEMO=true
 Every step must be green after each change (analyze from the package
 root also covers example). Animations are judged by eye only by a human
 (the glacial profile is the magnifier mode); agent self-verification is
-the tests (162 in the package + 29 in example) plus the autodemo with no
+the tests (214 in the package + 30 in example) plus the autodemo with no
 EXCEPTION in the log (autodemo: opens the Playground chapter AS a
 morph route - exercising the card flight and the second latch - then a
 dialog flight from a piece -> interruption torture -> 4 keyframe

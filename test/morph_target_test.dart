@@ -43,6 +43,33 @@ void main() {
       expect(above.bottom, lessThan(anchor.top));
     });
 
+    test('content height alone forces the flip above', () {
+      // No safe area anywhere: the flip decision is purely the content
+      // height against the room below the anchor.
+      const Rect anchor = Rect.fromLTWH(100, 420, 80, 40);
+      final MorphTargetSpec spec = MorphTargetSpec.popover(
+        anchor: anchor,
+        size: const Size(200, 220),
+      );
+      final Rect rect = spec.rectFor(const Size(400, 640), EdgeInsets.zero);
+      expect(rect.bottom, lessThan(anchor.top));
+      // The gap is preserved on the flipped side.
+      expect(anchor.top - rect.bottom, 10);
+    });
+
+    test('a popover taller than either side clamps inside the overlay', () {
+      // Neither below nor above fits a 900 px popover: it pins to the
+      // top margin instead of escaping off-screen.
+      final MorphTargetSpec spec = MorphTargetSpec.popover(
+        anchor: const Rect.fromLTWH(100, 300, 80, 40),
+        size: const Size(200, 900),
+      );
+      final Rect rect = spec.rectFor(const Size(400, 640), EdgeInsets.zero);
+      expect(rect.top, 12);
+      expect(rect.left, greaterThanOrEqualTo(12));
+      expect(rect.right, lessThanOrEqualTo(400 - 12));
+    });
+
     test('horizontal safe areas clamp the popover', () {
       final MorphTargetSpec spec = MorphTargetSpec.popover(
         anchor: const Rect.fromLTWH(0, 100, 40, 40),

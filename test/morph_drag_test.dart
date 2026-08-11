@@ -64,6 +64,170 @@ void main() {
     expect(morphDragArm(morphDragCommitDistance + 500), 1);
   });
 
+  group('drag composition functions', () {
+    test('rest passes through untouched', () {
+      expect(morphDragScrimFactor(0, 0), 1);
+      expect(morphDragScale(0, 0), 1);
+    });
+
+    test('recede and arm each deepen the thinning and the recede', () {
+      expect(
+        morphDragScrimFactor(0.5, 0),
+        lessThan(morphDragScrimFactor(0.2, 0)),
+      );
+      expect(
+        morphDragScrimFactor(0.5, 1),
+        lessThan(morphDragScrimFactor(0.5, 0)),
+      );
+      expect(morphDragScale(0.5, 0), lessThan(morphDragScale(0.2, 0)));
+      expect(morphDragScale(0.5, 1), lessThan(morphDragScale(0.5, 0)));
+    });
+
+    test('full recede and arm stay subtle, never degenerate', () {
+      expect(morphDragScrimFactor(1, 1), greaterThan(0));
+      expect(morphDragScale(1, 1), greaterThan(0.8));
+    });
+  });
+
+  testWidgets('appliedDragOffset fades with progress toward the latch', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host());
+    await tester.tap(find.text('go'));
+    await tester.pump();
+    final MorphScopeState scope = tester.state<MorphScopeState>(
+      find.byType(MorphScope),
+    );
+    final MorphFlight flight = scope.flightOf('sheet')!;
+    // A few frames in: airborne, progress strictly inside (0, 1).
+    for (int i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+    final double progress = flight.controller.progress;
+    expect(progress, inExclusiveRange(0, 1));
+    flight
+      ..beginDrag()
+      ..dragBy(const Offset(30, 80));
+    // Below the commit distance no lean applies: the applied offset is
+    // exactly the raw offset scaled by progress, so it vanishes at the
+    // handoff latch and the swap back home happens at zero offset.
+    expect(
+      flight.appliedDragOffset,
+      offsetMoreOrLessEquals(const Offset(30, 80) * progress),
+    );
+    flight.abort();
+  });
+
+  testWidgets('past the commit distance the card leans toward home', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final MorphFlight flight = await openFlight(tester);
+    flight
+      ..beginDrag()
+      ..dragBy(const Offset(0, 250));
+    final Offset raw = flight.dragOffset;
+    expect(morphDragArm(raw.distance), 1);
+    // Fully armed and settled (progress 1): the applied offset carries
+    // exactly the 12 px drift on top of the raw offset.
+    final Offset lean = flight.appliedDragOffset - raw;
+    expect(lean.distance, moreOrLessEquals(12, epsilon: 0.001));
+    // Pointed at the source: the destination of a release is legible
+    // before the release.
+    final Offset toHome =
+        flight.sourceRect.center - (flight.lastTargetRect.center + raw);
+    expect(
+      lean,
+      offsetMoreOrLessEquals(toHome / toHome.distance * 12, epsilon: 0.01),
+    );
+    flight.abort();
+  });
+
+  testWidgets(
+    'the shuttle draws the drag: rigid shift, recede scale, thinner scrim',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(900, 700);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final MorphFlight flight = await openFlight(tester);
+      final Finder shuttle = find.byWidgetPredicate(
+        (Widget w) => w is Material && w.animationDuration == .zero,
+      );
+      final Finder scrim = find.descendant(
+        of: find.byType(BlockSemantics),
+        matching: find.byType(ColoredBox),
+      );
+      final Rect rest = tester.getRect(shuttle);
+      final double restAlpha = tester.widget<ColoredBox>(scrim).color.a;
+
+      // Below the commit distance only the recede plays.
+      flight
+        ..beginDrag()
+        ..dragBy(const Offset(0, 100));
+      await tester.pump();
+      double recede = morphDragRecede(flight.appliedDragOffset.distance);
+      double arm = morphDragArm(flight.dragOffset.distance);
+      expect(arm, 0);
+      Rect dragged = tester.getRect(shuttle);
+      expect(
+        dragged.center,
+        offsetMoreOrLessEquals(rest.center + flight.appliedDragOffset),
+      );
+      expect(
+        dragged.width,
+        moreOrLessEquals(
+          rest.width * morphDragScale(recede, arm),
+          epsilon: 0.1,
+        ),
+      );
+      final double alphaFree = tester.widget<ColoredBox>(scrim).color.a;
+      expect(
+        alphaFree,
+        moreOrLessEquals(
+          restAlpha * morphDragScrimFactor(recede, arm),
+          epsilon: 1e-5,
+        ),
+      );
+
+      // Past the threshold the arm cue deepens both.
+      flight.dragBy(const Offset(0, 120));
+      await tester.pump();
+      recede = morphDragRecede(flight.appliedDragOffset.distance);
+      arm = morphDragArm(flight.dragOffset.distance);
+      expect(arm, 1);
+      dragged = tester.getRect(shuttle);
+      expect(
+        dragged.center,
+        offsetMoreOrLessEquals(rest.center + flight.appliedDragOffset),
+      );
+      expect(
+        dragged.width,
+        moreOrLessEquals(
+          rest.width * morphDragScale(recede, arm),
+          epsilon: 0.1,
+        ),
+      );
+      final double alphaArmed = tester.widget<ColoredBox>(scrim).color.a;
+      expect(
+        alphaArmed,
+        moreOrLessEquals(
+          restAlpha * morphDragScrimFactor(recede, arm),
+          epsilon: 1e-5,
+        ),
+      );
+      expect(alphaArmed, lessThan(alphaFree));
+      flight.abort();
+    },
+  );
+
   testWidgets('isDragArmed previews the distance-based commit', (
     WidgetTester tester,
   ) async {
