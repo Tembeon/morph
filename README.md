@@ -91,7 +91,10 @@ showMorphDialog(context, builder: (context, flight) {
 ```
 
 Motion, scrim and shape come with defaults; scrim tap, Esc and the
-Android back gesture close it. Most screens stop here.
+Android back gesture close it. Most screens stop here. Pass
+`modal: false` when the surface is a tool rather than a dialog: no
+scrim at all, the page underneath stays live (a search field expanding
+over the list it filters).
 (scene [The morph](example/lib/tour/lessons/morph_scene.dart))
 
 **2. State instead of calls** - `MorphAnchor(isOpen: ..., onDismiss:

@@ -16,6 +16,14 @@ analyzer:
 
     # Allow having TODOs in the code.
     todo: info
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 # Additional rule set that aims to:
 # 1. Improve error handling

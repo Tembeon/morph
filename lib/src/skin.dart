@@ -109,6 +109,7 @@ class MorphPiece {
     this.bumpScale = 0.6,
     this.bumpRecoil = 140,
     this.channel,
+    this.tint,
     this.child,
   }) : morphable = false;
 
@@ -127,6 +128,7 @@ class MorphPiece {
     this.bumpScale = 0.6,
     this.bumpRecoil = 140,
     this.channel,
+    this.tint,
     required Widget this.child,
   }) : morphable = true;
 
@@ -158,6 +160,17 @@ class MorphPiece {
   /// subscribes and mirrors the channel's delta onto the mass and the
   /// content with no widget rebuild. See [MorphPieceChannel].
   final MorphPieceChannel? channel;
+
+  /// Ink tint of the piece's own body - a hover/selection wash that is
+  /// PART of the skin, not an overlay approximating it. Painted over
+  /// the skin fill from the piece's RESOLVED geometry, so it stays
+  /// glued to the mass through channel displacement, deflation and the
+  /// landing squash, and an airborne piece (its mass has flown away)
+  /// paints no ink at all. Clipped by the traced silhouette; the neck
+  /// to a neighbor stays untinted - ink soaks the body, not the bond.
+  /// Content paints above the ink, so glyphs stay crisp. Toggling only
+  /// the tint is paint-only: no relayout, no re-trace.
+  final Color? tint;
 
   /// Live content laid out over the piece's [rect].
   final Widget? child;
@@ -533,11 +546,25 @@ class RenderMorphSkin extends RenderBox
           }
           return true;
         }();
+    // Tint is paint-only by contract: a hover wash toggling per frame
+    // must not pay for relayout, re-trace or subscription resync.
+    final bool sameTint =
+        sameGeometry &&
+        () {
+          for (int i = 0; i < value.length; i++) {
+            if (value[i].tint != _pieces[i].tint) {
+              return false;
+            }
+          }
+          return true;
+        }();
     _pieces = value;
     if (!sameGeometry) {
       _syncFlightSubscriptions();
       _syncChannelSubscriptions();
       markNeedsLayout();
+      markNeedsPaint();
+    } else if (!sameTint) {
       markNeedsPaint();
     }
   }
@@ -1149,9 +1176,9 @@ class RenderMorphSkin extends RenderBox
     } else {
       fill.color = _color;
     }
-    canvas
-      ..drawPath(_path, fill)
-      ..restore();
+    canvas.drawPath(_path, fill);
+    _paintTints(canvas, resolved);
+    canvas.restore();
 
     RenderBox? child = firstChild;
     while (child != null) {
@@ -1172,6 +1199,40 @@ class RenderMorphSkin extends RenderBox
         });
       }
       child = pd.nextSibling;
+    }
+  }
+
+  /// Per-piece ink: the tinted piece's own rounded body, filled over
+  /// the skin and clipped by the traced silhouette. The body rect is
+  /// the RESOLVED one - channel displacement, deflation and the landing
+  /// squash are already in - so the ink stays glued to the mass through
+  /// every deformation; an airborne piece is not solid here and paints
+  /// no ink. The rect is inflated by half a grid cell so the quantized
+  /// contour cannot peek out along the rim (the clip guarantees the ink
+  /// never exceeds the mass); necks stay untinted - ink soaks the body,
+  /// not the bond.
+  void _paintTints(Canvas canvas, List<_ResolvedPiece> resolved) {
+    for (final _ResolvedPiece r in resolved) {
+      final Color? tint = r.piece.tint;
+      if (tint == null || !r.solid) {
+        continue;
+      }
+      final Rect rect = r.rect;
+      if (rect.width <= 0 || rect.height <= 0) {
+        continue;
+      }
+      final double pad = _cell / 2;
+      final double half = rect.shortestSide / 2;
+      final double radius =
+          (r.piece.radius > half ? half : r.piece.radius) + pad;
+      canvas
+        ..save()
+        ..clipPath(_path)
+        ..drawRRect(
+          RRect.fromRectAndRadius(rect.inflate(pad), Radius.circular(radius)),
+          Paint()..color = tint,
+        )
+        ..restore();
     }
   }
 

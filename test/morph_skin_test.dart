@@ -1,4 +1,8 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 import 'package:morph/src/skin.dart';
@@ -794,5 +798,100 @@ void main() {
         break;
       }
     }
+  });
+
+  testWidgets('tint-only update is paint-only: no relayout, no resync', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        const MorphSkin(
+          blend: 10,
+          color: Color(0xFF000000),
+          pieces: <MorphPiece>[
+            MorphPiece(id: 'a', rect: .fromLTWH(20, 20, 100, 60)),
+            MorphPiece(id: 'b', rect: .fromLTWH(160, 20, 100, 60)),
+          ],
+        ),
+      ),
+    );
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    expect(skin.debugNeedsPaint, isFalse);
+
+    skin.pieces = const <MorphPiece>[
+      MorphPiece(
+        id: 'a',
+        rect: .fromLTWH(20, 20, 100, 60),
+        tint: Color(0x80FF0000),
+      ),
+      MorphPiece(id: 'b', rect: .fromLTWH(160, 20, 100, 60)),
+    ];
+    expect(skin.debugNeedsPaint, isTrue);
+    expect(skin.debugNeedsLayout, isFalse);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('tint inks only its own body: piece blended, sibling clean', (
+    WidgetTester tester,
+  ) async {
+    const Color base = Color(0xFF000000);
+    const Color tint = Color(0x80FF0000);
+    final GlobalKey boundaryKey = GlobalKey();
+    await tester.pumpWidget(
+      host(
+        RepaintBoundary(
+          key: boundaryKey,
+          child: const MorphSkin(
+            // Well under the 40px gap: the pieces stay separate blobs.
+            blend: 8,
+            color: base,
+            pieces: <MorphPiece>[
+              MorphPiece(
+                id: 'lit',
+                rect: .fromLTWH(20, 20, 100, 60),
+                radius: 12,
+                tint: tint,
+              ),
+              MorphPiece(
+                id: 'calm',
+                rect: .fromLTWH(160, 20, 100, 60),
+                radius: 12,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    final RenderRepaintBoundary boundary =
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
+    late final ui.Image image;
+    await tester.runAsync(() async {
+      image = await boundary.toImage();
+    });
+    ByteData? raw;
+    await tester.runAsync(() async {
+      raw = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    });
+    final ByteData bytes = raw!;
+    Color pixel(int x, int y) {
+      final int i = (y * image.width + x) * 4;
+      return Color.fromARGB(
+        bytes.getUint8(i + 3),
+        bytes.getUint8(i),
+        bytes.getUint8(i + 1),
+        bytes.getUint8(i + 2),
+      );
+    }
+
+    // Center of the tinted piece: tint srcOver base = half red on black.
+    final Color lit = pixel(70, 50);
+    expect(lit.a, 1.0);
+    expect((lit.r * 255).round(), closeTo(128, 3));
+    expect((lit.g * 255).round(), closeTo(0, 3));
+    // The untinted sibling stays pure base.
+    expect(pixel(210, 50), base);
+    image.dispose();
   });
 }

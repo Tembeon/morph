@@ -25,6 +25,11 @@ MorphFlight showMorph(
   required MorphTargetSpec target,
   required MorphContentBuilder builder,
   MorphMotion? motion,
+  // A non-modal flight ([modal] false) mounts no scrim: the page under
+  // the surface stays fully interactive - a tool flying over live
+  // content. Tap-outside dismissal disappears with the scrim; Esc and
+  // the local history entry still close.
+  bool modal = true,
   bool barrierDismissible = true,
   double? maxScrimOpacity,
   Color? scrimColor,
@@ -39,6 +44,7 @@ MorphFlight showMorph(
     target: target,
     builder: builder,
     motion: motion ?? theme?.motion,
+    modal: modal,
     barrierDismissible: barrierDismissible,
     maxScrimOpacity: maxScrimOpacity ?? theme?.maxScrimOpacity ?? 0.45,
     scrimColor: scrimColor ?? theme?.scrimColor ?? Colors.black,

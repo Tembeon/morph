@@ -30,6 +30,7 @@ class MorphFlight {
     required this.tag,
     required this.target,
     required this.builder,
+    required this.modal,
     required this.barrierDismissible,
     required this.maxScrimOpacity,
     required this.scrimColor,
@@ -55,6 +56,18 @@ class MorphFlight {
 
   /// Builds the target content.
   final MorphContentBuilder builder;
+
+  /// Whether the flight is a MODAL overlay. A modal flight (the
+  /// default) mounts the scrim: a pointer-blocking, semantics-blocking
+  /// dimming layer - dialogs, sheets, menus.
+  ///
+  /// A non-modal flight ([modal] false) mounts NO scrim at all: the
+  /// page underneath stays fully interactive while the surface hovers
+  /// over it - a tool flying over live content (an expanding search
+  /// field filtering the list below). No dimming, no tap-outside
+  /// dismissal ([barrierDismissible] has nothing to attach to); Esc
+  /// and the local history entry still close the flight.
+  final bool modal;
 
   /// Whether scrim taps and Esc dismiss the flight.
   final bool barrierDismissible;
@@ -334,6 +347,7 @@ class MorphFlight {
     required MorphTargetSpec target,
     required MorphContentBuilder builder,
     MorphMotion? motion,
+    bool modal = true,
     bool barrierDismissible = true,
     double maxScrimOpacity = 0.45,
     Color scrimColor = Colors.black,
@@ -385,6 +399,7 @@ class MorphFlight {
             tag: scope.tagOf(from),
             target: target,
             builder: builder,
+            modal: modal,
             barrierDismissible: barrierDismissible,
             maxScrimOpacity: maxScrimOpacity,
             scrimColor: scrimColor,
@@ -1124,14 +1139,18 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                   final double arm = morphDragArm(flight.dragOffset.distance);
                   return Stack(
                     children: <Widget>[
-                      Positioned.fill(
-                        child: _ShuttleScrim(
-                          flight: flight,
-                          opacity:
-                              frame.scrimOpacity *
-                              morphDragScrimFactor(recede, arm),
+                      // A non-modal flight mounts no scrim at all: the
+                      // Stack's empty area does not hit-test, so the page
+                      // underneath stays live while the surface hovers.
+                      if (flight.modal)
+                        Positioned.fill(
+                          child: _ShuttleScrim(
+                            flight: flight,
+                            opacity:
+                                frame.scrimOpacity *
+                                morphDragScrimFactor(recede, arm),
+                          ),
                         ),
-                      ),
                       Positioned.fromRect(
                         rect: frame.rect.shift(drag),
                         child: IgnorePointer(
