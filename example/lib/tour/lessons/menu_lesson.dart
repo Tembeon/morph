@@ -202,6 +202,7 @@ class _MenuLessonState extends State<MenuLesson> {
                     blend: _blend,
                     color: _glass,
                     elevation: 3,
+                    contentFilterQuality: FilterQuality.high,
                     pieces: <MorphPiece>[
                       for (int i = 0; i < _pills.length; i++)
                         MorphPiece.morphable(

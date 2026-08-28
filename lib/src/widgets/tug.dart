@@ -8,12 +8,10 @@ import 'package:morph/src/widgets/chase_spring.dart';
 import 'package:motor/motor.dart';
 
 /// The full internal model of a pull, before it is packed for a
-/// consumer: the tether and the growth separately (channel mode
-/// corrects content by the growth), the axis deformations without
-/// the press, and the press sink.
+/// consumer: the tether, the axis deformations without the press, and
+/// the press sink.
 typedef _TugModel = ({
   Offset tether,
-  Offset growth,
   double deformX,
   double deformY,
   double sink,
@@ -37,28 +35,24 @@ typedef _TugModel = ({
 ///   edge would teleport straight to full extension. At rest under a
 ///   motionless finger the tick snaps to the target once and stops
 ///   writing - a held button costs nothing per frame.
-/// - Inside a dead zone ([dead], 0.24 of the side) nothing moves: a
-///   press that is only a press cannot shiver, and breaking free gives
-///   the pull a beginning.
-/// - Past it the offset is `cap * tanh((d - dead) / cap)` along the
-///   same vector, with [cap] only 0.16 of the side. Asymptotic - near
-///   1:1 while small, never a wall. (Deliberately tanh and not the
-///   package's [morphRubberband]: tanh saturates noticeably faster,
-///   and this exact hand feel is the one that was tuned by eye.)
-///   Travel and stretch trade against each other, and the balance here
-///   leans hard toward shape: the surface is being stretched, not
-///   relocated.
+/// - The offset is `d / (1 + d / cap)` along the pull vector, with
+///   [cap] (0.16 of the side) the asymptote it approaches but never
+///   reaches. Hyperbolic rather than tanh: near 1:1 while small and
+///   then endlessly soft, where tanh arrives at its wall and sits
+///   there. Clamped as a VECTOR before any axis split - per-axis
+///   clamping makes the area breathe on a circular sweep. [dead] still
+///   exists but rests at 0: the press scale, not a dead zone, is what
+///   keeps a press from shivering.
 /// - The deformation locks to the SCREEN axes - no ellipse rotated
-///   into the drag. Each axis grows on its own displacement, squared
-///   (`1 + stretch * e^2`), and neither axis ever squashes: the
-///   surface moves as a whole and stretches a little, it does not get
-///   pressed into a lens. The growth extends TOWARD the pull: the
-///   reported offset carries half of each axis's growth (continuous -
-///   `e * |e|`, no sign flip at zero), so the trailing edge stays
-///   planted while the leading edge reaches for the finger. The offset
-///   is clamped as a VECTOR before it splits into axes - per-axis
-///   clamping makes the area breathe on a circular sweep. A small
-///   [lean] rides inside the scale.
+///   into the drag. Both axes first grow by their own share of the
+///   pull (`1 + |stretch| / side`), and then a VOLUME CORRECTION pulls
+///   the product back onto `1 + magnitude * volume`: the surface may
+///   gain area as it is drawn out, but far less than growing both axes
+///   would give it. The cross axis therefore thins while the pulled
+///   one swells - mass being drawn out of a body, not a box being
+///   scaled. The tether rides INSIDE the scale, which is what makes
+///   the leading edge arrive before the trailing edge leaves. A small
+///   [lean] rides inside it too.
 /// - The finger COMPRESSES glass: pointer-down sinks the surface to
 ///   [press] on an overshoot-free spring (popping back out past rest
 ///   is the single most bubble-like thing a button can do).
@@ -86,14 +80,16 @@ class Tug extends StatefulWidget {
   const Tug({
     super.key,
     required this.child,
-    this.dead = 0.24,
+    this.dead = 0,
     this.cap = 0.16,
-    this.stretch = 0.14,
-    this.lean = 3,
+    this.stretch = 0.5,
+    this.volume = 0.5,
+    this.lean = 0,
     this.press = 0.97,
     this.follow = 0.6,
     this.motion,
     this.channel,
+    this.filterQuality,
   });
 
   /// The tuggable surface.
@@ -106,11 +102,15 @@ class Tug extends StatefulWidget {
   /// travel approaches past the dead zone.
   final double cap;
 
-  /// Growth at a full pull as a ratio of the SHORTER side, eased in
-  /// quadratically. Both axes gain the same absolute amount, so a wide
-  /// pill stretches no further than a tall one. A sideways pull widens
-  /// only; a diagonal grows both by half.
+  /// How much of the resisted pull the SHAPE reads, before the volume
+  /// correction. Higher swells more for the same travel.
   final double stretch;
+
+  /// How much total area the surface may gain at full pull, as a
+  /// fraction of the pull magnitude. 0 holds the area constant (the
+  /// pulled axis swells only as far as the cross axis thins); the
+  /// default 0.5 lets it swell half as fast as it is drawn out.
+  final double volume;
 
   /// Peak lean in degrees, signed by the horizontal pull.
   final double lean;
@@ -133,6 +133,20 @@ class Tug extends StatefulWidget {
   /// swaps the tree shape. The channel's value is not reset on
   /// unmount - the owner of the channel owns its value.
   final MorphPieceChannel? channel;
+
+  /// Sampling for the content's scale in PAINT mode, or null to
+  /// transform the canvas.
+  ///
+  /// Null (the default) keeps the child on
+  /// [PaintingContext.pushTransform]: it is drawn straight at the final
+  /// resolution, so text and icons stay vector-crisp at any swell. A
+  /// non-null value moves the subtree onto an [ImageFilterLayer]
+  /// instead - rasterized at its own size and then resampled - which is
+  /// what a raster child being scaled DOWN wants, and what softens
+  /// glyphs being scaled up. Channel mode has its own answer:
+  /// [MorphSkin.contentFilterQuality], because there the skin owns the
+  /// transform.
+  final FilterQuality? filterQuality;
 
   @override
   State<Tug> createState() => _TugState();
@@ -180,29 +194,46 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
   }
 
   _TugModel _model() {
-    final Offset pull = _xy.value;
     // Vector clamp BEFORE the axis split: the chase spring overshoots
     // its own cap following a fast circle, and per-axis clamping would
     // square off the tether's circle.
-    final Offset e0 = pull / _capPx;
-    final double m = e0.distance;
-    final Offset e = m > 1 ? e0 / m : e0;
-    // The growth is an ABSOLUTE amount scaled by the shorter side (a
-    // wide pill must not stretch further than a tall one). Half of
-    // each axis's growth rides the offset, signed by the pull (e * |e|
-    // keeps it continuous through zero): the trailing edge stays
-    // planted and all visible growth reaches toward the finger.
-    final double grow = _side * widget.stretch;
+    final Offset pull = _xy.value;
+    final double len = pull.distance;
+    final Offset clamped = len > _capPx ? pull * (_capPx / len) : pull;
+    final Offset stretchPixels = clamped * widget.stretch;
+    final (double deformX, double deformY) = _liquidScale(
+      stretchPixels,
+      _size,
+      widget.volume,
+    );
     return (
-      tether: pull,
-      growth: Offset(
-        grow * e.dx * e.dx.abs() / 2,
-        grow * e.dy * e.dy.abs() / 2,
-      ),
-      deformX: 1 + grow * e.dx * e.dx / math.max(_size.width, 1),
-      deformY: 1 + grow * e.dy * e.dy / math.max(_size.height, 1),
+      tether: stretchPixels,
+      deformX: deformX,
+      deformY: deformY,
       sink: _press.value,
     );
+  }
+
+  /// Both axes grow by their own share of the pull, then a volume
+  /// correction pulls the product onto a target that grows far slower -
+  /// so the cross axis thins as the pulled one swells.
+  static (double, double) _liquidScale(
+    Offset stretchPixels,
+    Size size,
+    double volume,
+  ) {
+    if (size.isEmpty) {
+      return (1, 1);
+    }
+    final double relX = stretchPixels.dx.abs() / size.width;
+    final double relY = stretchPixels.dy.abs() / size.height;
+    final double baseX = 1 + relX;
+    final double baseY = 1 + relY;
+    final double magnitude = math.sqrt(relX * relX + relY * relY);
+    final double correction = math.sqrt(
+      (1 + magnitude * volume) / (baseX * baseY),
+    );
+    return (baseX * correction, baseY * correction);
   }
 
   void _report() {
@@ -211,10 +242,20 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
       return;
     }
     final _TugModel m = _model();
+    final double scaleX = m.deformX * m.sink;
+    final double scaleY = m.deformY * m.sink;
+    // The content correction goes through the CHANNEL rather than a
+    // Transform around the child. A widget transform here would be a
+    // SECOND animated matrix under the skin's, and the skin can only
+    // freeze its own: glyphs inside would keep re-snapping to a new
+    // subpixel bucket every frame - letters visibly shuffling against
+    // each other - no matter what the skin samples with.
     channel.update(
-      offset: m.tether + m.growth,
-      scaleX: m.deformX * m.sink,
-      scaleY: m.deformY * m.sink,
+      offset: Offset(m.tether.dx * scaleX, m.tether.dy * scaleY),
+      scaleX: scaleX,
+      scaleY: scaleY,
+      contentScaleX: (1 + widget.follow * (m.deformX - 1)) / m.deformX,
+      contentScaleY: (1 + widget.follow * (m.deformY - 1)) / m.deformY,
     );
   }
 
@@ -246,9 +287,8 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
   void _pull(DragUpdateDetails details) {
     final Offset raw = details.globalPosition - _homeCenter;
     final double len = raw.distance;
-    final double applied = len <= _deadPx
-        ? 0
-        : _capPx * _tanh((len - _deadPx) / _capPx);
+    final double free = math.max(len - _deadPx, 0);
+    final double applied = free / (1 + free / _capPx);
     _spring.target = len == 0 ? .zero : raw * (applied / len);
   }
 
@@ -288,17 +328,6 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     _press.animateTo(1);
   }
 
-  static double _tanh(double x) {
-    // exp overflows to infinity near x = 355 and the ratio becomes
-    // NaN - a NaN offset would poison the channel and the skin tracer.
-    // tanh is 1.0 to machine precision long before that.
-    if (x > 20) {
-      return 1;
-    }
-    final double e = math.exp(2 * x);
-    return (e - 1) / (e + 1);
-  }
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -307,54 +336,42 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
       onPanUpdate: _pull,
       onPanEnd: (DragEndDetails details) => _drop(),
       onPanCancel: _drop,
-      child: ListenableBuilder(
-        listenable: _frame,
-        child: widget.child,
-        builder: (BuildContext context, Widget? child) {
-          final _TugModel m = _model();
-          // Channel mode: the skin paints this subtree with the FULL
-          // channel transform (mass and content as one rigid body), so
-          // the raw stretch would deform the content 1:1 and the
-          // growth would read as the glass growing both ways. Correct
-          // from inside by desired/applied: the content rides the
-          // tether alone while the mass reaches for the finger, the
-          // press sinks it in full (sink cancels out of the ratio),
-          // and [follow] of the stretch deforms it.
-          if (widget.channel != null) {
-            final double appliedX = m.deformX * m.sink;
-            final double appliedY = m.deformY * m.sink;
-            return Transform.translate(
-              offset: Offset(-m.growth.dx / appliedX, -m.growth.dy / appliedY),
-              child: Transform.scale(
-                scaleX: (1 + widget.follow * (m.deformX - 1)) / m.deformX,
-                scaleY: (1 + widget.follow * (m.deformY - 1)) / m.deformY,
-                child: child,
-              ),
-            );
-          }
-          // Paint mode. The wrapper chain is structurally IDENTICAL
-          // for every pull, including rest (all transforms degrade to
-          // identity): swapping to a bare child at zero would remount
-          // the subtree, and a MorphTag inside would lose its state
-          // and desync from a live flight.
-          final Offset offset = m.tether + m.growth;
-          return Transform.translate(
-            offset: offset,
-            child: Transform.scale(
-              scaleX: m.deformX * m.sink,
-              scaleY: m.deformY * m.sink,
-              child: Transform.rotate(
-                angle:
-                    widget.lean *
-                    math.pi /
-                    180 *
-                    (offset.dx / _capPx).clamp(-1, 1),
-                child: child,
-              ),
+      // Channel mode owns no widget of its own: the pull, the press and
+      // the content correction are all written into the channel and
+      // applied by the skin. Nothing rebuilds per frame, and the
+      // content sits under exactly ONE animated matrix - the skin's,
+      // which is the one that can be frozen for sampling.
+      child: widget.channel != null
+          ? widget.child
+          : ListenableBuilder(
+              listenable: _frame,
+              child: widget.child,
+              builder: (BuildContext context, Widget? child) {
+                final _TugModel m = _model();
+                // Paint mode. The wrapper chain is structurally
+                // IDENTICAL for every pull, including rest (all
+                // transforms degrade to identity): swapping to a bare
+                // child at zero would remount the subtree, and a
+                // MorphTag inside would lose its state and desync from
+                // a live flight.
+                return Transform.scale(
+                  scaleX: m.deformX * m.sink,
+                  scaleY: m.deformY * m.sink,
+                  filterQuality: widget.filterQuality,
+                  child: Transform.translate(
+                    offset: m.tether,
+                    child: Transform.rotate(
+                      angle:
+                          widget.lean *
+                          math.pi /
+                          180 *
+                          (m.tether.dx / _capPx).clamp(-1, 1),
+                      child: child,
+                    ),
+                  ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 }

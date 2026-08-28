@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -34,6 +35,8 @@ class MorphPieceChannel extends ChangeNotifier {
   Offset _offset = .zero;
   double _scaleX = 1;
   double _scaleY = 1;
+  double _contentScaleX = 1;
+  double _contentScaleY = 1;
 
   /// Translation of the piece's base rect, in group-local px.
   Offset get offset => _offset;
@@ -44,7 +47,16 @@ class MorphPieceChannel extends ChangeNotifier {
   /// Vertical scale about the base rect's center.
   double get scaleY => _scaleY;
 
+  /// Extra horizontal scale applied to the piece's CONTENT only.
+  double get contentScaleX => _contentScaleX;
+
+  /// Extra vertical scale applied to the piece's CONTENT only.
+  double get contentScaleY => _contentScaleY;
+
   /// Whether the channel currently displaces nothing.
+  ///
+  /// Content-only scales are excluded on purpose: they never move mass,
+  /// and a piece whose geometry is at rest must still trace as at rest.
   bool get isIdentity => _offset == .zero && _scaleX == 1 && _scaleY == 1;
 
   /// Writes the delta; omitted fields keep their value. Notifies only
@@ -54,25 +66,51 @@ class MorphPieceChannel extends ChangeNotifier {
   /// births and deaths are mass, not opacity (the selection-blob
   /// pattern). Content of a fully deflated piece paints as nothing and
   /// is skipped by hit testing (the transform degenerates).
-  void update({Offset? offset, double? scaleX, double? scaleY}) {
+  void update({
+    Offset? offset,
+    double? scaleX,
+    double? scaleY,
+    double? contentScaleX,
+    double? contentScaleY,
+  }) {
     assert(scaleX == null || scaleX >= 0, 'channel scaleX cannot be negative.');
     assert(scaleY == null || scaleY >= 0, 'channel scaleY cannot be negative.');
+    assert(
+      contentScaleX == null || contentScaleX >= 0,
+      'channel contentScaleX cannot be negative.',
+    );
+    assert(
+      contentScaleY == null || contentScaleY >= 0,
+      'channel contentScaleY cannot be negative.',
+    );
     final Offset nextOffset = offset ?? _offset;
     final double nextScaleX = scaleX ?? _scaleX;
     final double nextScaleY = scaleY ?? _scaleY;
+    final double nextContentX = contentScaleX ?? _contentScaleX;
+    final double nextContentY = contentScaleY ?? _contentScaleY;
     if (nextOffset == _offset &&
         nextScaleX == _scaleX &&
-        nextScaleY == _scaleY) {
+        nextScaleY == _scaleY &&
+        nextContentX == _contentScaleX &&
+        nextContentY == _contentScaleY) {
       return;
     }
     _offset = nextOffset;
     _scaleX = nextScaleX;
     _scaleY = nextScaleY;
+    _contentScaleX = nextContentX;
+    _contentScaleY = nextContentY;
     notifyListeners();
   }
 
   /// Returns the channel to identity.
-  void reset() => update(offset: .zero, scaleX: 1, scaleY: 1);
+  void reset() => update(
+    offset: .zero,
+    scaleX: 1,
+    scaleY: 1,
+    contentScaleX: 1,
+    contentScaleY: 1,
+  );
 
   /// [base] displaced by the current delta: shifted by [offset], scaled
   /// about its center by [scaleX] and [scaleY].
@@ -244,6 +282,7 @@ class MorphSkin extends StatelessWidget {
     this.elevation = 0,
     this.shadowColor,
     this.clipBehavior = .none,
+    this.contentFilterQuality,
   }) : assert(
          blend == null || blend >= 0,
          'blend (the smin k) is a distance in px and cannot be negative.',
@@ -323,6 +362,23 @@ class MorphSkin extends StatelessWidget {
   /// default.
   final Clip clipBehavior;
 
+  /// Sampling for piece CONTENT under a moving channel, or null to
+  /// transform the canvas.
+  ///
+  /// Null (the default) paints content through
+  /// [PaintingContext.pushTransform]: glyphs land at the final
+  /// resolution and stay vector-crisp. The cost shows up only while a
+  /// piece is in MOTION - the transform differs every frame, so glyph
+  /// origins re-snap to a different subpixel bucket each time and
+  /// letters visibly shuffle against each other.
+  ///
+  /// A non-null value paints content into an [ImageFilterLayer]
+  /// instead: it is rasterized ONCE in its own unchanging local space
+  /// and the channel transform only resamples that raster, so the
+  /// shuffling cannot happen. Text is a little softer while deformed -
+  /// the trade this knob exists to let the caller make.
+  final FilterQuality? contentFilterQuality;
+
   @override
   Widget build(BuildContext context) {
     final MorphTheme? theme = MorphTheme.maybeOf(context);
@@ -340,6 +396,7 @@ class MorphSkin extends StatelessWidget {
       elevation: elevation,
       shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
       clipBehavior: clipBehavior,
+      contentFilterQuality: contentFilterQuality,
       scope: MorphScope.maybeOf(context),
       children: <Widget>[
         // The key by id is mandatory: without keys, removing a piece
@@ -385,6 +442,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
     required this.elevation,
     required this.shadowColor,
     required this.clipBehavior,
+    required this.contentFilterQuality,
     required this.scope,
     required super.children,
   });
@@ -401,6 +459,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
   final double elevation;
   final Color shadowColor;
   final Clip clipBehavior;
+  final FilterQuality? contentFilterQuality;
   final MorphScopeState? scope;
 
   @override
@@ -418,6 +477,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
       elevation: elevation,
       shadowColor: shadowColor,
       clipBehavior: clipBehavior,
+      contentFilterQuality: contentFilterQuality,
       scope: scope,
     );
   }
@@ -437,6 +497,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
       ..elevation = elevation
       ..shadowColor = shadowColor
       ..clipBehavior = clipBehavior
+      ..contentFilterQuality = contentFilterQuality
       ..scope = scope;
   }
 }
@@ -484,6 +545,7 @@ class RenderMorphSkin extends RenderBox
     required this._elevation,
     required this._shadowColor,
     required this._clipBehavior,
+    required this._contentFilterQuality,
     required this._scope,
   });
 
@@ -688,6 +750,18 @@ class RenderMorphSkin extends RenderBox
   set shadowColor(Color value) {
     if (_shadowColor != value) {
       _shadowColor = value;
+      markNeedsPaint();
+    }
+  }
+
+  FilterQuality? _contentFilterQuality;
+
+  /// Sampling for piece content under a moving channel; see
+  /// [MorphSkin.contentFilterQuality].
+  FilterQuality? get contentFilterQuality => _contentFilterQuality;
+  set contentFilterQuality(FilterQuality? value) {
+    if (_contentFilterQuality != value) {
+      _contentFilterQuality = value;
       markNeedsPaint();
     }
   }
@@ -1123,8 +1197,8 @@ class RenderMorphSkin extends RenderBox
     double dy = 0;
     final MorphPieceChannel? channel = piece.channel;
     if (channel != null) {
-      scaleX = channel.scaleX;
-      scaleY = channel.scaleY;
+      scaleX = channel.scaleX * channel.contentScaleX;
+      scaleY = channel.scaleY * channel.contentScaleY;
       dx = channel.offset.dx;
       dy = channel.offset.dy;
     }
@@ -1191,12 +1265,39 @@ class RenderMorphSkin extends RenderBox
         context.paintChild(child, pd.offset + offset);
       } else {
         final RenderBox current = child;
-        context.pushTransform(needsCompositing, pd.offset + offset, transform, (
-          PaintingContext ctx,
-          Offset o,
-        ) {
-          ctx.paintChild(current, o);
-        });
+        final FilterQuality? quality = _contentFilterQuality;
+        if (quality == null) {
+          context.pushTransform(
+            needsCompositing,
+            pd.offset + offset,
+            transform,
+            (PaintingContext ctx, Offset o) {
+              ctx.paintChild(current, o);
+            },
+          );
+        } else {
+          // The filter must act about the child's own origin, so the
+          // paint offset is taken out before the channel transform and
+          // put back after: the raster then lives in a local space that
+          // does not move, which is the whole point - glyphs snap once
+          // instead of once per frame.
+          final Offset o = pd.offset + offset;
+          final Matrix4 local = Matrix4.translationValues(o.dx, o.dy, 0)
+            ..multiply(transform)
+            ..translateByDouble(-o.dx, -o.dy, 0, 1);
+          context.pushLayer(
+            ImageFilterLayer(
+              imageFilter: ui.ImageFilter.matrix(
+                local.storage,
+                filterQuality: quality,
+              ),
+            ),
+            (PaintingContext ctx, Offset inner) {
+              ctx.paintChild(current, inner);
+            },
+            o,
+          );
+        }
       }
       child = pd.nextSibling;
     }

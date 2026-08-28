@@ -76,9 +76,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 80));
     await tester.pump(const Duration(milliseconds: 80));
     await tester.pump(const Duration(milliseconds: 80));
+    // The travel budget is deliberately small: most of the pull is
+    // spent on the deformation rather than on relocating the surface.
     expect(
       (tester.getCenter(find.text('Options')) - start).distance,
-      greaterThan(5),
+      greaterThan(2),
     );
     await gesture.up();
     await settle(tester);

@@ -19,8 +19,11 @@ Flutter-style split, two entrypoints:
   popover anchored to the control's current box, rows cascading via
   MorphReveal, onSelected fires before the close), SpringButton, Tug
   (the glass tether; paint mode transforms above the child, channel
-  mode writes a MorphPieceChannel directly and paints only the content
-  correction inside), MorphSurface/MorphTapTarget (the Material
+  mode writes a MorphPieceChannel directly - INCLUDING the content
+  correction, which used to be a Transform inside: a second animated
+  matrix under the skin's re-snapped glyphs to a new subpixel bucket
+  every frame, and the skin can only freeze its own),
+  MorphSurface/MorphTapTarget (the Material
   adapter and its surface-less sibling), ChaseSpring
   (the moving-target integrator: per-event controller retargets
   starve - a high-frequency mouse restarts the sim before it ticks;
@@ -203,6 +206,12 @@ Flutter-style split, two entrypoints:
   `MorphPiece.channel`) - "frameTicks for pieces". The payload is
   (offset, scaleX, scaleY) over the base rect, applied about its
   center; no rotation by construction (SDF boxes are axis-aligned).
+  Plus (contentScaleX, contentScaleY), which multiply into the CONTENT
+  transform only and are excluded from isIdentity - they never move
+  mass, and a piece whose geometry is at rest must still trace as at
+  rest. They exist so a consumer that wants its content to deform
+  differently from its mass (Tug's `follow`) can say so WITHOUT
+  hanging a second animated Transform under the skin's.
   Scale ZERO is legal and deflates the mass to nothing - births and
   deaths are mass, not opacity (the selection-blob pattern); a
   degenerate content transform paints nothing and hit testing skips

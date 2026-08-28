@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -54,7 +55,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 80));
     await tester.pump(const Duration(milliseconds: 80));
     final Offset pulled = tester.getCenter(find.text('pill'));
-    expect((pulled - home).distance, greaterThan(10));
+    // The travel budget is deliberately small: most of the pull is
+    // spent on the deformation, not on relocating the surface.
+    expect((pulled - home).distance, greaterThan(2));
     expect((pulled - home).distance, lessThan(63));
     // Release: it springs back to exactly home.
     await gesture.up();
@@ -101,7 +104,7 @@ void main() {
     }
     expect(
       (tester.getCenter(find.text('pill')) - home).distance,
-      greaterThan(5),
+      greaterThan(2),
     );
     await gesture.up();
     await settle(tester);
@@ -340,5 +343,102 @@ void main() {
     await settle(tester);
     expect(find.semantics.byLabel('page-text'), findsOne);
     semantics.dispose();
+  });
+
+  testWidgets('Tug in channel mode: repeated drags never walk the home away', (
+    WidgetTester tester,
+  ) async {
+    // The regression: _grab recovers the home center as
+    // `center - channel.offset`. Anything folded into the written
+    // offset is read back as real displacement on the NEXT grab, so the
+    // error compounds and the surface migrates across the screen.
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+
+    const Rect home = Rect.fromLTWH(40, 40, 120, 44);
+    await tester.pumpWidget(
+      host(
+        SizedBox(
+          height: 200,
+          child: MorphScope(
+            child: MorphSkin(
+              color: const Color(0xFF203040),
+              pieces: <MorphPiece>[
+                MorphPiece(
+                  id: 'pill',
+                  rect: home,
+                  radius: 22,
+                  channel: channel,
+                  child: Tug(
+                    channel: channel,
+                    child: const Center(child: Text('pill')),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await settle(tester);
+    final Offset start = tester.getCenter(find.text('pill'));
+
+    for (int round = 0; round < 4; round++) {
+      final TestGesture gesture = await tester.startGesture(
+        tester.getCenter(find.text('pill')),
+      );
+      await gesture.moveBy(const Offset(24, 8));
+      await tester.pump();
+      await gesture.moveBy(const Offset(90, 40));
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.pump(const Duration(milliseconds: 60));
+      await gesture.up();
+      // Re-grab MID-RETURN on purpose: at full rest the channel offset
+      // is zero and a mis-scaled write cannot be told apart from a
+      // correct one. The error only shows when home is recovered from a
+      // surface that is still displaced.
+      await tester.pump(const Duration(milliseconds: 24));
+    }
+    await settle(tester);
+    expect(
+      (tester.getCenter(find.text('pill')) - start).distance,
+      lessThan(1),
+      reason: 'the surface drifted across interrupted drags',
+    );
+    expect(channel.offset.distance, lessThan(1));
+  });
+
+  testWidgets('Tug: a flick never throws the surface off its leash', (
+    WidgetTester tester,
+  ) async {
+    // The landing bump reads the remaining displacement as a spring
+    // value, but it is normalised by the pull that produced it - so a
+    // short drag released fast overshoots past -1 and bumpRecoil, which
+    // is in PIXELS, multiplies that. Unclamped it launched the surface
+    // clean off the screen.
+    await tester.pumpWidget(
+      host(
+        const Tug(
+          cap: 1.4,
+          child: Padding(padding: .all(20), child: Text('pill')),
+        ),
+      ),
+    );
+    final Offset home = tester.getCenter(find.text('pill'));
+    final TestGesture gesture = await tester.startGesture(home);
+    await gesture.moveBy(const Offset(18, 4));
+    await tester.pump();
+    await gesture.moveBy(const Offset(26, 6));
+    await tester.pump(const Duration(milliseconds: 8));
+    await gesture.up();
+    double worst = 0;
+    for (int i = 0; i < 400; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      final double d = (tester.getCenter(find.text('pill')) - home).distance;
+      worst = math.max(worst, d);
+      if (!tester.binding.hasScheduledFrame) break;
+    }
+    expect(worst, lessThan(200), reason: 'the flick threw it $worst px');
+    expect((tester.getCenter(find.text('pill')) - home).distance, lessThan(1));
   });
 }
