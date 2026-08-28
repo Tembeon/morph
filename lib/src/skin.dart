@@ -242,6 +242,43 @@ class MorphLink {
   final double? width;
 }
 
+/// The contour of a skin's mass: a line of [width] px drawn along the
+/// INSIDE of the traced silhouette.
+///
+/// Fill and stroke are the two halves of one material, declared side by
+/// side on [MorphSkin]; the stroke follows the same living path as the
+/// fill, so necks, deformations and flight blobs carry their outline
+/// for free.
+///
+/// The stroke is inner by contract: it never extends past the
+/// silhouette, so turning it on does not optically grow any existing
+/// skin. Note that a line reveals the tracer's polygonization more than
+/// a fill does - a skin that reads faceted under its stroke wants a
+/// finer [MorphSkin.cell], which is a frame-budget decision.
+@immutable
+class MorphStroke {
+  /// Creates a contour of [width] px in [color].
+  const MorphStroke({required this.color, this.width = 1})
+    : assert(width > 0, 'stroke width must be positive.');
+
+  /// Line color, opacity included.
+  final Color color;
+
+  /// Line width in px, measured inward from the silhouette.
+  final double width;
+
+  @override
+  bool operator ==(Object other) {
+    return other is MorphStroke && other.color == color && other.width == width;
+  }
+
+  @override
+  int get hashCode => Object.hash(color, width);
+
+  @override
+  String toString() => 'MorphStroke(color: $color, width: $width)';
+}
+
 /// A group of pieces with one shared "skin": the smooth union of their
 /// SDFs traced into a single [Path] behind live content. Nearby pieces
 /// fuse with a concave fillet on their own; the blend width comes from
@@ -279,6 +316,7 @@ class MorphSkin extends StatelessWidget {
     this.evalBudget = defaultEvalBudget,
     required this.color,
     this.gradient,
+    this.stroke,
     this.elevation = 0,
     this.shadowColor,
     this.clipBehavior = .none,
@@ -349,6 +387,10 @@ class MorphSkin extends StatelessWidget {
   /// surface for morph shuttles of morphable pieces).
   final Gradient? gradient;
 
+  /// Optional contour of the mass, drawn inside the silhouette after
+  /// the fill and the piece tints; null draws none.
+  final MorphStroke? stroke;
+
   /// Shadow of the unified contour: one mass, one shadow.
   final double elevation;
 
@@ -393,6 +435,7 @@ class MorphSkin extends StatelessWidget {
       evalBudget: evalBudget,
       color: color,
       gradient: gradient,
+      stroke: stroke,
       elevation: elevation,
       shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
       clipBehavior: clipBehavior,
@@ -439,6 +482,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
     required this.evalBudget,
     required this.color,
     required this.gradient,
+    required this.stroke,
     required this.elevation,
     required this.shadowColor,
     required this.clipBehavior,
@@ -456,6 +500,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
   final int? evalBudget;
   final Color color;
   final Gradient? gradient;
+  final MorphStroke? stroke;
   final double elevation;
   final Color shadowColor;
   final Clip clipBehavior;
@@ -474,6 +519,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
       evalBudget: evalBudget,
       color: color,
       gradient: gradient,
+      stroke: stroke,
       elevation: elevation,
       shadowColor: shadowColor,
       clipBehavior: clipBehavior,
@@ -494,6 +540,7 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
       ..evalBudget = evalBudget
       ..color = color
       ..gradient = gradient
+      ..stroke = stroke
       ..elevation = elevation
       ..shadowColor = shadowColor
       ..clipBehavior = clipBehavior
@@ -542,6 +589,7 @@ class RenderMorphSkin extends RenderBox
     required this._evalBudget,
     required this._color,
     required this._gradient,
+    required this._stroke,
     required this._elevation,
     required this._shadowColor,
     required this._clipBehavior,
@@ -728,6 +776,18 @@ class RenderMorphSkin extends RenderBox
   set gradient(Gradient? value) {
     if (_gradient != value) {
       _gradient = value;
+      markNeedsPaint();
+    }
+  }
+
+  MorphStroke? _stroke;
+
+  /// The inner contour of the mass; not part of the trace signature,
+  /// so changing it repaints without re-tracing.
+  MorphStroke? get stroke => _stroke;
+  set stroke(MorphStroke? value) {
+    if (_stroke != value) {
+      _stroke = value;
       markNeedsPaint();
     }
   }
@@ -1252,6 +1312,27 @@ class RenderMorphSkin extends RenderBox
     }
     canvas.drawPath(_path, fill);
     _paintTints(canvas, resolved);
+    // The stroke goes LAST: a tint clips itself by the same path, and
+    // painting it over the contour would eat the edge - a tinted piece
+    // would lose its outline exactly while pressed. Inner by clipping:
+    // a centered line would put width/2 outside the silhouette and
+    // optically grow every skin that turns it on, so the line is drawn
+    // at double width and the outer half is clipped away - the mass
+    // geometry does not change.
+    final MorphStroke? stroke = _stroke;
+    if (stroke != null) {
+      canvas
+        ..save()
+        ..clipPath(_path)
+        ..drawPath(
+          _path,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = stroke.width * 2
+            ..color = stroke.color,
+        )
+        ..restore();
+    }
     canvas.restore();
 
     RenderBox? child = firstChild;

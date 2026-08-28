@@ -894,4 +894,98 @@ void main() {
     expect(pixel(210, 50), base);
     image.dispose();
   });
+
+  testWidgets('stroke: inner contour over the tint, nothing outside', (
+    WidgetTester tester,
+  ) async {
+    const Color base = Color(0xFF000000);
+    const Color tint = Color(0xFFFF0000);
+    const Color line = Color(0xFF00FF00);
+    final GlobalKey boundaryKey = GlobalKey();
+    await tester.pumpWidget(
+      host(
+        RepaintBoundary(
+          key: boundaryKey,
+          child: const ColoredBox(
+            color: Color(0xFFFFFFFF),
+            child: MorphSkin(
+              blend: 8,
+              color: base,
+              stroke: MorphStroke(color: line, width: 6),
+              pieces: <MorphPiece>[
+                MorphPiece(
+                  id: 'lit',
+                  rect: .fromLTWH(20, 20, 100, 60),
+                  radius: 12,
+                  tint: tint,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    final RenderRepaintBoundary boundary =
+        boundaryKey.currentContext!.findRenderObject()!
+            as RenderRepaintBoundary;
+    late final ui.Image image;
+    await tester.runAsync(() async {
+      image = await boundary.toImage();
+    });
+    ByteData? raw;
+    await tester.runAsync(() async {
+      raw = await image.toByteData(format: ui.ImageByteFormat.rawRgba);
+    });
+    final ByteData bytes = raw!;
+    Color pixel(int x, int y) {
+      final int i = (y * image.width + x) * 4;
+      return Color.fromARGB(
+        bytes.getUint8(i + 3),
+        bytes.getUint8(i),
+        bytes.getUint8(i + 1),
+        bytes.getUint8(i + 2),
+      );
+    }
+
+    // Just inside the left edge at mid-height: the stroke, NOT the tint
+    // eating it - the paint order is fill, tints, stroke.
+    expect(pixel(23, 50), line);
+    // Well inside: the tint over the fill, untouched by the stroke.
+    expect(pixel(70, 50), tint);
+    // Outside the silhouette: the ground shows through - the stroke is
+    // inner and cannot grow the mass.
+    expect(pixel(12, 50), const Color(0xFFFFFFFF));
+    image.dispose();
+  });
+
+  testWidgets('stroke update is paint-only: no relayout, no re-trace', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        const MorphSkin(
+          blend: 10,
+          color: Color(0xFF000000),
+          pieces: <MorphPiece>[
+            MorphPiece(id: 'a', rect: .fromLTWH(20, 20, 100, 60)),
+            MorphPiece(id: 'b', rect: .fromLTWH(160, 20, 100, 60)),
+          ],
+        ),
+      ),
+    );
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    final int misses = skin.tracer.lastMissCount;
+    final int clusters = skin.tracer.lastClusterCount;
+    expect(skin.debugNeedsPaint, isFalse);
+
+    skin.stroke = const MorphStroke(color: Color(0xFFFFFFFF), width: 2);
+    expect(skin.debugNeedsPaint, isTrue);
+    expect(skin.debugNeedsLayout, isFalse);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    // The stroke is not part of the trace signature: the cached contour
+    // survives and the tracer never runs again.
+    expect(skin.tracer.lastMissCount, misses);
+    expect(skin.tracer.lastClusterCount, clusters);
+  });
 }

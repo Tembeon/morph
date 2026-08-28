@@ -65,6 +65,7 @@
 /// {@canonicalFor skin.MorphPiece}
 /// {@canonicalFor skin.MorphPieceChannel}
 /// {@canonicalFor skin.MorphSkin}
+/// {@canonicalFor skin.MorphStroke}
 /// {@canonicalFor target.MorphTargetSpec}
 /// {@canonicalFor target.morphAnchorRect}
 /// {@canonicalFor target.maybeMorphAnchorRect}
@@ -88,7 +89,8 @@ export 'src/frame.dart'
         morphLandingBump,
         uniformMorphRadius;
 export 'src/gesture.dart';
-export 'src/skin.dart' show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin;
+export 'src/skin.dart'
+    show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin, MorphStroke;
 export 'src/liquid_field.dart' show MorphMass, MorphSkinStyle;
 export 'src/reveal.dart';
 export 'src/route.dart' show MorphPageRoute, showMorphRoute;
