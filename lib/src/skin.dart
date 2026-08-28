@@ -35,8 +35,6 @@ class MorphPieceChannel extends ChangeNotifier {
   Offset _offset = .zero;
   double _scaleX = 1;
   double _scaleY = 1;
-  double _contentScaleX = 1;
-  double _contentScaleY = 1;
 
   /// Translation of the piece's base rect, in group-local px.
   Offset get offset => _offset;
@@ -47,16 +45,7 @@ class MorphPieceChannel extends ChangeNotifier {
   /// Vertical scale about the base rect's center.
   double get scaleY => _scaleY;
 
-  /// Extra horizontal scale applied to the piece's CONTENT only.
-  double get contentScaleX => _contentScaleX;
-
-  /// Extra vertical scale applied to the piece's CONTENT only.
-  double get contentScaleY => _contentScaleY;
-
   /// Whether the channel currently displaces nothing.
-  ///
-  /// Content-only scales are excluded on purpose: they never move mass,
-  /// and a piece whose geometry is at rest must still trace as at rest.
   bool get isIdentity => _offset == .zero && _scaleX == 1 && _scaleY == 1;
 
   /// Writes the delta; omitted fields keep their value. Notifies only
@@ -66,51 +55,25 @@ class MorphPieceChannel extends ChangeNotifier {
   /// births and deaths are mass, not opacity (the selection-blob
   /// pattern). Content of a fully deflated piece paints as nothing and
   /// is skipped by hit testing (the transform degenerates).
-  void update({
-    Offset? offset,
-    double? scaleX,
-    double? scaleY,
-    double? contentScaleX,
-    double? contentScaleY,
-  }) {
+  void update({Offset? offset, double? scaleX, double? scaleY}) {
     assert(scaleX == null || scaleX >= 0, 'channel scaleX cannot be negative.');
     assert(scaleY == null || scaleY >= 0, 'channel scaleY cannot be negative.');
-    assert(
-      contentScaleX == null || contentScaleX >= 0,
-      'channel contentScaleX cannot be negative.',
-    );
-    assert(
-      contentScaleY == null || contentScaleY >= 0,
-      'channel contentScaleY cannot be negative.',
-    );
     final Offset nextOffset = offset ?? _offset;
     final double nextScaleX = scaleX ?? _scaleX;
     final double nextScaleY = scaleY ?? _scaleY;
-    final double nextContentX = contentScaleX ?? _contentScaleX;
-    final double nextContentY = contentScaleY ?? _contentScaleY;
     if (nextOffset == _offset &&
         nextScaleX == _scaleX &&
-        nextScaleY == _scaleY &&
-        nextContentX == _contentScaleX &&
-        nextContentY == _contentScaleY) {
+        nextScaleY == _scaleY) {
       return;
     }
     _offset = nextOffset;
     _scaleX = nextScaleX;
     _scaleY = nextScaleY;
-    _contentScaleX = nextContentX;
-    _contentScaleY = nextContentY;
     notifyListeners();
   }
 
   /// Returns the channel to identity.
-  void reset() => update(
-    offset: .zero,
-    scaleX: 1,
-    scaleY: 1,
-    contentScaleX: 1,
-    contentScaleY: 1,
-  );
+  void reset() => update(offset: .zero, scaleX: 1, scaleY: 1);
 
   /// [base] displaced by the current delta: shifted by [offset], scaled
   /// about its center by [scaleX] and [scaleY].
@@ -1257,8 +1220,8 @@ class RenderMorphSkin extends RenderBox
     double dy = 0;
     final MorphPieceChannel? channel = piece.channel;
     if (channel != null) {
-      scaleX = channel.scaleX * channel.contentScaleX;
-      scaleY = channel.scaleY * channel.contentScaleY;
+      scaleX = channel.scaleX;
+      scaleY = channel.scaleY;
       dx = channel.offset.dx;
       dy = channel.offset.dy;
     }

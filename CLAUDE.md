@@ -18,11 +18,25 @@ Flutter-style split, two entrypoints:
   chapter-04 pattern as one call: a control becomes its own menu,
   popover anchored to the control's current box, rows cascading via
   MorphReveal, onSelected fires before the close), SpringButton, Tug
-  (the glass tether; paint mode transforms above the child, channel
-  mode writes a MorphPieceChannel directly - INCLUDING the content
-  correction, which used to be a Transform inside: a second animated
-  matrix under the skin's re-snapped glyphs to a new subpixel bucket
-  every frame, and the skin can only freeze its own),
+  (the liquid-glass surface model, calibrated against Kyant0's
+  LiquidButton - the reference the owner's eye accepted. ONE DOF: the
+  RAW pull on the chase spring; every visual is a pure function of its
+  (value, velocity). Travel = capM*tanh(give*d/capM), give 0.05 - a
+  few percent transmission, asymptote a whole side away, no wall; the
+  SHAPE reads the raw pull at `stretch` gain plus velocity*`jiggle`,
+  saturated on one ceiling, volume-corrected - flesh answers more
+  than the body moves; pointer-down LIFTS by `pressGrow` px on a
+  half-bounce ~360ms spring (negative sinks - ink); return rides the
+  same spring family, the wobbling offset deforms the shape for free.
+  Gesture layer is a raw Listener OUT of the arena: selectors and
+  scrollables inside win their drags while the body reads the finger
+  in parallel; non-primary buttons ignored. `vertical` gates the
+  whole vertical response (input AND scaleY - bars pin their height);
+  past a 2:1 aspect the transmission fades by min(1, 2M/L), so wide
+  chrome whispers by itself. Paint mode transforms above the child;
+  channel mode writes the MorphPieceChannel and paints nothing -
+  content rides the mass 1:1, ink cannot slide; glyph crispness under
+  the moving matrix is MorphSkin.contentFilterQuality),
   MorphSurface/MorphTapTarget (the Material
   adapter and its surface-less sibling), ChaseSpring
   (the moving-target integrator: per-event controller retargets
@@ -206,12 +220,10 @@ Flutter-style split, two entrypoints:
   `MorphPiece.channel`) - "frameTicks for pieces". The payload is
   (offset, scaleX, scaleY) over the base rect, applied about its
   center; no rotation by construction (SDF boxes are axis-aligned).
-  Plus (contentScaleX, contentScaleY), which multiply into the CONTENT
-  transform only and are excluded from isIdentity - they never move
-  mass, and a piece whose geometry is at rest must still trace as at
-  rest. They exist so a consumer that wants its content to deform
-  differently from its mass (Tug's `follow`) can say so WITHOUT
-  hanging a second animated Transform under the skin's.
+  (contentScaleX/Y existed briefly for Tug's `follow` content
+  correction and died with it in the apple-feel rewrite: ink lies on
+  the body and cannot slide, so content deforms with the mass 1:1 -
+  a partial-follow knob was the absence of a property, not a knob.)
   Scale ZERO is legal and deflates the mass to nothing - births and
   deaths are mass, not opacity (the selection-blob pattern); a
   degenerate content transform paints nothing and hit testing skips
@@ -234,8 +246,8 @@ Flutter-style split, two entrypoints:
   the base position while the pill visibly stands elsewhere. Transient
   motion commits into the base rect at rest (the sandbox pattern:
   dragBy writes the channel, endDrag commits and resets - one rebuild
-  per gesture). Consumers: Tug's channel mode (writes the full pull
-  and paints only the desired/applied content correction inside),
+  per gesture). Consumers: Tug's channel mode (writes the full pull;
+  the widget itself paints nothing),
   the sandbox drag, the stress orbits, the dock/selector selection
   blobs and the toolbar merge. The companion pattern for CONTENT whose
   values derive from the same spring (label emphasis, icon
@@ -589,14 +601,18 @@ Hard-won rules already enforced in the core:
 ## Invariants (never break these)
 
 1. **Every visual property is a pure SYMMETRIC function of a single
-   spring value.** No direction-dependent curves, no wall-clock time.
+   spring's STATE - (value, velocity).** No direction-dependent curves,
+   no wall-clock time.
    This yields interruption continuity by construction. Any feature that
    breaks this is rejected. Precisely: ONE SPRING PER DEGREE OF FREEDOM.
    The gesture displacement is a second, ORTHOGONAL DOF with its own
    always-to-zero spring; each DOF stays pure and continuous, and their
-   superposition preserves the guarantee. What stays forbidden is two
+   superposition preserves the guarantee. Reading the spring's VELOCITY
+   is legal (Tug's jiggle: the derivative of the one driver, itself
+   continuous) - it is not a second clock. What stays forbidden is two
    clocks driving the SAME property (the buried "position leads, size
-   follows").
+   follows", or a separate lagging spring whose target is fed from the
+   first - that one keeps ringing after the driver stops).
 2. Retarget = a new simulation starting from the current (value,
    velocity). One active flight per tag; re-showing retargets it.
 3. Handoff latch: the shuttle-to-widget swap happens exactly on the
@@ -640,6 +656,19 @@ Hard-won rules already enforced in the core:
   Geometry is linear in the value; character comes from physics.
 - **MotionController from motor**: its settle semantics conflict with
   the handoff latch. Only Motion-as-simulation-factory is used.
+  (Widgets-layer recipes DO ride Motion/SingleMotionControllers - the
+  conflict is engine-flight-specific.)
+- **Kyant0's five-spring DampedDrag for BUTTONS** (position spring +
+  underdamped velocity-smoothing spring + per-axis scale springs, the
+  2026-08-26 full port): the velocity spring keeps ringing after the
+  position stops, and shape read from it wobbles a settled surface.
+  That model belongs to VALUE CONTROLS (slider thumbs, tab lenses) in
+  its home library; buttons read shape from the pull's own (x, v).
+  Same session, also rejected for Tug: phase-dependent motion swaps
+  (interactiveSpring while dragging, bouncySpring after - reads as two
+  different speeds) and morphLandingBump on manual release (`along`
+  normalizes on the initial displacement, overshoots past -1, and
+  bumpRecoil is in PIXELS - buttons flew across the screen).
 - **anchorScale** in the frame: dead remnant of a two-blob model,
   removed.
 - Built-in gesture driving, text/layout morphing, glass effects - out

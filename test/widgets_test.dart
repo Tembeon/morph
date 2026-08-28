@@ -1,8 +1,14 @@
 import 'dart:math' as math;
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
+
+double _tanh(double x) {
+  final double e = math.exp(2 * x);
+  return (e - 1) / (e + 1);
+}
 
 Widget host(Widget child) {
   return MaterialApp(
@@ -48,15 +54,16 @@ void main() {
     final TestGesture gesture = await tester.startGesture(home);
     await gesture.moveBy(const Offset(20, 5));
     await tester.pump();
-    await gesture.moveBy(const Offset(60, 20));
+    await gesture.moveBy(const Offset(140, 40));
     // The offset chases the finger on a follow spring - give it a few
     // frames to arrive before measuring.
     await tester.pump(const Duration(milliseconds: 80));
     await tester.pump(const Duration(milliseconds: 80));
     await tester.pump(const Duration(milliseconds: 80));
     final Offset pulled = tester.getCenter(find.text('pill'));
-    // The travel budget is deliberately small: most of the pull is
-    // spent on the deformation, not on relocating the surface.
+    // The travel budget is deliberately tiny: the transmission is a few
+    // percent (heavier still here - the 300px-wide host is past the 2:1
+    // aspect and calms itself), and the pull mostly feeds the shape.
     expect((pulled - home).distance, greaterThan(2));
     expect((pulled - home).distance, lessThan(63));
     // Release: it springs back to exactly home.
@@ -343,6 +350,170 @@ void main() {
     await settle(tester);
     expect(find.semantics.byLabel('page-text'), findsOne);
     semantics.dispose();
+  });
+
+  testWidgets('Tug parity: the settled model matches the reference math', (
+    WidgetTester tester,
+  ) async {
+    // The oracle is the liquid-glass reference (Kyant0's LiquidButton
+    // ported): travel = capM * tanh(give * d / capM) on the RAW pull,
+    // shape at [stretch] gain saturated on 0.35 * M, volume-corrected
+    // scales, the travel riding inside the scale. Written here
+    // independently so a regression in the widget cannot hide in a
+    // shared implementation.
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: Tug(
+              channel: channel,
+              pressGrow: 0,
+              child: const Center(child: Text('pill')),
+            ),
+          ),
+        ),
+      ),
+    );
+    final Offset home = tester.getCenter(find.text('pill'));
+    final TestGesture gesture = await tester.startGesture(home);
+    await gesture.moveBy(const Offset(20, 5));
+    await tester.pump();
+    await gesture.moveBy(const Offset(60, 20));
+    // Hold until the chase snaps exactly onto the target (the rest
+    // guard) - the model is then a pure function of the resting pull.
+    for (int i = 0; i < 50; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+
+    const Offset pull = Offset(80, 25);
+    const double m = 100;
+    final double len = pull.distance;
+    final double travelLen = m * _tanh(0.05 * len / m);
+    final Offset travel = pull * (travelLen / len);
+    Offset shape = pull * 0.08;
+    final double ceiling = 0.35 * m;
+    final double shapeLen = shape.distance;
+    shape = shape * (ceiling * _tanh(shapeLen / ceiling) / shapeLen);
+    final double relX = shape.dx.abs() / m;
+    final double relY = shape.dy.abs() / m;
+    final double baseX = 1 + relX;
+    final double baseY = 1 + relY;
+    final double mag = math.sqrt(relX * relX + relY * relY);
+    final double correction = math.sqrt((1 + mag * 0.5) / (baseX * baseY));
+    final double scaleX = baseX * correction;
+    final double scaleY = baseY * correction;
+
+    expect(channel.scaleX, closeTo(scaleX, 0.002));
+    expect(channel.scaleY, closeTo(scaleY, 0.002));
+    expect(channel.offset.dx, closeTo(travel.dx * scaleX, 0.05));
+    expect(channel.offset.dy, closeTo(travel.dy * scaleY, 0.05));
+    await gesture.up();
+    await settle(tester);
+    expect(channel.offset.distance, lessThan(0.5));
+  });
+
+  testWidgets('Tug: pointer-down lifts the glass and release settles it', (
+    WidgetTester tester,
+  ) async {
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: Tug(
+              channel: channel,
+              child: const Center(child: Text('pill')),
+            ),
+          ),
+        ),
+      ),
+    );
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.text('pill')),
+    );
+    // Two pumps: the first tick of a freshly started ticker evaluates
+    // at t = 0 (Ticker.elapsed restarts on start), only the second one
+    // advances the press spring.
+    await tester.pump(const Duration(milliseconds: 16));
+    await tester.pump(const Duration(milliseconds: 150));
+    // The finger LIFTS glass: the surface grows, it does not sink.
+    expect(channel.scaleX, greaterThan(1.02));
+    expect(channel.scaleY, greaterThan(1.02));
+    await gesture.up();
+    await settle(tester);
+    expect(channel.scaleX, closeTo(1, 0.005));
+    expect(channel.scaleY, closeTo(1, 0.005));
+  });
+
+  testWidgets('Tug: vertical 0 pins the height and the vertical travel', (
+    WidgetTester tester,
+  ) async {
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: Tug(
+              channel: channel,
+              vertical: 0,
+              child: const Center(child: Text('pill')),
+            ),
+          ),
+        ),
+      ),
+    );
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.text('pill')),
+    );
+    await gesture.moveBy(const Offset(40, 40));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.pump(const Duration(milliseconds: 80));
+    expect(channel.offset.dx, greaterThan(0.5));
+    expect(channel.offset.dy, 0);
+    expect(channel.scaleY, 1);
+    await gesture.up();
+    await settle(tester);
+  });
+
+  testWidgets('Tug: a non-primary button neither presses nor pulls', (
+    WidgetTester tester,
+  ) async {
+    final MorphPieceChannel channel = MorphPieceChannel();
+    addTearDown(channel.dispose);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Center(
+          child: SizedBox(
+            width: 100,
+            height: 100,
+            child: Tug(
+              channel: channel,
+              child: const Center(child: Text('pill')),
+            ),
+          ),
+        ),
+      ),
+    );
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.text('pill')),
+      kind: PointerDeviceKind.mouse,
+      buttons: kSecondaryButton,
+    );
+    await gesture.moveBy(const Offset(40, 10));
+    await tester.pump(const Duration(milliseconds: 120));
+    expect(channel.isIdentity, isTrue);
+    await gesture.up();
+    await settle(tester);
   });
 
   testWidgets('Tug in channel mode: repeated drags never walk the home away', (
