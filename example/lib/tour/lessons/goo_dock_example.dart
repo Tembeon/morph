@@ -1,32 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
+import 'package:morph_example/ui/pill_physics.dart';
 import 'package:motor/motor.dart';
 
 /// The liquid-selection scene: a feed app whose tab dock is one fused
-/// mass, with the selection blob riding a spring between slots - the
-/// neck stretches toward the new tab, rips, and the blob lands with
-/// the spring's own character. Tapping mid-flight retargets with
-/// velocity carry-over.
+/// mass, with the selection blob gliding between slots on the
+/// reference pill spring - the neck stretches toward the new tab,
+/// rips, and the blob deforms by its own ACCELERATION ([MorphSquash]):
+/// the launch stretches it along the travel, the arrival squashes it,
+/// and the same force model keeps working through every mid-flight
+/// retarget (velocity carry-over included).
 ///
-/// The blob rides its piece geometry channel: the spring tick writes
-/// an offset and the skin re-traces - no widget rebuilds per frame.
-/// setState fires only on the actual selection change (icon tints and
-/// the feed swap).
+/// The blob rides its piece geometry channel: the scene's ticker
+/// samples the spring, feeds the squash tracker and writes the channel
+/// - no widget rebuilds per frame. setState fires only on the actual
+/// selection change (icon tints and the feed swap).
 class GooDockExample extends StatefulWidget {
   /// Creates the chapter scene.
-  const GooDockExample({super.key, required this.motion});
-
-  /// Motion profile of the selection spring.
-  final MorphMotion motion;
+  const GooDockExample({super.key});
 
   @override
   State<GooDockExample> createState() => _GooDockExampleState();
 }
 
 class _GooDockExampleState extends State<GooDockExample>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const List<(IconData, String)> _tabs = <(IconData, String)>[
     (Icons.home_rounded, 'For you'),
     (Icons.search_rounded, 'Search'),
@@ -40,22 +41,16 @@ class _GooDockExampleState extends State<GooDockExample>
   static const double _dockWidth = _slot * 5;
 
   late final SingleMotionController _x = SingleMotionController(
-    motion: widget.motion.closeMotion,
+    motion: pillGlide,
     vsync: this,
     initialValue: _slotCenter(0),
   );
   final MorphPieceChannel _blob = MorphPieceChannel();
+  final MorphSquash _squash = MorphSquash();
+  late final Ticker _ticker = createTicker(_tick);
+  final Stopwatch _clock = Stopwatch()..start();
+  double _clockLast = 0;
   int _selected = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    // The spring drives the channel, the channel drives the mass: the
-    // dock's per-frame path never touches the widget tree.
-    _x.addListener(
-      () => _blob.update(offset: Offset(_x.value - _slotCenter(0), 0)),
-    );
-  }
 
   static double _slotCenter(int index) => _slot * index + _slot / 2;
 
@@ -66,13 +61,41 @@ class _GooDockExampleState extends State<GooDockExample>
     // Retarget from the CURRENT position and velocity - the same
     // interruption contract as the flights (SingleMotionController
     // carries the velocity over on its own).
-    _x
-      ..motion = widget.motion.closeMotion
-      ..animateTo(_slotCenter(index));
+    _x.animateTo(_slotCenter(index));
+    if (!_ticker.isActive) {
+      // A fresh run must not deform from the previous glide's history.
+      _squash.reset();
+      _clockLast = _clock.elapsedMicroseconds / 1e6;
+      _ticker.start();
+    }
+  }
+
+  /// The per-frame path: sample the spring, feed the squash tracker,
+  /// write the channel. The ticker outlives the spring on purpose -
+  /// the deformation drains through its own window AFTER the landing -
+  /// and stops itself once both are quiet. The clock is the scene's
+  /// own stopwatch: Ticker.elapsed restarts on every start().
+  void _tick(Duration elapsed) {
+    final double now = _clock.elapsedMicroseconds / 1e6;
+    final double dt = now - _clockLast;
+    _clockLast = now;
+    if (dt <= 0) {
+      return;
+    }
+    _squash.track(Offset(_x.value, 0), now: now, dt: dt);
+    _blob.update(
+      offset: Offset(_x.value - _slotCenter(0), 0),
+      scaleX: _squash.scaleX,
+      scaleY: _squash.scaleY,
+    );
+    if (!_x.isAnimating && _squash.isSettled) {
+      _ticker.stop();
+    }
   }
 
   @override
   void dispose() {
+    _ticker.dispose();
     _x.dispose();
     _blob.dispose();
     super.dispose();
@@ -86,9 +109,10 @@ class _GooDockExampleState extends State<GooDockExample>
         children: <Widget>[
           PanelHint(
             'Tap tabs - fast. The blob is MASS shared with the dock: the '
-            'neck stretches, rips, and lands with the spring\'s own '
-            'bounce, and every mid-flight tap retargets from the current '
-            'position and velocity.',
+            'neck stretches and rips, the launch stretches the blob '
+            'along its travel and the arrival squashes it - deformation '
+            'from FORCE, not from motion - and every mid-flight tap '
+            'retargets from the current position and velocity.',
           ),
           PanelHint(
             'One MorphSkin, one channel write per frame: the dock body, '

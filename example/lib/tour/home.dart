@@ -81,7 +81,7 @@ class TourHome extends StatelessWidget {
           icon: Icons.water_drop_rounded,
           title: 'Liquid selection',
           tagline: 'What if selection were mass?',
-          demo: (BuildContext context) => const GooDockExample(motion: _speed),
+          demo: (BuildContext context) => const GooDockExample(),
         ),
         Lesson(
           id: 'lesson-chips',

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
+import 'package:morph_example/ui/pill_physics.dart';
 import 'package:motor/motor.dart';
 
 /// The lab's segmented control, rebuilt on the liquid engine: one skin
-/// fuses a track with a selection blob riding a spring between
-/// slots - slightly proud of the track so the bulge reads on the
-/// silhouette, necking through the goo on the way. Tapping mid-flight
+/// fuses a track with a selection blob gliding between slots on the
+/// reference pill spring - slightly proud of the track so the bulge
+/// reads on the silhouette, necking through the goo on the way, and
+/// deformed by its own acceleration ([MorphSquash]: launch stretches,
+/// arrival squashes). Tapping mid-flight
 /// retargets with velocity carry-over (motor's [SingleMotionController]
 /// does that for free); a null selection deflates the blob to nothing
 /// (mass, not opacity - channel scale zero). Label emphasis is a pure
@@ -51,6 +55,10 @@ class _GooSelectorState extends State<GooSelector>
     initialValue: widget.index == null ? 0 : 1,
   );
   final MorphPieceChannel _blob = MorphPieceChannel();
+  final MorphSquash _squash = MorphSquash();
+  late final Ticker _ticker = createTicker(_tick);
+  final Stopwatch _clock = Stopwatch()..start();
+  double _clockLast = 0;
   double _width = 0;
 
   @override
@@ -61,10 +69,29 @@ class _GooSelectorState extends State<GooSelector>
 
   @override
   void dispose() {
+    _ticker.dispose();
     _x?.dispose();
     _scale.dispose();
     _blob.dispose();
     super.dispose();
+  }
+
+  /// Samples the glide into the squash tracker and re-aims the blob;
+  /// keeps ticking until the spring AND the drained deformation are
+  /// both quiet. The clock is the widget's own stopwatch:
+  /// Ticker.elapsed restarts on every start().
+  void _tick(Duration elapsed) {
+    final double now = _clock.elapsedMicroseconds / 1e6;
+    final double dt = now - _clockLast;
+    _clockLast = now;
+    if (dt <= 0 || _x == null) {
+      return;
+    }
+    _squash.track(Offset(_x!.value, 0), now: now, dt: dt);
+    _syncBlob();
+    if (!_x!.isAnimating && _squash.isSettled) {
+      _ticker.stop();
+    }
   }
 
   double _slotCenter(int index) {
@@ -82,8 +109,8 @@ class _GooSelectorState extends State<GooSelector>
     final double scale = _scale.value < 0 ? 0 : _scale.value;
     _blob.update(
       offset: Offset(_x!.value - _width / 2, 0),
-      scaleX: scale,
-      scaleY: scale,
+      scaleX: scale * _squash.scaleX,
+      scaleY: scale * _squash.scaleY,
     );
   }
 
@@ -94,6 +121,12 @@ class _GooSelectorState extends State<GooSelector>
       final int? index = widget.index;
       if (index != null) {
         _x?.animateTo(_slotCenter(index));
+        if (!_ticker.isActive) {
+          // A fresh glide must not deform from stale history.
+          _squash.reset();
+          _clockLast = _clock.elapsedMicroseconds / 1e6;
+          _ticker.start();
+        }
       }
       _scale.animateTo(index == null ? 0 : 1);
     }
@@ -110,7 +143,7 @@ class _GooSelectorState extends State<GooSelector>
           _width = constraints.maxWidth;
           // The position spring needs a laid-out slot to be born in.
           _x ??= SingleMotionController(
-            motion: MorphMotion.normal.closeMotion,
+            motion: pillGlide,
             vsync: this,
             initialValue: _slotCenter(widget.index ?? 0),
           )..addListener(_syncBlob);

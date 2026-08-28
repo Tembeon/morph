@@ -42,11 +42,17 @@ class _MenuLessonState extends State<MenuLesson> {
   // scene (goo's 42 suits dock-scale bodies; button-scale UI wants
   // less). Here it demoes the floating-button-near-a-bar case: the
   // pills rest 17 px apart with blend 14 - just far enough to stay
-  // provably separate and out of each other's launch fellowship - and
-  // they ride a longer leash (cap 0.28) so a full tug can push one
-  // into the other: contact, not just a neck.
+  // provably separate and out of each other's launch fellowship, and
+  // close enough that a real pull's few px of travel brings the gap
+  // under the blend: the skin necks them into one body. The tether
+  // itself rides the package defaults - the liquid-glass reference
+  // feel - and the panel knobs expose the material for calibration.
   static const double _blend = 14;
-  static const double _tugCap = 0.28;
+
+  double _give = 0.05;
+  double _stretch = 0.08;
+  double _jiggle = 0.003;
+  double _pressGrow = 4;
 
   static const List<_Pill> _pills = <_Pill>[
     (
@@ -79,14 +85,10 @@ class _MenuLessonState extends State<MenuLesson> {
 
   // Each pill's tug writes its geometry channel directly: the skin
   // re-traces the displaced mass on every frame of a drag with no
-  // lesson rebuild at all - the pieces list below is built once.
+  // lesson rebuild at all - only the material knobs rebuild the pills.
   final Map<String, MorphPieceChannel> _channels = <String, MorphPieceChannel>{
     for (final _Pill pill in _pills) pill.id: MorphPieceChannel(),
   };
-
-  late final List<Widget> _contents = <Widget>[
-    for (final _Pill pill in _pills) _pillContent(pill),
-  ];
 
   String _lastAction = 'nothing yet';
 
@@ -130,7 +132,10 @@ class _MenuLessonState extends State<MenuLesson> {
   Widget _pillContent(_Pill pill) {
     return Tug(
       motion: widget.motion,
-      cap: _tugCap,
+      give: _give,
+      stretch: _stretch,
+      jiggle: _jiggle,
+      pressGrow: _pressGrow,
       channel: _channels[pill.id],
       // The skin IS the surface ("one mass - one shadow"): the piece
       // content carries no Material of its own - a second surface
@@ -168,9 +173,49 @@ class _MenuLessonState extends State<MenuLesson> {
             'same spring.',
           ),
           const PanelHint(
-            'The pills ride a leash (Tug in channel mode): drag one '
-            'into the other and the skin necks them into one body - '
-            'real mass, not a paint effect.',
+            'The pills ride a leash (Tug in channel mode): heavy from '
+            'the first pixel, the flesh answers more than the body '
+            'moves. Drag one toward the other and the skin necks them '
+            'into one body - real mass, not a paint effect.',
+          ),
+          PanelSection(
+            label: 'MATERIAL',
+            child: Column(
+              children: <Widget>[
+                PanelKnob(
+                  label: 'give',
+                  value: _give,
+                  min: 0.02,
+                  max: 0.2,
+                  format: (double v) => v.toStringAsFixed(3),
+                  onChanged: (double v) => setState(() => _give = v),
+                ),
+                PanelKnob(
+                  label: 'stretch',
+                  value: _stretch,
+                  min: 0,
+                  max: 0.25,
+                  format: (double v) => v.toStringAsFixed(3),
+                  onChanged: (double v) => setState(() => _stretch = v),
+                ),
+                PanelKnob(
+                  label: 'jiggle',
+                  value: _jiggle,
+                  min: 0,
+                  max: 0.008,
+                  format: (double v) => '${(v * 1000).toStringAsFixed(1)}ms',
+                  onChanged: (double v) => setState(() => _jiggle = v),
+                ),
+                PanelKnob(
+                  label: 'press',
+                  value: _pressGrow,
+                  min: -6,
+                  max: 10,
+                  format: (double v) => '${v.toStringAsFixed(1)}px',
+                  onChanged: (double v) => setState(() => _pressGrow = v),
+                ),
+              ],
+            ),
           ),
           PanelSection(
             label: 'LAST ACTION',
@@ -210,7 +255,7 @@ class _MenuLessonState extends State<MenuLesson> {
                           rect: _pills[i].home,
                           radius: _pills[i].home.height / 2,
                           channel: _channels[_pills[i].id],
-                          child: _contents[i],
+                          child: _pillContent(_pills[i]),
                         ),
                     ],
                   ),

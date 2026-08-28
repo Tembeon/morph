@@ -155,6 +155,9 @@ class SandboxController extends ChangeNotifier {
   /// The outline grid step in px.
   double cell = 6;
 
+  /// Whether the skin draws its inner contour (MorphStroke).
+  bool contour = false;
+
   /// The last applied preset, or null after manual knob changes.
   SandboxBlendMode? mode;
 
@@ -387,6 +390,15 @@ class SandboxController extends ChangeNotifier {
   /// Sets the outline grid step knob.
   void setDetail(double value) {
     cell = value;
+    notifyListeners();
+  }
+
+  /// Flips the inner contour of the mass (MorphStroke): the line
+  /// follows the traced silhouette itself, so necks and deformations
+  /// carry it for free - and it is also the honest magnifier for the
+  /// grid step (a fill hides the quantization, a line does not).
+  void toggleContour() {
+    contour = !contour;
     notifyListeners();
   }
 
@@ -647,6 +659,9 @@ class _SandboxStageState extends State<SandboxStage>
                 blend: controller.blend,
                 cell: controller.cell,
                 color: kSandboxSkin,
+                stroke: controller.contour
+                    ? const MorphStroke(color: Color(0x66FFFFFF), width: 1.5)
+                    : null,
                 elevation: 5,
                 links: <MorphLink>[
                   for (final SandboxLink link in controller.links)

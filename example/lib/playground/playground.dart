@@ -860,10 +860,17 @@ class _SandboxPanel extends StatelessWidget {
           format: (double v) => '${v.round()}px',
           onChanged: sandbox.setDetail,
         ),
+        SpringToggleTile(
+          label: 'Contour',
+          value: sandbox.contour,
+          onChanged: (bool _) => sandbox.toggleContour(),
+        ),
         Text(
           'One skin for all pieces: SDF smooth-union + marching squares. '
           'blend is the fusion width (geometric joint -> gooey neck), '
-          'detail is the outline grid step.',
+          'detail is the outline grid step. Contour draws the inner '
+          'stroke of the same living path - and doubles as the honest '
+          'magnifier for the detail knob.',
           style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
         ),
       ],

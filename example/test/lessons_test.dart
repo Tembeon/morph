@@ -110,7 +110,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const GooDockExample(motion: .normal)));
+    await tester.pumpWidget(host(const GooDockExample()));
 
     await tester.tap(find.byIcon(Icons.favorite_rounded));
     await tester.pump(const Duration(milliseconds: 80));
