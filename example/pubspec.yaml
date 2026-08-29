@@ -12,6 +12,9 @@ dependencies:
   morph:
     path: ../
   motor: ^1.1.0
+  # The foreign-sheet friendship demo in the bar chapter: a motor-based
+  # sheet route the send piece yields to.
+  stupid_simple_sheet: ^0.9.1+1
 
 dev_dependencies:
   flutter_test:

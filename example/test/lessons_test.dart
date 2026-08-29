@@ -164,6 +164,27 @@ void main() {
     expect(find.text('New playlist'), findsOneWidget);
   });
 
+  testWidgets('bar: the foreign sheet rises and the button yields', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host(const BarLesson()));
+    await tester.tap(find.text('foreign sheet'));
+    await settle(tester);
+
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await settle(tester);
+    expect(find.text('New message'), findsOneWidget);
+
+    // Closing hands the yielded mass back; the demo must settle clean.
+    await tester.tap(find.text('Send'));
+    await settle(tester);
+    expect(find.text('New message'), findsNothing);
+  });
+
   testWidgets('chips: add and remove mid-motion stays continuous', (
     WidgetTester tester,
   ) async {
