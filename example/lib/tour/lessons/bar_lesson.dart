@@ -1,29 +1,33 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
 import 'package:morph_example/tour/lessons/dialog_contents.dart';
-import 'package:motor/motor.dart';
 
 /// The floating-bar case: a capsule carrying an ink pill selector and a
 /// send companion one neck away, fused by a single [MorphSkin] - the
 /// whole bar is ONE mass, not a row of cards.
 ///
-/// Three mechanics live on the same finger, none stealing from the
-/// others:
+/// The physics is the reference synthesis, constants verbatim:
 ///
-/// - the INK PILL floats freely under a horizontal drag (its width
-///   adapts to the target under the finger, the smear grows with the
-///   remaining distance) and snaps on release - direct manipulation, so
-///   the pill rides its own bouncy springs, not the tug;
-/// - the CAPSULE answers the same finger through [Tug] (a raw Listener,
-///   out of the gesture arena): a whisper of travel, height pinned by
-///   `vertical: 0`, the wide-calm aspect fade doing the rest;
-/// - the SEND companion is a morphable piece a neck away: pull it and
-///   the skin fuses the two bodies, tap it and the compose dialog grows
-///   out of it.
+/// - the PILL is the liquid-glass nav pill (the "stations" feel): tap
+///   and it lifts for the whole journey, glides on the travel spring
+///   and comes down only on landing; hold and it eases under the
+///   finger, snapping on release. Each lift axis rides its own spring -
+///   the width overshoots a little further than the height, which is
+///   what keeps the growth from reading as a plain scale-up - and the
+///   deformation comes from the pill's own ACCELERATION, signed by the
+///   direction of travel so it deforms one way for the whole journey;
+/// - the BAR answers in sympathy, not by its own leash: the pill's drag
+///   shifts the whole mass by at most 4px on an ease-out of the drag
+///   fraction (springing home on release), and while the pill is up the
+///   bar breathes 16px of width - both through the piece channel, so
+///   the neck to the send button breathes along;
+/// - the SEND companion keeps the button model ([Tug]) and is a real
+///   morph source: tap it and the compose dialog grows out of it.
 class BarLesson extends StatefulWidget {
   /// Creates the chapter demo.
   const BarLesson({super.key, required this.motion});
@@ -51,10 +55,6 @@ class _BarLessonState extends State<BarLesson> {
   final MorphPieceChannel _sendPull = MorphPieceChannel();
   int _selected = 0;
 
-  double _give = 0.05;
-  double _pressGrow = 4;
-  double _vertical = 0;
-
   @override
   void dispose() {
     _barPull.dispose();
@@ -78,52 +78,22 @@ class _BarLessonState extends State<BarLesson> {
   @override
   Widget build(BuildContext context) {
     return SceneScaffold(
-      controls: Column(
+      controls: const Column(
         crossAxisAlignment: .start,
         children: <Widget>[
-          const PanelHint(
-            'One skin, one mass: the capsule and the send button fuse '
-            'through the neck the moment a pull brings them close. Drag '
-            'the pill along the track - it floats under the finger and '
-            'snaps on release - while the capsule itself answers the '
-            'same finger with a whisper of tug.',
+          PanelHint(
+            'Tap a distant tab: the pill LIFTS for the whole journey, '
+            'glides, deforms by its own acceleration and comes down only '
+            'on landing - the label emphasis flips when it arrives, not '
+            'when you tap. Hold the pill and it eases under the finger; '
+            'release snaps to the nearest slot.',
           ),
-          const PanelHint(
-            'The bar is wide chrome: past a 2:1 aspect the tug '
-            'transmission fades by itself, the press grows by absolute '
-            'pixels per axis, and vertical: 0 pins the height - no '
-            'special "quiet" variant, just the material.',
-          ),
-          PanelSection(
-            label: 'BAR MATERIAL',
-            child: Column(
-              children: <Widget>[
-                PanelKnob(
-                  label: 'give',
-                  value: _give,
-                  min: 0.02,
-                  max: 0.2,
-                  format: (double v) => v.toStringAsFixed(3),
-                  onChanged: (double v) => setState(() => _give = v),
-                ),
-                PanelKnob(
-                  label: 'press',
-                  value: _pressGrow,
-                  min: -6,
-                  max: 10,
-                  format: (double v) => '${v.toStringAsFixed(1)}px',
-                  onChanged: (double v) => setState(() => _pressGrow = v),
-                ),
-                PanelKnob(
-                  label: 'vertical',
-                  value: _vertical,
-                  min: 0,
-                  max: 1,
-                  format: (double v) => v.toStringAsFixed(2),
-                  onChanged: (double v) => setState(() => _vertical = v),
-                ),
-              ],
-            ),
+          PanelHint(
+            'The bar itself has no leash: it answers in SYMPATHY - the '
+            'drag shifts the whole mass by at most 4px on an ease-out, '
+            'and while the pill is up the bar breathes a few pixels of '
+            'width. One skin: the neck to the send button breathes '
+            'along, and the send button is a real morph source.',
           ),
         ],
       ),
@@ -161,24 +131,13 @@ class _BarLessonState extends State<BarLesson> {
                           ),
                           radius: _barHeight / 2,
                           channel: _barPull,
-                          child: Tug(
-                            channel: _barPull,
-                            give: _give,
-                            pressGrow: _pressGrow,
-                            vertical: _vertical,
-                            child: ClipPath(
-                              clipper: const ShapeBorderClipper(
-                                shape: StadiumBorder(),
-                              ),
-                              child: _InkTrack(
-                                tabs: _tabs,
-                                selected: _selected,
-                                surface: _glass,
-                                accent: _accent,
-                                onSelect: (int i) =>
-                                    setState(() => _selected = i),
-                              ),
-                            ),
+                          child: _InkTrack(
+                            tabs: _tabs,
+                            selected: _selected,
+                            surface: _glass,
+                            accent: _accent,
+                            barChannel: _barPull,
+                            onSelect: (int i) => setState(() => _selected = i),
                           ),
                         ),
                         MorphPiece.morphable(
@@ -219,17 +178,44 @@ class _BarLessonState extends State<BarLesson> {
   }
 }
 
-/// The ink pill track - the dream-echo selector mechanic on morph's
-/// stage: gestures live on the TRACK (tap-down already flies the pill
-/// toward the finger, a horizontal drag floats it freely, release
-/// snaps), the pill layer rides its own springs through a
-/// ValueNotifier so a drag never rebuilds the slot content.
+/// One frame of the pill, produced by the host's ticker and consumed by
+/// the paint layer.
+typedef _PillFrame = ({Rect rect});
+
+/// One integration step of an underdamped spring, sub-stepped at 240 Hz
+/// for stability - the reference integrator, ported verbatim.
+(double, double) _springStep({
+  required double x,
+  required double vel,
+  required double target,
+  required double dt,
+  required double stiffness,
+  required double damping,
+}) {
+  double t = dt;
+  double px = x;
+  double pv = vel;
+  while (t > 0) {
+    final double step = t > 1 / 240.0 ? 1 / 240.0 : t;
+    final double accel = -stiffness * (px - target) - damping * pv;
+    pv += accel * step;
+    px += pv * step;
+    t -= step;
+  }
+  return (px, pv);
+}
+
+/// The ink track: the liquid-glass nav-bar pill HOST, constants
+/// verbatim, painting ink instead of glass. The host owns every spring
+/// and the ticker; the pill layer just draws the frame it is handed,
+/// and the bar's sympathy goes out through the piece channel.
 class _InkTrack extends StatefulWidget {
   const _InkTrack({
     required this.tabs,
     required this.selected,
     required this.surface,
     required this.accent,
+    required this.barChannel,
     required this.onSelect,
   });
 
@@ -237,119 +223,462 @@ class _InkTrack extends StatefulWidget {
   final int selected;
   final Color surface;
   final Color accent;
+  final MorphPieceChannel barChannel;
   final ValueChanged<int> onSelect;
 
   @override
   State<_InkTrack> createState() => _InkTrackState();
 }
 
-class _InkTrackState extends State<_InkTrack> {
+class _InkTrackState extends State<_InkTrack>
+    with SingleTickerProviderStateMixin {
+  // ── The reference constants, verbatim ────────────────────────────
   static const double _inset = 4;
+  static const double _travelStiffness = 280;
+  static const double _travelDamping = 31.4;
+  static const double _liftStiffness = 250;
+  // Damping ratio 0.6 across, 0.7 down: the width overshoots a little
+  // further and settles a little later than the height - that small
+  // disagreement keeps the growth from reading as a plain scale-up.
+  static const double _liftDampingX = 19.0;
+  static const double _liftDampingY = 22.1;
+  static const double _pillGrowHeight = 12;
+  static const double _handoverStart = 0.92;
+  static const double _followTau = 0.05;
+  static const double _signTau = 0.25;
+  // The bar's sympathy (the reference bar): at most 4px of shift on an
+  // ease-out of the drag fraction, 16px of width breathed while the
+  // pill is up, and a stiff, non-bouncing return home.
+  static const double _barShiftMax = 4;
+  static const double _barBreathWidth = 16;
+  static const double _barReturnStiffness = 300;
+  static const double _pressStiffness = 1000;
 
-  /// The finger's continuous x during a drag; flows straight into the
-  /// pill layer without rebuilding the slots.
-  final ValueNotifier<double?> _dragX = ValueNotifier<double?>(null);
-  int? _hover;
-  bool _pressed = false;
+  // ── Pill state (the reference host fields) ───────────────────────
+  int _index = 0;
+
+  /// What the cells show as selected: flips only AFTER the pill lands.
+  int _committed = 0;
+  double _travelPos = 0;
+  double _travelVel = 0;
+  double _travelTarget = 0;
+  double _travelFrom = 0;
+  bool _travelActive = false;
+  bool _dragging = false;
+  double _dragFollow = 0;
+  double _dragTargetFrac = 0;
+  double _pressFrac = 0;
+  bool _realMove = false;
+  bool _lifted = false;
+  double _liftX = 0;
+  double _liftXVel = 0;
+  double _liftY = 0;
+  double _liftYVel = 0;
+  double _travelSign = 0;
+  double _travelSignEased = 0;
+  final MorphSquash _squash = MorphSquash();
+
+  // ── Bar sympathy state ───────────────────────────────────────────
+  double _barAccum = 0;
+  double _barAccumVel = 0;
+  double _press = 0;
+  double _pressVel = 0;
+  double? _lastDragX;
+
+  final ValueNotifier<_PillFrame> _pill = ValueNotifier<_PillFrame>((
+    rect: Rect.zero,
+  ));
+  late final Ticker _ticker = createTicker(_tick);
+  final Stopwatch _clock = Stopwatch()..start();
+  double _clockLast = 0;
+
+  double _slot = 0;
+  double _width = 0;
+  double _height = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _index = widget.selected;
+    _committed = _index;
+    _travelPos = _index.toDouble();
+    _travelTarget = _travelPos;
+  }
 
   @override
   void dispose() {
-    _dragX.dispose();
+    _ticker.dispose();
+    _pill.dispose();
     super.dispose();
   }
 
-  int _hitSlot(double dx, double slot) =>
-      (dx / slot).floor().clamp(0, widget.tabs.length - 1);
-
-  void _dragTo(double dx, double slot) {
-    final int hovered = _hitSlot(dx, slot);
-    _dragX.value = dx;
-    if (_hover != hovered) {
-      setState(() => _hover = hovered);
-    }
-    if (!_pressed) {
-      setState(() => _pressed = true);
+  void _wake() {
+    if (!_ticker.isActive) {
+      _clockLast = _clock.elapsedMicroseconds / 1e6;
+      _ticker.start();
     }
   }
 
-  void _reset() {
-    _dragX.value = null;
-    setState(() {
-      _hover = null;
-      _pressed = false;
-    });
+  double _signOf(double span) => span.abs() < 1e-6 ? 0 : span.sign;
+
+  // ── Selection / travel ───────────────────────────────────────────
+  void _animateTo(int next) {
+    if (next == _index) {
+      return;
+    }
+    _index = next;
+    _travelActive = true;
+    _lifted = true;
+    // Retarget from wherever the pill currently is; the spring keeps
+    // its velocity.
+    _travelFrom = _travelPos;
+    _travelTarget = next.toDouble();
+    _travelSign = _signOf(_travelTarget - _travelFrom);
+    _wake();
+    widget.onSelect(next);
+  }
+
+  // ── Grab (hold or horizontal drag) ───────────────────────────────
+  void _grab(double dx) {
+    _dragging = true;
+    _travelActive = false;
+    _lifted = true;
+    // The hand takes the deformation back off the travel.
+    _travelSign = 0;
+    // Start the smoothed follow at the pill's current position, so a
+    // hold away from the pill EASES over to the finger.
+    _dragFollow = _travelPos;
+    _travelVel = 0;
+    _pressFrac = _toFrac(dx);
+    _dragTargetFrac = _pressFrac;
+    _realMove = false;
+    _lastDragX = dx;
+    _wake();
+  }
+
+  void _move(double dx) {
+    if (!_dragging) {
+      return;
+    }
+    final double frac = _toFrac(dx);
+    if ((frac - _pressFrac).abs() > 0.2) {
+      _realMove = true;
+    }
+    _dragTargetFrac = frac;
+    _barAccum += dx - (_lastDragX ?? dx);
+    _lastDragX = dx;
+  }
+
+  void _release() {
+    if (!_dragging) {
+      return;
+    }
+    final double from = _dragFollow;
+    final double snap = _realMove ? from : _pressFrac;
+    final int next = snap.round().clamp(0, widget.tabs.length - 1);
+    // The pill stays lifted through the snap and comes down on
+    // landing - letting go is not the end of the journey, arriving is.
+    _dragging = false;
+    _lastDragX = null;
+    _index = next;
+    _travelActive = true;
+    _travelPos = from;
+    _travelVel = 0;
+    _travelFrom = from;
+    _travelTarget = next.toDouble();
+    _travelSign = _signOf(_travelTarget - _travelFrom);
+    _wake();
+    if (next != widget.selected) {
+      widget.onSelect(next);
+    }
+  }
+
+  double _toFrac(double dx) {
+    final double cell0Center = _slot / 2;
+    return ((dx - cell0Center) / _slot).clamp(
+      0.0,
+      (widget.tabs.length - 1).toDouble(),
+    );
+  }
+
+  // ── The frame: every spring, the squash and the sympathy ─────────
+  void _tick(Duration elapsed) {
+    final double now = _clock.elapsedMicroseconds / 1e6;
+    final double dt = now - _clockLast;
+    _clockLast = now;
+    if (dt <= 0 || _slot == 0) {
+      return;
+    }
+
+    // 1) Travel (positional) spring.
+    bool travelSettled = true;
+    if (_travelActive) {
+      final (double p, double v) = _springStep(
+        x: _travelPos,
+        vel: _travelVel,
+        target: _travelTarget,
+        dt: dt,
+        stiffness: _travelStiffness,
+        damping: _travelDamping,
+      );
+      _travelPos = p;
+      _travelVel = v;
+      travelSettled =
+          (_travelPos - _travelTarget).abs() < 0.003 && _travelVel.abs() < 0.05;
+      if (travelSettled) {
+        _travelPos = _travelTarget;
+        _travelVel = 0;
+      }
+    }
+
+    // 2) While dragging, smoothly chase the finger target so a hold
+    // away from the pill glides over to the held position.
+    if (_dragging) {
+      _dragFollow +=
+          (_dragTargetFrac - _dragFollow) * (1 - math.exp(-dt / _followTau));
+    }
+
+    // 3) The lift: up for the whole journey, down once landed.
+    final double progress = () {
+      final double span = (_travelTarget - _travelFrom).abs();
+      if (span < 1e-6) {
+        return 1.0;
+      }
+      return (1 - (_travelTarget - _travelPos).abs() / span).clamp(0.0, 1.0);
+    }();
+    if (!_dragging && (travelSettled || progress >= _handoverStart)) {
+      _lifted = false;
+    }
+    final double liftTarget = _lifted ? 1 : 0;
+    final (double lx, double lxv) = _stepLift(
+      _liftX,
+      _liftXVel,
+      liftTarget,
+      dt,
+      _liftDampingX,
+    );
+    _liftX = lx;
+    _liftXVel = lxv;
+    final (double ly, double lyv) = _stepLift(
+      _liftY,
+      _liftYVel,
+      liftTarget,
+      dt,
+      _liftDampingY,
+    );
+    _liftY = ly;
+    _liftYVel = lyv;
+    final bool liftSettled = !_lifted && _liftX == 0 && _liftY == 0;
+
+    // 4) Commit only once the travel AND the lift have finished: the
+    // deflation outlives the spring that carried the pill there.
+    if (_travelActive && travelSettled && liftSettled && !_dragging) {
+      _travelActive = false;
+      if (_committed != _index) {
+        setState(() => _committed = _index);
+      }
+    }
+
+    // 5) The squash, sampled where the pill is drawn THIS frame, its
+    // magnitude kept and its sign taken from the direction of travel -
+    // the pill deforms one way for the whole journey instead of
+    // turning itself inside out at the halfway mark; a reversal
+    // crosses rather than switches.
+    final double frac = _dragging ? _dragFollow : _travelPos;
+    final double centerX = _slot * frac + _slot / 2;
+    double deviation = _squash.track(Offset(centerX, 0), now: now, dt: dt);
+    if (_travelSignEased == 0) {
+      _travelSignEased = _travelSign;
+    } else if (_travelSignEased != _travelSign) {
+      _travelSignEased +=
+          (_travelSign - _travelSignEased) * (1 - math.exp(-dt / _signTau));
+      if ((_travelSign - _travelSignEased).abs() < 0.01) {
+        _travelSignEased = _travelSign;
+      }
+    }
+    final double key = _travelSignEased;
+    if (key != 0) {
+      deviation = deviation * (1 - key.abs()) - key * deviation.abs();
+    }
+
+    // 6) The pill frame: rest -> lifted per axis, then the deviation
+    // on top (area held), centered on the travel.
+    final Size rest = Size(_slot - _inset * 2, _height - _inset * 2);
+    final double liftedH = _height + _pillGrowHeight;
+    final Size lifted = Size(liftedH * (rest.width / rest.height), liftedH);
+    final Size envelope = Size(
+      rest.width + (lifted.width - rest.width) * _liftX,
+      rest.height + (lifted.height - rest.height) * _liftY,
+    );
+    final Size live = Size(
+      envelope.width * (1 + deviation),
+      envelope.height * (1 - deviation),
+    );
+    _pill.value = (
+      rect: Rect.fromCenter(
+        center: Offset(centerX, _height / 2),
+        width: live.width,
+        height: live.height,
+      ),
+    );
+
+    // 7) The bar's sympathy: press breathes the width, the drag shifts
+    // the mass on an ease-out of the accumulated fraction, and the
+    // accumulation springs home on release - all through the channel,
+    // so the neck to the companion breathes along.
+    final (double pp, double ppv) = _stepLift(
+      _press,
+      _pressVel,
+      liftTarget,
+      dt,
+      2 * math.sqrt(_pressStiffness),
+      stiffness: _pressStiffness,
+    );
+    _press = pp;
+    _pressVel = ppv;
+    if (!_dragging) {
+      final (double a, double av) = _springStep(
+        x: _barAccum,
+        vel: _barAccumVel,
+        target: 0,
+        dt: dt,
+        stiffness: _barReturnStiffness,
+        damping: 2 * math.sqrt(_barReturnStiffness),
+      );
+      _barAccum = a;
+      _barAccumVel = av;
+      if (_barAccum.abs() < 0.05 && _barAccumVel.abs() < 0.5) {
+        _barAccum = 0;
+        _barAccumVel = 0;
+      }
+    }
+    final double fraction = (_barAccum / math.max(_width, 1)).clamp(-1.0, 1.0);
+    final double shift =
+        _barShiftMax * fraction.sign * Curves.easeOut.transform(fraction.abs());
+    final double breath = 1 + _press * _barBreathWidth / math.max(_width, 1);
+    widget.barChannel.update(
+      offset: Offset(shift, 0),
+      scaleX: breath,
+      scaleY: breath,
+    );
+
+    // 8) Everything must be finished - the deformation drains after
+    // the spring does, and the sympathy after both.
+    final bool motionSettled = deviation.abs() < 0.0005;
+    final bool barSettled = _barAccum == 0 && _press == 0;
+    if (!_travelActive &&
+        !_dragging &&
+        liftSettled &&
+        motionSettled &&
+        barSettled) {
+      _squash.reset();
+      _travelSign = 0;
+      _travelSignEased = 0;
+      _ticker.stop();
+    }
+  }
+
+  /// One frame of a lift spring, snapped to its target once it has
+  /// nothing left to say.
+  (double, double) _stepLift(
+    double x,
+    double vel,
+    double target,
+    double dt,
+    double damping, {
+    double stiffness = _liftStiffness,
+  }) {
+    final (double p, double v) = _springStep(
+      x: x,
+      vel: vel,
+      target: target,
+      dt: dt,
+      stiffness: stiffness,
+      damping: damping,
+    );
+    if ((p - target).abs() < 0.001 && v.abs() < 0.01) {
+      return (target, 0);
+    }
+    return (p, v);
   }
 
   @override
   Widget build(BuildContext context) {
-    final int active = _dragX.value != null
-        ? (_hover ?? widget.selected)
-        : widget.selected;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        final double slot = constraints.maxWidth / widget.tabs.length;
-        final double height = constraints.maxHeight;
+        _slot = constraints.maxWidth / widget.tabs.length;
+        _width = constraints.maxWidth;
+        _height = constraints.maxHeight;
+        if (_pill.value.rect == Rect.zero) {
+          _pill.value = (
+            rect: Rect.fromCenter(
+              center: Offset(_slot * _committed + _slot / 2, _height / 2),
+              width: _slot - _inset * 2,
+              height: _height - _inset * 2,
+            ),
+          );
+        }
         return MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTapDown: (TapDownDetails d) => _dragTo(d.localPosition.dx, slot),
-            onTapCancel: _reset,
-            onTapUp: (TapUpDetails d) {
-              final int hit = _hitSlot(d.localPosition.dx, slot);
-              _reset();
-              widget.onSelect(hit);
-            },
+            onTapUp: (TapUpDetails d) => _animateTo(
+              (d.localPosition.dx / _slot).floor().clamp(
+                0,
+                widget.tabs.length - 1,
+              ),
+            ),
+            onLongPressStart: (LongPressStartDetails d) =>
+                _grab(d.localPosition.dx),
+            onLongPressMoveUpdate: (LongPressMoveUpdateDetails d) =>
+                _move(d.localPosition.dx),
+            onLongPressEnd: (LongPressEndDetails d) => _release(),
+            onLongPressCancel: _release,
             onHorizontalDragStart: (DragStartDetails d) =>
-                _dragTo(d.localPosition.dx, slot),
+                _grab(d.localPosition.dx),
             onHorizontalDragUpdate: (DragUpdateDetails d) =>
-                _dragTo(d.localPosition.dx, slot),
-            onHorizontalDragEnd: (DragEndDetails d) {
-              final int? hovered = _hover;
-              _reset();
-              if (hovered != null && hovered != widget.selected) {
-                widget.onSelect(hovered);
-              }
-            },
-            onHorizontalDragCancel: _reset,
+                _move(d.localPosition.dx),
+            onHorizontalDragEnd: (DragEndDetails d) => _release(),
+            onHorizontalDragCancel: _release,
             child: Stack(
+              clipBehavior: .none,
               children: <Widget>[
-                ValueListenableBuilder<double?>(
-                  valueListenable: _dragX,
-                  builder: (BuildContext context, double? dragX, Widget? _) {
-                    final double width = slot - _inset * 2;
-                    final double start = dragX != null
-                        // Free float: the pill centers on the finger,
-                        // clamped to the track; targets snap only on
-                        // release.
-                        ? (dragX - slot / 2).clamp(
-                            0.0,
-                            constraints.maxWidth - slot,
-                          )
-                        : slot * widget.selected;
-                    return _InkPill(
-                      targetStart: start + _inset,
-                      width: width,
-                      height: height,
-                      inset: _inset,
-                      pressed: _pressed,
+                ValueListenableBuilder<_PillFrame>(
+                  valueListenable: _pill,
+                  builder:
+                      (BuildContext context, _PillFrame frame, Widget? child) {
+                        return Positioned(
+                          left: frame.rect.left,
+                          top: frame.rect.top,
+                          width: frame.rect.width,
+                          height: frame.rect.height,
+                          child: child!,
+                        );
+                      },
+                  child: DecoratedBox(
+                    // Ink, not glass: an opaque wash of accent soaked
+                    // into the surface, no outline.
+                    decoration: ShapeDecoration(
                       color: Color.alphaBlend(
                         widget.accent.withValues(alpha: 0.16),
                         widget.surface,
                       ),
-                    );
-                  },
+                      shape: const StadiumBorder(),
+                    ),
+                  ),
                 ),
                 Row(
                   children: <Widget>[
                     for (int i = 0; i < widget.tabs.length; i++)
                       SizedBox(
-                        width: slot,
-                        height: height,
+                        width: _slot,
+                        height: _height,
                         child: _Cell(
                           icon: widget.tabs[i].$1,
                           label: widget.tabs[i].$2,
-                          active: i == active,
+                          // The emphasis flips only when the pill LANDS:
+                          // arriving is the selection, not tapping.
+                          active: i == _committed,
                         ),
                       ),
                   ],
@@ -363,67 +692,8 @@ class _InkTrackState extends State<_InkTrack> {
   }
 }
 
-/// The pill layer: position on a bouncy spring, press on a smooth one,
-/// and the SMEAR proportional to the remaining distance - the pill
-/// stretches in flight and relaxes as it arrives. Ink, not glass: an
-/// opaque wash of accent soaked into the surface, no outline.
-class _InkPill extends StatelessWidget {
-  const _InkPill({
-    required this.targetStart,
-    required this.width,
-    required this.height,
-    required this.inset,
-    required this.pressed,
-    required this.color,
-  });
-
-  final double targetStart;
-  final double width;
-  final double height;
-  final double inset;
-  final bool pressed;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleMotionBuilder(
-      value: targetStart,
-      // One spring for every situation (tap flight, chase, press), so
-      // the pill always moves with one character.
-      motion: const CupertinoMotion.bouncy(),
-      builder: (BuildContext context, double animatedStart, Widget? child) =>
-          SingleMotionBuilder(
-            value: pressed ? 1 : 0,
-            motion: const CupertinoMotion.smooth(
-              duration: Duration(milliseconds: 200),
-            ),
-            builder: (BuildContext context, double press, Widget? child) {
-              final double distance = (animatedStart - targetStart).abs();
-              final double stretch =
-                  1 + math.min(0.45, distance / math.max(width, 1) * 0.35);
-              final double grow = 1 + 0.04 * press.clamp(0.0, 1.0);
-              final double pillWidth = width * stretch * grow;
-              final double pillHeight = (height - inset * 2) * grow;
-              return Positioned(
-                left: animatedStart + width / 2 - pillWidth / 2,
-                top: height / 2 - pillHeight / 2,
-                width: pillWidth,
-                height: pillHeight,
-                child: DecoratedBox(
-                  decoration: ShapeDecoration(
-                    color: color,
-                    shape: const StadiumBorder(),
-                  ),
-                ),
-              );
-            },
-          ),
-    );
-  }
-}
-
-/// One slot's content: icon over label, emphasis following the active
-/// target (the one under the finger during a drag).
+/// One slot's content: icon over label, emphasis following the
+/// COMMITTED selection (it flips when the pill lands).
 class _Cell extends StatelessWidget {
   const _Cell({required this.icon, required this.label, required this.active});
 
