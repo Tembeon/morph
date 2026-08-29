@@ -416,8 +416,19 @@ class MorphSkin extends StatelessWidget {
               child: piece.morphable
                   ? MorphTag(
                       id: piece.id,
+                      // The stroke is part of the material, so the
+                      // flight inherits it: the container launches with
+                      // the piece's contour and the side lerps toward
+                      // the target's (usually none) instead of popping
+                      // off on the first frame.
                       shape: RoundedRectangleBorder(
                         borderRadius: .circular(piece.radius),
+                        side: stroke == null
+                            ? BorderSide.none
+                            : BorderSide(
+                                color: stroke!.color,
+                                width: stroke!.width,
+                              ),
                       ),
                       surfaceColor: color,
                       elevation: elevation,

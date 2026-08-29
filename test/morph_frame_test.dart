@@ -221,4 +221,35 @@ void main() {
       expect(b.kick, const Offset(20, 0));
     });
   });
+
+  group('border side', () {
+    MorphFrame frameAt(double value) {
+      return computeMorphFrame(
+        value: value,
+        sourceRect: const Rect.fromLTWH(0, 0, 100, 40),
+        targetRect: const Rect.fromLTWH(200, 200, 300, 400),
+        sourceShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(20)),
+          side: BorderSide(color: Colors.green, width: 2),
+        ),
+        targetShape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(28)),
+        ),
+        sourceColor: Colors.black,
+        targetColor: Colors.white,
+        maxScrimOpacity: 0.45,
+      );
+    }
+
+    BorderSide sideAt(double value) =>
+        (frameAt(value).shape as RoundedRectangleBorder).side;
+
+    test('a stroked source keeps its contour through the concentric path', () {
+      // The launch frame carries the full side - without the lerp the
+      // radius rebuild dropped it and the contour popped off.
+      expect(sideAt(0).width, closeTo(2, 1e-9));
+      expect(sideAt(0.5).width, closeTo(1, 1e-9));
+      expect(sideAt(1).width, closeTo(0, 1e-9));
+    });
+  });
 }

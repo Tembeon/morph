@@ -958,6 +958,36 @@ void main() {
     image.dispose();
   });
 
+  testWidgets('stroke: a morphable piece hands the contour to its tag', (
+    WidgetTester tester,
+  ) async {
+    const MorphStroke stroke = MorphStroke(color: Color(0xFF00FF00), width: 2);
+    await tester.pumpWidget(
+      host(
+        const MorphScope(
+          child: MorphSkin(
+            color: Color(0xFF203040),
+            stroke: stroke,
+            pieces: <MorphPiece>[
+              MorphPiece.morphable(
+                id: 'pill',
+                rect: Rect.fromLTWH(20, 20, 120, 44),
+                radius: 22,
+                child: Center(child: Text('pill')),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    final MorphTag tag = tester.widget(find.byType(MorphTag));
+    final RoundedRectangleBorder shape = tag.shape as RoundedRectangleBorder;
+    // The stroke is part of the material: the flight launches with the
+    // piece's contour instead of popping it off on the first frame.
+    expect(shape.side.width, stroke.width);
+    expect(shape.side.color, stroke.color);
+  });
+
   testWidgets('stroke update is paint-only: no relayout, no re-trace', (
     WidgetTester tester,
   ) async {

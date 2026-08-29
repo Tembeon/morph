@@ -175,7 +175,7 @@ MorphFrame computeMorphFrame({
       p,
       rect,
     );
-    shape = _shapeFromRadius(sourceShape, targetShape, cornerRadius);
+    shape = _shapeFromRadius(sourceShape, targetShape, cornerRadius, p);
   }
 
   return MorphFrame(
@@ -265,13 +265,30 @@ ShapeBorder _shapeFromRadius(
   ShapeBorder sourceShape,
   ShapeBorder targetShape,
   double radius,
+  double p,
 ) {
+  // The concentric model rebuilds the outline from the radius, but the
+  // endpoints' BorderSides must survive the rebuild: a source that
+  // carries a contour (a stroked skin piece) hands it to the container
+  // and the side fades toward the target's - without this the outline
+  // vanished on the launch frame.
+  final BorderSide side = BorderSide.lerp(
+    _sideOf(sourceShape),
+    _sideOf(targetShape),
+    p,
+  );
   if (targetShape is RoundedSuperellipseBorder ||
       sourceShape is RoundedSuperellipseBorder) {
-    return RoundedSuperellipseBorder(borderRadius: .circular(radius));
+    return RoundedSuperellipseBorder(
+      borderRadius: .circular(radius),
+      side: side,
+    );
   }
-  return RoundedRectangleBorder(borderRadius: .circular(radius));
+  return RoundedRectangleBorder(borderRadius: .circular(radius), side: side);
 }
+
+BorderSide _sideOf(ShapeBorder shape) =>
+    shape is OutlinedBorder ? shape.side : BorderSide.none;
 
 /// The single radius of a shape when it can be expressed by one (Circle,
 /// Stadium, rrect/superellipse with equal corners); null for exotic
