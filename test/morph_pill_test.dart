@@ -4,12 +4,15 @@ import 'package:morph/widgets.dart';
 /// A three-slot track, slot width 100: rest centers at 50 / 150 / 250.
 MorphPillHost host({void Function(double, {required bool byCarry})? onTarget}) {
   double clampCenter(int slot) => (slot.clamp(0, 2)) * 100.0 + 50.0;
-  return MorphPillHost(
+  final MorphPillHost pill = MorphPillHost(
     vsync: const TestVSync(),
     hit: (double fingerX) => clampCenter((fingerX / 100).floor()),
     snap: (double centerX) => clampCenter(((centerX - 50) / 100).round()),
     onTarget: onTarget,
   );
+  pill.carryMin = 50;
+  pill.carryMax = 250;
+  return pill;
 }
 
 Future<void> ticks(WidgetTester tester, int frames) async {
@@ -85,6 +88,13 @@ void main() {
     await ticks(tester, 40);
     expect(pill.carrying, isTrue);
     expect(pill.centerX, closeTo(250, 8));
+    // Way past the edge: the delta stays honest, the pill does not -
+    // the carry is confined to the rest centers' span.
+    pill.move(1000);
+    await ticks(tester, 40);
+    expect(pill.centerX, lessThanOrEqualTo(250.5));
+    pill.move(240);
+    await ticks(tester, 20);
     pill.up(240);
     expect(commits.single.$2, isTrue);
     expect(commits.single.$1, 250);

@@ -289,6 +289,10 @@ class _InkTrackState extends State<_InkTrack>
         // The host holds an ABSOLUTE center; the first layout places
         // it, and a width change re-anchors a resting pill to the
         // current selection's new center.
+        // The carry is confined to the rest centers' span: honest
+        // deltas past the edges, but the pill never leaves the track.
+        _host.carryMin = _slotCenter(0);
+        _host.carryMax = _slotCenter(widget.tabs.length - 1);
         if (!_placed || (previousSlot != _slot && !_host.held)) {
           _placed = true;
           _host.jumpTo(_slotCenter(widget.selected));

@@ -98,6 +98,15 @@ class MorphPillHost extends ChangeNotifier {
   /// position instead of reading as a slow tap on [hit].
   final double carryCommit;
 
+  /// The carried center's confinement, set by the owner from its
+  /// layout (usually the first and the last rest centers): the finger's
+  /// DELTA stays honest past the track's edges, but the pill itself
+  /// never leaves the track. Unset bounds leave that side free.
+  double carryMin = double.negativeInfinity;
+
+  /// The upper bound of the carried center; see [carryMin].
+  double carryMax = double.infinity;
+
   // ── Travel state ─────────────────────────────────────────────────
   double _pos = 0;
   double _vel = 0;
@@ -261,7 +270,7 @@ class MorphPillHost extends ChangeNotifier {
     if ((x - _pressX).abs() > carryCommit) {
       _realMove = true;
     }
-    _carryTarget = _grabPos + (x - _pressX);
+    _carryTarget = (_grabPos + (x - _pressX)).clamp(carryMin, carryMax);
     _accum += x - (_lastX ?? x);
     _lastX = x;
   }
