@@ -103,7 +103,7 @@ void main() {
     // per-event controller retarget starves the simulation (it
     // restarts before it ever ticks) and the surface freezes while
     // the pointer moves. The chase ticker must keep integrating.
-    for (int frame = 0; frame < 12; frame++) {
+    for (int frame = 0; frame < 20; frame++) {
       for (int sub = 0; sub < 4; sub++) {
         await gesture.moveBy(const Offset(3, 1));
       }

@@ -46,9 +46,9 @@ typedef _TugModel = ({Offset travel, double scaleX, double scaleY});
 ///   same spring, not a second driver - the readout is a pure function
 ///   of the one spring's (value, velocity), which stays continuous
 ///   through any interruption.
-/// - The finger LIFTS glass: pointer-down grows the surface by
-///   [pressGrow] px of its shorter side on a spring with a little
-///   bounce (negative sinks instead - an ink material's taste).
+/// - The finger LIFTS glass: pointer-down grows each side of the
+///   surface by [pressGrow] px on a spring with a little bounce
+///   (negative sinks instead - an ink material's taste).
 /// - Release hands the chase velocity to the return spring - a flick
 ///   lands with its momentum - and the shape follows the bouncing
 ///   return offset, so the landing wobbles for free. Grabbing
@@ -129,9 +129,9 @@ class Tug extends StatefulWidget {
   /// deforms the body. 0.002 whispers, 0.006 is loud.
   final double jiggle;
 
-  /// Pointer-down growth of the shorter side, in px, applied as a
-  /// uniform scale. Positive lifts (glass), negative sinks (ink), 0
-  /// disables the press response.
+  /// Pointer-down growth in px, gained by EACH side (a wide bar lifts
+  /// by the same few physical pixels as a small pill). Positive lifts
+  /// (glass), negative sinks (ink), 0 disables the press response.
   final double pressGrow;
 
   /// Share of the vertical axis that responds, 0..1. At 0 the surface
@@ -260,12 +260,13 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
       widget.volume,
     );
 
-    // Press: uniform absolute growth of the shorter side, so a wide
-    // pill lifts by the same physical amount as a tall one.
-    final double press = 1 + _press.value * widget.pressGrow / m;
-
-    final double scaleX = deformX * press;
-    final double scaleY = deformY * press;
+    // Press: absolute growth PER AXIS - each side gains [pressGrow] px,
+    // so a wide bar lifts by the same few physical pixels as a small
+    // pill instead of scaling its whole width (the reference presses
+    // wide chrome by absolute pixels too).
+    final double p = _press.value * widget.pressGrow;
+    final double scaleX = deformX * (1 + p / _size.width);
+    final double scaleY = deformY * (1 + p / _size.height);
     return (
       travel: travel,
       scaleX: scaleX,
