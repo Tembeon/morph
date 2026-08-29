@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
 import 'package:morph_example/ui/pill_physics.dart';
@@ -55,43 +54,24 @@ class _GooSelectorState extends State<GooSelector>
     initialValue: widget.index == null ? 0 : 1,
   );
   final MorphPieceChannel _blob = MorphPieceChannel();
-  final MorphSquash _squash = MorphSquash();
-  late final Ticker _ticker = createTicker(_tick);
-  final Stopwatch _clock = Stopwatch()..start();
-  double _clockLast = 0;
+
+  /// Samples the glide and re-aims the blob; it keeps ticking until the
+  /// springs AND the draining deformation are all quiet.
+  late final SquashDriver _driver = SquashDriver(
+    vsync: this,
+    position: () => Offset(_x?.value ?? 0, 0),
+    isBusy: () => (_x?.isAnimating ?? false) || _scale.isAnimating,
+    onFrame: (MorphSquash _) => _syncBlob(),
+  );
   double _width = 0;
 
   @override
-  void initState() {
-    super.initState();
-    _scale.addListener(_syncBlob);
-  }
-
-  @override
   void dispose() {
-    _ticker.dispose();
+    _driver.dispose();
     _x?.dispose();
     _scale.dispose();
     _blob.dispose();
     super.dispose();
-  }
-
-  /// Samples the glide into the squash tracker and re-aims the blob;
-  /// keeps ticking until the spring AND the drained deformation are
-  /// both quiet. The clock is the widget's own stopwatch:
-  /// Ticker.elapsed restarts on every start().
-  void _tick(Duration elapsed) {
-    final double now = _clock.elapsedMicroseconds / 1e6;
-    final double dt = now - _clockLast;
-    _clockLast = now;
-    if (dt <= 0 || _x == null) {
-      return;
-    }
-    _squash.track(Offset(_x!.value, 0), now: now, dt: dt);
-    _syncBlob();
-    if (!_x!.isAnimating && _squash.isSettled) {
-      _ticker.stop();
-    }
   }
 
   double _slotCenter(int index) {
@@ -109,8 +89,8 @@ class _GooSelectorState extends State<GooSelector>
     final double scale = _scale.value < 0 ? 0 : _scale.value;
     _blob.update(
       offset: Offset(_x!.value - _width / 2, 0),
-      scaleX: scale * _squash.scaleX,
-      scaleY: scale * _squash.scaleY,
+      scaleX: scale * _driver.squash.scaleX,
+      scaleY: scale * _driver.squash.scaleY,
     );
   }
 
@@ -121,14 +101,11 @@ class _GooSelectorState extends State<GooSelector>
       final int? index = widget.index;
       if (index != null) {
         _x?.animateTo(_slotCenter(index));
-        if (!_ticker.isActive) {
-          // A fresh glide must not deform from stale history.
-          _squash.reset();
-          _clockLast = _clock.elapsedMicroseconds / 1e6;
-          _ticker.start();
-        }
       }
       _scale.animateTo(index == null ? 0 : 1);
+      // The driver writes the channel for the deflate as well as the
+      // glide, so it wakes for either.
+      _driver.start();
     }
   }
 
@@ -146,7 +123,7 @@ class _GooSelectorState extends State<GooSelector>
             motion: pillGlide,
             vsync: this,
             initialValue: _slotCenter(widget.index ?? 0),
-          )..addListener(_syncBlob);
+          );
           // The spring holds an ABSOLUTE position; a width change moves
           // every slot center, so a resting blob must be re-anchored to
           // the current selection's new center (a live animation keeps

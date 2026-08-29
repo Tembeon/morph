@@ -121,48 +121,58 @@ void main() {
     expect(find.text('Search'), findsOneWidget);
   });
 
-  testWidgets('bar: pill drags along the track, capsule tugs, send flies', (
-    WidgetTester tester,
-  ) async {
-    tester.view.physicalSize = const Size(1200, 800);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
+  testWidgets(
+    'bar: the pill carries, the chrome breathes wide, the send flies',
+    (WidgetTester tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const BarLesson()));
+      await tester.pumpWidget(host(const BarLesson()));
 
-    // Tap a slot: the selection commits and the pill flies there.
-    await tester.tap(find.byIcon(Icons.mail_rounded));
-    await tester.pump(const Duration(milliseconds: 50));
-    await settle(tester);
+      // Tap a slot: the selection commits and the pill flies there.
+      await tester.tap(find.byIcon(Icons.mail_rounded));
+      await tester.pump(const Duration(milliseconds: 50));
+      await settle(tester);
 
-    // Drag the pill along the track: free float, snap commits on
-    // release only when the hovered slot changed.
-    final Offset mail = tester.getCenter(find.byIcon(Icons.mail_rounded));
-    final TestGesture drag = await tester.startGesture(mail);
-    await drag.moveBy(const Offset(60, 0));
-    await tester.pump(const Duration(milliseconds: 40));
-    await drag.moveBy(const Offset(60, 0));
-    await tester.pump(const Duration(milliseconds: 40));
-    await drag.up();
-    await settle(tester);
-    expect(find.text('Profile'), findsWidgets);
+      // Drag the pill along the track: free float, snap commits on
+      // release only when the hovered slot changed.
+      final Offset mail = tester.getCenter(find.byIcon(Icons.mail_rounded));
+      final TestGesture drag = await tester.startGesture(mail);
+      await drag.moveBy(const Offset(60, 0));
+      await tester.pump(const Duration(milliseconds: 40));
+      await drag.moveBy(const Offset(60, 0));
+      await tester.pump(const Duration(milliseconds: 40));
+      await drag.up();
+      await settle(tester);
+      expect(find.text('Profile'), findsWidgets);
 
-    // Tug the capsule itself (vertical dead by default): the same
-    // finger both scrubs the pill and pulls the body - no exceptions,
-    // and everything springs home.
-    final TestGesture tug = await tester.startGesture(
-      tester.getCenter(find.byIcon(Icons.library_music_rounded)),
-    );
-    await tug.moveBy(const Offset(40, 20));
-    await tester.pump(const Duration(milliseconds: 80));
-    await tug.up();
-    await settle(tester);
+      // Carry the pill back to the first tab: the capsule answers in
+      // sympathy through its channel, and the breath is a WIDTH - a bar
+      // that grew taller would break its stadium and eat the neck gap.
+      final MorphPieceChannel capsule = tester
+          .widget<MorphSkin>(find.byType(MorphSkin))
+          .pieces
+          .firstWhere((MorphPiece p) => p.id == 'bar-capsule')
+          .channel!;
+      final TestGesture carry = await tester.startGesture(
+        tester.getCenter(find.byIcon(Icons.person_rounded)),
+      );
+      await tester.pump(const Duration(milliseconds: 80));
+      await carry.moveBy(const Offset(-120, 0));
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(capsule.scaleX, greaterThan(1));
+      expect(capsule.scaleY, 1);
+      await carry.up();
+      await settle(tester);
+      expect(capsule.scaleX, 1);
 
-    // The send companion is a real morph source.
-    await tester.tap(find.byIcon(Icons.send_rounded));
-    await settle(tester);
-    expect(find.text('New playlist'), findsOneWidget);
-  });
+      // The send companion is a real morph source.
+      await tester.tap(find.byIcon(Icons.send_rounded));
+      await settle(tester);
+      expect(find.text('New playlist'), findsOneWidget);
+    },
+  );
 
   testWidgets('chips: add and remove mid-motion stays continuous', (
     WidgetTester tester,

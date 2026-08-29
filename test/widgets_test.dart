@@ -63,9 +63,12 @@ void main() {
     final Offset pulled = tester.getCenter(find.text('pill'));
     // The travel budget is deliberately tiny: the transmission is a few
     // percent (heavier still here - the 300px-wide host is past the 2:1
-    // aspect and calms itself), and the pull mostly feeds the shape.
+    // aspect and calms itself), and the pull mostly feeds the shape. A
+    // band, not a floor: a transmission gone wrong in either direction
+    // has to fail here, since these are the only tests that watch the
+    // tether move the surface at all.
     expect((pulled - home).distance, greaterThan(2));
-    expect((pulled - home).distance, lessThan(63));
+    expect((pulled - home).distance, lessThan(9));
     // Release: it springs back to exactly home.
     await gesture.up();
     await settle(tester);
@@ -516,6 +519,29 @@ void main() {
     await settle(tester);
   });
 
+  testWidgets('Tug: a pointer that outlives the subtree is dropped safely', (
+    WidgetTester tester,
+  ) async {
+    // A raw Listener keeps delivering to a State that is already gone:
+    // the render object outlives the element, so a finger still down
+    // when the subtree leaves the tree reports its up afterwards - into
+    // disposed controllers unless the gesture is forgotten at dispose.
+    await tester.pumpWidget(
+      host(
+        const Tug(child: SizedBox(width: 120, height: 48, child: Text('pill'))),
+      ),
+    );
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.text('pill')),
+    );
+    await gesture.moveBy(const Offset(30, 8));
+    await tester.pump(const Duration(milliseconds: 32));
+    await tester.pumpWidget(host(const SizedBox.shrink()));
+    await gesture.up();
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Tug in channel mode: repeated drags never walk the home away', (
     WidgetTester tester,
   ) async {
@@ -582,15 +608,15 @@ void main() {
   testWidgets('Tug: a flick never throws the surface off its leash', (
     WidgetTester tester,
   ) async {
-    // The landing bump reads the remaining displacement as a spring
-    // value, but it is normalised by the pull that produced it - so a
-    // short drag released fast overshoots past -1 and bumpRecoil, which
-    // is in PIXELS, multiplies that. Unclamped it launched the surface
-    // clean off the screen.
+    // The release hands the chase velocity to the return spring, and
+    // that spring bounces: a flick must land home, not sail past on
+    // the carried momentum.
     await tester.pumpWidget(
       host(
         const Tug(
-          cap: 1.4,
+          // A generous asymptote, so the guard measures the release and
+          // not the tanh wall.
+          reach: 1.4,
           child: Padding(padding: .all(20), child: Text('pill')),
         ),
       ),
@@ -609,7 +635,10 @@ void main() {
       worst = math.max(worst, d);
       if (!tester.binding.hasScheduledFrame) break;
     }
-    expect(worst, lessThan(200), reason: 'the flick threw it $worst px');
+    // The travel is a few percent of a 45px drag: single digits, and
+    // the return may overshoot home by a hair. A loose bound here
+    // would pass a transmission gone wrong by an order of magnitude.
+    expect(worst, lessThan(12), reason: 'the flick threw it $worst px');
     expect((tester.getCenter(find.text('pill')) - home).distance, lessThan(1));
   });
 }

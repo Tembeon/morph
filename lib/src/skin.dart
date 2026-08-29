@@ -525,6 +525,18 @@ class _RawMorphSkin extends MultiChildRenderObjectWidget {
 
 class _LiquidChildParentData extends ContainerBoxParentData<RenderBox> {
   MorphPiece? piece;
+
+  /// The child's own filter layer under
+  /// [MorphSkin.contentFilterQuality], kept across paints so its raster
+  /// survives them; disposed with the child.
+  final LayerHandle<ImageFilterLayer> filterLayer =
+      LayerHandle<ImageFilterLayer>();
+
+  @override
+  void detach() {
+    filterLayer.layer = null;
+    super.detach();
+  }
 }
 
 /// A piece after accounting for its flight: where the mass sits and
@@ -1288,24 +1300,22 @@ class RenderMorphSkin extends RenderBox
     _paintTints(canvas, resolved);
     // The stroke goes LAST: a tint clips itself by the same path, and
     // painting it over the contour would eat the edge - a tinted piece
-    // would lose its outline exactly while pressed. Inner by clipping:
-    // a centered line would put width/2 outside the silhouette and
-    // optically grow every skin that turns it on, so the line is drawn
-    // at double width and the outer half is clipped away - the mass
-    // geometry does not change.
+    // would lose its outline exactly while pressed. The clip is what
+    // makes the line inner, so the mass geometry does not change.
     final MorphStroke? stroke = _stroke;
     if (stroke != null) {
-      canvas
-        ..save()
-        ..clipPath(_path)
-        ..drawPath(
-          _path,
-          Paint()
-            ..style = PaintingStyle.stroke
-            ..strokeWidth = stroke.width * 2
-            ..color = stroke.color,
-        )
-        ..restore();
+      canvas.save();
+      canvas.clipPath(_path);
+      // The airborne companion is the shuttle's own surface mirrored
+      // into the mass; the shuttle draws that surface's contour
+      // itself, so stroking the blob here would lay a second line over
+      // the first. Clip its box out and let the home body keep its
+      // outline.
+      for (final Rect blob in lastFlightBlobRects) {
+        canvas.clipRect(blob, clipOp: ui.ClipOp.difference);
+      }
+      canvas.drawPath(_path, _strokePaint(stroke));
+      canvas.restore();
     }
     canvas.restore();
 
@@ -1337,26 +1347,43 @@ class RenderMorphSkin extends RenderBox
           // does not move, which is the whole point - glyphs snap once
           // instead of once per frame.
           final Offset o = pd.offset + offset;
-          final Matrix4 local = Matrix4.translationValues(o.dx, o.dy, 0)
-            ..multiply(transform)
-            ..translateByDouble(-o.dx, -o.dy, 0, 1);
-          context.pushLayer(
-            ImageFilterLayer(
-              imageFilter: ui.ImageFilter.matrix(
-                local.storage,
-                filterQuality: quality,
-              ),
-            ),
-            (PaintingContext ctx, Offset inner) {
-              ctx.paintChild(current, inner);
-            },
-            o,
+          final Matrix4 local = Matrix4.translationValues(o.dx, o.dy, 0);
+          local.multiply(transform);
+          local.translateByDouble(-o.dx, -o.dy, 0, 1);
+          // The layer is RETAINED per child: a fresh one each paint
+          // gives the engine a new layer identity every frame, and the
+          // raster keyed on it can never be reused - which is exactly
+          // the saving this knob is here to buy.
+          final ImageFilterLayer layer =
+              pd.filterLayer.layer ?? ImageFilterLayer();
+          layer.imageFilter = ui.ImageFilter.matrix(
+            local.storage,
+            filterQuality: quality,
           );
+          pd.filterLayer.layer = layer;
+          context.pushLayer(layer, (PaintingContext ctx, Offset inner) {
+            ctx.paintChild(current, inner);
+          }, o);
         }
       }
       child = pd.nextSibling;
     }
   }
+
+  /// The contour's paint, rebuilt only when the stroke itself changes.
+  Paint _strokePaint(MorphStroke stroke) {
+    final Paint paint = _cachedStrokePaint ?? Paint();
+    _cachedStrokePaint = paint;
+    paint.style = PaintingStyle.stroke;
+    // Drawn at double width with the outside clipped away: a centered
+    // line would put half of itself past the silhouette and optically
+    // grow every skin that turns it on.
+    paint.strokeWidth = stroke.width * 2;
+    paint.color = stroke.color;
+    return paint;
+  }
+
+  Paint? _cachedStrokePaint;
 
   /// Per-piece ink: the tinted piece's own rounded body, filled over
   /// the skin and clipped by the traced silhouette. The body rect is

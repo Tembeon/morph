@@ -708,6 +708,15 @@ class _ShuttleScrim extends StatelessWidget {
 /// otherwise). Stays MOUNTED for the whole flight, not only while
 /// visible - shared-element markers inside it must keep reporting
 /// endpoint rects.
+/// [shape] with any border side taken off - the outline belongs to the
+/// flying container, not to a copy riding inside it.
+ShapeBorder _unstroked(ShapeBorder shape) {
+  if (shape is OutlinedBorder && shape.side != BorderSide.none) {
+    return shape.copyWith(side: BorderSide.none);
+  }
+  return shape;
+}
+
 class _SourceGhost extends StatelessWidget {
   const _SourceGhost({
     required this.flight,
@@ -760,12 +769,16 @@ class _SourceGhost extends StatelessWidget {
                           fit: .fill,
                         )
                       : MorphSurfaceSpecScope(
-                          // One mass - one shadow: the container casts THE
-                          // shadow, so the spec the replica renders from
-                          // carries no elevation - a spec-driven button
-                          // must not cast a second shadow inside the
-                          // shuttle.
-                          spec: flight.tag.surfaceSpec.copyWith(elevation: 0),
+                          // One mass - one outline, one shadow: the
+                          // container draws both, so the spec the replica
+                          // renders from carries neither. A spec-driven
+                          // button would otherwise cast a second shadow
+                          // and trace a second contour inside the
+                          // shuttle, at its own scale.
+                          spec: flight.tag.surfaceSpec.copyWith(
+                            elevation: 0,
+                            shape: _unstroked(flight.tag.surfaceSpec.shape),
+                          ),
                           child: SharedSideScope(
                             flight: flight,
                             isTarget: false,

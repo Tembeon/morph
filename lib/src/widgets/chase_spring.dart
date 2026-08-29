@@ -19,7 +19,9 @@ class ChaseSpring {
 
   /// Spring stiffness; higher chases tighter. The damping is derived
   /// as 2 * sqrt(stiffness), keeping the chase critically damped.
-  final double stiffness;
+  /// Writable so a live knob reaches a chase already in flight; the
+  /// new value takes effect on the next [tick].
+  double stiffness;
 
   /// Where the spring is now. Seed it through [grab].
   Offset value = .zero;

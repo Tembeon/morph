@@ -29,10 +29,10 @@ typedef _TugModel = ({Offset travel, double scaleX, double scaleY});
 ///   before it ever ticks and the surface freezes. At rest under a
 ///   motionless finger the tick snaps to the target once and stops
 ///   writing - a held button costs nothing per frame.
-/// - TRAVEL is `capM * tanh(give * d / capM)` along the pull vector,
-///   with `capM = cap * M`. The initial transmission is [give] - a few
+/// - TRAVEL is `R * tanh(give * d / R)` along the pull vector, with
+///   `R = reach * M`. The initial transmission is [give] - a few
 ///   percent of the finger's motion, so the surface reads as heavy -
-///   and the asymptote is [cap] of the whole side, so it responds to
+///   and the asymptote is [reach] of the whole side, so it responds to
 ///   the 300th pixel of a drag as it did to the 30th: there is no wall.
 /// - The SHAPE reads the raw pull at gain [stretch] plus the pull's own
 ///   velocity times [jiggle] - the pixels the silhouette has not caught
@@ -77,8 +77,7 @@ class Tug extends StatefulWidget {
   const Tug({
     super.key,
     required this.child,
-    this.dead = 0,
-    this.cap = 1,
+    this.reach = 1,
     this.give = 0.05,
     this.stretch = 0.08,
     this.volume = 0.5,
@@ -94,15 +93,10 @@ class Tug extends StatefulWidget {
   /// The tuggable surface.
   final Widget child;
 
-  /// Dead-zone radius in px around home; the pull starts past it.
-  /// Rests at 0: the press growth, not a dead zone, is what keeps a
-  /// press from shivering.
-  final double dead;
-
   /// Travel asymptote as a ratio of the shorter side. The default 1
   /// means the whole side - unreachable in practice, which is the
   /// point: the tether never visibly hits a wall.
-  final double cap;
+  final double reach;
 
   /// Initial transmission of the tether: how much of the finger's first
   /// pixels the surface travels. The Apple feel is heavy - 0.05.
@@ -176,10 +170,9 @@ class Tug extends StatefulWidget {
 class _TugState extends State<Tug> with TickerProviderStateMixin {
   /// The liquid-glass reference spring (stiffness ~300, damping ratio
   /// 0.5): the press and the built-in return both ride it. This is the
-  /// BUTTON-scale member of the glass family - [MorphMotion.glass]
-  /// carries the flight-scale calibration of the same character (the
-  /// 0.5 ratio's ~16% undershoot is a few px here and was slapstick
-  /// over a flight's hundreds).
+  /// BUTTON-scale member of the glass family - its undershoot is a few
+  /// px at these amplitudes; [MorphMotion.glass] carries the same
+  /// character calibrated for a flight's.
   static const Motion _glassSpring = CupertinoMotion(
     duration: Duration(milliseconds: 363),
     bounce: 0.5,
@@ -208,9 +201,7 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
 
   // The chase: pointer events move the target, the ticker integrates.
   late final Ticker _chase = createTicker(_chaseTick);
-  late final ChaseSpring _spring = ChaseSpring(
-    stiffness: widget.chaseStiffness,
-  );
+  final ChaseSpring _spring = ChaseSpring();
   Duration _chaseLast = .zero;
 
   Motion get _returnMotion => widget.motion?.closeMotion ?? _glassSpring;
@@ -219,10 +210,24 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     _frame.addListener(_report);
+    _spring.stiffness = widget.chaseStiffness;
+  }
+
+  @override
+  void didUpdateWidget(Tug oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Every other knob is read live inside the model; the chase holds
+    // its own so it must be told.
+    _spring.stiffness = widget.chaseStiffness;
   }
 
   @override
   void dispose() {
+    // A raw Listener keeps delivering to a disposed State: the render
+    // object outlives the element, and a pointer that is still down
+    // when the subtree leaves the tree reports its up afterwards. The
+    // pointer is forgotten here so those callbacks find no gesture.
+    _pointer = null;
     _frame.removeListener(_report);
     _chase.dispose();
     _xy.dispose();
@@ -242,7 +247,7 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     // form - a per-axis tanh squares off a circular sweep. Beyond a
     // 2:1 aspect the transmission fades with the aspect: chrome-wide
     // bodies read as heavier, which is what their mass says.
-    final double capPx = math.max(widget.cap * m, 1);
+    final double capPx = math.max(widget.reach * m, 1);
     final double give = widget.give * math.min(1, 2 * m / _size.longestSide);
     final double len = pull.distance;
     final Offset travel = len == 0
@@ -258,36 +263,41 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     if (shapeLen > 0) {
       shape = shape * (ceiling * _tanh(shapeLen / ceiling) / shapeLen);
     }
+    // The vertical share is applied ONCE per contribution: the pull
+    // itself is gated as it enters (in _pull), the deformation and the
+    // volume correction inside the scale, and the press right here.
     final (double deformX, double deformY) = _liquidScale(
       shape,
       _size,
       widget.volume,
+      widget.vertical,
     );
 
     // Press: absolute growth PER AXIS - each side gains [pressGrow] px,
     // so a wide bar lifts by the same few physical pixels as a small
-    // pill instead of scaling its whole width (the reference presses
-    // wide chrome by absolute pixels too).
+    // pill instead of scaling its whole width.
     final double p = _press.value * widget.pressGrow;
-    final double scaleX = deformX * (1 + p / _size.width);
-    final double scaleY = deformY * (1 + p / _size.height);
     return (
       travel: travel,
-      scaleX: scaleX,
-      // The vertical gate closes over EVERYTHING that would change the
-      // height - deformation, volume thinning and press alike - so a
-      // bar with vertical: 0 is truly height-pinned.
-      scaleY: 1 + (scaleY - 1) * widget.vertical,
+      scaleX: deformX * (1 + p / _size.width),
+      scaleY: deformY * (1 + p * widget.vertical / _size.height),
     );
   }
 
   /// Both axes grow by their own share of the deformation, then a
   /// volume correction pulls the product onto a target that grows far
   /// slower - so the cross axis thins as the pulled one swells.
+  ///
+  /// [vertical] is the height's share of the response. The pull has
+  /// already carried that share in, so it is spent here only on the
+  /// CORRECTION: a pinned axis hands its share to the other one, which
+  /// then meets the area target alone. At 1 both axes carry the usual
+  /// square root; at 0 the height is exactly 1.
   static (double, double) _liquidScale(
     Offset stretchPixels,
     Size size,
     double volume,
+    double vertical,
   ) {
     if (size.isEmpty) {
       return (1, 1);
@@ -297,10 +307,17 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     final double baseX = 1 + relX;
     final double baseY = 1 + relY;
     final double magnitude = math.sqrt(relX * relX + relY * relY);
-    final double correction = math.sqrt(
-      (1 + magnitude * volume) / (baseX * baseY),
+    // The area target has a floor: a deeply negative [Tug.volume] would
+    // otherwise ask for a negative area, and the root of that is a NaN
+    // straight into the channel and the skin's tracer.
+    final double target = math.max(1 + magnitude * volume, 0.01);
+    final double correction = math
+        .pow(target / (baseX * baseY), 1 / (1 + vertical))
+        .toDouble();
+    return (
+      baseX * correction,
+      baseY * math.pow(correction, vertical).toDouble(),
     );
-    return (baseX * correction, baseY * correction);
   }
 
   void _report() {
@@ -322,7 +339,7 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
     // The pull and the press belong to the primary button only: a
     // right click on desktop opens a menu, the body has nothing to
     // answer.
-    if (_pointer != null || event.buttons != kPrimaryButton) {
+    if (!mounted || _pointer != null || event.buttons != kPrimaryButton) {
       return;
     }
     _pointer = event.pointer;
@@ -352,16 +369,13 @@ class _TugState extends State<Tug> with TickerProviderStateMixin {
       return;
     }
     final Offset full = event.position - _homeCenter;
-    // The vertical gate applies at the INPUT, so a killed axis also
-    // shrinks the effective pull length instead of leaking into the
-    // shape through the magnitude.
-    final Offset raw = Offset(full.dx, full.dy * widget.vertical);
-    final double len = raw.distance;
-    final double free = math.max(len - widget.dead, 0);
-    // The chase target is the RAW pull; all resistance lives in the
-    // readout, so the shape can answer the finger while the body
-    // stands nearly still.
-    _spring.target = len == 0 ? .zero : raw * (free / len);
+    // The vertical gate applies to the pull as it enters, so a killed
+    // axis cannot leak into the travel through the magnitude either;
+    // the shape and the press carry the same share once each, further
+    // in. The chase target is otherwise the RAW pull - all resistance
+    // lives in the readout, so the shape can answer the finger while
+    // the body stands nearly still.
+    _spring.target = Offset(full.dx, full.dy * widget.vertical);
   }
 
   void _chaseTick(Duration elapsed) {

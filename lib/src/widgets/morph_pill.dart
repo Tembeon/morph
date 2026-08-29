@@ -20,7 +20,7 @@ import 'package:morph/src/widgets/morph_squash.dart';
 /// each frame it reads the outputs back and draws the pill wherever
 /// [centerX] and [resolveSize] say.
 ///
-/// The model, every verdict paid for by hand against the references:
+/// The model:
 ///
 /// - TAP: the pill lifts the instant the finger lands and stays up for
 ///   the WHOLE journey - it glides on the travel spring and comes down
@@ -66,7 +66,7 @@ class MorphPillHost extends ChangeNotifier {
     _ticker = vsync.createTicker(_tick);
   }
 
-  // ── The reference constants, verbatim ────────────────────────────
+  // ── The liquid-glass constants ───────────────────────────────────
   static const double _travelStiffness = 280;
   static const double _travelDamping = 31.4;
   static const double _liftStiffness = 250;
@@ -80,6 +80,14 @@ class MorphPillHost extends ChangeNotifier {
   static const double _chromeReturnStiffness = 300;
   static const double _pressStiffness = 1000;
 
+  /// A frame gap past which the ticker is treated as resumed rather
+  /// than slow: well beyond any real frame, well under any journey.
+  static const double _resumeGap = 1;
+
+  /// The reach used to ask [snap] for the track's ends - past any real
+  /// layout, and finite so an owner may round it.
+  static const double _gridProbe = 1e6;
+
   /// Maps a finger x to the target CENTER a tap (or a motionless hold)
   /// selects - the owner's hit test, sub-targets included.
   final double Function(double fingerX) hit;
@@ -88,9 +96,10 @@ class MorphPillHost extends ChangeNotifier {
   /// owner's snap grid.
   final double Function(double pillCenterX) snap;
 
-  /// Fired whenever a POINTER gesture commits a target: every tap
-  /// (re-taps included - re-tap grammar is the owner's call) and every
-  /// carry release. Owner-driven [settleTo] does not fire it.
+  /// Fired whenever a POINTER gesture resolves to a target: every tap
+  /// (re-taps included - re-tap grammar is the owner's call), every
+  /// carry release, and a [cancel], which resolves to the target
+  /// already committed. Owner-driven [settleTo] does not fire it.
   final void Function(double centerX, {required bool byCarry})? onTarget;
 
   /// Pixels of pointer travel before a touch becomes a carry.
@@ -100,21 +109,16 @@ class MorphPillHost extends ChangeNotifier {
   /// position instead of reading as a slow tap on [hit].
   final double carryCommit;
 
-  /// The carried center's confinement, set by the owner from its
-  /// layout (usually the first and the last rest centers): the finger's
-  /// DELTA stays honest past the track's edges, but the pill itself
-  /// never leaves the track. Unset bounds leave that side free.
-  double carryMin = double.negativeInfinity;
-
-  /// The upper bound of the carried center; see [carryMin].
-  double carryMax = double.infinity;
-
   // ── Travel state ─────────────────────────────────────────────────
   double _pos = 0;
   double _vel = 0;
   double _target = 0;
   double _from = 0;
   bool _travelActive = false;
+
+  /// The last target a gesture actually committed to - where a
+  /// cancelled touch puts the pill back.
+  double _committed = 0;
 
   // ── Grab state ───────────────────────────────────────────────────
   bool _held = false;
@@ -124,8 +128,13 @@ class MorphPillHost extends ChangeNotifier {
   double _carryTarget = 0;
   double _grabPos = 0;
   double _pressX = 0;
-  double _downX = 0;
   double? _lastX;
+
+  /// The carry's confinement, taken from [snap] at every grab: the
+  /// finger's DELTA stays honest past the track's edges, but the pill
+  /// itself never leaves it.
+  double _carryMin = double.negativeInfinity;
+  double _carryMax = double.infinity;
 
   // ── Lift and deformation ─────────────────────────────────────────
   bool _lifted = false;
@@ -151,6 +160,14 @@ class MorphPillHost extends ChangeNotifier {
   /// squash's monotonic clock is accumulated by the host itself.
   Duration? _tickerLast;
   double _now = 0;
+
+  // The last reported outputs, so an unchanged frame stays quiet.
+  double _sentX = double.nan;
+  double _sentLiftX = double.nan;
+  double _sentLiftY = double.nan;
+  double _sentDeviation = double.nan;
+  double _sentPress = double.nan;
+  double _sentAccum = double.nan;
 
   // ── Outputs ──────────────────────────────────────────────────────
 
@@ -206,12 +223,16 @@ class MorphPillHost extends ChangeNotifier {
 
   /// Parks the pill at [center] instantly - initial layout, or
   /// re-anchoring a resting pill after a resize.
+  ///
+  /// Safe to call from a layout callback: it never notifies (a resize
+  /// is already a paint of its own), so a listening owner cannot be
+  /// marked dirty mid-build.
   void jumpTo(double center) {
     _pos = center;
     _vel = 0;
     _target = center;
     _from = center;
-    notifyListeners();
+    _committed = center;
   }
 
   /// Launches (or resumes) a travel to [center] from wherever the pill
@@ -223,6 +244,7 @@ class MorphPillHost extends ChangeNotifier {
     _lifted = true;
     _from = _pos;
     _target = center;
+    _committed = center;
     _travelSign = _signOf(_target - _from);
     _wake();
   }
@@ -243,9 +265,17 @@ class MorphPillHost extends ChangeNotifier {
     _carrying = false;
     _realMove = false;
     _lifted = true;
-    _downX = x;
     _pressX = x;
     _lastX = x;
+    // A fresh gesture leans the chrome from zero: the previous carry's
+    // draining accumulation is not this one's.
+    _accum = 0;
+    _accumVel = 0;
+    // The snap grid IS the track: its extremes confine the carry, so a
+    // consumer cannot forget to bound it. Probed with a finite reach -
+    // an infinity would come back through a rounding owner as a throw.
+    _carryMin = snap(-_gridProbe);
+    _carryMax = snap(_gridProbe);
     final double target = hit(x);
     if ((target - snap(_pos)).abs() < 0.5) {
       // The pill's own item: the hold grows it where it lives - the
@@ -253,8 +283,6 @@ class MorphPillHost extends ChangeNotifier {
       _travelActive = false;
       _travelSign = 0;
       _grabPos = _pos;
-      _follow = _pos;
-      _carryTarget = _pos;
       _vel = 0;
     } else {
       // Another item: the pill goes to it under the hold. The carry
@@ -265,8 +293,6 @@ class MorphPillHost extends ChangeNotifier {
       _target = target;
       _travelSign = _signOf(_target - _from);
       _grabPos = target;
-      _follow = _pos;
-      _carryTarget = target;
     }
     _wake();
   }
@@ -280,7 +306,7 @@ class MorphPillHost extends ChangeNotifier {
     if (!_held) {
       return;
     }
-    if (!_carrying && (x - _downX).abs() > carrySlop) {
+    if (!_carrying && (x - _pressX).abs() > carrySlop) {
       _carrying = true;
       // The carry picks the pill up WHERE IT IS - possibly mid-glide
       // toward a held item - and the travel hands over to the hand.
@@ -295,7 +321,7 @@ class MorphPillHost extends ChangeNotifier {
     if ((x - _pressX).abs() > carryCommit) {
       _realMove = true;
     }
-    _carryTarget = (_grabPos + (x - _pressX)).clamp(carryMin, carryMax);
+    _carryTarget = (_grabPos + (x - _pressX)).clamp(_carryMin, _carryMax);
     _accum += x - (_lastX ?? x);
     _lastX = x;
   }
@@ -320,13 +346,19 @@ class MorphPillHost extends ChangeNotifier {
       onTarget?.call(target, byCarry: _realMove);
       return;
     }
-    final double target = hit(x);
+    // The item the HOLD showed, not wherever the finger drifted to: a
+    // couple of px past a slot boundary must not commit a slot the
+    // journey never visited.
+    final double target = hit(_pressX);
     settleTo(target);
     onTarget?.call(target, byCarry: false);
   }
 
-  /// The touch was cancelled: the pill resumes its own journey to the
-  /// last committed target, no selection change.
+  /// The touch was cancelled (the platform took it, or a route change
+  /// dropped it): the pill returns to the last committed target and
+  /// [onTarget] reports that target, so an owner that moved a live
+  /// highlight under the carry puts it back. The selection value
+  /// itself does not change - it is the one already committed.
   void cancel() {
     if (!_held) {
       return;
@@ -338,7 +370,9 @@ class MorphPillHost extends ChangeNotifier {
       _pos = _follow;
       _vel = 0;
     }
-    settleTo(snap(_pos));
+    final double target = _committed;
+    settleTo(target);
+    onTarget?.call(target, byCarry: false);
   }
 
   @override
@@ -362,6 +396,16 @@ class MorphPillHost extends ChangeNotifier {
     _tickerLast = elapsed;
     final double dt = (elapsed - last).inMicroseconds / 1e6;
     if (dt <= 0) {
+      return;
+    }
+    if (dt > _resumeGap) {
+      // Frames stopped and came back (a route covered the chapter and
+      // muted the ticker, or the app was backgrounded). Integrating
+      // the whole gap would burn 240 substeps per second of it to
+      // arrive exactly where finishing puts us instantly - and the
+      // user, who has been elsewhere, expects to find the journey
+      // over rather than to watch it replay.
+      _finish();
       return;
     }
     _now += dt;
@@ -432,7 +476,7 @@ class MorphPillHost extends ChangeNotifier {
     // 4) The squash, sampled where the pill is drawn THIS frame; its
     // magnitude is kept and its sign taken from the travel direction,
     // eased across on a reversal.
-    double deviation = _squash.track(Offset(centerX, 0), now: _now, dt: dt);
+    final double raw = _squash.track(Offset(centerX, 0), now: _now, dt: dt);
     if (_travelSignEased == 0) {
       _travelSignEased = _travelSign;
     } else if (_travelSignEased != _travelSign) {
@@ -442,11 +486,14 @@ class MorphPillHost extends ChangeNotifier {
         _travelSignEased = _travelSign;
       }
     }
+    // The force's own sign reads the SCREEN axis (accelerating right
+    // stretches); the pill wants it read along its TRAVEL, so that a
+    // launch stretches and an arrival squashes whichever way it goes.
+    // A travelling key of -1 mirrors the sense for the whole journey;
+    // 0 (the hand drives) keeps the raw screen sense, and a part-way
+    // key is the blend that makes a reversal cross rather than switch.
     final double key = _travelSignEased;
-    if (key != 0) {
-      deviation = deviation * (1 - key.abs()) - key * deviation.abs();
-    }
-    _deviation = deviation;
+    _deviation = raw * (1 - key.abs() + key);
 
     // 5) Chrome sympathy: the breath follows the lift, the shift's
     // accumulation springs home once the hand lets go.
@@ -493,7 +540,65 @@ class MorphPillHost extends ChangeNotifier {
       _ticker?.stop();
     }
 
-    notifyListeners();
+    // A held pill that has finished rising has nothing new to say
+    // until the finger moves again, and the ticker must stay alive to
+    // hear it: report only when an output actually changed, so a
+    // motionless hold costs no rebuild.
+    if (_emit()) {
+      notifyListeners();
+    }
+  }
+
+  /// Whether any output moved since the last report; records the new
+  /// values as the baseline.
+  bool _emit() {
+    final double x = centerX;
+    if (x == _sentX &&
+        _liftX == _sentLiftX &&
+        _liftY == _sentLiftY &&
+        _deviation == _sentDeviation &&
+        _press == _sentPress &&
+        _accum == _sentAccum) {
+      return false;
+    }
+    _sentX = x;
+    _sentLiftX = _liftX;
+    _sentLiftY = _liftY;
+    _sentDeviation = _deviation;
+    _sentPress = _press;
+    _sentAccum = _accum;
+    return true;
+  }
+
+  /// Ends every motion where it was headed, at once: the springs on
+  /// their targets, the lift and the sympathy at rest, the
+  /// deformation drained. Used when frames resume after a gap.
+  void _finish() {
+    _pos = _target;
+    _vel = 0;
+    _travelActive = false;
+    _follow = _pos;
+    _carryTarget = _pos;
+    final double liftTarget = _held ? 1.0 : 0.0;
+    _lifted = _held;
+    _liftX = liftTarget;
+    _liftY = liftTarget;
+    _liftXVel = 0;
+    _liftYVel = 0;
+    _press = liftTarget;
+    _pressVel = 0;
+    _accum = 0;
+    _accumVel = 0;
+    _deviation = 0;
+    _travelSign = 0;
+    _travelSignEased = 0;
+    _squash.reset();
+    if (!_held) {
+      _ticker?.stop();
+    }
+    if (_emit()) {
+      notifyListeners();
+    }
   }
 
   /// One frame of a lift spring, snapped to its target once it has
@@ -521,7 +626,7 @@ class MorphPillHost extends ChangeNotifier {
   }
 
   /// One integration step of an underdamped spring, sub-stepped at
-  /// 240 Hz for stability - the reference integrator, verbatim.
+  /// 240 Hz so a long frame cannot destabilize it.
   static (double, double) _springStep({
     required double x,
     required double vel,

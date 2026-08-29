@@ -222,7 +222,6 @@ class _InkTrackState extends State<_InkTrack>
   double _slot = 0;
   double _width = 0;
   double _height = 0;
-  bool _placed = false;
 
   @override
   void initState() {
@@ -265,10 +264,12 @@ class _InkTrackState extends State<_InkTrack>
     if (_width == 0) {
       return;
     }
+    // The breath is a WIDTH: writing it into scaleY too would grow the
+    // bar's height, break its stadium against a fixed radius and eat
+    // the gap the neck lives in.
     widget.barChannel.update(
       offset: Offset(_host.chromeShift(_width), 0),
       scaleX: _host.chromeBreath(_width),
-      scaleY: _host.chromeBreath(_width),
     );
     if (_host.carrying) {
       final int under = _slotOf(_host.centerX);
@@ -289,12 +290,7 @@ class _InkTrackState extends State<_InkTrack>
         // The host holds an ABSOLUTE center; the first layout places
         // it, and a width change re-anchors a resting pill to the
         // current selection's new center.
-        // The carry is confined to the rest centers' span: honest
-        // deltas past the edges, but the pill never leaves the track.
-        _host.carryMin = _slotCenter(0);
-        _host.carryMax = _slotCenter(widget.tabs.length - 1);
-        if (!_placed || (previousSlot != _slot && !_host.held)) {
-          _placed = true;
+        if (previousSlot != _slot && !_host.held) {
           _host.jumpTo(_slotCenter(widget.selected));
         }
         return MouseRegion(
@@ -331,39 +327,60 @@ class _InkTrackState extends State<_InkTrack>
             child: Stack(
               clipBehavior: .none,
               children: <Widget>[
-                ListenableBuilder(
-                  listenable: _host,
-                  builder: (BuildContext context, Widget? child) {
-                    final Size rest = Size(
-                      _slot - _inset * 2,
-                      _height - _inset * 2,
-                    );
-                    final double liftedH = _height + _growHeight;
-                    final Size lifted = Size(
-                      liftedH * (rest.width / rest.height),
-                      liftedH,
-                    );
-                    final Size live = _host.resolveSize(
-                      rest: rest,
-                      lifted: lifted,
-                    );
-                    return Positioned(
-                      left: _host.centerX - live.width / 2,
-                      top: _height / 2 - live.height / 2,
-                      width: math.max(1, live.width),
-                      height: math.max(1, live.height),
-                      child: child!,
-                    );
-                  },
-                  child: DecoratedBox(
-                    // Ink, not glass: an opaque wash of accent soaked
-                    // into the surface, no outline.
-                    decoration: ShapeDecoration(
-                      color: Color.alphaBlend(
-                        widget.accent.withValues(alpha: 0.16),
-                        widget.surface,
+                // The pill is PAINTED, not laid out: a Positioned whose
+                // values change per tick marks the Stack for layout
+                // every frame, and the house rule is that spring ticks
+                // repaint only. The layout box is the whole track; the
+                // frame rides a transform inside it.
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: ListenableBuilder(
+                      listenable: _host,
+                      builder: (BuildContext context, Widget? child) {
+                        final Size rest = Size(
+                          _slot - _inset * 2,
+                          _height - _inset * 2,
+                        );
+                        final double liftedH = _height + _growHeight;
+                        final Size lifted = Size(
+                          liftedH * (rest.width / rest.height),
+                          liftedH,
+                        );
+                        final Size live = _host.resolveSize(
+                          rest: rest,
+                          lifted: lifted,
+                        );
+                        final Matrix4 place = Matrix4.translationValues(
+                          _host.centerX - live.width / 2,
+                          _height / 2 - live.height / 2,
+                          0,
+                        );
+                        place.scaleByDouble(
+                          live.width / math.max(rest.width, 1),
+                          live.height / math.max(rest.height, 1),
+                          1,
+                          1,
+                        );
+                        return Transform(transform: place, child: child);
+                      },
+                      child: Align(
+                        alignment: .topLeft,
+                        child: SizedBox(
+                          width: math.max(_slot - _inset * 2, 1),
+                          height: math.max(_height - _inset * 2, 1),
+                          child: DecoratedBox(
+                            // Ink, not glass: an opaque wash of accent
+                            // soaked into the surface, no outline.
+                            decoration: ShapeDecoration(
+                              color: Color.alphaBlend(
+                                widget.accent.withValues(alpha: 0.16),
+                                widget.surface,
+                              ),
+                              shape: const StadiumBorder(),
+                            ),
+                          ),
+                        ),
                       ),
-                      shape: const StadiumBorder(),
                     ),
                   ),
                 ),
@@ -373,10 +390,21 @@ class _InkTrackState extends State<_InkTrack>
                       SizedBox(
                         width: _slot,
                         height: _height,
-                        child: _Cell(
-                          icon: widget.tabs[i].$1,
+                        // The gestures live on the track, but a tab is
+                        // a control: screen readers need a name, the
+                        // selected state and something to activate.
+                        child: Semantics(
+                          button: true,
+                          selected: i == _active,
                           label: widget.tabs[i].$2,
-                          active: i == _active,
+                          onTap: () => widget.onSelect(i),
+                          child: ExcludeSemantics(
+                            child: _Cell(
+                              icon: widget.tabs[i].$1,
+                              label: widget.tabs[i].$2,
+                              active: i == _active,
+                            ),
+                          ),
                         ),
                       ),
                   ],

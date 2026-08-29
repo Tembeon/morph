@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
@@ -46,10 +45,21 @@ class _GooDockExampleState extends State<GooDockExample>
     initialValue: _slotCenter(0),
   );
   final MorphPieceChannel _blob = MorphPieceChannel();
-  final MorphSquash _squash = MorphSquash();
-  late final Ticker _ticker = createTicker(_tick);
-  final Stopwatch _clock = Stopwatch()..start();
-  double _clockLast = 0;
+
+  /// The per-frame path: the driver samples the spring and hands back
+  /// the deformation, which goes straight into the channel. It outlives
+  /// the spring on purpose - the deformation drains through its own
+  /// window AFTER the landing.
+  late final SquashDriver _driver = SquashDriver(
+    vsync: this,
+    position: () => Offset(_x.value, 0),
+    isBusy: () => _x.isAnimating,
+    onFrame: (MorphSquash squash) => _blob.update(
+      offset: Offset(_x.value - _slotCenter(0), 0),
+      scaleX: squash.scaleX,
+      scaleY: squash.scaleY,
+    ),
+  );
   int _selected = 0;
 
   static double _slotCenter(int index) => _slot * index + _slot / 2;
@@ -62,40 +72,12 @@ class _GooDockExampleState extends State<GooDockExample>
     // interruption contract as the flights (SingleMotionController
     // carries the velocity over on its own).
     _x.animateTo(_slotCenter(index));
-    if (!_ticker.isActive) {
-      // A fresh run must not deform from the previous glide's history.
-      _squash.reset();
-      _clockLast = _clock.elapsedMicroseconds / 1e6;
-      _ticker.start();
-    }
-  }
-
-  /// The per-frame path: sample the spring, feed the squash tracker,
-  /// write the channel. The ticker outlives the spring on purpose -
-  /// the deformation drains through its own window AFTER the landing -
-  /// and stops itself once both are quiet. The clock is the scene's
-  /// own stopwatch: Ticker.elapsed restarts on every start().
-  void _tick(Duration elapsed) {
-    final double now = _clock.elapsedMicroseconds / 1e6;
-    final double dt = now - _clockLast;
-    _clockLast = now;
-    if (dt <= 0) {
-      return;
-    }
-    _squash.track(Offset(_x.value, 0), now: now, dt: dt);
-    _blob.update(
-      offset: Offset(_x.value - _slotCenter(0), 0),
-      scaleX: _squash.scaleX,
-      scaleY: _squash.scaleY,
-    );
-    if (!_x.isAnimating && _squash.isSettled) {
-      _ticker.stop();
-    }
+    _driver.start();
   }
 
   @override
   void dispose() {
-    _ticker.dispose();
+    _driver.dispose();
     _x.dispose();
     _blob.dispose();
     super.dispose();

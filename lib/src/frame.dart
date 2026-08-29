@@ -270,8 +270,7 @@ ShapeBorder _shapeFromRadius(
   // The concentric model rebuilds the outline from the radius, but the
   // endpoints' BorderSides must survive the rebuild: a source that
   // carries a contour (a stroked skin piece) hands it to the container
-  // and the side fades toward the target's - without this the outline
-  // vanished on the launch frame.
+  // and the side fades toward the target's.
   final BorderSide side = BorderSide.lerp(
     _sideOf(sourceShape),
     _sideOf(targetShape),
