@@ -296,6 +296,10 @@ class _InkTrackState extends State<_InkTrack>
   int? _pointer;
   double _downX = 0;
 
+  /// The finger is down (dragging or not): the lift may not come down
+  /// while the hand still holds the pill.
+  bool _held = false;
+
   final ValueNotifier<_PillFrame> _pill = ValueNotifier<_PillFrame>((
     rect: Rect.zero,
   ));
@@ -333,27 +337,26 @@ class _InkTrackState extends State<_InkTrack>
   double _signOf(double span) => span.abs() < 1e-6 ? 0 : span.sign;
 
   // ── Selection / travel ───────────────────────────────────────────
-  void _animateTo(int next) {
-    if (next == _index) {
-      // Choosing where the pill already stands: nothing to travel,
-      // the lift simply comes down.
-      _lifted = false;
-      _wake();
-      return;
-    }
+  /// Launches (or resumes) a travel to [next] from wherever the pill
+  /// currently stands - the one door every selection walks through, so
+  /// an interrupted journey can never leave the pill stranded between
+  /// slots.
+  void _settleTo(int next, {required bool notify}) {
+    final bool changed = next != _index;
     _index = next;
     _travelActive = true;
-    _lifted = true;
-    // Retarget from wherever the pill currently is; the spring keeps
-    // its velocity.
     _travelFrom = _travelPos;
     _travelTarget = next.toDouble();
     _travelSign = _signOf(_travelTarget - _travelFrom);
     // The light agrees with the screens: the emphasis flips the moment
     // the choice commits, not when the pill lands.
-    setState(() => _active = next);
+    if (_active != next) {
+      setState(() => _active = next);
+    }
     _wake();
-    widget.onSelect(next);
+    if (notify && changed) {
+      widget.onSelect(next);
+    }
   }
 
   // ── The raw pointer: no timers, the DOWN is the answer ───────────
@@ -368,6 +371,7 @@ class _InkTrackState extends State<_InkTrack>
     // immediately - a hold between tabs grows it where it lives. What
     // the gesture MEANS is decided later: a quick release is a tap, a
     // carry is a drag.
+    _held = true;
     _dragging = false;
     _realMove = false;
     _travelActive = false;
@@ -395,6 +399,9 @@ class _InkTrackState extends State<_InkTrack>
     if (!_dragging) {
       return;
     }
+    // The delta rides the UNCLAMPED fraction: clamping inside the
+    // difference would freeze the carry the moment the finger leaves
+    // the track and desync it on the way back. Only the target clamps.
     final double frac = _toFrac(dx);
     if ((frac - _pressFrac).abs() > 0.2) {
       _realMove = true;
@@ -415,14 +422,17 @@ class _InkTrackState extends State<_InkTrack>
       return;
     }
     _pointer = null;
+    _held = false;
     if (_dragging) {
       _release();
       return;
     }
     // Never carried: a tap (or a motionless hold) selects the slot
-    // under the finger.
-    _animateTo(
+    // under the finger. The same door also resumes a journey the DOWN
+    // froze mid-flight, even when the slot did not change.
+    _settleTo(
       (event.localPosition.dx / _slot).floor().clamp(0, widget.tabs.length - 1),
+      notify: true,
     );
   }
 
@@ -431,12 +441,13 @@ class _InkTrackState extends State<_InkTrack>
       return;
     }
     _pointer = null;
+    _held = false;
     if (_dragging) {
       _release();
       return;
     }
-    _lifted = false;
-    _wake();
+    // A cancelled touch resumes the pill's own journey home.
+    _settleTo(_index, notify: false);
   }
 
   void _release() {
@@ -447,29 +458,14 @@ class _InkTrackState extends State<_InkTrack>
     // landing - letting go is not the end of the journey, arriving is.
     _dragging = false;
     _lastDragX = null;
-    _index = next;
-    _travelActive = true;
     _travelPos = from;
     _travelVel = 0;
-    _travelFrom = from;
-    _travelTarget = next.toDouble();
-    _travelSign = _signOf(_travelTarget - _travelFrom);
-    if (_active != next) {
-      setState(() => _active = next);
-    }
-    _wake();
-    if (next != widget.selected) {
-      widget.onSelect(next);
-    }
+    _settleTo(next, notify: true);
   }
 
-  double _toFrac(double dx) {
-    final double cell0Center = _slot / 2;
-    return ((dx - cell0Center) / _slot).clamp(
-      0.0,
-      (widget.tabs.length - 1).toDouble(),
-    );
-  }
+  /// The finger's x as a slot fraction, deliberately UNCLAMPED: the
+  /// relative carry needs honest deltas past the track's edges.
+  double _toFrac(double dx) => (dx - _slot / 2) / _slot;
 
   // ── The frame: every spring, the squash and the sympathy ─────────
   void _tick(Duration elapsed) {
@@ -516,7 +512,7 @@ class _InkTrackState extends State<_InkTrack>
       }
       return (1 - (_travelTarget - _travelPos).abs() / span).clamp(0.0, 1.0);
     }();
-    if (!_dragging && (travelSettled || progress >= _handoverStart)) {
+    if (!_held && !_dragging && (travelSettled || progress >= _handoverStart)) {
       _lifted = false;
     }
     final double liftTarget = _lifted ? 1 : 0;
