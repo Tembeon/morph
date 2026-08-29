@@ -70,11 +70,14 @@ Flutter-style split, two entrypoints:
 - `motion.dart` - `MorphMotion`: a pair of `Motion`s from **motor**
   (openMotion/closeMotion) plus `closeVelocityHint`. Presets
   glacial/slow/normal/glass/fast/instant built on `CupertinoMotion`.
-  `glass` is the material-unification profile: its close IS the Tug
-  press/return spring (~363ms, zeta 0.5 - the ONE home of that
-  spring; Tug reads it from here), so a dialog closing on glass lands
-  in its button with the button's own character - the landing bump is
-  that spring's residual after the latch. Custom
+  `glass` is the material-unification profile as a FAMILY, not an
+  instance: close 420ms bounce 0.3, hint -1.5 - the Tug button
+  spring's tempo neighbourhood calibrated for flight mass. Sharing
+  the literal button spring (363ms zeta 0.5) was tried and REJECTED
+  by hand: its ~16% undershoot past the latch turns into a ~22px
+  landing kick over a flight's hundreds of pixels - slapstick, not a
+  catch. Tug keeps its own private 363/0.5 for finger-scale
+  amplitudes; do not re-unify the instances. Custom
   profiles via the public constructor from ANY Motion (Material tokens,
   curves, custom springs).
 - `controller.dart` - `MorphController`: one scalar ticker,
