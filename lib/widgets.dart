@@ -14,6 +14,7 @@ library;
 export 'foundation.dart';
 export 'src/widgets/chase_spring.dart' show ChaseSpring;
 export 'src/widgets/morph_menu.dart' show MorphMenuItem, showMorphMenu;
+export 'src/widgets/morph_pill.dart' show MorphPillHost;
 export 'src/widgets/morph_squash.dart' show MorphSquash;
 export 'src/widgets/morph_surface.dart' show MorphSurface, MorphTapTarget;
 export 'src/widgets/spring_button.dart' show SpringButton;

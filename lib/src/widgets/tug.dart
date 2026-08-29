@@ -175,11 +175,10 @@ class Tug extends StatefulWidget {
 
 class _TugState extends State<Tug> with TickerProviderStateMixin {
   /// The liquid-glass reference spring (stiffness ~300, damping ratio
-  /// 0.5): the press and the built-in return both ride it.
-  static const Motion _glassSpring = CupertinoMotion(
-    duration: Duration(milliseconds: 363),
-    bounce: 0.5,
-  );
+  /// 0.5): the press and the built-in return both ride it - the ONE
+  /// home of that spring is [MorphMotion.glass], so a flight closing
+  /// on the glass profile lands with exactly this character.
+  static final Motion _glassSpring = MorphMotion.glass.closeMotion;
 
   /// Ceiling of the shape input as a ratio of the shorter side - one
   /// shared saturation for the pull and the velocity lag.

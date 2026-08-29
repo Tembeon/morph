@@ -90,7 +90,7 @@ class TourHome extends StatelessWidget {
           icon: Icons.call_to_action_rounded,
           title: 'The bar',
           tagline: 'What if the whole bar were one body?',
-          demo: (BuildContext context) => const BarLesson(motion: _speed),
+          demo: (BuildContext context) => const BarLesson(),
         ),
         Lesson(
           id: 'lesson-chips',

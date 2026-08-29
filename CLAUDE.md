@@ -37,6 +37,18 @@ Flutter-style split, two entrypoints:
   channel mode writes the MorphPieceChannel and paints nothing -
   content rides the mass 1:1, ink cannot slide; glyph crispness under
   the moving matrix is MorphSkin.contentFilterQuality),
+  MorphPillHost (the selection pill's physics HOST, promoted from the
+  bar chapter once the hand approved it and dream_echo's
+  InkPillSelector became the real consumer: everything in px along
+  the track axis, the owner maps positions through two callbacks -
+  hit for taps, snap for carries - feeds a raw Listener in and draws
+  where centerX/resolveSize say; the felt verdicts live in the THE
+  BAR chapter bullet and in the host's dartdoc. Chrome sympathy comes
+  out as chromeShift/chromeBreath for the bar's piece channel. Clock
+  note: dt from Ticker.elapsed diffs with a null-reset on wake, and
+  the squash clock is host-accumulated - a wall Stopwatch broke under
+  fake test time),
+  MorphSquash (deformation from force),
   MorphSurface/MorphTapTarget (the Material
   adapter and its surface-less sibling), ChaseSpring
   (the moving-target integrator: per-event controller retargets
@@ -57,7 +69,12 @@ Flutter-style split, two entrypoints:
 
 - `motion.dart` - `MorphMotion`: a pair of `Motion`s from **motor**
   (openMotion/closeMotion) plus `closeVelocityHint`. Presets
-  glacial/slow/normal/fast/instant built on `CupertinoMotion`. Custom
+  glacial/slow/normal/glass/fast/instant built on `CupertinoMotion`.
+  `glass` is the material-unification profile: its close IS the Tug
+  press/return spring (~363ms, zeta 0.5 - the ONE home of that
+  spring; Tug reads it from here), so a dialog closing on glass lands
+  in its button with the button's own character - the landing bump is
+  that spring's residual after the latch. Custom
   profiles via the public constructor from ANY Motion (Material tokens,
   curves, custom springs).
 - `controller.dart` - `MorphController`: one scalar ticker,

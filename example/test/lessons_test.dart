@@ -128,7 +128,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const BarLesson(motion: .instant)));
+    await tester.pumpWidget(host(const BarLesson()));
 
     // Tap a slot: the selection commits and the pill flies there.
     await tester.tap(find.byIcon(Icons.mail_rounded));
