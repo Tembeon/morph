@@ -441,6 +441,26 @@ toggles inside one scene, never separate lookalike screens:
   restarts from zero, so the first post-retarget tick evaluates the
   sim at t=0 - one held frame, invisible live, but a test sampling
   right after the injection frame must pump once more.
+- THE BAR (bar_lesson.dart): the floating-bar case, physics verdicts
+  paid for by the owner's hand (2026-08-29). The pill is the
+  liquid-glass nav pill's springs (travel 280/31.4; per-axis lift
+  250/19.0 across, 250/22.1 down - the width overshoots further, so
+  the growth never reads as a plain scale; MorphSquash deviation with
+  its magnitude kept and its SIGN taken from the travel direction,
+  eased crossing tau 0.25) but the GRAB is the native model, which the
+  hand chose OVER the reference source's code: the raw Listener lifts
+  the pill IN PLACE on the DOWN itself (no hold timer - 100ms already
+  read as lag), the finger then carries it by its own DISPLACEMENT
+  (absolute chase-under-finger rejected), and the cell light is LIVE
+  (flips with the choice, follows the nearest slot under a carry -
+  landing-committed emphasis read as lag). Every release goes through
+  one door (_settleTo), so an interrupted journey can never strand the
+  pill between slots; the lift cannot land while the finger holds it.
+  The BAR answers in sympathy only (fluid_glass model: <= 4px shift on
+  an ease-out of the drag fraction, 16px width breathed while the pill
+  is up, through the piece channel - the neck to the send companion
+  breathes along); its own Tug leash was tried and removed. The send
+  companion is a Tug button and a morph source.
 - LIQUID SELECTION (goo_dock_example.dart) and LIVING LAYOUT
   (chips_example.dart): the skin family - feed app dock, search app
   filter chips.
