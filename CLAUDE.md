@@ -690,10 +690,12 @@ by a test).
   `..` section - `..onHandoff = () => x++ ..open()` parses the open()
   onto x++; and the rule fights tests that interleave actions with
   asserts), join_return_with_assignment,
-  prefer_if_elements_to_conditional_expressions. Existing cascades
+  prefer_if_elements_to_conditional_expressions. Owner's call
+  (2026-08-29): do NOT write cascades in new code at all - the parser
+  glues a `..` section onto a preceding expression-bodied lambda, and
+  the readability gain never pays for that trap. Existing cascades may
   stay where the receiver is configured at construction; actions that
-  a test asserts on live as plain statements, not in a declaration's
-  cascade.
+  a test asserts on live as plain statements.
 - `public_member_api_docs` is ON in BOTH analysis_options (package and
   example): every public member carries a dartdoc, including the
   unexported src/ machinery and the example's teaching code - the lint
