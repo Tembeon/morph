@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -15,8 +16,9 @@ import 'package:morph_example/tour/lessons/dialog_contents.dart';
 ///
 /// - the PILL is the liquid-glass nav pill (the "stations" feel): tap
 ///   and it lifts for the whole journey, glides on the travel spring
-///   and comes down only on landing; hold and it eases under the
-///   finger, snapping on release. Each lift axis rides its own spring -
+///   and comes down only on landing; a 100ms hold grows it IN PLACE
+///   (even between tabs) and the finger then moves it by its own
+///   displacement, snapping on release. Each lift axis rides its own spring -
 ///   the width overshoots a little further than the height, which is
 ///   what keeps the growth from reading as a plain scale-up - and the
 ///   deformation comes from the pill's own ACCELERATION, signed by the
@@ -85,8 +87,9 @@ class _BarLessonState extends State<BarLesson> {
             'Tap a distant tab: the pill LIFTS for the whole journey, '
             'glides, deforms by its own acceleration and comes down only '
             'on landing - the label emphasis flips when it arrives, not '
-            'when you tap. Hold the pill and it eases under the finger; '
-            'release snaps to the nearest slot.',
+            'when you tap. A short hold grows the pill IN PLACE - even '
+            'between tabs - and the finger then carries it by its own '
+            'displacement; release snaps to the nearest slot.',
           ),
           PanelHint(
             'The bar itself has no leash: it answers in SYMPATHY - the '
@@ -267,6 +270,7 @@ class _InkTrackState extends State<_InkTrack>
   bool _dragging = false;
   double _dragFollow = 0;
   double _dragTargetFrac = 0;
+  double _grabFrac = 0;
   double _pressFrac = 0;
   bool _realMove = false;
   bool _lifted = false;
@@ -338,19 +342,22 @@ class _InkTrackState extends State<_InkTrack>
     widget.onSelect(next);
   }
 
-  // ── Grab (hold or horizontal drag) ───────────────────────────────
+  // ── Grab (a 100ms hold, or a horizontal drag) ────────────────────
   void _grab(double dx) {
     _dragging = true;
     _travelActive = false;
     _lifted = true;
     // The hand takes the deformation back off the travel.
     _travelSign = 0;
-    // Start the smoothed follow at the pill's current position, so a
-    // hold away from the pill EASES over to the finger.
+    // The native model: the pill LIFTS IN PLACE - a hold between tabs
+    // grows it where it lives, it does not slide under the finger. The
+    // finger then moves it by its own DISPLACEMENT, not by its
+    // position.
     _dragFollow = _travelPos;
+    _grabFrac = _travelPos;
     _travelVel = 0;
     _pressFrac = _toFrac(dx);
-    _dragTargetFrac = _pressFrac;
+    _dragTargetFrac = _travelPos;
     _realMove = false;
     _lastDragX = dx;
     _wake();
@@ -364,7 +371,12 @@ class _InkTrackState extends State<_InkTrack>
     if ((frac - _pressFrac).abs() > 0.2) {
       _realMove = true;
     }
-    _dragTargetFrac = frac;
+    // Relative: the pill's target is where it was grabbed plus how far
+    // the finger has travelled since.
+    _dragTargetFrac = (_grabFrac + (frac - _pressFrac)).clamp(
+      0.0,
+      (widget.tabs.length - 1).toDouble(),
+    );
     _barAccum += dx - (_lastDragX ?? dx);
     _lastDragX = dx;
   }
@@ -620,26 +632,55 @@ class _InkTrackState extends State<_InkTrack>
         }
         return MouseRegion(
           cursor: SystemMouseCursors.click,
-          child: GestureDetector(
+          child: RawGestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTapUp: (TapUpDetails d) => _animateTo(
-              (d.localPosition.dx / _slot).floor().clamp(
-                0,
-                widget.tabs.length - 1,
-              ),
-            ),
-            onLongPressStart: (LongPressStartDetails d) =>
-                _grab(d.localPosition.dx),
-            onLongPressMoveUpdate: (LongPressMoveUpdateDetails d) =>
-                _move(d.localPosition.dx),
-            onLongPressEnd: (LongPressEndDetails d) => _release(),
-            onLongPressCancel: _release,
-            onHorizontalDragStart: (DragStartDetails d) =>
-                _grab(d.localPosition.dx),
-            onHorizontalDragUpdate: (DragUpdateDetails d) =>
-                _move(d.localPosition.dx),
-            onHorizontalDragEnd: (DragEndDetails d) => _release(),
-            onHorizontalDragCancel: _release,
+            gestures: <Type, GestureRecognizerFactory>{
+              TapGestureRecognizer:
+                  GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
+                    TapGestureRecognizer.new,
+                    (TapGestureRecognizer instance) {
+                      instance.onTapUp = (TapUpDetails d) => _animateTo(
+                        (d.localPosition.dx / _slot).floor().clamp(
+                          0,
+                          widget.tabs.length - 1,
+                        ),
+                      );
+                    },
+                  ),
+              // The reference grab is a 100ms hold, not the 500ms
+              // default - the pill answers the hand almost at once.
+              LongPressGestureRecognizer:
+                  GestureRecognizerFactoryWithHandlers<
+                    LongPressGestureRecognizer
+                  >(
+                    () => LongPressGestureRecognizer(
+                      duration: const Duration(milliseconds: 100),
+                    ),
+                    (LongPressGestureRecognizer instance) {
+                      instance.onLongPressStart = (LongPressStartDetails d) =>
+                          _grab(d.localPosition.dx);
+                      instance.onLongPressMoveUpdate =
+                          (LongPressMoveUpdateDetails d) =>
+                              _move(d.localPosition.dx);
+                      instance.onLongPressEnd = (LongPressEndDetails d) =>
+                          _release();
+                      instance.onLongPressCancel = _release;
+                    },
+                  ),
+              HorizontalDragGestureRecognizer:
+                  GestureRecognizerFactoryWithHandlers<
+                    HorizontalDragGestureRecognizer
+                  >(HorizontalDragGestureRecognizer.new, (
+                    HorizontalDragGestureRecognizer instance,
+                  ) {
+                    instance.onStart = (DragStartDetails d) =>
+                        _grab(d.localPosition.dx);
+                    instance.onUpdate = (DragUpdateDetails d) =>
+                        _move(d.localPosition.dx);
+                    instance.onEnd = (DragEndDetails d) => _release();
+                    instance.onCancel = _release;
+                  }),
+            },
             child: Stack(
               clipBehavior: .none,
               children: <Widget>[
