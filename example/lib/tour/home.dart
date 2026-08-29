@@ -5,6 +5,7 @@ import 'package:morph/widgets.dart';
 
 import 'package:morph_example/playground/playground.dart';
 import 'package:morph_example/tour/lesson.dart';
+import 'package:morph_example/tour/lessons/bar_lesson.dart';
 import 'package:morph_example/tour/lessons/chips_example.dart';
 import 'package:morph_example/tour/lessons/goo_dock_example.dart';
 import 'package:morph_example/tour/lessons/menu_lesson.dart';
@@ -84,8 +85,16 @@ class TourHome extends StatelessWidget {
           demo: (BuildContext context) => const GooDockExample(),
         ),
         Lesson(
-          id: 'lesson-chips',
+          id: 'lesson-bar',
           number: '06',
+          icon: Icons.call_to_action_rounded,
+          title: 'The bar',
+          tagline: 'What if the whole bar were one body?',
+          demo: (BuildContext context) => const BarLesson(motion: _speed),
+        ),
+        Lesson(
+          id: 'lesson-chips',
+          number: '07',
           icon: Icons.grain_rounded,
           title: 'Living layout',
           tagline: 'What if layout flowed?',
@@ -98,7 +107,7 @@ class TourHome extends StatelessWidget {
       <Lesson>[
         Lesson(
           id: 'lesson-playground',
-          number: '07',
+          number: '08',
           icon: Icons.science_rounded,
           title: 'Playground',
           tagline: 'The sandbox: pieces, keyframes, stress, all knobs.',

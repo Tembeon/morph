@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph_example/tour/lessons/bar_lesson.dart';
 import 'package:morph_example/tour/lessons/chips_example.dart';
 import 'package:morph_example/tour/lessons/goo_dock_example.dart';
 import 'package:morph_example/tour/lessons/menu_lesson.dart';
@@ -118,6 +119,49 @@ void main() {
     await tester.tap(find.byIcon(Icons.search_rounded));
     await settle(tester);
     expect(find.text('Search'), findsOneWidget);
+  });
+
+  testWidgets('bar: pill drags along the track, capsule tugs, send flies', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(host(const BarLesson(motion: .instant)));
+
+    // Tap a slot: the selection commits and the pill flies there.
+    await tester.tap(find.byIcon(Icons.mail_rounded));
+    await tester.pump(const Duration(milliseconds: 50));
+    await settle(tester);
+
+    // Drag the pill along the track: free float, snap commits on
+    // release only when the hovered slot changed.
+    final Offset mail = tester.getCenter(find.byIcon(Icons.mail_rounded));
+    final TestGesture drag = await tester.startGesture(mail);
+    await drag.moveBy(const Offset(60, 0));
+    await tester.pump(const Duration(milliseconds: 40));
+    await drag.moveBy(const Offset(60, 0));
+    await tester.pump(const Duration(milliseconds: 40));
+    await drag.up();
+    await settle(tester);
+    expect(find.text('Profile'), findsWidgets);
+
+    // Tug the capsule itself (vertical dead by default): the same
+    // finger both scrubs the pill and pulls the body - no exceptions,
+    // and everything springs home.
+    final TestGesture tug = await tester.startGesture(
+      tester.getCenter(find.byIcon(Icons.library_music_rounded)),
+    );
+    await tug.moveBy(const Offset(40, 20));
+    await tester.pump(const Duration(milliseconds: 80));
+    await tug.up();
+    await settle(tester);
+
+    // The send companion is a real morph source.
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await settle(tester);
+    expect(find.text('New playlist'), findsOneWidget);
   });
 
   testWidgets('chips: add and remove mid-motion stays continuous', (
