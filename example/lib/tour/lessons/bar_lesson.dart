@@ -14,11 +14,12 @@ import 'package:morph_example/tour/lessons/dialog_contents.dart';
 ///
 /// The physics is the reference synthesis, constants verbatim:
 ///
-/// - the PILL is the liquid-glass nav pill (the "stations" feel): tap
-///   and it lifts for the whole journey, glides on the travel spring
-///   and comes down only on landing; a 100ms hold grows it IN PLACE
-///   (even between tabs) and the finger then moves it by its own
-///   displacement, snapping on release. Each lift axis rides its own spring -
+/// - the PILL is the liquid-glass nav pill (the "stations" feel), on a
+///   raw Listener with NO timers: the touch itself starts the lift IN
+///   PLACE (even between tabs), a quick release is a tap, a carry
+///   moves the pill by the finger's own displacement and snaps on
+///   release; a tap's journey rides the travel spring lifted the whole
+///   way, coming down only on landing. Each lift axis rides its own spring -
 ///   the width overshoots a little further than the height, which is
 ///   what keeps the growth from reading as a plain scale-up - and the
 ///   deformation comes from the pill's own ACCELERATION, signed by the
@@ -84,12 +85,12 @@ class _BarLessonState extends State<BarLesson> {
         crossAxisAlignment: .start,
         children: <Widget>[
           PanelHint(
-            'Tap a distant tab: the pill LIFTS for the whole journey, '
-            'glides, deforms by its own acceleration and comes down only '
-            'on landing - the label emphasis flips when it arrives, not '
-            'when you tap. A short hold grows the pill IN PLACE - even '
-            'between tabs - and the finger then carries it by its own '
-            'displacement; release snaps to the nearest slot.',
+            'The touch itself is the answer: the pill starts lifting IN '
+            'PLACE the moment the finger lands - even between tabs - '
+            'with no hold timer at all. A quick release is a tap (the '
+            'light flips with the screens, the pill glides and lands), '
+            'a carry moves it by the finger\'s own displacement and '
+            'snaps on release.',
           ),
           PanelHint(
             'The bar itself has no leash: it answers in SYMPATHY - the '
@@ -260,8 +261,10 @@ class _InkTrackState extends State<_InkTrack>
   // ── Pill state (the reference host fields) ───────────────────────
   int _index = 0;
 
-  /// What the cells show as selected: flips only AFTER the pill lands.
-  int _committed = 0;
+  /// What the cells light up: the LIVE choice - it flips the moment a
+  /// tap commits (with the screens), and follows the nearest slot
+  /// while the pill is carried.
+  int _active = 0;
   double _travelPos = 0;
   double _travelVel = 0;
   double _travelTarget = 0;
@@ -289,6 +292,10 @@ class _InkTrackState extends State<_InkTrack>
   double _pressVel = 0;
   double? _lastDragX;
 
+  // ── The raw pointer (no timers: the DOWN is the answer) ──────────
+  int? _pointer;
+  double _downX = 0;
+
   final ValueNotifier<_PillFrame> _pill = ValueNotifier<_PillFrame>((
     rect: Rect.zero,
   ));
@@ -304,7 +311,7 @@ class _InkTrackState extends State<_InkTrack>
   void initState() {
     super.initState();
     _index = widget.selected;
-    _committed = _index;
+    _active = _index;
     _travelPos = _index.toDouble();
     _travelTarget = _travelPos;
   }
@@ -328,6 +335,10 @@ class _InkTrackState extends State<_InkTrack>
   // ── Selection / travel ───────────────────────────────────────────
   void _animateTo(int next) {
     if (next == _index) {
+      // Choosing where the pill already stands: nothing to travel,
+      // the lift simply comes down.
+      _lifted = false;
+      _wake();
       return;
     }
     _index = next;
@@ -338,32 +349,49 @@ class _InkTrackState extends State<_InkTrack>
     _travelFrom = _travelPos;
     _travelTarget = next.toDouble();
     _travelSign = _signOf(_travelTarget - _travelFrom);
+    // The light agrees with the screens: the emphasis flips the moment
+    // the choice commits, not when the pill lands.
+    setState(() => _active = next);
     _wake();
     widget.onSelect(next);
   }
 
-  // ── Grab (a 100ms hold, or a horizontal drag) ────────────────────
-  void _grab(double dx) {
-    _dragging = true;
+  // ── The raw pointer: no timers, the DOWN is the answer ───────────
+  void _down(PointerDownEvent event) {
+    if (_pointer != null || event.buttons != kPrimaryButton) {
+      return;
+    }
+    _pointer = event.pointer;
+    final double dx = event.localPosition.dx;
+    _downX = dx;
+    // The pill answers the touch itself: it starts lifting IN PLACE
+    // immediately - a hold between tabs grows it where it lives. What
+    // the gesture MEANS is decided later: a quick release is a tap, a
+    // carry is a drag.
+    _dragging = false;
+    _realMove = false;
     _travelActive = false;
     _lifted = true;
     // The hand takes the deformation back off the travel.
     _travelSign = 0;
-    // The native model: the pill LIFTS IN PLACE - a hold between tabs
-    // grows it where it lives, it does not slide under the finger. The
-    // finger then moves it by its own DISPLACEMENT, not by its
-    // position.
     _dragFollow = _travelPos;
     _grabFrac = _travelPos;
     _travelVel = 0;
     _pressFrac = _toFrac(dx);
     _dragTargetFrac = _travelPos;
-    _realMove = false;
     _lastDragX = dx;
     _wake();
   }
 
-  void _move(double dx) {
+  void _moveEvent(PointerMoveEvent event) {
+    if (event.pointer != _pointer) {
+      return;
+    }
+    final double dx = event.localPosition.dx;
+    if (!_dragging && (dx - _downX).abs() > 4) {
+      _dragging = true;
+      _lastDragX = dx;
+    }
     if (!_dragging) {
       return;
     }
@@ -372,7 +400,8 @@ class _InkTrackState extends State<_InkTrack>
       _realMove = true;
     }
     // Relative: the pill's target is where it was grabbed plus how far
-    // the finger has travelled since.
+    // the finger has travelled since - the native carry, not a jump
+    // under the finger.
     _dragTargetFrac = (_grabFrac + (frac - _pressFrac)).clamp(
       0.0,
       (widget.tabs.length - 1).toDouble(),
@@ -381,10 +410,36 @@ class _InkTrackState extends State<_InkTrack>
     _lastDragX = dx;
   }
 
-  void _release() {
-    if (!_dragging) {
+  void _up(PointerUpEvent event) {
+    if (event.pointer != _pointer) {
       return;
     }
+    _pointer = null;
+    if (_dragging) {
+      _release();
+      return;
+    }
+    // Never carried: a tap (or a motionless hold) selects the slot
+    // under the finger.
+    _animateTo(
+      (event.localPosition.dx / _slot).floor().clamp(0, widget.tabs.length - 1),
+    );
+  }
+
+  void _cancel(PointerCancelEvent event) {
+    if (event.pointer != _pointer) {
+      return;
+    }
+    _pointer = null;
+    if (_dragging) {
+      _release();
+      return;
+    }
+    _lifted = false;
+    _wake();
+  }
+
+  void _release() {
     final double from = _dragFollow;
     final double snap = _realMove ? from : _pressFrac;
     final int next = snap.round().clamp(0, widget.tabs.length - 1);
@@ -399,6 +454,9 @@ class _InkTrackState extends State<_InkTrack>
     _travelFrom = from;
     _travelTarget = next.toDouble();
     _travelSign = _signOf(_travelTarget - _travelFrom);
+    if (_active != next) {
+      setState(() => _active = next);
+    }
     _wake();
     if (next != widget.selected) {
       widget.onSelect(next);
@@ -482,12 +540,17 @@ class _InkTrackState extends State<_InkTrack>
     _liftYVel = lyv;
     final bool liftSettled = !_lifted && _liftX == 0 && _liftY == 0;
 
-    // 4) Commit only once the travel AND the lift have finished: the
+    // 4) The travel retires only once the lift has finished too: the
     // deflation outlives the spring that carried the pill there.
     if (_travelActive && travelSettled && liftSettled && !_dragging) {
       _travelActive = false;
-      if (_committed != _index) {
-        setState(() => _committed = _index);
+    }
+    // While the pill is CARRIED, the light follows it: the nearest
+    // slot to the pill is the live choice under the hand.
+    if (_dragging) {
+      final int under = _dragFollow.round().clamp(0, widget.tabs.length - 1);
+      if (under != _active) {
+        setState(() => _active = under);
       }
     }
 
@@ -624,7 +687,7 @@ class _InkTrackState extends State<_InkTrack>
         if (_pill.value.rect == Rect.zero) {
           _pill.value = (
             rect: Rect.fromCenter(
-              center: Offset(_slot * _committed + _slot / 2, _height / 2),
+              center: Offset(_slot * _index + _slot / 2, _height / 2),
               width: _slot - _inset * 2,
               height: _height - _inset * 2,
             ),
@@ -632,55 +695,16 @@ class _InkTrackState extends State<_InkTrack>
         }
         return MouseRegion(
           cursor: SystemMouseCursors.click,
-          child: RawGestureDetector(
+          // A raw Listener, no recognizers and no timers: the pill
+          // starts lifting on the DOWN itself - the instant answer the
+          // native bar gives - and what the gesture MEANT (a tap, a
+          // hold, a carry) is read from what the pointer then does.
+          child: Listener(
             behavior: HitTestBehavior.opaque,
-            gestures: <Type, GestureRecognizerFactory>{
-              TapGestureRecognizer:
-                  GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
-                    TapGestureRecognizer.new,
-                    (TapGestureRecognizer instance) {
-                      instance.onTapUp = (TapUpDetails d) => _animateTo(
-                        (d.localPosition.dx / _slot).floor().clamp(
-                          0,
-                          widget.tabs.length - 1,
-                        ),
-                      );
-                    },
-                  ),
-              // The reference grab is a 100ms hold, not the 500ms
-              // default - the pill answers the hand almost at once.
-              LongPressGestureRecognizer:
-                  GestureRecognizerFactoryWithHandlers<
-                    LongPressGestureRecognizer
-                  >(
-                    () => LongPressGestureRecognizer(
-                      duration: const Duration(milliseconds: 100),
-                    ),
-                    (LongPressGestureRecognizer instance) {
-                      instance.onLongPressStart = (LongPressStartDetails d) =>
-                          _grab(d.localPosition.dx);
-                      instance.onLongPressMoveUpdate =
-                          (LongPressMoveUpdateDetails d) =>
-                              _move(d.localPosition.dx);
-                      instance.onLongPressEnd = (LongPressEndDetails d) =>
-                          _release();
-                      instance.onLongPressCancel = _release;
-                    },
-                  ),
-              HorizontalDragGestureRecognizer:
-                  GestureRecognizerFactoryWithHandlers<
-                    HorizontalDragGestureRecognizer
-                  >(HorizontalDragGestureRecognizer.new, (
-                    HorizontalDragGestureRecognizer instance,
-                  ) {
-                    instance.onStart = (DragStartDetails d) =>
-                        _grab(d.localPosition.dx);
-                    instance.onUpdate = (DragUpdateDetails d) =>
-                        _move(d.localPosition.dx);
-                    instance.onEnd = (DragEndDetails d) => _release();
-                    instance.onCancel = _release;
-                  }),
-            },
+            onPointerDown: _down,
+            onPointerMove: _moveEvent,
+            onPointerUp: _up,
+            onPointerCancel: _cancel,
             child: Stack(
               clipBehavior: .none,
               children: <Widget>[
@@ -717,9 +741,10 @@ class _InkTrackState extends State<_InkTrack>
                         child: _Cell(
                           icon: widget.tabs[i].$1,
                           label: widget.tabs[i].$2,
-                          // The emphasis flips only when the pill LANDS:
-                          // arriving is the selection, not tapping.
-                          active: i == _committed,
+                          // The light is LIVE: it flips with the choice
+                          // (and with the screens), and follows the
+                          // nearest slot while the pill is carried.
+                          active: i == _active,
                         ),
                       ),
                   ],
