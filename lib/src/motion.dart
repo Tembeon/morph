@@ -103,21 +103,22 @@ class MorphMotion {
     closeVelocityHint: -2.5,
   );
 
-  /// The liquid-glass material pair: the close is the reference glass
-  /// release spring (~360 ms, damping ratio 0.5) - the SAME spring the
-  /// widgets layer's Tug presses and returns on, so a dialog lands in
-  /// its button with exactly the character the button answers a finger
-  /// with. The residual after the handoff latch (the landing bump) is
-  /// that spring's own undershoot, which at this ratio reads as a
-  /// lively catch.
+  /// The liquid-glass material pair: the FAMILY of the widgets layer's
+  /// button springs (the Tug press/return, ~360 ms half-bounce),
+  /// recalibrated for flight mass. Same tempo neighbourhood - a glass
+  /// dialog answers and lands noticeably snappier than [normal] - with
+  /// the bounce moderated: the button-scale ratio (0.5) undershoots
+  /// ~16% after the handoff latch, which over a flight's hundreds of
+  /// pixels turned the landing kick into slapstick; at this ratio the
+  /// residual reads as the same lively catch at button amplitude.
   static const MorphMotion glass = MorphMotion(
     name: 'glass',
     openMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 300)),
     closeMotion: CupertinoMotion(
-      duration: Duration(milliseconds: 363),
-      bounce: 0.5,
+      duration: Duration(milliseconds: 420),
+      bounce: 0.3,
     ),
-    closeVelocityHint: -2.5,
+    closeVelocityHint: -1.5,
   );
 
   /// A brisk profile for small controls.

@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
 import 'package:morph_example/tour/lessons/dialog_contents.dart';
-import 'package:morph_example/ui/goo_selector.dart';
-import 'package:stupid_simple_sheet/stupid_simple_sheet.dart';
 
 /// The floating-bar case: a capsule carrying an ink pill selector and a
 /// send companion one neck away, fused by a single [MorphSkin] - the
@@ -20,8 +18,8 @@ import 'package:stupid_simple_sheet/stupid_simple_sheet.dart';
 /// out through the capsule's piece channel, so the neck to the send
 /// button breathes along; the send companion keeps the button model
 /// ([Tug]) and is a real morph source whose compose dialog closes on
-/// [MorphMotion.glass] - the same spring the button itself presses
-/// and returns on.
+/// [MorphMotion.glass] - the button family's character at flight
+/// mass.
 class BarLesson extends StatefulWidget {
   /// Creates the chapter demo.
   const BarLesson({super.key});
@@ -43,90 +41,25 @@ class _BarLessonState extends State<BarLesson> {
   ];
 
   final MorphPieceChannel _barPull = MorphPieceChannel();
-
-  /// The piece's REAL channel: the composition of the Tug's writes and
-  /// the sheet's yield lands here.
   final MorphPieceChannel _sendPull = MorphPieceChannel();
-
-  /// The Tug's private channel: it never reaches the skin directly -
-  /// [_syncSend] multiplies the yield in and forwards.
-  final MorphPieceChannel _sendTug = MorphPieceChannel();
-
   int _selected = 0;
-
-  /// How the compose surface opens: 0 - the morph dialog (the button
-  /// BECOMES the surface), 1 - the foreign sheet (the button YIELDS to
-  /// it).
-  int _composeMode = 0;
-
-  /// The foreign sheet's progress, 0..1 - the one driver of the yield.
-  double _yield = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _sendTug.addListener(_syncSend);
-  }
 
   @override
   void dispose() {
-    _sendTug.removeListener(_syncSend);
     _barPull.dispose();
     _sendPull.dispose();
-    _sendTug.dispose();
     super.dispose();
   }
 
-  /// The friendship composition: the Tug's live write times the yield.
-  /// While the sheet rises the button gives up a little of its mass
-  /// and sinks toward the bar; the sheet's own drag drives the same
-  /// animation, so pulling the sheet down revives the button LIVE.
-  void _syncSend() {
-    final double deflate = 1 - 0.08 * _yield;
-    _sendPull.update(
-      offset: Offset(_sendTug.offset.dx, _sendTug.offset.dy + 3 * _yield),
-      scaleX: _sendTug.scaleX * deflate,
-      scaleY: _sendTug.scaleY * deflate,
-    );
-  }
-
-  void _openSheet(BuildContext buttonContext) {
-    final StupidSimpleCupertinoSheetRoute<void> route =
-        StupidSimpleCupertinoSheetRoute<void>(
-          // The material rises the way the buttons press: the same
-          // glass spring, handed straight to the foreign route.
-          motion: MorphMotion.glass.closeMotion,
-          backgroundColor: const Color(0xFF262038),
-          child: const _ComposeSheet(),
-        );
-    Navigator.of(buttonContext).push(route);
-    final Animation<double> animation = route.animation!;
-    void tick() {
-      _yield = animation.value;
-      _syncSend();
-    }
-
-    animation.addListener(tick);
-    route.popped.whenComplete(() {
-      animation.removeListener(tick);
-      _yield = 0;
-      _syncSend();
-    });
-  }
-
   void _compose(BuildContext buttonContext) {
-    if (_composeMode == 1) {
-      _openSheet(buttonContext);
-      return;
-    }
     showMorphDialog(
       buttonContext,
       from: 'bar-send',
       width: 306,
       height: 420,
-      // The material closes the way it presses: MorphMotion.glass's
-      // close IS the Tug spring, so the dialog lands in the send
-      // button with the button's own character.
+      // The material closes the way it presses: the glass profile is
+      // the button family's tempo calibrated for flight mass, so the
+      // dialog lands in the send button as kin, not as slapstick.
       motion: MorphMotion.glass,
       semanticLabel: 'New message',
       builder: (BuildContext context, MorphFlight flight) =>
@@ -137,10 +70,10 @@ class _BarLessonState extends State<BarLesson> {
   @override
   Widget build(BuildContext context) {
     return SceneScaffold(
-      controls: Column(
+      controls: const Column(
         crossAxisAlignment: .start,
         children: <Widget>[
-          const PanelHint(
+          PanelHint(
             'The touch itself is the answer: the pill starts lifting IN '
             'PLACE the moment the finger lands - even between tabs - '
             'with no hold timer at all. A quick release is a tap (the '
@@ -148,22 +81,14 @@ class _BarLessonState extends State<BarLesson> {
             'a carry moves it by the finger\'s own displacement and '
             'snaps on release.',
           ),
-          PanelSection(
-            label: 'COMPOSE OPENS AS',
-            child: GooSelector(
-              labels: const <String>['morph dialog', 'foreign sheet'],
-              index: _composeMode,
-              onSelect: (int i) => setState(() => _composeMode = i),
-            ),
-          ),
-          const PanelHint(
-            'Dialog: the button BECOMES the surface - one morph flight, '
-            'closing on the button\'s own glass spring. Sheet: a foreign '
-            'route (stupid_simple_sheet) rises on that same spring, and '
-            'the button YIELDS to it - a little mass and a couple px '
-            'given up, returned as the sheet leaves. Drag the sheet '
-            'down slowly: its own gesture drives the same animation, so '
-            'the finger revives the button live.',
+          PanelHint(
+            'The bar itself has no leash: it answers in SYMPATHY - the '
+            'drag shifts the whole mass by at most 4px on an ease-out, '
+            'and while the pill is up the bar breathes a few pixels of '
+            'width. One skin: the neck to the send button breathes '
+            'along, and the send button is a real morph source whose '
+            'dialog closes on the glass profile - the button family\'s '
+            'tempo at flight mass.',
           ),
         ],
       ),
@@ -221,7 +146,7 @@ class _BarLessonState extends State<BarLesson> {
                           radius: _barHeight / 2,
                           channel: _sendPull,
                           child: Tug(
-                            channel: _sendTug,
+                            channel: _sendPull,
                             child: MorphTapTarget(
                               label: 'Compose',
                               onTap: _compose,
@@ -239,64 +164,6 @@ class _BarLessonState extends State<BarLesson> {
                     ),
                   );
                 },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-/// The compose sheet's body: set dressing for the friendship demo -
-/// the surface itself belongs to the foreign route.
-class _ComposeSheet extends StatelessWidget {
-  const _ComposeSheet();
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const .fromLTRB(20, 10, 20, 20),
-        child: Column(
-          crossAxisAlignment: .start,
-          children: <Widget>[
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  borderRadius: .circular(2),
-                  color: Colors.white.withValues(alpha: 0.25),
-                ),
-              ),
-            ),
-            const SizedBox(height: 14),
-            const Text(
-              'New message',
-              style: TextStyle(fontSize: 19, fontWeight: .w800),
-            ),
-            const SizedBox(height: 14),
-            for (final double width in const <double>[
-              double.infinity,
-              double.infinity,
-              180,
-            ]) ...<Widget>[
-              Container(
-                height: 40,
-                width: width,
-                decoration: BoxDecoration(
-                  borderRadius: .circular(12),
-                  color: Colors.white.withValues(alpha: 0.06),
-                ),
-              ),
-              const SizedBox(height: 10),
-            ],
-            const Spacer(),
-            Center(
-              child: TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Send'),
               ),
             ),
           ],
