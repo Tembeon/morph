@@ -22,16 +22,16 @@ Future<void> ticks(WidgetTester tester, int frames) async {
 }
 
 void main() {
-  testWidgets('a touch lifts in place and the lift holds under the finger', (
+  testWidgets('a hold lifts in place on its own item, travels to another', (
     WidgetTester tester,
   ) async {
     final MorphPillHost pill = host();
     addTearDown(pill.dispose);
     pill.jumpTo(50);
 
-    // A hold BETWEEN slots: the pill grows where it lives and does not
-    // slide under the finger - the native grab.
-    pill.down(120);
+    // A hold on the pill's OWN item: it grows where it lives and does
+    // not move - the native grab.
+    pill.down(60);
     await ticks(tester, 20);
     expect(pill.lifted, isTrue);
     expect(pill.liftX, greaterThan(0.5));
@@ -39,8 +39,19 @@ void main() {
     // The lift may not come down while the finger holds it.
     await ticks(tester, 40);
     expect(pill.lifted, isTrue);
-    pill.up(120);
+    pill.up(60);
     await ticks(tester, 160);
+    expect(pill.lifted, isFalse);
+
+    // A hold on ANOTHER item: the pill lifts and TRAVELS there, still
+    // held - and stays up until the release lands it.
+    pill.down(230);
+    await ticks(tester, 60);
+    expect(pill.lifted, isTrue);
+    expect(pill.centerX, closeTo(250, 2));
+    pill.up(230);
+    await ticks(tester, 160);
+    expect(pill.centerX, closeTo(250, 0.5));
     expect(pill.lifted, isFalse);
   });
 
@@ -115,12 +126,12 @@ void main() {
     expect(midway, greaterThan(55));
     expect(midway, lessThan(245));
 
-    // The hand takes over mid-flight, then lets go over slot 0: the
-    // journey resumes through the one door - the pill cannot be left
-    // parked between slots.
+    // The hand takes over mid-flight with a hold over slot 0: the
+    // travel retargets there under the hold, and the release lands it
+    // - the pill cannot be left parked between slots.
     pill.down(60);
-    await ticks(tester, 2);
-    expect(pill.centerX, closeTo(midway, 5));
+    await ticks(tester, 12);
+    expect(pill.centerX, lessThan(midway));
     pill.up(60);
     await ticks(tester, 140);
     expect(pill.centerX, closeTo(50, 0.5));

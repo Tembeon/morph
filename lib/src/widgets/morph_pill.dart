@@ -28,11 +28,13 @@ import 'package:morph/src/widgets/morph_squash.dart';
 ///   the choice itself commits immediately ([onTarget] fires on the
 ///   tap, so selection and screens flip with the finger, not with the
 ///   pill).
-/// - HOLD: the pill grows IN PLACE - even between slots - and the
-///   finger then carries it by its own DISPLACEMENT, not by centering
-///   under the finger. Release snaps to [snap] of wherever the pill
-///   stands; a motionless hold released over a slot selects it like a
-///   slow tap ([hit]).
+/// - HOLD on the pill's own item: it grows IN PLACE and the finger
+///   then carries it by its own DISPLACEMENT, not by centering under
+///   the finger. HOLD on ANOTHER item: the pill lifts and travels to
+///   it, still held - the commit waits for the release, and a finger
+///   that starts moving carries the pill from its new home. Either
+///   way a carried release snaps to [snap] of wherever the pill
+///   stands, and a motionless release selects the held item ([hit]).
 /// - LIFT: each axis rides its own spring (damping ratio 0.6 across,
 ///   0.7 down) - the width overshoots a little further and settles a
 ///   little later than the height, which is what keeps the growth from
@@ -227,9 +229,12 @@ class MorphPillHost extends ChangeNotifier {
 
   // ── The pointer protocol (px along the track) ────────────────────
 
-  /// The finger landed: the pill starts lifting IN PLACE immediately.
-  /// What the gesture MEANS is decided later - a quick release is a
-  /// tap, [carrySlop] px of travel is a carry.
+  /// The finger landed: the pill starts lifting immediately - and
+  /// where depends on WHOSE item was touched (the native model). On
+  /// the pill's own item it lifts IN PLACE; on another item it lifts
+  /// and TRAVELS there, still held, with the commit waiting for the
+  /// release. What the gesture then means is read from the pointer -
+  /// a quick release is a tap, [carrySlop] px of travel is a carry.
   void down(double x) {
     if (_held) {
       return;
@@ -237,17 +242,32 @@ class MorphPillHost extends ChangeNotifier {
     _held = true;
     _carrying = false;
     _realMove = false;
-    _travelActive = false;
     _lifted = true;
-    // The hand takes the deformation back off the travel.
-    _travelSign = 0;
     _downX = x;
     _pressX = x;
-    _follow = _pos;
-    _grabPos = _pos;
-    _carryTarget = _pos;
-    _vel = 0;
     _lastX = x;
+    final double target = hit(x);
+    if ((target - snap(_pos)).abs() < 0.5) {
+      // The pill's own item: the hold grows it where it lives - the
+      // hand takes the deformation back off any travel.
+      _travelActive = false;
+      _travelSign = 0;
+      _grabPos = _pos;
+      _follow = _pos;
+      _carryTarget = _pos;
+      _vel = 0;
+    } else {
+      // Another item: the pill goes to it under the hold. The carry
+      // reference is the DESTINATION, so a finger that starts moving
+      // carries the pill from its new home.
+      _travelActive = true;
+      _from = _pos;
+      _target = target;
+      _travelSign = _signOf(_target - _from);
+      _grabPos = target;
+      _follow = _pos;
+      _carryTarget = target;
+    }
     _wake();
   }
 
@@ -262,6 +282,11 @@ class MorphPillHost extends ChangeNotifier {
     }
     if (!_carrying && (x - _downX).abs() > carrySlop) {
       _carrying = true;
+      // The carry picks the pill up WHERE IT IS - possibly mid-glide
+      // toward a held item - and the travel hands over to the hand.
+      _follow = _pos;
+      _travelActive = false;
+      _travelSign = 0;
       _lastX = x;
     }
     if (!_carrying) {

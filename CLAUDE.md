@@ -469,9 +469,13 @@ toggles inside one scene, never separate lookalike screens:
   its magnitude kept and its SIGN taken from the travel direction,
   eased crossing tau 0.25) but the GRAB is the native model, which the
   hand chose OVER the reference source's code: the raw Listener lifts
-  the pill IN PLACE on the DOWN itself (no hold timer - 100ms already
-  read as lag), the finger then carries it by its own DISPLACEMENT
-  (absolute chase-under-finger rejected), and the cell light is LIVE
+  the pill on the DOWN itself (no hold timer - 100ms already read as
+  lag) - IN PLACE on its own item, TRAVELLING to the held item
+  otherwise (the native two-case hold, verified on device 2026-08-29;
+  commit still waits for the release) - the finger then carries it by
+  its own DISPLACEMENT (absolute chase-under-finger rejected, and the
+  carry is confined to the rest centers' span), and the cell light is
+  LIVE
   (flips with the choice, follows the nearest slot under a carry -
   landing-committed emphasis read as lag). Every release goes through
   one door (_settleTo), so an interrupted journey can never strand the

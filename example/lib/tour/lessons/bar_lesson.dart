@@ -74,12 +74,12 @@ class _BarLessonState extends State<BarLesson> {
         crossAxisAlignment: .start,
         children: <Widget>[
           PanelHint(
-            'The touch itself is the answer: the pill starts lifting IN '
-            'PLACE the moment the finger lands - even between tabs - '
-            'with no hold timer at all. A quick release is a tap (the '
-            'light flips with the screens, the pill glides and lands), '
-            'a carry moves it by the finger\'s own displacement and '
-            'snaps on release.',
+            'The touch itself is the answer, no hold timer at all: on '
+            'the pill\'s own tab it lifts IN PLACE; hold ANOTHER tab '
+            'and the pill travels to it under the finger, committing '
+            'on release. A quick release is a tap (the light flips '
+            'with the screens), a carry moves the pill by the '
+            'finger\'s own displacement and snaps on release.',
           ),
           PanelHint(
             'The bar itself has no leash: it answers in SYMPATHY - the '
