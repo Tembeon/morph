@@ -583,6 +583,33 @@ Hard-won rules already enforced in the core:
   motor vocabulary (Motion, CupertinoMotion, MaterialSpringMotion,
   CurvedMotion) is re-exported so custom MorphMotion profiles need no
   direct motor dependency.
+- DESIGN-SYSTEM PACKAGE: morph imports
+  `package:material_ui/material_ui.dart`, never the in-SDK
+  `package:flutter/material.dart` (migrated 2026-09-01 on Flutter
+  3.47, `dart fix --code=migrate_design_widgets`, 56 files). The two
+  are SEPARATE COPIES of Material - `material_ui.Theme` and
+  `flutter/material.Theme` are different types - so a consumer app on
+  the in-SDK library must migrate too or wrap the morph subtree in
+  `MaterialUiCompatibilityBridge` (itself born `@Deprecated`, a
+  migration-window utility). `cupertino_ui` is transitive only: morph
+  uses no SDK Cupertino (`CupertinoMotion` comes from motor). Icons
+  still resolve through `uses-material-design: true` - material_ui's
+  `Icons` names the bare 'MaterialIcons' family with no fontPackage.
+  `motor` 1.1.0 is still on the legacy library, but only in
+  MotionDraggable/MotionPadding/padding_extended, which morph never
+  touches - no bridge needed here.
+- ENGINE-TO-MATERIAL DEBT: the core still touches Material in FOUR
+  places, so `foundation.dart` drags material_ui onto every consumer -
+  the "core blesses no design system" promise is not yet paid.
+  The map for the purification pass: `theme.dart` (MorphTheme extends
+  ThemeExtension + Theme.of().extension), `flight.dart`
+  (Theme.of().colorScheme, the shuttle's Material container),
+  `route.dart` (MaterialLocalizations barrier label, colorScheme, the
+  settled page's Material), `show.dart` (DialogThemeData /
+  BottomSheetThemeData adoption). Each has a cost: the shuttle's
+  Material is what lets consumer dialog content use InkWell and
+  default text styles, and dropping it is a behavior break, not a
+  rename.
 - Engine seams that must stay public for cross-file use are annotated
   `@internal` (scope registries, tag machinery, controller.notifyFrame,
   flight route/shared plumbing): the analyzer warns consumers off.

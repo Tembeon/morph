@@ -1,15 +1,16 @@
 name: morph
 description: "Identity-based, spring-driven, interruptible widget-to-overlay morphs with liquid skin fusion. No Navigator coupling."
-version: 0.3.0
+version: 0.4.0
 publish_to: 'none'
 
 environment:
   sdk: ^3.12.2
-  flutter: ">=1.17.0"
+  flutter: ">=3.44.0"
 
 dependencies:
   flutter:
     sdk: flutter
+  material_ui: ^1.1.0
   meta: ^1.9.0
   motor: ^1.1.0
 

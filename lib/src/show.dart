@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/scope.dart';

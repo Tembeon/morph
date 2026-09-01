@@ -67,6 +67,14 @@ Physics comes from [motor](https://pub.dev/packages/motor); its
 minimal motion vocabulary is re-exported. The opinionated widgets are
 one import away: `package:morph/widgets.dart`.
 
+morph speaks the standalone
+[material_ui](https://pub.dev/packages/material_ui) package, not the
+in-SDK `package:flutter/material.dart`. The two are separate copies of
+Material - their `Theme`, `ThemeData` and `ThemeExtension` are
+different types - so an app on the in-SDK library either migrates with
+`dart fix --apply --code=migrate_design_widgets` or wraps the morph
+subtree in `MaterialUiCompatibilityBridge`.
+
 ## The API is a ladder
 
 Each level is a complete integration on its own; climb only when a
