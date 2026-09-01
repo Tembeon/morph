@@ -2,6 +2,48 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
+## 0.4.0 - 2026-09-01
+
+Material leaves the SDK. Flutter 3.47 split Material and Cupertino out
+into standalone pub packages and deprecates the in-SDK copies in the
+following stable; morph moves now. Nothing in the API changes shape -
+only the package its Material types come from.
+
+- morph imports `package:material_ui/material_ui.dart` instead of
+  `package:flutter/material.dart`, across 56 files (10 lib, 18 test,
+  26 example, 1 benchmark). Every `.dart` change is a single import
+  line; no behavior, signature, name or default moved with it.
+  BREAKING for consumers all the same: the standalone package is a
+  full COPY of Material, not a re-export, so `material_ui.Theme` and
+  `flutter/material.Theme` are DIFFERENT types and a `MorphTheme`
+  reaches `Theme.of(context).extension<MorphTheme>()` in one world
+  only. An app still on the in-SDK library either migrates with
+  `dart fix --apply --code=migrate_design_widgets` or wraps the morph
+  subtree in `MaterialUiCompatibilityBridge` - and note the bridge
+  carries colors, density, platform and legacy localizations but NOT
+  `extensions`, so a bridged app must also mount its `MorphTheme` in a
+  legacy `Theme` of its own.
+- `material_ui` `^1.1.0` is a direct dependency. `cupertino_ui` is
+  transitive only: morph uses no SDK Cupertino at all, and
+  `CupertinoMotion` comes from motor. Icons still resolve through
+  `uses-material-design: true` - material_ui names the bare
+  `MaterialIcons` family with no font package of its own.
+- The Flutter constraint rises to `>=3.44.0`, material_ui's own floor,
+  from the template default `>=1.17.0` it had carried since the split
+  from tem_tools.
+
+Known debt, deliberately left for a release of its own: the engine
+still reaches for Material in four places - `MorphTheme` is a
+`ThemeExtension`, the shuttle and the settled route page draw their
+surface as a `Material`, both read `Theme.of(context).colorScheme`,
+the barrier label comes from `MaterialLocalizations`, and
+`showMorphDialog`/`showMorphSheet` adopt `DialogThemeData` and
+`BottomSheetThemeData`. So `foundation.dart` carries material_ui to
+every consumer, and the promise that the core blesses no design system
+is not yet paid. The shuttle's `Material` is the expensive one: it is
+what gives consumer dialog content its ink and default text styles, so
+removing it is a change in behavior rather than a rename.
+
 ## 0.3.0 - 2026-08-29
 
 The tactile pass. The widgets layer learns how a glass surface answers
