@@ -120,7 +120,7 @@ class MorphTabBarStyle {
   static const dark = MorphTabBarStyle(
     barColor: Color(0xB81C1C1E),
     shadowColor: Color(0x66000000),
-    platterColor: Color(0x24FFFFFF),
+    platterColor: Color(0xB5000000),
     liftedLensColor: Color(0x1FFFFFFF),
     lensBorderColor: Color(0x40FFFFFF),
     selectedColor: Color(0xFF0A84FF),

@@ -18,6 +18,7 @@ Widget _host(
 
 class _Recorder extends MorphGlassPainter {
   final List<MorphGlassSurface> seen = [];
+  final List<MorphGlassSurface> filled = [];
 
   List<MorphGlassSurface> of(MorphGlassKind kind) => [
     for (final s in seen)
@@ -28,6 +29,13 @@ class _Recorder extends MorphGlassPainter {
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) {
     seen.add(surface);
     return const SizedBox.expand();
+  }
+
+  @override
+  Widget buildFill(BuildContext context, MorphGlassSurface surface) {
+    seen.add(surface);
+    filled.add(surface);
+    return super.buildFill(context, surface);
   }
 }
 
@@ -636,6 +644,84 @@ void main() {
       final knob = recorder.of(MorphGlassKind.knob).last;
       expect(knob.optics, same(MorphGlassOptics.small));
       expect(knob.bounds.left, moreOrLessEquals(2));
+    });
+
+    testWidgets('only the surfaces iOS 27 draws as glass are glass', (
+      tester,
+    ) async {
+      Future<_Recorder> record(Widget control) async {
+        final recorder = _Recorder();
+        await tester.pumpWidget(
+          MorphGlass(painter: recorder, child: _host(control)),
+        );
+        return recorder;
+      }
+
+      Map<MorphGlassKind, Set<bool>> kinds(_Recorder recorder) => {
+        for (final s in recorder.seen)
+          s.kind: {
+            for (final t in recorder.seen)
+              if (t.kind == s.kind) t.glass,
+          },
+      };
+
+      final cases = <String, (Widget, Map<MorphGlassKind, Set<bool>>)>{
+        'segmented': (
+          _segmented((_) {}),
+          {
+            MorphGlassKind.track: {false},
+            MorphGlassKind.lens: {true},
+          },
+        ),
+        'switch': (
+          MorphSwitch(value: true, onChanged: (_) {}),
+          {
+            MorphGlassKind.track: {false},
+            MorphGlassKind.knob: {true},
+          },
+        ),
+        'slider': (
+          MorphSlider(value: 0.5, onChanged: (_) {}),
+          {
+            MorphGlassKind.track: {false},
+            MorphGlassKind.thumb: {true},
+          },
+        ),
+        'stepper': (
+          MorphStepper(value: 1, onChanged: (_) {}),
+          {
+            MorphGlassKind.track: {false},
+          },
+        ),
+        'glass button': (
+          MorphGlassButton(onPressed: () {}, child: const Text('Go')),
+          {
+            MorphGlassKind.button: {true},
+          },
+        ),
+        'tab bar': (
+          MorphTabBar(items: _tabs, selected: 1, onChanged: (_) {}),
+          {
+            MorphGlassKind.bar: {true},
+            MorphGlassKind.lens: {true},
+          },
+        ),
+      };
+      for (final MapEntry(key: name, value: (control, expected))
+          in cases.entries) {
+        final recorder = await record(control);
+        expect(kinds(recorder), expected, reason: name);
+        expect(
+          recorder.filled.every((MorphGlassSurface s) => !s.glass),
+          isTrue,
+          reason: '$name: a glass surface was drawn as a fill',
+        );
+        expect(
+          recorder.seen.where((MorphGlassSurface s) => !s.glass).toList(),
+          recorder.filled,
+          reason: '$name: a plain surface reached buildSurface',
+        );
+      }
     });
 
     testWidgets(

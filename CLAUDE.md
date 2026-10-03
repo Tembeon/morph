@@ -544,10 +544,19 @@ Public pieces:
   `buildLayer(surfaces, content:)` (`MorphGlassLayer`, rebuilt on the
   clock's `frames`; the segmented labels and the tab row ride in as
   `content`, the menu hands button + platter in one call); single
-  surfaces (stepper, glass button) call `buildSurface`, placed at
-  `MorphGlassSurface.bounds`. The default `buildLayer` positions
-  `buildSurface` results and the content over them, so a painter that
-  only overrides `buildSurface` keeps working. The
+  surfaces call `buildSurface` (glass button) or `buildFill` (stepper),
+  placed at `MorphGlassSurface.bounds`. ONLY NATIVE GLASS IS GLASS
+  (audited against the dark UIKit references, 2026-10-03):
+  `MorphGlassSurface.glass` is false for plain fills - the segmented,
+  switch and slider tracks and the stepper (tertiary fills in iOS 27) -
+  and every painter draws those flat through `buildFill` (default: the
+  color in the shape). Glass: bars, glass buttons and bar capsules,
+  menus, popovers, the date picker overlay, alerts, floating sheets, the
+  search capsule. A lens/knob/thumb is an opaque platter at rest and
+  CLEAR glass only while lifted (native: the lifted lens shows the track
+  at its own brightness - no wash, no tint). The default `buildLayer`
+  routes glass to `buildSurface` and plain to `buildFill`, so a painter
+  that only overrides `buildSurface` keeps working. The
   surface carries the deformed shape, the flat color as a tint,
   brightness, lift, and `MorphGlassOptics` (UIKit's refraction values,
   `small`/`large`; `displacementAt`/`blurRadiusAt` interpolate by lift).
@@ -560,10 +569,24 @@ Public pieces:
   group when several - the menu fuses with its button) reading the
   nearest BackdropGroup's shared copy (root group in GalleryApp, own
   groups for the glass page's scene and card; bars/menus take their own
-  copy); a resting lens/knob/thumb is an opaque platter, lifted it is
-  glass in its own layer above body + content, and a lens shows the
-  content once more inside itself at `1 + 0.16 * lift`, cut out of the
-  plane below (the renderer never enlarges its backdrop). Device
+  copy); only a menu fuses with its button (blend group) - bar capsules
+  12 apart stayed melted at blend 18 before; a resting lens/knob/thumb
+  is an opaque platter, lifted it is clear glass in its own INDEPENDENT
+  layer (own backdrop copy) above body + content, and a lens shows the
+  content once more at `1 + 0.16 * lift` inside its outline, cut out of
+  the plane - the copy sits BELOW the lens glass (the renderer never
+  enlarges its backdrop). GLASS ON GLASS (the tab bar lens "not liquid"):
+  the lens always had its own copy and saw the bar, but the copy painted
+  OVER the lens, the lens wore the regular wash + a white tint (a milky
+  blob) and bent by the button's 60 against a bevel of 20 (ratio 3:
+  the rim mirrored the labels); now the lens is clear, bends by UIKit's
+  displacement x 2 (18 lifted) with dispersion -0.25, and refracts the
+  bar glass + the magnified labels beneath it. The dark tab bar's resting
+  platter is DARKER than the bar (reference 10 vs 35: 0xB5000000, was a
+  white 14 percent). Audit tool: example/integration_test/
+  glass_audit_test.dart (profile, dark; shots of the reference states and
+  per-scene FrameTimings in `<app tmp>/glass/`), iPhone 16 Pro p95 raster
+  2.0 / 2.3 / 2.9 / 3.6 ms (segmented / tab bar / controls / menu). Device
   verdicts (iPhone 16 Pro, 2026-10-03): LiquidGlassCapture drops whole
   controls on iOS (renders on macOS) - not used; FROST is the dear part
   (~1 ms raster per frosted surface per frame, Controls page 13-15 ms

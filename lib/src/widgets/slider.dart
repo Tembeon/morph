@@ -253,6 +253,7 @@ class _MorphSliderState extends State<MorphSlider>
       color: widget.trackColor ?? _style.trackColor,
       brightness: _brightness,
       enabled: _enabled,
+      glass: false,
     ),
   ];
 

@@ -495,6 +495,18 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
     device), preview lift min(15 percent, 26 pt) and 16 pt menu gap;
     the slider's 11 pt pickup (finger lead within 0.7 pt of the model at
     every end).
+- glass audit against the dark UIKit references: only surfaces that are
+  Liquid Glass in iOS 27 are handed over as glass. `MorphGlassSurface`
+  gains `glass` (false for the segmented, switch and slider tracks and
+  the stepper, which are plain fills) and `MorphGlassPainter` gains
+  `buildFill`, which draws such a surface flat; the default `buildLayer`
+  routes plain surfaces there, and the stepper calls it instead of
+  `buildSurface`. The dark tab bar's resting platter is darker than the
+  bar, as on the device (`0xB5000000`, was a light 14 percent white).
+  In the example's liquid painter a lifted lens, knob or thumb is clear
+  glass that refracts what lies under it - the tab bar lens bends the bar
+  glass and the magnified labels beneath it instead of covering them -
+  and only a menu fuses with its button.
 - Navigation (owner's iPhone pass on the gallery's Navigation page):
   - `MorphNavigationStack` owns the pops of its own screens: its
     navigator sits under a `NavigatorPopHandler`, so while it can pop,

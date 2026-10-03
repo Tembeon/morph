@@ -289,7 +289,7 @@ class _MorphStepperState extends State<MorphStepper>
                   children: [
                     if (glass != null)
                       Positioned.fill(
-                        child: glass.buildSurface(
+                        child: glass.buildFill(
                           context,
                           MorphGlassSurface(
                             kind: MorphGlassKind.track,
@@ -300,6 +300,7 @@ class _MorphStepperState extends State<MorphStepper>
                             color: background,
                             brightness: brightness,
                             enabled: enabled,
+                            glass: false,
                           ),
                         ),
                       ),

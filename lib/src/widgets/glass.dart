@@ -3,18 +3,25 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
-/// The role a glass surface plays in a control.
+/// The role a surface plays in a control.
+///
+/// The kind names the part; whether the part is Liquid Glass is
+/// [MorphGlassSurface.glass] and, for a lens, knob or thumb, its lift.
 enum MorphGlassKind {
-  /// The track of a segmented control, switch, slider or stepper.
+  /// The track of a segmented control, switch, slider or stepper: a plain
+  /// fill in iOS 27, handed over with [MorphGlassSurface.glass] false.
   track,
 
-  /// The selection lens of a segmented control or tab bar.
+  /// The selection lens of a segmented control or tab bar: an opaque
+  /// platter at rest, glass only while lifted.
   lens,
 
-  /// The knob of a switch.
+  /// The knob of a switch: an opaque platter at rest, glass only while
+  /// lifted.
   knob,
 
-  /// The thumb of a slider.
+  /// The thumb of a slider: an opaque platter at rest, glass only while
+  /// lifted.
   thumb,
 
   /// The body of a glass button.
@@ -87,8 +94,16 @@ class MorphGlassOptics {
       lerpDouble(unliftedBlurRadius, 0, lift.clamp(0, 1))!;
 }
 
-/// One glass surface of a control in one frame, handed to a
+/// One surface of a control in one frame, handed to a
 /// [MorphGlassPainter].
+///
+/// Only some surfaces are Liquid Glass in iOS 27: bars, glass buttons,
+/// menus, popovers, alerts, floating sheets and the search capsule. The
+/// tracks of the segmented control, switch and slider and the stepper are
+/// plain fills and come with [glass] false; a painter draws them flat. A
+/// lens, knob or thumb is glass only while the finger lifts it: at
+/// [lift] 0 it is an opaque platter of [color], and a painter turns it
+/// into glass as [lift] grows.
 @immutable
 class MorphGlassSurface {
   /// Creates a surface description.
@@ -102,6 +117,7 @@ class MorphGlassSurface {
     this.scaleY = 1,
     this.optics,
     this.enabled = true,
+    this.glass = true,
   });
 
   /// The role of the surface.
@@ -134,6 +150,12 @@ class MorphGlassSurface {
   /// Whether the control accepts input.
   final bool enabled;
 
+  /// Whether the surface is Liquid Glass natively.
+  ///
+  /// False for a plain fill, which every painter draws flat: [color] in
+  /// [shape], nothing sampled from the backdrop.
+  final bool glass;
+
   /// The box the surface occupies in the control's local coordinates.
   Rect get bounds => shape.outerRect;
 
@@ -148,16 +170,29 @@ class MorphGlassSurface {
 /// [MorphGlass] and every control below it builds its surfaces from the
 /// painter instead, every frame, behind its content. A control with
 /// several surfaces hands them to [buildLayer] together; a control with
-/// one surface may call [buildSurface] directly. The widget
-/// [buildSurface] returns is placed exactly at [MorphGlassSurface.bounds],
-/// so it can sample the backdrop with a `BackdropFilter`, run a shader or
-/// paint anything else.
+/// one surface calls [buildSurface] for a glass surface and [buildFill]
+/// for a plain one. The widget either returns is placed exactly at
+/// [MorphGlassSurface.bounds], so [buildSurface] can sample the backdrop
+/// with a `BackdropFilter`, run a shader or paint anything else.
+///
+/// A surface whose [MorphGlassSurface.glass] is false is not glass in
+/// iOS 27 and must be drawn flat; [buildLayer] implementations route it
+/// to [buildFill].
 abstract class MorphGlassPainter {
   /// Creates a painter.
   const MorphGlassPainter();
 
-  /// Builds the widget that draws [surface], sized to its bounds.
+  /// Builds the widget that draws the glass [surface], sized to its
+  /// bounds.
   Widget buildSurface(BuildContext context, MorphGlassSurface surface);
+
+  /// Builds the widget that draws the plain [surface] flat, sized to its
+  /// bounds.
+  ///
+  /// The default fills [MorphGlassSurface.localShape] with
+  /// [MorphGlassSurface.color], as the control does without a painter.
+  Widget buildFill(BuildContext context, MorphGlassSurface surface) =>
+      CustomPaint(painter: _FillPainter(surface.localShape, surface.color));
 
   /// Builds one glass layer of a control: its [surfaces], back to front,
   /// in a box that fills the layer, with the control's [content] over
@@ -166,7 +201,8 @@ abstract class MorphGlassPainter {
   /// The surfaces of one call belong to one control and move together, so
   /// a painter can render them as a unit: share one backdrop sample, fuse
   /// neighbors, or show [content] through a lens. The default places each
-  /// surface from [buildSurface] at its bounds and [content] over them.
+  /// surface at its bounds, from [buildSurface] when it is glass and from
+  /// [buildFill] when it is not, and [content] over them.
   Widget buildLayer(
     BuildContext context,
     List<MorphGlassSurface> surfaces, {
@@ -178,12 +214,32 @@ abstract class MorphGlassPainter {
         for (final surface in surfaces)
           Positioned.fromRect(
             rect: surface.bounds,
-            child: buildSurface(context, surface),
+            child: surface.glass
+                ? buildSurface(context, surface)
+                : buildFill(context, surface),
           ),
         if (content != null) Positioned.fill(child: content),
       ],
     );
   }
+}
+
+class _FillPainter extends CustomPainter {
+  const _FillPainter(this.shape, this.color);
+
+  final RRect shape;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    paint.color = color;
+    canvas.drawRRect(shape, paint);
+  }
+
+  @override
+  bool shouldRepaint(_FillPainter oldDelegate) =>
+      oldDelegate.shape != shape || oldDelegate.color != color;
 }
 
 /// Installs a [MorphGlassPainter] for the measured controls below it.

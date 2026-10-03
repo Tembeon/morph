@@ -18,15 +18,21 @@ enum LiquidGlassMaterial {
 
 /// Renders the measured controls with the liquid glass renderer.
 ///
-/// A control's body surfaces (track, bar, button, menu) share a layer,
-/// and fuse in a blend group when there are several, as a menu does with
-/// its button. A resting lens, knob or thumb is an opaque platter under
-/// the control's content; lifted, it turns into glass in a layer of its
-/// own above the body and the content, so it refracts both. A lifted lens
+/// Only surfaces that are glass in iOS 27 become glass: a plain surface
+/// (`MorphGlassSurface.glass` false - the segmented, switch and slider
+/// tracks, the stepper) is a flat fill. A control's glass body surfaces
+/// (bar, button, menu) share a layer, and a menu fuses with its button in
+/// a blend group; separate bar capsules stay separate. A resting lens,
+/// knob or thumb is an opaque platter under the control's content;
+/// lifted, it turns into glass in a layer of its own above everything of
+/// the control, with its own backdrop copy, so it refracts what lies
+/// under it - the bar's glass included (glass on glass). A lifted lens
 /// shows the content behind it magnified by `1 + 0.16 * lift`, the growth
 /// the UIKit tab bar shows through its lifted lens: the renderer never
-/// enlarges its backdrop, so the content is drawn once more inside the
-/// lens at that scale and cut out of the plane below.
+/// enlarges its backdrop, so the content is drawn once more at that scale
+/// inside the lens's outline, cut out of the plane, and BELOW the lens
+/// glass, which then bends the magnified content and the bar's rim at its
+/// bevel as UIKit's lens does.
 ///
 /// Every backdrop copy is a full-screen readback, so body glass reads the
 /// one copy of the nearest [BackdropGroup] and only lifted glass, which
@@ -82,6 +88,17 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   /// The growth of the content seen through a fully lifted lens.
   static const double lensMagnification = 0.16;
 
+  /// The renderer refraction per pixel of UIKit lens displacement.
+  ///
+  /// A lifted lens bends by `9 * 2 = 18`, under the bevel height of 20, so
+  /// its rim compresses what lies just outside it - the edge of the bar
+  /// or track it floats over - as UIKit's lens does, instead of mirroring
+  /// the content inside it as the 60 of a glass button would.
+  static const double lensRefraction = 2;
+
+  /// The color separation along a lifted lens's rim.
+  static const double lensDispersion = -0.25;
+
   /// The lift below which a lens, knob or thumb is only its platter.
   static const double restingLift = 0.005;
 
@@ -125,34 +142,38 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
         : frosted
         ? preset.frost
         : 0.0;
-    final bend = optics == null
-        ? 1.0
-        : (optics.displacementAt(lift) / optics.liftedDisplacement).clamp(
-            0.0,
-            2.0,
-          );
+    final amount = optics == null
+        ? preset.refractionAmount
+        : optics.displacementAt(lift) * lensRefraction;
     return preset.copyWith(
       frost: frost * blur,
-      refractionAmount: preset.refractionAmount * refraction * bend,
+      refractionAmount: amount * refraction,
+      dispersion: optics == null ? preset.dispersion : lensDispersion * lift,
       highlight: preset.highlight * light * (1 + 0.5 * lift),
     );
   }
 
   /// The renderer appearance for [surface], tinted by its flat color.
+  ///
+  /// A lifted lens, knob or thumb is clear glass: no wash and no tint, so
+  /// what lies under it - a track, a bar's glass - shows through at its own
+  /// brightness, as through UIKit's lifted lens.
   LiquidGlassAppearance appearanceFor(MorphGlassSurface surface) =>
-      switch (material) {
-        LiquidGlassMaterial.regular => LiquidGlassAppearance.ios27Regular(
-          brightness: surface.brightness,
-          tint: surface.color,
-        ),
-        LiquidGlassMaterial.toolbar => LiquidGlassAppearance.ios27Toolbar(
-          brightness: surface.brightness,
-          tint: surface.color,
-        ),
-        LiquidGlassMaterial.clear => LiquidGlassAppearance.ios27Clear(
-          tint: surface.color,
-        ),
-      };
+      _floats(surface.kind)
+      ? const LiquidGlassAppearance()
+      : switch (material) {
+          LiquidGlassMaterial.regular => LiquidGlassAppearance.ios27Regular(
+            brightness: surface.brightness,
+            tint: surface.color,
+          ),
+          LiquidGlassMaterial.toolbar => LiquidGlassAppearance.ios27Toolbar(
+            brightness: surface.brightness,
+            tint: surface.color,
+          ),
+          LiquidGlassMaterial.clear => LiquidGlassAppearance.ios27Clear(
+            tint: surface.color,
+          ),
+        };
 
   static LiquidShape _shape(RRect shape) {
     final side = math.min(shape.width, shape.height);
@@ -211,7 +232,9 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   }
 
   Widget _layer(List<MorphGlassSurface> surfaces, {bool shared = true}) {
-    final grouped = surfaces.length > 1;
+    final grouped =
+        surfaces.length > 1 &&
+        surfaces.any((MorphGlassSurface s) => s.kind == MorphGlassKind.menu);
     Widget shapes = Stack(
       clipBehavior: Clip.none,
       children: [
@@ -242,6 +265,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   @override
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) {
     if (!_visible(surface)) return const SizedBox.expand();
+    if (!surface.glass) return buildFill(context, surface);
     final local = MorphGlassSurface(
       kind: surface.kind,
       shape: surface.localShape,
@@ -252,6 +276,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
       scaleY: surface.scaleY,
       optics: surface.optics,
       enabled: surface.enabled,
+      glass: surface.glass,
     );
     return _layer([local]);
   }
@@ -263,13 +288,17 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
     Widget? content,
   }) {
     final visible = surfaces.where(_visible).toList();
+    final fills = [
+      for (final s in visible)
+        if (!s.glass) s,
+    ];
     final body = [
       for (final s in visible)
-        if (!_floats(s.kind)) s,
+        if (s.glass && !_floats(s.kind)) s,
     ];
     final floating = [
       for (final s in visible)
-        if (_floats(s.kind)) s,
+        if (s.glass && _floats(s.kind)) s,
     ];
     final chrome = body.any(
       (MorphGlassSurface s) =>
@@ -283,6 +312,12 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
     return Stack(
       clipBehavior: Clip.none,
       children: [
+        for (var i = 0; i < fills.length; i++)
+          Positioned.fromRect(
+            key: ValueKey<(String, int)>(('fill', i)),
+            rect: fills[i].bounds,
+            child: buildFill(context, fills[i]),
+          ),
         if (body.isNotEmpty)
           Positioned.fill(
             key: const ValueKey<String>('body'),
@@ -308,15 +343,15 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
           ),
         for (var i = 0; i < floating.length; i++)
           if (lifted(floating[i])) ...[
-            Positioned.fill(
-              key: ValueKey<(String, int)>(('glass', i)),
-              child: _layer([floating[i]], shared: false),
-            ),
             if (content != null && floating[i].kind == MorphGlassKind.lens)
               Positioned.fill(
                 key: ValueKey<(String, int)>(('copy', i)),
                 child: _Magnified(surface: floating[i], child: content),
               ),
+            Positioned.fill(
+              key: ValueKey<(String, int)>(('glass', i)),
+              child: _layer([floating[i]], shared: false),
+            ),
           ],
       ],
     );

@@ -304,6 +304,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
         color: style.trackColor,
         brightness: _brightness,
         enabled: _enabled,
+        glass: false,
       ),
       MorphGlassSurface(
         kind: MorphGlassKind.lens,

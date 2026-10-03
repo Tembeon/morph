@@ -175,7 +175,8 @@ void main() {
     final resting = painter.settingsFor(lens(MorphGlassOptics.large, 0));
     final lifted = painter.settingsFor(lens(MorphGlassOptics.large, 1));
     expect(resting.refractionAmount, 0);
-    expect(lifted.refractionAmount, 120);
+    expect(lifted.refractionAmount, 36);
+    expect(lifted.dispersion, LiquidGlassRendererPainter.lensDispersion);
     expect(lifted.highlight, greaterThan(resting.highlight));
     final frosted = painter.settingsFor(lens(MorphGlassOptics.small, 0));
     final clear = painter.settingsFor(lens(MorphGlassOptics.small, 1));
@@ -192,6 +193,7 @@ void main() {
         shape: RRect.fromLTRBXY(0, 0, 300, 36, 18, 18),
         color: Color(0x14787880),
         brightness: Brightness.light,
+        glass: false,
       ),
       MorphGlassSurface(
         kind: MorphGlassKind.lens,
@@ -221,7 +223,7 @@ void main() {
         ),
       ),
     );
-    expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
     expect(find.text('Label'), findsNWidgets(2));
     final copy = find.ancestor(
       of: find.text('Label').last,
@@ -235,6 +237,100 @@ void main() {
         matching: find.byType(ExcludeSemantics),
       ),
       findsWidgets,
+    );
+  });
+
+  testWidgets('the liquid painter draws a plain surface flat', (tester) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 300,
+            height: 36,
+            child: Builder(
+              builder: (BuildContext context) =>
+                  const LiquidGlassRendererPainter().buildLayer(context, const [
+                    MorphGlassSurface(
+                      kind: MorphGlassKind.track,
+                      shape: RRect.fromLTRBXY(0, 0, 300, 36, 18, 18),
+                      color: Color(0x14787880),
+                      brightness: Brightness.light,
+                      glass: false,
+                    ),
+                    MorphGlassSurface(
+                      kind: MorphGlassKind.lens,
+                      shape: RRect.fromLTRBXY(2, 2, 100, 34, 16, 16),
+                      color: Color(0xFFFFFFFF),
+                      brightness: Brightness.light,
+                      optics: MorphGlassOptics.large,
+                    ),
+                  ]),
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(find.byType(LiquidGlassLayer), findsNothing);
+  });
+
+  testWidgets('a lifted lens on a bar refracts the bar glass beneath it', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 300,
+            height: 62,
+            child: Builder(
+              builder: (BuildContext context) =>
+                  const LiquidGlassRendererPainter().buildLayer(context, const [
+                    MorphGlassSurface(
+                      kind: MorphGlassKind.bar,
+                      shape: RRect.fromLTRBXY(0, 0, 300, 62, 31, 31),
+                      color: Color(0xB81C1C1E),
+                      brightness: Brightness.dark,
+                    ),
+                    MorphGlassSurface(
+                      kind: MorphGlassKind.lens,
+                      shape: RRect.fromLTRBXY(10, -6, 120, 68, 37, 37),
+                      color: Color(0x1FFFFFFF),
+                      brightness: Brightness.dark,
+                      lift: 1,
+                      optics: MorphGlassOptics.large,
+                    ),
+                  ], content: const Text('Home')),
+            ),
+          ),
+        ),
+      ),
+    );
+    final layers = tester
+        .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
+        .toList();
+    expect(layers, hasLength(2));
+    expect(layers.map((LiquidGlassLayer l) => l.useBackdropGroup), [
+      false,
+      false,
+    ]);
+    final stack = tester.widget<Stack>(
+      find
+          .ancestor(
+            of: find.byKey(const ValueKey<(String, int)>(('glass', 0))),
+            matching: find.byType(Stack),
+          )
+          .first,
+    );
+    final keys = [for (final child in stack.children) child.key];
+    expect(
+      keys.indexOf(const ValueKey<(String, int)>(('copy', 0))),
+      lessThan(keys.indexOf(const ValueKey<(String, int)>(('glass', 0)))),
+    );
+    expect(
+      keys.indexOf(const ValueKey<String>('body')),
+      lessThan(keys.indexOf(const ValueKey<(String, int)>(('glass', 0)))),
     );
   });
 

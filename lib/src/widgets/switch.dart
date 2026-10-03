@@ -190,6 +190,7 @@ class _MorphSwitchState extends State<MorphSwitch>
         color: frame.trackColor,
         brightness: _brightness,
         enabled: _enabled,
+        glass: false,
       ),
       MorphGlassSurface(
         kind: MorphGlassKind.knob,
