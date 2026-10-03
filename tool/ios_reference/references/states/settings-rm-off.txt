@@ -1,0 +1,3896 @@
+== SwiftUI.GlassContainerBridgeLayerPTSettings
+  majorDownSpringDuration = 0.5
+  majorDownSpringBounce = 0.0
+  majorDownDelay = 0.0
+  minorDownSpringDuration = 0.3
+  minorDownSpringBounce = 0.0
+  minorDownDelay = 0.1
+  smoothnessFactor = 1.0
+  smoothnessSpringDuration = 0.5
+  smoothnessSpringBounce = 0.0
+  smoothnessReturnDelay = 0.1
+  smoothnessReturnDuration = 0.3
+  smoothnessReturnBounce = 0.0
+== SwiftUI.GlassContainerBridgeLayerSearchPTSettings
+  majorDownSpringDuration = 0.5
+  majorDownSpringBounce = 0.0
+  majorDownDelay = 0.0
+  minorDownSpringDuration = 0.3
+  minorDownSpringBounce = 0.0
+  minorDownDelay = 0.1
+  smoothnessFactor = 1.0
+  smoothnessSpringDuration = 0.5
+  smoothnessSpringBounce = 0.0
+  smoothnessReturnDelay = 0.1
+  smoothnessReturnDuration = 0.3
+  smoothnessReturnBounce = 0.0
+== SwiftUI.GlassContainerBridgeLayerToolbarPTSettings
+  majorDownSpringDuration = 0.5
+  majorDownSpringBounce = 0.0
+  majorDownDelay = 0.0
+  minorDownSpringDuration = 0.3
+  minorDownSpringBounce = 0.0
+  minorDownDelay = 0.1
+  smoothnessFactor = 1.0
+  smoothnessSpringDuration = 0.5
+  smoothnessSpringBounce = 0.0
+  smoothnessReturnDelay = 0.1
+  smoothnessReturnDuration = 0.3
+  smoothnessReturnBounce = 0.0
+== SwiftUI.GlassContainerTranslationKickPTSettings
+  offsetSpringDuration = 0.3
+  offsetSpringBounce = 0.0
+  offsetDelay = 0.06
+  returnSpringDuration = 0.6
+  returnSpringBounce = 0.19999999999999984
+  returnDelay = 0.18
+  kickFactor = 6.0
+== SwiftUI.GlassContainerTranslationKickSearchPTSettings
+  offsetSpringDuration = 0.3
+  offsetSpringBounce = 0.0
+  offsetDelay = 0.06
+  returnSpringDuration = 0.6
+  returnSpringBounce = 0.19999999999999984
+  returnDelay = 0.18
+  kickFactor = 6.0
+== SwiftUI.GlassContainerTranslationKickToolbarPTSettings
+  offsetSpringDuration = 0.25
+  offsetSpringBounce = 0.0
+  offsetDelay = 0.05
+  returnSpringDuration = 0.5
+  returnSpringBounce = 0.16600000000000004
+  returnDelay = 0.15
+  kickFactor = 6.0
+== SwiftUI.GlassContainerScalePulsePTSettings
+  speedFactor = 1.0
+  maxScaleWidth = 1.2
+  maxScaleHeight = 1.2
+  maxPointScaleWidth = 16.0
+  maxPointScaleHeight = 16.0
+  scaleUpSpringDuration = 0.35
+  scaleUpSpringBounce = 0.6
+  scaleDownHeightSpringDuration = 0.5
+  scaleDownHeightSpringBounce = 0.5
+  scaleDownHeightDelay = 0.135
+  scaleDownWidthSpringDuration = 0.5000000000000001
+  scaleDownWidthSpringBounce = 0.5999999999999999
+  scaleDownWidthDelay = 0.17
+  transitionBlurRadius = 10.0
+  transitionBlurSpringDuration = 0.5000000000000001
+  transitionBlurSpringBounce = 0.2999999999999998
+== SwiftUI.GlassContainerScalePulseSearchPTSettings
+  speedFactor = 1.0
+  maxScaleWidth = 1.2
+  maxScaleHeight = 1.2
+  maxPointScaleWidth = 10.0
+  maxPointScaleHeight = 10.0
+  scaleUpSpringDuration = 0.1
+  scaleUpSpringBounce = 0.25
+  scaleDownHeightSpringDuration = 0.176
+  scaleDownHeightSpringBounce = 0.4
+  scaleDownHeightDelay = 0.08
+  scaleDownWidthSpringDuration = 0.196
+  scaleDownWidthSpringBounce = 0.4
+  scaleDownWidthDelay = 0.1
+  transitionBlurRadius = 10.0
+  transitionBlurSpringDuration = 0.5000000000000001
+  transitionBlurSpringBounce = 0.2999999999999998
+== SwiftUI.GlassContainerScalePulseToolbarPTSettings
+  speedFactor = 1.0
+  maxScaleWidth = 1.2
+  maxScaleHeight = 1.2
+  maxPointScaleWidth = 16.0
+  maxPointScaleHeight = 16.0
+  scaleUpSpringDuration = 0.292
+  scaleUpSpringBounce = 0.5
+  scaleDownHeightSpringDuration = 0.416
+  scaleDownHeightSpringBounce = 0.41600000000000004
+  scaleDownHeightDelay = 0.113
+  scaleDownWidthSpringDuration = 0.416
+  scaleDownWidthSpringBounce = 0.5
+  scaleDownWidthDelay = 0.142
+  transitionBlurRadius = 10.0
+  transitionBlurSpringDuration = 0.416
+  transitionBlurSpringBounce = 0.25
+== SwiftUI.GlassContainerAppearancePTSettings
+  scale = 0.2
+  maxPointScaleWidth = 16.0
+  maxPointScaleHeight = 16.0
+  blurRadius = 10.0
+== SwiftUI.GlassContainerAppearanceSearchPTSettings
+  scale = 0.2
+  maxPointScaleWidth = 16.0
+  maxPointScaleHeight = 16.0
+  blurRadius = 10.0
+== SwiftUI.GlassContainerAppearanceToolbarPTSettings
+  scale = 0.2
+  maxPointScaleWidth = 16.0
+  maxPointScaleHeight = 16.0
+  blurRadius = 10.0
+== SwiftUI.GlassContainerTransitionPTSettings
+  speedFactor = 1.0
+  springDuration = 0.5000000000000001
+  springBounce = 0.2999999999999998
+  delayFactor = 0.4
+  minDelay = 0.1
+  maxDelay = 0.2
+== SwiftUI.GlassContainerSearchTransitionPTSettings
+  speedFactor = 1.0
+  springDuration = 0.25000000000000006
+  springBounce = 0.09999999999999987
+  delayFactor = 0.4
+  minDelay = 0.1
+  maxDelay = 0.2
+== SwiftUI.GlassContainerToolbarTransitionPTSettings
+  speedFactor = 1.0
+  springDuration = 0.416
+  springBounce = 0.25
+  delayFactor = 0.33
+  minDelay = 0.083
+  maxDelay = 0.166
+== SwiftUI.GlassContainerPTSettings
+  transition: SwiftUI.GlassContainerTransitionPTSettings
+    speedFactor = 1.0
+    springDuration = 0.5000000000000001
+    springBounce = 0.2999999999999998
+    delayFactor = 0.4
+    minDelay = 0.1
+    maxDelay = 0.2
+  appearance: SwiftUI.GlassContainerAppearancePTSettings
+    scale = 0.2
+    maxPointScaleWidth = 16.0
+    maxPointScaleHeight = 16.0
+    blurRadius = 10.0
+  scalePulse: SwiftUI.GlassContainerScalePulsePTSettings
+    speedFactor = 1.0
+    maxScaleWidth = 1.2
+    maxScaleHeight = 1.2
+    maxPointScaleWidth = 16.0
+    maxPointScaleHeight = 16.0
+    scaleUpSpringDuration = 0.35
+    scaleUpSpringBounce = 0.6
+    scaleDownHeightSpringDuration = 0.5
+    scaleDownHeightSpringBounce = 0.5
+    scaleDownHeightDelay = 0.135
+    scaleDownWidthSpringDuration = 0.5000000000000001
+    scaleDownWidthSpringBounce = 0.5999999999999999
+    scaleDownWidthDelay = 0.17
+    transitionBlurRadius = 10.0
+    transitionBlurSpringDuration = 0.5000000000000001
+    transitionBlurSpringBounce = 0.2999999999999998
+  translationKick: SwiftUI.GlassContainerTranslationKickPTSettings
+    offsetSpringDuration = 0.3
+    offsetSpringBounce = 0.0
+    offsetDelay = 0.06
+    returnSpringDuration = 0.6
+    returnSpringBounce = 0.19999999999999984
+    returnDelay = 0.18
+    kickFactor = 6.0
+  bridgeLayer: SwiftUI.GlassContainerBridgeLayerPTSettings
+    majorDownSpringDuration = 0.5
+    majorDownSpringBounce = 0.0
+    majorDownDelay = 0.0
+    minorDownSpringDuration = 0.3
+    minorDownSpringBounce = 0.0
+    minorDownDelay = 0.1
+    smoothnessFactor = 1.0
+    smoothnessSpringDuration = 0.5
+    smoothnessSpringBounce = 0.0
+    smoothnessReturnDelay = 0.1
+    smoothnessReturnDuration = 0.3
+    smoothnessReturnBounce = 0.0
+== SwiftUI.GlassContainerSearchPTSettings
+  transition: SwiftUI.GlassContainerSearchTransitionPTSettings
+    speedFactor = 1.0
+    springDuration = 0.25000000000000006
+    springBounce = 0.09999999999999987
+    delayFactor = 0.4
+    minDelay = 0.1
+    maxDelay = 0.2
+  appearance: SwiftUI.GlassContainerAppearanceSearchPTSettings
+    scale = 0.2
+    maxPointScaleWidth = 16.0
+    maxPointScaleHeight = 16.0
+    blurRadius = 10.0
+  scalePulse: SwiftUI.GlassContainerScalePulseSearchPTSettings
+    speedFactor = 1.0
+    maxScaleWidth = 1.2
+    maxScaleHeight = 1.2
+    maxPointScaleWidth = 10.0
+    maxPointScaleHeight = 10.0
+    scaleUpSpringDuration = 0.1
+    scaleUpSpringBounce = 0.25
+    scaleDownHeightSpringDuration = 0.176
+    scaleDownHeightSpringBounce = 0.4
+    scaleDownHeightDelay = 0.08
+    scaleDownWidthSpringDuration = 0.196
+    scaleDownWidthSpringBounce = 0.4
+    scaleDownWidthDelay = 0.1
+    transitionBlurRadius = 10.0
+    transitionBlurSpringDuration = 0.5000000000000001
+    transitionBlurSpringBounce = 0.2999999999999998
+  translationKick: SwiftUI.GlassContainerTranslationKickSearchPTSettings
+    offsetSpringDuration = 0.3
+    offsetSpringBounce = 0.0
+    offsetDelay = 0.06
+    returnSpringDuration = 0.6
+    returnSpringBounce = 0.19999999999999984
+    returnDelay = 0.18
+    kickFactor = 6.0
+  bridgeLayer: SwiftUI.GlassContainerBridgeLayerSearchPTSettings
+    majorDownSpringDuration = 0.5
+    majorDownSpringBounce = 0.0
+    majorDownDelay = 0.0
+    minorDownSpringDuration = 0.3
+    minorDownSpringBounce = 0.0
+    minorDownDelay = 0.1
+    smoothnessFactor = 1.0
+    smoothnessSpringDuration = 0.5
+    smoothnessSpringBounce = 0.0
+    smoothnessReturnDelay = 0.1
+    smoothnessReturnDuration = 0.3
+    smoothnessReturnBounce = 0.0
+== SwiftUI.GlassContainerToolbarPTSettings
+  transition: SwiftUI.GlassContainerToolbarTransitionPTSettings
+    speedFactor = 1.0
+    springDuration = 0.416
+    springBounce = 0.25
+    delayFactor = 0.33
+    minDelay = 0.083
+    maxDelay = 0.166
+  appearance: SwiftUI.GlassContainerAppearanceToolbarPTSettings
+    scale = 0.2
+    maxPointScaleWidth = 16.0
+    maxPointScaleHeight = 16.0
+    blurRadius = 10.0
+  scalePulse: SwiftUI.GlassContainerScalePulseToolbarPTSettings
+    speedFactor = 1.0
+    maxScaleWidth = 1.2
+    maxScaleHeight = 1.2
+    maxPointScaleWidth = 16.0
+    maxPointScaleHeight = 16.0
+    scaleUpSpringDuration = 0.292
+    scaleUpSpringBounce = 0.5
+    scaleDownHeightSpringDuration = 0.416
+    scaleDownHeightSpringBounce = 0.41600000000000004
+    scaleDownHeightDelay = 0.113
+    scaleDownWidthSpringDuration = 0.416
+    scaleDownWidthSpringBounce = 0.5
+    scaleDownWidthDelay = 0.142
+    transitionBlurRadius = 10.0
+    transitionBlurSpringDuration = 0.416
+    transitionBlurSpringBounce = 0.25
+  translationKick: SwiftUI.GlassContainerTranslationKickToolbarPTSettings
+    offsetSpringDuration = 0.25
+    offsetSpringBounce = 0.0
+    offsetDelay = 0.05
+    returnSpringDuration = 0.5
+    returnSpringBounce = 0.16600000000000004
+    returnDelay = 0.15
+    kickFactor = 6.0
+  bridgeLayer: SwiftUI.GlassContainerBridgeLayerToolbarPTSettings
+    majorDownSpringDuration = 0.5
+    majorDownSpringBounce = 0.0
+    majorDownDelay = 0.0
+    minorDownSpringDuration = 0.3
+    minorDownSpringBounce = 0.0
+    minorDownDelay = 0.1
+    smoothnessFactor = 1.0
+    smoothnessSpringDuration = 0.5
+    smoothnessSpringBounce = 0.0
+    smoothnessReturnDelay = 0.1
+    smoothnessReturnDuration = 0.3
+    smoothnessReturnBounce = 0.0
+== SwiftUI.GlassContainerRootPTSettings
+  default: SwiftUI.GlassContainerPTSettings
+    transition: SwiftUI.GlassContainerTransitionPTSettings
+      speedFactor = 1.0
+      springDuration = 0.5000000000000001
+      springBounce = 0.2999999999999998
+      delayFactor = 0.4
+      minDelay = 0.1
+      maxDelay = 0.2
+    appearance: SwiftUI.GlassContainerAppearancePTSettings
+      scale = 0.2
+      maxPointScaleWidth = 16.0
+      maxPointScaleHeight = 16.0
+      blurRadius = 10.0
+    scalePulse: SwiftUI.GlassContainerScalePulsePTSettings
+      speedFactor = 1.0
+      maxScaleWidth = 1.2
+      maxScaleHeight = 1.2
+      maxPointScaleWidth = 16.0
+      maxPointScaleHeight = 16.0
+      scaleUpSpringDuration = 0.35
+      scaleUpSpringBounce = 0.6
+      scaleDownHeightSpringDuration = 0.5
+      scaleDownHeightSpringBounce = 0.5
+      scaleDownHeightDelay = 0.135
+      scaleDownWidthSpringDuration = 0.5000000000000001
+      scaleDownWidthSpringBounce = 0.5999999999999999
+      scaleDownWidthDelay = 0.17
+      transitionBlurRadius = 10.0
+      transitionBlurSpringDuration = 0.5000000000000001
+      transitionBlurSpringBounce = 0.2999999999999998
+    translationKick: SwiftUI.GlassContainerTranslationKickPTSettings
+      offsetSpringDuration = 0.3
+      offsetSpringBounce = 0.0
+      offsetDelay = 0.06
+      returnSpringDuration = 0.6
+      returnSpringBounce = 0.19999999999999984
+      returnDelay = 0.18
+      kickFactor = 6.0
+    bridgeLayer: SwiftUI.GlassContainerBridgeLayerPTSettings
+      majorDownSpringDuration = 0.5
+      majorDownSpringBounce = 0.0
+      majorDownDelay = 0.0
+      minorDownSpringDuration = 0.3
+      minorDownSpringBounce = 0.0
+      minorDownDelay = 0.1
+      smoothnessFactor = 1.0
+      smoothnessSpringDuration = 0.5
+      smoothnessSpringBounce = 0.0
+      smoothnessReturnDelay = 0.1
+      smoothnessReturnDuration = 0.3
+      smoothnessReturnBounce = 0.0
+  toolbar: SwiftUI.GlassContainerToolbarPTSettings
+    transition: SwiftUI.GlassContainerToolbarTransitionPTSettings
+      speedFactor = 1.0
+      springDuration = 0.416
+      springBounce = 0.25
+      delayFactor = 0.33
+      minDelay = 0.083
+      maxDelay = 0.166
+    appearance: SwiftUI.GlassContainerAppearanceToolbarPTSettings
+      scale = 0.2
+      maxPointScaleWidth = 16.0
+      maxPointScaleHeight = 16.0
+      blurRadius = 10.0
+    scalePulse: SwiftUI.GlassContainerScalePulseToolbarPTSettings
+      speedFactor = 1.0
+      maxScaleWidth = 1.2
+      maxScaleHeight = 1.2
+      maxPointScaleWidth = 16.0
+      maxPointScaleHeight = 16.0
+      scaleUpSpringDuration = 0.292
+      scaleUpSpringBounce = 0.5
+      scaleDownHeightSpringDuration = 0.416
+      scaleDownHeightSpringBounce = 0.41600000000000004
+      scaleDownHeightDelay = 0.113
+      scaleDownWidthSpringDuration = 0.416
+      scaleDownWidthSpringBounce = 0.5
+      scaleDownWidthDelay = 0.142
+      transitionBlurRadius = 10.0
+      transitionBlurSpringDuration = 0.416
+      transitionBlurSpringBounce = 0.25
+    translationKick: SwiftUI.GlassContainerTranslationKickToolbarPTSettings
+      offsetSpringDuration = 0.25
+      offsetSpringBounce = 0.0
+      offsetDelay = 0.05
+      returnSpringDuration = 0.5
+      returnSpringBounce = 0.16600000000000004
+      returnDelay = 0.15
+      kickFactor = 6.0
+    bridgeLayer: SwiftUI.GlassContainerBridgeLayerToolbarPTSettings
+      majorDownSpringDuration = 0.5
+      majorDownSpringBounce = 0.0
+      majorDownDelay = 0.0
+      minorDownSpringDuration = 0.3
+      minorDownSpringBounce = 0.0
+      minorDownDelay = 0.1
+      smoothnessFactor = 1.0
+      smoothnessSpringDuration = 0.5
+      smoothnessSpringBounce = 0.0
+      smoothnessReturnDelay = 0.1
+      smoothnessReturnDuration = 0.3
+      smoothnessReturnBounce = 0.0
+  search: SwiftUI.GlassContainerSearchPTSettings
+    transition: SwiftUI.GlassContainerSearchTransitionPTSettings
+      speedFactor = 1.0
+      springDuration = 0.25000000000000006
+      springBounce = 0.09999999999999987
+      delayFactor = 0.4
+      minDelay = 0.1
+      maxDelay = 0.2
+    appearance: SwiftUI.GlassContainerAppearanceSearchPTSettings
+      scale = 0.2
+      maxPointScaleWidth = 16.0
+      maxPointScaleHeight = 16.0
+      blurRadius = 10.0
+    scalePulse: SwiftUI.GlassContainerScalePulseSearchPTSettings
+      speedFactor = 1.0
+      maxScaleWidth = 1.2
+      maxScaleHeight = 1.2
+      maxPointScaleWidth = 10.0
+      maxPointScaleHeight = 10.0
+      scaleUpSpringDuration = 0.1
+      scaleUpSpringBounce = 0.25
+      scaleDownHeightSpringDuration = 0.176
+      scaleDownHeightSpringBounce = 0.4
+      scaleDownHeightDelay = 0.08
+      scaleDownWidthSpringDuration = 0.196
+      scaleDownWidthSpringBounce = 0.4
+      scaleDownWidthDelay = 0.1
+      transitionBlurRadius = 10.0
+      transitionBlurSpringDuration = 0.5000000000000001
+      transitionBlurSpringBounce = 0.2999999999999998
+    translationKick: SwiftUI.GlassContainerTranslationKickSearchPTSettings
+      offsetSpringDuration = 0.3
+      offsetSpringBounce = 0.0
+      offsetDelay = 0.06
+      returnSpringDuration = 0.6
+      returnSpringBounce = 0.19999999999999984
+      returnDelay = 0.18
+      kickFactor = 6.0
+    bridgeLayer: SwiftUI.GlassContainerBridgeLayerSearchPTSettings
+      majorDownSpringDuration = 0.5
+      majorDownSpringBounce = 0.0
+      majorDownDelay = 0.0
+      minorDownSpringDuration = 0.3
+      minorDownSpringBounce = 0.0
+      minorDownDelay = 0.1
+      smoothnessFactor = 1.0
+      smoothnessSpringDuration = 0.5
+      smoothnessSpringBounce = 0.0
+      smoothnessReturnDelay = 0.1
+      smoothnessReturnDuration = 0.3
+      smoothnessReturnBounce = 0.0
+== _UIFluidSliderSettings
+  programmaticUpdate: _UISpringAnimationPrototypeSettings
+    dampingRatio = 0.8
+    response = 0.4
+  pressScale: _UISpringAnimationPrototypeSettings
+    dampingRatio = 0.9
+    response = 0.8
+  sliderDriftFactor = 0.27
+  sliderStepCount = 16.0
+  defaultStretchAmount = 50.0
+  squishFactor = 0.92
+  minSquishPoints = 4.0
+  elasticPanDriverSettings: _UIFluidSliderElasticPanDriverSettings
+    projectionThreshold = 10.0
+    update: _UISpringAnimationPrototypeSettings
+      dampingRatio = 1.0
+      response = 0.4
+    acceleratedUpdate: _UISpringAnimationPrototypeSettings
+      dampingRatio = 1.0
+      response = 0.3
+  discreteButtonDriverSettings: _UIFluidSliderDiscreteButtonDriverSettings
+    repeatDelay = 0.333
+    repeatCadence = 0.041666666666666664
+    minimumPressDuration = 0.25
+    verticalVolumeDownScale = 0.92
+    verticalVolumeUpScale = 1.06
+    horizontalVolumeDownScale = 0.96
+    horizontalVolumeUpScale = 1.03
+    settle: _UISpringAnimationPrototypeSettings
+      dampingRatio = 1.0
+      response = 0.6
+    update: _UISpringAnimationPrototypeSettings
+      dampingRatio = 1.0
+      response = 0.3
+    acceleratedUpdate: _UISpringAnimationPrototypeSettings
+      dampingRatio = 1.0
+      response = 0.3
+== _UIFluidSliderDriverSettings
+  update: _UISpringAnimationPrototypeSettings
+    dampingRatio = 1.0
+    response = 0.4
+  acceleratedUpdate: _UISpringAnimationPrototypeSettings
+    dampingRatio = 1.0
+    response = 0.3
+== _UIFluidSliderDiscreteButtonDriverSettings
+  repeatDelay = 0.333
+  repeatCadence = 0.041666666666666664
+  minimumPressDuration = 0.25
+  verticalVolumeDownScale = 0.92
+  verticalVolumeUpScale = 1.06
+  horizontalVolumeDownScale = 0.96
+  horizontalVolumeUpScale = 1.03
+  settle: _UISpringAnimationPrototypeSettings
+    dampingRatio = 1.0
+    response = 0.6
+  update: _UISpringAnimationPrototypeSettings
+    dampingRatio = 1.0
+    response = 0.3
+  acceleratedUpdate: _UISpringAnimationPrototypeSettings
+    dampingRatio = 1.0
+    response = 0.3
+== _UIFluidSliderElasticPanDriverSettings
+  projectionThreshold = 10.0
+  update: _UISpringAnimationPrototypeSettings
+    dampingRatio = 1.0
+    response = 0.4
+  acceleratedUpdate: _UISpringAnimationPrototypeSettings
+    dampingRatio = 1.0
+    response = 0.3
+== _UISearchBarBehaviorSettings
+  useGenerousPadding = 0.0
+  buttonMinimumHeight = 36.0
+  buttonTightPadding = 8.0
+  buttonGenerousPadding = 12.0
+== _UITabBarBehaviorSettings
+  stackedLeadingPadding = 35.0
+  stackedTrailingPadding = 35.0
+  stackedTopInset = 0.5
+  stackedBottomInset = 1.5
+  stackedCornerRadius = 8.0
+  inlineLeadingPadding = 35.0
+  inlineTrailingPadding = 40.0
+  inlineTopInset = 4.0
+  inlineBottomInset = 4.0
+  inlineCornerRadius = 8.0
+  inlineHomeButtonVerticalOffset = -0.5
+  inlineHomeAffordanceVerticalOffset = 0.5
+== _UINavigationAndToolbarBehaviorSettings
+  enableLiftOnSelected = 1.0
+  enableClippingBehavior = 0.0
+  titleControlPadding = 12.0
+  buttonMinimumWidth = 51.0
+  buttonMinimumHeight = 37.0
+  buttonHorizontalOffset = 0.0
+  buttonVerticalOffset = 0.0
+  buttonMinimumDistanceFromEdge = 4.0
+  buttonCornerRadius = 8.0
+  buttonHorizontalPadding = 10.0
+  buttonVerticalPadding = 4.0
+  backButtonLeadingPadding = 7.0
+  backButtonTrailingPadding = 8.0
+== _UIActivityIndicatorSettings
+  fullLoopDuration = 0.8
+  customColor = 0.0
+  redValue = 60.0
+  greenValue = 60.0
+  blueValue = 67.0
+  alphaValue = 0.6
+== UIKit._UITabBarAnimationSettings
+  collapseIntermediateSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.72
+    response = 0.36
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e1c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e1c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4780> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=304.617420 damping=25.132741 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e1c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  collapseFinalSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.76
+    response = 0.42
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e3a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e3a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4840> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=223.800553 damping=22.739147 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e3a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  collapseFinalSpringDelay = 0.05
+  expandIntermediateSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.72
+    response = 0.3
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e3f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e3f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4900> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=438.649084 damping=30.159289 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e3f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  expandFinalSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.72
+    response = 0.36
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e440> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e440> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db49c0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=304.617420 damping=25.132741 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e440> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  expandFinalSpringDelay = 0.05
+  scrollAwayHintResetSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.8
+    response = 0.3
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e490> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e490> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4a80> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e490> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  scrollAwayProgressSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.8
+    response = 0.5
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e4e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e4e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4b40> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=157.913670 damping=20.106193 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e4e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  scrollAwayTrackingProgressSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.8
+    response = 0.1
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e530> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e530> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4c00> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=3947.841760 damping=100.530965 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e530> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  scrollAwayProgressMultiplier = 0.05
+  expansionSpringDampingRatio = 0.5
+  expansionSpringResponse = 0.4
+  collapsedSpringDampingRatio = 0.75
+  collapsedSpringResponse = 0.4
+  expansionXAnchor = 0.5
+  expansionYAnchor = 0.5
+  expandsOnTap = 0.0
+  minimumPressDuration = 0.22
+  minimumActiveDuration = 0.0
+  expansionHysteresis = 4.0
+== UIKit._UIFluidParallaxTransitionSettings
+  noninteractiveSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.3
+    retargetImpulse = 0.02
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e800> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e800> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4cc0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=438.649084 damping=41.887902 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e800> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  interactiveSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.85
+    response = 0.3
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.85
+    trackingResponse = 0.08
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7e850> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7e850> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4d80> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=438.649084 damping=35.604717 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e850> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  rubberBandExtent = 0.5
+  edgeFlickVelocityBoostFactor = 4.25
+  edgeFlickBoostThreshold = 1.5
+  tracksImmediatelyWithoutSpring = 0.0
+== UIKit._UIFluidNavigationTransitionsSpec
+  parallaxSettings: UIKit._UIFluidParallaxTransitionSettings
+    noninteractiveSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.3
+      retargetImpulse = 0.02
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7e990> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7e990> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4e40> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=438.649084 damping=41.887902 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e990> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    interactiveSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.85
+      response = 0.3
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.85
+      trackingResponse = 0.08
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7e9e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7e9e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4f00> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=438.649084 damping=35.604717 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7e9e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    rubberBandExtent = 0.5
+    edgeFlickVelocityBoostFactor = 4.25
+    edgeFlickBoostThreshold = 1.5
+    tracksImmediatelyWithoutSpring = 0.0
+== UIKit._UITopSearchTransitionSettings
+  transitionSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.8
+    response = 0.34
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7ead0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7ead0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db4fc0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=29.567931 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7ead0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  contentFadeInSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.25
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7eb20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7eb20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5080> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7eb20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  contentFadeOutSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.12
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7eb70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7eb70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5140> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=2741.556778 damping=104.719755 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7eb70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  backgroundMaterialSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.32
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7ebc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7ebc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5200> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=385.531422 damping=39.269908 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7ebc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  scopeFadeDelay = 0.14
+  contentFadeInDelay = 0.1
+== UIKit._UIBarScrollAwaySpec
+  forceEnable = 0.0
+  maxBlurRadius = 4.0
+  minimumOpacity = 0.0
+  hideThreshold = 0.25
+  revealThreshold = 0.25
+  duration = 0.35
+  bounce = 0.0
+== UIKit._UINavigationBarTitleTransitionSpec
+  maxScrollVelocity = 2000.0
+  bounceFactor = 0.4
+  minDurationFactor = 0.5
+  maxDurationFactor = 1.0
+  fastDuration = 0.45
+  slowDuration = 0.7
+  blurRadius = 4.0
+  hiddenYOffset = 15.0
+== UIKit._UINavigationBarSpec
+  titleTransition: UIKit._UINavigationBarTitleTransitionSpec
+    maxScrollVelocity = 2000.0
+    bounceFactor = 0.4
+    minDurationFactor = 0.5
+    maxDurationFactor = 1.0
+    fastDuration = 0.45
+    slowDuration = 0.7
+    blurRadius = 4.0
+    hiddenYOffset = 15.0
+  scrollAway: UIKit._UIBarScrollAwaySpec
+    forceEnable = 0.0
+    maxBlurRadius = 4.0
+    minimumOpacity = 0.0
+    hideThreshold = 0.25
+    revealThreshold = 0.25
+    duration = 0.35
+    bounce = 0.0
+== UIKit._UIZoomTransitionAnimationSpec
+  morph: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.4
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7ef30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7ef30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db52c0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7ef30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  transform: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.4
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7ef80> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7ef80> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5380> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7ef80> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  position: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.4
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7efd0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7efd0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5440> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7efd0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  general: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.4
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7f020> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7f020> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5500> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f020> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  cornerRadiusAdjustment: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.35
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7f070> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7f070> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db55c0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=322.272797 damping=35.903916 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f070> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIZoomTransitionSpec
+  zoomIn: UIKit._UIZoomTransitionAnimationSpec
+    morph: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.34
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f2a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f2a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5680> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=36.959914 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f2a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    transform: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.34
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f2f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f2f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5740> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=36.959914 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f2f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    position: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.34
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f340> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f340> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5800> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=36.959914 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f340> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    general: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.34
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f390> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f390> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db58c0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=36.959914 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f390> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    cornerRadiusAdjustment: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.35
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f3e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f3e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5980> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=322.272797 damping=35.903916 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f3e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  zoomInShowcase: UIKit._UIZoomTransitionAnimationSpec
+    morph: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.85
+      response = 0.34
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f430> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f430> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5a40> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f430> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    transform: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.85
+      response = 0.34
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f480> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f480> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5b00> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f480> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    position: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.85
+      response = 0.34
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f4d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f4d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5bc0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f4d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    general: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.85
+      response = 0.34
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f520> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f520> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5c80> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f520> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    cornerRadiusAdjustment: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.35
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f570> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f570> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5d40> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=322.272797 damping=35.903916 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f570> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  zoomOut: UIKit._UIZoomTransitionAnimationSpec
+    morph: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.92
+      response = 0.34
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f5c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f5c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5e00> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=34.003120 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f5c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    transform: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.92
+      response = 0.34
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f610> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f610> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5ec0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=34.003120 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f610> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    position: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.92
+      response = 0.34
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f660> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f660> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db5f80> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=34.003120 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f660> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    general: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.92
+      response = 0.34
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f6b0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f6b0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6040> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=341.508803 damping=34.003120 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f6b0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    cornerRadiusAdjustment: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.35
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f700> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f700> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6100> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=322.272797 damping=35.903916 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f700> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  zoomOutInteractive: UIKit._UIZoomTransitionAnimationSpec
+    morph: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.4
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f750> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f750> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db61c0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f750> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    transform: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.8
+      response = 0.42
+      retargetImpulse = 0.018
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f7a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f7a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6280> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=223.800553 damping=23.935944 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f7a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    position: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.82
+      response = 0.45
+      retargetImpulse = 0.02
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f7f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f7f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6340> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=194.955149 damping=22.898720 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f7f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    general: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.4
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f840> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f840> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6400> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f840> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    cornerRadiusAdjustment: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.35
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f890> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f890> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db64c0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=322.272797 damping=35.903916 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f890> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  cancelInteractive: UIKit._UIZoomTransitionAnimationSpec
+    morph: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.4
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f8e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f8e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6580> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f8e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    transform: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.25
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f930> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f930> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6640> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f930> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    position: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.25
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f980> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f980> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6700> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f980> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    general: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.4
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7f9d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7f9d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db67c0> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7f9d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    cornerRadiusAdjustment: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.35
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x114d7fa20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x114d7fa20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6880> animationSettings = <BSSpringAnimationSettings:0x1146cb380 mass=1.000000 stiffness=322.272797 damping=35.903916 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7fa20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  recededBackgroundScaleDownPoints = 34.666666666666664
+  recededBackgroundMinScale = 0.8
+  dimmingOpacity = 0.15
+  fallbackSourceViewWidth = 44.0
+  platterShadowOpacity = 0.4000000059604645
+  platterShadowRadius = 40.0
+  platterShadowXOffset = 0.0
+  platterShadowYOffset = 10.0
+== UIKit._UIToolbarPaddingSpec
+  innerEdge = 10.0
+  phoneKeyboard = 8.0
+  phoneSplitViewKeyboard = 60.0
+  phoneBottom = 28.0
+  phoneSides = 28.0
+  phoneCompactHeightBottom = 24.0
+  phoneCompactHeightSides = 38.0
+  padBottom = 10.0
+  padSides = 10.0
+  macBottom = 10.0
+  macSides = 10.0
+  maxHorizontalPaddingOverflow = 0.0
+== UIKit._UIToolbarSpec
+  padding: UIKit._UIToolbarPaddingSpec
+    innerEdge = 10.0
+    phoneKeyboard = 8.0
+    phoneSplitViewKeyboard = 60.0
+    phoneBottom = 28.0
+    phoneSides = 28.0
+    phoneCompactHeightBottom = 24.0
+    phoneCompactHeightSides = 38.0
+    padBottom = 10.0
+    padSides = 10.0
+    macBottom = 10.0
+    macSides = 10.0
+    maxHorizontalPaddingOverflow = 0.0
+  maxTextFieldWidth = 440.0
+  maintainsRelativePosition = 1.0
+  hasPriorityStack = 0.0
+== UIKit._UILiquidLensViewVariantSpec
+  liftSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.625
+    response = 0.27
+    retargetImpulse = 0.032
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7fd90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7fd90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6940> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=541.542080 damping=29.088821 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7fd90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  unLiftSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.7
+    response = 0.5
+    retargetImpulse = 0.016
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7fde0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7fde0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6a00> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=157.913670 damping=17.592919 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7fde0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  lensHangTime = 0.22
+  tryMe = 0.0
+  liftedDisplacement = 9.0
+  unliftedDisplacement = 50.0
+  unliftedBlurRadius = 6.0
+  innerShadowRadius = 3.0
+  innerShadowOpacity = 0.06
+  innerShadowOffsetY = 7.0
+  contentWrapperDisplacement = -17.5
+== UIKit._UILiquidLensViewLargeVariantSpec
+  liftSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.25
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7ff20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7ff20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6ac0> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7ff20> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  unLiftSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.25
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x114d7ff70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x114d7ff70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6b80> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x114d7ff70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  lensHangTime = 0.22
+  tryMe = 0.0
+  liftedDisplacement = 9.0
+  unliftedDisplacement = 0.0
+  unliftedBlurRadius = 0.0
+  innerShadowRadius = 3.0
+  innerShadowOpacity = 0.06
+  innerShadowOffsetY = 7.0
+  contentWrapperDisplacement = -17.5
+== UIKit._UILiquidLensViewSmallVariantSpec
+  liftSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.625
+    response = 0.27
+    retargetImpulse = 0.032
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1145dec10> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1145dec10> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6c40> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=541.542080 damping=29.088821 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1145dec10> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  unLiftSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.7
+    response = 0.5
+    retargetImpulse = 0.016
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1145debc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1145debc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6d00> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=157.913670 damping=17.592919 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1145debc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  lensHangTime = 0.22
+  tryMe = 0.0
+  liftedDisplacement = 9.0
+  unliftedDisplacement = 50.0
+  unliftedBlurRadius = 6.0
+  innerShadowRadius = 3.0
+  innerShadowOpacity = 0.06
+  innerShadowOffsetY = 7.0
+  contentWrapperDisplacement = -17.5
+== UIKit._UILiquidLensViewSpec
+  small: UIKit._UILiquidLensViewSmallVariantSpec
+    liftSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.625
+      response = 0.27
+      retargetImpulse = 0.032
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146fbe30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146fbe30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6dc0> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=541.542080 damping=29.088821 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fbe30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    unLiftSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.7
+      response = 0.5
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146fbd90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146fbd90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6e80> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=157.913670 damping=17.592919 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fbd90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    lensHangTime = 0.22
+    tryMe = 0.0
+    liftedDisplacement = 9.0
+    unliftedDisplacement = 50.0
+    unliftedBlurRadius = 6.0
+    innerShadowRadius = 3.0
+    innerShadowOpacity = 0.06
+    innerShadowOffsetY = 7.0
+    contentWrapperDisplacement = -17.5
+  large: UIKit._UILiquidLensViewLargeVariantSpec
+    liftSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.25
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146fbbb0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146fbbb0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db6f40> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fbbb0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    unLiftSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.25
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146fb980> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146fb980> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7000> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fb980> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    lensHangTime = 0.22
+    tryMe = 0.0
+    liftedDisplacement = 9.0
+    unliftedDisplacement = 0.0
+    unliftedBlurRadius = 0.0
+    innerShadowRadius = 3.0
+    innerShadowOpacity = 0.06
+    innerShadowOffsetY = 7.0
+    contentWrapperDisplacement = -17.5
+== UIKit._UIFlexInteractionVariantSpec
+  associatedDimension = 0.0
+  bigGlowOpacity = 0.0
+  littleGlowOpacity = 0.0
+  littleGlowDissipationDistance = 0.0
+  liftScalePoints = 0.0
+  scaleDistanceThreshold = 0.0
+  movementNormalizationFactor = 10000.0
+  movementScalePts = 0.0
+  movementMinScale = 0.9
+  movementMaxScale = 1.1
+  interactionPulseNormalizationFactor = 1.0
+  interactionPulseScalePtsX = 0.0
+  interactionPulseScalePtsY = 0.0
+  interactionPulseDriftRatio = 0.0
+  scaleSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.845
+    response = 0.531
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1146fb520> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1146fb520> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7180> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=140.013752 damping=19.997332 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fb520> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIFlexInteractionMenuVariantSpec
+  associatedDimension = 160.0
+  bigGlowOpacity = 0.0
+  littleGlowOpacity = 0.5
+  littleGlowDissipationDistance = 50.0
+  liftScalePoints = 0.0
+  scaleDistanceThreshold = 6000.0
+  movementNormalizationFactor = 10000.0
+  movementScalePts = 5.0
+  movementMinScale = 0.9
+  movementMaxScale = 1.1
+  interactionPulseNormalizationFactor = 8000.0
+  interactionPulseScalePtsX = 50.0
+  interactionPulseScalePtsY = 32.0
+  interactionPulseDriftRatio = 0.7
+  scaleSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.5
+    response = 0.6
+    retargetImpulse = 0.016
+    trackingDampingRatio = 0.5
+    trackingResponse = 0.15
+    trackingRetargetImpulse = 0.016
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1146fb660> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1146fb660> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7300> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=109.662271 damping=10.471976 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fb660> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIFlexInteractionSmallLoupeVariantSpec
+  associatedDimension = 37.0
+  bigGlowOpacity = 0.0
+  littleGlowOpacity = 0.0
+  littleGlowDissipationDistance = 0.0
+  liftScalePoints = 0.0
+  scaleDistanceThreshold = 6000.0
+  movementNormalizationFactor = 2000.0
+  movementScalePts = 10.0
+  movementMinScale = 0.9
+  movementMaxScale = 1.1
+  interactionPulseNormalizationFactor = 1.0
+  interactionPulseScalePtsX = 0.0
+  interactionPulseScalePtsY = 0.0
+  interactionPulseDriftRatio = 0.0
+  scaleSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.56
+    response = 0.444
+    retargetImpulse = 0.032
+    trackingDampingRatio = 0.56
+    trackingResponse = 0.444
+    trackingRetargetImpulse = 0.032
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1146fb2a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1146fb2a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7480> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=200.259808 damping=15.849476 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fb2a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIFlexInteractionLoupeVariantSpec
+  associatedDimension = 70.0
+  bigGlowOpacity = 0.0
+  littleGlowOpacity = 0.0
+  littleGlowDissipationDistance = 0.0
+  liftScalePoints = 0.0
+  scaleDistanceThreshold = 0.0
+  movementNormalizationFactor = 2500.0
+  movementScalePts = 100.0
+  movementMinScale = 0.75
+  movementMaxScale = 1.15
+  interactionPulseNormalizationFactor = 1.0
+  interactionPulseScalePtsX = 0.0
+  interactionPulseScalePtsY = 0.0
+  interactionPulseDriftRatio = 0.0
+  scaleSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 1.0
+    response = 0.5
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.9
+    trackingResponse = 0.5
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1146fa1c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1146fa1c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7600> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=157.913670 damping=25.132741 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fa1c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIFlexInteractionLargeVariantSpec
+  associatedDimension = 160.0
+  bigGlowOpacity = 0.0
+  littleGlowOpacity = 0.2
+  littleGlowDissipationDistance = 50.0
+  liftScalePoints = 4.0
+  scaleDistanceThreshold = 24000.0
+  movementNormalizationFactor = 10000.0
+  movementScalePts = 5.0
+  movementMinScale = 0.9
+  movementMaxScale = 1.1
+  interactionPulseNormalizationFactor = 1.0
+  interactionPulseScalePtsX = 0.0
+  interactionPulseScalePtsY = 0.0
+  interactionPulseDriftRatio = 0.0
+  scaleSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.6
+    response = 0.36
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.625
+    trackingResponse = 0.314
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1146fa120> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1146fa120> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7780> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=304.617420 damping=20.943951 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fa120> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIFlexInteractionSmallVariantSpec
+  associatedDimension = 44.0
+  bigGlowOpacity = 1.0
+  littleGlowOpacity = 0.3
+  littleGlowDissipationDistance = 50.0
+  liftScalePoints = 16.0
+  scaleDistanceThreshold = 6000.0
+  movementNormalizationFactor = 10000.0
+  movementScalePts = 10.0
+  movementMinScale = 0.9
+  movementMaxScale = 1.1
+  interactionPulseNormalizationFactor = 1.0
+  interactionPulseScalePtsX = 0.0
+  interactionPulseScalePtsY = 0.0
+  interactionPulseDriftRatio = 0.0
+  scaleSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.375
+    response = 0.4
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.625
+    trackingResponse = 0.262
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1146fa4e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1146fa4e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7900> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=246.740110 damping=11.780972 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fa4e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIFlexInteractionUltraSmallVariantSpec
+  associatedDimension = 44.0
+  bigGlowOpacity = 1.0
+  littleGlowOpacity = 1.0
+  littleGlowDissipationDistance = 50.0
+  liftScalePoints = 16.0
+  scaleDistanceThreshold = 2000.0
+  movementNormalizationFactor = 10000.0
+  movementScalePts = 10.0
+  movementMinScale = 0.9
+  movementMaxScale = 1.1
+  interactionPulseNormalizationFactor = 1.0
+  interactionPulseScalePtsX = 0.0
+  interactionPulseScalePtsY = 0.0
+  interactionPulseDriftRatio = 0.0
+  scaleSpring: UIViewSpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.0
+    dampingRatio = 0.375
+    response = 0.4
+    retargetImpulse = 0.0
+    trackingDampingRatio = 0.625
+    trackingResponse = 0.262
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x1146fa440> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x1146fa440> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7a80> animationSettings = <BSSpringAnimationSettings:0x1147a9500 mass=1.000000 stiffness=246.740110 damping=11.780972 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fa440> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIFlexInteractionGlowSettings
+  tintDodgeWhiteFrom = 0.7
+  tintDodgeWhiteTo = 0.25
+  tintLuminanceExponent = 1.25
+  clearGlassDodgeWhite = 0.7
+  dodgeWhiteDark = 0.75
+  dodgeWhiteLight = 0.4
+  vcmBlack = 0.0
+  vcmWhite = 1.0
+  vcmSaturation = 1.5
+  plusLValue = 0.5
+== UIKit._UIFlexInteractionSpec
+  glowSettings: UIKit._UIFlexInteractionGlowSettings
+    tintDodgeWhiteFrom = 0.7
+    tintDodgeWhiteTo = 0.25
+    tintLuminanceExponent = 1.25
+    clearGlassDodgeWhite = 0.7
+    dodgeWhiteDark = 0.75
+    dodgeWhiteLight = 0.4
+    vcmBlack = 0.0
+    vcmWhite = 1.0
+    vcmSaturation = 1.5
+    plusLValue = 0.5
+  ultraSmall: UIKit._UIFlexInteractionUltraSmallVariantSpec
+    associatedDimension = 44.0
+    bigGlowOpacity = 1.0
+    littleGlowOpacity = 1.0
+    littleGlowDissipationDistance = 50.0
+    liftScalePoints = 16.0
+    scaleDistanceThreshold = 2000.0
+    movementNormalizationFactor = 10000.0
+    movementScalePts = 10.0
+    movementMinScale = 0.9
+    movementMaxScale = 1.1
+    interactionPulseNormalizationFactor = 1.0
+    interactionPulseScalePtsX = 0.0
+    interactionPulseScalePtsY = 0.0
+    interactionPulseDriftRatio = 0.0
+    scaleSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.375
+      response = 0.4
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.625
+      trackingResponse = 0.262
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146f9ef0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146f9ef0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7c00> animationSettings = <BSSpringAnimationSettings:0x1147a9700 mass=1.000000 stiffness=246.740110 damping=11.780972 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146f9ef0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  small: UIKit._UIFlexInteractionSmallVariantSpec
+    associatedDimension = 44.0
+    bigGlowOpacity = 1.0
+    littleGlowOpacity = 0.3
+    littleGlowDissipationDistance = 50.0
+    liftScalePoints = 16.0
+    scaleDistanceThreshold = 6000.0
+    movementNormalizationFactor = 10000.0
+    movementScalePts = 10.0
+    movementMinScale = 0.9
+    movementMaxScale = 1.1
+    interactionPulseNormalizationFactor = 1.0
+    interactionPulseScalePtsX = 0.0
+    interactionPulseScalePtsY = 0.0
+    interactionPulseDriftRatio = 0.0
+    scaleSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.375
+      response = 0.4
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.625
+      trackingResponse = 0.262
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146f9c70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146f9c70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7d80> animationSettings = <BSSpringAnimationSettings:0x1147a9700 mass=1.000000 stiffness=246.740110 damping=11.780972 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146f9c70> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  large: UIKit._UIFlexInteractionLargeVariantSpec
+    associatedDimension = 160.0
+    bigGlowOpacity = 0.0
+    littleGlowOpacity = 0.2
+    littleGlowDissipationDistance = 50.0
+    liftScalePoints = 4.0
+    scaleDistanceThreshold = 24000.0
+    movementNormalizationFactor = 10000.0
+    movementScalePts = 5.0
+    movementMinScale = 0.9
+    movementMaxScale = 1.1
+    interactionPulseNormalizationFactor = 1.0
+    interactionPulseScalePtsX = 0.0
+    interactionPulseScalePtsY = 0.0
+    interactionPulseDriftRatio = 0.0
+    scaleSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.6
+      response = 0.36
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.625
+      trackingResponse = 0.314
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146f9860> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146f9860> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x114db7f00> animationSettings = <BSSpringAnimationSettings:0x1147a9700 mass=1.000000 stiffness=304.617420 damping=20.943951 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146f9860> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  loupe: UIKit._UIFlexInteractionLoupeVariantSpec
+    associatedDimension = 70.0
+    bigGlowOpacity = 0.0
+    littleGlowOpacity = 0.0
+    littleGlowDissipationDistance = 0.0
+    liftScalePoints = 0.0
+    scaleDistanceThreshold = 0.0
+    movementNormalizationFactor = 2500.0
+    movementScalePts = 100.0
+    movementMinScale = 0.75
+    movementMaxScale = 1.15
+    interactionPulseNormalizationFactor = 1.0
+    interactionPulseScalePtsX = 0.0
+    interactionPulseScalePtsY = 0.0
+    interactionPulseDriftRatio = 0.0
+    scaleSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.5
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.9
+      trackingResponse = 0.5
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146f9f40> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146f9f40> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x1158680c0> animationSettings = <BSSpringAnimationSettings:0x1147a9700 mass=1.000000 stiffness=157.913670 damping=25.132741 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146f9f40> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  smallLoupe: UIKit._UIFlexInteractionSmallLoupeVariantSpec
+    associatedDimension = 37.0
+    bigGlowOpacity = 0.0
+    littleGlowOpacity = 0.0
+    littleGlowDissipationDistance = 0.0
+    liftScalePoints = 0.0
+    scaleDistanceThreshold = 6000.0
+    movementNormalizationFactor = 2000.0
+    movementScalePts = 10.0
+    movementMinScale = 0.9
+    movementMaxScale = 1.1
+    interactionPulseNormalizationFactor = 1.0
+    interactionPulseScalePtsX = 0.0
+    interactionPulseScalePtsY = 0.0
+    interactionPulseDriftRatio = 0.0
+    scaleSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.56
+      response = 0.444
+      retargetImpulse = 0.032
+      trackingDampingRatio = 0.56
+      trackingResponse = 0.444
+      trackingRetargetImpulse = 0.032
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146f9f90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146f9f90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868240> animationSettings = <BSSpringAnimationSettings:0x1147a9700 mass=1.000000 stiffness=200.259808 damping=15.849476 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146f9f90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  menu: UIKit._UIFlexInteractionMenuVariantSpec
+    associatedDimension = 160.0
+    bigGlowOpacity = 0.0
+    littleGlowOpacity = 0.5
+    littleGlowDissipationDistance = 50.0
+    liftScalePoints = 0.0
+    scaleDistanceThreshold = 6000.0
+    movementNormalizationFactor = 10000.0
+    movementScalePts = 5.0
+    movementMinScale = 0.9
+    movementMaxScale = 1.1
+    interactionPulseNormalizationFactor = 8000.0
+    interactionPulseScalePtsX = 50.0
+    interactionPulseScalePtsY = 32.0
+    interactionPulseDriftRatio = 0.7
+    scaleSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.5
+      response = 0.6
+      retargetImpulse = 0.016
+      trackingDampingRatio = 0.5
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.016
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x1146fa080> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x1146fa080> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x1158683c0> animationSettings = <BSSpringAnimationSettings:0x1147a9700 mass=1.000000 stiffness=109.662271 damping=10.471976 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146fa080> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== UIKit._UIFlexInteractionSettings
+  liftEnabled = 1.0
+  flexEnabled = 1.0
+  interactionSpec: UIKit._UIFlexInteractionSpec
+    glowSettings: UIKit._UIFlexInteractionGlowSettings
+      tintDodgeWhiteFrom = 0.7
+      tintDodgeWhiteTo = 0.25
+      tintLuminanceExponent = 1.25
+      clearGlassDodgeWhite = 0.7
+      dodgeWhiteDark = 0.75
+      dodgeWhiteLight = 0.4
+      vcmBlack = 0.0
+      vcmWhite = 1.0
+      vcmSaturation = 1.5
+      plusLValue = 0.5
+    ultraSmall: UIKit._UIFlexInteractionUltraSmallVariantSpec
+      associatedDimension = 44.0
+      bigGlowOpacity = 1.0
+      littleGlowOpacity = 1.0
+      littleGlowDissipationDistance = 50.0
+      liftScalePoints = 16.0
+      scaleDistanceThreshold = 2000.0
+      movementNormalizationFactor = 10000.0
+      movementScalePts = 10.0
+      movementMinScale = 0.9
+      movementMaxScale = 1.1
+      interactionPulseNormalizationFactor = 1.0
+      interactionPulseScalePtsX = 0.0
+      interactionPulseScalePtsY = 0.0
+      interactionPulseDriftRatio = 0.0
+      scaleSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 0.375
+        response = 0.4
+        retargetImpulse = 0.0
+        trackingDampingRatio = 0.625
+        trackingResponse = 0.262
+        trackingRetargetImpulse = 0.0
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x1146aebc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x1146aebc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868540> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=246.740110 damping=11.780972 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x1146aebc0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    small: UIKit._UIFlexInteractionSmallVariantSpec
+      associatedDimension = 44.0
+      bigGlowOpacity = 1.0
+      littleGlowOpacity = 0.3
+      littleGlowDissipationDistance = 50.0
+      liftScalePoints = 16.0
+      scaleDistanceThreshold = 6000.0
+      movementNormalizationFactor = 10000.0
+      movementScalePts = 10.0
+      movementMinScale = 0.9
+      movementMaxScale = 1.1
+      interactionPulseNormalizationFactor = 1.0
+      interactionPulseScalePtsX = 0.0
+      interactionPulseScalePtsY = 0.0
+      interactionPulseDriftRatio = 0.0
+      scaleSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 0.375
+        response = 0.4
+        retargetImpulse = 0.0
+        trackingDampingRatio = 0.625
+        trackingResponse = 0.262
+        trackingRetargetImpulse = 0.0
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c000> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c000> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x1158686c0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=246.740110 damping=11.780972 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c000> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    large: UIKit._UIFlexInteractionLargeVariantSpec
+      associatedDimension = 160.0
+      bigGlowOpacity = 0.0
+      littleGlowOpacity = 0.2
+      littleGlowDissipationDistance = 50.0
+      liftScalePoints = 4.0
+      scaleDistanceThreshold = 24000.0
+      movementNormalizationFactor = 10000.0
+      movementScalePts = 5.0
+      movementMinScale = 0.9
+      movementMaxScale = 1.1
+      interactionPulseNormalizationFactor = 1.0
+      interactionPulseScalePtsX = 0.0
+      interactionPulseScalePtsY = 0.0
+      interactionPulseDriftRatio = 0.0
+      scaleSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 0.6
+        response = 0.36
+        retargetImpulse = 0.0
+        trackingDampingRatio = 0.625
+        trackingResponse = 0.314
+        trackingRetargetImpulse = 0.0
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c050> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c050> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868840> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=304.617420 damping=20.943951 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c050> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    loupe: UIKit._UIFlexInteractionLoupeVariantSpec
+      associatedDimension = 70.0
+      bigGlowOpacity = 0.0
+      littleGlowOpacity = 0.0
+      littleGlowDissipationDistance = 0.0
+      liftScalePoints = 0.0
+      scaleDistanceThreshold = 0.0
+      movementNormalizationFactor = 2500.0
+      movementScalePts = 100.0
+      movementMinScale = 0.75
+      movementMaxScale = 1.15
+      interactionPulseNormalizationFactor = 1.0
+      interactionPulseScalePtsX = 0.0
+      interactionPulseScalePtsY = 0.0
+      interactionPulseDriftRatio = 0.0
+      scaleSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 1.0
+        response = 0.5
+        retargetImpulse = 0.0
+        trackingDampingRatio = 0.9
+        trackingResponse = 0.5
+        trackingRetargetImpulse = 0.0
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c0a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c0a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x1158689c0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=157.913670 damping=25.132741 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c0a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    smallLoupe: UIKit._UIFlexInteractionSmallLoupeVariantSpec
+      associatedDimension = 37.0
+      bigGlowOpacity = 0.0
+      littleGlowOpacity = 0.0
+      littleGlowDissipationDistance = 0.0
+      liftScalePoints = 0.0
+      scaleDistanceThreshold = 6000.0
+      movementNormalizationFactor = 2000.0
+      movementScalePts = 10.0
+      movementMinScale = 0.9
+      movementMaxScale = 1.1
+      interactionPulseNormalizationFactor = 1.0
+      interactionPulseScalePtsX = 0.0
+      interactionPulseScalePtsY = 0.0
+      interactionPulseDriftRatio = 0.0
+      scaleSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 0.56
+        response = 0.444
+        retargetImpulse = 0.032
+        trackingDampingRatio = 0.56
+        trackingResponse = 0.444
+        trackingRetargetImpulse = 0.032
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c0f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c0f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868b40> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=200.259808 damping=15.849476 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c0f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    menu: UIKit._UIFlexInteractionMenuVariantSpec
+      associatedDimension = 160.0
+      bigGlowOpacity = 0.0
+      littleGlowOpacity = 0.5
+      littleGlowDissipationDistance = 50.0
+      liftScalePoints = 0.0
+      scaleDistanceThreshold = 6000.0
+      movementNormalizationFactor = 10000.0
+      movementScalePts = 5.0
+      movementMinScale = 0.9
+      movementMaxScale = 1.1
+      interactionPulseNormalizationFactor = 8000.0
+      interactionPulseScalePtsX = 50.0
+      interactionPulseScalePtsY = 32.0
+      interactionPulseDriftRatio = 0.7
+      scaleSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 0.5
+        response = 0.6
+        retargetImpulse = 0.016
+        trackingDampingRatio = 0.5
+        trackingResponse = 0.15
+        trackingRetargetImpulse = 0.016
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c140> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c140> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868cc0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=109.662271 damping=10.471976 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c140> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  liquidLensSpec: UIKit._UILiquidLensViewSpec
+    small: UIKit._UILiquidLensViewSmallVariantSpec
+      liftSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 0.625
+        response = 0.27
+        retargetImpulse = 0.032
+        trackingDampingRatio = 0.86
+        trackingResponse = 0.15
+        trackingRetargetImpulse = 0.0
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c190> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c190> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868d80> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=541.542080 damping=29.088821 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c190> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+      unLiftSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 0.7
+        response = 0.5
+        retargetImpulse = 0.016
+        trackingDampingRatio = 0.86
+        trackingResponse = 0.15
+        trackingRetargetImpulse = 0.0
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c1e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c1e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868e40> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=157.913670 damping=17.592919 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c1e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+      lensHangTime = 0.22
+      tryMe = 0.0
+      liftedDisplacement = 9.0
+      unliftedDisplacement = 50.0
+      unliftedBlurRadius = 6.0
+      innerShadowRadius = 3.0
+      innerShadowOpacity = 0.06
+      innerShadowOffsetY = 7.0
+      contentWrapperDisplacement = -17.5
+    large: UIKit._UILiquidLensViewLargeVariantSpec
+      liftSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 1.0
+        response = 0.25
+        retargetImpulse = 0.0
+        trackingDampingRatio = 0.86
+        trackingResponse = 0.15
+        trackingRetargetImpulse = 0.0
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c230> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c230> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868f00> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c230> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+      unLiftSpring: UIViewSpringAnimationBehaviorSettings
+        behaviorType = 2.0
+        deceleration = 0.0
+        dampingRatio = 1.0
+        response = 0.25
+        retargetImpulse = 0.0
+        trackingDampingRatio = 0.86
+        trackingResponse = 0.15
+        trackingRetargetImpulse = 0.0
+        smoothingAndProjectionEnabled = 0.0
+        dampingRatioSmoothing = 0.0
+        responseSmoothing = 0.0
+        trackingDampingRatioSmoothing = 0.0
+        trackingResponseSmoothing = 0.0
+        inertialTargetSmoothingRatio = 0.0
+        inertialProjectionDeceleration = 0.0
+        preferredFrameRateRange: PTFrameRateRangeSettings
+          description = "<PTFrameRateRangeSettings: 0x11586c280> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+          debugDescription = "<PTFrameRateRangeSettings: 0x11586c280> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115868fc0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=631.654682 damping=50.265482 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586c280> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+      lensHangTime = 0.22
+      tryMe = 0.0
+      liftedDisplacement = 9.0
+      unliftedDisplacement = 0.0
+      unliftedBlurRadius = 0.0
+      innerShadowRadius = 3.0
+      innerShadowOpacity = 0.06
+      innerShadowOffsetY = 7.0
+      contentWrapperDisplacement = -17.5
+  glassFlexibleByDefault = 0.0
+  ignoreIdiomCheck = 0.0
+== UIKit._UITabCrossFadeTransitionAnimationSpec
+  fadedOutScale = 0.0
+  fadeOut: UIKit._UIDurationBounceAnimationSpec
+    duration = 0.0
+    bounce = 0.0
+    delay = 0.0
+    totalDuration = 0.0
+  scaleOut: UIKit._UIDurationBounceAnimationSpec
+    duration = 0.0
+    bounce = 0.0
+    delay = 0.0
+    totalDuration = 0.0
+  fadeIn: UIKit._UIDurationBounceAnimationSpec
+    duration = 0.0
+    bounce = 0.0
+    delay = 0.0
+    totalDuration = 0.0
+  scaleIn: UIKit._UIDurationBounceAnimationSpec
+    duration = 0.0
+    bounce = 0.0
+    delay = 0.0
+    totalDuration = 0.0
+== UIKit._UITabCrossFadeTransitionSpec
+  regular: UIKit._UITabCrossFadeTransitionAnimationSpec
+    fadedOutScale = 0.99
+    fadeOut: UIKit._UIDurationBounceAnimationSpec
+      duration = 0.2
+      bounce = 0.0
+      delay = 0.275
+      totalDuration = 0.47500000000000003
+    scaleOut: UIKit._UIDurationBounceAnimationSpec
+      duration = 0.3
+      bounce = 0.0
+      delay = 0.0
+      totalDuration = 0.3
+    fadeIn: UIKit._UIDurationBounceAnimationSpec
+      duration = 0.2
+      bounce = 0.0
+      delay = 0.075
+      totalDuration = 0.275
+    scaleIn: UIKit._UIDurationBounceAnimationSpec
+      duration = 0.6
+      bounce = 0.0
+      delay = 0.1
+      totalDuration = 0.7
+  compact: UIKit._UITabCrossFadeTransitionAnimationSpec
+    fadedOutScale = 0.9933
+    fadeOut: UIKit._UIDurationBounceAnimationSpec
+      duration = 0.1333
+      bounce = 0.0
+      delay = 0.1833
+      totalDuration = 0.3166
+    scaleOut: UIKit._UIDurationBounceAnimationSpec
+      duration = 0.2
+      bounce = 0.0
+      delay = 0.0
+      totalDuration = 0.2
+    fadeIn: UIKit._UIDurationBounceAnimationSpec
+      duration = 0.1333
+      bounce = 0.0
+      delay = 0.05
+      totalDuration = 0.18330000000000002
+    scaleIn: UIKit._UIDurationBounceAnimationSpec
+      duration = 0.4
+      bounce = 0.0
+      delay = 0.067
+      totalDuration = 0.467
+== AnimationKit.MorphAnimationSpec
+  contentMorph: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 1.0
+    response = 0.4
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586ca50> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586ca50> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869080> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586ca50> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  positionX: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 1.0
+    response = 0.4
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586caa0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586caa0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869140> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586caa0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  positionY: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 1.0
+    response = 0.4
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586caf0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586caf0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869200> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586caf0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  width: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 1.0
+    response = 0.4
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586cb40> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586cb40> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x1158692c0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586cb40> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  height: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 1.0
+    response = 0.4
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586cb90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586cb90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869380> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586cb90> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  transform: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 1.0
+    response = 0.4
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586cbe0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586cbe0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869440> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=246.740110 damping=31.415927 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586cbe0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  kick: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 0.8
+    response = 0.35
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586cc30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586cc30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869500> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=322.272797 damping=28.723133 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586cc30> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  settle: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 0.8
+    response = 0.5
+    inertialTargetSmoothingRatio = 0.4
+    inertialProjectionDeceleration = 0.996
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586cc80> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586cc80> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x1158695c0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=157.913670 damping=20.106193 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586cc80> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+== AnimationKit.MorphAnimationSettings
+  liquidMorph: AnimationKit.MorphAnimationSpec
+    contentMorph: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586cfa0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586cfa0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869680> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586cfa0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    positionX: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586cff0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586cff0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869740> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586cff0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    positionY: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d040> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d040> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869800> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d040> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    width: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d090> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d090> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x1158698c0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d090> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    height: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d0e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d0e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869980> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d0e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    transform: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d130> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d130> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869a40> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d130> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    kick: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.35
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d180> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d180> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869b00> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=322.272797 damping=28.723133 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d180> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    settle: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.5
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d1d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d1d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869bc0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=157.913670 damping=20.106193 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d1d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  liquidMorphShrink: AnimationKit.MorphAnimationSpec
+    contentMorph: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.9
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d220> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d220> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869c80> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=37.699112 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d220> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    positionX: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.9
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d270> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d270> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869d40> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=37.699112 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d270> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    positionY: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.9
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d2c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d2c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869e00> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=37.699112 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d2c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    width: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.9
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d310> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d310> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869ec0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=37.699112 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d310> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    height: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.9
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d360> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d360> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x115869f80> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=37.699112 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d360> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    transform: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d3b0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d3b0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a040> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d3b0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    kick: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.35
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d400> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d400> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a100> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=322.272797 damping=28.723133 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d400> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    settle: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.5
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.996
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d450> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d450> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a1c0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=157.913670 damping=20.106193 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d450> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  liquidMorphReduceMotion: AnimationKit.MorphAnimationSpec
+    contentMorph: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 1.0
+      response = 0.15
+      inertialTargetSmoothingRatio = 0.1
+      inertialProjectionDeceleration = 0.999
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0001
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d4a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d4a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a280> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=1754.596338 damping=83.775804 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d4a0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    positionX: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 1.0
+      response = 0.15
+      inertialTargetSmoothingRatio = 0.1
+      inertialProjectionDeceleration = 0.999
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0001
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d4f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d4f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a340> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=1754.596338 damping=83.775804 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d4f0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    positionY: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 1.0
+      response = 0.15
+      inertialTargetSmoothingRatio = 0.1
+      inertialProjectionDeceleration = 0.999
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0001
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d540> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d540> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a400> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=1754.596338 damping=83.775804 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d540> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    width: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 1.0
+      response = 0.15
+      inertialTargetSmoothingRatio = 0.1
+      inertialProjectionDeceleration = 0.999
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0001
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d590> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d590> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a4c0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=1754.596338 damping=83.775804 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d590> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    height: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 1.0
+      response = 0.15
+      inertialTargetSmoothingRatio = 0.1
+      inertialProjectionDeceleration = 0.999
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.0001
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d5e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d5e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a580> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=1754.596338 damping=83.775804 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d5e0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    transform: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d630> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d630> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a640> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d630> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    kick: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d680> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d680> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a700> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d680> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+    settle: AnimationKit.SpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.998
+      dampingRatio = 0.8
+      response = 0.3
+      inertialTargetSmoothingRatio = 0.4
+      inertialProjectionDeceleration = 0.9954
+      trackingDampingRatio = 0.8
+      trackingResponse = 0.3
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      retargetImpulse = 0.016
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 1.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      preferredFrameRateRange: PTFrameRateRangeSettings
+        description = "<PTFrameRateRangeSettings: 0x11586d6d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+        debugDescription = "<PTFrameRateRangeSettings: 0x11586d6d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a7c0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=33.510322 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d6d0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  secondStepDelay = 0.03
+  growingIntermediateShapeRatio = 0.25
+  shrinkingIntermediateShapeRatio = 0.9
+  jWidthRatio = 0.0
+  jHeightRatio = 0.8
+  maxJHeight = 200.0
+  morphV2Enabled = 1.0
+  speed = 0.7
+  genieScale = 0.4
+  usesMatchMoveForPositionTracking = 0.0
+  mainEjectSpring: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 0.75
+    response = 0.5
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586d720> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586d720> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a880> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=157.913670 damping=18.849556 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d720> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  mainAbsorbSpring: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 0.8
+    response = 0.7
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586d770> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586d770> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586a940> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=80.568199 damping=14.361566 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d770> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  blurOutMinScale = 1.2
+  blurOutMaxScale = 1.65
+  blurInSpring: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 1.0
+    response = 0.3
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586d7c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586d7c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586aa00> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=438.649084 damping=41.887902 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d7c0> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  blurOutSpring: AnimationKit.SpringAnimationBehaviorSettings
+    behaviorType = 2.0
+    deceleration = 0.998
+    dampingRatio = 0.8
+    response = 0.45
+    inertialTargetSmoothingRatio = 0.0
+    inertialProjectionDeceleration = 0.0
+    trackingDampingRatio = 0.86
+    trackingResponse = 0.15
+    dampingRatioSmoothing = 0.0
+    responseSmoothing = 0.0
+    retargetImpulse = 0.0
+    trackingRetargetImpulse = 0.0
+    smoothingAndProjectionEnabled = 0.0
+    trackingDampingRatioSmoothing = 0.0
+    trackingResponseSmoothing = 0.0
+    preferredFrameRateRange: PTFrameRateRangeSettings
+      description = "<PTFrameRateRangeSettings: 0x11586d810> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+      debugDescription = "<PTFrameRateRangeSettings: 0x11586d810> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;"
+    description = "<AnimationKit.SpringAnimationBehaviorSettings: 0x11586aac0> animationSettings = <BSSpringAnimationSettings:0x1147a8380 mass=1.000000 stiffness=194.955149 damping=22.340214 epsilon=0.001000 initialVelocity=0.000000 delay=0.000000 interval=0.000000 range={0.000000,0.000000,0.000000} reason=0 timing=linear speed=1.000000 beginTime=0.000000>;
+preferredFrameRateRange = <PTFrameRateRangeSettings: 0x11586d810> frameRateRange = (CAFrameRateRangeDefault);
+highFrameRateReason = 0;;"
+  showMeshes = 0.0
+  showBoundingBoxes = 0.0
+  amplifyDelays = 0.0
+  genieEnabled = 0.0
+  lensingEnabled = 1.0
+  genieSubdivisions = 2.0

@@ -85,8 +85,12 @@ function of geometry not derivable from two widths.
 - `UITabBarItem.isEnabled = NO` draws NOTHING different: the bar is
   pixel-identical to the enabled bar (both rows of the selected-tint copy
   keep their colors); only `_UITabButton.enabled` turns false.
-- Whether a disabled item still lifts / glows under a touch: capture
-  `dis-tab-touch` prepared (StatesUITests testDisabledTouch), not yet run.
+- Touch on a disabled item (dis-tab-touch, tap 83 ms + hold 0.8 s on the
+  disabled third tab): NO selection and the lens never leaves the selected
+  slot; the bar STILL swells (platter 360 -> 368 on the tap, -> 375 on the
+  hold, back on release) and the resting lens breathes with it (98 -> 102
+  wide); no glow rows. So a disabled item still feeds the bar's press
+  swell but not the lens.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
 - To port: no disabled dim on tab items (morph dims by 0.35 today).
 

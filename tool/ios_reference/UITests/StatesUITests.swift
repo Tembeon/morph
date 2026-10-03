@@ -214,4 +214,23 @@ final class StatesUITests: XCTestCase {
         capture("rm-settings-\(tag)", scene: "segmented",
                 extra: ["PROBE_SETTINGS": "Morph|Lens|Flex|Glass|Sheet|Alert|Menu|TabBar|Search|Zoom|Navigation|Transition|ContextMenu|Popover|DatePicker|PageControl|Switch|Slider|Stepper|ActivityIndicator|Progress|Toolbar|Bar"]) { pause(0.5) }
     }
+
+    // MARK: overlay platters
+
+    /// The compact date picker's overlay platter open, light and dark (lossless shot +
+    /// a tree dump about 1.5 s after the open), for the platter color.
+    func testDateOverlay() {
+        for d in darks {
+            let tag = d == "1" ? "dark" : "light"
+            capture("date-overlay-\(tag)", scene: "x3date", extra: ["PROBE_DARK": d, "PROBE_SCRIPT": "tree-open-\(tag)@5.0"]) {
+                let s = app.windows.firstMatch.frame
+                tap(CGPoint(x: s.width / 2, y: 300))
+                pause(1.6)
+                shot("date-overlay-\(tag)")
+                pause(1.5)
+                tap(CGPoint(x: s.width / 2, y: s.height - 120))
+                pause(1.2)
+            }
+        }
+    }
 }

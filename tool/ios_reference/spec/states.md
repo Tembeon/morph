@@ -43,8 +43,13 @@ Transitions: every enable / disable switches in ONE frame (V rows change
 on the first tick after the call, no CAAnimation logged, both directions,
 every control and appearance).
 
-Not measured: touches on disabled controls (testDisabledTouch prepared:
-does a disabled tab item select or lift, does a disabled glass button lift);
+Touches on disabled controls [device, testDisabledTouch]: a disabled glass
+button, prominent button, switch, segment, slider and stepper show NO
+reaction to a 0.8 s hold (no scale, no event, no animation). A disabled TAB
+ITEM does not select and the lens stays put, but the bar still swells
+(360 -> 375 pt) under the finger (tab-bar.md).
+
+Not measured:
 `UIControl.isEnabled` on bars inside a scroll edge effect; the activity
 indicator and progress view have no enabled state.
 
@@ -72,7 +77,9 @@ RM_STEP=controls ./reduce_motion.sh             # one family
 Every start row carries `rm`, `rmXfade` (prefersCrossFadeTransitions) and
 `rt`; the script counts the files recorded with `"rm":true`. Baseline:
 `StatesUITests/testSettingsDump` with Reduce Motion OFF writes
-`settings-rm-settings-off.txt` (PTSettings of the motion families); the RM
+`settings-rm-settings-off.txt` (PTSettings of the motion families; captured
+2026-10-03 with Reduce Motion OFF, `rm`:false, kept as
+`references/states/settings-rm-off.txt`); the RM
 step writes `settings-rm-settings-on.txt` - diff them first (a tuning that
 changes under Reduce Motion is read, not fitted).
 
@@ -116,6 +123,7 @@ until this pass lands.
 - [ ] Date picker labels disabled: no capsule fill, text unchanged.
 - [ ] Alert actions: `enabled` on the action model: tertiaryLabel title,
       a disabled preferred action keeps semibold but loses the accent fill.
-- [ ] All state changes instant (no animation).
+- [ ] All state changes instant (no animation); disabled controls ignore
+      touches entirely, except the tab bar's press swell.
 - [ ] Gallery: the Glass renderer page's disabled toggle and the light
       references (`references/light/`) for the light audit.

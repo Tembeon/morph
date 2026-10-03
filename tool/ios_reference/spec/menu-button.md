@@ -103,6 +103,16 @@ keepsMenuPresented); `UIDeferredMenuElement`;
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
 - To port: the button face dims its glyph only (see glass-button.md).
 
+## Platter color, light [device screenshot, 2026-10-03]
+
+- Light menu platter interior (references/light/menu-open.png, page
+  242,242,247): 249,249,255 flat; rim 254 top / 251 bottom outer pixels;
+  the shadow darkens the page to ~224 - 238 just outside. Dark: 32 over
+  black (0xF2222222, ported in daa1bae).
+- Identical to the light date picker overlay platter (date-picker.md).
+- To port: light menu material 0xF2F9F9FF (renders 249,249,255 on
+  242,242,247); ours reads 247,246,249.
+
 ## Fixtures
 
 Device `ios27-device/menu/*` (center3 tap/quicktap/hold700/dismiss/

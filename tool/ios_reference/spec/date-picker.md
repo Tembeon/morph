@@ -100,6 +100,22 @@ wheel, hour wheel 1 - 12 right-aligned, AM/PM flips as hours pass 11/12.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
 - To port: disabled labels draw text only, no capsule, no press dim.
 
+## Overlay platter color, light + dark [device screenshots, 2026-10-03]
+
+- Light (PROBE_DARK=0, over systemGroupedBackground 242,242,247): the
+  interior reads 249,249,255 (flat, std 0); a band ~10 - 15 pt in from the
+  edges reads ~245; the rim highlight is 255 in the outer 1 - 2 pt (top
+  and bottom); the drop shadow darkens the page to ~223 - 234 just outside.
+- Dark (over black): interior 32,32,32 (32,33,33 near the header), rim 59
+  top / 87 bottom outer pixel - the menu material 0xF2222222.
+- The light value equals the native MENU platter in light (249,249,255 on
+  the same background, references/light/menu-open.png): one material.
+- Shots: `references/light/date-overlay.png`, `references/dark/date-overlay.png`
+  (StatesUITests testDateOverlay).
+- To port: light overlay platter interior 249,249,255 on 242,242,247 (ours
+  247,246,249); as an 0.95-alpha material over that page that is
+  0xF2F9F9FF (blue clips at 255) - the light twin of the dark 0xF2222222.
+
 ## Fixtures
 
 Device `ios27-device/date_picker/` (vid-date, vid-both, wheels.json,
