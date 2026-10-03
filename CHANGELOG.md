@@ -279,6 +279,35 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   keeps its tap and long press and adds one claim: a press that stayed
   still for 150 ms and then wanders is no longer taken by the list.
   Disabled controls leave their touches to the gestures around them.
+- BEHAVIOR: `MorphTabBar` inside a scrollable hears a touch only once
+  the touch is its own - held for 150 ms, dragged along the bar past
+  the touch slop where the list scrolls the other way, or lifted - as
+  UIKit holds back every touch from a scroll view's content
+  (`delaysContentTouches`). Nothing moves before that, the press
+  feedback included, so a quick swipe that starts on another tab
+  scrolls the list without switching tabs (it used to select on the
+  touch-down and switch before the list took the touch). A floating bar
+  outside any scrollable still selects on contact.
+- `MorphMenuButton`: a touch that lands while a tap's menu is still on
+  its way (between the release and the opening) belongs to the menu, as
+  on the device: a release outside the menu closes it again right after
+  it starts to open (UIKit's menu reaches about p 0.17), a release on
+  the spot of a row selects that row - a quick second tap on the button
+  picks the first row of a menu that opens down - and a finger still
+  down when the menu appears is the menu's. Before, nothing was on
+  screen to hear that touch and the menu opened anyway. Measured on the
+  iPhone 16 Pro with outside taps of 10 - 100 ms from the release: the
+  close starts `MorphMenuTuning.earlyCloseDelay` (16 ms) after the
+  opening whatever the release time, so the menu always peaks at about
+  0.17; a row's action runs `actionDelay` after the opening (replayed
+  from the touches of six device captures within 0.008 rms of
+  progress). `MorphMenuMotion.isOpenPending`.
+- The tab bar's "slow lift" (Codename One saw a slower lens growth on
+  some 5-tab taps) is documented, not modelled: on the iPhone 16 Pro
+  the lens SIZE lags its lift progress on every selection change from
+  or to the third slot of a 4-tab bar, whatever the item, the tap's
+  length or the history, and never on 2, 3 or 5 tabs; the slot depends
+  on the bar's geometry in a way two screen widths do not determine.
 - `MorphSlider` at its ends, measured on an iPhone 16 Pro (iOS 27.0.1)
   with 200 and 260 pt sliders dragged slowly, fast and from a thumb
   resting near or at an end, 40 - 80 pt past either end and back: the

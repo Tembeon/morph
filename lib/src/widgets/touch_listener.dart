@@ -46,8 +46,11 @@ class MorphTouchRecognizer extends OneSequenceGestureRecognizer {
   /// touch slop, or null when only the [delay] does.
   Axis? axis;
 
-  /// Called when the arena gives a pointer to this recognizer.
-  ValueChanged<int>? onOwned;
+  /// Called when the arena gives a pointer to this recognizer, with the
+  /// time it became the control's: the end of the [delay], the move that
+  /// passed the touch slop along the [axis], or the latest event of the
+  /// pointer when it was claimed otherwise.
+  void Function(int pointer, Duration timeStamp)? onOwned;
 
   /// Called when another arena member wins a pointer that is still down.
   ValueChanged<int>? onLost;
@@ -71,6 +74,7 @@ class MorphTouchRecognizer extends OneSequenceGestureRecognizer {
     _touches[pointer]?.timer?.cancel();
     _touches[pointer] = _Touch(
       origin: event.localPosition,
+      down: event.timeStamp,
       axis: axis,
       slop: computeHitSlop(event.kind, gestureSettings),
       timer: Timer(delay, () => _matured(pointer)),
@@ -82,6 +86,7 @@ class MorphTouchRecognizer extends OneSequenceGestureRecognizer {
     if (touch == null) return;
     touch.timer = null;
     if (claimsOnDelay) {
+      touch.claimedAt = touch.latest = touch.down + delay;
       claim(pointer);
     } else if (!touch.wandered) {
       touch.armed = true;
@@ -92,6 +97,7 @@ class MorphTouchRecognizer extends OneSequenceGestureRecognizer {
   void handleEvent(PointerEvent event) {
     final touch = _touches[event.pointer];
     if (touch != null && !touch.owned && event is PointerMoveEvent) {
+      touch.latest = event.timeStamp;
       final delta = event.localPosition - touch.origin;
       final travel = switch (touch.axis) {
         Axis.horizontal => delta.dx.abs(),
@@ -100,6 +106,7 @@ class MorphTouchRecognizer extends OneSequenceGestureRecognizer {
       };
       final past = delta.distance > touch.slop;
       if (travel > touch.slop || (touch.armed && past)) {
+        touch.claimedAt = event.timeStamp;
         claim(event.pointer);
       } else if (past) {
         touch.wandered = true;
@@ -118,7 +125,7 @@ class MorphTouchRecognizer extends OneSequenceGestureRecognizer {
     touch.timer?.cancel();
     touch.timer = null;
     touch.owned = true;
-    onOwned?.call(pointer);
+    onOwned?.call(pointer, touch.claimedAt ?? touch.latest);
   }
 
   @override
@@ -149,12 +156,16 @@ class MorphTouchRecognizer extends OneSequenceGestureRecognizer {
 class _Touch {
   _Touch({
     required this.origin,
+    required this.down,
     required this.axis,
     required this.slop,
     required this.timer,
-  });
+  }) : latest = down;
 
   final Offset origin;
+  final Duration down;
+  Duration latest;
+  Duration? claimedAt;
   final Axis? axis;
   final double slop;
   Timer? timer;
@@ -179,6 +190,15 @@ class _Touch {
 /// reported as cancelled at its last position and the rest of its
 /// events are dropped: a swipe that scrolls a list never toggles,
 /// presses or selects the control it started on.
+///
+/// With [delaysInScrollable], a control inside a [Scrollable] hears
+/// nothing of a touch until the touch is its own, as UIKit's
+/// `delaysContentTouches` holds back a touch from the content of a scroll
+/// view: the pointer down is reported when the control owns the touch,
+/// stamped with that moment (and followed by the latest move), or right
+/// before the pointer up when the touch ends while undecided; a touch a
+/// scrollable takes first is never reported at all. Outside a scrollable
+/// every event is reported as it arrives.
 @internal
 class MorphTouchListener extends StatefulWidget {
   /// Creates the listener.
@@ -191,6 +211,7 @@ class MorphTouchListener extends StatefulWidget {
     this.onPointerLost,
     this.dragAxis,
     this.enabled = true,
+    this.delaysInScrollable = false,
     this.behavior = HitTestBehavior.deferToChild,
     super.key,
   });
@@ -222,6 +243,10 @@ class MorphTouchListener extends StatefulWidget {
   /// around it.
   final bool enabled;
 
+  /// Whether a touch inside a [Scrollable] is held back until the control
+  /// owns it.
+  final bool delaysInScrollable;
+
   /// How the listener behaves during hit testing.
   final HitTestBehavior behavior;
 
@@ -237,12 +262,14 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
     debugOwner: this,
   );
   final Map<int, PointerEvent> _down = {};
+  final Map<int, _Held> _held = {};
   final Set<int> _yielded = {};
 
   @override
   void initState() {
     super.initState();
     _arena.onLost = _lost;
+    _arena.onOwned = _owned;
   }
 
   @override
@@ -268,7 +295,26 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
     return axis;
   }
 
+  void _owned(int pointer, Duration timeStamp) {
+    final held = _held.remove(pointer);
+    if (held != null) _deliver(held, timeStamp);
+  }
+
+  void _deliver(_Held held, Duration timeStamp) {
+    final down = held.down.copyWith(timeStamp: timeStamp);
+    _down[down.pointer] = down;
+    widget.onPointerDown?.call(down);
+    final move = held.move?.copyWith(timeStamp: timeStamp);
+    if (move == null || !_down.containsKey(move.pointer)) return;
+    _down[move.pointer] = move;
+    widget.onPointerMove?.call(move);
+  }
+
   void _lost(int pointer) {
+    if (_held.remove(pointer) != null) {
+      _yielded.add(pointer);
+      return;
+    }
     final event = _down.remove(pointer);
     if (event == null) return;
     _yielded.add(pointer);
@@ -286,6 +332,14 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
 
   void _pointerDown(PointerDownEvent event) {
     _yielded.remove(event.pointer);
+    if (widget.enabled &&
+        widget.delaysInScrollable &&
+        Scrollable.maybeOf(context) != null) {
+      _held[event.pointer] = _Held(event);
+      _arena.axis = _claimAxis();
+      _arena.addPointer(event);
+      return;
+    }
     _down[event.pointer] = event;
     widget.onPointerDown?.call(event);
     if (!widget.enabled) return;
@@ -294,18 +348,26 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
   }
 
   void _pointerMove(PointerMoveEvent event) {
+    final held = _held[event.pointer];
+    if (held != null) {
+      held.move = event;
+      return;
+    }
     if (_yielded.contains(event.pointer)) return;
     if (_down.containsKey(event.pointer)) _down[event.pointer] = event;
     widget.onPointerMove?.call(event);
   }
 
   void _pointerUp(PointerUpEvent event) {
+    final held = _held.remove(event.pointer);
+    if (held != null) _deliver(held, event.timeStamp);
     if (_yielded.remove(event.pointer)) return;
     _down.remove(event.pointer);
     widget.onPointerUp?.call(event);
   }
 
   void _pointerCancel(PointerCancelEvent event) {
+    if (_held.remove(event.pointer) != null) return;
     if (_yielded.remove(event.pointer)) return;
     _down.remove(event.pointer);
     widget.onPointerCancel?.call(event);
@@ -322,4 +384,11 @@ class _MorphTouchListenerState extends State<MorphTouchListener> {
       child: widget.child,
     );
   }
+}
+
+class _Held {
+  _Held(this.down);
+
+  final PointerDownEvent down;
+  PointerMoveEvent? move;
 }

@@ -3,7 +3,7 @@
  "probe": "tool/ios_reference (device.sh, ProbeUITests); compacted by /tmp/morph-native/device/export.py",
  "simulator_counterpart": "test/fixtures/ios27/menu",
  "format": "jsonl, one row per line. k=start {t, scene, rec, scale, maxfps, w, h}; k=touch {t, phase 0 began / 1 moved / 3 ended, x, y} (window points, UITouch.timestamp = CACurrentMediaTime clock); k=dl one row per CADisplayLink tick {t = link.timestamp, d = duration when not 1/120} - dl rows are kept only around gestures (0.15 s before touch-down .. 1.1 s after touch-up). Rows other than dl are logged only when a value changed, so a tick with a dl row and no other row means \"nothing changed this tick\". k=action {t, title}; k=f per display frame while a morph exists, derived exactly like the simulator fixtures (/tmp/probe-menu/extract.py table): G_* menu blob, S_* button blob (px,py layer position; kx,ky KickView translation; s scale; bw,bh local bounds; r, clipr radii; *_list_a/_blur menu content alpha/blur, *_btn_a/_blur button glass, *_pivot_*), lens_blur, lens_gauss, btn_w/btn_h pressed glass, bar nav button, menu [cx,cy,w,h,alpha], G_rvis visual radius of the menu SDF.",
- "notes": "Menus on this phone are 82 + 42*rows pt tall (simulator 20 + 42*rows): +62 pt fixed. center3-closemidopen: the outside tap was planned 25 ms after the release and was delivered right at it (two strokes in one synthesized record).",
+ "notes": "Menus on this phone are 82 + 42*rows pt tall (simulator 20 + 42*rows): +62 pt fixed. center3-closemidopen: the outside tap was planned 25 ms after the release and was delivered right at it (two strokes in one synthesized record). center3-early-outside-*: a release before the opening closes 16 ms after the opening (p peaks 0.167) whatever its time; the 200 ms one is released after the opening and closes 28 ms after its release.",
  "captures": [
   {
    "file": "bottom3-dismiss.jsonl",
@@ -184,6 +184,36 @@
    "variant": "center, 3 rows",
    "gesture": "2 x (tap open, outside tap + button tap in ONE record: the synthesizer starts the button stroke exactly at the outside lift, hold 108 ms): the touch lands on the still-interactive menu and is swallowed (no reopen, no action)",
    "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "center3-early-outside-10.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "tap open (0.1 s) + outside tap of 10 ms starting at the release (recapture 2026-10-03)",
+   "bytes": 40489
+  },
+  {
+   "file": "center3-early-outside-25.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "tap open (0.1 s) + outside tap of 25 ms starting at the release (recapture 2026-10-03)",
+   "bytes": 40606
+  },
+  {
+   "file": "center3-early-outside-50.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "tap open (0.1 s) + outside tap of 50 ms starting at the release (recapture 2026-10-03)",
+   "bytes": 42459
+  },
+  {
+   "file": "center3-early-outside-100.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "tap open (0.1 s) + outside tap of 100 ms starting at the release (recapture 2026-10-03)",
+   "bytes": 42606
+  },
+  {
+   "file": "center3-early-outside-200.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "tap open (0.1 s) + outside tap of 200 ms starting at the release (recapture 2026-10-03)",
+   "bytes": 51732
   }
  ]
 }

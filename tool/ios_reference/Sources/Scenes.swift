@@ -95,7 +95,9 @@ final class TabBarScene: UITabBarController {
         super.init(nibName: nil, bundle: nil)
         let symbols = ["house", "books.vertical", "dot.radiowaves.left.and.right", "person", "gearshape"]
         let titles = ["Home", "Library", "Radio", "Profile", "Settings"]
-        viewControllers = (0..<max(2, min(5, count))).map { index in
+        let order = (ProcessInfo.processInfo.environment["PROBE_TAB_ORDER"] ?? "").split(separator: ",").compactMap { Int($0) }
+        viewControllers = (0..<max(2, min(5, count))).map { slot in
+            let index = slot < order.count ? order[slot] : slot
             let vc = UIViewController()
             vc.view.backgroundColor = .systemBackground
             let label = UILabel()

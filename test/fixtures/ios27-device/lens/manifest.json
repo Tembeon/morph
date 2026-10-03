@@ -3,7 +3,7 @@
  "probe": "tool/ios_reference (device.sh, ProbeUITests); compacted by /tmp/morph-native/device/export.py",
  "simulator_counterpart": "test/fixtures/ios27/lens",
  "format": "jsonl, one row per line. k=start {t, scene, rec, scale, maxfps, w, h}; k=touch {t, phase 0 began / 1 moved / 3 ended, x, y} (window points, UITouch.timestamp = CACurrentMediaTime clock); k=dl one row per CADisplayLink tick {t = link.timestamp, d = duration when not 1/120} - dl rows are kept only around gestures (0.15 s before touch-down .. 1.1 s after touch-up). Rows other than dl are logged only when a value changed, so a tick with a dl row and no other row means \"nothing changed this tick\". k=frame = _UILiquidLensView presentation {ctl accessibility id or \"tabbar\", x, y, w, h (window bbox), bw, bh (bounds), sx, sy (layer scale), lifted, lpp (liftProgress presentation), p_driftX (flex drift presentation), f_driftX, f_scaleX (flex targets), vi_x, vi_vx, vi_ax (_UIVelocityIntegrator position / velocity / acceleration along x)}. Dropped as redundant: p_scaleX/p_scaleY (= sx/sy), f_scaleY, cls (always _UILiquidLensView), view id. Tab bar rows with y ~ 31 are the bar-local one-frame artifact (kept on purpose).",
- "notes": "Gestures are XCUITest-synthesized pointer paths (30 Hz path points, delivered to UIKit at 120 Hz). The three seg5 drag files come from a second pass; the first pass used 120 Hz path points, which the device synthesizer replayed in bursts, and was discarded.",
+ "notes": "Gestures are XCUITest-synthesized pointer paths (30 Hz path points, delivered to UIKit at 120 Hz). The three seg5 drag files come from a second pass; the first pass used 120 Hz path points, which the device synthesizer replayed in bursts, and was discarded. The 2026-10-03 tab bar recaptures keep only ctl/x/y/w/h/bw/bh/lifted/lpp of the lens rows (no dl rows): they answer when the lens SIZE lags its lift progress (the slow lift) - every selection change from or to the third slot of the 4-tab bar on this phone, whatever its content, duration or history; never on 2, 3 or 5 tabs.",
  "captures": [
   {
    "file": "segmented-narrow-content-content4-taps.jsonl",
@@ -160,6 +160,41 @@
    "control": "tabbar",
    "gesture": "taps on the already selected tab 0: 58, 300, 58, 300 ms",
    "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "tabbar4-pairs.jsonl",
+   "scene": "tabbar4",
+   "control": "tabbar",
+   "gesture": "taps 0->2,2->0,0->2,2->1,1->2,2->3,3->2,2->0,0->3,3->1,1->3,3->0,0->1,1->0,0->2 (recapture 2026-10-03)",
+   "bytes": 141892
+  },
+  {
+   "file": "tabbar4-radio-first.jsonl",
+   "scene": "tabbar4 PROBE_TAB_ORDER=2,0,1,3",
+   "control": "tabbar",
+   "gesture": "taps 0->1,1->0,0->2,2->3,3->0,0->3,3->1,1->2",
+   "bytes": 76546
+  },
+  {
+   "file": "tabbar4-no-radio.jsonl",
+   "scene": "tabbar4 PROBE_TAB_ORDER=0,1,4,3",
+   "control": "tabbar",
+   "gesture": "taps 0->2,2->0,0->2,2->1,1->3,3->2,2->0",
+   "bytes": 66225
+  },
+  {
+   "file": "tabbar5-many.jsonl",
+   "scene": "tabbar5",
+   "control": "tabbar",
+   "gesture": "15 taps over every slot",
+   "bytes": 140104
+  },
+  {
+   "file": "tabbar3-pairs.jsonl",
+   "scene": "tabbar3",
+   "control": "tabbar",
+   "gesture": "taps 0->2,2->0,0->2,2->1,1->0,0->1,1->2,2->0",
+   "bytes": 75677
   }
  ]
 }

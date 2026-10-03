@@ -38,6 +38,7 @@ class MorphMenuTuning {
     this.tapOpenDelay = 0.05,
     this.holdDuration = 0.22,
     this.dismissDelay = 0.04,
+    this.earlyCloseDelay = 0.016,
     this.actionDelay = 0.016,
     this.pressDelay = 0.015,
     this.sourceRelax = 0.05,
@@ -157,6 +158,15 @@ class MorphMenuTuning {
   /// Seconds between a release that dismisses and the start of the
   /// closing.
   final double dismissDelay;
+
+  /// Seconds between the opening and the start of the closing when the
+  /// touch that closes the menu was released before the menu appeared.
+  ///
+  /// Measured on the device for releases from 0 to 100 ms after the tap
+  /// that opened the menu: the close starts 16 ms after the opening
+  /// whenever the release came, so the menu always reaches about 0.17 of
+  /// its progress.
+  final double earlyCloseDelay;
 
   /// Seconds between the release on a row and its action.
   final double actionDelay;
@@ -467,6 +477,8 @@ class MorphMenuMotion {
   double _closeLive = 1;
   int _openGeneration = 0;
   int _pressGeneration = 0;
+  bool _openPending = false;
+  ({double t, Offset position})? _earlyRelease;
   _Pointer? _pointer;
   int? _highlighted;
   Offset? _glowAt;
@@ -527,6 +539,16 @@ class MorphMenuMotion {
 
   /// Whether the menu is closing.
   bool get isClosing => _phase == _Phase.closing;
+
+  /// Whether a tap's release has scheduled the opening and the menu is
+  /// not on its way yet.
+  ///
+  /// A touch that lands anywhere in this window belongs to the menu, as
+  /// on iOS: it is held until the menu opens, and a release that came
+  /// before then is applied at the opening - on a row it selects the row,
+  /// outside the menu it closes the menu again
+  /// [MorphMenuTuning.earlyCloseDelay] after the opening.
+  bool get isOpenPending => _openPending;
 
   /// The final frame of the open menu.
   Rect get menuRect => _menu;
@@ -734,6 +756,14 @@ class MorphMenuMotion {
       _glow(t, position, on: true);
       return;
     }
+    if (_openPending) {
+      _pointer = _Pointer(
+        fromButton: false,
+        position: position,
+        startedInMenu: false,
+      );
+      return;
+    }
     if (!_button.contains(position)) return;
     final pointer = _Pointer(
       fromButton: true,
@@ -782,12 +812,16 @@ class MorphMenuMotion {
       _release(t);
       if (!pointer.openedByHold) {
         if (_phase != _Phase.opening) {
+          _openPending = true;
           _timeline.at(t + tuning.tapOpenDelay, _open);
         }
         return;
       }
     }
-    if (_phase != _Phase.opening) return;
+    if (_phase != _Phase.opening) {
+      if (_openPending) _earlyRelease = (t: t, position: position);
+      return;
+    }
     final row = rowAt(position);
     if (row != null) {
       _select(t, row);
@@ -934,6 +968,7 @@ class MorphMenuMotion {
   }
 
   void _open(double t, {double? sourceScale}) {
+    _openPending = false;
     if (_phase == _Phase.opening) return;
     _sample(t);
     if (_phase == _Phase.idle) {
@@ -954,6 +989,26 @@ class MorphMenuMotion {
       if (generation != _openGeneration) return;
       _radius.retarget(s, 1, spring: tuning.openSpring);
     });
+    _takeEarlyTouch(t);
+  }
+
+  void _takeEarlyTouch(double t) {
+    final pointer = _pointer;
+    if (pointer != null && !pointer.fromButton) {
+      _highlighted = rowAt(pointer.position);
+      _glow(t, pointer.position, on: true);
+    }
+    final release = _earlyRelease;
+    _earlyRelease = null;
+    if (release == null) return;
+    final row = rowAt(release.position);
+    if (row != null) {
+      _highlighted = row;
+      _timeline.at(t + tuning.actionDelay, (double s) => onSelected?.call(row));
+      _timeline.at(t + tuning.earlyCloseDelay, _close);
+    } else if (!_menu.contains(release.position)) {
+      _timeline.at(t + tuning.earlyCloseDelay, _close);
+    }
   }
 
   void _close(double t) {

@@ -118,7 +118,13 @@ Public pieces:
   the selected segment lifts in place after `pressDelay` (40 ms) and
   drags: grab offset preserved, follow spring 0.225/1.0 (device), rubber
   band past the end CENTERS (12, 0.55); release picks the slot nearest
-  the FINGER. Tab bar: selects on touch-DOWN, stays lifted while held,
+  the FINGER. Tab bar: selects on touch-DOWN (inside a Scrollable the
+  WHOLE touch, feedback included, is held back until it is owned - 0.15
+  s hold, slop along the bar where the list scrolls the other way, or
+  the lift - UIKit's delaysContentTouches; `MorphTouchListener.
+  delaysInScrollable` replays the held down stamped at the ownership
+  moment, a touch the list wins is never reported; a floating bar keeps
+  contact selection), stays lifted while held,
   hang 0.215 s + 0.000274 s/px of travel; press delay 50 ms; scrub = the
   finger's travel since the touch times `dragGain` 1.013 on the follow
   spring 0.271/0.803, rubber band (4.55, 0.95); release after
@@ -237,7 +243,23 @@ Public pieces:
   slide onto a row; item action fires BEFORE the close; the menu is
   hit-testable from its first frame; a tap on the button while it
   closes re-opens on the touch-up, the progress reversing with its
-  velocity. KICKS are driven secondary springs (see the exemption under
+  velocity. EARLY TOUCH (device center3-closemidopen / retap-midopen /
+  early-outside-{10,25,50,100,200}, replayed from their touches): a
+  touch landing between a tap's release and the opening
+  (`isOpenPending`) belongs to the menu - the widget hears it through a
+  global pointer route registered at that release (nothing is on screen
+  to hit-test yet), the motion holds it and applies an early release at
+  the opening: outside -> close `earlyCloseDelay` 0.016 s after the
+  opening WHATEVER the release time (0..100 ms: p always peaks 0.167),
+  on a row's spot -> action at opening + actionDelay, close at opening +
+  0.016 (a quick double tap picks row 0 of a downward menu); a finger
+  still down at the opening is a menu finger (released after it: the
+  ordinary dismiss path, device +0.028 s vs dismissDelay 0.04 - the
+  early-outside-200 capture, not replayed). Synth trap: a second stroke
+  whose start offset EQUALS the first's lift is delivered as the same
+  finger (garbled touches) - start it later; the record re-times it to
+  the lift anyway.
+  KICKS are driven secondary springs (see the exemption under
   Invariants): G's open kick chases `openKickGain` x dp/dt on
   `openKickSpring` 0.2048/0.651; a close STRIKES it away from the button
   (`closeKickImpulse` 1450 px/s after `closeKickDelay`, shrinking
@@ -1216,6 +1238,25 @@ Public pieces:
   repeated values - a 60 Hz ripple); the inline-button menu OPEN is
   frame-locked at 1/60 steps even at 120 Hz, the nav-bar menu and every
   close run in continuous time.
+- THE TAB BAR SLOW LIFT (Codename One's "5-tab slow lift", 2026-10-03
+  device passes, fixtures lens/tabbar{3,4,5}-*, pinned by
+  tab_bar_slow_lift_test): on some selections the lens view's SIZE lags
+  its liftProgress (lpp itself is normal; the sibling
+  _UITabSelectionView keeps the normal size, so it is the lens view's
+  own frame) - a held press shows it as a step on ~0.59/0.86 (CN1's
+  0.59/0.85), a tap is cut by the unlift at bh ~+13 instead of +16. The
+  trigger is DETERMINISTIC and positional: on the iPhone 16 Pro every
+  selection change from or to the THIRD slot of a 4-tab bar (x 243.3),
+  and nothing else - not the item's icon or title (moved with
+  PROBE_TAB_ORDER, the slot stays slow), not tap duration (33 ms .. 1 s),
+  history, travel or display-link phase; 2-, 3- and 5-tab bars never
+  (37 taps). CN1's 393 pt 5-tab bar was slow on other slots, so the rule
+  is a function of geometry we cannot derive from two widths. NOT
+  MODELLED: without the geometric rule a model would be a lookup of one
+  phone's slot; the fall after a slow tap's unlift is not fitted either.
+  Recordings: tool/ios_reference/recordings/device-behaviours
+  (testBehaviours; PROBE_LENS_ANIMS logs lens layer CAAnimations - none
+  exist, the lag is not a CA animation).
 - KNOWN UIKIT ARTIFACTS, DELIBERATELY NOT REPRODUCED: the tab bar's
   bar-local glitch (one frame of bar-local coordinates fed into its own
   integrator at each lift after the first: a spurious drift/scale kick

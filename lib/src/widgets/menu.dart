@@ -257,6 +257,8 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   BuildContext? _scopeContext;
   OverlayState? _overlay;
   int? _pointer;
+  int? _early;
+  bool _routing = false;
   bool _disposed = false;
   bool _repaintDisposed = false;
   MorphMenuStyle _style = MorphMenuStyle.light;
@@ -264,6 +266,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   @override
   void dispose() {
     _disposed = true;
+    _unroute();
     final flight = _flight;
     if (flight == null || flight.isFinished) {
       _disposeRepaint();
@@ -364,7 +367,46 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     final motion = _motion;
     if (motion == null) return;
     motion.advance(t);
+    if (_early == null && !motion.isOpenPending) _unroute();
     _repaint.value++;
+  }
+
+  void _route() {
+    if (_routing) return;
+    _routing = true;
+    GestureBinding.instance.pointerRouter.addGlobalRoute(_earlyEvent);
+  }
+
+  void _unroute() {
+    if (!_routing) return;
+    _routing = false;
+    GestureBinding.instance.pointerRouter.removeGlobalRoute(_earlyEvent);
+  }
+
+  void _earlyEvent(PointerEvent event) {
+    final motion = _motion;
+    if (motion == null) return;
+    if (event is PointerDownEvent) {
+      if (!motion.isOpenPending ||
+          _pointer != null ||
+          event.buttons != kPrimaryButton) {
+        return;
+      }
+      _pointer = event.pointer;
+      _early = event.pointer;
+      motion.pointerDown(stamp(event), _local(event.position));
+      return;
+    }
+    if (event.pointer != _early) return;
+    if (event is PointerMoveEvent) {
+      _move(event);
+    } else if (event is PointerUpEvent) {
+      _early = null;
+      _up(event);
+    } else if (event is PointerCancelEvent) {
+      _early = null;
+      _cancel(event);
+    }
   }
 
   @override
@@ -400,7 +442,10 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   void _up(PointerUpEvent event) {
     if (event.pointer != _pointer) return;
     _pointer = null;
-    _motion?.pointerUp(stamp(event), _local(event.position));
+    final motion = _motion;
+    if (motion == null) return;
+    motion.pointerUp(stamp(event), _local(event.position));
+    if (motion.isOpenPending) _route();
   }
 
   void _cancel(PointerCancelEvent event) {

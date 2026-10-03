@@ -245,6 +245,7 @@ final class Recorder: NSObject {
                 if let v = Probe.scalar(lp, "value") { row["lp"] = round4(v) }
                 if let v = Probe.scalar(lp, "presentationValue") { row["lpp"] = round4(v) }
             }
+            if env["PROBE_LENS_ANIMS"] == "1" { logAnimations(view.layer, depth: 0) }
             if let flex = Probe.object(view, "flexInteraction") {
                 for key in ["scaleX", "scaleY", "driftX", "driftY", "translationY"] {
                     if let o = Probe.object(flex, key) {

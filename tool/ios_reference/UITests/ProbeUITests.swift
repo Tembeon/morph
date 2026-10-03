@@ -666,6 +666,54 @@ final class ProbeUITests: XCTestCase {
         }
     }
 
+    /// Behaviour questions of 2026-10-03: the tab bar's slow lift regime (long tap runs with
+    /// the lens layer's animations logged) and a touch outside a menu between the tap's
+    /// release and the menu's appearance (second stroke of 10 to 200 ms, starting at the lift).
+    func testBehaviours() {
+        let anims = ["PROBE_LENS_ANIMS": "1"]
+        capture("b-tabbar4-rerun", scene: "tabbar4", extra: anims) {
+            let c = tabCenters()
+            tapSequence(c, [1, 3, 0, 2, 0, 2, 0, 1, 3, 1, 0], gap: 1.8)
+        }
+        capture("b-tabbar5-many", scene: "tabbar5", extra: anims) {
+            let c = tabCenters()
+            tapSequence(c, [4, 1, 2, 0, 3, 0, 2, 4, 1, 3, 0, 4, 2, 1, 0], gap: 1.8)
+        }
+        capture("b-tabbar5-durations", scene: "tabbar5", extra: anims) {
+            let c = tabCenters()
+            for (i, hold) in [(1, 0.03), (0, 0.1), (2, 0.2), (0, 0.03), (3, 0.1), (0, 0.2), (4, 0.4), (0, 0.06)] {
+                tap(c[i], hold: hold)
+                pause(1.8)
+            }
+        }
+        capture("b-tabbar4-pairs", scene: "tabbar4", extra: anims) {
+            let c = tabCenters()
+            tapSequence(c, [2, 0, 2, 1, 2, 3, 2, 0, 3, 1, 3, 0, 1, 0, 2], gap: 1.8)
+        }
+        capture("b-tabbar4-radio-first", scene: "tabbar4", extra: ["PROBE_TAB_ORDER": "2,0,1,3"]) {
+            let c = tabCenters()
+            tapSequence(c, [1, 0, 2, 3, 0, 3, 1, 2], gap: 1.8)
+        }
+        capture("b-tabbar4-no-radio", scene: "tabbar4", extra: ["PROBE_TAB_ORDER": "0,1,4,3"]) {
+            let c = tabCenters()
+            tapSequence(c, [2, 0, 2, 1, 3, 2, 0], gap: 1.8)
+        }
+        capture("b-tabbar3-pairs", scene: "tabbar3", extra: anims) {
+            let c = tabCenters()
+            tapSequence(c, [2, 0, 2, 1, 0, 1, 2, 0], gap: 1.8)
+        }
+        for ms in [10, 25, 50, 100, 200] {
+            capture("b-menu-early-outside-\(ms)", scene: "menu") {
+                let f = menuButton()
+                let c = CGPoint(x: f.midX, y: f.midY)
+                let o = outside(of: f)
+                let d = Double(ms) / 1000
+                synth([Stroke(points: [(0, c)], liftAt: 0.1), Stroke(points: [(0.125, o)], liftAt: 0.125 + d)], name: "early\(ms)")
+                pause(1.6)
+            }
+        }
+    }
+
     func testRecapMenu() {
         // Separate synth calls: within one record the synthesizer starts the next stroke at the
         // previous lift, whatever the planned gap; the realized gap is read from the touch rows.

@@ -35,6 +35,14 @@ class MorphTabItem {
 /// [MorphLensTuning.chromeGrowth] pixels around its center, lens
 /// included.
 ///
+/// Inside a [Scrollable] the bar reacts to a touch only once the touch
+/// is its own, as UIKit delays the touches of a scroll view's content:
+/// after it has been held for 0.15 s, dragged along the bar past the
+/// touch slop in a list that scrolls the other way, or lifted. Until
+/// then nothing moves, so a swipe that scrolls the list never selects
+/// the tab it started on. A floating bar outside any scrollable selects
+/// on contact.
+///
 /// The bar is focusable and the arrow keys move the selection; screen
 /// readers see a tab bar of tabs. In a right-to-left context the first
 /// tab is on the right. Labels follow the text scale up to
@@ -368,6 +376,7 @@ class _MorphTabBarState extends State<MorphTabBar>
         child: MorphTouchListener(
           enabled: _enabled,
           dragAxis: .horizontal,
+          delaysInScrollable: true,
           onPointerDown: _down,
           onPointerMove: handleMove,
           onPointerUp: handleUp,

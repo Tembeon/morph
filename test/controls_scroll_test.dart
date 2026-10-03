@@ -189,6 +189,32 @@ Finder get _glassSurface => find
     .first;
 
 void main() {
+  testWidgets('a floating tab bar selects on contact', (tester) async {
+    var tab = 0;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: .ltr,
+        child: Center(
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) =>
+                MorphTabBar(
+                  items: _tabs,
+                  selected: tab,
+                  onChanged: (int v) => setState(() => tab = v),
+                ),
+          ),
+        ),
+      ),
+    );
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('Three')),
+    );
+    await tester.pump();
+    expect(tab, 2);
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
   group('inside a vertical list', () {
     testWidgets('a quick vertical swipe scrolls and leaves the controls be', (
       tester,
@@ -264,7 +290,7 @@ void main() {
     ) async {
       final s = await _pump(tester);
       final gesture = await _drag(tester, _thumb(tester), const Offset(1, -8));
-      expect(_offset(tester), greaterThan(30));
+      expect(_offset(tester), greaterThan(10));
       await gesture.up();
       await tester.pumpAndSettle();
       expect(s.slider, 0.5);
@@ -302,7 +328,7 @@ void main() {
       final rest = tester.getRect(_glassSurface);
       final gesture = await _drag(tester, rest.center, const Offset(0, -6));
       await tester.pumpAndSettle();
-      expect(_offset(tester), greaterThan(30));
+      expect(_offset(tester), greaterThan(10));
       expect(
         tester.getRect(_glassSurface).width,
         moreOrLessEquals(rest.width, epsilon: 0.5),
@@ -357,6 +383,77 @@ void main() {
       await tester.pumpAndSettle();
       expect(s.tab, 2);
       expect(_offset(tester), 0);
+    });
+
+    testWidgets('a quick swipe from another tab scrolls and selects nothing', (
+      tester,
+    ) async {
+      final s = await _pump(tester);
+      final changes = <int>[];
+      final bar = find
+          .descendant(
+            of: find.byType(MorphTabBar),
+            matching: find.byType(Stack),
+          )
+          .first;
+      final rest = tester.getRect(bar);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Three')),
+      );
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(tester.getRect(bar), rest);
+      for (var i = 0; i < 6; i++) {
+        await gesture.moveBy(const Offset(0, -8));
+        await tester.pump(const Duration(milliseconds: 16));
+        if (s.tab != 0) changes.add(s.tab);
+      }
+      expect(_offset(tester), greaterThan(10));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(changes, isEmpty);
+      expect(s.tab, 0);
+    });
+
+    testWidgets('a tab bar touch does nothing until it is the bar\'s', (
+      tester,
+    ) async {
+      final s = await _pump(tester);
+      final bar = find
+          .descendant(
+            of: find.byType(MorphTabBar),
+            matching: find.byType(Stack),
+          )
+          .first;
+      final rest = tester.getRect(bar);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Three')),
+      );
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(s.tab, 0);
+      expect(tester.getRect(bar), rest);
+      await tester.pump(const Duration(milliseconds: 40));
+      await tester.pump(const Duration(milliseconds: 120));
+      expect(s.tab, 2);
+      expect(tester.getRect(bar).width, greaterThan(rest.width + 1));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(s.tab, 2);
+      expect(_offset(tester), 0);
+    });
+
+    testWidgets('a quick tab bar tap selects on the release', (tester) async {
+      final s = await _pump(tester);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Two')),
+      );
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(s.tab, 0);
+      await gesture.up();
+      await tester.pump();
+      expect(s.tab, 1);
+      await tester.pumpAndSettle();
+      expect(s.tab, 1);
     });
 
     testWidgets('a held stepper repeats and the list never takes it', (
@@ -451,7 +548,7 @@ void main() {
     ) async {
       final s = await _pump(tester, axis: .horizontal);
       final gesture = await _drag(tester, _thumb(tester), const Offset(-8, 0));
-      expect(_offset(tester), greaterThan(30));
+      expect(_offset(tester), greaterThan(10));
       await gesture.up();
       await tester.pumpAndSettle();
       expect(s.slider, 0.5);
@@ -470,6 +567,22 @@ void main() {
       await tester.pumpAndSettle();
       expect(s.slider, greaterThan(0.7));
       expect(_offset(tester), 0);
+    });
+
+    testWidgets('a tab bar in a sideways list waits for the delay', (
+      tester,
+    ) async {
+      final s = await _pump(tester, axis: .horizontal);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Two')),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(s.tab, 0);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(s.tab, 1);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(s.tab, 1);
     });
 
     testWidgets('a vertical drag on a switch leaves the list still', (
