@@ -403,6 +403,17 @@ class _MorphTabBarState extends State<MorphTabBar>
                                 padding: const .symmetric(horizontal: 8),
                                 child: tabs,
                               ),
+                              contentSlots: [
+                                for (var i = 0; i < widget.items.length; i++)
+                                  Rect.fromCenter(
+                                    center: Offset(
+                                      8 + geometry.pitch * (i + 0.5),
+                                      _barHeight / 2,
+                                    ),
+                                    width: geometry.pitch,
+                                    height: _barHeight,
+                                  ),
+                              ],
                             ),
                           ),
                         ],

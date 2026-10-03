@@ -294,6 +294,18 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
     return (track: track, lens: lens, lift: motion.lift.clamp(0.0, 1.0));
   }
 
+  List<Rect> _contentSlots(double width) => [
+    for (final slot in _slots)
+      Rect.fromCenter(
+        center: Offset(
+          _rtl ? width - slot.center : slot.center,
+          _style.height / 2,
+        ),
+        width: slot.width + 2 * _style.inset,
+        height: _style.height,
+      ),
+  ];
+
   List<MorphGlassSurface> _surfaces() {
     final frame = _frame(Size(_width, _style.height));
     final style = _style;
@@ -398,6 +410,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
                           frames: frames,
                           surfaces: _surfaces,
                           content: labels,
+                          contentSlots: _contentSlots(constraints.maxWidth),
                         ),
                 ),
               ),

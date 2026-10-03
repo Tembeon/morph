@@ -604,8 +604,11 @@ Public pieces:
   12 apart stayed melted at blend 18 before; a resting lens/knob/thumb
   is an opaque platter, lifted it is clear glass in its own INDEPENDENT
   layer (own backdrop copy) above body + content, and a lens shows the
-  content once more at `1 + 0.16 * lift` inside its outline, cut out of
-  the plane - the copy sits BELOW the lens glass (the renderer never
+  content once more at `1 + 0.16 * lift` inside its outline, each item
+  scaled about ITS OWN slot (`buildLayer(contentSlots:)`, the segment /
+  tab boxes) and clipped to slot AND lens - scaling about the lens center
+  slid the label along with a dragged lens (owner's Day/Night report) -
+  cut out of the plane - the copy sits BELOW the lens glass (the renderer never
   enlarges its backdrop). GLASS ON GLASS (the tab bar lens "not liquid"):
   the lens always had its own copy and saw the bar, but the copy painted
   OVER the lens, the lens wore the regular wash + a white tint (a milky

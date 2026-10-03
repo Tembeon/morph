@@ -274,6 +274,61 @@ void main() {
     expect(find.byType(LiquidGlassLayer), findsNothing);
   });
 
+  testWidgets('a label under a dragged lens grows in place', (tester) async {
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 360,
+            child: MorphGlass(
+              painter: const LiquidGlassRendererPainter(),
+              child: MorphSegmentedControl(
+                segments: const ['Day', 'Night'],
+                selected: 1,
+                onChanged: (int _) {},
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final base = tester.getRect(find.text('Night').first);
+    final gesture = await tester.startGesture(base.center);
+    for (var i = 0; i < 25; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final lens = find.descendant(
+      of: find.byKey(const ValueKey<(String, int)>(('glass', 0))),
+      matching: find.byType(LiquidGlass),
+    );
+    Rect magnified() => tester.getRect(
+      find.descendant(
+        of: find.descendant(
+          of: find.byKey(const ValueKey<(String, int)>(('copy', 0))),
+          matching: find.byKey(const ValueKey<int>(1)),
+        ),
+        matching: find.text('Night'),
+      ),
+    );
+    final start = tester.getRect(lens).center;
+    final centers = <Offset>[];
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(-2, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+      final copy = magnified();
+      expect(copy.width, greaterThan(base.width * 1.1));
+      centers.add(copy.center);
+    }
+    expect((tester.getRect(lens).center - start).dx, lessThan(-10));
+    for (final center in centers) {
+      expect(center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
+      expect(center.dy, moreOrLessEquals(base.center.dy, epsilon: 0.01));
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('a lifted lens on a bar refracts the bar glass beneath it', (
     tester,
   ) async {

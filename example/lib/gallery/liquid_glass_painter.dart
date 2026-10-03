@@ -286,6 +286,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
     BuildContext context,
     List<MorphGlassSurface> surfaces, {
     Widget? content,
+    List<Rect> contentSlots = const [],
   }) {
     final visible = surfaces.where(_visible).toList();
     final fills = [
@@ -346,7 +347,11 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
             if (content != null && floating[i].kind == MorphGlassKind.lens)
               Positioned.fill(
                 key: ValueKey<(String, int)>(('copy', i)),
-                child: _Magnified(surface: floating[i], child: content),
+                child: _Magnified(
+                  surface: floating[i],
+                  slots: contentSlots,
+                  child: content,
+                ),
               ),
             Positioned.fill(
               key: ValueKey<(String, int)>(('glass', i)),
@@ -387,33 +392,82 @@ class _Platter extends StatelessWidget {
   }
 }
 
-/// The content seen through a lens: clipped to it and scaled about its
-/// center by the lens's lift.
+/// The content seen through a lens: each item scaled by the lens's lift
+/// about the center of its own slot and clipped to that slot and the lens.
+///
+/// The anchors are the slots, which stay put, so a label under a moving
+/// lens grows in place and only the lens window slides over it, as in
+/// UIKit; scaling about the lens center would carry the label along with
+/// the lens.
 class _Magnified extends StatelessWidget {
-  const _Magnified({required this.surface, required this.child});
+  const _Magnified({
+    required this.surface,
+    required this.slots,
+    required this.child,
+  });
 
   final MorphGlassSurface surface;
+  final List<Rect> slots;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    final center = surface.bounds.center;
     final scale =
         1 +
         LiquidGlassRendererPainter.lensMagnification *
             surface.lift.clamp(0.0, 1.0);
-    final transform = Matrix4.translationValues(center.dx, center.dy, 0);
-    transform.multiply(Matrix4.diagonal3Values(scale, scale, 1));
-    transform.multiply(Matrix4.translationValues(-center.dx, -center.dy, 0));
     return IgnorePointer(
       child: ExcludeSemantics(
-        child: ClipPath(
-          clipper: _LensClip([surface.shape], outside: false),
-          child: Transform(transform: transform, child: child),
-        ),
+        child: slots.isEmpty
+            ? LayoutBuilder(
+                builder: (BuildContext context, BoxConstraints constraints) =>
+                    _slot(Offset.zero & constraints.biggest, scale),
+              )
+            : Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  for (var i = 0; i < slots.length; i++)
+                    if (slots[i].overlaps(surface.bounds))
+                      Positioned.fill(
+                        key: ValueKey<int>(i),
+                        child: _slot(slots[i], scale),
+                      ),
+                ],
+              ),
       ),
     );
   }
+
+  Widget _slot(Rect slot, double scale) {
+    final center = slot.center;
+    final transform = Matrix4.translationValues(center.dx, center.dy, 0);
+    transform.multiply(Matrix4.diagonal3Values(scale, scale, 1));
+    transform.multiply(Matrix4.translationValues(-center.dx, -center.dy, 0));
+    return ClipPath(
+      clipper: _SlotLensClip(surface.shape, slot),
+      child: Transform(transform: transform, child: child),
+    );
+  }
+}
+
+class _SlotLensClip extends CustomClipper<Path> {
+  const _SlotLensClip(this.lens, this.slot);
+
+  final RRect lens;
+  final Rect slot;
+
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    path.addRRect(lens);
+    final box = Path();
+    box.addRect(slot);
+    return Path.combine(PathOperation.intersect, path, box);
+  }
+
+  @override
+  bool shouldReclip(_SlotLensClip oldClipper) =>
+      oldClipper.lens != lens || oldClipper.slot != slot;
 }
 
 /// The box a layer may paint into: its control's box grown by the reach

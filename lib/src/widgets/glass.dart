@@ -203,10 +203,20 @@ abstract class MorphGlassPainter {
   /// neighbors, or show [content] through a lens. The default places each
   /// surface at its bounds, from [buildSurface] when it is glass and from
   /// [buildFill] when it is not, and [content] over them.
+  ///
+  /// [contentSlots] are the boxes of the items of [content] - the segments
+  /// of a segmented control, the tabs of a tab bar - in the layer's local
+  /// coordinates, each item centered in its box. They stay put while a
+  /// lens moves over them. A painter that magnifies the content seen
+  /// through a lens scales each item about the center of its own slot and
+  /// clips it to that slot, so a label under a moving lens grows in place
+  /// and never slides; only the lens window moves. Empty means the content
+  /// is one item that fills the layer.
   Widget buildLayer(
     BuildContext context,
     List<MorphGlassSurface> surfaces, {
     Widget? content,
+    List<Rect> contentSlots = const [],
   }) {
     return Stack(
       clipBehavior: Clip.none,
@@ -272,6 +282,7 @@ class MorphGlassLayer extends StatelessWidget {
     required this.frames,
     required this.surfaces,
     this.content,
+    this.contentSlots = const [],
     super.key,
   });
 
@@ -287,14 +298,22 @@ class MorphGlassLayer extends StatelessWidget {
   /// The control's content, drawn over the surfaces.
   final Widget? content;
 
+  /// The boxes of the items of [content] in the layer's local coordinates,
+  /// handed to [MorphGlassPainter.buildLayer].
+  final List<Rect> contentSlots;
+
   @override
   Widget build(BuildContext context) {
     return MetaData(
       behavior: HitTestBehavior.opaque,
       child: ListenableBuilder(
         listenable: frames,
-        builder: (BuildContext context, Widget? child) =>
-            painter.buildLayer(context, surfaces(), content: child),
+        builder: (BuildContext context, Widget? child) => painter.buildLayer(
+          context,
+          surfaces(),
+          content: child,
+          contentSlots: contentSlots,
+        ),
         child: content,
       ),
     );

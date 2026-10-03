@@ -547,6 +547,14 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   glass that refracts what lies under it - the tab bar lens bends the bar
   glass and the magnified labels beneath it instead of covering them -
   and only a menu fuses with its button.
+- BREAKING (painters): `MorphGlassPainter.buildLayer` takes
+  `contentSlots`, the boxes of the content's items (segments, tabs, bar
+  items) in the layer's coordinates; an override must accept the
+  parameter. A painter that magnifies content under a lens scales each
+  item about its own slot, so a label under a dragged lens stays still
+  and only the lens window moves, as in UIKit. The example's liquid
+  painter used to scale about the lens center, so the label slid along
+  with a dragged lens.
 - Navigation (owner's iPhone pass on the gallery's Navigation page):
   - `MorphNavigationStack` owns the pops of its own screens: its
     navigator sits under a `NavigatorPopHandler`, so while it can pop,

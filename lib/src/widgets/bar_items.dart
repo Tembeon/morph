@@ -676,7 +676,19 @@ class _MorphBarItemsState extends State<MorphBarItems>
                       painter: _CapsulePainter(surfaces, style),
                       child: content,
                     )
-                  : glass.buildLayer(context, surfaces, content: content),
+                  : glass.buildLayer(
+                      context,
+                      surfaces,
+                      content: content,
+                      contentSlots: [
+                        for (final f in items)
+                          Rect.fromCenter(
+                            center: f.center,
+                            width: f.size.width,
+                            height: f.size.height,
+                          ),
+                      ],
+                    ),
             );
           },
         );
