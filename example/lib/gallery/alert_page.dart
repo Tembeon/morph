@@ -63,6 +63,40 @@ class _AlertPageState extends State<AlertPage> {
           ),
         ],
       ),
+      'disabled' => (
+        'Disabled actions',
+        'A disabled action keeps its fill and dims its title.',
+        [
+          MorphAlertAction(title: 'Enabled', onPressed: () => _said('Enabled')),
+          const MorphAlertAction(title: 'Disabled', enabled: false),
+          const MorphAlertAction(
+            title: 'Delete',
+            style: .destructive,
+            enabled: false,
+          ),
+          MorphAlertAction(
+            title: 'Cancel',
+            style: .cancel,
+            onPressed: () => _said('Cancel chosen'),
+          ),
+        ],
+      ),
+      'disabledPreferred' => (
+        'Name the album',
+        'A disabled preferred action loses its accent fill.',
+        [
+          MorphAlertAction(
+            title: 'Cancel',
+            style: .cancel,
+            onPressed: () => _said('Cancel chosen'),
+          ),
+          const MorphAlertAction(
+            title: 'OK',
+            isPreferred: true,
+            enabled: false,
+          ),
+        ],
+      ),
       _ => (
         'Rename',
         'Enter a new name for the album.',
@@ -127,6 +161,8 @@ class _AlertPageState extends State<AlertPage> {
                 ('Three buttons, destructive, cancel last', 'three', false),
                 ('A preferred action', 'preferred', false),
                 ('A text field', 'field', true),
+                ('Disabled actions', 'disabled', false),
+                ('A disabled preferred action', 'disabledPreferred', false),
               ])
                 Padding(
                   padding: const .only(bottom: 12),

@@ -25,6 +25,7 @@ class _GlassPageState extends State<GlassPage> {
   bool _toggle = true;
   double _value = 0.4;
   double _count = 3;
+  int _page = 1;
 
   static const _tiers = ['Auto', 'Liquid', 'Frosted', 'Flat'];
   static const _materials = ['Regular', 'Toolbar', 'Clear'];
@@ -37,6 +38,7 @@ class _GlassPageState extends State<GlassPage> {
   Widget _scene(BuildContext context) {
     T? on<T extends Function>(T callback) =>
         GalleryGlassScope.enabled(context, callback);
+    final enabled = !GalleryGlassScope.of(context).disabled;
     return Padding(
       padding: const .fromLTRB(20, 24, 20, 28),
       child: Column(
@@ -69,20 +71,47 @@ class _GlassPageState extends State<GlassPage> {
             onChanged: on((double v) => setState(() => _value = v)),
           ),
           const SizedBox(height: 28),
-          Row(
-            mainAxisAlignment: .center,
+          Wrap(
+            alignment: .center,
+            spacing: 16,
+            runSpacing: 12,
             children: [
               MorphGlassButton(
                 onPressed: on(() {}),
                 child: const Text('Glass'),
               ),
-              const SizedBox(width: 16),
+              MorphGlassButton(
+                onPressed: on(() {}),
+                tint: const Color(0xFF0088FF),
+                child: const Text('Prominent'),
+              ),
               MorphGlassButton(
                 onPressed: on(() {}),
                 child: const Icon(Icons.favorite_border),
               ),
             ],
           ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: .center,
+            children: [
+              MorphMenuButton(
+                enabled: enabled,
+                items: const [
+                  MorphMenuItem(title: 'Copy', icon: Icons.copy),
+                  MorphMenuItem(title: 'Share', icon: Icons.ios_share),
+                ],
+              ),
+              const SizedBox(width: 24),
+              MorphPageControl(
+                count: 5,
+                page: _page,
+                onChanged: on((int i) => setState(() => _page = i)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          MorphSearchField(enabled: enabled),
           const SizedBox(height: 36),
           MorphTabBar(
             items: const [

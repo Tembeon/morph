@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph_example/gallery/glass_settings.dart';
 
 /// A small mail app on the measured navigation stack: a large-title list
 /// whose bar buttons morph into the detail screen's on a push, a toolbar
@@ -63,7 +64,7 @@ const _palette = [
   Color(0xFFFF2D55),
 ];
 
-MorphBarButton _icon(String id, IconData icon, VoidCallback onPressed) =>
+MorphBarButton _icon(String id, IconData icon, VoidCallback? onPressed) =>
     MorphBarButton(
       id: id,
       icon: Icon(icon),
@@ -133,8 +134,12 @@ class _Inbox extends StatelessWidget {
       ]),
       trailing: [
         MorphBarButtonGroup([
-          _icon('add', Icons.add, () {}),
-          _icon('more', Icons.more_horiz, () {}),
+          _icon('add', Icons.add, GalleryGlassScope.enabled(context, () {})),
+          _icon(
+            'more',
+            Icons.more_horiz,
+            GalleryGlassScope.enabled(context, () {}),
+          ),
         ]),
       ],
       toolbarLeading: toolbarLeading,
@@ -309,8 +314,16 @@ class _DetailState extends State<_Detail> {
       ],
       toolbarLeading: [
         MorphBarButtonGroup([
-          _icon('up', Icons.keyboard_arrow_up, () {}),
-          _icon('down', Icons.keyboard_arrow_down, () {}),
+          _icon(
+            'up',
+            Icons.keyboard_arrow_up,
+            GalleryGlassScope.enabled(context, () {}),
+          ),
+          _icon(
+            'down',
+            Icons.keyboard_arrow_down,
+            GalleryGlassScope.enabled(context, () {}),
+          ),
         ], id: 'tbL'),
       ],
       toolbarTrailing: [

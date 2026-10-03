@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph_example/gallery/glass_settings.dart';
 
 /// Glass menu buttons at the center, near every corner and in the
 /// navigation bar, with two, five and ten rows.
@@ -49,6 +50,7 @@ class _MenuPageState extends State<MenuPage> {
         title: 'Menu',
         actions: [
           MorphMenuButton(
+            enabled: !GalleryGlassScope.of(context).disabled,
             items: _items(3),
             style: MorphMenuStyle.resolve(
               context,

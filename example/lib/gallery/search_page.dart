@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph_example/gallery/glass_settings.dart';
 
 const List<String> _fruits = [
   'Apple',
@@ -73,6 +74,7 @@ class _SearchPageState extends State<SearchPage> {
           Padding(
             padding: const .symmetric(vertical: 8),
             child: MorphSearchField(
+              enabled: !GalleryGlassScope.of(context).disabled,
               placeholder: 'Search fruit',
               onChanged: (String q) => setState(() => _query = q),
             ),
