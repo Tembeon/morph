@@ -119,6 +119,7 @@ class MorphGlassSurface {
     this.optics,
     this.enabled = true,
     this.glass = true,
+    this.opacity = 1,
     this.glow,
   });
 
@@ -157,6 +158,16 @@ class MorphGlassSurface {
   /// False for a plain fill, which every painter draws flat: [color] in
   /// [shape], nothing sampled from the backdrop.
   final bool glass;
+
+  /// How much of the surface shows, 0 to 1: a surface fading in or out,
+  /// such as a popover's platter while it opens.
+  ///
+  /// A control fades its glass through this value rather than an
+  /// `Opacity` above the painter's widget: an opacity layer hands a
+  /// backdrop-sampling surface the empty layer instead of what lies
+  /// behind it. A painter fades everything it draws by it, the flat fill
+  /// of [MorphGlassPainter.buildFill] included.
+  final double opacity;
 
   /// The glow a finger raises on the surface, or null when it is not
   /// lit; a painter draws it with [MorphGlassPainter.buildGlow] over the
@@ -199,7 +210,14 @@ abstract class MorphGlassPainter {
   /// The default fills [MorphGlassSurface.localShape] with
   /// [MorphGlassSurface.color], as the control does without a painter.
   Widget buildFill(BuildContext context, MorphGlassSurface surface) =>
-      CustomPaint(painter: _FillPainter(surface.localShape, surface.color));
+      CustomPaint(
+        painter: _FillPainter(
+          surface.localShape,
+          surface.color.withValues(
+            alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
+          ),
+        ),
+      );
 
   /// Builds the widget that draws the [MorphGlassSurface.glow] of
   /// [surface], sized to its bounds and placed over the surface.
