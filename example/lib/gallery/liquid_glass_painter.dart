@@ -22,16 +22,20 @@ enum LiquidGlassMaterial {
 /// (`MorphGlassSurface.glass` false - the segmented, switch and slider
 /// tracks, the stepper) is a flat fill. A control's glass body surfaces
 /// (bar, button, menu) share a layer, and a menu fuses with its button in
-/// a blend group; separate bar capsules stay separate. A resting lens,
+/// a blend group; the capsules of a bar form a blend group of the bar's
+/// container spacing (12, so resting groups 12 apart stay separate and
+/// only capsules passing closer during an item change fuse). A resting lens,
 /// knob or thumb is an opaque platter under the control's content;
 /// lifted, it turns into glass in a layer of its own above everything of
 /// the control, with its own backdrop copy, so it refracts what lies
-/// under it - the bar's glass included (glass on glass). A lifted lens
-/// shows the content behind it magnified by `1 + 0.16 * lift`, the growth
-/// the UIKit tab bar shows through its lifted lens: the renderer never
-/// enlarges its backdrop, so the content is drawn once more at that scale
-/// inside the lens's outline, cut out of the plane, and BELOW the lens
-/// glass, which then bends the magnified content and the bar's rim at its
+/// under it - the bar's glass included (glass on glass). Lifted, a tab
+/// bar lens, a segmented lens and a switch knob minify what lies beneath
+/// them, and a tab bar lens shows its items magnified by
+/// `1 + 0.16 * lift` while a segmented lens shows its labels at their own
+/// size, as UIKit's do ([liftedOptics]): the renderer never enlarges its
+/// backdrop, so the content is drawn once more inside the lens's outline,
+/// grown against the shrink, cut out of the plane, and BELOW the lens
+/// glass, which then bends it and the rim of what it floats over at its
 /// bevel as UIKit's lens does.
 ///
 /// Every backdrop copy is a full-screen readback, so body glass reads the
@@ -85,8 +89,19 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   /// plain page the frost is rarely visible.
   final bool frostControls;
 
-  /// The growth of the content seen through a fully lifted lens.
-  static const double lensMagnification = 0.16;
+  /// The growth of the tab bar items seen through a fully lifted lens.
+  ///
+  /// Measured on the iPhone 16 Pro tab bar references: the held item's
+  /// icon and label show at 1.218 of their resting size while the
+  /// swelling bar carries its other items at 1.052, so the lens adds
+  /// 1.158 on top of the bar.
+  static const double tabBarMagnification = 0.16;
+
+  /// The growth of the segment labels seen through a fully lifted lens.
+  ///
+  /// None: the iPhone 16 Pro reference (`segmented-held-selected`) shows
+  /// the held label at 0.996 of its resting size, in place.
+  static const double segmentedMagnification = 0;
 
   /// The renderer refraction per pixel of UIKit lens displacement.
   ///
@@ -99,21 +114,66 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   /// The color separation along a lifted lens's rim.
   static const double lensDispersion = -0.25;
 
-  /// How much smaller a fully lifted lens over a bar shows the bar glass.
+  /// How much smaller a fully lifted tab bar lens shows the bar glass.
   ///
-  /// The iPhone 16 Pro tab bar reference (`tabbar3-held-other`) shows the
-  /// bar's edges 0.875 of the bar's height apart inside the lens, which
-  /// with the rim's bend is the 14 percent whynotmake-it fitted on an
-  /// iPhone 17 Pro: UIKit's lens minifies the glass beneath it and
-  /// magnifies only the items. The items are pre-grown against the shrink,
-  /// so through the lens they still show at [lensMagnification] about
-  /// their own slots.
-  static const double lensShrink = 0.14;
+  /// UIKit's lens minifies the glass beneath it and magnifies only the
+  /// items: the iPhone 16 Pro reference (`tabbar3-held-other`) shows the
+  /// swollen bar's edges 0.890 of its height apart inside the lens. The
+  /// lens's own bevel pulls the backdrop inward near the rim, so it takes
+  /// this shrink to put them there.
+  static const double tabBarShrink = 0.16;
+
+  /// How much smaller a fully lifted segmented lens shows the track.
+  ///
+  /// The reference (`segmented-held-selected`) shows the track's edges
+  /// 0.8125 of its height apart inside the lens. UIKit's minification
+  /// fades toward the lens's middle: the track's end shows at 0.96 of its
+  /// distance from the lens center, which a uniform shrink cannot follow.
+  static const double segmentedShrink = 0.20;
+
+  /// How much smaller a fully lifted switch knob shows the track.
+  ///
+  /// The reference (`switch-off-knob-held`) shows the track's edges 0.755
+  /// of its height apart inside the knob. A slider thumb shows its track
+  /// unchanged (`slider-thumb-held`), so a thumb does not shrink.
+  static const double switchKnobShrink = 0.25;
+
+  /// The growth of the content and the backdrop shrink a fully lifted
+  /// floating surface of [kind] shows, over a bar when [overBar].
+  ///
+  /// A lens over a bar is a tab bar's, a lens over a plain track a
+  /// segmented control's, a knob a switch's and a thumb a slider's.
+  static ({double magnification, double shrink}) liftedOptics(
+    MorphGlassKind kind, {
+    required bool overBar,
+  }) => switch (kind) {
+    MorphGlassKind.lens =>
+      overBar
+          ? (magnification: tabBarMagnification, shrink: tabBarShrink)
+          : (magnification: segmentedMagnification, shrink: segmentedShrink),
+    MorphGlassKind.knob => (magnification: 0.0, shrink: switchKnobShrink),
+    MorphGlassKind.thumb ||
+    MorphGlassKind.track ||
+    MorphGlassKind.bar ||
+    MorphGlassKind.button ||
+    MorphGlassKind.menu => (magnification: 0.0, shrink: 0.0),
+  };
+
+  /// How far from its center [surface]'s glass reads the backdrop for a
+  /// point on its face when its layer shrinks the backdrop by [shrink].
+  ///
+  /// The renderer fades the shrink in with the glass's visibility, so a
+  /// lens still turning from platter into glass shrinks less.
+  static double backdropScale(MorphGlassSurface surface, double shrink) =>
+      1 +
+      (1 / (1 - shrink) - 1) *
+          glassness(surface) *
+          surface.opacity.clamp(0.0, 1.0);
 
   /// The lift below which a lens, knob or thumb is only its platter.
   static const double restingLift = 0.005;
 
-  /// The distance within which the body surfaces of one control fuse.
+  /// The distance within which a menu fuses with its button.
   static const double blend = 18;
 
   static bool _floats(MorphGlassKind kind) => switch (kind) {
@@ -249,10 +309,12 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
     List<MorphGlassSurface> surfaces, {
     bool shared = true,
     double shrink = 0,
+    double spacing = 0,
   }) {
-    final grouped =
-        surfaces.length > 1 &&
-        surfaces.any((MorphGlassSurface s) => s.kind == MorphGlassKind.menu);
+    final menu = surfaces.any(
+      (MorphGlassSurface s) => s.kind == MorphGlassKind.menu,
+    );
+    final grouped = surfaces.length > 1 && (menu || spacing > 0);
     Widget shapes = Stack(
       clipBehavior: Clip.none,
       children: [
@@ -264,7 +326,10 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
       ],
     );
     if (grouped) {
-      shapes = LiquidGlassBlendGroup(blend: blend, child: shapes);
+      shapes = LiquidGlassBlendGroup(
+        blend: spacing > 0 ? spacing : blend,
+        child: shapes,
+      );
     }
     return ClipRect(
       clipper: const _Reach(),
@@ -308,6 +373,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
     List<MorphGlassSurface> surfaces, {
     Widget? content,
     List<Rect> contentSlots = const [],
+    double spacing = 0,
   }) {
     final visible = surfaces.where(_visible).toList();
     final fills = [
@@ -331,9 +397,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
       (MorphGlassSurface s) => s.kind == MorphGlassKind.bar,
     );
     double shrinkOf(MorphGlassSurface s) =>
-        overBar && s.kind == MorphGlassKind.lens
-        ? lensShrink * s.lift.clamp(0.0, 1.0)
-        : 0;
+        liftedOptics(s.kind, overBar: overBar).shrink * s.lift.clamp(0.0, 1.0);
     final lenses = [
       for (final s in floating)
         if (s.kind == MorphGlassKind.lens && lifted(s)) s.shape,
@@ -350,7 +414,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
         if (body.isNotEmpty)
           Positioned.fill(
             key: const ValueKey<String>('body'),
-            child: _layer(body, shared: !chrome),
+            child: _layer(body, shared: !chrome, spacing: spacing),
           ),
         for (var i = 0; i < floating.length; i++)
           if (glassness(floating[i]) < 1)
@@ -378,7 +442,14 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
                 child: _Magnified(
                   surface: floating[i],
                   slots: contentSlots,
-                  shrink: shrinkOf(floating[i]),
+                  magnification:
+                      1 +
+                      liftedOptics(
+                            floating[i].kind,
+                            overBar: overBar,
+                          ).magnification *
+                          floating[i].lift.clamp(0.0, 1.0),
+                  grow: backdropScale(floating[i], shrinkOf(floating[i])),
                   child: content,
                 ),
               ),
@@ -425,7 +496,7 @@ class _Platter extends StatelessWidget {
   }
 }
 
-/// The content seen through a lens: each item scaled by the lens's lift
+/// The content seen through a lens: each item scaled by [magnification]
 /// about the center of its own slot and clipped to that slot and the lens.
 ///
 /// The anchors are the slots, which stay put, so a label under a moving
@@ -433,21 +504,23 @@ class _Platter extends StatelessWidget {
 /// UIKit; scaling about the lens center would carry the label along with
 /// the lens.
 ///
-/// When the lens glass shrinks its backdrop by [shrink] about its center,
-/// the copy is grown by the inverse about that center first, so through
-/// the glass each item still shows at its slot.
+/// The lens glass reads its backdrop [grow] times farther from its center
+/// than it shows it, so the copy is grown by [grow] about that center
+/// first and through the glass each item still shows on its slot.
 class _Magnified extends StatelessWidget {
   const _Magnified({
     required this.surface,
     required this.slots,
+    required this.magnification,
+    required this.grow,
     required this.child,
-    this.shrink = 0,
   });
 
   final MorphGlassSurface surface;
   final List<Rect> slots;
+  final double magnification;
+  final double grow;
   final Widget child;
-  final double shrink;
 
   static Matrix4 _about(Offset center, double scale) {
     final transform = Matrix4.translationValues(center.dx, center.dy, 0);
@@ -458,14 +531,10 @@ class _Magnified extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scale =
-        1 +
-        LiquidGlassRendererPainter.lensMagnification *
-            surface.lift.clamp(0.0, 1.0);
     Widget items = slots.isEmpty
         ? LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) =>
-                _slot(Offset.zero & constraints.biggest, scale),
+                _slot(Offset.zero & constraints.biggest),
           )
         : Stack(
             clipBehavior: Clip.none,
@@ -474,15 +543,15 @@ class _Magnified extends StatelessWidget {
                 if (slots[i].overlaps(surface.bounds))
                   Positioned.fill(
                     key: ValueKey<int>(i),
-                    child: _slot(slots[i], scale),
+                    child: _slot(slots[i]),
                   ),
             ],
           );
-    if (shrink > 0) {
+    if (grow != 1) {
       items = ClipPath(
         clipper: _LensClip([surface.shape], outside: false),
         child: Transform(
-          transform: _about(surface.shape.center, 1 / (1 - shrink)),
+          transform: _about(surface.bounds.center, grow),
           child: items,
         ),
       );
@@ -490,9 +559,12 @@ class _Magnified extends StatelessWidget {
     return IgnorePointer(child: ExcludeSemantics(child: items));
   }
 
-  Widget _slot(Rect slot, double scale) => ClipPath(
+  Widget _slot(Rect slot) => ClipPath(
     clipper: _SlotLensClip(surface.shape, slot),
-    child: Transform(transform: _about(slot.center, scale), child: child),
+    child: Transform(
+      transform: _about(slot.center, magnification),
+      child: child,
+    ),
   );
 }
 

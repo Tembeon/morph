@@ -612,12 +612,30 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   2 pt instead of 3.7, the regular frost curve refitted, dimmer glint on
   dark toolbar and clear glass, one render base for real and fake
   glass). A lifted lens over a tab bar now MINIFIES the bar glass beneath
-  it by 14 percent (`backdropShrink`), as the device's tab bar lens does
-  (the bar's edges show inside the lens at 0.875 of the bar's height),
-  while the items under it still grow by 16 percent about their own
-  slots: the copy is pre-grown against the shrink. The glass page gains
-  the iOS Liquid Glass Clear / Tinted choice beside the slider; Clear
-  stays the default.
+  it (`backdropShrink`), as the device's tab bar lens does, while the
+  items under it still grow by 16 percent about their own slots: the
+  copy is pre-grown against the shrink. The glass page gains the iOS
+  Liquid Glass Clear / Tinted choice beside the slider; Clear stays the
+  default.
+- example gallery glass, measured per control against the iPhone 16 Pro
+  references (glyph scale fitted by correlation over scales, edges at
+  sub-pixel crossings): the tab bar lens magnifies its items by 1.158 on
+  top of the swollen bar (1.218 against the resting bar, the bar 1.052)
+  - the painter keeps 16 percent; the segmented lens does NOT magnify
+  its labels (0.996), so its copy now shows them at their own size (was
+  16 percent). The lifted segmented lens and switch knob now minify the
+  track beneath them like the tab bar lens minifies the bar: the edges
+  inside show at 0.8125 (segmented) and 0.755 (switch) of the track's
+  height, the tab bar's at 0.890 of the swollen bar's; the slider thumb
+  shows its track unchanged and does not shrink. The lens bevel pulls
+  the backdrop inward near its rim, so the renderer shrinks are 0.20,
+  0.25 and 0.16 (the tab bar's was 0.14, which showed 0.932); on the
+  device the gallery shows 0.815, 0.762 and 0.891. UIKit's minification
+  fades toward the lens's middle (the track's end inside the segmented
+  lens sits at 0.96 of its distance from the center), which a uniform
+  shrink cannot follow. The copy's pre-growth follows the glass's
+  visibility as the renderer does, so a label stays on its slot while
+  the lens is still turning into glass.
 - Navigation (owner's iPhone pass on the gallery's Navigation page):
   - `MorphNavigationStack` owns the pops of its own screens: its
     navigator sits under a `NavigatorPopHandler`, so while it can pop,

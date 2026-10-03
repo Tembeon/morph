@@ -646,29 +646,42 @@ Public pieces:
   12 apart stayed melted at blend 18 before; a resting lens/knob/thumb
   is an opaque platter, lifted it is clear glass in its own INDEPENDENT
   layer (own backdrop copy) above body + content, and a lens shows the
-  content once more at `1 + 0.16 * lift` inside its outline, each item
-  scaled about ITS OWN slot (`buildLayer(contentSlots:)`, the segment /
-  tab boxes) and clipped to slot AND lens - scaling about the lens center
-  slid the label along with a dragged lens (owner's Day/Night report) -
-  cut out of the plane - the copy sits BELOW the lens glass (the renderer never
-  enlarges its backdrop). GLASS ON GLASS (the tab bar lens "not liquid"):
+  content once more inside its outline, each item scaled about ITS OWN
+  slot (`buildLayer(contentSlots:)`, the segment / tab boxes) and clipped
+  to slot AND lens - scaling about the lens center slid the label along
+  with a dragged lens (owner's Day/Night report) - cut out of the plane -
+  the copy sits BELOW the lens glass (the renderer never enlarges its
+  backdrop). GLASS ON GLASS (the tab bar lens "not liquid"):
   the lens always had its own copy and saw the bar, but the copy painted
   OVER the lens, the lens wore the regular wash + a white tint (a milky
   blob) and bent by the button's 60 against a bevel of 20 (ratio 3:
   the rim mirrored the labels); now the lens is clear, bends by UIKit's
   displacement x 2 (18 lifted) with dispersion -0.25, and refracts the
-  bar glass + the magnified labels beneath it. A lifted lens over a BAR
-  MINIFIES the bar glass (renderer `backdropShrink` 0.14 x lift, about the
-  lens center) - measured on tabbar3-held-other: inside the lens the bar's
-  edges sit at 0.875 of its height, dark page bands at the lens's top and
-  bottom; UIKit does NOT magnify the bar glass, only the items, and
-  whynotmake-it's LoupeTabBar fits the same 14 percent on an iPhone 17
-  Pro. The copy is pre-grown by 1 / (1 - shrink) about the lens center
-  (outside the per-slot scale, clipped to the lens) so through the glass
-  each item still sits on its slot at 1.16; the segmented lens (plain
-  track) does not shrink yet - its reference shows the same inward edges,
-  but the copy-stillness test measures the pre-glass copy and would need
-  to measure through the shrink. The dark tab bar's resting
+  bar glass + the magnified labels beneath it. PER-CONTROL LENS OPTICS
+  (`LiquidGlassRendererPainter.liftedOptics`, measured 2026-10-03 on the
+  dark iPhone 16 Pro references; glyph scale by correlation over scales,
+  edges at sub-pixel crossings): MAGNIFICATION tab bar 0.16 (held item
+  1.218 vs rest, the swollen bar's other items 1.052, so 1.158 on top of
+  the bar - Codename One's 1.16 holds, upstream's fitted 1.1 does not),
+  segmented 0 (held label 0.996, in place); SHRINK (renderer
+  `backdropShrink` x lift about the lens center) tab bar 0.16, segmented
+  0.20, switch knob 0.25, slider thumb 0 - native edges inside vs outside
+  0.890 (vs the SWOLLEN bar) / 0.8125 / 0.755 / 1.000, and the gallery on
+  the device shows 0.891 / 0.815 / 0.762. Our bevel (quarter circle,
+  bevel min(20, halfMinor/2), amount 18) pulls the backdrop INWARD near
+  the rim while UIKit's minification is outward and fades toward the
+  middle (rim depth 27 px: 9 px, 37 px: 7 px, 47 px: 0 - why the slider's
+  thin track is untouched and the segmented track's END sits at 0.96
+  horizontally); a uniform shrink matches the edges but over-minifies
+  the track's end inside an end segment (0.80). The fitted shrinks come
+  from that bevel formula (it predicted the old tab bar 0.14 at 0.926,
+  the device showed 0.932). The copy is pre-grown about the lens center
+  by `backdropScale` = 1 + (1 / (1 - shrink) - 1) x visibility (the
+  renderer fades the shrink with the glass's visibility; the stillness
+  tests in gallery_test measure the label AS SEEN THROUGH that shrink,
+  reading shrink and visibility from the LiquidGlassLayer / LiquidGlass
+  they render with), so through the glass each item sits on its slot at
+  its control's magnification. The dark tab bar's resting
   platter is DARKER than the bar (reference 10 vs 35: 0xB5000000, was a
   white 14 percent). Audit tool: example/integration_test/
   glass_audit_test.dart (profile, dark; shots of the reference states and

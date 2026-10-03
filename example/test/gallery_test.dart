@@ -184,7 +184,7 @@ void main() {
     expect(clear.frost, 0);
   });
 
-  testWidgets('a lifted lens shows the content magnified by 16 percent', (
+  testWidgets('a lifted segmented lens shows its label at its own size', (
     tester,
   ) async {
     const surfaces = [
@@ -225,12 +225,12 @@ void main() {
     );
     expect(find.byType(LiquidGlassLayer), findsOneWidget);
     expect(find.text('Label'), findsNWidgets(2));
-    final copy = find.ancestor(
-      of: find.text('Label').last,
-      matching: find.byType(Transform),
-    );
-    final matrix = tester.widget<Transform>(copy.first).transform;
-    expect(matrix.getMaxScaleOnAxis(), moreOrLessEquals(1.16));
+    expect(_lensShrink(tester, 0), LiquidGlassRendererPainter.segmentedShrink);
+    final base = tester.getRect(find.text('Label').first);
+    final seen = _seenThroughLens(tester, 0, null, 'Label');
+    expect(seen.center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
+    expect(seen.center.dy, moreOrLessEquals(base.center.dy, epsilon: 0.01));
+    expect(seen.width, moreOrLessEquals(base.width, epsilon: 0.01));
     expect(
       find.ancestor(
         of: find.text('Label').last,
@@ -274,7 +274,9 @@ void main() {
     expect(find.byType(LiquidGlassLayer), findsNothing);
   });
 
-  testWidgets('a label under a dragged lens grows in place', (tester) async {
+  testWidgets('a label seen through a dragged lens stays on its slot', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       Directionality(
         textDirection: TextDirection.ltr,
@@ -302,28 +304,25 @@ void main() {
       of: find.byKey(const ValueKey<(String, int)>(('glass', 0))),
       matching: find.byType(LiquidGlass),
     );
-    Rect magnified() => tester.getRect(
-      find.descendant(
-        of: find.descendant(
-          of: find.byKey(const ValueKey<(String, int)>(('copy', 0))),
-          matching: find.byKey(const ValueKey<int>(1)),
-        ),
-        matching: find.text('Night'),
-      ),
-    );
+    expect(_lensShrink(tester, 0), greaterThan(0.1));
     final start = tester.getRect(lens).center;
-    final centers = <Offset>[];
+    final seen = <Rect>[];
     for (var i = 0; i < 20; i++) {
       await gesture.moveBy(const Offset(-2, 0));
       await tester.pump(const Duration(milliseconds: 16));
-      final copy = magnified();
-      expect(copy.width, greaterThan(base.width * 1.1));
-      centers.add(copy.center);
+      seen.add(_seenThroughLens(tester, 0, 1, 'Night'));
     }
     expect((tester.getRect(lens).center - start).dx, lessThan(-10));
-    for (final center in centers) {
-      expect(center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
-      expect(center.dy, moreOrLessEquals(base.center.dy, epsilon: 0.01));
+    for (final label in seen) {
+      expect(label.center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
+      expect(label.center.dy, moreOrLessEquals(base.center.dy, epsilon: 0.01));
+      expect(
+        label.width,
+        moreOrLessEquals(
+          base.width * (1 + LiquidGlassRendererPainter.segmentedMagnification),
+          epsilon: 0.01,
+        ),
+      );
     }
     await gesture.up();
     await tester.pumpAndSettle();
@@ -438,29 +437,15 @@ void main() {
         .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
         .toList();
     expect(layers.first.settings.backdropShrink, 0);
-    expect(
-      layers.last.settings.backdropShrink,
-      LiquidGlassRendererPainter.lensShrink,
-    );
+    expect(_lensShrink(tester, 0), LiquidGlassRendererPainter.tabBarShrink);
     final base = tester.getRect(find.text('A').first);
-    final copy = tester.getRect(
-      find.descendant(
-        of: find.byKey(const ValueKey<(String, int)>(('copy', 0))),
-        matching: find.text('A'),
-      ),
-    );
-    const shrink = 1 - LiquidGlassRendererPainter.lensShrink;
-    final seen = Rect.fromCenter(
-      center: lens.center + (copy.center - lens.center) * shrink,
-      width: copy.width * shrink,
-      height: copy.height * shrink,
-    );
+    final seen = _seenThroughLens(tester, 0, 0, 'A');
     expect(seen.center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
     expect(seen.center.dy, moreOrLessEquals(base.center.dy, epsilon: 0.01));
     expect(
       seen.width,
       moreOrLessEquals(
-        base.width * (1 + LiquidGlassRendererPainter.lensMagnification),
+        base.width * (1 + LiquidGlassRendererPainter.tabBarMagnification),
         epsilon: 0.01,
       ),
     );
@@ -494,4 +479,49 @@ void main() {
     );
     expect(_unstyledTexts(tester), isEmpty);
   });
+}
+
+/// The backdrop shrink the glass of floating surface [lens] renders with.
+double _lensShrink(WidgetTester tester, int lens) => tester
+    .widget<LiquidGlassLayer>(
+      find.descendant(
+        of: find.byKey(ValueKey<(String, int)>(('glass', lens))),
+        matching: find.byType(LiquidGlassLayer),
+      ),
+    )
+    .settings
+    .backdropShrink;
+
+/// Where [text] in content slot [slot], or in the one slot when null,
+/// shows through the glass of
+/// floating surface [lens]: its copy under the glass, minified about the
+/// glass's center the way the renderer reads the backdrop - a point on
+/// the face shows the backdrop `1 + (1 / (1 - shrink) - 1) * visibility`
+/// times farther from that center.
+Rect _seenThroughLens(WidgetTester tester, int lens, int? slot, String text) {
+  final glass = find.descendant(
+    of: find.byKey(ValueKey<(String, int)>(('glass', lens))),
+    matching: find.byType(LiquidGlass),
+  );
+  final visibility =
+      tester.widget<LiquidGlass>(glass).appearance?.visibility ?? 1;
+  final scale = 1 + (1 / (1 - _lensShrink(tester, lens)) - 1) * visibility;
+  final center = tester.getRect(glass).center;
+  final copy = find.byKey(ValueKey<(String, int)>(('copy', lens)));
+  final rect = tester.getRect(
+    find.descendant(
+      of: slot == null
+          ? copy
+          : find.descendant(
+              of: copy,
+              matching: find.byKey(ValueKey<int>(slot)),
+            ),
+      matching: find.text(text),
+    ),
+  );
+  return Rect.fromCenter(
+    center: center + (rect.center - center) / scale,
+    width: rect.width / scale,
+    height: rect.height / scale,
+  );
 }
