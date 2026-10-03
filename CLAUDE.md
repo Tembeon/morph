@@ -35,10 +35,11 @@ Flutter-style split, two entrypoints:
   retargeting, targets, routes, the liquid skin, `MorphSpring`).
 - `lib/widgets.dart` - the measured widget layer (`lib/src/widgets/`),
   re-exports foundation. BOUNDARY: widgets import foundation and motor,
-  the engine NEVER imports widgets. No glass shader lives in the package
-  and none is planned: the layer reproduces how the platform's surfaces
-  MOVE; how they refract is the app's business through the glass seam
-  (below). `lib/native.dart` is gone (it was this layer before it took
+  the engine NEVER imports widgets. The package carries ONE glass
+  renderer (`lib/src/glass/renderer`, owner decision 2026-10-03 - the
+  old "no shader in the package" rule is CANCELLED): the package computes
+  every shape once, the renderer only SHADES the outline it is given, at
+  a quality tier (see the glass seam below). `lib/native.dart` is gone (it was this layer before it took
   over widgets.dart; every `MorphNative*` name lost its infix,
   `MorphNativeMorphSpec` became `MorphMenuMorphSpec`).
 
@@ -951,22 +952,59 @@ Public pieces:
   surface carries the deformed shape, the flat color as a tint,
   brightness, lift, and `MorphGlassOptics` (UIKit's refraction values,
   `small`/`large`; `displacementAt`/`blurRadiusAt` interpolate by lift).
-  Without a painter: flat fills. The package stays shader-free; the
-  gallery installs `LiquidGlassRendererPainter`
-  (example/lib/gallery/liquid_glass_painter.dart) at its root over the
-  VENDORED whynotmake-it renderer (example/third_party/
-  liquid_glass_renderer, Apache-2.0, upstream commit in its VENDORED
-  file, excluded from analysis): body surfaces in one layer (a blend
-  group when several - the menu fuses with its button) reading the
+  Without a painter: flat fills. THE RENDERER (2026-10-03, owner
+  decision): whynotmake-it's renderer (Apache-2.0, upstream ab1c2d29)
+  lives in the package at lib/src/glass/renderer (LICENSE, NOTICE,
+  VENDORED lists every local patch; analyzed with the package's lints),
+  shaders are package assets (pubspec `flutter: shaders:`), hook/build.dart
+  builds its Flutter GPU bundle (morph_glass.shaderbundle.json ->
+  build/shaderbundles/, an asset dir analysis ignores until the hook
+  writes it). ONE public entry: `MorphGlassRenderer` (glass_renderer.dart)
+  - a MorphGlassPainter with `tier` (`MorphGlassTier` flat / frosted /
+  liquid) and the liquid settings (`MorphGlassMaterial`, blur,
+  refraction, light, tint, frostControls); `MorphAdaptiveGlass`
+  (glass_tier.dart) installs it and picks the tier: explicit `tier`
+  wins, else the pure `MorphGlassTierGovernor` over FrameTimings
+  (`MorphGlassTierPolicy`: windows of 30 frames vs 1 / refresh rate;
+  >= 25 percent of a window over budget steps down at once; a window
+  whose p90 is under 0.6 budget steps up after 5 s quiet, doubling per
+  repeated failure of that tier up to 80 s, NEVER while a pointer is
+  down - engineering defaults, not measurements). OUTLINE IS TRUTH: the
+  package fuses, the renderer never does - the renderer's own blend
+  groups are gone. `MorphGlassLayerParts` sorts a layer into plain
+  fills, separate glass bodies, FUSED bodies and floating lenses; a
+  fused body is a `MorphGlassOutline` (glass_outline.dart: `path` +
+  an internal sampled distance field `GlassField`): the menu's
+  blurred-SDF silhouette, or the groups a glass container fuses
+  (`buildLayer(spacing:)`, skin merge law, gap < spacing - 0.5, step 2;
+  `morphGlassContainerOutline`, memo of 4). Tier 0 fills the outline,
+  tier 1 blurs + tints inside it (resting platters stay flat fills),
+  tier 2 shades it from the field: LiquidGlassLayer(field:) switches
+  the geometry pass to shaders/gpu/geometry_field_fragment.glsl (same
+  matte encoding; distance / gradient / half thickness interpolated
+  bilinearly from an RGBA32F texture sampled nearest, a ring of
+  host-visible textures rewritten 3 frames after last use; the material
+  pass still reads the shapes). A body that fuses and comes apart (the
+  menu) keeps ONE layer key ('body'), so its glass never restarts - the
+  old interim (liquid shapes clipped to the outline, frost in the neck)
+  only survives for an outline built from a path alone. The field's
+  half thickness blends button -> menu by the nearer shape over the
+  blur radius; the menu field is blurred at least 24 pt deep
+  (`MorphMenuFusion.shadedDepth`, the bevel depth) and kept at every
+  2nd trace node below a 4 pt step. WEB: the liquid tier sits behind a
+  conditional import (glass_liquid.dart -> _native / _web; the web stub
+  never imports the renderer, `liquidAvailable` false, liquid draws
+  frosted) and the three final-render .frag files compile to an empty
+  stub under SKIA_GRAPHICS_BACKEND ("Only simple shader sampling is
+  supported"), so the web builds with nothing removed. Package tests set
+  the renderer's `isLocalTest` (root-package asset keys). The liquid
+  tier is the former gallery painter, unchanged in its optics: body
+  surfaces in one layer reading the
   nearest BackdropGroup's shared copy (root group in GalleryApp, own
   groups for the glass page's scene and card; bars/menus take their own
-  copy); a menu meets its button in a blend group of 0.5 (their plain
-  union - the neck is the package's: while fused the layer gets the
-  menu's `outline`, the liquid shapes are clipped to it and frost fills
-  the neck; the renderer cannot shade an arbitrary outline yet) and a
-  bar's
-  capsules fuse at the bar's container spacing (`buildLayer(spacing:)`,
-  12: groups 12 apart stay separate - they melted at 18 before); a
+  copy); a
+  bar's capsules fuse at the bar's container spacing (12: groups 12
+  apart stay separate); a
   resting lens/knob/thumb
   is an opaque platter, lifted it is clear glass in its own INDEPENDENT
   layer (own backdrop copy) above body + content, and a lens shows the
@@ -982,7 +1020,7 @@ Public pieces:
   the rim mirrored the labels); now the lens is clear, bends by UIKit's
   displacement x 2 (18 lifted) with dispersion -0.25, and refracts the
   bar glass + the magnified labels beneath it. PER-CONTROL LENS OPTICS
-  (`LiquidGlassRendererPainter.liftedOptics`, measured 2026-10-03 on the
+  (`MorphGlassRenderer.liftedOptics`, measured 2026-10-03 on the
   dark iPhone 16 Pro references; glyph scale by correlation over scales,
   edges at sub-pixel crossings): MAGNIFICATION tab bar 0.16 (held item
   1.218 vs rest, the swollen bar's other items 1.052, so 1.158 on top of
@@ -999,7 +1037,7 @@ Public pieces:
   radially about the centers of its round ends (the segmented track's
   end moves 6.5 px at depth 35 px where the top edge moves 8.5 at 26.5:
   linear in depth, zero on the center line; the switch knob agrees,
-  7.5 vs 7.5 px). The vendored renderer's LOCAL PATCH
+  7.5 vs 7.5 px). The renderer's LOCAL PATCH
   `backdropShrinkRim` (0..1, default 0 = upstream bit for bit; its own
   commit, see VENDORED) shrinks about the nearest point of the long
   center line, rim x (long - short side) long; `liftedOptics` returns
@@ -1016,7 +1054,7 @@ Public pieces:
   it - each strip exact, so a label straddling a cap is not
   approximated), keys 'start' / 'band' / 'end'; the renderer fades the
   shrink with the glass's visibility. The stillness tests in
-  gallery_test measure the label AS SEEN THROUGH that warp (shrink, rim
+  test/glass_renderer_test.dart measure the label AS SEEN THROUGH that warp (shrink, rim
   and visibility read from the LiquidGlassLayer / LiquidGlass they
   render with, the text read in the strip holding its center), so
   through the glass each item sits on its slot at its control's
@@ -1030,12 +1068,27 @@ Public pieces:
   controls on iOS (renders on macOS) - not used; FROST is the dear part
   (~1 ms raster per frosted surface per frame, Controls page 13-15 ms
   vs 2.6 ms), so only bars, menus and lifted lenses frost unless the
-  "Frost controls" setting is on. The web build cannot compile the
-  renderer's .frag shaders: pages.yml `pub remove`s it before building
-  the web gallery, which reaches the renderer only through the
-  conditional import in liquid_glass.dart (see Example). The session settings
-  (GalleryGlassSettings/GalleryGlassScope, glass_settings.dart) live in
-  GalleryApp's State; the Glass renderer page edits them.
+  "Frost controls" setting is on. TIERS ON THE DEVICE (iPhone 16 Pro,
+  2026-10-03, glass_audit_test per `--dart-define=GALLERY_GLASS=`,
+  profile, p95 build / raster ms; scenes segmented / tab bar / controls
+  / menu): liquid 1.75/1.80, 2.91/2.52, 3.87/2.67, 3.03/2.90; frosted
+  0.70/1.65, 1.28/2.42, 2.83/3.70, 2.46/3.67; flat 0.54/0.76,
+  0.69/0.92, 3.00/0.79, 3.23/2.35 (frosted is NOT cheaper than liquid on
+  controls: it blurs every glass surface, liquid frosts only bars, menus
+  and lifted lenses). Tier 2 vs the pre-move gallery (2b3773c, same
+  audit): resting shots pixel-identical, held shots within timing noise
+  (max channel diff <= 19, 0.001 percent of pixels over 15); raster p95
+  equal within noise. FUSED OUTLINE COST per frame on the device (AOT,
+  UI thread, 10-row menu, 100-call mean): blur radius 4 pt 2.7 ms (the
+  step-2 grid; the pre-move trace cost about the same), 10 pt 0.66 ms,
+  20 pt 0.31 ms; two fused bar capsules 0.65 ms (only while fused).
+  DATE PICKER (owner film, 44 vs native 33 gray in dark): the renderer
+  draws the surface color as the tint; MorphDatePickerStyle.dark
+  platterColor 0xF22C2C2E is the cause - the menu's measured dark glass
+  0xF2222222 reads 33-34 (date_picker.dart, not changed here). The
+  session settings (GalleryGlassSettings/GalleryGlassScope,
+  glass_settings.dart: tier null = auto) live in GalleryApp's State; the
+  Glass renderer page edits them and shows the tier being drawn.
 - THEMING: explicit `style` > `MorphWidgetsTheme` (a ThemeExtension, one
   style per control; a ThemeData is one brightness, put a dark style in
   the dark theme) > the style class's `light`/`dark` table for
@@ -1768,17 +1821,11 @@ an optional `navigatorKey` for it. `--dart-define=MORPH_BENCH=true` runs
 `ReleaseBenchApp` (lib/perf/release_bench.dart) - its own MaterialApp
 with one MorphTag card the frame-timing flight launches from.
 
-The liquid glass renderer is behind a CONDITIONAL import:
-lib/gallery/liquid_glass.dart exports liquid_glass_native.dart where
-`dart.library.io` exists (re-exports LiquidGlassMaterial, wraps
-`LiquidGlass.precache` and `LiquidGlassRendererPainter`) and
-liquid_glass_web.dart otherwise (its own LiquidGlassMaterial enum, a
-no-op precache, FrostedGlassPainter in place of liquid glass,
-`liquidGlassAvailable` false so the session starts frosted). Nothing
-the web build compiles may import liquid_glass_painter.dart or the
-renderer package directly - go through liquid_glass.dart - or the
-Pages build (which `pub remove`s the renderer) breaks. Tests and
-integration tests run native and may import the renderer.
+The gallery root installs `MorphAdaptiveGlass` with the settings'
+`MorphGlassRenderer`; lib/gallery/liquid_glass.dart only keeps
+`precacheLiquidGlass()` (= `MorphGlassRenderer.precache()`, a no-op on
+the web). The web build needs no surgery: the package's liquid tier is
+behind its own conditional import.
 
 `example/ios/` (Runner, bundle dev.tembeon.morphExample, team
 83S63575XD) runs the gallery on the owner's iPhone next to the native
@@ -1811,12 +1858,12 @@ Hard-won rules still enforced in the core:
   the "remaining travel < 3.5 pt" unlift rule, a hard clamp at the end
   tabs) our device data wins.
 - whynotmake-it/flutter_liquid_glass `liquid_glass_renderer`
-  (release/01-renderer-core @ cbbac845, sdf.glsl; vendored copy now at
-  ab1c2d29 - see VENDORED for what changed; upstream's LiquidGlassLoupe
+  (release/01-renderer-core @ cbbac845, sdf.glsl; our renderer in
+  lib/src/glass/renderer derives from ab1c2d29 - see its VENDORED; upstream's LiquidGlassLoupe
   and LoupeTabBar are EXAMPLE code, not package API): same base smin, same
   normal-modulation idea with the WRONG exponent (sin(theta/2) chord vs
-  Apple's sin^2) - necks too fat by +0.5..+8 pt as spacing grows. Not a
-  source; a comparison.
+  Apple's sin^2) - necks too fat by +0.5..+8 pt as spacing grows. Its
+  fusion is not used: the package fuses, the renderer shades.
 - Superseded references (kept for history): Kyant0/AndroidLiquidGlass
   (`LiquidButton.kt`, `LiquidBottomTabs.kt`, `DampedDragAnimation.kt` at
   65ab177e) and liquid_glass_easy - the basis of Tug and MorphPillHost,
@@ -2044,7 +2091,8 @@ Hard-won rules still enforced in the core:
   renderer's sin(theta/2) chord (necks too fat).
 - **Shader/blur-based liquid neck** (SDF shader, blur+threshold
   metaballs): halos and mush. The CPU vector path is the only supported
-  skin; glass RENDERING belongs to the app via MorphGlassPainter.
+  skin; the glass renderer shades the outline the package hands it and
+  never fuses on its own (the renderer's blend groups are not used).
 - **Prebuilt drag widget**: gesture policy for dismissing a flight
   belongs to the app. The primitives and the scrub API remain.
 - **Snapshot ghost by default**: a frozen ripple looks worse than a live
@@ -2123,7 +2171,7 @@ dart format lib test example/lib example/test && flutter analyze
 flutter test && (cd example && flutter test)
 cd example && flutter build macos --release
 cd example && flutter run -d macos --dart-define=MORPH_AUTODEMO=true
-cd example && flutter build web --wasm   # with liquid_glass_renderer removed, as pages.yml does
+cd example && flutter build web --wasm   # as is: the liquid tier compiles to stubs there
 ```
 
 Every step must be green after each change (analyze from the package
@@ -2134,9 +2182,7 @@ example has an iOS target). Agent self-verification is the tests (624
 in the package + 15 in example) plus the autodemo with no EXCEPTION in
 the log and `AUTODEMO done` at its end (autodemo: every gallery page in
 turn - push, center tap, horizontal drag, upward scroll, pop home - then
-the app exits). The web step runs in a scratch copy of the repo (pub
-remove liquid_glass_renderer in its example, then build) so the working
-tree keeps the renderer.
+the app exits).
 
 Test traps:
 - `tester.getSize` reads the LAYOUT size and ignores paint transforms -
