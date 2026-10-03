@@ -10,6 +10,7 @@ import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/typography.dart';
 
 /// One item of a [MorphTabBar].
 class MorphTabItem {
@@ -143,11 +144,6 @@ class MorphTabBarStyle {
 
 typedef _Geometry = ({double pitch, double lens, double width});
 
-const TextStyle _labelStyle = TextStyle(
-  fontSize: 10,
-  fontWeight: FontWeight.w600,
-);
-
 /// The horizontal room a label keeps inside its tab.
 const double _labelPadding = 12;
 
@@ -255,7 +251,10 @@ class _MorphTabBarState extends State<MorphTabBar>
     var widest = 0.0;
     for (final item in widget.items) {
       final painter = TextPainter(
-        text: TextSpan(text: item.label, style: _labelStyle),
+        text: TextSpan(
+          text: item.label,
+          style: MorphTypography.resolve(MorphTypography.tabLabelSelected),
+        ),
         textDirection: TextDirection.ltr,
         textScaler: scaler,
         maxLines: 1,
@@ -348,6 +347,7 @@ class _MorphTabBarState extends State<MorphTabBar>
                   child: _TabLabel(
                     item: widget.items[i],
                     scaler: scaler,
+                    selected: i == motion.selected,
                     color: i == motion.selected
                         ? style.selectedColor
                         : style.color,
@@ -464,11 +464,13 @@ class _TabLabel extends StatelessWidget {
   const _TabLabel({
     required this.item,
     required this.scaler,
+    required this.selected,
     required this.color,
   });
 
   final MorphTabItem item;
   final TextScaler scaler;
+  final bool selected;
   final Color color;
 
   @override
@@ -482,7 +484,11 @@ class _TabLabel extends StatelessWidget {
           item.label,
           maxLines: 1,
           textScaler: scaler,
-          style: _labelStyle.copyWith(color: color),
+          style: MorphTypography.resolve(
+            selected
+                ? MorphTypography.tabLabelSelected
+                : MorphTypography.tabLabel,
+          ).copyWith(color: color),
         ),
       ],
     );

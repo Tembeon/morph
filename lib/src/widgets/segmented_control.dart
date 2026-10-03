@@ -8,6 +8,7 @@ import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/typography.dart';
 
 /// A segmented control whose selection lens moves exactly like
 /// UISegmentedControl's on iOS 27.
@@ -71,12 +72,12 @@ class MorphSegmentedStyle {
     this.shadowColor = const Color(0x1F000000),
     this.textStyle = const TextStyle(
       fontSize: 13,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w400,
       color: Color(0xFF000000),
     ),
     this.selectedTextStyle = const TextStyle(
       fontSize: 13,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.w500,
       color: Color(0xFF000000),
     ),
     this.contentPadding = 16,
@@ -104,10 +105,13 @@ class MorphSegmentedStyle {
   /// The shadow under the lens.
   final Color shadowColor;
 
-  /// The label style of unselected segments.
+  /// The label style of unselected segments, painted through
+  /// [MorphTypography.resolve]; UIKit's is [MorphTypography.segment].
   final TextStyle textStyle;
 
-  /// The label style of the selected segment.
+  /// The label style of the selected segment, painted through
+  /// [MorphTypography.resolve]; UIKit's is
+  /// [MorphTypography.segmentSelected].
   final TextStyle selectedTextStyle;
 
   /// The horizontal padding around a label when sizing by content.
@@ -128,12 +132,12 @@ class MorphSegmentedStyle {
     shadowColor: Color(0x33000000),
     textStyle: TextStyle(
       fontSize: 13,
-      fontWeight: FontWeight.w500,
+      fontWeight: FontWeight.w400,
       color: Color(0xFFFFFFFF),
     ),
     selectedTextStyle: TextStyle(
       fontSize: 13,
-      fontWeight: FontWeight.w600,
+      fontWeight: FontWeight.w500,
       color: Color(0xFFFFFFFF),
     ),
   );
@@ -215,7 +219,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
 
   double _measure(String text, TextStyle style) {
     final painter = TextPainter(
-      text: TextSpan(text: text, style: style),
+      text: TextSpan(text: text, style: MorphTypography.resolve(style)),
       textDirection: TextDirection.ltr,
       textScaler: _scaler,
     );
@@ -371,9 +375,11 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textScaler: _scaler,
-                        style: i == widget.selected
-                            ? style.selectedTextStyle
-                            : style.textStyle,
+                        style: MorphTypography.resolve(
+                          i == widget.selected
+                              ? style.selectedTextStyle
+                              : style.textStyle,
+                        ),
                       ),
                     ),
                   ),

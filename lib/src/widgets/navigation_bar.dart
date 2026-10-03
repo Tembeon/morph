@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
 import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The measured geometry of an iOS 27 navigation bar on a phone.
@@ -42,22 +43,22 @@ abstract final class MorphNavigationBarMetrics {
   static const double titlePadding = 12;
 }
 
-/// The style of a navigation bar's large title.
-TextStyle morphLargeTitleStyle(Color color) => TextStyle(
-  fontSize: MorphNavigationBarMetrics.largeTitleSize,
-  fontWeight: FontWeight.w700,
-  height: 1.2,
-  letterSpacing: 0.4,
-  color: color,
+/// The style of a navigation bar's large title: [MorphTypography.largeTitle].
+TextStyle morphLargeTitleStyle(Color color) => MorphTypography.resolve(
+  MorphTypography.largeTitle.copyWith(
+    fontSize: MorphNavigationBarMetrics.largeTitleSize,
+    height: 1.2,
+    color: color,
+  ),
 );
 
-/// The style of a navigation bar's inline title.
-TextStyle morphInlineTitleStyle(Color color) => TextStyle(
-  fontSize: MorphNavigationBarMetrics.titleSize,
-  fontWeight: FontWeight.w600,
-  height: 1.2,
-  letterSpacing: -0.43,
-  color: color,
+/// The style of a navigation bar's inline title: [MorphTypography.title].
+TextStyle morphInlineTitleStyle(Color color) => MorphTypography.resolve(
+  MorphTypography.title.copyWith(
+    fontSize: MorphNavigationBarMetrics.titleSize,
+    height: 1.2,
+    color: color,
+  ),
 );
 
 /// The buttons a navigation bar leans toward while an interactive pop is

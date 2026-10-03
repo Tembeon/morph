@@ -7,6 +7,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/date_picker_motion.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// What a [MorphDatePicker] picks.
@@ -417,13 +418,13 @@ class _CompactLabelState extends State<_CompactLabel>
                         widget.text,
                         maxLines: 1,
                         textScaler: scaler,
-                        style: TextStyle(
-                          fontSize: 17,
-                          height: 20.33 / 17,
-                          letterSpacing: -0.43,
-                          color: widget.open
-                              ? style.accentColor
-                              : style.labelColor,
+                        style: MorphTypography.resolve(
+                          MorphTypography.datePickerCompact.copyWith(
+                            height: 20.33 / 17,
+                            color: widget.open
+                                ? style.accentColor
+                                : style.labelColor,
+                          ),
                         ),
                       ),
                     ),
@@ -633,7 +634,9 @@ class _OverlayViewState extends State<_OverlayView>
           ),
         ),
         child: DefaultTextStyle(
-          style: TextStyle(fontSize: 17, color: style.dayColor),
+          style: MorphTypography.resolve(
+            TextStyle(fontSize: 17, color: style.dayColor),
+          ),
           child: SizedBox.fromSize(size: size, child: content),
         ),
       ),
@@ -868,19 +871,17 @@ class _Calendar extends StatelessWidget {
   Widget build(BuildContext context) {
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     const grid = 7 * _CalendarMetrics.cell;
-    final title = TextStyle(
-      fontSize: 17,
-      height: 1.2,
-      letterSpacing: -0.43,
-      fontWeight: FontWeight.w600,
-      color: style.titleColor,
+    final title = MorphTypography.resolve(
+      MorphTypography.datePickerTitle.copyWith(
+        height: 1.2,
+        color: style.titleColor,
+      ),
     );
-    final weekday = TextStyle(
-      fontSize: 13,
-      height: 15.67 / 13,
-      letterSpacing: -0.08,
-      fontWeight: FontWeight.w600,
-      color: style.weekdayColor,
+    final weekday = MorphTypography.resolve(
+      MorphTypography.datePickerWeekday.copyWith(
+        height: 15.67 / 13,
+        color: style.weekdayColor,
+      ),
     );
     return Padding(
       padding: const EdgeInsets.only(top: _CalendarMetrics.top),
@@ -1096,12 +1097,11 @@ class _Day extends StatelessWidget {
               child: Text(
                 '${date.day}',
                 textScaler: TextScaler.noScaling,
-                style: TextStyle(
-                  fontSize: 20,
-                  height: 1.2,
-                  letterSpacing: -0.45,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
-                  color: color,
+                style: MorphTypography.resolve(
+                  (selected
+                          ? MorphTypography.datePickerDaySelected
+                          : MorphTypography.datePickerDay)
+                      .copyWith(height: 1.2, color: color),
                 ),
               ),
             ),
@@ -1275,12 +1275,13 @@ class _TimeWheelsState extends State<_TimeWheels> {
                 child: Text(
                   text(v),
                   textScaler: TextScaler.noScaling,
-                  style: TextStyle(
-                    fontSize: 22,
-                    letterSpacing: 0.35,
-                    color: v == selected
-                        ? style.wheelColor
-                        : style.wheelFadedColor,
+                  style: MorphTypography.resolve(
+                    TextStyle(
+                      fontSize: 22,
+                      color: v == selected
+                          ? style.wheelColor
+                          : style.wheelFadedColor,
+                    ),
                   ),
                 ),
               );

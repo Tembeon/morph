@@ -10,6 +10,7 @@ import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/typography.dart';
 
 /// The motion of an iOS 27 glass button: one uniform lift, a lean toward
 /// a finger that drags off, and the touch glow.
@@ -425,11 +426,9 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
           child: IconTheme.merge(
             data: IconThemeData(color: foreground, size: 22),
             child: DefaultTextStyle.merge(
-              style: TextStyle(
-                color: foreground,
-                fontSize: 17,
-                fontWeight: FontWeight.w500,
-              ),
+              style: MorphTypography.resolve(
+                MorphTypography.button,
+              ).copyWith(color: foreground),
               child: widget.child,
             ),
           ),

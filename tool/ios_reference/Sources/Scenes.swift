@@ -16,6 +16,7 @@ enum Scenes {
     static func make(_ name: String) -> UIViewController {
         if let w2 = Widgets2Scenes.make(name) { return w2 }
         if let x3 = ExtrasScenes.make(name) { return x3 }
+        if let fonts = TypographyScenes.make(name) { return fonts }
         if name.hasPrefix("tabbar") {
             let count = Int(name.dropFirst("tabbar".count)) ?? 4
             return TabBarScene(count: count)

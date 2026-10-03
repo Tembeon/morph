@@ -10,6 +10,7 @@ import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/search_motion.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphSearchField] and a [MorphSearchToolbar].
@@ -222,12 +223,8 @@ class _MorphSearchFieldState extends State<MorphSearchField>
     final scaler = MediaQuery.textScalerOf(
       context,
     ).clamp(maxScaleFactor: MorphSearchField.maxTextScale);
-    final text = TextStyle(
-      fontSize: 17,
-      height: 1.2,
-      letterSpacing: -0.43,
-      fontWeight: FontWeight.w500,
-      color: style.textColor,
+    final text = MorphTypography.resolve(
+      MorphTypography.searchField.copyWith(height: 1.2, color: style.textColor),
     );
     final editable = EditableText(
       key: _editable,

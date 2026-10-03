@@ -12,6 +12,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// One row of a [MorphMenuButton]'s menu.
@@ -45,11 +46,7 @@ class MorphMenuStyle {
     this.glassColor = const Color(0xF2FFFFFF),
     this.shadowColor = const Color(0x33000000),
     this.shadowElevation = 12,
-    this.textStyle = const TextStyle(
-      fontSize: 17,
-      letterSpacing: -0.4,
-      color: Color(0xFF000000),
-    ),
+    this.textStyle = const TextStyle(fontSize: 17, color: Color(0xFF000000)),
     this.iconColor = const Color(0xFF000000),
     this.iconSize = 20,
     this.destructiveColor = const Color(0xFFFF3B30),
@@ -106,11 +103,7 @@ class MorphMenuStyle {
   static const dark = MorphMenuStyle(
     glassColor: Color(0xF2222222),
     shadowColor: Color(0x66000000),
-    textStyle: TextStyle(
-      fontSize: 17,
-      letterSpacing: -0.4,
-      color: Color(0xFFFFFFFF),
-    ),
+    textStyle: TextStyle(fontSize: 17, color: Color(0xFFFFFFFF)),
     iconColor: Color(0xFFFFFFFF),
     destructiveColor: Color(0xFFFF5659),
     highlightColor: Color(0x29FFFFFF),
@@ -658,7 +651,7 @@ class _MenuLayer extends StatelessWidget {
     final Widget rows = RepaintBoundary(
       key: const ValueKey<String>('rows'),
       child: DefaultTextStyle(
-        style: style.textStyle,
+        style: MorphTypography.resolve(style.textStyle),
         child: _MenuRows(state: state),
       ),
     );
@@ -837,7 +830,9 @@ class _MenuRows extends StatelessWidget {
                   item.title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: style.textStyle.copyWith(color: color),
+                  style: MorphTypography.resolve(
+                    style.textStyle,
+                  ).copyWith(color: color),
                 ),
               ),
             ],

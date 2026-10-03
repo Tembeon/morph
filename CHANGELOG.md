@@ -557,17 +557,6 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   and only the lens window moves, as in UIKit. The example's liquid
   painter used to scale about the lens center, so the label slid along
   with a dragged lens.
-- example gallery glass: the vendored `liquid_glass_renderer` moves to
-  upstream release/01-renderer-core @ ab1c2d29 (frost at the Clear end
-  2 pt instead of 3.7, the regular frost curve refitted, dimmer glint on
-  dark toolbar and clear glass, one render base for real and fake
-  glass). A lifted lens over a tab bar now MINIFIES the bar glass beneath
-  it by 14 percent (`backdropShrink`), as the device's tab bar lens does
-  (the bar's edges show inside the lens at 0.875 of the bar's height),
-  while the items under it still grow by 16 percent about their own
-  slots: the copy is pre-grown against the shrink. The glass page gains
-  the iOS Liquid Glass Clear / Tinted choice beside the slider; Clear
-  stays the default.
 - Navigation (owner's iPhone pass on the gallery's Navigation page):
   - `MorphNavigationStack` owns the pops of its own screens: its
     navigator sits under a `NavigatorPopHandler`, so while it can pop,
@@ -598,6 +587,25 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
     Refitted on four new iPhone 16 Pro swipes (0.49 at no lag, 0.50 one
     or two display ticks behind; replay 0.16 - 0.27 pt rms,
     `pop-edge-drift-*` fixtures).
+- NEW: `MorphTypography` - UIKit's text for the measured controls, one
+  home. Role styles carry the size and weight each control's labels use
+  on iOS 27 (read from the real labels by the probe's `fonts` scene on
+  the iPhone 16 Pro), and `MorphTypography.resolve` turns one into what
+  CoreText does with the system font and Flutter does not: the optical
+  size axis (`opsz` = the point size), UIKit's `wght` values (medium
+  510, semibold 590) and SF Pro's size-dependent tracking
+  (`MorphTypography.tracking`, measured 6 - 96 pt, e.g. 13 pt -0.076,
+  17 pt -0.431, 34 pt +0.382). On Apple platforms only; elsewhere the
+  style stays the platform font at the same size and weight (SF Pro is
+  never bundled). Every control paints through it, and the measured
+  weights replace the guessed ones: segments regular / selected medium
+  (were medium / semibold), tab titles medium / selected semibold, glass
+  button titles regular (were medium), plain bar buttons medium (were
+  regular). Widths now match UIKit on the device within 0.01 pt for 25
+  labels across the controls; "Unread messages" in a segment is 108.58
+  pt as in UIKit (was 112.0), a large title "Settings" 132.96 (was
+  143.9). Hard-coded `letterSpacing` values are gone from the widgets
+  (the menu's -0.4, the large title's +0.4, the date wheel's +0.35).
 
 
 ## 0.6.0 - 2026-09-03

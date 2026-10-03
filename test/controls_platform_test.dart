@@ -391,7 +391,7 @@ void main() {
       await tester.tap(find.text('C'));
       await tester.pumpAndSettle();
       final text = tester.widget<Text>(find.text('A'));
-      expect(text.style?.fontWeight, FontWeight.w600, reason: 'A stays');
+      expect(text.style?.fontWeight, FontWeight.w500, reason: 'A stays');
       expect(_opacityAbove(tester, find.text('A')), 0.35);
       expect(tester.binding.hasScheduledFrame, isFalse);
     });

@@ -135,4 +135,5 @@ export 'src/widgets/switch_motion.dart' show MorphSwitchMotion;
 export 'src/widgets/tab_bar.dart'
     show MorphTabBar, MorphTabBarStyle, MorphTabItem;
 export 'src/widgets/toolbar.dart' show MorphToolbar;
+export 'src/widgets/typography.dart' show MorphTypography;
 export 'src/widgets/widgets_theme.dart' show MorphWidgetsTheme;

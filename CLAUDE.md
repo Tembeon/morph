@@ -615,18 +615,7 @@ Public pieces:
   blob) and bent by the button's 60 against a bevel of 20 (ratio 3:
   the rim mirrored the labels); now the lens is clear, bends by UIKit's
   displacement x 2 (18 lifted) with dispersion -0.25, and refracts the
-  bar glass + the magnified labels beneath it. A lifted lens over a BAR
-  MINIFIES the bar glass (renderer `backdropShrink` 0.14 x lift, about the
-  lens center) - measured on tabbar3-held-other: inside the lens the bar's
-  edges sit at 0.875 of its height, dark page bands at the lens's top and
-  bottom; UIKit does NOT magnify the bar glass, only the items, and
-  whynotmake-it's LoupeTabBar fits the same 14 percent on an iPhone 17
-  Pro. The copy is pre-grown by 1 / (1 - shrink) about the lens center
-  (outside the per-slot scale, clipped to the lens) so through the glass
-  each item still sits on its slot at 1.16; the segmented lens (plain
-  track) does not shrink yet - its reference shows the same inward edges,
-  but the copy-stillness test measures the pre-glass copy and would need
-  to measure through the shrink. The dark tab bar's resting
+  bar glass + the magnified labels beneath it. The dark tab bar's resting
   platter is DARKER than the bar (reference 10 vs 35: 0xB5000000, was a
   white 14 percent). Audit tool: example/integration_test/
   glass_audit_test.dart (profile, dark; shots of the reference states and
@@ -647,6 +636,37 @@ Public pieces:
   the dark theme) > the style class's `light`/`dark` table for
   `morphBrightnessOf` (Theme, else MediaQuery platform brightness, else
   light). An explicit color parameter still beats the style.
+- TYPOGRAPHY (`typography.dart`, `MorphTypography`, measured
+  2026-10-03): every label a control paints goes through
+  `MorphTypography.resolve(style)`; role constants (`segment`,
+  `tabLabel`, `button`, `barButton`, `largeTitle`, `alertAction`,
+  `datePickerDay`, ...) are size + weight only, read from the real
+  UIKit labels by the probe's `fonts` scene (Typography.swift; dumps in
+  tool/ios_reference/recordings/fonts-{sim,device}, device == simulator
+  to the 0.001 pt). Why resolve exists: Flutter's iOS default font
+  (null family == '.AppleSystemUIFont' == 'CupertinoSystemText') is SF
+  Pro at opsz 17 with NO tracking at every size - per-em advance
+  constant, equal to UIKit's 12 pt; CoreText applies the `trak` table
+  (size-dependent tracking, identical to Apple's published SF table) and
+  opsz = point size (17..28 effective; 'CupertinoSystemDisplay' is opsz
+  28 fixed). `FontVariation('opsz'/'wght')` on the null family DOES
+  work on iOS; letterSpacing = tracking(size) then matches CoreText to
+  0.01 pt (Flutter's trailing spacing equals CoreText's). UIKit's
+  medium/semibold are wght 510/590, not 500/600 (0.3 pt over 15 chars).
+  Measured weights: segments regular / selected medium (with GRAD
+  466/448, `.SFUI-RegularG3` - not reproduced, grade does not change
+  width), tab titles medium / selected semibold 10 pt, glass button and
+  menu rows regular 17, bar buttons medium (prominent semibold), alert
+  title semibold 17, message regular 15, actions medium 17, search
+  medium 17, large title bold 34. Apple platforms only (iOS, macOS - the
+  macOS CoreText path is inferred, not measured); elsewhere resolve is
+  the identity (SF Pro may not ship off Apple platforms). A
+  `letterSpacing` or `fontVariations` set by the caller wins; a custom
+  family is left alone. Not measured: the date wheel (22 pt, resolved
+  like any system label), Dynamic Type (letterSpacing does not scale
+  with the TextScaler). Parity check on the device:
+  example/integration_test/typography_parity_test.dart as a profile
+  app (devicectl launch, pull `<app tmp>/typography_parity.txt`).
 - A11Y / INPUT: each segment is a selectable button in a mutually
   exclusive group; the tab bar carries tab bar / tab roles; switch and
   slider take `semanticLabel`; slider adjust actions and arrows move by
@@ -1279,9 +1299,7 @@ Hard-won rules still enforced in the core:
   the "remaining travel < 3.5 pt" unlift rule, a hard clamp at the end
   tabs) our device data wins.
 - whynotmake-it/flutter_liquid_glass `liquid_glass_renderer`
-  (release/01-renderer-core @ cbbac845, sdf.glsl; vendored copy now at
-  ab1c2d29 - see VENDORED for what changed; upstream's LiquidGlassLoupe
-  and LoupeTabBar are EXAMPLE code, not package API): same base smin, same
+  (release/01-renderer-core @ cbbac845, sdf.glsl): same base smin, same
   normal-modulation idea with the WRONG exponent (sin(theta/2) chord vs
   Apple's sin^2) - necks too fat by +0.5..+8 pt as spacing grows. Not a
   source; a comparison.

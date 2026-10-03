@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/widgets/typography.dart';
 
 /// One button of a glass bar: a label or an icon.
 ///
@@ -263,14 +264,13 @@ class MorphPlacedGroup {
   final MorphBarSide side;
 }
 
-/// The label style of bar buttons.
+/// The label style of bar buttons: [MorphTypography.barButton], or
+/// [MorphTypography.barButtonProminent] when [bold], at the metrics' size.
 @internal
 TextStyle morphBarLabelStyle(MorphBarMetrics metrics, {bool bold = false}) =>
-    TextStyle(
-      fontSize: metrics.fontSize,
-      fontWeight: bold ? FontWeight.w600 : FontWeight.w400,
-      height: 1.2,
-      letterSpacing: -0.43,
+    MorphTypography.resolve(
+      (bold ? MorphTypography.barButtonProminent : MorphTypography.barButton)
+          .copyWith(fontSize: metrics.fontSize, height: 1.2),
     );
 
 /// The width of the content of [button].

@@ -8,6 +8,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The role of a [MorphAlertAction], after UIAlertAction.Style.
@@ -368,16 +369,16 @@ List<MorphAlertAction> _ordered(
 }
 
 TextStyle _buttonText(MorphAlertAction action, MorphAlertStyle style) =>
-    TextStyle(
-      fontSize: 17,
-      height: 20.33 / 17,
-      letterSpacing: -0.43,
-      fontWeight: action.isPreferred ? FontWeight.w600 : FontWeight.w500,
-      color: action.isPreferred
-          ? style.preferredLabelColor
-          : action.style == MorphAlertActionStyle.destructive
-          ? style.destructiveColor
-          : style.labelColor,
+    MorphTypography.resolve(
+      MorphTypography.alertAction.copyWith(
+        height: 20.33 / 17,
+        fontWeight: action.isPreferred ? FontWeight.w600 : null,
+        color: action.isPreferred
+            ? style.preferredLabelColor
+            : action.style == MorphAlertActionStyle.destructive
+            ? style.destructiveColor
+            : style.labelColor,
+      ),
     );
 
 class _AlertView extends StatefulWidget {
@@ -638,7 +639,9 @@ class _AlertViewState extends State<_AlertView>
     return MediaQuery(
       data: media.copyWith(textScaler: scaler.clamp(maxScaleFactor: 2)),
       child: DefaultTextStyle(
-        style: TextStyle(fontSize: 17, color: style.labelColor),
+        style: MorphTypography.resolve(
+          TextStyle(fontSize: 17, color: style.labelColor),
+        ),
         child: popover
             ? _popoverLayout(context, keyed, style, padding, direction)
             : _alertLayout(context, keyed, style, padding),
@@ -928,12 +931,12 @@ class _AlertCard extends StatelessWidget {
         Text(
           title,
           textAlign: TextAlign.start,
-          style: TextStyle(
-            fontSize: 17,
-            height: 20.33 / 17,
-            letterSpacing: -0.43,
-            fontWeight: both ? FontWeight.w600 : FontWeight.w400,
-            color: style.titleColor,
+          style: MorphTypography.resolve(
+            MorphTypography.alertTitle.copyWith(
+              height: 20.33 / 17,
+              fontWeight: both ? null : FontWeight.w400,
+              color: style.titleColor,
+            ),
           ),
         ),
       if (both) const SizedBox(height: MorphAlertTuning.titleGap),
@@ -941,19 +944,18 @@ class _AlertCard extends StatelessWidget {
         Text(
           message,
           textAlign: TextAlign.start,
-          style: single
-              ? TextStyle(
-                  fontSize: 17,
-                  height: 20.33 / 17,
-                  letterSpacing: -0.43,
-                  color: style.titleColor,
-                )
-              : TextStyle(
-                  fontSize: 15,
-                  height: 1.2,
-                  letterSpacing: -0.23,
-                  color: style.messageColor,
-                ),
+          style: MorphTypography.resolve(
+            single
+                ? TextStyle(
+                    fontSize: 17,
+                    height: 20.33 / 17,
+                    color: style.titleColor,
+                  )
+                : MorphTypography.alertMessage.copyWith(
+                    height: 1.2,
+                    color: style.messageColor,
+                  ),
+          ),
         ),
     ];
     final fieldWidgets = <Widget>[
@@ -1219,11 +1221,8 @@ class _AlertFieldState extends State<_AlertField> {
   Widget build(BuildContext context) {
     final style = widget.style;
     final controller = widget.controller;
-    final text = TextStyle(
-      fontSize: 17,
-      height: 20.33 / 17,
-      letterSpacing: -0.43,
-      color: style.titleColor,
+    final text = MorphTypography.resolve(
+      TextStyle(fontSize: 17, height: 20.33 / 17, color: style.titleColor),
     );
     final placeholder = widget.field.placeholder;
     return Container(

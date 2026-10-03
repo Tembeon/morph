@@ -10,6 +10,7 @@ import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/tab_bar.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// A floating [MorphTabBar] with a search tab that turns into a search
@@ -558,11 +559,9 @@ class _TabGlyph extends StatelessWidget {
               item.label,
               maxLines: 1,
               textScaler: TextScaler.noScaling,
-              style: TextStyle(
-                fontSize: 10 * labelVisible,
-                fontWeight: FontWeight.w600,
-                color: color,
-              ),
+              style: MorphTypography.resolve(
+                MorphTypography.tabLabelSelected,
+              ).copyWith(fontSize: 10 * labelVisible, color: color),
             ),
           ),
       ],
@@ -674,12 +673,11 @@ class _SearchCircle extends StatelessWidget {
                         maxLines: 1,
                         softWrap: false,
                         overflow: TextOverflow.clip,
-                        style: TextStyle(
-                          fontSize: 17,
-                          height: 1.2,
-                          letterSpacing: -0.43,
-                          fontWeight: FontWeight.w500,
-                          color: style.placeholderColor,
+                        style: MorphTypography.resolve(
+                          MorphTypography.searchField.copyWith(
+                            height: 1.2,
+                            color: style.placeholderColor,
+                          ),
                         ),
                       ),
                     ),
