@@ -1,0 +1,20 @@
+{
+ "family": "menu_api",
+ "captured": "2026-10-03, MenuAPIUITests testMenuLook / testMenuMotion / testMenuMotion2 (Menus.swift scenes x5menu, PROBE_MENU)",
+ "format": "jsonl: k=start, touch (phase 0 began / 1 moved / 3 ended, window pt), evt (e=action title=...), windows, frame (cls, id stable per view, x/y = window center, w/h, a opacity, sx/sy, cr) for _UIContextMenuView, _UIContextMenuListView (one per card), _UIContextMenuSubmenuTitleView, UICollectionView; rows only when changed; dl/L rows dropped (the raw files keep them: tool/ios_reference/recordings/device-menumotion2)",
+ "files": {
+  "layout.json": "the measured layout, colors, springs (see spec/menu-api.md)",
+  "mm-sub-tap.jsonl": "tap button, tap More (201,238): submenu open",
+  "mm-sub-back.jsonl": "... then tap the submenu header (201,232.5): back",
+  "mm-sub-deeper.jsonl": "... then tap Deeper (201,378.5): second level",
+  "mm-sub-select.jsonl": "... then tap Sub one: action + close",
+  "mm-sub-slide.jsonl": "press the button 0.6 s, slide onto More, hold 1.4 s, lift",
+  "mm-sub-slide2.jsonl": "press 0.6 s, slide onto More, hold 1.5 s, slide to Sub two, lift (fires Sub two)",
+  "mm-rich1-select.jsonl": "keepsMenuPresented taps: Date, Size, Show hidden",
+  "mm-resize.jsonl": "Add row x2, Remove row (updateVisibleMenu)",
+  "mm-tall-scroll.jsonl": "30 rows: drag up 300 pt in 0.5 s + hold, flick down",
+  "mm-deferred.jsonl": "uncached deferred element answered after 2 s",
+  "mm-palette.jsonl": "tap the Green palette cell (keepsMenuPresented), then Plain row",
+  "mm-swiftui2.jsonl": "SwiftUI Menu: Count button (menuActionDismissBehavior .disabled) x2, Show hidden toggle"
+ }
+}

@@ -91,9 +91,9 @@ launched with `open` - ask first).
 
 Probe app: `Sources/` (App, Scenes, Controls, Recorder, Settings, Merge,
 Bars, Widgets2 `w2*`, Extras `x3*`, SheetNav `sn*`, Typography `fonts`,
-States `x4*`), UITests in `UITests/` (ProbeUITests, BarsUITests,
-Widgets2UITests, ExtrasUITests, SheetNavUITests, MenuAnchorUITests,
-StatesUITests); `reduce_motion.sh` replays the representative captures
+States `x4*`, Menus `x5menu`), UITests in `UITests/` (ProbeUITests,
+BarsUITests, Widgets2UITests, ExtrasUITests, SheetNavUITests,
+MenuAnchorUITests, StatesUITests, MenuAPIUITests); `reduce_motion.sh` replays the representative captures
 with Reduce Motion on ([states](states.md)). The recorder samples
 presentation layers every display-link tick and logs only changed rows:
 lens frame rows, `_UIFlexInteraction` / `_UIVelocityIntegrator` state, the
@@ -287,6 +287,7 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [glass-renderer](glass-renderer.md) | D (tier costs) | P (package renderer, tiers, adaptive policy) | policy numbers are defaults; date picker dark platter color |
 | [skin-merge](skin-merge.md) | D | P | 3+ mass normal mixing unmeasured |
 | [engine-flight](engine-flight.md) | D tuning | P | - |
+| [menu-api](menu-api.md) | D (layout, submenu springs, live updates; light + dark) | to port | free-form rows have no native twin; hover dwell from 2 runs |
 | [states](states.md) | D disabled (light + dark), light refs | P disabled (disabled_test) | Reduce Motion pass waits for the owner's switch |
 
 Disabled looks are measured for every control and ported (2026-10-03,

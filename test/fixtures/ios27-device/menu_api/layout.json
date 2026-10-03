@@ -1,0 +1,244 @@
+{
+ "device": "iPhone 16 Pro, iOS 27.0.1, 402x874 pt; UIButton(.glass) 48x48 at center x, y 150, showsMenuAsPrimaryAction; menus open downward",
+ "source": "deep dumps (tool/ios_reference/recordings/device-menuapi/dump-ml-*-open.txt, references/menu-api/*.png); motion fits from the frame rows in this directory",
+ "layout": {
+  "menu_width": 250,
+  "top_inset": 10,
+  "bottom_inset": 10,
+  "row_height": 42,
+  "row_height_with_subtitle": 60,
+  "title_font": {
+   "size": 17,
+   "color_alpha": 0.96,
+   "dark": [
+    1,
+    1,
+    1,
+    0.96
+   ],
+   "light": [
+    0,
+    0,
+    0,
+    0.96
+   ]
+  },
+  "subtitle_font": {
+   "size": 13,
+   "dark": [
+    0.9216,
+    0.9216,
+    0.9608,
+    0.6
+   ],
+   "light": [
+    0.2353,
+    0.2353,
+    0.2627,
+    0.6
+   ],
+   "title_to_subtitle_top": 23
+  },
+  "disabled_title": {
+   "dark": [
+    0.9216,
+    0.9216,
+    0.9608,
+    0.298
+   ],
+   "light": [
+    0.2353,
+    0.2353,
+    0.2627,
+    0.298
+   ]
+  },
+  "destructive_title": {
+   "dark": [
+    1,
+    0.2588,
+    0.2706,
+    1
+   ],
+   "light": [
+    1,
+    0.2196,
+    0.2353,
+    1
+   ]
+  },
+  "columns": {
+   "plain": {
+    "image_center_x_from_menu_left": 40,
+    "title_x_from_menu_left": 64,
+    "title_width": 158
+   },
+   "with_selection_column": {
+    "check_center_x_from_menu_left": 27.7,
+    "image_center_x_from_menu_left": 55,
+    "title_x_from_menu_left": 79,
+    "title_width": 143
+   },
+   "no_image_inline": {
+    "title_x_from_menu_left": 28,
+    "title_width": 194
+   }
+  },
+  "checkmark": {
+   "symbol": "checkmark",
+   "size": [
+    13.33,
+    12.33
+   ]
+  },
+  "mixed": {
+   "symbol": "minus",
+   "size": [
+    12.67,
+    3.67
+   ]
+  },
+  "section_header": {
+   "height": 40.33,
+   "font_size": 13,
+   "color": "subtitle color",
+   "label_top_from_header_top": 12
+  },
+  "group_separator": {
+   "gap": 21,
+   "line": {
+    "inset_from_menu_edges": 24,
+    "thickness_pt": 1,
+    "rendered_dark": "50 on 32",
+    "rendered_light": "229 on 249"
+   }
+  },
+  "palette": {
+   "cell": [
+    42.67,
+    54
+   ],
+   "count_5_x_from_menu_left": [
+    18.33,
+    61,
+    103.67,
+    146.33,
+    189
+   ],
+   "image": 22,
+   "selected_platter": "rounded rect behind the selected cell (screenshot)"
+  },
+  "small_elements": {
+   "cell": [
+    58.33,
+    51.67
+   ],
+   "row_x_from_menu_left": 8,
+   "count_4_width": 234,
+   "label": "none (icon only)"
+  },
+  "medium_elements": {
+   "cell": [
+    78,
+    77
+   ],
+   "count_3_x_from_menu_left": [
+    8,
+    86,
+    164
+   ],
+   "label_font_size": 12,
+   "label_top_in_cell": 44.67
+  },
+  "max_height": {
+   "value": 520,
+   "note": "tall (30 rows) and SwiftUI menus both cap the menu view at 520 pt and scroll inside (indicator); not the safe area"
+  },
+  "system_footer": "the system appends a separated 'Ask Siri' row (pinned footer, 62 pt incl. its 20 pt gap) to every UIKit and SwiftUI menu on iOS 27.0.1 device"
+ },
+ "submenu": {
+  "model": "STACKED CARDS: the submenu is a new list that grows OUT OF its row (start 230 x 42 at the row) to 250 x content, over the parent; the parent list scales to 0.97 (250 -> 242.5) and its rows fade to alpha 0.5; the menu view grows to cover both",
+  "header": "_UIContextMenuSubmenuTitleView 250 x 62 at the top of the submenu: the parent row title (bold) + chevron down + separator; tapping it goes back",
+  "open_tap": {
+   "spring": [
+    0.395,
+    0.86
+   ],
+   "start_after_lift": 0.076,
+   "fit_rms_pt": [
+    0.37,
+    0.04
+   ],
+   "source": "mm-sub-tap.jsonl"
+  },
+  "open_deeper": {
+   "spring": [
+    0.405,
+    0.84
+   ],
+   "start_after_lift": 0.04,
+   "note": "third card; the first parent scales 0.97^2 (235.2), both parents alpha 0.5",
+   "source": "mm-sub-deeper.jsonl"
+  },
+  "back": {
+   "spring": [
+    0.4,
+    1.0
+   ],
+   "start_after_lift": 0.022,
+   "source": "mm-sub-back.jsonl"
+  },
+  "hover_open": {
+   "dwell_after_entering_row_s": [
+    0.523,
+    0.527
+   ],
+   "note": "a held finger sliding onto a submenu row opens it 0.525 s after entering the row; sliding on and lifting on a sub row fires it 0.019 s after the lift",
+   "source": "mm-sub-slide*.jsonl"
+  },
+  "select_closes_all": {
+   "container_spring": [
+    0.355,
+    0.84
+   ],
+   "note": "a sub row's action closes the whole stack toward the source button (container h 287 -> 57)",
+   "source": "mm-sub-select.jsonl"
+  }
+ },
+ "live_updates": {
+  "keepsMenuPresented": "the handler runs (0.02 s after the lift) and the menu stays; UIKit does NOT redraw a check / palette selection / state change by itself (singleSelection Sort by and the palette kept the old mark) - the app must call contextMenuInteraction.updateVisibleMenu",
+  "resize_grow": {
+   "spring": [
+    0.565,
+    0.84
+   ],
+   "start_after_lift": 0.071,
+   "source": "mm-resize.jsonl (Add row via updateVisibleMenu), deferred load also 0.565/0.84"
+  },
+  "resize_shrink": {
+   "spring": [
+    0.4,
+    1.0
+   ],
+   "start_after_lift": 0.047,
+   "source": "mm-resize.jsonl (Remove row)"
+  },
+  "swiftui": "state-driven labels update live in place (Count 0 -> 2 with menuActionDismissBehavior(.disabled)); a Toggle row dismisses the menu"
+ },
+ "deferred": {
+  "loading_row": "spinner + 'Loading...' title in the disabled/secondary color, row height 42",
+  "load_resize": "grows on 0.565/0.84 when the elements arrive"
+ },
+ "swiftui_mapping": {
+  "Slider": "section header with its label + two medium cells Decrement / Increment (117 x 51.67)",
+  "Stepper": "same as Slider: header 'Steps N' + Decrement / Increment cells",
+  "ControlGroup": "medium elements row (78 x 77, icon + 12 pt label)",
+  "Picker(.palette)": "palette row (62.67 x 54 cells for 3)",
+  "Picker(.inline)": "inline single-selection rows with checkmarks",
+  "Button with two Texts": "title + subtitle row (60 pt)",
+  "Toggle": "checkmark row, dismisses on tap",
+  "Menu": "submenu row with chevron",
+  "Section(title)": "inline group with header",
+  "Divider": "group separator"
+ }
+}

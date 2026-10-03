@@ -58,7 +58,7 @@ final class Recorder: NSObject {
     static let menuPattern = "MagicMorph|MorphAnimationContainer|TransformView|_UIContextMenuView|_UIContextMenuListView|_UIContextMenuCell$|^UIButton$|_UIButtonBarButton|_UIReparentingView|_UIContextMenuContainerView|PlatterTransitionView|UIVisualEffectView|_UISystemBackgroundView|FlexInteraction|_UIPortalView"
 
     static func mode(for scene: String) -> Mode {
-        if scene == "menu" { return .menu }
+        if scene == "menu" || scene.hasPrefix("x5menu") { return .menu }
         if Scenes.isSingleControl(scene) { return .controls }
         return .lens
     }
@@ -106,7 +106,7 @@ final class Recorder: NSObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + d) { [weak self] in
                 guard let self else { return }
                 self.dumpCount += 1
-                self.dumpTree(name: String(format: "tree-%03d.txt", self.dumpCount))
+                self.dumpTree(name: (self.env["PROBE_REC"].map { "tree-\($0)-" } ?? "tree-") + String(format: "%03d.txt", self.dumpCount))
             }
         }
     }

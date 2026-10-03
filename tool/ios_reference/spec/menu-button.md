@@ -151,6 +151,10 @@ for bar menus: MorphMenuHost / MorphMenuLayer / MorphMenuFlightProgress.
 
 ## API gaps
 
+The full menu API (submenus, sections, palettes, element sizes, selection,
+deferred and live content) is measured in [menu-api](menu-api.md).
+
+
 - Submenus (`PROBE_SUBMENU` exists in the probe, not ported),
   `displayInline` sections and separators, `displayAsPalette`,
   `preferredElementSize` small/medium.
