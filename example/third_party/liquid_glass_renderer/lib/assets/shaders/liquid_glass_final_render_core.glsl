@@ -655,9 +655,7 @@ void main() {
     }
     #endif
 
-    // A negative scale marks an outward lens (refractionLens).
-    float maxDisplacement = max(abs(uDisplacementScale), 0.001);
-    float displacementSign = uDisplacementScale < 0.0 ? -1.0 : 1.0;
+    float maxDisplacement = max(uDisplacementScale, 0.001);
     float signedEdgeDistance = decodeSignedEdgeDistance(
         geometryData,
         4.0 * max(uThickness, 1.0),
@@ -676,7 +674,6 @@ void main() {
     }
     vec2 displacement =
         decodeDisplacement(geometryData, maxDisplacement) *
-        displacementSign *
         appearanceVisibility;
     vec2 surfaceNormal = decodeSurfaceNormal(geometryData);
 

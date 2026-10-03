@@ -1,7 +1,7 @@
 #!/bin/sh
 # Captures the UIKit reference motion on a REAL device through XCUITest.
 #
-#   PROBE_PLAN=lens|controls|menu|sliderends|slidervideo|dragtiming|recaplens|recapcontrols|recapmenu|refs|merge|mergedyn|glassgrid|bars|all
+#   PROBE_PLAN=lens|controls|menu|sliderends|slidervideo|dragtiming|recaplens|recapcontrols|recapmenu|refs|merge|mergedyn|bars|all
 #                                      (default all)  which test family to run
 #   PROBE_RESULT=<path.xcresult>       keep the result bundle (refs: screenshots are attachments;
 #                                      export with xcrun xcresulttool export attachments)
@@ -45,7 +45,6 @@ case "$PLAN" in
   recapmenu) ONLY_TESTS="-only-testing:ProbeUITests/ProbeUITests/testRecapMenu" ;;
   refs) ONLY_TESTS="-only-testing:ProbeUITests/ProbeUITests/testReferences" ;;
   merge) ONLY_TESTS="-only-testing:ProbeUITests/ProbeUITests/testMerge" ;;
-  glassgrid) ONLY_TESTS="-only-testing:ProbeUITests/ProbeUITests/testGlassGrid" ;;
   mergedyn) ONLY_TESTS="-only-testing:ProbeUITests/ProbeUITests/testMergeDyn" ;;
   bars) ONLY_TESTS="-only-testing:ProbeUITests/BarsUITests/testBars" ;;
   *) ONLY_TESTS="-only-testing:ProbeUITests/ProbeUITests/testLens -only-testing:ProbeUITests/ProbeUITests/testControls -only-testing:ProbeUITests/ProbeUITests/testMenu" ;;

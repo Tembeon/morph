@@ -23,7 +23,6 @@ class LiquidGlassSettings with Equatable {
     this.refractionHeight = 20.0,
     this.refractionAmount = 60.0,
     this.refractionFitsShape = true,
-    this.refractionLens = false,
     this.backdropShrink = 0.0,
     this.frost = 3.7,
     this.dispersion = 0.0,
@@ -44,8 +43,6 @@ class LiquidGlassSettings with Equatable {
       refractionAmount: number('refractionAmount', defaults.refractionAmount),
       refractionFitsShape:
           json['refractionFitsShape'] as bool? ?? defaults.refractionFitsShape,
-      refractionLens:
-          json['refractionLens'] as bool? ?? defaults.refractionLens,
       backdropShrink: number('backdropShrink', defaults.backdropShrink),
       frost: number('frost', defaults.frost),
       dispersion: number('dispersion', defaults.dispersion),
@@ -215,19 +212,6 @@ class LiquidGlassSettings with Equatable {
   /// scales down with the shape.
   final bool refractionFitsShape;
 
-  /// Whether the face is one outward lens instead of a flat face with a
-  /// bevel, as the lifted lens of an iOS 27 control (a segmented control's
-  /// or tab bar's lens, a switch knob, a slider thumb) is.
-  ///
-  /// A lens samples the backdrop outward, toward and beyond its silhouette:
-  /// the displacement grows as `x^1.5` from `0` at [refractionHeight] (at most
-  /// half the shape's short side) inside the silhouette to
-  /// [refractionAmount] at it (`x` going from `0` to `1`), easing back to
-  /// half of that over the outer fifth of the depth, so the face shows its surroundings slightly
-  /// shrunk and draws what lies just outside it into its rim. Takes
-  /// precedence over [refractionFitsShape].
-  final bool refractionLens;
-
   /// How much the backdrop seen through the face is shrunk, about the center
   /// of the layer's glass: `0` keeps its size, `0.08` shows it at 92%.
   ///
@@ -330,7 +314,6 @@ class LiquidGlassSettings with Equatable {
     double? refractionHeight,
     double? refractionAmount,
     bool? refractionFitsShape,
-    bool? refractionLens,
     double? backdropShrink,
     double? frost,
     double? dispersion,
@@ -343,7 +326,6 @@ class LiquidGlassSettings with Equatable {
     refractionHeight: refractionHeight ?? this.refractionHeight,
     refractionAmount: refractionAmount ?? this.refractionAmount,
     refractionFitsShape: refractionFitsShape ?? this.refractionFitsShape,
-    refractionLens: refractionLens ?? this.refractionLens,
     backdropShrink: backdropShrink ?? this.backdropShrink,
     frost: frost ?? this.frost,
     dispersion: dispersion ?? this.dispersion,
@@ -359,7 +341,6 @@ class LiquidGlassSettings with Equatable {
     'refractionHeight': refractionHeight,
     'refractionAmount': refractionAmount,
     'refractionFitsShape': refractionFitsShape,
-    'refractionLens': refractionLens,
     'backdropShrink': backdropShrink,
     'frost': frost,
     'dispersion': dispersion,
@@ -375,7 +356,6 @@ class LiquidGlassSettings with Equatable {
     refractionHeight,
     refractionAmount,
     refractionFitsShape,
-    refractionLens,
     backdropShrink,
     frost,
     dispersion,

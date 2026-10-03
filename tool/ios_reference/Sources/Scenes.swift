@@ -7,8 +7,7 @@ import UIKit
 ///   (see Controls.swift);
 /// - menu: glass button menu, shaped by PROBE_POS (center/tl/tr/bl/br/bottom/left),
 ///   PROBE_ITEMS, PROBE_WIDE=1, PROBE_CTX=1, PROBE_SUBMENU=1; nav bar button menu too;
-/// - controls: the old mixed controls page;
-/// - glassGrid: glass shapes and a tab bar over the measurement grid (GlassGrid.swift).
+/// - controls: the old mixed controls page.
 enum Scenes {
     static func isSingleControl(_ name: String) -> Bool {
         ["sw", "swOn", "st", "st5"].contains(name) || name.hasPrefix("sl") || name.hasPrefix("gb")
@@ -27,8 +26,6 @@ enum Scenes {
         switch name {
         case "merge":
             return MergeScene()
-        case "glassGrid":
-            return GlassGridScene()
         case "mergeDyn":
             return MergeDynScene()
         case "mergeID":

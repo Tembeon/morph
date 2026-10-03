@@ -547,23 +547,6 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   glass that refracts what lies under it - the tab bar lens bends the bar
   glass and the magnified labels beneath it instead of covering them -
   and only a menu fuses with its button.
-- Example: lifted glass no longer shifts what lies under it. Measured
-  over a grid on an iPhone 16 Pro against UIKit (probe scene
-  `glassGrid`, `example/integration_test/glass_grid_test.dart`, the
-  glass page's Debug grid toggle): body glass already matched (the face
-  is an identity map, the rim bends within 0.3 pt of UIKit's), but a
-  lifted lens bent INWARD by 18 pt over a 20 pt bevel and so mirrored
-  the content inside it into its rim - grid lines 12 to 16 pt from a
-  switch knob's center sat 1.5 - 2.3 pt off UIKit's, and the track's
-  fill smeared along a thumb's rim. UIKit's lifted segmented, tab bar
-  and switch lenses bend OUTWARD: a lens that shows its surroundings
-  slightly shrunk about its center and draws what lies just outside it
-  into its rim. The vendored renderer gains that lens
-  (`LiquidGlassSettings.refractionLens`); the painter's lifted lens and
-  knob use it (reach 6.4 pt, shrink 0.02) and land within 0.6 pt of
-  UIKit's grid lines, the lifted thumb keeps an inward 12 pt rim without
-  dispersion, and in dark mode a lifted surface washes what it shows by
-  21 levels as UIKit's does.
 - Navigation (owner's iPhone pass on the gallery's Navigation page):
   - `MorphNavigationStack` owns the pops of its own screens: its
     navigator sits under a `NavigatorPopHandler`, so while it can pop,

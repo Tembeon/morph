@@ -289,7 +289,6 @@ class FlutterGpuGeometryRenderer {
     required double offsetY,
     double? edgeDistanceRange,
     bool refractionFitsShape = true,
-    bool refractionLens = false,
     double contourExtent = 0.5,
     bool writeMaterials = false,
     bool writeTintOnly = false,
@@ -395,7 +394,6 @@ class FlutterGpuGeometryRenderer {
       refractionAmount: refractionAmount,
       edgeDistanceRange: edgeDistanceRange ?? math.max(12, refractionHeight),
       refractionFitsShape: refractionFitsShape,
-      refractionLens: refractionLens,
       contourExtent: contourExtent,
       materialScale: writeMaterials ? materialRasterScale.toDouble() : 1.0,
       materialMapWidth: writeMaterials ? materialMapWidth.toDouble() : 1.0,
@@ -690,7 +688,6 @@ class FlutterGpuGeometryRenderer {
     required double refractionAmount,
     required double edgeDistanceRange,
     required bool refractionFitsShape,
-    required bool refractionLens,
     required double contourExtent,
     required double materialScale,
     required double materialMapWidth,
@@ -709,13 +706,9 @@ class FlutterGpuGeometryRenderer {
     floatData[uOffsetIndex + 1] = offsetY;
 
     final textureSizeIndex = _offsetUTextureSize ~/ 4;
-    // X selects the profile (0 clear, 1 shape-fitted, 2 lens); Y is the
-    // edge displacement, which is also the codec scale.
-    floatData[textureSizeIndex] = refractionLens
-        ? 2
-        : refractionFitsShape
-        ? 1
-        : 0;
+    // X selects shape-fitted refraction; Y is the bevel's edge displacement,
+    // which is also the codec scale.
+    floatData[textureSizeIndex] = refractionFitsShape ? 1 : 0;
     floatData[textureSizeIndex + 1] = math.max(1e-3, refractionAmount);
 
     final opticalPropsIndex = _offsetOpticalProps ~/ 4;

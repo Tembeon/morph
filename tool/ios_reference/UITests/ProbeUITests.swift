@@ -828,29 +828,6 @@ final class ProbeUITests: XCTestCase {
         }
     }
 
-    /// Glass over the measurement grid: shapes and a tab bar resting, the tab bar and
-    /// segmented lenses held; the slider thumb and switch knob held, light and dark.
-    func testGlassGrid() {
-        capture("glassgrid", scene: "glassGrid") {
-            let c = tabCenters()
-            shot("glassgrid-resting")
-            shotHeld(c[1], after: 0.7, "glassgrid-lens-held")
-            pause(1.6)
-            let seg = app.segmentedControls["gridSegmented"].frame
-            shotHeld(CGPoint(x: seg.minX + seg.width / 6, y: seg.midY), after: 0.7, "glassgrid-segmented-held")
-        }
-        for dark in ["0", "1"] {
-            capture("glassgrid-sl300-d\(dark)", scene: "sl300", extra: ["PROBE_BG": "grid", "PROBE_DARK": dark]) {
-                let f = control("sl300")
-                shotHeld(CGPoint(x: f.minX + 18.5 + 0.3 * (f.width - 37), y: f.midY), after: 0.7, "glassgrid-slider-held-d\(dark)")
-            }
-            capture("glassgrid-sw-d\(dark)", scene: "sw", extra: ["PROBE_BG": "grid", "PROBE_DARK": dark]) {
-                let f = control("sw")
-                shotHeld(CGPoint(x: f.midX - 11, y: f.midY), after: 0.7, "glassgrid-switch-held-d\(dark)")
-            }
-        }
-    }
-
     func testMergeDyn() {
         for sp in ["20", "40"] {
             let rec = "mergedyn-s\(sp)"
