@@ -461,6 +461,62 @@ void main() {
     });
   });
 
+  test('a tab bar search takes the focus mid-morph and falls straight back '
+      '(iPhone 16 Pro, screen-recording session)', () {
+    final rows = _rows(
+      'vid-tab.jsonl',
+      dir: 'test/fixtures/ios27-device/search',
+    );
+    final ups = [
+      for (final r in rows)
+        if (r['k'] == 'touch' && r['phase'] == 3) _d(r, 't'),
+    ];
+    final field = [
+      for (final r in rows)
+        if (r['cls'] == 'UISearchBarTextField') r,
+    ];
+    // The field reads its focused place 0.159 s after the lift of the tap
+    // on the search circle, long before the morph settles.
+    final present = _d(
+      rows.firstWhere((r) => r['e'] == 'willPresentSearch'),
+      't',
+    );
+    expect(present - ups[0], lessThan(MorphSearchTuning.tabActivationDelay));
+    // The close tap: the field falls from above the keyboard straight to
+    // its place above the tab circle.
+    final close = ups[1];
+    const restY = 822.0;
+    final focusedY = _d(field.lastWhere((r) => _d(r, 't') < close), 'y');
+    var last = focusedY;
+    for (final r in field) {
+      final t = _d(r, 't');
+      if (t <= close || t > close + 0.6) continue;
+      expect(_d(r, 'y'), greaterThanOrEqualTo(last - 0.5));
+      expect(_d(r, 'y'), lessThanOrEqualTo(restY + 0.5));
+      last = _d(r, 'y');
+    }
+    final (fall, rms) = _fit(close, 0.12, (double start) {
+      final motion = MorphSearchMotion(
+        spring: MorphSearchTuning.tabFocusSpring,
+      );
+      motion.snap(0, focused: true);
+      motion.unfocus(start, delay: 0);
+      return [
+        for (final r in field)
+          if (_d(r, 't') > close && _d(r, 't') < close + 0.6)
+            ...() {
+              motion.advance(_d(r, 't'));
+              final p = motion.progress(_d(r, 't'));
+              return [restY + (focusedY - restY) * p - _d(r, 'y')];
+            }(),
+      ];
+    });
+    expect(rms, lessThan(1));
+    // 0.064 s here, 0.038 s in tab-search-focus: tabUnfocusDelay is the
+    // middle of the two.
+    expect(fall - close, closeTo(MorphSearchTuning.tabUnfocusDelay, 0.016));
+  });
+
   test('a tab bar search rises once the keyboard does (iPhone 16 Pro)', () {
     final rows = _rows(
       'tab-search-focus.jsonl',
@@ -641,7 +697,7 @@ void main() {
       final text = tester.getRect(find.text('Search'));
       expect(text.right, closeTo(field.right - 40.67, 1));
       final style = tester.widget<Text>(find.text('Search')).style!;
-      expect(style.color, MorphSearchFieldStyle.dark.placeholderColor);
+      expect(style.color, MorphSearchFieldStyle.dark.restingPlaceholderColor);
     });
 
     testWidgets('screen readers see a labelled text field', (tester) async {
@@ -723,6 +779,67 @@ void main() {
       );
       expect(find.text('abc'), findsNothing);
       expect(find.bySemanticsLabel('Close'), findsNothing);
+    });
+
+    testWidgets('a held touch focuses the field when it lifts', (tester) async {
+      final active = <bool>[];
+      await pump(tester, onActive: active.add);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byType(MorphSearchField)),
+      );
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(active, isEmpty);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(active, [true]);
+      expect(tester.testTextInput.isVisible, isTrue);
+    });
+
+    testWidgets('closing falls straight to rest while the keyboard drops', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(_w, _h));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final keyboard = ValueNotifier<double>(0);
+      addTearDown(keyboard.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ValueListenableBuilder<double>(
+            valueListenable: keyboard,
+            builder: (BuildContext context, double inset, Widget? _) =>
+                MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(viewInsets: EdgeInsets.only(bottom: inset)),
+                  child: const Scaffold(
+                    resizeToAvoidBottomInset: false,
+                    body: Stack(
+                      children: [Positioned.fill(child: MorphSearchToolbar())],
+                    ),
+                  ),
+                ),
+          ),
+        ),
+      );
+      final field = find.byType(MorphSearchField);
+      await tester.tap(field);
+      await tester.pump();
+      keyboard.value = 336;
+      await tester.pumpAndSettle();
+      expect(tester.getRect(field).bottom, closeTo(_h - 336 - 10, 0.2));
+      await tester.tap(find.bySemanticsLabel('Close'));
+      await tester.pump();
+      keyboard.value = 0;
+      var last = tester.getRect(field).bottom;
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(const Duration(milliseconds: 1000 ~/ 60));
+        final bottom = tester.getRect(field).bottom;
+        expect(bottom, lessThanOrEqualTo(_h - 28 + 1));
+        expect(bottom, greaterThanOrEqualTo(last - 1));
+        last = bottom;
+      }
+      await tester.pumpAndSettle();
+      expect(tester.getRect(field).bottom, closeTo(_h - 28, 0.2));
     });
 
     testWidgets('Escape ends the search', (tester) async {
@@ -840,6 +957,11 @@ void main() {
       await tester.tapAt(const Offset(388, 904));
       await tester.pumpAndSettle();
       expect(asked, [true]);
+      expect(tester.testTextInput.isVisible, isTrue);
+      expect(
+        FocusManager.instance.primaryFocus?.debugLabel,
+        'MorphSearchTabBar',
+      );
       expect(find.byType(MorphTabBar), findsNothing);
       expect(find.byType(MorphSearchField), findsOneWidget);
       expect(
@@ -862,6 +984,50 @@ void main() {
       await tester.pumpAndSettle();
       expect(asked, [true, false]);
       expect(find.byType(MorphTabBar), findsOneWidget);
+    });
+
+    testWidgets('an activating search tab takes the focus mid-morph', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(_w, _h));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      var searching = false;
+      final focus = FocusNode();
+      addTearDown(focus.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) => Stack(
+              children: [
+                Positioned.fill(
+                  child: MorphSearchTabBar(
+                    items: const [
+                      MorphTabItem(icon: Icons.home, label: 'Home'),
+                      MorphTabItem(icon: Icons.book, label: 'Library'),
+                    ],
+                    selected: 0,
+                    onChanged: (_) {},
+                    focusNode: focus,
+                    searching: searching,
+                    onSearchingChanged: (bool v) =>
+                        setState(() => searching = v),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.tapAt(const Offset(388, 904));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 140));
+      expect(focus.hasFocus, isFalse);
+      await tester.pump(const Duration(milliseconds: 40));
+      expect(focus.hasFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+      expect(find.bySemanticsLabel('Search'), findsWidgets);
+      await tester.pumpAndSettle();
+      expect(focus.hasFocus, isTrue);
     });
   });
 }

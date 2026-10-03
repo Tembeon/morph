@@ -663,11 +663,34 @@ Public pieces:
   covers it in UIKit). The morph between is a rect lerp of the two glass
   bodies on 0.276/0.80, FITTED to video frames (no tuning value; UIKit's
   view frames jump to the endpoints, the glass morph lives in SwiftUI -
-  still true on the device); the field then focuses itself
-  (`automaticallyActivatesSearch`) and, once the keyboard rises (+0.07
-  s, `tabKeyboardLag`), rises above it on its OWN `tabFocusSpring` 0.3 /
-  1.0 (device 0.19 pt rms over 308 pt; 0.25/0.9 leaves 12) and falls back
-  on it 0.04 s after the close tap (`tabUnfocusDelay`).
+  still true on the device); the field focuses itself
+  (`automaticallyActivatesSearch`) 0.16 s after the tap, WHILE the morph
+  runs (`tabActivationDelay`; the hidden field is mounted from the
+  start - focusing it the frame it was built made the device's engine
+  close the fresh input connection: no keyboard, focus dropped 70 ms
+  later) and, once the keyboard rises (+0.07 s, `tabKeyboardLag`),
+  rises above it on its OWN `tabFocusSpring` 0.3 / 1.0 (device 0.19 pt
+  rms over 308 pt; 0.25/0.9 leaves 12) and falls back on it 0.05 s after
+  the close tap (`tabUnfocusDelay`; 0.038 / 0.064 in two captures, the
+  fall itself 0.8 pt rms). ONLY the activating search tab is a separate
+  circle in iOS 27: without `automaticallyActivatesSearch` UIKit draws
+  the search tab as an ordinary "Search" tab inside the bar (filmed),
+  so the widget models the activating kind only.
+  SCREEN-RECORDING PASS (2026-10-03, search-video/ crops): a held touch
+  focuses on the lift (the field's Listener; text selection gestures
+  only while focused - a 0.5 s hold used to win Flutter's long press
+  and never focus); a closing search falls straight to rest: the
+  focused layout keeps the keyboard inset of the moment the search
+  ended (`_frozenKeyboard`) instead of following the dropping keyboard
+  (which dipped the field 18 pt below rest); the field paints BEFORE
+  the toolbar items: glass inside an Opacity (a fading or disabled
+  item) that is the first user of the BackdropGroup's shared copy
+  makes every later glass read the empty layer (the resting field went
+  invisible on dark); glyph ink from the screen: magnifier ring 13.33
+  across, 1.75 thick, clear disc 16.67, close cross 16.67 / 2.3; cursor
+  66/106/243 light, 64/107/248 dark (not the accent); resting
+  placeholder lighter than focused (149 vs 133 on 252 light, 110 vs 142
+  on 32 dark); keyboardAppearance follows the brightness.
 - DATE PICKER (date_picker.dart, date_picker_motion.dart; iOS 27
   simulator via XCUITest, fixtures ios27/date_picker): compact labels
   115 x 34.33 (date) / 70 x 36 (time) capsules, tertiarySystemFill,
@@ -677,16 +700,39 @@ Public pieces:
   calendar for five weeks, 232 x 204 wheels) rides ONE progress: scale
   0.2 -> 1 about the anchor, alpha, box height 50 -> full (content
   revealed from the anchored edge); open 0.32/0.80, close 0.348/0.86
-  (fitted, no CASpringAnimation to read). `morphPlaceDatePicker`: top 6
-  below the label's center (bottom 6 above it when no room below), the
-  trailing edge 6 before the center then clamped to 20 pt margins; the
-  anchor is the label's center x clamped onto the overlay (5/5
-  placements). Picking a day applies at once and keeps the overlay open;
+  (fitted, no CASpringAnimation to read; device rows confirm both), the
+  open starting 0.14 s after the lift (`openDelay`), the close 0.055 s
+  (`closeDelay`; device 0.010 rms with them, 0.27 / 0.16 without). Its
+  glass fades through `MorphGlassSurface.opacity`, never an Opacity
+  layer (that read an empty backdrop: a gray platter until settled).
+  `morphPlaceDatePicker`: top 6 below the label's center (bottom 6
+  above it when no room below), the trailing edge 6 before the center
+  then clamped to the layout margins (20 pt from 414 pt wide, 16 below:
+  `marginFor`); the anchor is the label's center x clamped onto the
+  overlay (5/5 placements + the iPhone 16 Pro). A tap on the OTHER
+  label of a date-and-time picker turns the open overlay into the other
+  picker (UIKit, filmed + rows): the frame lerps between the two
+  placements on a critically damped 0.25 s spring starting 0.088 s after
+  the lift (`switchSpring`/`switchDelay`, 0.04 percent rms), contents
+  pinned to the anchored corner cross-fade on the same progress, the
+  label accent moves at once. Calendar look (filmed): title 20.33 pt in
+  and never shares the header with a spacer (it truncated to
+  "October 2..."), title chevron 6.33 x 11.67 accent, month chevrons
+  LABEL colored 10 x 17.33 / 2.6, a chosen day that is not today on a
+  label disc (black/white, inverse number), today tinted. Time wheels
+  (device labels, fixtures ios27-device/date_picker/wheels.json): rows
+  21 pt at 0.4 (UIKit reports 0.447; 0.4 matches the screen), 23.5 in
+  the 200 x 32 band (ListWheelScrollView magnifier), on a true cylinder
+  of radius 73.5 (Flutter's angle is dy*pi/H for diameterRatio < 1, so
+  squeeze = 32.4*pi/(172*0.4405) restores arc = row; perspective
+  ~0), darkened toward the edges by cos^1.4 (ShaderMask), columns at
+  73.5 / 148.5 pt, fast deceleration (a 64 pt drag turns two rows as on
+  the device; the default physics turned six). Picking a day applies at once and keeps the overlay open;
   a tap outside (on touch-up) or Escape closes. Months page on a 0.3 s
   sine ease (2 px rms; UIScrollView's exact curve differs). Simplified:
   the calendar is drawn by morph (header, weekday initials, day grid,
   today tint, selected disc - geometry from the view tree), the time
-  wheels are ListWheelScrollViews.
+  wheels are ListWheelScrollViews (no 12-hour AM/PM column).
 - `MorphPageControl` (page_control.dart): dots 9.67/7.67 pt on a 17.67
   pitch, tap halves step on the lift, platter after 0.193 s of touch on
   a critically damped 0.100 s spring, out 0.032 s after the lift on
@@ -1334,7 +1380,24 @@ Public pieces:
   with `-fps_mode passthrough` and real pts, never fps=60, and align the
   native film to the probe's layer rows of the same run (union bbox) to
   know p per frame. Hold the device lock while recording; key crops live
-  in references/menu-video/ (native top, morph bottom).
+  in references/{menu,slider,search,date}-video/ (native top, morph
+  bottom). STILL SCREENS COMPRESS: the device sends frames only on a
+  change and a still period collapses to <= 67 ms of pts, so a native
+  film's clock is NOT wall time and the first frames of a motion after a
+  still screen are often lost - keep something turning (PROBE_SPINNER=1
+  puts a spinner in the x3 scenes; the motion itself still comes from
+  the probe's rows). XCUITEST CAN DRIVE MORPH: example/integration_test/
+  search_date_scenes.dart is a profile app (not a test) with a board of
+  scene buttons; ExtrasUITests.testX3Video with PROBE_BUNDLE=
+  dev.tembeon.morphExample taps the board and runs the native schedule
+  on it - real touches through the engine and the real keyboard (an
+  integration test's synthetic pointers never reach the engine, and its
+  keyboard came up seconds late). Platform.environment does not carry
+  XCUIApplication.launchEnvironment into the Flutter app (hence the
+  board). Other agents install the gallery under the same bundle id:
+  reinstall the scenes app inside every lock session and check the
+  binary (`strings App.framework/App | grep tabauto`). Strokes of ONE
+  synthesized record start together, not one after another.
 - READING UIKIT'S TUNING LIVE: enumerate classes with
   `objc_copyClassList` and walk the RAW pointer array (load each entry
   as an OpaquePointer, unsafeBitCast to AnyClass - Swift's typed view of

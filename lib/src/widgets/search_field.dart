@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -23,10 +24,11 @@ class MorphSearchFieldStyle {
     this.shadowColor = const Color(0x1A000000),
     this.textColor = const Color(0xFF000000),
     this.placeholderColor = const Color(0x993C3C43),
+    this.restingPlaceholderColor = const Color(0x69000000),
     this.glyphColor = const Color(0xFF000000),
     this.clearColor = const Color(0xFF000000),
     this.clearGlyphColor = const Color(0xFFFFFFFF),
-    this.cursorColor = const Color(0xFF0088FF),
+    this.cursorColor = const Color(0xFF426AF3),
     this.disabledOpacity = 0.35,
   });
 
@@ -43,8 +45,15 @@ class MorphSearchFieldStyle {
   /// The color of the typed text: label.
   final Color textColor;
 
-  /// The color of the placeholder: secondaryLabel.
+  /// The color of the placeholder while the field has the focus:
+  /// secondaryLabel.
   final Color placeholderColor;
+
+  /// The color of the placeholder while the field does not have the
+  /// focus: lighter than [placeholderColor] on the glass (an iPhone 16
+  /// Pro's screen: 149 on 252 light, 110 on 32 dark, where the focused
+  /// placeholder reads 133 and 142).
+  final Color restingPlaceholderColor;
 
   /// The color of the magnifier and of the close button's cross.
   final Color glyphColor;
@@ -55,7 +64,8 @@ class MorphSearchFieldStyle {
   /// The cross of the clear button.
   final Color clearGlyphColor;
 
-  /// The color of the text cursor: the accent color.
+  /// The color of the text cursor (an iPhone 16 Pro's screen: 66, 106,
+  /// 243 light and 64, 107, 248 dark, bluer than the accent).
   final Color cursorColor;
 
   /// The opacity of a disabled field (not measured on a device).
@@ -70,11 +80,12 @@ class MorphSearchFieldStyle {
     rimColor: Color(0x33FFFFFF),
     shadowColor: Color(0x40000000),
     textColor: Color(0xFFFFFFFF),
-    placeholderColor: Color(0x99EBEBF5),
+    placeholderColor: Color(0x8AEBEBF5),
+    restingPlaceholderColor: Color(0x59FFFFFF),
     glyphColor: Color(0xFFFFFFFF),
     clearColor: Color(0xFFFFFFFF),
     clearGlyphColor: Color(0xFF000000),
-    cursorColor: Color(0xFF0091FF),
+    cursorColor: Color(0xFF406BF8),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -167,6 +178,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   late final TextSelectionGestureDetectorBuilder _gestures =
       TextSelectionGestureDetectorBuilder(delegate: this);
   final GlobalKey<EditableTextState> _editable = GlobalKey<EditableTextState>();
+  Offset? _downAt;
 
   TextEditingController get _controller =>
       widget.controller ?? (_ownController ??= TextEditingController());
@@ -182,7 +194,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   bool get forcePressEnabled => false;
 
   @override
-  bool get selectionEnabled => widget.enabled;
+  bool get selectionEnabled => widget.enabled && _focus.hasFocus;
 
   @override
   void advanceMotion(double t) => _motion.advance(t);
@@ -199,6 +211,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
 
   void _down(PointerDownEvent event) {
     if (!widget.enabled || event.buttons != kPrimaryButton) return;
+    _downAt = event.position;
     final box = context.findRenderObject();
     if (box is RenderBox && box.hasSize) _motion.size = box.size;
     _motion.reducedMotion = morphReducedMotionOf(context);
@@ -206,6 +219,15 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   }
 
   void _up(PointerEvent event) {
+    final from = _downAt;
+    _downAt = null;
+    if (event is PointerUpEvent &&
+        from != null &&
+        widget.enabled &&
+        !_focus.hasFocus &&
+        (event.position - from).distance < kTouchSlop) {
+      _focus.requestFocus();
+    }
     if (!_motion.isPressed) return;
     _motion.pointerUp(stamp(event));
   }
@@ -239,6 +261,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
       selectionColor: style.cursorColor.withValues(alpha: 0.25),
       maxLines: 1,
       textInputAction: TextInputAction.search,
+      keyboardAppearance: brightness,
       rendererIgnoresPointer: true,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
@@ -266,21 +289,24 @@ class _MorphSearchFieldState extends State<MorphSearchField>
               alignment: AlignmentDirectional.centerStart,
               children: [
                 ListenableBuilder(
-                  listenable: _controller,
-                  builder: (BuildContext context, Widget? child) =>
+                  listenable: Listenable.merge([_controller, _focus]),
+                  builder: (BuildContext context, Widget? _) =>
                       _controller.text.isEmpty
-                      ? child!
+                      ? ExcludeSemantics(
+                          child: Text(
+                            widget.placeholder,
+                            maxLines: 1,
+                            overflow: TextOverflow.clip,
+                            softWrap: false,
+                            textScaler: scaler,
+                            style: text.copyWith(
+                              color: _focus.hasFocus
+                                  ? style.placeholderColor
+                                  : style.restingPlaceholderColor,
+                            ),
+                          ),
+                        )
                       : const SizedBox.shrink(),
-                  child: ExcludeSemantics(
-                    child: Text(
-                      widget.placeholder,
-                      maxLines: 1,
-                      overflow: TextOverflow.clip,
-                      softWrap: false,
-                      textScaler: scaler,
-                      style: text.copyWith(color: style.placeholderColor),
-                    ),
-                  ),
                 ),
                 Semantics(
                   label: widget.semanticLabel ?? widget.placeholder,
@@ -466,27 +492,41 @@ class _MagnifierPainter extends CustomPainter {
   final Color color;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final s = math.min(size.width, size.height);
-    final paint = Paint();
-    paint.color = color;
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = s * 0.11;
-    paint.strokeCap = StrokeCap.round;
-    final r = s * 0.33;
-    final c = Offset(size.width * 0.42, size.height * 0.42);
-    canvas.drawCircle(c, r, paint);
-    final d = r * 0.7071;
-    canvas.drawLine(
-      c + Offset(d, d),
-      Offset(size.width * 0.9, size.height * 0.9),
-      paint,
-    );
-  }
+  void paint(Canvas canvas, Size size) =>
+      morphPaintMagnifier(canvas, size, color);
 
   @override
   bool shouldRepaint(_MagnifierPainter oldDelegate) =>
       oldDelegate.color != color;
+}
+
+/// Paints the search field's magnifier into a box of [size], as SF
+/// Symbols' `magnifyingglass` reads on an iPhone 16 Pro's screen in a
+/// [MorphSearchTuning.glyphSize] box: a ring 13.33 points across drawn
+/// 1.75 thick, its center 8.67 and 7.67 points in from the box's top
+/// left, and a handle out to 17.4 and 16.7; all of it scales with the box.
+@internal
+void morphPaintMagnifier(Canvas canvas, Size size, Color color) {
+  const box = MorphSearchTuning.glyphSize;
+  final k = math.min(size.width / box.width, size.height / box.height);
+  final origin = Offset(
+    (size.width - box.width * k) / 2,
+    (size.height - box.height * k) / 2,
+  );
+  final paint = Paint();
+  paint.color = color;
+  paint.style = PaintingStyle.stroke;
+  paint.strokeWidth = 1.75 * k;
+  paint.strokeCap = StrokeCap.round;
+  final c = origin + const Offset(8.67, 7.67) * k;
+  final r = (13.33 - 1.75) / 2 * k;
+  canvas.drawCircle(c, r, paint);
+  final d = r * 0.7071;
+  canvas.drawLine(
+    c + Offset(d, d),
+    origin + const Offset(17.4, 16.7) * k,
+    paint,
+  );
 }
 
 class _ClearPainter extends CustomPainter {
@@ -498,7 +538,11 @@ class _ClearPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final c = size.center(Offset.zero);
-    final r = math.min(size.width, size.height) / 2;
+    final r =
+        math.min(size.width, size.height) /
+        2 *
+        MorphSearchTuning.clearInk /
+        MorphSearchTuning.clearSize;
     final paint = Paint();
     paint.color = fill;
     canvas.drawCircle(c, r, paint);
@@ -523,27 +567,28 @@ class _CrossPainter extends CustomPainter {
   final Color color;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    paint.color = color;
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = size.shortestSide * 0.1;
-    paint.strokeCap = StrokeCap.round;
-    final inset = size.shortestSide * 0.12;
-    canvas.drawLine(
-      Offset(inset, inset),
-      Offset(size.width - inset, size.height - inset),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(size.width - inset, inset),
-      Offset(inset, size.height - inset),
-      paint,
-    );
-  }
+  void paint(Canvas canvas, Size size) => morphPaintCross(canvas, size, color);
 
   @override
   bool shouldRepaint(_CrossPainter oldDelegate) => oldDelegate.color != color;
+}
+
+/// Paints the close button's cross centered in a box of [size]: two
+/// strokes [MorphSearchTuning.closeStroke] thick whose ink, round caps
+/// included, fills a square [MorphSearchTuning.closeInk] points across.
+@internal
+void morphPaintCross(Canvas canvas, Size size, Color color) {
+  const ink = MorphSearchTuning.closeInk;
+  const stroke = MorphSearchTuning.closeStroke;
+  final paint = Paint();
+  paint.color = color;
+  paint.style = PaintingStyle.stroke;
+  paint.strokeWidth = stroke;
+  paint.strokeCap = StrokeCap.round;
+  final c = size.center(Offset.zero);
+  const h = (ink - stroke) / 2;
+  canvas.drawLine(c + const Offset(-h, -h), c + const Offset(h, h), paint);
+  canvas.drawLine(c + const Offset(h, -h), c + const Offset(-h, h), paint);
 }
 
 /// The bottom-placed search bar of iOS 27: a search field in the toolbar
@@ -629,6 +674,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
   FocusNode? _ownFocus;
   FocusNode? _listening;
   Rect? _frozenClose;
+  double? _frozenKeyboard;
   Rect _lastClose = Rect.zero;
 
   TextEditingController get _controller =>
@@ -684,6 +730,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
   void _focusChanged() {
     if (_focus.hasFocus && !_motion.isFocused && _keyboardWait == null) {
       _frozenClose = null;
+      _frozenKeyboard = null;
       final keyboard = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
       if (keyboard > 0) {
         _motion.focus(clock);
@@ -700,6 +747,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     if (!_motion.isFocused && _keyboardWait == null) return;
     _keyboardWait = null;
     _frozenClose = _lastClose;
+    _frozenKeyboard = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
     _motion.unfocus(clock);
     _controller.clear();
     widget.onChanged?.call('');
@@ -780,7 +828,10 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
           );
           final focused = morphSearchBarLayout(
             width: size.width,
-            bottom: size.height - keyboard - MorphSearchTuning.keyboardGap,
+            bottom:
+                size.height -
+                (_motion.isFocused ? keyboard : _frozenKeyboard ?? keyboard) -
+                MorphSearchTuning.keyboardGap,
             focused: true,
             leading: leadWidths,
             trailing: trailWidths,
@@ -840,12 +891,12 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  ...items,
                   Positioned.fromRect(
                     key: const ValueKey<String>('field'),
                     rect: fieldRect,
                     child: field,
                   ),
+                  ...items,
                 ],
               );
             },

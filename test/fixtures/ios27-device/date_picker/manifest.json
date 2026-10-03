@@ -1,0 +1,13 @@
+{
+  "what": "iOS 27 compact UIDatePicker on the device: the overlay opening and closing, the date-and-time switch, the time wheels",
+  "device": "iPhone 16 Pro (00008140-001039D01442801C), iOS 27.0.1, 3x, 402x874 pt, 120 Hz",
+  "captured": "2026-10-03 (search/date screen-recording session)",
+  "probe": "tool/ios_reference scene x3date (Sources/Extras.swift, X3Sampler) driven by UITests/ExtrasUITests.swift testX3Video (synthesized touches) while MorphRecorder filmed the screen",
+  "rows": "start; touch (phase 0 down, 3 up); V cls _UIDatePickerOverlayPlatterView (center x, y, size w, h, bounds bw, bh, transform sx, opacity a, effective alpha ea); in vid-both also _UIDatePickerCalendarView and _UIDatePickerView (the calendar's and the wheels' effective alpha ea through the switch)",
+  "files": {
+    "vid-date.jsonl": "picker centered 300 pt from the top: a 0.6 s press on the label (opens on the lift), month paging, a day, a tap outside (close), then synthesized open/close strokes (one record fires its strokes together - only the last open and its close are usable)",
+    "vid-both.jsonl": "date-and-time picker: the date label opens the calendar, a tap on the time label turns the open overlay into the wheels, a tap outside closes",
+    "wheels.json": "the time overlay's labels at rest: rows fs 21 at ea 0.447 outside the band, fs 23.5 inside it, the band 200 x 32"
+  },
+  "units": "points (pt), window coordinates, seconds on the device media clock"
+}

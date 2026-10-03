@@ -818,6 +818,49 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   0xFFFAFAFA / 0xFF0D0D0D, resting platter 0xAF000000 / 0x13000000 (the
   platter's matrix: 0.87 x - 0.07 dark, 1.13 x - 0.2 light, over a
   2 pt blur).
+- Search field and compact date picker filmed against UIKit on the
+  iPhone 16 Pro (iOS 27.0.1; MorphRecorder screen recordings of the
+  probe's `x3search` / `x3date` scenes and of morph's rebuilt scenes,
+  both driven by the same XCUITest schedule with real touches and the
+  real keyboard, light and dark, paired with the probe's layer rows).
+  Search: a held touch on the field now focuses it when it lifts, as
+  UIKit does (a 0.5 s hold used to win Flutter's long press and never
+  focus); the tab bar's search tab takes the focus 0.16 s after the tap
+  while its morph still runs (`MorphSearchTuning.tabActivationDelay`;
+  focusing the field the frame it was built lost the keyboard on the
+  device: the engine closed the fresh input connection); closing a
+  search (toolbar and tab bar) falls straight from above the keyboard
+  to rest instead of following the keyboard down and dipping 18 pt
+  below the resting place; the keyboard follows the dark appearance;
+  the magnifier (13.33 pt ring, 1.75 thick), clear disc (16.67 pt) and
+  close cross (16.67 pt, 2.3 thick) take the screen's ink; the cursor is
+  UIKit's 66/106/243 (dark 64/107/248); the resting placeholder is
+  lighter than the focused one (new
+  `MorphSearchFieldStyle.restingPlaceholderColor`); the field paints
+  before the toolbar's fading items, so a disabled or fading item no
+  longer leaves the field's glass reading an empty backdrop;
+  `tabUnfocusDelay` 0.05. Date picker: the calendar keeps 16 pt from the
+  sides on phones under 414 pt (`MorphDatePickerTuning.marginFor`); the
+  title no longer truncates ("October 2..." - it shared the header with
+  a spacer) and sits 20.33 pt in; the month chevrons are label colored,
+  10 x 17.33 pt, 2.6 thick; a chosen day that is not today sits on a
+  label disc (`selectedDayFillColor`, `selectedDayTextColor`); the
+  overlay opens 0.14 s and closes 0.055 s after the lift
+  (`openDelay`/`closeDelay`, device rows 0.010 rms against 0.27 / 0.16
+  without them); its glass fades through the new
+  `MorphGlassSurface.opacity` instead of an opacity layer (the open used
+  to show a gray platter until it settled); tapping the other label of a
+  date-and-time picker turns the open overlay into the other picker on
+  a critically damped 0.25 s spring 0.088 s after the lift, contents
+  cross-fading on the same progress (`switchSpring`, `switchDelay`;
+  before, the tap only closed it); the time wheels sit on UIKit's
+  cylinder (rows 31.3 / 56.7 pt out at 0.905 / 0.647 height, columns at
+  73.5 / 148.5 pt), 21 pt rows magnified to 23.5 in the band, fading
+  toward the edges, and decelerate fast (a 64 pt drag turns two rows,
+  as on the device, not six); `wheelFadedColor` became
+  `wheelFadedOpacity`. Not reproduced: UIKit's empty prediction bar on
+  the search keyboard, and a tap on the tab circle during the tab
+  morph (ignored here; the device capture could not time one).
 
 ## 0.6.0 - 2026-09-03
 

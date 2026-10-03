@@ -82,11 +82,22 @@ abstract final class MorphSearchTuning {
   /// The size of the clear button.
   static const double clearSize = 20;
 
+  /// The diameter of the clear button's disc, inside its [clearSize] box
+  /// (16.67 on an iPhone 16 Pro's screen).
+  static const double clearInk = 16.67;
+
   /// The space between the clear button and the field's trailing edge.
   static const double clearInset = 13.33;
 
   /// The size of the close button's glyph.
   static const Size closeGlyphSize = Size(22.67, 21.33);
+
+  /// The side of the square the close button's cross fills, round caps
+  /// included (16.67 on an iPhone 16 Pro's screen).
+  static const double closeInk = 16.67;
+
+  /// The thickness of the close button's strokes.
+  static const double closeStroke = 2.3;
 
   /// The spring of a tab bar turning into a search field and back: fitted
   /// to the edges of the glass in a video of a UITabBarController selecting
@@ -100,13 +111,22 @@ abstract final class MorphSearchTuning {
   /// 308 points; [transitionSpring] leaves 12).
   static const tabFocusSpring = MorphSpring(0.3, 1);
 
+  /// The time from the lift of the tap on the search tab to the field
+  /// taking the focus when the tab activates search (an iPhone 16 Pro:
+  /// `willPresentSearchController` 0.085 s and the first responder 0.159
+  /// s after the lift, the keyboard's first frame 0.25 s after it, while
+  /// the tab's morph still runs).
+  static const double tabActivationDelay = 0.16;
+
   /// The time from the keyboard's first frame to the start of a tab bar
   /// search's rise (an iPhone 16 Pro, 0.07 s).
   static const double tabKeyboardLag = 0.07;
 
   /// The time from the end of a tab bar search's focus to the start of its
-  /// fall (an iPhone 16 Pro, 0.038 s after the lift of the close tap).
-  static const double tabUnfocusDelay = 0.04;
+  /// fall (an iPhone 16 Pro: 0.038 and 0.064 s after the lift of the
+  /// close tap in two captures; the fall itself runs on [tabFocusSpring],
+  /// 0.08 percent rms of 308 points).
+  static const double tabUnfocusDelay = 0.05;
 
   /// The space between the screen's sides and bottom and a tab bar that
   /// carries a search tab.

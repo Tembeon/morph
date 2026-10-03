@@ -33,6 +33,19 @@ enum ExtrasScenes {
         X3Sampler.shared.start(pattern: env["PROBE_X3TRACK"] ?? pattern)
         return vc
     }
+
+    /// Keeps a spinner turning at the top trailing corner of the window
+    /// (PROBE_SPINNER=1): a screen recorder that drops the first frames of
+    /// motion after a still screen then films every frame of a transition.
+    static func spinner(_ window: UIWindow?) {
+        guard ProcessInfo.processInfo.environment["PROBE_SPINNER"] == "1", let window,
+              !window.subviews.contains(where: { $0.accessibilityIdentifier == "x3spinner" }) else { return }
+        let s = UIActivityIndicatorView(style: .medium)
+        s.accessibilityIdentifier = "x3spinner"
+        s.center = CGPoint(x: window.bounds.width - 30, y: 64)
+        s.startAnimating()
+        window.addSubview(s)
+    }
 }
 
 final class X3Sampler: NSObject {
@@ -203,6 +216,7 @@ class X3ScriptedScene: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if env["PROBE_DARK"] == "1" { view.window?.overrideUserInterfaceStyle = .dark }
+        ExtrasScenes.spinner(view.window)
         guard !scripted else { return }
         scripted = true
         X3Script.schedule { [weak self] action in self?.run(action) }
@@ -320,6 +334,7 @@ final class X3SearchTabs: UITabBarController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if ProcessInfo.processInfo.environment["PROBE_DARK"] == "1" { view.window?.overrideUserInterfaceStyle = .dark }
+        ExtrasScenes.spinner(view.window)
         guard !scripted else { return }
         scripted = true
         X3Script.schedule { [weak self] action in

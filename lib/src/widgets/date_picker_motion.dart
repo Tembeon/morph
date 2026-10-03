@@ -18,6 +18,30 @@ abstract final class MorphDatePickerTuning {
   /// rms).
   static const closeSpring = MorphSpring(0.348, 0.86);
 
+  /// The spring an open overlay changes picker on when the other label
+  /// of a date-and-time picker is tapped: the platter's frame moves from
+  /// the calendar's placement to the wheels' (or back) while the two
+  /// contents cross-fade, both pinned to the anchored corner. Fitted to
+  /// the platter's frames on an iPhone 16 Pro (critically damped, response
+  /// 0.25 s: 0.04 percent rms of the travel; a screen recording of the same
+  /// switch reads 0.245), starting [switchDelay] after the lift of the tap.
+  /// The outgoing content's opacity is one minus the progress, the
+  /// incoming one's the progress.
+  static const switchSpring = MorphSpring(0.25, 1);
+
+  /// The time from the lift of the tap that opens the overlay to the
+  /// start of its spring (an iPhone 16 Pro: 0.143 and 0.125 s from the
+  /// platter's frames; the simulator 0.14 - 0.15 s).
+  static const double openDelay = 0.14;
+
+  /// The time from the lift of the tap outside to the start of the
+  /// closing spring (an iPhone 16 Pro: 0.052 and 0.062 s).
+  static const double closeDelay = 0.055;
+
+  /// The time from the lift of the tap on the other label to the start of
+  /// the [switchSpring] (an iPhone 16 Pro: 0.088 s).
+  static const double switchDelay = 0.088;
+
   /// The scale of the hidden overlay about its anchor.
   static const double hiddenScale = 0.2;
 
@@ -32,8 +56,25 @@ abstract final class MorphDatePickerTuning {
   /// before the center before it is moved inside the margins.
   static const double anchorOffset = 6;
 
-  /// The space the overlay keeps from the screen's sides.
+  /// The space the overlay keeps from the screen's sides on a wide phone
+  /// (the iOS 27 simulator's 440 point iPhone 18 Pro Max): UIKit's layout
+  /// margin there.
   static const double margin = 20;
+
+  /// The space the overlay keeps from the screen's sides on a phone
+  /// narrower than [wideScreenWidth] (an iPhone 16 Pro, 402 points: the
+  /// calendar's left edge at 16 in a screen recording).
+  static const double compactMargin = 16;
+
+  /// The screen width from which the overlay keeps [margin] rather than
+  /// [compactMargin] from the sides: UIKit's system layout margins grow
+  /// from 16 to 20 points on the 414 point and wider phones.
+  static const double wideScreenWidth = 414;
+
+  /// The space the overlay keeps from the sides of a screen [width]
+  /// points wide.
+  static double marginFor(double width) =>
+      width >= wideScreenWidth ? margin : compactMargin;
 
   /// The corner radius of the overlay.
   static const double cornerRadius = 28;
@@ -111,8 +152,9 @@ class MorphDatePickerPlacement {
 /// it when there is no room below inside [padding]. Across, it extends
 /// toward the leading side: its trailing edge sits the offset before the
 /// label's center, then it moves as little as it must to stay
-/// [MorphDatePickerTuning.margin] from the screen's sides. Checked against
-/// six placements on the iOS 27 simulator.
+/// [MorphDatePickerTuning.marginFor] the screen's width from its sides.
+/// Checked against six placements on the iOS 27 simulator and one on an
+/// iPhone 16 Pro.
 MorphDatePickerPlacement morphPlaceDatePicker({
   required Size size,
   required Rect label,
@@ -121,7 +163,7 @@ MorphDatePickerPlacement morphPlaceDatePicker({
   TextDirection textDirection = TextDirection.ltr,
 }) {
   const offset = MorphDatePickerTuning.anchorOffset;
-  const margin = MorphDatePickerTuning.margin;
+  final margin = MorphDatePickerTuning.marginFor(screen.width);
   final c = label.center;
   final belowTop = c.dy + offset;
   final roomBelow = screen.height - padding.bottom - belowTop;
@@ -187,49 +229,79 @@ class MorphDatePickerMotion {
   bool get isOpen => _open;
 
   /// Whether the overlay has closed and nothing moves.
-  bool get isClosed => !_open && _progress.isAtRest(_now, 0.002);
+  bool get isClosed {
+    final spring = _spring(_now);
+    return !_open && _pendingAt == null && spring.isAtRest(_now, 0.002);
+  }
 
   /// Whether nothing moves.
-  bool get isSettled =>
-      _progress.isAtRest(_now, 0.001) &&
-      _now >= _highlightStart + MorphDatePickerTuning.highlightDuration &&
-      _now >= _pageStart + MorphDatePickerTuning.pageDuration;
+  bool get isSettled {
+    final spring = _spring(_now);
+    return _pendingAt == null &&
+        spring.isAtRest(_now, 0.001) &&
+        _now >= _highlightStart + MorphDatePickerTuning.highlightDuration &&
+        _now >= _pageStart + MorphDatePickerTuning.pageDuration;
+  }
 
   /// Advances the motion to time [t].
   void advance(double t) {
     if (t > _now) _now = t;
   }
 
-  /// Opens the overlay at time [t].
-  void open(double t) {
+  /// Opens the overlay at time [t]: the spring starts [delay] seconds
+  /// later ([MorphDatePickerTuning.openDelay] by default, UIKit's latency
+  /// from the lift of the tap); until then whatever motion runs goes on.
+  void open(double t, {double delay = MorphDatePickerTuning.openDelay}) {
     advance(t);
     _open = true;
-    _progress.retarget(t, 1, spring: MorphDatePickerTuning.openSpring);
+    _schedule(t + delay, 1, MorphDatePickerTuning.openSpring);
   }
 
-  /// Closes the overlay at time [t].
-  void close(double t) {
+  /// Closes the overlay at time [t], the spring starting [delay] seconds
+  /// later ([MorphDatePickerTuning.closeDelay] by default).
+  void close(double t, {double delay = MorphDatePickerTuning.closeDelay}) {
     advance(t);
     _open = false;
-    _progress.retarget(t, 0, spring: MorphDatePickerTuning.closeSpring);
+    _schedule(t + delay, 0, MorphDatePickerTuning.closeSpring);
+  }
+
+  double? _pendingAt;
+  double _pendingTarget = 0;
+  MorphSpring _pendingSpring = MorphDatePickerTuning.openSpring;
+
+  void _schedule(double at, double target, MorphSpring spring) {
+    final pending = _pendingAt;
+    if (pending != null && at >= pending) _spring(pending);
+    _pendingAt = at;
+    _pendingTarget = target;
+    _pendingSpring = spring;
+  }
+
+  MorphSpringState _spring(double t) {
+    final at = _pendingAt;
+    if (at != null && t >= at) {
+      _pendingAt = null;
+      _progress.retarget(at, _pendingTarget, spring: _pendingSpring);
+    }
+    return _progress;
   }
 
   /// The overlay's progress at time [t]: 0 hidden, 1 open.
-  double progress(double t) => _progress.value(t);
+  double progress(double t) => _spring(t).value(t);
 
   /// The overlay's scale about its anchor at time [t].
   double scale(double t) =>
       MorphDatePickerTuning.hiddenScale +
-      (1 - MorphDatePickerTuning.hiddenScale) * _progress.value(t);
+      (1 - MorphDatePickerTuning.hiddenScale) * progress(t);
 
   /// The overlay's opacity at time [t].
-  double opacity(double t) => _progress.value(t).clamp(0.0, 1.0);
+  double opacity(double t) => progress(t).clamp(0.0, 1.0);
 
   /// The height of the overlay's box before the scale at time [t], for an
   /// overlay [full] points tall.
   double height(double t, double full) =>
       MorphDatePickerTuning.hiddenHeight +
-      (full - MorphDatePickerTuning.hiddenHeight) * _progress.value(t);
+      (full - MorphDatePickerTuning.hiddenHeight) * progress(t);
 
   /// The label's text dims under a finger at time [t].
   void press(double t) => _highlight(t, MorphDatePickerTuning.highlightOpacity);

@@ -8,7 +8,8 @@
     "search-toolbar.jsonl": "programmatic focus and cancel (night pass)",
     "search-tap.jsonl": "a tap on the resting field (the focus waits for the keyboard), then a tap on the close button",
     "search-hold.jsonl": "a 0.5 s press on the resting field (the glass lift)",
-    "tab-search-focus.jsonl": "a UISearchTab with automaticallyActivatesSearch: a tap on the search circle (the tab -> field morph itself is SwiftUI glass, invisible in views), the focus rise above the keyboard, a tap on the close button"
+    "tab-search-focus.jsonl": "a UISearchTab with automaticallyActivatesSearch: a tap on the search circle (the tab -> field morph itself is SwiftUI glass, invisible in views), the focus rise above the keyboard, a tap on the close button",
+    "vid-tab.jsonl": "(2026-10-03 screen-recording session, testX3Video) UISearchTab with automaticallyActivatesSearch: a tap on the search circle, typing, a tap on the close button (the field falls straight from above the keyboard to its place as the keyboard leaves), a tap on the tab circle, a second tap on the search circle; V cls UISearchBarTextField (the text field inside the capsule: x, y, w, h) and _UIRemoteKeyboardPlaceholderView (keyboard y, h)"
   },
   "units": "points (pt), window coordinates, seconds on the device media clock"
 }

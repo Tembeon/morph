@@ -24,12 +24,20 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// [MorphSearchTuning.tabSpring], the tab bar shrinks into a circle that
 /// keeps the selected tab's glyph while the other tabs fade, and the search
 /// circle stretches into a search field whose placeholder fades in; the
-/// field then takes the focus and, once the keyboard starts to rise,
+/// field takes the focus [MorphSearchTuning.tabActivationDelay] after the
+/// tap, while the morph still runs, and, once the keyboard starts to rise,
 /// rises above it on [MorphSearchTuning.tabFocusSpring] with a close
 /// button, like [MorphSearchToolbar], while the tab circle (which the
 /// keyboard covers in UIKit) fades. The close button (or Escape) ends the
-/// focus and clears the text; tapping the tab circle asks to stop
-/// searching, and the field turns back into the circle.
+/// focus and clears the text, and the field falls straight back to its
+/// place above the tab circle as the keyboard leaves; tapping the tab
+/// circle asks to stop searching, and the field turns back into the
+/// circle.
+///
+/// This is UIKit's search tab with `automaticallyActivatesSearch`: only
+/// then does iOS 27 set the search tab apart as a circle. A search tab
+/// that waits for a tap on its field is an ordinary tab inside the bar
+/// (a [MorphTabItem] of [MorphTabBar]).
 ///
 /// The edges were measured at both ends and their timing fitted to video
 /// of the real morph; the path between is a straight interpolation of the
@@ -116,6 +124,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     spring: MorphSearchTuning.tabFocusSpring,
   );
   double? _keyboardWait;
+  double? _frozenKeyboard;
   final GlobalKey _bar = GlobalKey();
   TextEditingController? _ownController;
   FocusNode? _ownFocus;
@@ -141,23 +150,21 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       _focusMotion.focus(t, delay: 0);
     }
     _focusMotion.advance(t);
-    if (widget.searching &&
-        !_focus.hasFocus &&
-        !_focusMotion.isFocused &&
-        !_autofocused &&
-        _morph.value(t) > 0.9) {
-      _autofocused = true;
-      _focus.requestFocus();
+    final activate = _activateAt;
+    if (activate != null && t >= activate) {
+      _activateAt = null;
+      if (widget.searching && !_focus.hasFocus) _focus.requestFocus();
     }
   }
 
-  bool _autofocused = false;
+  double? _activateAt;
 
   @override
   bool get motionSettled =>
       _morph.isAtRest(_now, 0.001) &&
       _focusMotion.isSettled &&
-      _keyboardWait == null;
+      _keyboardWait == null &&
+      _activateAt == null;
 
   @override
   void initState() {
@@ -172,12 +179,12 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     _listen();
     if (oldWidget.searching != widget.searching) {
       _morph.retarget(clock, widget.searching ? 1 : 0, spring: _spring);
-      if (widget.searching) {
-        _autofocused = false;
-      } else {
+      _activateAt = widget.searching
+          ? clock + MorphSearchTuning.tabActivationDelay
+          : null;
+      if (!widget.searching) {
         _controller.clear();
         _focus.unfocus();
-        _autofocused = true;
       }
       wake();
     }
@@ -201,6 +208,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
 
   void _focusChanged() {
     if (_focus.hasFocus && !_focusMotion.isFocused && _keyboardWait == null) {
+      _frozenKeyboard = null;
       final keyboard = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
       if (keyboard > 0) {
         _focusMotion.focus(clock, delay: MorphSearchTuning.tabKeyboardLag);
@@ -212,6 +220,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     } else if (!_focus.hasFocus &&
         (_focusMotion.isFocused || _keyboardWait != null)) {
       _keyboardWait = null;
+      _frozenKeyboard = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
       _focusMotion.unfocus(clock, delay: MorphSearchTuning.tabUnfocusDelay);
       wake();
       setState(() {});
@@ -280,7 +289,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
           final geometry = morphSearchTabLayout(
             size: constraints.biggest,
             barWidth: _barWidth ?? _fallbackBarWidth(),
-            keyboard: keyboard,
+            keyboard: _focusMotion.isFocused
+                ? keyboard
+                : _frozenKeyboard ?? keyboard,
             rtl: rtl,
           );
           return ListenableBuilder(
@@ -343,37 +354,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                   ),
                 );
               }
-              if (settled) {
-                children.add(
-                  Positioned.fromRect(
-                    key: const ValueKey<String>('field'),
-                    rect: searchRect,
-                    child: field,
-                  ),
-                );
-                if (p > 0.001 || _focusMotion.isFocused) {
-                  children.add(
-                    Positioned.fromRect(
-                      key: const ValueKey<String>('close'),
-                      rect: closeRect,
-                      child: IgnorePointer(
-                        ignoring: !_focusMotion.isFocused,
-                        child: Opacity(
-                          opacity: p.clamp(0.0, 1.0),
-                          child: Transform.scale(
-                            scale: MorphSearchMotion.appearScaleFor(p),
-                            child: _RoundGlassButton(
-                              label: widget.closeLabel,
-                              onPressed: _close,
-                              child: _CrossGlyph(color: searchStyle.glyphColor),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }
-              } else {
+              if (!settled) {
                 children.add(
                   Positioned.fromRect(
                     key: const ValueKey<String>('search'),
@@ -392,6 +373,44 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                         brightness: brightness,
                         rtl: rtl,
                         onTap: () => widget.onSearchingChanged(true),
+                      ),
+                    ),
+                  ),
+                );
+              }
+              if (widget.searching || settled) {
+                children.add(
+                  Positioned.fromRect(
+                    key: const ValueKey<String>('field'),
+                    rect: searchRect,
+                    child: IgnorePointer(
+                      ignoring: !settled,
+                      child: Opacity(
+                        opacity: settled ? 1 : 0,
+                        alwaysIncludeSemantics: true,
+                        child: field,
+                      ),
+                    ),
+                  ),
+                );
+              }
+              if (settled && (p > 0.001 || _focusMotion.isFocused)) {
+                children.add(
+                  Positioned.fromRect(
+                    key: const ValueKey<String>('close'),
+                    rect: closeRect,
+                    child: IgnorePointer(
+                      ignoring: !_focusMotion.isFocused,
+                      child: Opacity(
+                        opacity: p.clamp(0.0, 1.0),
+                        child: Transform.scale(
+                          scale: MorphSearchMotion.appearScaleFor(p),
+                          child: _RoundGlassButton(
+                            label: widget.closeLabel,
+                            onPressed: _close,
+                            child: _CrossGlyph(color: searchStyle.glyphColor),
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -737,24 +756,7 @@ class _CrossLines extends CustomPainter {
   final Color color;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint();
-    paint.color = color;
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = size.shortestSide * 0.1;
-    paint.strokeCap = StrokeCap.round;
-    final inset = size.shortestSide * 0.12;
-    canvas.drawLine(
-      Offset(inset, inset),
-      Offset(size.width - inset, size.height - inset),
-      paint,
-    );
-    canvas.drawLine(
-      Offset(size.width - inset, inset),
-      Offset(inset, size.height - inset),
-      paint,
-    );
-  }
+  void paint(Canvas canvas, Size size) => morphPaintCross(canvas, size, color);
 
   @override
   bool shouldRepaint(_CrossLines oldDelegate) => oldDelegate.color != color;
@@ -766,23 +768,8 @@ class _MagnifierGlyph extends CustomPainter {
   final Color color;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final s = math.min(size.width, size.height);
-    final paint = Paint();
-    paint.color = color;
-    paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = s * 0.11;
-    paint.strokeCap = StrokeCap.round;
-    final r = s * 0.33;
-    final c = Offset(size.width * 0.42, size.height * 0.42);
-    canvas.drawCircle(c, r, paint);
-    final d = r * 0.7071;
-    canvas.drawLine(
-      c + Offset(d, d),
-      Offset(size.width * 0.9, size.height * 0.9),
-      paint,
-    );
-  }
+  void paint(Canvas canvas, Size size) =>
+      morphPaintMagnifier(canvas, size, color);
 
   @override
   bool shouldRepaint(_MagnifierGlyph oldDelegate) => oldDelegate.color != color;

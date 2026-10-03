@@ -14,13 +14,22 @@ final class ExtrasUITests: XCTestCase {
 
     private func capture(_ rec: String, scene: String, extra: [String: String] = [:], settle: Double = 1.8, _ body: () -> Void) {
         if !only.isEmpty && !only.contains(rec) { return }
-        app = env["PROBE_BUNDLE"].map { XCUIApplication(bundleIdentifier: $0) } ?? XCUIApplication()
+        app = env["PROBE_BUNDLE"].flatMap { $0.isEmpty ? nil : XCUIApplication(bundleIdentifier: $0) } ?? XCUIApplication()
         app.launchEnvironment["PROBE_SCENE"] = scene
         app.launchEnvironment["PROBE_REC"] = rec
         app.launchEnvironment["PROBE_TRACK"] = "^NOTHING$"
         for (k, v) in extra { app.launchEnvironment[k] = v }
+        if let spinner = env["PROBE_SPINNER"], !spinner.isEmpty { app.launchEnvironment["PROBE_SPINNER"] = spinner }
         app.launch()
         Thread.sleep(forTimeInterval: 2.5)
+        if let bundle = env["PROBE_BUNDLE"], !bundle.isEmpty {
+            // morph's search_date_scenes.dart board: a row per scene, light at x 100, dark at x 300.
+            let scenes = ["search", "tab", "tabauto", "date", "time", "both"]
+            let key = scene == "x3search" ? (extra["PROBE_SEARCH"] ?? "toolbar") : (extra["PROBE_DMODE"] ?? "date")
+            let row = scenes.firstIndex(of: key == "toolbar" ? "search" : key) ?? 0
+            tap(p(extra["PROBE_DARK"] == "1" ? 300 : 100, 150 + 70 * CGFloat(row)))
+            Thread.sleep(forTimeInterval: 1.5)
+        }
         NSLog("PROBE capture begin \(rec)")
         body()
         Thread.sleep(forTimeInterval: settle)
@@ -171,6 +180,82 @@ final class ExtrasUITests: XCTestCase {
         }
         capture("alert-pref-dark", scene: "x3alert", extra: ["PROBE_DARK": "1", "PROBE_ACTIONS": "2", "PROBE_PREFERRED": "1", "PROBE_SCRIPT": "show@0.3;tree-prefdark@1.6"]) {
             pause(1.4); shot("alert-pref-dark")
+        }
+    }
+
+    // MARK: screen-recording schedules (device; film with MorphRecorder while this runs)
+
+    /// The search and date picker schedules filmed against morph's
+    /// search_date_video_test.dart: same coordinates (window-size based), same order,
+    /// light then dark (PROBE_VIDEO_DARK=0/1 picks one; default both).
+    func testX3Video() {
+        let modes = (env["PROBE_VIDEO_DARK"]).flatMap { $0.isEmpty ? nil : [$0] } ?? ["0", "1"]
+        for dark in modes {
+            let tag = dark == "1" ? "-dark" : ""
+            capture("vid-search\(tag)", scene: "x3search", extra: ["PROBE_SEARCH": "toolbar", "PROBE_TBITEMS": "1", "PROBE_DARK": dark], settle: 1.0) {
+                let s = screen
+                let field = p(s.width / 2, s.height - 52)
+                path(field, pressFor: 0.5, []); pause(2.0)
+                app.typeText("It"); pause(1.0)
+                let clear = app.buttons["Clear text"].firstMatch
+                NSLog("PROBE clear \(clear.exists ? clear.frame : .zero)")
+                tap(clear.exists ? p(clear.frame.midX, clear.frame.midY) : p(s.width - 8 - 48 - 12 - 23, s.height - 328 - 10 - 24)); pause(1.2)
+                app.typeText("Item 1"); pause(0.8)
+                path(p(s.width / 2, 420), pressFor: 0.05, [(p(s.width / 2, 220), 0.4, 0)]); pause(1.2)
+                closeSearch(); pause(1.6)
+                path(p(s.width / 2, 300), pressFor: 0.05, [(p(s.width / 2, 120), 0.4, 0)]); pause(1.0)
+                tap(field, hold: 0.08); pause(0.5); closeSearch(); pause(1.6)
+            }
+            capture("vid-tab\(tag)", scene: "x3search", extra: ["PROBE_SEARCH": "tabauto", "PROBE_DARK": dark], settle: 1.0) {
+                let s = screen
+                tap(p(s.width - 21 - 31, s.height - 21 - 31)); pause(2.2)
+                app.typeText("It"); pause(1.0)
+                closeSearch(); pause(1.8)
+                tap(p(28 + 24, s.height - 28 - 24)); pause(2.0)
+                tap(p(s.width - 21 - 31, s.height - 21 - 31)); pause(0.25)
+                tap(p(28 + 24, s.height - 28 - 24)); pause(2.0)
+            }
+            capture("vid-tabmanual\(tag)", scene: "x3search", extra: ["PROBE_SEARCH": "tab", "PROBE_DARK": dark], settle: 1.0) {
+                let s = screen
+                tap(p(s.width - 21 - 31, s.height - 21 - 31)); pause(2.0)
+                tap(p(s.width / 2 + 30, s.height - 28 - 24)); pause(2.0)
+                closeSearch(); pause(1.8)
+                tap(p(28 + 24, s.height - 28 - 24)); pause(2.0)
+            }
+            capture("vid-date\(tag)", scene: "x3date", extra: ["PROBE_DARK": dark], settle: 1.0) {
+                let s = screen
+                let label = p(s.width / 2, 300)
+                path(label, pressFor: 0.6, []); pause(1.4)
+                for b in app.buttons.allElementsBoundByIndex.prefix(12) { NSLog("PROBE button \(b.label) \(b.frame)") }
+                let next = app.buttons["Next Month"].firstMatch
+                let prev = app.buttons["Previous Month"].firstMatch
+                let nextAt = next.exists ? p(next.frame.midX, next.frame.midY) : p(316.3, 340.8)
+                let prevAt = prev.exists ? p(prev.frame.midX, prev.frame.midY) : p(273, 340.8)
+                tap(nextAt); pause(1.0)
+                tap(nextAt); pause(1.0)
+                tap(prevAt); pause(1.0)
+                tap(prevAt); pause(1.0)
+                tap(p(222.3, 506.8)); pause(1.2)
+                tap(p(s.width / 2, s.height - 120)); pause(1.4)
+                synth([Stroke(points: [(0, label)], liftAt: 0.06), Stroke(points: [(0, p(s.width / 2, s.height - 120))], liftAt: 0.16)], name: "openclose")
+                pause(1.4)
+                synth([Stroke(points: [(0, label)], liftAt: 0.06), Stroke(points: [(0, p(s.width / 2, s.height - 120))], liftAt: 0.06), Stroke(points: [(0, label)], liftAt: 0.12)], name: "reopen")
+                pause(1.4)
+                tap(p(s.width / 2, s.height - 120)); pause(1.4)
+            }
+            capture("vid-time\(tag)", scene: "x3date", extra: ["PROBE_DMODE": "time", "PROBE_DARK": dark], settle: 1.0) {
+                let s = screen
+                tap(p(s.width / 2, 300)); pause(1.4)
+                path(p(100, 410), pressFor: 0.05, [(p(100, 346), 0.3, 0)]); pause(1.6)
+                path(p(172, 410), pressFor: 0.05, [(p(172, 470), 0.3, 0)]); pause(1.6)
+                tap(p(s.width / 2, s.height - 120)); pause(1.4)
+            }
+            capture("vid-both\(tag)", scene: "x3date", extra: ["PROBE_DMODE": "both", "PROBE_DARK": dark], settle: 1.0) {
+                let s = screen
+                tap(p(s.width / 2 - 37, 300)); pause(1.4)
+                tap(p(s.width / 2 + 59.5, 300)); pause(1.6)
+                tap(p(s.width / 2, s.height - 120)); pause(1.4)
+            }
         }
     }
 

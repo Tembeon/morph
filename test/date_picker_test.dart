@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -222,6 +223,100 @@ void main() {
     });
   });
 
+  group('compact date picker replays an iPhone 16 Pro', () {
+    const device = 'test/fixtures/ios27-device/date_picker';
+    List<Map<String, Object?>> load(String file) => [
+      for (final line in File('$device/$file').readAsLinesSync())
+        if (line.trim().isNotEmpty)
+          (jsonDecode(line) as Map).cast<String, Object?>(),
+    ];
+    List<double> ups(List<Map<String, Object?>> rows) => [
+      for (final r in rows)
+        if (r['k'] == 'touch' && r['phase'] == 3) _d(r, 't'),
+    ];
+
+    test(
+      'the overlay opens 0.14 s after the lift and closes 0.055 s after',
+      () {
+        final rows = load('vid-date.jsonl');
+        final platter = [
+          for (final r in rows)
+            if (r['cls'] == '_UIDatePickerOverlayPlatterView') r,
+        ];
+        final lifts = ups(rows);
+        // The press on the label lifts first and opens the overlay; the tap
+        // outside at y 754 closes it.
+        final openUp = lifts.first;
+        final closeUp = [
+          for (final r in rows)
+            if (r['k'] == 'touch' && r['phase'] == 3 && _d(r, 'y') > 700)
+              _d(r, 't'),
+        ].first;
+        final m = MorphDatePickerMotion();
+        m.open(openUp);
+        m.close(closeUp);
+        final open = <double>[];
+        final close = <double>[];
+        for (final r in platter) {
+          final t = _d(r, 't');
+          // Before the animation's first frame the view reads its final
+          // layout, and the close's first frame its hidden one (one row
+          // each); the springs are compared from their start on.
+          if (t < openUp + MorphDatePickerTuning.openDelay ||
+              t > closeUp + 0.8 ||
+              (t > closeUp && _d(r, 'a') == 0)) {
+            continue;
+          }
+          final e = m.scale(t) - _d(r, 'sx');
+          if (t < closeUp) {
+            open.add(e);
+          } else {
+            close.add(e);
+          }
+        }
+        expect(open.length, greaterThan(40));
+        expect(close.length, greaterThan(30));
+        // Without the delays the same springs miss by 0.27 (open) and 0.16
+        // (close); 0.03 s either way already costs 0.07.
+        expect(_rms(open), lessThan(0.015));
+        expect(_rms(close), lessThan(0.015));
+      },
+    );
+
+    test('the other label turns the overlay on a 0.25 s spring', () {
+      final rows = load('vid-both.jsonl');
+      final lifts = ups(rows);
+      final up = lifts[1];
+      const from = Size(320, 332);
+      const to = MorphDatePickerTuning.timeSize;
+      expect(MorphDatePickerTuning.switchSpring.dampingRatio, 1);
+      double p(double t) {
+        final dt = t - up - MorphDatePickerTuning.switchDelay;
+        if (dt <= 0) return 0;
+        final w = 2 * math.pi / MorphDatePickerTuning.switchSpring.response;
+        return 1 - math.exp(-w * dt) * (1 + w * dt);
+      }
+
+      final size = <double>[];
+      final fade = <double>[];
+      for (final r in rows) {
+        final t = _d(r, 't');
+        if (t < up || t > up + 0.6) continue;
+        if (r['cls'] == '_UIDatePickerOverlayPlatterView') {
+          size.add(_d(r, 'w') - (from.width + (to.width - from.width) * p(t)));
+          size.add(
+            _d(r, 'h') - (from.height + (to.height - from.height) * p(t)),
+          );
+        } else if (r['cls'] == '_UIDatePickerCalendarView') {
+          fade.add(_d(r, 'ea') - (1 - p(t)));
+        }
+      }
+      expect(size.length, greaterThan(40));
+      expect(_rms(size), lessThan(0.6));
+      expect(_rms(fade), lessThan(0.02));
+    });
+  });
+
   group('MorphDatePicker', () {
     Future<void> pump(
       WidgetTester tester, {
@@ -298,7 +393,7 @@ void main() {
       await tester.pumpAndSettle();
       final title = tester.getRect(find.text('October 2026'));
       expect(title.top, greaterThan(label.center.dy));
-      expect(title.left, closeTo(20 + 16, 1));
+      expect(title.left, closeTo(20 + 20.33, 1));
     });
 
     testWidgets('in right-to-left the overlay extends to the right', (
@@ -346,12 +441,15 @@ void main() {
       await tester.tap(find.text('09:41'));
       await tester.pumpAndSettle();
       expect(find.byType(ListWheelScrollView), findsNWidgets(2));
-      await tester.drag(
+      // The probe's drag on an iPhone 16 Pro (rec-vid-time): 64 points up
+      // in 0.375 s turns UIKit's wheel by exactly two rows.
+      await tester.timedDrag(
         find.byType(ListWheelScrollView).last,
-        const Offset(0, -32),
+        const Offset(0, -64),
+        const Duration(milliseconds: 375),
       );
       await tester.pumpAndSettle();
-      expect(picked.last.minute, 42);
+      expect(picked.last.minute, 43);
     });
 
     testWidgets('formats twelve-hour times and both labels', (tester) async {
@@ -391,6 +489,178 @@ void main() {
       await tester.tap(find.byType(MorphDatePicker));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('MorphDatePicker on an iPhone 16 Pro', () {
+    Future<void> pump(
+      WidgetTester tester,
+      MorphDatePickerMode mode, {
+      DateTime? start,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(402, 874));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      var value = start ?? DateTime(2026, 10, 3, 7, 41);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) => Align(
+              alignment: const Alignment(0, -0.3135),
+              child: MorphDatePicker(
+                value: value,
+                mode: mode,
+                use24HourFormat: true,
+                today: DateTime(2026, 10, 3),
+                onChanged: (DateTime v) => setState(() => value = v),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    testWidgets('the calendar keeps 16 points from the side, title whole', (
+      tester,
+    ) async {
+      await pump(
+        tester,
+        MorphDatePickerMode.date,
+        start: DateTime(2026, 5, 3, 7, 41),
+      );
+      await tester.tap(find.text('May 3, 2026'));
+      await tester.pumpAndSettle();
+      final title = find.text('May 2026');
+      expect(
+        tester.renderObject<RenderParagraph>(title).didExceedMaxLines,
+        isFalse,
+      );
+      // The screen recording: the platter's left edge at 16, the title's
+      // ink at 37.
+      expect(tester.getRect(title).left, closeTo(16 + 20.33, 0.5));
+    });
+
+    testWidgets('a chosen day that is not today sits on a label disc', (
+      tester,
+    ) async {
+      await pump(tester, MorphDatePickerMode.date);
+      await tester.tap(find.text('Oct 3, 2026'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('15'));
+      await tester.pumpAndSettle();
+      BoxDecoration? disc(String day) =>
+          tester
+                  .widget<Container>(
+                    find
+                        .ancestor(
+                          of: find.text(day),
+                          matching: find.byType(Container),
+                        )
+                        .first,
+                  )
+                  .decoration
+              as BoxDecoration?;
+      expect(
+        disc('15')?.color,
+        MorphDatePickerStyle.light.selectedDayFillColor,
+      );
+      expect(disc('3')?.color, MorphDatePickerStyle.light.todayFillColor);
+      final text = tester.widget<Text>(find.text('15'));
+      expect(
+        text.style?.color,
+        MorphDatePickerStyle.light.selectedDayTextColor,
+      );
+    });
+
+    testWidgets('the overlay opens 0.14 s after the lift', (tester) async {
+      await pump(tester, MorphDatePickerMode.date);
+      await tester.tap(find.text('Oct 3, 2026'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 120));
+      final opacity = tester.widget<Opacity>(
+        find
+            .ancestor(
+              of: find.text('October 2026'),
+              matching: find.byType(Opacity),
+            )
+            .first,
+      );
+      expect(opacity.opacity, 0);
+      await tester.pump(const Duration(milliseconds: 100));
+      final later = tester.widget<Opacity>(
+        find
+            .ancestor(
+              of: find.text('October 2026'),
+              matching: find.byType(Opacity),
+            )
+            .first,
+      );
+      expect(later.opacity, greaterThan(0.1));
+    });
+
+    testWidgets('the other label turns the open overlay into its picker', (
+      tester,
+    ) async {
+      await pump(tester, MorphDatePickerMode.dateAndTime);
+      await tester.tap(find.text('Oct 3, 2026'));
+      await tester.pumpAndSettle();
+      expect(find.text('October 2026'), findsOneWidget);
+      await tester.tap(find.text('07:41').first, warnIfMissed: false);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(find.text('October 2026'), findsOneWidget);
+      expect(find.byType(ListWheelScrollView), findsNWidgets(2));
+      await tester.pumpAndSettle();
+      expect(find.text('October 2026'), findsNothing);
+      expect(find.byType(ListWheelScrollView), findsNWidgets(2));
+      final label = tester.widget<Text>(find.text('07:41').first);
+      expect(label.style?.color, MorphDatePickerStyle.light.accentColor);
+      final date = tester.widget<Text>(find.text('Oct 3, 2026'));
+      expect(date.style?.color, MorphDatePickerStyle.light.labelColor);
+      await tester.tapAt(const Offset(201, 800));
+      await tester.pumpAndSettle();
+      expect(find.byType(ListWheelScrollView), findsNothing);
+    });
+  });
+
+  group('MorphDatePicker time wheels', () {
+    testWidgets('rows sit on UIKit\'s cylinder', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(402, 874));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Align(
+            alignment: const Alignment(0, -0.3135),
+            child: MorphDatePicker(
+              value: DateTime(2026, 10, 3, 7, 41),
+              mode: MorphDatePickerMode.time,
+              use24HourFormat: true,
+              onChanged: (_) {},
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(MorphDatePicker));
+      await tester.pumpAndSettle();
+      final center = tester.getRect(find.text('07').last);
+      // UIKit's labels on an iPhone 16 Pro (rec-vid-time): neighbours 31.3
+      // and 56.7 points from the selected row, 0.905 and 0.647 of its
+      // height; the hour column 73.5 and the minute column 148.5 points
+      // from the platter's leading edge (16 on this screen).
+      for (final (text, dy, h) in [
+        ('06', -31.3, 0.905),
+        ('08', 31.3, 0.905),
+        ('05', -56.9, 0.647),
+        ('09', 56.6, 0.647),
+      ]) {
+        final r = tester.getRect(find.text(text).last);
+        expect(r.center.dy - center.center.dy, closeTo(dy, 0.6), reason: text);
+        expect(r.height / center.height, closeTo(h, 0.03), reason: text);
+        expect(r.center.dx, closeTo(16 + 73.5, 0.5), reason: text);
+      }
+      expect(
+        tester.getRect(find.text('41').last).center.dx,
+        closeTo(16 + 148.5, 0.5),
+      );
     });
   });
 

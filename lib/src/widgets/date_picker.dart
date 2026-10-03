@@ -7,6 +7,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/date_picker_motion.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
@@ -37,9 +38,12 @@ class MorphDatePickerStyle {
     this.dayColor = const Color(0xFF000000),
     this.todayFillColor = const Color(0x1F0088FF),
     this.selectedDayColor = const Color(0xFFFFFFFF),
+    this.selectedDayFillColor = const Color(0xFF000000),
+    this.selectedDayTextColor = const Color(0xFFFFFFFF),
+    this.chevronColor = const Color(0xFF000000),
     this.wheelBandColor = const Color(0x1F767680),
     this.wheelColor = const Color(0xFF000000),
-    this.wheelFadedColor = const Color(0x993C3C43),
+    this.wheelFadedOpacity = 0.4,
     this.disabledOpacity = 0.35,
   });
 
@@ -49,8 +53,8 @@ class MorphDatePickerStyle {
   /// The color of a compact label's text: label.
   final Color labelColor;
 
-  /// The accent: the text of an open label, the chevrons, the selected
-  /// day.
+  /// The accent: the text of an open label, the month title's chevron,
+  /// today's number and, when today is the chosen day, its disc.
   final Color accentColor;
 
   /// The flat stand-in for the overlay's material when no
@@ -72,17 +76,32 @@ class MorphDatePickerStyle {
   /// The fill behind today when it is not selected.
   final Color todayFillColor;
 
-  /// The color of the selected day's number.
+  /// The color of the chosen day's number when the chosen day is today,
+  /// on an [accentColor] disc.
   final Color selectedDayColor;
+
+  /// The disc behind the chosen day when it is not today: label.
+  final Color selectedDayFillColor;
+
+  /// The color of the chosen day's number on [selectedDayFillColor].
+  final Color selectedDayTextColor;
+
+  /// The color of the previous and next month chevrons: label.
+  final Color chevronColor;
 
   /// The band behind the wheels' selected row.
   final Color wheelBandColor;
 
-  /// The color of the wheels' selected row.
+  /// The color of the wheels' rows: full inside the band, at
+  /// [wheelFadedOpacity] outside it.
   final Color wheelColor;
 
-  /// The color of the wheels' other rows.
-  final Color wheelFadedColor;
+  /// The opacity of the wheels' rows outside the band, drawn in
+  /// [wheelColor] at the smaller size (21 points against the band's 23.5),
+  /// before they darken toward the cylinder's edges. UIKit's labels report
+  /// 0.447; 0.4 matches the screen (the rows next to the band read 0.36 of
+  /// black on an iPhone 16 Pro).
+  final double wheelFadedOpacity;
 
   /// The opacity of a disabled picker (not measured on a device).
   final double disabledOpacity;
@@ -101,9 +120,11 @@ class MorphDatePickerStyle {
     weekdayColor: Color(0x99EBEBF5),
     dayColor: Color(0xFFFFFFFF),
     todayFillColor: Color(0x330091FF),
+    selectedDayFillColor: Color(0xFFFFFFFF),
+    selectedDayTextColor: Color(0xFF000000),
+    chevronColor: Color(0xFFFFFFFF),
     wheelBandColor: Color(0x3D767680),
     wheelColor: Color(0xFFFFFFFF),
-    wheelFadedColor: Color(0x99EBEBF5),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -247,6 +268,20 @@ enum _Part { date, time }
 
 class _MorphDatePickerState extends State<MorphDatePicker> {
   _Part? _open;
+  final Map<_Part, GlobalKey> _labels = {
+    _Part.date: GlobalKey(debugLabel: 'date'),
+    _Part.time: GlobalKey(debugLabel: 'time'),
+  };
+
+  Rect? _labelRect(_Part part) {
+    final box = _labels[part]!.currentContext?.findRenderObject();
+    if (box is! RenderBox || !box.hasSize || !box.attached) return null;
+    return box.localToGlobal(Offset.zero) & box.size;
+  }
+
+  void _switched(_Part part) {
+    if (mounted) setState(() => _open = part);
+  }
 
   bool get _enabled => widget.onChanged != null;
 
@@ -295,6 +330,7 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
         for (var i = 0; i < parts.length; i++) ...[
           if (i > 0) const SizedBox(width: MorphDatePickerTuning.labelGap),
           _CompactLabel(
+            key: _labels[parts[i].$1],
             text: parts[i].$2,
             height: parts[i].$1 == _Part.date
                 ? MorphDatePickerTuning.dateLabelHeight
@@ -320,6 +356,7 @@ class _CompactLabel extends StatefulWidget {
     required this.style,
     required this.semanticLabel,
     required this.onOpen,
+    super.key,
   });
 
   final String text;
@@ -519,6 +556,14 @@ class _OverlayViewState extends State<_OverlayView>
   late DateTime _month = DateTime(_value.year, _value.month);
   DateTime? _previousMonth;
   int? _outside;
+  late _Part _part = widget.route.part;
+  late Rect _label = widget.route.label;
+  _Part? _fromPart;
+  Rect? _fromLabel;
+  final MorphSpringState _swap = MorphSpringState(
+    MorphDatePickerTuning.switchSpring,
+    1,
+  );
 
   _DatePickerRoute get _route => widget.route;
 
@@ -541,11 +586,47 @@ class _OverlayViewState extends State<_OverlayView>
   @override
   void advanceMotion(double t) {
     _motion.advance(t);
+    if (_fromPart != null && _swap.isAtRest(t, 0.001)) {
+      setState(() => _fromPart = null);
+    }
     if (_leaving && _motion.isClosed) _route._finished();
   }
 
   @override
-  bool get motionSettled => _motion.isSettled;
+  bool get motionSettled =>
+      _motion.isSettled && _swap.isAtRest(_motion.time, 0.001);
+
+  _Part? _otherLabelAt(Offset position) {
+    for (final part in _Part.values) {
+      if (part == _part) continue;
+      final rect = _route.picker._labelRect(part);
+      if (rect != null && rect.contains(position)) return part;
+    }
+    return null;
+  }
+
+  void _switchTo(_Part part) {
+    final label = _route.picker._labelRect(part);
+    if (label == null || _leaving) return;
+    final t = clock;
+    final q = _swap.value(t);
+    final v = _swap.velocity(t);
+    setState(() {
+      final start = t + MorphDatePickerTuning.switchDelay;
+      if (part == _fromPart && q < 1) {
+        _swap.setState(start, 1 - q, -v);
+      } else {
+        _swap.setState(start, 0, 0);
+      }
+      _fromPart = _part;
+      _fromLabel = _label;
+      _part = part;
+      _label = label;
+    });
+    _swap.retarget(t + MorphDatePickerTuning.switchDelay, 1);
+    _route.picker._switched(part);
+    wake();
+  }
 
   void _leave() {
     if (_leaving) return;
@@ -580,8 +661,8 @@ class _OverlayViewState extends State<_OverlayView>
     return ((lead + days) / 7).ceil();
   }
 
-  Size get _size {
-    if (_route.part == _Part.time) return MorphDatePickerTuning.timeSize;
+  Size _sizeFor(_Part part) {
+    if (part == _Part.time) return MorphDatePickerTuning.timeSize;
     final weeks = math.max(_weeks(_month), _weeks(_previousMonth ?? _month));
     return Size(
       MorphDatePickerTuning.calendarSize.width,
@@ -597,13 +678,12 @@ class _OverlayViewState extends State<_OverlayView>
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final glass = MorphGlass.maybeOf(context);
     final brightness = morphBrightnessOf(context);
-    final size = _size;
     final origin = _origin(context);
     final padding = EdgeInsets.only(
       top: media.padding.top,
       bottom: math.max(media.padding.bottom, media.viewInsets.bottom),
     );
-    final Widget content = _route.part == _Part.time
+    Widget contentFor(_Part part) => part == _Part.time
         ? _TimeWheels(
             value: _value,
             twentyFour: _route.picker._twentyFour,
@@ -624,7 +704,10 @@ class _OverlayViewState extends State<_OverlayView>
             onPick: _pick,
             onTurn: _turn,
           );
-    final overlay = Semantics(
+    final size = _sizeFor(_part);
+    final from = _fromPart;
+    final fromSize = from == null ? size : _sizeFor(from);
+    Widget overlayFor({required bool below}) => Semantics(
       scopesRoute: true,
       explicitChildNodes: true,
       child: MediaQuery(
@@ -637,7 +720,26 @@ class _OverlayViewState extends State<_OverlayView>
           style: MorphTypography.resolve(
             TextStyle(fontSize: 17, color: style.dayColor),
           ),
-          child: SizedBox.fromSize(size: size, child: content),
+          child: _Crossfade(
+            alignment: below
+                ? AlignmentDirectional.topStart
+                : AlignmentDirectional.bottomStart,
+            frames: frames,
+            fade: () => _swap.value(_motion.time),
+            from: from == null
+                ? null
+                : ExcludeSemantics(
+                    child: SizedBox.fromSize(
+                      size: fromSize,
+                      child: contentFor(from),
+                    ),
+                  ),
+            to: SizedBox.fromSize(
+              key: ValueKey<_Part>(_part),
+              size: size,
+              child: contentFor(_part),
+            ),
+          ),
         ),
       ),
     );
@@ -649,13 +751,19 @@ class _OverlayViewState extends State<_OverlayView>
         autofocus: true,
         child: LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            final placement = morphPlaceDatePicker(
-              size: size,
-              label: _route.label.shift(-origin),
-              screen: constraints.biggest,
-              padding: padding,
-              textDirection: direction,
-            );
+            MorphDatePickerPlacement place(Size size, Rect label) =>
+                morphPlaceDatePicker(
+                  size: size,
+                  label: label.shift(-origin),
+                  screen: constraints.biggest,
+                  padding: padding,
+                  textDirection: direction,
+                );
+            final target = place(size, _label);
+            final fromLabel = _fromLabel;
+            final source = from == null || fromLabel == null
+                ? null
+                : place(fromSize, fromLabel);
             return Stack(
               children: [
                 Positioned.fill(
@@ -663,7 +771,14 @@ class _OverlayViewState extends State<_OverlayView>
                     behavior: HitTestBehavior.opaque,
                     onPointerDown: (PointerDownEvent e) => _outside = e.pointer,
                     onPointerUp: (PointerUpEvent e) {
-                      if (e.pointer == _outside) _close();
+                      if (e.pointer == _outside) {
+                        final other = _otherLabelAt(e.position);
+                        if (other == null) {
+                          _close();
+                        } else {
+                          _switchTo(other);
+                        }
+                      }
                       _outside = null;
                     },
                     onPointerCancel: (PointerCancelEvent e) => _outside = null,
@@ -671,16 +786,30 @@ class _OverlayViewState extends State<_OverlayView>
                 ),
                 ListenableBuilder(
                   listenable: frames,
-                  child: overlay,
-                  builder: (BuildContext context, Widget? child) => _frame(
-                    context,
-                    placement,
-                    size,
-                    style,
-                    glass,
-                    brightness,
-                    child!,
-                  ),
+                  child: overlayFor(below: target.below),
+                  builder: (BuildContext context, Widget? child) {
+                    final q = _swap.value(_motion.time);
+                    final placement = source == null
+                        ? target
+                        : MorphDatePickerPlacement(
+                            rect: Rect.lerp(source.rect, target.rect, q)!,
+                            anchor: Offset.lerp(
+                              source.anchor,
+                              target.anchor,
+                              q,
+                            )!,
+                          );
+                    return _frame(
+                      context,
+                      placement,
+                      placement.rect.size,
+                      target.below,
+                      style,
+                      glass,
+                      brightness,
+                      child!,
+                    );
+                  },
                 ),
               ],
             );
@@ -694,6 +823,7 @@ class _OverlayViewState extends State<_OverlayView>
     BuildContext context,
     MorphDatePickerPlacement placement,
     Size size,
+    bool below,
     MorphDatePickerStyle style,
     MorphGlassPainter? glass,
     Brightness brightness,
@@ -701,7 +831,6 @@ class _OverlayViewState extends State<_OverlayView>
   ) {
     final rect = placement.rect;
     final anchor = placement.anchor;
-    final below = placement.below;
     final t = _motion.time;
     final s = _motion.scale(t);
     final h = math.min(size.height, _motion.height(t, size.height));
@@ -718,51 +847,58 @@ class _OverlayViewState extends State<_OverlayView>
       Offset.zero & box.size,
       const Radius.circular(MorphDatePickerTuning.cornerRadius),
     );
+    final opacity = _motion.opacity(t);
     return Positioned.fill(
       child: IgnorePointer(
         ignoring: _leaving,
-        child: Opacity(
-          opacity: _motion.opacity(t),
-          child: Transform(
-            transform: transform,
-            child: Stack(
-              children: [
-                Positioned.fromRect(
-                  rect: box,
-                  child: CustomPaint(
-                    painter: glass == null
-                        ? _OverlayPainter(shape: shape, style: style)
-                        : null,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (glass != null)
-                          glass.buildSurface(
-                            context,
-                            MorphGlassSurface(
-                              kind: MorphGlassKind.menu,
-                              shape: shape,
-                              color: style.platterColor,
-                              brightness: brightness,
-                            ),
-                          ),
-                        ClipRRect(
-                          clipper: _OverlayClipper(shape),
-                          child: OverflowBox(
-                            alignment: below
-                                ? Alignment.topCenter
-                                : Alignment.bottomCenter,
-                            minHeight: size.height,
-                            maxHeight: size.height,
-                            child: child,
-                          ),
+        child: Transform(
+          transform: transform,
+          child: Stack(
+            children: [
+              Positioned.fromRect(
+                rect: box,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (glass != null)
+                      glass.buildSurface(
+                        context,
+                        MorphGlassSurface(
+                          kind: MorphGlassKind.menu,
+                          shape: shape,
+                          color: style.platterColor,
+                          brightness: brightness,
+                          opacity: opacity,
                         ),
-                      ],
+                      )
+                    else
+                      CustomPaint(
+                        painter: _OverlayPainter(
+                          shape: shape,
+                          style: style,
+                          opacity: opacity,
+                        ),
+                      ),
+                    Opacity(
+                      opacity: opacity,
+                      child: ClipRRect(
+                        clipper: _OverlayClipper(shape),
+                        child: OverflowBox(
+                          alignment: below
+                              ? AlignmentDirectional.topStart
+                              : AlignmentDirectional.bottomStart,
+                          minWidth: 0,
+                          maxWidth: double.infinity,
+                          minHeight: 0,
+                          maxHeight: double.infinity,
+                          child: child,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -776,26 +912,73 @@ class _OverlayViewState extends State<_OverlayView>
   }
 }
 
+class _Crossfade extends StatelessWidget {
+  const _Crossfade({
+    required this.frames,
+    required this.fade,
+    required this.from,
+    required this.to,
+    required this.alignment,
+  });
+
+  final AlignmentDirectional alignment;
+  final Listenable frames;
+  final double Function() fade;
+  final Widget? from;
+  final Widget to;
+
+  @override
+  Widget build(BuildContext context) {
+    final old = from;
+    if (old == null) return to;
+    return ListenableBuilder(
+      listenable: frames,
+      builder: (BuildContext context, Widget? _) {
+        final q = fade().clamp(0.0, 1.0);
+        return Stack(
+          alignment: alignment,
+          clipBehavior: Clip.none,
+          children: [
+            IgnorePointer(
+              child: Opacity(opacity: 1 - q, child: old),
+            ),
+            Opacity(opacity: q, child: to),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _OverlayPainter extends CustomPainter {
-  const _OverlayPainter({required this.shape, required this.style});
+  const _OverlayPainter({
+    required this.shape,
+    required this.style,
+    required this.opacity,
+  });
 
   final RRect shape;
   final MorphDatePickerStyle style;
+  final double opacity;
+
+  Color _faded(Color c) => c.withValues(alpha: c.a * opacity.clamp(0.0, 1.0));
 
   @override
   void paint(Canvas canvas, Size size) {
     final shadow = Paint();
-    shadow.color = style.shadowColor;
+    shadow.color = _faded(style.shadowColor);
     shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
     canvas.drawRRect(shape.shift(const Offset(0, 6)), shadow);
     final fill = Paint();
-    fill.color = style.platterColor;
+    fill.color = _faded(style.platterColor);
     canvas.drawRRect(shape, fill);
   }
 
   @override
   bool shouldRepaint(_OverlayPainter oldDelegate) =>
-      oldDelegate.shape != shape || oldDelegate.style != style;
+      oldDelegate.shape != shape ||
+      oldDelegate.style != style ||
+      oldDelegate.opacity != opacity;
 }
 
 class _OverlayClipper extends CustomClipper<RRect> {
@@ -814,7 +997,14 @@ class _OverlayClipper extends CustomClipper<RRect> {
 abstract final class _CalendarMetrics {
   static const double top = 16;
   static const double headerHeight = 37.67;
-  static const double titleInset = 16;
+  static const double titleInset = 20.33;
+  static const double titleChevronGap = 7.67;
+  static const Size titleChevron = Size(6.33, 11.67);
+  static const double titleChevronStroke = 2.1;
+  static const Size chevron = Size(10, 17.33);
+  static const double chevronStroke = 2.6;
+  static const double chevronShiftForward = 1;
+  static const double chevronShiftBack = -1.33;
   static const double weekdayTop = 16;
   static const double weekdayHeight = 15.67;
   static const double gridInset = 10.33;
@@ -893,37 +1083,43 @@ class _Calendar extends StatelessWidget {
             child: Row(
               children: [
                 const SizedBox(width: _CalendarMetrics.titleInset),
-                Flexible(
-                  child: Semantics(
-                    header: true,
-                    liveRegion: true,
-                    child: Text(
-                      '${_months[month.month - 1]} ${month.year}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: title,
-                    ),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Semantics(
+                          header: true,
+                          liveRegion: true,
+                          child: Text(
+                            '${_months[month.month - 1]} ${month.year}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: title,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: _CalendarMetrics.titleChevronGap),
+                      CustomPaint(
+                        size: _CalendarMetrics.titleChevron,
+                        painter: _ChevronPainter(
+                          color: style.accentColor,
+                          forward: !rtl,
+                          stroke: _CalendarMetrics.titleChevronStroke,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(width: 4),
-                CustomPaint(
-                  size: const Size(10.33, 14),
-                  painter: _ChevronPainter(
-                    color: style.accentColor,
-                    forward: !rtl,
-                  ),
-                ),
-                const Spacer(),
                 _ChevronButton(
                   label: 'Previous month',
                   forward: false,
-                  color: style.accentColor,
+                  color: style.chevronColor,
                   onTap: _canTurn(-1) ? () => onTurn(-1) : null,
                 ),
                 _ChevronButton(
                   label: 'Next month',
                   forward: true,
-                  color: style.accentColor,
+                  color: style.chevronColor,
                   onTap: _canTurn(1) ? () => onTurn(1) : null,
                 ),
                 const SizedBox(width: _CalendarMetrics.chevronEnd),
@@ -1064,16 +1260,18 @@ class _Day extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected
-        ? style.selectedDayColor
-        : today
-        ? style.accentColor
-        : style.dayColor;
-    final fill = selected
-        ? style.accentColor
-        : today
-        ? style.todayFillColor
-        : null;
+    final color = switch ((selected, today)) {
+      (true, true) => style.selectedDayColor,
+      (true, false) => style.selectedDayTextColor,
+      (false, true) => style.accentColor,
+      (false, false) => style.dayColor,
+    };
+    final fill = switch ((selected, today)) {
+      (true, true) => style.accentColor,
+      (true, false) => style.selectedDayFillColor,
+      (false, true) => style.todayFillColor,
+      (false, false) => null,
+    };
     return Semantics(
       button: true,
       selected: selected,
@@ -1141,11 +1339,23 @@ class _ChevronButton extends StatelessWidget {
           width: _CalendarMetrics.chevronButton,
           height: _CalendarMetrics.headerHeight,
           child: Center(
-            child: Opacity(
-              opacity: onTap == null ? 0.35 : 1,
-              child: CustomPaint(
-                size: const Size(15.33, 21),
-                painter: _ChevronPainter(color: color, forward: forward != rtl),
+            child: Transform.translate(
+              offset: Offset(
+                forward != rtl
+                    ? _CalendarMetrics.chevronShiftForward
+                    : _CalendarMetrics.chevronShiftBack,
+                0,
+              ),
+              child: Opacity(
+                opacity: onTap == null ? 0.35 : 1,
+                child: CustomPaint(
+                  size: _CalendarMetrics.chevron,
+                  painter: _ChevronPainter(
+                    color: color,
+                    forward: forward != rtl,
+                    stroke: _CalendarMetrics.chevronStroke,
+                  ),
+                ),
               ),
             ),
           ),
@@ -1156,20 +1366,25 @@ class _ChevronButton extends StatelessWidget {
 }
 
 class _ChevronPainter extends CustomPainter {
-  const _ChevronPainter({required this.color, required this.forward});
+  const _ChevronPainter({
+    required this.color,
+    required this.forward,
+    required this.stroke,
+  });
 
   final Color color;
   final bool forward;
+  final double stroke;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint();
     paint.color = color;
     paint.style = PaintingStyle.stroke;
-    paint.strokeWidth = size.width * 0.17;
+    paint.strokeWidth = stroke;
     paint.strokeCap = StrokeCap.round;
     paint.strokeJoin = StrokeJoin.round;
-    final inset = paint.strokeWidth;
+    final inset = stroke / 2;
     final path = Path();
     if (forward) {
       path.moveTo(inset, inset);
@@ -1185,7 +1400,9 @@ class _ChevronPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_ChevronPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.forward != forward;
+      oldDelegate.color != color ||
+      oldDelegate.forward != forward ||
+      oldDelegate.stroke != stroke;
 }
 
 class _TimeWheels extends StatefulWidget {
@@ -1206,7 +1423,6 @@ class _TimeWheels extends StatefulWidget {
 }
 
 class _TimeWheelsState extends State<_TimeWheels> {
-  static const double _item = 32;
   static const int _loops = 100;
   late final FixedExtentScrollController _hours = FixedExtentScrollController(
     initialItem: 24 * (_loops ~/ 2) + widget.value.hour,
@@ -1244,6 +1460,9 @@ class _TimeWheelsState extends State<_TimeWheels> {
     required String label,
   }) {
     final style = widget.style;
+    final row = MorphTypography.resolve(
+      TextStyle(fontSize: _WheelMetrics.fontSize, color: style.wheelColor),
+    );
     return Semantics(
       label: label,
       value: text(selected),
@@ -1262,30 +1481,28 @@ class _TimeWheelsState extends State<_TimeWheels> {
       child: ExcludeSemantics(
         child: ListWheelScrollView.useDelegate(
           controller: controller,
-          itemExtent: _item,
-          diameterRatio: 1.07,
-          perspective: 0.003,
-          physics: const FixedExtentScrollPhysics(),
+          itemExtent: _WheelMetrics.row,
+          diameterRatio: _WheelMetrics.diameterRatio,
+          perspective: _WheelMetrics.perspective,
+          squeeze: _WheelMetrics.squeeze,
+          useMagnifier: true,
+          magnification: _WheelMetrics.magnification,
+          overAndUnderCenterOpacity: style.wheelFadedOpacity,
+          physics: const FixedExtentScrollPhysics(
+            parent: BouncingScrollPhysics(
+              decelerationRate: ScrollDecelerationRate.fast,
+            ),
+          ),
           onSelectedItemChanged: (int i) => onSelected(i % count),
           childDelegate: ListWheelChildBuilderDelegate(
             childCount: count * _loops,
-            builder: (BuildContext context, int i) {
-              final v = i % count;
-              return Center(
-                child: Text(
-                  text(v),
-                  textScaler: TextScaler.noScaling,
-                  style: MorphTypography.resolve(
-                    TextStyle(
-                      fontSize: 22,
-                      color: v == selected
-                          ? style.wheelColor
-                          : style.wheelFadedColor,
-                    ),
-                  ),
-                ),
-              );
-            },
+            builder: (BuildContext context, int i) => Center(
+              child: Text(
+                text(i % count),
+                textScaler: TextScaler.noScaling,
+                style: row,
+              ),
+            ),
           ),
         ),
       ),
@@ -1296,14 +1513,17 @@ class _TimeWheelsState extends State<_TimeWheels> {
   Widget build(BuildContext context) {
     final style = widget.style;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(7, 16, 7, 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: _WheelMetrics.inset,
+        vertical: _WheelMetrics.top,
+      ),
       child: Stack(
         alignment: Alignment.center,
         children: [
           Positioned(
-            left: 9,
-            right: 9,
-            height: _item,
+            left: _WheelMetrics.bandInset,
+            right: _WheelMetrics.bandInset,
+            height: _WheelMetrics.band,
             child: DecoratedBox(
               decoration: ShapeDecoration(
                 color: style.wheelBandColor,
@@ -1311,41 +1531,106 @@ class _TimeWheelsState extends State<_TimeWheels> {
               ),
             ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              SizedBox(
-                width: 72,
-                child: _wheel(
-                  controller: _hours,
-                  count: 24,
-                  text: _hourText,
-                  selected: _hour,
-                  label: 'Hour',
-                  onSelected: (int h) {
-                    setState(() => _hour = h);
-                    _emit();
-                  },
+          ShaderMask(
+            blendMode: BlendMode.dstIn,
+            shaderCallback: _WheelMetrics.shade,
+            child: Row(
+              children: [
+                const SizedBox(width: _WheelMetrics.lead),
+                SizedBox(
+                  width: _WheelMetrics.column,
+                  child: _wheel(
+                    controller: _hours,
+                    count: 24,
+                    text: _hourText,
+                    selected: _hour,
+                    label: 'Hour',
+                    onSelected: (int h) {
+                      setState(() => _hour = h);
+                      _emit();
+                    },
+                  ),
                 ),
-              ),
-              SizedBox(
-                width: 72,
-                child: _wheel(
-                  controller: _minutes,
-                  count: 60,
-                  text: _two,
-                  selected: _minute,
-                  label: 'Minute',
-                  onSelected: (int m) {
-                    setState(() => _minute = m);
-                    _emit();
-                  },
+                const SizedBox(width: _WheelMetrics.gap),
+                SizedBox(
+                  width: _WheelMetrics.column,
+                  child: _wheel(
+                    controller: _minutes,
+                    count: 60,
+                    text: _two,
+                    selected: _minute,
+                    label: 'Minute',
+                    onSelected: (int m) {
+                      setState(() => _minute = m);
+                      _emit();
+                    },
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+}
+
+/// The layout of the time wheels, read from UIKit's views on an iPhone 16
+/// Pro (232 x 204 platter): the column view 218 x 172 inside, the band 200
+/// x 32 centered, the hour and minute labels centered 73.5 and 148.5 points
+/// from the platter's leading edge, the rows on a cylinder of radius 73.5
+/// whose neighbours sit 31.3, 56.7 and 71.9 points from the center.
+abstract final class _WheelMetrics {
+  static const double inset = 7;
+  static const double top = 16;
+  static const double row = 32.4;
+  static const double band = 32;
+  static const double bandInset = 9;
+  static const double column = 72;
+  static const double lead = 73.5 - inset - column / 2;
+  static const double gap = 148.5 - 73.5 - column;
+  static const double diameterRatio = 2 * 73.5 / 172;
+  static const double perspective = 0.0001;
+  static const double squeeze = row * math.pi / (172 * 0.4405);
+  static const double fontSize = 21;
+  static const double magnification = 23.5 / 21;
+
+  /// The radius of the cylinder the rows sit on.
+  static const double radius = 73.5;
+
+  /// How fast the rows outside the band darken toward the cylinder's
+  /// edges: their opacity falls as the cosine of their angle to this
+  /// power (screen recording: 0.36, 0.25 and 0.06 of black on the platter
+  /// at 31, 57 and 72 points out, where the labels report 0.447).
+  static const double shadePower = 1.4;
+
+  /// The mask that darkens the rows toward the cylinder's edges, over the
+  /// wheels' box: opaque inside the band.
+  static Shader shade(Rect rect) {
+    final half = rect.height / 2;
+    const steps = 24;
+    double cosAt(double y) {
+      final s = (y / radius).clamp(-1.0, 1.0);
+      return math.sqrt(1 - s * s);
+    }
+
+    final edge = cosAt(band / 2);
+    final stops = <double>[];
+    final colors = <Color>[];
+    for (var i = 0; i <= steps; i++) {
+      final f = i / steps;
+      final y = (f * 2 - 1) * half;
+      final a = y.abs() <= band / 2
+          ? 1.0
+          : math.pow(cosAt(y) / edge, shadePower).toDouble().clamp(0.0, 1.0);
+      stops.add(f);
+      colors.add(Color.fromRGBO(0, 0, 0, a));
+    }
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: colors,
+      stops: stops,
+    ).createShader(rect);
   }
 }
