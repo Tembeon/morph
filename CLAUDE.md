@@ -226,12 +226,33 @@ Public pieces:
   while scaling up, center lerped button -> menu plus a VERTICAL kick;
   the button blob S shrinks to 0.25 scale and travels 0.25 of the way.
   LOOK AND CONTENT ARE FILMED, NOT LAYER-READ (2026-10-03 screen
-  recordings; the layer model's "content top-aligned in G scaled by s,
-  alpha p" was wrong on screen): the glyph rides S, alpha falls over
-  p 0.07..0.42, width x(1 + 2.5p), blur 4p; the content stays near its
-  final size - scale 1 - 0.5(1 - p) + 1.3 kick/H, CENTERED on the kicked
-  G, screen blur 8(1 - p) + 6 kick/H, alpha over p 0.53..1 - and G only
-  reveals it; both fades read the spring 15 ms ahead (fadeLead: the film
+  recordings): the glyph rides S, alpha falls over p 0.07..0.42, width
+  x(1 + 2.5p), blur 4p. THE CONTENT UNFOLDS OUT OF THE DROP (second
+  film, same day, the owner's slow-mo bug on the gallery's bottom-centre
+  ten-row menu: ours showed nothing until p 0.53 and then a near-final
+  menu centered on G, "appearing, not out of the drop"): it rides G at
+  G's scale plus a kick swell - k = s_G + 1.45 kick/H - with alpha = p
+  on the way in (row ink measured on the film: 0.5 at p 0.51, 0.92 at
+  0.86 - the layers' alpha p was right, the first film's 0.53 ramp was
+  blur misread as fade); a close fades it linearly from where it was to
+  0 at p 0.53 (ink 0.53 at p 0.85, 0.2 at 0.73) and a re-open fades back
+  from there to 1 at p 1, so every reversal is continuous (anchored on
+  the phase's start, like the closing radius). ALIGNMENT: a menu taller
+  than wide (H > W) keeps its first row on G's TOP edge (screen top, both
+  directions: up = far edge, down = near edge; filmed bottom10 and tl10)
+  - a list at scroll offset 0; H <= W is CENTERED on the kicked G
+  (center3, bottom3). Screen blur 8(1 - p) + 6 kick/H. Pinned by the
+  placement-invariant group in menu_button_test (content attached to G
+  in ten placements incl. clamped ones, the drop starting inside the
+  button, no jumps through open / close-mid-open / reopen / close).
+  Film harness: tool/ios_reference/UITests/MenuAnchorUITests.swift
+  (testAnchorFilm/testAnchorTall set PROBE_TRACK to match nothing - the
+  layer log cost the recording a third of its frames) and
+  example/integration_test/menu_anchor_video_test.dart (same placements
+  on our side + the gallery Menu page). Still different on film: the
+  native glass SDF blur draws a neck between G and S when their layer
+  shapes part (up to ~19 pt in the close of a tall menu); ours shows the
+  gap. Both fades read the spring 15 ms ahead (fadeLead: the film
   shows them leading the shapes both ways). Blurs use TileMode.decal
   (clamp smeared the glyph into a grey square). Rows do NOT cascade. Opening radius 195.4 -> 32 with a 0.098 s delay
   (capsule until p crosses 1), close radius linear in p. Placement:

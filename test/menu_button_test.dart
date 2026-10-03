@@ -817,7 +817,7 @@ void main() {
     expect(motion.isSettled, isTrue);
   });
 
-  test('the glyph leaves early and the content arrives late, as filmed', () {
+  test('the glyph leaves early and the content unfolds with the drop', () {
     final motion = MorphMenuMotion(
       button: Rect.fromCenter(
         center: const Offset(195, 422),
@@ -831,13 +831,11 @@ void main() {
     motion.open(0, sourceScale: 1);
     var t = 0.0;
     var lookGoneAt = double.nan;
-    var contentFrom = double.nan;
     while (t < 1) {
       t += 1 / 120;
       motion.advance(t);
       final p = motion.progress;
       if (lookGoneAt.isNaN && motion.buttonLookOpacity == 0) lookGoneAt = p;
-      if (contentFrom.isNaN && motion.contentOpacity > 0) contentFrom = p;
       expect(
         motion.buttonLookStretch,
         moreOrLessEquals(1 + 2.5 * p.clamp(0.0, 1.0), epsilon: 1e-9),
@@ -846,17 +844,23 @@ void main() {
         (motion.contentRect.center - motion.menuBlob.rect.center).distance,
         lessThan(1e-9),
       );
-      if (p > 0.6 && p < 0.95) {
+      expect(
+        motion.contentScale,
+        moreOrLessEquals(
+          motion.menuBlob.scale + 1.45 * motion.menuKick / 146,
+          epsilon: 1e-9,
+        ),
+      );
+      if (p > 0.2 && p < 0.9) {
         expect(
-          motion.contentScale,
-          greaterThan(motion.menuBlob.scale),
-          reason: 'the content is revealed near its size, not shrunk',
+          motion.contentOpacity,
+          greaterThan(p - 0.05),
+          reason: 'the content is in the drop as it grows',
         );
-        expect(motion.contentBlur, greaterThan(1));
+        expect(motion.contentBlur, greaterThan(0.5));
       }
     }
     expect(lookGoneAt, inInclusiveRange(0.3, 0.42));
-    expect(contentFrom, inInclusiveRange(0.4, 0.53));
     expect(motion.contentOpacity, moreOrLessEquals(1, epsilon: 1e-3));
     expect(motion.contentScale, moreOrLessEquals(1, epsilon: 1e-3));
     expect(motion.contentBlur, lessThan(0.01));
@@ -877,8 +881,135 @@ void main() {
       }
       if (lookBackAt.isNaN && motion.buttonLookOpacity > 0) lookBackAt = p;
     }
-    expect(contentGoneAt, inInclusiveRange(0.53, 0.7));
+    expect(
+      contentGoneAt,
+      inInclusiveRange(0.53, 0.7),
+      reason: 'the content leaves faster than it came',
+    );
     expect(lookBackAt, inInclusiveRange(0.42, 0.55));
+  });
+
+  group('the menu unfolds out of the drop in every placement', () {
+    const screen = Size(402, 874);
+    const safe = EdgeInsets.only(top: 62, bottom: 34);
+    Rect at(double x, double y) =>
+        Rect.fromCenter(center: Offset(x, y), width: 48, height: 48);
+    final placements = <String, (Rect, int)>{
+      'center, 3 rows': (at(201, 437), 3),
+      'top left, 3 rows': (at(44, 220), 3),
+      'top right, 3 rows': (at(358, 220), 3),
+      'bottom left, 3 rows': (at(44, 796), 3),
+      'bottom right, 3 rows': (at(358, 796), 3),
+      'bottom center, 10 rows': (at(201, 796), 10),
+      'gallery bottom center, 10 rows': (at(201, 714), 10),
+      'top center, 10 rows': (at(201, 140), 10),
+      'center, 10 rows, clamped': (at(201, 437), 10),
+      'center, 12 rows, clamped both ways': (at(201, 437), 12),
+    };
+
+    for (final MapEntry(key: name, value: (button, rows))
+        in placements.entries) {
+      test(name, () {
+        final motion = MorphMenuMotion(
+          button: button,
+          itemCount: rows,
+          bounds: screen,
+          padding: safe,
+        );
+        final menu = motion.tuning.menuHeight(rows);
+        final tall = menu > motion.tuning.menuWidth;
+        void check(String phase) {
+          final shape = motion.menuBlob.rect;
+          final content = motion.contentRect;
+          final reason = '$name, $phase at p ${motion.progress}';
+          expect(
+            content.center.dx,
+            moreOrLessEquals(shape.center.dx, epsilon: 1e-6),
+            reason: reason,
+          );
+          if (tall) {
+            expect(
+              content.top,
+              moreOrLessEquals(shape.top, epsilon: 1e-6),
+              reason: '$reason: the first row rides the top edge',
+            );
+          } else {
+            expect(
+              content.center.dy,
+              moreOrLessEquals(shape.center.dy, epsilon: 1e-6),
+              reason: '$reason: the content is centered on the drop',
+            );
+          }
+          final kick = motion.menuKick.abs() / menu;
+          expect(
+            content.width,
+            lessThanOrEqualTo(
+              shape.width + motion.tuning.menuWidth * 1.45 * kick + 1e-6,
+            ),
+            reason:
+                '$reason: the content is no wider than the drop and '
+                'its swell',
+          );
+          expect(
+            content.overlaps(shape) || shape.isEmpty,
+            isTrue,
+            reason: reason,
+          );
+        }
+
+        motion.open(0, sourceScale: 1);
+        var t = 0.0;
+        Offset? last;
+        var lastOpacity = 0.0;
+        final first = motion.menuBlob.rect;
+        expect(
+          button.contains(first.topLeft) && button.contains(first.bottomRight),
+          isTrue,
+          reason: '$name: the drop starts inside the button',
+        );
+        expect(
+          (first.center - button.center).distance,
+          lessThan(1e-6),
+          reason: name,
+        );
+        void step(String phase, double until) {
+          while (t < until) {
+            t += 1 / 120;
+            motion.advance(t);
+            check(phase);
+            final center = motion.menuBlob.rect.center;
+            if (last != null) {
+              expect(
+                (center - last!).distance,
+                lessThan(25),
+                reason: '$name, $phase: the drop moves without a jump',
+              );
+            }
+            last = center;
+            expect(
+              (motion.contentOpacity - lastOpacity).abs(),
+              lessThan(0.12),
+              reason: '$name, $phase: the content fades without a jump',
+            );
+            lastOpacity = motion.contentOpacity;
+          }
+        }
+
+        step('open', 0.06);
+        motion.close(t);
+        step('close during the open', 0.12);
+        motion.open(t);
+        step('reopen', 1.2);
+        expect(
+          (motion.contentRect.topLeft - motion.menuRect.topLeft).distance,
+          lessThan(0.5),
+          reason: '$name: the content lands on the menu',
+        );
+        motion.close(t);
+        step('close', 2.6);
+        expect(motion.isPresented, isFalse, reason: name);
+      });
+    }
   });
 
   testWidgets('a tap opens the menu on release and it settles open', (

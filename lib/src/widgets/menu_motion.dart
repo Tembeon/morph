@@ -29,10 +29,10 @@ class MorphMenuTuning {
     this.lookFadeStart = 0.07,
     this.lookFadeEnd = 0.42,
     this.lookStretch = 2.5,
-    this.contentFadeStart = 0.53,
+    this.contentFadeStart = 0,
     this.contentFadeEnd = 1,
-    this.contentShrink = 0.5,
-    this.contentKickScale = 1.3,
+    this.contentCloseFadeEnd = 0.53,
+    this.contentKickScale = 1.45,
     this.contentBlur = 8,
     this.contentKickBlur = 6,
     this.tapOpenDelay = 0.05,
@@ -125,20 +125,28 @@ class MorphMenuTuning {
   final double lookStretch;
 
   /// The progress at which the menu content starts to appear.
+  ///
+  /// The content is in the drop from the start: its opacity follows the
+  /// progress, so it is half there when the drop is half grown.
   final double contentFadeStart;
 
   /// The progress at which the menu content is fully opaque.
   final double contentFadeEnd;
 
-  /// How much smaller than its final size the content is at progress 0;
-  /// it grows linearly to its final size at progress 1.
+  /// The progress at which the content of a closing menu has faded out.
   ///
-  /// The content does not shrink with the menu shape: it stays near its
-  /// final size, centered on the shape, and the shape reveals it.
-  final double contentShrink;
+  /// The content leaves faster than it came: a close fades it linearly
+  /// from the opacity it had to nothing at this progress, so it is gone
+  /// while the shape is still more than half grown. A re-open fades it
+  /// back in from where it was to full at [contentFadeEnd].
+  final double contentCloseFadeEnd;
 
-  /// How much the content swells with the menu shape's kick, per unit of
-  /// kick relative to the menu height.
+  /// How much the content swells past the menu shape's scale with the
+  /// shape's kick, per unit of kick relative to the menu height.
+  ///
+  /// The content rides the menu shape: it is scaled with it, plus this
+  /// swell, so it unfolds out of the drop instead of being revealed at
+  /// its final size.
   final double contentKickScale;
 
   /// The blur radius of the content, in logical pixels on screen, at
@@ -393,8 +401,9 @@ class _DrivenKick {
 /// vertical kick. The button shape shrinks to a quarter and slides a
 /// quarter of the way toward the menu. The two are drawn as one union
 /// without a neck. The button's glyph rides the button shape, widening as
-/// it blurs out early; the menu content stays near its final size,
-/// centered on the menu shape that reveals it, and fades in late.
+/// it blurs out early; the menu content rides the menu shape at the
+/// shape's scale, swelling a little with its kick, and fades in with the
+/// progress, so the menu unfolds out of the drop.
 ///
 /// The kicks are a second degree of freedom per shape, driven by the
 /// progress spring: while the menu opens, the menu shape's kick chases
@@ -475,6 +484,10 @@ class MorphMenuMotion {
   double _closeStart = 0;
   double _closeSource = 1;
   double _closeLive = 1;
+  double _fadeFrom = 0;
+  double _fadeTo = 1;
+  double _fadeAnchor = 0;
+  double _fadeEnd = 1;
   int _openGeneration = 0;
   int _pressGeneration = 0;
   bool _openPending = false;
@@ -578,8 +591,42 @@ class MorphMenuMotion {
   }
 
   /// The opacity of the menu content.
-  double get contentOpacity =>
-      _ramp(_leadingProgress, tuning.contentFadeStart, tuning.contentFadeEnd);
+  double get contentOpacity => _contentOpacityAt(_now);
+
+  double _contentOpacityAt(double t) {
+    if (_phase == _Phase.idle) {
+      return _ramp(
+        _progress.valueAt(t),
+        tuning.contentFadeStart,
+        tuning.contentFadeEnd,
+      );
+    }
+    final span = _fadeAnchor - _fadeEnd;
+    if (span.abs() < 1e-6) return _fadeTo;
+    final p = _progress.valueAt(t + tuning.fadeLead);
+    final f = ((p - _fadeEnd) / span).clamp(0.0, 1.0);
+    return _fadeTo + (_fadeFrom - _fadeTo) * f;
+  }
+
+  void _fade(
+    double t, {
+    required double from,
+    required bool opening,
+    bool fresh = false,
+  }) {
+    final p = _progress.valueAt(t + tuning.fadeLead);
+    _fadeFrom = from;
+    _fadeTo = opening ? 1 : 0;
+    if (opening) {
+      _fadeAnchor = fresh ? tuning.contentFadeStart : p;
+      _fadeEnd = tuning.contentFadeEnd;
+    } else {
+      _fadeAnchor = p;
+      _fadeEnd = p > tuning.contentCloseFadeEnd + 0.05
+          ? tuning.contentCloseFadeEnd
+          : 0;
+    }
+  }
 
   /// The blur radius of the menu content, in logical pixels on screen.
   double get contentBlur => math.max(
@@ -588,24 +635,37 @@ class MorphMenuMotion {
         tuning.contentKickBlur * _relativeKick,
   );
 
-  /// The scale of the menu content relative to its final size.
+  /// The scale of the menu content relative to its final size: the menu
+  /// shape's scale plus a swell with its kick.
   ///
-  /// The content is centered on [menuBlob] at this scale and clipped by
-  /// it.
-  double get contentScale =>
-      1 -
-      tuning.contentShrink * (1 - progress) +
-      tuning.contentKickScale * _relativeKick;
+  /// The content is placed by [contentRect] at this scale and clipped by
+  /// [menuBlob].
+  double get contentScale => _contentScale(menuBlob);
+
+  double _contentScale(MorphMenuBlob menu) =>
+      menu.scale + tuning.contentKickScale * _relativeKick;
 
   /// The frame of the menu content: [menuRect]'s size at [contentScale],
-  /// centered on [menuBlob].
+  /// riding [menuBlob].
+  ///
+  /// A menu taller than it is wide keeps its first row on the shape's top
+  /// edge, like a list scrolled to its start, and grows below it; a menu
+  /// as wide as it is tall or wider is centered on the shape.
   Rect get contentRect {
-    final scale = contentScale;
-    return Rect.fromCenter(
-      center: menuBlob.rect.center,
-      width: _menu.width * scale,
-      height: _menu.height * scale,
-    );
+    final menu = menuBlob;
+    final scale = _contentScale(menu);
+    final width = _menu.width * scale;
+    final height = _menu.height * scale;
+    final shape = menu.rect;
+    if (_menu.height > _menu.width) {
+      return Rect.fromLTWH(
+        shape.center.dx - width / 2,
+        shape.top,
+        width,
+        height,
+      );
+    }
+    return Rect.fromCenter(center: shape.center, width: width, height: height);
   }
 
   /// The opacity of the button's look inside the button shape.
@@ -971,6 +1031,8 @@ class MorphMenuMotion {
     _openPending = false;
     if (_phase == _Phase.opening) return;
     _sample(t);
+    final fresh = _phase == _Phase.idle;
+    final opacity = fresh ? 0.0 : _contentOpacityAt(t);
     if (_phase == _Phase.idle) {
       _place(sourceScale ?? _press.value(t));
       _radiusFrom = tuning.openingRadius;
@@ -983,6 +1045,7 @@ class MorphMenuMotion {
     reference.retarget(t, 1);
     _openReference = reference;
     _progress.open(t);
+    _fade(t, from: opacity, opening: true, fresh: fresh);
     _radius.snap(t, 0);
     final generation = ++_openGeneration;
     _timeline.at(t + tuning.radiusDelay, (double s) {
@@ -1014,6 +1077,7 @@ class MorphMenuMotion {
   void _close(double t) {
     if (_phase != _Phase.opening) return;
     _sample(t);
+    final opacity = _contentOpacityAt(t);
     _closeRadius = _openingRadius(t);
     _closeProgress = _progress.valueAt(t);
     _closeStart = t;
@@ -1026,6 +1090,7 @@ class MorphMenuMotion {
     reference.retarget(t, 0);
     _closeReference = reference;
     _progress.close(t);
+    _fade(t, from: opacity, opening: false);
     final generation = _openGeneration;
     _timeline.at(t + tuning.closeKickDelay, (double s) {
       if (generation != _openGeneration || _phase != _Phase.closing) return;

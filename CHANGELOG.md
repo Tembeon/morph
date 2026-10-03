@@ -361,6 +361,26 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   the progress spring 15 ms ahead (`fadeLead`), as the film shows the
   native fades leading the shapes in both directions. New
   `MorphMenuMotion.contentScale`, `contentRect`, `buttonLookStretch`.
+- `MorphMenuButton`'s menu unfolds out of the drop (filmed again on the
+  iPhone 16 Pro: a bottom-centre button with ten rows, both bottom and
+  top corners, the centre menu; the native side without the probe's
+  layer log so the recording keeps its frames). The content no longer
+  waits near its final size for the shape to reveal it: it rides the
+  menu shape at the shape's scale plus a swell with the kick
+  (`contentScale` = shape scale + 1.45 x kick / menu height,
+  `contentKickScale` 1.3 -> 1.45; `contentShrink` is gone), and its
+  opacity follows the progress on the way in (`contentFadeStart` 0.53
+  -> 0) - a ten-row menu showed nothing until half grown and then
+  appeared at full size, not out of the drop. A menu taller than it is
+  wide keeps its first row on the shape's top edge, like a list at its
+  start (an upward ten-row menu unfolds from the far edge, as the film
+  shows); a shorter one stays centered. The close still fades the
+  content first: it falls linearly from where it was to nothing at
+  `contentCloseFadeEnd` (0.53), and a re-open fades it back from there,
+  so every reversal stays continuous. The shapes, kicks and placement
+  already matched the native layers (path from the button center,
+  clamped final rect, kick sign for upward menus); this changes only
+  how the content rides them.
 - `MorphSlider` filmed against the native UISlider (screen recordings of
   the iPhone 16 Pro, light and dark, the native side paired with the
   probe's layer rows): the colors are iOS 27's - fill systemBlue

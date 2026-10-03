@@ -798,6 +798,7 @@ class MorphMenuLayer extends StatelessWidget {
         final source = motion.buttonBlob;
         final size = motion.menuRect.size;
         final scale = motion.contentScale;
+        final at = motion.contentRect.topLeft - menu.rect.topLeft;
         return IgnorePointer(
           ignoring: !motion.isOpen,
           child: Listener(
@@ -822,24 +823,27 @@ class MorphMenuLayer extends StatelessWidget {
                 rect: menu.rect,
                 child: ClipRRect(
                   borderRadius: .circular(menu.radius),
-                  child: OverflowBox(
-                    minWidth: size.width,
-                    maxWidth: size.width,
-                    minHeight: size.height,
-                    maxHeight: size.height,
-                    child: Transform.scale(
-                      scale: scale,
-                      child: _Faded(
-                        opacity: motion.contentOpacity,
-                        blur: motion.contentBlur / scale,
-                        child: SizedBox.fromSize(
-                          size: size,
-                          child: Stack(
-                            children: [..._feedback(motion, style), rows!],
+                  child: Stack(
+                    clipBehavior: .none,
+                    children: [
+                      Positioned(
+                        left: at.dx,
+                        top: at.dy,
+                        width: size.width,
+                        height: size.height,
+                        child: Transform.scale(
+                          scale: scale,
+                          alignment: .topLeft,
+                          child: _Faded(
+                            opacity: motion.contentOpacity,
+                            blur: motion.contentBlur / scale,
+                            child: Stack(
+                              children: [..._feedback(motion, style), rows!],
+                            ),
                           ),
                         ),
                       ),
-                    ),
+                    ],
                   ),
                 ),
               ),
