@@ -24,13 +24,8 @@ jobs:
           flutter-version: 3.47.2
           channel: stable
           cache: true
-      # The gallery's vendored liquid glass renderer bundles fragment
-      # shaders the web shader compiler rejects; the web gallery reaches
-      # it only through a conditional import and draws frosted glass, so
-      # drop the package from this build only.
-      - name: Keep the GPU glass out of the web build
-        run: flutter pub remove liquid_glass_renderer
-        working-directory: example
+      # morph's glass renderer compiles its liquid shaders to stubs on the
+      # web and draws frosted glass there, so the gallery builds as is.
       - name: Build the example (wasm)
         run: flutter build web --release --wasm --base-href /morph/
         working-directory: example
