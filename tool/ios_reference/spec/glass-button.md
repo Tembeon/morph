@@ -46,8 +46,8 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
 - No opacity on the control. One frame, no animation, both ways.
 - Touch on a disabled button: capture prepared (testDisabledTouch), not run.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
-- To port: drop the 0.35 dim; content color -> tertiaryLabel; prominent
-  tint -> systemGray4 (light 0xD1D1D6 / dark 0x3A3A3C); glass untouched.
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `disabledForegroundColor` / `disabledTintColor`;
+  glass untouched; a hold shows no reaction.
 
 ## Fixtures
 

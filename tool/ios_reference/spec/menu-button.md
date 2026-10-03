@@ -101,7 +101,8 @@ keepsMenuPresented); `UIDeferredMenuElement`;
   disabled `.glass()` button: glass unchanged, the glyph tertiaryLabel (dark 0x4CEBEBF5, light 0x4C3C3C43); no opacity.
   One frame, no animation.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- To port: the button face dims its glyph only (see glass-button.md).
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphMenuButton.enabled`,
+  `MorphMenuStyle.disabledIconColor`; a tap does not open.
 
 ## Platter color, light [device screenshot, 2026-10-03]
 
@@ -110,8 +111,10 @@ keepsMenuPresented); `UIDeferredMenuElement`;
   the shadow darkens the page to ~224 - 238 just outside. Dark: 32 over
   black (0xF2222222, ported in daa1bae).
 - Identical to the light date picker overlay platter (date-picker.md).
-- To port: light menu material 0xF2F9F9FF (renders 249,249,255 on
-  242,242,247); ours reads 247,246,249.
+- Ported 2026-10-03: `MorphMenuStyle.light.glassColor` 0xF2F9F9FF. Light
+  audit on the simulator (liquid tier): the renderer draws the interior
+  246,246,252 - 3 levels under native; the renderer's light material, not
+  the color, is off (see glass-optics.md).
 
 ## Fixtures
 

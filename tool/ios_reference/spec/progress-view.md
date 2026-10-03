@@ -34,8 +34,9 @@ Identical to the simulator rule, frame for frame:
   an additive linear offset (old - new model, to 0 over |delta| s) on the
   new model value.
 - Bar style (`.bar`) runs the same timing.
-- To port: nothing new - the simulator model was right; the additive
-  replay can use progress-additive.jsonl.
+- Replayed 2026-10-03: indicators_test replays progress2, progress3 and
+  progress-additive on the device rows (actions within one commit share
+  one lag; width rms under 0.6 pt, opacity under 0.02).
 
 ## Fixtures
 

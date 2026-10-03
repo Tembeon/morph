@@ -59,8 +59,8 @@ will/didPresent, will/didDismiss; UISearchBar scope buttons, tokens
   rendered 80 dark / 183 light on the flat fill).
 - One frame, no animation.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- To port: `enabled: false` on MorphSearchField -> flat fill instead of
-  glass, no press lift, no focus.
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphSearchFieldStyle.disabledFillColor`; the
+  body pixel matches 14,14,15 / 235,235,240.
 
 ## Fixtures
 

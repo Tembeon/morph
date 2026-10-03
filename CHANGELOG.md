@@ -105,9 +105,36 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   press the glass button and increment the stepper, the arrow keys move
   the segmented and tab bar selections.
 - Disabled: BREAKING: `onChanged` is nullable on `MorphSegmentedControl`
-  and `MorphTabBar`. A disabled control ignores input and dims to its
-  style's `disabledOpacity` (0.5 for the switch and slider, 0.35 for
-  the rest - not yet measured on a device).
+  and `MorphTabBar`. A disabled control ignores input and draws the
+  disabled look measured on an iPhone 16 Pro (iOS 27.0.1, light and
+  dark), switching in one frame both ways. The segmented control, switch
+  and slider fade to `disabledOpacity` 0.5 as one layer (the segmented
+  control was 0.35). BREAKING: `disabledOpacity` is gone from
+  `MorphStepperStyle`, `MorphPageControlStyle` and `MorphTabBarStyle` -
+  UIKit draws a disabled stepper, page control or tab item unchanged; a
+  touch on a disabled tab (new `MorphTabItem.enabled`; a null
+  `onChanged` disables every tab) still swells the bar but neither
+  selects nor moves the lens. BREAKING: it is gone from
+  `MorphGlassButtonStyle` (new `disabledForegroundColor`, tertiaryLabel,
+  and `disabledTintColor`, systemGray4 for a prominent button), from
+  `MorphBarStyle` (new `disabledIconColor` and `disabledLabelColor`, the
+  rendered colors of a disabled bar item's icon and text, and
+  `disabledProminentColor`; a prominent glyph stays white), from
+  `MorphSearchFieldStyle` (new `disabledFillColor`: a disabled field is a
+  flat 0x767680 fill without glass, lift or focus), from
+  `MorphAlertStyle` (new `disabledLabelColor`: a disabled action keeps its
+  fill and dims its title, destructive too; a disabled preferred action
+  shows the plain fill and keeps its semibold title) and from
+  `MorphDatePickerStyle` (disabled labels drop their capsule and keep
+  their text; the out-of-range day opacity is `unavailableDayOpacity`).
+  `MorphMenuButton.enabled` disables a menu button: its glyph turns
+  `MorphMenuStyle.disabledIconColor` and its glass stays. The stepper
+  takes the device colors (half fill 0x163C3C43 light / 0x14EBEBF5 dark,
+  a 1 x 24 tertiaryLabel divider, a pressed half that replaces its fill
+  by black 8 percent in dark and darkens it in light) and draws the glyph
+  of a half at its limit in `limitForegroundColor`, tertiaryLabel. The
+  light menu and date picker overlay share the material 0xF2F9F9FF (249,
+  249, 255 over the grouped background, as UIKit's).
 - Right to left: the segmented control, tab bar, switch and slider
   mirror in an RTL context; the stepper keeps minus on the left.
 - Text scale: segment labels follow the text scale up to 1.4 and size

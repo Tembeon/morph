@@ -35,8 +35,8 @@ sliding).
   against 0.5 enabled + 0.5 background.
 - One frame, no animation, both ways.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
-- To port: the guessed 0.5 is right; check it is applied to the whole
-  switch as one layer (not per part).
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): one 0.5 layer over track and knob (pixel rule
+  checked light + dark).
 
 ## Fixtures
 

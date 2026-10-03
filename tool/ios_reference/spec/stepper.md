@@ -30,8 +30,8 @@ per state.
   plus) dims ITS glyph to tertiaryLabel (dark 0x4CEBEBF5, light 0x4C3C3C43) through the image's contentsMultiplyColor,
   fills unchanged - enabled or not.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
-- To port: no control-wide disabled dim (morph dims by 0.35 today); dim the
-  glyph of a half at its limit.
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): no dim (pixel-identical test); the limit glyph
+  is `MorphStepperStyle.limitForegroundColor` (pixel-checked).
 
 ## Device [iPhone 16 Pro, 2026-10-03, StatesUITests testStepperDevice]
 
@@ -55,9 +55,9 @@ Every simulator rule holds on the device:
   0.912 - black 0.08 alone would give 223, so light keeps its rest fill
   under the black; 2 levels of 8 bit unexplained).
   Shots: `references/states/stepper-plus-pressed-{dark,light}.png`.
-- To port: style colors from the device (fill 0x163C3C43 light /
-  0x14EBEBF5 dark instead of 0x1F767680; pressed: dark replaces the fill by
-  0x14000000, light draws 0x14000000 over the fill), the rest unchanged.
+- Ported 2026-10-03: fill 0x163C3C43 / 0x14EBEBF5, divider 1 x 24
+  tertiaryLabel, pressed black 8 percent replacing the fill in dark
+  (`pressedReplacesFill`) and over it in light (pixel-checked).
 
 ## Fixtures
 

@@ -34,7 +34,7 @@ pause/resume).
 
 - `isEnabled = NO` draws NOTHING different (pixel-identical).
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- To port: no disabled dim; non-interactive only.
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): no dim (pixel-identical test).
 
 ## Fixtures
 

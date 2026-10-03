@@ -128,9 +128,14 @@ Cross-cutting policy:
   `keyboardStep`; the stepper is two buttons carrying the value. Every
   control is focusable with a systemBlue ring; Space/Enter toggle,
   press, increment. RTL mirrors segmented, tab bar, switch, slider.
-  Disabled = null `onChanged` (BREAKING in 0.7.0 for segmented and tab
-  bar) dims to `disabledOpacity` (0.5 switch/slider, 0.35 others - NOT
-  measured). REDUCED MOTION (`reducedMotion`, from
+  Disabled = null `onChanged` / `onPressed` / `enabled: false` draws the
+  DEVICE's disabled look (states.md, test/disabled_test.dart): one 0.5
+  layer over segmented / switch / slider; no change on stepper, page
+  control, tab items (a disabled tab still swells the bar); content
+  tertiaryLabel on glass / menu buttons and bar items (measured rendered
+  colors), prominent tint systemGray4; search field and date picker
+  labels lose their glass / capsule; every change in one frame; disabled
+  controls ignore touches. REDUCED MOTION (`reducedMotion`, from
   `MediaQuery.disableAnimations`) is an approximation until Reduce Motion
   is recorded; off by default so replays are unchanged.
 

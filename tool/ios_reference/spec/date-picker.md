@@ -98,7 +98,7 @@ wheel, hour wheel 1 - 12 right-aligned, AM/PM flips as hours pass 11/12.
   time text keep the label color (pixel-identical text). No opacity.
 - One frame, no animation.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- To port: disabled labels draw text only, no capsule, no press dim.
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): no capsule, text unchanged, does not open.
 
 ## Overlay platter color, light + dark [device screenshots, 2026-10-03]
 
@@ -112,9 +112,8 @@ wheel, hour wheel 1 - 12 right-aligned, AM/PM flips as hours pass 11/12.
   the same background, references/light/menu-open.png): one material.
 - Shots: `references/light/date-overlay.png`, `references/dark/date-overlay.png`
   (StatesUITests testDateOverlay).
-- To port: light overlay platter interior 249,249,255 on 242,242,247 (ours
-  247,246,249); as an 0.95-alpha material over that page that is
-  0xF2F9F9FF (blue clips at 255) - the light twin of the dark 0xF2222222.
+- Ported 2026-10-03: `MorphDatePickerStyle.light.platterColor`
+  0xF2F9F9FF.
 
 ## Fixtures
 
@@ -200,5 +199,5 @@ Calendar drawn by morph; wheels are ListWheelScrollViews.
   `MorphDatePickerStyle.dark` platterColor is now the menu's measured dark
   glass 0xF2222222 (reads 33 - 34 through the renderer; 0xF22C2C2E drew
   44). Light: native 249,248,255 over the film's page vs ours 247,246,249
-  with 0xF2F9F9FB - 2 darker and less blue, not changed (no light menu
-  reference to tie it to yet; a fresh light x3date shot decides).
+  with 0xF2F9F9FB - 2 darker and less blue; now 0xF2F9F9FF, the light
+  menu material (testDateOverlay shot, 2026-10-03).

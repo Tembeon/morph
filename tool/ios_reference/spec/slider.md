@@ -57,7 +57,8 @@ thumbless), `trackConfiguration` (`UISliderTrackConfiguration`:
   0.09 / 0.10 of 8 bit against 0.5 enabled + 0.5 background.
 - One frame, no animation, both ways.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
-- To port: the guessed 0.5 is right; one layer over the whole slider.
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): one 0.5 layer over track, fill, thumb and ticks
+  (pixel rule checked light + dark).
 
 ## Fixtures
 

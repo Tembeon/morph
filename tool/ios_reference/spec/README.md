@@ -269,7 +269,7 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [search-tab-bar](search-tab-bar.md) | D film | P | glass morph rect-lerp fit only |
 | [switch](switch.md) | D | P | checkbox style, title, on/off images |
 | [slider](slider.md) | D + film | P | white release flash; thumbless style, neutral value, tick titles/images, min/max images; dark lifted thumb look |
-| [stepper](stepper.md) | D+S | P | wraps, continuous, autorepeat flag, images; device colors to port |
+| [stepper](stepper.md) | D+S | P (device colors, disabled) | wraps, continuous, autorepeat flag, images |
 | [glass-button](glass-button.md) | D | P | clear glass, sizes, corner styles, subtitle, menus |
 | [menu-button](menu-button.md) | D + film | P | submenus, palettes, inline sections, selection state, "Ask Siri" row |
 | [context-menu](context-menu.md) | D | P | preview-vc, commit/pop preview, badges, rich/compact appearance |
@@ -281,14 +281,14 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [date-picker](date-picker.md) | D + film (incl. month/year wheels) | P | inline/wheels styles, countdown, yearAndMonth mode, minuteInterval, locale/calendar |
 | [page-control](page-control.md) | D | P | far scrub irregular steps; vertical direction, custom indicator images |
 | [progress-view](progress-view.md) | D+S | P | bar style look, observedProgress |
-| [activity-indicator](activity-indicator.md) | D+S | P | dark default color to port |
+| [activity-indicator](activity-indicator.md) | D+S | P | - |
 | [typography](typography.md) | D == S | P | Dynamic Type, GRAD axis, date wheel |
-| [glass-optics](glass-optics.md) | D (refs dark + light, layers) | P (renderer) | light audit against references/light; lens rim minification profile approximated |
+| [glass-optics](glass-optics.md) | D (refs dark + light, layers) | P (renderer) | light glass material too bright (simulator audit); lens rim minification profile approximated |
 | [glass-renderer](glass-renderer.md) | D (tier costs) | P (package renderer, tiers, adaptive policy) | policy numbers are defaults; date picker dark platter color |
 | [skin-merge](skin-merge.md) | D | P | 3+ mass normal mixing unmeasured |
 | [engine-flight](engine-flight.md) | D tuning | P | - |
-| [states](states.md) | D disabled (light + dark), light refs | to port | Reduce Motion pass waits for the owner's switch |
+| [states](states.md) | D disabled (light + dark), light refs | P disabled (disabled_test) | Reduce Motion pass waits for the owner's switch |
 
-Disabled looks are measured for every control (2026-10-03, [states](states.md),
-to port). Reduce Motion is unmeasured for every control: the pass is
+Disabled looks are measured for every control and ported (2026-10-03,
+[states](states.md), test/disabled_test.dart). Reduce Motion is unmeasured for every control: the pass is
 prepared (`reduce_motion.sh`) and waits for the owner to switch the setting.

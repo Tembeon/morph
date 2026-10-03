@@ -42,8 +42,8 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
   0.11 (dark) / 0.27 (light) of 8 bit. Label colors unchanged.
 - Switches in one frame both ways (no animation).
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
-- To port: `disabledOpacity` 0.5 (was 0.35) applied to the whole control
-  as one layer; no other change.
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `disabledOpacity` 0.5 as one layer (pixel rule
+  checked light + dark).
 
 ## Fixtures
 

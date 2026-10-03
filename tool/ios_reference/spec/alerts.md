@@ -63,8 +63,8 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
   Disabled / Delete / Cancel; row alert Cancel + disabled preferred OK with
   a text field).
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- To port: `enabled` on the action model; disabled preferred = plain fill,
-  semibold tertiaryLabel title; no touch feedback (unmeasured, assume none).
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphAlertStyle.disabledLabelColor`; a disabled
+  preferred action takes `buttonColor` and keeps w600.
 
 ## Fixtures
 

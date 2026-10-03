@@ -92,7 +92,10 @@ function of geometry not derivable from two widths.
   wide); no glow rows. So a disabled item still feeds the bar's press
   swell but not the lens.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
-- To port: no disabled dim on tab items (morph dims by 0.35 today).
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphTabItem.enabled`, no dim (pixel-identical
+  test); a touch on a disabled item swells the bar only
+  (`MorphLensMotion.isSelectable`); a drag released over one returns to
+  the selected slot (unmeasured).
 
 ## Fixtures
 

@@ -30,7 +30,8 @@ large), `color`, `hidesWhenStopped`, `startAnimating`, `stopAnimating`,
 - stopAnimating with hidesWhenStopped: hidden in ONE frame (no fade);
   startAnimating: visible in one frame, frame 0. With hidesWhenStopped NO
   the stopped indicator stays visible (no row changes at the stop).
-- To port: dark default color 0x99EBEBF5; start/stop are cuts.
+- Ported: dark default 0x99EBEBF5 (disabled_test pins it); start/stop
+  are cuts.
 
 ## Recapture
 

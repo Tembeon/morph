@@ -109,21 +109,21 @@ until this pass lands.
 
 ## To port (porting agent)
 
-- [ ] Replace the guessed `disabledOpacity` (0.5 switch/slider, 0.35
+- [x] Replace the guessed `disabledOpacity` (0.5 switch/slider, 0.35
       others) by the table above: segmented 0.5 on the whole control
       (was 0.35), switch 0.5, slider 0.5 (the whole visual element incl.
       thumb and ticks).
-- [ ] Stepper, page control, tab bar item: NO disabled look (remove the
+- [x] Stepper, page control, tab bar item: NO disabled look (remove the
       0.35 dim); keep them non-interactive.
-- [ ] Glass button / menu button / bar items: content color ->
+- [x] Glass button / menu button / bar items: content color ->
       tertiaryLabel (per appearance), glass untouched; prominent: tint ->
       systemGray4, glyph tertiaryLabel (button) or white (bar item).
-- [ ] Search field disabled: no glass, flat fill 0x1F767680 dark /
+- [x] Search field disabled: no glass, flat fill 0x1F767680 dark /
       0x0F767680 light, no lift; placeholder and magnifier unchanged.
-- [ ] Date picker labels disabled: no capsule fill, text unchanged.
-- [ ] Alert actions: `enabled` on the action model: tertiaryLabel title,
+- [x] Date picker labels disabled: no capsule fill, text unchanged.
+- [x] Alert actions: `enabled` on the action model: tertiaryLabel title,
       a disabled preferred action keeps semibold but loses the accent fill.
-- [ ] All state changes instant (no animation); disabled controls ignore
+- [x] All state changes instant (no animation); disabled controls ignore
       touches entirely, except the tab bar's press swell.
-- [ ] Gallery: the Glass renderer page's disabled toggle and the light
+- [x] Gallery: the Glass renderer page's disabled toggle and the light
       references (`references/light/`) for the light audit.

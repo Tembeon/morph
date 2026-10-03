@@ -86,8 +86,15 @@ Tests: glass_renderer_test, lifted_lens_look_test.
 
 ## Open / gaps
 
-- Light audit: run glass_audit_test in light and compare with
-  `references/light/` (captured, not yet compared).
+- Light audit (2026-10-03, simulator, liquid tier, glass_audit_test with
+  `AUDIT_LIGHT=true AUDIT_OUT=<dir>`): layout matches (tab bar, segmented,
+  controls, menu); the simulator shots are Display P3 encoded, so compare
+  grays only (sRGB greens/blues read shifted: 0x34C759 -> 101,196,102).
+  Plain fills agree (stepper 226, slider track 217 vs 218). The light
+  GLASS material is off: a resting glass button body reads 251,251,252
+  vs native 245,245,251 (too bright, not blue enough), the menu interior
+  246,246,252 vs 249,249,255 (3 under). A renderer light-material fit
+  is open; the final look check belongs on the phone.
 - Popover arrow is drawn flat.
 - `UIGlassEffect.tintColor` / tinted glass and `interactive = false` as a
   consumer API on arbitrary surfaces.

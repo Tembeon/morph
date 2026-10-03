@@ -109,9 +109,10 @@ shapes [film]. `MorphBarMenuTuning`.
 - A disabled item shares its capsule group with enabled ones like any item.
 - One frame, no animation, both ways.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- To port: per-item enabled flag; plain items draw content at the measured
-  rendered color (icon / text tables above, per appearance), prominent
-  items swap the tint to systemGray4 and keep a white glyph; no opacity.
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphBarStyle.disabledIconColor` (0x55000000 /
+  0x3CFFFFFF) and `disabledLabelColor` (0x19000000 / 0x12FFFFFF) render
+  the measured peaks over the capsule; a prominent capsule whose items
+  are all disabled takes `disabledProminentColor`, glyph white.
 
 ## Fixtures
 
