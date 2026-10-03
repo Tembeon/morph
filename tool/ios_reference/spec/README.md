@@ -97,7 +97,8 @@ presentation layers every display-link tick and logs only changed rows.
   --source Documents`. Phone: unlocked, trusted, developer mode,
   Settings > Developer > Enable UI Automation ON. Never edit device.sh
   while it runs (sh reads it incrementally).
-- Common env: `PROBE_SCENE`, `PROBE_REC` (record name), `PROBE_DARK=1/0`,
+- Common env: `PROBE_SCENE`, `PROBE_REC` (record name), `PROBE_DARK=1`
+  forces dark, `PROBE_DARK=0` forces light (unset = system appearance),
   `PROBE_SCRIPT="action@seconds;..."` (w2/x3/sn scenes), `PROBE_W2TRACK` /
   `PROBE_X3TRACK` (class regex, `.` = everything), `PROBE_W2DEPTH` /
   `PROBE_X3DEPTH`, `PROBE_W2FILTERS=1` (backdrop filter inputs),
@@ -176,7 +177,7 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [sheets](sheets.md) | D + film (zoom) | P | 8 pt present drift, 2 percent stretch, keyboard avoid motion, edge-attached, placement |
 | [alerts](alerts.md) | D+S | P | source tint dim, severity, popover arrow in glass |
 | [search](search.md) | D + film | P | scope bar, suggestions, placements other than bottom toolbar |
-| [date-picker](date-picker.md) | D + film | P (month/year IN PROGRESS) | inline style, countdown, minuteInterval, locale/calendar |
+| [date-picker](date-picker.md) | D + film (incl. month/year wheels) | P | inline/wheels styles, countdown, yearAndMonth mode, minuteInterval, locale/calendar |
 | [page-control](page-control.md) | D | P | far scrub irregular steps; vertical direction, custom indicator images |
 | [progress-view](progress-view.md) | S | P | bar style look, observedProgress |
 | [activity-indicator](activity-indicator.md) | S | P | none of note |

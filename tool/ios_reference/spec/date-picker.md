@@ -1,11 +1,8 @@
 # Date picker passport (compact, calendar, wheels, 12h, month/year header)
 
-Status: measured simulator (XCUITest) + device (timing, film light/dark);
-ported; replayed (date_picker_test). MONTH/YEAR HEADER: IN PROGRESS (another
-agent, "dpw", holds the device lock and has uncommitted probe changes in
-Sources/Extras.swift and UITests/ExtrasUITests.swift: `PROBE_X3MY=1`,
-`PROBE_X3TREES=1`, testX3MonthYear / testX3MonthYearCases) - ask the
-keeper for its results before porting the header.
+Status: measured simulator (XCUITest) + device (timing, film light/dark,
+month/year wheels light + dark); ported; replayed (date_picker_test incl.
+its month and year groups; month/year landed in f2f0c4d).
 
 ## Native
 
@@ -47,13 +44,46 @@ CABasicAnimation (0.25, 0.1, 0.25, 1) and turns accent while open.
 ## Spec - calendar
 
 Picking a day applies at once and keeps the overlay open; tap outside (on
-touch-up) or Escape closes. Months page on a 0.3 s sine ease (2 px rms;
+touch-up) or Escape closes. SIX WEEKS (August 2026): the platter stays
+320 x 332, rows 38 apart (cells 42.67 x 38, disc 38) from the same top -
+no growth per week; first row 1 pt below the collection view's top
+(`gridTop`). Months page on a 0.3 s sine ease (2 px rms;
 UIScrollView's exact curve differs). Title 20.33 pt in, not truncated;
 chevrons label-colored 10 x 17.33, 2.6 thick; chosen day not today on a label
 disc (`selectedDayFillColor`/`TextColor`); today tint. Header, weekday
 initials, grid geometry from the view tree.
 
-## Spec - wheels
+## Spec - month and year wheels [device, light + dark, film + layers]
+
+- Tap on the month title (`_UICalendarHeaderTitleButton`, "Show / Hide year
+  picker") puts `_UICalendarMonthYearSelector` (320 x 246.33 from the weekday
+  row down, rebuilt on every show) in the SAME 320 x 332 platter.
+- Weekday row, day grid and both month chevrons fade out, selector in, on
+  CABasicAnimation 0.25 s (0.42, 0, 0.58, 1) (`yearPicker*`; layers follow
+  to 1e-4, start fitted), starting 0.069 s after the lift (0.061 - 0.077)
+  and 0.019 s back (0.013 while the wheels still fade in). A second tap
+  restarts the fades from the presentation value (beginFromCurrentState,
+  velocity kink); the title chevron's quarter turn (image 10.33 x 14) is
+  ADDITIVE - carries on to 0.82 before returning (`yearPickerTurn` sums
+  running turns). Title turns accent at the tap, back to label on return,
+  no animation.
+- Wheels: UIDatePicker 288 x 216 at 16 x 76.84 in the platter; band 288 x
+  34 capsule (0x14747480 light / 0x2E767680 dark = `wheelBandColor`);
+  months left-aligned at 54 (band, 23.5 pt) / 57.95 (outside, 21 pt; morph
+  centers the month box at 91.13 to land both), years centered at 230;
+  cylinder radius 87.7, rows 31.87 apart (0.14 pt rms); outside rows' peak
+  contrast 0.36 / 0.324 / 0.19 / 0.092 at 31.3 / 58.3 / 77.6 / 87.1 pt (fade
+  table over the 0.4 faded opacity). Month wheel loops.
+- Selection: wheels open on the SHOWN month (after a page turn: that month);
+  a wheel coming to rest (valueChanged 0.2 - 0.36 s after the lift) sets the
+  date to (wheel year, wheel month, chosen day clamped: Oct 31 -> Nov 30,
+  back -> Oct 30), title follows; opening/closing the wheels alone changes
+  nothing. Closing the overlay with the wheels up and reopening shows the
+  grid.
+- Not reproduced: UIKit's slight perspective toward the picker center (~6 pt
+  at the last row).
+
+## Spec - time wheels
 
 Cylinder rows 31.3 / 56.7 pt out at 0.905 / 0.647 height; columns at 73.5 /
 148.5 pt; 21 pt rows magnified to 23.5 in the band (band 200 x 32, rows
@@ -64,14 +94,18 @@ wheel, hour wheel 1 - 12 right-aligned, AM/PM flips as hours pass 11/12.
 ## Fixtures
 
 Device `ios27-device/date_picker/` (vid-date, vid-both, wheels.json,
-tm-openclose-{050,150,300}, tm-closeopen-*). Simulator
+tm-openclose-{050,150,300}, tm-closeopen-*, my-light, my-dark, myrev-030,
+myrev-120, my31, mypage, month-year.json - rows: anim, V of
+_UICalendarWeekdayView / _UICalendarMonthYearSelector, chevron, evt
+valueChanged v = epoch seconds UTC; see manifest). Simulator
 `ios27/date_picker/` (date-open, date-page, date-low, placements.json).
 Film crops `references/date-video/`.
 
 ## Recapture
 
 Scene `x3date`: `PROBE_DMODE=time|both`, `PROBE_DATE`, `PROBE_LOCALE`,
-`PROBE_DARK`, `PROBE_X3MY=1` (month/year sampler pattern, in progress),
+`PROBE_DARK=1/0` (0 forces light), `PROBE_X3MY=1` (month/year sampler
+pattern), `PROBE_X3TREES=1` (tree dump 1.2 s after every touch-up),
 `PROBE_SCRIPT` (open, close, next, tree-*). ExtrasUITests testX3Date,
 testX3Video, testX3Timing (twoTaps, `PROBE_GAPS`), testX3Shots,
 testX3MonthYear, testX3MonthYearCases. A compact picker cannot be opened
@@ -87,7 +121,7 @@ Calendar drawn by morph; wheels are ListWheelScrollViews.
 
 ## Not reproduced / open
 
-- Month/year header picker (in progress).
+- Perspective of the month/year wheel rows (above).
 - UIScrollView's exact paging curve.
 
 ## API gaps
