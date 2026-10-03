@@ -109,7 +109,7 @@ void main() {
           g,
           s,
           (frame['gaussianRadius']! as num).toDouble(),
-        );
+        ).path;
         var sum = 0.0;
         var count = 0;
         var filmNeck = double.infinity;
@@ -173,7 +173,7 @@ void main() {
       final s = motion.buttonBlob.rect;
       final gap = s.top - g.bottom;
       widestGap = math.max(widestGap, gap);
-      final path = motion.silhouette;
+      final path = motion.silhouette?.path;
       if (gap <= 0) continue;
       expect(path, isNotNull, reason: 'a gap opens only while fused');
       final loops = path!.computeMetrics().toList();
@@ -235,7 +235,7 @@ void main() {
     expect(fusion.outline(g, s, 0.5), isNull);
     final fused = fusion.outline(g, s, 10)!;
     expect(identical(fusion.outline(g, s, 10), fused), isTrue);
-    expect(fused.contains(const Offset(50, 105)), isTrue);
+    expect(fused.path.contains(const Offset(50, 105)), isTrue);
   });
 
   testWidgets('the flat glass of a tall menu closing into a bottom button '

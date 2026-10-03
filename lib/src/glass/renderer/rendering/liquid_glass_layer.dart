@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_shaders/flutter_shaders.dart';
+import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/ancestor_clip.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
@@ -89,8 +90,18 @@ class LiquidGlassLayer extends StatefulWidget {
     this.fake = false,
     this.useBackdropGroup = false,
     this.backdropKey,
+    this.field,
     super.key,
   });
+
+  /// The distance field of the one body the layer's shapes form, when its
+  /// owner has fused them already.
+  ///
+  /// With a field the geometry pass shades the body the field describes
+  /// instead of the shapes' own outlines or blend groups; the shapes still
+  /// supply the appearance, the shadows and the bounds of the matte, which
+  /// must contain the body. Fake glass ignores the field.
+  final GlassField? field;
 
   /// The subtree in which you should include at least one [LiquidGlass] widget.
   ///
@@ -334,6 +345,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
                 defaultAppearance: defaultAppearance,
                 link: _link,
                 gpuGeometryRenderer: gpuRenderer,
+                field: widget.field,
                 child: child!,
               );
             },
@@ -396,6 +408,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required Widget super.child,
     required this.link,
     this.gpuGeometryRenderer,
+    this.field,
   });
 
   final FragmentShader defaultRenderShader;
@@ -406,10 +419,12 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final LiquidGlassAppearance defaultAppearance;
   final GeometryRenderLink link;
   final FlutterGpuGeometryRenderer? gpuGeometryRenderer;
+  final GlassField? field;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
     return RenderLiquidGlassLayer(
+      field: field,
       devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
       defaultRenderShader: defaultRenderShader,
       materialRenderShader: materialRenderShader,
@@ -433,7 +448,8 @@ class _RawShapes extends SingleChildRenderObjectWidget {
       ..settings = settings
       ..defaultAppearance = defaultAppearance
       ..backdropKey = backdropKey
-      ..gpuGeometryRenderer = gpuGeometryRenderer;
+      ..gpuGeometryRenderer = gpuGeometryRenderer
+      ..field = field;
   }
 }
 
@@ -456,8 +472,20 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     required super.defaultAppearance,
     required super.link,
     this._gpuGeometryRenderer,
+    this._field,
   }) {
     _updateShaderSettings();
+  }
+
+  GlassField? _field;
+
+  /// The fused body's distance field, or null to shade the shapes.
+  GlassField? get field => _field;
+  set field(GlassField? value) {
+    if (identical(_field, value)) return;
+    _field = value;
+    needsGeometryUpdate = true;
+    markNeedsPaint();
   }
 
   final FragmentShader defaultRenderShader;
@@ -1624,6 +1652,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             : const <double>[],
         offsetX: boundsInMatteSpace.left * devicePixelRatio,
         offsetY: boundsInMatteSpace.top * devicePixelRatio,
+        field: _field,
+        fieldScale: devicePixelRatio,
       );
       return (
         image: result.image,

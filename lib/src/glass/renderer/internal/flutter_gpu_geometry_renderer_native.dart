@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_gpu/gpu.dart' as gpu;
+import 'package:morph/src/glass/renderer/glass_field.dart';
 
 /// Renders the liquid glass geometry SDF shader using flutter_gpu.
 ///
@@ -28,6 +29,11 @@ import 'package:flutter_gpu/gpu.dart' as gpu;
 class FlutterGpuGeometryRenderer {
   FlutterGpuGeometryRenderer._fromShared(_SharedGeometryResources resources) {
     _pipeline = resources.pipeline;
+    _fieldPipeline = resources.fieldPipeline;
+    _fieldUniformSlot = resources.fieldUniformSlot;
+    _fieldTextureSlot = resources.fieldTextureSlot;
+    _fieldUniformData = ByteData(resources.fieldUniformSize);
+    _fieldOffsets = resources.fieldOffsets;
     _materialGradientPipeline = resources.materialGradientPipeline;
     _materialTintGradientPipeline = resources.materialTintGradientPipeline;
     _uniformSlot = resources.uniformSlot;
@@ -70,12 +76,14 @@ class FlutterGpuGeometryRenderer {
       final library = await gpu.ShaderLibrary.fromAsset(assetKey);
       final vertexShader = library?['GeometryVertex'];
       final fragmentShader = library?['GeometryFragment'];
+      final fieldFragmentShader = library?['GeometryFieldFragment'];
       final materialGradientFragmentShader =
           library?['MaterialGradientFragment'];
       final materialTintGradientFragmentShader =
           library?['MaterialTintGradientFragment'];
       if (vertexShader == null ||
           fragmentShader == null ||
+          fieldFragmentShader == null ||
           materialGradientFragmentShader == null ||
           materialTintGradientFragmentShader == null) {
         throw StateError(
@@ -86,6 +94,7 @@ class FlutterGpuGeometryRenderer {
       return _SharedGeometryResources(
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
+        fieldFragmentShader: fieldFragmentShader,
         materialGradientFragmentShader: materialGradientFragmentShader,
         materialTintGradientFragmentShader: materialTintGradientFragmentShader,
       );
@@ -205,6 +214,12 @@ class FlutterGpuGeometryRenderer {
   }
 
   late final gpu.RenderPipeline _pipeline;
+  late final gpu.RenderPipeline _fieldPipeline;
+  late final gpu.UniformSlot _fieldUniformSlot;
+  late final gpu.UniformSlot _fieldTextureSlot;
+  late final ByteData _fieldUniformData;
+  late final _FieldUniformOffsets _fieldOffsets;
+  final _FieldTextures _fieldTextures = _FieldTextures();
   late final gpu.RenderPipeline _materialGradientPipeline;
   late final gpu.RenderPipeline _materialTintGradientPipeline;
 
@@ -289,6 +304,8 @@ class FlutterGpuGeometryRenderer {
     List<double> appearanceData = const <double>[],
     List<double> rseData = const <double>[],
     List<double> boundsData = const <double>[],
+    GlassField? field,
+    double fieldScale = 1,
   }) {
     assert(() {
       debugRenderCount++;
@@ -400,15 +417,35 @@ class FlutterGpuGeometryRenderer {
       boundsData: boundsData,
     );
 
-    final uniformView = _hostBufferForUniformSize(_uniformSize)
-        .emplace(_uniformData);
+    final uniformView = _hostBufferForUniformSize(
+      _uniformSize,
+    ).emplace(_uniformData);
 
     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
-    final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!)
-      ..bindPipeline(_pipeline)
-      ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
-      ..bindUniform(_uniformSlot, uniformView)
-      ..bindVertexBuffer(_vertexBufferView);
+    final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!);
+    if (field == null) {
+      geometryPass
+        ..bindPipeline(_pipeline)
+        ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
+        ..bindUniform(_uniformSlot, uniformView)
+        ..bindVertexBuffer(_vertexBufferView);
+    } else {
+      final fieldTexture = _fieldTextures.upload(field, _completedFrames);
+      _packFieldUniformData(
+        field: field,
+        fieldScale: fieldScale,
+        texture: fieldTexture,
+      );
+      final fieldUniformView = _hostBufferForUniformSize(
+        _uniformSize,
+      ).emplace(_fieldUniformData);
+      geometryPass
+        ..bindPipeline(_fieldPipeline)
+        ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
+        ..bindUniform(_fieldUniformSlot, fieldUniformView)
+        ..bindTexture(_fieldTextureSlot, fieldTexture)
+        ..bindVertexBuffer(_vertexBufferView);
+    }
     _restrictTo(geometryPass, _texture!, matteWidth, matteHeight);
     geometryPass.draw(4);
     _submitOrDefer(geometryCommandBuffer);
@@ -764,6 +801,38 @@ class FlutterGpuGeometryRenderer {
     }
   }
 
+  /// Writes the field pass's uniforms: the geometry pass's optical values
+  /// (already packed for the shape pass) and the field's frame.
+  void _packFieldUniformData({
+    required GlassField field,
+    required double fieldScale,
+    required gpu.Texture texture,
+  }) {
+    final from = _uniformData.buffer.asFloat32List();
+    final to = _fieldUniformData.buffer.asFloat32List();
+    void copy(int fromOffset, int toOffset, int count) {
+      for (var i = 0; i < count; i++) {
+        to[toOffset ~/ 4 + i] = from[fromOffset ~/ 4 + i];
+      }
+    }
+
+    final offsets = _fieldOffsets;
+    copy(_offsetUOffset, offsets.offset, 2);
+    copy(_offsetUTextureSize, offsets.textureSize, 2);
+    copy(_offsetOpticalProps, offsets.opticalProps, 4);
+    copy(_offsetContourProps, offsets.contourProps, 4);
+    final frame = offsets.fieldFrame ~/ 4;
+    to[frame] = field.origin.dx * fieldScale;
+    to[frame + 1] = field.origin.dy * fieldScale;
+    to[frame + 2] = field.step * fieldScale;
+    to[frame + 3] = fieldScale;
+    final size = offsets.fieldSize ~/ 4;
+    to[size] = field.cols.toDouble();
+    to[size + 1] = field.rows.toDouble();
+    to[size + 2] = 1 / texture.width;
+    to[size + 3] = 1 / texture.height;
+  }
+
   /// Releases borrowed output handles, keeping reusable rendering resources.
   ///
   /// Callers retaining an output must clone its images before calling this.
@@ -954,16 +1023,106 @@ final class _TextureRing {
   }
 }
 
+/// Byte offsets of the members of the field pass's uniform block.
+typedef _FieldUniformOffsets = ({
+  int offset,
+  int textureSize,
+  int opticalProps,
+  int contourProps,
+  int fieldFrame,
+  int fieldSize,
+});
+
+/// The float textures a renderer uploads fields into.
+///
+/// The host writes a field texture directly, outside the GPU queue's
+/// ordering, so a texture is written again only after it was last bound
+/// [_reuseAfterFrames] frames ago, when no frame in flight still reads it.
+/// Textures only grow (in 1.5x steps), and a field fills the top-left
+/// of its texture.
+final class _FieldTextures {
+  static const int _reuseAfterFrames = 3;
+  static const int _maxTextures = 4;
+
+  final List<(gpu.Texture, int)> _textures = [];
+  int _width = 0;
+  int _height = 0;
+  ByteData? _staging;
+
+  static int _grow(int capacity, int needed) =>
+      needed <= capacity ? capacity : math.max(needed, (capacity * 3) >> 1);
+
+  gpu.Texture upload(GlassField field, int frame) {
+    if (field.cols > _width || field.rows > _height) {
+      _width = _grow(_width, field.cols);
+      _height = _grow(_height, field.rows);
+      _textures.clear();
+      _staging = null;
+    }
+    var index = _textures.indexWhere(
+      (entry) => frame - entry.$2 >= _reuseAfterFrames,
+    );
+    final gpu.Texture texture;
+    if (index >= 0) {
+      texture = _textures[index].$1;
+    } else {
+      texture = gpu.gpuContext.createTexture(
+        gpu.StorageMode.hostVisible,
+        _width,
+        _height,
+        format: gpu.PixelFormat.r32g32b32a32Float,
+        enableRenderTargetUsage: false,
+      );
+      if (_textures.length >= _maxTextures) _textures.removeAt(0);
+      _textures.add((texture, frame));
+      index = _textures.length - 1;
+    }
+    _textures[index] = (texture, frame);
+    final staging = _staging ??= ByteData(_width * _height * 16);
+    final texels = staging.buffer.asFloat32List();
+    final samples = field.samples;
+    final rowFloats = field.cols * 4;
+    for (var j = 0; j < field.rows; j++) {
+      texels.setRange(
+        j * _width * 4,
+        j * _width * 4 + rowFloats,
+        samples,
+        j * rowFloats,
+      );
+    }
+    texture.overwrite(staging);
+    return texture;
+  }
+}
+
 class _SharedGeometryResources {
   _SharedGeometryResources({
     required gpu.Shader vertexShader,
     required gpu.Shader fragmentShader,
+    required gpu.Shader fieldFragmentShader,
     required gpu.Shader materialGradientFragmentShader,
     required gpu.Shader materialTintGradientFragmentShader,
   }) {
     pipeline = gpu.gpuContext.createRenderPipeline(
       vertexShader,
       fragmentShader,
+    );
+    fieldPipeline = gpu.gpuContext.createRenderPipeline(
+      vertexShader,
+      fieldFragmentShader,
+    );
+    fieldUniformSlot = fieldFragmentShader.getUniformSlot('FieldUniforms');
+    fieldTextureSlot = fieldFragmentShader.getUniformSlot('uField');
+    fieldUniformSize = fieldUniformSlot.sizeInBytes ?? 0;
+    int member(String name) =>
+        fieldUniformSlot.getMemberOffsetInBytes(name) ?? 0;
+    fieldOffsets = (
+      offset: member('uOffset'),
+      textureSize: member('uTextureSize'),
+      opticalProps: member('uOpticalProps'),
+      contourProps: member('uContourProps'),
+      fieldFrame: member('uFieldFrame'),
+      fieldSize: member('uFieldSize'),
     );
     materialGradientPipeline = gpu.gpuContext.createRenderPipeline(
       vertexShader,
@@ -1005,6 +1164,11 @@ class _SharedGeometryResources {
   }
 
   late final gpu.RenderPipeline pipeline;
+  late final gpu.RenderPipeline fieldPipeline;
+  late final gpu.UniformSlot fieldUniformSlot;
+  late final gpu.UniformSlot fieldTextureSlot;
+  late final int fieldUniformSize;
+  late final _FieldUniformOffsets fieldOffsets;
   late final gpu.RenderPipeline materialGradientPipeline;
   late final gpu.RenderPipeline materialTintGradientPipeline;
   late final gpu.UniformSlot uniformSlot;

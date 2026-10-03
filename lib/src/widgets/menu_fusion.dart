@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:meta/meta.dart';
-import 'package:morph/src/liquid_field.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
 
 /// The silhouette of a menu morph: its two shapes fused the way UIKit's
 /// morph container fuses them.
@@ -22,22 +22,32 @@ import 'package:morph/src/liquid_field.dart';
 /// radius (a blurred field varies no faster than its blur), and the blur
 /// is evaluated only near the edge: a blur of standard deviation `s`
 /// moves a distance field by at most `1.26 s`, so farther from the edge
-/// the sign, all the trace needs, is the unblurred one. The last outline
-/// is reused while its inputs do not change.
+/// the sign, all the trace needs, is the unblurred one; inside the body
+/// the blur reaches [shadedDepth] deeper, as far as a renderer shades
+/// it. The last outline is reused while its inputs do not change.
 @internal
 class MorphMenuFusion {
   /// The radius below which the silhouette is the plain union.
   static const double minimumRadius = 1;
 
+  /// How deep inside the body the field stays blurred, past the band the
+  /// trace needs, in logical pixels.
+  ///
+  /// A renderer bends light by the field's distance and normal within its
+  /// bevel (20 points deep on the iOS 27 presets); farther in, the face is
+  /// flat and only the sign matters. Blurring that deep keeps the field
+  /// continuous wherever a renderer reads more than its sign.
+  static const double shadedDepth = 24;
+
   RRect? _menu;
   RRect? _source;
   double _radius = 0;
-  Path? _outline;
+  MorphGlassOutline? _outline;
 
   /// The fused outline of [menu] and [source] blurred by [radius], or
   /// null when [radius] is under [minimumRadius] and the silhouette is
   /// their plain union.
-  Path? outline(RRect menu, RRect source, double radius) {
+  MorphGlassOutline? outline(RRect menu, RRect source, double radius) {
     if (radius < minimumRadius) return null;
     if (menu == _menu && source == _source && radius == _radius) {
       return _outline;
@@ -49,11 +59,16 @@ class MorphMenuFusion {
   }
 }
 
-/// The zero contour of the union of [menu] and [source] whose signed
-/// distance field is blurred by a Gaussian of standard deviation
-/// [radius], as one even-odd path.
+/// The union of [menu] and [source] whose signed distance field is
+/// blurred by a Gaussian of standard deviation [radius]: its zero contour
+/// as one even-odd path, with the blurred field itself for a renderer that
+/// shades the body.
+///
+/// The half thickness each node of the field belongs to blends from the
+/// button's to the menu's over the blur radius, by which of the two shapes
+/// is nearer.
 @internal
-Path morphMenuSilhouette(RRect menu, RRect source, double radius) {
+MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
   final double step = (radius / 3).clamp(2.0, 6.0);
   final Rect trace = menu.outerRect
       .expandToInclude(source.outerRect)
@@ -88,13 +103,14 @@ Path morphMenuSilhouette(RRect menu, RRect source, double radius) {
     }
   }
   final double band = 1.26 * radius + 1.5 * step;
+  final double shadedDepth = MorphMenuFusion.shadedDepth;
   final Float64List across = Float64List(cols * height);
   across.fillRange(0, across.length, double.nan);
   final Float64List blurred = Float64List(cols * rows);
   for (var j = 0; j < rows; j++) {
     for (var i = 0; i < cols; i++) {
       final double raw = field[(j + reach) * width + i + reach];
-      if (raw.abs() > band) {
+      if (raw > band || raw < -band - shadedDepth) {
         blurred[j * cols + i] = raw;
         continue;
       }
@@ -115,23 +131,32 @@ Path morphMenuSilhouette(RRect menu, RRect source, double radius) {
       blurred[j * cols + i] = v;
     }
   }
-  final Path path = Path();
-  path.fillType = PathFillType.evenOdd;
-  for (final List<Offset> loop in liquidGridContours(
+  final double halfMenu = menu.outerRect.shortestSide / 2;
+  final double halfSource = source.outerRect.shortestSide / 2;
+  final double blend = math.max(radius, step);
+  final Float64List halfMinor = Float64List(cols * rows);
+  for (var j = 0; j < rows; j++) {
+    final double y = trace.top + j * step;
+    for (var i = 0; i < cols; i++) {
+      final double x = trace.left + i * step;
+      final double towardMenu =
+          (0.5 + (s.distance(x, y) - g.distance(x, y)) / (2 * blend)).clamp(
+            0.0,
+            1.0,
+          );
+      halfMinor[j * cols + i] =
+          halfSource + (halfMenu - halfSource) * towardMenu;
+    }
+  }
+  return morphGlassOutlineFromGrid(
     blurred,
+    halfMinor,
     cols,
     rows,
     left: trace.left,
     top: trace.top,
     step: step,
-  )) {
-    path.moveTo(loop.first.dx, loop.first.dy);
-    for (var i = 1; i < loop.length; i++) {
-      path.lineTo(loop[i].dx, loop[i].dy);
-    }
-    path.close();
-  }
-  return path;
+  );
 }
 
 class _Box {

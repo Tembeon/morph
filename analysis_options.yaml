@@ -146,9 +146,6 @@ linter:
     # unawaited(doSomething()); // Explicitly-ignored fire-and-forget.
     # https://dart.dev/tools/linter-rules/unawaited_futures
     - unawaited_futures
-    # Another helpful rule to avoid mistakes.
-    # https://dart.dev/tools/linter-rules/unnecessary_await_in_return
-    - unnecessary_await_in_return
     # Do not use `new` keyword for creating objects (still allows for tear-offs).
     # https://dart.dev/tools/linter-rules/unnecessary_constructor_name
     - unnecessary_constructor_name

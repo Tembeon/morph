@@ -7,7 +7,6 @@ import 'dart:ui' as ui;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
@@ -152,7 +151,7 @@ class _Qa {
     if (outDir.existsSync()) outDir.deleteSync(recursive: true);
     outDir.createSync(recursive: true);
     _clock.start();
-    await LiquidGlass.precache();
+    await MorphGlassRenderer.precache();
     runApp(const GalleryApp());
     await settle(1200);
     _enter('home');

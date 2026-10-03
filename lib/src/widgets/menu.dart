@@ -11,6 +11,7 @@ import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -666,7 +667,7 @@ class _MenuShapes extends StatelessWidget {
   final double lookStretch;
   final ({double opacity, double blur})? look;
   final Widget? content;
-  final Path? outline;
+  final MorphGlassOutline? outline;
 
   @override
   Widget build(BuildContext context) {
@@ -1003,7 +1004,7 @@ class _GlassPainter extends CustomPainter {
   final MorphMenuStyle style;
   final RRect source;
   final RRect? menu;
-  final Path? outline;
+  final MorphGlassOutline? outline;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1011,7 +1012,7 @@ class _GlassPainter extends CustomPainter {
     final outline = this.outline;
     final Path shape;
     if (menu != null && outline != null) {
-      shape = outline;
+      shape = outline.path;
     } else {
       shape = Path();
       shape.addRRect(source);

@@ -260,8 +260,9 @@ final class Ios27ClearLiquidGlassColorModel extends LiquidGlassColorModel {
 
   @override
   Color tintTone(Color tint, double luminance) =>
-      const Ios27LiquidGlassColorModel(brightness: Brightness.light)
-          .tintTone(tint, luminance);
+      const Ios27LiquidGlassColorModel(
+        brightness: Brightness.light,
+      ).tintTone(tint, luminance);
 
   @override
   Color approximateSurfaceTint(Color tint) {

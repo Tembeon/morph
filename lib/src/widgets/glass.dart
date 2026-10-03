@@ -3,6 +3,7 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
 
 /// The role a surface plays in a control.
 ///
@@ -223,18 +224,18 @@ abstract class MorphGlassPainter {
   /// fused into one silhouette, filling the box of their layer, with
   /// [outline] its edge in that box's coordinates.
   ///
-  /// The default fills [outline] flat with the color of the first of
-  /// [surfaces], faded by its [MorphGlassSurface.opacity], as the control
+  /// The default fills the outline's path flat with the color of the first
+  /// of [surfaces], faded by its [MorphGlassSurface.opacity], as the control
   /// does without a painter.
   Widget buildBody(
     BuildContext context,
-    Path outline,
+    MorphGlassOutline outline,
     List<MorphGlassSurface> surfaces,
   ) {
     final surface = surfaces.first;
     return CustomPaint(
       painter: _BodyPainter(
-        outline,
+        outline.path,
         surface.color.withValues(
           alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
         ),
@@ -307,7 +308,7 @@ abstract class MorphGlassPainter {
     Widget? content,
     List<Rect> contentSlots = const [],
     double spacing = 0,
-    Path? outline,
+    MorphGlassOutline? outline,
   }) {
     final glass = [
       for (final surface in surfaces)

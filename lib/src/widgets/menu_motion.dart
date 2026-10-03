@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/src/widgets/menu_morph_spec.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -781,7 +782,7 @@ class MorphMenuMotion {
   /// [fusionRadius], in the motion's coordinates, or null while the
   /// radius is under 1 pixel and the silhouette
   /// is the plain union of the two shapes.
-  Path? get silhouette {
+  MorphGlassOutline? get silhouette {
     if (_phase == _Phase.idle) return null;
     final radius = fusionRadius;
     if (radius < MorphMenuFusion.minimumRadius) return null;

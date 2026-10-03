@@ -12,13 +12,16 @@
 /// [MorphMenuMotion] and their kin) are pure functions of explicit time,
 /// usable without the widgets.
 ///
-/// Everything here is built strictly on `package:morph/foundation.dart`
-/// and motor; the engine never depends on this layer. There is no glass
-/// shader here: the layer reproduces how the platform's surfaces move.
-/// The controls draw flat fills by default; a [MorphGlassPainter]
-/// installed with [MorphGlass] renders their surfaces instead, so an app
-/// can bring its own refraction. Their looks resolve from a `style`
-/// argument, then [MorphWidgetsTheme], then light and dark tables.
+/// Everything here is built on `package:morph/foundation.dart`, motor and
+/// the package's glass renderer; the engine never depends on this layer.
+/// The controls draw flat fills by default; [MorphGlassRenderer]
+/// installed with [MorphGlass] (or [MorphAdaptiveGlass], which picks its
+/// quality tier from the frame timings) draws them as liquid, frosted or
+/// flat glass, and any other [MorphGlassPainter] can take its place. The
+/// package computes every shape once - fused silhouettes included - so
+/// each tier and each painter shades the same outlines. Their looks
+/// resolve from a `style` argument, then [MorphWidgetsTheme], then light
+/// and dark tables.
 library;
 
 export 'foundation.dart';
@@ -78,6 +81,11 @@ export 'src/widgets/glass.dart'
         MorphGlassPainter,
         MorphGlassSurface;
 export 'src/widgets/glass_glow.dart' show MorphGlassGlow, MorphTouchGlowMotion;
+export 'src/widgets/glass_outline.dart' show MorphGlassOutline;
+export 'src/widgets/glass_renderer.dart'
+    show MorphGlassMaterial, MorphGlassRenderer, MorphGlassTier;
+export 'src/widgets/glass_tier.dart'
+    show MorphAdaptiveGlass, MorphGlassTierPolicy;
 export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonMotion, MorphGlassButtonStyle;
 export 'src/widgets/lens_motion.dart'

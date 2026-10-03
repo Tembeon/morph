@@ -4,97 +4,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
-import 'package:morph_example/gallery/liquid_glass.dart';
-
-/// A frosted-glass renderer for the measured controls: each surface blurs
-/// what is behind it, takes its flat color as a tint and gains a rim and
-/// a top highlight. It blurs the backdrop and does not refract it.
-class FrostedGlassPainter extends MorphGlassPainter {
-  /// Creates the painter.
-  const FrostedGlassPainter();
-
-  static double _sigma(MorphGlassSurface surface) => switch (surface.kind) {
-    MorphGlassKind.bar || MorphGlassKind.menu => 14,
-    MorphGlassKind.button => 10,
-    MorphGlassKind.track => 8,
-    MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb =>
-      2 + (surface.optics?.blurRadiusAt(surface.lift) ?? 0),
-  };
-
-  @override
-  Widget buildBody(
-    BuildContext context,
-    Path outline,
-    List<MorphGlassSurface> surfaces,
-  ) {
-    final surface = surfaces.first;
-    final sigma = _sigma(surface);
-    return ClipPath(
-      clipper: _OutlineClip(outline),
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-        child: ColoredBox(color: surface.color),
-      ),
-    );
-  }
-
-  @override
-  Widget buildSurface(BuildContext context, MorphGlassSurface surface) {
-    final shape = surface.localShape;
-    final radius = BorderRadius.only(
-      topLeft: shape.tlRadius,
-      topRight: shape.trRadius,
-      bottomLeft: shape.blRadius,
-      bottomRight: shape.brRadius,
-    );
-    final dark = surface.brightness == Brightness.dark;
-    final sigma = _sigma(surface);
-    final highlight = 0.18 + 0.22 * surface.lift;
-    return ClipRRect(
-      borderRadius: radius,
-      child: BackdropFilter(
-        filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: surface.color),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              border: Border.all(
-                width: 0.5,
-                color: Colors.white.withValues(alpha: dark ? 0.22 : 0.55),
-              ),
-              gradient: LinearGradient(
-                begin: .topCenter,
-                end: .bottomCenter,
-                colors: [
-                  Colors.white.withValues(alpha: highlight),
-                  Colors.white.withValues(alpha: 0),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _OutlineClip extends CustomClipper<Path> {
-  const _OutlineClip(this.outline);
-
-  final Path outline;
-
-  @override
-  Path getClip(Size size) => outline;
-
-  @override
-  bool shouldReclip(_OutlineClip oldClipper) => oldClipper.outline != outline;
-}
 
 /// The gallery's glass settings and a sample of every control over a
 /// colorful backdrop.
 ///
-/// The settings belong to the whole gallery: the renderer, its material
+/// The settings belong to the whole gallery: the glass tier, its material
 /// and optics, the appearance, the text direction and the disabled demo
 /// controls apply to every page at once, and last for the session.
 class GlassPage extends StatefulWidget {
@@ -112,7 +26,7 @@ class _GlassPageState extends State<GlassPage> {
   double _value = 0.4;
   double _count = 3;
 
-  static const _renderers = ['Liquid', 'Frosted', 'Flat'];
+  static const _tiers = ['Auto', 'Liquid', 'Frosted', 'Flat'];
   static const _materials = ['Regular', 'Toolbar', 'Clear'];
 
   /// The iOS Settings > Display & Brightness > Liquid Glass choice; the
@@ -188,7 +102,8 @@ class _GlassPageState extends State<GlassPage> {
   Widget build(BuildContext context) {
     final settings = GalleryGlassScope.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final liquid = settings.renderer == GalleryGlassRenderer.liquid;
+    final drawn = MorphAdaptiveGlass.tierOf(context);
+    final liquid = drawn == MorphGlassTier.liquid;
     return Scaffold(
       appBar: const GalleryBar(title: 'Glass renderer'),
       body: ListView(
@@ -210,11 +125,27 @@ class _GlassPageState extends State<GlassPage> {
             child: _Card(
               children: [
                 _Choice(
-                  label: 'Renderer',
-                  segments: _renderers,
-                  selected: settings.renderer.index,
-                  onChanged: (int i) =>
-                      settings.renderer = GalleryGlassRenderer.values[i],
+                  label: 'Tier',
+                  segments: _tiers,
+                  selected: switch (settings.tier) {
+                    null => 0,
+                    MorphGlassTier.liquid => 1,
+                    MorphGlassTier.frosted => 2,
+                    MorphGlassTier.flat => 3,
+                  },
+                  onChanged: (int i) => settings.tier = switch (i) {
+                    1 => MorphGlassTier.liquid,
+                    2 => MorphGlassTier.frosted,
+                    3 => MorphGlassTier.flat,
+                    _ => null,
+                  },
+                ),
+                Padding(
+                  padding: const .symmetric(vertical: 4),
+                  child: Text(
+                    'Drawing: ${drawn?.name ?? 'none'}',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
                 ),
                 _Choice(
                   label: 'Material',
@@ -222,7 +153,7 @@ class _GlassPageState extends State<GlassPage> {
                   selected: settings.material.index,
                   onChanged: liquid
                       ? (int i) =>
-                            settings.material = LiquidGlassMaterial.values[i]
+                            settings.material = MorphGlassMaterial.values[i]
                       : null,
                 ),
                 _Knob(
@@ -265,11 +196,6 @@ class _GlassPageState extends State<GlassPage> {
                   onChanged: liquid
                       ? (bool v) => settings.frostControls = v
                       : null,
-                ),
-                _Toggle(
-                  label: 'Fallback glass',
-                  value: settings.fake,
-                  onChanged: liquid ? (bool v) => settings.fake = v : null,
                 ),
                 _Choice(
                   label: 'Appearance',

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
-import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
@@ -22,7 +21,7 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('slider video', (WidgetTester tester) async {
-    await LiquidGlass.precache();
+    await MorphGlassRenderer.precache();
     runApp(const GalleryApp());
     await tester.pump(const Duration(seconds: 2));
     final settings = GalleryGlassScope.of(

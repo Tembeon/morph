@@ -20,7 +20,8 @@ import 'package:morph_example/gallery/spec_inspector.dart';
 ///
 /// The gallery follows the system appearance unless its glass page picks
 /// one, and every control below the root draws its glass through the
-/// painter the [GalleryGlassSettings] select.
+/// package's [MorphGlassRenderer] at the tier the [GalleryGlassSettings]
+/// select, or the one [MorphAdaptiveGlass] picks from the frame timings.
 class GalleryApp extends StatefulWidget {
   /// Creates the app.
   const GalleryApp({this.navigatorKey, super.key});
@@ -58,7 +59,8 @@ class _GalleryAppState extends State<GalleryApp> {
     return ListenableBuilder(
       listenable: _settings,
       builder: (BuildContext context, Widget? _) {
-        final painter = _settings.painter;
+        final renderer = _settings.renderer;
+        final tier = _settings.tier;
         return MaterialApp(
           navigatorKey: widget.navigatorKey,
           title: 'Morph widgets',
@@ -67,13 +69,11 @@ class _GalleryAppState extends State<GalleryApp> {
           darkTheme: _theme(Brightness.dark),
           themeMode: _settings.appearance,
           builder: (BuildContext context, Widget? child) {
-            Widget app = MorphScope(child: child!);
-            if (painter != null) {
-              app = MorphGlass(
-                painter: painter,
-                child: BackdropGroup(child: app),
-              );
-            }
+            final app = MorphAdaptiveGlass(
+              renderer: renderer,
+              tier: tier,
+              child: BackdropGroup(child: MorphScope(child: child!)),
+            );
             return GalleryGlassScope(
               settings: _settings,
               child: Directionality(

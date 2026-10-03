@@ -27,7 +27,7 @@ class _Recorder extends MorphGlassPainter {
     Widget? content,
     List<Rect> contentSlots = const [],
     double spacing = 0,
-    Path? outline,
+    MorphGlassOutline? outline,
   }) {
     spacings.add(spacing);
     counts.add(surfaces.length);

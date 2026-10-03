@@ -1,41 +1,28 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
-import 'package:morph_example/gallery/glass_page.dart';
-import 'package:morph_example/gallery/liquid_glass.dart';
-
-/// Which painter draws the glass of every gallery control.
-enum GalleryGlassRenderer {
-  /// The liquid glass renderer: refraction, frost and rim light on the GPU.
-  liquid,
-
-  /// [FrostedGlassPainter]: a blurred, tinted backdrop without refraction.
-  frosted,
-
-  /// No painter: the controls draw their own flat fills.
-  flat,
-}
 
 /// The session-wide look of the gallery, edited on the glass page and
 /// applied to every page at once.
 ///
 /// The values live as long as the app does; nothing is written to disk.
 ///
-/// The renderer starts as `--dart-define=GALLERY_GLASS=<name>` says
-/// (liquid, frosted or flat), liquid by default. A build without the
-/// liquid glass renderer (the web) draws frosted glass in its place.
+/// The glass tier starts as `--dart-define=GALLERY_GLASS=<name>` says:
+/// auto (the default: [MorphAdaptiveGlass] picks it from the frame
+/// timings), liquid, frosted or flat. A build without the liquid tier
+/// (the web) draws frosted glass in its place.
 class GalleryGlassSettings extends ChangeNotifier {
-  GalleryGlassRenderer _renderer = GalleryGlassRenderer.values.byName(
-    const String.fromEnvironment(
-      'GALLERY_GLASS',
-      defaultValue: liquidGlassAvailable ? 'liquid' : 'frosted',
-    ),
-  );
-  LiquidGlassMaterial _material = LiquidGlassMaterial.regular;
+  MorphGlassTier? _tier = switch (const String.fromEnvironment(
+    'GALLERY_GLASS',
+    defaultValue: 'auto',
+  )) {
+    'auto' => null,
+    final String name => MorphGlassTier.values.byName(name),
+  };
+  MorphGlassMaterial _material = MorphGlassMaterial.regular;
   double _blur = 1;
   double _refraction = 1;
   double _light = 1;
   double _tint = 0;
-  bool _fake = false;
   bool _frostControls = false;
   ThemeMode _appearance = ThemeMode.system;
   bool _rtl = false;
@@ -47,14 +34,13 @@ class GalleryGlassSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Which painter draws the glass.
-  GalleryGlassRenderer get renderer => _renderer;
-  set renderer(GalleryGlassRenderer value) =>
-      _set(_renderer, value, () => _renderer = value);
+  /// The glass tier, or null to let the frame timings pick it.
+  MorphGlassTier? get tier => _tier;
+  set tier(MorphGlassTier? value) => _set(_tier, value, () => _tier = value);
 
-  /// The material preset of the liquid glass.
-  LiquidGlassMaterial get material => _material;
-  set material(LiquidGlassMaterial value) =>
+  /// The material preset of the liquid tier.
+  MorphGlassMaterial get material => _material;
+  set material(MorphGlassMaterial value) =>
       _set(_material, value, () => _material = value);
 
   /// The factor on the preset's frost.
@@ -77,11 +63,6 @@ class GalleryGlassSettings extends ChangeNotifier {
   double get tint => _tint;
   set tint(double value) => _set(_tint, value, () => _tint = value);
 
-  /// Whether the liquid glass draws its fallback without refraction even
-  /// where the GPU path is available.
-  bool get fake => _fake;
-  set fake(bool value) => _set(_fake, value, () => _fake = value);
-
   /// Whether tracks and buttons frost as bars and menus do.
   bool get frostControls => _frostControls;
   set frostControls(bool value) =>
@@ -100,20 +81,17 @@ class GalleryGlassSettings extends ChangeNotifier {
   bool get disabled => _disabled;
   set disabled(bool value) => _set(_disabled, value, () => _disabled = value);
 
-  /// The painter these settings select, or null for flat fills.
-  MorphGlassPainter? get painter => switch (_renderer) {
-    GalleryGlassRenderer.liquid => liquidGlassPainter(
-      material: _material,
-      blur: _blur,
-      refraction: _refraction,
-      light: _light,
-      tint: _tint,
-      fake: _fake,
-      frostControls: _frostControls,
-    ),
-    GalleryGlassRenderer.frosted => const FrostedGlassPainter(),
-    GalleryGlassRenderer.flat => null,
-  };
+  /// The renderer these settings describe, at the best tier the build
+  /// has; [tier] picks the one drawn.
+  MorphGlassRenderer get renderer => MorphGlassRenderer(
+    tier: MorphGlassRenderer.bestTier,
+    material: _material,
+    blur: _blur,
+    refraction: _refraction,
+    light: _light,
+    tint: _tint,
+    frostControls: _frostControls,
+  );
 }
 
 /// Hands the gallery's [GalleryGlassSettings] to every page.
