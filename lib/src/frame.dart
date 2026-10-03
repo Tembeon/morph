@@ -5,6 +5,8 @@ import 'package:flutter/animation.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 
+import 'package:morph/src/theme.dart';
+
 /// An immutable snapshot of all render values for one flight frame.
 ///
 /// The system-wide invariant: every property is a PURE SYMMETRIC
@@ -163,7 +165,7 @@ MorphFrame computeMorphFrame({
   required Color targetColor,
   required double maxScrimOpacity,
   double sourceElevation = 0,
-  double targetElevation = 24,
+  double targetElevation = MorphTheme.defaultTargetElevation,
 }) {
   final double p = clampDouble(value, 0, 1);
 

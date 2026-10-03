@@ -4,7 +4,9 @@ import 'package:morph/src/flight.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/show.dart';
 import 'package:morph/src/motion.dart';
+import 'package:morph/src/scrim.dart';
 import 'package:morph/src/target.dart';
+import 'package:morph/src/theme.dart';
 
 /// The declarative layer on top of the engine: a morph as a function of
 /// state, in the spirit of SwiftUI's matchedGeometryEffect, adapted to
@@ -51,9 +53,11 @@ class MorphAnchor extends StatefulWidget {
     this.replica,
     this.snapshotGhost = false,
     this.motion,
+    this.modal = true,
     this.barrierDismissible = true,
     this.maxScrimOpacity,
     this.scrimColor,
+    this.scrimMotion,
     this.shadowColor,
     this.semanticLabel,
     this.overlay,
@@ -80,7 +84,8 @@ class MorphAnchor extends StatefulWidget {
   /// An explicit tag id instead of identity-by-State. Needed when the
   /// anchor's flight must be visible to outside consumers by name - for
   /// example, a MorphPiece with the same id gets the flight neck for
-  /// free. Must stay stable for the anchor's whole lifetime.
+  /// free. A change while the overlay is up re-keys the tag and the
+  /// live flight follows it.
   final Object? tagId;
 
   /// The source surface model as one value ([MorphTag.spec] semantics:
@@ -105,8 +110,14 @@ class MorphAnchor extends StatefulWidget {
   /// ([MorphTag.snapshotGhost] semantics).
   final bool snapshotGhost;
 
-  /// Motion profile; null resolves MorphTheme, then the default.
+  /// Motion profile; null resolves MorphTheme, then the default. A
+  /// change while the overlay is up applies to the live flight.
   final MorphMotion? motion;
+
+  /// Whether the overlay is modal ([showMorph]'s `modal:` semantics):
+  /// false mounts no scrim and leaves the page interactive. Fixed at
+  /// launch, like the rest of the scrim.
+  final bool modal;
 
   /// Whether scrim taps and Esc request dismissal.
   final bool barrierDismissible;
@@ -116,6 +127,10 @@ class MorphAnchor extends StatefulWidget {
 
   /// Scrim hue; null resolves MorphTheme, then black.
   final Color? scrimColor;
+
+  /// The scrim's own springs ([showMorph]'s `scrimMotion:` semantics);
+  /// null resolves MorphTheme, then a scrim on the flight value.
+  final MorphScrimMotion? scrimMotion;
 
   /// Shadow color of the flying surface, opacity included; null
   /// resolves MorphTheme, then 60% black.
@@ -167,6 +182,20 @@ class _MorphAnchorState extends State<MorphAnchor> {
         }
       });
     } else {
+      if (widget.motion != oldWidget.motion) {
+        // A profile swap retargets the live spring and notifies the
+        // shuttle, which is no ancestor of this subtree - after the
+        // frame, like the rest.
+        WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+          final MorphFlight? live = _flight;
+          if (mounted && live != null && !live.isFinished) {
+            live.controller.motion =
+                widget.motion ??
+                MorphTheme.maybeOf(context)?.motion ??
+                MorphMotion.liquid;
+          }
+        });
+      }
       // The anchor rebuilt while open: the overlay content derives from
       // the owner's state exactly like the inline widget does, so it
       // rebuilds with the anchor - an OverlayEntry does not follow the
@@ -190,9 +219,11 @@ class _MorphAnchorState extends State<MorphAnchor> {
       from: _tagId,
       target: widget.target,
       motion: widget.motion,
+      modal: widget.modal,
       barrierDismissible: widget.barrierDismissible,
       maxScrimOpacity: widget.maxScrimOpacity,
       scrimColor: widget.scrimColor,
+      scrimMotion: widget.scrimMotion,
       shadowColor: widget.shadowColor,
       onDismissRequested: widget.onDismiss,
       semanticLabel: widget.semanticLabel,

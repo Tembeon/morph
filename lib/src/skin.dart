@@ -403,7 +403,8 @@ class MorphSkin extends StatelessWidget {
       gradient: gradient,
       stroke: stroke,
       elevation: elevation,
-      shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
+      shadowColor:
+          shadowColor ?? theme?.shadowColor ?? MorphTheme.defaultShadowColor,
       clipBehavior: clipBehavior,
       contentFilterQuality: contentFilterQuality,
       scope: MorphScope.maybeOf(context),

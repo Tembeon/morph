@@ -30,18 +30,20 @@ import 'package:morph/src/theme.dart';
 /// same `overlay:`), and the target's rect is computed in it.
 ///
 /// [scrimMotion] gives the scrim springs of its own (see
-/// [MorphScrimMotion]); without it the scrim follows the flight value.
-/// Like the rest of the scrim it is fixed at launch.
+/// [MorphScrimMotion]); without it (and without
+/// [MorphTheme.scrimMotion]) the scrim follows the flight value. Like
+/// the rest of the scrim it is fixed at launch.
+///
+/// A non-modal flight ([modal] false) mounts no scrim: the page under
+/// the surface stays fully interactive - a tool flying over live
+/// content. Tap-outside dismissal disappears with the scrim; Esc and
+/// the local history entry still close.
 MorphFlight showMorph(
   BuildContext context, {
   Object? from,
   required MorphTargetSpec target,
   required MorphContentBuilder builder,
   MorphMotion? motion,
-  // A non-modal flight ([modal] false) mounts no scrim: the page under
-  // the surface stays fully interactive - a tool flying over live
-  // content. Tap-outside dismissal disappears with the scrim; Esc and
-  // the local history entry still close.
   bool modal = true,
   bool barrierDismissible = true,
   double? maxScrimOpacity,
@@ -61,10 +63,14 @@ MorphFlight showMorph(
     motion: motion ?? theme?.motion,
     modal: modal,
     barrierDismissible: barrierDismissible,
-    maxScrimOpacity: maxScrimOpacity ?? theme?.maxScrimOpacity ?? 0.45,
-    scrimColor: scrimColor ?? theme?.scrimColor ?? Colors.black,
-    scrimMotion: scrimMotion,
-    shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
+    maxScrimOpacity:
+        maxScrimOpacity ??
+        theme?.maxScrimOpacity ??
+        MorphTheme.defaultMaxScrimOpacity,
+    scrimColor: scrimColor ?? theme?.scrimColor ?? MorphTheme.defaultScrimColor,
+    scrimMotion: scrimMotion ?? theme?.scrimMotion,
+    shadowColor:
+        shadowColor ?? theme?.shadowColor ?? MorphTheme.defaultShadowColor,
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
     overlay: overlay,
@@ -73,7 +79,9 @@ MorphFlight showMorph(
 
 /// The sheet adopts its look from the app's BottomSheetTheme (shape,
 /// color) unless overridden explicitly: a morph sheet inside a foreign
-/// design system looks native with zero configuration.
+/// design system looks native with zero configuration. The flight
+/// parameters ([modal], the scrim, [overlay]) mean what they mean on
+/// [showMorph].
 ///
 /// With [fitContent] the sheet is as tall as its content, [height] (or
 /// [heightFactor]) being the ceiling - see [MorphTargetSpec.sheet].
@@ -89,9 +97,11 @@ MorphFlight showMorphSheet(
   ShapeBorder? shape,
   Color? surfaceColor,
   MorphMotion? motion,
+  bool modal = true,
   bool barrierDismissible = true,
   double? maxScrimOpacity,
   Color? scrimColor,
+  MorphScrimMotion? scrimMotion,
   Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
@@ -122,9 +132,11 @@ MorphFlight showMorphSheet(
     ),
     builder: builder,
     motion: motion,
+    modal: modal,
     barrierDismissible: barrierDismissible,
     maxScrimOpacity: maxScrimOpacity,
     scrimColor: scrimColor,
+    scrimMotion: scrimMotion,
     shadowColor: shadowColor,
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
@@ -133,7 +145,8 @@ MorphFlight showMorphSheet(
 }
 
 /// The dialog adopts its look from the app's DialogTheme (shape, color)
-/// unless overridden explicitly.
+/// unless overridden explicitly. The flight parameters ([modal], the
+/// scrim, [overlay]) mean what they mean on [showMorph].
 ///
 /// With [fitContent] the dialog is as tall as its content, [height]
 /// being the ceiling - see [MorphTargetSpec.dialog].
@@ -148,9 +161,11 @@ MorphFlight showMorphDialog(
   ShapeBorder? shape,
   Color? surfaceColor,
   MorphMotion? motion,
+  bool modal = true,
   bool barrierDismissible = true,
   double? maxScrimOpacity,
   Color? scrimColor,
+  MorphScrimMotion? scrimMotion,
   Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
@@ -174,9 +189,11 @@ MorphFlight showMorphDialog(
     ),
     builder: builder,
     motion: motion,
+    modal: modal,
     barrierDismissible: barrierDismissible,
     maxScrimOpacity: maxScrimOpacity,
     scrimColor: scrimColor,
+    scrimMotion: scrimMotion,
     shadowColor: shadowColor,
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,

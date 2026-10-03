@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:morph/src/liquid_field.dart';
 import 'package:morph/src/motion.dart';
+import 'package:morph/src/scrim.dart';
 
 /// Ambient engine defaults as a [ThemeExtension]: "how this app
 /// morphs", declared once instead of being threaded through every
@@ -36,7 +37,24 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
     this.scrimColor,
     this.shadowColor,
     this.skinStyle,
+    this.scrimMotion,
   });
+
+  /// The built-in scrim ceiling, used when neither the call nor the
+  /// theme sets [maxScrimOpacity].
+  static const double defaultMaxScrimOpacity = 0.45;
+
+  /// The built-in scrim hue, used when neither the call nor the theme
+  /// sets [scrimColor].
+  static const Color defaultScrimColor = Color(0xFF000000);
+
+  /// The built-in shadow color (60 percent black), used by flights and
+  /// [MorphSkin] when neither the call nor the theme sets
+  /// [shadowColor].
+  static const Color defaultShadowColor = Color(0x99000000);
+
+  /// The built-in elevation of a flight's destination surface.
+  static const double defaultTargetElevation = 24;
 
   /// The default motion profile for flights launched without an
   /// explicit `motion`; [MorphMotion.liquid] when unset.
@@ -64,6 +82,10 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   /// knobs.
   final MorphSkinStyle? skinStyle;
 
+  /// Default scrim springs for flights launched without an explicit
+  /// `scrimMotion`; null keeps the scrim on the flight value.
+  final MorphScrimMotion? scrimMotion;
+
   /// The extension from the ambient [ThemeData], if installed.
   static MorphTheme? maybeOf(BuildContext context) =>
       Theme.of(context).extension<MorphTheme>();
@@ -75,6 +97,7 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
     Color? scrimColor,
     Color? shadowColor,
     MorphSkinStyle? skinStyle,
+    MorphScrimMotion? scrimMotion,
   }) {
     return MorphTheme(
       motion: motion ?? this.motion,
@@ -82,6 +105,7 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
       scrimColor: scrimColor ?? this.scrimColor,
       shadowColor: shadowColor ?? this.shadowColor,
       skinStyle: skinStyle ?? this.skinStyle,
+      scrimMotion: scrimMotion ?? this.scrimMotion,
     );
   }
 
@@ -98,6 +122,7 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
       scrimColor: Color.lerp(scrimColor, other.scrimColor, t),
       shadowColor: Color.lerp(shadowColor, other.shadowColor, t),
       skinStyle: t < 0.5 ? skinStyle : other.skinStyle,
+      scrimMotion: t < 0.5 ? scrimMotion : other.scrimMotion,
     );
   }
 
@@ -108,10 +133,17 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
         other.maxScrimOpacity == maxScrimOpacity &&
         other.scrimColor == scrimColor &&
         other.shadowColor == shadowColor &&
-        other.skinStyle == skinStyle;
+        other.skinStyle == skinStyle &&
+        other.scrimMotion == scrimMotion;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(motion, maxScrimOpacity, scrimColor, shadowColor, skinStyle);
+  int get hashCode => Object.hash(
+    motion,
+    maxScrimOpacity,
+    scrimColor,
+    shadowColor,
+    skinStyle,
+    scrimMotion,
+  );
 }

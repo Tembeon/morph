@@ -28,7 +28,6 @@
 /// that re-exports it - the directives below pin dartdoc's choice.
 /// {@canonicalFor anchor.MorphAnchor}
 /// {@canonicalFor controller.MorphController}
-/// {@canonicalFor controller.MorphDirection}
 /// {@canonicalFor controller.MorphPhase}
 /// {@canonicalFor flight.MorphContentBuilder}
 /// {@canonicalFor flight.MorphFlight}
@@ -38,6 +37,8 @@
 /// {@canonicalFor frame.computeMorphFrame}
 /// {@canonicalFor frame.uniformMorphRadius}
 /// {@canonicalFor gesture.morphDragArm}
+/// {@canonicalFor gesture.morphDragCommitDistance}
+/// {@canonicalFor gesture.morphDragCommitVelocity}
 /// {@canonicalFor gesture.morphDragRecede}
 /// {@canonicalFor gesture.morphDragScale}
 /// {@canonicalFor gesture.morphDragScrimFactor}
@@ -77,7 +78,7 @@ export 'package:motor/motor.dart'
     show CupertinoMotion, CurvedMotion, MaterialSpringMotion, Motion;
 
 export 'src/anchor.dart';
-export 'src/controller.dart' show MorphController, MorphDirection, MorphPhase;
+export 'src/controller.dart' show MorphController, MorphPhase;
 export 'src/flight.dart'
     show MorphContentBuilder, MorphFlight, MorphFlightEvent, MorphFlightScope;
 export 'src/frame.dart' show MorphFrame, computeMorphFrame, uniformMorphRadius;

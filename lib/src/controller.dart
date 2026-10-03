@@ -25,15 +25,6 @@ enum MorphPhase {
   settled,
 }
 
-/// Which end of the trajectory the spring currently targets.
-enum MorphDirection {
-  /// The target is the open state.
-  opening,
-
-  /// The target is the source widget.
-  closing,
-}
-
 /// A single retargetable scalar spring from which all derived morph
 /// values are computed. An interruption (open during close and vice
 /// versa) is a new SpringSimulation starting from the old one's current
@@ -73,9 +64,10 @@ class MorphController extends ChangeNotifier {
   /// source widget - a safe point to swap without flicker.
   VoidCallback? onHandoff;
 
-  /// The raw spring value. May leave `[0, 1]`: overshoot above 1
-  /// stretches the geometry past the target, undershoot below 0 comes
-  /// after the handoff latch, once the source widget is back.
+  /// The raw spring value. May leave `[0, 1]`: past 1 an engine
+  /// flight's container travels on past the target center while its
+  /// size and shape hold at the target; undershoot below 0 comes after
+  /// the handoff latch, once the source widget is back.
   double get value => _value;
 
   /// The spring velocity in value units per second.
@@ -138,9 +130,6 @@ class MorphController extends ChangeNotifier {
     }
   }
 
-  /// The current trajectory end the spring targets.
-  MorphDirection get direction => _target >= 1 ? .opening : .closing;
-
   /// The semantic phase derived from [progress]; consumers react to
   /// this instead of comparing raw values against magic numbers.
   MorphPhase get phase {
@@ -194,6 +183,12 @@ class MorphController extends ChangeNotifier {
 
   /// Stops the ticker without dispose - for emergency teardown while
   /// external listeners may still be subscribed.
+  ///
+  /// Silent by design: it neither notifies listeners nor fires
+  /// [onHandoff]. A teardown runs while the tree may be locked (a
+  /// disposing owner), where a notification would rebuild dying
+  /// listeners; the caller restores whatever the latch would have (the
+  /// flight's abort reveals its source itself).
   void stop() {
     _ticker.stop();
     _sim = null;
@@ -275,8 +270,8 @@ class _MorphAnimationView extends Animation<double> {
   _MorphAnimationView(this._controller);
 
   final MorphController _controller;
-  final Map<AnimationStatusListener, VoidCallback> _statusProxies =
-      <AnimationStatusListener, VoidCallback>{};
+  final Map<AnimationStatusListener, List<VoidCallback>> _statusProxies =
+      <AnimationStatusListener, List<VoidCallback>>{};
 
   @override
   void addListener(VoidCallback listener) => _controller.addListener(listener);
@@ -296,15 +291,19 @@ class _MorphAnimationView extends Animation<double> {
       }
     }
 
-    _statusProxies[listener] = proxy;
+    _statusProxies.putIfAbsent(listener, () => <VoidCallback>[]).add(proxy);
     _controller.addListener(proxy);
   }
 
   @override
   void removeStatusListener(AnimationStatusListener listener) {
-    final VoidCallback? proxy = _statusProxies.remove(listener);
-    if (proxy != null) {
-      _controller.removeListener(proxy);
+    final List<VoidCallback>? proxies = _statusProxies[listener];
+    if (proxies == null || proxies.isEmpty) {
+      return;
+    }
+    _controller.removeListener(proxies.removeLast());
+    if (proxies.isEmpty) {
+      _statusProxies.remove(listener);
     }
   }
 

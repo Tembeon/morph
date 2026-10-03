@@ -72,8 +72,11 @@ class MorphMotion {
     return null;
   }
 
-  /// Drives open retargets. It may overshoot 1: the geometry stretches
-  /// past the target and settles back.
+  /// Drives open retargets. It may overshoot 1: an engine flight's
+  /// container then travels on past the target center and settles
+  /// back, while its size and shape hold at the target (the frame's
+  /// overdrag rule). Widget-layer morphs that measured a size overshoot
+  /// on the device (the context menu) draw it in their own geometry.
   Motion get openMotion => openSpring?.toMotion() ?? _openMotion!;
 
   /// Drives close retargets; the handoff latch fires on its first zero
@@ -106,13 +109,6 @@ class MorphMotion {
     openMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 281)),
     closeMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 281)),
   );
-
-  /// The built-in profiles.
-  static const List<MorphMotion> values = <MorphMotion>[
-    liquid,
-    glacial,
-    instant,
-  ];
 
   // Value equality, because ambient plumbing compares profiles by ==:
   // MorphTheme equality feeds ThemeData change detection, and the

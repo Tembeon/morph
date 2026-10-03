@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:morph/src/scope.dart';
+import 'package:morph/src/theme.dart';
 
 /// Description of a flight target: how to compute its rect from the
 /// current overlay geometry (re-evaluated every frame - the target is
@@ -39,7 +40,7 @@ class MorphTargetSpec {
     MorphSurfaceSpec? surface,
     ShapeBorder shape = const RoundedRectangleBorder(),
     Color? surfaceColor,
-    double elevation = 24,
+    double elevation = MorphTheme.defaultTargetElevation,
     this._contentAlignment = Alignment.topCenter,
     this.clipBehavior = Clip.antiAlias,
     this.repaint,
@@ -65,7 +66,7 @@ class MorphTargetSpec {
     MorphSurfaceSpec? surface,
     ShapeBorder shape = const RoundedRectangleBorder(),
     Color? surfaceColor,
-    double elevation = 24,
+    double elevation = MorphTheme.defaultTargetElevation,
     this._contentAlignment = Alignment.topCenter,
     this.clipBehavior = Clip.antiAlias,
     this.repaint,
