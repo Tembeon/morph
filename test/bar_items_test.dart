@@ -137,4 +137,37 @@ void main() {
       expect(find.byKey(ValueKey<Object>('p$i')), findsNothing);
     }
   });
+
+  testWidgets('an item change does not rebuild the buttons that stay', (
+    tester,
+  ) async {
+    var more = false;
+    final set = await _toolbar(
+      tester,
+      () => [
+        MorphBarButtonGroup([
+          MorphBarButton(id: 'edit', label: 'Edit', onPressed: _noop),
+          if (more) _icon('b'),
+        ], id: 'G'),
+      ],
+    );
+    Widget content() => tester.widget(
+      find.ancestor(
+        of: find.text('Edit'),
+        matching: find.byWidgetPredicate(
+          (w) => w.runtimeType.toString() == '_ButtonContent',
+        ),
+      ),
+    );
+    set(() => more = true);
+    await tester.pump();
+    final first = content();
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(identical(content(), first), isTrue);
+    }
+    await tester.pumpAndSettle();
+  });
 }
+
+void _noop() {}

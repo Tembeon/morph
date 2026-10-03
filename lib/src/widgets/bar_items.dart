@@ -682,6 +682,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   (TextScaler, TextDirection, MorphBarMetrics)? _widthsFor;
   bool _prune = false;
   final _FlatBodies _flat = _FlatBodies();
+  final Map<Object, (Object, Widget)> _contents = {};
   Object? _pressedCapsule;
   Object? _pressedButton;
 
@@ -970,6 +971,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final capsules = {for (final c in _motion.capsules) c.id};
     _buttons.removeWhere((Object id, MorphBarButton _) => !items.contains(id));
     _capsuleOf.removeWhere((Object id, Object _) => !items.contains(id));
+    _contents.removeWhere(
+      (Object id, (Object, Widget) _) => !items.contains(id),
+    );
     _prominent.removeWhere((Object id, bool _) => !capsules.contains(id));
     _disabled.removeWhere((Object id, bool _) => !capsules.contains(id));
     _presses.removeWhere(
@@ -1249,14 +1253,22 @@ class _MorphBarItemsState extends State<MorphBarItems>
       scale *= press.scale;
     }
     final metrics = widget.metrics;
-    Widget content = _ButtonContent(
-      button: button,
-      metrics: metrics,
-      color: color,
-      iconColor: iconColor,
-      bold: prominent,
-      direction: direction,
-    );
+    final inputs = (button, color, iconColor, prominent, direction, metrics);
+    final cached = _contents[button.id];
+    Widget content;
+    if (cached != null && cached.$1 == inputs) {
+      content = cached.$2;
+    } else {
+      content = _ButtonContent(
+        button: button,
+        metrics: metrics,
+        color: color,
+        iconColor: iconColor,
+        bold: prominent,
+        direction: direction,
+      );
+      _contents[button.id] = (inputs, content);
+    }
     if (frame.blur > 0.05) {
       content = ImageFiltered(
         imageFilter: ui.ImageFilter.blur(
