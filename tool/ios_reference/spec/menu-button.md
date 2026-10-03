@@ -126,3 +126,85 @@ for bar menus: MorphMenuHost / MorphMenuLayer / MorphMenuFlightProgress.
 - Checkmark state / `singleSelection`, subtitles, disabled / hidden items,
   `keepsMenuPresented`, deferred elements.
 - Menu on a non-round glass button or a text button (`showsMenuAsPrimaryAction`).
+
+## Implementation notes (morph side, moved from CLAUDE.md)
+
+- FUSION detail [device layer log + film of the bottom-centre ten-row
+  menu, menu_fusion_test]: the container is an AnimationKit.LensingSDFLayer
+  with smoothness 0 (plain min of its two CASDFElementLayers), its distance
+  field Gaussian-blurred by `gaussianRadius` AS A STANDARD DEVIATION (film
+  fit 0.9 - 1.2 x, best 1.0; row widths ~2 pt rms incl. a ~1 pt rim bias of
+  the film). The radius is an ENVELOPE per open/close, not a spring of the
+  progress: 20 x (1 - exp(-t / rise)) x a critically damped fall on
+  0.4286 s (= blurIn 0.3 / speed 0.7, free fit 0.424 - 0.433) after a hold;
+  open rise 0.0161 hold 0.199 (clamped at 20), close rise 0.0213 hold 0.057
+  amplitude 20.95 (peaks 19.7); cut to 0 under 0.2; a reversal takes the
+  max of the running envelopes (continuous value, not velocity). The blur
+  makes facing edges POINTED, eats the small shrunk button (it vanishes
+  ~30 ms into a tall close and comes back as a drop), then a NECK joins the
+  shapes across the ~19 pt gap; it narrows each shape by ~s^2 / 2r.
+- `MorphMenuFusion` / `morphMenuSilhouette` (menu_fusion.dart): SDF on a
+  grid of step clamp(s/3, 2, 6), separable blur evaluated only within
+  1.26 s + 1.5 step of the edge (a blur moves an SDF by at most
+  s sqrt(pi/2)), traced by `liquidGridContours` (the skin's marching
+  squares + stitch + Chaikin); under 1 pt the silhouette is the plain union
+  (null outline). The motion exposes `fusionRadius` and `silhouette`; the
+  vessel AND the button after the latch hand it to the flat painter and to
+  `buildLayer(outline:)`. Shading depth: see glass-renderer.md
+  (`MorphMenuFusion.shadedDepth`).
+- CONTENT UNFOLDS OUT OF THE DROP (second film, the owner's slow-mo report:
+  ours showed nothing until p 0.53, then a near-final menu): content rides
+  G at G's scale plus a kick swell, k = s_G + 1.45 kick / H, alpha = p on
+  the way in (row ink on film: 0.5 at p 0.51, 0.92 at 0.86 - the layers'
+  alpha p was right, the first film's 0.53 ramp was blur misread as fade);
+  a close fades linearly from where it was to 0 at p 0.53 (ink 0.53 at p
+  0.85, 0.2 at 0.73) and a re-open fades back from there to 1 at p 1, so
+  every reversal is continuous (anchored on the phase's start, like the
+  closing radius).
+- ALIGNMENT: H > W keeps the first row on G's TOP edge (screen top, both
+  directions: up = far edge, down = near edge; filmed bottom10 and tl10) -
+  a list at scroll offset 0; H <= W is CENTERED on the kicked G (center3,
+  bottom3). Pinned by the placement-invariant group in menu_button_test
+  (content attached to G in ten placements incl. clamped ones, the drop
+  starting inside the button, no jumps through open / close-mid-open /
+  reopen / close). Film harness: MenuAnchorUITests (testAnchorFilm /
+  testAnchorTall set PROBE_TRACK to match nothing - the layer log cost a
+  third of the frames) + example/integration_test/menu_anchor_video_test.dart.
+- EARLY TOUCH plumbing: the widget hears the early touch through a GLOBAL
+  pointer route registered at the tap's release (nothing is on screen to
+  hit-test yet); the motion holds it and applies an early release at the
+  opening.
+- Flies on the engine: a `MorphFlight` on `MorphTargetSpec.vessel` with
+  the measured progress spring and a zero scrim, so overlay choice,
+  Esc/back, focus, events (`onOpen:` hands out each flight) and the
+  dissolve of a removed button come from the engine; uses an ambient
+  MorphScope or brings its own.
+- ONE CLOCK: the menu draws from its own closed-form progress spring
+  (`MorphMenuProgress.spring`) in motion time and sends the flight the
+  same way; reading `controller.value` held the first vessel frame at
+  p = 0 and ran p 8..17 ms behind the kicks (the controller's ticker starts
+  a frame late at elapsed 0). The flight's value only times the latch and
+  the dissolve.
+- LANDING ON THE BUTTON: the engine latch removes the vessel at the
+  close's first zero crossing; after it the button itself paints both
+  shapes and the look from the same motion (button-local coordinates,
+  press transform 1) until the motion goes idle; the close ends only when
+  the progress AND both kicks rest (before: the vessel vanished mid-kick,
+  a visible snap at the end of every close).
+- Paint cost: the vessel builds the rows once (RepaintBoundary, the
+  `child` of its per-frame builder) and fades content and the button look
+  through ONE layer each (`ImageFilter.compose` of an alpha ColorFilter
+  and the blur); the union is one path of two same-direction rounded rects
+  (non-zero fill), no Path.combine per frame. The button face draws its
+  glyph WITHOUT an Opacity/ImageFiltered wrapper: an OpacityLayer (even at
+  alpha 255) between resting glass broke the BackdropGroup - device raster
+  p50 11.8 ms vs 2.3, the Menu page dropped to 60 Hz; a test pins the
+  layer count.
+- Device trace tool: example/integration_test/menu_trace_test.dart
+  (profile build, `--dart-define=TRACE_SCENE=center|gallery`,
+  `TRACE_RUN=<id>`, writes `<app tmp>/menu_trace_<id>.json`: FrameTimings,
+  a timeline, painted G/S geometry per frame); launch with devicectl and
+  pull the file - `flutter drive` needs Rosetta's iproxy on this Mac.
+- Frame rates: the inline-button menu OPEN is frame-locked at 1/60 steps
+  even at 120 Hz (not copied: morph evaluates in continuous time); the
+  nav-bar menu and every close run in continuous time.

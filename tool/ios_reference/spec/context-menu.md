@@ -76,3 +76,96 @@ engine flight on a transparent vessel surface spec; `scrimMotion`
 - Preview commit (`willPerformPreviewAction`, pop into the preview VC).
 - `menuAppearance` compact vs rich, `badgeCount`, `updateVisibleMenu`.
 - A UIMenu-driven action list (morph takes arbitrary satellite widgets).
+
+## Implementation notes (morph side, moved from CLAUDE.md)
+
+- Flight container: a TRANSPARENT VESSEL surface spec (color 0x00000000,
+  elevation 0, clipBehavior none) - not `MorphTargetSpec.vessel`: the hero
+  draws its own surface and flies as a MorphSharedElement with fade none;
+  the vessel's contentAlignment is COMPUTED so the hero slot coincides
+  with the flying hero at every spring value - A = heroOffset / (column
+  size - hero size) per axis - so the satellites ride the hero as one rigid
+  body and arrive WITH the surface. The hero stays put unless the column
+  leaves the safe area (or the keyboard edge); then the whole column shifts
+  (Telegram's shift).
+- LIFT (`lifts`, replaced `pressGrow`): glass-button model, uniform scale
+  by `MorphFlexSpec.forSize(size).liftScalePoints`, press on the tracking
+  spring, release on the scale spring, on a SingleMotionController.
+- Gesture: the State OWNS a TapGestureRecognizer (onTapDown lifts -
+  deferred to the touch deadline inside a scrollable, so a scroll never
+  flashes it; onSecondaryTapUp opens) and a LongPressGestureRecognizer
+  (duration = the commit point, recreated on change - a RawGestureDetector
+  cannot swap a constructor argument without remounting, and a remount
+  re-registers the MorphTag mid-frame); fed from a raw Listener with
+  deferToChild. The press transform sits ABOVE the tag so the flight takes
+  off from the lifted pixels; the natural rect is measured from the
+  region's own box above the transform. After the hold wins the press is
+  FROZEN (a tap cancel must not start a second spring under a flight
+  re-reading the transformed rect - the hero would shake), released once
+  takeoff settles or the flight closes.
+- Growth clock: a Ticker started on the pointer down (first frame after
+  the touch is t = 0; shown only once the tap is down); past the commit a
+  release opens the menu and a Timer opens it at holdDuration. The tap's
+  cancel arrives BEFORE the winner's onLongPressStart, so _drop's verdict
+  waits a microtask; pointer up / cancel on the raw Listener stops the
+  clock (a swipe taken before the touch deadline never sends tap
+  down/cancel).
+- The marker for `MorphContextMenuRegion.open(context)` lives INSIDE the
+  tag child so the shuttle's hero copies carry it (a "more" glyph in the
+  open menu retargets instead of asserting).
+- LIVE COLUMN: the hero slot and every content-sized satellite are
+  measured by MorphContentMeasure; their extents spring on the flight's
+  open motion on per-extent SingleMotionControllers on the REGION STATE's
+  tickers (springs vsync'd by the flight's scope tripped its
+  disposed-with-active-ticker assert, because flight.closed completes a
+  microtask late), disposed with the flight or the State. Rect AND
+  contentAlignment are read live: _MenuTarget extends MorphTargetSpec,
+  overrides the alignment getter and hands the geometry as `repaint`, so
+  frame, alignment and slots move in ONE frame; at value 1 the alignment
+  offset vanishes whatever A is. Slots clip natural-size content while the
+  extent catches up. A child or satellite change while open rebuilds the
+  menu (didUpdateWidget -> flight.markNeedsBuild, deferred).
+- `replica:` = source-side copy only (no snapshotGhost: without a live
+  source marker the pair cannot form); `opensOnSecondaryTap` leaves the
+  right click to an ancestor; onHold = the threshold (haptic moment),
+  onOpen hands out the flight; the region does NOT abort its flight on
+  dispose - a hero deleted from its own menu dissolves via the engine's
+  source-lost path.
+- PREVIEW port: the menu's hero slot is the LIFTED hero (slotWidth /
+  slotHeight = natural extents x scale; the copy laid out at natural size
+  inside OverflowBox + Transform.scale from the top left, so text never
+  rewraps), placed about the launch rect's center; satellites stand `gap`
+  off the lifted hero and the safe-area clamp sees the lifted column. The
+  flight lerps the shared hero from the grown source to the lifted slot
+  (60x40 shrinks 74.9 -> 69, 300x200 grows 314.9 -> 326) and home to
+  natural.
+- SPRING port: `measuredMotion` = MorphMotion.springs(measuredSpring both
+  ways), default for the region (explicit motion > MorphTheme >
+  measuredMotion) - no exemption needed. _Retract does not clamp above 1
+  (the device menu overshoots its rect). The close's residual undershoot
+  plays on the SOURCE hero (_followLanding: the press Transform adds
+  min(value, 0) x (measuredPreviewScale - 1) while isLanding).
+- DIM port: through the engine's scrim channel
+  (`MorphContextMenuRegion.measuredDim` = MorphScrimMotion with the
+  measured springs and delays, `measuredDimOpacity(brightness)` the
+  ceiling; explicit maxScrimOpacity > MorphTheme > measured). Replay vs
+  dim.json aligned at each side's geometry start: 0.0014 open / 0.0009
+  close rms of alpha, light and dark.
+- BLOB placement: where it is SEEN - the held view's center, found through
+  the column's content alignment inside the vessel's value-0 rect, with the
+  shuttle's 0.95 reveal scale divided out (`morphTargetRevealScale`,
+  frame.dart); at the lifted slot's center a below satellite sat 15 pt low
+  (300x200: 314.6 vs 300). Engine fix this needed: the shuttle's target
+  anchor sits BELOW the reveal Transform.scale (target rects in layout
+  space).
+- Replays (morph_context_menu_test): device morph group (menu open/close
+  and hero close under 1 percent of travel at the best start, normalized by
+  the DEVICE endpoints - held center 300, device menu rect; hero vs
+  preview.json under 0.12 pt open / 0.25 close); device preview group
+  (s/m/t/l: open size and center exact, menu at the device rect, never
+  back through natural size while open).
+- Not reproduced: the blob's WIDTH for a menu narrower than the lifted
+  hero (300x200: device 83.2 x 80, ours 92 x 80 - our blob is 0.4 of the
+  slot, the 250 pt menu centered in the 326 pt slot). The native preview
+  ramps linearly from 0.2 s and pops at the commit (the growth law above
+  is the measured replacement).

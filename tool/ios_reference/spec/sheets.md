@@ -109,3 +109,38 @@ sheet.dart (`presentMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
   (morph: needs check), detent `backgroundEffect`.
 - Delegate callbacks (selected detent changed, should dismiss).
 - Full-screen / form-sheet presentation styles.
+
+## Implementation notes (morph side, moved from CLAUDE.md)
+
+- `presentMorphSheet` pushes a `MorphSheetRoute`, a PopupRoute:
+  transitionDuration zero, the reverse controller is stopped in didPop and
+  set to 0 when the motion's dismissal rests (which finalizes the route);
+  buildModalBarrier is an IgnorePointer, so undimmed detents leave the
+  page live and the dimming / tap-to-dismiss is drawn by the sheet itself.
+- ZOOM (`presentMorphSheet(from:)`, zoom_motion.dart): the zoom is
+  INVISIBLE to presentation-layer sampling (the sheet's views sit at their
+  final frames from the first tick; only the source's _UIReparentingView
+  alpha and a portal alpha move) - measured from device film of probe
+  scene snzoom (grey page, magenta source, green sheet; chromatic-pixel
+  bbox per frame). Two springs on one container is a native-fidelity
+  exemption, so it lives in the widget layer, not in an engine flight
+  frame; the source is found and hidden through the engine's MorphTag
+  (tryCaptureRect each frame, hideForFlight / reveal deferred to
+  post-frame). The content subtree carries a GlobalKey so the hand-over
+  between the zoom layer and the sheet keeps its state.
+- SCRUB detail (scrub.json): `MorphZoomTuning.scrubFrame` per point of
+  travel since the drag began: top +1.115, sides in 0.275, bottom up 0.04;
+  above the start it grows by at most 17 pt of travel; travel counts from
+  where the drag recognizer accepted (UIKit's begins later on a fast
+  drag). Past 100 pt or 1050 pt/s (the push's threshold, unmeasured here)
+  the scrub frame becomes the zoom's destination, so the close is
+  continuous. The scrub is drawn in the ordinary sheet tree (one Transform
+  maps the laid-out box onto the drawn rect, the body clipped shorter):
+  swapping to the zoom layer mid-drag would unmount the drag recognizer.
+  Immediate native dismissals: first device session (light) 4 of 5 drags
+  dismissed at the slop with no scrub, later dark session 2 of 14 (a slow
+  20 pt drag, a fast one from 480) - not press time 30..140 ms, not speed,
+  not start point.
+- Replays: sheet_test (programmatic, 0.8 - 2.1 pt rms incl. present jank),
+  sheet_drag_test (16 simulator + 26 device drags/flicks, outcomes exact,
+  tolerances in the file).

@@ -132,3 +132,43 @@ Calendar drawn by morph; wheels are ListWheelScrollViews.
 - `locale` / `calendar` / `timeZone` (non-Gregorian calendars, locale
   week start beyond `firstDayOfWeek`).
 - `setDate:animated:` wheel animation.
+
+## Implementation notes (moved from CLAUDE.md)
+
+- Overlay glass fades through `MorphGlassSurface.opacity`, never an
+  Opacity layer (that read an empty backdrop: a gray platter until
+  settled).
+- Quick succession [device rows, tm-openclose-* / tm-closeopen-*, the
+  filler-stroke trick]: the turn-around from a tap outside while opening
+  happens even when the tap lifts before the opening started (0.003 scale
+  rms with the open start fitted 0.131 - 0.146); while the old overlay
+  closes, two platters are on screen and the closing overlay no longer
+  swallows the label tap (its outside Listener is IgnorePointer while
+  leaving).
+- Date-and-time switch: frame lerps between the two placements (0.04
+  percent rms), contents pinned to the anchored corner, the label accent
+  moves at once.
+- Calendar look [film]: title chevron 6.33 x 11.67 accent; the title never
+  shares the header with a spacer (it truncated to "October 2...").
+- TIME WHEELS [device labels, wheels.json]: rows 21 pt at opacity 0.4
+  (UIKit reports 0.447; 0.4 matches the screen), 23.5 pt in the 200 x 32
+  band (ListWheelScrollView magnifier), on a true cylinder of radius 73.5
+  (Flutter's angle is dy * pi / H for diameterRatio < 1, so squeeze =
+  32.4 pi / (172 x 0.4405) restores arc = row; perspective ~0), darkened
+  toward the edges by a measured table (`_WheelMetrics.fade`, ShaderMask;
+  lossless device screenshots, digit contrast per pixel row native over
+  ours: rows at 31 / 57 / 72 pt show 0.34 / 0.24 / 0.05 of the band's
+  contrast, ours 0.34 / 0.24 / 0.06 - cos^1.4 gave 0.37 / 0.25 / 0.09);
+  columns at 73.5 / 148.5 pt; fast deceleration (a 64 pt drag turns two
+  rows as on the device; the default physics turned six).
+- 12-HOUR WHEELS [device, en_US@hours=h12, tree dump + screenshots]: hour
+  1..12 right-aligned ending 51.33 pt in (55 in the band), minutes centered
+  110.67, AM/PM left-aligned at 158 (156 in the band), same 232 x 204
+  platter; the hour wheel crossing 11 <-> 12 flips AM/PM (7 AM + 5 rows =
+  12 PM, back 3 = 9 AM); the flip's animation is not measured (200 ms ease,
+  like the accessibility steps). `use24HourFormat` null follows
+  MediaQuery.alwaysUse24HourFormat (the phone's 24-Hour Time).
+- Dark platter color (owner film, 44 vs native 33 gray): the renderer draws
+  the surface color as the tint; `MorphDatePickerStyle.dark` platterColor
+  0xF22C2C2E is the cause - the menu's measured dark glass 0xF2222222 reads
+  33 - 34. OPEN (date_picker.dart not changed yet).

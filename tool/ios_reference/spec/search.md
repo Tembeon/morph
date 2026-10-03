@@ -83,3 +83,28 @@ search_field.dart (`MorphSearchField`, `MorphSearchFieldStyle`,
   inline placements) - only the bottom toolbar placement exists.
 - Scope bar, search tokens, suggestions, results controller semantics,
   bookmark / results list buttons.
+
+## Implementation notes (morph side, moved from CLAUDE.md)
+
+- SCREEN-RECORDING PASS (2026-10-03, search-video/ crops): a held touch
+  focuses on the lift (the field's Listener; text selection gestures only
+  while focused - a 0.5 s hold used to win Flutter's long press and never
+  focus). A closing search falls straight to rest: the focused layout keeps
+  the keyboard inset of the moment the search ended (`_frozenKeyboard`)
+  instead of following the dropping keyboard (which dipped the field 18 pt
+  below rest). The field paints BEFORE the toolbar items: glass inside an
+  Opacity (a fading or disabled item) that is the first user of the
+  BackdropGroup's shared copy makes every later glass read the empty layer
+  (the resting field went invisible on dark). Resting placeholder lighter
+  than focused (149 vs 133 on 252 light, 110 vs 142 on 32 dark);
+  keyboardAppearance follows the brightness; the cursor is not the accent.
+- KEYBOARD [device, ExtrasUITests.testX3Timing / testX3Shots /
+  testX3AlertVideo, morph's board via PROBE_BUNDLE]: UIKit's search text
+  field reports autocorrectionType NO, spellCheckingType default,
+  capitalization by sentences, return key Search; that pair keeps the
+  prediction bar on screen but empty (328 pt keyboard). Flutter's engine
+  sets spellChecking from the same `autocorrect` flag, and autocorrect false
+  drops the bar (keyboard 27 pt shorter, the focused field 27 pt lower than
+  native - filmed), so the field keeps autocorrect on (suggestions show in
+  the bar: NOT reproduced without an engine change) and asks for sentence
+  capitalization.

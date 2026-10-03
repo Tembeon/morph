@@ -72,3 +72,44 @@ NavigatorPopHandler (the enclosing route is doNotPop while it can pop).
   `dimmingVisualEffect`.
 - Zoom from a bar button item.
 - Other `preferredTransition`s (coverVertical, crossDissolve, flip, curl).
+
+## Implementation notes (morph side, moved from CLAUDE.md)
+
+- Commit rule constants live on the transition (`popDistance`,
+  `popVelocity`, `cancelVelocityScale`). Edge-swipe ownership: see bars.md
+  (NavigatorPopHandler, MorphNavigationRoute's edge gesture).
+- PUSH ZOOM API: `pushMorphZoom(context, from: tagId, builder:)` /
+  `MorphNavigationRoute(zoomSource:)` - the page grows out of the tag as
+  UIKit's `preferredTransition = .zoom` push. The route is non-opaque with a
+  zero transition (the motion finalizes the pop, as the sheet does); the
+  page below does not parallax (canTransitionTo is false toward a zoom
+  route); the stack's bars change as on any push. Pinned by push_zoom_test.
+- `MorphPushZoomMotion` is four springs in POINTS (center x/y, width,
+  height) so a drag can hand over any frame. A drag-dismissal starts from
+  the dragged frame AT REST (a 1200 pt/s flick carried no speed) on
+  0.45/0.81 (center, width) and 0.33/0.98 (height).
+- Crossfade source look -> content: 0.156 crit, 0.01 s late; back 0.191
+  crit. Dimming black 0.15 (grey 128 -> 109, unchanged while dragging) on
+  zoomIn/zoomOut; shadow black 0.36, sigma 30, 4 down (scaled by the
+  dimming - its fade is assumed); corner radius source -> display radius by
+  the mean of width and height progress (0.6 pt off); content scaled by
+  width / page width from the container's top (a label read off held drags
+  confirms both directions).
+- DRAG: anywhere on the page (a scroll view with content above the finger
+  keeps its drag); only down or toward the trailing edge within 30 degrees
+  (31 off down and 30.5 off sideways did nothing; up and leading never);
+  slop 13.5. Past it the page shrinks about the touch point - down: width
+  0.00078, height 0.00154 per point, center follows 0.61 of the travel;
+  sideways: 0.00156 / 0.00168, center 0.95 (rates blend by the squared
+  direction components). Release: travel past 132.5 (125 held returned,
+  140 dismissed) or > 1050 pt/s along the drag (70 pt at ~900 returned,
+  100 pt at ~1200 dismissed) dismisses.
+- Replays feed the logged touches one frame early (rows trail the
+  reaction) and estimate the release speed over 0.05 s. Zoom geometry only
+  shows on film: align each capture by its present/push event against the
+  first frame the source grows.
+- NOT REPRODUCED (push zoom): a one-frame flash of the final frame at a
+  push start and of the source at a drag dismissal (film artifacts); fast
+  flicks show the page 2-3 frames behind the logged touches (synthesizer
+  bursts - those two replays are loose); the edge drag from x 2 replays at
+  9 pt rms.

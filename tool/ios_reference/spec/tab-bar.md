@@ -117,3 +117,27 @@ controls_scroll_test.
 - `bottomAccessory` (mini player above the bar) - not measured.
 - `prominentTabIdentifier`, leading/trailing accessory views.
 - Sidebar mode (iPad), `setTabBarHidden:animated:`.
+
+## Implementation notes (moved from CLAUDE.md)
+
+- Glow seam: `MorphGlassSurface.glow` (`MorphGlassGlow`: wash, center,
+  radius, gain) and `MorphGlassPainter.buildGlow` (additive wash +
+  colorDodge Gaussian, exact over gray; the default buildLayer, the flat
+  bar and the renderer call it). The glows sit over the bar glass, under
+  the tab content, riding the bar swell. Recapture: testTabLook /
+  testTabGlowDrag with `PROBE_TABLAYERS=1` (every layer of
+  _UIBottomTabBarGroupView per frame).
+- Selected tint in morph: two rows clipped along the lens outline each
+  frame (the selected copy is RichText so `find.text` still finds one row).
+- Bar-local glitch (UIKit artifact, deliberately not reproduced): one
+  frame of bar-local coordinates fed into its own integrator at each lift
+  after the first - a spurious drift/scale kick on the device, a vertical
+  sag in the simulator.
+- Slow lift evidence: lpp itself is normal and the sibling
+  _UITabSelectionView keeps the normal size, so the lag is the lens view's
+  own frame; CN1 measured the held step as 0.59/0.85. Not the item's icon or
+  title (moved with PROBE_TAB_ORDER, the slot stays slow), not tap duration
+  (33 ms .. 1 s), history, travel or display-link phase. The fall after a
+  slow tap's unlift is not fitted either. Recordings
+  tool/ios_reference/recordings/device-behaviours (testBehaviours;
+  `PROBE_LENS_ANIMS` logs lens layer CAAnimations - none exist).

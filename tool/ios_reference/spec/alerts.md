@@ -85,3 +85,14 @@ alert.dart (`showMorphAlert`, `showMorphActionSheet(anchor:/anchorRect:)`,
 - A general popover presentation (any content in a popover) - morph only
   has the action sheet popover.
 - Text field configuration beyond placeholder/obscure/keyboardType.
+
+## Implementation notes (morph side, moved from CLAUDE.md)
+
+- `showMorphAlert` / `showMorphActionSheet` push a `MorphAlertRoute` (the
+  sheet's PopupRoute pattern: zero transition, the motion finalizes the
+  pop).
+- The alert's and the popover's glass fade through
+  `MorphGlassSurface.opacity` and the content through its own Opacity ABOVE
+  the glass - an Opacity above the glass read an empty backdrop (a gray
+  platter while fading). Filmed against UIKit on the device,
+  references/alert-video/ (native top, ours bottom).

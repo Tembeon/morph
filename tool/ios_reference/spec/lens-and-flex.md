@@ -79,3 +79,16 @@ Sub-clock runs at the DEVICE refresh rate (`motionFrameRate` 120, 60 on a
   repeated values: a 60 Hz ripple).
 - Tab bar bar-local one-frame glitch (rows with y ~ 31).
 - Reduce Motion: never captured; `reducedMotion` is an approximation.
+
+## Implementation notes (moved from CLAUDE.md)
+
+- `MorphLensDriver` (MorphClock + raw pointer events into a
+  `MorphLensMotion`) accepts the primary button only.
+- Reduced motion (`reducedMotion` on MorphLensMotion, MorphSmallLens,
+  MorphGlassButtonMotion, from `MediaQuery.disableAnimations`): lens and
+  knob travel, the button glows, nothing lifts, deforms, leans or swells;
+  off by default so replays are unchanged.
+- Replay rule: frames the recorder missed must still be stepped (UIKit's
+  integrator ran them); skipping them doubles the scale error. lens_test
+  replays the segmented control on the sim at 60 Hz AND the device at
+  120 Hz; the tab bar on the undeformed frame only.

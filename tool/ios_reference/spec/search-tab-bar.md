@@ -55,3 +55,23 @@ example/integration_test/search_date_scenes.dart.
 
 - `automaticallyActivatesSearch = false` variant (tab without auto focus).
 - Search tab inside sidebar mode; scope bars; suggestions.
+
+## Implementation notes (morph side, moved from CLAUDE.md)
+
+- The hidden field is mounted from the start: focusing it the frame it was
+  built made the device's engine close the fresh input connection (no
+  keyboard, focus dropped 70 ms later) - hence `tabActivationDelay`.
+- `tabUnfocusDelay` 0.05 s (0.038 / 0.064 in two captures; the fall itself
+  0.8 pt rms).
+- ONLY the activating search tab is a separate circle in iOS 27: without
+  `automaticallyActivatesSearch` UIKit draws the search tab as an ordinary
+  "Search" tab inside the bar (filmed), so the widget models the activating
+  kind only.
+- TAB MORPH REVERSAL (films tm-*): a tap on the tab circle while the morph
+  into the field runs turns it around with its velocity (UIKit, taps 0.125
+  and 0.225 s after the search tap; at 0.375 the keyboard covers the
+  circle), so the tab circle takes taps whenever searching until the close
+  button shows (focus progress 0.5); a tap on the search circle while the
+  morph back runs is IGNORED by UIKit (0.125 / 0.225 / 0.375 s). The
+  reversal's start latency was not readable (film clock); ours retargets
+  at the lift.

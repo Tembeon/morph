@@ -137,3 +137,39 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 - Search bar integration placements in the nav bar / toolbar (morph has only
   the bottom search toolbar).
 - `backButtonDisplayMode` (generic / minimal), `hidesBackButton`.
+
+## Implementation notes (morph side, moved from CLAUDE.md)
+
+- `MorphNavigationStack` keeps ONE bar + toolbar over its Navigator. The
+  Navigator widget is built once (rebuilding it calls changedExternalState
+  on every route and the pages' config publishing looped); scaffolds
+  publish a signature-compared `MorphNavigationConfig`. A pushed screen
+  publishes one frame after the push: the stack keeps showing the screen
+  below until it does (or its first frame passes) - otherwise the bar
+  flashed empty for a frame, its capsules died and were reborn and the
+  toolbar remounted (the push did not morph).
+- The Navigator sits under a NavigatorPopHandler: while the stack can pop,
+  the ENCLOSING route is doNotPop, which turns off its Cupertino edge swipe
+  / predictive back (popGestureEnabled) and routes system back and outer
+  maybePop into the stack (the gallery's MaterialPageRoute used to win the
+  edge swipe - its edge Listener sits above the page in hit-test order).
+- The stack learns of an edge swipe from MorphNavigationRoute's edge
+  gesture (start / settled), not from userGestureInProgress. Drift API:
+  `MorphNavigationBarDrift`, `MorphBarMotion.setDrift`; on commit the next
+  setLayout snaps the springs onto the leaning rects and the item
+  transition starts from there.
+- BACK MENU plumbing: built on the menu machinery through the internal
+  MorphMenuHost / MorphMenuLayer / MorphMenuFlightProgress. The bar owns
+  the gesture (hold clock in its MorphClock), the menu motion gets the
+  capsule as its button (sourceHeight = capsule height), a vessel flight
+  from the bar's own invisible MorphTag carries it, and the bar hides that
+  capsule while the flight is airborne. RING-OUT [film, back-hold-away in
+  the snback film]: UIKit's close lands as a wobbling union of the
+  shrinking menu and the capsule, the capsule's top edge 3 pt off rest,
+  settled ~0.2 s later; so after the latch the bar draws BOTH shapes of the
+  menu motion on the capsule (surfaces of kinds button/menu, the glyph
+  riding the button blob's center and scale) until the motion goes idle -
+  pinned by back_menu_test (the glyph swings ~2 pt, then rests exactly).
+- Container spacing reaches the painter as `buildLayer(spacing:)`; the
+  fused outline of capsules within spacing - 0.5 is traced by the package
+  (`morphGlassContainerOutline`, skin law, step 2) - see glass-renderer.md.

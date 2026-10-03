@@ -79,7 +79,15 @@ Probe app: `Sources/` (App, Scenes, Controls, Recorder, Settings, Merge,
 Bars, Widgets2 `w2*`, Extras `x3*`, SheetNav `sn*`, Typography `fonts`),
 UITests in `UITests/` (ProbeUITests, BarsUITests, Widgets2UITests,
 ExtrasUITests, SheetNavUITests, MenuAnchorUITests). The recorder samples
-presentation layers every display-link tick and logs only changed rows.
+presentation layers every display-link tick and logs only changed rows:
+lens frame rows, `_UIFlexInteraction` / `_UIVelocityIntegrator` state, the
+menu's morph container layer tree, control layers, touches (from a
+RecordingWindow.sendEvent override) and a `dl` row per tick (timestamp,
+targetTimestamp, duration, previous tick cost - the achieved frame rate is
+always known). The x3 scenes' `X3Sampler` logs every matched view per tick
+WITH label text / font / weight / color; `testX3Device` takes every
+coordinate from the window size, so it runs on the 402 pt phone too.
+`recordings/` and `build/` are gitignored.
 
 - Simulator: `build.sh` (swiftc, installs on the booted sim), launch with
   `SIMCTL_CHILD_PROBE_SCENE=<scene> xcrun simctl launch --terminate-running-process booted dev.tembeon.morph.probe`,
@@ -96,7 +104,9 @@ presentation layers every display-link tick and logs only changed rows.
   --domain-type appDataContainer --domain-identifier dev.tembeon.morph.probe
   --source Documents`. Phone: unlocked, trusted, developer mode,
   Settings > Developer > Enable UI Automation ON. Never edit device.sh
-  while it runs (sh reads it incrementally).
+  while it runs (sh reads it incrementally). device.sh's PROBE_PLAN covers
+  ProbeUITests and bars only; everything else goes through xcodebuild as
+  above.
 - Common env: `PROBE_SCENE`, `PROBE_REC` (record name), `PROBE_DARK=1`
   forces dark, `PROBE_DARK=0` forces light (unset = system appearance),
   `PROBE_SCRIPT="action@seconds;..."` (w2/x3/sn scenes), `PROBE_W2TRACK` /
@@ -104,19 +114,42 @@ presentation layers every display-link tick and logs only changed rows.
   `PROBE_X3DEPTH`, `PROBE_W2FILTERS=1` (backdrop filter inputs),
   `PROBE_LENS_ANIMS=1`, `PROBE_TABLAYERS=1`. Scene-specific env is listed
   in each passport.
-- Reading tuning live: `objc_copyClassList` over the RAW pointer array,
-  keep PTSettings subclasses, alloc/init + `setDefaultValues`, read
-  properties via `class_copyPropertyList` + typed IMP casts. NEVER KVC on
-  private classes (throws, kills the probe).
+- Reading tuning live: `objc_copyClassList` over the RAW pointer array
+  (load each entry as an OpaquePointer, unsafeBitCast to AnyClass - Swift's
+  typed view of the list crashes on some classes), keep PTSettings
+  subclasses, alloc/init + `setDefaultValues` through typed IMP calls, read
+  properties via `class_copyPropertyList` + typed IMP casts per type
+  encoding. NEVER KVC on private classes (`value(forKey:)` throws on
+  non-object or missing keys and kills the probe); KVC on public CALayer
+  key paths such as filters.<name>.inputRadius is fine.
 - Screen recorder (device film): `screen_recorder/build.sh` builds
   MorphRecorder.app (CoreMediaIO, full resolution; camera permission once).
   `: > log.txt; open -W .../MorphRecorder.app --args "$PWD/log.txt" /abs/out.mov <seconds>`
   in the background, then drive the phone. The stream is variable-rate and
   DROPS frames at UIKit morph starts (~45 fps): extract with
   `ffmpeg -fps_mode passthrough` and real pts, never `fps=60`; align the
-  film to the probe's layer rows of the same run. A video app's strokes
-  must be timed on a clock, not per pumped frame. Simulator film:
-  `xcrun simctl io <udid> recordVideo --codec=h264`.
+  film to the probe's layer rows of the same run (union bbox) to know p
+  per frame. A video app's strokes must be timed on a clock, not per pumped
+  frame (a 120-step loop of 8 ms pumps ran 1.7 x slow). Hold the device
+  lock while recording. Simulator film:
+  `xcrun simctl io <udid> recordVideo --codec=h264`, frames via ffmpeg,
+  glass edges from pixel rows; alpha UIKit animates outside the sampled
+  layers (alerts) also reads best from film.
+- STILL SCREENS COMPRESS: the device sends frames only on a change and a
+  still period collapses to <= 67 ms of pts, so a native film's clock is
+  NOT wall time and the first frames of a motion after a still screen are
+  often lost - keep something turning (`PROBE_SPINNER=1` puts a spinner in
+  the x3 scenes; the motion itself still comes from the probe's rows).
+- XCUITEST CAN DRIVE MORPH: example/integration_test/search_date_scenes.dart
+  is a profile app (not a test) with a board of scene buttons;
+  ExtrasUITests.testX3Video with `PROBE_BUNDLE=dev.tembeon.morphExample`
+  taps the board and runs the native schedule on it - real touches through
+  the engine and the real keyboard (an integration test's synthetic
+  pointers never reach the engine, and its keyboard came up seconds late).
+  Platform.environment does not carry XCUIApplication.launchEnvironment
+  into the Flutter app (hence the board). Other agents install the gallery
+  under the same bundle id: reinstall the scenes app inside every lock
+  session and check the binary (`strings App.framework/App | grep tabauto`).
 - morph side of a film: `example/integration_test/*_video_test.dart`
   (menu, slider, menu_anchor, search_date_scenes) as a profile build
   launched with devicectl; menu_trace_test writes per-frame geometry.
@@ -138,7 +171,7 @@ presentation layers every display-link tick and logs only changed rows.
   separate calls have ~217 ms minimum latency.
 - Analyses use the LOGGED touch rows, never the plan.
 - A nearly full host disk caused 0.3 - 1.7 s main-thread stalls in held
-  gestures - discard such passes.
+  gestures (AnimationKit dispatch sync) - discard such passes.
 - XCUIElement keyboard frames exclude the bottom row: the iPhone 16 Pro
   keyboard is 328 pt tall (top 546).
 - Glass morphs living in SwiftUI (tab search morph, zoom) do not show in
@@ -152,9 +185,58 @@ state, evt, L, V, f, ...), one manifest per family. Recaptures APPEND
 (note "recapture <date>"), nothing is overwritten. Raw recordings live in
 `tool/ios_reference/recordings/` (gitignored); fit scripts and reports in
 `/tmp/morph-native/` (volatile - fixtures and tests are the durable
-record). Lossless reference PNGs: `tool/ios_reference/references/`
-(`dark/` static set; `*-video/` native-top / morph-bottom crops; `merge/`).
-The LIGHT static set is still pending.
+record; e.g. lens-model.md, controls-model.txt, menu-model.txt,
+device-report.txt, recapture-report.txt, merge-report.txt, *-params.json,
+/tmp/cn1/REPORT.md). Lossless reference PNGs: `tool/ios_reference/references/`
+(`dark/` static set; `{menu,slider,search,date,alert}-video/` native-top /
+morph-bottom crops; `merge/`). The LIGHT static set is still pending
+(switch the phone to Light, rerun `PROBE_SKIP_BUILD=1 PROBE_PLAN=refs
+PROBE_RESULT=... ./device.sh`, export into references/light/).
+
+## Frame rates (device findings, apply everywhere)
+
+The flex integrator runs every 120 Hz tick with alpha 0.3 PER FRAME; most
+lens geometry it reads refreshes at ~60 Hz on the device (a 60 Hz ripple,
+not copied); the inline-button menu OPEN is frame-locked at 1/60 steps (not
+copied); the nav-bar menu and every close run in continuous time. morph's
+sub-clock runs at the device refresh rate (lens-and-flex.md).
+
+## Known UIKit artifacts, deliberately not reproduced
+
+Tab bar bar-local glitch (tab-bar.md), the menu's second kick variant and
+its 1/60 open frame lock (menu-button.md), 60 Hz lens refresh on 120 Hz
+(lens-and-flex.md), the slider's white release flash (slider.md). Device
+menus are 62 pt taller than the simulator's: the system's separator +
+"Ask Siri" row (menu-button.md).
+
+## Reference provenance
+
+- UIKit itself is the reference: iOS 27.0 simulator (iPhone 18 Pro / 18
+  Pro Max / 17e) and iOS 27.0.1 on the owner's iPhone 16 Pro, captured from
+  2026-10-02 with tool/ios_reference. Tuning names quoted in dartdoc
+  (`_UIFlexInteractionSpec.dynamicWithSize`, `liquidLensWithSize`,
+  `_UILiquidLensView` small/large, `AnimationKit.MorphAnimationSettings
+  .liquidMorph`, smallLoupe, the SwiftUI GlassContainer*PTSettings) are
+  what the probe read live.
+- Codename One PR #5906 (codenameone/CodenameOne, merge 850bb54, read at
+  75a7a31): an independent iOS 27 floating tab bar measurement, a
+  CROSS-CHECK only. GPLv2+CPE: re-derive numbers, never copy code. Where it
+  disagrees with our captures (follow spring 0.196/0.903, the "remaining
+  travel < 3.5 pt" unlift rule, a hard clamp at the end tabs) our device
+  data wins.
+- whynotmake-it liquid_glass_renderer: the base of the package renderer
+  (glass-renderer.md), not a source of physics; its merge exponent is
+  wrong (skin-merge.md).
+- Superseded (history only): Kyant0/AndroidLiquidGlass (`LiquidButton.kt`,
+  `LiquidBottomTabs.kt`, `DampedDragAnimation.kt` at 65ab177e) and
+  liquid_glass_easy - the basis of Tug and MorphPillHost, both deleted in
+  0.7.0.
+
+## Keeping passports current
+
+When a measurement changes, update the passport AND the tuning class
+dartdoc in the same change. CLAUDE.md changes only for architecture or
+policy.
 
 ## Status
 
@@ -183,6 +265,7 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [activity-indicator](activity-indicator.md) | S | P | none of note |
 | [typography](typography.md) | D == S | P | Dynamic Type, GRAD axis, date wheel |
 | [glass-optics](glass-optics.md) | D (refs, layers) | P (renderer) | light reference set; lens rim minification profile approximated |
+| [glass-renderer](glass-renderer.md) | D (tier costs) | P (package renderer, tiers, adaptive policy) | policy numbers are defaults; date picker dark platter color |
 | [skin-merge](skin-merge.md) | D | P | 3+ mass normal mixing unmeasured |
 | [engine-flight](engine-flight.md) | D tuning | P | - |
 
