@@ -192,6 +192,23 @@ final class Widgets2UITests: XCTestCase {
         }
     }
 
+    /// The whole context-menu morph on one recording: preview, menu, and the dimming
+    /// UIVisualEffectView with its backdrop filter inputs, for the spring per part.
+    func testW2CtxDim() {
+        let card = p(201, 300)
+        let track = "_UIContextMenu|Platter|Dimming|_UIPreview|_UIMorph|MagicMorph|Portal|_UIReparenting|TransformView|ContextMenuContainer|_UIContentPlatter|UIVisualEffect|_UIVisualEffect|Backdrop"
+        for (name, w, h) in [("m", "120", "80"), ("l", "300", "200")] {
+            for run in 1...2 {
+                capture("ctxd-\(name)-\(run)", scene: "w2ctx", extra: ["PROBE_CW": w, "PROBE_CH": h, "PROBE_W2TRACK": track, "PROBE_W2FILTERS": "1"]) {
+                    path(card, pressFor: 1.0, [])
+                    pause(1.4)
+                    tap(p(201, 820))
+                    pause(1.2)
+                }
+            }
+        }
+    }
+
     // MARK: page control (5 pages, 126 x 25 at 201, 400)
 
     func testW2Page() {

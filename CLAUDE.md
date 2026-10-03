@@ -381,10 +381,36 @@ Public pieces:
   stand `gap` off the lifted hero (the device menu is 16 off the lifted
   preview) and the safe-area clamp sees the lifted column. The flight
   lerps the shared hero from the grown source to the lifted slot (60x40
-  shrinks 74.9 -> 69, 300x200 grows 314.9 -> 326) and home to natural;
-  the region rides its flight's springs (liquid open 0.35/0.75 reaches
-  90 percent in 0.156 s vs UIKit's 0.137), not UIKit's preview spring -
-  a second clock on the hero size would break invariant 1. Replayed by
+  shrinks 74.9 -> 69, 300x200 grows 314.9 -> 326) and home to natural.
+  THE SPRING (device, 2026-10-03, fixture context_menu/morph.json, probe
+  testW2CtxDim: preview, menu and dim on ONE recording per case): the
+  preview resize AND the menu's blob growth/retract (the MagicMorphView
+  carrying _UIContextMenuView, center 300 -> menu center) run on the
+  same 0.284/0.81 spring each way, launched together (menu-vs-preview
+  close start within 4 ms; 0.4-0.6 percent rms of travel; liquid misses
+  by 2 percent). So the flight itself runs it: measuredMotion =
+  MorphMotion.springs(measuredSpring both ways), default for the region
+  (explicit motion > MorphTheme > measuredMotion) - no exemption needed,
+  the hero size, the vessel and the satellites all stay functions of
+  the one flight value. _Retract no longer clamps above 1 (the device
+  menu overshoots its rect by the spring's 1.3-1.9 percent). The close
+  dips to -1.3 percent and crosses zero at 0.19 s, so the latch fires;
+  the residual undershoot plays on the SOURCE hero (_followLanding: the
+  press Transform adds min(value, 0) x (measuredPreviewScale - 1) while
+  isLanding - the lifted size is linear in the value, so the shrink
+  below natural is the same law; device 300x200 dips 0.43 pt, ours
+  matches). NOT on that spring: the dim - a full-screen
+  UIVisualEffectView, black 0.2 (light mode), alpha only, no blur
+  filter - opens on 0.32/0.80 and closes on 0.35/0.85, each about 12 ms
+  after the geometry; the menu's own _UIContextMenuView alpha/scale model
+  also closes on 0.35/0.85 (whether the portal shows that fade is
+  unverified). The region's scrim still rides the engine's
+  morphScrimOpacity (0.35, full at 70 percent of the flight value) -
+  porting the dim needs an engine scrim seam (a scrim outside the
+  shuttle's content opacity), left for an explicit decision. Replayed by
+  morph_context_menu_test's device morph group (menu open/close and hero
+  close under 1 percent of travel at the best start, hero vs
+  preview.json under 0.12 pt open and 0.25 pt close). Replayed by
   morph_context_menu_test's device preview group (s/m/t/l: open size and
   center exact, the menu at the device rect, never back through natural
   size while open). The ENGINE fix this needed: the shuttle's target
@@ -395,9 +421,10 @@ Public pieces:
   into a 0.4 x hero blob at the hero center as a pure function of the
   flight value (_Retract; the device blob is 0.4 of the SHORTER side
   tall, 300x200 -> 83x80, 80x160 -> 32x32 - the uniform 0.4 is exact
-  for landscape <= 1.5:1). Gap 16 (device). The engine's own flight
-  carries everything else (UIKit's dimming and the preview's
-  undershooting return are not modelled).
+  for landscape <= 1.5:1). Gap 16 (device). Measured but not ported:
+  our retract blob lands about 15 pt below the hero center for a
+  below satellite (300x200: menu center 314.6 at value 0, device 300) -
+  geometry, not timing; the replay normalizes by our own endpoints.
 - BARS (bar_items.dart, bar_motion.dart, toolbar.dart, navigation_bar.dart,
   navigation_motion.dart, navigation_stack.dart, scroll_edge_effect.dart;
   measured 2026-10-03, fixtures ios27{,-device}/bars, tuning dump in

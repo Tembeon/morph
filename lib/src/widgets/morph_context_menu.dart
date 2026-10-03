@@ -259,9 +259,24 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// that must find the flight by name. Stable for the region's life.
   final Object? tagId;
 
-  /// Motion profile of the flight; null resolves MorphTheme, then the
-  /// default.
+  /// Motion profile of the flight; null resolves MorphTheme, then
+  /// [measuredMotion].
   final MorphMotion? motion;
+
+  /// UIKit's context-menu morph, measured on an iPhone 16 Pro (iOS 27):
+  /// the preview's resize and the menu growing out of its blob and
+  /// retracting into it ride one spring both ways, response 0.284 s and
+  /// damping ratio 0.81. The open overshoots and the close dips below
+  /// its rest by 1.3 percent, so the handoff latch fires on the close's
+  /// zero crossing and the hero lands with UIKit's own undershoot.
+  static const MorphMotion measuredMotion = MorphMotion.springs(
+    name: 'contextMenu',
+    open: measuredSpring,
+    close: measuredSpring,
+  );
+
+  /// The spring of [measuredMotion].
+  static const MorphSpring measuredSpring = MorphSpring(0.284, 0.81);
 
   /// Scrim ceiling; null resolves MorphTheme, then 0.35 - an inkier
   /// dim than a dialog's, the menu is the only thing that matters.
@@ -328,6 +343,14 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     initialValue: 0,
   );
   MorphFlexSpec _flex = MorphFlexSpec.ultraSmall;
+  // The hero's scale below its natural size while its flight lands: the
+  // close spring's undershoot after the latch, which UIKit's preview
+  // plays as a shrink below its natural size.
+  final ValueNotifier<double> _landing = ValueNotifier<double>(0);
+  late final Listenable _heroScale = Listenable.merge(<Listenable>[
+    _press,
+    _landing,
+  ]);
   // The hold clock: started on the touch, its elapsed time is the hold
   // time the growth is a function of. The growth shows only once the
   // tap is down (past a scrollable's touch deadline).
@@ -455,6 +478,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     _holdTimer?.cancel();
     _holdClock.dispose();
     _press.dispose();
+    _landing.dispose();
     super.dispose();
   }
 
@@ -647,7 +671,10 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     final MorphFlight flight = showMorph(
       context,
       from: _tagId,
-      motion: widget.motion,
+      motion:
+          widget.motion ??
+          theme?.motion ??
+          MorphContextMenuRegion.measuredMotion,
       maxScrimOpacity: widget.maxScrimOpacity ?? theme?.maxScrimOpacity ?? 0.35,
       scrimColor: widget.scrimColor,
       shadowColor: widget.shadowColor,
@@ -665,6 +692,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       _geometry?.dispose();
       _geometry = geometry;
       geometry.attach(flight, vsync: this);
+      _followLanding(flight, hero.size);
       unawaited(
         flight.closed.whenComplete(() {
           geometry.dispose();
@@ -676,6 +704,32 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       widget.onOpen?.call(flight);
     }
     return flight;
+  }
+
+  /// Plays the close spring's undershoot past the latch on the source
+  /// hero: the lifted size is a linear function of the flight value, so
+  /// below zero the hero shrinks under its natural size by the same law.
+  void _followLanding(MorphFlight flight, Size natural) {
+    final double lift = widget.lifts
+        ? MorphContextMenuRegion.measuredPreviewScale(natural) - 1
+        : 0;
+    void land() {
+      if (mounted && identical(flight, _flight)) {
+        _landing.value = flight.isLanding
+            ? math.min(flight.controller.value, 0) * lift
+            : 0;
+      }
+    }
+
+    flight.frameTicks.addListener(land);
+    unawaited(
+      flight.closed.whenComplete(() {
+        flight.frameTicks.removeListener(land);
+        if (mounted && identical(flight, _flight)) {
+          _landing.value = 0;
+        }
+      }),
+    );
   }
 
   /// The source stays live in place. An explicit replica supplies every
@@ -839,10 +893,12 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     // exactly the pixels under the finger, and the wrapper chain is
     // identical at rest - no remount across the press.
     final Widget lifted = ListenableBuilder(
-      listenable: _press,
+      listenable: _heroScale,
       child: tagged,
       builder: (BuildContext context, Widget? child) => Transform.scale(
-        scale: _size.isEmpty ? 1 : 1 + _press.value / _size.longestSide,
+        scale:
+            (_size.isEmpty ? 1 : 1 + _press.value / _size.longestSide) +
+            _landing.value,
         child: child,
       ),
     );
@@ -886,10 +942,12 @@ class _Retract extends StatelessWidget {
       listenable: flight.frameTicks,
       child: child,
       builder: (BuildContext context, Widget? child) {
-        final double value = flight.controller.value.clamp(0.0, 1.0);
+        // The open's overshoot carries the satellites past their slots,
+        // as UIKit's menu overshoots with its preview.
+        final double value = math.max(flight.controller.value, 0);
         // One Transform on every frame, identity at rest: a tree that
         // changed shape at the boundary would remount the satellite.
-        if (value >= 1 || slot.width <= 0 || slot.height <= 0) {
+        if (value == 1 || slot.width <= 0 || slot.height <= 0) {
           return Transform(transform: Matrix4.identity(), child: child);
         }
         final Offset heroCenter =

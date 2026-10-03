@@ -500,6 +500,26 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   natural size. Fixture `ios27-device/context_menu/preview.json`
   (UIKit resizes the preview on one spring each way, response 0.284 s,
   damping 0.81, from the held size; the region rides its flight).
+- `MorphContextMenuRegion` flies on UIKit's context-menu spring
+  (iPhone 16 Pro, iOS 27): BREAKING (behavior, timing) the region's
+  default motion is NEW `measuredMotion` - `measuredSpring`, response
+  0.284 s and damping ratio 0.81, both ways - instead of the generic
+  flight profile (`MorphMotion.liquid`, 0.35 / 0.75 open and 0.49 /
+  0.80 close): the open reaches 90 percent in 0.137 s instead of
+  0.156 s, and the close is no longer half again as slow. An explicit
+  `motion` or a `MorphTheme` motion still wins. One recording per case
+  shows UIKit's preview resize and its menu growing out of and
+  retracting into the blob on that one spring each way, starting
+  together (within 0.6 percent of the travel); the satellites now ride
+  the open's 1.3 percent overshoot past their slots as UIKit's menu
+  does, and the close's undershoot past the latch plays on the source
+  hero, which dips below its natural size by the same 1.3 percent of
+  the lift (300 x 200: 0.4 points) before it rests. The dimming is not
+  on that spring - UIKit fades its black 0.2 dim on its own springs
+  (0.32 / 0.80 open, 0.35 / 0.85 close) a frame later; the region's
+  scrim still follows the flight. The probe gained `testW2CtxDim`
+  (backdrop filter inputs, `PROBE_W2FILTERS`); fixture
+  `ios27-device/context_menu/morph.json`.
 - Shared elements measure their target rect below the shuttle's reveal
   scale (0.95 - 1), in layout space: a flying element follows the lerp
   of its endpoint rects exactly instead of drifting toward the

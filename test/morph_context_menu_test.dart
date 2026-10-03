@@ -387,6 +387,8 @@ void main() {
 
   group('device preview', devicePreview);
 
+  group('device morph', deviceMorph);
+
   testWidgets('a tap passes through; a hold lifts the hero, then opens the '
       'menu; an action closes it', (WidgetTester tester) async {
     frame(tester);
@@ -569,7 +571,10 @@ void main() {
     const double blob =
         MorphContextMenuRegion.measuredRetractScale * 48 / _belowHeight;
     final double squeezed = rest.height * (blob + (1 - blob) * value);
-    expect(now.height, inInclusiveRange(squeezed * 0.95, squeezed + 0.01));
+    expect(
+      now.height,
+      inInclusiveRange(squeezed * 0.95 - 0.01, squeezed + 0.01),
+    );
     expect(
       (now.center.dy - hero().center.dy).abs(),
       lessThan((rest.center.dy - hero().center.dy).abs()),
@@ -1171,19 +1176,83 @@ const ValueKey<String> _flyingHero = ValueKey<String>(
 const double _previewResponse = 0.284;
 const double _previewDamping = 0.81;
 
-/// The progress of a spring of [_previewResponse] / [_previewDamping]
-/// released from rest [t] seconds ago.
-double _previewSpring(double t) {
+/// The progress of a spring of [response] and [damping] released from
+/// rest [t] seconds ago.
+double _springProgress(double response, double damping, double t) {
   if (t <= 0) {
     return 0;
   }
-  final double omega = 2 * math.pi / _previewResponse;
-  final double decay = _previewDamping * omega;
-  final double damped =
-      omega * math.sqrt(1 - _previewDamping * _previewDamping);
+  final double omega = 2 * math.pi / response;
+  final double decay = damping * omega;
+  final double damped = omega * math.sqrt(1 - damping * damping);
   return 1 -
       math.exp(-decay * t) *
           (math.cos(damped * t) + decay / damped * math.sin(damped * t));
+}
+
+/// The progress of a spring of [_previewResponse] / [_previewDamping]
+/// released from rest [t] seconds ago.
+double _previewSpring(double t) =>
+    _springProgress(_previewResponse, _previewDamping, t);
+
+/// The rms error of [samples] (`(t, progress)`) against a spring of
+/// [response] / [damping] released from rest at its best start, from
+/// 0.2 s before the first sample to 0.1 s after it, and that start.
+(double, double) _springFit(
+  List<(double, double)> samples, {
+  double response = _previewResponse,
+  double damping = _previewDamping,
+}) {
+  var best = (double.infinity, 0.0);
+  for (int i = -200; i < 400; i++) {
+    final double start = samples.first.$1 - i / 2000;
+    var squares = 0.0;
+    for (final (t, progress) in samples) {
+      final double error =
+          _springProgress(response, damping, t - start) - progress;
+      squares += error * error;
+    }
+    final double rms = math.sqrt(squares / samples.length);
+    if (rms < best.$1) {
+      best = (rms, start);
+    }
+  }
+  return best;
+}
+
+/// The rms error of [device] samples (`(t, value)`) against [ours] (`(t,
+/// value)`, dense from our own clock's zero), at the best placement of
+/// our zero on the device clock within 0.25 s before the first device
+/// sample.
+double _replayError(
+  List<(double, double)> device,
+  List<(double, double)> ours,
+) {
+  double at(double t) {
+    if (t <= ours.first.$1) {
+      return ours.first.$2;
+    }
+    for (int i = 1; i < ours.length; i++) {
+      final (double t1, double v1) = ours[i];
+      if (t <= t1) {
+        final (double t0, double v0) = ours[i - 1];
+        return v0 + (v1 - v0) * (t - t0) / (t1 - t0);
+      }
+    }
+    return ours.last.$2;
+  }
+
+  var best = double.infinity;
+  for (int i = 0; i < 500; i++) {
+    final double zero = device.first.$1 - i / 2000;
+    var squares = 0.0;
+    for (final (t, value) in device) {
+      final double error = at(t - zero) - value;
+      squares += error * error;
+    }
+    best = math.min(best, math.sqrt(squares / device.length));
+  }
+  return best;
 }
 
 /// The rms error of [samples] (`[t, growth]`) against the preview spring
@@ -1430,6 +1499,395 @@ void devicePreview() {
       expect((home.center - const Offset(201, 300)).distance, lessThan(1e-3));
       expect(home.width, moreOrLessEquals(size.width, epsilon: 0.01));
       expect(home.height, moreOrLessEquals(size.height, epsilon: 0.01));
+    });
+  }
+}
+
+/// One frame of a replayed hold: our clock, the visible hero and the
+/// menu satellite (null once the menu has left the screen).
+typedef _ReplayFrame = (double t, Rect hero, Rect? menu);
+
+/// Holds a [size] hero centered at 201, 300 on a 402 x 874 screen with a
+/// [menu] (`[center x, center y, width, height]`) below it, lets go after
+/// [release] seconds and closes the menu once it has settled. Returns
+/// every 8 ms frame from the launch on (`open`, our clock zero at the
+/// launch frame) and from the close on (`close`, zero at the close), and
+/// the hero's growth at takeoff.
+Future<({List<_ReplayFrame> open, List<_ReplayFrame> close, double grown})>
+_replayHold(
+  WidgetTester tester, {
+  required Size size,
+  required List<num> menu,
+  required double release,
+}) async {
+  tester.view.physicalSize = const Size(402, 874);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  MorphFlight? flight;
+  await tester.pumpWidget(
+    MaterialApp(
+      builder: (BuildContext context, Widget? child) =>
+          MorphScope(child: child!),
+      home: Stack(
+        children: <Widget>[
+          Positioned(
+            left: 201 - size.width / 2,
+            top: 300 - size.height / 2,
+            child: MorphContextMenuRegion(
+              alignment: Alignment.center,
+              onOpen: (MorphFlight f) => flight = f,
+              below: MorphSatellite(
+                height: menu[3].toDouble(),
+                builder: (BuildContext context, MorphFlight flight) => Center(
+                  child: SizedBox(
+                    key: _deviceMenu,
+                    width: menu[2].toDouble(),
+                    height: menu[3].toDouble(),
+                  ),
+                ),
+              ),
+              child: SizedBox.fromSize(
+                key: _heroBox,
+                size: size,
+                child: const ColoredBox(color: Color(0xFF0088FF)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+  Rect hero() {
+    final Finder flying = find.byKey(_flyingHero);
+    if (flying.evaluate().isNotEmpty) {
+      return tester.getRect(flying);
+    }
+    final MorphFlight? live = flight;
+    if (live != null && live.isLanding) {
+      return tester.getRect(find.byKey(_heroBox).first);
+    }
+    if (live != null && !live.isFinished && live.controller.value < 0.5) {
+      return live.sourceRect;
+    }
+    final Finder slot = find.descendant(
+      of: find.byType(Column),
+      matching: find.byKey(_heroBox),
+    );
+    if (slot.evaluate().isNotEmpty) {
+      return tester.getRect(slot);
+    }
+    return tester.getRect(find.byKey(_heroBox).first);
+  }
+
+  Rect? menuRect() {
+    final Finder found = find.byKey(_deviceMenu);
+    return found.evaluate().isEmpty ? null : tester.getRect(found);
+  }
+
+  final TestGesture gesture = await tester.startGesture(const Offset(201, 300));
+  await tester.pump();
+  final open = <_ReplayFrame>[];
+  double? grown;
+  var down = true;
+  for (int i = 0; i < 300; i++) {
+    if (down && i * 8 >= release * 1000) {
+      down = false;
+      await gesture.up();
+    }
+    await tester.pump(const Duration(milliseconds: 8));
+    final MorphFlight? live = flight;
+    if (live == null) {
+      continue;
+    }
+    grown ??= live.sourceRect.longestSide - size.longestSide;
+    open.add((open.length * 0.008, hero(), menuRect()));
+  }
+  expect(flight!.controller.isAnimating, isFalse);
+  flight!.close();
+  final close = <_ReplayFrame>[(0, hero(), menuRect())];
+  for (int i = 1; i <= 120; i++) {
+    await tester.pump(const Duration(milliseconds: 8));
+    close.add((i * 0.008, hero(), menuRect()));
+  }
+  expect(flight!.isFinished, isTrue);
+  return (open: open, close: close, grown: grown!);
+}
+
+void deviceMorph() {
+  final data =
+      (jsonDecode(
+                File(
+                  'test/fixtures/ios27-device/context_menu/morph.json',
+                ).readAsStringSync(),
+              )
+              as Map)
+          .cast<String, Object?>();
+  final cases = (data['cases']! as List).cast<Map<String, Object?>>();
+  final preview =
+      (jsonDecode(
+                File(
+                  'test/fixtures/ios27-device/context_menu/preview.json',
+                ).readAsStringSync(),
+              )
+              as Map)
+          .cast<String, Object?>();
+  final previewCases = (preview['cases']! as List).cast<Map<String, Object?>>();
+  List<List<double>>? frames(Object? raw) => raw == null
+      ? null
+      : <List<double>>[
+          for (final sample in (raw as List).cast<List<Object?>>())
+            <double>[for (final value in sample) (value! as num).toDouble()],
+        ];
+  List<num> numbers(Map<String, Object?> c, String key) =>
+      (c[key]! as List).cast<num>();
+  Size card(Map<String, Object?> c) {
+    final size = numbers(c, 'card');
+    return Size(size[0].toDouble(), size[1].toDouble());
+  }
+
+  double lift(Size size) =>
+      (MorphContextMenuRegion.measuredPreviewScale(size) - 1) *
+      size.longestSide;
+
+  test('UIKit moves the preview and the menu on one spring each way; the '
+      'dimming runs on its own, a frame later', () {
+    const MorphSpring spring = MorphContextMenuRegion.measuredSpring;
+    expect(spring.response, _previewResponse);
+    expect(spring.dampingRatio, _previewDamping);
+    expect(
+      MorphContextMenuRegion.measuredMotion.openSpring,
+      same(MorphContextMenuRegion.measuredMotion.closeSpring),
+    );
+    expect(cases, hasLength(4));
+    for (final c in cases) {
+      final String name = c['name']! as String;
+      final size = card(c);
+      final double lifted = lift(size);
+      final double menuY = numbers(c, 'menuRect')[1].toDouble();
+      final menu = (c['menu']! as Map).cast<String, Object?>();
+      final previewParts = (c['preview']! as Map).cast<String, Object?>();
+      final dim = (c['dim']! as Map).cast<String, Object?>();
+      // The menu grows out of the preview's center and retracts into it.
+      final menuOpen = <(double, double)>[
+        for (final f in frames(menu['open'])!)
+          (f[0], (f[2] - 300) / (menuY - 300)),
+      ];
+      final menuClose = <(double, double)>[
+        for (final f in frames(menu['close'])!)
+          (f[0], (menuY - f[2]) / (menuY - 300)),
+      ];
+      final previewClose = <(double, double)>[
+        for (final f in frames(previewParts['close'])!)
+          (f[0], 1 - (math.max(f[3], f[4]) - size.longestSide) / lifted),
+      ];
+      final (double menuOpenError, double menuOpenStart) = _springFit(menuOpen);
+      final (double menuCloseError, double menuCloseStart) = _springFit(
+        menuClose,
+      );
+      final (double previewCloseError, double previewCloseStart) = _springFit(
+        previewClose,
+      );
+      expect(menuOpenError, lessThan(0.006), reason: '$name menu open');
+      expect(menuCloseError, lessThan(0.006), reason: '$name menu close');
+      expect(previewCloseError, lessThan(0.007), reason: '$name preview close');
+      expect(
+        (menuCloseStart - previewCloseStart).abs(),
+        lessThan(0.004),
+        reason: '$name: the preview and the menu close together',
+      );
+      // The generic flight springs miss the same frames by several
+      // percent of the travel.
+      for (final MorphSpring other in <MorphSpring>[
+        MorphMotion.liquid.openSpring!,
+        MorphMotion.liquid.closeSpring!,
+      ]) {
+        expect(
+          _springFit(
+            menuClose,
+            response: other.response,
+            damping: other.dampingRatio,
+          ).$1,
+          greaterThan(0.015),
+          reason: name,
+        );
+      }
+      // The dimming: black at 0.2 with its alpha on a slower spring each
+      // way, launched about 12 ms after the geometry.
+      final dimOpen = <(double, double)>[
+        for (final f in frames(dim['open'])!) (f[0], f[1]),
+      ];
+      final dimClose = <(double, double)>[
+        for (final f in frames(dim['close'])!) (f[0], 1 - f[1]),
+      ];
+      final (double dimOpenError, double dimOpenStart) = _springFit(
+        dimOpen,
+        response: 0.32,
+        damping: 0.80,
+      );
+      final (double dimCloseError, double dimCloseStart) = _springFit(
+        dimClose,
+        response: 0.35,
+        damping: 0.85,
+      );
+      expect(dimOpenError, lessThan(0.004), reason: '$name dim open');
+      expect(dimCloseError, lessThan(0.003), reason: '$name dim close');
+      expect(_springFit(dimOpen).$1, greaterThan(0.012), reason: name);
+      expect(_springFit(dimClose).$1, greaterThan(0.04), reason: name);
+      expect(
+        dimOpenStart - menuOpenStart,
+        inInclusiveRange(0.008, 0.016),
+        reason: name,
+      );
+      expect(
+        dimCloseStart - menuCloseStart,
+        inInclusiveRange(0.008, 0.016),
+        reason: name,
+      );
+    }
+  });
+
+  test('the measured close dips below its rest, so the handoff latch '
+      'fires on its zero crossing', () {
+    final Simulation close = MorphContextMenuRegion.measuredMotion.closeMotion
+        .createSimulation(start: 1, end: 0);
+    var lowest = 1.0;
+    double? crossing;
+    for (int i = 1; i <= 1000; i++) {
+      final double t = i / 1000;
+      final double x = close.x(t);
+      if (crossing == null && x < 0) {
+        crossing = t;
+      }
+      lowest = math.min(lowest, x);
+    }
+    expect(crossing, isNotNull);
+    expect(crossing, closeTo(0.19, 0.01));
+    expect(lowest, closeTo(-0.013, 0.002));
+  });
+
+  for (final String name in <String>['ctxd-m-1', 'ctxd-l-1']) {
+    testWidgets('$name: the hero and the menu replay the device morph, open '
+        'and close', (WidgetTester tester) async {
+      final c = cases.firstWhere((Map<String, Object?> c) => c['name'] == name);
+      final size = card(c);
+      final double lifted = lift(size);
+      final List<num> menu = numbers(c, 'menuRect');
+      final double menuY = menu[1].toDouble();
+      final run = await _replayHold(
+        tester,
+        size: size,
+        menu: menu,
+        release: 1.0,
+      );
+      double growth(Rect r) => r.longestSide - size.longestSide;
+      final parts = (c['menu']! as Map).cast<String, Object?>();
+      final previewParts = (c['preview']! as Map).cast<String, Object?>();
+      // Our menu's own endpoints: its center at the launch, at rest, and
+      // on the last frame before the latch (the flight value within a
+      // percent of zero).
+      final double launchY = run.open.first.$3!.center.dy;
+      final double restY = run.close.first.$3!.center.dy;
+      final double homeY = run.close
+          .lastWhere((_ReplayFrame f) => f.$3 != null)
+          .$3!
+          .center
+          .dy;
+      final ourMenuOpen = <(double, double)>[
+        for (final (t, _, menuRect) in run.open)
+          if (menuRect != null)
+            (t, (menuRect.center.dy - launchY) / (restY - launchY)),
+      ];
+      final ourMenuClose = <(double, double)>[
+        for (final (t, _, menuRect) in run.close)
+          if (menuRect != null)
+            (t, (restY - menuRect.center.dy) / (restY - homeY)),
+      ];
+      final ourHeroClose = <(double, double)>[
+        for (final (t, hero, _) in run.close) (t, 1 - growth(hero) / lifted),
+      ];
+      final deviceMenuOpen = <(double, double)>[
+        for (final f in frames(parts['open'])!)
+          (f[0], (f[2] - 300) / (menuY - 300)),
+      ];
+      final deviceMenuClose = <(double, double)>[
+        for (final f in frames(parts['close'])!)
+          if (f[2] > 300 + 0.05 * (menuY - 300))
+            (f[0], (menuY - f[2]) / (menuY - 300)),
+      ];
+      final deviceHeroClose = <(double, double)>[
+        for (final f in frames(previewParts['close'])!)
+          (f[0], 1 - (math.max(f[3], f[4]) - size.longestSide) / lifted),
+      ];
+      expect(
+        _replayError(deviceMenuOpen, ourMenuOpen),
+        lessThan(0.01),
+        reason: 'menu open',
+      );
+      expect(
+        _replayError(deviceMenuClose, ourMenuClose),
+        lessThan(0.01),
+        reason: 'menu close',
+      );
+      expect(
+        _replayError(deviceHeroClose, ourHeroClose),
+        lessThan(0.01),
+        reason: 'hero close',
+      );
+    });
+  }
+
+  for (final String name in <String>[
+    'ctxg-s-1200',
+    'ctxg-m-1200',
+    'ctxg-t-1200',
+    'ctxg-l-1200',
+  ]) {
+    testWidgets('$name: the hero replays the device preview, open and '
+        'close', (WidgetTester tester) async {
+      final c = previewCases.firstWhere(
+        (Map<String, Object?> c) => c['name'] == name,
+      );
+      final size = card(c);
+      final double lifted = lift(size);
+      final double frozen = ((c['frozen']! as List)[1]! as num).toDouble();
+      final run = await _replayHold(
+        tester,
+        size: size,
+        menu: numbers(c, 'menu'),
+        release: (c['liftUp']! as num).toDouble(),
+      );
+      double growth(Rect r) => r.longestSide - size.longestSide;
+      final double grown = run.grown;
+      final ourOpen = <(double, double)>[
+        for (final (t, hero, _) in run.open)
+          (t, (growth(hero) - grown) / (lifted - grown)),
+      ];
+      final ourClose = <(double, double)>[
+        for (final (t, hero, _) in run.close) (t, 1 - growth(hero) / lifted),
+      ];
+      final deviceOpen = <(double, double)>[
+        for (final f in frames(c['open'])!)
+          (
+            f[0],
+            (math.max(f[3], f[4]) - size.longestSide - frozen) /
+                (lifted - frozen),
+          ),
+      ];
+      final deviceClose = <(double, double)>[
+        for (final f in frames(c['close'])!)
+          (f[0], 1 - (math.max(f[3], f[4]) - size.longestSide) / lifted),
+      ];
+      // In points of the device's own travel.
+      expect(
+        _replayError(deviceOpen, ourOpen) * (lifted - frozen).abs(),
+        lessThan(0.12),
+        reason: 'open',
+      );
+      expect(
+        _replayError(deviceClose, ourClose) * lifted,
+        lessThan(0.25),
+        reason: 'close',
+      );
     });
   }
 }

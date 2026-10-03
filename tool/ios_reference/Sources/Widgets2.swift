@@ -59,6 +59,7 @@ final class W2Sampler: NSObject {
     private var lsig: [ObjectIdentifier: String] = [:]
     private let rootDepth = Int(ProcessInfo.processInfo.environment["PROBE_W2DEPTH"] ?? "7") ?? 7
     private let logAnims = ProcessInfo.processInfo.environment["PROBE_W2ANIMS"] != "0"
+    private let filterInputs = ProcessInfo.processInfo.environment["PROBE_W2FILTERS"] == "1"
 
     func start(pattern raw: String) {
         pattern = try? NSRegularExpression(pattern: raw)
@@ -125,7 +126,17 @@ final class W2Sampler: NSObject {
         if let pv = v as? UIProgressView { row["pv"] = Double(pv.progress) }
         if let pc = v as? UIPageControl { row["page"] = pc.currentPage }
         if let fl = p.filters as? [NSObject], !fl.isEmpty {
-            row["flt"] = fl.map { (Probe.object($0, "name") as? String) ?? "?" }
+            let names = fl.map { (Probe.object($0, "name") as? String) ?? "?" }
+            row["flt"] = names
+            if filterInputs {
+                var inputs: [String: Double] = [:]
+                for n in names where n != "?" {
+                    for key in ["inputRadius", "inputAmount", "inputScale", "inputBias"] {
+                        if let num = p.value(forKeyPath: "filters.\(n).\(key)") as? NSNumber { inputs["\(n).\(key)"] = r4(CGFloat(num.doubleValue)) }
+                    }
+                }
+                if !inputs.isEmpty { row["fin"] = inputs }
+            }
         }
         let s = row.description
         if sig[oid] != s {
