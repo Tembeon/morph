@@ -42,3 +42,12 @@ WP-C left open: PF9 (edge effect BackdropFilter not grouped - visual change, WP-
 
 WP-B follow-ups for WP-A (route.dart/flight.dart): add `MorphFlight.geometryTicks` (frameTicks without the scrim) and point the skin at it (PF6 tail); flight/route defaults onto MorphTheme.default*; showMorphRoute resolves MorphTheme.scrimMotion and accepts `modal`; route.dart launches via MorphScope.of(nav.context) (K4 route side). For WP-D: sheet.dart:111 and navigation_stack.dart:564 should use tryTagOf and degrade.
 OWNER DECISION (A8): engine flights clamp size/shape at the target past value 1 (only the centre overshoots), but the device context-menu fixture shows UIKit containers overshoot in size. Changing the pinned rule in morph_frame_test is the owner's call.
+
+## Submenu calibration by film (42b53f7, 7c6f414, e5aa1ca, 0cc68ff)
+
+- Menu submenu cards hand their header back to the row they came from, so the row no longer blinks out when a card closes; the source row hides behind the header while the card shows.
+- Submenu cards are a translucent platter that blurs and brightens the list under it, with a top rim and an outside shadow. BREAKING: `MorphMenuStyle.submenuColor` is now a translucent tint, not an opaque fill; new `submenuRimColor` and `submenuShadowColor`.
+- Closing the menu with a submenu open shrinks the open card with the drop, unblurred and centred, fading near the end; a card row closes the menu 0.015 s after the lift.
+- New `MorphMenuTuning` fields: submenuCloseDelay, cardRowsFadeIn, cardRowsFadeOut, cardPlatterFade, cardHeaderBoldStart, cardHeaderBoldEnd, cardChevronTurn, cardChevronBack, cardCloseFadeEnd, cardCloseCenter, cardBlur, cardGone. New `MorphMenuCard` fields: contentTop, rowsOpacity, platterOpacity, headerBold, chevronTurn, closeOpacity, backing, source.
+
+Left (passport): dark film unusable (recorder dropped frames; dark judged from stills), close drop starts from the whole menu instead of the list under the card, native shows no row tap highlight in these films (ours highlights), chevron turn/bold switch eyeballed, header chevron slightly large.
