@@ -877,6 +877,21 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   dim was 0.35 riding the flight value. Its satellites now unfold out of
   and retract into the held view's center (a menu below a 300 x 200
   view used to land 15 pt low).
+- `MorphMenuButton`'s two shapes fuse as UIKit's do: the morph container
+  is an SDF layer with no smoothness whose distance field is blurred by
+  a Gaussian of up to 20 pt (`MorphMenuTuning.fusionRadius`, read from
+  the device's `gaussianRadius` and replayed against film of a ten-row
+  menu closing into a bottom button). The blur rises with every open and
+  close and falls back to nothing (`fusionEnvelope`); while it lasts the
+  facing edges draw to a point, the shrunk button is absorbed and a neck
+  joins the shapes across the gap where a separate ball used to show.
+  The motion hands the fused silhouette out (`MorphMenuMotion.silhouette`,
+  `fusionRadius`), the flat glass draws it, and painters receive it
+  through the glass seam. BREAKING for glass painters:
+  `MorphGlassPainter.buildLayer` takes an `outline:` - the silhouette a
+  control already fused its glass surfaces into - and a new `buildBody`
+  draws it (the default fills it flat); an override of `buildLayer` must
+  accept the new parameter.
 
 ## 0.6.0 - 2026-09-03
 

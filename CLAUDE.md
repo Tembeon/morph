@@ -221,7 +221,31 @@ Public pieces:
   glass button that becomes its own menu. `MorphMenuMorphSpec.standard`
   is the `liquidMorph` tuning read live (speed 0.7 DIVIDES time: eject
   0.5/0.75 -> 0.35/0.75 open, absorb 0.7/0.8 -> 0.49/0.80 close). Two
-  blobs drawn as a UNION, no neck: the menu blob G = a W x W square
+  blobs FUSED BY A BLURRED SDF (2026-10-03, device layer log + film of the
+  bottom-centre ten-row menu, fixture ios27-device/menu/fusion.json,
+  menu_fusion_test): UIKit's morph container is an
+  AnimationKit.LensingSDFLayer with smoothness 0 (plain min of its two
+  CASDFElementLayers) whose distance field is Gaussian-blurred by its
+  `gaussianRadius` AS A STANDARD DEVIATION (film fit 0.9 - 1.2 x, best
+  1.0; row widths ~2 pt rms incl. a ~1 pt rim bias of the film). The
+  radius is an envelope per open/close, not a spring of the progress:
+  20 x (1 - exp(-t / rise)) x critically damped fall on 0.4286 s
+  (= blurIn 0.3 / speed 0.7, free fit 0.424 - 0.433) after a hold; open
+  rise 0.0161 hold 0.199 (clamped at 20), close rise 0.0213 hold 0.057
+  amplitude 20.95 (peaks 19.7); cut to 0 under 0.2; a reversal takes the
+  max of the running envelopes (continuous value, not velocity). The
+  blur makes the facing edges POINTED, eats the small shrunk button
+  (it vanishes ~30 ms into a tall close and comes back as a drop), then
+  a NECK joins them across the ~19 pt gap; it also narrows each shape by
+  ~s^2 / 2r. MorphMenuFusion / morphMenuSilhouette (menu_fusion.dart):
+  SDF on a grid of step clamp(s/3, 2, 6), separable blur evaluated only
+  within 1.26 s + 1.5 step of the edge (a blur moves an SDF by at most
+  s sqrt(pi/2)), traced by liquidGridContours (the skin's marching
+  squares + stitch + Chaikin, factored out of _traceCluster); under 1 pt
+  the silhouette is the plain union (null outline). The motion exposes
+  `fusionRadius` and `silhouette`; the vessel AND the button after the
+  latch hand it to the flat painter and to `buildLayer(outline:)`. The
+  menu blob G = a W x W square
   scaled to half the button height that stretches to the menu height
   while scaling up, center lerped button -> menu plus a VERTICAL kick;
   the button blob S shrinks to 0.25 scale and travels 0.25 of the way.
@@ -794,7 +818,11 @@ Public pieces:
   group when several - the menu fuses with its button) reading the
   nearest BackdropGroup's shared copy (root group in GalleryApp, own
   groups for the glass page's scene and card; bars/menus take their own
-  copy); a menu fuses with its button (blend group, 18) and a bar's
+  copy); a menu meets its button in a blend group of 0.5 (their plain
+  union - the neck is the package's: while fused the layer gets the
+  menu's `outline`, the liquid shapes are clipped to it and frost fills
+  the neck; the renderer cannot shade an arbitrary outline yet) and a
+  bar's
   capsules fuse at the bar's container spacing (`buildLayer(spacing:)`,
   12: groups 12 apart stay separate - they melted at 18 before); a
   resting lens/knob/thumb
@@ -1829,8 +1857,9 @@ Hard-won rules still enforced in the core:
   knobs, menus.
 - Content arrives WITH its surface: no cascades (UIKit's menu rows and
   context-menu satellites do not cascade).
-- "One mass - one shadow" for engine flights; the menu is two blobs in
-  a union with no neck (as UIKit draws it); the skin merges by the
+- "One mass - one shadow" for engine flights; the menu is two blobs
+  fused by UIKit's blurred SDF (a transient Gaussian of up to 20 pt on
+  their union, so a neck while they part); the skin merges by the
   normal-modulated smin.
 - Deformation comes from UIKit's flex loop (acceleration, not
   velocity), never from a hand-made squash.

@@ -973,6 +973,32 @@ _ClusterTrace _traceCluster(
     }
   }
 
+  final List<(Offset, Offset)> segments = _marchGrid(
+    values,
+    cols,
+    rows,
+    b.left,
+    b.top,
+    step,
+    sampler.eval,
+  );
+
+  return _ClusterTrace(_stitch(segments, step), extraSmoothPasses);
+}
+
+/// Marching squares over a sampled grid: the segments of the zero
+/// iso-contour of [values] ([cols] x [rows], row-major, vertex (i, j) at
+/// ([left] + i [step], [top] + j [step])). [centerAt] resolves the two
+/// saddle cases by the field at a cell's center.
+List<(Offset, Offset)> _marchGrid(
+  Float64List values,
+  int cols,
+  int rows,
+  double left,
+  double top,
+  double step,
+  double Function(double x, double y) centerAt,
+) {
   final List<(Offset, Offset)> segments = <(Offset, Offset)>[];
   for (int j = 0; j < rows - 1; j++) {
     for (int i = 0; i < cols - 1; i++) {
@@ -997,8 +1023,8 @@ _ClusterTrace _traceCluster(
         continue;
       }
 
-      final double x0 = b.left + i * step;
-      final double y0 = b.top + j * step;
+      final double x0 = left + i * step;
+      final double y0 = top + j * step;
       final double x1 = x0 + step;
       final double y1 = y0 + step;
 
@@ -1011,7 +1037,7 @@ _ClusterTrace _traceCluster(
 
       List<List<int>> cases = _kEdgeTable[mask];
       if (mask == 5 || mask == 10) {
-        final double center = sampler.eval((x0 + x1) / 2, (y0 + y1) / 2);
+        final double center = centerAt((x0 + x1) / 2, (y0 + y1) / 2);
         final bool insideCenter = center < 0;
         final List<List<int>> joined = <List<int>>[
           <int>[3, 0],
@@ -1033,7 +1059,49 @@ _ClusterTrace _traceCluster(
     }
   }
 
-  return _ClusterTrace(_stitch(segments, step), extraSmoothPasses);
+  return segments;
+}
+
+/// The zero iso-contour of a field sampled on a grid, as closed loops
+/// smoothed by [smoothPasses] Chaikin passes: [values] holds [cols] x
+/// [rows] samples, row-major, the vertex (i, j) at ([left] + i [step],
+/// [top] + j [step]). Negative is inside. A saddle cell is resolved by
+/// the mean of its corners.
+@internal
+List<List<Offset>> liquidGridContours(
+  Float64List values,
+  int cols,
+  int rows, {
+  required double left,
+  required double top,
+  required double step,
+  int smoothPasses = 2,
+}) {
+  assert(values.length == cols * rows, 'values must hold cols x rows.');
+  final List<(Offset, Offset)> segments = _marchGrid(
+    values,
+    cols,
+    rows,
+    left,
+    top,
+    step,
+    (double x, double y) {
+      final int i = ((x - left) / step).floor().clamp(0, cols - 2);
+      final int j = ((y - top) / step).floor().clamp(0, rows - 2);
+      return (values[j * cols + i] +
+              values[j * cols + i + 1] +
+              values[(j + 1) * cols + i] +
+              values[(j + 1) * cols + i + 1]) /
+          4;
+    },
+  );
+  final List<List<Offset>> loops = _stitch(segments, step);
+  if (smoothPasses <= 0) {
+    return loops;
+  }
+  return <List<Offset>>[
+    for (final List<Offset> loop in loops) _chaikin(loop, smoothPasses),
+  ];
 }
 
 /// Stitches loose segments into closed loops: endpoints snap together

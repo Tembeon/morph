@@ -1,4 +1,5 @@
 {
+ "fusion": "fusion.json (2026-10-03): the morph container's gaussianRadius (lens_gauss in the f rows) per change for two opens and two closes of the bottom10 scene, and five filmed close frames of the same scene with the silhouette width per row and the logged element geometry at that moment. The container is an SDF layer with smoothness 0 whose field is blurred by gaussianRadius as a standard deviation (fit 0.9 - 1.2).",
  "device": "iPhone 16 Pro (iPhone17,1) real device, iOS 27.0.1, 402x874 pt @3x, ProMotion; display link 120 Hz (CADisableMinimumFrameDurationOnPhone, preferredFrameRateRange 80..120 pref 120)",
  "probe": "tool/ios_reference (device.sh, ProbeUITests); compacted by /tmp/morph-native/device/export.py",
  "simulator_counterpart": "test/fixtures/ios27/menu",

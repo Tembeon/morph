@@ -22,6 +22,23 @@ class FrostedGlassPainter extends MorphGlassPainter {
   };
 
   @override
+  Widget buildBody(
+    BuildContext context,
+    Path outline,
+    List<MorphGlassSurface> surfaces,
+  ) {
+    final surface = surfaces.first;
+    final sigma = _sigma(surface);
+    return ClipPath(
+      clipper: _OutlineClip(outline),
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        child: ColoredBox(color: surface.color),
+      ),
+    );
+  }
+
+  @override
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) {
     final shape = surface.localShape;
     final radius = BorderRadius.only(
@@ -60,6 +77,18 @@ class FrostedGlassPainter extends MorphGlassPainter {
       ),
     );
   }
+}
+
+class _OutlineClip extends CustomClipper<Path> {
+  const _OutlineClip(this.outline);
+
+  final Path outline;
+
+  @override
+  Path getClip(Size size) => outline;
+
+  @override
+  bool shouldReclip(_OutlineClip oldClipper) => oldClipper.outline != outline;
 }
 
 /// The gallery's glass settings and a sample of every control over a

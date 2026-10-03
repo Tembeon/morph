@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
 import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
@@ -21,8 +22,12 @@ enum LiquidGlassMaterial {
 /// Only surfaces that are glass in iOS 27 become glass: a plain surface
 /// (`MorphGlassSurface.glass` false - the segmented, switch and slider
 /// tracks, the stepper) is a flat fill. A control's glass body surfaces
-/// (bar, button, menu) share a layer, and a menu fuses with its button in
-/// a blend group; the capsules of a bar form a blend group of the bar's
+/// (bar, button, menu) share a layer; a menu and its button meet without
+/// a neck of the renderer's own, because the menu hands its fused
+/// silhouette as the layer's outline while the two are fused: the glass
+/// shapes are clipped to the outline and frost fills the neck beyond them
+/// (the renderer cannot yet shade an arbitrary outline). The capsules of
+/// a bar form a blend group of the bar's
 /// container spacing (12, so resting groups 12 apart stay separate and
 /// only capsules passing closer during an item change fuse). A resting lens,
 /// knob or thumb is an opaque platter under the control's content;
@@ -212,8 +217,10 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   /// The lift below which a lens, knob or thumb is only its platter.
   static const double restingLift = 0.005;
 
-  /// The distance within which a menu fuses with its button.
-  static const double blend = 18;
+  /// The blend of a menu and its button in their group: next to nothing,
+  /// so the two meet as their plain union; the neck between them comes
+  /// from the menu's own outline.
+  static const double blend = 0.5;
 
   static bool _floats(MorphGlassKind kind) => switch (kind) {
     MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb => true,
@@ -416,6 +423,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
     Widget? content,
     List<Rect> contentSlots = const [],
     double spacing = 0,
+    Path? outline,
   }) {
     final visible = surfaces.where(_visible).toList();
     final fills = [
@@ -456,7 +464,18 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
         if (body.isNotEmpty)
           Positioned.fill(
             key: const ValueKey<String>('body'),
-            child: _layer(body, shared: !chrome, spacing: spacing),
+            child: outline == null
+                ? _layer(body, shared: !chrome, spacing: spacing)
+                : ClipPath(
+                    clipper: _OutlineClip(outline),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        _Frost(surface: body.first, sigma: blur * 14),
+                        _layer(body, shared: !chrome, spacing: spacing),
+                      ],
+                    ),
+                  ),
           ),
         for (var i = 0; i < body.length; i++)
           if (body[i].glow != null)
@@ -517,6 +536,41 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
             ),
           ],
       ],
+    );
+  }
+}
+
+/// Clips to a fused outline handed to the layer.
+class _OutlineClip extends CustomClipper<Path> {
+  const _OutlineClip(this.outline);
+
+  final Path outline;
+
+  @override
+  Path getClip(Size size) => outline;
+
+  @override
+  bool shouldReclip(_OutlineClip oldClipper) => oldClipper.outline != outline;
+}
+
+/// Frosted glass over the whole box: the backdrop blurred by [sigma] and
+/// tinted by [surface]'s color, for the parts of a fused body the liquid
+/// shapes do not cover.
+class _Frost extends StatelessWidget {
+  const _Frost({required this.surface, required this.sigma});
+
+  final MorphGlassSurface surface;
+  final double sigma;
+
+  @override
+  Widget build(BuildContext context) {
+    return BackdropFilter(
+      filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+      child: ColoredBox(
+        color: surface.color.withValues(
+          alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
+        ),
+      ),
     );
   }
 }

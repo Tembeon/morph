@@ -577,6 +577,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
       source: source.rrect.shift(origin),
       sourceRect: source.rect.shift(origin),
       sourceScale: source.scale,
+      outline: motion.silhouette?.shift(origin),
     );
   }
 
@@ -635,7 +636,8 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
 
 /// Both shapes of the morph and the button's look inside the shrinking
 /// one, in the coordinates of the box this is laid out in; with no [menu]
-/// it is the resting button.
+/// it is the resting button. An [outline] is the silhouette the two
+/// shapes fuse into; without one they are drawn as their union.
 ///
 /// The look fades only with a [look]: on the button (resting, or after
 /// the latch, where the progress is at or under zero) it is drawn
@@ -652,6 +654,7 @@ class _MenuShapes extends StatelessWidget {
     this.lookStretch = 1,
     this.look,
     this.content,
+    this.outline,
   });
 
   final MorphMenuStyle style;
@@ -663,6 +666,7 @@ class _MenuShapes extends StatelessWidget {
   final double lookStretch;
   final ({double opacity, double blur})? look;
   final Widget? content;
+  final Path? outline;
 
   @override
   Widget build(BuildContext context) {
@@ -680,7 +684,12 @@ class _MenuShapes extends StatelessWidget {
     final Widget surfaces;
     if (glass == null) {
       surfaces = CustomPaint(
-        painter: _GlassPainter(style: style, menu: menu, source: source),
+        painter: _GlassPainter(
+          style: style,
+          menu: menu,
+          source: source,
+          outline: outline,
+        ),
       );
     } else {
       final brightness = morphBrightnessOf(context);
@@ -698,7 +707,7 @@ class _MenuShapes extends StatelessWidget {
             color: style.glassColor,
             brightness: brightness,
           ),
-      ]);
+      ], outline: menu == null ? null : outline);
     }
     return Stack(
       clipBehavior: .none,
@@ -814,6 +823,7 @@ class MorphMenuLayer extends StatelessWidget {
               source: source.rrect,
               sourceRect: source.rect,
               sourceScale: source.scale,
+              outline: motion.silhouette,
               lookStretch: motion.buttonLookStretch,
               look: (
                 opacity: motion.buttonLookOpacity,
@@ -980,21 +990,33 @@ class _MenuRows extends StatelessWidget {
   }
 }
 
-/// The glass of both shapes as one union, or the resting button when
-/// there is no [menu].
+/// The glass of both shapes as one body - their fused [outline], or their
+/// union without one - or the resting button when there is no [menu].
 class _GlassPainter extends CustomPainter {
-  const _GlassPainter({required this.style, required this.source, this.menu});
+  const _GlassPainter({
+    required this.style,
+    required this.source,
+    this.menu,
+    this.outline,
+  });
 
   final MorphMenuStyle style;
   final RRect source;
   final RRect? menu;
+  final Path? outline;
 
   @override
   void paint(Canvas canvas, Size size) {
     final menu = this.menu;
-    final shape = Path();
-    shape.addRRect(source);
-    if (menu != null) shape.addRRect(menu);
+    final outline = this.outline;
+    final Path shape;
+    if (menu != null && outline != null) {
+      shape = outline;
+    } else {
+      shape = Path();
+      shape.addRRect(source);
+      if (menu != null) shape.addRRect(menu);
+    }
     canvas.drawShadow(shape, style.shadowColor, style.shadowElevation, true);
     final fill = Paint();
     fill.color = style.glassColor;
@@ -1005,6 +1027,7 @@ class _GlassPainter extends CustomPainter {
   bool shouldRepaint(_GlassPainter oldDelegate) =>
       oldDelegate.menu != menu ||
       oldDelegate.source != source ||
+      oldDelegate.outline != outline ||
       oldDelegate.style != style;
 }
 

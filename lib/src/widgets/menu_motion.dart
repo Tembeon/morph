@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/src/widgets/menu_morph_spec.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -58,6 +59,14 @@ class MorphMenuTuning {
     this.flexGain = 0.033,
     this.flexLimit = 2,
     this.flexSpring = const MorphSpring(0.15, 0.5),
+    this.fusionRadius = 20,
+    this.fusionCloseAmplitude = 20.95,
+    this.fusionOpenRise = 0.0161,
+    this.fusionCloseRise = 0.0213,
+    this.fusionOpenHold = 0.199,
+    this.fusionCloseHold = 0.057,
+    this.fusionSpring = const MorphSpring(0.4286, 1),
+    this.fusionCutoff = 0.2,
   });
 
   /// The morph tuning the menu's open and close springs come from.
@@ -256,6 +265,72 @@ class MorphMenuTuning {
 
   /// The spring of the lean toward a finger.
   final MorphSpring flexSpring;
+
+  /// The largest fusion radius: the standard deviation, in pixels, of
+  /// the Gaussian that blurs the distance field of the two shapes.
+  ///
+  /// Read from the morph container's `gaussianRadius` on the device
+  /// (iOS 27.0.1, iPhone 16 Pro): the container is one SDF layer with
+  /// smoothness 0, so the shapes are joined only by this blur, which
+  /// rises to 20 at every open and close and falls back to 0. A blur of
+  /// this standard deviation reproduces the filmed silhouettes, neck
+  /// included, of a ten-row menu closing into a bottom button (fit 0.9
+  /// to 1.2 times the logged radius; 1.1 pt rms in row width).
+  final double fusionRadius;
+
+  /// The amplitude of the closing fusion envelope, in pixels; the
+  /// envelope peaks at 19.7 because its fall starts before its rise
+  /// ends. Fitted to the logged `gaussianRadius` of two closes (0.13 pt
+  /// rms).
+  final double fusionCloseAmplitude;
+
+  /// The time constant, in seconds, of the fusion's rise when the menu
+  /// opens. Fitted to two logged opens (0.4 pt rms, the fit's spread
+  /// 0.016 to 0.017).
+  final double fusionOpenRise;
+
+  /// The time constant, in seconds, of the fusion's rise when the menu
+  /// closes. Fitted to two logged closes.
+  final double fusionCloseRise;
+
+  /// Seconds after an open at which the fusion starts to fall.
+  final double fusionOpenHold;
+
+  /// Seconds after a close at which the fusion starts to fall.
+  final double fusionCloseHold;
+
+  /// The spring the fusion falls on, critically damped: fitted free to
+  /// 0.424 to 0.433 s in both directions, the `liquidMorph` blur-in
+  /// spring 0.3 at its speed of 0.7.
+  final MorphSpring fusionSpring;
+
+  /// The fusion radius under which the container drops its blur: the
+  /// device's logged radius jumps from 0.18 to 0.
+  final double fusionCutoff;
+
+  /// The fusion envelope [t] seconds after an open, or a close when
+  /// [opening] is false, before it is limited to [fusionRadius].
+  ///
+  /// It rises as `1 - exp(-t / rise)` and, after the hold, falls as a
+  /// critically damped spring released from rest.
+  double fusionEnvelope(double t, {required bool opening}) {
+    if (t <= 0) return 0;
+    final rise = opening ? fusionOpenRise : fusionCloseRise;
+    final hold = opening ? fusionOpenHold : fusionCloseHold;
+    final amplitude = opening ? fusionRadius : fusionCloseAmplitude;
+    final fall = math.max(t - hold, 0.0);
+    final w = 2 * math.pi / fusionSpring.response;
+    return amplitude *
+        (1 - math.exp(-t / rise)) *
+        (1 + w * fall) *
+        math.exp(-w * fall);
+  }
+
+  /// Whether the fusion envelope started [t] seconds ago has fallen
+  /// under [fusionCutoff] for good.
+  bool fusionEnded(double t, {required bool opening}) =>
+      t > (opening ? fusionOpenHold : fusionCloseHold) &&
+      fusionEnvelope(t, opening: opening) < fusionCutoff;
 
   /// The height of a menu with [rows] rows.
   double menuHeight(int rows) => 2 * verticalPadding + rowHeight * rows;
@@ -468,6 +543,8 @@ class MorphMenuMotion {
   final _DrivenKick _buttonKick = _DrivenKick();
   MorphSpringState? _openReference;
   MorphSpringState? _closeReference;
+  final List<({double start, bool opening})> _fusions = [];
+  final MorphMenuFusion _fusion = MorphMenuFusion();
   double _sampleTime = double.negativeInfinity;
 
   _Phase _phase = _Phase.idle;
@@ -689,6 +766,48 @@ class MorphMenuMotion {
   static double _ramp(double value, double from, double to) =>
       ((value - from) / (to - from)).clamp(0.0, 1.0);
 
+  /// The fusion radius: the standard deviation, in pixels, of the
+  /// Gaussian blur UIKit applies to the distance field of [menuBlob] and
+  /// [buttonBlob] to fuse them into one silhouette; 0 when they are
+  /// drawn as their plain union.
+  ///
+  /// Every open and every close starts its own envelope
+  /// ([MorphMenuTuning.fusionEnvelope]); the radius is the largest of the
+  /// envelopes still running, limited to
+  /// [MorphMenuTuning.fusionRadius], so a reversal never makes it jump.
+  double get fusionRadius => _fusionAt(_now);
+
+  /// The silhouette of [menuBlob] and [buttonBlob] fused at
+  /// [fusionRadius], in the motion's coordinates, or null while the
+  /// radius is under 1 pixel and the silhouette
+  /// is the plain union of the two shapes.
+  Path? get silhouette {
+    if (_phase == _Phase.idle) return null;
+    final radius = fusionRadius;
+    if (radius < MorphMenuFusion.minimumRadius) return null;
+    return _fusion.outline(menuBlob.rrect, buttonBlob.rrect, radius);
+  }
+
+  double _fusionAt(double t) {
+    var radius = 0.0;
+    for (final fusion in _fusions) {
+      radius = math.max(
+        radius,
+        tuning.fusionEnvelope(t - fusion.start, opening: fusion.opening),
+      );
+    }
+    if (radius < tuning.fusionCutoff) return 0;
+    return math.min(radius, tuning.fusionRadius);
+  }
+
+  bool _fusionAtRest(double t) {
+    _fusions.removeWhere(
+      (({double start, bool opening}) fusion) =>
+          tuning.fusionEnded(t - fusion.start, opening: fusion.opening),
+    );
+    return _fusions.isEmpty;
+  }
+
   /// The vertical kick of the menu shape, positive toward the side the
   /// menu opens to.
   double get menuKick => _menuKick.value;
@@ -761,7 +880,8 @@ class MorphMenuMotion {
       return _progress.isAtRestAt(t) &&
           _radius.isAtRest(t, 1e-3) &&
           _menuKick.isAtRest &&
-          _buttonKick.isAtRest;
+          _buttonKick.isAtRest &&
+          _fusionAtRest(t);
     }
     return true;
   }
@@ -913,7 +1033,8 @@ class MorphMenuMotion {
     if (_phase == _Phase.closing &&
         _progress.isAtRestAt(t) &&
         _menuKick.isAtRest &&
-        _buttonKick.isAtRest) {
+        _buttonKick.isAtRest &&
+        _fusionAtRest(t)) {
       _phase = _Phase.idle;
       _highlighted = null;
       _menuKick.reset();
@@ -1041,6 +1162,7 @@ class MorphMenuMotion {
       _radiusFrom = _closingRadius(_progress.valueAt(t));
     }
     _phase = _Phase.opening;
+    _fusions.add((start: t, opening: true));
     final reference = MorphSpringState(tuning.openSpring, 0);
     reference.retarget(t, 1);
     _openReference = reference;
@@ -1085,6 +1207,7 @@ class MorphMenuMotion {
     _closeLive = _press.value(t);
     _openGeneration++;
     _phase = _Phase.closing;
+    _fusions.add((start: t, opening: false));
     _relax(t);
     final reference = MorphSpringState(tuning.closeSpring, 1);
     reference.retarget(t, 0);

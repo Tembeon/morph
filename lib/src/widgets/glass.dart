@@ -219,6 +219,29 @@ abstract class MorphGlassPainter {
         ),
       );
 
+  /// Builds the widget that draws one glass body: the [surfaces] a control
+  /// fused into one silhouette, filling the box of their layer, with
+  /// [outline] its edge in that box's coordinates.
+  ///
+  /// The default fills [outline] flat with the color of the first of
+  /// [surfaces], faded by its [MorphGlassSurface.opacity], as the control
+  /// does without a painter.
+  Widget buildBody(
+    BuildContext context,
+    Path outline,
+    List<MorphGlassSurface> surfaces,
+  ) {
+    final surface = surfaces.first;
+    return CustomPaint(
+      painter: _BodyPainter(
+        outline,
+        surface.color.withValues(
+          alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
+        ),
+      ),
+    );
+  }
+
   /// Builds the widget that draws the [MorphGlassSurface.glow] of
   /// [surface], sized to its bounds and placed over the surface.
   ///
@@ -270,23 +293,39 @@ abstract class MorphGlassPainter {
   /// glass container of a navigation bar and of a toolbar, which is also
   /// the gap between two groups of one bar: resting groups never fuse,
   /// moving ones fuse while they pass closer.
+  ///
+  /// A non-null [outline] is the silhouette the control has already fused
+  /// its glass surfaces into, in the layer's local coordinates: the glass
+  /// surfaces are one body whose edge is [outline], not their own shapes
+  /// (a menu joined to its button by a neck). A painter draws that body
+  /// with [buildBody] and does not fuse the surfaces again; their shapes
+  /// and kinds still describe the parts of the body. The default draws
+  /// [buildBody] in place of [buildSurface] for every glass surface.
   Widget buildLayer(
     BuildContext context,
     List<MorphGlassSurface> surfaces, {
     Widget? content,
     List<Rect> contentSlots = const [],
     double spacing = 0,
+    Path? outline,
   }) {
+    final glass = [
+      for (final surface in surfaces)
+        if (surface.glass) surface,
+    ];
     return Stack(
       clipBehavior: Clip.none,
       children: [
+        if (outline != null && glass.isNotEmpty)
+          Positioned.fill(child: buildBody(context, outline, glass)),
         for (final surface in surfaces) ...[
-          Positioned.fromRect(
-            rect: surface.bounds,
-            child: surface.glass
-                ? buildSurface(context, surface)
-                : buildFill(context, surface),
-          ),
+          if (outline == null || !surface.glass)
+            Positioned.fromRect(
+              rect: surface.bounds,
+              child: surface.glass
+                  ? buildSurface(context, surface)
+                  : buildFill(context, surface),
+            ),
           if (surface.glow != null)
             Positioned.fromRect(
               rect: surface.bounds,
@@ -315,6 +354,24 @@ class _FillPainter extends CustomPainter {
   @override
   bool shouldRepaint(_FillPainter oldDelegate) =>
       oldDelegate.shape != shape || oldDelegate.color != color;
+}
+
+class _BodyPainter extends CustomPainter {
+  const _BodyPainter(this.outline, this.color);
+
+  final Path outline;
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    paint.color = color;
+    canvas.drawPath(outline, paint);
+  }
+
+  @override
+  bool shouldRepaint(_BodyPainter oldDelegate) =>
+      oldDelegate.outline != outline || oldDelegate.color != color;
 }
 
 /// Installs a [MorphGlassPainter] for the measured controls below it.
