@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/flight.dart';
-import 'package:morph/src/liquid_field.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/show.dart';
@@ -14,6 +13,7 @@ import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -519,7 +519,6 @@ class _MorphBarItemsState extends State<MorphBarItems>
   final Map<Object, MorphBarButton> _buttons = {};
   final Map<Object, bool> _prominent = {};
   final Map<Object, Object> _capsuleOf = {};
-  final LiquidTracer _tracer = LiquidTracer();
   final Object _menuTag = Object();
   _BarMenu? _menu;
   double? _holdStart;
@@ -939,7 +938,6 @@ class _MorphBarItemsState extends State<MorphBarItems>
                         surfaces,
                         style,
                         spacing: widget.metrics.containerSpacing,
-                        tracer: _tracer,
                       ),
                       child: content,
                     )
@@ -1265,89 +1263,60 @@ class MorphBackChevronPainter extends CustomPainter {
 }
 
 /// The flat capsules: each one an RRect, except capsules of one color
-/// closer than [spacing], which are drawn as the fused outline of the
-/// skin's merge law.
+/// the glass container fuses ([spacing], the same groups and outline every
+/// glass tier draws), which are drawn as their fused outline.
 class _CapsulePainter extends CustomPainter {
-  _CapsulePainter(
-    this.surfaces,
-    this.style, {
-    required this.spacing,
-    required this.tracer,
-  });
+  _CapsulePainter(this.surfaces, this.style, {required this.spacing});
 
   final List<MorphGlassSurface> surfaces;
   final MorphBarStyle style;
   final double spacing;
-  final LiquidTracer tracer;
-
-  /// Within this much of the spacing the merge moves an outline by less
-  /// than a hundredth of a point, so resting groups whose layout lands a
-  /// rounding error under the spacing keep their exact capsules.
-  static const double _fusionSlack = 0.5;
-
-  bool _fuses(List<MorphGlassSurface> group) {
-    if (spacing <= 0) return false;
-    for (var i = 0; i < group.length; i++) {
-      for (var j = i + 1; j < group.length; j++) {
-        if (liquidRectGap(group[i].bounds, group[j].bounds) <
-            spacing - _fusionSlack) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    final visible = [
-      for (final s in surfaces)
-        if (!s.bounds.isEmpty) s,
-    ];
     final byColor = <Color, List<MorphGlassSurface>>{};
-    for (final s in visible) {
-      (byColor[s.color] ??= []).add(s);
+    for (final s in surfaces) {
+      if (!s.bounds.isEmpty) (byColor[s.color] ??= []).add(s);
     }
-    final fused = <Color, Path>{};
+    final bodies = <(Color, Object)>[];
     for (final entry in byColor.entries) {
-      if (!_fuses(entry.value)) continue;
-      fused[entry.key] = tracer.trace(
-        LiquidField([
-          for (final s in entry.value)
-            MorphMass.box(s.bounds, radius: s.shape.tlRadiusX),
-        ], k: spacing),
-        cell: 2,
-      );
+      final shapes = [for (final s in entry.value) s.shape];
+      for (final group in morphGlassContainerGroups(shapes, spacing)) {
+        bodies.add((
+          entry.key,
+          group.length == 1
+              ? shapes[group.single]
+              : morphGlassContainerOutline([
+                  for (final i in group) shapes[i],
+                ], spacing).path,
+        ));
+      }
     }
     final shadow = Paint();
     shadow.color = style.shadowColor;
     shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    for (final (_, body) in bodies) {
+      switch (body) {
+        case final RRect shape:
+          canvas.drawRRect(shape.shift(const Offset(0, 2)), shadow);
+        case final Path path:
+          canvas.drawPath(path.shift(const Offset(0, 2)), shadow);
+      }
+    }
     final fill = Paint();
     final rim = Paint();
     rim.style = PaintingStyle.stroke;
     rim.strokeWidth = 0.5;
     rim.color = style.rimColor;
-    for (final entry in byColor.entries) {
-      final path = fused[entry.key];
-      if (path != null) {
-        canvas.drawPath(path.shift(const Offset(0, 2)), shadow);
-        continue;
-      }
-      for (final s in entry.value) {
-        canvas.drawRRect(s.shape.shift(const Offset(0, 2)), shadow);
-      }
-    }
-    for (final entry in byColor.entries) {
-      fill.color = entry.key;
-      final path = fused[entry.key];
-      if (path != null) {
-        canvas.drawPath(path, fill);
-        canvas.drawPath(path, rim);
-        continue;
-      }
-      for (final s in entry.value) {
-        canvas.drawRRect(s.shape, fill);
-        canvas.drawRRect(s.shape.deflate(0.25), rim);
+    for (final (color, body) in bodies) {
+      fill.color = color;
+      switch (body) {
+        case final RRect shape:
+          canvas.drawRRect(shape, fill);
+          canvas.drawRRect(shape.deflate(0.25), rim);
+        case final Path path:
+          canvas.drawPath(path, fill);
+          canvas.drawPath(path, rim);
       }
     }
   }
