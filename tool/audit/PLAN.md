@@ -21,17 +21,20 @@ C1, G1, ... refer to it).
 - Last green check (agent reports): analyze 0, 816 package tests,
   11 example tests, dart doc 0 warnings, iOS/macOS/web builds, macOS
   autodemo `AUTODEMO done` with no EXCEPTION.
-- In flight when this was written: the MENU API port (entry model,
-  sections, palette, element sizes, submenus as stacked cards, deferred
-  rows, MorphMenuWidget free-form rows) from spec/menu-api.md. Check
-  `git log` for its commits and the passport's "to port" ticks; resume
-  whatever is unticked.
+- MENU API PORT LANDED (4f810d3, 065e0f4): sealed MorphMenuEntry
+  (item, section, submenu, divider, deferred, free-form MorphMenuWidget),
+  measured layout, submenus as stacked cards, live resize, deferred
+  loading row, keyboard/a11y/RTL; declarative updates (no controller).
+  The whole-stack close IS the ordinary menu close (settled on data).
+  Leftovers: root list 0.97 shrink not drawn, unmeasured values (card
+  platter colours, maxTitleLines heights, cell/palette radii), cards
+  taller than the cap cut instead of scrolled, the bar back menu ignores
+  entry changes while open, no dark-mode simulator pass, audit M2 (close
+  the motion on dispose - hit a locked-tree assert) still open.
 
 ## Order of work (owner's priorities)
 
-1. Finish the menu API port (see above). Open measurement question: the
-   whole-stack close spring of a submenu (rough 0.355/0.84) vs the menu
-   close 0.49/0.80 - settle on one recording.
+1. Menu API leftovers (see above) - small, can ride with WP-E.
 2. Audit fixes, in waves (packages have non-overlapping files; run at
    most 2-3 agents at once - usage limits cut every agent twice on
    2026-10-03):
