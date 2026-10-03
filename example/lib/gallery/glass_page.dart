@@ -4,7 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
-import 'package:morph_example/gallery/liquid_glass_painter.dart';
+import 'package:morph_example/gallery/liquid_glass.dart';
 
 /// A frosted-glass renderer for the measured controls: each surface blurs
 /// what is behind it, takes its flat color as a tint and gains a rim and

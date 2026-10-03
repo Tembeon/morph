@@ -5,7 +5,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
-import 'package:morph_example/tour/home.dart';
 // The bench measures package INTERNALS by design - it is an instrument
 // of the package, living in the example only to get an AOT build.
 // ignore: implementation_imports
@@ -13,11 +12,75 @@ import 'package:morph/src/benchmark_scenes.dart';
 // ignore: implementation_imports
 import 'package:morph/src/liquid_field.dart';
 
+const Object _benchSourceId = 'bench-card';
+
+/// The AOT half of the performance passport as an app: one card to fly a
+/// dialog from, and [runReleaseBench] started once the card is laid out.
+///
+/// The example's entrypoint runs it under `--dart-define=MORPH_BENCH=true`.
+class ReleaseBenchApp extends StatelessWidget {
+  /// Creates the bench app.
+  const ReleaseBenchApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      builder: (BuildContext context, Widget? child) =>
+          MorphScope(child: child!),
+      home: const _BenchHome(),
+    );
+  }
+}
+
+class _BenchHome extends StatefulWidget {
+  const _BenchHome();
+
+  @override
+  State<_BenchHome> createState() => _BenchHomeState();
+}
+
+class _BenchHomeState extends State<_BenchHome> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((Duration _) async {
+      await Future<void>.delayed(const Duration(milliseconds: 800));
+      if (mounted) {
+        await runReleaseBench(context);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: MorphTag(
+          id: _benchSourceId,
+          shape: RoundedRectangleBorder(borderRadius: .circular(20)),
+          surfaceColor: const Color(0xFF2A2440),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xFF2A2440),
+              borderRadius: .circular(20),
+            ),
+            child: const SizedBox(
+              width: 220,
+              height: 120,
+              child: Center(child: Text('bench')),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// The AOT half of the performance passport: the SAME tracing scenes as
 /// benchmark/liquid_benchmark_test.dart, measured inside a release
 /// build, plus real engine FrameTimings collected during a scripted
-/// glacial flight. Launched with --dart-define=MORPH_BENCH=true; prints
-/// lines prefixed with `BENCH` and exits.
+/// glacial flight. Prints lines prefixed with `BENCH` and exits.
 Future<void> runReleaseBench(BuildContext context) async {
   final String mode = kReleaseMode
       ? 'release'
@@ -98,7 +161,7 @@ void _tracingOps() {
 }
 
 /// Real engine frame costs during one glacial open + close of a morph
-/// dialog flown from a home card: build (UI thread) and raster (GPU
+/// dialog flown from the bench card: build (UI thread) and raster (GPU
 /// thread) per frame, average / p95 / worst.
 Future<void> _frameTimings(BuildContext context) async {
   final List<FrameTiming> timings = <FrameTiming>[];
@@ -107,7 +170,7 @@ Future<void> _frameTimings(BuildContext context) async {
 
   final MorphFlight flight = showMorphDialog(
     context,
-    from: TourHome.sections.first.$2.first.id,
+    from: _benchSourceId,
     width: 520,
     height: 420,
     motion: .glacial,

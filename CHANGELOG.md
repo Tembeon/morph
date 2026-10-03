@@ -51,14 +51,16 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   spring, the release on the scale spring - instead of on the Tug
   spring's fixed pixel growth. Everything else about the region is
   unchanged.
-- Example: chapter 02, Button to menu, is a photo app's toolbar of a
-  `MorphGlassButton` and two `MorphMenuButton`s; chapter 07, The bar,
-  is a `MorphTabBar` beside a glass send button that is still a real
-  morph source; the liquid dock's selection blob lifts, travels and
-  lands on the tab bar lens's measured springs; the lab chrome runs on
-  `MorphSegmentedControl`, `MorphSwitch` and `MorphGlassButton`. The
-  measured gallery moves to `example/lib/gallery/`
-  (`flutter run -t lib/gallery/gallery.dart`).
+- Example: the gallery is the example app. The tour of phone-mockup
+  chapters, the playground sandbox and its lab chrome are removed (they
+  stay at the v0.4.0 tag); `example/lib/main.dart` runs the measured
+  gallery (`example/lib/gallery/`), one page per control, so a plain
+  `flutter run` opens it. `--dart-define=MORPH_AUTODEMO=true` walks
+  every gallery page with synthetic gestures and exits;
+  `--dart-define=MORPH_BENCH=true` still runs the release bench, now on
+  a card of its own. The web build draws frosted glass: the liquid
+  glass renderer sits behind a conditional import, so the web example
+  builds without that package.
 - The glass seam: `MorphGlass(painter:)` installs a `MorphGlassPainter`
   whose `buildSurface` renders every glass surface of the controls below
   it - track, lens, knob, thumb, button, bar, menu (`MorphGlassKind`) -

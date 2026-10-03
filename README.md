@@ -15,18 +15,20 @@ organic shape. No Navigator coupling.
 
 ## Start with the example
 
-A guided tour: seven scenes, each an app mockup in a phone frame
-answering one question (the compose button that becomes its dialog,
-the library card that becomes a real page, the dock whose selection
-is mass), the last one a sandbox playground. Live build:
-<https://tembeon.github.io/morph/> (wasm - a native release build runs
-far smoother). API docs live next to it:
+A gallery of the widgets layer, one page per control: the segmented
+control and tab bar lens, switch, slider, stepper, the menu button, glass
+sheets, alerts, navigation bars, search and the date picker, each
+checked against recordings of the real UIKit controls, with a slow-motion
+toggle and a glass page that switches the renderer, appearance and
+direction for the whole app. Live build:
+<https://tembeon.github.io/morph/> (wasm, frosted glass - the liquid
+glass renderer needs Impeller and Flutter GPU, so a native build shows
+the real one). API docs live next to it:
 <https://tembeon.github.io/morph/docs/>.
 
 ```bash
 cd example
 flutter run -d macos   # or any device
-flutter run -t lib/gallery/gallery.dart   # the widgets gallery
 ```
 
 Recipes and applied patterns live there, not in this README.
@@ -125,7 +127,6 @@ Android back gesture close it. Most screens stop here. Pass
 `modal: false` when the surface is a tool rather than a dialog: no
 scrim at all, the page underneath stays live (a search field expanding
 over the list it filters).
-(scene [The morph](example/lib/tour/lessons/morph_scene.dart))
 
 **2. State instead of calls** - `MorphAnchor(isOpen: ..., onDismiss:
 ...)`: the same morph, driven by your state instead of a call.
@@ -139,22 +140,17 @@ is the default, `glacial` the same five times slower for the eye,
 `MorphTheme` the app-wide defaults, `overlay:` picks
 the overlay a flight renders in when chrome floats over a nested
 navigator, and `flight.events` marks the moments for haptics.
-([button-to-menu](example/lib/tour/lessons/menu_lesson.dart),
-[hold to menu](example/lib/tour/lessons/hold_lesson.dart),
-[toolbar merge](example/lib/tour/lessons/toolbar_lesson.dart))
+([menu](example/lib/gallery/menu_page.dart),
+[alerts](example/lib/gallery/alert_page.dart))
 
 **4. Real pages and gestures** - `showMorphRoute` morphs into a real
 route: back button, predictive back and pop results work, state
 survives. `MorphSharedElement` flies content between the two sides,
 and `flight.beginDrag`/`dragBy`/`endDrag` is a ready drag-to-dismiss.
-([card to page](example/lib/tour/lessons/page_scene.dart))
 
 **5. Raw parts** - `MorphController` is a standalone retargetable
 spring, `MorphSkin` fuses widgets into one liquid mass, and the
-gesture math is public. The playground's own chrome is built from
-these. ([dock](example/lib/tour/lessons/goo_dock_example.dart),
-[chips](example/lib/tour/lessons/chips_example.dart),
-[playground](example/lib/playground/playground.dart))
+gesture math is public.
 
 At every level the same contract holds: re-showing retargets the
 running animation instead of restarting it, and closing mid-open just

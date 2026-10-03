@@ -1,5 +1,4 @@
 import 'package:flutter/scheduler.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
@@ -16,17 +15,7 @@ import 'package:morph_example/gallery/search_page.dart';
 import 'package:morph_example/gallery/sheet_page.dart';
 import 'package:morph_example/gallery/spec_inspector.dart';
 
-/// Runs the widgets gallery: `flutter run -t lib/gallery/gallery.dart`.
-///
-/// The glass shaders load before the first frame, so the first glass on
-/// screen is already the real one.
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await LiquidGlass.precache();
-  runApp(const GalleryApp());
-}
-
-/// The second gallery: widgets that move exactly like UIKit, each checked
+/// The example app: widgets that move exactly like UIKit, each checked
 /// against recordings of the real controls.
 ///
 /// The gallery follows the system appearance unless its glass page picks
@@ -34,7 +23,10 @@ Future<void> main() async {
 /// painter the [GalleryGlassSettings] select.
 class GalleryApp extends StatefulWidget {
   /// Creates the app.
-  const GalleryApp({super.key});
+  const GalleryApp({this.navigatorKey, super.key});
+
+  /// The key of the app's navigator, for a driver that walks the pages.
+  final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
   State<GalleryApp> createState() => _GalleryAppState();
@@ -68,6 +60,7 @@ class _GalleryAppState extends State<GalleryApp> {
       builder: (BuildContext context, Widget? _) {
         final painter = _settings.painter;
         return MaterialApp(
+          navigatorKey: widget.navigatorKey,
           title: 'Morph widgets',
           debugShowCheckedModeBanner: false,
           theme: _theme(Brightness.light),

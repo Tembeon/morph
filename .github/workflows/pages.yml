@@ -25,8 +25,9 @@ jobs:
           channel: stable
           cache: true
       # The gallery's vendored liquid glass renderer bundles fragment
-      # shaders the web shader compiler rejects, and the web tour never
-      # imports it; drop it from this build only.
+      # shaders the web shader compiler rejects; the web gallery reaches
+      # it only through a conditional import and draws frosted glass, so
+      # drop the package from this build only.
       - name: Keep the GPU glass out of the web build
         run: flutter pub remove liquid_glass_renderer
         working-directory: example

@@ -1,7 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/glass_page.dart';
-import 'package:morph_example/gallery/liquid_glass_painter.dart';
+import 'package:morph_example/gallery/liquid_glass.dart';
 
 /// Which painter draws the glass of every gallery control.
 enum GalleryGlassRenderer {
@@ -21,10 +21,14 @@ enum GalleryGlassRenderer {
 /// The values live as long as the app does; nothing is written to disk.
 ///
 /// The renderer starts as `--dart-define=GALLERY_GLASS=<name>` says
-/// (liquid, frosted or flat), liquid by default.
+/// (liquid, frosted or flat), liquid by default. A build without the
+/// liquid glass renderer (the web) draws frosted glass in its place.
 class GalleryGlassSettings extends ChangeNotifier {
   GalleryGlassRenderer _renderer = GalleryGlassRenderer.values.byName(
-    const String.fromEnvironment('GALLERY_GLASS', defaultValue: 'liquid'),
+    const String.fromEnvironment(
+      'GALLERY_GLASS',
+      defaultValue: liquidGlassAvailable ? 'liquid' : 'frosted',
+    ),
   );
   LiquidGlassMaterial _material = LiquidGlassMaterial.regular;
   double _blur = 1;
@@ -95,7 +99,7 @@ class GalleryGlassSettings extends ChangeNotifier {
 
   /// The painter these settings select, or null for flat fills.
   MorphGlassPainter? get painter => switch (_renderer) {
-    GalleryGlassRenderer.liquid => LiquidGlassRendererPainter(
+    GalleryGlassRenderer.liquid => liquidGlassPainter(
       material: _material,
       blur: _blur,
       refraction: _refraction,

@@ -627,7 +627,8 @@ Public pieces:
   vs 2.6 ms), so only bars, menus and lifted lenses frost unless the
   "Frost controls" setting is on. The web build cannot compile the
   renderer's .frag shaders: pages.yml `pub remove`s it before building
-  the tour. The session settings
+  the web gallery, which reaches the renderer only through the
+  conditional import in liquid_glass.dart (see Example). The session settings
   (GalleryGlassSettings/GalleryGlassScope, glass_settings.dart) live in
   GalleryApp's State; the Glass renderer page edits them.
 - THEMING: explicit `style` > `MorphWidgetsTheme` (a ThemeExtension, one
@@ -1193,132 +1194,56 @@ Public pieces:
 
 ## Example
 
-The app is a TOUR - an introduction to the library where the app itself
-is the first exhibit (`example/lib/tour/`). The home is a SECTIONED grid
-of chapter cards, each card a QUESTION its scene answers; every card
-opens AS a morph route (container transform via showMorphRoute,
-fullscreen target) - the navigation is the thesis. The tour runs on
-`MorphMotion.liquid`. ONE SCENE = ONE USE CASE, styled as a real app
-mockup inside a `PhoneFrame` (device.dart): the frame hosts its OWN
-MorphScope + Navigator, so every flight, popover and route stays inside
-the glass (this is what forced nearest-overlay/nearest-navigator engine
-semantics). `SceneScaffold` is the responsive chapter layout: lesson
-chrome (layer tabs, knobs, hints via PanelSection/PanelKnob/PanelHint)
-sits beside the phone on wide screens, above it on narrow - the mockup
-never carries lesson chrome. Engine PROPERTIES are layers and toggles
-inside one scene, never separate lookalike screens. Sections and
-chapters:
-- THE FLIGHT - 01 THE MORPH (morph_scene.dart): a mail app, compose
-  button (a MorphGlassButton) -> dialog; layers Motion (profile
-  selector) / Interrupt (torture storm) drive the same flight.
-- CONTROLS - 02 BUTTON TO MENU (menu_lesson.dart): a photo app's
-  floating toolbar of a MorphGlassButton and two MorphMenuButtons.
-  03 HOLD TO MENU (hold_lesson.dart): a chat; a held bubble becomes its
-  own context menu (reactions capsule above, actions below). The mockup
-  mirrors Sonatide's shell on purpose - the chat is a NESTED Navigator
-  with a compose bar floating over it, so the OVERLAY toggle (chat tab /
-  whole app) shows the menu hiding under the bar vs flying above it; the
-  phone's overlay is captured from the PhoneFrame's app builder context
-  and handed down. The lesson state reaches the nested page through an
-  InheritedWidget (_ChatScope) because a route page is an overlay entry
-  - an island no ancestor rebuild reaches. Delete from the bubble's own
-  menu removes the source mid-close (the dissolve); a reaction lands on
-  the bubble AT ONCE (the hero slot is live) and the capsule unfolds a
-  note field (`_NoteRow`, its own State so the text survives the menu
-  rebuilding around it); the KEYBOARD toggle drives the phone's own
-  keyboard (`PhoneFrame.keyboard`, a ValueListenable<double> inset
-  injected as MediaQuery.viewInsets above its navigator, key panel
-  keyed `PhoneFrame.keyboardKey`); the EVENTS panel prints the flight's
-  moments. Bubbles are keyed by message id so a deletion never hands a
-  region's State (and its tag) to the next bubble.
-  04 TOOLBAR MERGE (toolbar_lesson.dart): reading list; scroll fuses the
-  actions into one pill on a single retargetable merge spring (a scene
-  value, CupertinoMotion 600 ms / 0.42 - not measured).
-- PAGES - 05 CARD TO PAGE (page_scene.dart): a music library; the
-  overlay/route TOGGLE holds everything else constant, so the difference
-  IS the demo (Lyrics stacks only on the route; shared covers +
-  displacement drag in both). Cards, album cards and the mini bar render
-  their surfaces from their spec with a plain GestureDetector. The mini
-  bar is the fling-to-open recipe on the expert path: a FLICK (commit by
-  release velocity ALONE - a slow pull meets ~14px of heavy give and
-  springs back; the slingshot variant was built and rejected by eye),
-  with the release velocity injected one frame later via
-  controller.open(velocity:) once the shuttle has measured both rects
-  (px/s -> value/s by flight distance). NOTE the retarget-clock nuance
-  the fling test pins: a retarget restarts the controller's ticker and
-  Ticker.elapsed restarts from zero, so the first post-retarget tick
-  evaluates the sim at t=0 - a test sampling right after the injection
-  frame must pump once more.
-- LIQUID - 06 LIQUID SELECTION (goo_dock_example.dart): a feed app dock,
-  one fused mass whose selection blob lifts, travels and lands on the
-  tab bar lens's measured springs (`MorphLensTuning.tabBar` travel and
-  lift via SingleMotionController), writing its piece channel.
-  07 THE BAR (bar_lesson.dart): a `MorphTabBar` beside a glass send
-  button (a MorphGlassButton that is still a real morph source - its
-  compose dialog flies out of the glass you pressed).
-  08 LIVING LAYOUT (chips_example.dart): search filter chips as one
-  fused row; layout-as-targets, births/deaths at
-  `MorphPieceChannel.birthScale` on `birthSpring` (a removed chip parks
-  inside its survivor; the last chip deflates to nothing), the
-  stiffness wave (sims evaluated at t*rate, rate falling by slot
-  distance - hand-rolled on purpose; NOTE the ticker-clock trap:
-  Ticker.elapsed restarts from zero on every start(), so idle-restart
-  flows must reset their own clock or springs evaluate at negative time
-  and thrash). Scene blends (18/24 in the lessons) are mockup values.
-- THE LAB - 09 PLAYGROUND: always last (the autodemo opens it by
-  position).
-The honesty criterion: a morph must TRANSFORM IDENTITY (the thing you
-touch becomes the surface you use); spring-skinning ordinary controls
-is animation, not morph.
-
-The second gallery, `example/lib/gallery/` (`flutter run -t
-lib/gallery/gallery.dart`): the measured widgets one page each -
-Segmented control, Tab bar (2..5 tabs, press growth, scrub), Controls
-(switch, slider, glass button, stepper), Menu, Glass renderer (a frosted
-BackdropFilter painter, dark, RTL, disabled), Size to physics
+The example app IS the measured gallery (`example/lib/gallery/`;
+`example/lib/main.dart` runs `GalleryApp`, so a plain `flutter run`
+opens it): the measured widgets one page each - Segmented control, Tab
+bar (2..5 tabs, press growth, scrub), Controls (switch, slider, glass
+button, stepper), Menu, Sheets, Indicators, Glass renderer (liquid /
+frosted / flat painters, material, dark, RTL, disabled), Size to physics
 (spec_inspector: how MorphFlexSpec derives lift and springs from a
-size). A SLOW-MO toggle cycles `timeDilation` 1x/5x/10x: the measured
-motion runs on ticker time, the flex filters step on the sub-clock in
-that same time and touches are stamped on it, so the widgets slow down
-as a whole and trace the same curves; only the finger keeps real time.
+size), Navigation, Alerts, Search, Date picker. A SLOW-MO toggle cycles
+`timeDilation` 1x/5x/10x: the measured motion runs on ticker time, the
+flex filters step on the sub-clock in that same time and touches are
+stamped on it, so the widgets slow down as a whole and trace the same
+curves; only the finger keeps real time.
 
-`example/ios/` exists (untracked so far; Runner, bundle
-dev.tembeon.morphExample, team 83S63575XD) for running the tour and the
-gallery on the owner's iPhone next to the native controls. Each Runner
-config still carries a stale duplicate `DEVELOPMENT_TEAM = 5743F3SV5C`
-line before the 83S63575XD one - remove it before committing.
+The tour (phone-mockup chapters opening as morph routes), the
+Playground sandbox, the stress lab and the lab chrome (SpringSwitcher,
+Lab* wrappers) were removed on 2026-10-03 by the owner's decision; they
+live at the v0.4.0 tag and in history (the last commit carrying them is
+the parent of the removal). The honesty criterion they established
+still holds: a morph must TRANSFORM IDENTITY (the thing you touch
+becomes the surface you use); spring-skinning ordinary controls is
+animation, not morph.
 
-The Playground chapter (`example/lib/playground/`) is the sandbox
-builder:
-- pieces (box/stadium/circle) are added, selected, dragged, resized from
-  the sidebar; all fused by one liquid skin;
-- every piece is a morph source: double-tap = a real flight (dialogs or
-  a sheet by id % 4); torture and the autodemo fly from piece id 2;
-- MorphLink bridges: select a piece -> link -> tap another (repeat to
-  unlink); link chips in the sidebar;
-- keyframes A/B: scene snapshots (geometry by id + blend); playback is a
-  spring morph from the CURRENT state on the profile's openMotion;
-  pieces missing from a snapshot stay put;
-- sidebar sections: MOTION (motor's vocabularies: cupertino, m3, curve
-  - the curve family shows why close needs a spring) / SANDBOX /
-  KEYFRAMES / LIQUID (blend presets are measured container spacings 8
-  (SwiftUI default) / 20 / 40 / 80, plus free blend and detail sliders
-  and the Contour switch) / STRESS;
-- THE LAB CHROME RUNS ON THE WIDGETS LAYER (example/lib/ui/
-  lab_chrome.dart): LabSegmented = MorphSegmentedControl, LabSwitchTile
-  = MorphSwitch, LabActionButton/LabIconButton = MorphGlassButton; panel
-  and canvas swaps are SpringSwitcher (example/lib/ui/
-  spring_switcher.dart) - a MorphController-driven crossfade-and-rise
-  with TWO STABLE KEYED SLOTS (the outgoing element keeps its tree
-  position until settle; a mid-flight swap flips value := 1 - value via
-  the scrub API). Lab chrome, not a library candidate (worked through
-  and rejected for promotion on 2026-08-09). Sliders stay plain;
-- stress mode (example/lib/playground/stress_lab.dart): N pieces on
-  deterministic golden-angle orbits re-trace the skin every frame, with
-  an on-screen FPS meter (average + worst frame per window). Judge
-  numbers in --profile/--release, debug is pessimistic.
+Entry points (main.dart): `--dart-define=MORPH_AUTODEMO=true` runs
+`runAutodemo` (lib/autodemo.dart) - pushes every gallery page in order,
+plays a center tap, a horizontal drag and an upward scroll through
+synthetic pointer events, pops back home, prints `AUTODEMO` lines and
+exits (the web build stays on the home page instead); GalleryApp takes
+an optional `navigatorKey` for it. `--dart-define=MORPH_BENCH=true` runs
+`ReleaseBenchApp` (lib/perf/release_bench.dart) - its own MaterialApp
+with one MorphTag card the frame-timing flight launches from.
 
-Flight-to-skin coupling lives entirely in the core: the demo uses
+The liquid glass renderer is behind a CONDITIONAL import:
+lib/gallery/liquid_glass.dart exports liquid_glass_native.dart where
+`dart.library.io` exists (re-exports LiquidGlassMaterial, wraps
+`LiquidGlass.precache` and `LiquidGlassRendererPainter`) and
+liquid_glass_web.dart otherwise (its own LiquidGlassMaterial enum, a
+no-op precache, FrostedGlassPainter in place of liquid glass,
+`liquidGlassAvailable` false so the session starts frosted). Nothing
+the web build compiles may import liquid_glass_painter.dart or the
+renderer package directly - go through liquid_glass.dart - or the
+Pages build (which `pub remove`s the renderer) breaks. Tests and
+integration tests run native and may import the renderer.
+
+`example/ios/` (Runner, bundle dev.tembeon.morphExample, team
+83S63575XD) runs the gallery on the owner's iPhone next to the native
+controls. Each Runner config still carries a stale duplicate
+`DEVELOPMENT_TEAM = 5743F3SV5C` line before the 83S63575XD one - remove
+it before committing.
+
+Flight-to-skin coupling lives entirely in the core: a consumer uses
 `MorphPiece.morphable` and just calls `showMorph*(from: pieceId)`.
 Hard-won rules still enforced in the core:
 - Stack children in MorphSkin MUST be keyed by piece id - otherwise
@@ -1620,13 +1545,10 @@ by a test).
   constraints widened and a small port to the analyzer 14 AST names),
   apply its findings, then remove it. Known false positive:
   `Object.hashAll` in an int context.
-- Example layout: `tour/` (home, lesson framework, device.dart - the
-  PhoneFrame/SceneScaffold/Panel* chapter chrome, lessons/ - all
-  chapter scenes and dialog_contents.dart), `gallery/` (the measured
-  widgets gallery, its own main), `playground/` (the sandbox, stress
-  rig, HUD and the chapter shell), `ui/` (lab chrome: lab_chrome.dart,
-  spring_switcher.dart), `perf/` (the release bench), flags.dart,
-  main.dart. Tests that replay fixtures live in the PACKAGE (test/), the
+- Example layout: `gallery/` (the measured widgets gallery, one file
+  per page plus the glass settings and painters), `perf/` (the release
+  bench), autodemo.dart, main.dart (the entrypoint and its two
+  dart-define modes). Tests that replay fixtures live in the PACKAGE (test/), the
   fixtures under test/fixtures/.
 - Dartdoc speaks to the CONSUMER in the present tense: behavior,
   contract, the constraint the code cannot show - and, in the widget
@@ -1653,18 +1575,20 @@ dart format lib test example/lib example/test && flutter analyze
 flutter test && (cd example && flutter test)
 cd example && flutter build macos --release
 cd example && flutter run -d macos --dart-define=MORPH_AUTODEMO=true
-cd example && flutter run -t lib/gallery/gallery.dart   # measured widgets
+cd example && flutter build web --wasm   # with liquid_glass_renderer removed, as pages.yml does
 ```
 
 Every step must be green after each change (analyze from the package
 root also covers example). Motion fidelity is judged by the REPLAY
 tests against the recordings; the human eye judges on glacial / slow-mo
 and, for the widgets, on the iPhone next to the native controls (the
-example has an iOS target). Agent self-verification is the tests (555
-in the package + 49 in example) plus the autodemo with no EXCEPTION in
-the log (autodemo: opens the Playground chapter AS a morph route -
-exercising the card flight and the second latch - then a dialog flight
-from a piece -> interruption torture -> 4 keyframe morphs A/B).
+example has an iOS target). Agent self-verification is the tests (579
+in the package + 15 in example) plus the autodemo with no EXCEPTION in
+the log and `AUTODEMO done` at its end (autodemo: every gallery page in
+turn - push, center tap, horizontal drag, upward scroll, pop home - then
+the app exits). The web step runs in a scratch copy of the repo (pub
+remove liquid_glass_renderer in its example, then build) so the working
+tree keeps the renderer.
 
 Test traps:
 - `tester.getSize` reads the LAYOUT size and ignores paint transforms -
@@ -1714,7 +1638,11 @@ cd example && flutter build macos --release --dart-define=MORPH_BENCH=true
 Baseline 2026-07-30, Apple Silicon macBook (tembeon), macOS release.
 NOT re-measured since: the 0.7.0 merge law adds one normal per mass per
 sample and a dot product inside the k band, and glacial is now liquid
-x5 - rerun before quoting these numbers.
+x5 - rerun before quoting these numbers. A spot run on 2026-10-03 (same
+machine, the bench on its own card after the tour removal) printed
+89 / 250 / 182 / 438 / 1978 / 8456 / 165 / 58 us/op in table order and
+frames n=752: build avg 0.27 / p95 0.61 / worst 0.82 ms, raster avg
+0.78 / p95 1.60 / worst 5.47 ms.
 
 | scene                   | us/op  |
 |-------------------------|--------|

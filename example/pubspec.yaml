@@ -1,5 +1,5 @@
 name: morph_example
-description: "Morph Lab: sandbox playground for the morph package."
+description: "The morph widgets gallery: the example app of the morph package."
 publish_to: 'none'
 version: 1.0.0+1
 
