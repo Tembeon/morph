@@ -4,6 +4,7 @@ import 'package:flutter/services.dart' show PredictiveBackEvent;
 import 'package:morph/src/controller.dart';
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/gesture.dart';
+import 'package:morph/src/measure.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/target.dart';
@@ -385,13 +386,42 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
         );
         return LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
-            final Rect rect = flight.target.rectFor(
-              constraints.biggest,
-              MediaQuery.paddingOf(context),
+            final Size overlaySize = constraints.biggest;
+            // The same space the shuttle places the target in: the
+            // safe area unioned with the keyboard.
+            final EdgeInsets padding = morphTargetPaddingOf(
+              context,
+              overlaySize,
+              overlayBox: flight.overlayBox,
             );
-            // Keep the flight's belief fresh while the route owns the
-            // layout: a pop closes FROM this rect.
-            flight.lastTargetRect = rect;
+            final MediaQueryData mediaQuery = MediaQuery.of(context);
+            final EdgeInsets overlayViewInsets = morphOverlayViewInsetsOf(
+              context,
+              overlaySize,
+              overlayBox: flight.overlayBox,
+            );
+            final MorphTargetSpec target = flight.target;
+            // The SAME chain the shuttle mounts, from the one shared
+            // builder: the route-mode reparent preserves state only
+            // while the chains match, and now they cannot drift. A
+            // measured target keeps measuring on the settled page, so
+            // a live size change springs here exactly as in the
+            // shuttle.
+            final Widget content = buildMorphTargetContent(
+              flight: flight,
+              spec: spec,
+              anchorKey: _anchorKey,
+            );
+            final BoxConstraints Function(Size, EdgeInsets)? constraintsFor =
+                target.constraintsFor;
+            final Widget measured = constraintsFor == null
+                ? content
+                : MorphContentMeasure(
+                    childConstraints: constraintsFor(overlaySize, padding),
+                    alignment: target.contentAlignment,
+                    onSize: flight.reportContentSize,
+                    child: content,
+                  );
             // The displacement channel works on the settled page too:
             // the same rigid-body shift, recede and scrim math the
             // shuttle applies, driven by the same frame stream - a
@@ -399,6 +429,14 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
             return ListenableBuilder(
               listenable: flight.frameTicks,
               builder: (BuildContext context, Widget? child) {
+                final Rect rect = target.resolveRect(
+                  overlaySize,
+                  padding,
+                  flight.contentSize,
+                );
+                // Keep the flight's belief fresh while the route owns
+                // the layout: a pop closes FROM this rect.
+                flight.lastTargetRect = rect;
                 final Offset drag = flight.appliedDragOffset;
                 final double recede = morphDragRecede(drag.distance);
                 final double arm = morphDragArm(flight.dragOffset.distance);
@@ -423,7 +461,16 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
                       rect: rect.shift(drag),
                       child: Transform.scale(
                         scale: morphDragScale(recede, arm),
-                        child: child,
+                        child: MediaQuery(
+                          data: mediaQuery.copyWith(
+                            viewInsets: morphContentViewInsets(
+                              overlayViewInsets,
+                              rect,
+                              overlaySize,
+                            ),
+                          ),
+                          child: child!,
+                        ),
                       ),
                     ),
                   ],
@@ -432,18 +479,10 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
               child: Material(
                 color: spec.color,
                 shape: spec.shape,
-                clipBehavior: .antiAlias,
+                clipBehavior: target.clipBehavior,
                 elevation: spec.elevation,
                 shadowColor: flight.shadowColor,
-                // The SAME chain the shuttle mounts, from the one
-                // shared builder: the route-mode reparent preserves
-                // state only while the chains match, and now they
-                // cannot drift.
-                child: buildMorphTargetContent(
-                  flight: flight,
-                  spec: spec,
-                  anchorKey: _anchorKey,
-                ),
+                child: measured,
               ),
             );
           },

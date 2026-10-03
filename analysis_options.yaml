@@ -18,6 +18,7 @@ analyzer:
     todo: info
   exclude:
     - build/**
+    - example/third_party/**
     - android/**
     - ios/**
     - web/**

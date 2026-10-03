@@ -225,10 +225,11 @@ void main() {
 
   group('near-range interaction (no over-eager culling)', () {
     // Two shapes with a gap in (k/2, k) do NOT merge but DO bulge
-    // toward each other: smin bends the field wherever the distance
-    // difference is below k. An optimization that culls the neighbor
-    // too aggressively (e.g. clustering with a threshold below k)
-    // loses the bulge and fails here.
+    // toward each other: facing surfaces (opposite normals) blend over
+    // the full k, so the field bends wherever the distance difference
+    // is below k. An optimization that culls the neighbor too
+    // aggressively (e.g. clustering with a threshold below k) loses the
+    // bulge and fails here.
     test('gap of 0.75k keeps islands apart but bulging', () {
       const double k = 24;
       const Rect left = .fromLTWH(0, 0, 100, 60);
@@ -262,6 +263,36 @@ void main() {
         reason: 'the facing edge must bulge toward the neighbor',
       );
       expectContourMatchesField(pair, cell: 3);
+    });
+
+    // The Liquid Glass law: the blend width shrinks with the angle
+    // between the two normals, to nothing where edges run side by side.
+    // Two fused boxes keep their aligned tops and bottoms straight; an
+    // unmodulated smooth minimum would lift them by up to ~1.6 px here
+    // next to the joint.
+    test('fused pair keeps its aligned edges straight', () {
+      const double k = 40;
+      const LiquidField pair = LiquidField(<MorphMass>[
+        .box(.fromLTWH(0, 0, 100, 60), radius: 12),
+        .box(.fromLTWH(110, 0, 100, 60), radius: 12),
+      ], k: k);
+      final List<List<Offset>> loops = liquidContours(pair, cell: 2);
+      expect(loops, hasLength(1), reason: 'a gap below k/2 fuses');
+      final List<Offset> loop = loops.single;
+      final double top = loop
+          .map((Offset p) => p.dy)
+          .reduce((a, b) => a < b ? a : b);
+      final double bottom = loop
+          .map((Offset p) => p.dy)
+          .reduce((a, b) => a > b ? a : b);
+      expect(top, greaterThan(-0.3));
+      expect(bottom, lessThan(60.3));
+      expect(
+        pair.eval(const Offset(88, -0.5)),
+        greaterThan(0.4),
+        reason: 'the top edge next to the joint is not lifted',
+      );
+      expectContourMatchesField(pair, cell: 2);
     });
 
     // Beyond a gap of k the mix-form smin is EXACTLY min, so a distant

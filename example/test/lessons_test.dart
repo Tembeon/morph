@@ -34,7 +34,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const MorphScene(motion: .normal)));
+    await tester.pumpWidget(host(const MorphScene(motion: .liquid)));
     await tester.tap(find.text('New message'));
     await settle(tester);
     expect(find.text('New playlist'), findsOneWidget);
@@ -57,51 +57,35 @@ void main() {
     expect(find.text('Interruption torture'), findsOneWidget);
   });
 
-  testWidgets('menu: tugged skin pills survive a drag and still morph', (
+  testWidgets('menu: a glass button presses and a menu button morphs', (
     WidgetTester tester,
   ) async {
     tester.view.physicalSize = const Size(1200, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const MenuLesson(motion: .normal)));
-    // Tug Options toward Share: the piece rect moves, the skin
-    // re-traces (necking exercised), no asserts may fire.
-    final Offset start = tester.getCenter(find.text('Options'));
-    final TestGesture gesture = await tester.startGesture(start);
-    await gesture.moveBy(const Offset(20, 0));
-    await tester.pump();
-    await gesture.moveBy(const Offset(60, 0));
-    // The offset chases the finger on a follow spring - give it a few
-    // frames to arrive before measuring.
-    await tester.pump(const Duration(milliseconds: 80));
-    await tester.pump(const Duration(milliseconds: 80));
-    await tester.pump(const Duration(milliseconds: 80));
-    // The travel budget is deliberately small: most of the pull is
-    // spent on the deformation rather than on relocating the surface.
-    expect(
-      (tester.getCenter(find.text('Options')) - start).distance,
-      greaterThan(2),
-    );
-    await gesture.up();
+    await tester.pumpWidget(host(const MenuLesson()));
+    await tester.tap(find.text('Select'));
     await settle(tester);
-    expect(
-      (tester.getCenter(find.text('Options')) - start).distance,
-      lessThan(1),
+    expect(find.text('Done'), findsOneWidget);
+
+    // The share button becomes its menu, anchored INSIDE the phone's
+    // overlay: an anchor captured in screen coordinates would drift by
+    // the phone's own offset and end up clamped to an edge.
+    final Offset button = tester.getCenter(
+      find.byIcon(Icons.ios_share_rounded),
     );
-    // The pill still morphs into its menu from the piece.
-    final Offset pill = tester.getCenter(find.text('Share'));
-    await tester.tap(find.text('Share'));
-    await tester.pump();
+    await tester.tap(find.byIcon(Icons.ios_share_rounded));
     await settle(tester);
     expect(find.text('Copy link'), findsOneWidget);
-    // The popover anchors to the pill INSIDE the phone's overlay: an
-    // anchor captured in screen coordinates would drift by the phone's
-    // own offset and end up clamped to an edge.
     expect(
-      (tester.getCenter(find.text('Copy link')).dx - pill.dx).abs(),
-      lessThan(80),
+      (tester.getCenter(find.text('Copy link')).dx - button.dx).abs(),
+      lessThan(160),
     );
+    await tester.tap(find.text('Copy link'));
+    await settle(tester);
+    expect(find.text('Copy link'), findsNothing);
+    expect(find.text('copy link'), findsOneWidget);
   });
 
   testWidgets('goo dock: tapping a tab springs the blob, retarget mid-flight', (
@@ -121,58 +105,39 @@ void main() {
     expect(find.text('Search'), findsOneWidget);
   });
 
-  testWidgets(
-    'bar: the pill carries, the chrome breathes wide, the send flies',
-    (WidgetTester tester) async {
-      tester.view.physicalSize = const Size(1200, 800);
-      tester.view.devicePixelRatio = 1;
-      addTearDown(tester.view.reset);
+  testWidgets('bar: the lens selects, carries under a drag, the send flies', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(1200, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(host(const BarLesson()));
+    await tester.pumpWidget(host(const BarLesson()));
 
-      // Tap a slot: the selection commits and the pill flies there.
-      await tester.tap(find.byIcon(Icons.mail_rounded));
-      await tester.pump(const Duration(milliseconds: 50));
-      await settle(tester);
+    // A touch selects on contact.
+    await tester.tap(find.byIcon(Icons.mail_rounded));
+    await settle(tester);
+    expect(find.text('Mail'), findsNWidgets(2));
 
-      // Drag the pill along the track: free float, snap commits on
-      // release only when the hovered slot changed.
-      final Offset mail = tester.getCenter(find.byIcon(Icons.mail_rounded));
-      final TestGesture drag = await tester.startGesture(mail);
-      await drag.moveBy(const Offset(60, 0));
-      await tester.pump(const Duration(milliseconds: 40));
-      await drag.moveBy(const Offset(60, 0));
-      await tester.pump(const Duration(milliseconds: 40));
-      await drag.up();
-      await settle(tester);
-      expect(find.text('Profile'), findsWidgets);
+    // A drag carries the lifted lens; the release picks the tab under
+    // the finger.
+    final Offset mail = tester.getCenter(find.byIcon(Icons.mail_rounded));
+    final Offset profile = tester.getCenter(find.byIcon(Icons.person_rounded));
+    final TestGesture drag = await tester.startGesture(mail);
+    await tester.pump(const Duration(milliseconds: 40));
+    await drag.moveBy(Offset((profile.dx - mail.dx) / 2, 0));
+    await tester.pump(const Duration(milliseconds: 40));
+    await drag.moveBy(Offset((profile.dx - mail.dx) / 2, 0));
+    await tester.pump(const Duration(milliseconds: 40));
+    await drag.up();
+    await settle(tester);
+    expect(find.text('Profile'), findsNWidgets(2));
 
-      // Carry the pill back to the first tab: the capsule answers in
-      // sympathy through its channel, and the breath is a WIDTH - a bar
-      // that grew taller would break its stadium and eat the neck gap.
-      final MorphPieceChannel capsule = tester
-          .widget<MorphSkin>(find.byType(MorphSkin))
-          .pieces
-          .firstWhere((MorphPiece p) => p.id == 'bar-capsule')
-          .channel!;
-      final TestGesture carry = await tester.startGesture(
-        tester.getCenter(find.byIcon(Icons.person_rounded)),
-      );
-      await tester.pump(const Duration(milliseconds: 80));
-      await carry.moveBy(const Offset(-120, 0));
-      await tester.pump(const Duration(milliseconds: 80));
-      expect(capsule.scaleX, greaterThan(1));
-      expect(capsule.scaleY, 1);
-      await carry.up();
-      await settle(tester);
-      expect(capsule.scaleX, 1);
-
-      // The send companion is a real morph source.
-      await tester.tap(find.byIcon(Icons.send_rounded));
-      await settle(tester);
-      expect(find.text('New playlist'), findsOneWidget);
-    },
-  );
+    // The send companion is a real morph source.
+    await tester.tap(find.byIcon(Icons.send_rounded));
+    await settle(tester);
+    expect(find.text('New playlist'), findsOneWidget);
+  });
 
   testWidgets('chips: add and remove mid-motion stays continuous', (
     WidgetTester tester,
@@ -181,7 +146,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const ChipsExample(motion: .normal)));
+    await tester.pumpWidget(host(const ChipsExample(motion: .liquid)));
 
     await tester.tap(find.byIcon(Icons.add_rounded));
     await tester.pump(const Duration(milliseconds: 60));
@@ -199,7 +164,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    await tester.pumpWidget(host(const PageScene(motion: .liquid)));
     await tester.tap(find.text('Night Drive').first);
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 60));
@@ -220,7 +185,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    await tester.pumpWidget(host(const PageScene(motion: .liquid)));
     await tester.tap(find.text('Night Drive').first);
     await settle(tester);
     expect(find.text('Neon Waves - Midnight City'), findsOneWidget);
@@ -243,7 +208,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    await tester.pumpWidget(host(const PageScene(motion: .liquid)));
     await tester.tap(find.text('Real route'));
     await settle(tester);
 
@@ -291,7 +256,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    await tester.pumpWidget(host(const PageScene(motion: .liquid)));
     // The phone hosts its own MorphScope; the bar's flights live there.
     final MorphScopeState scope = tester.state(find.byType(MorphScope).last);
     final Finder bar = find.byIcon(Icons.pause_rounded);
@@ -338,7 +303,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    await tester.pumpWidget(host(const PageScene(motion: .liquid)));
     final MorphScopeState scope = tester.state(find.byType(MorphScope).last);
 
     // Slow and short: velocity alone commits a launch, so a slow pull
@@ -362,7 +327,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 
-    await tester.pumpWidget(host(const PageScene(motion: .normal)));
+    await tester.pumpWidget(host(const PageScene(motion: .liquid)));
     await tester.tap(find.text('Real route'));
     await settle(tester);
     final MorphScopeState scope = tester.state(find.byType(MorphScope).last);

@@ -1,10 +1,14 @@
 /// Liquid geometry: a scalar signed-distance field (SDF) and its vector
 /// tracing. The whole surface "fusion" is one idea: shapes are not drawn
 /// individually but united by a smooth minimum of their fields; the
-/// blend zone at a joint IS the concave fillet. A small [LiquidField.k]
-/// gives a crisp geometric joint, a large one - a gooey neck. The zero
-/// iso-contour is traced by marching squares into an ordinary [Path] -
-/// no shaders and no blur+threshold, hence no halos.
+/// blend zone at a joint IS the concave fillet. The smooth minimum is
+/// the one iOS 27 Liquid Glass draws, measured on a device: its width
+/// at each point is [LiquidField.k] scaled by `(1 - dot(na, nb)) / 2`,
+/// where `na` and `nb` are the unit gradients of the two operands - full
+/// width where surfaces face each other, none where their edges run
+/// side by side, so aligned edges stay straight. The zero iso-contour is
+/// traced by marching squares into an ordinary [Path] - no shaders and
+/// no blur+threshold, hence no halos.
 ///
 /// Sign convention is standard SDF: negative inside a shape, zero on the
 /// surface, positive outside.
@@ -23,9 +27,7 @@ import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:meta/meta.dart';
 
 /// A named bundle of fusion knobs - in the spirit of MorphMotion
-/// presets. k and cell are distances in pixels: the presets are
-/// calibrated for button-scale UI (pieces of 40-150px); scenes at other
-/// scales should scale k along via an explicit [MorphSkin.blend].
+/// presets. blend and cell are distances in pixels.
 class MorphSkinStyle {
   /// Creates a named knob bundle.
   const MorphSkinStyle({
@@ -38,8 +40,9 @@ class MorphSkinStyle {
   /// Preset name, for debugging and toString.
   final String name;
 
-  /// The fusion width in px: how far apart two masses may sit and
-  /// still pour into one skin (the smooth-min k of the field).
+  /// The fusion width in px: Liquid Glass's container spacing, 1:1.
+  /// Two facing surfaces start to lean toward each other below a gap
+  /// of blend and touch at a gap of blend / 2.
   final double blend;
 
   /// Outline grid step in px.
@@ -48,28 +51,12 @@ class MorphSkinStyle {
   /// Chaikin smoothing passes over the traced contour.
   final int smoothPasses;
 
-  /// A crisp concave joint - "a tab poured into a panel".
-  static const MorphSkinStyle geometric = MorphSkinStyle(
-    name: 'geometric',
-    blend: 14,
-  );
-
-  /// An organic gooey neck.
-  static const MorphSkinStyle goo = MorphSkinStyle(
-    name: 'goo',
-    blend: 42,
-    cell: 7,
-  );
-
-  /// A barely-there fillet: the fusion reads without announcing itself.
+  /// SwiftUI's default: a `GlassEffectContainer` without a spacing
+  /// merges with a spacing of 8 pt on iOS 27.
   static const MorphSkinStyle subtle = MorphSkinStyle(name: 'subtle', blend: 8);
 
   /// The built-in presets.
-  static const List<MorphSkinStyle> values = <MorphSkinStyle>[
-    subtle,
-    geometric,
-    goo,
-  ];
+  static const List<MorphSkinStyle> values = <MorphSkinStyle>[subtle];
 
   // Value equality: MorphTheme compares by ==, and an identity-compared
   // custom style would make every theme rebuild read as a change.
@@ -90,13 +77,29 @@ class MorphSkinStyle {
 }
 
 /// Polynomial smooth minimum in the mix form (no derivative kink at the
-/// seam). k = 0 degenerates to a plain min.
+/// seam): `min(a, b) - max(k - |a - b|, 0)^2 / (4 k)`. k = 0 degenerates
+/// to a plain min.
 double liquidSmin(double a, double b, double k) {
   if (k <= 0) {
     return math.min(a, b);
   }
   final double h = (0.5 + 0.5 * (b - a) / k).clamp(0.0, 1.0);
   return b * (1 - h) + a * h - k * h * (1 - h);
+}
+
+/// The blend width below which [LiquidField] merges by a plain min, in
+/// px: the smooth minimum dips at most a quarter of its width below the
+/// min, so a width this small is indistinguishable from it.
+@internal
+const double liquidMinMergeWidth = 1e-4;
+
+/// The local blend width of the Liquid Glass merge: [k] scaled by
+/// `(1 - dot(na, nb)) / 2`, the squared sine of half the angle between
+/// the unit normals [na] and [nb]. Facing surfaces (opposite normals)
+/// blend over the full [k], surfaces running side by side (equal
+/// normals) not at all.
+double liquidMergeWidth(double k, Offset na, Offset nb) {
+  return k * (1 - (na.dx * nb.dx + na.dy * nb.dy)) * 0.5;
 }
 
 /// Exact distance to a rounded rectangle. The radius is clamped by the
@@ -114,22 +117,62 @@ double liquidBoxDistance(Offset p, Rect rect, double radius) {
   return outside + inside - r;
 }
 
+/// The unit gradient of [liquidBoxDistance] at [p]: the outward normal
+/// of the nearest surface point. Deep inside, past the corner radius,
+/// it points along the axis of the nearest straight edge.
+Offset liquidBoxNormal(Offset p, Rect rect, double radius) {
+  final double hw = rect.width / 2;
+  final double hh = rect.height / 2;
+  final double r = math.min(radius, math.min(hw, hh));
+  final double px = p.dx - rect.center.dx;
+  final double py = p.dy - rect.center.dy;
+  final double qx = px.abs() - hw + r;
+  final double qy = py.abs() - hh + r;
+  final double ax = math.max(qx, 0);
+  final double ay = math.max(qy, 0);
+  final double length = math.sqrt(ax * ax + ay * ay);
+  if (length > 0) {
+    return Offset(
+      px < 0 ? -ax / length : ax / length,
+      py < 0 ? -ay / length : ay / length,
+    );
+  }
+  if (qx > qy) {
+    return Offset(px < 0 ? -1 : 1, 0);
+  }
+  return Offset(0, py < 0 ? -1 : 1);
+}
+
 /// Distance to a capsule (the segment [a]-[b] with radius [radius]).
 double liquidCapsuleDistance(Offset p, Offset a, Offset b, double radius) {
+  return (p - _capsuleAxisPoint(p, a, b)).distance - radius;
+}
+
+/// The unit gradient of [liquidCapsuleDistance] at [p]: the direction
+/// away from the nearest point of the segment [a]-[b]. Zero on the
+/// segment itself, where the distance has no gradient.
+Offset liquidCapsuleNormal(Offset p, Offset a, Offset b) {
+  final Offset d = p - _capsuleAxisPoint(p, a, b);
+  final double length = d.distance;
+  return length > 0 ? d / length : Offset.zero;
+}
+
+Offset _capsuleAxisPoint(Offset p, Offset a, Offset b) {
   final Offset pa = p - a;
   final Offset ba = b - a;
   final double denom = ba.dx * ba.dx + ba.dy * ba.dy;
   final double h = denom < 1e-9
       ? 0
       : ((pa.dx * ba.dx + pa.dy * ba.dy) / denom).clamp(0.0, 1.0);
-  final Offset d = pa - ba * h;
-  return d.distance - radius;
+  return a + ba * h;
 }
 
 /// Gap between two rects (0 when they intersect). The "no neck for
-/// sure" gate: blend depth at the middle of a gap is ~k/4, so with a gap
-/// larger than k the smooth union has provably split into islands and a
-/// distant shape can be left out of the field.
+/// sure" gate: the local blend width never exceeds k and the smooth
+/// minimum equals the plain min wherever the two distances differ by
+/// at least it, so with a gap larger than k the smooth union has
+/// provably split into islands and a distant shape can be left out of
+/// the field.
 double liquidRectGap(Rect a, Rect b) {
   final double dx = math.max(0, math.max(a.left - b.right, b.left - a.right));
   final double dy = math.max(0, math.max(a.top - b.bottom, b.top - a.bottom));
@@ -157,6 +200,8 @@ sealed class MorphMass {
   /// Signed distance from [p] to the mass surface (negative inside).
   double distance(Offset p);
 
+  Offset _normal(Offset p);
+
   /// The mass's own bounds, blend excluded: padding by k is added by
   /// [LiquidField.bounds].
   Rect get outerRect;
@@ -174,6 +219,9 @@ class _BoxMass extends MorphMass {
   double distance(Offset p) => liquidBoxDistance(p, rect, radius);
 
   @override
+  Offset _normal(Offset p) => liquidBoxNormal(p, rect, radius);
+
+  @override
   Rect get outerRect => rect;
 }
 
@@ -189,6 +237,9 @@ class _BridgeMass extends MorphMass {
 
   @override
   double distance(Offset p) => liquidCapsuleDistance(p, a, b, radius);
+
+  @override
+  Offset _normal(Offset p) => liquidCapsuleNormal(p, a, b);
 
   @override
   Rect get outerRect => Rect.fromPoints(a, b).inflate(radius);
@@ -227,9 +278,16 @@ int liquidMassSignature(MorphMass mass, Float64List out, int i) {
   return i + liquidMassSignatureStride;
 }
 
-/// A group of shapes as one field: the smooth union of all [shapes] with
-/// blend [k]. Two shapes whose k-zones overlap fuse on their own - no
-/// explicit connection needed.
+/// A group of shapes as one field: the Liquid Glass smooth union of all
+/// [shapes] with blend [k]. Two shapes whose k-zones overlap fuse on
+/// their own - no explicit connection needed.
+///
+/// The fold runs left to right over the boxes, then over the bridges,
+/// each in list order. It carries the field's unit gradient along: each
+/// step blends the next mass in over the local width
+/// [liquidMergeWidth] of the two normals and mixes the normals by the
+/// smooth minimum's own weight. For two masses this is exactly the
+/// merge measured on iOS 27; for more it is the natural fold of it.
 class LiquidField {
   /// Creates a field over [shapes] with fusion width [k].
   const LiquidField(this.shapes, {this.k = 24})
@@ -238,18 +296,47 @@ class LiquidField {
   /// The masses of the field.
   final List<MorphMass> shapes;
 
-  /// Blend width in field pixels. It is a distance: when the scene is
-  /// scaled, k scales along with it.
+  /// Blend width in field pixels - Liquid Glass's container spacing,
+  /// 1:1. It is a distance: when the scene is scaled, k scales along
+  /// with it.
   final double k;
 
-  /// The smooth-min distance of the whole field at [p].
+  /// The smooth-union distance of the whole field at [p].
+  ///
+  /// The reference implementation of the fold, over plain [Offset]
+  /// math; the tracer samples the same field through an
+  /// allocation-free twin.
   double eval(Offset p) {
-    if (shapes.isEmpty) {
-      return double.infinity;
-    }
-    double d = shapes.first.distance(p);
-    for (int i = 1; i < shapes.length; i++) {
-      d = liquidSmin(d, shapes[i].distance(p), k);
+    double d = .infinity;
+    Offset n = .zero;
+    bool first = true;
+    for (final bool boxes in const <bool>[true, false]) {
+      for (final MorphMass shape in shapes) {
+        if ((shape is _BoxMass) != boxes) {
+          continue;
+        }
+        final double di = shape.distance(p);
+        final Offset ni = shape._normal(p);
+        if (first) {
+          d = di;
+          n = ni;
+          first = false;
+          continue;
+        }
+        final double width = liquidMergeWidth(k, n, ni);
+        if (width < liquidMinMergeWidth) {
+          if (di < d) {
+            d = di;
+            n = ni;
+          }
+          continue;
+        }
+        final double h = (0.5 + 0.5 * (di - d) / width).clamp(0.0, 1.0);
+        d = liquidSmin(d, di, width);
+        final Offset mixed = ni * (1 - h) + n * h;
+        final double length = mixed.distance;
+        n = length > 1e-12 ? mixed / length : Offset.zero;
+      }
     }
     return d;
   }
@@ -276,6 +363,13 @@ class LiquidField {
 /// virtual dispatch. At ~10^4..10^5 vertices per recompute (every frame
 /// during a morph) this is the difference between a silent GC hum and
 /// none at all.
+///
+/// The fold is [LiquidField.eval]'s, step for step. The accumulated
+/// distance and normal live in fields, so a step allocates nothing. A
+/// mass whose distance differs from the accumulated one by at least k
+/// merges by a plain min whatever the normals (the local width never
+/// exceeds k), so it skips the dot product, and when it loses, its
+/// normal as well - most of a cluster's grid is decided there.
 class _FieldSampler {
   factory _FieldSampler(List<MorphMass> shapes, double k) {
     int boxCount = 0;
@@ -315,38 +409,77 @@ class _FieldSampler {
           bridges[gi++] = radius;
       }
     }
-    return _FieldSampler._(boxes, bridges, k);
+    return _FieldSampler._(boxes, bridges, k, shapes.length == 1);
   }
 
-  _FieldSampler._(this._boxes, this._bridges, this._k);
+  _FieldSampler._(this._boxes, this._bridges, this._k, this._single);
 
   final Float64List _boxes;
   final Float64List _bridges;
   final double _k;
 
+  /// One mass alone: its distance is the field, its normal is never
+  /// read.
+  final bool _single;
+
+  double _d = 0;
+  double _nx = 0;
+  double _ny = 0;
+
   double eval(double x, double y) {
-    // Seeded by the first shape's distance, exactly like the reference
+    final double k = _k;
+    // Seeded by the first shape, exactly like the reference
     // LiquidField.eval: folding infinity through smin would produce
     // infinity * 0 = NaN.
-    double d = .infinity;
     bool first = true;
     final Float64List boxes = _boxes;
     for (int i = 0; i < boxes.length; i += 5) {
+      final double px = x - boxes[i];
+      final double py = y - boxes[i + 1];
       final double r = boxes[i + 4];
-      final double qx = (x - boxes[i]).abs() - boxes[i + 2] + r;
-      final double qy = (y - boxes[i + 1]).abs() - boxes[i + 3] + r;
+      final double qx = px.abs() - boxes[i + 2] + r;
+      final double qy = py.abs() - boxes[i + 3] + r;
       final double ax = qx > 0 ? qx : 0.0;
       final double ay = qy > 0 ? qy : 0.0;
-      double di = math.sqrt(ax * ax + ay * ay) - r;
+      final double length = math.sqrt(ax * ax + ay * ay);
+      double di = length - r;
       final double inner = qx > qy ? qx : qy;
       if (inner < 0) {
         di += inner;
       }
-      if (first) {
-        d = di;
+      final bool seed = first;
+      if (seed) {
+        if (_single) {
+          return di;
+        }
         first = false;
+      } else if (di - _d >= k) {
+        continue;
+      }
+      double nx;
+      double ny;
+      if (length > 0) {
+        nx = ax / length;
+        ny = ay / length;
+      } else if (qx > qy) {
+        nx = 1;
+        ny = 0;
       } else {
-        d = _smin(d, di);
+        nx = 0;
+        ny = 1;
+      }
+      if (px < 0) {
+        nx = -nx;
+      }
+      if (py < 0) {
+        ny = -ny;
+      }
+      if (seed) {
+        _d = di;
+        _nx = nx;
+        _ny = ny;
+      } else {
+        _merge(di, nx, ny);
       }
     }
     final Float64List bridges = _bridges;
@@ -363,48 +496,70 @@ class _FieldSampler {
       }
       final double dx = pax - bax * h;
       final double dy = pay - bay * h;
-      final double di = math.sqrt(dx * dx + dy * dy) - bridges[i + 5];
-      if (first) {
-        d = di;
+      final double length = math.sqrt(dx * dx + dy * dy);
+      final double di = length - bridges[i + 5];
+      final bool seed = first;
+      if (seed) {
+        if (_single) {
+          return di;
+        }
         first = false;
+      } else if (di - _d >= k) {
+        continue;
+      }
+      final double nx = length > 0 ? dx / length : 0.0;
+      final double ny = length > 0 ? dy / length : 0.0;
+      if (seed) {
+        _d = di;
+        _nx = nx;
+        _ny = ny;
       } else {
-        d = _smin(d, di);
+        _merge(di, nx, ny);
       }
     }
-    return d;
+    return first ? .infinity : _d;
   }
 
-  double _smin(double a, double b) {
-    final double k = _k;
-    if (k <= 0) {
-      return a < b ? a : b;
+  /// Folds a mass at distance [b] with unit normal ([bx], [by]) into
+  /// the accumulator; the caller has already let the accumulator win
+  /// every step it wins by k or more.
+  void _merge(double b, double bx, double by) {
+    final double a = _d;
+    if (a - b >= _k) {
+      _d = b;
+      _nx = bx;
+      _ny = by;
+      return;
     }
-    double h = 0.5 + 0.5 * (b - a) / k;
+    final double width = _k * (1 - (_nx * bx + _ny * by)) * 0.5;
+    if (width < liquidMinMergeWidth) {
+      if (b < a) {
+        _d = b;
+        _nx = bx;
+        _ny = by;
+      }
+      return;
+    }
+    double h = 0.5 + 0.5 * (b - a) / width;
     if (h < 0) {
       h = 0;
     } else if (h > 1) {
       h = 1;
     }
-    return b * (1 - h) + a * h - k * h * (1 - h);
+    _d = b * (1 - h) + a * h - width * h * (1 - h);
+    final double mx = bx * (1 - h) + _nx * h;
+    final double my = by * (1 - h) + _ny * h;
+    final double length = math.sqrt(mx * mx + my * my);
+    if (length > 1e-12) {
+      _nx = mx / length;
+      _ny = my / length;
+    } else {
+      _nx = 0;
+      _ny = 0;
+    }
   }
 }
 
-/// Splits shapes into connectivity clusters: shapes whose bounds gap is
-/// <= k belong together (transitively). Each cluster is traced on its
-/// own tight grid instead of one grid over the union bounds - for
-/// spread-out scenes this shrinks the sampled area by orders of
-/// magnitude.
-///
-/// Exactness proof sketch: the mix-form smin equals the plain min
-/// exactly once the distance difference reaches k. On and near cluster
-/// A's zero contour, every point lies on A's surface, so its distance
-/// to any shape of another cluster is at least the inter-cluster gap
-/// (> k) - the neighbor's contribution vanishes identically there.
-/// Mutual bulging exists only below a gap of k, which keeps such shapes
-/// in one cluster by construction; and no phantom mass can appear
-/// between clusters because at a midpoint both distances exceed k/2
-/// while smin dips at most k/4 below the plain min. The split is
-/// therefore not an approximation.
 /// Connectivity labels over [rects]: rects whose gap is at most [k]
 /// share a label (transitively), labels are dense from zero. The ONE
 /// implementation of the body predicate - the tracer's cluster split
@@ -437,6 +592,24 @@ List<int> liquidConnectivityLabels(List<Rect> rects, double k) {
   return labels;
 }
 
+/// Splits shapes into connectivity clusters: shapes whose bounds gap is
+/// <= k belong together (transitively). Each cluster is traced on its
+/// own tight grid instead of one grid over the union bounds - for
+/// spread-out scenes this shrinks the sampled area by orders of
+/// magnitude.
+///
+/// Exactness proof sketch: the local blend width k' = k (1 - na.nb) / 2
+/// never exceeds k, and the mix-form smin with any width k' <= k equals
+/// the plain min exactly - distance AND carried normal, the winner's -
+/// once the distance difference reaches k. On and near cluster A's zero
+/// contour, every point lies on A's surface, so its distance to any
+/// shape of another cluster is at least the inter-cluster gap (> k) -
+/// the neighbor's contribution vanishes identically there. Mutual
+/// bulging exists only below a gap of k, which keeps such shapes in one
+/// cluster by construction; and no phantom mass can appear between
+/// clusters because at a midpoint both distances exceed k/2 while smin
+/// dips at most k'/4 <= k/4 below the plain min. The split is therefore
+/// not an approximation.
 List<List<MorphMass>> _clusterShapes(List<MorphMass> shapes, double k) {
   final int n = shapes.length;
   if (n <= 1) {

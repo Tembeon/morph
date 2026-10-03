@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Shader bundle the vendored renderer's build hook writes
+/third_party/liquid_glass_renderer/build/

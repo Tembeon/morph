@@ -6,21 +6,21 @@
 /// Layers:
 ///  - geometry and identity: [MorphScope], [MorphTag];
 ///  - physics: [MorphController], [MorphMotion] (pairs of Motions from
-///    the motor package), [MorphPhase]; the system invariant - every
+///    the motor package, the default measured from UIKit's liquid morph),
+///    [MorphSpring] (UIKit's response / damping-ratio vocabulary),
+///    [MorphPhase]; the system invariant - every
 ///    visual property is a pure symmetric function of a single spring
 ///    value, which yields interruption continuity by construction;
 ///  - the shuttle: [showMorph], [showMorphSheet], [showMorphDialog],
 ///    declarative [MorphAnchor]; [showMorphRoute] - the destination as
 ///    a real Navigator route with the flight as its transition (the
 ///    second latch reparents live content into the page at settle);
-///  - content choreography: [MorphReveal] - a cascade of content blocks
-///    unfolding on sub-ranges of the same spring;
 ///  - liquid fusion: [MorphSkin] - pieces sharing one "skin" via an
 ///    SDF smooth-union traced by marching squares into a vector Path;
 ///    a single knob k spans crisp concave joints to gooey necks.
 ///
-/// This is the ENGINE layer; the opinionated widget layer (press
-/// springs, liquid selection, glass tethers) is
+/// This is the ENGINE layer; the widget layer (controls measured from
+/// UIKit's Liquid Glass, the context menu) is
 /// `package:morph/widgets.dart` and depends on this one, never the
 /// other way around.
 ///
@@ -32,13 +32,11 @@
 /// {@canonicalFor controller.MorphPhase}
 /// {@canonicalFor flight.MorphContentBuilder}
 /// {@canonicalFor flight.MorphFlight}
+/// {@canonicalFor flight.MorphFlightEvent}
 /// {@canonicalFor flight.MorphFlightScope}
 /// {@canonicalFor frame.MorphFrame}
 /// {@canonicalFor frame.computeMorphFrame}
-/// {@canonicalFor frame.morphBumpedRect}
-/// {@canonicalFor frame.morphLandingBump}
 /// {@canonicalFor frame.uniformMorphRadius}
-/// {@canonicalFor gesture.morphCloseHintScale}
 /// {@canonicalFor gesture.morphDragArm}
 /// {@canonicalFor gesture.morphDragRecede}
 /// {@canonicalFor gesture.morphDragScale}
@@ -48,7 +46,6 @@
 /// {@canonicalFor liquid_field.MorphMass}
 /// {@canonicalFor liquid_field.MorphSkinStyle}
 /// {@canonicalFor motion.MorphMotion}
-/// {@canonicalFor reveal.MorphReveal}
 /// {@canonicalFor route.MorphPageRoute}
 /// {@canonicalFor route.showMorphRoute}
 /// {@canonicalFor scope.MorphScope}
@@ -66,6 +63,7 @@
 /// {@canonicalFor skin.MorphPieceChannel}
 /// {@canonicalFor skin.MorphSkin}
 /// {@canonicalFor skin.MorphStroke}
+/// {@canonicalFor spring.MorphSpring}
 /// {@canonicalFor target.MorphTargetSpec}
 /// {@canonicalFor target.morphAnchorRect}
 /// {@canonicalFor target.maybeMorphAnchorRect}
@@ -80,24 +78,19 @@ export 'package:motor/motor.dart'
 export 'src/anchor.dart';
 export 'src/controller.dart' show MorphController, MorphDirection, MorphPhase;
 export 'src/flight.dart'
-    show MorphContentBuilder, MorphFlight, MorphFlightScope;
-export 'src/frame.dart'
-    show
-        MorphFrame,
-        computeMorphFrame,
-        morphBumpedRect,
-        morphLandingBump,
-        uniformMorphRadius;
+    show MorphContentBuilder, MorphFlight, MorphFlightEvent, MorphFlightScope;
+export 'src/frame.dart' show MorphFrame, computeMorphFrame, uniformMorphRadius;
 export 'src/gesture.dart';
 export 'src/skin.dart'
     show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin, MorphStroke;
 export 'src/liquid_field.dart' show MorphMass, MorphSkinStyle;
-export 'src/reveal.dart';
 export 'src/route.dart' show MorphPageRoute, showMorphRoute;
 export 'src/shared.dart' show MorphSharedElement, MorphSharedFade;
+export 'src/spring.dart';
 export 'src/scope.dart'
     show MorphScope, MorphScopeState, MorphSurfaceSpec, MorphTag, MorphTagState;
 export 'src/show.dart';
 export 'src/motion.dart';
 export 'src/theme.dart';
-export 'src/target.dart';
+export 'src/target.dart'
+    hide morphContentViewInsets, morphOverlayViewInsetsOf, morphTargetPaddingOf;

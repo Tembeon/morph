@@ -4,10 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
 import 'package:meta/meta.dart';
 
-import 'package:morph/src/controller.dart';
 import 'package:morph/src/flight.dart';
-import 'package:morph/src/frame.dart';
-import 'package:morph/src/theme.dart';
 
 /// The registry of tags and flights. Installed once near the top of the
 /// tree (not necessarily above the Navigator, but inside MaterialApp).
@@ -298,8 +295,6 @@ class MorphTag extends StatefulWidget {
     this.surfaceColor,
     this.elevation = 0,
     this.replica,
-    this.bumpScale,
-    this.bumpRecoil,
     this.snapshotGhost = false,
   }) : assert(elevation >= 0, 'elevation cannot be negative.');
 
@@ -344,17 +339,6 @@ class MorphTag extends StatefulWidget {
   /// shadow, and a replicated decoration would be clipped at the edges.
   /// null - the [child] itself flies.
   final Widget? replica;
-
-  /// How visible the residual bounce is after handoff:
-  /// scale = 1 + value * bumpScale while value < 0.
-  /// null falls back to [MorphTheme.bumpScale], then 0.6.
-  final double? bumpScale;
-
-  /// The button's kick-off on landing: displacement along the impact
-  /// axis in logical pixels per unit of undershoot. Squash is barely
-  /// visible on small elements (a FAB) - the impact is carried by the
-  /// recoil. null falls back to [MorphTheme.bumpRecoil], then 140.
-  final double? bumpRecoil;
 
   /// The declared surface model of the nearest enclosing [MorphTag] -
   /// render the visible surface from it instead of repeating the
@@ -409,21 +393,7 @@ class MorphTag extends StatefulWidget {
 class MorphTagState extends State<MorphTag> {
   MorphScopeState? _scope;
   bool _hidden = false;
-  MorphController? _bumpSource;
-  Offset _impactAxis = const Offset(0, 1);
   final GlobalKey _boundaryKey = GlobalKey();
-
-  /// The landing bump this tag itself plays, as (scale, recoil) after
-  /// theme resolution. The skin reads it in debug builds to catch a
-  /// landing that would apply twice.
-  @internal
-  (double, double) get resolvedBump {
-    final MorphTheme? theme = MorphTheme.maybeOf(context);
-    return (
-      widget.bumpScale ?? theme?.bumpScale ?? 0.6,
-      widget.bumpRecoil ?? theme?.bumpRecoil ?? 140,
-    );
-  }
 
   /// mounted is not enough: in the dismantling frame the element is
   /// already deactivated (findRenderObject throws) but the State is not
@@ -523,60 +493,34 @@ class MorphTagState extends State<MorphTag> {
         !renderObject.hasSize) {
       return null;
     }
-    final Offset topLeft = renderObject.localToGlobal(
-      .zero,
-      ancestor: overlayBox,
+    // A tag may sit below a paint transform (the press lift of a held
+    // surface is the important case). Transforming only local zero and
+    // then pairing it with the untransformed layout size produces a rect
+    // that is neither the painted rect nor the layout rect: a centered
+    // scale moves its top-left but mysteriously keeps its old extent.
+    // Capture the whole local bounds through the same transform so the
+    // shuttle's first pixel is exactly the pixel the finger was holding.
+    return MatrixUtils.transformRect(
+      renderObject.getTransformTo(overlayBox),
+      Offset.zero & renderObject.size,
     );
-    return topLeft & renderObject.size;
   }
 
   /// Hides the home widget while its content rides the shuttle.
   @internal
   void hideForFlight() {
-    if (!_hidden || _bumpSource != null) {
-      setState(() {
-        _hidden = true;
-        _bumpSource = null;
-      });
+    if (!_hidden) {
+      setState(() => _hidden = true);
     }
   }
 
-  /// Called by the handoff latch: the widget becomes visible again, and
-  /// the spring's residual undershoot plays out on it as a squash along
-  /// the impact axis (compression along the motion, a slight stretch
-  /// across it - classic landing squash-and-stretch).
-  @internal
-  void revealWithBump(
-    MorphController controller, {
-    Offset impactAxis = const Offset(0, 1),
-  }) {
-    setState(() {
-      _hidden = false;
-      _bumpSource = controller;
-      _impactAxis = impactAxis.distance < 1 ? const Offset(0, 1) : impactAxis;
-    });
-  }
-
-  /// Un-hides the widget without a landing: the return path of every
-  /// teardown that skips the handoff latch (abort, a scrub-interrupted
-  /// finalize) - the latch's [revealWithBump] is the only other
-  /// un-hide, and a tag left hidden with no flight would stay
-  /// invisible forever.
+  /// Un-hides the widget: called by the handoff latch, and by every
+  /// teardown that skips it (abort, a scrub-interrupted finalize) - a
+  /// tag left hidden with no flight would stay invisible forever.
   @internal
   void reveal() {
     if (_hidden && mounted) {
-      setState(() {
-        _hidden = false;
-        _bumpSource = null;
-      });
-    }
-  }
-
-  /// Stops mirroring the landing bump after finalization.
-  @internal
-  void clearBump() {
-    if (_bumpSource != null && mounted) {
-      setState(() => _bumpSource = null);
+      setState(() => _hidden = false);
     }
   }
 
@@ -607,34 +551,10 @@ class MorphTagState extends State<MorphTag> {
       'twice. Remove the key or move it deeper, outside the replicated '
       'part.',
     );
-    Widget child = RepaintBoundary(key: _boundaryKey, child: widget.child);
-    final MorphController? bump = _bumpSource;
-    if (bump != null) {
-      final (double bumpScale, double bumpRecoil) = resolvedBump;
-      child = ListenableBuilder(
-        listenable: bump,
-        builder: (BuildContext context, Widget? inner) {
-          // Full-wave bump using the shared morphLandingBump formula
-          // (see frame.dart): a half-wave min(0, v) flattened half of
-          // the oscillation to zero and the landing looked clipped.
-          final ({double scaleX, double scaleY, Offset kick}) b =
-              morphLandingBump(
-                value: bump.value,
-                impactAxis: _impactAxis,
-                bumpScale: bumpScale,
-                bumpRecoil: bumpRecoil,
-              );
-          return Transform(
-            alignment: Alignment.center,
-            transform: Matrix4.identity()
-              ..translateByDouble(b.kick.dx, b.kick.dy, 0, 1)
-              ..scaleByDouble(b.scaleX, b.scaleY, 1, 1),
-            child: inner,
-          );
-        },
-        child: child,
-      );
-    }
+    final Widget child = RepaintBoundary(
+      key: _boundaryKey,
+      child: widget.child,
+    );
     return IgnorePointer(
       ignoring: _hidden,
       child: Opacity(

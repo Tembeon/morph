@@ -1,0 +1,325 @@
+{
+ "device": "iPhone 16 Pro, iOS 27.0.1, 3x, 402x874 pt",
+ "date": "2026-10-02",
+ "law": {
+  "name": "angle-modulated quadratic smooth-min (sin^2 law)",
+  "formula": "k' = k * (1 - dot(na, nb)) / 2 ;  d = min(a, b) - max(k' - |a - b|, 0)^2 / (4 k')   (k' -> 0 gives min)",
+  "equivalent_forms": [
+   "k' = k * sin^2(theta/2) where theta = angle between the operand SDF gradients na, nb",
+   "k' = k * |na - nb|^2 / 4",
+   "morph mix form liquidSmin(a, b, k') with the per-point k'"
+  ],
+  "k": "k = container spacing in pt (UIGlassContainerEffect.spacing / GlassEffectContainer(spacing:)), mapped 1:1 to CASDFLayer.smoothness",
+  "fitted_k_over_spacing": {
+   "10": 1.044,
+   "20": 1.01,
+   "40": 1.009,
+   "80": 1.002
+  },
+  "rms_pt_at_k_eq_spacing": {
+   "10": 0.287,
+   "20": 0.223,
+   "40": 0.208,
+   "80": 0.172
+  },
+  "measurement_noise_floor_rms_pt": 0.23,
+  "touch_threshold": "two convex caps first touch at gap = k/2 (plus ~2*0.4 pt fill offset)",
+  "deformation_onset": "facing surfaces begin to bulge toward each other at gap < k",
+  "aligned_edges": "collinear/parallel edges get k' = 0: no lift (plain smin would lift them by k/4)",
+  "contour_offset_pt": {
+   "tint_fill_effectOffset": -0.5333,
+   "measured_silhouette_outset": 0.4
+  }
+ },
+ "rejected": {
+  "plain_poly_k": {
+   "10": {
+    "k_fit": 9.63,
+    "rms": 0.436,
+    "rms_k_eq_s": 0.45
+   },
+   "20": {
+    "k_fit": 18.59,
+    "rms": 1.072,
+    "rms_k_eq_s": 1.349
+   },
+   "40": {
+    "k_fit": 30.84,
+    "rms": 3.142,
+    "rms_k_eq_s": 5.106
+   },
+   "80": {
+    "k_fit": 49.0,
+    "rms": 9.083,
+    "rms_k_eq_s": 17.158
+   }
+  },
+  "renderer_sin_law": {
+   "10": {
+    "k_fit": 10.44,
+    "rms": 0.298,
+    "rms_k_eq_s": 0.311
+   },
+   "20": {
+    "k_fit": 19.2,
+    "rms": 0.452,
+    "rms_k_eq_s": 0.526
+   },
+   "40": {
+    "k_fit": 38.64,
+    "rms": 1.412,
+    "rms_k_eq_s": 1.657
+   },
+   "80": {
+    "k_fit": 70.76,
+    "rms": 4.071,
+    "rms_k_eq_s": 5.101
+   }
+  },
+  "sin2_depth_only_window_k": {
+   "10": {
+    "k_fit": 10.44,
+    "rms": 0.295
+   },
+   "20": {
+    "k_fit": 19.44,
+    "rms": 0.476
+   },
+   "40": {
+    "k_fit": 38.81,
+    "rms": 1.429
+   },
+   "80": {
+    "k_fit": 74.32,
+    "rms": 4.005
+   }
+  },
+  "exponential_circular_cubic": "global fits rms 1-38 pt at s>=20 (see merge-report.txt)"
+ },
+ "sdf_layer_params": {
+  "CASDFLayer.smoothness": "== spacing on every SDF layer of the container (output, gradient, fill, key/fill highlight), UIKit and SwiftUI",
+  "CASDFLayer.gaussianRadius": 0,
+  "CASDFLayer.mergeElements": false,
+  "CASDFLayer.effectOffset": {
+   "fill": -0.5333,
+   "others": 0
+  },
+  "CASDFOutputEffect": {
+   "minimum": -10000,
+   "maximum": 8.890357668551713
+  },
+  "CASDFGradientEffect.distances": [
+   -1,
+   0,
+   10
+  ],
+  "CASDFElementLayer": {
+   "mode": "bounds",
+   "operation": "union",
+   "contentsZeroValueDistance": 0,
+   "contentsOneValueDistance": 1,
+   "gradientOvalization": 0
+  },
+  "defaults": {
+   "UIGlassContainerEffect().spacing": 0,
+   "GlassEffectContainer() smoothness": 8
+  }
+ },
+ "dynamic": {
+  "smoothness_constant_during_motion": true,
+  "hysteresis": "none - drag in/out necks equal at equal gap, match the static law within 0.25 pt",
+  "glassEffectID": "elements spring in size about their own centre: a new member is born at 0.2 scale (12x8.8 for 60x44) at its final centre and grows (bouncy, ~0.34 s to peak, 1.03 overshoot); the leaving member shrinks back to 0.2 scale and stays inside the survivor; the fusion is the same sin^2 smooth-min with k = spacing throughout",
+  "glassEffectUnion": "members collapse into ONE element whose rect is their bounding box (capsule 150x44 for two 60x44 at gap 30); not a smooth-min"
+ },
+ "neck_heights_pt_capsule_uikit": {
+  "10": [
+   {
+    "gap": 6,
+    "apple": 2.3,
+    "sin2": 0.0,
+    "renderer_sin": 0.0,
+    "plain": 0.0
+   },
+   {
+    "gap": 3,
+    "apple": 15.28,
+    "sin2": 15.0,
+    "renderer_sin": 15.67,
+    "plain": 16.46
+   },
+   {
+    "gap": 0,
+    "apple": 21.43,
+    "sin2": 21.23,
+    "renderer_sin": 22.16,
+    "plain": 23.32
+   },
+   {
+    "gap": -5,
+    "apple": 28.29,
+    "sin2": 28.13,
+    "renderer_sin": 29.32,
+    "plain": 30.97
+   }
+  ],
+  "20": [
+   {
+    "gap": 10,
+    "apple": 8.09,
+    "sin2": 7.98,
+    "renderer_sin": 8.57,
+    "plain": 9.33
+   },
+   {
+    "gap": 6,
+    "apple": 19.26,
+    "sin2": 19.1,
+    "renderer_sin": 20.53,
+    "plain": 22.43
+   },
+   {
+    "gap": 3,
+    "apple": 24.05,
+    "sin2": 23.93,
+    "renderer_sin": 25.71,
+    "plain": 28.18
+   },
+   {
+    "gap": 0,
+    "apple": 27.77,
+    "sin2": 27.65,
+    "renderer_sin": 29.7,
+    "plain": 32.66
+   },
+   {
+    "gap": -5,
+    "apple": 32.53,
+    "sin2": 32.42,
+    "renderer_sin": 34.79,
+    "plain": 38.5
+   }
+  ],
+  "40": [
+   {
+    "gap": 20,
+    "apple": 8.02,
+    "sin2": 7.97,
+    "renderer_sin": 8.86,
+    "plain": 10.15
+   },
+   {
+    "gap": 15,
+    "apple": 20.97,
+    "sin2": 20.86,
+    "renderer_sin": 23.23,
+    "plain": 26.8
+   },
+   {
+    "gap": 10,
+    "apple": 27.69,
+    "sin2": 27.62,
+    "renderer_sin": 30.81,
+    "plain": 35.82
+   },
+   {
+    "gap": 6,
+    "apple": 31.62,
+    "sin2": 31.52,
+    "renderer_sin": 35.21,
+    "plain": 41.22
+   },
+   {
+    "gap": 3,
+    "apple": 34.05,
+    "sin2": 33.9,
+    "renderer_sin": 37.89,
+    "plain": 44.61
+   },
+   {
+    "gap": 0,
+    "apple": 36.05,
+    "sin2": 35.92,
+    "renderer_sin": 40.16,
+    "plain": 47.57
+   },
+   {
+    "gap": -5,
+    "apple": 38.75,
+    "sin2": 38.63,
+    "renderer_sin": 43.2,
+    "plain": 51.75
+   }
+  ],
+  "80": [
+   {
+    "gap": 40,
+    "apple": 8.24,
+    "sin2": 8.32,
+    "renderer_sin": 9.56,
+    "plain": 11.62
+   },
+   {
+    "gap": 30,
+    "apple": 29.02,
+    "sin2": 28.99,
+    "renderer_sin": 33.52,
+    "plain": 41.41
+   },
+   {
+    "gap": 20,
+    "apple": 38.04,
+    "sin2": 37.94,
+    "renderer_sin": 44.12,
+    "plain": 55.63
+   },
+   {
+    "gap": 15,
+    "apple": 41.02,
+    "sin2": 40.92,
+    "renderer_sin": 47.74,
+    "plain": 60.91
+   },
+   {
+    "gap": 10,
+    "apple": 43.34,
+    "sin2": 43.23,
+    "renderer_sin": 50.58,
+    "plain": 65.38
+   },
+   {
+    "gap": 6,
+    "apple": 44.76,
+    "sin2": 44.66,
+    "renderer_sin": 52.38,
+    "plain": 68.49
+   },
+   {
+    "gap": 3,
+    "apple": 45.65,
+    "sin2": 45.53,
+    "renderer_sin": 53.48,
+    "plain": 70.58
+   },
+   {
+    "gap": 0,
+    "apple": 46.34,
+    "sin2": 46.22,
+    "renderer_sin": 54.39,
+    "plain": 72.49
+   },
+   {
+    "gap": -5,
+    "apple": 47.14,
+    "sin2": 47.03,
+    "renderer_sin": 55.47,
+    "plain": 75.3
+   }
+  ]
+ },
+ "morph_recommendation": {
+  "blend": "blend (k) = Apple spacing, 1:1 in logical px; SwiftUI default spacing 8 == MorphSkinStyle.subtle (8)",
+  "smin": "keep the mix-form polynomial but feed it k' = k * (1 - dot(na, nb)) / 2 per sample, na/nb = unit gradients of the accumulated field and of the next primitive",
+  "fold_gradient": "accumulated gradient = mix(g_i, g_acc, h') with h' = clamp(0.5 + 0.5*(d_i - d_acc)/k', 0, 1) (the smin's own weight), renormalised before the dot",
+  "cluster_split_still_exact": "k' <= k, so 'gap > k => plain min' and liquidConnectivityLabels stay valid"
+ }
+}

@@ -1,0 +1,126 @@
+{
+ "device": "iPhone 17e simulator 5BCE4316, 390x844 @3x, 60 Hz, iOS 27.0 (24A434)",
+ "format": "jsonl rows: k=touch {t,phase 0 began/1 moved/3 ended,x,y}; k=action {t,title}; k=f per display frame while a morph exists {t, G_* menu blob, S_* button blob, lens_blur, lens_gauss, sdf0/sdf1 [cx,cy,w,h,visualRadius], btn_w/btn_h pressed glass size, bar nav button frame, menu real menu frame [cx,cy,w,h,alpha], dim_a}. G/S keys: px,py layer position; kx,ky KickView translation; s uniform scale; bw,bh local bounds; r layer radius; clipr clip radius; *_list_a/_blur menu content alpha/blur; *_pivot_*, *_btn_* button-look/glass alpha/blur. Rows are emitted only when a value changed. Dropped as redundant: *_pivot_* (= 1 - list/btn alpha, mirrored blur), G_r, G_kx/S_kx (always 0), G_bw (always 250). G_rvis = visual corner radius of the menu blob SDF.",
+ "captures": [
+  {
+   "file": "center3-tap.jsonl",
+   "variant": "48pt glass button screen center, 3 rows",
+   "gesture": "tap 128 ms (open only)"
+  },
+  {
+   "file": "center3-quicktap.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "tap 31 ms (open only, S0=1.0)"
+  },
+  {
+   "file": "center3-hold700.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "press 736 ms (opens during hold)"
+  },
+  {
+   "file": "center3-dismiss.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "open, then tap outside"
+  },
+  {
+   "file": "center3-closemidopen.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "open, tap outside 25 ms after release (close mid-open)"
+  },
+  {
+   "file": "center3-retap-midopen.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "open, second tap on button spot mid-open (selects row 1)"
+  },
+  {
+   "file": "center3-select.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "open, tap row 2 (Share)"
+  },
+  {
+   "file": "center3-dragselect.jsonl",
+   "variant": "center, 3 rows",
+   "gesture": "press-hold, drag to row 3, release (Delete)"
+  },
+  {
+   "file": "bottom3-dismiss.jsonl",
+   "variant": "button bottom center, 3 rows (opens up)",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "pos-tl-dismiss.jsonl",
+   "variant": "button top-left",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "pos-tr-dismiss.jsonl",
+   "variant": "button top-right",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "pos-bl-dismiss.jsonl",
+   "variant": "button bottom-left",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "pos-br-dismiss.jsonl",
+   "variant": "button bottom-right",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "pos-left-dismiss.jsonl",
+   "variant": "button left edge, vertical center of safe area (opens up)",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "center-items2-dismiss.jsonl",
+   "variant": "center, 2 rows",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "center-items5-dismiss.jsonl",
+   "variant": "center, 5 rows",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "center-items10-dismiss.jsonl",
+   "variant": "center, 10 rows (clamped to bottom safe area)",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "tl-items1-tap.jsonl",
+   "variant": "top-left, 1 row",
+   "gesture": "tap (open only)"
+  },
+  {
+   "file": "tl-items2-tap.jsonl",
+   "variant": "top-left, 2 rows",
+   "gesture": "tap (open only)"
+  },
+  {
+   "file": "tl-items4-tap.jsonl",
+   "variant": "top-left, 4 rows",
+   "gesture": "tap (open only)"
+  },
+  {
+   "file": "tl-items6-tap.jsonl",
+   "variant": "top-left, 6 rows",
+   "gesture": "tap (open only)"
+  },
+  {
+   "file": "tl-items8-tap.jsonl",
+   "variant": "top-left, 8 rows",
+   "gesture": "tap (open only)"
+  },
+  {
+   "file": "wide3-dismiss.jsonl",
+   "variant": "wide text glass button 125x48, 3 rows",
+   "gesture": "open, tap outside"
+  },
+  {
+   "file": "navbar3-dismiss.jsonl",
+   "variant": "UIBarButtonItem(menu:) ellipsis in nav bar, 3 rows",
+   "gesture": "open, tap outside"
+  }
+ ]
+}

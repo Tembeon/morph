@@ -1,6 +1,6 @@
 name: morph
 description: "Identity-based, spring-driven, interruptible widget-to-overlay morphs with liquid skin fusion. No Navigator coupling."
-version: 0.4.0
+version: 0.7.0
 publish_to: 'none'
 
 environment:

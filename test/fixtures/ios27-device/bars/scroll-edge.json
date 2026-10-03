@@ -1,0 +1,756 @@
+{
+ "what": "iOS 27 scroll edge effect (UIKit.ScrollEdgeEffectView) layers under a large-title navigation bar, every distinct presentation state while a programmatic scroll ramps the list under the bar and back",
+ "device": "iPhone 16 Pro (00008140-001039D01442801C), iOS 27.0.1, 402x874 pt, 120 Hz",
+ "captured": "2026-10-03",
+ "probe": "tool/ios_reference scene nav (Sources/Bars.swift), PROBE_AUTO=scrollquick, PROBE_EDGE automatic|soft|hard, PROBE_DARK=1; launched with devicectl",
+ "reading": "L0/L0 = Replay backdrop (re-draws what lies behind the content, alpha 0.5 light / 0.6 dark, gradient mask); L0/L1 = Pocket backdrop (variableBlur inputRadius, full mask; hard adds colorMatrix saturation 1.25 + 0.03 and sdrNormalize); L0/L2 = separator, 1 px at the bar bottom, black/white 10 percent. automatic under a nav bar = thinFilm(floating) = hard. At rest (content at the top) the effect view is alpha 0 and shows the status-bar pocket only.",
+ "states": {
+  "automatic-light": [
+   {
+    "cls": "CABackdropLayer",
+    "path": "_TtCC5UIKit20ScrollEdgeEffectView12BackdropView",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView",
+    "a": 0,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0",
+    "a": 0,
+    "y": 0,
+    "h": 0
+   },
+   {
+    "cls": "CAGradientLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0/L0",
+    "a": 1,
+    "y": 0,
+    "h": 0,
+    "gcolors": [],
+    "gse": [
+     0.5,
+     0,
+     0.5,
+     1
+    ]
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L1",
+    "a": 1,
+    "y": 31,
+    "h": 62,
+    "filters": [
+     {
+      "inputRadius": 2,
+      "type": "variableBlur",
+      "inputNormalizeEdges": 1,
+      "name": "blur",
+      "maskAlphaColumn33": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0.996078431372549,
+       0.9921568627450981,
+       0.9803921568627451,
+       0.9607843137254902,
+       0.9333333333333333,
+       0.9019607843137255,
+       0.8627450980392157,
+       0.8156862745098039,
+       0.7647058823529411,
+       0.7058823529411765,
+       0.6470588235294118,
+       0.5803921568627451,
+       0.5137254901960784,
+       0.4470588235294118,
+       0.3803921568627451,
+       0.3176470588235294,
+       0.25882352941176473,
+       0.20392156862745098,
+       0.15294117647058825,
+       0.11372549019607843,
+       0.07450980392156863,
+       0.047058823529411764,
+       0.023529411764705882,
+       0.011764705882352941,
+       0,
+       0
+      ]
+     }
+    ]
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0",
+    "a": 0.5,
+    "y": 58,
+    "h": 116
+   },
+   {
+    "cls": "CAGradientLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0/L0",
+    "a": 1,
+    "y": 58,
+    "h": 116,
+    "gcolors": [
+     [
+      1,
+      1,
+      1,
+      1
+     ],
+     [
+      1,
+      1,
+      1,
+      1
+     ]
+    ],
+    "gse": [
+     0.5,
+     0,
+     0.5,
+     1
+    ]
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L1",
+    "a": 1,
+    "y": 58,
+    "h": 116,
+    "filters": [
+     {
+      "name": "blur",
+      "inputNormalizeEdges": 1,
+      "inputRadius": 2,
+      "type": "variableBlur",
+      "maskAlphaColumn33": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "inputColorMatrix": [
+       1.1969,
+       -0.1789,
+       -0.018,
+       0,
+       0.03,
+       -0.0531,
+       1.0712,
+       -0.0181,
+       0,
+       0.03,
+       -0.0532,
+       -0.1787,
+       1.232,
+       0,
+       0.03,
+       0,
+       0,
+       0,
+       1,
+       0
+      ],
+      "name": "colorMatrix",
+      "type": "colorMatrix"
+     },
+     {
+      "name": "sdrNormalize",
+      "type": "sdrNormalize"
+     }
+    ]
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L2",
+    "a": 1,
+    "y": 115.83,
+    "h": 0.33,
+    "bg": [
+     0,
+     0,
+     0,
+     0.1
+    ]
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0",
+    "a": 0,
+    "y": 58,
+    "h": 116
+   }
+  ],
+  "soft-light": [
+   {
+    "cls": "CABackdropLayer",
+    "path": "_TtCC5UIKit20ScrollEdgeEffectView12BackdropView",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView",
+    "a": 0,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0",
+    "a": 0.5,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CAGradientLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0/L0",
+    "a": 1,
+    "y": 78,
+    "h": 156,
+    "gcolors": [
+     [
+      1,
+      1,
+      1,
+      1
+     ],
+     [
+      1,
+      1,
+      1,
+      0
+     ]
+    ],
+    "gse": [
+     0.5,
+     0.3407,
+     0.5,
+     1
+    ]
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L1",
+    "a": 1,
+    "y": 78,
+    "h": 156,
+    "filters": [
+     {
+      "inputNormalizeEdges": 1,
+      "type": "variableBlur",
+      "inputRadius": 1.5,
+      "name": "blur",
+      "maskAlphaColumn33": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ]
+     }
+    ]
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   }
+  ],
+  "hard-light": [
+   {
+    "cls": "CABackdropLayer",
+    "path": "_TtCC5UIKit20ScrollEdgeEffectView12BackdropView",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView",
+    "a": 0,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0",
+    "a": 0.5,
+    "y": 58,
+    "h": 116
+   },
+   {
+    "cls": "CAGradientLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0/L0",
+    "a": 1,
+    "y": 58,
+    "h": 116,
+    "gcolors": [
+     [
+      1,
+      1,
+      1,
+      1
+     ],
+     [
+      1,
+      1,
+      1,
+      1
+     ]
+    ],
+    "gse": [
+     0.5,
+     0,
+     0.5,
+     1
+    ]
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L1",
+    "a": 1,
+    "y": 58,
+    "h": 116,
+    "filters": [
+     {
+      "inputRadius": 2,
+      "inputNormalizeEdges": 1,
+      "type": "variableBlur",
+      "name": "blur",
+      "maskAlphaColumn33": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "name": "colorMatrix",
+      "type": "colorMatrix",
+      "inputColorMatrix": [
+       1.1969,
+       -0.1789,
+       -0.018,
+       0,
+       0.03,
+       -0.0531,
+       1.0712,
+       -0.0181,
+       0,
+       0.03,
+       -0.0532,
+       -0.1787,
+       1.232,
+       0,
+       0.03,
+       0,
+       0,
+       0,
+       1,
+       0
+      ]
+     },
+     {
+      "name": "sdrNormalize",
+      "type": "sdrNormalize"
+     }
+    ]
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L2",
+    "a": 1,
+    "y": 115.83,
+    "h": 0.33,
+    "bg": [
+     0,
+     0,
+     0,
+     0.1
+    ]
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   }
+  ],
+  "automatic-dark": [
+   {
+    "cls": "CABackdropLayer",
+    "path": "_TtCC5UIKit20ScrollEdgeEffectView12BackdropView",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView",
+    "a": 0,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0",
+    "a": 0.5,
+    "y": 31,
+    "h": 62
+   },
+   {
+    "cls": "CAGradientLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0/L0",
+    "a": 1,
+    "y": 31,
+    "h": 62,
+    "gcolors": [
+     [
+      0,
+      0,
+      0,
+      1
+     ],
+     [
+      0,
+      0,
+      0,
+      0
+     ]
+    ],
+    "gse": [
+     0.5,
+     0.2,
+     0.5,
+     1
+    ]
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L1",
+    "a": 1,
+    "y": 31,
+    "h": 62,
+    "filters": [
+     {
+      "inputNormalizeEdges": 1,
+      "name": "blur",
+      "inputRadius": 2,
+      "type": "variableBlur",
+      "maskAlphaColumn33": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       0.996078431372549,
+       0.9921568627450981,
+       0.9803921568627451,
+       0.9607843137254902,
+       0.9333333333333333,
+       0.9019607843137255,
+       0.8627450980392157,
+       0.8156862745098039,
+       0.7647058823529411,
+       0.7058823529411765,
+       0.6470588235294118,
+       0.5803921568627451,
+       0.5137254901960784,
+       0.4470588235294118,
+       0.3803921568627451,
+       0.3176470588235294,
+       0.25882352941176473,
+       0.20392156862745098,
+       0.15294117647058825,
+       0.11372549019607843,
+       0.07450980392156863,
+       0.047058823529411764,
+       0.023529411764705882,
+       0.011764705882352941,
+       0,
+       0
+      ]
+     }
+    ]
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView",
+    "a": 1,
+    "y": 78,
+    "h": 156
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0",
+    "a": 0.6,
+    "y": 58,
+    "h": 116
+   },
+   {
+    "cls": "CAGradientLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L0/L0",
+    "a": 1,
+    "y": 58,
+    "h": 116,
+    "gcolors": [
+     [
+      0,
+      0,
+      0,
+      1
+     ],
+     [
+      0,
+      0,
+      0,
+      1
+     ]
+    ],
+    "gse": [
+     0.5,
+     0,
+     0.5,
+     1
+    ]
+   },
+   {
+    "cls": "CABackdropLayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L1",
+    "a": 1,
+    "y": 58,
+    "h": 116,
+    "filters": [
+     {
+      "inputRadius": 2,
+      "inputNormalizeEdges": 1,
+      "type": "variableBlur",
+      "name": "blur",
+      "maskAlphaColumn33": [
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1,
+       1
+      ]
+     },
+     {
+      "type": "colorMatrix",
+      "name": "colorMatrix",
+      "inputColorMatrix": [
+       1.1969,
+       -0.1789,
+       -0.018,
+       0,
+       0.03,
+       -0.0531,
+       1.0712,
+       -0.0181,
+       0,
+       0.03,
+       -0.0532,
+       -0.1787,
+       1.232,
+       0,
+       0.03,
+       0,
+       0,
+       0,
+       1,
+       0
+      ]
+     },
+     {
+      "name": "sdrNormalize",
+      "type": "sdrNormalize"
+     }
+    ]
+   },
+   {
+    "cls": "CALayer",
+    "path": "UIKit.ScrollEdgeEffectView/L0/L2",
+    "a": 1,
+    "y": 115.83,
+    "h": 0.33,
+    "bg": [
+     1,
+     1,
+     1,
+     0.1
+    ]
+   }
+  ]
+ }
+}

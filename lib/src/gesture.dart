@@ -102,18 +102,3 @@ double morphDragScrimFactor(double recede, double arm) {
 double morphDragScale(double recede, double arm) {
   return 1 - 0.08 * recede - 0.05 * arm;
 }
-
-/// Scales closeVelocityHint by the pixel travel of the flight: value
-/// space normalizes distance, so without this multiplier a near and a
-/// far close would bounce identically. A far close lands heavier and
-/// springs more visibly.
-double morphCloseHintScale(double travelPx) {
-  final double scale = travelPx / 320;
-  if (scale < 0.75) {
-    return 0.75;
-  }
-  if (scale > 1.9) {
-    return 1.9;
-  }
-  return scale;
-}

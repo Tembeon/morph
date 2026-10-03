@@ -41,7 +41,7 @@ class _SpringSwitcherState extends State<SpringSwitcher>
     super.initState();
     _a = widget.child;
     // Mount settled: the first child appears without a transition.
-    _controller = MorphController(vsync: this, motion: .fast)
+    _controller = MorphController(vsync: this, motion: .liquid)
       ..beginScrub()
       ..updateScrub(1)
       ..open()

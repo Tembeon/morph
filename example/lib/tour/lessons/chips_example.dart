@@ -3,6 +3,7 @@ import 'package:flutter/scheduler.dart';
 
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
+import 'package:morph_example/ui/lab_chrome.dart';
 
 /// The living-layout scene: a search app whose filter chips are one
 /// fused row. The LAYOUT (a trivial left-to-right flow over
@@ -10,10 +11,14 @@ import 'package:morph_example/tour/device.dart';
 /// its own spring toward its slot. Two liquid-native choices give the
 /// row its feel:
 ///
-///  - Births and deaths are mass, not position: a new chip inflates
-///    from nothing at its slot (the skin absorbs the droplet as it
-///    grows) and a removed chip deflates in place while the neighbors
-///    pour into the vacated space. No mass ever pops.
+///  - Births and deaths are mass, not position, the way Liquid Glass
+///    does them: a new chip is born at a fifth of its size at its slot
+///    and springs to full size (the skin absorbs the droplet as it
+///    grows), and a removed chip shrinks back to a fifth in place while
+///    the next chip pours over it - parked inside the survivor, like
+///    a glassEffectID member that leaves a merge. The last chip of the
+///    row has no survivor to park in and deflates to nothing. No mass
+///    ever pops.
 ///  - The change propagates as a wave: each chip's spring stiffness
 ///    falls with its slot distance from the edit point, so near chips
 ///    absorb the change briskly and far ones lazily. Evaluating the
@@ -44,6 +49,7 @@ class _Chip {
 
   double scale = 1;
   double scaleVelocity = 0;
+  double deathScale = 0;
   Simulation? scaleSim;
   Duration scaleStart = .zero;
   bool dying = false;
@@ -88,8 +94,8 @@ class _ChipsExampleState extends State<ChipsExample>
 
   void _add({bool animateIn = true}) {
     final String label = _pool[_nextLabel++ % _pool.length];
-    // The newborn spawns AT its future slot with zero mass and inflates
-    // there - a droplet blooming out of the row, not a slide-in.
+    // The newborn spawns AT its future slot as a droplet and grows
+    // there - blooming out of the row, not a slide-in.
     double x = 0;
     for (final _Chip chip in _chips) {
       if (!chip.dying) {
@@ -99,7 +105,7 @@ class _ChipsExampleState extends State<ChipsExample>
     final _Chip chip = _Chip(_nextId++, label, x);
     if (animateIn) {
       chip
-        ..scale = 0
+        ..scale = MorphPieceChannel.birthScale
         ..scalePending = true;
     }
     _chips.add(chip);
@@ -111,12 +117,17 @@ class _ChipsExampleState extends State<ChipsExample>
       return;
     }
     final int index = _chips.indexOf(chip);
-    // Death is deflation in place: the chip keeps its spot while its
-    // mass shrinks to nothing; slots are computed without it, so the
-    // neighbors pour in and the skin swallows what remains.
-    chip
-      ..dying = true
-      ..scalePending = true;
+    // Death is shrinking in place: the chip keeps its spot while its
+    // mass shrinks; slots are computed without it, so the next chip
+    // pours over it and the droplet stays parked inside that survivor
+    // until it settles. With nobody after it, nothing would cover the
+    // droplet, so it deflates all the way.
+    final bool covered = _chips
+        .skip(index + 1)
+        .any((_Chip next) => !next.dying);
+    chip.dying = true;
+    chip.deathScale = covered ? MorphPieceChannel.birthScale : 0;
+    chip.scalePending = true;
     _reslot(disturbance: index);
   }
 
@@ -156,11 +167,13 @@ class _ChipsExampleState extends State<ChipsExample>
       if (chip.scalePending) {
         chip
           ..scalePending = false
-          ..scaleSim = widget.motion.closeMotion.createSimulation(
-            start: chip.scale,
-            end: chip.dying ? 0 : 1,
-            velocity: chip.scaleVelocity,
-          )
+          ..scaleSim = MorphPieceChannel.birthSpring
+              .toMotion()
+              .createSimulation(
+                start: chip.scale,
+                end: chip.dying ? chip.deathScale : 1,
+                velocity: chip.scaleVelocity,
+              )
           ..scaleStart = _now;
       }
     }
@@ -203,7 +216,7 @@ class _ChipsExampleState extends State<ChipsExample>
             ..scaleVelocity = scaleSim.dx(t);
           if (scaleSim.isDone(t)) {
             chip
-              ..scale = chip.dying ? 0 : 1
+              ..scale = chip.dying ? chip.deathScale : 1
               ..scaleVelocity = 0
               ..scaleSim = null;
           } else {
@@ -219,8 +232,8 @@ class _ChipsExampleState extends State<ChipsExample>
   }
 
   /// The rendered mass: the slot rect scaled around its own center. The
-  /// closeMotion overshoot briefly over-inflates a newborn past 1 - the
-  /// droplet pops in with character.
+  /// birth spring briefly over-inflates a newborn about 3 percent past
+  /// 1, as Liquid Glass does.
   Rect _rectOf(_Chip chip) {
     final double s = chip.scale < 0 ? 0 : chip.scale;
     return Rect.fromCenter(
@@ -244,8 +257,9 @@ class _ChipsExampleState extends State<ChipsExample>
         children: <Widget>[
           PanelHint(
             'Tap + to add a filter, tap a filter to remove it. Births '
-            'and deaths are MASS: a newborn inflates at its slot, a '
-            'removed one deflates in place while the neighbors pour in.',
+            'and deaths are MASS: a newborn grows from a droplet at its '
+            'slot, a removed one shrinks in place while the next chip '
+            'pours over it.',
           ),
           PanelHint(
             'Edits ripple as a stiffness wave - near chips absorb the '
@@ -299,18 +313,11 @@ class _ChipsExampleState extends State<ChipsExample>
                 ),
               ),
               const SizedBox(width: 8),
-              SpringButton(
+              LabIconButton(
+                icon: Icons.add_rounded,
                 onPressed: alive >= 8 ? null : _add,
-                child: Container(
-                  padding: const .all(10),
-                  decoration: ShapeDecoration(
-                    shape: const CircleBorder(),
-                    color: alive >= 8
-                        ? Colors.white.withValues(alpha: 0.04)
-                        : const Color(0xFF7C5CFF).withValues(alpha: 0.8),
-                  ),
-                  child: const Icon(Icons.add_rounded, size: 18),
-                ),
+                tint: const Color(0xFF7C5CFF).withValues(alpha: 0.8),
+                padding: 10,
               ),
             ],
           ),
@@ -343,11 +350,9 @@ class _ChipsExampleState extends State<ChipsExample>
                             maxHeight: _height,
                             child: Transform.scale(
                               scale: chip.scale.clamp(0.0, 1.2),
-                              child: MorphTapTarget(
-                                label: chip.label,
-                                onTap: chip.dying
-                                    ? null
-                                    : (BuildContext context) => _remove(chip),
+                              child: GestureDetector(
+                                behavior: .opaque,
+                                onTap: chip.dying ? null : () => _remove(chip),
                                 child: Center(
                                   child: Text(
                                     chip.label,

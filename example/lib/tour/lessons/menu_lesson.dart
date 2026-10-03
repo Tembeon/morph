@@ -3,28 +3,18 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
 
-/// One pill of the demo: identity, geometry, chrome and its menu.
-typedef _Pill = ({
-  String id,
-  Rect home,
-  IconData icon,
-  String label,
-  List<(IconData, String)> items,
-  bool dangerLast,
-});
-
-/// The iOS 26 staple: a button that becomes ITS OWN menu. The pill's
-/// surface expands into the popover (anchored to where the button
-/// stands - a custom MorphTargetSpec closing over the button's rect),
-/// the items cascade in on the same spring, and closing collapses the
-/// menu back into the pill. Identity is never broken: the thing you
-/// tapped is the thing you use.
+/// The iOS 26 staple: a button that becomes ITS OWN menu. A photo app's
+/// floating toolbar carries a glass button and two menu buttons; a tap
+/// on a menu button morphs its glass into the menu (a hold opens it too,
+/// and lets the finger slide onto a row and pick it on release), and
+/// closing absorbs the menu back into the button. Identity is never
+/// broken: the thing you tapped is the thing you use.
+///
+/// Every spring here is UIKit's own, measured: [MorphGlassButton]'s
+/// size-dependent lift and [MorphMenuButton]'s `liquidMorph` tuning.
 class MenuLesson extends StatefulWidget {
   /// Creates the chapter demo.
-  const MenuLesson({super.key, required this.motion});
-
-  /// Motion profile of the demo springs and flights.
-  final MorphMotion motion;
+  const MenuLesson({super.key});
 
   @override
   State<MenuLesson> createState() => _MenuLessonState();
@@ -32,96 +22,36 @@ class MenuLesson extends StatefulWidget {
 
 class _MenuLessonState extends State<MenuLesson> {
   static const Color _glass = Color(0xFF2A2440);
-  static const MorphSurfaceSpec _menu = MorphSurfaceSpec(
-    shape: RoundedRectangleBorder(borderRadius: .all(.circular(20))),
-    color: Color(0xFF262038),
-    elevation: 16,
+  static const Color _danger = Color(0xFFFF7A83);
+
+  static const MorphMenuStyle _menu = MorphMenuStyle(
+    glassColor: Color(0xF2302A44),
+    shadowColor: Color(0x66000000),
+    textStyle: TextStyle(
+      fontSize: 17,
+      letterSpacing: -0.4,
+      color: Color(0xFFFFFFFF),
+    ),
+    iconColor: Color(0xFFFFFFFF),
+    destructiveColor: _danger,
+    highlightColor: Color(0x24FFFFFF),
   );
 
-  // The blend is the reach of the fusion - a distance in px, tuned per
-  // scene (goo's 42 suits dock-scale bodies; button-scale UI wants
-  // less). Here it demoes the floating-button-near-a-bar case: the
-  // pills rest 17 px apart with blend 14 - just far enough to stay
-  // provably separate and out of each other's launch fellowship, and
-  // close enough that a real pull's few px of travel brings the gap
-  // under the blend: the skin necks them into one body. The tether
-  // itself rides the package defaults - the liquid-glass reference
-  // feel - and the panel knobs expose the material for calibration.
-  static const double _blend = 14;
-
-  double _give = 0.05;
-  double _stretch = 0.08;
-  double _jiggle = 0.003;
-  double _pressGrow = 4;
-
-  static const List<_Pill> _pills = <_Pill>[
-    (
-      id: 'menu-pill',
-      home: Rect.fromLTWH(29, 53, 132, 44),
-      icon: Icons.tune_rounded,
-      label: 'Options',
-      items: <(IconData, String)>[
-        (Icons.push_pin_outlined, 'Pin'),
-        (Icons.drive_file_rename_outline_rounded, 'Rename'),
-        (Icons.copy_rounded, 'Duplicate'),
-        (Icons.ios_share_rounded, 'Share'),
-        (Icons.delete_outline_rounded, 'Delete'),
-      ],
-      dangerLast: true,
-    ),
-    (
-      id: 'share-pill',
-      home: Rect.fromLTWH(178, 53, 112, 44),
-      icon: Icons.ios_share_rounded,
-      label: 'Share',
-      items: <(IconData, String)>[
-        (Icons.wifi_tethering_rounded, 'AirDrop'),
-        (Icons.link_rounded, 'Copy link'),
-        (Icons.image_outlined, 'Save image'),
-      ],
-      dangerLast: false,
-    ),
+  static const List<(IconData, String)> _options = <(IconData, String)>[
+    (Icons.push_pin_outlined, 'Pin'),
+    (Icons.drive_file_rename_outline_rounded, 'Rename'),
+    (Icons.copy_rounded, 'Duplicate'),
+    (Icons.delete_outline_rounded, 'Delete'),
   ];
 
-  // Each pill's tug writes its geometry channel directly: the skin
-  // re-traces the displaced mass on every frame of a drag with no
-  // lesson rebuild at all - only the material knobs rebuild the pills.
-  final Map<String, MorphPieceChannel> _channels = <String, MorphPieceChannel>{
-    for (final _Pill pill in _pills) pill.id: MorphPieceChannel(),
-  };
+  static const List<(IconData, String)> _share = <(IconData, String)>[
+    (Icons.wifi_tethering_rounded, 'AirDrop'),
+    (Icons.link_rounded, 'Copy link'),
+    (Icons.image_outlined, 'Save image'),
+  ];
 
   String _lastAction = 'nothing yet';
-
-  @override
-  void dispose() {
-    for (final MorphPieceChannel channel in _channels.values) {
-      channel.dispose();
-    }
-    super.dispose();
-  }
-
-  void _openMenu(BuildContext buttonContext, _Pill pill) {
-    // One call: the popover anchors to the button's CURRENT box (a
-    // tugged pill opens its menu wherever it stands), rows cascade on
-    // the flight's own spring.
-    showMorphMenu(
-      buttonContext,
-      motion: widget.motion,
-      semanticLabel: '${pill.label} menu',
-      surface: _menu,
-      items: <MorphMenuItem>[
-        for (int i = 0; i < pill.items.length; i++)
-          MorphMenuItem(
-            icon: pill.items[i].$1,
-            label: pill.items[i].$2,
-            tint: pill.dangerLast && i == pill.items.length - 1
-                ? const Color(0xFFFF7A83)
-                : null,
-            onSelected: () => _onAction(pill.items[i].$2.toLowerCase()),
-          ),
-      ],
-    );
-  }
+  bool _selecting = false;
 
   void _onAction(String action) {
     if (mounted) {
@@ -129,34 +59,50 @@ class _MenuLessonState extends State<MenuLesson> {
     }
   }
 
-  Widget _pillContent(_Pill pill) {
-    return Tug(
-      motion: widget.motion,
-      give: _give,
-      stretch: _stretch,
-      jiggle: _jiggle,
-      pressGrow: _pressGrow,
-      channel: _channels[pill.id],
-      // The skin IS the surface ("one mass - one shadow"): the piece
-      // content carries no Material of its own - a second surface
-      // would split from the mass the moment the tug deforms it.
-      child: MorphTapTarget(
-        label: pill.label,
-        onTap: (BuildContext buttonContext) => _openMenu(buttonContext, pill),
-        child: Center(
-          child: Row(
-            mainAxisSize: .min,
-            children: <Widget>[
-              Icon(pill.icon, size: 17),
-              const SizedBox(width: 8),
-              Text(
-                pill.label,
-                style: const TextStyle(fontSize: 13.5, fontWeight: .w600),
-              ),
-            ],
+  List<MorphMenuItem> _items(List<(IconData, String)> rows) {
+    return <MorphMenuItem>[
+      for (final (IconData icon, String title) in rows)
+        MorphMenuItem(
+          title: title,
+          icon: icon,
+          destructive: title == 'Delete',
+          onSelected: () => _onAction(title.toLowerCase()),
+        ),
+    ];
+  }
+
+  Widget _toolbar() {
+    return Row(
+      mainAxisSize: .min,
+      children: <Widget>[
+        MorphGlassButton(
+          tint: _glass,
+          minSize: const Size(0, 48),
+          onPressed: () {
+            setState(() => _selecting = !_selecting);
+            _onAction(_selecting ? 'select' : 'done');
+          },
+          child: Text(_selecting ? 'Done' : 'Select'),
+        ),
+        const SizedBox(width: 12),
+        MorphMenuButton(
+          style: _menu,
+          semanticLabel: 'Share',
+          items: _items(_share),
+          child: const Icon(
+            Icons.ios_share_rounded,
+            size: 20,
+            color: Colors.white,
           ),
         ),
-      ),
+        const SizedBox(width: 12),
+        MorphMenuButton(
+          style: _menu,
+          semanticLabel: 'Options',
+          items: _items(_options),
+          child: const Icon(Icons.tune_rounded, size: 20, color: Colors.white),
+        ),
+      ],
     );
   }
 
@@ -167,55 +113,16 @@ class _MenuLessonState extends State<MenuLesson> {
         crossAxisAlignment: .start,
         children: <Widget>[
           const PanelHint(
-            'Tap a pill: its own surface expands into the popover, '
-            'anchored to wherever the pill currently stands - the thing '
-            'you touch becomes the menu you use. Rows cascade on the '
-            'same spring.',
+            'Tap a round button: its own glass grows into the menu, '
+            'anchored where the button stands - the thing you touch '
+            'becomes the menu you use. Below the middle of the screen it '
+            'opens upward with its rows reversed.',
           ),
           const PanelHint(
-            'The pills ride a leash (Tug in channel mode): heavy from '
-            'the first pixel, the flesh answers more than the body '
-            'moves. Drag one toward the other and the skin necks them '
-            'into one body - real mass, not a paint effect.',
-          ),
-          PanelSection(
-            label: 'MATERIAL',
-            child: Column(
-              children: <Widget>[
-                PanelKnob(
-                  label: 'give',
-                  value: _give,
-                  min: 0.02,
-                  max: 0.2,
-                  format: (double v) => v.toStringAsFixed(3),
-                  onChanged: (double v) => setState(() => _give = v),
-                ),
-                PanelKnob(
-                  label: 'stretch',
-                  value: _stretch,
-                  min: 0,
-                  max: 0.25,
-                  format: (double v) => v.toStringAsFixed(3),
-                  onChanged: (double v) => setState(() => _stretch = v),
-                ),
-                PanelKnob(
-                  label: 'jiggle',
-                  value: _jiggle,
-                  min: 0,
-                  max: 0.008,
-                  format: (double v) => '${(v * 1000).toStringAsFixed(1)}ms',
-                  onChanged: (double v) => setState(() => _jiggle = v),
-                ),
-                PanelKnob(
-                  label: 'press',
-                  value: _pressGrow,
-                  min: -6,
-                  max: 10,
-                  format: (double v) => '${v.toStringAsFixed(1)}px',
-                  onChanged: (double v) => setState(() => _pressGrow = v),
-                ),
-              ],
-            ),
+            'Hold instead of tapping: the menu opens under the finger, '
+            'slide onto a row and let go to pick it. Every spring is '
+            'measured from UIKit - the press lift depends on the '
+            'button\'s size, the morph is the liquidMorph tuning.',
           ),
           PanelSection(
             label: 'LAST ACTION',
@@ -230,37 +137,11 @@ class _MenuLessonState extends State<MenuLesson> {
         app: (BuildContext context) => Stack(
           children: <Widget>[
             const _Gallery(),
-            // One skin, two morphable pieces: the tug (channel mode)
-            // moves the real piece mass through its geometry channel,
-            // so dragging a pill toward its neighbor necks the two into
-            // one body - and each pill still morphs into its own menu
-            // from wherever it stands.
             Positioned(
               left: 0,
               right: 0,
-              bottom: 0,
-              child: Center(
-                child: SizedBox(
-                  width: 320,
-                  height: 150,
-                  child: MorphSkin(
-                    blend: _blend,
-                    color: _glass,
-                    elevation: 3,
-                    contentFilterQuality: FilterQuality.high,
-                    pieces: <MorphPiece>[
-                      for (int i = 0; i < _pills.length; i++)
-                        MorphPiece.morphable(
-                          id: _pills[i].id,
-                          rect: _pills[i].home,
-                          radius: _pills[i].home.height / 2,
-                          channel: _channels[_pills[i].id],
-                          child: _pillContent(_pills[i]),
-                        ),
-                    ],
-                  ),
-                ),
-              ),
+              bottom: 24,
+              child: Center(child: _toolbar()),
             ),
           ],
         ),

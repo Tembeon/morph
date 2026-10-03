@@ -1,0 +1,18 @@
+{
+  "what": "iOS 27 UISheetPresentationController drags, flicks and grabber taps driven by synthesized touches on the device (same probe and paths as ../../ios27/sheet-drag)",
+  "device": "iPhone 16 Pro (00008140-001039D01442801C), iOS 27.0.1, 3x, 402x874 pt, 120 Hz",
+  "captured": "2026-10-03 (morning recapture, UI automation re-enabled)",
+  "probe": "tool/ios_reference scene w2sheet (Sources/Widgets2.swift) driven by UITests/Widgets2UITests.swift testW2Sheet / testW2SheetFlicks (30 Hz path points); trimmed to the last stroke",
+  "rows": "start; touch (t, phase 0 down / 1 move / 3 up, x, y); evt (present, detent identifier, dismissed); V = the UIDropShadowView presentation frame (x, y, w, h center/size, bw/bh unscaled bounds)",
+  "files": {
+    "hold.jsonl": "a 0.8 s press on the grabber band: the swell, then the lift taps the grabber (medium -> large)",
+    "grab-tap.jsonl": "grabber taps (large -> medium)",
+    "drag-*.jsonl, large-drag-*.jsonl, l-drag-down.jsonl": "slow drags released still (l- = a large-only sheet)",
+    "flick-up/down.jsonl": "short flicks at 600 pt/s from medium",
+    "fu-N / fd-N / lfd-N.jsonl": "flicks of nominal speed N pt/s: up from medium, down from medium (below the smallest detent: return or dismiss), down from large",
+    "fd-lift-mid.jsonl": "a flick down that starts in the sheet body",
+    "l-flick-down.jsonl": "a flick down on a large-only sheet (dismisses)"
+  },
+  "boundary": "fd-1000 (887 pt/s, stays) and lfd-800 (714 pt/s, settles at large) sit on the decision boundary; the replay test leaves them out",
+  "units": "points (pt), window coordinates, seconds on the device media clock"
+}

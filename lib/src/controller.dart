@@ -44,7 +44,7 @@ class MorphController extends ChangeNotifier {
   /// the first zero crossing.
   MorphController({
     required TickerProvider vsync,
-    MorphMotion motion = .normal,
+    MorphMotion motion = .liquid,
     this.onHandoff,
   }) : _userMotion = motion {
     assert(
@@ -74,8 +74,8 @@ class MorphController extends ChangeNotifier {
   VoidCallback? onHandoff;
 
   /// The raw spring value. May leave `[0, 1]`: overshoot above 1
-  /// stretches the geometry past the target, undershoot below 0 is the
-  /// residual bounce that the real widget plays out after handoff.
+  /// stretches the geometry past the target, undershoot below 0 comes
+  /// after the handoff latch, once the source widget is back.
   double get value => _value;
 
   /// The spring velocity in value units per second.
@@ -162,12 +162,11 @@ class MorphController extends ChangeNotifier {
     _retarget(1, velocity: v);
   }
 
-  /// Retargets toward 0 on the close motion; from rest the profile's
-  /// close velocity hint is injected.
+  /// Retargets toward 0 on the close motion, carrying velocity over;
+  /// from rest the close starts still.
   void close({double? velocity}) {
     final bool live = isAnimating || _scrubbing;
-    final double v =
-        velocity ?? (live ? _velocity : effectiveMotion.closeVelocityHint);
+    final double v = velocity ?? (live ? _velocity : 0);
     _scrubbing = false;
     _retarget(0, velocity: v);
   }
@@ -216,9 +215,8 @@ class MorphController extends ChangeNotifier {
   void _retarget(double target, {required double velocity}) {
     _target = target;
     _velocity = velocity;
-    // Asymmetric character: open is critically damped (no jitter),
-    // close is underdamped (bounce). Interruption continuity does not
-    // suffer: the new simulation starts from the current value and
+    // Each direction has its own spring; interruption continuity does
+    // not suffer: the new simulation starts from the current value and
     // velocity.
     final Motion motion = target >= 1
         ? effectiveMotion.openMotion

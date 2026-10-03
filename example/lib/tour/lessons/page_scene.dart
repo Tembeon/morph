@@ -5,7 +5,7 @@ import 'package:motor/motor.dart';
 
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
-import 'package:morph_example/ui/goo_selector.dart';
+import 'package:morph_example/ui/lab_chrome.dart';
 
 /// The pages scene: a music library where every album card opens into
 /// the full player. One toggle changes WHAT the player is - an overlay
@@ -107,7 +107,7 @@ class _PageSceneState extends State<PageScene> {
         children: <Widget>[
           PanelSection(
             label: 'OPEN AS',
-            child: GooSelector(
+            child: LabSegmented(
               labels: const <String>['Overlay', 'Real route'],
               index: _asRoute ? 1 : 0,
               onSelect: (int i) => setState(() => _asRoute = i == 1),
@@ -199,6 +199,12 @@ class _LibraryApp extends StatelessWidget {
 }
 
 class _AlbumCard extends StatelessWidget {
+  static const MorphSurfaceSpec _cardSpec = MorphSurfaceSpec(
+    shape: RoundedRectangleBorder(borderRadius: .all(.circular(18))),
+    color: Color(0xFF241F35),
+    elevation: 3,
+  );
+
   const _AlbumCard({
     required this.album,
     required this.index,
@@ -213,38 +219,42 @@ class _AlbumCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return MorphTag(
       id: 'album-$index',
-      spec: const MorphSurfaceSpec(
-        shape: RoundedRectangleBorder(borderRadius: .all(.circular(18))),
-        color: Color(0xFF241F35),
-        elevation: 3,
-      ),
-      child: MorphSurface(
-        onTap: (BuildContext context) => onOpen(context, index),
-        child: Padding(
-          padding: const .all(10),
-          child: Column(
-            crossAxisAlignment: .start,
-            children: <Widget>[
-              Expanded(
-                child: MorphSharedElement(
-                  id: 'cover-$index',
-                  fade: .none,
-                  child: _Cover(colors: album.colors, radius: 12),
-                ),
+      spec: _cardSpec,
+      child: Material(
+        shape: _cardSpec.shape,
+        color: _cardSpec.color,
+        elevation: _cardSpec.elevation,
+        child: Builder(
+          builder: (BuildContext tagContext) => GestureDetector(
+            behavior: .opaque,
+            onTap: () => onOpen(tagContext, index),
+            child: Padding(
+              padding: const .all(10),
+              child: Column(
+                crossAxisAlignment: .start,
+                children: <Widget>[
+                  Expanded(
+                    child: MorphSharedElement(
+                      id: 'cover-$index',
+                      fade: .none,
+                      child: _Cover(colors: album.colors, radius: 12),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    album.title,
+                    style: const TextStyle(fontSize: 12.5, fontWeight: .w700),
+                  ),
+                  Text(
+                    album.artist,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.5),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                album.title,
-                style: const TextStyle(fontSize: 12.5, fontWeight: .w700),
-              ),
-              Text(
-                album.artist,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Colors.white.withValues(alpha: 0.5),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -286,6 +296,12 @@ class _MiniBar extends StatefulWidget {
 
 class _MiniBarState extends State<_MiniBar>
     with SingleTickerProviderStateMixin {
+  static const MorphSurfaceSpec _barSpec = MorphSurfaceSpec(
+    shape: StadiumBorder(),
+    color: Color(0xFF241F35),
+    elevation: 6,
+  );
+
   /// A few px of heavy give - an affordance, not manipulation: the
   /// player does not exist yet, so there is nothing to drag 1:1.
   static const double _liftRange = 14;
@@ -374,13 +390,11 @@ class _MiniBarState extends State<_MiniBar>
           Transform.translate(offset: Offset(0, -_lift.value), child: child),
       child: MorphTag(
         id: 'album-bar',
-        spec: const MorphSurfaceSpec(
-          shape: StadiumBorder(),
-          color: Color(0xFF241F35),
-          elevation: 6,
-        ),
+        spec: _barSpec,
         child: Builder(
           builder: (BuildContext tagContext) => GestureDetector(
+            behavior: .opaque,
+            onTap: () => widget.onOpen(tagContext, 0),
             onVerticalDragStart: _dragStart,
             onVerticalDragUpdate: _dragUpdate,
             onVerticalDragEnd: (DragEndDetails details) =>
@@ -398,8 +412,10 @@ class _MiniBarState extends State<_MiniBar>
 
   Widget _barBody() {
     final _Album album = widget.album;
-    return MorphSurface(
-      onTap: (BuildContext context) => widget.onOpen(context, 0),
+    return Material(
+      shape: _barSpec.shape,
+      color: _barSpec.color,
+      elevation: _barSpec.elevation,
       child: Padding(
         padding: const .fromLTRB(8, 8, 16, 8),
         child: Row(
@@ -470,65 +486,57 @@ class _PlayerBody extends StatelessWidget {
               child: _Cover(colors: album.colors, radius: 20, size: 190),
             ),
             const SizedBox(height: 18),
-            MorphReveal(
-              from: 0.4,
-              to: 0.8,
-              child: Column(
-                children: <Widget>[
-                  Text(
-                    album.title,
-                    style: const TextStyle(fontSize: 19, fontWeight: .w700),
+            Column(
+              children: <Widget>[
+                Text(
+                  album.title,
+                  style: const TextStyle(fontSize: 19, fontWeight: .w700),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  '${album.artist} - Midnight City',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white.withValues(alpha: 0.5),
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    '${album.artist} - Midnight City',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
-            MorphReveal(
-              from: 0.5,
-              to: 0.9,
-              child: Column(
-                children: <Widget>[
-                  ClipRRect(
-                    borderRadius: .circular(3),
-                    child: LinearProgressIndicator(
-                      value: 0.37,
-                      minHeight: 4,
-                      backgroundColor: Colors.white.withValues(alpha: 0.08),
-                    ),
+            Column(
+              children: <Widget>[
+                ClipRRect(
+                  borderRadius: .circular(3),
+                  child: LinearProgressIndicator(
+                    value: 0.37,
+                    minHeight: 4,
+                    backgroundColor: Colors.white.withValues(alpha: 0.08),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: .spaceEvenly,
-                    children: <Widget>[
-                      const Icon(Icons.skip_previous_rounded, size: 30),
-                      Container(
-                        width: 54,
-                        height: 54,
-                        decoration: ShapeDecoration(
-                          shape: const CircleBorder(),
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
-                        child: IconButton(
-                          onPressed: flight.close,
-                          icon: const Icon(Icons.pause_rounded, size: 26),
-                        ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: .spaceEvenly,
+                  children: <Widget>[
+                    const Icon(Icons.skip_previous_rounded, size: 30),
+                    Container(
+                      width: 54,
+                      height: 54,
+                      decoration: ShapeDecoration(
+                        shape: const CircleBorder(),
+                        color: Colors.white.withValues(alpha: 0.1),
                       ),
-                      const Icon(Icons.skip_next_rounded, size: 30),
-                    ],
-                  ),
-                ],
-              ),
+                      child: IconButton(
+                        onPressed: flight.close,
+                        icon: const Icon(Icons.pause_rounded, size: 26),
+                      ),
+                    ),
+                    const Icon(Icons.skip_next_rounded, size: 30),
+                  ],
+                ),
+              ],
             ),
             const Spacer(),
-            MorphReveal(from: 0.55, to: 1, child: _lyricsTile(context)),
+            _lyricsTile(context),
           ],
         ),
       ),
@@ -536,8 +544,9 @@ class _PlayerBody extends StatelessWidget {
   }
 
   Widget _lyricsTile(BuildContext context) {
-    return SpringButton(
-      onPressed: !page
+    return GestureDetector(
+      behavior: .opaque,
+      onTap: !page
           ? null
           : () => Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -599,16 +608,11 @@ class _LyricsPage extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                SpringButton(
+                LabIconButton(
+                  icon: Icons.arrow_back_rounded,
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const .all(7),
-                    decoration: ShapeDecoration(
-                      shape: const CircleBorder(),
-                      color: Colors.white.withValues(alpha: 0.07),
-                    ),
-                    child: const Icon(Icons.arrow_back_rounded, size: 16),
-                  ),
+                  size: 16,
+                  padding: 7,
                 ),
                 const SizedBox(width: 10),
                 Expanded(

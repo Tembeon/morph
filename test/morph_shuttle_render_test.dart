@@ -106,7 +106,7 @@ void main() {
                 color: Color(0xFF7C5CFF),
                 elevation: 4,
               ),
-              child: MorphSurface(
+              child: _SpecSurface(
                 onTap: (BuildContext context) => showMorphDialog(
                   context,
                   from: 'fab',
@@ -174,4 +174,25 @@ void main() {
       expect(shape.elevation, 0);
     }
   });
+}
+
+/// A surface rendered from the enclosing tag's declared spec, the way an
+/// app's own button would: the replica in the shuttle reads the spec the
+/// shuttle republishes, so its elevation must arrive zeroed.
+class _SpecSurface extends StatelessWidget {
+  const _SpecSurface({required this.onTap, required this.child});
+
+  final void Function(BuildContext context) onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final MorphSurfaceSpec spec = MorphTag.specOf(context);
+    return Material(
+      shape: spec.shape,
+      color: spec.color,
+      elevation: spec.elevation,
+      child: GestureDetector(onTap: () => onTap(context), child: child),
+    );
+  }
 }

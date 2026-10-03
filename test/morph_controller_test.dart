@@ -31,19 +31,15 @@ void main() {
     await pumpUntilRest(tester, c);
   });
 
-  testWidgets('close from rest injects closeVelocityHint', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('a close from rest starts still', (WidgetTester tester) async {
     final MorphController c = MorphController(vsync: const TestVSync());
     addTearDown(c.dispose);
+    expect(c.motion, MorphMotion.liquid);
 
     c.open();
     await pumpUntilRest(tester, c);
-    expect(c.value, 1);
-    expect(c.phase, MorphPhase.settled);
-
     c.close();
-    expect(c.velocity, MorphMotion.normal.closeVelocityHint);
+    expect(c.velocity, 0);
     await pumpUntilRest(tester, c);
   });
 
@@ -73,30 +69,63 @@ void main() {
     expect(calls, 2);
   });
 
-  testWidgets('open has no overshoot on any profile: no jitter on opening', (
+  testWidgets('the liquid open overshoots slightly, like UIKit', (
     WidgetTester tester,
   ) async {
-    for (final MorphMotion motion in MorphMotion.values) {
+    for (final MorphMotion motion in <MorphMotion>[
+      MorphMotion.liquid,
+      MorphMotion.glacial,
+    ]) {
       final List<double> trace = <double>[];
       final MorphController c = MorphController(
         vsync: const TestVSync(),
         motion: motion,
       );
       addTearDown(c.dispose);
-      c
-        ..addListener(() => trace.add(c.value))
-        ..open();
+      c.addListener(() => trace.add(c.value));
+      c.open();
       await pumpUntilRest(tester, c);
-      expect(
-        trace.every((double v) => v <= 1.0001),
-        isTrue,
-        reason:
-            'open on $motion overshot the target: ${trace.reduce((double a, double b) => a > b ? a : b)}',
-      );
+      final double peak = trace.reduce((double a, double b) => a > b ? a : b);
+      expect(peak, inInclusiveRange(1.02, 1.035), reason: '$motion');
     }
   });
 
-  testWidgets('bounce lives on close only: undershoot dips below zero', (
+  test('the liquid profile is the measured pair of springs', () {
+    expect(MorphMotion.liquid.openSpring, const MorphSpring(0.35, 0.75));
+    expect(MorphMotion.liquid.closeSpring, const MorphSpring(0.49, 0.80));
+    expect(
+      MorphMotion.liquid.openMotion,
+      const MorphSpring(0.35, 0.75).toMotion(),
+    );
+    expect(MorphMotion.glacial.openSpring!.response, closeTo(1.75, 1e-12));
+    expect(MorphMotion.glacial.closeSpring!.response, closeTo(2.45, 1e-12));
+    expect(MorphMotion.liquid.debugContractViolation, isNull);
+    expect(MorphMotion.glacial.debugContractViolation, isNull);
+    expect(MorphMotion.instant.debugContractViolation, isNull);
+  });
+
+  testWidgets('the liquid close dips below zero, so the latch can fire', (
+    WidgetTester tester,
+  ) async {
+    final List<double> trace = <double>[];
+    int latches = 0;
+    final MorphController c = MorphController(
+      vsync: const TestVSync(),
+      motion: MorphMotion.liquid,
+    );
+    addTearDown(c.dispose);
+    c.onHandoff = () => latches++;
+    c.open();
+    await pumpUntilRest(tester, c);
+    c.addListener(() => trace.add(c.value));
+    c.close();
+    await pumpUntilRest(tester, c);
+    final double low = trace.reduce((double a, double b) => a < b ? a : b);
+    expect(low, inInclusiveRange(-0.02, -0.01));
+    expect(latches, 1);
+  });
+
+  testWidgets('the close undershoots below zero, instant does not', (
     WidgetTester tester,
   ) async {
     final List<double> closeTrace = <double>[];
@@ -217,10 +246,10 @@ void main() {
     c.disableAnimations = true;
     expect(c.effectiveMotion, MorphMotion.instant);
     expect(c.velocity, moreOrLessEquals(v));
-    expect(c.motion, MorphMotion.normal);
+    expect(c.motion, MorphMotion.liquid);
 
     c.disableAnimations = false;
-    expect(c.effectiveMotion, MorphMotion.normal);
+    expect(c.effectiveMotion, MorphMotion.liquid);
     await pumpUntilRest(tester, c);
   });
 }

@@ -1,134 +1,103 @@
 import 'package:motor/motor.dart';
 
-/// A morph's motion profile: a pair of [Motion]s from the motor package
-/// plus closeVelocityHint. Character can only be changed as a whole
-/// profile (a mid-flight profile swap retargets the simulation); custom
-/// profiles are built through the public constructor from any Motions
-/// (Cupertino presets, Material tokens, curves, custom springs).
+import 'package:morph/src/spring.dart';
+
+/// A morph's motion profile: a pair of [Motion]s from the motor package.
 ///
-/// The direction asymmetry is deliberate, on two axes:
-///  - duration: open is faster than close - what unfolds responds
-///    instantly; the return is slightly lazier and has character;
-///  - damping:
-///  - open: critically damped (CupertinoMotion.smooth) - what the user
-///    is about to look at unfolds without jitter;
-///  - close: underdamped (bounce 0.27, zeta ~0.73) + closeVelocityHint -
-///    a "rubbery" return bounce that the button itself finishes playing
-///    after the handoff latch.
+/// The default, [liquid], is UIKit's own: the progress spring of the
+/// iOS 27 liquid morph a glass button runs into its menu, measured on the
+/// simulator and on device. It opens on `MorphSpring(0.35, 0.75)` - it
+/// overshoots slightly, by about 3 percent - and closes on
+/// `MorphSpring(0.49, 0.80)`, which dips about 1.5 percent below zero
+/// before it rests. A close during the open retargets with the velocity
+/// carried over, exactly as UIKit does.
 ///
-/// The presets are byte-for-byte equivalent to hand-tuned
-/// SpringDescriptions: stiffness = (2pi/duration)^2,
-/// damping = (1-bounce)*2*sqrt(stiffness).
+/// Character can only be changed as a whole profile (a mid-flight
+/// profile swap retargets the simulation); custom profiles are built
+/// through the public constructor from any Motions (Cupertino presets,
+/// Material tokens, curves, custom springs), or through
+/// [MorphMotion.springs] from UIKit-style [MorphSpring]s.
 ///
 /// Contract constraints:
-///  - closeMotion must be able to go below zero (a spring with bounce),
-///    otherwise the landing bump of the button simply cannot play
-///    (CurvedMotion degrades gracefully: the morph works, no bump);
 ///  - snapToEnd on springs must stay false - the handoff latch lives on
 ///    the zero crossing.
 class MorphMotion {
   /// Creates a custom profile from any two Motions.
   const MorphMotion({
     required this.name,
-    required this.openMotion,
-    required this.closeMotion,
-    this.closeVelocityHint = 0,
-  });
+    required Motion this._openMotion,
+    required Motion this._closeMotion,
+  }) : openSpring = null,
+       closeSpring = null;
+
+  /// Creates a profile from two UIKit-style springs; [openMotion] and
+  /// [closeMotion] are their [MorphSpring.toMotion].
+  const MorphMotion.springs({
+    required this.name,
+    required MorphSpring open,
+    required MorphSpring close,
+  }) : _openMotion = null,
+       _closeMotion = null,
+       openSpring = open,
+       closeSpring = close;
 
   /// Profile name, for debugging and toString.
   final String name;
+
+  final Motion? _openMotion;
+  final Motion? _closeMotion;
+
+  /// The open spring this profile was built from, or null when it was
+  /// built from arbitrary Motions.
+  final MorphSpring? openSpring;
+
+  /// The close spring this profile was built from, or null when it was
+  /// built from arbitrary Motions.
+  final MorphSpring? closeSpring;
 
   /// The contract violation of this profile, or null when it is valid;
   /// [MorphController] checks it in an assert whenever a profile is
   /// installed. The one hard rule: a spring [closeMotion] must keep
   /// snapToEnd false - the handoff latch fires on the close spring's
-  /// zero crossing and the landing bump is the undershoot below zero,
-  /// so snapping to the end clips both.
+  /// zero crossing, so snapping to the end would clip it. The open may
+  /// overshoot, as UIKit's does.
   String? get debugContractViolation {
     final Motion close = closeMotion;
     if (close is SpringMotion && close.snapToEnd) {
       return 'MorphMotion "$name": closeMotion has snapToEnd: true. '
-          'The handoff latch fires on the close spring\'s zero crossing '
-          'and the landing bump is the undershoot below zero - snapToEnd '
-          'clips both. Recreate the Motion with snapToEnd: false (the '
-          'default).';
+          'The handoff latch fires on the close spring\'s zero crossing - '
+          'snapToEnd clips it. Recreate the Motion with snapToEnd: false '
+          '(the default).';
     }
     return null;
   }
 
-  /// Drives open retargets; keep it overshoot-free.
-  final Motion openMotion;
+  /// Drives open retargets. It may overshoot 1: the geometry stretches
+  /// past the target and settles back.
+  Motion get openMotion => openSpring?.toMotion() ?? _openMotion!;
 
-  /// Drives close retargets; must be a spring able to cross zero, or
-  /// the landing bump cannot play.
-  final Motion closeMotion;
+  /// Drives close retargets; the handoff latch fires on its first zero
+  /// crossing.
+  Motion get closeMotion => closeSpring?.toMotion() ?? _closeMotion!;
 
-  /// A negative velocity injection when closing from rest - it amplifies
-  /// the return bounce. The controller applies it UNSCALED; distance
-  /// scaling (a far close lands heavier) is the responsibility of
-  /// flight.close, the only owner of pixel geometry.
-  final double closeVelocityHint;
+  /// UIKit's liquid morph, measured on iOS 27: the default profile.
+  ///
+  /// Open is the morph's eject spring (0.5 s, damping ratio 0.75) and
+  /// close its absorb spring (0.7 s, 0.8), both at the morph's speed of
+  /// 0.7, which UIKit applies by dividing time.
+  static const MorphMotion liquid = MorphMotion.springs(
+    name: 'liquid',
+    open: MorphSpring(0.35, 0.75),
+    close: MorphSpring(0.49, 0.80),
+  );
 
-  /// Magnifier mode: inspect the cascade and the landing frame by frame.
-  static const MorphMotion glacial = MorphMotion(
+  /// [liquid] five times slower: the same springs with every response
+  /// times five, a magnifier for the eye to inspect the flight
+  /// and the landing frame by frame. Not a design choice of its own.
+  static const MorphMotion glacial = MorphMotion.springs(
     name: 'glacial',
-    openMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 2800)),
-    closeMotion: CupertinoMotion(
-      duration: Duration(milliseconds: 4000),
-      bounce: 0.27,
-    ),
-    closeVelocityHint: -0.4,
-  );
-
-  /// A relaxed profile for larger surfaces.
-  static const MorphMotion slow = MorphMotion(
-    name: 'slow',
-    openMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 550)),
-    closeMotion: CupertinoMotion(
-      duration: Duration(milliseconds: 800),
-      bounce: 0.27,
-    ),
-    closeVelocityHint: -1.6,
-  );
-
-  /// The default: open at snappy response tempo, close at a perceptual
-  /// duration.
-  static const MorphMotion normal = MorphMotion(
-    name: 'normal',
-    openMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 400)),
-    closeMotion: CupertinoMotion(
-      duration: Duration(milliseconds: 550),
-      bounce: 0.27,
-    ),
-    closeVelocityHint: -2.5,
-  );
-
-  /// The liquid-glass material pair: the family of the widgets layer's
-  /// button springs at FLIGHT mass. A glass dialog answers and lands
-  /// noticeably snappier than on [normal], and its landing keeps the
-  /// same lively catch - the bounce is the button character scaled for
-  /// the amplitude, since the residual past the handoff latch is a
-  /// share of the distance travelled and a flight travels hundreds of
-  /// pixels where a button travels a few.
-  static const MorphMotion glass = MorphMotion(
-    name: 'glass',
-    openMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 300)),
-    closeMotion: CupertinoMotion(
-      duration: Duration(milliseconds: 420),
-      bounce: 0.3,
-    ),
-    closeVelocityHint: -1.5,
-  );
-
-  /// A brisk profile for small controls.
-  static const MorphMotion fast = MorphMotion(
-    name: 'fast',
-    openMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 280)),
-    closeMotion: CupertinoMotion(
-      duration: Duration(milliseconds: 400),
-      bounce: 0.27,
-    ),
-    closeVelocityHint: -3.2,
+    open: MorphSpring(1.75, 0.75),
+    close: MorphSpring(2.45, 0.80),
   );
 
   /// ~0.28s, critically damped both ways: reduced motion and tests.
@@ -136,16 +105,12 @@ class MorphMotion {
     name: 'instant',
     openMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 281)),
     closeMotion: CupertinoMotion.smooth(duration: Duration(milliseconds: 281)),
-    closeVelocityHint: 0,
   );
 
-  /// The built-in presets.
+  /// The built-in profiles.
   static const List<MorphMotion> values = <MorphMotion>[
+    liquid,
     glacial,
-    slow,
-    normal,
-    glass,
-    fast,
     instant,
   ];
 
@@ -159,13 +124,11 @@ class MorphMotion {
     return other is MorphMotion &&
         other.name == name &&
         other.openMotion == openMotion &&
-        other.closeMotion == closeMotion &&
-        other.closeVelocityHint == closeVelocityHint;
+        other.closeMotion == closeMotion;
   }
 
   @override
-  int get hashCode =>
-      Object.hash(name, openMotion, closeMotion, closeVelocityHint);
+  int get hashCode => Object.hash(name, openMotion, closeMotion);
 
   @override
   String toString() => 'MorphMotion.$name';

@@ -166,62 +166,6 @@ void main() {
     expect(a.targetOpacity, b.targetOpacity);
   });
 
-  group('morphBumpedRect / morphLandingBump', () {
-    test('rest returns the original rect', () {
-      const Rect r = .fromLTWH(10, 20, 100, 60);
-      expect(
-        morphBumpedRect(
-          r,
-          value: 0,
-          impactAxis: const Offset(0, 100),
-          bumpScale: 0.6,
-          bumpRecoil: 140,
-        ),
-        r,
-      );
-    });
-
-    test('undershoot squashes along the axis and kicks away', () {
-      const Rect r = .fromLTWH(0, 0, 100, 100);
-      final Rect bumped = morphBumpedRect(
-        r,
-        value: -0.2,
-        impactAxis: const Offset(0, 100),
-        bumpScale: 0.5,
-        bumpRecoil: 100,
-      );
-      expect(bumped.height, closeTo(100 * (1 - 0.2 * 0.5), 1e-9));
-      expect(bumped.width, closeTo(100 * (1 + 0.2 * 0.5 * 0.45), 1e-9));
-      expect(bumped.center.dy, closeTo(50 + 20, 1e-9));
-      expect(bumped.center.dx, closeTo(50, 1e-9));
-    });
-
-    test('a degenerate axis falls back to vertical', () {
-      const Rect r = .fromLTWH(0, 0, 100, 60);
-      final Rect bumped = morphBumpedRect(
-        r,
-        value: -0.3,
-        impactAxis: .zero,
-        bumpScale: 0.5,
-        bumpRecoil: 0,
-      );
-      expect(bumped.height, lessThan(60));
-      expect(bumped.width, greaterThan(100));
-    });
-
-    test('a horizontal axis flips the squash orientation', () {
-      final ({double scaleX, double scaleY, Offset kick}) b = morphLandingBump(
-        value: -0.2,
-        impactAxis: const Offset(100, 0),
-        bumpScale: 0.5,
-        bumpRecoil: 100,
-      );
-      expect(b.scaleX, closeTo(0.9, 1e-9));
-      expect(b.scaleY, closeTo(1.045, 1e-9));
-      expect(b.kick, const Offset(20, 0));
-    });
-  });
-
   group('border side', () {
     MorphFrame frameAt(double value) {
       return computeMorphFrame(

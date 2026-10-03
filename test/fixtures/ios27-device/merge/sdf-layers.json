@@ -1,0 +1,1062 @@
+{
+ "merge-swiftui-grey-t0/page0-s0": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-grey-t0/page1-s10": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-grey-t0/page2-s20": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-grey-t0/page3-s40": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-grey-t0/page4-s80": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-grey-t1/page0-s0": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-swiftui-grey-t1/page1-s10": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-swiftui-grey-t1/page2-s20": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-swiftui-grey-t1/page3-s40": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-swiftui-grey-t1/page4-s80": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-swiftui-stripes-t0/page0-s0": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-stripes-t0/page1-s10": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-stripes-t0/page2-s20": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-stripes-t0/page3-s40": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-swiftui-stripes-t0/page4-s80": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-grey-t0/page0-s0": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-grey-t0/page1-s10": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-grey-t0/page2-s20": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-grey-t0/page3-s40": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-grey-t0/page4-s80": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-grey-t1/page0-s0": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-uikit-grey-t1/page1-s10": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-uikit-grey-t1/page2-s20": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-uikit-grey-t1/page3-s40": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-uikit-grey-t1/page4-s80": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFGradientEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFFillEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": -0.5333,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 72
+   }
+  ]
+ },
+ "merge-uikit-stripes-t0/page0-s0": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 0,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-stripes-t0/page1-s10": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 10,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-stripes-t0/page2-s20": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 20,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-stripes-t0/page3-s40": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 40,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ },
+ "merge-uikit-stripes-t0/page4-s80": {
+  "sdf_layers": [
+   {
+    "effect": "CASDFOutputEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   },
+   {
+    "effect": "CASDFKeyFillHighlightEffect",
+    "smoothness": 80,
+    "gaussianRadius": 0,
+    "effectOffset": 0,
+    "mergeElements": false,
+    "count": 18
+   }
+  ],
+  "elements": [
+   {
+    "mode": "bounds",
+    "operation": "union",
+    "contentsZeroValueDistance": 0,
+    "contentsOneValueDistance": 1,
+    "gradientOvalization": 0,
+    "count": 36
+   }
+  ]
+ }
+}

@@ -1,0 +1,12 @@
+{"k":"start","t":106058.65547925002,"scene":"w2page","rec":"pc-tap-right","w":402,"h":874,"maxfps":60,"env_PROBE_TRACK":"^NOTHING$","env_PROBE_REC":"pc-tap-right","env_PROBE_SCENE":"w2page"}
+{"k":"V","t":106058.75397562502,"cls":"UIVisualEffectView","id":3,"a":0}
+{"x":250,"y":400,"phase":0,"t":106062.29392045834,"k":"touch"}
+{"k":"V","t":106062.28333333335,"cls":"UIVisualEffectView","id":3,"a":0}
+{"x":250,"y":400,"phase":3,"t":106062.360587125,"k":"touch"}
+{"v":1,"t":106062.3810032917,"e":"valueChanged","k":"evt"}
+{"x":250,"phase":0,"y":400,"k":"touch","t":106063.58231804166}
+{"x":250,"phase":3,"y":400,"k":"touch","t":106063.64898470833}
+{"e":"valueChanged","k":"evt","v":2,"t":106063.66767566669}
+{"x":150,"phase":0,"y":400,"k":"touch","t":106064.87712533334}
+{"x":150,"phase":3,"y":400,"k":"touch","t":106064.943792}
+{"e":"valueChanged","k":"evt","v":1,"t":106064.95156654168}

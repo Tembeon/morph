@@ -1,0 +1,14 @@
+{"h":874,"maxfps":120,"k":"start","t":79004.954,"rec":"pc-tap-right","w":402,"env_PROBE_TRACK":"^NOTHING$","env_PROBE_SCENE":"w2page","env_PROBE_REC":"pc-tap-right","scene":"w2page","scale":3}
+{"k":"V","t":79004.9693,"cls":"UIVisualEffectView","id":3,"a":0}
+{"k":"V","t":79005.0766,"cls":"UIVisualEffectView","id":3,"a":0}
+{"k":"V","t":79008.5105,"cls":"UIVisualEffectView","id":3,"a":0}
+{"k":"touch","t":79008.5066,"phase":0,"x":250,"y":400}
+{"k":"touch","t":79008.5732,"phase":3,"x":250,"y":400}
+{"k":"evt","v":1,"t":79008.5859,"e":"valueChanged"}
+{"k":"touch","t":79009.7975,"phase":0,"x":250,"y":400}
+{"k":"touch","t":79009.8633,"phase":3,"x":250,"y":400}
+{"e":"valueChanged","v":2,"k":"evt","t":79009.8775}
+{"k":"V","t":79009.8857,"cls":"UIVisualEffectView","id":3,"a":0}
+{"k":"touch","t":79011.093,"phase":0,"x":150,"y":400}
+{"k":"touch","t":79011.1595,"phase":3,"x":150,"y":400}
+{"e":"valueChanged","v":1,"k":"evt","t":79011.1777}

@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import 'package:morph/widgets.dart';
+import 'package:morph_example/ui/lab_chrome.dart';
 
 /// One chapter of the tour: a question on the card, a scene that
 /// answers it. Short, focused, interactive.
@@ -54,7 +55,7 @@ const MorphSurfaceSpec lessonPageSpec = MorphSurfaceSpec(
 Future<void> openLesson(
   BuildContext context,
   Lesson lesson, {
-  MorphMotion motion = .normal,
+  MorphMotion motion = .liquid,
 }) {
   return showMorphRoute<void>(
     context,
@@ -86,52 +87,60 @@ class LessonCard extends StatelessWidget {
     return MorphTag(
       id: lesson.id,
       spec: lessonCardSpec,
-      child: MorphSurface(
-        onTap: (BuildContext context) =>
-            openLesson(context, lesson, motion: motion),
-        child: Padding(
-          padding: const .all(16),
-          child: Column(
-            crossAxisAlignment: .start,
-            children: <Widget>[
-              Row(
+      child: Material(
+        shape: lessonCardSpec.shape,
+        color: lessonCardSpec.color,
+        elevation: lessonCardSpec.elevation,
+        child: Semantics(
+          button: true,
+          child: GestureDetector(
+            behavior: .opaque,
+            onTap: () => openLesson(context, lesson, motion: motion),
+            child: Padding(
+              padding: const .all(16),
+              child: Column(
+                crossAxisAlignment: .start,
                 children: <Widget>[
-                  Icon(lesson.icon, size: 20, color: scheme.primary),
+                  Row(
+                    children: <Widget>[
+                      Icon(lesson.icon, size: 20, color: scheme.primary),
+                      const Spacer(),
+                      Text(
+                        lesson.number,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: .w700,
+                          color: Colors.white.withValues(alpha: 0.25),
+                        ),
+                      ),
+                    ],
+                  ),
                   const Spacer(),
+                  // The title TRAVELS into the page header: both ends
+                  // mark the same id, the flight lerps the rects and
+                  // scales the glyphs between the two type sizes.
+                  MorphSharedElement(
+                    id: '${lesson.id}-title',
+                    fade: .none,
+                    child: Text(
+                      lesson.title,
+                      style: const TextStyle(fontSize: 14.5, fontWeight: .w700),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
                   Text(
-                    lesson.number,
+                    lesson.tagline,
+                    maxLines: 2,
+                    overflow: .ellipsis,
                     style: TextStyle(
                       fontSize: 11,
-                      fontWeight: .w700,
-                      color: Colors.white.withValues(alpha: 0.25),
+                      height: 1.3,
+                      color: Colors.white.withValues(alpha: 0.55),
                     ),
                   ),
                 ],
               ),
-              const Spacer(),
-              // The title TRAVELS into the page header: both ends
-              // mark the same id, the flight lerps the rects and
-              // scales the glyphs between the two type sizes.
-              MorphSharedElement(
-                id: '${lesson.id}-title',
-                fade: .none,
-                child: Text(
-                  lesson.title,
-                  style: const TextStyle(fontSize: 14.5, fontWeight: .w700),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                lesson.tagline,
-                maxLines: 2,
-                overflow: .ellipsis,
-                style: TextStyle(
-                  fontSize: 11,
-                  height: 1.3,
-                  color: Colors.white.withValues(alpha: 0.55),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -140,8 +149,7 @@ class LessonCard extends StatelessWidget {
 }
 
 /// The opened chapter: a header whose back button plays the close
-/// flight, and the live scene. Content unfolds in a MorphReveal
-/// cascade riding the SAME spring as the container.
+/// flight, and the live scene.
 class LessonPage extends StatelessWidget {
   /// Creates the page for [lesson].
   const LessonPage({super.key, required this.lesson, required this.flight});
@@ -163,16 +171,9 @@ class LessonPage extends StatelessWidget {
           children: <Widget>[
             Row(
               children: <Widget>[
-                SpringButton(
+                LabIconButton(
+                  icon: Icons.arrow_back_rounded,
                   onPressed: () => Navigator.of(context).pop(),
-                  child: Container(
-                    padding: const .all(8),
-                    decoration: ShapeDecoration(
-                      shape: const CircleBorder(),
-                      color: Colors.white.withValues(alpha: 0.06),
-                    ),
-                    child: const Icon(Icons.arrow_back_rounded, size: 18),
-                  ),
                 ),
                 const SizedBox(width: 12),
                 Text(
@@ -200,9 +201,7 @@ class LessonPage extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Expanded(
-              child: MorphReveal(from: 0.4, to: 1, child: lesson.demo(context)),
-            ),
+            Expanded(child: lesson.demo(context)),
           ],
         ),
       ),

@@ -82,6 +82,13 @@ const Interval _targetFade = Interval(0.35, 0.90, curve: Curves.easeOut);
 const Interval _surfaceBlend = Interval(0.30, 0.55);
 const Interval _scrimFade = Interval(0, 0.7);
 
+/// The scrim opacity of a flight at [progress]: it reaches
+/// [maxScrimOpacity] at 70 percent of the travel. The one
+/// implementation every renderer of a flight's scrim calls.
+@internal
+double morphScrimOpacity(double maxScrimOpacity, double progress) =>
+    maxScrimOpacity * _scrimFade.transform(clampDouble(progress, 0, 1));
+
 /// The geometric core of one flight frame: the rect plus the raw
 /// endpoint radii when the shapes reduce to a single corner. ONE
 /// implementation serves both renderings of a flight - the shuttle
@@ -185,7 +192,7 @@ MorphFrame computeMorphFrame({
     sourceOpacity: 1 - _sourceFade.transform(p),
     targetOpacity: targetReveal,
     targetScale: lerpDouble(0.95, 1, targetReveal)!,
-    scrimOpacity: maxScrimOpacity * _scrimFade.transform(p),
+    scrimOpacity: morphScrimOpacity(maxScrimOpacity, p),
     // The shadow belongs to the morphing container (the Material
     // container-transform guideline): the shuttle starts with exactly
     // the button's shadow and grows it continuously into the container
@@ -205,53 +212,6 @@ MorphFrame computeMorphFrame({
       targetColor,
       _surfaceBlend.transform(p),
     )!,
-  );
-}
-
-/// The landing bump: one set of formulas for every consumer (the
-/// MorphTag content transform and the liquid-skin rect deformation).
-/// Full-wave: it lives on the FULL spring value - a dip below zero gives
-/// squash along the impact axis, a slight stretch across it, and a
-/// recoil kick; the return into positive plays the reverse. A degenerate
-/// axis falls back to vertical.
-({double scaleX, double scaleY, Offset kick}) morphLandingBump({
-  required double value,
-  required Offset impactAxis,
-  required double bumpScale,
-  required double bumpRecoil,
-}) {
-  final Offset axis = impactAxis.distance < 1 ? const Offset(0, 1) : impactAxis;
-  final bool vertical = axis.dy.abs() >= axis.dx.abs();
-  final double along = 1 + value * bumpScale;
-  final double across = 1 - value * bumpScale * 0.45;
-  final Offset unit = axis / axis.distance;
-  return (
-    scaleX: vertical ? across : along,
-    scaleY: vertical ? along : across,
-    kick: unit * (-value * bumpRecoil),
-  );
-}
-
-/// The same bump applied to geometry: the rect squashes and kicks around
-/// its own center. For consumers whose mass IS the visual (the liquid
-/// skin) a transform is not an option.
-Rect morphBumpedRect(
-  Rect rect, {
-  required double value,
-  required Offset impactAxis,
-  required double bumpScale,
-  required double bumpRecoil,
-}) {
-  final ({double scaleX, double scaleY, Offset kick}) bump = morphLandingBump(
-    value: value,
-    impactAxis: impactAxis,
-    bumpScale: bumpScale,
-    bumpRecoil: bumpRecoil,
-  );
-  return .fromCenter(
-    center: rect.center + bump.kick,
-    width: rect.width * bump.scaleX,
-    height: rect.height * bump.scaleY,
   );
 }
 

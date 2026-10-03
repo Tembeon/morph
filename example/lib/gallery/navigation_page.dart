@@ -1,0 +1,258 @@
+import 'package:material_ui/material_ui.dart';
+import 'package:morph/widgets.dart';
+import 'package:morph_example/gallery/gallery.dart';
+
+/// A small mail app on the measured navigation stack: a large-title list
+/// whose bar buttons morph into the detail screen's on a push, a toolbar
+/// that swaps its item sets, and the soft or hard scroll edge effect.
+class NavigationDemoPage extends StatefulWidget {
+  /// Creates the page.
+  const NavigationDemoPage({super.key});
+
+  @override
+  State<NavigationDemoPage> createState() => _NavigationDemoPageState();
+}
+
+class _NavigationDemoPageState extends State<NavigationDemoPage> {
+  MorphScrollEdgeEffectStyle _edge = MorphScrollEdgeEffectStyle.hard;
+  int _set = 0;
+
+  void _swapSet() => setState(() => _set = (_set + 1) % 3);
+
+  void _setEdge(MorphScrollEdgeEffectStyle edge) =>
+      setState(() => _edge = edge);
+
+  @override
+  Widget build(BuildContext context) {
+    final close = Navigator.of(context);
+    return Material(
+      type: MaterialType.transparency,
+      child: _DemoScope(
+        state: this,
+        child: MorphNavigationStack(home: _Inbox(onClose: close.maybePop)),
+      ),
+    );
+  }
+}
+
+class _DemoScope extends InheritedWidget {
+  const _DemoScope({required this.state, required super.child});
+
+  final _NavigationDemoPageState state;
+
+  static _NavigationDemoPageState of(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_DemoScope>()!.state;
+
+  @override
+  bool updateShouldNotify(_DemoScope oldWidget) => true;
+}
+
+const _palette = [
+  Color(0xFFFF3B30),
+  Color(0xFFFF9500),
+  Color(0xFFFFCC00),
+  Color(0xFF34C759),
+  Color(0xFF30B0C7),
+  Color(0xFF007AFF),
+  Color(0xFF5856D6),
+  Color(0xFFAF52DE),
+  Color(0xFFFF2D55),
+];
+
+MorphBarButton _icon(String id, IconData icon, VoidCallback onPressed) =>
+    MorphBarButton(
+      id: id,
+      icon: Icon(icon),
+      semanticLabel: id,
+      onPressed: onPressed,
+    );
+
+class _Inbox extends StatelessWidget {
+  const _Inbox({required this.onClose});
+
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final state = _DemoScope.of(context);
+    final swap = state._swapSet;
+    final sets = <(List<MorphBarButtonGroup>, List<MorphBarButtonGroup>)>[
+      (
+        [
+          MorphBarButtonGroup([
+            MorphBarButton(id: 'filter', label: 'Filter', onPressed: swap),
+          ], id: 'tbL'),
+        ],
+        [
+          MorphBarButtonGroup([
+            _icon('compose', Icons.edit_square, swap),
+          ], id: 'tbR'),
+        ],
+      ),
+      (
+        [
+          MorphBarButtonGroup([
+            _icon('trash', Icons.delete_outline, swap),
+            _icon('folder', Icons.folder_outlined, swap),
+          ], id: 'tbL'),
+        ],
+        [
+          MorphBarButtonGroup([
+            _icon('reply', Icons.reply, swap),
+            _icon('compose', Icons.edit_square, swap),
+          ], id: 'tbR'),
+        ],
+      ),
+      (
+        [
+          MorphBarButtonGroup([
+            _icon('trash', Icons.delete_outline, swap),
+          ], id: 'tbL'),
+          MorphBarButtonGroup([
+            _icon('folder', Icons.folder_outlined, swap),
+          ], id: 'tbM'),
+        ],
+        [
+          MorphBarButtonGroup([
+            _icon('compose', Icons.edit_square, swap),
+          ], id: 'tbR'),
+        ],
+      ),
+    ];
+    final (toolbarLeading, toolbarTrailing) = sets[state._set];
+    return MorphNavigationScaffold(
+      title: 'Inbox',
+      largeTitle: true,
+      edgeEffect: state._edge,
+      leading: MorphBarButtonGroup([
+        MorphBarButton(id: 'close', label: 'Close', onPressed: onClose),
+      ]),
+      trailing: [
+        MorphBarButtonGroup([
+          _icon('add', Icons.add, () {}),
+          _icon('more', Icons.more_horiz, () {}),
+        ]),
+      ],
+      toolbarLeading: toolbarLeading,
+      toolbarTrailing: toolbarTrailing,
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+            child: Row(
+              children: [
+                const SlowMotionToggle(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: MorphSegmentedControl(
+                    segments: const ['Hard edge', 'Soft edge'],
+                    selected: state._edge == MorphScrollEdgeEffectStyle.hard
+                        ? 0
+                        : 1,
+                    onChanged: (i) => state._setEdge(
+                      i == 0
+                          ? MorphScrollEdgeEffectStyle.hard
+                          : MorphScrollEdgeEffectStyle.soft,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SliverList.builder(
+          itemCount: 60,
+          itemBuilder: (BuildContext context, int i) => _Row(index: i),
+        ),
+      ],
+    );
+  }
+}
+
+class _Row extends StatelessWidget {
+  const _Row({required this.index});
+
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _palette[index % _palette.length];
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.of(
+        context,
+      ).push(MorphNavigationRoute<void>(builder: (_) => _Detail(index: index))),
+      child: Container(
+        height: 72,
+        color: color.withValues(alpha: 0.85),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        alignment: AlignmentDirectional.centerStart,
+        child: Text(
+          'Message $index',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _Detail extends StatefulWidget {
+  const _Detail({required this.index});
+
+  final int index;
+
+  @override
+  State<_Detail> createState() => _DetailState();
+}
+
+class _DetailState extends State<_Detail> {
+  bool _liked = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final demo = _DemoScope.of(context);
+    return MorphNavigationScaffold(
+      title: 'Message ${widget.index}',
+      edgeEffect: demo._edge,
+      trailing: [
+        MorphBarButtonGroup([
+          _icon(
+            _liked ? 'unlike' : 'like',
+            _liked ? Icons.favorite : Icons.favorite_border,
+            () => setState(() => _liked = !_liked),
+          ),
+          _icon('share', Icons.ios_share, () {}),
+        ]),
+        MorphBarButtonGroup([
+          MorphBarButton(
+            id: 'done',
+            label: 'Done',
+            onPressed: () => Navigator.of(context).maybePop(),
+          ),
+        ], prominent: true),
+      ],
+      toolbarLeading: [
+        MorphBarButtonGroup([
+          _icon('up', Icons.keyboard_arrow_up, () {}),
+          _icon('down', Icons.keyboard_arrow_down, () {}),
+        ], id: 'tbL'),
+      ],
+      toolbarTrailing: [
+        MorphBarButtonGroup([_icon('reply', Icons.reply, () {})], id: 'tbR'),
+      ],
+      slivers: [
+        SliverList.builder(
+          itemCount: 40,
+          itemBuilder: (BuildContext context, int i) => Container(
+            height: 44,
+            color: _palette[(i * 3 + widget.index) % _palette.length],
+          ),
+        ),
+      ],
+    );
+  }
+}

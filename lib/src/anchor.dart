@@ -56,6 +56,7 @@ class MorphAnchor extends StatefulWidget {
     this.scrimColor,
     this.shadowColor,
     this.semanticLabel,
+    this.overlay,
   });
 
   /// Whether the overlay should be open; changes retarget the flight.
@@ -124,6 +125,10 @@ class MorphAnchor extends StatefulWidget {
   /// it).
   final String? semanticLabel;
 
+  /// The overlay the flight renders in; null is the nearest enclosing
+  /// one ([showMorph]'s `overlay:` semantics).
+  final OverlayState? overlay;
+
   @override
   State<MorphAnchor> createState() => _MorphAnchorState();
 }
@@ -191,6 +196,7 @@ class _MorphAnchorState extends State<MorphAnchor> {
       shadowColor: widget.shadowColor,
       onDismissRequested: widget.onDismiss,
       semanticLabel: widget.semanticLabel,
+      overlay: widget.overlay,
       builder: (BuildContext context, MorphFlight flight) =>
           widget.openBuilder(context, flight),
     );

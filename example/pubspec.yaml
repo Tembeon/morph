@@ -13,9 +13,13 @@ dependencies:
   morph:
     path: ../
   motor: ^1.1.0
+  liquid_glass_renderer:
+    path: third_party/liquid_glass_renderer
 
 dev_dependencies:
   flutter_test:
+    sdk: flutter
+  integration_test:
     sdk: flutter
   flutter_lints: ^6.0.0
 

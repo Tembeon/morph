@@ -1,0 +1,165 @@
+{
+ "device": "iPhone 16 Pro (iPhone17,1) real device, iOS 27.0.1, 402x874 pt @3x, ProMotion; display link 120 Hz (CADisableMinimumFrameDurationOnPhone, preferredFrameRateRange 80..120 pref 120)",
+ "probe": "tool/ios_reference (device.sh, ProbeUITests); compacted by /tmp/morph-native/device/export.py",
+ "simulator_counterpart": "test/fixtures/ios27/lens",
+ "format": "jsonl, one row per line. k=start {t, scene, rec, scale, maxfps, w, h}; k=touch {t, phase 0 began / 1 moved / 3 ended, x, y} (window points, UITouch.timestamp = CACurrentMediaTime clock); k=dl one row per CADisplayLink tick {t = link.timestamp, d = duration when not 1/120} - dl rows are kept only around gestures (0.15 s before touch-down .. 1.1 s after touch-up). Rows other than dl are logged only when a value changed, so a tick with a dl row and no other row means \"nothing changed this tick\". k=frame = _UILiquidLensView presentation {ctl accessibility id or \"tabbar\", x, y, w, h (window bbox), bw, bh (bounds), sx, sy (layer scale), lifted, lpp (liftProgress presentation), p_driftX (flex drift presentation), f_driftX, f_scaleX (flex targets), vi_x, vi_vx, vi_ax (_UIVelocityIntegrator position / velocity / acceleration along x)}. Dropped as redundant: p_scaleX/p_scaleY (= sx/sy), f_scaleY, cls (always _UILiquidLensView), view id. Tab bar rows with y ~ 31 are the bar-local one-frame artifact (kept on purpose).",
+ "notes": "Gestures are XCUITest-synthesized pointer paths (30 Hz path points, delivered to UIKit at 120 Hz). The three seg5 drag files come from a second pass; the first pass used 120 Hz path points, which the device synthesizer replayed in bursts, and was discarded.",
+ "captures": [
+  {
+   "file": "segmented-narrow-content-content4-taps.jsonl",
+   "bytes": 404345,
+   "scene": "segmented",
+   "control": "segNarrow, segContent, segContent4",
+   "gesture": "narrow 0->1,1->2,2->0; content 0->1,1->2,2->0; content4 0->1,1->2,2->3,3->0"
+  },
+  {
+   "file": "segmented-seg2-hold1200.jsonl",
+   "bytes": 82040,
+   "scene": "segmented",
+   "control": "seg2",
+   "gesture": "press non-selected 1, hold 1.05 s, release; then the same back to 0"
+  },
+  {
+   "file": "segmented-seg2-taps.jsonl",
+   "bytes": 237133,
+   "scene": "segmented",
+   "control": "seg2",
+   "gesture": "taps 0->1,1->0 x3 (50 ms each, 1.6 s apart)"
+  },
+  {
+   "file": "segmented-seg3-taps.jsonl",
+   "bytes": 236724,
+   "scene": "segmented",
+   "control": "seg3",
+   "gesture": "taps 0->1,1->2,2->0,0->2,2->1,1->0"
+  },
+  {
+   "file": "segmented-seg5-dragslow-from-selected.jsonl",
+   "bytes": 105776,
+   "scene": "segmented",
+   "control": "seg5",
+   "gesture": "press selected 0 for 0.3 s, then 20 pt finger steps every ~0.11 s to 356, hold 0.6 s, release"
+  },
+  {
+   "file": "segmented-seg5-release-choice-rubberband.jsonl",
+   "bytes": 270124,
+   "scene": "segmented",
+   "control": "seg5",
+   "gesture": "(1) grab selected 0 at +28 pt, drag to 177.7 (lens nearest 1, finger nearest 2), hold 0.5, release; (2) press non-selected 4, drag to 3, release; (3) from selected 3 drag past the left end, holds at finger 2 / 24 / 12 (E 54..44 past the first center), release"
+  },
+  {
+   "file": "segmented-seg5-scrub-offset-overrun-back.jsonl",
+   "bytes": 212310,
+   "scene": "segmented",
+   "control": "seg5",
+   "gesture": "grab selected 0 at -16 pt offset, 0.3 s press, ~150 pt/s to the screen edge (x 400) past the right end, hold 0.6 s, ~300 pt/s back to 40, hold 0.4 s, release"
+  },
+  {
+   "file": "segmented-seg5seg4-taps.jsonl",
+   "bytes": 394367,
+   "scene": "segmented",
+   "control": "seg5, seg4",
+   "gesture": "seg5 0->1,1->4,4->3,3->0,0->2,2->4,4->0; seg4 0->1,1->3,3->0"
+  },
+  {
+   "file": "tabbar2-taps.jsonl",
+   "bytes": 241745,
+   "scene": "tabbar2",
+   "control": "tabbar",
+   "gesture": "taps 0->1,1->0 x3"
+  },
+  {
+   "file": "tabbar3-taps.jsonl",
+   "bytes": 285052,
+   "scene": "tabbar3",
+   "control": "tabbar",
+   "gesture": "taps 0->2,2->0,0->1,1->2,2->0,0->1,1->0"
+  },
+  {
+   "file": "tabbar4-taps.jsonl",
+   "bytes": 307619,
+   "scene": "tabbar4",
+   "control": "tabbar",
+   "gesture": "taps 0->1,1->3,3->0,0->2,2->0; hold tab 2 for 1 s; tap 0"
+  },
+  {
+   "file": "tabbar5-taps.jsonl",
+   "bytes": 244327,
+   "scene": "tabbar5",
+   "control": "tabbar",
+   "gesture": "taps 0->4,4->1,1->2,2->0,0->3,3->0"
+  },
+  {
+   "file": "tabbar3-scrub-mid.jsonl",
+   "bytes": 114987,
+   "scene": "tabbar3",
+   "control": "tabbar",
+   "gesture": "press selected tab 0 at +18 pt offset 0.3 s, drag (30 Hz points, ~190 pt/s) to last center +18, hold 0.5 s, back to midpoint(1,2)+8, hold 0.5 s, release (finger nearest tab 2, lens nearest tab 1)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "tabbar3-scrub-pastright.jsonl",
+   "bytes": 139599,
+   "scene": "tabbar3",
+   "control": "tabbar",
+   "gesture": "press selected tab 0 at its center 0.3 s, drag to last center, hold 0.4, to last+30 hold 0.5, to last+55 hold 0.5, release",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "tabbar3-scrub-pastleft.jsonl",
+   "bytes": 171562,
+   "scene": "tabbar3",
+   "control": "tabbar",
+   "gesture": "press selected tab 0 0.3 s, drag to last center, hold 0.4, back to first-30 hold 0.5, first-50 hold 0.5, release",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "tabbar5-scrub-mid.jsonl",
+   "bytes": 176740,
+   "scene": "tabbar5",
+   "control": "tabbar",
+   "gesture": "as tabbar3-scrub-mid with 5 tabs (release at midpoint(1,2)+8)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "tabbar5-scrub-pastright.jsonl",
+   "bytes": 168670,
+   "scene": "tabbar5",
+   "control": "tabbar",
+   "gesture": "as tabbar3-scrub-pastright with 5 tabs",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "tabbar5-scrub-pastleft.jsonl",
+   "bytes": 214066,
+   "scene": "tabbar5",
+   "control": "tabbar",
+   "gesture": "as tabbar3-scrub-pastleft with 5 tabs (first-30 / first-50)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "segmented-seg3-tap-selected.jsonl",
+   "bytes": 112340,
+   "scene": "segmented",
+   "control": "seg3",
+   "gesture": "taps on the already selected segment 0: 58 ms, 300 ms, 58 ms, 300 ms, 1.6 s apart",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "tabbar3-tap-selected.jsonl",
+   "bytes": 153057,
+   "scene": "tabbar3",
+   "control": "tabbar",
+   "gesture": "taps on the already selected tab 0: 58, 300, 58, 300 ms",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "tabbar5-tap-selected.jsonl",
+   "bytes": 152509,
+   "scene": "tabbar5",
+   "control": "tabbar",
+   "gesture": "taps on the already selected tab 0: 58, 300, 58, 300 ms",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  }
+ ]
+}

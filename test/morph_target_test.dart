@@ -66,8 +66,23 @@ void main() {
       );
       final Rect rect = spec.rectFor(const Size(400, 640), EdgeInsets.zero);
       expect(rect.top, 12);
+      expect(rect.bottom, 640 - 12);
+      expect(rect.height, 640 - 24);
       expect(rect.left, greaterThanOrEqualTo(12));
       expect(rect.right, lessThanOrEqualTo(400 - 12));
+    });
+
+    test('an oversized popover also respects horizontal safe space', () {
+      final MorphTargetSpec spec = MorphTargetSpec.popover(
+        anchor: const Rect.fromLTWH(10, 100, 20, 20),
+        size: const Size(900, 120),
+      );
+      final Rect rect = spec.rectFor(
+        const Size(400, 640),
+        const EdgeInsets.only(left: 30, right: 40),
+      );
+      expect(rect.left, 30 + 12);
+      expect(rect.right, 400 - 40 - 12);
     });
 
     test('horizontal safe areas clamp the popover', () {

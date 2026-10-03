@@ -1,0 +1,14 @@
+{
+  "what": "iOS 27 UISearchController (bottom toolbar placement) and UISearchTab touches on the device",
+  "device": "iPhone 16 Pro (00008140-001039D01442801C), iOS 27.0.1, 3x, 402x874 pt, 120 Hz",
+  "captured": "2026-10-03",
+  "probe": "tool/ios_reference scene x3search (Sources/Extras.swift, X3Sampler) driven by UITests/ExtrasUITests.swift testX3Device (synthesized touches)",
+  "rows": "start; touch; evt (script actions, willPresentSearch / didPresentSearch / willDismissSearch / didDismissSearch); V cls GlassInteractionView = the search field's / close button's glass (center x, y, size w, h, bounds bw, bh, ea effective alpha); V cls keyboard = UIKeyboardItemContainerView (y, h); V cls field = UIKit._UITabHostedSearchContainer",
+  "files": {
+    "search-toolbar.jsonl": "programmatic focus and cancel (night pass)",
+    "search-tap.jsonl": "a tap on the resting field (the focus waits for the keyboard), then a tap on the close button",
+    "search-hold.jsonl": "a 0.5 s press on the resting field (the glass lift)",
+    "tab-search-focus.jsonl": "a UISearchTab with automaticallyActivatesSearch: a tap on the search circle (the tab -> field morph itself is SwiftUI glass, invisible in views), the focus rise above the keyboard, a tap on the close button"
+  },
+  "units": "points (pt), window coordinates, seconds on the device media clock"
+}

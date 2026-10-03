@@ -26,6 +26,7 @@ far smoother). API docs live next to it:
 ```bash
 cd example
 flutter run -d macos   # or any device
+flutter run -t lib/gallery/gallery.dart   # the widgets gallery
 ```
 
 Recipes and applied patterns live there, not in this README.
@@ -34,16 +35,37 @@ Recipes and applied patterns live there, not in this README.
 
 - `package:morph/foundation.dart` - the engine: identity, flights,
   retargeting, the liquid skin. No opinions.
-- `package:morph/widgets.dart` - opinionated widgets built on it:
-  `showMorphMenu` (a control becomes its own menu), the `Tug` glass
-  tether, `SpringButton`, the Material adapter `MorphSurface`.
-  Interesting uses of the engine, taste included; the knobs move with
-  my app.
+- `package:morph/widgets.dart` - widgets built on it that move like
+  iOS Liquid Glass, measured from UIKit and checked against recordings
+  of the real controls: `MorphSegmentedControl` and `MorphTabBar`
+  (the liquid selection lens: tap, press, scrub), `MorphSwitch`,
+  `MorphSlider`, `MorphStepper`, `MorphGlassButton`, `MorphMenuButton`
+  (a button becomes its own menu), the bars - `MorphNavigationBar`,
+  `MorphToolbar`, `MorphScrollEdgeEffect`, `MorphNavigationStack` (glass
+  button groups that morph into each other as items change and screens
+  push, large titles, the scroll edge effect); sheets with detents
+  (`presentMorphSheet`: a floating glass sheet that docks edge to edge
+  at the large detent, dragged between detents, flicked away, handing
+  scroll drags to the sheet); alerts and action sheets
+  (`showMorphAlert`, `showMorphActionSheet`: a glass popover growing out
+  of its source); the search field (`MorphSearchField`, the bottom
+  `MorphSearchToolbar` that rises above the keyboard, and
+  `MorphSearchTabBar`, whose search tab turns into the field); the
+  compact `MorphDatePicker`; `MorphPageControl`, `MorphProgressView`
+  and `MorphActivityIndicator`; plus `MorphContextMenuRegion` (a held
+  surface becomes its own context menu, satellites around it).
+  Their motion objects
+  (`MorphLensMotion`, `MorphSwitchMotion`, `MorphMenuMotion`, ...) are
+  pure functions of explicit time and work without the widgets.
 
-The engine never depends on the widget layer. And morph still does not
-set out to reproduce iOS widgets or Liquid Glass: there is no glass
-shader here and none is planned - the widget layer is about USING
-morph well, not about a platform's surface shading.
+The engine never depends on the widget layer. The widget layer copies
+how the platform's surfaces MOVE; how they refract is up to the app.
+The controls draw flat fills by default, and a `MorphGlassPainter`
+installed with `MorphGlass(painter:)` renders every glass surface
+below it instead - track, lens, knob, thumb, button, bar - so it can
+sample the backdrop or run a shader. Looks resolve from each control's
+`style`, then the `MorphWidgetsTheme` extension, then light and dark
+tables from the iOS system colors.
 
 ## Install
 
@@ -64,8 +86,8 @@ MaterialApp(
 ```
 
 Physics comes from [motor](https://pub.dev/packages/motor); its
-minimal motion vocabulary is re-exported. The opinionated widgets are
-one import away: `package:morph/widgets.dart`.
+minimal motion vocabulary is re-exported. The widgets are one import
+away: `package:morph/widgets.dart`.
 
 morph speaks the standalone
 [material_ui](https://pub.dev/packages/material_ui) package, not the
@@ -109,9 +131,16 @@ over the list it filters).
 ...)`: the same morph, driven by your state instead of a call.
 
 **3. Your own targets** - `MorphTargetSpec` places the destination
-anywhere: popovers, docked panels, fullscreen. `MorphMotion` sets the
-speed profile, `MorphTheme` the app-wide defaults.
+anywhere: popovers, docked panels, fullscreen - fixed boxes or sized by
+their content, always clear of the keyboard. `MorphMotion` sets the
+spring profile - `MorphMotion.liquid`, UIKit's measured morph spring,
+is the default, `glacial` the same five times slower for the eye,
+`instant` the reduced-motion one, `MorphMotion.springs` your own -
+`MorphTheme` the app-wide defaults, `overlay:` picks
+the overlay a flight renders in when chrome floats over a nested
+navigator, and `flight.events` marks the moments for haptics.
 ([button-to-menu](example/lib/tour/lessons/menu_lesson.dart),
+[hold to menu](example/lib/tour/lessons/hold_lesson.dart),
 [toolbar merge](example/lib/tour/lessons/toolbar_lesson.dart))
 
 **4. Real pages and gestures** - `showMorphRoute` morphs into a real

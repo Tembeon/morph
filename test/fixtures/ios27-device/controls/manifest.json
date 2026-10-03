@@ -1,0 +1,442 @@
+{
+ "device": "iPhone 16 Pro (iPhone17,1) real device, iOS 27.0.1, 402x874 pt @3x, ProMotion; display link 120 Hz (CADisableMinimumFrameDurationOnPhone, preferredFrameRateRange 80..120 pref 120)",
+ "probe": "tool/ios_reference (device.sh, ProbeUITests); compacted by /tmp/morph-native/device/export.py",
+ "simulator_counterpart": "test/fixtures/ios27/controls",
+ "format": "jsonl, one row per line. k=start {t, scene, rec, scale, maxfps, w, h}; k=touch {t, phase 0 began / 1 moved / 3 ended, x, y} (window points, UITouch.timestamp = CACurrentMediaTime clock); k=dl one row per CADisplayLink tick {t = link.timestamp, d = duration when not 1/120} - dl rows are kept only around gestures (0.15 s before touch-down .. 1.1 s after touch-up). Rows other than dl are logged only when a value changed, so a tick with a dl row and no other row means \"nothing changed this tick\". k=state {on | v, hl, tr} control state; k=evt {e valueChanged|touchDown|touchUpInside, v}; k=L control layer tree rows (p = sublayer index path from the control layer, c = layer/delegate class, x, y, w, h window bbox, bw, bh, a, sx, sy, tx, ty, cr, bg rgba, fill) to depth 2 (depth 1 in the multi-tap files); k=frame _UILiquidLensView (switch knob / slider thumb) with cls, id, lp, lpp, f_tx, flex targets and integrator as in lens; k=flex rows only in button scenes.",
+ "notes": "Drag and fling files come from a second pass with 30 Hz path points (smooth). Flings faster than ~250 pt/s could not be synthesized: slider-w300-fling and -fling-medium arrive as one jump move then touch-up (the slider then animates to the lift-off point), switch-off-fling40 has 5 moves in 67 ms. Use them only as jump/teleport references, not for projection fits. The slider-ends pass (note on its captures) shows no catch-up at the ends: the value maps the finger by the full track width throughout, reaches an end with the finger leading the thumb by about 11 + 37 * (1 - start value) pt, and the track stretches only past that point (rubber band as fitted in the simulator, 13 / 0.74); on the way back the value moves again where it reached the end, with no re-basing.",
+ "captures": [
+  {
+   "file": "button-glass-120x44-drag-off-back.jsonl",
+   "bytes": 159138,
+   "scene": "gb120x44",
+   "gesture": "press 300 ms, drag +150 over 750 ms, hold 400, back over 750 ms, hold 400, release"
+  },
+  {
+   "file": "button-glass-120x44-hold800.jsonl",
+   "bytes": 39162,
+   "scene": "gb120x44",
+   "gesture": "press center 800 ms"
+  },
+  {
+   "file": "button-glass-200x100-hold800.jsonl",
+   "bytes": 31292,
+   "scene": "gb200x100",
+   "gesture": "press center 800 ms"
+  },
+  {
+   "file": "button-glass-200x44-hold800.jsonl",
+   "bytes": 33151,
+   "scene": "gb200x44",
+   "gesture": "press center 800 ms"
+  },
+  {
+   "file": "button-glass-300x44-hold800.jsonl",
+   "bytes": 32448,
+   "scene": "gb300x44",
+   "gesture": "press center 800 ms"
+  },
+  {
+   "file": "button-glass-44x44-hold800.jsonl",
+   "bytes": 47055,
+   "scene": "gb44x44",
+   "gesture": "press center 800 ms"
+  },
+  {
+   "file": "button-glass-44x44-taps.jsonl",
+   "bytes": 48409,
+   "scene": "gb44x44",
+   "gesture": "4 taps 80 ms, 1.2 s apart"
+  },
+  {
+   "file": "button-glass-60x44-hold800.jsonl",
+   "bytes": 48043,
+   "scene": "gb60x44",
+   "gesture": "press center 800 ms"
+  },
+  {
+   "file": "button-prominent-120x44-hold800.jsonl",
+   "bytes": 39513,
+   "scene": "gbp120x44",
+   "gesture": "prominent glass, press center 800 ms"
+  },
+  {
+   "file": "slider-ticks5-drag.jsonl",
+   "bytes": 98125,
+   "scene": "slT5",
+   "gesture": "5 ticks, value 0; drag thumb +111.5 over 800 ms, hold 400 ms"
+  },
+  {
+   "file": "slider-w200-atend-max.jsonl",
+   "bytes": 115218,
+   "scene": "sl200",
+   "gesture": "slider 200 wide, value 1; press thumb 100 ms, 100 pt/s to 80 past the max end, hold, back to 60 left of the press point, hold, release",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w200-drag-slow.jsonl",
+   "bytes": 116723,
+   "scene": "sl200",
+   "gesture": "slider 200 wide; drag thumb +72.6 over 800 ms, hold 400 ms"
+  },
+  {
+   "file": "slider-w200-end-max-slow.jsonl",
+   "bytes": 157781,
+   "scene": "sl200",
+   "gesture": "slider 200 wide, value 0.5; press thumb 100 ms, 100 pt/s to the track end (x 301), +40, +80 past it, back to the end, back to 60 inside, 500 ms hold after each leg, release",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w200-end-min-slow.jsonl",
+   "bytes": 150912,
+   "scene": "sl200",
+   "gesture": "mirror of end-max-slow toward the minimum end (x 101)",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w200-fast-max.jsonl",
+   "bytes": 35032,
+   "scene": "sl200",
+   "gesture": "slider 200 wide, value 0.5; press thumb 100 ms, to 60 past the max end in 300 ms (~530 pt/s), hold 600 ms, release",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w200-fast-min.jsonl",
+   "bytes": 34928,
+   "scene": "sl200",
+   "gesture": "mirror of fast-max toward the minimum end",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w200-fling-max.jsonl",
+   "bytes": 27448,
+   "scene": "sl200",
+   "gesture": "slider 200 wide, value 0.5; press thumb 100 ms, to 40 past the max end in 250 ms, release while moving",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w200-glide-v150.jsonl",
+   "bytes": 100202,
+   "scene": "sl200",
+   "gesture": "slider value 0.1 (PROBE_SLIDER_VALUE); press thumb 50 ms, constant-speed ramp +80 pt at ~150 pt/s planned (30 Hz points), release while moving",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "slider-w200-glide-v250.jsonl",
+   "bytes": 86477,
+   "scene": "sl200",
+   "gesture": "slider value 0.1 (PROBE_SLIDER_VALUE); press thumb 50 ms, constant-speed ramp +80 pt at ~250 pt/s planned (30 Hz points), release while moving",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "slider-w200-glide-v400.jsonl",
+   "bytes": 76531,
+   "scene": "sl200",
+   "gesture": "slider value 0.1 (PROBE_SLIDER_VALUE); press thumb 50 ms, constant-speed ramp +80 pt at ~400 pt/s planned (30 Hz points), release while moving",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "slider-w200-nearend-max.jsonl",
+   "bytes": 109322,
+   "scene": "sl200",
+   "gesture": "slider 200 wide, value 0.9; press thumb 100 ms, 100 pt/s to 80 past the max end, hold, back to the press point, hold, release",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w200-offgrab-max.jsonl",
+   "bytes": 83007,
+   "scene": "sl200",
+   "gesture": "slider 200 wide, value 0.5; press 12 pt right of the thumb center 100 ms, 100 pt/s to 80 past the max end, hold 500 ms, release",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w200-sweep.jsonl",
+   "bytes": 234831,
+   "scene": "sl200",
+   "gesture": "slider 200 wide, value 0; press thumb 100 ms, 100 pt/s to 80 past the max end, hold 500 ms, 100 pt/s to 20 past the min end, hold 500 ms, release",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w260-sweep.jsonl",
+   "bytes": 278981,
+   "scene": "sl260",
+   "gesture": "slider 260 wide, value 0; as w200-sweep, 60 past the max end",
+   "note": "slider ends pass 2026-10-02: probe testSliderEnds (device.sh PROBE_PLAN=sliderends), 30 Hz points, slider centered at x 201; compacted to touch/evt/state/dl rows plus the slider (0), track (0.0.0) and thumb (0.0.1) layer rows with x, y, w, h only (no lens frame rows)"
+  },
+  {
+   "file": "slider-w300-drag-ontrack.jsonl",
+   "bytes": 9248,
+   "scene": "sl300",
+   "gesture": "drag from the track at minX+230 to +270 over 300 ms, hold 400 ms"
+  },
+  {
+   "file": "slider-w300-drag-pastend-far.jsonl",
+   "bytes": 139491,
+   "scene": "sl300",
+   "gesture": "drag thumb +269 over 800 ms, hold 500 ms"
+  },
+  {
+   "file": "slider-w300-drag-pastend-mid.jsonl",
+   "bytes": 141743,
+   "scene": "sl300",
+   "gesture": "drag thumb +242.5 over 800 ms, hold 500 ms"
+  },
+  {
+   "file": "slider-w300-drag-pastend-small.jsonl",
+   "bytes": 121269,
+   "scene": "sl300",
+   "gesture": "drag thumb +227.5 over 600 ms, hold 500 ms"
+  },
+  {
+   "file": "slider-w300-drag-pastend.jsonl",
+   "bytes": 138276,
+   "scene": "sl300",
+   "gesture": "drag thumb +262.5 (past max) over 800 ms, hold 500 ms"
+  },
+  {
+   "file": "slider-w300-drag-paststart.jsonl",
+   "bytes": 125501,
+   "scene": "sl300",
+   "gesture": "drag thumb -157.5 (past min) over 700 ms, hold 500 ms"
+  },
+  {
+   "file": "slider-w300-drag-slow.jsonl",
+   "bytes": 146962,
+   "scene": "sl300",
+   "gesture": "drag thumb +112.5 over 1 s, hold 400 ms"
+  },
+  {
+   "file": "slider-w300-fling-medium.jsonl",
+   "bytes": 62237,
+   "scene": "sl300",
+   "gesture": "fling thumb +60 in ~96 ms"
+  },
+  {
+   "file": "slider-w300-fling-slow.jsonl",
+   "bytes": 64570,
+   "scene": "sl300",
+   "gesture": "fling thumb +40 in ~160 ms"
+  },
+  {
+   "file": "slider-w300-fling.jsonl",
+   "bytes": 66262,
+   "scene": "sl300",
+   "gesture": "fling thumb +132.5 in ~96 ms, release while moving"
+  },
+  {
+   "file": "slider-w300-glide-v150.jsonl",
+   "bytes": 129422,
+   "scene": "sl300",
+   "gesture": "slider value 0.1 (PROBE_SLIDER_VALUE); press thumb 50 ms, constant-speed ramp +120 pt at ~150 pt/s planned (30 Hz points), release while moving",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "slider-w300-glide-v250.jsonl",
+   "bytes": 107245,
+   "scene": "sl300",
+   "gesture": "slider value 0.1 (PROBE_SLIDER_VALUE); press thumb 50 ms, constant-speed ramp +120 pt at ~250 pt/s planned (30 Hz points), release while moving",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "slider-w300-glide-v400.jsonl",
+   "bytes": 86634,
+   "scene": "sl300",
+   "gesture": "slider value 0.1 (PROBE_SLIDER_VALUE); press thumb 50 ms, constant-speed ramp +120 pt at ~400 pt/s planned (30 Hz points), release while moving",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "slider-w300-hold800-thumb.jsonl",
+   "bytes": 53851,
+   "scene": "sl300",
+   "gesture": "press thumb 800 ms"
+  },
+  {
+   "file": "slider-w300-tap-thumb.jsonl",
+   "bytes": 40743,
+   "scene": "sl300",
+   "gesture": "tap thumb 90 ms (value .3)"
+  },
+  {
+   "file": "slider-w300-tap-track300.jsonl",
+   "bytes": 5410,
+   "scene": "sl300",
+   "gesture": "tap track at minX+230, 90 ms"
+  },
+  {
+   "file": "slider-w300-taps-thumb.jsonl",
+   "bytes": 125818,
+   "scene": "sl300",
+   "gesture": "4 taps on the thumb, 90 ms, 1.2 s apart"
+  },
+  {
+   "file": "switch-off-drag-left50.jsonl",
+   "bytes": 108469,
+   "scene": "sw",
+   "gesture": "drag knob -50 (past the off end) over 640 ms, hold 300 ms"
+  },
+  {
+   "file": "switch-off-drag-right100.jsonl",
+   "bytes": 100330,
+   "scene": "sw",
+   "gesture": "drag knob +100 over 640 ms, hold 300 ms"
+  },
+  {
+   "file": "switch-off-drag-right15.jsonl",
+   "bytes": 79859,
+   "scene": "sw",
+   "gesture": "drag knob +15 over 240 ms, hold 300 ms"
+  },
+  {
+   "file": "switch-off-drag-right50.jsonl",
+   "bytes": 101196,
+   "scene": "sw",
+   "gesture": "drag knob +50 over 640 ms, hold 300 ms, release"
+  },
+  {
+   "file": "switch-off-drag-right8.jsonl",
+   "bytes": 68685,
+   "scene": "sw",
+   "gesture": "drag knob +8 over 128 ms, hold 300 ms"
+  },
+  {
+   "file": "switch-off-drag-there-back.jsonl",
+   "bytes": 117905,
+   "scene": "sw",
+   "gesture": "drag +40 (400 ms) then to -10 (480 ms), hold 300 ms"
+  },
+  {
+   "file": "switch-off-fling40.jsonl",
+   "bytes": 55408,
+   "scene": "sw",
+   "gesture": "fling knob +40 in ~64 ms, release while moving"
+  },
+  {
+   "file": "switch-off-hold800.jsonl",
+   "bytes": 77617,
+   "scene": "sw",
+   "gesture": "press knob 800 ms, release"
+  },
+  {
+   "file": "switch-off-tap.jsonl",
+   "bytes": 56552,
+   "scene": "sw",
+   "gesture": "tap off knob 90 ms; off->on"
+  },
+  {
+   "file": "switch-on-tap.jsonl",
+   "bytes": 56861,
+   "scene": "swOn",
+   "gesture": "tap on knob 90 ms; on->off"
+  },
+  {
+   "file": "switch-taps.jsonl",
+   "bytes": 298185,
+   "scene": "sw",
+   "gesture": "6 taps 90 ms alternating off->on->off..., 1.4 s apart"
+  },
+  {
+   "file": "switch-tb-a1.jsonl",
+   "bytes": 135069,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +20 pt over 0.4 s, hold 0.25, back to -5 over 0.4 s, hold 0.3, release (rep 1)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-a2.jsonl",
+   "bytes": 135018,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +20 pt over 0.4 s, hold 0.25, back to -5 over 0.4 s, hold 0.3, release (rep 2)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-a3.jsonl",
+   "bytes": 135322,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +20 pt over 0.4 s, hold 0.25, back to -5 over 0.4 s, hold 0.3, release (rep 3)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-b1.jsonl",
+   "bytes": 132212,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +8 pt over 0.4 s, hold 0.25, back to +0 over 0.4 s, hold 0.3, release (rep 1)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-b2.jsonl",
+   "bytes": 132255,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +8 pt over 0.4 s, hold 0.25, back to +0 over 0.4 s, hold 0.3, release (rep 2)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-b3.jsonl",
+   "bytes": 133402,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +8 pt over 0.4 s, hold 0.25, back to +0 over 0.4 s, hold 0.3, release (rep 3)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-c1.jsonl",
+   "bytes": 133930,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +30 pt over 0.4 s, hold 0.25, back to +12 over 0.4 s, hold 0.3, release (rep 1)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-c2.jsonl",
+   "bytes": 137175,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +30 pt over 0.4 s, hold 0.25, back to +12 over 0.4 s, hold 0.3, release (rep 2)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-c3.jsonl",
+   "bytes": 134500,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +30 pt over 0.4 s, hold 0.25, back to +12 over 0.4 s, hold 0.3, release (rep 3)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-d1.jsonl",
+   "bytes": 134489,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +40 pt over 0.4 s, hold 0.25, back to -10 over 0.4 s, hold 0.3, release (rep 1)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-d2.jsonl",
+   "bytes": 131275,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +40 pt over 0.4 s, hold 0.25, back to -10 over 0.4 s, hold 0.3, release (rep 2)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-d3.jsonl",
+   "bytes": 133830,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +40 pt over 0.4 s, hold 0.25, back to -10 over 0.4 s, hold 0.3, release (rep 3)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-e1.jsonl",
+   "bytes": 135952,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +40 pt over 0.4 s, hold 0.25, back to +5 over 0.4 s, hold 0.3, release (rep 1)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-e2.jsonl",
+   "bytes": 136317,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +40 pt over 0.4 s, hold 0.25, back to +5 over 0.4 s, hold 0.3, release (rep 2)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "switch-tb-e3.jsonl",
+   "bytes": 137256,
+   "scene": "sw",
+   "gesture": "off switch: press knob 0.1 s, drag +40 pt over 0.4 s, hold 0.25, back to +5 over 0.4 s, hold 0.3, release (rep 3)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  }
+ ]
+}

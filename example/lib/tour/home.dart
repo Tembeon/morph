@@ -8,6 +8,7 @@ import 'package:morph_example/tour/lesson.dart';
 import 'package:morph_example/tour/lessons/bar_lesson.dart';
 import 'package:morph_example/tour/lessons/chips_example.dart';
 import 'package:morph_example/tour/lessons/goo_dock_example.dart';
+import 'package:morph_example/tour/lessons/hold_lesson.dart';
 import 'package:morph_example/tour/lessons/menu_lesson.dart';
 import 'package:morph_example/tour/lessons/morph_scene.dart';
 import 'package:morph_example/tour/lessons/page_scene.dart';
@@ -21,7 +22,7 @@ class TourHome extends StatelessWidget {
   /// Creates the home grid.
   const TourHome({super.key});
 
-  static const MorphMotion _speed = .normal;
+  static const MorphMotion _speed = .liquid;
 
   /// The chapters grouped for the grid; every scene is an app mockup
   /// answering the question on its card.
@@ -48,11 +49,19 @@ class TourHome extends StatelessWidget {
           icon: Icons.tune_rounded,
           title: 'Button to menu',
           tagline: 'Where does a menu come from?',
-          demo: (BuildContext context) => const MenuLesson(motion: _speed),
+          demo: (BuildContext context) => const MenuLesson(),
+        ),
+        Lesson(
+          id: 'lesson-hold',
+          number: '03',
+          icon: Icons.touch_app_rounded,
+          title: 'Hold to menu',
+          tagline: 'What happens when you hold a message?',
+          demo: (BuildContext context) => const HoldLesson(motion: _speed),
         ),
         Lesson(
           id: 'lesson-toolbar',
-          number: '03',
+          number: '04',
           icon: Icons.horizontal_rule_rounded,
           title: 'Toolbar merge',
           tagline: 'Where do controls go while you read?',
@@ -65,7 +74,7 @@ class TourHome extends StatelessWidget {
       <Lesson>[
         Lesson(
           id: 'lesson-pages',
-          number: '04',
+          number: '05',
           icon: Icons.music_note_rounded,
           title: 'Card to page',
           tagline: 'When is a surface a real page?',
@@ -78,7 +87,7 @@ class TourHome extends StatelessWidget {
       <Lesson>[
         Lesson(
           id: 'lesson-dock',
-          number: '05',
+          number: '06',
           icon: Icons.water_drop_rounded,
           title: 'Liquid selection',
           tagline: 'What if selection were mass?',
@@ -86,15 +95,15 @@ class TourHome extends StatelessWidget {
         ),
         Lesson(
           id: 'lesson-bar',
-          number: '06',
+          number: '07',
           icon: Icons.call_to_action_rounded,
           title: 'The bar',
-          tagline: 'What if the whole bar were one body?',
+          tagline: 'How does a tab bar\'s selection move?',
           demo: (BuildContext context) => const BarLesson(),
         ),
         Lesson(
           id: 'lesson-chips',
-          number: '07',
+          number: '08',
           icon: Icons.grain_rounded,
           title: 'Living layout',
           tagline: 'What if layout flowed?',
@@ -107,7 +116,7 @@ class TourHome extends StatelessWidget {
       <Lesson>[
         Lesson(
           id: 'lesson-playground',
-          number: '08',
+          number: '09',
           icon: Icons.science_rounded,
           title: 'Playground',
           tagline: 'The sandbox: pieces, keyframes, stress, all knobs.',

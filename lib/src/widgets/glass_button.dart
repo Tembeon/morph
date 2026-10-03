@@ -1,0 +1,596 @@
+import 'dart:math' as math;
+
+import 'package:flutter/gestures.dart';
+import 'package:flutter/widgets.dart';
+import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/spring.dart';
+import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/widgets/touch_listener.dart';
+
+/// The motion of an iOS 27 glass button: one uniform lift, a lean toward
+/// a finger that drags off, and the touch glow.
+///
+/// A touch scales the whole button by `1 + lift / width`, where the lift
+/// in pixels and both springs come from [MorphFlexSpec.forSize]:
+/// the press rides the tracking spring, the release the scale spring, so
+/// a small button rings below its size while a wide one barely does. The
+/// button stays lifted for the whole touch, even far outside; a finger
+/// that drags away pulls it along by `d * |d| / 10000` pixels and
+/// stretches it along the drag. A glow fades in under the finger and
+/// fades out on release while the little glow at the touch point grows.
+///
+/// Times are seconds and positions pixels in the button's own space.
+class MorphGlassButtonMotion {
+  /// Creates the motion of a button of [size].
+  MorphGlassButtonMotion({required Size size})
+    : _size = size,
+      _spec = MorphFlexSpec.forSize(size);
+
+  /// The time constant of the glow fading in, in seconds.
+  static const double glowTime = 0.023;
+
+  /// The spring the glow fades out and the little glow grows on.
+  static const glowSpring = MorphSpring(0.5, 1);
+
+  /// The divisor of the lean: a drag of `d` pixels leans `d * |d|` over
+  /// this many pixels.
+  static const double leanDivisor = 10000;
+
+  /// How much the button stretches along the drag per pixel of lean.
+  static const double leanStretch = 0.0064;
+
+  /// How far outside the button the touch still counts as inside.
+  static const double highlightSlop = 70;
+
+  /// The diameter of the little glow at the touch point.
+  static const double littleGlowSize = 66;
+
+  /// How much the little glow grows while it fades out.
+  static const double littleGlowGrowth = 4;
+
+  /// How strongly a dragging finger pulls this surface, relative to a
+  /// button: the lean is `pull * d * |d| / leanDivisor`. A large surface
+  /// that lifts like a button, such as an alert's platter, leans less.
+  double pull = 1;
+
+  /// How much this surface stretches along the drag per pixel of lean,
+  /// relative to a button's [leanStretch].
+  double stretch = 1;
+
+  /// Whether the button moves for Reduce Motion: it glows under the touch
+  /// but never lifts or leans. This approximates the platform's behavior;
+  /// it is not measured.
+  bool reducedMotion = false;
+
+  Size _size;
+  MorphFlexSpec _spec;
+  final MorphSpringState _scale = MorphSpringState(
+    MorphFlexSpec.ultraSmall.trackingSpring,
+    1,
+  );
+  final MorphSpringState _leanX = MorphSpringState(
+    MorphFlexSpec.ultraSmall.trackingSpring,
+    0,
+  );
+  final MorphSpringState _leanY = MorphSpringState(
+    MorphFlexSpec.ultraSmall.trackingSpring,
+    0,
+  );
+  final MorphSpringState _glowOut = MorphSpringState(glowSpring, 0);
+  final MorphSpringState _littleScale = MorphSpringState(glowSpring, 1);
+  final MorphSpringState _glowX = MorphSpringState(
+    MorphFlexSpec.ultraSmall.trackingSpring,
+    0,
+  );
+  final MorphSpringState _glowY = MorphSpringState(
+    MorphFlexSpec.ultraSmall.trackingSpring,
+    0,
+  );
+
+  double _now = 0;
+  Offset? _down;
+  bool _inside = false;
+  double _glowStart = 0;
+  double _glowFrom = 0;
+
+  /// The size of the button at rest.
+  Size get size => _size;
+
+  set size(Size value) {
+    if (value == _size) return;
+    _size = value;
+    _spec = MorphFlexSpec.forSize(value);
+  }
+
+  /// The deformation tuning UIKit derives for [size].
+  MorphFlexSpec get spec => _spec;
+
+  /// The scale of the fully lifted button.
+  double get liftedScale =>
+      _size.width > 0 ? 1 + _spec.liftScalePoints / _size.width : 1;
+
+  /// The time the motion was last advanced to.
+  double get time => _now;
+
+  /// Whether a finger is down on the button.
+  bool get isPressed => _down != null;
+
+  /// Whether the finger is close enough that a release activates.
+  bool get isHighlighted => _down != null && _inside;
+
+  /// The uniform lift scale.
+  double get scale => _scale.value(_now);
+
+  /// The horizontal scale, lift and drag stretch combined.
+  double get scaleX {
+    final e =
+        leanStretch *
+        stretch *
+        (_leanX.value(_now).abs() - _leanY.value(_now).abs());
+    return scale * (1 + e);
+  }
+
+  /// The vertical scale, lift and drag stretch combined.
+  double get scaleY {
+    final e =
+        leanStretch *
+        stretch *
+        (_leanY.value(_now).abs() - _leanX.value(_now).abs());
+    return scale * (1 + e);
+  }
+
+  /// The lean toward the finger.
+  Offset get lean => Offset(_leanX.value(_now), _leanY.value(_now));
+
+  /// The glow strength, 0 to 1.
+  double get glow {
+    if (_down != null) {
+      return 1 - (1 - _glowFrom) * math.exp(-(_now - _glowStart) / glowTime);
+    }
+    return _glowOut.value(_now).clamp(0.0, 1.0);
+  }
+
+  /// The opacity of the glow over the whole button.
+  double get bigGlowOpacity => glow * _spec.bigGlowOpacity;
+
+  /// The opacity of the little glow at the touch point.
+  double get littleGlowOpacity => glow * _spec.littleGlowOpacity;
+
+  /// The scale of the little glow.
+  double get littleGlowScale => _littleScale.value(_now);
+
+  /// The center of the little glow.
+  Offset get littleGlowCenter => Offset(_glowX.value(_now), _glowY.value(_now));
+
+  /// Whether every part of the button is at rest.
+  bool get isSettled =>
+      _down == null &&
+      _scale.isAtRest(_now, 1e-4) &&
+      _leanX.isAtRest(_now, 0.01) &&
+      _leanY.isAtRest(_now, 0.01) &&
+      _glowOut.isAtRest(_now, 0.002) &&
+      _littleScale.isAtRest(_now, 0.002);
+
+  /// Advances the motion to time [t].
+  void advance(double t) {
+    if (t > _now) _now = t;
+  }
+
+  /// A finger touched the button at [position].
+  void pointerDown(double t, Offset position) {
+    advance(t);
+    _glowFrom = glow;
+    _glowStart = t;
+    _down = position;
+    _inside = true;
+    _scale.retarget(
+      t,
+      reducedMotion ? 1 : liftedScale,
+      spring: _spec.trackingSpring,
+    );
+    _littleScale.snap(t, 1);
+    final glowAt = _clampToButton(position);
+    _glowX.snap(t, glowAt.dx);
+    _glowY.snap(t, glowAt.dy);
+  }
+
+  /// The finger moved to [position].
+  void pointerMove(double t, Offset position) {
+    advance(t);
+    final down = _down;
+    if (down == null) return;
+    final d = position - down;
+    final lean = reducedMotion
+        ? Offset.zero
+        : d * d.distance * pull / leanDivisor;
+    final tracking = _spec.trackingSpring;
+    _leanX.retarget(t, lean.dx, spring: tracking);
+    _leanY.retarget(t, lean.dy, spring: tracking);
+    final glowAt = _clampToButton(position);
+    _glowX.retarget(t, glowAt.dx, spring: tracking);
+    _glowY.retarget(t, glowAt.dy, spring: tracking);
+    _inside = (Offset.zero & _size).inflate(highlightSlop).contains(position);
+  }
+
+  /// The finger left the button at [position]; returns whether the
+  /// release activates the button.
+  bool pointerUp(double t, Offset position) {
+    advance(t);
+    if (_down == null) return false;
+    pointerMove(t, position);
+    final activated = _inside;
+    _release(t);
+    return activated;
+  }
+
+  /// The touch was cancelled; the button returns without activating.
+  void pointerCancel(double t) {
+    advance(t);
+    if (_down == null) return;
+    _release(t);
+  }
+
+  void _release(double t) {
+    final strength = glow;
+    _down = null;
+    _inside = false;
+    final spring = _spec.scaleSpring;
+    _scale.retarget(t, 1, spring: spring);
+    _leanX.retarget(t, 0, spring: spring);
+    _leanY.retarget(t, 0, spring: spring);
+    _glowOut.snap(t, strength);
+    _glowOut.retarget(t, 0);
+    _littleScale.retarget(t, littleGlowGrowth);
+  }
+
+  Offset _clampToButton(Offset p) =>
+      Offset(p.dx.clamp(0.0, _size.width), p.dy.clamp(0.0, _size.height));
+}
+
+/// The look of a [MorphGlassButton].
+@immutable
+class MorphGlassButtonStyle {
+  /// Creates a style; the defaults are the iOS light appearance.
+  const MorphGlassButtonStyle({
+    this.fillColor = const Color(0xD9FFFFFF),
+    this.rimColor = const Color(0x1F000000),
+    this.tintedRimColor = const Color(0x33FFFFFF),
+    this.foregroundColor = const Color(0xFF000000),
+    this.tintedForegroundColor = const Color(0xFFFFFFFF),
+    this.shadowColor = const Color(0x1A000000),
+    this.disabledOpacity = 0.35,
+  });
+
+  /// The fill of the clear glass.
+  final Color fillColor;
+
+  /// The outline of the clear glass.
+  final Color rimColor;
+
+  /// The outline of a tinted button.
+  final Color tintedRimColor;
+
+  /// The label color of the clear glass.
+  final Color foregroundColor;
+
+  /// The label color of a tinted button.
+  final Color tintedForegroundColor;
+
+  /// The shadow under the button.
+  final Color shadowColor;
+
+  /// The opacity of a disabled button.
+  final double disabledOpacity;
+
+  /// The light appearance.
+  static const light = MorphGlassButtonStyle();
+
+  /// The dark appearance.
+  static const dark = MorphGlassButtonStyle(
+    fillColor: Color(0xB82C2C2E),
+    rimColor: Color(0x33FFFFFF),
+    foregroundColor: Color(0xFFFFFFFF),
+    shadowColor: Color(0x40000000),
+  );
+
+  /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
+  /// table for the ambient brightness.
+  static MorphGlassButtonStyle resolve(
+    BuildContext context,
+    MorphGlassButtonStyle? explicit,
+  ) =>
+      explicit ??
+      MorphWidgetsTheme.maybeOf(context)?.glassButton ??
+      switch (morphBrightnessOf(context)) {
+        Brightness.dark => dark,
+        Brightness.light => light,
+      };
+}
+
+/// A glass button that responds to touch exactly like iOS 27's
+/// `UIButton.Configuration.glass()`.
+///
+/// The whole button, label included, lifts by a uniform scale that
+/// depends on its size, leans after a finger that drags off and glows
+/// under the touch; see [MorphGlassButtonMotion]. [onPressed] fires
+/// when the finger lifts within 70 pixels of the button.
+///
+/// The button is focusable; Space and Enter press it. With the
+/// platform's reduced motion on, it glows but never lifts or leans.
+class MorphGlassButton extends StatefulWidget {
+  /// Creates a glass button.
+  const MorphGlassButton({
+    required this.child,
+    required this.onPressed,
+    this.tint,
+    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+    this.minSize = const Size(44, 44),
+    this.style,
+    super.key,
+  });
+
+  /// The label of the button.
+  final Widget child;
+
+  /// Called when the button is tapped; null disables the button.
+  final VoidCallback? onPressed;
+
+  /// The fill of a prominent glass button; null for the clear glass.
+  final Color? tint;
+
+  /// The space around [child].
+  final EdgeInsetsGeometry padding;
+
+  /// The smallest size of the button.
+  final Size minSize;
+
+  /// The look of the button; null resolves it from the theme.
+  final MorphGlassButtonStyle? style;
+
+  @override
+  State<MorphGlassButton> createState() => _MorphGlassButtonState();
+}
+
+class _MorphGlassButtonState extends State<MorphGlassButton>
+    with
+        SingleTickerProviderStateMixin<MorphGlassButton>,
+        MorphClock<MorphGlassButton> {
+  final MorphGlassButtonMotion _motion = MorphGlassButtonMotion(
+    size: Size.zero,
+  );
+  bool _focused = false;
+
+  @override
+  void advanceMotion(double t) => _motion.advance(t);
+
+  @override
+  bool get motionSettled => _motion.isSettled;
+
+  bool get _enabled => widget.onPressed != null;
+
+  void _down(PointerDownEvent event) {
+    if (!_enabled || event.buttons != kPrimaryButton) return;
+    final box = context.findRenderObject();
+    if (box is! RenderBox || !box.hasSize) return;
+    _motion.size = box.size;
+    _motion.pointerDown(stamp(event), event.localPosition);
+  }
+
+  void _move(PointerMoveEvent event) {
+    if (!_motion.isPressed) return;
+    _motion.pointerMove(stamp(event), event.localPosition);
+  }
+
+  void _up(PointerUpEvent event) {
+    if (!_motion.isPressed) return;
+    final activated = _motion.pointerUp(stamp(event), event.localPosition);
+    if (activated) widget.onPressed?.call();
+  }
+
+  void _cancel(PointerCancelEvent event) {
+    if (!_motion.isPressed) return;
+    _motion.pointerCancel(stamp(event));
+  }
+
+  double get _lift {
+    final lifted = _motion.liftedScale - 1;
+    if (lifted <= 0) return 0;
+    return ((_motion.scale - 1) / lifted).clamp(0.0, 1.0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = MorphGlassButtonStyle.resolve(context, widget.style);
+    final brightness = morphBrightnessOf(context);
+    final glass = MorphGlass.maybeOf(context);
+    _motion.reducedMotion = morphReducedMotionOf(context);
+    final tint = widget.tint;
+    final foreground = tint == null
+        ? style.foregroundColor
+        : style.tintedForegroundColor;
+    final Widget content = ConstrainedBox(
+      constraints: BoxConstraints(
+        minWidth: widget.minSize.width,
+        minHeight: widget.minSize.height,
+      ),
+      child: Padding(
+        padding: widget.padding,
+        child: Center(
+          widthFactor: 1,
+          heightFactor: 1,
+          child: IconTheme.merge(
+            data: IconThemeData(color: foreground, size: 22),
+            child: DefaultTextStyle.merge(
+              style: TextStyle(
+                color: foreground,
+                fontSize: 17,
+                fontWeight: FontWeight.w500,
+              ),
+              child: widget.child,
+            ),
+          ),
+        ),
+      ),
+    );
+    return MorphDisabled(
+      enabled: _enabled,
+      opacity: style.disabledOpacity,
+      child: MorphControlFocus(
+        enabled: _enabled,
+        onHighlight: (bool focused) => setState(() => _focused = focused),
+        onActivate: widget.onPressed,
+        child: Semantics(
+          button: true,
+          enabled: _enabled,
+          onTap: widget.onPressed,
+          child: MorphTouchListener(
+            enabled: _enabled,
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: _down,
+            onPointerMove: _move,
+            onPointerUp: _up,
+            onPointerCancel: _cancel,
+            child: ListenableBuilder(
+              listenable: frames,
+              builder: (BuildContext context, Widget? child) {
+                final lean = _motion.lean;
+                final transform = Matrix4.translationValues(
+                  lean.dx,
+                  lean.dy,
+                  0,
+                );
+                transform.multiply(
+                  Matrix4.diagonal3Values(_motion.scaleX, _motion.scaleY, 1),
+                );
+                return Transform(
+                  transform: transform,
+                  alignment: Alignment.center,
+                  child: child,
+                );
+              },
+              child: CustomPaint(
+                painter: glass == null
+                    ? _GlassButtonPainter(style, tint)
+                    : null,
+                foregroundPainter: _GlowPainter(this, focused: _focused),
+                child: glass == null
+                    ? content
+                    : Stack(
+                        fit: StackFit.passthrough,
+                        children: [
+                          Positioned.fill(
+                            child: ListenableBuilder(
+                              listenable: frames,
+                              builder: (BuildContext context, Widget? _) =>
+                                  LayoutBuilder(
+                                    builder:
+                                        (
+                                          BuildContext context,
+                                          BoxConstraints constraints,
+                                        ) => glass.buildSurface(
+                                          context,
+                                          MorphGlassSurface(
+                                            kind: MorphGlassKind.button,
+                                            shape: _capsule(
+                                              constraints.biggest,
+                                            ),
+                                            color: tint ?? style.fillColor,
+                                            brightness: brightness,
+                                            lift: _lift,
+                                            enabled: _enabled,
+                                          ),
+                                        ),
+                                  ),
+                            ),
+                          ),
+                          content,
+                        ],
+                      ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+RRect _capsule(Size size) => RRect.fromRectAndRadius(
+  Offset.zero & size,
+  Radius.circular(math.min(size.width, size.height) / 2),
+);
+
+class _GlassButtonPainter extends CustomPainter {
+  _GlassButtonPainter(this.style, this.tint);
+
+  final MorphGlassButtonStyle style;
+  final Color? tint;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final shape = _capsule(size);
+    final shadow = Paint();
+    shadow.color = style.shadowColor;
+    shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawRRect(shape.shift(const Offset(0, 2)), shadow);
+    final fill = Paint();
+    fill.color = tint ?? style.fillColor;
+    canvas.drawRRect(shape, fill);
+    final rim = Paint();
+    rim.style = PaintingStyle.stroke;
+    rim.strokeWidth = 0.5;
+    rim.color = tint == null ? style.rimColor : style.tintedRimColor;
+    canvas.drawRRect(shape.deflate(0.25), rim);
+  }
+
+  @override
+  bool shouldRepaint(_GlassButtonPainter oldDelegate) =>
+      oldDelegate.tint != tint || oldDelegate.style != style;
+}
+
+class _GlowPainter extends CustomPainter {
+  _GlowPainter(this.state, {required this.focused})
+    : super(repaint: state.frames);
+
+  final _MorphGlassButtonState state;
+  final bool focused;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (focused) MorphFocusRingPainter.paintRing(canvas, Offset.zero & size);
+    final motion = state._motion;
+    final big = motion.bigGlowOpacity;
+    final little = motion.littleGlowOpacity;
+    if (big <= 0.001 && little <= 0.001) return;
+    final shape = _capsule(size);
+    canvas.save();
+    canvas.clipRRect(shape);
+    if (big > 0.001) {
+      final paint = Paint();
+      paint.color = Color.fromRGBO(255, 255, 255, 0.18 * big);
+      canvas.drawRRect(shape, paint);
+    }
+    if (little > 0.001) {
+      final radius =
+          MorphGlassButtonMotion.littleGlowSize / 2 * motion.littleGlowScale;
+      final center = motion.littleGlowCenter;
+      final paint = Paint();
+      paint.shader = RadialGradient(
+        colors: [
+          Color.fromRGBO(255, 255, 255, 0.6 * little),
+          const Color(0x00FFFFFF),
+        ],
+      ).createShader(Rect.fromCircle(center: center, radius: radius));
+      canvas.drawCircle(center, radius, paint);
+    }
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_GlowPainter oldDelegate) =>
+      oldDelegate.state != state || oldDelegate.focused != focused;
+}

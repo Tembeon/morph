@@ -3,17 +3,15 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
 import 'package:morph_example/tour/lessons/dialog_contents.dart';
-import 'package:morph_example/ui/goo_selector.dart';
 import 'package:morph_example/ui/lab_chrome.dart';
 import 'package:morph_example/ui/spring_switcher.dart';
 
 /// The opening scene: a mail app whose compose button becomes the
 /// compose dialog. One mockup, one flight - and the lesson layers are
 /// knobs over that same flight, not separate screens: Motion swaps the
-/// spring profile, Interrupt runs a scripted storm of mid-air closes,
-/// Landing hands over the bump knobs. Every layer answers the same
-/// question from a different side: what happens between a button and
-/// its dialog.
+/// spring profile, Interrupt runs a scripted storm of mid-air closes.
+/// Both layers answer the same question from a different side: what
+/// happens between a button and its dialog.
 class MorphScene extends StatefulWidget {
   /// Creates the chapter scene.
   const MorphScene({super.key, required this.motion});
@@ -27,22 +25,19 @@ class MorphScene extends StatefulWidget {
 
 class _MorphSceneState extends State<MorphScene> {
   static const List<(String, MorphMotion)> _profiles = <(String, MorphMotion)>[
+    ('liquid', .liquid),
     ('glacial', .glacial),
-    ('slow', .slow),
-    ('normal', .normal),
-    ('fast', .fast),
+    ('instant', .instant),
   ];
 
   late MorphMotion _motion = widget.motion;
   late int _profile = switch (_profiles.indexWhere(
     ((String, MorphMotion) record) => identical(record.$2, widget.motion),
   )) {
-    -1 => 2,
+    -1 => 0,
     final int found => found,
   };
   int _layer = 0;
-  double _bumpScale = 0.8;
-  double _bumpRecoil = 180;
   bool _torturing = false;
   BuildContext? _phoneContext;
 
@@ -96,11 +91,7 @@ class _MorphSceneState extends State<MorphScene> {
       phone: PhoneFrame(
         app: (BuildContext context) {
           _phoneContext = context;
-          return _MailApp(
-            bumpScale: _bumpScale,
-            bumpRecoil: _bumpRecoil,
-            onCompose: _openCompose,
-          );
+          return _MailApp(onCompose: _openCompose);
         },
       ),
     );
@@ -112,8 +103,8 @@ class _MorphSceneState extends State<MorphScene> {
       children: <Widget>[
         PanelSection(
           label: 'LAYER',
-          child: GooSelector(
-            labels: const <String>['Motion', 'Interrupt', 'Landing'],
+          child: LabSegmented(
+            labels: const <String>['Motion', 'Interrupt'],
             index: _layer,
             onSelect: (int i) => setState(() => _layer = i),
           ),
@@ -123,8 +114,7 @@ class _MorphSceneState extends State<MorphScene> {
             key: ValueKey<int>(_layer),
             child: switch (_layer) {
               0 => _motionLayer(),
-              1 => _interruptLayer(),
-              _ => _landingLayer(),
+              _ => _interruptLayer(),
             },
           ),
         ),
@@ -138,7 +128,7 @@ class _MorphSceneState extends State<MorphScene> {
       children: <Widget>[
         PanelSection(
           label: 'PROFILE',
-          child: GooSelector(
+          child: LabSegmented(
             labels: <String>[for (final (String n, _) in _profiles) n],
             index: _profile,
             onSelect: (int i) => setState(() {
@@ -179,56 +169,15 @@ class _MorphSceneState extends State<MorphScene> {
       ],
     );
   }
-
-  Widget _landingLayer() {
-    return Column(
-      crossAxisAlignment: .start,
-      children: <Widget>[
-        PanelSection(
-          label: 'BUMP',
-          child: Column(
-            children: <Widget>[
-              PanelKnob(
-                label: 'squash',
-                value: _bumpScale,
-                min: 0,
-                max: 1.5,
-                format: (double v) => v.toStringAsFixed(2),
-                onChanged: (double v) => setState(() => _bumpScale = v),
-              ),
-              PanelKnob(
-                label: 'recoil',
-                value: _bumpRecoil,
-                min: 0,
-                max: 300,
-                format: (double v) => '${v.round()}px',
-                onChanged: (double v) => setState(() => _bumpRecoil = v),
-              ),
-            ],
-          ),
-        ),
-        const PanelHint(
-          'Close the dialog and watch the button absorb the impact: '
-          'squash rides the spring undershoot along the flight axis, '
-          'recoil kicks the button off its spot. A timing curve never '
-          'crosses zero - it cannot land.',
-        ),
-      ],
-    );
-  }
 }
 
 /// The mail mockup: inbox rows and the compose pill. The pill carries
 /// the morph identity; everything else is set dressing.
 class _MailApp extends StatelessWidget {
-  const _MailApp({
-    required this.bumpScale,
-    required this.bumpRecoil,
-    required this.onCompose,
-  });
+  static const Color _composeColor = Color(0xFF7C5CFF);
 
-  final double bumpScale;
-  final double bumpRecoil;
+  const _MailApp({required this.onCompose});
+
   final void Function(BuildContext context) onCompose;
 
   static const List<(String, String, String)> _mail =
@@ -273,16 +222,15 @@ class _MailApp extends StatelessWidget {
             id: 'mail-compose',
             spec: const MorphSurfaceSpec(
               shape: StadiumBorder(),
-              color: Color(0xFF7C5CFF),
-              elevation: 4,
+              color: _composeColor,
+              elevation: 0,
             ),
-            bumpScale: bumpScale,
-            bumpRecoil: bumpRecoil,
-            child: MorphSurface(
-              onTap: onCompose,
-              child: const Padding(
-                padding: .symmetric(horizontal: 18, vertical: 13),
-                child: Row(
+            child: Builder(
+              builder: (BuildContext context) => MorphGlassButton(
+                tint: _composeColor,
+                padding: const .symmetric(horizontal: 18, vertical: 13),
+                onPressed: () => onCompose(context),
+                child: const Row(
                   mainAxisSize: .min,
                   children: <Widget>[
                     Icon(Icons.edit_rounded, size: 16),

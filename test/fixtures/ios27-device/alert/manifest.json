@@ -1,0 +1,17 @@
+{
+  "what": "iOS 27 UIAlertController (alert and action sheet) on the device",
+  "device": "iPhone 16 Pro (00008140-001039D01442801C), iOS 27.0.1, 3x, 402x874 pt, 120 Hz",
+  "captured": "2026-10-03",
+  "probe": "tool/ios_reference scene x3alert (Sources/Extras.swift): alert/actionsheet-present-dismiss from scripted presents (devicectl, night pass); the rest from synthesized touches (UITests/ExtrasUITests.swift testX3Device, morning)",
+  "rows": "start; touch; evt (script, present, presented, action); V cls _UIAlertControllerPhoneTVMacView = the alert platter (center, size, bounds), _UIPopoverView = the action sheet popover (sx, sy its scale)",
+  "files": {
+    "alert-present-dismiss.jsonl / actionsheet-present-dismiss.jsonl": "programmatic present and dismiss",
+    "alert-press.jsonl": "a 0.6 s press on OK (the platter lift)",
+    "alert-tap.jsonl": "a tap on Cancel",
+    "alert-slide.jsonl": "press OK, slide down over Delete and 228 pt below the platter, release (drag lean down)",
+    "alert-lean.jsonl": "press OK, drag 120 pt right, 120 left and 112 down, back to Cancel, release (drag lean both ways)",
+    "ash-press.jsonl": "an action sheet with a source: a 0.6 s press on OK, slide 60 pt down, release (no lift; dismissal on the action)",
+    "ash-tap-out.jsonl": "an action sheet with a source: a tap outside (dismissal)"
+  },
+  "units": "points (pt), window coordinates, seconds on the device media clock"
+}

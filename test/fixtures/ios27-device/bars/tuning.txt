@@ -1,0 +1,173 @@
+# PTSettings defaults read live on the iPhone 16 Pro, iOS 27.0.1 (setDefaultValues, typed IMP reads), 2026-10-03; identical on the iOS 27.0 simulator
+== SwiftUI.GlassContainerToolbarPTSettings
+  transition: SwiftUI.GlassContainerToolbarTransitionPTSettings
+    speedFactor = 1.0
+    springDuration = 0.416
+    springBounce = 0.25
+    delayFactor = 0.33
+    minDelay = 0.083
+    maxDelay = 0.166
+  appearance: SwiftUI.GlassContainerAppearanceToolbarPTSettings
+    scale = 0.2
+    maxPointScaleWidth = 16.0
+    maxPointScaleHeight = 16.0
+    blurRadius = 10.0
+  scalePulse: SwiftUI.GlassContainerScalePulseToolbarPTSettings
+    speedFactor = 1.0
+    maxScaleWidth = 1.2
+    maxScaleHeight = 1.2
+    maxPointScaleWidth = 16.0
+    maxPointScaleHeight = 16.0
+    scaleUpSpringDuration = 0.292
+    scaleUpSpringBounce = 0.5
+    scaleDownHeightSpringDuration = 0.416
+    scaleDownHeightSpringBounce = 0.41600000000000004
+    scaleDownHeightDelay = 0.113
+    scaleDownWidthSpringDuration = 0.416
+    scaleDownWidthSpringBounce = 0.5
+    scaleDownWidthDelay = 0.142
+    transitionBlurRadius = 10.0
+    transitionBlurSpringDuration = 0.416
+    transitionBlurSpringBounce = 0.25
+  translationKick: SwiftUI.GlassContainerTranslationKickToolbarPTSettings
+    offsetSpringDuration = 0.25
+    offsetSpringBounce = 0.0
+    offsetDelay = 0.05
+    returnSpringDuration = 0.5
+    returnSpringBounce = 0.16600000000000004
+    returnDelay = 0.15
+    kickFactor = 6.0
+  bridgeLayer: SwiftUI.GlassContainerBridgeLayerToolbarPTSettings
+    majorDownSpringDuration = 0.5
+    majorDownSpringBounce = 0.0
+    majorDownDelay = 0.0
+    minorDownSpringDuration = 0.3
+    minorDownSpringBounce = 0.0
+    minorDownDelay = 0.1
+    smoothnessFactor = 1.0
+    smoothnessSpringDuration = 0.5
+    smoothnessSpringBounce = 0.0
+    smoothnessReturnDelay = 0.1
+    smoothnessReturnDuration = 0.3
+    smoothnessReturnBounce = 0.0
+== _UINavigationAndToolbarBehaviorSettings
+  enableLiftOnSelected = 1.0
+  enableClippingBehavior = 0.0
+  titleControlPadding = 12.0
+  buttonMinimumWidth = 51.0
+  buttonMinimumHeight = 37.0
+  buttonHorizontalOffset = 0.0
+  buttonVerticalOffset = 0.0
+  buttonMinimumDistanceFromEdge = 4.0
+  buttonCornerRadius = 8.0
+  buttonHorizontalPadding = 10.0
+  buttonVerticalPadding = 4.0
+  backButtonLeadingPadding = 7.0
+  backButtonTrailingPadding = 8.0
+== UIKit._UIFluidNavigationTransitionsSpec
+  parallaxSettings: UIKit._UIFluidParallaxTransitionSettings
+    noninteractiveSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 1.0
+      response = 0.3
+      retargetImpulse = 0.02
+      trackingDampingRatio = 0.86
+      trackingResponse = 0.15
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+    interactiveSpring: UIViewSpringAnimationBehaviorSettings
+      behaviorType = 2.0
+      deceleration = 0.0
+      dampingRatio = 0.85
+      response = 0.3
+      retargetImpulse = 0.0
+      trackingDampingRatio = 0.85
+      trackingResponse = 0.08
+      trackingRetargetImpulse = 0.0
+      smoothingAndProjectionEnabled = 0.0
+      dampingRatioSmoothing = 0.0
+      responseSmoothing = 0.0
+      trackingDampingRatioSmoothing = 0.0
+      trackingResponseSmoothing = 0.0
+      inertialTargetSmoothingRatio = 0.0
+      inertialProjectionDeceleration = 0.0
+    rubberBandExtent = 0.5
+    edgeFlickVelocityBoostFactor = 4.25
+    edgeFlickBoostThreshold = 1.5
+    tracksImmediatelyWithoutSpring = 0.0
+== UIKit.PocketSettings
+  statusBarBlurRadius = 2.0
+  statusBarReplayLightModeAlpha = 0.0
+  statusBarReplayDarkModeAlpha = 0.5
+  softPocketGradientStartFractionOfBarHeight = 0.0
+  softPocketGradientStartOffsetFromLastFloatingElement = -60.0
+  softPocketGradientHeight = 120.0
+  softPocketBlurRadius = 1.5
+  useThinFilmForFloatingElements = 1.0
+  thinFilmStandardBlurRadius = 2.0
+  thinFilmTallBlurRadius = 2.5
+  thinFilmStandardBarHeight = 54.0
+  thinFilmTallBarHeight = 98.0
+  thinFilmBlurAmountAtBottomWithGlass = 0.25
+  thinFilmBlurAmountAtBottomWithFloating = 0.4
+  thinFilmBlurRampMaxHeight = 64.0
+  thinFilmShowsSeparator = 1.0
+  thinFilmSeparator2xThickness = 1.0
+  thinFilmSeparator3xThickness = 1.0
+  thinFilmSeparatorLightModeAlpha = 0.10000000149011612
+  thinFilmSeparatorDarkModeAlpha = 0.10000000149011612
+  thinFilmSaturation = 1.25
+  thinFilmLightModeBrightness = 0.029999999329447746
+  thinFilmDarkModeBrightness = 0.029999999329447746
+  replayBlurRadius = 16.0
+  replayLightModeAlpha = 0.5
+  replayDarkModeAlpha = 0.6000000238418579
+  blurFillBlurRadius = 16.0
+  blurFillLightModeLightenOpacity = 0.6
+  blurFillLightModeDarkenOpacity = 0.4
+  blurFillLightModeNormalOpacity = 0.25
+  blurFillDarkModeLightenOpacity = 0.4
+  blurFillDarkModeDarkenOpacity = 0.6
+  blurFillDarkModeNormalOpacity = 0.0
+== UIKit._UINavigationBarSpec
+  titleTransition: UIKit._UINavigationBarTitleTransitionSpec
+    maxScrollVelocity = 2000.0
+    bounceFactor = 0.4
+    minDurationFactor = 0.5
+    maxDurationFactor = 1.0
+    fastDuration = 0.45
+    slowDuration = 0.7
+    blurRadius = 4.0
+    hiddenYOffset = 15.0
+  scrollAway: UIKit._UIBarScrollAwaySpec
+    forceEnable = 0.0
+    maxBlurRadius = 4.0
+    minimumOpacity = 0.0
+    hideThreshold = 0.25
+    revealThreshold = 0.25
+    duration = 0.35
+    bounce = 0.0
+== UIKit._UIToolbarSpec
+  padding: UIKit._UIToolbarPaddingSpec
+    innerEdge = 10.0
+    phoneKeyboard = 8.0
+    phoneSplitViewKeyboard = 60.0
+    phoneBottom = 28.0
+    phoneSides = 28.0
+    phoneCompactHeightBottom = 24.0
+    phoneCompactHeightSides = 38.0
+    padBottom = 10.0
+    padSides = 10.0
+    macBottom = 10.0
+    macSides = 10.0
+    maxHorizontalPaddingOverflow = 0.0
+  maxTextFieldWidth = 440.0
+  maintainsRelativePosition = 1.0
+  hasPriorityStack = 0.0

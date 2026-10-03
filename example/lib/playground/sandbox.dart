@@ -99,14 +99,10 @@ class SandboxScene {
   final double blend;
 }
 
-/// Ready-made blend presets for the LIQUID knobs.
-enum SandboxBlendMode {
-  /// Crisp concave joints.
-  geometric,
-
-  /// Gooey necks.
-  goo,
-}
+/// Liquid Glass container spacings for the LIQUID knobs, in px:
+/// SwiftUI's default (8) and the spacings the merge was measured at on a
+/// device (20, 40, 80).
+const List<double> sandboxSpacings = <double>[8, 20, 40, 80];
 
 /// The sandbox model: pieces, links, liquid knobs, selection and the
 /// keyframe morph player.
@@ -139,7 +135,7 @@ class SandboxController extends ChangeNotifier {
         2: (Rect.fromLTWH(90, 200, 140, 48), 24),
         3: (Rect.fromLTWH(360, 120, 72, 72), 36),
       },
-      blend: 42,
+      blend: 40,
     );
   }
 
@@ -149,17 +145,14 @@ class SandboxController extends ChangeNotifier {
   /// The explicit bridges.
   final List<SandboxLink> links = <SandboxLink>[];
 
-  /// The skin fusion width in px.
-  double blend = 18;
+  /// The skin fusion width in px: the glass container spacing.
+  double blend = 20;
 
   /// The outline grid step in px.
   double cell = 6;
 
   /// Whether the skin draws its inner contour (MorphStroke).
   bool contour = false;
-
-  /// The last applied preset, or null after manual knob changes.
-  SandboxBlendMode? mode;
 
   /// The selected piece id, if any.
   int? selectedId;
@@ -382,7 +375,6 @@ class SandboxController extends ChangeNotifier {
 
   /// Sets the fusion width knob.
   void setBlend(double value) {
-    mode = null;
     blend = value;
     notifyListeners();
   }
@@ -399,13 +391,6 @@ class SandboxController extends ChangeNotifier {
   /// grid step (a fill hides the quantization, a line does not).
   void toggleContour() {
     contour = !contour;
-    notifyListeners();
-  }
-
-  /// Applies a blend preset.
-  void applyMode(SandboxBlendMode next) {
-    mode = next;
-    blend = next == .geometric ? 14 : 48;
     notifyListeners();
   }
 
@@ -445,7 +430,6 @@ class SandboxController extends ChangeNotifier {
     _fromGeoms = capture().geoms;
     _fromBlend = blend;
     _target = target;
-    mode = null;
     _sim = motion.createSimulation(start: 0, end: 1);
     ticker.start();
     notifyListeners();
@@ -517,8 +501,6 @@ class SandboxStage extends StatefulWidget {
     super.key,
     required this.controller,
     required this.motion,
-    required this.bumpScale,
-    required this.bumpRecoil,
   });
 
   /// The sandbox model this stage renders and edits.
@@ -526,12 +508,6 @@ class SandboxStage extends StatefulWidget {
 
   /// Motion profile for flights launched from pieces.
   final MorphMotion motion;
-
-  /// Landing squash knob forwarded to the skin pieces.
-  final double bumpScale;
-
-  /// Landing recoil knob forwarded to the skin pieces.
-  final double bumpRecoil;
 
   @override
   State<SandboxStage> createState() => _SandboxStageState();
@@ -669,15 +645,13 @@ class _SandboxStageState extends State<SandboxStage>
                 ],
                 pieces: <MorphPiece>[
                   // morphable: an auto-MorphTag by piece id; the group
-                  // finds flights in MorphScope on its own - neck,
-                  // bridges and landing come for free.
+                  // finds flights in MorphScope on its own - the neck
+                  // and the bridges come for free.
                   for (final SandboxPiece p in controller.pieces)
                     .morphable(
                       id: p.id,
                       rect: p.rect,
                       radius: p.effectiveRadius,
-                      bumpScale: widget.bumpScale,
-                      bumpRecoil: widget.bumpRecoil,
                       channel: p.channel,
                       child: _pieceContent(p, p.id == controller.selectedId),
                     ),

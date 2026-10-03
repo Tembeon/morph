@@ -8,6 +8,7 @@ import 'package:morph/src/flight.dart';
 import 'package:morph/src/frame.dart';
 import 'package:morph/src/liquid_field.dart';
 import 'package:morph/src/scope.dart';
+import 'package:morph/src/spring.dart';
 import 'package:morph/src/theme.dart';
 
 /// A per-frame geometry channel for a [MorphPiece]: a translation plus
@@ -54,7 +55,8 @@ class MorphPieceChannel extends ChangeNotifier {
   /// A scale of ZERO is legal and deflates the mass to nothing -
   /// births and deaths are mass, not opacity (the selection-blob
   /// pattern). Content of a fully deflated piece paints as nothing and
-  /// is skipped by hit testing (the transform degenerates).
+  /// is skipped by hit testing (the transform degenerates). Liquid
+  /// Glass itself births at [birthScale] on [birthSpring].
   void update({Offset? offset, double? scaleX, double? scaleY}) {
     assert(scaleX == null || scaleX >= 0, 'channel scaleX cannot be negative.');
     assert(scaleY == null || scaleY >= 0, 'channel scaleY cannot be negative.');
@@ -74,6 +76,18 @@ class MorphPieceChannel extends ChangeNotifier {
 
   /// Returns the channel to identity.
   void reset() => update(offset: .zero, scaleX: 1, scaleY: 1);
+
+  /// The scale a new Liquid Glass shape is born at, about its final
+  /// center, before it springs to full size on [birthSpring]; a shape
+  /// leaving a merge shrinks back to it, parked inside the survivor.
+  /// Measured from SwiftUI's `glassEffectID` on iOS 27.
+  static const double birthScale = 0.2;
+
+  /// The spring a Liquid Glass shape grows from [birthScale] to full
+  /// size on, and shrinks back on when it leaves - SwiftUI's `.bouncy`
+  /// as fitted to the per-frame shape rects recorded on iOS 27: the
+  /// size peaks about 3 percent over at 0.38 s and settles by 0.7 s.
+  static const MorphSpring birthSpring = MorphSpring(0.492, 0.711);
 
   /// [base] displaced by the current delta: shifted by [offset], scaled
   /// about its center by [scaleX] and [scaleY].
@@ -96,9 +110,8 @@ class MorphPieceChannel extends ChangeNotifier {
 ///
 /// Morphing out of a piece takes no ceremony: [MorphPiece.morphable]
 /// wraps the content in a correctly configured MorphTag (piece id, shape
-/// from its radius, skin color, tag bump disabled - the skin plays the
-/// landing), and the group finds the flight in the MorphScope by id on
-/// its own. The consumer just calls showMorph*(from: id) from any
+/// from its radius, skin color and elevation), and the group finds the
+/// flight in the MorphScope by id on its own. The consumer just calls showMorph*(from: id) from any
 /// context.
 class MorphPiece {
   /// Creates a plain piece: mass and content, no morph identity.
@@ -107,8 +120,6 @@ class MorphPiece {
     required this.rect,
     this.radius = 20,
     this.solid = true,
-    this.bumpScale = 0.6,
-    this.bumpRecoil = 140,
     this.channel,
     this.tint,
     this.child,
@@ -126,8 +137,6 @@ class MorphPiece {
     required this.rect,
     this.radius = 20,
     this.solid = true,
-    this.bumpScale = 0.6,
-    this.bumpRecoil = 140,
     this.channel,
     this.tint,
     required Widget this.child,
@@ -150,13 +159,6 @@ class MorphPiece {
   /// Whether the group installs a [MorphTag] around [child].
   final bool morphable;
 
-  /// Landing squash intensity of the mass ([MorphTag.bumpScale]
-  /// semantics).
-  final double bumpScale;
-
-  /// Landing kick-off distance in px ([MorphTag.bumpRecoil] semantics).
-  final double bumpRecoil;
-
   /// App-driven per-frame geometry over [rect]: when set, the skin
   /// subscribes and mirrors the channel's delta onto the mass and the
   /// content with no widget rebuild. See [MorphPieceChannel].
@@ -165,8 +167,8 @@ class MorphPiece {
   /// Ink tint of the piece's own body - a hover/selection wash that is
   /// PART of the skin, not an overlay approximating it. Painted over
   /// the skin fill from the piece's RESOLVED geometry, so it stays
-  /// glued to the mass through channel displacement, deflation and the
-  /// landing squash, and an airborne piece (its mass has flown away)
+  /// glued to the mass through channel displacement and deflation, and
+  /// an airborne piece (its mass has flown away)
   /// paints no ink at all. Clipped by the traced silhouette; the neck
   /// to a neighbor stays untinted - ink soaks the body, not the bond.
   /// Content paints above the ink, so glyphs stay crisp. Toggling only
@@ -182,8 +184,6 @@ class MorphPiece {
         radius == other.radius &&
         solid == other.solid &&
         morphable == other.morphable &&
-        bumpScale == other.bumpScale &&
-        bumpRecoil == other.bumpRecoil &&
         identical(channel, other.channel);
   }
 }
@@ -244,9 +244,10 @@ class MorphStroke {
 
 /// A group of pieces with one shared "skin": the smooth union of their
 /// SDFs traced into a single [Path] behind live content. Nearby pieces
-/// fuse with a concave fillet on their own; the blend width comes from
-/// [style] or an explicit [blend] (low - a geometric joint, high - a
-/// gooey neck).
+/// fuse with a concave fillet on their own, by the merge iOS 27 Liquid
+/// Glass draws: [blend] is a glass container's spacing, 1:1 in logical
+/// px - facing surfaces lean toward each other below a gap of blend and
+/// touch at blend / 2, while edges running side by side stay straight.
 ///
 /// "One mass - one shadow": elevation is drawn as a single shadow of the
 /// unified contour, so pieces cannot visually split into layers.
@@ -254,16 +255,14 @@ class MorphStroke {
 /// The flight neck comes for free: the group finds flights launched in
 /// the [MorphScope] under its piece ids (including a declarative
 /// MorphAnchor with an explicit tagId) and plays the airborne blob under
-/// the shuttle, bridge detachment, and the landing squash of the skin by
-/// itself. Outside a MorphScope the group degrades to pure fusion.
+/// the shuttle and bridge detachment by itself. Outside a MorphScope the group degrades to pure fusion.
 ///
 /// Implemented as a render object: spring ticks mark paint only - no
 /// widget rebuild, no relayout participates in an animation frame.
 /// App-driven geometry gets the same citizenship through
 /// [MorphPieceChannel]: a channel write repaints and re-traces without
-/// touching the widget tree. The landing squash (and the channel
-/// delta) is a paint transform of the content, mirroring the skin's
-/// mass deformation. The group is its own repaint boundary, so an
+/// touching the widget tree. The channel delta is a paint transform of
+/// the content, mirroring the skin's mass deformation. The group is its own repaint boundary, so an
 /// animating skin never repaints its ancestors.
 class MorphSkin extends StatelessWidget {
   /// Creates a skin over [pieces], optionally bridged by [links].
@@ -315,11 +314,14 @@ class MorphSkin extends StatelessWidget {
 
   /// A ready-made knob bundle; explicit [blend]/[cell]/[smoothPasses]
   /// win over it. null falls back to [MorphTheme.skinStyle], then to
-  /// blend 24 / cell 6 / smoothPasses 2.
+  /// [MorphSkinStyle.subtle] - SwiftUI's default spacing.
   final MorphSkinStyle? style;
 
-  /// Blend width in pixels. A distance, not a fraction: at a different
-  /// scene scale it scales along with the scene.
+  /// Blend width in pixels: Liquid Glass's container spacing
+  /// (`UIGlassContainerEffect.spacing`, `GlassEffectContainer(spacing:)`)
+  /// 1:1. Two facing surfaces start to lean toward each other below a gap
+  /// of blend and meet at a gap of blend / 2. A distance, not a fraction:
+  /// at a different scene scale it scales along with the scene.
   final double? blend;
 
   /// Marching-squares grid step in pixels: smaller - crisper and more
@@ -387,14 +389,15 @@ class MorphSkin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final MorphTheme? theme = MorphTheme.maybeOf(context);
-    final MorphSkinStyle? effectiveStyle = style ?? theme?.skinStyle;
+    final MorphSkinStyle effectiveStyle =
+        style ?? theme?.skinStyle ?? MorphSkinStyle.subtle;
     return _RawMorphSkin(
       pieces: pieces,
       links: links,
       extraMasses: extraMasses,
-      k: blend ?? effectiveStyle?.blend ?? 24,
-      cell: cell ?? effectiveStyle?.cell ?? 6,
-      smoothPasses: smoothPasses ?? effectiveStyle?.smoothPasses ?? 2,
+      k: blend ?? effectiveStyle.blend,
+      cell: cell ?? effectiveStyle.cell,
+      smoothPasses: smoothPasses ?? effectiveStyle.smoothPasses,
       evalBudget: evalBudget,
       color: color,
       gradient: gradient,
@@ -432,10 +435,6 @@ class MorphSkin extends StatelessWidget {
                       ),
                       surfaceColor: color,
                       elevation: elevation,
-                      // The skin itself plays the landing (otherwise
-                      // squash would apply twice).
-                      bumpScale: 0,
-                      bumpRecoil: 0,
                       child: piece.child!,
                     )
                   : piece.child!,
@@ -556,7 +555,7 @@ class _ResolvedPiece {
 }
 
 /// The render side of [MorphSkin]. Owns the tracer cache, the flight
-/// subscriptions (attach/detach lifecycle), skin painting, the landing
+/// subscriptions (attach/detach lifecycle), skin painting, the channel
 /// paint transform of content, and transform-aware hit testing. Spring
 /// ticks call [markNeedsPaint] only; layout runs solely when piece
 /// geometry changes from the outside.
@@ -942,20 +941,6 @@ class RenderMorphSkin extends RenderBox
         continue;
       }
       _flightFellowship.putIfAbsent(flight, () => _launchFellowship(piece));
-      assert(() {
-        final (double scale, double recoil) = flight.tag.resolvedBump;
-        if (scale != 0 || recoil != 0) {
-          throw FlutterError(
-            'MorphTag(id: ${flight.tag.widget.id}) inside a MorphSkin '
-            'piece plays its own landing bump (bumpScale: $scale, '
-            'bumpRecoil: $recoil) while the skin also squashes the piece '
-            'mass - the landing would apply twice. Set bumpScale: 0 and '
-            'bumpRecoil: 0 on the tag; MorphPiece.morphable does this '
-            'automatically.',
-          );
-        }
-        return true;
-      }());
       void tick() => markNeedsPaint();
       _flightSubs[flight] = tick;
       flight.frameTicks.addListener(tick);
@@ -1080,13 +1065,7 @@ class RenderMorphSkin extends RenderBox
       ),
       final MorphFlight flight => _ResolvedPiece(
         piece: piece,
-        rect: morphBumpedRect(
-          base,
-          value: flight.controller.value,
-          impactAxis: flight.impactAxis,
-          bumpScale: piece.bumpScale,
-          bumpRecoil: piece.bumpRecoil,
-        ),
+        rect: base,
         solid: piece.solid,
         flight: flight,
       ),
@@ -1231,37 +1210,17 @@ class RenderMorphSkin extends RenderBox
     return h * 0.5;
   }
 
-  /// The channel delta and the landing squash as ONE child-local paint
-  /// transform: the content deforms exactly with the skin's mass
-  /// instead of being relaid out. Scales multiply and translations add
-  /// (the bump plays about the channel-displaced center), so each part
-  /// degrades to identity independently.
+  /// The channel delta as a child-local paint transform: the content
+  /// deforms exactly with the skin's mass instead of being relaid out.
   Matrix4? _contentTransform(MorphPiece piece) {
-    double scaleX = 1;
-    double scaleY = 1;
-    double dx = 0;
-    double dy = 0;
     final MorphPieceChannel? channel = piece.channel;
-    if (channel != null) {
-      scaleX = channel.scaleX;
-      scaleY = channel.scaleY;
-      dx = channel.offset.dx;
-      dy = channel.offset.dy;
+    if (channel == null) {
+      return null;
     }
-    final MorphFlight? flight = _flightFor(piece);
-    if (flight != null && flight.isLanding) {
-      final ({double scaleX, double scaleY, Offset kick}) bump =
-          morphLandingBump(
-            value: flight.controller.value,
-            impactAxis: flight.impactAxis,
-            bumpScale: piece.bumpScale,
-            bumpRecoil: piece.bumpRecoil,
-          );
-      scaleX *= bump.scaleX;
-      scaleY *= bump.scaleY;
-      dx += bump.kick.dx;
-      dy += bump.kick.dy;
-    }
+    final double scaleX = channel.scaleX;
+    final double scaleY = channel.scaleY;
+    final double dx = channel.offset.dx;
+    final double dy = channel.offset.dy;
     if (scaleX == 1 && scaleY == 1 && dx == 0 && dy == 0) {
       return null;
     }
@@ -1387,8 +1346,8 @@ class RenderMorphSkin extends RenderBox
 
   /// Per-piece ink: the tinted piece's own rounded body, filled over
   /// the skin and clipped by the traced silhouette. The body rect is
-  /// the RESOLVED one - channel displacement, deflation and the landing
-  /// squash are already in - so the ink stays glued to the mass through
+  /// the RESOLVED one - channel displacement and deflation are already
+  /// in - so the ink stays glued to the mass through
   /// every deformation; an airborne piece is not solid here and paints
   /// no ink. The rect is inflated by half a grid cell so the quantized
   /// contour cannot peek out along the rim (the clip guarantees the ink

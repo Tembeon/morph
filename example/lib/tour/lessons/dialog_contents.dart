@@ -30,53 +30,41 @@ class NoteDialogContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: .stretch,
         children: <Widget>[
-          MorphReveal(
-            from: 0.35,
-            to: 0.7,
-            child: Row(
-              children: <Widget>[
-                const Icon(
-                  Icons.auto_awesome,
-                  size: 18,
-                  color: Color(0xFFD8B569),
-                ),
-                const SizedBox(width: 10),
-                const Text(
-                  'Quick note',
-                  style: TextStyle(fontSize: 18, fontWeight: .w600),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: flight.close,
-                  icon: const Icon(Icons.close, size: 20),
-                ),
-              ],
-            ),
+          Row(
+            children: <Widget>[
+              const Icon(
+                Icons.auto_awesome,
+                size: 18,
+                color: Color(0xFFD8B569),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Quick note',
+                style: TextStyle(fontSize: 18, fontWeight: .w600),
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: flight.close,
+                icon: const Icon(Icons.close, size: 20),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-          MorphReveal(
-            from: 0.45,
-            to: 0.85,
-            child: Text(
-              'A long flight across the whole screen: a heavy landing (the '
-              'hint scales with distance) and squash+recoil along the '
-              'arrival diagonal. Try all three motion vocabularies.',
-              style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
-            ),
+          Text(
+            'A long flight across the whole screen on one spring: the close '
+            'dips just below zero, the way UIKit lands. Try all three '
+            'motion profiles.',
+            style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
           ),
           const Spacer(),
-          MorphReveal(
-            from: 0.6,
-            to: 0.95,
-            child: Row(
-              mainAxisAlignment: .end,
-              children: <Widget>[
-                FilledButton.tonal(
-                  onPressed: flight.close,
-                  child: const Text('Got it'),
-                ),
-              ],
-            ),
+          Row(
+            mainAxisAlignment: .end,
+            children: <Widget>[
+              FilledButton.tonal(
+                onPressed: flight.close,
+                child: const Text('Got it'),
+              ),
+            ],
           ),
         ],
       ),
@@ -100,51 +88,42 @@ class PlayerDialogContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: .stretch,
         children: <Widget>[
-          MorphReveal(
-            from: 0.35,
-            to: 0.7,
-            child: Row(
-              children: <Widget>[
-                Text(
-                  'Now playing',
-                  style: TextStyle(
-                    fontSize: 12,
-                    letterSpacing: 1.5,
-                    color: scheme.onSurfaceVariant,
-                  ),
+          Row(
+            children: <Widget>[
+              Text(
+                'Now playing',
+                style: TextStyle(
+                  fontSize: 12,
+                  letterSpacing: 1.5,
+                  color: scheme.onSurfaceVariant,
                 ),
-                const Spacer(),
-                IconButton(
-                  onPressed: flight.close,
-                  icon: const Icon(Icons.close, size: 20),
-                ),
-              ],
-            ),
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: flight.close,
+                icon: const Icon(Icons.close, size: 20),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: MorphReveal(
-              from: 0.4,
-              to: 0.85,
-              slideOffset: const Offset(0, 20),
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      borderRadius: .circular(20),
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: <Color>[Color(0xFF7C5CFF), Color(0xFF2AB8C5)],
-                      ),
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    borderRadius: .circular(20),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: <Color>[Color(0xFF7C5CFF), Color(0xFF2AB8C5)],
                     ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.graphic_eq,
-                        size: 72,
-                        color: Colors.white70,
-                      ),
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.graphic_eq,
+                      size: 72,
+                      color: Colors.white70,
                     ),
                   ),
                 ),
@@ -152,57 +131,46 @@ class PlayerDialogContent extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 18),
-          MorphReveal(
-            from: 0.5,
-            to: 0.9,
-            child: Column(
-              children: <Widget>[
-                const Text(
-                  'Ambient Drift',
-                  textAlign: .center,
-                  style: TextStyle(fontSize: 20, fontWeight: .w600),
-                ),
-                Text(
-                  'Ambient - night session',
-                  textAlign: .center,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
+          Column(
+            children: <Widget>[
+              const Text(
+                'Ambient Drift',
+                textAlign: .center,
+                style: TextStyle(fontSize: 20, fontWeight: .w600),
+              ),
+              Text(
+                'Ambient - night session',
+                textAlign: .center,
+                style: TextStyle(fontSize: 13, color: scheme.onSurfaceVariant),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
-          MorphReveal(
-            from: 0.6,
-            to: 0.95,
-            child: Column(
-              children: <Widget>[
-                const LinearProgressIndicator(borderRadius: .all(.circular(4))),
-                const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: .center,
-                  children: <Widget>[
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.skip_previous_rounded, size: 30),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton.filled(
-                      onPressed: () {},
-                      iconSize: 34,
-                      icon: const Icon(Icons.pause_rounded),
-                    ),
-                    const SizedBox(width: 8),
-                    IconButton(
-                      onPressed: () {},
-                      icon: const Icon(Icons.skip_next_rounded, size: 30),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          Column(
+            children: <Widget>[
+              const LinearProgressIndicator(borderRadius: .all(.circular(4))),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: .center,
+                children: <Widget>[
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.skip_previous_rounded, size: 30),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filled(
+                    onPressed: () {},
+                    iconSize: 34,
+                    icon: const Icon(Icons.pause_rounded),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(Icons.skip_next_rounded, size: 30),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),
@@ -238,79 +206,61 @@ class ShareSheetContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: .stretch,
         children: <Widget>[
-          MorphReveal(
-            from: 0.35,
-            to: 0.7,
-            child: Row(
-              children: <Widget>[
-                const Text(
-                  'Share track',
-                  style: TextStyle(fontSize: 18, fontWeight: .w600),
-                ),
-                const Spacer(),
-                IconButton(
-                  onPressed: onClose,
-                  icon: const Icon(Icons.close, size: 20),
-                ),
-              ],
-            ),
+          Row(
+            children: <Widget>[
+              const Text(
+                'Share track',
+                style: TextStyle(fontSize: 18, fontWeight: .w600),
+              ),
+              const Spacer(),
+              IconButton(
+                onPressed: onClose,
+                icon: const Icon(Icons.close, size: 20),
+              ),
+            ],
           ),
           const SizedBox(height: 6),
-          MorphReveal(
-            from: 0.45,
-            to: 0.8,
-            child: Text(
-              'The sheet morphs out of the control with showMorphSheet, and '
-              'content blocks appear as a MorphReveal cascade - each on its '
-              'own sub-range of the same spring.',
-              style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
-            ),
+          Text(
+            'The sheet morphs out of the control with showMorphSheet; its '
+            'content fades in on the same spring as the surface.',
+            style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: MorphReveal(
-              from: 0.5,
-              to: 0.9,
-              slideOffset: const Offset(0, 18),
-              child: GridView.count(
-                crossAxisCount: 4,
-                mainAxisSpacing: 10,
-                childAspectRatio: 1.45,
-                physics: const NeverScrollableScrollPhysics(),
-                children: <Widget>[
-                  for (final (IconData icon, String label, Color color)
-                      in _targets)
-                    Column(
-                      mainAxisSize: .min,
-                      children: <Widget>[
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            shape: .circle,
-                            color: color.withValues(alpha: 0.18),
-                            border: Border.all(
-                              color: color.withValues(alpha: 0.5),
-                            ),
+            child: GridView.count(
+              crossAxisCount: 4,
+              mainAxisSpacing: 10,
+              childAspectRatio: 1.45,
+              physics: const NeverScrollableScrollPhysics(),
+              children: <Widget>[
+                for (final (IconData icon, String label, Color color)
+                    in _targets)
+                  Column(
+                    mainAxisSize: .min,
+                    children: <Widget>[
+                      Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          shape: .circle,
+                          color: color.withValues(alpha: 0.18),
+                          border: Border.all(
+                            color: color.withValues(alpha: 0.5),
                           ),
-                          child: Icon(icon, color: color, size: 24),
                         ),
-                        const SizedBox(height: 6),
-                        Text(label, style: const TextStyle(fontSize: 11)),
-                      ],
-                    ),
-                ],
-              ),
+                        child: Icon(icon, color: color, size: 24),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(label, style: const TextStyle(fontSize: 11)),
+                    ],
+                  ),
+              ],
             ),
           ),
-          MorphReveal(
-            from: 0.6,
-            to: 0.95,
-            child: FilledButton.icon(
-              onPressed: onClose,
-              icon: const Icon(Icons.link_rounded, size: 18),
-              label: const Text('Copy link'),
-            ),
+          FilledButton.icon(
+            onPressed: onClose,
+            icon: const Icon(Icons.link_rounded, size: 18),
+            label: const Text('Copy link'),
           ),
         ],
       ),
@@ -334,91 +284,72 @@ class ComposeDialogContent extends StatelessWidget {
       child: Column(
         crossAxisAlignment: .stretch,
         children: <Widget>[
-          MorphReveal(
-            from: 0.35,
-            to: 0.7,
-            child: Column(
-              crossAxisAlignment: .start,
-              children: <Widget>[
-                const Text(
-                  'New playlist',
-                  style: TextStyle(fontSize: 20, fontWeight: .w600),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Form blocks arrive as a cascade: every MorphReveal '
-                  'listens to the same spring.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: scheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
-            ),
+          Column(
+            crossAxisAlignment: .start,
+            children: <Widget>[
+              const Text(
+                'New playlist',
+                style: TextStyle(fontSize: 20, fontWeight: .w600),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'The form arrives with the surface: one spring drives the '
+                'whole dialog.',
+                style: TextStyle(fontSize: 12, color: scheme.onSurfaceVariant),
+              ),
+            ],
           ),
           const SizedBox(height: 18),
-          const MorphReveal(
-            from: 0.45,
-            to: 0.8,
-            child: TextField(
-              decoration: InputDecoration(
-                labelText: 'Title',
-                border: OutlineInputBorder(),
-              ),
+          const TextField(
+            decoration: InputDecoration(
+              labelText: 'Title',
+              border: OutlineInputBorder(),
             ),
           ),
           const SizedBox(height: 12),
           const Expanded(
-            child: MorphReveal(
-              from: 0.5,
-              to: 0.85,
-              child: TextField(
-                expands: true,
-                maxLines: null,
-                textAlignVertical: .top,
-                decoration: InputDecoration(
-                  labelText: 'Describe the vibe',
-                  alignLabelWithHint: true,
-                  border: OutlineInputBorder(),
-                ),
+            child: TextField(
+              expands: true,
+              maxLines: null,
+              textAlignVertical: .top,
+              decoration: InputDecoration(
+                labelText: 'Describe the vibe',
+                alignLabelWithHint: true,
+                border: OutlineInputBorder(),
               ),
             ),
           ),
           const SizedBox(height: 14),
-          MorphReveal(
-            from: 0.6,
-            to: 0.95,
-            child: Column(
-              crossAxisAlignment: .start,
-              children: <Widget>[
-                Wrap(
-                  spacing: 8,
-                  children: <Widget>[
-                    for (final String tag in <String>[
-                      'ambient',
-                      'chill',
-                      'night',
-                    ])
-                      Chip(label: Text(tag), visualDensity: .compact),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: .end,
-                  children: <Widget>[
-                    TextButton(
-                      onPressed: flight.close,
-                      child: const Text('Cancel'),
-                    ),
-                    const SizedBox(width: 8),
-                    FilledButton(
-                      onPressed: flight.close,
-                      child: const Text('Save'),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+          Column(
+            crossAxisAlignment: .start,
+            children: <Widget>[
+              Wrap(
+                spacing: 8,
+                children: <Widget>[
+                  for (final String tag in <String>[
+                    'ambient',
+                    'chill',
+                    'night',
+                  ])
+                    Chip(label: Text(tag), visualDensity: .compact),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                mainAxisAlignment: .end,
+                children: <Widget>[
+                  TextButton(
+                    onPressed: flight.close,
+                    child: const Text('Cancel'),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: flight.close,
+                    child: const Text('Save'),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

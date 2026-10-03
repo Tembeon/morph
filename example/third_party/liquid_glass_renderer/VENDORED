@@ -1,0 +1,16 @@
+liquid_glass_renderer 1.0.0-dev.1, vendored for the morph example gallery.
+
+Upstream:  https://github.com/whynotmake-it/flutter_liquid_glass
+Branch:    release/01-renderer-core
+Commit:    cbbac8453c4e023a2bc3b2fd7a2f06e8652e1bf7 (2026-10-02)
+Path:      packages/liquid_glass_renderer
+License:   Apache-2.0 (LICENSE), copyright Tim Lehmann for whynotmake.it;
+           third_party/ keeps the Flutter (BSD) and Inigo Quilez (MIT)
+           notices for adapted shader code.
+
+Copied: LICENSE, README.md, CHANGELOG.md, pubspec.yaml,
+liquid_glass_renderer.shaderbundle.json, hook/, lib/, third_party/.
+Left out: doc/, example/, test/, coverage/, analysis_options.yaml
+(it includes lintervention, a dev dependency of the upstream repo).
+The sources are unmodified. Only the morph example depends on it; the
+morph package itself stays shader-free.

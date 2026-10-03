@@ -1,0 +1,17 @@
+{
+  "what": "iOS 27 navigation bar / toolbar glass item transitions, page push/pop, scroll edge effect, measured on device",
+  "device": "iPhone 16 Pro (00008140-001039D01442801C), iOS 27.0.1, 3x, 402x874 pt, 120 Hz",
+  "captured": "2026-10-03 (programmatic: night; finger-driven: morning recapture)",
+  "probe": "tool/ios_reference scene nav (Sources/Bars.swift, BarsRecorder: per display-link tick, every layer under the navigation bar, the floating toolbar and the scroll edge effect views), self-driven scripts PROBE_AUTO launched with devicectl; finger-driven captures (title-*, pop-edge-*, item-hold) recaptured with XCUITest synthesized touches (UITests/BarsUITests.swift, 30 Hz path points) on 2026-10-03 morning once UI automation was re-enabled",
+  "files": {
+    "toolbar-swap.jsonl": "setToolbarItems(_:animated:) A -> B -> A -> C -> A (A = [Filter] | [compose], B = [trash folder] | [reply compose], C = [trash] [folder] | [compose]); rows: evt (the call), B with cls SDFElement (one CASDFElementLayer per glass capsule, window-space center x/y and size), UIImageView / UIButtonLabel (item content)",
+    "push-pop.jsonl": "pushViewController / popViewController(animated: true) from a large-title list to a detail screen; cls page = the scroll edge backdrop views of each page (lid 1 = the list page, lid 88 = the detail page; their x is the page center), SDFElement = nav bar capsules, label = bar labels, fade = item content views with alpha + blur",
+    "scroll-edge.json": "distinct layer states of UIKit.ScrollEdgeEffectView (automatic/soft/hard, light/dark)",
+    "tuning.txt": "PTSettings defaults: GlassContainerToolbarPTSettings, _UINavigationAndToolbarBehaviorSettings, _UIFluidNavigationTransitionsSpec, PocketSettings, _UINavigationBarSpec, _UIToolbarSpec",
+    "title-drag-collapse.jsonl, title-fling.jsonl": "a slow 200 pt drag up and back down; a 250 pt flick up. Rows: so (contentOffset oy, adjusted inset it, tracking tr / decelerating dec), touch, B cls title (_UINavigationBarHostedViewWrapper alpha a + blur) and edge (UIKit.ScrollEdgeEffectView alpha)",
+    "title-drag-partialN.jsonl": "drags of N pt released with the large title partly under the bar (10 pt slop: scrolled N - 10); 20/24/28/31/35 snap back out, 40/45 snap fully under",
+    "pop-edge-*.jsonl": "push, then an interactive edge swipe trimmed to the swipe (0.05 s before the touch .. 0.8 s after the lift); cls page = the scroll edge backdrop views of each page (the page center x). commit / cancel: to 277 pt held, to 140 and back to 40; slowN: to N percent of the width over 1 s, held 0.4 s (25 and 30 return, 35 pops); flick-v400 / -v450: 80 / 90 pt in 0.2 s released moving (return / pop); flickback: to 260, back to 200 in 0.1 s (pops), flickback3: back to 170 in 0.1 s (returns)",
+    "item-hold.jsonl": "a 0.8 s press on the trailing bar button group (99.33 x 44 capsule); cls capsule = its CASDFElementLayer frame"
+  },
+  "units": "points (pt), window coordinates, seconds on the device media clock"
+}

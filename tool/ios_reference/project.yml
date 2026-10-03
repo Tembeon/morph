@@ -1,0 +1,44 @@
+# xcodegen spec for the UIKit reference probe on a real device (see device.sh).
+# The simulator path (build.sh) compiles Sources/ with swiftc and does not use this.
+name: Probe
+options:
+  bundleIdPrefix: dev.tembeon.morph
+  deploymentTarget:
+    iOS: "26.0"
+settings:
+  base:
+    DEVELOPMENT_TEAM: ${PROBE_TEAM}
+    CODE_SIGN_STYLE: Automatic
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1"
+targets:
+  Probe:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    settings:
+      base:
+        PRODUCT_NAME: Probe
+        PRODUCT_BUNDLE_IDENTIFIER: dev.tembeon.morph.probe
+        INFOPLIST_FILE: Info.plist
+        GENERATE_INFOPLIST_FILE: NO
+        SWIFT_OPTIMIZATION_LEVEL: -O
+  ProbeUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    dependencies:
+      - target: Probe
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: dev.tembeon.morph.probe.uitests
+        GENERATE_INFOPLIST_FILE: YES
+        TEST_TARGET_NAME: Probe
+schemes:
+  Probe:
+    build:
+      targets:
+        Probe: all
+        ProbeUITests: [test]
+    test:
+      targets: [ProbeUITests]

@@ -1,0 +1,15 @@
+{
+  "what": "iOS 27 navigation bar captures driven by synthesized touches (XCUITest), plus a toolbar item swap",
+  "device": "iPhone 18 Pro Max simulator, iOS 27.0, 3x, 440x956 pt, 60 Hz",
+  "captured": "2026-10-03",
+  "probe": "tool/ios_reference scene nav (Sources/Bars.swift) driven by UITests/BarsUITests.swift (30 Hz path points)",
+  "files": {
+    "toolbar-swap.jsonl": "setToolbarItems A -> B -> A -> C -> A (same script as the device fixture, 440 wide)",
+    "title-drag-collapse.jsonl": "a slow drag up 200 pt (the large title scrolls under, the inline title rises in) and back down; rows touch, so (contentOffset, adjusted inset, tracking/decelerating), B cls title (_UINavigationBarHostedViewWrapper alpha + blur) and edge (UIKit.ScrollEdgeEffectView alpha)",
+    "title-fling.jsonl": "a 250 pt flick up",
+    "title-drag-partial20/35/45.jsonl": "drags released with the large title partly under the bar: 25 pt scrolled snaps back out, 35 pt snaps fully under",
+    "pop-edge-commit.jsonl": "push, then an edge swipe to x 280 held still and released: the page follows the finger, then completes on the interactive spring",
+    "pop-edge-cancel.jsonl": "push, an edge swipe to 140 and back to 40, released: the page returns"
+  },
+  "units": "points (pt), window coordinates, seconds on the simulator media clock"
+}

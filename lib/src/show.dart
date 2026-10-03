@@ -19,6 +19,14 @@ import 'package:morph/src/theme.dart';
 ///
 /// Ambient defaults resolve as explicit parameter > [MorphTheme] >
 /// built-in.
+///
+/// The shuttle renders in the NEAREST enclosing [Overlay] - a nested
+/// navigator keeps its flights inside itself. [overlay] chooses another
+/// home: the overlay of whatever navigator owns the page, to fly above
+/// chrome layered over nested navigators (a floating bar over tab
+/// navigators). It must be an ancestor of [context]; anchors for such
+/// a flight are measured in its space ([morphAnchorRect] takes the
+/// same `overlay:`), and the target's rect is computed in it.
 MorphFlight showMorph(
   BuildContext context, {
   Object? from,
@@ -36,6 +44,7 @@ MorphFlight showMorph(
   Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
+  OverlayState? overlay,
 }) {
   final MorphTheme? theme = MorphTheme.maybeOf(context);
   return .launch(
@@ -51,12 +60,16 @@ MorphFlight showMorph(
     shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
+    overlay: overlay,
   );
 }
 
 /// The sheet adopts its look from the app's BottomSheetTheme (shape,
 /// color) unless overridden explicitly: a morph sheet inside a foreign
 /// design system looks native with zero configuration.
+///
+/// With [fitContent] the sheet is as tall as its content, [height] (or
+/// [heightFactor]) being the ceiling - see [MorphTargetSpec.sheet].
 MorphFlight showMorphSheet(
   BuildContext context, {
   Object? from,
@@ -64,6 +77,7 @@ MorphFlight showMorphSheet(
   double? height,
   double heightFactor = 0.5,
   double maxWidth = 560,
+  bool fitContent = false,
   MorphSurfaceSpec? surface,
   ShapeBorder? shape,
   Color? surfaceColor,
@@ -74,6 +88,7 @@ MorphFlight showMorphSheet(
   Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
+  OverlayState? overlay,
 }) {
   assert(
     height == null || height > 0,
@@ -93,6 +108,7 @@ MorphFlight showMorphSheet(
       height: height,
       heightFactor: heightFactor,
       maxWidth: maxWidth,
+      fitContent: fitContent,
       surface: surface,
       shape: shape ?? theme.shape,
       surfaceColor: surfaceColor ?? theme.backgroundColor,
@@ -105,17 +121,22 @@ MorphFlight showMorphSheet(
     shadowColor: shadowColor,
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
+    overlay: overlay,
   );
 }
 
 /// The dialog adopts its look from the app's DialogTheme (shape, color)
 /// unless overridden explicitly.
+///
+/// With [fitContent] the dialog is as tall as its content, [height]
+/// being the ceiling - see [MorphTargetSpec.dialog].
 MorphFlight showMorphDialog(
   BuildContext context, {
   Object? from,
   required MorphContentBuilder builder,
   double width = 440,
   double height = 360,
+  bool fitContent = false,
   MorphSurfaceSpec? surface,
   ShapeBorder? shape,
   Color? surfaceColor,
@@ -126,6 +147,7 @@ MorphFlight showMorphDialog(
   Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
+  OverlayState? overlay,
 }) {
   assert(
     width > 0 && height > 0,
@@ -138,6 +160,7 @@ MorphFlight showMorphDialog(
     target: MorphTargetSpec.dialog(
       width: width,
       height: height,
+      fitContent: fitContent,
       surface: surface,
       shape: shape ?? theme.shape,
       surfaceColor: surfaceColor ?? theme.backgroundColor,
@@ -150,5 +173,6 @@ MorphFlight showMorphDialog(
     shadowColor: shadowColor,
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,
+    overlay: overlay,
   );
 }

@@ -1,0 +1,43 @@
+# iOS 27 control captures (iPhone 18 Pro Max sim, probe /tmp/probe-controls). One gesture per file.
+# Rows: start; touch (t, phase 0 began 1 moved 2 stationary 3 ended, x, y); state (on/v/hl/tr of the control);
+# evt (valueChanged/touchDown/touchUpInside); L = layer of the control subtree (p = sublayer index path, c = layer/view class,
+#   x,y,w,h window rect of the presentation layer, bw,bh bounds, a opacity, sx,sy,tx,ty transform, cr corner radius, bg rgba);
+# frame = _UILiquidLensView with lp/lpp (liftProgress value/presentation), f_*/p_* flex targets/presentation, vi_* velocity integrator.
+# Rows are logged only when changed. Layers deeper than 5 levels (glass internals) were pruned. Model: /tmp/morph-native/controls-model.txt
+# Scene control centered at (220,400): switch off knob 210, on 232; slider w300 spans 70..370, thumb travel 88.5..351.5.
+switch-off-tap.jsonl scene=sw tap on knob (210,400) hold 90ms; off->on
+switch-on-tap.jsonl scene=swOn tap on knob (232,400) hold 90ms; on->off
+switch-off-hold800.jsonl scene=sw press knob 800ms no move, release
+switch-off-drag-right50.jsonl scene=sw drag knob 210->260 over 640ms linear, hold 300ms, release
+switch-off-drag-right15.jsonl scene=sw drag knob 210->225 over 240ms, hold 300ms, release
+switch-off-drag-right8.jsonl scene=sw drag knob 210->218 over 128ms, hold 300ms, release
+switch-off-drag-left50.jsonl scene=sw drag knob 210->160 (past off end) over 640ms, hold 300ms, release
+switch-off-drag-right100.jsonl scene=sw drag knob 210->310 over 640ms, hold 300ms, release
+switch-off-fling40.jsonl scene=sw fling knob 210->250 in 64ms, release while moving
+switch-off-drag-there-back.jsonl scene=sw drag 210->250 (400ms) then ->200 (480ms), hold 300ms, release
+slider-w300-tap-thumb.jsonl scene=sl300 tap thumb (167.5,400) 90ms, value .3
+slider-w300-hold800-thumb.jsonl scene=sl300 press thumb 800ms no move
+slider-w300-tap-track300.jsonl scene=sl300 tap track at x=300 (thumb at 167.5), 90ms
+slider-w300-drag-slow.jsonl scene=sl300 drag thumb 167.5->280 over 1000ms linear (112 pt/s), hold 400, release
+slider-w300-fling.jsonl scene=sl300 fling thumb 167.5->300 in ~96ms, release while moving
+slider-w300-drag-pastend.jsonl scene=sl300 drag thumb 167.5->430 (past max end) over 800ms, hold 500, release
+slider-w300-drag-pastend-small.jsonl scene=sl300 drag thumb 167.5->395 over 600ms, hold 500, release
+slider-w300-drag-paststart.jsonl scene=sl300 drag thumb 167.5->10 (past min end) over 700ms, hold 500, release
+slider-w200-drag-slow.jsonl scene=sl200 slider width 200 value .3; drag thumb 187.4->260 over 800ms, hold 400, release
+slider-w300-drag-ontrack.jsonl scene=sl300 drag starting on track at x=300 (thumb at 167.5) to 340 over 300ms, hold 400
+slider-ticks5-drag.jsonl scene=slT5 5 ticks, value 0; drag thumb 88.5->200 over 800ms, hold 400, release
+stepper-plus-tap.jsonl scene=st5 stepper value 5, tap plus half (243,400) 90ms
+stepper-plus-hold2500.jsonl scene=st5 stepper value 5, press plus 2.5s (autorepeat)
+stepper-minus-press-slide.jsonl scene=st5 stepper value 5, press minus 300ms then slide to plus half and beyond (290), release
+button-glass-120x44-hold800.jsonl scene=gb120x44 glass button 120x44 press center 800ms release
+button-glass-44x44-hold800.jsonl scene=gb44x44 glass button 44x44 (image) press center 800ms release
+button-glass-60x44-hold800.jsonl scene=gb60x44 glass button 60x44 (image) press center 800ms release
+button-glass-200x44-hold800.jsonl scene=gb200x44 glass button 200x44 press center 800ms release
+button-glass-300x44-hold800.jsonl scene=gb300x44 glass button 300x44 press center 800ms release
+button-glass-200x100-hold800.jsonl scene=gb200x100 glass button 200x100 press center 800ms release
+button-prominent-120x44-hold800.jsonl scene=gbp120x44 prominent glass button 120x44 press center 800ms release
+button-glass-120x44-drag-off-back.jsonl scene=gb120x44 120x44: press 300ms, drag right +150 (off) over 750ms, hold 400, back to center over 750ms, hold 400, release
+slider-w300-fling-medium.jsonl scene=sl300 fling thumb 167.5->227.5 in 6 steps of 16ms, release while moving
+slider-w300-fling-slow.jsonl scene=sl300 fling thumb 167.5->207.5 in 10 steps of 16ms (~250pt/s), release while moving
+slider-w300-drag-pastend-mid.jsonl scene=sl300 drag thumb 167.5->410 over 800ms, hold 500, release [CAUTION: 255ms touch-delivery gap at 0.07-0.32s; do not use for stretch fits]
+slider-w300-drag-pastend-far.jsonl scene=sl300 drag thumb 167.5->436.5 over 800ms, hold 500, release

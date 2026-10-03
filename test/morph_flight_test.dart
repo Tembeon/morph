@@ -110,7 +110,7 @@ void main() {
     },
   );
 
-  testWidgets('the button recoils on landing: a recoil shift after the latch', (
+  testWidgets('the source lands still: no transform after the latch', (
     WidgetTester tester,
   ) async {
     MorphFlight? flight;
@@ -120,42 +120,27 @@ void main() {
     await settle(tester);
 
     flight!.close();
-    double maxKick = 0;
+    bool latched = false;
     for (int i = 0; i < 600; i++) {
       await tester.pump(const Duration(milliseconds: 8));
-      final Finder bumpTransform = find.descendant(
-        of: find.byType(MorphTag),
-        matching: find.byType(Transform),
-      );
-      if (bumpTransform.evaluate().isNotEmpty) {
-        final Transform t = tester.widget(bumpTransform.first);
-        final Offset shift = Offset(
-          t.transform.getTranslation().x,
-          t.transform.getTranslation().y,
+      if (flight!.isLanding) {
+        latched = true;
+        expect(
+          find.descendant(
+            of: find.byType(MorphTag),
+            matching: find.byType(Transform),
+          ),
+          findsNothing,
+          reason: 'the close spring\'s undershoot moves nothing on the source',
         );
-        if (shift.distance > maxKick) {
-          maxKick = shift.distance;
-        }
       }
       if (!tester.binding.hasScheduledFrame) {
         break;
       }
     }
 
-    expect(
-      maxKick,
-      greaterThan(2),
-      reason: 'undershoot must push the button along the impact axis',
-    );
+    expect(latched, isTrue);
     expect(flight!.isFinished, isTrue);
-    expect(
-      find.descendant(
-        of: find.byType(MorphTag),
-        matching: find.byType(Transform),
-      ),
-      findsNothing,
-      reason: 'the bump is removed after finalization',
-    );
   });
 
   testWidgets('RETARGET CONTRACT: a second showMorph keeps the flight', (

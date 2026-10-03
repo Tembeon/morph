@@ -1,0 +1,13 @@
+{
+  "what": "iOS 27 UIPageControl touches on the device (5 pages, 126 x 25.67 at 201, 400)",
+  "device": "iPhone 16 Pro (00008140-001039D01442801C), iOS 27.0.1, 3x, 402x874 pt, 120 Hz",
+  "captured": "2026-10-03",
+  "probe": "tool/ios_reference scene w2page (Sources/Widgets2.swift) driven by UITests/Widgets2UITests.swift testW2Page",
+  "rows": "start; touch; evt valueChanged (v page); V cls UIVisualEffectView = the platter (a alpha)",
+  "files": {
+    "pc-tap-right.jsonl": "taps right, right, left of center",
+    "pc-hold.jsonl": "a 1.2 s press (the platter fades in and out)",
+    "pc-scrub.jsonl": "press 0.8 s, scrub right and back left"
+  },
+  "units": "points (pt), window coordinates, seconds on the device media clock"
+}

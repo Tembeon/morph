@@ -17,14 +17,14 @@ import 'package:morph/src/motion.dart';
 /// MaterialApp(
 ///   theme: ThemeData(
 ///     extensions: const <ThemeExtension<Object?>>[
-///       MorphTheme(motion: MorphMotion.fast, skinStyle: MorphSkinStyle.goo),
+///       MorphTheme(motion: MorphMotion.glacial, skinStyle: MorphSkinStyle.subtle),
 ///     ],
 ///   ),
 /// )
 /// ```
 ///
 /// Note the scope of this class: it holds ENGINE defaults (motion,
-/// landing bump, scrim, liquid knobs). An app's surface vocabulary
+/// scrim, shadow, liquid knobs). An app's surface vocabulary
 /// (pill/card/fab specs) belongs in the app's own ThemeExtension as
 /// [MorphSurfaceSpec] values - the engine cannot know those names.
 @immutable
@@ -32,8 +32,6 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   /// Creates the extension; null fields fall through to built-ins.
   const MorphTheme({
     this.motion,
-    this.bumpScale,
-    this.bumpRecoil,
     this.maxScrimOpacity,
     this.scrimColor,
     this.shadowColor,
@@ -41,15 +39,8 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   });
 
   /// The default motion profile for flights launched without an
-  /// explicit `motion`.
+  /// explicit `motion`; [MorphMotion.liquid] when unset.
   final MorphMotion? motion;
-
-  /// Default landing-bump knobs for [MorphTag]s that do not declare
-  /// their own.
-  final double? bumpScale;
-
-  /// Default landing kick-off distance in px.
-  final double? bumpRecoil;
 
   /// Default scrim ceiling for flights.
   final double? maxScrimOpacity;
@@ -80,8 +71,6 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   @override
   MorphTheme copyWith({
     MorphMotion? motion,
-    double? bumpScale,
-    double? bumpRecoil,
     double? maxScrimOpacity,
     Color? scrimColor,
     Color? shadowColor,
@@ -89,8 +78,6 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   }) {
     return MorphTheme(
       motion: motion ?? this.motion,
-      bumpScale: bumpScale ?? this.bumpScale,
-      bumpRecoil: bumpRecoil ?? this.bumpRecoil,
       maxScrimOpacity: maxScrimOpacity ?? this.maxScrimOpacity,
       scrimColor: scrimColor ?? this.scrimColor,
       shadowColor: shadowColor ?? this.shadowColor,
@@ -107,8 +94,6 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
     // midpoint; the numeric knobs interpolate.
     return MorphTheme(
       motion: t < 0.5 ? motion : other.motion,
-      bumpScale: lerpDouble(bumpScale, other.bumpScale, t),
-      bumpRecoil: lerpDouble(bumpRecoil, other.bumpRecoil, t),
       maxScrimOpacity: lerpDouble(maxScrimOpacity, other.maxScrimOpacity, t),
       scrimColor: Color.lerp(scrimColor, other.scrimColor, t),
       shadowColor: Color.lerp(shadowColor, other.shadowColor, t),
@@ -120,8 +105,6 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   bool operator ==(Object other) {
     return other is MorphTheme &&
         other.motion == motion &&
-        other.bumpScale == bumpScale &&
-        other.bumpRecoil == bumpRecoil &&
         other.maxScrimOpacity == maxScrimOpacity &&
         other.scrimColor == scrimColor &&
         other.shadowColor == shadowColor &&
@@ -129,13 +112,6 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
   }
 
   @override
-  int get hashCode => Object.hash(
-    motion,
-    bumpScale,
-    bumpRecoil,
-    maxScrimOpacity,
-    scrimColor,
-    shadowColor,
-    skinStyle,
-  );
+  int get hashCode =>
+      Object.hash(motion, maxScrimOpacity, scrimColor, shadowColor, skinStyle);
 }

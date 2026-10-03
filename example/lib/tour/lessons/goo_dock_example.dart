@@ -2,21 +2,19 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:morph/widgets.dart';
 import 'package:morph_example/tour/device.dart';
-import 'package:morph_example/ui/pill_physics.dart';
 import 'package:motor/motor.dart';
 
 /// The liquid-selection scene: a feed app whose tab dock is one fused
-/// mass, with the selection blob gliding between slots on the
-/// reference pill spring - the neck stretches toward the new tab,
-/// rips, and the blob deforms by its own ACCELERATION ([MorphSquash]):
-/// the launch stretches it along the travel, the arrival squashes it,
-/// and the same force model keeps working through every mid-flight
-/// retarget (velocity carry-over included).
+/// mass, with the selection blob travelling between slots on the
+/// springs measured from UITabBar's lens ([MorphLensTuning.tabBar]):
+/// it lifts as it leaves, travels on the lens's travel spring - the
+/// neck stretches toward the new tab and rips - and lands once the
+/// travel is done. Every mid-flight tap retargets from the current
+/// position and velocity.
 ///
-/// The blob rides its piece geometry channel: the scene's ticker
-/// samples the spring, feeds the squash tracker and writes the channel
-/// - no widget rebuilds per frame. setState fires only on the actual
-/// selection change (icon tints and the feed swap).
+/// The blob rides its piece geometry channel: the springs write the
+/// channel directly - no widget rebuilds per frame. setState fires only
+/// on the actual selection change (icon tints and the feed swap).
 class GooDockExample extends StatefulWidget {
   /// Creates the chapter scene.
   const GooDockExample({super.key});
@@ -39,30 +37,39 @@ class _GooDockExampleState extends State<GooDockExample>
   static const double _dockHeight = 58;
   static const double _dockWidth = _slot * 5;
 
+  static const MorphLensTuning _lens = MorphLensTuning.tabBar;
+  static const double _blobSize = 46;
+
   late final SingleMotionController _x = SingleMotionController(
-    motion: pillGlide,
+    motion: _lens.travelSpring.toMotion(),
     vsync: this,
     initialValue: _slotCenter(0),
   );
-  final MorphPieceChannel _blob = MorphPieceChannel();
-
-  /// The per-frame path: the driver samples the spring and hands back
-  /// the deformation, which goes straight into the channel. It outlives
-  /// the spring on purpose - the deformation drains through its own
-  /// window AFTER the landing.
-  late final SquashDriver _driver = SquashDriver(
+  late final SingleMotionController _lift = SingleMotionController(
+    motion: _lens.liftSpring.toMotion(),
     vsync: this,
-    position: () => Offset(_x.value, 0),
-    isBusy: () => _x.isAnimating,
-    onFrame: (MorphSquash squash) => _blob.update(
-      offset: Offset(_x.value - _slotCenter(0), 0),
-      scaleX: squash.scaleX,
-      scaleY: squash.scaleY,
-    ),
+    initialValue: 0,
   );
+  final MorphPieceChannel _blob = MorphPieceChannel();
   int _selected = 0;
 
   static double _slotCenter(int index) => _slot * index + _slot / 2;
+
+  @override
+  void initState() {
+    super.initState();
+    _x.addListener(_syncBlob);
+    _lift.addListener(_syncBlob);
+  }
+
+  void _syncBlob() {
+    final double lift = _lift.value;
+    _blob.update(
+      offset: Offset(_x.value - _slotCenter(0), 0),
+      scaleX: (_blobSize + _lens.liftWidth * lift) / _blobSize,
+      scaleY: (_blobSize + _lens.liftHeight * lift) / _blobSize,
+    );
+  }
 
   void _select(int index) {
     if (index != _selected) {
@@ -70,15 +77,20 @@ class _GooDockExampleState extends State<GooDockExample>
     }
     // Retarget from the CURRENT position and velocity - the same
     // interruption contract as the flights (SingleMotionController
-    // carries the velocity over on its own).
-    _x.animateTo(_slotCenter(index));
-    _driver.start();
+    // carries the velocity over on its own). The blob lands when the
+    // latest travel completes; an interrupted one never lands it.
+    _lift.animateTo(1);
+    _x.animateTo(_slotCenter(index)).then((_) {
+      if (mounted && !_x.isAnimating) {
+        _lift.animateTo(0);
+      }
+    });
   }
 
   @override
   void dispose() {
-    _driver.dispose();
     _x.dispose();
+    _lift.dispose();
     _blob.dispose();
     super.dispose();
   }
@@ -90,10 +102,10 @@ class _GooDockExampleState extends State<GooDockExample>
         crossAxisAlignment: .start,
         children: <Widget>[
           PanelHint(
-            'Tap tabs - fast. The blob is MASS shared with the dock: the '
-            'neck stretches and rips, the launch stretches the blob '
-            'along its travel and the arrival squashes it - deformation '
-            'from FORCE, not from motion - and every mid-flight tap '
+            'Tap tabs - fast. The blob is MASS shared with the dock: it '
+            'lifts as it leaves, the neck stretches and rips, and it '
+            'lands once the travel is done - on the springs measured '
+            'from the iOS tab bar\'s lens. Every mid-flight tap '
             'retargets from the current position and velocity.',
           ),
           PanelHint(
@@ -143,10 +155,10 @@ class _GooDockExampleState extends State<GooDockExample>
           id: 'blob',
           rect: .fromCenter(
             center: Offset(_slotCenter(0), 24 + _dockHeight / 2 - 12),
-            width: 46,
-            height: 46,
+            width: _blobSize,
+            height: _blobSize,
           ),
-          radius: 23,
+          radius: _blobSize / 2,
           channel: _blob,
         ),
         for (int i = 0; i < _tabs.length; i++)

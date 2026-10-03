@@ -1,77 +1,7 @@
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 
-Widget _host(ValueChanged<MorphFlight> onFlight) {
-  return MaterialApp(
-    builder: (BuildContext context, Widget? child) => MorphScope(child: child!),
-    home: Scaffold(
-      body: Align(
-        alignment: Alignment.topLeft,
-        child: Padding(
-          padding: const .all(20),
-          child: MorphTag(
-            id: 'btn',
-            shape: const StadiumBorder(),
-            child: Builder(
-              builder: (BuildContext context) => ElevatedButton(
-                onPressed: () => onFlight(
-                  showMorphDialog(
-                    context,
-                    from: 'btn',
-                    width: 300,
-                    height: 260,
-                    builder: (BuildContext context, MorphFlight flight) =>
-                        const Text('dialog-content'),
-                  ),
-                ),
-                child: const Text('open-me'),
-              ),
-            ),
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-Future<void> _settle(WidgetTester tester) async {
-  for (int i = 0; i < 600; i++) {
-    await tester.pump(const Duration(milliseconds: 8));
-    if (!tester.binding.hasScheduledFrame) {
-      return;
-    }
-  }
-}
-
 void main() {
-  test('morphCloseHintScale clamps on both ends', () {
-    expect(morphCloseHintScale(0), 0.75);
-    expect(morphCloseHintScale(320), 1.0);
-    expect(morphCloseHintScale(10000), 1.9);
-  });
-
-  testWidgets('close from rest scales the hint by flight distance', (
-    WidgetTester tester,
-  ) async {
-    MorphFlight? flight;
-    await tester.pumpWidget(_host((MorphFlight f) => flight = f));
-    await tester.tap(find.text('open-me'));
-    await tester.pump();
-    await _settle(tester);
-
-    final double travel =
-        (flight!.lastTargetRect.center - flight!.sourceRect.center).distance;
-    flight!.close();
-    expect(
-      flight!.controller.velocity,
-      moreOrLessEquals(
-        MorphMotion.normal.closeVelocityHint * morphCloseHintScale(travel),
-      ),
-    );
-    await _settle(tester);
-  });
-
   group('rubber-band', () {
     test('zero at zero, slope ~c near the edge', () {
       expect(morphRubberband(0, dimension: 300), 0);

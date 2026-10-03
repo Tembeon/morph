@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:material_ui/material_ui.dart';
 
 import 'package:morph/widgets.dart';
@@ -12,10 +13,20 @@ import 'package:morph/widgets.dart';
 /// into the phone's history like on a real device.
 class PhoneFrame extends StatelessWidget {
   /// Creates the stage around the app built by [app].
-  const PhoneFrame({super.key, required this.app});
+  const PhoneFrame({super.key, required this.app, this.keyboard});
 
   /// Builds the mockup's home page inside the phone's navigator.
   final WidgetBuilder app;
+
+  /// The key of the drawn keyboard, for tests that check what it covers.
+  static const Key keyboardKey = ValueKey<String>('phone-keyboard');
+
+  /// The height of a software keyboard drawn over the app, live: the
+  /// phone reports it as the bottom view inset (exactly what a real
+  /// keyboard does) and covers the app's bottom with a key panel, so
+  /// anything that must stay clear of the keyboard has to move. Null
+  /// means no keyboard.
+  final ValueListenable<double>? keyboard;
 
   @override
   Widget build(BuildContext context) {
@@ -23,18 +34,52 @@ class PhoneFrame extends StatelessWidget {
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool framed =
             constraints.maxWidth >= 500 && constraints.maxHeight >= 520;
+        final Widget navigator = Navigator(
+          onGenerateRoute: (RouteSettings settings) => MaterialPageRoute<void>(
+            settings: settings,
+            builder: (BuildContext context) => _PhoneHome(app: app),
+          ),
+        );
+        final ValueListenable<double>? keyboard = this.keyboard;
         final Widget core = MorphScope(
           child: ClipRRect(
             borderRadius: .circular(framed ? 30 : 22),
             child: ColoredBox(
               color: const Color(0xFF15121F),
-              child: Navigator(
-                onGenerateRoute: (RouteSettings settings) =>
-                    MaterialPageRoute<void>(
-                      settings: settings,
-                      builder: (BuildContext context) => _PhoneHome(app: app),
+              child: keyboard == null
+                  ? navigator
+                  : ValueListenableBuilder<double>(
+                      valueListenable: keyboard,
+                      // The navigator is built once; only the inset
+                      // it reads and the panel over it move.
+                      child: navigator,
+                      builder:
+                          (BuildContext context, double height, Widget? child) {
+                            return Stack(
+                              children: <Widget>[
+                                Positioned.fill(
+                                  child: MediaQuery(
+                                    data: MediaQuery.of(context).copyWith(
+                                      viewInsets: EdgeInsets.only(
+                                        bottom: height,
+                                      ),
+                                    ),
+                                    child: child!,
+                                  ),
+                                ),
+                                Positioned(
+                                  left: 0,
+                                  right: 0,
+                                  bottom: 0,
+                                  height: height,
+                                  child: const _Keyboard(
+                                    key: PhoneFrame.keyboardKey,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                     ),
-              ),
             ),
           ),
         );
@@ -64,6 +109,71 @@ class PhoneFrame extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// The software keyboard the phone draws over its app: a key panel
+/// that covers whatever sits under it.
+class _Keyboard extends StatelessWidget {
+  const _Keyboard({super.key});
+
+  static const List<int> _rows = <int>[10, 9, 7];
+
+  @override
+  Widget build(BuildContext context) {
+    final Color key = Colors.white.withValues(alpha: 0.16);
+    return ClipRect(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1A2B),
+          border: Border(
+            top: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          ),
+        ),
+        child: OverflowBox(
+          alignment: Alignment.topCenter,
+          minHeight: 0,
+          maxHeight: double.infinity,
+          child: Padding(
+            padding: const .fromLTRB(6, 12, 6, 0),
+            child: Column(
+              mainAxisSize: .min,
+              children: <Widget>[
+                for (final int count in _rows)
+                  Padding(
+                    padding: const .only(bottom: 9),
+                    child: Row(
+                      mainAxisAlignment: .center,
+                      children: <Widget>[
+                        for (int i = 0; i < count; i++)
+                          Padding(
+                            padding: const .symmetric(horizontal: 2.5),
+                            child: Container(
+                              width: 28,
+                              height: 38,
+                              decoration: BoxDecoration(
+                                color: key,
+                                borderRadius: .circular(6),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                Container(
+                  width: 190,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: key,
+                    borderRadius: .circular(6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

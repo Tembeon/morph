@@ -205,7 +205,7 @@ void main() {
                   flight = showMorphDialog(
                     context,
                     from: 'pill',
-                    motion: .fast,
+                    motion: .instant,
                     builder: (BuildContext context, MorphFlight flight) =>
                         const Text('dialog'),
                   );
@@ -218,7 +218,7 @@ void main() {
       );
       await tester.tap(find.text('go'));
       await tester.pump();
-      expect(flight!.controller.motion, MorphMotion.fast);
+      expect(flight!.controller.motion, MorphMotion.instant);
       flight!.abort();
     });
 
@@ -227,7 +227,9 @@ void main() {
     ) async {
       await tester.pumpWidget(
         host(
-          theme: const MorphTheme(skinStyle: .goo),
+          theme: const MorphTheme(
+            skinStyle: MorphSkinStyle(name: 'wide', blend: 40, cell: 7),
+          ),
           child: const SizedBox(
             width: 300,
             height: 200,
@@ -243,8 +245,8 @@ void main() {
       final RenderMorphSkin group = tester.renderObject<RenderMorphSkin>(
         find.byType(MorphSkin),
       );
-      expect(group.k, MorphSkinStyle.goo.blend);
-      expect(group.cell, MorphSkinStyle.goo.cell);
+      expect(group.k, 40);
+      expect(group.cell, 7);
     });
 
     testWidgets('MorphSkin shadowColor resolves explicit > theme > builtin', (
@@ -294,26 +296,25 @@ void main() {
 
     test('copyWith and lerp behave', () {
       const MorphTheme a = MorphTheme(
-        bumpScale: 0.2,
         maxScrimOpacity: 0.2,
         scrimColor: Color(0xFF000000),
         shadowColor: Color(0x00000000),
       );
       const MorphTheme b = MorphTheme(
-        bumpScale: 0.6,
         maxScrimOpacity: 0.6,
         scrimColor: Color(0xFFFFFFFF),
         shadowColor: Color(0xFF000000),
       );
-      expect(a.copyWith(bumpScale: 1).bumpScale, 1);
-      expect(a.copyWith(bumpScale: 1).maxScrimOpacity, 0.2);
-      expect(a.copyWith(bumpScale: 1).scrimColor, const Color(0xFF000000));
+      expect(a.copyWith(maxScrimOpacity: 1).maxScrimOpacity, 1);
+      expect(
+        a.copyWith(maxScrimOpacity: 1).scrimColor,
+        const Color(0xFF000000),
+      );
       expect(
         a.copyWith(scrimColor: const Color(0xFF112233)).scrimColor,
         const Color(0xFF112233),
       );
       final MorphTheme mid = a.lerp(b, 0.5);
-      expect(mid.bumpScale, closeTo(0.4, 1e-9));
       expect(mid.maxScrimOpacity, closeTo(0.4, 1e-9));
       expect(mid.scrimColor, Color.lerp(a.scrimColor, b.scrimColor, 0.5));
       expect(mid.shadowColor, Color.lerp(a.shadowColor, b.shadowColor, 0.5));
@@ -460,16 +461,15 @@ void main() {
           duration: Duration(milliseconds: 500),
           bounce: 0.2,
         ),
-        closeVelocityHint: -1,
       );
       expect(identical(profile(), profile()), isFalse);
       expect(profile(), profile());
       expect(profile().hashCode, profile().hashCode);
-      expect(profile(), isNot(MorphMotion.normal));
+      expect(profile(), isNot(MorphMotion.liquid));
 
       MorphSkinStyle style() => MorphSkinStyle(name: tuned, blend: 30, cell: 5);
       expect(style(), style());
-      expect(style(), isNot(MorphSkinStyle.goo));
+      expect(style(), isNot(MorphSkinStyle.subtle));
       expect(
         MorphTheme(motion: profile(), skinStyle: style()),
         MorphTheme(motion: profile(), skinStyle: style()),

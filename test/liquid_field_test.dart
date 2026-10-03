@@ -80,6 +80,63 @@ void main() {
     });
   });
 
+  group('normals', () {
+    Offset numeric(double Function(Offset) f, Offset p) {
+      const double e = 1e-5;
+      return Offset(
+        (f(p + const Offset(e, 0)) - f(p - const Offset(e, 0))) / (2 * e),
+        (f(p + const Offset(0, e)) - f(p - const Offset(0, e))) / (2 * e),
+      );
+    }
+
+    test('box normal is the unit gradient of its distance', () {
+      const Rect rect = .fromLTWH(10, 20, 100, 60);
+      for (final Offset p in <Offset>[
+        const Offset(60, 10),
+        Offset.zero,
+        const Offset(130, 95),
+        const Offset(30, 70),
+        const Offset(100, 40),
+        const Offset(60, 45),
+      ]) {
+        final Offset n = liquidBoxNormal(p, rect, 14);
+        final Offset g = numeric(
+          (Offset q) => liquidBoxDistance(q, rect, 14),
+          p,
+        );
+        expect(n.distance, closeTo(1, 1e-9));
+        expect((n - g).distance, lessThan(1e-4), reason: 'at $p');
+      }
+    });
+
+    test('capsule normal is the unit gradient of its distance', () {
+      const Offset a = Offset.zero;
+      const Offset b = Offset(80, 30);
+      for (final Offset p in <Offset>[
+        const Offset(40, -10),
+        const Offset(-12, 5),
+        const Offset(95, 40),
+        const Offset(30, 14),
+      ]) {
+        final Offset n = liquidCapsuleNormal(p, a, b);
+        final Offset g = numeric(
+          (Offset q) => liquidCapsuleDistance(q, a, b, 9),
+          p,
+        );
+        expect((n - g).distance, lessThan(1e-4), reason: 'at $p');
+      }
+    });
+
+    test('merge width: full k facing, none side by side', () {
+      expect(liquidMergeWidth(20, const Offset(1, 0), const Offset(-1, 0)), 20);
+      expect(liquidMergeWidth(20, const Offset(0, -1), const Offset(0, -1)), 0);
+      expect(
+        liquidMergeWidth(20, const Offset(1, 0), const Offset(0, 1)),
+        closeTo(10, 1e-12),
+      );
+    });
+  });
+
   group('liquidRectGap', () {
     test('overlap yields zero, separation yields the distance', () {
       const Rect a = .fromLTWH(0, 0, 100, 60);

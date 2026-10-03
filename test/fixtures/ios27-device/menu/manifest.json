@@ -1,0 +1,189 @@
+{
+ "device": "iPhone 16 Pro (iPhone17,1) real device, iOS 27.0.1, 402x874 pt @3x, ProMotion; display link 120 Hz (CADisableMinimumFrameDurationOnPhone, preferredFrameRateRange 80..120 pref 120)",
+ "probe": "tool/ios_reference (device.sh, ProbeUITests); compacted by /tmp/morph-native/device/export.py",
+ "simulator_counterpart": "test/fixtures/ios27/menu",
+ "format": "jsonl, one row per line. k=start {t, scene, rec, scale, maxfps, w, h}; k=touch {t, phase 0 began / 1 moved / 3 ended, x, y} (window points, UITouch.timestamp = CACurrentMediaTime clock); k=dl one row per CADisplayLink tick {t = link.timestamp, d = duration when not 1/120} - dl rows are kept only around gestures (0.15 s before touch-down .. 1.1 s after touch-up). Rows other than dl are logged only when a value changed, so a tick with a dl row and no other row means \"nothing changed this tick\". k=action {t, title}; k=f per display frame while a morph exists, derived exactly like the simulator fixtures (/tmp/probe-menu/extract.py table): G_* menu blob, S_* button blob (px,py layer position; kx,ky KickView translation; s scale; bw,bh local bounds; r, clipr radii; *_list_a/_blur menu content alpha/blur, *_btn_a/_blur button glass, *_pivot_*), lens_blur, lens_gauss, btn_w/btn_h pressed glass, bar nav button, menu [cx,cy,w,h,alpha], G_rvis visual radius of the menu SDF.",
+ "notes": "Menus on this phone are 82 + 42*rows pt tall (simulator 20 + 42*rows): +62 pt fixed. center3-closemidopen: the outside tap was planned 25 ms after the release and was delivered right at it (two strokes in one synthesized record).",
+ "captures": [
+  {
+   "file": "bottom3-dismiss.jsonl",
+   "bytes": 100254,
+   "variant": "bottom center, 3 rows (opens up)",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "center-items10-dismiss.jsonl",
+   "bytes": 80195,
+   "variant": "center, 10 rows (clamped)",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "center-items2-dismiss.jsonl",
+   "bytes": 99542,
+   "variant": "center, 2 rows",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "center-items5-dismiss.jsonl",
+   "bytes": 105340,
+   "variant": "center, 5 rows",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "center3-closemidopen.jsonl",
+   "bytes": 42011,
+   "variant": "center, 3 rows",
+   "gesture": "tap open + outside tap synthesized 25 ms after release (delivered right at the release)"
+  },
+  {
+   "file": "center3-dismiss.jsonl",
+   "bytes": 98001,
+   "variant": "center, 3 rows",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "center3-dragselect.jsonl",
+   "bytes": 50539,
+   "variant": "center, 3 rows",
+   "gesture": "press 0.7 s (opens), drag to row 3, release (Delete)"
+  },
+  {
+   "file": "center3-hold700.jsonl",
+   "bytes": 43172,
+   "variant": "center, 3 rows",
+   "gesture": "press 736 ms (opens during the hold)"
+  },
+  {
+   "file": "center3-quicktap.jsonl",
+   "bytes": 32328,
+   "variant": "center, 3 rows",
+   "gesture": "tap 31 ms (open only)"
+  },
+  {
+   "file": "center3-repeat.jsonl",
+   "bytes": 380594,
+   "variant": "center, 3 rows",
+   "gesture": "4 x (tap open, tap outside), 1.6 s apart"
+  },
+  {
+   "file": "center3-retap-midopen.jsonl",
+   "bytes": 42868,
+   "variant": "center, 3 rows",
+   "gesture": "tap open + second tap on the button spot mid-open (selects row 1, Copy)"
+  },
+  {
+   "file": "center3-select.jsonl",
+   "bytes": 103083,
+   "variant": "center, 3 rows",
+   "gesture": "tap open, tap row 2 (Share)"
+  },
+  {
+   "file": "center3-tap.jsonl",
+   "bytes": 33015,
+   "variant": "center, 3 rows",
+   "gesture": "tap 128 ms (open only)"
+  },
+  {
+   "file": "navbar3-dismiss.jsonl",
+   "bytes": 124394,
+   "variant": "UIBarButtonItem(menu:) in the nav bar, 3 rows",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "pos-bl-dismiss.jsonl",
+   "bytes": 100710,
+   "variant": "bottom-left",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "pos-br-dismiss.jsonl",
+   "bytes": 101475,
+   "variant": "bottom-right",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "pos-left-dismiss.jsonl",
+   "bytes": 98818,
+   "variant": "left edge, vertical center (opens up)",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "pos-tl-dismiss.jsonl",
+   "bytes": 100097,
+   "variant": "top-left",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "pos-tr-dismiss.jsonl",
+   "bytes": 100750,
+   "variant": "top-right",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "tl-items1-dismiss.jsonl",
+   "bytes": 94586,
+   "variant": "top-left, 1 row",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "tl-items4-dismiss.jsonl",
+   "bytes": 99579,
+   "variant": "top-left, 4 rows",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "tl-items8-dismiss.jsonl",
+   "bytes": 80568,
+   "variant": "top-left, 8 rows",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "wide3-dismiss.jsonl",
+   "bytes": 101484,
+   "variant": "wide text glass button 125x48, 3 rows",
+   "gesture": "tap open, tap outside"
+  },
+  {
+   "file": "center3-reopen2-0.jsonl",
+   "bytes": 295025,
+   "variant": "center, 3 rows",
+   "gesture": "2 x (tap open, tap outside, 0 ms sleep, separate synth tap on the button 60 ms, wait, tap outside); realized button touch-down +217/222 ms after the outside touch-up",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "center3-reopen2-50.jsonl",
+   "bytes": 250720,
+   "variant": "center, 3 rows",
+   "gesture": "2 x (tap open, tap outside, 50 ms sleep, separate synth tap on the button 60 ms, wait, tap outside); realized button touch-down +269/275 ms after the outside touch-up",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "center3-reopen2-120.jsonl",
+   "bytes": 310752,
+   "variant": "center, 3 rows",
+   "gesture": "2 x (tap open, tap outside, 120 ms sleep, separate synth tap on the button 60 ms, wait, tap outside); realized button touch-down +344/350 ms after the outside touch-up",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "center3-reopen2-200.jsonl",
+   "bytes": 263279,
+   "variant": "center, 3 rows",
+   "gesture": "2 x (tap open, tap outside, 200 ms sleep, separate synth tap on the button 60 ms, wait, tap outside); realized button touch-down +424/422 ms after the outside touch-up",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "center3-reopen2-350.jsonl",
+   "bytes": 277605,
+   "variant": "center, 3 rows",
+   "gesture": "2 x (tap open, tap outside, 350 ms sleep, separate synth tap on the button 60 ms, wait, tap outside); realized button touch-down +575/580 ms after the outside touch-up",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "center3-reopen-stroke.jsonl",
+   "bytes": 195716,
+   "variant": "center, 3 rows",
+   "gesture": "2 x (tap open, outside tap + button tap in ONE record: the synthesizer starts the button stroke exactly at the outside lift, hold 108 ms): the touch lands on the still-interactive menu and is swallowed (no reopen, no action)",
+   "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  }
+ ]
+}

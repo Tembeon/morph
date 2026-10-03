@@ -1,0 +1,18 @@
+{
+  "what": "iOS 27 Liquid Glass merge geometry (UIGlassContainerEffect / SwiftUI GlassEffectContainer), measured on device",
+  "device": "iPhone 16 Pro (00008140-001039D01442801C), iOS 27.0.1, 3x, 402x874 pt, 120 Hz",
+  "captured": "2026-10-02",
+  "probe": "tool/ios_reference (Sources/Merge.swift scenes merge / mergeDyn / mergeID; UITests testMerge / testMergeDyn; device.sh PROBE_PLAN=merge|mergedyn)",
+  "scene": "pairs of glass shapes, one container per pair, magenta-tinted .regular glass over flat 50% grey; capsules 60x44 centred x=110, circles 44x44 centred x=300, rows y=150+80i for gaps [40,30,20,15,10,6,3,0,-5] pt; pages spacing 0,10,20,40,80",
+  "files": {
+    "profiles-uikit.json": "per spacing page and pair: silhouette height H(x) in pt sampled every 1/3 pt between the two shape centres (UIKit UIVisualEffectView + UIGlassEffect in UIGlassContainerEffect)",
+    "profiles-swiftui.json": "same for SwiftUI GlassEffectContainer(spacing:){HStack(spacing: gap){.glassEffect(.regular.tint, in: Capsule()) x2}}",
+    "necks.json": "midline neck heights per api/spacing/kind/gap with the derived modulation m = 4(a - 0.40)/spacing and sin(theta/2); m == sin^2(theta/2) within 1 percent",
+    "sdf-layers.json": "CASDFLayer / CASDFElementLayer properties per page (smoothness == spacing)",
+    "dynamic.json": "drag/animate necks vs the static law, smoothness over time, glassEffectID per-frame element rects, glassEffectUnion note",
+    "fit-per-pair.json": "rms/max error of the sin^2 law (k = spacing) and of the renderer's sin law per pair",
+    "merge-params.json": "the fitted law, rejected variants, SDF parameters, defaults, recommendation"
+  },
+  "pngs": "tool/ios_reference/references/merge/ (cropped key frames)",
+  "units": "points (pt), window coordinates"
+}

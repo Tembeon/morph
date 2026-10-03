@@ -33,33 +33,33 @@ final Map<String, List<LoopSnapshot>> goldenSnapshots =
     <String, List<LoopSnapshot>>{
       'fusedPair': <LoopSnapshot>[
         const LoopSnapshot(
-          area: 15759.0,
-          centroid: Offset(137.5, 74.6),
+          area: 15650.6,
+          centroid: Offset(136.7, 74.6),
           bounds: .fromLTRB(20.0, 30.0, 260.0, 110.0),
         ),
       ],
       'neckAtRipDistance': <LoopSnapshot>[
         const LoopSnapshot(
-          area: 5890.9,
-          centroid: Offset(52.0, 29.7),
+          area: 5887.7,
+          centroid: Offset(51.4, 29.3),
           bounds: .fromLTRB(0.0, 0.0, 100.6, 60.0),
         ),
         const LoopSnapshot(
-          area: 5897.1,
+          area: 5894.8,
           centroid: Offset(167.9, 30.0),
           bounds: .fromLTRB(117.3, 0.0, 218.0, 60.0),
         ),
       ],
       'ringWithHole': <LoopSnapshot>[
         const LoopSnapshot(
-          area: 24912.6,
-          centroid: Offset(122.6, 73.9),
+          area: 24803.0,
+          centroid: Offset(122.2, 73.1),
           bounds: .fromLTRB(-2.0, -2.0, 242.0, 202.0),
         ),
         const LoopSnapshot(
-          area: 10600.9,
-          centroid: Offset(120.9, 74.5),
-          bounds: .fromLTRB(44.8, 30.0, 195.2, 153.6),
+          area: 10696.2,
+          centroid: Offset(121.4, 76.0),
+          bounds: .fromLTRB(42.0, 30.0, 198.0, 157.1),
         ),
       ],
       // 24 separate islands on a budget-coarsened grid (gap 15 < k 22:
@@ -70,12 +70,12 @@ final Map<String, List<LoopSnapshot>> goldenSnapshots =
         for (int row = 0; row < 4; row++)
           for (final (double area, double cx, double left, double right)
               in const <(double, double, double, double)>[
-                (6820.4, 49.9, 0.0, 101.1),
-                (6872.8, 166.2, 114.1, 216.2),
-                (6877.8, 280.0, 228.9, 331.1),
-                (6872.9, 394.7, 343.8, 445.9),
-                (6876.2, 510.0, 458.9, 561.1),
-                (6813.7, 625.7, 574.1, 675.0),
+                (6817.1, 50.7, 0.0, 101.1),
+                (6865.7, 166.2, 114.1, 216.2),
+                (6871.3, 280.0, 228.9, 331.1),
+                (6865.7, 394.9, 343.8, 445.9),
+                (6868.8, 510.6, 458.9, 561.1),
+                (6810.8, 626.0, 574.1, 675.0),
               ])
             LoopSnapshot(
               area: area,

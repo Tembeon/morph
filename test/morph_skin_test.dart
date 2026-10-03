@@ -266,27 +266,33 @@ void main() {
     },
   );
 
-  testWidgets('MorphSkinStyle: presets apply, an explicit k takes precedence', (
+  testWidgets('MorphSkinStyle: subtle is the default, explicit k wins', (
     WidgetTester tester,
   ) async {
-    expect(MorphSkinStyle.geometric.blend, lessThan(MorphSkinStyle.goo.blend));
-    expect(
-      MorphSkinStyle.subtle.blend,
-      lessThan(MorphSkinStyle.geometric.blend),
+    expect(MorphSkinStyle.subtle.blend, 8);
+    expect(MorphSkinStyle.values, <MorphSkinStyle>[MorphSkinStyle.subtle]);
+    const List<MorphPiece> pieces = <MorphPiece>[
+      MorphPiece(id: 'a', rect: .fromLTWH(20, 20, 100, 60)),
+      MorphPiece(id: 'b', rect: .fromLTWH(160, 20, 100, 60)),
+    ];
+    await tester.pumpWidget(
+      host(const MorphSkin(color: Color(0xFF2A2440), pieces: pieces)),
     );
+    RenderMorphSkin group() =>
+        tester.renderObject<RenderMorphSkin>(find.byType(MorphSkin));
+    expect(group().k, MorphSkinStyle.subtle.blend);
+    expect(group().cell, MorphSkinStyle.subtle.cell);
     await tester.pumpWidget(
       host(
         const MorphSkin(
-          style: .goo,
+          style: .subtle,
           blend: 5,
           color: Color(0xFF2A2440),
-          pieces: <MorphPiece>[
-            MorphPiece(id: 'a', rect: .fromLTWH(20, 20, 100, 60)),
-            MorphPiece(id: 'b', rect: .fromLTWH(160, 20, 100, 60)),
-          ],
+          pieces: pieces,
         ),
       ),
     );
+    expect(group().k, 5);
     expect(tester.takeException(), isNull);
   });
 
@@ -596,9 +602,8 @@ void main() {
     expect(flight!.sourceRect.width, moreOrLessEquals(expected.width));
     expect(flight!.sourceRect.height, moreOrLessEquals(expected.height));
 
-    // The close plays the landing bump on top of the still-displaced
-    // channel - the composed content transform must stay exception
-    // free all the way to settle.
+    // The close lands on the still-displaced channel - the content
+    // transform must stay exception free all the way to settle.
     for (int i = 0; i < 200; i++) {
       await tester.pump(const Duration(milliseconds: 8));
       expect(tester.takeException(), isNull);

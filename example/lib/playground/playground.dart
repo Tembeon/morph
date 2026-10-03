@@ -1,10 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
-import 'package:morph_example/ui/goo_selector.dart';
 import 'package:morph_example/ui/lab_chrome.dart';
 import 'package:morph_example/ui/spring_switcher.dart';
-import 'package:morph_example/ui/spring_toggle.dart';
 
 import 'package:morph_example/tour/lessons/dialog_contents.dart';
 import 'package:morph_example/playground/hud.dart';
@@ -32,19 +30,16 @@ class LabSettings {
   MotionFamily family = .cupertino;
 
   /// The selected named preset; null once a slider builds a custom one.
-  MorphMotion? preset = .normal;
+  MorphMotion? preset = .liquid;
 
   /// Open duration knob, ms.
-  double openMs = 400;
+  double openMs = 350;
 
   /// Close duration knob, ms.
-  double closeMs = 550;
+  double closeMs = 490;
 
   /// Close bounce knob.
-  double closeBounce = 0.27;
-
-  /// Close velocity injection knob (stored positive).
-  double closeKick = 2.5;
+  double closeBounce = 0.2;
 
   /// Index into [materialTokens].
   int materialIndex = 1;
@@ -54,12 +49,6 @@ class LabSettings {
 
   /// Index into [curveOptions] for close.
   int closeCurveIndex = 0;
-
-  /// Landing squash knob.
-  double bumpScale = 0.6;
-
-  /// Landing recoil knob, px.
-  double bumpRecoil = 140;
 
   /// The Material 3 spatial tokens on offer.
   static const List<(String, MaterialSpringMotion)> materialTokens =
@@ -101,16 +90,14 @@ class LabSettings {
               duration: Duration(milliseconds: closeMs.round()),
               bounce: closeBounce,
             ),
-            closeVelocityHint: -closeKick,
           ),
     .material => MorphMotion(
       name: 'm3',
       openMotion: materialTokens[materialIndex].$2,
       closeMotion: materialTokens[materialIndex].$2,
-      closeVelocityHint: -closeKick,
     ),
-    // Curves cannot go below zero: the morph works, but the landing
-    // bump will not play - a live demo of the closeMotion contract.
+    // Curves cannot go below zero: the morph works, but the close ends
+    // on the latch with no undershoot - the closeMotion contract, live.
     .curve => MorphMotion(
       name: 'curve',
       openMotion: CurvedMotion(
@@ -128,6 +115,13 @@ class LabSettings {
   void adoptPreset(MorphMotion next) {
     family = .cupertino;
     preset = next;
+    if (next.openSpring case final MorphSpring open?) {
+      openMs = open.response * 1000;
+    }
+    if (next.closeSpring case final MorphSpring close?) {
+      closeMs = close.response * 1000;
+      closeBounce = 1 - close.dampingRatio;
+    }
     if (next.openMotion case CupertinoMotion(:final Duration duration)) {
       openMs = duration.inMilliseconds.toDouble();
     }
@@ -138,12 +132,11 @@ class LabSettings {
       closeMs = duration.inMilliseconds.toDouble();
       closeBounce = bounce;
     }
-    closeKick = -next.closeVelocityHint;
   }
 }
 
 /// The tuning room, as the final chapter of the tour -
-/// sandbox canvas, motion vocabularies, landing knobs, keyframes,
+/// sandbox canvas, motion vocabularies, keyframes,
 /// liquid controls, stress rig and the spring HUD.
 class Playground extends StatefulWidget {
   /// Creates the playground chapter.
@@ -308,8 +301,6 @@ class _PlaygroundState extends State<Playground> {
                               child: SandboxStage(
                                 controller: sandbox,
                                 motion: lab.motion,
-                                bumpScale: lab.bumpScale,
-                                bumpRecoil: lab.bumpRecoil,
                               ),
                             ),
                     ),
@@ -351,7 +342,7 @@ class _Sidebar extends StatelessWidget {
 
         _SectionHeader('MOTION', scheme),
         const SizedBox(height: 8),
-        GooSelector(
+        LabSegmented(
           labels: const <String>['cupertino', 'm3', 'curve'],
           index: lab.family.index,
           onSelect: (int i) =>
@@ -369,30 +360,6 @@ class _Sidebar extends StatelessWidget {
         ),
         const Divider(height: 28),
 
-        _SectionHeader('LANDING', scheme),
-        _LabSlider(
-          label: 'squash',
-          value: lab.bumpScale,
-          min: 0,
-          max: 1.5,
-          format: (double v) => v.toStringAsFixed(2),
-          onChanged: (double v) => shell._update(() => lab.bumpScale = v),
-        ),
-        _LabSlider(
-          label: 'recoil',
-          value: lab.bumpRecoil,
-          min: 0,
-          max: 300,
-          format: (double v) => '${v.round()}px',
-          onChanged: (double v) => shell._update(() => lab.bumpRecoil = v),
-        ),
-        Text(
-          'Landing after the latch: squash along the impact axis and button '
-          'recoil, both derived from the undershoot of the same spring.',
-          style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
-        ),
-        const Divider(height: 28),
-
         ListenableBuilder(
           listenable: shell.sandbox,
           builder: (BuildContext context, Widget? child) =>
@@ -401,7 +368,7 @@ class _Sidebar extends StatelessWidget {
         const Divider(height: 28),
 
         _SectionHeader('STRESS', scheme),
-        SpringToggleTile(
+        LabSwitchTile(
           label: 'Stress mode',
           value: shell._stressMode,
           onChanged: (bool v) => shell._update(() => shell._stressMode = v),
@@ -423,7 +390,7 @@ class _Sidebar extends StatelessWidget {
                         onChanged: (double v) =>
                             shell._update(() => shell._stressCount = v),
                       ),
-                      SpringToggleTile(
+                      LabSwitchTile(
                         label: 'Animate',
                         value: shell._stressAnimate,
                         onChanged: (bool v) =>
@@ -449,13 +416,13 @@ class _Sidebar extends StatelessWidget {
         ValueListenableBuilder<bool>(
           valueListenable: appReducedMotion,
           builder: (BuildContext context, bool reduced, Widget? child) =>
-              SpringToggleTile(
+              LabSwitchTile(
                 label: 'Reduced motion',
                 value: reduced,
                 onChanged: (bool v) => appReducedMotion.value = v,
               ),
         ),
-        SpringToggleTile(
+        LabSwitchTile(
           label: 'Spring HUD',
           value: shell._hudVisible,
           onChanged: (bool v) => shell._update(() => shell._hudVisible = v),
@@ -482,17 +449,17 @@ class _Sidebar extends StatelessWidget {
           ('Three motion vocabularies: cupertino (Apple spirit), m3 '
               '(Material tokens), curve (and why curves do not belong on '
               'close)'),
-          ('Build your own Motion: close 2000ms + bounce 0.5 + kick 5 - '
-              'then close a dialog'),
+          ('Build your own Motion: close 2000ms + bounce 0.5 - then close '
+              'a dialog'),
           ('Click the scrim or press Esc mid-flight: retarget with velocity '
               'carry-over; switching profiles mid-flight is live too'),
           ('Resize the window with the sheet open: the target is recomputed '
               'every frame'),
           ('Stress mode: crank the piece count and watch the FPS meter '
               'while necks form and rip across the whole canvas'),
-          ('The shell itself runs on the engine: selectors are liquid goo, '
-              'toggles and buttons are springs, panel swaps ride a '
-              'MorphController'),
+          ('The shell itself runs on the widgets layer: segmented '
+              'controls, switches and buttons are the measured UIKit '
+              'controls, panel swaps ride a MorphController'),
         ])
           Padding(
             padding: const .only(bottom: 8),
@@ -526,7 +493,7 @@ class _Sidebar extends StatelessWidget {
     final _PlaygroundState shell = this.shell;
     return <Widget>[
       if (lab.family == .cupertino)
-        GooSelector(
+        LabSegmented(
           labels: <String>[
             for (final MorphMotion s in MorphMotion.values) s.name,
           ],
@@ -573,22 +540,10 @@ class _Sidebar extends StatelessWidget {
               ..closeBounce = v;
           }),
         ),
-        _LabSlider(
-          label: 'kick',
-          value: lab.closeKick,
-          min: 0,
-          max: 6,
-          format: (double v) => '-${v.toStringAsFixed(1)}',
-          onChanged: (double v) => shell._update(() {
-            lab
-              ..preset = null
-              ..closeKick = v;
-          }),
-        ),
         Text(
-          'open is critically damped (CupertinoMotion.smooth), close has '
-          'bounce. The sliders build a custom profile; kick injects close '
-          'velocity from rest, scaled by flight distance.',
+          'The presets are UIKit\'s measured liquid morph. The sliders '
+          'build a custom profile (open critically damped, close with '
+          'bounce).',
           style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
         ),
       ],
@@ -600,14 +555,6 @@ class _Sidebar extends StatelessWidget {
             for (final (String name, _) in LabSettings.materialTokens) name,
           ],
           onChanged: (int v) => shell._update(() => lab.materialIndex = v),
-        ),
-        _LabSlider(
-          label: 'kick',
-          value: lab.closeKick,
-          min: 0,
-          max: 6,
-          format: (double v) => '-${v.toStringAsFixed(1)}',
-          onChanged: (double v) => shell._update(() => lab.closeKick = v),
         ),
         Text(
           'Expressive Material 3 spatial tokens from motor: one Motion '
@@ -651,8 +598,8 @@ class _Sidebar extends StatelessWidget {
         Text(
           'CurvedMotion: timing curves instead of physics. Interruption '
           'stays continuous (retarget from the current value), but the '
-          'curve never goes below zero - the landing bump will not play. '
-          'A live demo of the closeMotion contract.',
+          'curve never goes below zero - the close ends on the latch with '
+          'no undershoot. A live demo of the closeMotion contract.',
           style: TextStyle(fontSize: 11, color: scheme.onSurfaceVariant),
         ),
       ],
@@ -684,16 +631,12 @@ class _SandboxPanel extends StatelessWidget {
                   (.circle, Icons.circle_outlined),
                 ]) ...<Widget>[
               Expanded(
-                child: SpringButton(
+                child: MorphGlassButton(
                   onPressed: () => sandbox.addPiece(kind),
-                  child: Container(
-                    padding: const .symmetric(vertical: 8),
-                    decoration: ShapeDecoration(
-                      shape: const StadiumBorder(),
-                      color: scheme.secondaryContainer.withValues(alpha: 0.55),
-                    ),
-                    child: Icon(icon, size: 18),
-                  ),
+                  tint: scheme.secondaryContainer.withValues(alpha: 0.55),
+                  padding: const .symmetric(vertical: 8),
+                  minSize: Size.zero,
+                  child: Icon(icon, size: 18),
                 ),
               ),
               if (kind != .circle) const SizedBox(width: 6),
@@ -710,32 +653,26 @@ class _SandboxPanel extends StatelessWidget {
                   style: const TextStyle(fontSize: 12),
                 ),
               ),
-              SpringButton(
-                onPressed: sandbox.armLink,
-                child: Tooltip(
-                  message: sandbox.linkArming
-                      ? 'tap a second piece'
-                      : 'link with a bridge',
-                  child: Padding(
-                    padding: const .all(6),
-                    child: Icon(
-                      Icons.link_rounded,
-                      size: 18,
-                      color: sandbox.linkArming ? scheme.primary : null,
-                    ),
-                  ),
+              Tooltip(
+                message: sandbox.linkArming
+                    ? 'tap a second piece'
+                    : 'link with a bridge',
+                child: LabIconButton(
+                  icon: Icons.link_rounded,
+                  onPressed: sandbox.armLink,
+                  padding: 6,
+                  color: sandbox.linkArming ? scheme.primary : null,
                 ),
               ),
-              SpringButton(
-                onPressed: shell.sandbox.pieces.length > 1
-                    ? sandbox.removeSelected
-                    : null,
-                child: const Tooltip(
-                  message: 'delete',
-                  child: Padding(
-                    padding: .all(6),
-                    child: Icon(Icons.delete_outline_rounded, size: 18),
-                  ),
+              const SizedBox(width: 4),
+              Tooltip(
+                message: 'delete',
+                child: LabIconButton(
+                  icon: Icons.delete_outline_rounded,
+                  onPressed: shell.sandbox.pieces.length > 1
+                      ? sandbox.removeSelected
+                      : null,
+                  padding: 6,
                 ),
               ),
             ],
@@ -835,14 +772,16 @@ class _SandboxPanel extends StatelessWidget {
 
         _SectionHeader('LIQUID', scheme),
         const SizedBox(height: 8),
-        GooSelector(
-          labels: const <String>['geometric', 'goo'],
-          index: switch (sandbox.mode) {
-            null => null,
-            .geometric => 0,
-            .goo => 1,
+        LabSegmented(
+          labels: <String>[
+            for (final double spacing in sandboxSpacings)
+              spacing.round().toString(),
+          ],
+          index: switch (sandboxSpacings.indexOf(sandbox.blend)) {
+            < 0 => null,
+            final int i => i,
           },
-          onSelect: (int i) => sandbox.applyMode(i == 0 ? .geometric : .goo),
+          onSelect: (int i) => sandbox.setBlend(sandboxSpacings[i]),
         ),
         _LabSlider(
           label: 'blend',
@@ -860,14 +799,17 @@ class _SandboxPanel extends StatelessWidget {
           format: (double v) => '${v.round()}px',
           onChanged: sandbox.setDetail,
         ),
-        SpringToggleTile(
+        LabSwitchTile(
           label: 'Contour',
           value: sandbox.contour,
           onChanged: (bool _) => sandbox.toggleContour(),
         ),
         Text(
           'One skin for all pieces: SDF smooth-union + marching squares. '
-          'blend is the fusion width (geometric joint -> gooey neck), '
+          'blend is the Liquid Glass container spacing, 1:1 in px: facing '
+          'surfaces lean toward each other below a gap of blend and touch '
+          'at blend / 2, aligned edges stay straight. 8 is SwiftUI\'s '
+          'default; 20, 40 and 80 are spacings measured on a device. '
           'detail is the outline grid step. Contour draws the inner '
           'stroke of the same living path - and doubles as the honest '
           'magnifier for the detail knob.',
