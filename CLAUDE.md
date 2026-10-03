@@ -872,6 +872,46 @@ Public pieces:
   the lift (`reopenDelay`) while the old one finishes its close (two
   platters on screen) - the closing overlay no longer swallows that tap
   (its outside Listener is IgnorePointer while leaving).
+  MONTH AND YEAR WHEELS (device, light + dark, 2026-10-03, ExtrasUITests
+  testX3MonthYear / testX3MonthYearCases with PROBE_X3MY + PROBE_X3TREES
+  - a tree dump 1.2 s after every touch-up - + MorphRecorder film;
+  fixtures ios27-device/date_picker/my-*, myrev-*, my31, mypage,
+  month-year.json; pinned by date_picker_test's month and year groups):
+  a tap on the month title (`_UICalendarHeaderTitleButton`, "Show year
+  picker" / "Hide year picker", value = the title) puts
+  `_UICalendarMonthYearSelector` (320 x 246.33 from the weekday row
+  down, rebuilt on every show) in the SAME 320 x 332 platter. Weekday
+  row, day grid and both month chevrons fade out, the selector in, on
+  CABasicAnimations 0.25 s (0.42, 0, 0.58, 1) (`yearPicker*`; the
+  layers follow it to 1e-4 with the start fitted), starting 0.069 s
+  after the lift (0.061 - 0.077, UIKit builds the wheels first) and
+  0.019 s back (0.013 while the wheels still fade in); a second tap
+  restarts the fades from the presentation value (beginFromCurrentState,
+  a velocity kink) while the title chevron's quarter turn (image 10.33 x
+  14, read back from its bounding box) is ADDITIVE - it carries on to
+  0.82 before returning - so `yearPickerTurn` sums the running turns.
+  The title turns accent at the tap and back to label on the return,
+  no animation. Wheels: UIDatePicker 288 x 216 at 16 x 76.84 in the
+  platter, band 288 x 34 capsule (view bg 0x14747480 light /
+  0x2E767680 dark, on screen the same 52-over-32 as the time band in
+  dark, so `wheelBandColor`), months left-aligned at 54 (band, 23.5 pt)
+  / 57.95 (outside, 21 pt; Flutter magnifies about the box center, so
+  the month box is centered at 91.13 to land both), years centered at
+  230, rows on a cylinder radius 87.7, rows 31.87 apart (0.14 pt rms;
+  UIKit adds a little perspective toward the picker's center, ~6 pt at
+  the last row, not reproduced), outside rows' peak contrast 0.36 /
+  0.324 / 0.19 / 0.092 at 31.3 / 58.3 / 77.6 / 87.1 pt (a fade table
+  over the 0.4 faded opacity). The month wheel loops. Selection: the
+  wheels open on the SHOWN month (a page turn first: November), a wheel
+  coming to rest (valueChanged 0.2 - 0.36 s after the lift, at the
+  settle) sets the date to (wheel year, wheel month, the chosen day
+  clamped: Oct 31 -> Nov 30, back -> Oct 30) and the title follows;
+  opening and closing the wheels alone changes nothing. Closing the
+  overlay with the wheels up and reopening shows the grid. SIX WEEKS
+  (August 2026): the platter stays 320 x 332, rows 38 apart (cells
+  42.67 x 38, disc 38) from the same top - the old 45.67 growth per
+  week was wrong; the first row sits 1 pt below the collection view's
+  top (`gridTop`).
 - `MorphPageControl` (page_control.dart): dots 9.67/7.67 pt on a 17.67
   pitch, tap halves step on the lift, platter after 0.193 s of touch on
   a critically damped 0.100 s spring, out 0.032 s after the lift on

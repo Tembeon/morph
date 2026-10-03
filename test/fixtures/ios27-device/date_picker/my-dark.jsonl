@@ -1,0 +1,840 @@
+{"k":"start","what":"my-dark"}
+{"k":"touch","t":0.0,"phase":0,"x":201,"y":300}
+{"k":"touch","t":0.0667,"phase":3,"x":201,"y":300}
+{"k":"V","t":0.196,"cls":"chevron","id":27,"w":10.33,"h":14,"x":156.83,"y":341.17}
+{"k":"V","t":0.196,"cls":"_UICalendarWeekdayView","id":28,"a":1}
+{"k":"V","t":0.2097,"cls":"chevron","id":27,"w":2.07,"h":2.8,"x":192.3,"y":313.3}
+{"k":"V","t":0.2181,"cls":"chevron","id":27,"w":2.26,"h":3.06,"x":191.47,"y":313.96}
+{"k":"V","t":0.2264,"cls":"chevron","id":27,"w":2.59,"h":3.5,"x":190.07,"y":315.05}
+{"k":"V","t":0.2348,"cls":"chevron","id":27,"w":3.02,"h":4.09,"x":188.21,"y":316.51}
+{"k":"V","t":0.2431,"cls":"chevron","id":27,"w":3.52,"h":4.78,"x":186.05,"y":318.21}
+{"k":"V","t":0.2514,"cls":"chevron","id":27,"w":4.07,"h":5.52,"x":183.69,"y":320.06}
+{"k":"V","t":0.2598,"cls":"chevron","id":27,"w":4.64,"h":6.29,"x":181.25,"y":321.98}
+{"k":"V","t":0.2681,"cls":"chevron","id":27,"w":5.21,"h":7.07,"x":178.79,"y":323.91}
+{"k":"V","t":0.2764,"cls":"chevron","id":27,"w":5.78,"h":7.82,"x":176.39,"y":325.8}
+{"k":"V","t":0.2848,"cls":"chevron","id":27,"w":6.31,"h":8.55,"x":174.08,"y":327.62}
+{"k":"V","t":0.2931,"cls":"chevron","id":27,"w":6.82,"h":9.24,"x":171.89,"y":329.33}
+{"k":"V","t":0.3014,"cls":"chevron","id":27,"w":7.3,"h":9.89,"x":169.86,"y":330.93}
+{"k":"V","t":0.3098,"cls":"chevron","id":27,"w":7.73,"h":10.48,"x":167.99,"y":332.4}
+{"k":"V","t":0.3181,"cls":"chevron","id":27,"w":8.13,"h":11.02,"x":166.28,"y":333.74}
+{"k":"V","t":0.3264,"cls":"chevron","id":27,"w":8.49,"h":11.5,"x":164.75,"y":334.95}
+{"k":"V","t":0.3348,"cls":"chevron","id":27,"w":8.81,"h":11.93,"x":163.38,"y":336.02}
+{"k":"V","t":0.3431,"cls":"chevron","id":27,"w":9.09,"h":12.31,"x":162.18,"y":336.97}
+{"k":"V","t":0.3514,"cls":"chevron","id":27,"w":9.33,"h":12.64,"x":161.13,"y":337.79}
+{"k":"V","t":0.3598,"cls":"chevron","id":27,"w":9.55,"h":12.93,"x":160.21,"y":338.51}
+{"k":"V","t":0.3681,"cls":"chevron","id":27,"w":9.73,"h":13.18,"x":159.43,"y":339.12}
+{"k":"V","t":0.3764,"cls":"chevron","id":27,"w":9.88,"h":13.39,"x":158.77,"y":339.64}
+{"k":"V","t":0.3848,"cls":"chevron","id":27,"w":10.01,"h":13.56,"x":158.22,"y":340.08}
+{"k":"V","t":0.3931,"cls":"chevron","id":27,"w":10.12,"h":13.71,"x":157.76,"y":340.44}
+{"k":"V","t":0.4014,"cls":"chevron","id":27,"w":10.21,"h":13.83,"x":157.38,"y":340.74}
+{"k":"V","t":0.4098,"cls":"chevron","id":27,"w":10.28,"h":13.92,"x":157.08,"y":340.97}
+{"k":"V","t":0.4181,"cls":"chevron","id":27,"w":10.33,"h":14,"x":156.84,"y":341.16}
+{"k":"V","t":0.4265,"cls":"chevron","id":27,"w":10.37,"h":14.06,"x":156.66,"y":341.31}
+{"k":"V","t":0.4348,"cls":"chevron","id":27,"w":10.41,"h":14.1,"x":156.52,"y":341.41}
+{"k":"V","t":0.4431,"cls":"chevron","id":27,"w":10.43,"h":14.13,"x":156.42,"y":341.49}
+{"k":"V","t":0.4515,"cls":"chevron","id":27,"w":10.44,"h":14.15,"x":156.36,"y":341.54}
+{"k":"V","t":0.4598,"cls":"chevron","id":27,"w":10.45,"h":14.16,"x":156.32,"y":341.57}
+{"k":"V","t":0.4681,"cls":"chevron","id":27,"w":10.46,"h":14.17,"x":156.3,"y":341.59}
+{"k":"V","t":0.4848,"cls":"chevron","id":27,"w":10.46,"h":14.17,"x":156.31,"y":341.58}
+{"k":"V","t":0.4931,"cls":"chevron","id":27,"w":10.45,"h":14.16,"x":156.33,"y":341.56}
+{"k":"V","t":0.5015,"cls":"chevron","id":27,"w":10.44,"h":14.15,"x":156.36,"y":341.54}
+{"k":"V","t":0.5098,"cls":"chevron","id":27,"w":10.44,"h":14.14,"x":156.39,"y":341.51}
+{"k":"V","t":0.5181,"cls":"chevron","id":27,"w":10.43,"h":14.13,"x":156.43,"y":341.49}
+{"k":"V","t":0.5265,"cls":"chevron","id":27,"w":10.42,"h":14.12,"x":156.46,"y":341.46}
+{"k":"V","t":0.5348,"cls":"chevron","id":27,"w":10.41,"h":14.11,"x":156.5,"y":341.43}
+{"k":"V","t":0.5431,"cls":"chevron","id":27,"w":10.4,"h":14.09,"x":156.54,"y":341.4}
+{"k":"V","t":0.5515,"cls":"chevron","id":27,"w":10.39,"h":14.08,"x":156.57,"y":341.37}
+{"k":"V","t":0.5598,"cls":"chevron","id":27,"w":10.39,"h":14.07,"x":156.61,"y":341.35}
+{"k":"V","t":0.5681,"cls":"chevron","id":27,"w":10.38,"h":14.06,"x":156.64,"y":341.32}
+{"k":"V","t":0.5765,"cls":"chevron","id":27,"w":10.37,"h":14.05,"x":156.66,"y":341.3}
+{"k":"V","t":0.5848,"cls":"chevron","id":27,"w":10.37,"h":14.05,"x":156.69,"y":341.28}
+{"k":"V","t":0.5931,"cls":"chevron","id":27,"w":10.36,"h":14.04,"x":156.71,"y":341.26}
+{"k":"V","t":0.6015,"cls":"chevron","id":27,"w":10.36,"h":14.03,"x":156.73,"y":341.24}
+{"k":"V","t":0.6098,"cls":"chevron","id":27,"w":10.35,"h":14.03,"x":156.75,"y":341.23}
+{"k":"V","t":0.6181,"cls":"chevron","id":27,"w":10.35,"h":14.02,"x":156.77,"y":341.22}
+{"k":"V","t":0.6265,"cls":"chevron","id":27,"w":10.35,"h":14.02,"x":156.78,"y":341.21}
+{"k":"V","t":0.6348,"cls":"chevron","id":27,"w":10.34,"h":14.01,"x":156.79,"y":341.2}
+{"k":"V","t":0.6432,"cls":"chevron","id":27,"w":10.34,"h":14.01,"x":156.8,"y":341.19}
+{"k":"V","t":0.6515,"cls":"chevron","id":27,"w":10.34,"h":14.01,"x":156.81,"y":341.18}
+{"k":"V","t":0.6598,"cls":"chevron","id":27,"w":10.34,"h":14,"x":156.82,"y":341.18}
+{"k":"V","t":0.6682,"cls":"chevron","id":27,"w":10.34,"h":14,"x":156.83,"y":341.17}
+{"k":"V","t":0.6765,"cls":"chevron","id":27,"w":10.33,"h":14,"x":156.83,"y":341.17}
+{"k":"touch","t":3.9792,"phase":0,"x":99,"y":341}
+{"k":"touch","t":4.0458,"phase":3,"x":99,"y":341}
+{"k":"anim","t":4.0604,"view":"UIButton","id":17,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"anim","t":4.0604,"view":"UIButton","id":20,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":4.0604,"cls":"title","id":26,"text":"October 2026","tc":[0,0.569,1,1],"ea":1}
+{"k":"anim","t":4.0604,"view":"_UICalendarWeekdayView","id":28,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":4.0604,"cls":"_UICalendarMonthYearSelector","id":113,"a":1}
+{"k":"anim","t":4.0604,"view":"_UICalendarMonthYearSelector","id":113,"kp":"opacity","dur":0.25,"from":0,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":4.12,"cls":"_UICalendarMonthYearSelector","id":113,"a":0}
+{"k":"V","t":4.1271,"cls":"chevron","id":27,"w":10.37,"h":14.03,"x":156.83,"y":341.17}
+{"k":"V","t":4.1271,"cls":"_UICalendarWeekdayView","id":28,"a":0.9984}
+{"k":"V","t":4.1271,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0016}
+{"k":"V","t":4.1354,"cls":"chevron","id":27,"w":10.5,"h":14.12,"x":156.83,"y":341.17}
+{"k":"V","t":4.1354,"cls":"_UICalendarWeekdayView","id":28,"a":0.9925}
+{"k":"V","t":4.1354,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0075}
+{"k":"V","t":4.1437,"cls":"chevron","id":27,"w":10.72,"h":14.29,"x":156.83,"y":341.17}
+{"k":"V","t":4.1437,"cls":"_UICalendarWeekdayView","id":28,"a":0.982}
+{"k":"V","t":4.1437,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.018}
+{"k":"V","t":4.1521,"cls":"chevron","id":27,"w":11.05,"h":14.52,"x":156.83,"y":341.17}
+{"k":"V","t":4.1521,"cls":"_UICalendarWeekdayView","id":28,"a":0.9668}
+{"k":"V","t":4.1521,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0332}
+{"k":"V","t":4.1604,"cls":"chevron","id":27,"w":11.46,"h":14.81,"x":156.83,"y":341.17}
+{"k":"V","t":4.1604,"cls":"_UICalendarWeekdayView","id":28,"a":0.947}
+{"k":"V","t":4.1604,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.053}
+{"k":"V","t":4.1687,"cls":"chevron","id":27,"w":11.97,"h":15.16,"x":156.83,"y":341.17}
+{"k":"V","t":4.1687,"cls":"_UICalendarWeekdayView","id":28,"a":0.922}
+{"k":"V","t":4.1687,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.078}
+{"k":"V","t":4.1771,"cls":"chevron","id":27,"w":12.55,"h":15.54,"x":156.83,"y":341.17}
+{"k":"V","t":4.1771,"cls":"_UICalendarWeekdayView","id":28,"a":0.8921}
+{"k":"V","t":4.1771,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.1079}
+{"k":"V","t":4.1854,"cls":"chevron","id":27,"w":13.18,"h":15.94,"x":156.83,"y":341.17}
+{"k":"V","t":4.1854,"cls":"_UICalendarWeekdayView","id":28,"a":0.8576}
+{"k":"V","t":4.1854,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.1424}
+{"k":"V","t":4.1938,"cls":"chevron","id":27,"w":13.86,"h":16.34,"x":156.83,"y":341.17}
+{"k":"V","t":4.1938,"cls":"_UICalendarWeekdayView","id":28,"a":0.8181}
+{"k":"V","t":4.1938,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.1819}
+{"k":"V","t":4.2021,"cls":"chevron","id":27,"w":14.55,"h":16.72,"x":156.83,"y":341.17}
+{"k":"V","t":4.2021,"cls":"_UICalendarWeekdayView","id":28,"a":0.7741}
+{"k":"V","t":4.2021,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.2259}
+{"k":"V","t":4.2104,"cls":"chevron","id":27,"w":15.22,"h":17.03,"x":156.83,"y":341.17}
+{"k":"V","t":4.2104,"cls":"_UICalendarWeekdayView","id":28,"a":0.7265}
+{"k":"V","t":4.2104,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.2735}
+{"k":"V","t":4.2188,"cls":"chevron","id":27,"w":15.86,"h":17.26,"x":156.83,"y":341.17}
+{"k":"V","t":4.2188,"cls":"_UICalendarWeekdayView","id":28,"a":0.6748}
+{"k":"V","t":4.2188,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.3252}
+{"k":"V","t":4.2271,"cls":"chevron","id":27,"w":16.41,"h":17.39,"x":156.83,"y":341.17}
+{"k":"V","t":4.2271,"cls":"_UICalendarWeekdayView","id":28,"a":0.6206}
+{"k":"V","t":4.2271,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.3794}
+{"k":"V","t":4.2354,"cls":"chevron","id":27,"w":16.85,"h":17.38,"x":156.83,"y":341.17}
+{"k":"V","t":4.2354,"cls":"_UICalendarWeekdayView","id":28,"a":0.565}
+{"k":"V","t":4.2354,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.435}
+{"k":"V","t":4.2438,"cls":"chevron","id":27,"w":17.17,"h":17.24,"x":156.83,"y":341.17}
+{"k":"V","t":4.2438,"cls":"_UICalendarWeekdayView","id":28,"a":0.5077}
+{"k":"V","t":4.2438,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.4923}
+{"k":"V","t":4.2521,"cls":"chevron","id":27,"w":17.36,"h":16.95,"x":156.83,"y":341.17}
+{"k":"V","t":4.2521,"cls":"_UICalendarWeekdayView","id":28,"a":0.4498}
+{"k":"V","t":4.2521,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.5502}
+{"k":"V","t":4.2604,"cls":"chevron","id":27,"w":17.4,"h":16.53,"x":156.83,"y":341.17}
+{"k":"V","t":4.2604,"cls":"_UICalendarWeekdayView","id":28,"a":0.3935}
+{"k":"V","t":4.2604,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.6065}
+{"k":"V","t":4.2688,"cls":"chevron","id":27,"w":17.31,"h":16.01,"x":156.83,"y":341.17}
+{"k":"V","t":4.2688,"cls":"_UICalendarWeekdayView","id":28,"a":0.3386}
+{"k":"V","t":4.2688,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.6614}
+{"k":"V","t":4.2771,"cls":"chevron","id":27,"w":17.1,"h":15.4,"x":156.83,"y":341.17}
+{"k":"V","t":4.2771,"cls":"_UICalendarWeekdayView","id":28,"a":0.287}
+{"k":"V","t":4.2771,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.713}
+{"k":"V","t":4.2854,"cls":"chevron","id":27,"w":16.81,"h":14.73,"x":156.83,"y":341.17}
+{"k":"V","t":4.2854,"cls":"_UICalendarWeekdayView","id":28,"a":0.2381}
+{"k":"V","t":4.2854,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.7619}
+{"k":"V","t":4.2938,"cls":"chevron","id":27,"w":16.44,"h":14.04,"x":156.83,"y":341.17}
+{"k":"V","t":4.2938,"cls":"_UICalendarWeekdayView","id":28,"a":0.1928}
+{"k":"V","t":4.2938,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.8072}
+{"k":"V","t":4.3021,"cls":"chevron","id":27,"w":16.05,"h":13.36,"x":156.83,"y":341.17}
+{"k":"V","t":4.3021,"cls":"_UICalendarWeekdayView","id":28,"a":0.1525}
+{"k":"V","t":4.3021,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.8475}
+{"k":"V","t":4.3104,"cls":"chevron","id":27,"w":15.65,"h":12.71,"x":156.83,"y":341.17}
+{"k":"V","t":4.3104,"cls":"_UICalendarWeekdayView","id":28,"a":0.1166}
+{"k":"V","t":4.3104,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.8834}
+{"k":"V","t":4.3188,"cls":"chevron","id":27,"w":15.26,"h":12.11,"x":156.83,"y":341.17}
+{"k":"V","t":4.3188,"cls":"_UICalendarWeekdayView","id":28,"a":0.0854}
+{"k":"V","t":4.3188,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9146}
+{"k":"V","t":4.3271,"cls":"chevron","id":27,"w":14.9,"h":11.59,"x":156.83,"y":341.17}
+{"k":"V","t":4.3271,"cls":"_UICalendarWeekdayView","id":28,"a":0.0592}
+{"k":"V","t":4.3271,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9408}
+{"k":"V","t":4.3354,"cls":"chevron","id":27,"w":14.59,"h":11.15,"x":156.83,"y":341.17}
+{"k":"V","t":4.3354,"cls":"_UICalendarWeekdayView","id":28,"a":0.038}
+{"k":"V","t":4.3354,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.962}
+{"k":"V","t":4.3438,"cls":"chevron","id":27,"w":14.34,"h":10.8,"x":156.83,"y":341.17}
+{"k":"V","t":4.3438,"cls":"_UICalendarWeekdayView","id":28,"a":0.0215}
+{"k":"V","t":4.3438,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9785}
+{"k":"V","t":4.3521,"cls":"chevron","id":27,"w":14.16,"h":10.55,"x":156.83,"y":341.17}
+{"k":"V","t":4.3521,"cls":"_UICalendarWeekdayView","id":28,"a":0.0099}
+{"k":"V","t":4.3521,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9901}
+{"k":"V","t":4.3604,"cls":"chevron","id":27,"w":14.04,"h":10.39,"x":156.83,"y":341.17}
+{"k":"V","t":4.3604,"cls":"_UICalendarWeekdayView","id":28,"a":0.0027}
+{"k":"V","t":4.3604,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9973}
+{"k":"V","t":4.3688,"cls":"chevron","id":27,"w":14,"h":10.33,"x":156.83,"y":341.17}
+{"k":"V","t":4.3688,"cls":"_UICalendarWeekdayView","id":28,"a":0}
+{"k":"V","t":4.3688,"cls":"_UICalendarMonthYearSelector","id":113,"a":1}
+{"k":"touch","t":6.5097,"phase":0,"x":136.67,"y":511}
+{"k":"touch","t":7.3014,"phase":3,"x":136.67,"y":477}
+{"k":"evt","t":7.5206,"e":"valueChanged","v":1793691660}
+{"k":"V","t":7.5331,"cls":"title","id":26,"text":"November 2026","tc":[0,0.569,1,1],"ea":1}
+{"k":"V","t":7.5331,"cls":"chevron","id":27,"w":14,"h":10.33,"x":173.83,"y":341.17}
+{"k":"touch","t":9.513,"phase":0,"x":245.67,"y":471}
+{"k":"touch","t":10.3046,"phase":3,"x":245.67,"y":505}
+{"k":"evt","t":10.6776,"e":"valueChanged","v":1762155660}
+{"k":"V","t":10.6823,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":1}
+{"k":"V","t":10.6823,"cls":"chevron","id":27,"w":14,"h":10.33,"x":173.5,"y":341.17}
+{"k":"touch","t":12.4965,"phase":0,"x":99,"y":341}
+{"k":"touch","t":12.5632,"phase":3,"x":99,"y":341}
+{"k":"anim","t":12.5785,"view":"UIButton","id":17,"kp":"opacity","dur":0.25,"from":0,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"anim","t":12.5785,"view":"UIButton","id":20,"kp":"opacity","dur":0.25,"from":0,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":12.5785,"cls":"title","id":26,"text":"November 2025","tc":[1,1,1,1],"ea":1}
+{"k":"anim","t":12.5785,"view":"_UICalendarWeekdayView","id":28,"kp":"opacity","dur":0.25,"from":0,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"anim","t":12.5785,"view":"_UICalendarMonthYearSelector","id":113,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":12.5868,"cls":"chevron","id":27,"w":14.01,"h":10.34,"x":173.5,"y":341.17}
+{"k":"V","t":12.5868,"cls":"_UICalendarWeekdayView","id":28,"a":0.0003}
+{"k":"V","t":12.5868,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9997}
+{"k":"V","t":12.5952,"cls":"chevron","id":27,"w":14.07,"h":10.43,"x":173.5,"y":341.17}
+{"k":"V","t":12.5952,"cls":"_UICalendarWeekdayView","id":28,"a":0.0042}
+{"k":"V","t":12.5952,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9958}
+{"k":"V","t":12.6035,"cls":"chevron","id":27,"w":14.2,"h":10.61,"x":173.5,"y":341.17}
+{"k":"V","t":12.6035,"cls":"_UICalendarWeekdayView","id":28,"a":0.0126}
+{"k":"V","t":12.6035,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9874}
+{"k":"V","t":12.6119,"cls":"chevron","id":27,"w":14.4,"h":10.89,"x":173.5,"y":341.17}
+{"k":"V","t":12.6119,"cls":"_UICalendarWeekdayView","id":28,"a":0.0255}
+{"k":"V","t":12.6119,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9745}
+{"k":"V","t":12.6202,"cls":"chevron","id":27,"w":14.67,"h":11.26,"x":173.5,"y":341.17}
+{"k":"V","t":12.6202,"cls":"_UICalendarWeekdayView","id":28,"a":0.0433}
+{"k":"V","t":12.6202,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9567}
+{"k":"V","t":12.6285,"cls":"chevron","id":27,"w":14.99,"h":11.73,"x":173.5,"y":341.17}
+{"k":"V","t":12.6285,"cls":"_UICalendarWeekdayView","id":28,"a":0.066}
+{"k":"V","t":12.6285,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.934}
+{"k":"V","t":12.6369,"cls":"chevron","id":27,"w":15.36,"h":12.27,"x":173.5,"y":341.17}
+{"k":"V","t":12.6369,"cls":"_UICalendarWeekdayView","id":28,"a":0.0934}
+{"k":"V","t":12.6369,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.9066}
+{"k":"V","t":12.6452,"cls":"chevron","id":27,"w":15.76,"h":12.88,"x":173.5,"y":341.17}
+{"k":"V","t":12.6452,"cls":"_UICalendarWeekdayView","id":28,"a":0.1259}
+{"k":"V","t":12.6452,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.8741}
+{"k":"V","t":12.6535,"cls":"chevron","id":27,"w":16.16,"h":13.54,"x":173.5,"y":341.17}
+{"k":"V","t":12.6535,"cls":"_UICalendarWeekdayView","id":28,"a":0.163}
+{"k":"V","t":12.6535,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.837}
+{"k":"V","t":12.6619,"cls":"chevron","id":27,"w":16.55,"h":14.23,"x":173.5,"y":341.17}
+{"k":"V","t":12.6619,"cls":"_UICalendarWeekdayView","id":28,"a":0.205}
+{"k":"V","t":12.6619,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.795}
+{"k":"V","t":12.6702,"cls":"chevron","id":27,"w":16.9,"h":14.92,"x":173.5,"y":341.17}
+{"k":"V","t":12.6702,"cls":"_UICalendarWeekdayView","id":28,"a":0.2512}
+{"k":"V","t":12.6702,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.7488}
+{"k":"V","t":12.6785,"cls":"chevron","id":27,"w":17.17,"h":15.57,"x":173.5,"y":341.17}
+{"k":"V","t":12.6785,"cls":"_UICalendarWeekdayView","id":28,"a":0.3004}
+{"k":"V","t":12.6785,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.6996}
+{"k":"V","t":12.6869,"cls":"chevron","id":27,"w":17.35,"h":16.17,"x":173.5,"y":341.17}
+{"k":"V","t":12.6869,"cls":"_UICalendarWeekdayView","id":28,"a":0.354}
+{"k":"V","t":12.6869,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.646}
+{"k":"V","t":12.6952,"cls":"chevron","id":27,"w":17.4,"h":16.66,"x":173.5,"y":341.17}
+{"k":"V","t":12.6952,"cls":"_UICalendarWeekdayView","id":28,"a":0.4092}
+{"k":"V","t":12.6952,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.5908}
+{"k":"V","t":12.7035,"cls":"chevron","id":27,"w":17.32,"h":17.04,"x":173.5,"y":341.17}
+{"k":"V","t":12.7035,"cls":"_UICalendarWeekdayView","id":28,"a":0.466}
+{"k":"V","t":12.7035,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.534}
+{"k":"V","t":12.7119,"cls":"chevron","id":27,"w":17.1,"h":17.29,"x":173.5,"y":341.17}
+{"k":"V","t":12.7119,"cls":"_UICalendarWeekdayView","id":28,"a":0.5234}
+{"k":"V","t":12.7119,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.4766}
+{"k":"V","t":12.7202,"cls":"chevron","id":27,"w":16.74,"h":17.4,"x":173.5,"y":341.17}
+{"k":"V","t":12.7202,"cls":"_UICalendarWeekdayView","id":28,"a":0.5805}
+{"k":"V","t":12.7202,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.4195}
+{"k":"V","t":12.7285,"cls":"chevron","id":27,"w":16.26,"h":17.36,"x":173.5,"y":341.17}
+{"k":"V","t":12.7285,"cls":"_UICalendarWeekdayView","id":28,"a":0.6363}
+{"k":"V","t":12.7285,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.3637}
+{"k":"V","t":12.7369,"cls":"chevron","id":27,"w":15.69,"h":17.21,"x":173.5,"y":341.17}
+{"k":"V","t":12.7369,"cls":"_UICalendarWeekdayView","id":28,"a":0.6892}
+{"k":"V","t":12.7369,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.3108}
+{"k":"V","t":12.7452,"cls":"chevron","id":27,"w":15.04,"h":16.95,"x":173.5,"y":341.17}
+{"k":"V","t":12.7452,"cls":"_UICalendarWeekdayView","id":28,"a":0.7401}
+{"k":"V","t":12.7452,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.2599}
+{"k":"V","t":12.7535,"cls":"chevron","id":27,"w":14.36,"h":16.62,"x":173.5,"y":341.17}
+{"k":"V","t":12.7535,"cls":"_UICalendarWeekdayView","id":28,"a":0.7869}
+{"k":"V","t":12.7535,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.2131}
+{"k":"V","t":12.7619,"cls":"chevron","id":27,"w":13.67,"h":16.23,"x":173.5,"y":341.17}
+{"k":"V","t":12.7619,"cls":"_UICalendarWeekdayView","id":28,"a":0.8295}
+{"k":"V","t":12.7619,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.1705}
+{"k":"V","t":12.7702,"cls":"chevron","id":27,"w":13,"h":15.83,"x":173.5,"y":341.17}
+{"k":"V","t":12.7702,"cls":"_UICalendarWeekdayView","id":28,"a":0.8676}
+{"k":"V","t":12.7702,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.1324}
+{"k":"V","t":12.7785,"cls":"chevron","id":27,"w":12.38,"h":15.43,"x":173.5,"y":341.17}
+{"k":"V","t":12.7785,"cls":"_UICalendarWeekdayView","id":28,"a":0.901}
+{"k":"V","t":12.7785,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.099}
+{"k":"V","t":12.7869,"cls":"chevron","id":27,"w":11.82,"h":15.06,"x":173.5,"y":341.17}
+{"k":"V","t":12.7869,"cls":"_UICalendarWeekdayView","id":28,"a":0.9294}
+{"k":"V","t":12.7869,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0706}
+{"k":"V","t":12.7952,"cls":"chevron","id":27,"w":11.34,"h":14.73,"x":173.5,"y":341.17}
+{"k":"V","t":12.7952,"cls":"_UICalendarWeekdayView","id":28,"a":0.9528}
+{"k":"V","t":12.7952,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0472}
+{"k":"V","t":12.8036,"cls":"chevron","id":27,"w":10.95,"h":14.45,"x":173.5,"y":341.17}
+{"k":"V","t":12.8036,"cls":"_UICalendarWeekdayView","id":28,"a":0.9716}
+{"k":"V","t":12.8036,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0284}
+{"k":"V","t":12.8119,"cls":"chevron","id":27,"w":10.65,"h":14.23,"x":173.5,"y":341.17}
+{"k":"V","t":12.8119,"cls":"_UICalendarWeekdayView","id":28,"a":0.9854}
+{"k":"V","t":12.8119,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0146}
+{"k":"V","t":12.8202,"cls":"chevron","id":27,"w":10.45,"h":14.09,"x":173.5,"y":341.17}
+{"k":"V","t":12.8202,"cls":"_UICalendarWeekdayView","id":28,"a":0.9946}
+{"k":"V","t":12.8202,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0054}
+{"k":"V","t":12.8286,"cls":"chevron","id":27,"w":10.35,"h":14.01,"x":173.5,"y":341.17}
+{"k":"V","t":12.8286,"cls":"_UICalendarWeekdayView","id":28,"a":0.9993}
+{"k":"V","t":12.8286,"cls":"_UICalendarMonthYearSelector","id":113,"a":0.0007}
+{"k":"V","t":12.8369,"cls":"chevron","id":27,"w":10.33,"h":14,"x":173.5,"y":341.17}
+{"k":"V","t":12.8369,"cls":"_UICalendarWeekdayView","id":28,"a":1}
+{"k":"touch","t":14.6924,"phase":0,"x":99,"y":341}
+{"k":"touch","t":14.7674,"phase":3,"x":99,"y":341}
+{"k":"touch","t":14.7674,"phase":0,"x":176,"y":630}
+{"k":"anim","t":14.7789,"view":"UIButton","id":17,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"anim","t":14.7789,"view":"UIButton","id":20,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":14.7789,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":1}
+{"k":"anim","t":14.7789,"view":"_UICalendarWeekdayView","id":28,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":14.7789,"cls":"_UICalendarMonthYearSelector","id":312,"a":1}
+{"k":"anim","t":14.7789,"view":"_UICalendarMonthYearSelector","id":312,"kp":"opacity","dur":0.25,"from":0,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":14.8321,"cls":"_UICalendarMonthYearSelector","id":312,"a":0}
+{"k":"V","t":14.8456,"cls":"chevron","id":27,"w":10.46,"h":14.09,"x":173.5,"y":341.17}
+{"k":"V","t":14.8456,"cls":"_UICalendarWeekdayView","id":28,"a":0.9944}
+{"k":"V","t":14.8456,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0056}
+{"k":"V","t":14.8539,"cls":"chevron","id":27,"w":10.66,"h":14.24,"x":173.5,"y":341.17}
+{"k":"V","t":14.8539,"cls":"_UICalendarWeekdayView","id":28,"a":0.9851}
+{"k":"V","t":14.8539,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0149}
+{"k":"V","t":14.8622,"cls":"chevron","id":27,"w":10.96,"h":14.45,"x":173.5,"y":341.17}
+{"k":"V","t":14.8622,"cls":"_UICalendarWeekdayView","id":28,"a":0.9712}
+{"k":"V","t":14.8622,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0288}
+{"k":"V","t":14.8706,"cls":"chevron","id":27,"w":11.35,"h":14.73,"x":173.5,"y":341.17}
+{"k":"V","t":14.8706,"cls":"_UICalendarWeekdayView","id":28,"a":0.9523}
+{"k":"V","t":14.8706,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0477}
+{"k":"V","t":14.8789,"cls":"chevron","id":27,"w":11.83,"h":15.07,"x":173.5,"y":341.17}
+{"k":"V","t":14.8789,"cls":"_UICalendarWeekdayView","id":28,"a":0.9289}
+{"k":"V","t":14.8789,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0711}
+{"k":"V","t":14.8872,"cls":"chevron","id":27,"w":12.39,"h":15.44,"x":173.5,"y":341.17}
+{"k":"V","t":14.8872,"cls":"_UICalendarWeekdayView","id":28,"a":0.9002}
+{"k":"V","t":14.8872,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0998}
+{"k":"V","t":14.8956,"cls":"chevron","id":27,"w":13.01,"h":15.84,"x":173.5,"y":341.17}
+{"k":"V","t":14.8956,"cls":"_UICalendarWeekdayView","id":28,"a":0.8669}
+{"k":"V","t":14.8956,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.1331}
+{"k":"touch","t":14.8924,"phase":3,"x":176,"y":630}
+{"k":"touch","t":14.8924,"phase":0,"x":99,"y":341}
+{"k":"V","t":14.9039,"cls":"chevron","id":27,"w":13.69,"h":16.25,"x":173.5,"y":341.17}
+{"k":"V","t":14.9039,"cls":"_UICalendarWeekdayView","id":28,"a":0.8284}
+{"k":"V","t":14.9039,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.1716}
+{"k":"V","t":14.9122,"cls":"chevron","id":27,"w":14.38,"h":16.63,"x":173.5,"y":341.17}
+{"k":"V","t":14.9122,"cls":"_UICalendarWeekdayView","id":28,"a":0.7855}
+{"k":"V","t":14.9122,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.2145}
+{"k":"V","t":14.9206,"cls":"chevron","id":27,"w":15.06,"h":16.96,"x":173.5,"y":341.17}
+{"k":"V","t":14.9206,"cls":"_UICalendarWeekdayView","id":28,"a":0.7391}
+{"k":"V","t":14.9206,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.2609}
+{"k":"V","t":14.9289,"cls":"chevron","id":27,"w":15.71,"h":17.22,"x":173.5,"y":341.17}
+{"k":"V","t":14.9289,"cls":"_UICalendarWeekdayView","id":28,"a":0.688}
+{"k":"V","t":14.9289,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.312}
+{"k":"V","t":14.9372,"cls":"chevron","id":27,"w":16.28,"h":17.37,"x":173.5,"y":341.17}
+{"k":"V","t":14.9372,"cls":"_UICalendarWeekdayView","id":28,"a":0.6347}
+{"k":"V","t":14.9372,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.3653}
+{"k":"V","t":14.9456,"cls":"chevron","id":27,"w":16.75,"h":17.39,"x":173.5,"y":341.17}
+{"k":"V","t":14.9456,"cls":"_UICalendarWeekdayView","id":28,"a":0.5792}
+{"k":"V","t":14.9456,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.4208}
+{"k":"V","t":14.9539,"cls":"chevron","id":27,"w":17.1,"h":17.29,"x":173.5,"y":341.17}
+{"k":"V","t":14.9539,"cls":"_UICalendarWeekdayView","id":28,"a":0.5224}
+{"k":"V","t":14.9539,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.4776}
+{"k":"V","t":14.9623,"cls":"chevron","id":27,"w":17.32,"h":17.04,"x":173.5,"y":341.17}
+{"k":"V","t":14.9623,"cls":"_UICalendarWeekdayView","id":28,"a":0.4646}
+{"k":"V","t":14.9623,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.5354}
+{"k":"V","t":14.9706,"cls":"chevron","id":27,"w":17.4,"h":16.65,"x":173.5,"y":341.17}
+{"k":"V","t":14.9706,"cls":"_UICalendarWeekdayView","id":28,"a":0.4078}
+{"k":"V","t":14.9706,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.5922}
+{"k":"touch","t":14.9674,"phase":3,"x":99,"y":341}
+{"k":"anim","t":14.9789,"view":"UIButton","id":17,"kp":"opacity","dur":0.25,"from":0,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"anim","t":14.9789,"view":"UIButton","id":20,"kp":"opacity","dur":0.25,"from":0,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":14.9789,"cls":"title","id":26,"text":"November 2025","tc":[1,1,1,1],"ea":1}
+{"k":"V","t":14.9789,"cls":"chevron","id":27,"w":17.34,"h":16.15,"x":173.5,"y":341.17}
+{"k":"V","t":14.9789,"cls":"_UICalendarWeekdayView","id":28,"a":0.3521}
+{"k":"anim","t":14.9789,"view":"_UICalendarWeekdayView","id":28,"kp":"opacity","dur":0.25,"from":0.35206425189971924,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":14.9789,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.6479}
+{"k":"anim","t":14.9789,"view":"_UICalendarMonthYearSelector","id":312,"kp":"opacity","dur":0.25,"from":0.6479357481002808,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":14.9873,"cls":"chevron","id":27,"w":17.06,"h":15.29,"x":173.5,"y":341.17}
+{"k":"V","t":14.9956,"cls":"chevron","id":27,"w":16.89,"h":14.9,"x":173.5,"y":341.17}
+{"k":"V","t":14.9956,"cls":"_UICalendarWeekdayView","id":28,"a":0.3528}
+{"k":"V","t":14.9956,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.6472}
+{"k":"V","t":15.0039,"cls":"chevron","id":27,"w":16.6,"h":14.32,"x":173.5,"y":341.17}
+{"k":"V","t":15.0039,"cls":"_UICalendarWeekdayView","id":28,"a":0.3562}
+{"k":"V","t":15.0039,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.6438}
+{"k":"V","t":15.0123,"cls":"chevron","id":27,"w":16.31,"h":13.81,"x":173.5,"y":341.17}
+{"k":"V","t":15.0123,"cls":"_UICalendarWeekdayView","id":28,"a":0.3626}
+{"k":"V","t":15.0123,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.6374}
+{"k":"V","t":15.0206,"cls":"chevron","id":27,"w":16.09,"h":13.42,"x":173.5,"y":341.17}
+{"k":"V","t":15.0206,"cls":"_UICalendarWeekdayView","id":28,"a":0.372}
+{"k":"V","t":15.0206,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.628}
+{"k":"V","t":15.0289,"cls":"chevron","id":27,"w":15.95,"h":13.19,"x":173.5,"y":341.17}
+{"k":"V","t":15.0289,"cls":"_UICalendarWeekdayView","id":28,"a":0.3845}
+{"k":"V","t":15.0289,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.6155}
+{"k":"V","t":15.0373,"cls":"chevron","id":27,"w":15.91,"h":13.13,"x":173.5,"y":341.17}
+{"k":"V","t":15.0373,"cls":"_UICalendarWeekdayView","id":28,"a":0.4002}
+{"k":"V","t":15.0373,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.5998}
+{"k":"V","t":15.0456,"cls":"chevron","id":27,"w":15.99,"h":13.25,"x":173.5,"y":341.17}
+{"k":"V","t":15.0456,"cls":"_UICalendarWeekdayView","id":28,"a":0.4191}
+{"k":"V","t":15.0456,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.5809}
+{"k":"V","t":15.0539,"cls":"chevron","id":27,"w":16.16,"h":13.54,"x":173.5,"y":341.17}
+{"k":"V","t":15.0539,"cls":"_UICalendarWeekdayView","id":28,"a":0.4416}
+{"k":"V","t":15.0539,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.5584}
+{"k":"V","t":15.0623,"cls":"chevron","id":27,"w":16.41,"h":13.97,"x":173.5,"y":341.17}
+{"k":"V","t":15.0623,"cls":"_UICalendarWeekdayView","id":28,"a":0.4662}
+{"k":"V","t":15.0623,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.5338}
+{"k":"V","t":15.0706,"cls":"chevron","id":27,"w":16.7,"h":14.52,"x":173.5,"y":341.17}
+{"k":"V","t":15.0706,"cls":"_UICalendarWeekdayView","id":28,"a":0.4942}
+{"k":"V","t":15.0706,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.5058}
+{"k":"V","t":15.0789,"cls":"chevron","id":27,"w":17,"h":15.15,"x":173.5,"y":341.17}
+{"k":"V","t":15.0789,"cls":"_UICalendarWeekdayView","id":28,"a":0.5253}
+{"k":"V","t":15.0789,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.4747}
+{"k":"V","t":15.0873,"cls":"chevron","id":27,"w":17.24,"h":15.77,"x":173.5,"y":341.17}
+{"k":"V","t":15.0873,"cls":"_UICalendarWeekdayView","id":28,"a":0.558}
+{"k":"V","t":15.0873,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.442}
+{"k":"V","t":15.0956,"cls":"chevron","id":27,"w":17.38,"h":16.34,"x":173.5,"y":341.17}
+{"k":"V","t":15.0956,"cls":"_UICalendarWeekdayView","id":28,"a":0.5931}
+{"k":"V","t":15.0956,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.4069}
+{"k":"V","t":15.1039,"cls":"chevron","id":27,"w":17.39,"h":16.8,"x":173.5,"y":341.17}
+{"k":"V","t":15.1039,"cls":"_UICalendarWeekdayView","id":28,"a":0.6291}
+{"k":"V","t":15.1039,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.3709}
+{"k":"V","t":15.1123,"cls":"chevron","id":27,"w":17.26,"h":17.14,"x":173.5,"y":341.17}
+{"k":"V","t":15.1123,"cls":"_UICalendarWeekdayView","id":28,"a":0.6661}
+{"k":"V","t":15.1123,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.3339}
+{"k":"V","t":15.1206,"cls":"chevron","id":27,"w":17,"h":17.34,"x":173.5,"y":341.17}
+{"k":"V","t":15.1206,"cls":"_UICalendarWeekdayView","id":28,"a":0.7033}
+{"k":"V","t":15.1206,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.2967}
+{"k":"V","t":15.1289,"cls":"chevron","id":27,"w":16.6,"h":17.4,"x":173.5,"y":341.17}
+{"k":"V","t":15.1289,"cls":"_UICalendarWeekdayView","id":28,"a":0.7401}
+{"k":"V","t":15.1289,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.2599}
+{"k":"V","t":15.1373,"cls":"chevron","id":27,"w":16.09,"h":17.33,"x":173.5,"y":341.17}
+{"k":"V","t":15.1373,"cls":"_UICalendarWeekdayView","id":28,"a":0.7756}
+{"k":"V","t":15.1373,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.2244}
+{"k":"V","t":15.1456,"cls":"chevron","id":27,"w":15.49,"h":17.14,"x":173.5,"y":341.17}
+{"k":"V","t":15.1456,"cls":"_UICalendarWeekdayView","id":28,"a":0.8097}
+{"k":"V","t":15.1456,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.1903}
+{"k":"V","t":15.1539,"cls":"chevron","id":27,"w":14.82,"h":16.85,"x":173.5,"y":341.17}
+{"k":"V","t":15.1539,"cls":"_UICalendarWeekdayView","id":28,"a":0.8419}
+{"k":"V","t":15.1539,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.1581}
+{"k":"V","t":15.1623,"cls":"chevron","id":27,"w":14.14,"h":16.5,"x":173.5,"y":341.17}
+{"k":"V","t":15.1623,"cls":"_UICalendarWeekdayView","id":28,"a":0.8711}
+{"k":"V","t":15.1623,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.1289}
+{"k":"V","t":15.1706,"cls":"chevron","id":27,"w":13.46,"h":16.11,"x":173.5,"y":341.17}
+{"k":"V","t":15.1706,"cls":"_UICalendarWeekdayView","id":28,"a":0.8976}
+{"k":"V","t":15.1706,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.1024}
+{"k":"V","t":15.179,"cls":"chevron","id":27,"w":12.79,"h":15.7,"x":173.5,"y":341.17}
+{"k":"V","t":15.179,"cls":"_UICalendarWeekdayView","id":28,"a":0.9216}
+{"k":"V","t":15.179,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0784}
+{"k":"V","t":15.1873,"cls":"chevron","id":27,"w":12.19,"h":15.31,"x":173.5,"y":341.17}
+{"k":"V","t":15.1873,"cls":"_UICalendarWeekdayView","id":28,"a":0.9422}
+{"k":"V","t":15.1873,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0578}
+{"k":"V","t":15.1956,"cls":"chevron","id":27,"w":11.66,"h":14.95,"x":173.5,"y":341.17}
+{"k":"V","t":15.1956,"cls":"_UICalendarWeekdayView","id":28,"a":0.9595}
+{"k":"V","t":15.1956,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0405}
+{"k":"V","t":15.204,"cls":"chevron","id":27,"w":11.2,"h":14.63,"x":173.5,"y":341.17}
+{"k":"V","t":15.204,"cls":"_UICalendarWeekdayView","id":28,"a":0.9737}
+{"k":"V","t":15.204,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0263}
+{"k":"V","t":15.2123,"cls":"chevron","id":27,"w":10.84,"h":14.37,"x":173.5,"y":341.17}
+{"k":"V","t":15.2123,"cls":"_UICalendarWeekdayView","id":28,"a":0.9848}
+{"k":"V","t":15.2123,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0152}
+{"k":"V","t":15.2206,"cls":"chevron","id":27,"w":10.58,"h":14.18,"x":173.5,"y":341.17}
+{"k":"V","t":15.2206,"cls":"_UICalendarWeekdayView","id":28,"a":0.9928}
+{"k":"V","t":15.2206,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0072}
+{"k":"V","t":15.229,"cls":"chevron","id":27,"w":10.41,"h":14.06,"x":173.5,"y":341.17}
+{"k":"V","t":15.229,"cls":"_UICalendarWeekdayView","id":28,"a":0.9978}
+{"k":"V","t":15.229,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0022}
+{"k":"V","t":15.2373,"cls":"chevron","id":27,"w":10.34,"h":14,"x":173.5,"y":341.17}
+{"k":"V","t":15.2373,"cls":"_UICalendarWeekdayView","id":28,"a":0.9999}
+{"k":"V","t":15.2373,"cls":"_UICalendarMonthYearSelector","id":312,"a":0.0001}
+{"k":"V","t":15.2456,"cls":"chevron","id":27,"w":10.33,"h":14,"x":173.5,"y":341.17}
+{"k":"V","t":15.2456,"cls":"_UICalendarWeekdayView","id":28,"a":1}
+{"k":"touch","t":17.1008,"phase":0,"x":99,"y":341}
+{"k":"touch","t":17.1674,"phase":3,"x":99,"y":341}
+{"k":"anim","t":17.1793,"view":"UIButton","id":20,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":17.1793,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":1}
+{"k":"anim","t":17.1793,"view":"_UICalendarWeekdayView","id":28,"kp":"opacity","dur":0.25,"from":1,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":17.1793,"cls":"_UICalendarMonthYearSelector","id":384,"a":1}
+{"k":"anim","t":17.1793,"view":"_UICalendarMonthYearSelector","id":384,"kp":"opacity","dur":0.25,"from":0,"to":null,"tf":[0.42,0,0.58,1]}
+{"k":"V","t":17.2281,"cls":"_UICalendarMonthYearSelector","id":384,"a":0}
+{"k":"V","t":17.2376,"cls":"chevron","id":27,"w":10.39,"h":14.04,"x":173.5,"y":341.17}
+{"k":"V","t":17.2376,"cls":"_UICalendarWeekdayView","id":28,"a":0.9973}
+{"k":"V","t":17.2376,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.0027}
+{"k":"V","t":17.246,"cls":"chevron","id":27,"w":10.55,"h":14.16,"x":173.5,"y":341.17}
+{"k":"V","t":17.246,"cls":"_UICalendarWeekdayView","id":28,"a":0.9901}
+{"k":"V","t":17.246,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.0099}
+{"k":"V","t":17.2543,"cls":"chevron","id":27,"w":10.8,"h":14.34,"x":173.5,"y":341.17}
+{"k":"V","t":17.2543,"cls":"_UICalendarWeekdayView","id":28,"a":0.9785}
+{"k":"V","t":17.2543,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.0215}
+{"k":"V","t":17.2626,"cls":"chevron","id":27,"w":11.15,"h":14.59,"x":173.5,"y":341.17}
+{"k":"V","t":17.2626,"cls":"_UICalendarWeekdayView","id":28,"a":0.9621}
+{"k":"V","t":17.2626,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.0379}
+{"k":"V","t":17.271,"cls":"chevron","id":27,"w":11.59,"h":14.9,"x":173.5,"y":341.17}
+{"k":"V","t":17.271,"cls":"_UICalendarWeekdayView","id":28,"a":0.9406}
+{"k":"V","t":17.271,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.0594}
+{"k":"V","t":17.2793,"cls":"chevron","id":27,"w":12.14,"h":15.27,"x":173.5,"y":341.17}
+{"k":"V","t":17.2793,"cls":"_UICalendarWeekdayView","id":28,"a":0.9135}
+{"k":"V","t":17.2793,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.0865}
+{"k":"V","t":17.2876,"cls":"chevron","id":27,"w":12.71,"h":15.65,"x":173.5,"y":341.17}
+{"k":"V","t":17.2876,"cls":"_UICalendarWeekdayView","id":28,"a":0.8834}
+{"k":"V","t":17.2876,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.1166}
+{"k":"V","t":17.296,"cls":"chevron","id":27,"w":13.36,"h":16.05,"x":173.5,"y":341.17}
+{"k":"V","t":17.296,"cls":"_UICalendarWeekdayView","id":28,"a":0.8475}
+{"k":"V","t":17.296,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.1525}
+{"k":"V","t":17.3043,"cls":"chevron","id":27,"w":14.05,"h":16.45,"x":173.5,"y":341.17}
+{"k":"V","t":17.3043,"cls":"_UICalendarWeekdayView","id":28,"a":0.8067}
+{"k":"V","t":17.3043,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.1933}
+{"k":"V","t":17.3127,"cls":"chevron","id":27,"w":14.74,"h":16.81,"x":173.5,"y":341.17}
+{"k":"V","t":17.3127,"cls":"_UICalendarWeekdayView","id":28,"a":0.7617}
+{"k":"V","t":17.3127,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.2383}
+{"k":"V","t":17.321,"cls":"chevron","id":27,"w":15.4,"h":17.11,"x":173.5,"y":341.17}
+{"k":"V","t":17.321,"cls":"_UICalendarWeekdayView","id":28,"a":0.7127}
+{"k":"V","t":17.321,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.2873}
+{"k":"V","t":17.3293,"cls":"chevron","id":27,"w":16.01,"h":17.31,"x":173.5,"y":341.17}
+{"k":"V","t":17.3293,"cls":"_UICalendarWeekdayView","id":28,"a":0.6609}
+{"k":"V","t":17.3293,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.3391}
+{"k":"V","t":17.3377,"cls":"chevron","id":27,"w":16.54,"h":17.4,"x":173.5,"y":341.17}
+{"k":"V","t":17.3377,"cls":"_UICalendarWeekdayView","id":28,"a":0.6062}
+{"k":"V","t":17.3377,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.3938}
+{"k":"V","t":17.346,"cls":"chevron","id":27,"w":16.95,"h":17.36,"x":173.5,"y":341.17}
+{"k":"V","t":17.346,"cls":"_UICalendarWeekdayView","id":28,"a":0.5496}
+{"k":"V","t":17.346,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.4504}
+{"k":"V","t":17.3543,"cls":"chevron","id":27,"w":17.24,"h":17.17,"x":173.5,"y":341.17}
+{"k":"V","t":17.3543,"cls":"_UICalendarWeekdayView","id":28,"a":0.4921}
+{"k":"V","t":17.3543,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.5079}
+{"k":"V","t":17.3627,"cls":"chevron","id":27,"w":17.38,"h":16.85,"x":173.5,"y":341.17}
+{"k":"V","t":17.3627,"cls":"_UICalendarWeekdayView","id":28,"a":0.4352}
+{"k":"V","t":17.3627,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.5648}
+{"k":"V","t":17.371,"cls":"chevron","id":27,"w":17.39,"h":16.41,"x":173.5,"y":341.17}
+{"k":"V","t":17.371,"cls":"_UICalendarWeekdayView","id":28,"a":0.3789}
+{"k":"V","t":17.371,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.6211}
+{"k":"V","t":17.3793,"cls":"chevron","id":27,"w":17.26,"h":15.85,"x":173.5,"y":341.17}
+{"k":"V","t":17.3793,"cls":"_UICalendarWeekdayView","id":28,"a":0.3247}
+{"k":"V","t":17.3793,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.6753}
+{"k":"V","t":17.3877,"cls":"chevron","id":27,"w":17.03,"h":15.22,"x":173.5,"y":341.17}
+{"k":"V","t":17.3877,"cls":"_UICalendarWeekdayView","id":28,"a":0.2733}
+{"k":"V","t":17.3877,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.7267}
+{"k":"V","t":17.396,"cls":"chevron","id":27,"w":16.71,"h":14.55,"x":173.5,"y":341.17}
+{"k":"V","t":17.396,"cls":"_UICalendarWeekdayView","id":28,"a":0.2255}
+{"k":"V","t":17.396,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.7745}
+{"k":"V","t":17.4043,"cls":"chevron","id":27,"w":16.34,"h":13.86,"x":173.5,"y":341.17}
+{"k":"V","t":17.4043,"cls":"_UICalendarWeekdayView","id":28,"a":0.1817}
+{"k":"V","t":17.4043,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.8183}
+{"k":"V","t":17.4127,"cls":"chevron","id":27,"w":15.94,"h":13.18,"x":173.5,"y":341.17}
+{"k":"V","t":17.4127,"cls":"_UICalendarWeekdayView","id":28,"a":0.1423}
+{"k":"V","t":17.4127,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.8577}
+{"k":"V","t":17.421,"cls":"chevron","id":27,"w":15.54,"h":12.54,"x":173.5,"y":341.17}
+{"k":"V","t":17.421,"cls":"_UICalendarWeekdayView","id":28,"a":0.1076}
+{"k":"V","t":17.421,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.8924}
+{"k":"V","t":17.4293,"cls":"chevron","id":27,"w":15.16,"h":11.96,"x":173.5,"y":341.17}
+{"k":"V","t":17.4293,"cls":"_UICalendarWeekdayView","id":28,"a":0.0779}
+{"k":"V","t":17.4293,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.9221}
+{"k":"V","t":17.4377,"cls":"chevron","id":27,"w":14.81,"h":11.46,"x":173.5,"y":341.17}
+{"k":"V","t":17.4377,"cls":"_UICalendarWeekdayView","id":28,"a":0.0529}
+{"k":"V","t":17.4377,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.9471}
+{"k":"V","t":17.446,"cls":"chevron","id":27,"w":14.52,"h":11.05,"x":173.5,"y":341.17}
+{"k":"V","t":17.446,"cls":"_UICalendarWeekdayView","id":28,"a":0.0331}
+{"k":"V","t":17.446,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.9669}
+{"k":"V","t":17.4543,"cls":"chevron","id":27,"w":14.28,"h":10.72,"x":173.5,"y":341.17}
+{"k":"V","t":17.4543,"cls":"_UICalendarWeekdayView","id":28,"a":0.0179}
+{"k":"V","t":17.4543,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.9821}
+{"k":"V","t":17.4627,"cls":"chevron","id":27,"w":14.12,"h":10.5,"x":173.5,"y":341.17}
+{"k":"V","t":17.4627,"cls":"_UICalendarWeekdayView","id":28,"a":0.0075}
+{"k":"V","t":17.4627,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.9925}
+{"k":"V","t":17.471,"cls":"chevron","id":27,"w":14.03,"h":10.37,"x":173.5,"y":341.17}
+{"k":"V","t":17.471,"cls":"_UICalendarWeekdayView","id":28,"a":0.0016}
+{"k":"V","t":17.471,"cls":"_UICalendarMonthYearSelector","id":384,"a":0.9984}
+{"k":"V","t":17.4793,"cls":"chevron","id":27,"w":14,"h":10.33,"x":173.5,"y":341.17}
+{"k":"V","t":17.4793,"cls":"_UICalendarWeekdayView","id":28,"a":0}
+{"k":"V","t":17.4793,"cls":"_UICalendarMonthYearSelector","id":384,"a":1}
+{"k":"touch","t":19.1895,"phase":0,"x":201,"y":754}
+{"k":"touch","t":19.2562,"phase":3,"x":201,"y":754}
+{"k":"V","t":19.3035,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0}
+{"k":"V","t":19.3035,"cls":"chevron","id":27,"w":14,"h":10.33,"x":157.5,"y":34.83}
+{"k":"V","t":19.313,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":1}
+{"k":"V","t":19.313,"cls":"chevron","id":27,"w":14,"h":10.33,"x":173.5,"y":341.17}
+{"k":"V","t":19.3297,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.9806}
+{"k":"V","t":19.3297,"cls":"chevron","id":27,"w":13.78,"h":10.17,"x":173.93,"y":340.63}
+{"k":"V","t":19.338,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.9475}
+{"k":"V","t":19.338,"cls":"chevron","id":27,"w":13.41,"h":9.9,"x":174.66,"y":339.7}
+{"k":"V","t":19.3463,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.9031}
+{"k":"V","t":19.3463,"cls":"chevron","id":27,"w":12.92,"h":9.53,"x":175.64,"y":338.47}
+{"k":"V","t":19.3547,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.8509}
+{"k":"V","t":19.3547,"cls":"chevron","id":27,"w":12.33,"h":9.1,"x":176.8,"y":337.01}
+{"k":"V","t":19.363,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.7937}
+{"k":"V","t":19.363,"cls":"chevron","id":27,"w":11.69,"h":8.63,"x":178.07,"y":335.42}
+{"k":"V","t":19.3713,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.7336}
+{"k":"V","t":19.3713,"cls":"chevron","id":27,"w":11.02,"h":8.13,"x":179.4,"y":333.74}
+{"k":"V","t":19.3797,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.6725}
+{"k":"V","t":19.3797,"cls":"chevron","id":27,"w":10.33,"h":7.63,"x":180.75,"y":332.04}
+{"k":"V","t":19.388,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.6119}
+{"k":"V","t":19.388,"cls":"chevron","id":27,"w":9.65,"h":7.13,"x":182.09,"y":330.35}
+{"k":"V","t":19.3963,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.5529}
+{"k":"V","t":19.3963,"cls":"chevron","id":27,"w":8.99,"h":6.64,"x":183.4,"y":328.71}
+{"k":"V","t":19.4047,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.4961}
+{"k":"V","t":19.4047,"cls":"chevron","id":27,"w":8.36,"h":6.17,"x":184.65,"y":327.13}
+{"k":"V","t":19.413,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.4424}
+{"k":"V","t":19.413,"cls":"chevron","id":27,"w":7.75,"h":5.72,"x":185.84,"y":325.63}
+{"k":"V","t":19.4213,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.392}
+{"k":"V","t":19.4213,"cls":"chevron","id":27,"w":7.19,"h":5.31,"x":186.96,"y":324.22}
+{"k":"V","t":19.4297,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.3451}
+{"k":"V","t":19.4297,"cls":"chevron","id":27,"w":6.67,"h":4.92,"x":187.99,"y":322.92}
+{"k":"V","t":19.438,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.302}
+{"k":"V","t":19.438,"cls":"chevron","id":27,"w":6.18,"h":4.56,"x":188.95,"y":321.72}
+{"k":"V","t":19.4463,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.2626}
+{"k":"V","t":19.4463,"cls":"chevron","id":27,"w":5.74,"h":4.24,"x":189.82,"y":320.62}
+{"k":"V","t":19.4547,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.2269}
+{"k":"V","t":19.4547,"cls":"chevron","id":27,"w":5.34,"h":3.94,"x":190.61,"y":319.62}
+{"k":"V","t":19.463,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.1947}
+{"k":"V","t":19.463,"cls":"chevron","id":27,"w":4.98,"h":3.68,"x":191.32,"y":318.73}
+{"k":"V","t":19.4714,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.1659}
+{"k":"V","t":19.4714,"cls":"chevron","id":27,"w":4.66,"h":3.44,"x":191.96,"y":317.92}
+{"k":"V","t":19.4797,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.1403}
+{"k":"V","t":19.4797,"cls":"chevron","id":27,"w":4.37,"h":3.23,"x":192.53,"y":317.21}
+{"k":"V","t":19.488,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.1177}
+{"k":"V","t":19.488,"cls":"chevron","id":27,"w":4.12,"h":3.04,"x":193.03,"y":316.58}
+{"k":"V","t":19.4964,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0978}
+{"k":"V","t":19.4964,"cls":"chevron","id":27,"w":3.9,"h":2.88,"x":193.47,"y":316.03}
+{"k":"V","t":19.5047,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0805}
+{"k":"V","t":19.5047,"cls":"chevron","id":27,"w":3.7,"h":2.73,"x":193.85,"y":315.54}
+{"k":"V","t":19.513,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0655}
+{"k":"V","t":19.513,"cls":"chevron","id":27,"w":3.53,"h":2.61,"x":194.18,"y":315.12}
+{"k":"V","t":19.5214,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0525}
+{"k":"V","t":19.5214,"cls":"chevron","id":27,"w":3.39,"h":2.5,"x":194.47,"y":314.76}
+{"k":"V","t":19.5297,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0415}
+{"k":"V","t":19.5297,"cls":"chevron","id":27,"w":3.26,"h":2.41,"x":194.72,"y":314.46}
+{"k":"V","t":19.538,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.032}
+{"k":"V","t":19.538,"cls":"chevron","id":27,"w":3.16,"h":2.33,"x":194.92,"y":314.19}
+{"k":"V","t":19.5464,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0241}
+{"k":"V","t":19.5464,"cls":"chevron","id":27,"w":3.07,"h":2.27,"x":195.1,"y":313.97}
+{"k":"V","t":19.5547,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0175}
+{"k":"V","t":19.5547,"cls":"chevron","id":27,"w":3,"h":2.21,"x":195.25,"y":313.79}
+{"k":"V","t":19.563,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.012}
+{"k":"V","t":19.563,"cls":"chevron","id":27,"w":2.93,"h":2.17,"x":195.37,"y":313.64}
+{"k":"V","t":19.5714,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0075}
+{"k":"V","t":19.5714,"cls":"chevron","id":27,"w":2.88,"h":2.13,"x":195.47,"y":313.51}
+{"k":"V","t":19.5797,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.0039}
+{"k":"V","t":19.5797,"cls":"chevron","id":27,"w":2.84,"h":2.1,"x":195.55,"y":313.41}
+{"k":"V","t":19.588,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0.001}
+{"k":"V","t":19.588,"cls":"chevron","id":27,"w":2.81,"h":2.08,"x":195.61,"y":313.33}
+{"k":"V","t":19.5964,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":-0.0012}
+{"k":"V","t":19.5964,"cls":"chevron","id":27,"w":2.79,"h":2.06,"x":195.66,"y":313.27}
+{"k":"V","t":19.6047,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":-0.003}
+{"k":"V","t":19.6047,"cls":"chevron","id":27,"w":2.77,"h":2.04,"x":195.7,"y":313.22}
+{"k":"V","t":19.613,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":-0.0042}
+{"k":"V","t":19.613,"cls":"chevron","id":27,"w":2.75,"h":2.03,"x":195.73,"y":313.18}
+{"k":"V","t":19.6214,"cls":"title","id":26,"text":"November 2025","tc":[0,0.569,1,1],"ea":0}
+{"k":"V","t":19.6214,"cls":"chevron","id":27,"w":2.74,"h":2.02,"x":195.75,"y":313.16}
+{"k":"V","t":19.6297,"cls":"chevron","id":27,"w":2.74,"h":2.02,"x":195.76,"y":313.14}
+{"k":"V","t":19.638,"cls":"chevron","id":27,"w":2.73,"h":2.02,"x":195.77,"y":313.13}
+{"k":"V","t":19.6464,"cls":"chevron","id":27,"w":2.73,"h":2.01,"x":195.77,"y":313.13}
+{"k":"V","t":19.663,"cls":"chevron","id":27,"w":2.73,"h":2.02,"x":195.77,"y":313.13}
+{"k":"V","t":19.6714,"cls":"chevron","id":27,"w":2.73,"h":2.02,"x":195.76,"y":313.13}
+{"k":"V","t":19.6797,"cls":"chevron","id":27,"w":2.74,"h":2.02,"x":195.76,"y":313.14}
+{"k":"V","t":19.6881,"cls":"chevron","id":27,"w":2.74,"h":2.02,"x":195.75,"y":313.15}
+{"k":"V","t":19.6964,"cls":"chevron","id":27,"w":2.74,"h":2.03,"x":195.74,"y":313.16}
+{"k":"V","t":19.7047,"cls":"chevron","id":27,"w":2.75,"h":2.03,"x":195.73,"y":313.17}
+{"k":"V","t":19.7131,"cls":"chevron","id":27,"w":2.75,"h":2.03,"x":195.73,"y":313.18}
+{"k":"V","t":19.7214,"cls":"chevron","id":27,"w":2.76,"h":2.04,"x":195.72,"y":313.19}
+{"k":"V","t":19.7297,"cls":"chevron","id":27,"w":2.76,"h":2.04,"x":195.71,"y":313.2}
+{"k":"V","t":19.7381,"cls":"chevron","id":27,"w":2.77,"h":2.04,"x":195.7,"y":313.21}
+{"k":"V","t":19.7464,"cls":"chevron","id":27,"w":2.77,"h":2.04,"x":195.69,"y":313.22}
+{"k":"V","t":19.7547,"cls":"chevron","id":27,"w":2.77,"h":2.05,"x":195.69,"y":313.23}
+{"k":"V","t":19.7631,"cls":"chevron","id":27,"w":2.78,"h":2.05,"x":195.68,"y":313.24}
+{"k":"V","t":19.7714,"cls":"chevron","id":27,"w":2.78,"h":2.05,"x":195.67,"y":313.25}
+{"k":"V","t":19.7881,"cls":"chevron","id":27,"w":2.78,"h":2.06,"x":195.66,"y":313.26}
+{"k":"V","t":19.7964,"cls":"chevron","id":27,"w":2.79,"h":2.06,"x":195.66,"y":313.27}
+{"k":"V","t":19.8131,"cls":"chevron","id":27,"w":2.79,"h":2.06,"x":195.65,"y":313.28}
+{"k":"V","t":19.8381,"cls":"chevron","id":27,"w":2.79,"h":2.06,"x":195.64,"y":313.29}
+{"k":"V","t":19.8464,"cls":"chevron","id":27,"w":2.8,"h":2.07,"x":195.63,"y":313.3}
+{"k":"touch","t":20.8799,"phase":0,"x":201,"y":300}
+{"k":"touch","t":20.9466,"phase":3,"x":201,"y":300}
+{"k":"V","t":21.0765,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1}
+{"k":"V","t":21.0765,"cls":"chevron","id":22,"w":10.33,"h":14,"x":173.5,"y":341.17}
+{"k":"V","t":21.0765,"cls":"_UICalendarWeekdayView","id":473,"a":1}
+{"k":"V","t":21.0883,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0}
+{"k":"V","t":21.0883,"cls":"chevron","id":22,"w":2.07,"h":2.8,"x":195.5,"y":313.3}
+{"k":"V","t":21.0966,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0045}
+{"k":"V","t":21.0966,"cls":"chevron","id":22,"w":2.1,"h":2.85,"x":195.4,"y":313.43}
+{"k":"V","t":21.105,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0296}
+{"k":"V","t":21.105,"cls":"chevron","id":22,"w":2.31,"h":3.13,"x":194.85,"y":314.12}
+{"k":"V","t":21.1133,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0717}
+{"k":"V","t":21.1133,"cls":"chevron","id":22,"w":2.66,"h":3.6,"x":193.92,"y":315.3}
+{"k":"V","t":21.1216,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.126}
+{"k":"V","t":21.1216,"cls":"chevron","id":22,"w":3.11,"h":4.21,"x":192.73,"y":316.81}
+{"k":"V","t":21.13,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.1883}
+{"k":"V","t":21.13,"cls":"chevron","id":22,"w":3.62,"h":4.91,"x":191.36,"y":318.55}
+{"k":"V","t":21.1383,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.2553}
+{"k":"V","t":21.1383,"cls":"chevron","id":22,"w":4.18,"h":5.66,"x":189.88,"y":320.41}
+{"k":"V","t":21.1466,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.3244}
+{"k":"V","t":21.1466,"cls":"chevron","id":22,"w":4.75,"h":6.43,"x":188.36,"y":322.34}
+{"k":"V","t":21.155,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.3935}
+{"k":"V","t":21.155,"cls":"chevron","id":22,"w":5.32,"h":7.21,"x":186.84,"y":324.27}
+{"k":"V","t":21.1633,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.4609}
+{"k":"V","t":21.1633,"cls":"chevron","id":22,"w":5.88,"h":7.96,"x":185.36,"y":326.14}
+{"k":"V","t":21.1716,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.5255}
+{"k":"V","t":21.1716,"cls":"chevron","id":22,"w":6.41,"h":8.69,"x":183.94,"y":327.94}
+{"k":"V","t":21.18,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.5863}
+{"k":"V","t":21.18,"cls":"chevron","id":22,"w":6.91,"h":9.37,"x":182.6,"y":329.64}
+{"k":"V","t":21.1883,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.6429}
+{"k":"V","t":21.1883,"cls":"chevron","id":22,"w":7.38,"h":10,"x":181.36,"y":331.21}
+{"k":"V","t":21.1966,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.6948}
+{"k":"V","t":21.1966,"cls":"chevron","id":22,"w":7.81,"h":10.58,"x":180.22,"y":332.66}
+{"k":"V","t":21.205,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.7419}
+{"k":"V","t":21.205,"cls":"chevron","id":22,"w":8.2,"h":11.11,"x":179.18,"y":333.97}
+{"k":"V","t":21.2133,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.7843}
+{"k":"V","t":21.2133,"cls":"chevron","id":22,"w":8.55,"h":11.58,"x":178.25,"y":335.15}
+{"k":"V","t":21.2216,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.8219}
+{"k":"V","t":21.2216,"cls":"chevron","id":22,"w":8.86,"h":12.01,"x":177.42,"y":336.2}
+{"k":"V","t":21.23,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.8551}
+{"k":"V","t":21.23,"cls":"chevron","id":22,"w":9.14,"h":12.38,"x":176.69,"y":337.13}
+{"k":"V","t":21.2383,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.884}
+{"k":"V","t":21.2383,"cls":"chevron","id":22,"w":9.37,"h":12.7,"x":176.05,"y":337.93}
+{"k":"V","t":21.2467,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.909}
+{"k":"V","t":21.2467,"cls":"chevron","id":22,"w":9.58,"h":12.98,"x":175.5,"y":338.63}
+{"k":"V","t":21.255,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9304}
+{"k":"V","t":21.255,"cls":"chevron","id":22,"w":9.76,"h":13.22,"x":175.03,"y":339.23}
+{"k":"V","t":21.2633,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9485}
+{"k":"V","t":21.2633,"cls":"chevron","id":22,"w":9.91,"h":13.42,"x":174.63,"y":339.73}
+{"k":"V","t":21.2717,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9636}
+{"k":"V","t":21.2717,"cls":"chevron","id":22,"w":10.03,"h":13.59,"x":174.3,"y":340.15}
+{"k":"V","t":21.28,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9761}
+{"k":"V","t":21.28,"cls":"chevron","id":22,"w":10.14,"h":13.73,"x":174.03,"y":340.5}
+{"k":"V","t":21.2883,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9863}
+{"k":"V","t":21.2883,"cls":"chevron","id":22,"w":10.22,"h":13.85,"x":173.8,"y":340.79}
+{"k":"V","t":21.2967,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9945}
+{"k":"V","t":21.2967,"cls":"chevron","id":22,"w":10.29,"h":13.94,"x":173.62,"y":341.01}
+{"k":"V","t":21.305,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0009}
+{"k":"V","t":21.305,"cls":"chevron","id":22,"w":10.34,"h":14.01,"x":173.48,"y":341.19}
+{"k":"V","t":21.3133,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0058}
+{"k":"V","t":21.3133,"cls":"chevron","id":22,"w":10.38,"h":14.06,"x":173.37,"y":341.33}
+{"k":"V","t":21.3217,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0094}
+{"k":"V","t":21.3217,"cls":"chevron","id":22,"w":10.41,"h":14.11,"x":173.29,"y":341.43}
+{"k":"V","t":21.33,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.012}
+{"k":"V","t":21.33,"cls":"chevron","id":22,"w":10.43,"h":14.13,"x":173.24,"y":341.5}
+{"k":"V","t":21.3383,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0137}
+{"k":"V","t":21.3383,"cls":"chevron","id":22,"w":10.45,"h":14.15,"x":173.2,"y":341.55}
+{"k":"V","t":21.3467,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0147}
+{"k":"V","t":21.3467,"cls":"chevron","id":22,"w":10.45,"h":14.16,"x":173.18,"y":341.58}
+{"k":"V","t":21.355,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0151}
+{"k":"V","t":21.355,"cls":"chevron","id":22,"w":10.46,"h":14.17,"x":173.17,"y":341.59}
+{"k":"V","t":21.3717,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0147}
+{"k":"V","t":21.3717,"cls":"chevron","id":22,"w":10.45,"h":14.16,"x":173.18,"y":341.58}
+{"k":"V","t":21.38,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0141}
+{"k":"V","t":21.38,"cls":"chevron","id":22,"w":10.45,"h":14.16,"x":173.19,"y":341.56}
+{"k":"V","t":21.3883,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0132}
+{"k":"V","t":21.3883,"cls":"chevron","id":22,"w":10.44,"h":14.15,"x":173.21,"y":341.54}
+{"k":"V","t":21.3967,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0123}
+{"k":"V","t":21.3967,"cls":"chevron","id":22,"w":10.44,"h":14.14,"x":173.23,"y":341.51}
+{"k":"V","t":21.405,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0113}
+{"k":"V","t":21.405,"cls":"chevron","id":22,"w":10.43,"h":14.13,"x":173.25,"y":341.48}
+{"k":"V","t":21.4133,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0102}
+{"k":"V","t":21.4133,"cls":"chevron","id":22,"w":10.42,"h":14.11,"x":173.27,"y":341.45}
+{"k":"V","t":21.4217,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0092}
+{"k":"V","t":21.4217,"cls":"chevron","id":22,"w":10.41,"h":14.1,"x":173.3,"y":341.42}
+{"k":"V","t":21.43,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0082}
+{"k":"V","t":21.43,"cls":"chevron","id":22,"w":10.4,"h":14.09,"x":173.32,"y":341.39}
+{"k":"V","t":21.4384,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0072}
+{"k":"V","t":21.4384,"cls":"chevron","id":22,"w":10.39,"h":14.08,"x":173.34,"y":341.37}
+{"k":"V","t":21.4467,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1.0063}
+{"k":"V","t":21.4467,"cls":"chevron","id":22,"w":10.39,"h":14.07,"x":173.36,"y":341.34}
+{"k":"V","t":21.455,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1}
+{"k":"V","t":21.455,"cls":"chevron","id":22,"w":10.38,"h":14.06,"x":173.38,"y":341.32}
+{"k":"V","t":21.4634,"cls":"chevron","id":22,"w":10.37,"h":14.05,"x":173.4,"y":341.3}
+{"k":"V","t":21.4717,"cls":"chevron","id":22,"w":10.37,"h":14.04,"x":173.41,"y":341.28}
+{"k":"V","t":21.48,"cls":"chevron","id":22,"w":10.36,"h":14.04,"x":173.43,"y":341.26}
+{"k":"V","t":21.4884,"cls":"chevron","id":22,"w":10.36,"h":14.03,"x":173.44,"y":341.24}
+{"k":"V","t":21.4967,"cls":"chevron","id":22,"w":10.35,"h":14.02,"x":173.45,"y":341.23}
+{"k":"V","t":21.505,"cls":"chevron","id":22,"w":10.35,"h":14.02,"x":173.46,"y":341.22}
+{"k":"V","t":21.5134,"cls":"chevron","id":22,"w":10.34,"h":14.02,"x":173.47,"y":341.21}
+{"k":"V","t":21.5217,"cls":"chevron","id":22,"w":10.34,"h":14.01,"x":173.48,"y":341.2}
+{"k":"V","t":21.53,"cls":"chevron","id":22,"w":10.34,"h":14.01,"x":173.48,"y":341.19}
+{"k":"V","t":21.5384,"cls":"chevron","id":22,"w":10.34,"h":14.01,"x":173.49,"y":341.18}
+{"k":"V","t":21.5467,"cls":"chevron","id":22,"w":10.34,"h":14,"x":173.49,"y":341.18}
+{"k":"V","t":21.555,"cls":"chevron","id":22,"w":10.34,"h":14,"x":173.5,"y":341.17}
+{"k":"V","t":21.5634,"cls":"chevron","id":22,"w":10.33,"h":14,"x":173.5,"y":341.17}
+{"k":"touch","t":22.8611,"phase":0,"x":201,"y":754}
+{"k":"touch","t":22.9278,"phase":3,"x":201,"y":754}
+{"k":"V","t":22.9636,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0}
+{"k":"V","t":22.9636,"cls":"chevron","id":22,"w":10.33,"h":14,"x":157.5,"y":34.83}
+{"k":"V","t":22.9719,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":1}
+{"k":"V","t":22.9719,"cls":"chevron","id":22,"w":10.33,"h":14,"x":173.5,"y":341.17}
+{"k":"V","t":22.9803,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9965}
+{"k":"V","t":22.9803,"cls":"chevron","id":22,"w":10.3,"h":13.96,"x":173.58,"y":341.07}
+{"k":"V","t":22.9886,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9758}
+{"k":"V","t":22.9886,"cls":"chevron","id":22,"w":10.13,"h":13.73,"x":174.03,"y":340.49}
+{"k":"V","t":22.9969,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.9405}
+{"k":"V","t":22.9969,"cls":"chevron","id":22,"w":9.84,"h":13.33,"x":174.81,"y":339.51}
+{"k":"V","t":23.0053,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.8945}
+{"k":"V","t":23.0053,"cls":"chevron","id":22,"w":9.46,"h":12.82,"x":175.82,"y":338.23}
+{"k":"V","t":23.0136,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.8412}
+{"k":"V","t":23.0136,"cls":"chevron","id":22,"w":9.02,"h":12.22,"x":176.99,"y":336.74}
+{"k":"V","t":23.022,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.7833}
+{"k":"V","t":23.022,"cls":"chevron","id":22,"w":8.54,"h":11.57,"x":178.27,"y":335.13}
+{"k":"V","t":23.0303,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.723}
+{"k":"V","t":23.0303,"cls":"chevron","id":22,"w":8.04,"h":10.9,"x":179.59,"y":333.45}
+{"k":"V","t":23.0386,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.6619}
+{"k":"V","t":23.0386,"cls":"chevron","id":22,"w":7.54,"h":10.21,"x":180.94,"y":331.75}
+{"k":"V","t":23.047,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.6015}
+{"k":"V","t":23.047,"cls":"chevron","id":22,"w":7.04,"h":9.54,"x":182.27,"y":330.06}
+{"k":"V","t":23.0553,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.5428}
+{"k":"V","t":23.0553,"cls":"chevron","id":22,"w":6.55,"h":8.88,"x":183.56,"y":328.43}
+{"k":"V","t":23.0636,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.4866}
+{"k":"V","t":23.0636,"cls":"chevron","id":22,"w":6.09,"h":8.25,"x":184.8,"y":326.86}
+{"k":"V","t":23.072,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.4334}
+{"k":"V","t":23.072,"cls":"chevron","id":22,"w":5.65,"h":7.65,"x":185.97,"y":325.38}
+{"k":"V","t":23.0803,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.3835}
+{"k":"V","t":23.0803,"cls":"chevron","id":22,"w":5.24,"h":7.1,"x":187.06,"y":323.99}
+{"k":"V","t":23.0886,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.3374}
+{"k":"V","t":23.0886,"cls":"chevron","id":22,"w":4.86,"h":6.58,"x":188.08,"y":322.7}
+{"k":"V","t":23.097,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.2949}
+{"k":"V","t":23.097,"cls":"chevron","id":22,"w":4.5,"h":6.1,"x":189.01,"y":321.52}
+{"k":"V","t":23.1053,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.2561}
+{"k":"V","t":23.1053,"cls":"chevron","id":22,"w":4.18,"h":5.67,"x":189.86,"y":320.44}
+{"k":"V","t":23.1136,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.221}
+{"k":"V","t":23.1136,"cls":"chevron","id":22,"w":3.89,"h":5.28,"x":190.64,"y":319.46}
+{"k":"V","t":23.122,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.1895}
+{"k":"V","t":23.122,"cls":"chevron","id":22,"w":3.63,"h":4.92,"x":191.33,"y":318.58}
+{"k":"V","t":23.1303,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.1612}
+{"k":"V","t":23.1303,"cls":"chevron","id":22,"w":3.4,"h":4.61,"x":191.95,"y":317.79}
+{"k":"V","t":23.1386,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.1362}
+{"k":"V","t":23.1386,"cls":"chevron","id":22,"w":3.19,"h":4.33,"x":192.5,"y":317.09}
+{"k":"V","t":23.147,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.114}
+{"k":"V","t":23.147,"cls":"chevron","id":22,"w":3.01,"h":4.08,"x":192.99,"y":316.48}
+{"k":"V","t":23.1553,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0946}
+{"k":"V","t":23.1553,"cls":"chevron","id":22,"w":2.85,"h":3.86,"x":193.42,"y":315.94}
+{"k":"V","t":23.1636,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0777}
+{"k":"V","t":23.1636,"cls":"chevron","id":22,"w":2.71,"h":3.67,"x":193.79,"y":315.47}
+{"k":"V","t":23.172,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0631}
+{"k":"V","t":23.172,"cls":"chevron","id":22,"w":2.59,"h":3.51,"x":194.11,"y":315.06}
+{"k":"V","t":23.1803,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0505}
+{"k":"V","t":23.1803,"cls":"chevron","id":22,"w":2.48,"h":3.37,"x":194.39,"y":314.71}
+{"k":"V","t":23.1886,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0397}
+{"k":"V","t":23.1886,"cls":"chevron","id":22,"w":2.39,"h":3.24,"x":194.63,"y":314.41}
+{"k":"V","t":23.197,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0306}
+{"k":"V","t":23.197,"cls":"chevron","id":22,"w":2.32,"h":3.14,"x":194.83,"y":314.15}
+{"k":"V","t":23.2053,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0229}
+{"k":"V","t":23.2053,"cls":"chevron","id":22,"w":2.26,"h":3.06,"x":195,"y":313.94}
+{"k":"V","t":23.2137,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0165}
+{"k":"V","t":23.2137,"cls":"chevron","id":22,"w":2.2,"h":2.98,"x":195.14,"y":313.76}
+{"k":"V","t":23.222,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0112}
+{"k":"V","t":23.222,"cls":"chevron","id":22,"w":2.16,"h":2.93,"x":195.25,"y":313.61}
+{"k":"V","t":23.2303,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0068}
+{"k":"V","t":23.2303,"cls":"chevron","id":22,"w":2.12,"h":2.88,"x":195.35,"y":313.49}
+{"k":"V","t":23.2387,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0034}
+{"k":"V","t":23.2387,"cls":"chevron","id":22,"w":2.09,"h":2.84,"x":195.43,"y":313.39}
+{"k":"V","t":23.247,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0.0006}
+{"k":"V","t":23.247,"cls":"chevron","id":22,"w":2.07,"h":2.81,"x":195.49,"y":313.32}
+{"k":"V","t":23.2553,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":-0.0016}
+{"k":"V","t":23.2553,"cls":"chevron","id":22,"w":2.05,"h":2.78,"x":195.53,"y":313.26}
+{"k":"V","t":23.2637,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":-0.0032}
+{"k":"V","t":23.2637,"cls":"chevron","id":22,"w":2.04,"h":2.76,"x":195.57,"y":313.21}
+{"k":"V","t":23.272,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":-0.0044}
+{"k":"V","t":23.272,"cls":"chevron","id":22,"w":2.03,"h":2.75,"x":195.6,"y":313.18}
+{"k":"V","t":23.2803,"cls":"title","id":494,"text":"November 2025","tc":[1,1,1,1],"ea":0}
+{"k":"V","t":23.2803,"cls":"chevron","id":22,"w":2.02,"h":2.74,"x":195.62,"y":313.15}
+{"k":"V","t":23.2887,"cls":"chevron","id":22,"w":2.02,"h":2.73,"x":195.63,"y":313.14}
+{"k":"V","t":23.297,"cls":"chevron","id":22,"w":2.02,"h":2.73,"x":195.64,"y":313.13}
+{"k":"V","t":23.3053,"cls":"chevron","id":22,"w":2.01,"h":2.73,"x":195.64,"y":313.12}
+{"k":"V","t":23.3137,"cls":"chevron","id":22,"w":2.01,"h":2.73,"x":195.64,"y":313.13}
+{"k":"V","t":23.322,"cls":"chevron","id":22,"w":2.02,"h":2.73,"x":195.63,"y":313.13}
+{"k":"V","t":23.3303,"cls":"chevron","id":22,"w":2.02,"h":2.73,"x":195.63,"y":313.14}
+{"k":"V","t":23.3387,"cls":"chevron","id":22,"w":2.02,"h":2.74,"x":195.62,"y":313.14}
+{"k":"V","t":23.347,"cls":"chevron","id":22,"w":2.02,"h":2.74,"x":195.62,"y":313.15}
+{"k":"V","t":23.3553,"cls":"chevron","id":22,"w":2.03,"h":2.75,"x":195.61,"y":313.16}
+{"k":"V","t":23.3637,"cls":"chevron","id":22,"w":2.03,"h":2.75,"x":195.6,"y":313.17}
+{"k":"V","t":23.372,"cls":"chevron","id":22,"w":2.03,"h":2.75,"x":195.59,"y":313.19}
+{"k":"V","t":23.3803,"cls":"chevron","id":22,"w":2.04,"h":2.76,"x":195.58,"y":313.2}
+{"k":"V","t":23.3887,"cls":"chevron","id":22,"w":2.04,"h":2.76,"x":195.57,"y":313.21}
+{"k":"V","t":23.397,"cls":"chevron","id":22,"w":2.04,"h":2.77,"x":195.57,"y":313.22}
+{"k":"V","t":23.4054,"cls":"chevron","id":22,"w":2.04,"h":2.77,"x":195.56,"y":313.23}
+{"k":"V","t":23.4137,"cls":"chevron","id":22,"w":2.05,"h":2.77,"x":195.55,"y":313.23}
+{"k":"V","t":23.4304,"cls":"chevron","id":22,"w":2.05,"h":2.78,"x":195.54,"y":313.25}
+{"k":"V","t":23.4387,"cls":"chevron","id":22,"w":2.05,"h":2.78,"x":195.53,"y":313.26}
+{"k":"V","t":23.447,"cls":"chevron","id":22,"w":2.06,"h":2.78,"x":195.53,"y":313.26}
+{"k":"V","t":23.4554,"cls":"chevron","id":22,"w":2.06,"h":2.79,"x":195.53,"y":313.27}
+{"k":"V","t":23.4637,"cls":"chevron","id":22,"w":2.06,"h":2.79,"x":195.52,"y":313.27}
+{"k":"V","t":23.472,"cls":"chevron","id":22,"w":2.06,"h":2.79,"x":195.52,"y":313.28}
+{"k":"V","t":23.4887,"cls":"chevron","id":22,"w":2.06,"h":2.79,"x":195.51,"y":313.28}
+{"k":"V","t":23.497,"cls":"chevron","id":22,"w":2.06,"h":2.79,"x":195.51,"y":313.29}
+{"k":"V","t":23.5054,"cls":"chevron","id":22,"w":2.07,"h":2.8,"x":195.5,"y":313.3}

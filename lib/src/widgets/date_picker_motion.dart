@@ -92,11 +92,45 @@ abstract final class MorphDatePickerTuning {
   /// The corner radius of the overlay.
   static const double cornerRadius = 28;
 
-  /// The size of the date overlay: a month calendar of five weeks.
+  /// The size of the date overlay: a month calendar, five weeks or six
+  /// (see [sixWeekRowHeight]), or the month and year wheels in its place.
   static const Size calendarSize = Size(320, 332);
 
-  /// The height one more week adds to the calendar.
-  static const double weekHeight = 45.67;
+  /// The height of a calendar row in a month of six weeks: UIKit keeps the
+  /// calendar [calendarSize] and packs the six rows into the five rows'
+  /// space (an iPhone 16 Pro, August 2026: cells 42.67 x 38, the chosen
+  /// day's disc 38 across).
+  static const double sixWeekRowHeight = 38;
+
+  /// The duration of the change between the calendar's day grid and its
+  /// month and year wheels, in seconds: a tap on the month title fades the
+  /// grid, the weekday initials and the month chevrons out and the wheels
+  /// in, and turns the title's chevron a quarter turn to point down, all on
+  /// CABasicAnimations of this duration with [yearPickerCurve] (an iPhone
+  /// 16 Pro: the layers' opacity and the chevron's frame follow it to
+  /// 0.0001 with the start fitted).
+  static const double yearPickerDuration = 0.25;
+
+  /// The timing curve of the change between the day grid and the month and
+  /// year wheels: UIKit's ease in and out.
+  static const yearPickerCurve = Cubic(0.42, 0, 0.58, 1);
+
+  /// The time from the lift of the tap on the month title to the start of
+  /// the wheels fading in (an iPhone 16 Pro, eight taps: 0.061 - 0.077 s,
+  /// mean 0.069; UIKit builds the wheels first).
+  static const double yearPickerShowDelay = 0.069;
+
+  /// The time from the lift of the tap on the month title to the start of
+  /// the day grid fading back in (an iPhone 16 Pro, six taps: 0.018 -
+  /// 0.022 s, mean 0.019).
+  static const double yearPickerHideDelay = 0.019;
+
+  /// The time from the lift of a second tap on the month title to the
+  /// start of the day grid fading back in while the wheels still fade in
+  /// (an iPhone 16 Pro, four taps 0.03 and 0.12 s after the first: 0.013
+  /// s, 0.006 - 0.016 rms of the opacity against 0.019 - 0.038 with
+  /// [yearPickerHideDelay]).
+  static const double yearPickerHideDelayWhileShowing = 0.013;
 
   /// The size of the time overlay: the hour and minute wheels.
   static const Size timeSize = Size(232, 204);
@@ -204,8 +238,9 @@ MorphDatePickerPlacement morphPlaceDatePicker({
 }
 
 /// The motion of a compact date picker: the overlay opening out of its
-/// label and closing back, the label's highlight, and the calendar's page
-/// turns.
+/// label and closing back, the label's highlight, the calendar's page
+/// turns, and the calendar's change between its day grid and its month
+/// and year wheels.
 ///
 /// One progress drives the overlay: it scales about its anchor from
 /// [MorphDatePickerTuning.hiddenScale], fades in, and grows its box from
@@ -253,7 +288,8 @@ class MorphDatePickerMotion {
     return _pendingAt == null &&
         spring.isAtRest(_now, 0.001) &&
         _now >= _highlightStart + MorphDatePickerTuning.highlightDuration &&
-        _now >= _pageStart + MorphDatePickerTuning.pageDuration;
+        _now >= _pageStart + MorphDatePickerTuning.pageDuration &&
+        yearPickerSettled(_now);
   }
 
   /// Advances the motion to time [t].
@@ -369,4 +405,109 @@ class MorphDatePickerMotion {
 
   /// The direction of the latest page turn: 1 forward, -1 back, 0 none.
   int get pageDirection => _pageDirection;
+
+  _Tween _years = const _Tween(start: double.negativeInfinity, from: 0, to: 0);
+  _Tween _yearsBefore = const _Tween(
+    start: double.negativeInfinity,
+    from: 0,
+    to: 0,
+  );
+
+  /// Whether the calendar shows, or turns to, its month and year wheels.
+  bool get showsYearPicker => _years.to == 1;
+
+  /// Turns the calendar to its month and year wheels ([show] true) or back
+  /// to its day grid at time [t], the tap's lift.
+  ///
+  /// The change starts [MorphDatePickerTuning.yearPickerShowDelay] or
+  /// [MorphDatePickerTuning.yearPickerHideDelay] later
+  /// ([MorphDatePickerTuning.yearPickerHideDelayWhileShowing] when the
+  /// wheels still fade in) and runs
+  /// [MorphDatePickerTuning.yearPickerDuration] seconds on
+  /// [MorphDatePickerTuning.yearPickerCurve] from wherever the previous
+  /// change stands then, as UIKit restarts its animations from the
+  /// presentation value; until then the previous change goes on.
+  void showYearPicker(double t, {required bool show}) {
+    advance(t);
+    final target = show ? 1.0 : 0.0;
+    final moving = t < _years.start + MorphDatePickerTuning.yearPickerDuration;
+    final start =
+        t +
+        (show
+            ? MorphDatePickerTuning.yearPickerShowDelay
+            : moving
+            ? MorphDatePickerTuning.yearPickerHideDelayWhileShowing
+            : MorphDatePickerTuning.yearPickerHideDelay);
+    final running = start >= _years.start ? _years : _yearsBefore;
+    _yearsBefore = running;
+    _years = _Tween(start: start, from: running.value(start), to: target);
+    if (target != _turnTarget) {
+      _turns.removeWhere(
+        (_Turn turn) =>
+            turn.start + MorphDatePickerTuning.yearPickerDuration <= t,
+      );
+      _turns.add((start: start, delta: _turnTarget - target));
+      _turnTarget = target;
+    }
+  }
+
+  final List<_Turn> _turns = [];
+  double _turnTarget = 0;
+
+  /// How far the month title's chevron has turned toward pointing down at
+  /// time [t]: 0 pointing forward, 1 down.
+  ///
+  /// UIKit adds each change of the chevron's transform on top of the ones
+  /// still running instead of restarting from the current angle (an
+  /// iPhone 16 Pro: a second tap 0.12 s into the change carries the
+  /// chevron on to 0.82 of the turn before it comes back, while the fades
+  /// turn around at once), so the turn is the sum of every change's
+  /// remaining part.
+  double yearPickerTurn(double t) {
+    var value = _turnTarget;
+    for (final turn in _turns) {
+      final k = (t - turn.start) / MorphDatePickerTuning.yearPickerDuration;
+      if (k >= 1) continue;
+      value +=
+          turn.delta *
+          (1 -
+              (k <= 0
+                  ? 0
+                  : MorphDatePickerTuning.yearPickerCurve.transform(k)));
+    }
+    return value;
+  }
+
+  /// How far the calendar has turned to its month and year wheels at time
+  /// [t]: 0 the day grid, 1 the wheels.
+  double yearPicker(double t) =>
+      t >= _years.start ? _years.value(t) : _yearsBefore.value(t);
+
+  /// Whether the change between the day grid and the wheels has finished
+  /// at time [t], the chevron's turn included.
+  bool yearPickerSettled(double t) =>
+      t >= _years.start + MorphDatePickerTuning.yearPickerDuration &&
+      _turns.every(
+        (_Turn turn) =>
+            t >= turn.start + MorphDatePickerTuning.yearPickerDuration,
+      );
+}
+
+typedef _Turn = ({double start, double delta});
+
+@immutable
+class _Tween {
+  const _Tween({required this.start, required this.from, required this.to});
+
+  final double start;
+  final double from;
+  final double to;
+
+  double value(double t) {
+    final k = (t - start) / MorphDatePickerTuning.yearPickerDuration;
+    if (k <= 0) return from;
+    if (k >= 1) return to;
+    return from +
+        (to - from) * MorphDatePickerTuning.yearPickerCurve.transform(k);
+  }
 }

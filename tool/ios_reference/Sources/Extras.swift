@@ -1,5 +1,6 @@
 import UIKit
 import QuartzCore
+import UIKit.UIGestureRecognizerSubclass
 
 /// Probe scenes for the third widget pass: alerts and action sheets, the search field and
 /// the compact date picker. Scene names start with "x3"; they run X3Sampler, which logs a
@@ -24,7 +25,9 @@ enum ExtrasScenes {
             pattern = "Search|^UITabBar$|_UITabBar|_UITab|Platter|LiquidLens|_UIBarBackground|_UIButtonBar|UINavigationBar|UIToolbar|_UIToolbar|Cancel|Close|Glass|Keyboard|InputSetHost|UIInputSetContainerView|_UIRemoteKeyboard|UILabel|UIImageView"
             vc = X3SearchScene.make(env["PROBE_SEARCH"] ?? "toolbar")
         case "x3date":
-            pattern = "DatePicker|Compact|_UIPopover|Popover|Calendar|Dimming|TransitionView|Platter|Glass|UILabel|_UIDatePicker|Wheel|Picker"
+            pattern = env["PROBE_X3MY"] == "1"
+                ? "DatePicker|Calendar|Platter|UILabel|_UIDatePicker|Picker|UIImageView|UIButton|_UISystemBackgroundView"
+                : "DatePicker|Compact|_UIPopover|Popover|Calendar|Dimming|TransitionView|Platter|Glass|UILabel|_UIDatePicker|Wheel|Picker"
             vc = X3DateScene()
         default:
             pattern = "^NONE$"
@@ -111,6 +114,7 @@ final class X3Sampler: NSObject {
             "a": r4(CGFloat(p.opacity)), "ea": r4(CGFloat(ea)), "cr": r2(p.cornerRadius),
             "sx": r4(tf.m11), "sy": r4(tf.m22), "tx": r2(tf.m41), "ty": r2(tf.m42),
         ]
+        if abs(tf.m12) > 1e-4 { row["rot"] = r4(atan2(tf.m12, tf.m11)) }
         if let bg = X3Sampler.rgba(p.backgroundColor), bg.count == 4, bg[3] > 0 { row["bg"] = bg }
         if p.shadowOpacity > 0 { row["sh"] = [r4(CGFloat(p.shadowOpacity)), r2(p.shadowRadius), r2(p.shadowOffset.height)] }
         if v.isHidden { row["hid"] = true }
@@ -190,6 +194,8 @@ final class X3Sampler: NSObject {
             let f = v.convert(v.bounds, to: nil)
             var extra = " a=\(v.alpha) cr=\(v.layer.cornerRadius)"
             if v.isHidden { extra += " HIDDEN" }
+            let t = v.transform
+            if t != .identity { extra += " tf=[\(r4(t.a)),\(r4(t.b)),\(r4(t.c)),\(r4(t.d)),\(r2(t.tx)),\(r2(t.ty))]" }
             if let bg = v.backgroundColor, let c = X3Sampler.rgba(bg.resolvedColor(with: v.traitCollection).cgColor) { extra += " bg=\(c)" }
             if let lbl = v as? UILabel {
                 let w = (lbl.font.fontDescriptor.object(forKey: .traits) as? [UIFontDescriptor.TraitKey: Any])?[.weight] as? Double ?? 0
@@ -208,6 +214,29 @@ final class X3Sampler: NSObject {
     }
 }
 
+/// PROBE_X3TREES=1: a tree dump 1.2 s after every touch-up (tree-touch<N>.txt, N from 1),
+/// observed by a window gesture recognizer that never claims the touch.
+final class X3TouchTrees: UIGestureRecognizer {
+    private var count = 0
+
+    init() {
+        super.init(target: nil, action: nil)
+        cancelsTouchesInView = false
+        delaysTouchesBegan = false
+        delaysTouchesEnded = false
+    }
+
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent) {
+        count += 1
+        let n = count
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { X3Sampler.shared.tree("tree-touch\(n).txt") }
+        state = .failed
+    }
+
+    override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent) { state = .failed }
+    override func canPrevent(_ preventedGestureRecognizer: UIGestureRecognizer) -> Bool { false }
+}
+
 /// Runs PROBE_SCRIPT actions ("name@seconds;...") relative to the first appearance.
 class X3ScriptedScene: UIViewController {
     let env = ProcessInfo.processInfo.environment
@@ -216,6 +245,10 @@ class X3ScriptedScene: UIViewController {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if env["PROBE_DARK"] == "1" { view.window?.overrideUserInterfaceStyle = .dark }
+        if env["PROBE_DARK"] == "0" { view.window?.overrideUserInterfaceStyle = .light }
+        if env["PROBE_X3TREES"] == "1", let w = view.window, !(w.gestureRecognizers ?? []).contains(where: { $0 is X3TouchTrees }) {
+            w.addGestureRecognizer(X3TouchTrees())
+        }
         ExtrasScenes.spinner(view.window)
         guard !scripted else { return }
         scripted = true
@@ -482,6 +515,9 @@ final class X3DateScene: X3ScriptedScene, UIPopoverPresentationControllerDelegat
         }
         var comps = DateComponents()
         comps.year = 2026; comps.month = 10; comps.day = 3; comps.hour = 9; comps.minute = 41
+        if let d = env["PROBE_DATE"]?.split(separator: "-").compactMap({ Int($0) }), d.count == 3 {
+            comps.year = d[0]; comps.month = d[1]; comps.day = d[2]
+        }
         picker.calendar = Calendar(identifier: .gregorian)
         picker.locale = Locale(identifier: env["PROBE_LOCALE"] ?? "en_US")
         picker.timeZone = TimeZone(identifier: "UTC")

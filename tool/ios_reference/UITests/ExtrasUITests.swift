@@ -375,6 +375,133 @@ final class ExtrasUITests: XCTestCase {
         }
     }
 
+    // MARK: the calendar's month-year wheels (device; film with MorphRecorder while this runs)
+
+    private func logButtons(_ tag: String) {
+        for b in app.buttons.allElementsBoundByIndex.prefix(16) { NSLog("PROBE button \(tag) \(b.identifier) '\(b.label)' \(b.frame)") }
+    }
+
+    /// The compact date picker's calendar: a tap on the month title turns the grid into
+    /// month and year wheels; drags on both wheels; a tap on the title returns to the grid;
+    /// a quick double tap on the title (a reversal); a tap outside closes. Tree dumps 1.2 s
+    /// after every touch-up (PROBE_X3TREES).
+    func testX3MonthYear() {
+        let modes = (env["PROBE_VIDEO_DARK"]).flatMap { $0.isEmpty ? nil : [$0] } ?? ["0", "1"]
+        for dark in modes {
+            let tag = dark == "1" ? "-dark" : ""
+            capture("my\(tag)", scene: "x3date", extra: ["PROBE_DARK": dark, "PROBE_X3TREES": "1", "PROBE_X3MY": "1"], settle: 1.0) {
+                let s = screen
+                tap(p(s.width / 2, 300)); pause(1.6)
+                shot("my-cal\(tag)")
+                logButtons("cal")
+                let t = app.buttons["DatePicker.Show"].firstMatch
+                let title = t.exists ? p(t.frame.midX, t.frame.midY) : p(s.width / 2 - 104, 341)
+                NSLog("PROBE title \(t.exists ? t.frame : .zero)")
+                tap(title); pause(1.8)
+                shot("my-wheels\(tag)")
+                logButtons("wheels"); logWheels("my-open\(tag)")
+                let wheels = app.pickerWheels.allElementsBoundByIndex
+                if wheels.count >= 2 {
+                    let m = wheels[0].frame, y = wheels[1].frame
+                    path(p(m.midX, m.midY + 20), pressFor: 0.05, [(p(m.midX, m.midY + 20 - 34), 0.4, 0.3)]); pause(1.8)
+                    shot("my-month\(tag)"); logWheels("my-month\(tag)")
+                    path(p(y.midX, y.midY - 20), pressFor: 0.05, [(p(y.midX, y.midY - 20 + 34), 0.4, 0.3)]); pause(1.8)
+                    shot("my-year\(tag)"); logWheels("my-year\(tag)")
+                }
+                tap(title); pause(1.8)
+                shot("my-back\(tag)")
+                twoTaps(title, title, gap: 0.12, filler: p(s.width / 2 - 25, 630), name: "rev")
+                pause(1.8)
+                shot("my-rev\(tag)")
+                tap(title); pause(1.8)
+                tap(p(s.width / 2, s.height - 120)); pause(1.4)
+                tap(p(s.width / 2, 300)); pause(1.6)
+                shot("my-reopen\(tag)")
+                tap(p(s.width / 2, s.height - 120)); pause(1.4)
+            }
+        }
+    }
+
+    /// Interruptions and edge cases of the month-year wheels: a second tap on the title
+    /// while the wheels fade in (gaps 0.03 and 0.12 s, the filler inside the platter's
+    /// empty bottom), the 31st turned to a 30-day month, and a six-week month.
+    func testX3MonthYearCases() {
+        let gaps = (env["PROBE_GAPS"] ?? "0.03,0.12").split(separator: ",").compactMap { Double($0) }
+        for gap in gaps {
+            let g = String(format: "%03d", Int((gap * 1000).rounded()))
+            capture("myrev-\(g)", scene: "x3date", extra: ["PROBE_DARK": "0", "PROBE_X3MY": "1"], settle: 1.0) {
+                let s = screen
+                tap(p(s.width / 2, 300)); pause(1.6)
+                let t = app.buttons["DatePicker.Show"].firstMatch
+                let title = t.exists ? p(t.frame.midX, t.frame.midY) : p(s.width / 2 - 104, 341)
+                twoTaps(title, title, gap: gap, filler: p(s.width / 2 - 25, 630), name: "rev")
+                pause(1.6)
+                twoTaps(title, title, gap: gap, filler: p(s.width / 2 - 25, 630), name: "rev2")
+                pause(1.6)
+                tap(p(s.width / 2, s.height - 120)); pause(1.4)
+            }
+        }
+        capture("my31", scene: "x3date", extra: ["PROBE_DARK": "0", "PROBE_X3MY": "1", "PROBE_DATE": "2026-10-31", "PROBE_X3TREES": "1"], settle: 1.0) {
+            let s = screen
+            tap(p(s.width / 2, 300)); pause(1.6)
+            let t = app.buttons["DatePicker.Show"].firstMatch
+            let title = t.exists ? p(t.frame.midX, t.frame.midY) : p(s.width / 2 - 104, 341)
+            tap(title); pause(1.8)
+            let wheels = app.pickerWheels.allElementsBoundByIndex
+            if wheels.count >= 2 {
+                let m = wheels[0].frame
+                path(p(m.midX, m.midY + 20), pressFor: 0.05, [(p(m.midX, m.midY + 20 - 34), 0.4, 0.3)]); pause(1.8)
+                logWheels("my31-nov")
+                path(p(m.midX, m.midY - 20), pressFor: 0.05, [(p(m.midX, m.midY - 20 + 34), 0.4, 0.3)]); pause(1.8)
+                logWheels("my31-oct")
+            }
+            tap(title); pause(1.8)
+            shot("my31-back")
+            tap(p(s.width / 2, s.height - 120)); pause(1.4)
+        }
+        capture("mypage", scene: "x3date", extra: ["PROBE_DARK": "0", "PROBE_X3MY": "1"], settle: 1.0) {
+            let s = screen
+            tap(p(s.width / 2, 300)); pause(1.6)
+            let next = app.buttons["Next Month"].firstMatch
+            NSLog("PROBE next \(next.exists ? next.frame : .zero)")
+            tap(next.exists ? p(next.frame.midX, next.frame.midY) : p(312.3, 341)); pause(1.2)
+            let t = app.buttons["DatePicker.Show"].firstMatch
+            let title = t.exists ? p(t.frame.midX, t.frame.midY) : p(s.width / 2 - 104, 341)
+            NSLog("PROBE title label '\(t.label)' value '\(t.value as? String ?? "")'")
+            tap(title); pause(1.8)
+            logWheels("mypage-open"); logButtons("mypage-wheels")
+            let h = app.buttons["DatePicker.Hide"].firstMatch
+            NSLog("PROBE hide label '\(h.label)' exists \(h.exists)")
+            tap(title); pause(1.8)
+            tap(title); pause(1.8)
+            let wheels = app.pickerWheels.allElementsBoundByIndex
+            if wheels.count >= 2 {
+                let m = wheels[0].frame
+                path(p(m.midX, m.midY + 20), pressFor: 0.05, [(p(m.midX, m.midY + 20 - 34), 0.4, 0.3)]); pause(1.8)
+                logWheels("mypage-dec")
+            }
+            tap(title); pause(1.8)
+            tap(p(s.width / 2, s.height - 120)); pause(1.4)
+        }
+        capture("my6", scene: "x3date", extra: ["PROBE_DARK": "0", "PROBE_X3MY": "1", "PROBE_DATE": "2026-08-15"], settle: 1.0) {
+            let s = screen
+            tap(p(s.width / 2, 300)); pause(1.6)
+            let t = app.buttons["DatePicker.Show"].firstMatch
+            let title = t.exists ? p(t.frame.midX, t.frame.midY) : p(s.width / 2 - 104, 341)
+            tap(title); pause(1.8)
+            shot("my6-wheels")
+            let wheels = app.pickerWheels.allElementsBoundByIndex
+            if wheels.count >= 2 {
+                let m = wheels[0].frame
+                path(p(m.midX, m.midY + 20), pressFor: 0.05, [(p(m.midX, m.midY + 20 - 66), 0.5, 0.3)]); pause(1.8)
+                shot("my6-oct"); logWheels("my6-oct")
+            }
+            tap(title); pause(1.8)
+            shot("my6-back")
+            tap(p(s.width / 2, s.height - 120)); pause(1.4)
+        }
+    }
+
     // MARK: device-geometry captures (any screen: coordinates from the window size)
 
     private var screen: CGSize { app.windows.firstMatch.frame.size }

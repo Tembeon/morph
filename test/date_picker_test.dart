@@ -857,6 +857,357 @@ void main() {
     });
   });
 
+  group('month and year wheels replay an iPhone 16 Pro', () {
+    const device = 'test/fixtures/ios27-device/date_picker';
+    List<Map<String, Object?>> load(String file) => [
+      for (final line in File('$device/$file').readAsLinesSync())
+        if (line.trim().isNotEmpty)
+          (jsonDecode(line) as Map).cast<String, Object?>(),
+    ];
+
+    // The title's chevron image is 10.33 x 14; its frame is the bounding
+    // box of the turned image, so the turn is read back from the box.
+    double turn(Map<String, Object?> r) {
+      const a = 10.33;
+      const b = 14.0;
+      final w = _d(r, 'w');
+      final h = _d(r, 'h');
+      const det = a * a - b * b;
+      final c = (a * w - b * h) / det;
+      final s = (a * h - b * w) / det;
+      return math.atan2(s, c) / (math.pi / 2);
+    }
+
+    for (final name in [
+      'my-light',
+      'my-dark',
+      'myrev-030',
+      'myrev-120',
+      'my31',
+      'mypage',
+    ]) {
+      test('the grid and the wheels cross-fade as UIKit does ($name)', () {
+        final rows = load('$name.jsonl');
+        final titleTaps = [
+          for (final r in rows)
+            if (r['k'] == 'touch' &&
+                r['phase'] == 3 &&
+                _d(r, 'x') < 200 &&
+                (_d(r, 'y') - 341).abs() < 12)
+              _d(r, 't'),
+        ];
+        final closeTap = [
+          for (final r in rows)
+            if (r['k'] == 'touch' &&
+                r['phase'] == 3 &&
+                _d(r, 'y') > 700 &&
+                _d(r, 't') > titleTaps.first)
+              _d(r, 't'),
+        ].first;
+        final m = MorphDatePickerMotion();
+        var show = true;
+        var next = 0;
+        final fade = <double>[];
+        final chevron = <double>[];
+        for (final r in rows) {
+          if (r['k'] != 'V') continue;
+          final t = _d(r, 't');
+          while (next < titleTaps.length && titleTaps[next] <= t) {
+            m.showYearPicker(titleTaps[next], show: show);
+            show = !show;
+            next++;
+          }
+          if (t <= titleTaps.first || t >= closeTap) continue;
+          if (r['cls'] == '_UICalendarWeekdayView') {
+            fade.add(m.yearPicker(t) - (1 - _d(r, 'a')));
+          } else if (r['cls'] == 'chevron') {
+            chevron.add(m.yearPickerTurn(t) - turn(r));
+          }
+        }
+        expect(fade.length, greaterThan(50));
+        expect(chevron.length, greaterThan(50));
+        // UIKit's start varies by a frame or so from tap to tap (0.061 -
+        // 0.077 s for the wheels, 0.018 - 0.022 s back); the mean delays
+        // keep every capture within these.
+        expect(_rms(fade), lessThan(0.035));
+        expect(_rms(chevron), lessThan(0.035));
+        expect(fade.map((e) => e.abs()).reduce(math.max), lessThan(0.09));
+      });
+    }
+
+    test('the title turns accent at the tap, wheels turn the value', () {
+      final rows = load('mypage.jsonl');
+      final titles = [
+        for (final r in rows)
+          if (r['cls'] == 'title') r,
+      ];
+      // A page turn to November leaves the selected day alone; the wheels
+      // open on the shown month; December on the wheel picks December 3.
+      expect(titles.first['text'], 'November 2026');
+      final changes = [
+        for (final r in rows)
+          if (r['k'] == 'evt')
+            DateTime.fromMillisecondsSinceEpoch(
+              (_d(r, 'v') * 1000).round(),
+              isUtc: true,
+            ),
+      ];
+      expect(changes, [DateTime.utc(2026, 12, 3, 7, 41)]);
+      final clamp = [
+        for (final r in load('my31.jsonl'))
+          if (r['k'] == 'evt')
+            DateTime.fromMillisecondsSinceEpoch(
+              (_d(r, 'v') * 1000).round(),
+              isUtc: true,
+            ),
+      ];
+      expect(clamp, [
+        DateTime.utc(2026, 11, 30, 8, 41),
+        DateTime.utc(2026, 10, 30, 8, 41),
+      ]);
+    });
+  });
+
+  group('MorphDatePicker month and year wheels', () {
+    Future<List<DateTime>> open(
+      WidgetTester tester, {
+      DateTime? start,
+      TextDirection direction = TextDirection.ltr,
+    }) async {
+      await tester.binding.setSurfaceSize(const Size(402, 874));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final changes = <DateTime>[];
+      var value = start ?? DateTime(2026, 10, 3, 7, 41);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (BuildContext context, Widget? child) =>
+              Directionality(textDirection: direction, child: child!),
+          home: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) => Align(
+              alignment: const Alignment(0, -0.3135),
+              child: MorphDatePicker(
+                value: value,
+                today: DateTime(2026, 10, 3),
+                onChanged: (DateTime v) {
+                  changes.add(v);
+                  setState(() => value = v);
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byType(MorphDatePicker));
+      await tester.pumpAndSettle();
+      return changes;
+    }
+
+    Finder title(String text) => find.descendant(
+      of: find.bySemanticsLabel(RegExp('year picker')),
+      matching: find.text(text),
+    );
+
+    testWidgets('a tap on the month title shows the wheels', (tester) async {
+      final changes = await open(tester);
+      expect(find.byType(ListWheelScrollView), findsNothing);
+      await tester.tap(find.text('October 2026'));
+      await tester.pump();
+      expect(find.byType(ListWheelScrollView), findsNWidgets(2));
+      final accent = tester.widget<Text>(find.text('October 2026'));
+      expect(accent.style?.color, MorphDatePickerStyle.light.accentColor);
+      await tester.pumpAndSettle();
+      expect(find.bySemanticsLabel('Hide year picker'), findsOneWidget);
+      expect(find.text('October'), findsWidgets);
+      expect(find.text('2026'), findsWidgets);
+      // The day grid is hidden and does not take taps.
+      await tester.tapAt(tester.getCenter(find.text('15')));
+      await tester.pumpAndSettle();
+      expect(changes, isEmpty);
+      // The chevron points down.
+      final turn = tester
+          .widgetList<Transform>(
+            find.descendant(
+              of: find.bySemanticsLabel('Hide year picker'),
+              matching: find.byType(Transform),
+            ),
+          )
+          .first;
+      final m = turn.transform;
+      expect(
+        math.atan2(m.entry(1, 0), m.entry(0, 0)),
+        closeTo(math.pi / 2, 1e-6),
+      );
+      await tester.tap(find.text('October 2026'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ListWheelScrollView), findsNothing);
+      expect(find.bySemanticsLabel('Show year picker'), findsOneWidget);
+      final label = tester.widget<Text>(find.text('October 2026'));
+      expect(label.style?.color, MorphDatePickerStyle.light.titleColor);
+    });
+
+    testWidgets('the change runs 0.25 s after UIKit\'s delay', (tester) async {
+      await open(tester);
+      await tester.tap(find.text('October 2026'));
+      await tester.pump();
+      double wheels() => tester
+          .widget<Opacity>(
+            find
+                .ancestor(
+                  of: find.byType(ListWheelScrollView).first,
+                  matching: find.byType(Opacity),
+                )
+                .first,
+          )
+          .opacity;
+      await tester.pump(const Duration(milliseconds: 60));
+      expect(wheels(), 0);
+      await tester.pump(const Duration(milliseconds: 134));
+      expect(wheels(), closeTo(0.5, 0.08));
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(wheels(), 1);
+    });
+
+    testWidgets('the wheels sit where UIKit puts them', (tester) async {
+      await open(tester);
+      await tester.tap(find.text('October 2026'));
+      await tester.pumpAndSettle();
+      // month-year.json, relative to the platter's top-left (16 points
+      // from the side; its top from the title, centered 34.84 down): the
+      // rows outside the band start their month 57.95 points in and center
+      // their year 229.83 in, the selected row 184.84 down, its neighbours
+      // 31.2 and 58.3 away. The band's larger copy is the same row
+      // magnified about the month box's center, so its month starts at 54.
+      const left = 16.0;
+      final top = tester.getRect(find.text('October 2026')).center.dy - 34.84;
+      final october = tester.getRect(find.text('October').last);
+      expect(october.left, closeTo(left + 57.95, 0.6));
+      expect(october.center.dy, closeTo(top + 184.84, 0.6));
+      final year = tester.getRect(find.text('2026').last);
+      expect(year.center.dx, closeTo(left + 229.83, 0.6));
+      final november = tester.getRect(find.text('November').last);
+      expect(november.left, closeTo(left + 57.95, 0.6));
+      expect(november.center.dy - october.center.dy, closeTo(31.2, 0.8));
+      final august = tester.getRect(find.text('August').last);
+      expect(august.center.dy - october.center.dy, closeTo(-58.3, 0.8));
+    });
+
+    testWidgets('a turned wheel moves the shown month and the value', (
+      tester,
+    ) async {
+      final changes = await open(tester);
+      await tester.tap(find.text('October 2026'));
+      await tester.pumpAndSettle();
+      await tester.timedDrag(
+        find.text('October').last,
+        const Offset(0, -50),
+        const Duration(milliseconds: 800),
+      );
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2026, 11, 3, 7, 41));
+      expect(title('November 2026'), findsOneWidget);
+      await tester.timedDrag(
+        find.text('2026').last,
+        const Offset(0, 50),
+        const Duration(milliseconds: 800),
+      );
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2025, 11, 3, 7, 41));
+      await tester.tap(find.text('November 2025'));
+      await tester.pumpAndSettle();
+      expect(find.byType(ListWheelScrollView), findsNothing);
+      expect(find.text('Nov 3, 2025'), findsOneWidget);
+    });
+
+    testWidgets('the 31st turned to November is the 30th', (tester) async {
+      final changes = await open(tester, start: DateTime(2026, 10, 31, 8, 41));
+      await tester.tap(find.text('October 2026'));
+      await tester.pumpAndSettle();
+      await tester.timedDrag(
+        find.text('October').last,
+        const Offset(0, -50),
+        const Duration(milliseconds: 800),
+      );
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2026, 11, 30, 8, 41));
+      await tester.timedDrag(
+        find.text('November').last,
+        const Offset(0, 50),
+        const Duration(milliseconds: 800),
+      );
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2026, 10, 30, 8, 41));
+    });
+
+    testWidgets('the wheels open on the shown month', (tester) async {
+      final changes = await open(tester);
+      await tester.tap(find.bySemanticsLabel('Next month'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('November 2026'));
+      await tester.pumpAndSettle();
+      expect(changes, isEmpty);
+      final november = tester.getRect(find.text('November').last);
+      final band = tester.getRect(find.text('2026').last);
+      expect(november.center.dy, closeTo(band.center.dy, 0.5));
+      await tester.timedDrag(
+        find.text('November').last,
+        const Offset(0, -50),
+        const Duration(milliseconds: 800),
+      );
+      await tester.pumpAndSettle();
+      expect(changes, [DateTime(2026, 12, 3, 7, 41)]);
+    });
+
+    testWidgets('a second tap turns the change around', (tester) async {
+      await open(tester);
+      await tester.tap(find.text('October 2026'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 150));
+      await tester.tap(find.text('October 2026'));
+      await tester.pump();
+      await tester.pumpAndSettle();
+      expect(find.byType(ListWheelScrollView), findsNothing);
+      expect(find.bySemanticsLabel('Show year picker'), findsOneWidget);
+    });
+
+    testWidgets('screen readers adjust the month and the year', (tester) async {
+      final semantics = tester.ensureSemantics();
+      final changes = await open(tester);
+      await tester.tap(find.text('October 2026'));
+      await tester.pumpAndSettle();
+      final month = find.bySemanticsLabel('Month');
+      expect(tester.getSemantics(month).value, 'October');
+      tester.semantics.increase(find.semantics.byLabel('Month'));
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2026, 11, 3, 7, 41));
+      final year = find.bySemanticsLabel('Year');
+      expect(tester.getSemantics(year).value, '2026');
+      tester.semantics.decrease(find.semantics.byLabel('Year'));
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2025, 11, 3, 7, 41));
+      semantics.dispose();
+    });
+
+    testWidgets('a six-week month keeps the platter and packs its rows', (
+      tester,
+    ) async {
+      await open(tester, start: DateTime(2026, 8, 15, 7, 41));
+      // August 2026 on an iPhone 16 Pro: the platter stays 320 x 332, the
+      // six rows 38 apart, the chosen day's disc 38 across.
+      final one = tester.getCenter(find.text('1'));
+      final eight = tester.getCenter(find.text('8'));
+      expect(eight.dy - one.dy, closeTo(38, 0.01));
+      final disc = tester.getSize(
+        find
+            .ancestor(of: find.text('15'), matching: find.byType(Container))
+            .first,
+      );
+      expect(disc, const Size(38, 38));
+      final top = tester.getRect(find.text('August 2026')).center.dy - 34.84;
+      expect(tester.getCenter(find.text('1')).dy, closeTo(top + 105.34, 0.6));
+      expect(tester.getCenter(find.text('31')).dy, closeTo(top + 295.34, 0.6));
+    });
+  });
+
   group('MorphDatePickerMotion', () {
     test('opens from a fifth of its size and its 50 point box', () {
       final m = MorphDatePickerMotion();
@@ -869,6 +1220,40 @@ void main() {
       m.close(2);
       m.advance(4);
       expect(m.isClosed, isTrue);
+    });
+
+    test('the year picker eases in 0.25 s after its delay, both ways', () {
+      final m = MorphDatePickerMotion();
+      m.showYearPicker(1, show: true);
+      expect(m.showsYearPicker, isTrue);
+      const show = MorphDatePickerTuning.yearPickerShowDelay;
+      expect(m.yearPicker(1 + show), 0);
+      expect(m.yearPicker(1 + show + 0.125), closeTo(0.5, 1e-9));
+      expect(m.yearPicker(1 + show + 0.25), 1);
+      m.showYearPicker(2, show: false);
+      const hide = MorphDatePickerTuning.yearPickerHideDelay;
+      expect(m.yearPicker(2 + hide), 1);
+      expect(m.yearPicker(2 + hide + 0.125), closeTo(0.5, 1e-9));
+    });
+
+    test('a reversal restarts from where the change stands', () {
+      final m = MorphDatePickerMotion();
+      m.showYearPicker(0, show: true);
+      m.showYearPicker(0.15, show: false);
+      const hide = MorphDatePickerTuning.yearPickerHideDelay;
+      final at = 0.15 + hide;
+      final before = m.yearPicker(at - 1e-6);
+      expect(before, greaterThan(0));
+      expect(m.yearPicker(at), closeTo(before, 1e-4));
+      expect(m.yearPicker(at + 0.25), 0);
+      // A reversal scheduled to start before the change has started
+      // leaves it where it was.
+      final n = MorphDatePickerMotion();
+      n.showYearPicker(0, show: true);
+      n.showYearPicker(0.01, show: false);
+      for (var t = 0.0; t < 0.6; t += 0.01) {
+        expect(n.yearPicker(t), 0);
+      }
     });
   });
 }

@@ -207,7 +207,14 @@ String _defaultTime(DateTime d, {required bool twentyFour}) {
 /// AM and PM.
 ///
 /// The calendar shows one month with the chosen day filled and today
-/// tinted; the chevrons turn the month with a slide. The labels are
+/// tinted; the chevrons turn the month with a slide. A tap on the month
+/// title turns the day grid into month and year wheels in the same
+/// overlay (the title takes the accent color and its chevron turns to
+/// point down; see [MorphDatePickerMotion.showYearPicker]); a wheel coming
+/// to rest moves the chosen day to that month and year, keeping its day
+/// of the month where the month has it (the 31st turned to November is
+/// the 30th), and another tap on the title returns to the grid. The
+/// labels are
 /// formatted in English by default ([dateFormatter] and [timeFormatter]
 /// localize them). The label is a focusable button; Space and Enter open
 /// it.
@@ -682,22 +689,40 @@ class _OverlayViewState extends State<_OverlayView>
     wake();
   }
 
-  int _weeks(DateTime month) {
-    final first = DateTime(month.year, month.month);
-    final lead = (first.weekday - _picker.firstDayOfWeek) % 7;
-    final days = _daysIn(month);
-    return ((lead + days) / 7).ceil();
+  void _toggleYearPicker() {
+    if (_leaving) return;
+    setState(() {});
+    _motion.showYearPicker(clock, show: !_motion.showsYearPicker);
+    wake();
   }
 
-  Size _sizeFor(_Part part) {
-    if (part == _Part.time) return MorphDatePickerTuning.timeSize;
-    final weeks = math.max(_weeks(_month), _weeks(_previousMonth ?? _month));
-    return Size(
-      MorphDatePickerTuning.calendarSize.width,
-      MorphDatePickerTuning.calendarSize.height +
-          (weeks - 5) * MorphDatePickerTuning.weekHeight,
+  void _pickMonth(int year, int month) {
+    final v = _value;
+    var next = DateTime(
+      year,
+      month,
+      math.min(v.day, _daysIn(DateTime(year, month))),
+      v.hour,
+      v.minute,
     );
+    final first = _picker.firstDate;
+    final last = _picker.lastDate;
+    if (first != null && next.isBefore(_dateOnly(first))) {
+      next = DateTime(first.year, first.month, first.day, v.hour, v.minute);
+    }
+    if (last != null && _dateOnly(next).isAfter(_dateOnly(last))) {
+      next = DateTime(last.year, last.month, last.day, v.hour, v.minute);
+    }
+    setState(() {
+      _previousMonth = null;
+      _month = DateTime(next.year, next.month);
+    });
+    if (next != v) _pick(next);
   }
+
+  Size _sizeFor(_Part part) => part == _Part.time
+      ? MorphDatePickerTuning.timeSize
+      : MorphDatePickerTuning.calendarSize;
 
   @override
   Widget build(BuildContext context) {
@@ -731,6 +756,8 @@ class _OverlayViewState extends State<_OverlayView>
             style: style,
             onPick: _pick,
             onTurn: _turn,
+            onTitle: _toggleYearPicker,
+            onPickMonth: _pickMonth,
           );
     final size = _sizeFor(_part);
     final from = _fromPart;
@@ -1031,6 +1058,8 @@ abstract final class _CalendarMetrics {
   static const double top = 16;
   static const double headerHeight = 37.67;
   static const double titleInset = 20.33;
+  static const double titleButtonStart = 16;
+  static const double titleButtonEnd = 4;
   static const double titleChevronGap = 7.67;
   static const Size titleChevron = Size(6.33, 11.67);
   static const double titleChevronStroke = 2.1;
@@ -1043,6 +1072,7 @@ abstract final class _CalendarMetrics {
   static const double gridInset = 10.33;
   static const double cell = 42.67;
   static const double row = 45.67;
+  static const double gridTop = 1;
   static const double chevronButton = 43.33;
   static const double chevronEnd = 2;
 }
@@ -1061,6 +1091,8 @@ class _Calendar extends StatelessWidget {
     required this.style,
     required this.onPick,
     required this.onTurn,
+    required this.onTitle,
+    required this.onPickMonth,
   });
 
   final DateTime value;
@@ -1075,6 +1107,8 @@ class _Calendar extends StatelessWidget {
   final MorphDatePickerStyle style;
   final ValueChanged<DateTime> onPick;
   final ValueChanged<int> onTurn;
+  final VoidCallback onTitle;
+  final void Function(int year, int month) onPickMonth;
 
   bool _canTurn(int direction) {
     final next = DateTime(month.year, month.month + direction);
@@ -1090,14 +1124,26 @@ class _Calendar extends StatelessWidget {
     return last == null || !next.isAfter(last);
   }
 
+  double _years() => motion.yearPicker(motion.time);
+
+  Widget _fading(Widget child, {required bool out}) => ListenableBuilder(
+    listenable: frames,
+    child: child,
+    builder: (BuildContext context, Widget? child) {
+      final q = _years().clamp(0.0, 1.0);
+      return Opacity(opacity: out ? 1 - q : q, child: child);
+    },
+  );
+
   @override
   Widget build(BuildContext context) {
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    final years = motion.showsYearPicker;
     const grid = 7 * _CalendarMetrics.cell;
     final title = MorphTypography.resolve(
       MorphTypography.datePickerTitle.copyWith(
         height: 1.2,
-        color: style.titleColor,
+        color: years ? style.accentColor : style.titleColor,
       ),
     );
     final weekday = MorphTypography.resolve(
@@ -1106,7 +1152,8 @@ class _Calendar extends StatelessWidget {
         color: style.weekdayColor,
       ),
     );
-    return Padding(
+    final titleText = '${_months[month.month - 1]} ${month.year}';
+    final calendar = Padding(
       padding: const EdgeInsets.only(top: _CalendarMetrics.top),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1115,113 +1162,228 @@ class _Calendar extends StatelessWidget {
             height: _CalendarMetrics.headerHeight,
             child: Row(
               children: [
-                const SizedBox(width: _CalendarMetrics.titleInset),
+                const SizedBox(width: _CalendarMetrics.titleButtonStart),
                 Expanded(
                   child: Row(
                     children: [
                       Flexible(
                         child: Semantics(
-                          header: true,
+                          button: true,
                           liveRegion: true,
-                          child: Text(
-                            '${_months[month.month - 1]} ${month.year}',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: title,
+                          label: years
+                              ? 'Hide year picker'
+                              : 'Show year picker',
+                          value: titleText,
+                          onTap: onTitle,
+                          excludeSemantics: true,
+                          child: GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            onTap: onTitle,
+                            child: Padding(
+                              padding: const EdgeInsetsDirectional.only(
+                                start:
+                                    _CalendarMetrics.titleInset -
+                                    _CalendarMetrics.titleButtonStart,
+                                end: _CalendarMetrics.titleButtonEnd,
+                              ),
+                              child: SizedBox(
+                                height: _CalendarMetrics.headerHeight,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Flexible(
+                                      child: Text(
+                                        titleText,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: title,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      width: _CalendarMetrics.titleChevronGap,
+                                    ),
+                                    ListenableBuilder(
+                                      listenable: frames,
+                                      builder:
+                                          (BuildContext context, Widget? _) =>
+                                              Transform.rotate(
+                                                angle:
+                                                    (rtl ? -1 : 1) *
+                                                    motion.yearPickerTurn(
+                                                      motion.time,
+                                                    ) *
+                                                    math.pi /
+                                                    2,
+                                                child: CustomPaint(
+                                                  size: _CalendarMetrics
+                                                      .titleChevron,
+                                                  painter: _ChevronPainter(
+                                                    color: style.accentColor,
+                                                    forward: !rtl,
+                                                    stroke: _CalendarMetrics
+                                                        .titleChevronStroke,
+                                                  ),
+                                                ),
+                                              ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: _CalendarMetrics.titleChevronGap),
-                      CustomPaint(
-                        size: _CalendarMetrics.titleChevron,
-                        painter: _ChevronPainter(
-                          color: style.accentColor,
-                          forward: !rtl,
-                          stroke: _CalendarMetrics.titleChevronStroke,
                         ),
                       ),
                     ],
                   ),
                 ),
-                _ChevronButton(
-                  label: 'Previous month',
-                  forward: false,
-                  color: style.chevronColor,
-                  onTap: _canTurn(-1) ? () => onTurn(-1) : null,
-                ),
-                _ChevronButton(
-                  label: 'Next month',
-                  forward: true,
-                  color: style.chevronColor,
-                  onTap: _canTurn(1) ? () => onTurn(1) : null,
+                _fading(
+                  out: true,
+                  IgnorePointer(
+                    ignoring: years,
+                    child: ExcludeSemantics(
+                      excluding: years,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _ChevronButton(
+                            label: 'Previous month',
+                            forward: false,
+                            color: style.chevronColor,
+                            onTap: _canTurn(-1) ? () => onTurn(-1) : null,
+                          ),
+                          _ChevronButton(
+                            label: 'Next month',
+                            forward: true,
+                            color: style.chevronColor,
+                            onTap: _canTurn(1) ? () => onTurn(1) : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(width: _CalendarMetrics.chevronEnd),
               ],
             ),
           ),
-          const SizedBox(height: _CalendarMetrics.weekdayTop),
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: _CalendarMetrics.gridInset,
-            ),
-            child: SizedBox(
-              height: _CalendarMetrics.weekdayHeight,
-              child: ExcludeSemantics(
-                child: Row(
-                  children: [
-                    for (var i = 0; i < 7; i++)
-                      SizedBox(
-                        width: _CalendarMetrics.cell,
-                        child: Text(
-                          _weekdays[(firstDayOfWeek + i) % 7],
-                          textAlign: TextAlign.center,
-                          style: weekday,
+          Expanded(
+            child: _fading(
+              out: true,
+              IgnorePointer(
+                ignoring: years,
+                child: ExcludeSemantics(
+                  excluding: years,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const SizedBox(height: _CalendarMetrics.weekdayTop),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: _CalendarMetrics.gridInset,
+                        ),
+                        child: SizedBox(
+                          height: _CalendarMetrics.weekdayHeight,
+                          child: ExcludeSemantics(
+                            child: Row(
+                              children: [
+                                for (var i = 0; i < 7; i++)
+                                  SizedBox(
+                                    width: _CalendarMetrics.cell,
+                                    child: Text(
+                                      _weekdays[(firstDayOfWeek + i) % 7],
+                                      textAlign: TextAlign.center,
+                                      style: weekday,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: _CalendarMetrics.gridInset,
-              ),
-              child: ClipRect(
-                child: ListenableBuilder(
-                  listenable: frames,
-                  builder: (BuildContext context, Widget? _) {
-                    final p = motion.page(motion.time);
-                    final dir = motion.pageDirection * (rtl ? -1 : 1);
-                    final previous = previousMonth;
-                    return Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        if (previous != null && p < 1)
-                          Positioned(
-                            left: -dir * grid * p,
-                            top: 0,
-                            width: grid,
-                            child: ExcludeSemantics(child: _month(previous)),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            _CalendarMetrics.gridInset,
+                            _CalendarMetrics.gridTop,
+                            _CalendarMetrics.gridInset,
+                            0,
                           ),
-                        Positioned(
-                          left: previous != null && p < 1
-                              ? dir * grid * (1 - p)
-                              : 0,
-                          top: 0,
-                          width: grid,
-                          child: _month(month),
+                          child: ClipRect(
+                            child: ListenableBuilder(
+                              listenable: frames,
+                              builder: (BuildContext context, Widget? _) {
+                                final p = motion.page(motion.time);
+                                final dir =
+                                    motion.pageDirection * (rtl ? -1 : 1);
+                                final previous = previousMonth;
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    if (previous != null && p < 1)
+                                      Positioned(
+                                        left: -dir * grid * p,
+                                        top: 0,
+                                        width: grid,
+                                        child: ExcludeSemantics(
+                                          child: _month(previous),
+                                        ),
+                                      ),
+                                    Positioned(
+                                      left: previous != null && p < 1
+                                          ? dir * grid * (1 - p)
+                                          : 0,
+                                      top: 0,
+                                      width: grid,
+                                      child: _month(month),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
                         ),
-                      ],
-                    );
-                  },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
           ),
         ],
       ),
+    );
+    final wheels = _MonthYearWheels(
+      month: month,
+      firstDate: firstDate,
+      lastDate: lastDate,
+      style: style,
+      onChanged: onPickMonth,
+    );
+    return Stack(
+      children: [
+        Positioned.fill(child: calendar),
+        PositionedDirectional(
+          start: _MonthYearMetrics.start,
+          top: _MonthYearMetrics.top,
+          width: _MonthYearMetrics.width,
+          height: _MonthYearMetrics.height,
+          child: ListenableBuilder(
+            listenable: frames,
+            child: wheels,
+            builder: (BuildContext context, Widget? child) {
+              final q = _years().clamp(0.0, 1.0);
+              if (!years && q <= 0) return const SizedBox.shrink();
+              return IgnorePointer(
+                ignoring: !years,
+                child: ExcludeSemantics(
+                  excluding: !years,
+                  child: Opacity(opacity: q, child: child),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
@@ -1230,11 +1392,14 @@ class _Calendar extends StatelessWidget {
     final lead = (first.weekday - firstDayOfWeek) % 7;
     final days = _daysIn(month);
     final weeks = ((lead + days) / 7).ceil();
+    final row = weeks > 5
+        ? MorphDatePickerTuning.sixWeekRowHeight
+        : _CalendarMetrics.row;
     return Column(
       children: [
         for (var w = 0; w < weeks; w++)
           SizedBox(
-            height: _CalendarMetrics.row,
+            height: row,
             child: Row(
               children: [
                 for (var d = 0; d < 7; d++)
@@ -1246,6 +1411,7 @@ class _Calendar extends StatelessWidget {
                       final date = DateTime(month.year, month.month, day);
                       return _Day(
                         date: date,
+                        disc: math.min(_CalendarMetrics.cell, row),
                         selected: _sameDay(date, value),
                         today: _sameDay(date, today),
                         enabled:
@@ -1277,6 +1443,7 @@ class _Calendar extends StatelessWidget {
 class _Day extends StatelessWidget {
   const _Day({
     required this.date,
+    required this.disc,
     required this.selected,
     required this.today,
     required this.enabled,
@@ -1285,6 +1452,7 @@ class _Day extends StatelessWidget {
   });
 
   final DateTime date;
+  final double disc;
   final bool selected;
   final bool today;
   final bool enabled;
@@ -1319,8 +1487,8 @@ class _Day extends StatelessWidget {
           opacity: enabled ? 1 : style.disabledOpacity,
           child: Center(
             child: Container(
-              width: _CalendarMetrics.cell,
-              height: _CalendarMetrics.cell,
+              width: disc,
+              height: disc,
               alignment: Alignment.center,
               decoration: fill == null
                   ? null
@@ -1438,6 +1606,93 @@ class _ChevronPainter extends CustomPainter {
       oldDelegate.stroke != stroke;
 }
 
+const Duration _wheelStep = Duration(milliseconds: 200);
+const Curve _wheelStepCurve = Cubic(0.25, 0.1, 0.25, 1);
+
+/// One of UIKit's picker wheels: a column of rows on a cylinder behind a
+/// band that shows the selected row larger and in full, every other row
+/// smaller, at the style's faded opacity and darkened toward the
+/// cylinder's edges.
+Widget _wheel({
+  required _WheelGeometry geometry,
+  required MorphDatePickerStyle style,
+  required FixedExtentScrollController controller,
+  required int count,
+  required String Function(int) text,
+  required int selected,
+  required ValueChanged<int> onSelected,
+  required String label,
+  bool looping = true,
+  AlignmentGeometry alignment = Alignment.center,
+  EdgeInsetsGeometry padding = EdgeInsets.zero,
+}) {
+  final row = MorphTypography.resolve(
+    TextStyle(fontSize: _WheelGeometry.fontSize, color: style.wheelColor),
+  );
+  final up = looping || selected + 1 < count;
+  final down = looping || selected > 0;
+  return Semantics(
+    label: label,
+    value: text(selected),
+    increasedValue: up ? text((selected + 1) % count) : null,
+    decreasedValue: down ? text((selected - 1) % count) : null,
+    onIncrease: up
+        ? () => controller.animateToItem(
+            controller.selectedItem + 1,
+            duration: _wheelStep,
+            curve: _wheelStepCurve,
+          )
+        : null,
+    onDecrease: down
+        ? () => controller.animateToItem(
+            controller.selectedItem - 1,
+            duration: _wheelStep,
+            curve: _wheelStepCurve,
+          )
+        : null,
+    child: ExcludeSemantics(
+      child: ListWheelScrollView.useDelegate(
+        controller: controller,
+        itemExtent: geometry.row,
+        diameterRatio: geometry.diameterRatio,
+        perspective: _WheelGeometry.perspective,
+        squeeze: geometry.squeeze,
+        useMagnifier: true,
+        magnification: _WheelGeometry.magnification,
+        overAndUnderCenterOpacity: style.wheelFadedOpacity,
+        physics: const FixedExtentScrollPhysics(
+          parent: BouncingScrollPhysics(
+            decelerationRate: ScrollDecelerationRate.fast,
+          ),
+        ),
+        onSelectedItemChanged: onSelected,
+        childDelegate: ListWheelChildBuilderDelegate(
+          childCount: looping ? count * _WheelGeometry.loops : count,
+          builder: (BuildContext context, int i) => Padding(
+            padding: padding,
+            child: Align(
+              alignment: alignment,
+              child: Text(
+                text(i % count),
+                textScaler: TextScaler.noScaling,
+                style: row,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+/// The band behind a picker's selected row: a capsule across the wheels.
+Widget _wheelBand(MorphDatePickerStyle style) => DecoratedBox(
+  decoration: ShapeDecoration(
+    color: style.wheelBandColor,
+    shape: const StadiumBorder(),
+  ),
+);
+
 class _TimeWheels extends StatefulWidget {
   const _TimeWheels({
     required this.value,
@@ -1456,9 +1711,7 @@ class _TimeWheels extends StatefulWidget {
 }
 
 class _TimeWheelsState extends State<_TimeWheels> {
-  static const int _loops = 100;
-  static const Duration _step = Duration(milliseconds: 200);
-  static const Curve _stepCurve = Cubic(0.25, 0.1, 0.25, 1);
+  static const int _loops = _WheelGeometry.loops;
   late final int _hourCount = widget.twentyFour ? 24 : 12;
   late int _hourIndex =
       _hourCount * (_loops ~/ 2) + widget.value.hour % _hourCount;
@@ -1505,7 +1758,11 @@ class _TimeWheelsState extends State<_TimeWheels> {
     if (crossed.isOdd) {
       pm = !pm;
       if (_meridiem.hasClients) {
-        _meridiem.animateToItem(pm ? 1 : 0, duration: _step, curve: _stepCurve);
+        _meridiem.animateToItem(
+          pm ? 1 : 0,
+          duration: _wheelStep,
+          curve: _wheelStepCurve,
+        );
       }
     }
     setState(() => _hour = index % 12 + (pm ? 12 : 0));
@@ -1517,77 +1774,6 @@ class _TimeWheelsState extends State<_TimeWheels> {
     if (pm == _pm) return;
     setState(() => _hour = _hour % 12 + (pm ? 12 : 0));
     _emit();
-  }
-
-  Widget _wheel({
-    required FixedExtentScrollController controller,
-    required int count,
-    required String Function(int) text,
-    required int selected,
-    required ValueChanged<int> onSelected,
-    required String label,
-    bool looping = true,
-    AlignmentGeometry alignment = Alignment.center,
-    EdgeInsetsGeometry padding = EdgeInsets.zero,
-  }) {
-    final style = widget.style;
-    final row = MorphTypography.resolve(
-      TextStyle(fontSize: _WheelMetrics.fontSize, color: style.wheelColor),
-    );
-    final up = looping || selected + 1 < count;
-    final down = looping || selected > 0;
-    return Semantics(
-      label: label,
-      value: text(selected),
-      increasedValue: up ? text((selected + 1) % count) : null,
-      decreasedValue: down ? text((selected - 1) % count) : null,
-      onIncrease: up
-          ? () => controller.animateToItem(
-              controller.selectedItem + 1,
-              duration: _step,
-              curve: _stepCurve,
-            )
-          : null,
-      onDecrease: down
-          ? () => controller.animateToItem(
-              controller.selectedItem - 1,
-              duration: _step,
-              curve: _stepCurve,
-            )
-          : null,
-      child: ExcludeSemantics(
-        child: ListWheelScrollView.useDelegate(
-          controller: controller,
-          itemExtent: _WheelMetrics.row,
-          diameterRatio: _WheelMetrics.diameterRatio,
-          perspective: _WheelMetrics.perspective,
-          squeeze: _WheelMetrics.squeeze,
-          useMagnifier: true,
-          magnification: _WheelMetrics.magnification,
-          overAndUnderCenterOpacity: style.wheelFadedOpacity,
-          physics: const FixedExtentScrollPhysics(
-            parent: BouncingScrollPhysics(
-              decelerationRate: ScrollDecelerationRate.fast,
-            ),
-          ),
-          onSelectedItemChanged: onSelected,
-          childDelegate: ListWheelChildBuilderDelegate(
-            childCount: looping ? count * _loops : count,
-            builder: (BuildContext context, int i) => Padding(
-              padding: padding,
-              child: Align(
-                alignment: alignment,
-                child: Text(
-                  text(i % count),
-                  textScaler: TextScaler.noScaling,
-                  style: row,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   Widget _column(_WheelColumn column, Widget wheel) => Positioned(
@@ -1604,6 +1790,7 @@ class _TimeWheelsState extends State<_TimeWheels> {
     final twelve = !widget.twentyFour;
     final hour = twelve ? _WheelMetrics.hour12 : _WheelMetrics.hour24;
     final minute = twelve ? _WheelMetrics.minute12 : _WheelMetrics.minute24;
+    const geometry = _WheelMetrics.geometry;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: _WheelMetrics.inset,
@@ -1616,22 +1803,19 @@ class _TimeWheelsState extends State<_TimeWheels> {
             left: _WheelMetrics.bandInset,
             right: _WheelMetrics.bandInset,
             height: _WheelMetrics.band,
-            child: DecoratedBox(
-              decoration: ShapeDecoration(
-                color: style.wheelBandColor,
-                shape: const StadiumBorder(),
-              ),
-            ),
+            child: _wheelBand(style),
           ),
           Positioned.fill(
             child: ShaderMask(
               blendMode: BlendMode.dstIn,
-              shaderCallback: _WheelMetrics.shade,
+              shaderCallback: geometry.shade,
               child: Stack(
                 children: [
                   _column(
                     hour,
                     _wheel(
+                      geometry: geometry,
+                      style: style,
                       controller: _hours,
                       count: _hourCount,
                       text: _hourText,
@@ -1649,6 +1833,8 @@ class _TimeWheelsState extends State<_TimeWheels> {
                   _column(
                     minute,
                     _wheel(
+                      geometry: geometry,
+                      style: style,
                       controller: _minutes,
                       count: 60,
                       text: _two,
@@ -1664,6 +1850,8 @@ class _TimeWheelsState extends State<_TimeWheels> {
                     _column(
                       _WheelMetrics.meridiem,
                       _wheel(
+                        geometry: geometry,
+                        style: style,
                         controller: _meridiem,
                         count: 2,
                         looping: false,
@@ -1687,8 +1875,206 @@ class _TimeWheelsState extends State<_TimeWheels> {
   }
 }
 
+/// The calendar's month and year wheels, shown in place of the day grid
+/// after a tap on the month title.
+///
+/// The month wheel loops; the year wheel runs from the first allowed year
+/// to the last. A wheel coming to rest on a new row calls [onChanged] with
+/// the year and month, as UIKit sends its value change when the wheel
+/// settles.
+class _MonthYearWheels extends StatefulWidget {
+  const _MonthYearWheels({
+    required this.month,
+    required this.firstDate,
+    required this.lastDate,
+    required this.style,
+    required this.onChanged,
+  });
+
+  final DateTime month;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
+  final MorphDatePickerStyle style;
+  final void Function(int year, int month) onChanged;
+
+  @override
+  State<_MonthYearWheels> createState() => _MonthYearWheelsState();
+}
+
+class _MonthYearWheelsState extends State<_MonthYearWheels> {
+  static const int _loops = _WheelGeometry.loops;
+  late final int _firstYear = widget.firstDate?.year ?? 1;
+  late final int _lastYear = math.max(
+    _firstYear,
+    widget.lastDate?.year ?? 9999,
+  );
+  late int _month = widget.month.month;
+  late int _year = widget.month.year.clamp(_firstYear, _lastYear);
+  late final FixedExtentScrollController _monthWheel =
+      FixedExtentScrollController(initialItem: 12 * (_loops ~/ 2) + _month - 1);
+  late final FixedExtentScrollController _yearWheel =
+      FixedExtentScrollController(initialItem: _year - _firstYear);
+  late (int, int) _emitted;
+
+  @override
+  void initState() {
+    super.initState();
+    _emitted = (_year, _month);
+  }
+
+  @override
+  void dispose() {
+    _monthWheel.dispose();
+    _yearWheel.dispose();
+    super.dispose();
+  }
+
+  bool _settled(ScrollEndNotification notification) {
+    if (_emitted != (_year, _month)) {
+      _emitted = (_year, _month);
+      widget.onChanged(_year, _month);
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final style = widget.style;
+    const geometry = _MonthYearMetrics.geometry;
+    return NotificationListener<ScrollEndNotification>(
+      onNotification: _settled,
+      child: Stack(
+        alignment: Alignment.center,
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            left: 0,
+            right: 0,
+            height: _MonthYearMetrics.band,
+            child: _wheelBand(style),
+          ),
+          Positioned.fill(
+            child: ShaderMask(
+              blendMode: BlendMode.dstIn,
+              shaderCallback: geometry.shade,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  PositionedDirectional(
+                    start: _MonthYearMetrics.monthColumn.left,
+                    width: _MonthYearMetrics.monthColumn.width,
+                    top: 0,
+                    bottom: 0,
+                    child: _wheel(
+                      geometry: geometry,
+                      style: style,
+                      controller: _monthWheel,
+                      count: 12,
+                      text: (int i) => _months[i],
+                      selected: _month - 1,
+                      label: 'Month',
+                      alignment: AlignmentDirectional.centerStart,
+                      padding: const EdgeInsetsDirectional.only(
+                        start: _MonthYearMetrics.monthStart,
+                      ),
+                      onSelected: (int i) =>
+                          setState(() => _month = i % 12 + 1),
+                    ),
+                  ),
+                  PositionedDirectional(
+                    start: _MonthYearMetrics.yearColumn.left,
+                    width: _MonthYearMetrics.yearColumn.width,
+                    top: 0,
+                    bottom: 0,
+                    child: _wheel(
+                      geometry: geometry,
+                      style: style,
+                      controller: _yearWheel,
+                      count: _lastYear - _firstYear + 1,
+                      looping: false,
+                      text: (int i) => '${_firstYear + i}',
+                      selected: _year - _firstYear,
+                      label: 'Year',
+                      onSelected: (int i) =>
+                          setState(() => _year = _firstYear + i),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 /// A wheel's box across the platter, from its leading edge.
 typedef _WheelColumn = ({double left, double width});
+
+/// The cylinder and the edge darkening of one of UIKit's picker wheels.
+@immutable
+class _WheelGeometry {
+  const _WheelGeometry({
+    required this.row,
+    required this.diameterRatio,
+    required this.squeeze,
+    required this.fade,
+  });
+
+  /// The distance between two rows along the cylinder.
+  final double row;
+
+  /// The cylinder's diameter over the wheel's height.
+  final double diameterRatio;
+
+  /// The squeeze that turns [row] into the angle between two rows on the
+  /// cylinder.
+  final double squeeze;
+
+  /// How much of the rows outside the band shows, by distance from the
+  /// band's center: (distance, alpha) pairs, linear between them, on top
+  /// of the wheels' faded opacity.
+  final List<(double, double)> fade;
+
+  static const int loops = 100;
+  static const double perspective = 0.0001;
+  static const double fontSize = 21;
+  static const double magnification = 23.5 / 21;
+
+  double _fadeAt(double y) {
+    final d = y.abs();
+    if (d <= fade.first.$1) return 1;
+    for (var i = 1; i < fade.length; i++) {
+      final (x1, a1) = fade[i];
+      if (d <= x1) {
+        final (x0, a0) = fade[i - 1];
+        return a0 + (a1 - a0) * (d - x0) / (x1 - x0);
+      }
+    }
+    return fade.last.$2;
+  }
+
+  /// The mask that darkens the rows toward the cylinder's edges, over the
+  /// wheels' box: opaque inside the band.
+  Shader shade(Rect rect) {
+    final half = rect.height / 2;
+    final steps = (half).ceil();
+    final stops = <double>[];
+    final colors = <Color>[];
+    for (var i = 0; i <= steps; i++) {
+      final f = i / steps;
+      stops.add(f);
+      colors.add(Color.fromRGBO(0, 0, 0, _fadeAt((f * 2 - 1) * half)));
+    }
+    return LinearGradient(
+      begin: Alignment.topCenter,
+      end: Alignment.bottomCenter,
+      colors: colors,
+      stops: stops,
+    ).createShader(rect);
+  }
+}
 
 /// The layout of the time wheels, read from UIKit's views on an iPhone 16
 /// Pro (232 x 204 platter): the column view 218 x 172 inside, the band 200
@@ -1730,67 +2116,84 @@ abstract final class _WheelMetrics {
 
   /// The space before the AM/PM labels in [meridiem].
   static const double meridiemStart = 158 - 150;
-  static const double diameterRatio = 2 * 73.5 / 172;
-  static const double perspective = 0.0001;
-  static const double squeeze = row * math.pi / (172 * 0.4405);
-  static const double fontSize = 21;
-  static const double magnification = 23.5 / 21;
 
-  /// How much of the rows outside the band shows, by distance from the
-  /// band's center: (distance, alpha) pairs, linear between them, on top
-  /// of the wheels' faded opacity.
+  /// The cylinder: 172 points of wheel, radius 73.5, rows [row] apart.
   ///
-  /// Read from lossless screenshots of the wheels on an iPhone 16 Pro
-  /// (dark, 07:41): the contrast of each pixel row of the digits against
-  /// the platter, native over ours, times the mask that drew ours; the
-  /// rows then show 0.33, 0.22 and 0.05 of the band's contrast at 31, 57
-  /// and 72 points out.
-  static const List<(double, double)> fade = [
-    (16, 1),
-    (22, 0.86),
-    (26, 0.855),
-    (30, 0.83),
-    (34, 0.815),
-    (38, 0.81),
-    (52, 0.62),
-    (55, 0.55),
-    (58, 0.455),
-    (61, 0.39),
-    (70, 0.15),
-    (72, 0.1),
-    (86, 0),
-  ];
+  /// The fade is read from lossless screenshots of the wheels on an iPhone
+  /// 16 Pro (dark, 07:41): the contrast of each pixel row of the digits
+  /// against the platter, native over ours, times the mask that drew ours;
+  /// the rows then show 0.33, 0.22 and 0.05 of the band's contrast at 31,
+  /// 57 and 72 points out.
+  static const geometry = _WheelGeometry(
+    row: row,
+    diameterRatio: 2 * 73.5 / 172,
+    squeeze: row * math.pi / (172 * 0.4405),
+    fade: [
+      (16, 1),
+      (22, 0.86),
+      (26, 0.855),
+      (30, 0.83),
+      (34, 0.815),
+      (38, 0.81),
+      (52, 0.62),
+      (55, 0.55),
+      (58, 0.455),
+      (61, 0.39),
+      (70, 0.15),
+      (72, 0.1),
+      (86, 0),
+    ],
+  );
+}
 
-  static double _fadeAt(double y) {
-    final d = y.abs();
-    if (d <= fade.first.$1) return 1;
-    for (var i = 1; i < fade.length; i++) {
-      final (x1, a1) = fade[i];
-      if (d <= x1) {
-        final (x0, a0) = fade[i - 1];
-        return a0 + (a1 - a0) * (d - x0) / (x1 - x0);
-      }
-    }
-    return fade.last.$2;
-  }
+/// The layout of the calendar's month and year wheels, read from UIKit's
+/// views on an iPhone 16 Pro (`_UICalendarMonthYearSelector` in the 320 x
+/// 332 calendar, fixture ios27-device/date_picker/month-year.json): the
+/// picker 288 x 216 at 16 x 76.84 in the platter, the band 288 x 34 across
+/// its middle, the month names left-aligned at 54 points from the
+/// platter's leading edge in the band (57.95 outside it), the years
+/// centered 230 points in.
+abstract final class _MonthYearMetrics {
+  static const double start = 16;
+  static const double top = 76.84;
+  static const double width = 288;
+  static const double height = 216;
+  static const double band = 34;
 
-  /// The mask that darkens the rows toward the cylinder's edges, over the
-  /// wheels' box: opaque inside the band.
-  static Shader shade(Rect rect) {
-    final half = rect.height / 2;
-    const steps = 86;
-    final stops = <double>[];
-    final colors = <Color>[];
-    for (var i = 0; i <= steps; i++) {
-      final f = i / steps;
-      stops.add(f);
-      colors.add(Color.fromRGBO(0, 0, 0, _fadeAt((f * 2 - 1) * half)));
-    }
-    return LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: colors,
-      stops: stops,
-    ).createShader(rect);
-  }
+  /// The center of the month wheel's box, from the wheels' leading edge:
+  /// the wheel magnifies its band about its box's center, and the band's
+  /// month names start at 38 points while the others start at 41.95, so
+  /// the center sits where 1 + 2.5 / 21 of that offset lands: 75.13.
+  static const double _monthCenter = 75.13;
+
+  /// The month wheel's box, wide enough for the band's "September".
+  static const _WheelColumn monthColumn = (left: _monthCenter - 76, width: 152);
+
+  /// The space before the month names in [monthColumn].
+  static const double monthStart = 41.95 - (_monthCenter - 76);
+
+  /// The year wheel's box, centered on the years (213.9 points in).
+  static const _WheelColumn yearColumn = (left: 213.9 - 40, width: 80);
+
+  /// The cylinder: radius 87.7 and rows 31.87 apart, fitted to the rows'
+  /// centers 31.3, 58.3, 77.6 and 87.1 points from the band's (0.14 points
+  /// rms).
+  ///
+  /// The fade is read from lossless screenshots on an iPhone 16 Pro (light
+  /// and dark agree within 0.01): the darkest pixel of each row against
+  /// the platter over the band's, 0.36, 0.324, 0.19 and 0.092 at those
+  /// distances, over the wheels' faded opacity of 0.4.
+  static const geometry = _WheelGeometry(
+    row: 31.87,
+    diameterRatio: 2 * 87.7 / height,
+    squeeze: math.pi * 87.7 / height,
+    fade: [
+      (17, 1),
+      (31.3, 0.9),
+      (58.3, 0.81),
+      (77.6, 0.475),
+      (87.1, 0.23),
+      (96, 0),
+    ],
+  );
 }
