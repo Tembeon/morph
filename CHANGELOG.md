@@ -483,6 +483,27 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   longest side (80 x 160 opens at 92 x 184). The probe gained
   `testW2CtxGrowth` / `testW2CtxCommit`; fixture
   `ios27-device/context_menu/growth.json`.
+- `MorphContextMenuRegion` keeps the open menu's hero at UIKit's
+  lifted preview size (iPhone 16 Pro, 20 presentations of 60 x 40 to
+  300 x 200 previews): BREAKING (behavior, geometry) the hero no longer
+  shrinks back to its natural size on takeoff. NEW
+  `measuredPreviewScale(size)` - 1.15, at most 26 points along the
+  longest side (60 x 40 opens at 69 x 46, 300 x 200 at 326 x 217.3).
+  The flight carries the hero from its grown size to the lifted one (a
+  small hero shrinks a little, a large one keeps growing, as UIKit's
+  preview does) about its natural center, the open copy is laid out at
+  its natural size and painted lifted, the satellites stand `gap` off
+  the lifted hero, the safe-area shift accounts for it, and the close
+  lands it at its natural size. Menu columns are taller by the lift
+  (a 160 x 48 hero adds 7.2 points), and a start-aligned column starts
+  half the lift's width before the hero. `lifts: false` keeps the
+  natural size. Fixture `ios27-device/context_menu/preview.json`
+  (UIKit resizes the preview on one spring each way, response 0.284 s,
+  damping 0.81, from the held size; the region rides its flight).
+- Shared elements measure their target rect below the shuttle's reveal
+  scale (0.95 - 1), in layout space: a flying element follows the lerp
+  of its endpoint rects exactly instead of drifting toward the
+  content's center by up to a few points mid-flight.
 - NEW: alerts and action sheets (iOS 27 simulator and iPhone 16 Pro,
   2026-10-03):
   `showMorphAlert`, `showMorphActionSheet`, `MorphAlertRoute`,

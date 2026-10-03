@@ -368,10 +368,30 @@ Public pieces:
   onLongPressStart, so _drop's verdict waits a microtask; pointer up /
   cancel on the raw Listener stops the clock (a swipe taken before the
   touch deadline never sends tap down/cancel). An early release snaps
-  to rest (UIKit too, next frame). The open preview in UIKit continues
-  to min(15 percent of the long side, 26) - NOT ported: the menu's hero
-  stays at its natural size (the column geometry and its tests), so the
-  grown hero shrinks back on takeoff. Satellites unfold out of / retract
+  to rest (UIKit too, next frame). THE OPEN PREVIEW (device,
+  2026-10-03, fixture context_menu/preview.json): UIKit keeps the open
+  preview at measuredPreviewScale (min(15 percent of the long side, 26)
+  over the long side) about the held view's center until the close; it
+  resizes from the held size (frozen at the presentation) on ONE spring
+  each way, response 0.284 s damping 0.81 (0.06 pt rms open, under 0.25
+  close). Ported: the menu's hero slot is the LIFTED hero (slotWidth /
+  slotHeight = natural extents x scale, the copy laid out at natural
+  size inside OverflowBox + Transform.scale from the top left, so text
+  never rewraps), placed about the launch rect's center; the satellites
+  stand `gap` off the lifted hero (the device menu is 16 off the lifted
+  preview) and the safe-area clamp sees the lifted column. The flight
+  lerps the shared hero from the grown source to the lifted slot (60x40
+  shrinks 74.9 -> 69, 300x200 grows 314.9 -> 326) and home to natural;
+  the region rides its flight's springs (liquid open 0.35/0.75 reaches
+  90 percent in 0.156 s vs UIKit's 0.137), not UIKit's preview spring -
+  a second clock on the hero size would break invariant 1. Replayed by
+  morph_context_menu_test's device preview group (s/m/t/l: open size and
+  center exact, the menu at the device rect, never back through natural
+  size while open). The ENGINE fix this needed: the shuttle's target
+  anchor sits BELOW the reveal Transform.scale, so a shared element's
+  target rect is measured in layout space - measured through the 0.95
+  reveal scale it drifted toward the column's center by over a pixel
+  mid-flight. Satellites unfold out of / retract
   into a 0.4 x hero blob at the hero center as a pure function of the
   flight value (_Retract; the device blob is 0.4 of the SHORTER side
   tall, 300x200 -> 83x80, 80x160 -> 32x32 - the uniform 0.4 is exact
@@ -1091,7 +1111,9 @@ Public pieces:
   inactive and findRenderObject asserts. Degradations: an unpaired id
   renders in place; snapshotGhost has no live source markers so pairs
   do not form; marker children must not carry GlobalKeys. The shuttle
-  republishes the SOURCE tag's surface spec around the replica.
+  republishes the SOURCE tag's surface spec around the replica. The
+  target anchor sits below the shuttle's reveal scale: target rects are
+  layout-space endpoints, not the 0.95 - 1 revealed pixels.
 - **Pop layering**: an OVERLAY flight opened above a ModalRoute
   registers a LocalHistoryEntry on it, so Esc (DismissIntent ->
   maybePop), the Android back and a plain Navigator.pop close the

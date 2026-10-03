@@ -1619,13 +1619,18 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                                                 onSize: target.isMeasured
                                                     ? flight.reportContentSize
                                                     : null,
-                                                child: KeyedSubtree(
-                                                  key: _targetAnchorKey,
-                                                  child: Opacity(
-                                                    opacity:
-                                                        frame.targetOpacity,
-                                                    child: Transform.scale(
-                                                      scale: frame.targetScale,
+                                                child: Opacity(
+                                                  opacity: frame.targetOpacity,
+                                                  child: Transform.scale(
+                                                    scale: frame.targetScale,
+                                                    // The anchor sits below
+                                                    // the reveal scale: shared
+                                                    // elements measure their
+                                                    // target rect in layout
+                                                    // space, the endpoint
+                                                    // they fly to.
+                                                    child: KeyedSubtree(
+                                                      key: _targetAnchorKey,
                                                       child: MediaQuery(
                                                         data: mediaQuery.copyWith(
                                                           viewInsets:

@@ -139,11 +139,21 @@ void frame(WidgetTester tester) {
   addTearDown(tester.view.reset);
 }
 
-/// The width of the menu column: the hero is narrower than the default
-/// minimum, so the minimum wins.
+/// The width of the menu column: the lifted hero (184 wide) is narrower
+/// than the default minimum, so the minimum wins.
 const double _menuWidth = 250;
 const double _gap = MorphContextMenuRegion.measuredMenuGap;
-const double _menuHeight = _aboveHeight + _gap + 48 + _gap + _belowHeight;
+
+/// The open menu holds the hero at UIKit's preview size: 1.15 for a
+/// 160 x 48 hero (24 points on its 160-point side, under the 26-point
+/// cap), so its slot is 184 x 55.2 - the satellites stand 16 points off
+/// the lifted hero, as the device menu stands off the lifted preview.
+final double _lift = MorphContextMenuRegion.measuredPreviewScale(_heroSize);
+final double _slotHeight = _heroSize.height * _lift;
+final double _menuHeight =
+    _aboveHeight + _gap + _slotHeight + _gap + _belowHeight;
+
+Matcher _near(double value) => moreOrLessEquals(value, epsilon: 1e-9);
 
 void main() {
   test('the hold and the lift match an iPhone 16 Pro', () {
@@ -171,15 +181,13 @@ void main() {
       expect(shown.toDouble(), closeTo(hold, 0.025), reason: '${c['name']}');
       final card = (c['card']! as List).cast<num>();
       final preview = (c['preview']! as List).cast<num>();
-      final width = card[0].toDouble();
-      final longest = math.max(width, card[1].toDouble());
-      final lift = math.min(
-        (MorphContextMenuRegion.measuredLiftScale - 1) * longest,
-        MorphContextMenuRegion.measuredLiftPoints,
-      );
+      final size = Size(card[0].toDouble(), card[1].toDouble());
       expect(
         preview[2].toDouble(),
-        closeTo(width * (1 + lift / longest), 0.05),
+        closeTo(
+          size.width * MorphContextMenuRegion.measuredPreviewScale(size),
+          0.05,
+        ),
       );
     }
     expect(opened, 4);
@@ -287,11 +295,7 @@ void main() {
       })) {
         final size = card(c);
         final preview = (c['preview']! as List).cast<num>();
-        final lift = math.min(
-          (MorphContextMenuRegion.measuredLiftScale - 1) * size.longestSide,
-          MorphContextMenuRegion.measuredLiftPoints,
-        );
-        final scale = 1 + lift / size.longestSide;
+        final scale = MorphContextMenuRegion.measuredPreviewScale(size);
         expect(preview[2], closeTo(size.width * scale, 0.05));
         expect(preview[3], closeTo(size.height * scale, 0.05));
         final menu = (c['menu']! as List).cast<num>();
@@ -381,6 +385,8 @@ void main() {
     });
   });
 
+  group('device preview', devicePreview);
+
   testWidgets('a tap passes through; a hold lifts the hero, then opens the '
       'menu; an action closes it', (WidgetTester tester) async {
     frame(tester);
@@ -441,10 +447,19 @@ void main() {
       moreOrLessEquals(_heroSize.width, epsilon: 0.1),
       reason: 'after takeoff the hidden source returns to its rest endpoint',
     );
-    expect(flight.lastTargetRect.size, const Size(_menuWidth, _menuHeight));
-    // The satellites stand above and below the hero's slot.
+    expect(flight.lastTargetRect.width, _menuWidth);
+    expect(flight.lastTargetRect.height, _near(_menuHeight));
+    // The satellites stand above and below the hero's slot, and the open
+    // hero is lifted about the center it rested at.
     final Rect menu = flight.lastTargetRect;
-    expect(tester.getTopLeft(find.text('above')).dy, menu.top);
+    expect(tester.getTopLeft(find.text('above')).dy, _near(menu.top));
+    final Rect home = tester.getRect(find.byKey(_heroBox).first);
+    final Rect open = tester.getRect(
+      find.descendant(of: find.byType(Column), matching: find.byKey(_heroBox)),
+    );
+    expect(open.width, _near(_heroSize.width * _lift));
+    expect(open.height, _near(_slotHeight));
+    expect((open.center - home.center).distance, lessThan(1e-9));
     expect(
       tester.getTopLeft(find.text('reply')).dy,
       greaterThan(menu.top + 96),
@@ -601,9 +616,16 @@ void main() {
     // Clamped to the overlay's bottom margin; the hero travelled up
     // with its column instead of staying put.
     expect(menu.bottom, 600 - 12);
-    expect(menu.top, 600 - 12 - _menuHeight);
-    expect(menu.left, home.left, reason: 'start-aligned: the hero keeps x');
-    expect(tester.getTopLeft(find.text('above')).dy, menu.top);
+    expect(menu.top, _near(600 - 12 - _menuHeight));
+    // Start-aligned, the lifted hero keeps its center x: it grows by
+    // (1.15 - 1) * 160 / 2 = 12 points to each side, as UIKit's preview
+    // grows about the held view's center.
+    expect(
+      menu.left,
+      _near(home.left - (_lift - 1) * _heroSize.width / 2),
+      reason: 'start-aligned: the hero keeps its center x',
+    );
+    expect(tester.getTopLeft(find.text('above')).dy, _near(menu.top));
     _host(tester).flight!.close();
     await settle(tester);
     final Rect back = tester.getRect(find.byKey(_heroBox));
@@ -821,8 +843,12 @@ void liveSlots() {
     final MorphFlight flight = tester
         .state<_LiveHostState>(find.byType(_LiveHost))
         .flight!;
-    expect(flight.lastTargetRect.size, const Size(_menuWidth, _menuHeight));
-    expect(tester.getTopLeft(find.text('above')).dy, flight.lastTargetRect.top);
+    expect(flight.lastTargetRect.width, _menuWidth);
+    expect(flight.lastTargetRect.height, _near(_menuHeight));
+    expect(
+      tester.getTopLeft(find.text('above')).dy,
+      _near(flight.lastTargetRect.top),
+    );
     flight.close();
     await settle(tester);
   });
@@ -885,20 +911,27 @@ void liveSlots() {
     final double replyBefore = tester.getTopLeft(find.text('reply')).dy;
     badge.value = true;
     await tester.pump();
-    expect(heroCopy(tester).height, 72, reason: 'content at its natural size');
+    // The copy lays out at its natural 72 at once and shows lifted: the
+    // 160 x 72 hero keeps the 1.15 scale (its long side is still 160).
+    expect(
+      heroCopy(tester).height,
+      _near(72 * _lift),
+      reason: 'content at its natural size, lifted',
+    );
     await tester.pump(const Duration(milliseconds: 16));
     await tester.pump(const Duration(milliseconds: 60));
     final double replyMid = tester.getTopLeft(find.text('reply')).dy;
     expect(replyMid, greaterThan(replyBefore));
-    expect(replyMid, lessThan(replyBefore + 24));
+    expect(replyMid, lessThan(replyBefore + 24 * _lift));
     await settle(tester);
+    // The lifted slot grows by the lifted 24 points of the badge.
     expect(
       flight.lastTargetRect.height,
-      moreOrLessEquals(before.height + 24, epsilon: 0.01),
+      moreOrLessEquals(before.height + 24 * _lift, epsilon: 0.01),
     );
     expect(
       tester.getTopLeft(find.text('reply')).dy,
-      moreOrLessEquals(replyBefore + 24, epsilon: 0.01),
+      moreOrLessEquals(replyBefore + 24 * _lift, epsilon: 0.01),
     );
     // The source grew the same way: the flight lands into the grown
     // hero without a size pop.
@@ -923,7 +956,7 @@ void liveSlots() {
     await tester.pump();
     final Rect shifted = flight.lastTargetRect;
     expect(shifted.bottom, 600 - 300 - 12);
-    expect(shifted.height, before.height);
+    expect(shifted.height, _near(before.height));
     expect(
       heroCopy(tester).top,
       moreOrLessEquals(hero.top - (before.bottom - shifted.bottom)),
@@ -1075,7 +1108,9 @@ void liveSlots() {
     );
     await tester.tap(find.text('reconfigure'));
     await settle(tester);
-    expect(flight!.lastTargetRect.size, const Size(250, 204));
+    // 40 + 8 + the 160 x 48 hero lifted to 55.2 + 8 + 100.
+    expect(flight!.lastTargetRect.width, 250);
+    expect(flight!.lastTargetRect.height, _near(211.2));
 
     rebuild(() => changed = true);
     await tester.pump();
@@ -1084,7 +1119,10 @@ void liveSlots() {
     expect(find.text('old-below'), findsNothing);
     expect(find.text('new-above'), findsOneWidget);
     expect(flight!.lastTargetRect.width, moreOrLessEquals(280, epsilon: 0.01));
-    expect(flight!.lastTargetRect.height, moreOrLessEquals(132, epsilon: 0.01));
+    expect(
+      flight!.lastTargetRect.height,
+      moreOrLessEquals(80 + 4 + 55.2, epsilon: 0.01),
+    );
     flight!.close();
     await settle(tester);
   });
@@ -1120,4 +1158,278 @@ void liveSlots() {
     expect(find.text('above'), findsNothing);
     expect(outer, 1);
   });
+}
+
+const Key _deviceMenu = ValueKey<String>('device-menu');
+const ValueKey<String> _flyingHero = ValueKey<String>(
+  'morph-shared-fly-morph-context-menu-hero',
+);
+
+/// The response and damping ratio of the spring UIKit resizes its open
+/// preview on, both ways: fitted to every presentation and close frame of
+/// preview.json (iPhone 16 Pro), each from its own start.
+const double _previewResponse = 0.284;
+const double _previewDamping = 0.81;
+
+/// The progress of a spring of [_previewResponse] / [_previewDamping]
+/// released from rest [t] seconds ago.
+double _previewSpring(double t) {
+  if (t <= 0) {
+    return 0;
+  }
+  final double omega = 2 * math.pi / _previewResponse;
+  final double decay = _previewDamping * omega;
+  final double damped =
+      omega * math.sqrt(1 - _previewDamping * _previewDamping);
+  return 1 -
+      math.exp(-decay * t) *
+          (math.cos(damped * t) + decay / damped * math.sin(damped * t));
+}
+
+/// The rms error of [samples] (`[t, growth]`) against the preview spring
+/// from [from] to [to] points of growth, at its best start time.
+double _previewSpringError(
+  List<(double, double)> samples, {
+  required double from,
+  required double to,
+}) {
+  var best = double.infinity;
+  for (int i = 0; i < 160; i++) {
+    final double start = samples.first.$1 - i / 2000;
+    var squares = 0.0;
+    for (final (t, growth) in samples) {
+      final double error =
+          from + (to - from) * _previewSpring(t - start) - growth;
+      squares += error * error;
+    }
+    best = math.min(best, math.sqrt(squares / samples.length));
+  }
+  return best;
+}
+
+void devicePreview() {
+  final data =
+      (jsonDecode(
+                File(
+                  'test/fixtures/ios27-device/context_menu/preview.json',
+                ).readAsStringSync(),
+              )
+              as Map)
+          .cast<String, Object?>();
+  final cases = (data['cases']! as List).cast<Map<String, Object?>>();
+  Size card(Map<String, Object?> c) {
+    final size = (c['card']! as List).cast<num>();
+    return Size(size[0].toDouble(), size[1].toDouble());
+  }
+
+  List<List<double>> samples(Map<String, Object?> c, String key) =>
+      <List<double>>[
+        for (final sample in (c[key]! as List).cast<List<Object?>>())
+          <double>[for (final value in sample) (value! as num).toDouble()],
+      ];
+
+  test('UIKit keeps the open preview lifted about the held view\'s center '
+      'until the close, on one spring each way', () {
+    expect(cases, hasLength(20));
+    for (final c in cases) {
+      final size = card(c);
+      final longest = size.longestSide;
+      final lifted =
+          (MorphContextMenuRegion.measuredPreviewScale(size) - 1) * longest;
+      final frozen = ((c['frozen']! as List)[1]! as num).toDouble();
+      final open = samples(c, 'open');
+      final close = samples(c, 'close');
+      double growth(List<double> f) => math.max(f[3], f[4]) - longest;
+      for (final f in <List<double>>[...open, ...close]) {
+        expect(
+          (Offset(f[1], f[2]) - const Offset(201, 300)).distance,
+          lessThan(0.4),
+          reason: '${c['name']} at ${f[0]}',
+        );
+      }
+      // From the held size straight to the lifted one: a small preview
+      // shrinks (60 x 40: 74 to 69), a large one keeps growing (300 x 200:
+      // 314 to 326), and none returns to its natural size while open.
+      final span = (lifted - frozen).abs();
+      for (final f in open) {
+        expect(
+          growth(f),
+          inInclusiveRange(
+            math.min(frozen, lifted) - 0.03 * span - 0.05,
+            math.max(frozen, lifted) + 0.03 * span + 0.05,
+          ),
+          reason: '${c['name']} at ${f[0]}',
+        );
+      }
+      expect(growth(open.last), closeTo(lifted, 0.01), reason: '${c['name']}');
+      expect(
+        _previewSpringError(
+          <(double, double)>[for (final f in open) (f[0], growth(f))],
+          from: frozen,
+          to: lifted,
+        ),
+        lessThan(0.12),
+        reason: '${c['name']} open',
+      );
+      expect(growth(close.first), closeTo(lifted, 0.9), reason: '${c['name']}');
+      expect(growth(close.last), closeTo(0, 0.01), reason: '${c['name']}');
+      expect(
+        _previewSpringError(
+          <(double, double)>[for (final f in close) (f[0], growth(f))],
+          from: lifted,
+          to: 0,
+        ),
+        lessThan(0.25),
+        reason: '${c['name']} close',
+      );
+    }
+  });
+
+  for (final String name in <String>[
+    'ctxg-s-1200',
+    'ctxg-m-1200',
+    'ctxg-t-1200',
+    'ctxg-l-1200',
+  ]) {
+    testWidgets('$name: the held hero takes off from its grown size, opens at '
+        'the device preview with the menu 16 points off it, and lands at its '
+        'natural size', (WidgetTester tester) async {
+      final c = cases.firstWhere((Map<String, Object?> c) => c['name'] == name);
+      final size = card(c);
+      final open = samples(c, 'open').last;
+      final menu = (c['menu']! as List).cast<num>();
+      tester.view.physicalSize = const Size(402, 874);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      MorphFlight? flight;
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (BuildContext context, Widget? child) =>
+              MorphScope(child: child!),
+          home: Stack(
+            children: <Widget>[
+              Positioned(
+                left: 201 - size.width / 2,
+                top: 300 - size.height / 2,
+                child: MorphContextMenuRegion(
+                  alignment: Alignment.center,
+                  onOpen: (MorphFlight f) => flight = f,
+                  below: MorphSatellite(
+                    height: menu[3].toDouble(),
+                    builder: (BuildContext context, MorphFlight flight) =>
+                        Center(
+                          child: SizedBox(
+                            key: _deviceMenu,
+                            width: menu[2].toDouble(),
+                            height: menu[3].toDouble(),
+                          ),
+                        ),
+                  ),
+                  child: SizedBox.fromSize(
+                    key: _heroBox,
+                    size: size,
+                    child: const ColoredBox(color: Color(0xFF0088FF)),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      // What is on screen: the flying copy while the hero travels, the
+      // source ghost on the launch frame (the flying copy needs one layout
+      // to measure), the slot copy in the open menu, the page's own hero
+      // otherwise.
+      Rect visible() {
+        final Finder flying = find.byKey(_flyingHero);
+        if (flying.evaluate().isNotEmpty) {
+          return tester.getRect(flying);
+        }
+        final MorphFlight? live = flight;
+        if (live != null && !live.isFinished && live.controller.value < 0.5) {
+          return live.sourceRect;
+        }
+        final Finder slot = find.descendant(
+          of: find.byType(Column),
+          matching: find.byKey(_heroBox),
+        );
+        if (slot.evaluate().isNotEmpty) {
+          return tester.getRect(slot);
+        }
+        return tester.getRect(find.byKey(_heroBox).first);
+      }
+
+      double growth(Rect r) => r.longestSide - size.longestSide;
+      final lifted =
+          (MorphContextMenuRegion.measuredPreviewScale(size) - 1) *
+          size.longestSide;
+      final TestGesture gesture = await tester.startGesture(
+        const Offset(201, 300),
+      );
+      await tester.pump();
+      double? grown;
+      final release = (c['liftUp']! as num).toDouble();
+      var down = true;
+      for (int i = 0; i < 300; i++) {
+        if (down && i * 8 >= release * 1000) {
+          down = false;
+          await gesture.up();
+        }
+        await tester.pump(const Duration(milliseconds: 8));
+        expect(tester.takeException(), isNull);
+        final Rect hero = visible();
+        expect(
+          (hero.center - const Offset(201, 300)).distance,
+          lessThan(1e-3),
+          reason: 'the hero stays centered where it was held, at ${i * 8} ms',
+        );
+        if (flight == null) {
+          continue;
+        }
+        // From the takeoff on, the hero travels from the grown size to
+        // the lifted one and never back through its natural size.
+        grown ??= growth(flight!.sourceRect);
+        final span = (lifted - grown).abs();
+        expect(
+          growth(hero),
+          inInclusiveRange(
+            math.min(grown, lifted) - 0.03 * span - 0.05,
+            math.max(grown, lifted) + 0.03 * span + 0.05,
+          ),
+          reason: 'takeoff at ${i * 8} ms',
+        );
+      }
+      expect(grown, closeTo(14.92, 0.3), reason: 'took off at 0.78 s');
+      expect(flight!.controller.isAnimating, isFalse);
+      final Rect hero = visible();
+      expect(hero.center.dx, closeTo(open[1], 0.4));
+      expect(hero.center.dy, closeTo(open[2], 0.01));
+      expect(hero.width, closeTo(open[3], 0.01));
+      expect(hero.height, closeTo(open[4], 0.01));
+      final Rect actions = tester.getRect(find.byKey(_deviceMenu));
+      expect(actions.center.dx, closeTo(menu[0].toDouble(), 0.01));
+      expect(actions.center.dy, closeTo(menu[1].toDouble(), 0.01));
+      expect(
+        actions.top - hero.bottom,
+        closeTo(MorphContextMenuRegion.measuredMenuGap, 0.01),
+      );
+
+      flight!.close();
+      for (int i = 0; i < 200; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+        final Rect now = visible();
+        expect((now.center - const Offset(201, 300)).distance, lessThan(1e-3));
+        expect(
+          growth(now),
+          inInclusiveRange(-0.05 * lifted, lifted + 0.01),
+          reason: 'close at ${i * 8} ms',
+        );
+      }
+      expect(flight!.isFinished, isTrue);
+      final Rect home = tester.getRect(find.byKey(_heroBox));
+      expect((home.center - const Offset(201, 300)).distance, lessThan(1e-3));
+      expect(home.width, moreOrLessEquals(size.width, epsilon: 0.01));
+      expect(home.height, moreOrLessEquals(size.height, epsilon: 0.01));
+    });
+  }
 }

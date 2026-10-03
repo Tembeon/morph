@@ -42,6 +42,9 @@ class MorphSatellite {
 /// UIKit's preview does ([measuredHoldGrowth]), and on the hold
 /// threshold it flies to where its satellites fit: a reactions capsule
 /// above, the actions below, both arriving on the flight's own spring.
+/// The open menu shows the hero lifted, as UIKit shows its preview
+/// ([measuredPreviewScale] about the hero's center), and the flight home
+/// lands it at its natural size.
 /// A finger let go past [measuredCommitDuration] opens the menu too. The
 /// hero keeps its identity for the whole journey (a shared element,
 /// never a copy fading in over a copy); the scrim is modal and a tap on
@@ -155,12 +158,17 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// iPhone 16 Pro.
   static const Duration measuredHoldDuration = Duration(milliseconds: 780);
 
-  /// Whether the hero grows under a resting finger: a uniform scale of
-  /// `1 + growth / longest side`, the growth [measuredHoldGrowth] of the
-  /// time held - the same number of points for every size, as UIKit's
-  /// preview grows. The flight takes off from the grown hero; a finger
-  /// that lets go or scrolls before the commit point drops it back at
-  /// once.
+  /// Whether the hero grows under a resting finger and shows lifted in
+  /// the open menu. Held, it scales by `1 + growth / longest side`, the
+  /// growth [measuredHoldGrowth] of the time held - the same number of
+  /// points for every size, as UIKit's preview grows; a finger that lets
+  /// go or scrolls before the commit point drops it back at once. Open,
+  /// the menu's hero is [measuredPreviewScale] of its natural size about
+  /// its natural center, and the satellites stand off the lifted hero:
+  /// the flight carries the hero from the grown size to the lifted one
+  /// (a small hero shrinks a little, a large one keeps growing) and back
+  /// to its natural size on the way home. Off, the hero keeps its
+  /// natural size throughout.
   final bool lifts;
 
   /// UIKit's growth of a held context menu preview before its menu opens,
@@ -211,6 +219,24 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// The largest scale of UIKit's open preview (1.15 measured on 60 x 40,
   /// 120 x 80 and 80 x 160 previews).
   static const double measuredLiftScale = 1.15;
+
+  /// The scale of UIKit's open preview over a preview of natural [size]:
+  /// [measuredLiftScale] while that adds at most [measuredLiftPoints]
+  /// along the longest side, those points beyond (the knee is at 173.3
+  /// points). A 60 x 40 preview opens at 69 x 46, a 300 x 200 one at
+  /// 326 x 217.3 (iPhone 16 Pro, iOS 27).
+  ///
+  /// UIKit keeps the preview at this size for as long as the menu is
+  /// open; the preview's center stays on the held view's center.
+  static double measuredPreviewScale(Size size) {
+    final double longest = size.longestSide;
+    if (longest <= 0) {
+      return 1;
+    }
+    return 1 +
+        math.min((measuredLiftScale - 1) * longest, measuredLiftPoints) /
+            longest;
+  }
 
   /// Space UIKit leaves between an open preview and its menu, in points.
   static const double measuredMenuGap = 16;
@@ -405,6 +431,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
             gap: widget.gap,
             margin: widget.margin,
             alignment: widget.alignment.resolve(Directionality.of(context)),
+            lifted: widget.lifts,
           );
           flight.markNeedsBuild();
         }
@@ -588,7 +615,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   MorphFlight _open() {
     final OverlayState? overlay = widget.overlay;
     // The region's own box, ABOVE the press transform: the hero's
-    // natural rect, lifted or not - the size the hero lands at.
+    // natural rect, grown or not - the size the hero lands at, and the
+    // center the open menu lifts it about.
     final Rect hero = morphAnchorRect(context, overlay: overlay);
     final MorphFlight? active = _flight;
     final _MenuGeometry geometry;
@@ -601,6 +629,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         gap: widget.gap,
         margin: widget.margin,
         alignment: widget.alignment.resolve(Directionality.of(context)),
+        lifted: widget.lifts,
       );
     } else {
       geometry = _MenuGeometry(
@@ -611,6 +640,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         gap: widget.gap,
         margin: widget.margin,
         alignment: widget.alignment.resolve(Directionality.of(context)),
+        lifted: widget.lifts,
       );
     }
     final MorphTheme? theme = MorphTheme.maybeOf(context);
@@ -696,27 +726,40 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
               Align(
                 alignment: Alignment(geometry.alignment.x, 0),
                 child: SizedBox(
-                  width: geometry.heroWidth,
-                  height: geometry.heroHeight,
+                  width: geometry.slotWidth,
+                  height: geometry.slotHeight,
                   // The same content on both sides: the target copy
                   // flies alone at full opacity - a fade-through of
                   // identical pixels would read as a blink.
                   child: MorphSharedElement(
                     id: _heroId,
                     fade: .none,
-                    // The slot is seeded at the hero's launch size and
-                    // springs to what the copy becomes; the copy lays
-                    // out at its natural size meanwhile, never
-                    // narrower than at launch, never wider than the
-                    // menu, and overflows the slot until it catches up.
-                    child: MorphContentMeasure(
-                      childConstraints: BoxConstraints(
-                        minWidth: geometry.hero.width,
-                        maxWidth: geometry.width,
+                    // The copy lays out at its natural size and is
+                    // painted lifted, as UIKit scales its preview: text
+                    // never rewraps at the lifted size. The slot is
+                    // seeded at the hero's launch size and springs to
+                    // what the copy becomes; the copy is never narrower
+                    // than at launch, never wider than the menu, and
+                    // overflows the slot until it catches up.
+                    child: Transform.scale(
+                      scale: geometry.scale,
+                      alignment: Alignment.topLeft,
+                      child: OverflowBox(
+                        alignment: Alignment.topLeft,
+                        minWidth: geometry.heroWidth,
+                        maxWidth: geometry.heroWidth,
+                        minHeight: geometry.heroHeight,
+                        maxHeight: geometry.heroHeight,
+                        child: MorphContentMeasure(
+                          childConstraints: BoxConstraints(
+                            minWidth: geometry.hero.width,
+                            maxWidth: geometry.width / geometry.scale,
+                          ),
+                          alignment: AlignmentDirectional.topStart,
+                          onSize: geometry.reportHero,
+                          child: hero,
+                        ),
                       ),
-                      alignment: AlignmentDirectional.topStart,
-                      onSize: geometry.reportHero,
-                      child: hero,
                     ),
                   ),
                 ),
@@ -728,7 +771,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
                   geometry: geometry,
                   slot: Rect.fromLTWH(
                     0,
-                    geometry.aboveExtent + geometry.heroHeight + geometry.gap,
+                    geometry.aboveExtent + geometry.slotHeight + geometry.gap,
                     geometry.width,
                     geometry.below,
                   ),
@@ -818,7 +861,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
 
 /// A satellite unfolding out of the hero: at flight value 0 the slot is
 /// squeezed into a blob of [MorphContextMenuRegion.measuredRetractScale]
-/// times the hero at the hero's center, at 1 it stands in place - the
+/// times the hero's natural size at the hero's center, at 1 it stands in
+/// place - the
 /// menu grows out of the held surface and retracts into it on the way
 /// home, a pure function of the flight's value.
 class _Retract extends StatelessWidget {
@@ -850,7 +894,7 @@ class _Retract extends StatelessWidget {
         }
         final Offset heroCenter =
             geometry.heroOffset +
-            Offset(geometry.heroWidth / 2, geometry.heroHeight / 2);
+            Offset(geometry.slotWidth / 2, geometry.slotHeight / 2);
         final Rect blob = Rect.fromCenter(
           center: heroCenter,
           width:
@@ -918,7 +962,10 @@ class _LiveExtent {
 }
 
 /// The menu column around a hero: sizes, the hero's slot and the
-/// placement rule. The hero's rect is captured once at launch; the
+/// placement rule. The slot holds the hero lifted
+/// ([MorphContextMenuRegion.measuredPreviewScale] of its natural extents)
+/// about the launch rect's center. The hero's rect is captured once at
+/// launch; the
 /// extents are live - seeded from the first measurement (the hero's
 /// from its launch size) and springing to every later one on the
 /// flight's open motion - and the column notifies on every change, so
@@ -932,6 +979,7 @@ class _MenuGeometry extends ChangeNotifier {
     required this.gap,
     required this.margin,
     required this.alignment,
+    required this.lifted,
   }) : _hasAbove = above != null,
        _hasBelow = below != null,
        _above = _LiveExtent(above?.height ?? 0, seeded: above?.height != null),
@@ -953,6 +1001,9 @@ class _MenuGeometry extends ChangeNotifier {
 
   /// The resolved hero alignment across the width.
   Alignment alignment;
+
+  /// Whether the slot holds the hero lifted.
+  bool lifted;
 
   bool _hasAbove;
   bool _hasBelow;
@@ -982,6 +1033,7 @@ class _MenuGeometry extends ChangeNotifier {
     required double gap,
     required double margin,
     required Alignment alignment,
+    required bool lifted,
   }) {
     if (_disposed) {
       return;
@@ -993,12 +1045,14 @@ class _MenuGeometry extends ChangeNotifier {
         this.gap != gap ||
         this.margin != margin ||
         this.alignment != alignment ||
+        this.lifted != lifted ||
         hadAbove != (above != null) ||
         hadBelow != (below != null);
     this.minWidth = minWidth;
     this.gap = gap;
     this.margin = margin;
     this.alignment = alignment;
+    this.lifted = lifted;
     _hasAbove = above != null;
     _hasBelow = below != null;
     changed = _reconfigureSatellite(_above, hadAbove, above) || changed;
@@ -1044,14 +1098,27 @@ class _MenuGeometry extends ChangeNotifier {
   /// The below slot's current extent (without the gap).
   double get below => _below.value;
 
-  /// The hero slot's current width.
+  /// The hero's current natural width.
   double get heroWidth => _heroWidth.value;
 
-  /// The hero slot's current height.
+  /// The hero's current natural height.
   double get heroHeight => _heroHeight.value;
 
-  /// The column's width: the hero's or the minimum, whichever is wider.
-  double get width => math.max(minWidth, heroWidth);
+  /// The hero's lift in the open menu: UIKit's preview scale of its
+  /// current natural size, or 1 unlifted.
+  double get scale => lifted
+      ? MorphContextMenuRegion.measuredPreviewScale(Size(heroWidth, heroHeight))
+      : 1;
+
+  /// The hero slot's current width: the lifted hero.
+  double get slotWidth => heroWidth * scale;
+
+  /// The hero slot's current height: the lifted hero.
+  double get slotHeight => heroHeight * scale;
+
+  /// The column's width: the lifted hero's or the minimum, whichever is
+  /// wider.
+  double get width => math.max(minWidth, slotWidth);
 
   /// Rows above the hero plus their gap; 0 without a satellite.
   double get aboveExtent => _hasAbove ? above + gap : 0;
@@ -1060,11 +1127,11 @@ class _MenuGeometry extends ChangeNotifier {
   double get belowExtent => _hasBelow ? below + gap : 0;
 
   /// The column's height.
-  double get height => aboveExtent + heroHeight + belowExtent;
+  double get height => aboveExtent + slotHeight + belowExtent;
 
   /// The hero slot's offset inside the column.
   Offset get heroOffset =>
-      Offset((alignment.x + 1) / 2 * (width - heroWidth), aboveExtent);
+      Offset((alignment.x + 1) / 2 * (width - slotWidth), aboveExtent);
 
   /// Where the column sits inside the vessel for every spring value.
   /// The vessel lerps from the hero's rect to the column's; aligning
@@ -1077,19 +1144,22 @@ class _MenuGeometry extends ChangeNotifier {
     return Alignment(alignment.x, y);
   }
 
-  /// The column's rect: the hero stays put unless the column would
-  /// leave the overlay's safe area (or the keyboard's edge), then the
-  /// whole column shifts.
+  /// The column's rect: the hero stays put - lifted about its launch
+  /// center, as UIKit lifts its preview - unless the column would leave
+  /// the overlay's safe area (or the keyboard's edge), then the whole
+  /// column shifts.
   Rect rectFor(Size overlay, EdgeInsets padding) {
     final double leftMin = padding.left + margin;
     final double leftMax = overlay.width - padding.right - margin - width;
     final double topMin = padding.top + margin;
     final double topMax = overlay.height - padding.bottom - margin - height;
-    final double left = (hero.left - heroOffset.dx).clamp(
+    final Offset slot =
+        hero.topLeft - Offset(hero.width, hero.height) * ((scale - 1) / 2);
+    final double left = (slot.dx - heroOffset.dx).clamp(
       leftMin,
       leftMax < leftMin ? leftMin : leftMax,
     );
-    final double top = (hero.top - heroOffset.dy).clamp(
+    final double top = (slot.dy - heroOffset.dy).clamp(
       topMin,
       topMax < topMin ? topMin : topMax,
     );
