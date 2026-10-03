@@ -110,11 +110,15 @@ class MorphDatePickerStyle {
   static const light = MorphDatePickerStyle();
 
   /// The dark appearance.
+  ///
+  /// The overlay's platter is the dark menu's material: over black the
+  /// native overlay reads 32 gray on the iPhone 16 Pro film, as the native
+  /// menu does.
   static const dark = MorphDatePickerStyle(
     labelFillColor: Color(0x3D767680),
     labelColor: Color(0xFFFFFFFF),
     accentColor: Color(0xFF0091FF),
-    platterColor: Color(0xF22C2C2E),
+    platterColor: Color(0xF2222222),
     shadowColor: Color(0x4D000000),
     titleColor: Color(0xFFFFFFFF),
     weekdayColor: Color(0x99EBEBF5),
