@@ -41,18 +41,12 @@ import 'package:meta/meta.dart';
   return (n, 1.0 - 1.0 / kXj);
 }
 
-(double, double, Offset, double) _rseOctant(
-  double axis,
-  double radius,
-) {
+(double, double, Offset, double) _rseOctant(double axis, double radius) {
   if (radius <= 1e-3) return (0.0, 0.0, Offset.zero, 0.0);
   final (n, xJOverA) = _rseNAndXj(2.0 * axis / radius);
   final xJ = xJOverA * axis;
   final yJ =
-      pow(
-        max(1.0 - pow(xJOverA, n).toDouble(), 0.0),
-        1.0 / n,
-      ).toDouble() *
+      pow(max(1.0 - pow(xJOverA, n).toDouble(), 0.0), 1.0 / n).toDouble() *
       axis;
   final tanPhi = pow(xJ / max(yJ, 1e-6), n - 1.0).toDouble();
   final d = (xJ - tanPhi * yJ) / (1.0 - tanPhi);
@@ -94,14 +88,8 @@ List<double> roundedSuperellipseParameters(
 }) {
   final halfWidth = size.width * scale / 2.0;
   final halfHeight = size.height * scale / 2.0;
-  final radius = min(
-    cornerRadius * scale,
-    min(halfWidth, halfHeight),
-  );
-  final (topN, topSpan, topCenter, topRadius) = _rseOctant(
-    halfWidth,
-    radius,
-  );
+  final radius = min(cornerRadius * scale, min(halfWidth, halfHeight));
+  final (topN, topSpan, topCenter, topRadius) = _rseOctant(halfWidth, radius);
   final (rightN, rightSpan, rightCenter, rightRadius) = _rseOctant(
     halfHeight,
     radius,

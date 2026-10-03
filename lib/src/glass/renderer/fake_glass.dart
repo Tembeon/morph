@@ -435,18 +435,15 @@ class RenderFakeGlass extends RenderProxyBox {
     if (allowSurfaceOutset) {
       final localBounds = Offset.zero & size;
       final clipPath = shape.getOuterPath(localBounds);
-      context.pushClipPath(
-        true,
+      context.pushClipPath(true, offset, localBounds, clipPath, (
+        context,
         offset,
-        localBounds,
-        clipPath,
-        (context, offset) {
-          if (!ui.ImageFilter.isShaderFilterSupported) {
-            context.setWillChangeHint();
-          }
-          context.pushLayer(layer, (_, _) {}, offset);
-        },
-      );
+      ) {
+        if (!ui.ImageFilter.isShaderFilterSupported) {
+          context.setWillChangeHint();
+        }
+        context.pushLayer(layer, (_, _) {}, offset);
+      });
       _paintRecordedSurface(context.canvas, offset);
       context.pushClipPath(
         true,
@@ -530,9 +527,7 @@ class RenderFakeGlass extends RenderProxyBox {
     final surfaceTint = appearance.colorModel.approximateSurfaceTint(
       appearance.tint,
     );
-    final tint = surfaceTint.withValues(
-      alpha: surfaceTint.a * visibility,
-    );
+    final tint = surfaceTint.withValues(alpha: surfaceTint.a * visibility);
     if (tint.a == 0) return;
     canvas
       ..save()

@@ -246,21 +246,12 @@ class RenderLiquidGlassBlendGroup extends RenderLiquidGlassGeometry {
 
     Rect? layerBounds;
 
-    for (final (
-          index,
-          MapEntry(
-            key: renderObject,
-            value: shape,
-          ),
-        )
+    for (final (index, MapEntry(key: renderObject, value: shape))
         in link.shapeEntries.indexed) {
       if (!renderObject.attached || !renderObject.hasSize) continue;
 
       try {
-        final shapeData = _computeShapeInfo(
-          renderObject,
-          shape,
-        );
+        final shapeData = _computeShapeInfo(renderObject, shape);
         shapes.add(shapeData);
 
         layerBounds =

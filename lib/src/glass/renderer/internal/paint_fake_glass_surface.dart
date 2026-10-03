@@ -11,12 +11,7 @@ import 'package:morph/src/glass/renderer/liquid_glass_settings.dart';
 /// Extra logical pixels required for the portion of the contour that lies
 /// outside the shape's nominal bounds.
 double fakeGlassSurfaceOutset(LiquidGlassSettings settings) {
-  return math
-      .max(
-        settings.contourWidth + 1,
-        0,
-      )
-      .toDouble();
+  return math.max(settings.contourWidth + 1, 0).toDouble();
 }
 
 const _noSuperellipse = <double>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
@@ -57,23 +52,13 @@ Rect fakeGlassSurfaceQuad(Rect localQuad, Float64List transform) {
       s[5] == 0) {
     return localQuad;
   }
-  double axis(
-    double localMin,
-    double localMax,
-    double scale,
-    double shift,
-  ) {
+  double axis(double localMin, double localMax, double scale, double shift) {
     final a = scale * localMin + shift;
     final b = scale * localMax + shift;
     return (math.min(a, b).floor() - shift) / scale;
   }
 
-  double axisMax(
-    double localMin,
-    double localMax,
-    double scale,
-    double shift,
-  ) {
+  double axisMax(double localMin, double localMax, double scale, double shift) {
     final a = scale * localMin + shift;
     final b = scale * localMax + shift;
     return (math.max(a, b).ceil() - shift) / scale;

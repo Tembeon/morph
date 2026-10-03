@@ -13,12 +13,7 @@ import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.d
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 
-enum _FakeGlassPaintStage {
-  shadows,
-  backdrop,
-  surfaces,
-  contents,
-}
+enum _FakeGlassPaintStage { shadows, backdrop, surfaces, contents }
 
 @internal
 class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
@@ -279,11 +274,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
           },
           oldLayer: _clipLayer.layer,
         );
-        _paintFadingBackdrops(
-          effectContext,
-          effectOffset,
-          shapesWithGeometry,
-        );
+        _paintFadingBackdrops(effectContext, effectOffset, shapesWithGeometry);
       } else {
         _releaseGlassLayers();
       }

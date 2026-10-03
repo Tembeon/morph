@@ -58,13 +58,7 @@ class FlutterGpuGeometryRenderer {
   ui.Image? get materialImage => null;
 
   // ignore: avoid_unused_constructor_parameters
-  ({
-    ui.Image image,
-    int width,
-    int height,
-    int textureWidth,
-    int textureHeight,
-  })
+  ({ui.Image image, int width, int height, int textureWidth, int textureHeight})
   render({
     required int width,
     required int height,

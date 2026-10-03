@@ -269,9 +269,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
     if (widget.backdropKey == null &&
         widget.useBackdropGroup &&
         BackdropGroup.of(context) == null) {
-      return BackdropGroup(
-        child: Builder(builder: _buildLayer),
-      );
+      return BackdropGroup(child: Builder(builder: _buildLayer));
     }
     return _buildLayer(context);
   }
@@ -356,9 +354,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
     // several contour-following canvas bands; without this boundary an
     // ancestor/compositor transform can make every band record again even
     // though neither the shape nor material changed.
-    Widget buildFakeSurfaceLayer(
-      FragmentShader? surfaceShader,
-    ) {
+    Widget buildFakeSurfaceLayer(FragmentShader? surfaceShader) {
       return RepaintBoundary(
         child: LiquidGlassRenderScope(
           settings: settings,
@@ -467,14 +463,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   final FragmentShader defaultRenderShader;
   final FragmentShader materialRenderShader;
   final FragmentShader tintRenderShader;
-  FragmentShader get renderShader => switch ((
-    _usesShapeAppearances,
-    _usesTintOnlyAppearance,
-  )) {
-    (false, _) => defaultRenderShader,
-    (true, true) => tintRenderShader,
-    (true, false) => materialRenderShader,
-  };
+  FragmentShader get renderShader =>
+      switch ((_usesShapeAppearances, _usesTintOnlyAppearance)) {
+        (false, _) => defaultRenderShader,
+        (true, true) => tintRenderShader,
+        (true, false) => materialRenderShader,
+      };
 
   FlutterGpuGeometryRenderer? _gpuGeometryRenderer;
   FlutterGpuGeometryRenderer? get gpuGeometryRenderer => _gpuGeometryRenderer;
@@ -562,9 +556,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           1 - settings.effectiveBackdropShrink,
           appearance.saturation,
         ])
-        ..setOffset(
-          const Offset(0, 1),
-        )
+        ..setOffset(const Offset(0, 1))
         ..setColor(const Color.fromARGB(255, 255, 255, 255))
         ..setColor(
           Color.fromARGB(
@@ -649,9 +641,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   double get _frostSigma => settings.effectiveFrost;
 
-  List<double> _appearanceLookupData(
-    List<LiquidGlassAppearance> appearances,
-  ) {
+  List<double> _appearanceLookupData(List<LiquidGlassAppearance> appearances) {
     // This is used only for mixed frames; unused lookup rows must not depend
     // on the owner's active (possibly different) uniform frame.
     final fallback = defaultAppearance;
@@ -973,10 +963,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       for (final (_, geometry, _) in shapesWithGeometry)
         for (final shape in geometry.shapes) shape.appearance,
     ];
-    final appearanceValuesChanged = !listEquals(
-      _shapeAppearances,
-      appearances,
-    );
+    final appearanceValuesChanged = !listEquals(_shapeAppearances, appearances);
     _setShapeAppearances(appearances);
     if (usedShapeAppearances != _usesShapeAppearances ||
         usedTintOnlyAppearance != _usesTintOnlyAppearance ||
@@ -1022,11 +1009,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // Sampler 0 is the image-filter input. The engine replaces its texture
       // with the backdrop but keeps the sampling set here, so any bound image
       // selects bilinear or nearest backdrop sampling at no cost.
-      ..setImageSampler(
-        0,
-        geometryImage,
-        filterQuality: FilterQuality.low,
-      )
+      ..setImageSampler(0, geometryImage, filterQuality: FilterQuality.low)
       // Nearest: the matte packs 12-bit normal angle and displacement codes
       // across byte boundaries, which filtering between texels would mix.
       ..setImageSampler(1, geometryImage);
@@ -1351,10 +1334,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final bounds = _geometryMatteBounds;
       context.canvas
         ..save()
-        ..translate(
-          bounds.left,
-          bounds.top,
-        )
+        ..translate(bounds.left, bounds.top)
         ..scale(1 / devicePixelRatio)
         ..drawImageRect(
           geometryImage,
@@ -1433,9 +1413,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     double extent(double x, double y) {
       switch (type) {
         case RawShapeType.ellipse:
-          return sqrt(
-            pow(x * halfSize.width, 2) + pow(y * halfSize.height, 2),
-          );
+          return sqrt(pow(x * halfSize.width, 2) + pow(y * halfSize.height, 2));
         case RawShapeType.roundedRectangle:
           final radius = min(cornerRadius, halfSize.shortestSide);
           return x.abs() * (halfSize.width - radius) +

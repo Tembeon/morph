@@ -6,9 +6,7 @@ import 'package:meta/meta.dart';
 @visibleForTesting
 bool isLocalTest = false;
 
-final String _shadersRoot = !kIsWeb && isLocalTest
-    ? ''
-    : 'packages/morph/';
+final String _shadersRoot = !kIsWeb && isLocalTest ? '' : 'packages/morph/';
 
 @internal
 abstract class ShaderKeys {

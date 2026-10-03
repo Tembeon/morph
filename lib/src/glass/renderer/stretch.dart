@@ -83,20 +83,16 @@ class LiquidStretch extends StatelessWidget {
             duration: Duration(milliseconds: 300),
             snapToEnd: true,
           ),
-          builder: (context, value, child) => Transform.scale(
-            scale: value,
-            child: child,
-          ),
+          builder: (context, value, child) =>
+              Transform.scale(scale: value, child: child),
           child: MotionBuilder(
             value: value?.withResistance(resistance) ?? Offset.zero,
             motion: value == null
                 ? const Motion.bouncySpring(snapToEnd: true)
                 : const Motion.interactiveSpring(snapToEnd: true),
             converter: const OffsetMotionConverter(),
-            builder: (context, value, child) => RawLiquidStretch(
-              stretchPixels: value * stretch,
-              child: child,
-            ),
+            builder: (context, value, child) =>
+                RawLiquidStretch(stretchPixels: value * stretch, child: child),
             child: child,
           ),
         );
@@ -143,9 +139,7 @@ class RawLiquidStretch extends SingleChildRenderObjectWidget {
 
 @internal
 class RenderRawLiquidStretch extends RenderProxyBox {
-  RenderRawLiquidStretch({
-    required this._stretchPixels,
-  });
+  RenderRawLiquidStretch({required this._stretchPixels});
 
   Offset _stretchPixels;
 
@@ -221,10 +215,7 @@ class RenderRawLiquidStretch extends RenderProxyBox {
       return null;
     }
 
-    final scale = getScale(
-      stretchPixels: _stretchPixels,
-      size: size,
-    );
+    final scale = getScale(stretchPixels: _stretchPixels, size: size);
 
     // Scale about the center so opposite drag directions produce mirrored
     // results. Scaling about the local origin makes right/down stretches
@@ -253,10 +244,7 @@ class RenderRawLiquidStretch extends RenderProxyBox {
   }
 
   @internal
-  Offset getScale({
-    required Offset stretchPixels,
-    required Size size,
-  }) {
+  Offset getScale({required Offset stretchPixels, required Size size}) {
     if (size.isEmpty) {
       return const Offset(1, 1);
     }

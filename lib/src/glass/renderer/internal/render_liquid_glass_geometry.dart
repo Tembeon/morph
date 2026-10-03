@@ -255,11 +255,7 @@ abstract class RenderLiquidGlassGeometry extends RenderProxyBox {
 
   /// Gathers all shapes and computes them in both layer and screen space
   /// Returns (layerBounds, shapes, anyShapeChangedInLayer)
-  (
-    Rect bounds,
-    List<ShapeGeometry> geometries,
-    bool needsUpdate,
-  )
+  (Rect bounds, List<ShapeGeometry> geometries, bool needsUpdate)
   gatherShapeData();
 
   /// Smooth-union radius for shapes owned by this geometry node.

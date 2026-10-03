@@ -71,8 +71,6 @@ abstract class LgrLogs {
 
   /// Logs a record using a print statement.
   static void _printLog(LogRecord record) {
-    print(
-      '${record.loggerName} > ${record.level.name}: ${record.message}',
-    );
+    print('${record.loggerName} > ${record.level.name}: ${record.message}');
   }
 }

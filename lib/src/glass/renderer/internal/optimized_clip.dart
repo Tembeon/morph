@@ -52,10 +52,7 @@ class OptimizedClip extends StatelessWidget {
         borderRadius: BorderRadius.circular(borderRadius),
         child: child,
       ),
-      LiquidOval() => ClipOval(
-        clipBehavior: clipBehavior,
-        child: child,
-      ),
+      LiquidOval() => ClipOval(clipBehavior: clipBehavior, child: child),
       RoundedSuperellipseBorder(:final borderRadius) => ClipRSuperellipse(
         clipBehavior: clipBehavior,
         borderRadius: borderRadius,
@@ -66,19 +63,11 @@ class OptimizedClip extends StatelessWidget {
         borderRadius: borderRadius,
         child: child,
       ),
-      OvalBorder() => ClipOval(
-        clipBehavior: clipBehavior,
-        child: child,
-      ),
-      LinearBorder() => ClipRect(
-        clipBehavior: clipBehavior,
-        child: child,
-      ),
+      OvalBorder() => ClipOval(clipBehavior: clipBehavior, child: child),
+      LinearBorder() => ClipRect(clipBehavior: clipBehavior, child: child),
       _ => ClipPath(
         clipBehavior: clipBehavior,
-        clipper: ShapeBorderClipper(
-          shape: shape,
-        ),
+        clipper: ShapeBorderClipper(shape: shape),
         child: child,
       ),
     };

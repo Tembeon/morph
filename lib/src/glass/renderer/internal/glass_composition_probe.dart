@@ -52,13 +52,11 @@ class GlassCompositionProbe {
       ancestor != null && ancestor is! LiquidGlassLayerRenderObject;
       ancestor = ancestor.parent
     ) {
-      final alpha = ui.Color.getAlphaFromOpacity(
-        switch (ancestor) {
-          RenderOpacity() => ancestor.opacity,
-          RenderAnimatedOpacity() => ancestor.opacity.value,
-          _ => 1.0,
-        },
-      );
+      final alpha = ui.Color.getAlphaFromOpacity(switch (ancestor) {
+        RenderOpacity() => ancestor.opacity,
+        RenderAnimatedOpacity() => ancestor.opacity.value,
+        _ => 1.0,
+      });
       if (alpha == 0) {
         blocked = true;
         break;

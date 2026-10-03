@@ -18,11 +18,7 @@ Rect? clipOfAncestor(RenderObject ancestor, RenderObject child) {
       clipBehavior == Clip.none
           ? null
           : clipper?.getClip(size).outerRect ?? Offset.zero & size,
-    RenderClipRSuperellipse(
-      :final clipBehavior,
-      :final clipper,
-      :final size,
-    ) =>
+    RenderClipRSuperellipse(:final clipBehavior, :final clipper, :final size) =>
       clipBehavior == Clip.none
           ? null
           : clipper?.getClip(size).outerRect ?? Offset.zero & size,

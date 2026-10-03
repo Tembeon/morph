@@ -32,9 +32,8 @@ sealed class LiquidGlassColorModel with Equatable {
   const factory LiquidGlassColorModel.direct() = DirectLiquidGlassColorModel;
 
   /// Derives an iOS 27-style tonal tint response for [brightness].
-  const factory LiquidGlassColorModel.ios27({
-    required Brightness brightness,
-  }) = Ios27LiquidGlassColorModel;
+  const factory LiquidGlassColorModel.ios27({required Brightness brightness}) =
+      Ios27LiquidGlassColorModel;
 
   /// iOS 27 `Glass.clear`, which is identical in light and dark appearance.
   const factory LiquidGlassColorModel.ios27Clear() =
@@ -253,12 +252,7 @@ final class Ios27ClearLiquidGlassColorModel extends LiquidGlassColorModel {
   @override
   ({Color emission, double transmittance, double lift, double chromaGain})
   faceTransfer(double shortSide, {double tintAmount = 0}) => (
-    emission: const Color.from(
-      alpha: 1,
-      red: 0.126,
-      green: 0.126,
-      blue: 0.126,
-    ),
+    emission: const Color.from(alpha: 1, red: 0.126, green: 0.126, blue: 0.126),
     transmittance: 0.954,
     lift: 0,
     chromaGain: 1.057,
@@ -266,9 +260,8 @@ final class Ios27ClearLiquidGlassColorModel extends LiquidGlassColorModel {
 
   @override
   Color tintTone(Color tint, double luminance) =>
-      const Ios27LiquidGlassColorModel(
-        brightness: Brightness.light,
-      ).tintTone(tint, luminance);
+      const Ios27LiquidGlassColorModel(brightness: Brightness.light)
+          .tintTone(tint, luminance);
 
   @override
   Color approximateSurfaceTint(Color tint) {

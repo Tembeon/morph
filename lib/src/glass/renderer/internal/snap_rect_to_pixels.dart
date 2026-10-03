@@ -17,10 +17,7 @@ extension SnapRectToPixels on Rect {
   /// Backdrop image filters allocate an offscreen Impeller render target for
   /// their clip bounds. Small animated transform changes otherwise produce a
   /// differently sized target on nearly every frame.
-  Rect expandToPixelBuckets(
-    double devicePixelRatio, {
-    int bucketSize = 64,
-  }) {
+  Rect expandToPixelBuckets(double devicePixelRatio, {int bucketSize = 64}) {
     final logicalBucket = bucketSize / devicePixelRatio;
     return Rect.fromLTRB(
       (left / logicalBucket).floorToDouble() * logicalBucket,

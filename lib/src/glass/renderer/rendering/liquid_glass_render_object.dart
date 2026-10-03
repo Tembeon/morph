@@ -65,9 +65,7 @@ Rect expandForGlassShadows(
       for (final shadow in shape.shadows) {
         final extent = max(
           shadow.spreadRadius +
-              glassShadowBlurSupport(
-                shadow.blurRadius * shapeVisibility,
-              ),
+              glassShadowBlurSupport(shadow.blurRadius * shapeVisibility),
           0,
         ).toDouble();
         final localBounds = (Offset.zero & shape.renderObject.size)
@@ -325,12 +323,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   @override
   @nonVirtual
   void paint(PaintingContext context, Offset offset) {
-    _compositionProbe.paint(
-      context,
-      offset,
-      _paintGlass,
-      owner: this,
-    );
+    _compositionProbe.paint(context, offset, _paintGlass, owner: this);
   }
 
   void _paintGlass(PaintingContext context, Offset offset) {
@@ -342,8 +335,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     logger.finest(
       '$hashCode Painting glass with ${link._shapeGeometries.length} shapes.',
     );
-    final candidate =
-        <(RenderLiquidGlassGeometry, GeometryCache, Matrix4)>[];
+    final candidate = <(RenderLiquidGlassGeometry, GeometryCache, Matrix4)>[];
     final bounds = collectFrameGeometry(candidate);
     commitFrameGeometry(candidate);
     _frameState = classifyFrame(candidate);
@@ -358,11 +350,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   /// in this layer's coordinates, or `null` when no shape collected geometry
   /// this frame. The foreground is painted by the caller afterwards.
   @protected
-  void paintFrame(
-    PaintingContext context,
-    Offset offset,
-    Rect? geometryBounds,
-  );
+  void paintFrame(PaintingContext context, Offset offset, Rect? geometryBounds);
 
   // Geometry preparation does not record pictures or paint child objects.
   @protected
@@ -444,9 +432,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   bool hasVisibleShape(
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
   ) => geometries.any(
-    (entry) => entry.$2.shapes.any(
-      (shape) => shape.appearance.visibility > 0,
-    ),
+    (entry) => entry.$2.shapes.any((shape) => shape.appearance.visibility > 0),
   );
 
   /// The state a fully-hidden frame commits: idle for effects that retain
@@ -473,23 +459,13 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   @protected
   void rememberFrameInputs() {
     final inputs = _encodedGeometryInputs;
-    final sharedLength = min(
-      inputs.length,
-      shapesWithGeometry.length,
-    );
+    final sharedLength = min(inputs.length, shapesWithGeometry.length);
     for (var index = 0; index < sharedLength; index++) {
       final current = shapesWithGeometry[index];
-      inputs[index].update(
-        current.$1,
-        current.$2,
-        current.$3,
-      );
+      inputs[index].update(current.$1, current.$2, current.$3);
     }
     if (inputs.length > shapesWithGeometry.length) {
-      inputs.removeRange(
-        shapesWithGeometry.length,
-        inputs.length,
-      );
+      inputs.removeRange(shapesWithGeometry.length, inputs.length);
     }
     for (
       var index = inputs.length;
@@ -497,13 +473,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
       index++
     ) {
       final current = shapesWithGeometry[index];
-      inputs.add(
-        _EncodedGeometryInput(
-          current.$1,
-          current.$2,
-          current.$3,
-        ),
-      );
+      inputs.add(_EncodedGeometryInput(current.$1, current.$2, current.$3));
     }
   }
 
@@ -707,12 +677,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     final layer = (_effectLayer.layer ??= OffsetLayer())
       ..offset = _effectTranslation;
     (_frameState == GlassFrameState.idle ? _idleAncestorClips : _ancestorClips)
-        .pushLayer(
-      context,
-      layer,
-      painter,
-      offset,
-    );
+        .pushLayer(context, layer, painter, offset);
   }
 
   /// Drops the retained effect layer.
@@ -721,10 +686,11 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
 
   /// Synchronizes the retained clips that are active for [frameState].
   @protected
-  void syncAncestorClips() => (_frameState == GlassFrameState.idle
-          ? _idleAncestorClips
-          : _ancestorClips)
-      .sync();
+  void syncAncestorClips() =>
+      (_frameState == GlassFrameState.idle
+              ? _idleAncestorClips
+              : _ancestorClips)
+          .sync();
 
   /// Updates the dormant-frame clip ancestry from the committed shapes.
   @protected
@@ -753,11 +719,8 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
 
   /// Grows [bounds] by the committed shapes' exterior shadows only.
   @protected
-  Rect expandBoundsForShadows(Rect bounds) => expandForGlassShadows(
-    bounds,
-    _shadowSources(),
-    settings,
-  );
+  Rect expandBoundsForShadows(Rect bounds) =>
+      expandForGlassShadows(bounds, _shadowSources(), settings);
 
   Iterable<(List<ShapeGeometry>, Matrix4)> _shadowSources() =>
       shapesWithGeometry.map((entry) => (entry.$2.shapes, entry.$3));
@@ -848,10 +811,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     switch (shape) {
       case LiquidRoundedSuperellipse(:final borderRadius):
         canvas.drawRSuperellipse(
-          RSuperellipse.fromRectAndRadius(
-            rect,
-            Radius.circular(borderRadius),
-          ),
+          RSuperellipse.fromRectAndRadius(rect, Radius.circular(borderRadius)),
           paint,
         );
       case LiquidOval():
@@ -877,11 +837,8 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
 }
 
 final class _EncodedGeometryInput {
-  _EncodedGeometryInput(
-    this.renderObject,
-    this.cache,
-    Matrix4 transform,
-  ) : transform = transform.clone();
+  _EncodedGeometryInput(this.renderObject, this.cache, Matrix4 transform)
+    : transform = transform.clone();
 
   RenderLiquidGlassGeometry renderObject;
   GeometryCache cache;
@@ -928,9 +885,7 @@ class GeometryRenderLink {
     }
   }
 
-  void registerGeometry(
-    RenderLiquidGlassGeometry renderObject,
-  ) {
+  void registerGeometry(RenderLiquidGlassGeometry renderObject) {
     if (_shapeGeometries.contains(renderObject)) return;
     _dirty = true;
     _shapeGeometries.add(renderObject);

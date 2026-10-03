@@ -115,9 +115,7 @@ class _RenderGlassShadow extends RenderProxyBox {
       final extent = math
           .max(
             shadow.spreadRadius +
-                glassShadowBlurSupport(
-                  shadow.blurRadius * visibility,
-                ),
+                glassShadowBlurSupport(shadow.blurRadius * visibility),
             0,
           )
           .toDouble();
@@ -144,9 +142,7 @@ class _RenderGlassShadow extends RenderProxyBox {
                 .shift(shadow.offset)
                 .inflate(
                   shadow.spreadRadius +
-                      glassShadowBlurSupport(
-                        shadow.blurRadius * visibility,
-                      ),
+                      glassShadowBlurSupport(shadow.blurRadius * visibility),
                 ),
           );
         }
@@ -187,20 +183,14 @@ class _RenderGlassShadow extends RenderProxyBox {
     switch (shape) {
       case LiquidRoundedSuperellipse(:final borderRadius):
         canvas.drawRSuperellipse(
-          RSuperellipse.fromRectAndRadius(
-            rect,
-            Radius.circular(borderRadius),
-          ),
+          RSuperellipse.fromRectAndRadius(rect, Radius.circular(borderRadius)),
           paint,
         );
       case LiquidOval():
         canvas.drawOval(rect, paint);
       case LiquidRoundedRectangle(:final borderRadius):
         canvas.drawRRect(
-          RRect.fromRectAndRadius(
-            rect,
-            Radius.circular(borderRadius),
-          ),
+          RRect.fromRectAndRadius(rect, Radius.circular(borderRadius)),
           paint,
         );
     }

@@ -330,9 +330,7 @@ class _LiquidGlassState extends State<LiquidGlass> {
             clipBehavior: widget.clipBehavior,
             child: _fadeChildren(
               appearance.visibility,
-              GlassGlowLayer(
-                child: _keyedChild,
-              ),
+              GlassGlowLayer(child: _keyedChild),
             ),
           );
     final content = _RawLiquidGlass(
@@ -418,10 +416,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
       ..settings = settings
       ..appearance = appearance
       ..devicePixelRatio = devicePixelRatio
-      ..bindLinks(
-        blendGroupLink: blendGroupLink,
-        renderLink: renderLink,
-      );
+      ..bindLinks(blendGroupLink: blendGroupLink, renderLink: renderLink);
   }
 }
 
@@ -510,10 +505,7 @@ class RenderLiquidGlass extends RenderLiquidGlassGeometry
   }
 
   void _registerWithBlendGroup() {
-    _blendGroupLink?.registerShape(
-      this,
-      _shape,
-    );
+    _blendGroupLink?.registerShape(this, _shape);
   }
 
   void _unregisterFromBlendGroup() {
@@ -522,10 +514,7 @@ class RenderLiquidGlass extends RenderLiquidGlassGeometry
 
   void _onShapeConfigurationChanged() {
     if (_blendGroupLink != null) {
-      _blendGroupLink!.updateShape(
-        this,
-        _shape,
-      );
+      _blendGroupLink!.updateShape(this, _shape);
     } else {
       markGeometryNeedsUpdate(force: true);
     }

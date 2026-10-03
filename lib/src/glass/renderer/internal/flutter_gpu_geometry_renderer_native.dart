@@ -271,13 +271,7 @@ class FlutterGpuGeometryRenderer {
   /// `textureWidth` x `textureHeight`. The returned image is a non-owning
   /// wrapper — do NOT dispose it. Its texture is written again
   /// [reuseAfterFrames] frames after a later render replaces it.
-  ({
-    ui.Image image,
-    int width,
-    int height,
-    int textureWidth,
-    int textureHeight,
-  })
+  ({ui.Image image, int width, int height, int textureWidth, int textureHeight})
   render({
     required int width,
     required int height,
@@ -406,9 +400,8 @@ class FlutterGpuGeometryRenderer {
       boundsData: boundsData,
     );
 
-    final uniformView = _hostBufferForUniformSize(
-      _uniformSize,
-    ).emplace(_uniformData);
+    final uniformView = _hostBufferForUniformSize(_uniformSize)
+        .emplace(_uniformData);
 
     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
     final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!)

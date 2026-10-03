@@ -77,11 +77,7 @@ class GlassGlow extends StatelessWidget {
   void _handlePointer(BuildContext context, Offset position) {
     final layerState = GlassGlowLayer.maybeOf(context);
 
-    layerState?.updateTouch(
-      position,
-      radius: glowRadius,
-      color: glowColor,
-    );
+    layerState?.updateTouch(position, radius: glowRadius, color: glowColor);
   }
 
   void _removeTouch(BuildContext context) {
@@ -99,10 +95,7 @@ class GlassGlow extends StatelessWidget {
 /// {@endtemplate}
 class GlassGlowLayer extends StatefulWidget {
   /// {@macro glass_glow_layer}
-  const GlassGlowLayer({
-    required this.child,
-    super.key,
-  });
+  const GlassGlowLayer({required this.child, super.key});
 
   /// The child that will be painted above the glow effect.
   final Widget child;
@@ -285,10 +278,7 @@ class _RenderGlassGlowLayer extends RenderProxyBox {
     final glowPosition = offset + _glowOffset;
 
     final gradient = RadialGradient(
-      colors: [
-        _glowColor,
-        _glowColor.withValues(alpha: 0),
-      ],
+      colors: [_glowColor, _glowColor.withValues(alpha: 0)],
       stops: const [0.0, 1.0],
     );
 
@@ -301,11 +291,7 @@ class _RenderGlassGlowLayer extends RenderProxyBox {
       ..blendMode = BlendMode.plus;
 
     canvas
-      ..drawCircle(
-        glowPosition,
-        radius,
-        paint,
-      )
+      ..drawCircle(glowPosition, radius, paint)
       ..restore();
     super.paint(context, offset);
   }
