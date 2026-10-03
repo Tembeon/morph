@@ -557,6 +557,17 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   and only the lens window moves, as in UIKit. The example's liquid
   painter used to scale about the lens center, so the label slid along
   with a dragged lens.
+- example gallery glass: the vendored `liquid_glass_renderer` moves to
+  upstream release/01-renderer-core @ ab1c2d29 (frost at the Clear end
+  2 pt instead of 3.7, the regular frost curve refitted, dimmer glint on
+  dark toolbar and clear glass, one render base for real and fake
+  glass). A lifted lens over a tab bar now MINIFIES the bar glass beneath
+  it by 14 percent (`backdropShrink`), as the device's tab bar lens does
+  (the bar's edges show inside the lens at 0.875 of the bar's height),
+  while the items under it still grow by 16 percent about their own
+  slots: the copy is pre-grown against the shrink. The glass page gains
+  the iOS Liquid Glass Clear / Tinted choice beside the slider; Clear
+  stays the default.
 - Navigation (owner's iPhone pass on the gallery's Navigation page):
   - `MorphNavigationStack` owns the pops of its own screens: its
     navigator sits under a `NavigatorPopHandler`, so while it can pop,
