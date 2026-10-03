@@ -191,5 +191,21 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
   fused outline of capsules within spacing - 0.5 is traced by the package
   (`morphGlassContainerOutline`, skin law, step 2) - see glass-renderer.md.
   The bar's own flat painter (no MorphGlass installed) draws the same
-  groups and outline per color (`morphGlassContainerGroups` +
-  `morphGlassContainerOutline`), no trace of its own.
+  groups and outline as the glass tiers (`morphGlassContainerGroups` +
+  `morphGlassContainerOutline`), no trace of its own. GROUPING RULE (one
+  rule for every tier, 2026-10-04): capsules group by geometry alone -
+  any two within the container spacing fuse whatever their colors (a
+  prominent capsule passing a plain one fuses with it) - and a fused body
+  takes the color of its first capsule in drawing order, as the
+  renderer's bodies take the tint of their first surface. Capsules under
+  half a point either way are not drawn. Not measured: how UIKit tints an
+  SDF element union of a prominent and a plain item.
+- An id that comes back while its old capsule or item still leaves (a
+  push-pop-push inside ~0.4 s, a toolbar flip-flop) REVIVES the leaving
+  entry: it turns around from where it is on the same springs, so one id
+  is one capsule / one button at all times. Not measured against UIKit.
+- MorphNavigationConfig compares by value with callback identity: a
+  screen rebuilt with new closures republishes them to the shared bar.
+  The open back menu follows entry changes (a renamed screen below).
+- Reduced motion (not recorded on UIKit yet): pages fade in place on the
+  push spring instead of sliding.
