@@ -615,7 +615,18 @@ Public pieces:
   blob) and bent by the button's 60 against a bevel of 20 (ratio 3:
   the rim mirrored the labels); now the lens is clear, bends by UIKit's
   displacement x 2 (18 lifted) with dispersion -0.25, and refracts the
-  bar glass + the magnified labels beneath it. The dark tab bar's resting
+  bar glass + the magnified labels beneath it. A lifted lens over a BAR
+  MINIFIES the bar glass (renderer `backdropShrink` 0.14 x lift, about the
+  lens center) - measured on tabbar3-held-other: inside the lens the bar's
+  edges sit at 0.875 of its height, dark page bands at the lens's top and
+  bottom; UIKit does NOT magnify the bar glass, only the items, and
+  whynotmake-it's LoupeTabBar fits the same 14 percent on an iPhone 17
+  Pro. The copy is pre-grown by 1 / (1 - shrink) about the lens center
+  (outside the per-slot scale, clipped to the lens) so through the glass
+  each item still sits on its slot at 1.16; the segmented lens (plain
+  track) does not shrink yet - its reference shows the same inward edges,
+  but the copy-stillness test measures the pre-glass copy and would need
+  to measure through the shrink. The dark tab bar's resting
   platter is DARKER than the bar (reference 10 vs 35: 0xB5000000, was a
   white 14 percent). Audit tool: example/integration_test/
   glass_audit_test.dart (profile, dark; shots of the reference states and
@@ -1268,7 +1279,9 @@ Hard-won rules still enforced in the core:
   the "remaining travel < 3.5 pt" unlift rule, a hard clamp at the end
   tabs) our device data wins.
 - whynotmake-it/flutter_liquid_glass `liquid_glass_renderer`
-  (release/01-renderer-core @ cbbac845, sdf.glsl): same base smin, same
+  (release/01-renderer-core @ cbbac845, sdf.glsl; vendored copy now at
+  ab1c2d29 - see VENDORED for what changed; upstream's LiquidGlassLoupe
+  and LoupeTabBar are EXAMPLE code, not package API): same base smin, same
   normal-modulation idea with the WRONG exponent (sin(theta/2) chord vs
   Apple's sin^2) - necks too fat by +0.5..+8 pt as spacing grows. Not a
   source; a comparison.
