@@ -14,10 +14,13 @@ Rect _rect(List<Object?> v) => Rect.fromLTRB(
   (v[3]! as num).toDouble(),
 );
 
-Map<String, Object?> _fixture() => jsonDecode(
-  File('test/fixtures/ios27-device/push_zoom/push_zoom.json')
-      .readAsStringSync(),
-) as Map<String, Object?>;
+Map<String, Object?> _fixture() =>
+    jsonDecode(
+          File(
+            'test/fixtures/ios27-device/push_zoom/push_zoom.json',
+          ).readAsStringSync(),
+        )
+        as Map<String, Object?>;
 
 List<Map<String, Object?>> _list(Object? v) =>
     (v! as List<Object?>).cast<Map<String, Object?>>();

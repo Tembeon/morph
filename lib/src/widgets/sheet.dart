@@ -620,9 +620,9 @@ class _SheetViewState extends State<_SheetView>
     final media = MediaQuery.of(context);
     final glass = MorphGlass.maybeOf(context);
     final brightness = morphBrightnessOf(context);
-    final reported = MediaQuery.maybeDisplayCornerRadiiOf(context)
-        ?.bottomLeft
-        .x;
+    final reported = MediaQuery.maybeDisplayCornerRadiiOf(
+      context,
+    )?.bottomLeft.x;
     final floatingRadius =
         (reported ?? MorphSheetTuning.fallbackDisplayRadius) -
         MorphSheetTuning.floatingInset;

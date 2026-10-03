@@ -14,9 +14,13 @@ Rect _rect(List<Object?> v) => Rect.fromLTRB(
 );
 
 List<Map<String, Object?>> _segments() {
-  final json = jsonDecode(
-    File('test/fixtures/ios27-device/zoom/zoom.json').readAsStringSync(),
-  ) as Map<String, Object?>;
+  final json =
+      jsonDecode(
+            File(
+              'test/fixtures/ios27-device/zoom/zoom.json',
+            ).readAsStringSync(),
+          )
+          as Map<String, Object?>;
   return (json['segments']! as List<Object?>).cast<Map<String, Object?>>();
 }
 
@@ -254,9 +258,13 @@ void main() {
   });
 
   test('the scrub follows a slow device drag', () {
-    final json = jsonDecode(
-      File('test/fixtures/ios27-device/zoom/scrub.json').readAsStringSync(),
-    ) as Map<String, Object?>;
+    final json =
+        jsonDecode(
+              File(
+                'test/fixtures/ios27-device/zoom/scrub.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, Object?>;
     final sheet = _rect(json['sheet']! as List<Object?>);
     final begin = (json['panBegin']! as num).toDouble();
     var sum = 0.0;
