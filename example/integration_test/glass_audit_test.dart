@@ -27,13 +27,22 @@ import 'package:morph_example/gallery/gallery.dart';
 /// pins it for the whole run; the report also times the package's outline
 /// fusion (the menu's blurred silhouette and a bar's fused capsules), and
 /// `--dart-define=AUDIT_OUTLINES_ONLY=true` times only that.
+/// `--dart-define=AUDIT_LIGHT=true` runs it in light, for the references
+/// in tool/ios_reference/references/light (on the simulator for colors and
+/// layout: `flutter test integration_test/glass_audit_test.dart -d <sim>`,
+/// with `--dart-define=AUDIT_OUT=<absolute host path>`, since the simulator
+/// app and its tmp are removed after the run).
+const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
+
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('glass audit', (WidgetTester tester) async {
     final audit = _Audit(binding, tester);
-    binding.platformDispatcher.platformBrightnessTestValue = .dark;
+    binding.platformDispatcher.platformBrightnessTestValue = _light
+        ? .light
+        : .dark;
     SchedulerBinding.instance.addTimingsCallback(audit.timings.addAll);
     await audit.run();
     File('${_Audit.outDir.path}/report.json').writeAsStringSync(
@@ -47,7 +56,9 @@ class _Audit {
   _Audit(this.binding, this.tester);
 
   static final Directory outDir = Directory(
-    '${Directory.systemTemp.path}/glass',
+    const String.fromEnvironment('AUDIT_OUT').isEmpty
+        ? '${Directory.systemTemp.path}/glass'
+        : const String.fromEnvironment('AUDIT_OUT'),
   );
 
   final IntegrationTestWidgetsFlutterBinding binding;
