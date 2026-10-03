@@ -1,9 +1,9 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -75,7 +75,9 @@ class MorphBarButtonGroup {
   final List<MorphBarButton> buttons;
 
   /// The identity of the capsule across item changes; null keeps the
-  /// capsule by its position on its side of the bar.
+  /// capsule by its position on its side of the bar, counted from the
+  /// bar's edge (UIKit morphs the outermost capsule into the outermost
+  /// one).
   final Object? id;
 
   /// Whether the capsule is tinted with the style's prominent color.
@@ -382,11 +384,7 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   for (var i = 0; i < trailing.length; i++) {
     final g = trailing[trailing.length - 1 - i];
     final probe = capsule(g, 0, '');
-    final c = capsule(
-      g,
-      right - probe.rect.width,
-      g.id ?? ('trailing', trailing.length - 1 - i),
-    );
+    final c = capsule(g, right - probe.rect.width, g.id ?? ('trailing', i));
     out.add(c);
     right = c.rect.left - metrics.groupGap;
   }
@@ -419,6 +417,9 @@ class MorphBarItems extends StatefulWidget {
     required this.trailingInset,
     this.style,
     this.onLayout,
+    this.driftGroups,
+    this.driftProgress,
+    this.driftFactor = 1,
     super.key,
   });
 
@@ -443,6 +444,17 @@ class MorphBarItems extends StatefulWidget {
   /// Called with the laid-out capsules whenever the layout changes.
   final ValueChanged<List<MorphBarCapsuleLayout>>? onLayout;
 
+  /// The groups the capsules lean toward while [driftProgress] is set
+  /// (see [MorphBarMotion.setDrift]).
+  final List<MorphPlacedGroup>? driftGroups;
+
+  /// The progress the lean follows: the capsules lean [driftFactor] times
+  /// its value of the way toward [driftGroups]; null ends the lean.
+  final ValueListenable<double>? driftProgress;
+
+  /// The share of [driftProgress] the capsules lean by.
+  final double driftFactor;
+
   @override
   State<MorphBarItems> createState() => _MorphBarItemsState();
 }
@@ -457,6 +469,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   final Map<Object, bool> _prominent = {};
   final Map<Object, Object> _capsuleOf = {};
   List<MorphBarCapsuleLayout> _layout = const [];
+  List<MorphBarCapsuleLayout>? _driftLayout;
   String _signature = '';
   Object? _pressedCapsule;
   Object? _pressedButton;
@@ -478,16 +491,22 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final scaler =
         MediaQuery.maybeTextScalerOf(context)?.clamp(maxScaleFactor: 1.25) ??
         TextScaler.noScaling;
-    final layout = morphLayoutBarGroups(
-      groups: widget.groups,
-      width: width,
-      top: widget.top,
-      leadingInset: widget.leadingInset,
-      trailingInset: widget.trailingInset,
-      metrics: widget.metrics,
-      scaler: scaler,
-      direction: direction,
-    );
+    List<MorphBarCapsuleLayout> lay(List<MorphPlacedGroup> groups) =>
+        morphLayoutBarGroups(
+          groups: groups,
+          width: width,
+          top: widget.top,
+          leadingInset: widget.leadingInset,
+          trailingInset: widget.trailingInset,
+          metrics: widget.metrics,
+          scaler: scaler,
+          direction: direction,
+        );
+    final layout = lay(widget.groups);
+    final driftGroups = widget.driftGroups;
+    _driftLayout = driftGroups == null || widget.driftProgress == null
+        ? null
+        : lay(driftGroups);
     final signature = [
       width,
       for (final c in layout) ...[
@@ -592,9 +611,22 @@ class _MorphBarItemsState extends State<MorphBarItems>
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         _relayout(constraints.maxWidth);
+        final progress = widget.driftProgress;
+        if (progress == null && _motion.isDrifting) {
+          _motion.endDrift(clock);
+          wake();
+        }
         return ListenableBuilder(
-          listenable: frames,
+          listenable: progress == null
+              ? frames
+              : Listenable.merge([frames, progress]),
           builder: (BuildContext context, Widget? _) {
+            if (progress != null) {
+              _motion.setDrift(
+                _driftLayout,
+                widget.driftFactor * progress.value.clamp(0.0, 1.0),
+              );
+            }
             final capsules = _motion.capsules;
             final items = _motion.items;
             Rect lifted(Object id, Rect rect) {

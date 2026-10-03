@@ -342,11 +342,35 @@ Public pieces:
   bar + toolbar over its Navigator (the Navigator widget is built once:
   rebuilding it calls changedExternalState on every route and the pages'
   config publishing looped); scaffolds publish a signature-compared
-  `MorphNavigationConfig`. NOT reproduced: the partial capsule morph while
-  an edge swipe is in progress (the device drifts the capsules' x and
-  width ~0.5 x the page's progress toward the destination layout during
-  the drag), the back button long-press menu, the large
-  title's tall-bar inset bookkeeping (ours scrolls as content).
+  `MorphNavigationConfig`. A pushed screen publishes one frame after
+  the push: the stack keeps showing the screen below until it does (or
+  its first frame passes), otherwise the bar flashed empty for a frame,
+  its capsules died and were reborn and the toolbar remounted - the
+  push did not morph. The Navigator sits under a NavigatorPopHandler:
+  while the stack can pop, the ENCLOSING route is doNotPop, which turns
+  off its Cupertino edge swipe / predictive back (popGestureEnabled) and
+  routes system back and outer maybePop into the stack (the gallery's
+  MaterialPageRoute used to win the edge swipe - its edge Listener sits
+  above the page in hit-test order, so its recognizer joins the arena
+  first). Groups without an id are keyed by place counted from the
+  bar's EDGE (the device morphs the outermost trailing capsule into the
+  outermost one), and the stack's back button has no id of its own, so
+  it morphs out of the leading capsule. EDGE-SWIPE DRIFT
+  (`MorphNavigationBarDrift`, `MorphBarMotion.setDrift`): while the
+  finger drags a page, every capsule the destination bar also has (same
+  id) is drawn `barDrift` 0.5 x page progress of the way toward its
+  destination rect, items riding the capsule center - a pure function of
+  the page, so a cancel leans back with the returning page; on commit
+  the next setLayout snaps the springs onto the leaning rects and the
+  item transition starts from there (device: the drift freezes at the
+  lift, the transition follows). Refit 2026-10-03 on four device swipes
+  (pop-edge-drift-*: 0.49 at no lag, 0.50 at 1-2 ticks, 0.16-0.27 pt
+  rms); the inner capsule with no counterpart stays put on the device
+  too. The stack learns of the swipe from MorphNavigationRoute's edge
+  gesture (start / settled), not from userGestureInProgress. NOT
+  reproduced: the back button long-press menu, the large title's
+  tall-bar inset bookkeeping (ours scrolls as content), a drift of the
+  toolbar (not measured).
 - SHEETS (sheet.dart, sheet_motion.dart; 2026-10-03, iOS 27 simulator,
   iPhone 16 Pro geometry, XCUITest touches): `presentMorphSheet` pushes a
   `MorphSheetRoute` (a PopupRoute: transitionDuration zero, the reverse

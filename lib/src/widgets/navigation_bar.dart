@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/bar_items.dart';
@@ -59,6 +60,36 @@ TextStyle morphInlineTitleStyle(Color color) => TextStyle(
   color: color,
 );
 
+/// The buttons a navigation bar leans toward while an interactive pop is
+/// in progress: those of the screen the pop leads to.
+///
+/// While a finger drags a page off the screen, UIKit moves the bar's
+/// capsules part of the way toward the places they take on the screen
+/// below: each capsule that the destination bar also has (the same group
+/// id, or the same place on its side) travels and resizes
+/// [MorphNavigationTransition.barDrift] times the page's [progress] of the
+/// way, a pure function of the page's position. A cancelled pop drifts
+/// back with the returning page; a committed one hands the drifted
+/// capsules to the bar's item transition.
+@immutable
+class MorphNavigationBarDrift {
+  /// Creates a drift toward [leading] and [trailing].
+  const MorphNavigationBarDrift({
+    required this.progress,
+    this.leading,
+    this.trailing = const [],
+  });
+
+  /// The group at the leading edge of the destination bar.
+  final MorphBarButtonGroup? leading;
+
+  /// The groups at the trailing edge of the destination bar.
+  final List<MorphBarButtonGroup> trailing;
+
+  /// How far the page is out, 0 in place and 1 gone.
+  final ValueListenable<double> progress;
+}
+
 /// An iOS 27 navigation bar: glass button capsules at the sides, a title
 /// between them, no background of its own.
 ///
@@ -89,6 +120,7 @@ class MorphNavigationBar extends StatefulWidget {
     this.edgeEffect = MorphScrollEdgeEffectStyle.hard,
     this.edgeEffectTheme,
     this.titleExitShift = -MorphNavigationTransition.parallax,
+    this.drift,
     this.style,
     this.sideInset = MorphNavigationBarMetrics.sideInset,
     super.key,
@@ -127,6 +159,10 @@ class MorphNavigationBar extends StatefulWidget {
   /// (-0.3), on a pop the page that leaves (1). The new title fades in
   /// where it stands. Both ride [MorphNavigationTransition.pushSpring].
   final double titleExitShift;
+
+  /// The bar the capsules lean toward during an interactive pop; null
+  /// keeps them in place.
+  final MorphNavigationBarDrift? drift;
 
   /// The look; null resolves it from the theme.
   final MorphBarStyle? style;
@@ -216,6 +252,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
     final top = MediaQuery.maybePaddingOf(context)?.top ?? 0;
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final leading = widget.leading;
+    final drift = morphReducedMotionOf(context) ? null : widget.drift;
     _motion.reducedMotion = morphReducedMotionOf(context);
     final edge = widget.edgeEffect;
     final bar = Semantics(
@@ -241,12 +278,12 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                       onLayout: (layout) => _onLayout([
                         for (final c in layout) ...[c.rect.left, c.rect.right],
                       ]),
-                      groups: [
-                        if (leading != null)
-                          MorphPlacedGroup(leading, MorphBarSide.leading),
-                        for (final g in widget.trailing)
-                          MorphPlacedGroup(g, MorphBarSide.trailing),
-                      ],
+                      groups: _placed(leading, widget.trailing),
+                      driftGroups: drift == null
+                          ? null
+                          : _placed(drift.leading, drift.trailing),
+                      driftProgress: drift?.progress,
+                      driftFactor: MorphNavigationTransition.barDrift,
                     ),
                   ),
                   if (_outgoing case final outgoing?)
@@ -316,6 +353,14 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
     );
   }
 }
+
+List<MorphPlacedGroup> _placed(
+  MorphBarButtonGroup? leading,
+  List<MorphBarButtonGroup> trailing,
+) => [
+  if (leading != null) MorphPlacedGroup(leading, MorphBarSide.leading),
+  for (final g in trailing) MorphPlacedGroup(g, MorphBarSide.trailing),
+];
 
 bool _listEquals(List<double> a, List<double> b) {
   if (a.length != b.length) return false;

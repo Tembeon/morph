@@ -148,20 +148,28 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
   late final _Observer _observer = _Observer(this);
   final List<Route<Object?>> _routes = [];
   final Map<Route<Object?>, MorphNavigationConfig> _configs = {};
-  late final Widget _navigatorWidget = Navigator(
-    key: _navigator,
-    observers: [_observer, ...widget.observers],
-    onGenerateInitialRoutes: (NavigatorState navigator, String _) => [
-      MorphNavigationRoute<void>(builder: (_) => widget.home),
-    ],
+  final Set<Route<Object?>> _pending = {};
+  late final Widget _navigatorWidget = NavigatorPopHandler<Object?>(
+    onPopWithResult: (Object? result) =>
+        _navigator.currentState?.maybePop(result),
+    child: Navigator(
+      key: _navigator,
+      observers: [_observer, ...widget.observers],
+      onGenerateInitialRoutes: (NavigatorState navigator, String _) => [
+        MorphNavigationRoute<void>(builder: (_) => widget.home),
+      ],
+    ),
   );
   bool _scheduled = false;
   double _titleExit = -MorphNavigationTransition.parallax;
+  Route<Object?>? _swiped;
+  Animation<double>? _swipeProgress;
 
   void _publish(Route<Object?> route, MorphNavigationConfig config) {
     final before = _configs[route];
     _configs[route] = config;
-    if (before?.signature == config.signature) return;
+    final waited = _pending.remove(route);
+    if (!waited && before?.signature == config.signature) return;
     _refresh();
   }
 
@@ -182,8 +190,16 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     }
   }
 
+  void _await(Route<Object?> route) {
+    _pending.add(route);
+    SchedulerBinding.instance.addPostFrameCallback((_) {
+      if (_pending.remove(route)) _refresh();
+    });
+  }
+
   void _pushed(Route<Object?> route) {
     _routes.add(route);
+    _await(route);
     _titleExit = -MorphNavigationTransition.parallax;
     _refresh();
   }
@@ -192,12 +208,17 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     if (_routes.isNotEmpty && _routes.last == route) _titleExit = 1;
     _routes.remove(route);
     _configs.remove(route);
+    _pending.remove(route);
     _refresh();
   }
 
   void _replaced(Route<Object?>? oldRoute, Route<Object?>? newRoute) {
     final i = oldRoute == null ? -1 : _routes.indexOf(oldRoute);
-    if (oldRoute != null) _configs.remove(oldRoute);
+    if (oldRoute != null) {
+      _configs.remove(oldRoute);
+      _pending.remove(oldRoute);
+    }
+    if (newRoute != null) _await(newRoute);
     if (i >= 0 && newRoute != null) {
       _routes[i] = newRoute;
     } else if (i >= 0) {
@@ -208,24 +229,58 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     _refresh();
   }
 
+  void _swipeStarted(Route<Object?> route, Animation<double> animation) {
+    _swiped = route;
+    _swipeProgress = ReverseAnimation(animation);
+    _refresh();
+  }
+
+  void _swipeEnded(Route<Object?> route) {
+    if (_swiped != route) return;
+    _swiped = null;
+    _swipeProgress = null;
+    _refresh();
+  }
+
+  MorphBarButtonGroup? _leadingOf(List<PageRoute<Object?>> pages, int index) {
+    final config = _configs[pages[index]];
+    final leading = config?.leading;
+    if (leading != null || index == 0) return leading;
+    final below = _configs[pages[index - 1]];
+    return MorphBarButtonGroup([
+      MorphBarButton.back(
+        label: below?.backTitle ?? below?.title,
+        semanticLabel: 'Back',
+        onPressed: () => _navigator.currentState?.maybePop(),
+      ),
+    ]);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final pages = [
+    final all = [
       for (final r in _routes)
         if (r is PageRoute<Object?>) r,
     ];
+    var shown = all.length;
+    while (shown > 1 &&
+        _pending.contains(all[shown - 1]) &&
+        _configs[all[shown - 1]] == null) {
+      shown--;
+    }
+    final pages = all.sublist(0, shown);
+    final index = pages.length - 1;
     final top = pages.isEmpty ? null : pages.last;
     final config = top == null ? null : _configs[top];
-    final below = pages.length >= 2 ? _configs[pages[pages.length - 2]] : null;
-    var leading = config?.leading;
-    if (leading == null && pages.length >= 2) {
-      leading = MorphBarButtonGroup([
-        MorphBarButton.back(
-          label: below?.backTitle ?? below?.title,
-          semanticLabel: 'Back',
-          onPressed: () => _navigator.currentState?.maybePop(),
-        ),
-      ], id: 'morph.leading');
+    final leading = top == null ? null : _leadingOf(pages, index);
+    MorphNavigationBarDrift? drift;
+    final progress = _swipeProgress;
+    if (top != null && top == _swiped && progress != null && index >= 1) {
+      drift = MorphNavigationBarDrift(
+        leading: _leadingOf(pages, index - 1),
+        trailing: _configs[pages[index - 1]]?.trailing ?? const [],
+        progress: progress,
+      );
     }
     final hasToolbar = config?.hasToolbar ?? false;
     return _StackScope(
@@ -246,6 +301,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
               animate: config?.animate ?? true,
               edgeEffect: config?.edgeEffect,
               titleExitShift: _titleExit,
+              drift: drift,
               style: widget.style,
             ),
           ),
@@ -422,6 +478,7 @@ class _EdgePop extends StatefulWidget {
 class _EdgePopState extends State<_EdgePop> {
   HorizontalDragGestureRecognizer? _drag;
   bool _active = false;
+  _MorphNavigationStackState? _stack;
 
   @override
   void dispose() {
@@ -449,8 +506,15 @@ class _EdgePopState extends State<_EdgePop> {
   }
 
   void _start(DragStartDetails details) {
+    final route = widget.route;
     _active = true;
-    widget.route.navigator?.didStartUserGesture();
+    route.navigator?.didStartUserGesture();
+    final animation = route.animation;
+    final stack = context.getInheritedWidgetOfExactType<_StackScope>()?.state;
+    _stack = stack;
+    if (stack != null && animation != null) {
+      stack._swipeStarted(route, animation);
+    }
   }
 
   void _update(DragUpdateDetails details) {
@@ -502,15 +566,23 @@ class _EdgePopState extends State<_EdgePop> {
   }
 
   void _stopWhenSettled(AnimationController c) {
-    final navigator = widget.route.navigator;
-    if (!c.isAnimating) {
+    final route = widget.route;
+    final navigator = route.navigator;
+    final stack = _stack;
+    _stack = null;
+    void stop() {
       navigator?.didStopUserGesture();
+      stack?._swipeEnded(route);
+    }
+
+    if (!c.isAnimating) {
+      stop();
       return;
     }
     void listener(AnimationStatus status) {
       if (c.isAnimating) return;
       c.removeStatusListener(listener);
-      navigator?.didStopUserGesture();
+      stop();
     }
 
     c.addStatusListener(listener);
@@ -714,7 +786,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
           semanticLabel: 'Back',
           onPressed: () => Navigator.maybePop(context),
         ),
-      ], id: 'morph.leading');
+      ]);
     }
     return Stack(
       children: [

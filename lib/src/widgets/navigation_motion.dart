@@ -167,4 +167,9 @@ abstract final class MorphNavigationTransition {
   /// springs back (device fits 2.7..3.1). A popping page starts from
   /// rest.
   static const double cancelVelocityScale = 2.9;
+
+  /// The share of an interactive pop's progress the navigation bar's
+  /// capsules travel toward their places on the screen below while the
+  /// finger drags the page: half the way when the page is fully out.
+  static const double barDrift = 0.5;
 }

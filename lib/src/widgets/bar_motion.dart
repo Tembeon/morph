@@ -243,6 +243,11 @@ class _Item {
 /// value retargets from its current state, so a change in the middle of
 /// another change is continuous.
 ///
+/// [setDrift] leans the capsules part of the way toward another layout
+/// without changing the layout itself, as a navigation bar does during an
+/// interactive pop; the next [setLayout] starts from where the drift put
+/// them.
+///
 /// Times are seconds, positions logical pixels in the bar's own space.
 class MorphBarMotion {
   /// Creates the motion with [spec].
@@ -256,6 +261,8 @@ class MorphBarMotion {
   final List<_Item> _items = [];
   double _now = 0;
   bool _hasLayout = false;
+  Map<Object, Rect> _driftTo = const {};
+  double _drift = 0;
 
   /// Whether the platform asks for reduced motion: changes then snap.
   bool reducedMotion = false;
@@ -325,6 +332,70 @@ class MorphBarMotion {
     height: c.h.value(t),
   );
 
+  /// Leans every capsule that [toward] also has (by id) [amount] of the
+  /// way from where it is toward its box there, its items riding along;
+  /// null or 0 removes the lean at once.
+  ///
+  /// The lean is drawn on top of the motion, a pure function of [amount];
+  /// a [setLayout] while leaning starts from the leaning capsules.
+  void setDrift(List<MorphBarCapsuleLayout>? toward, double amount) {
+    if (toward == null || amount == 0) {
+      _driftTo = const {};
+      _drift = 0;
+      return;
+    }
+    _driftTo = {for (final c in toward) c.id: c.rect};
+    _drift = amount;
+  }
+
+  /// Whether capsules lean toward a [setDrift] layout.
+  bool get isDrifting => _drift != 0 && _driftTo.isNotEmpty;
+
+  /// Ends a [setDrift] lean at time [t] without a jump: the capsules spring
+  /// home on [MorphBarTransitionSpec.frameSpring] from where they lean.
+  void endDrift(double t) {
+    advance(t);
+    _keepDrift(t, rest: false);
+  }
+
+  void _keepDrift(double t, {required bool rest}) {
+    if (!isDrifting) return;
+    void put(MorphSpringState s, double v) {
+      if (rest) {
+        s.snap(t, v);
+      } else {
+        s.setState(t, v, s.velocity(t));
+      }
+    }
+
+    final shift = <Object, Offset>{};
+    for (final c in _capsules) {
+      if (c.leaving || !_driftTo.containsKey(c.id)) continue;
+      final base = _visible(c, t);
+      final r = _drifted(c, t);
+      shift[c.id] = r.center - base.center;
+      put(c.cx, r.center.dx);
+      put(c.cy, r.center.dy);
+      put(c.w, r.width);
+      put(c.h, r.height);
+    }
+    for (final i in _items) {
+      final d = i.leaving ? null : shift[i.capsule];
+      if (d == null) continue;
+      put(i.cx, i.cx.value(t) + d.dx);
+      put(i.cy, i.cy.value(t) + d.dy);
+    }
+    _driftTo = const {};
+    _drift = 0;
+  }
+
+  Rect _drifted(_Capsule c, double t) {
+    final base = _visible(c, t);
+    final to = c.leaving || _drift == 0 ? null : _driftTo[c.id];
+    if (to == null) return base;
+    return Rect.lerp(base, to, _drift)!;
+  }
+
   /// Shows [layout] from time [t]; with [animated] false (and on the
   /// first layout) everything snaps.
   void setLayout(
@@ -338,6 +409,7 @@ class MorphBarMotion {
       _snap(t, layout);
       return;
     }
+    _keepDrift(t, rest: true);
     final spring = spec.frameSpring;
     final content = spec.contentSpring;
     final targets = {for (final c in layout) c.id: c};
@@ -522,6 +594,8 @@ class MorphBarMotion {
   }
 
   void _snap(double t, List<MorphBarCapsuleLayout> layout) {
+    _driftTo = const {};
+    _drift = 0;
     _timeline.clear();
     _capsules.clear();
     _items.clear();
@@ -544,7 +618,7 @@ class MorphBarMotion {
   ];
 
   Rect _pulsed(_Capsule c) {
-    final base = _visible(c, _now);
+    final base = _drifted(c, _now);
     return Rect.fromCenter(
       center: base.center,
       width: math.max(
@@ -564,6 +638,12 @@ class MorphBarMotion {
       for (final c in _capsules)
         if (!c.leaving) c.id: c.pulseH.value(_now),
     };
+    final shift = <Object, Offset>{
+      if (isDrifting)
+        for (final c in _capsules)
+          if (!c.leaving && _driftTo.containsKey(c.id))
+            c.id: _drifted(c, _now).center - _visible(c, _now).center,
+    };
     return [
       for (final i in _items)
         () {
@@ -571,7 +651,9 @@ class MorphBarMotion {
           final s = lerpDouble(spec.appearScale, 1, p)!;
           return MorphBarItemFrame(
             i.id,
-            center: Offset(i.cx.value(_now), i.cy.value(_now)),
+            center:
+                Offset(i.cx.value(_now), i.cy.value(_now)) +
+                (i.leaving ? Offset.zero : shift[i.capsule] ?? Offset.zero),
             size: i.size,
             scale: math.max(0, s * (pulse[i.capsule] ?? 1)),
             presence: p.clamp(0.0, 1.0),

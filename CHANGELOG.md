@@ -478,6 +478,36 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
     device), preview lift min(15 percent, 26 pt) and 16 pt menu gap;
     the slider's 11 pt pickup (finger lead within 0.7 pt of the model at
     every end).
+- Navigation (owner's iPhone pass on the gallery's Navigation page):
+  - `MorphNavigationStack` owns the pops of its own screens: its
+    navigator sits under a `NavigatorPopHandler`, so while it can pop,
+    the enclosing route reports `doNotPop` - its Cupertino edge swipe
+    and predictive back stay off, and the system back, `maybePop` on the
+    enclosing navigator and an Android back pop the stack's top screen;
+    at the stack's root they reach the enclosing route as before. An
+    edge swipe on a pushed screen used to be won by the enclosing
+    `MaterialPageRoute` and left the whole stack.
+  - the bar morphs on a push as it does on a pop: a pushed screen's
+    configuration arrives one frame after the push, and the stack used
+    to show an empty bar for that frame, so capsules died and were
+    reborn and the toolbar remounted. The stack now keeps the previous
+    screen's bar until the pushed one publishes (or its first frame
+    passes).
+  - BREAKING: a bar group without an `id` is identified by its place
+    counted from the bar's edge, so the outermost trailing capsule
+    morphs into the outermost one (as the device does on a push); the
+    stack's back button is no longer a separate `morph.leading` group
+    and morphs out of the leading capsule it replaces.
+  - NEW: `MorphNavigationBarDrift` (`MorphNavigationBar.drift`,
+    `MorphBarMotion.setDrift`): during an interactive edge swipe each
+    capsule the destination bar also has leans
+    `MorphNavigationTransition.barDrift` = 0.5 of the page's progress
+    toward its place there, a pure function of the page's position (a
+    cancelled swipe leans back with the returning page, a committed one
+    hands the leaning capsules to the item transition without a jump).
+    Refitted on four new iPhone 16 Pro swipes (0.49 at no lag, 0.50 one
+    or two display ticks behind; replay 0.16 - 0.27 pt rms,
+    `pop-edge-drift-*` fixtures).
 
 
 ## 0.6.0 - 2026-09-03
