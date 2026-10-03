@@ -277,4 +277,31 @@ final class MenuAPIUITests: XCTestCase {
             tap(CGPoint(x: 380, y: 860)); pause(1.2)
         }
     }
+
+    // MARK: film pass (screen recorder): submenu back, plain close, close with a card open,
+    // sub row select, deeper card close; layer log off, spinner on (PROBE_DARKS picks looks)
+
+    func testMenuFilm() {
+        let more = CGPoint(x: 201, y: 238)
+        for d in darks {
+            let tag = d == "1" ? "dark" : "light"
+            capture("mf-sub-\(tag)", menu: "sub", extra: ["PROBE_DARK": d, "PROBE_SPINNER": "1", "PROBE_TRACK": "^NoLayerMatchesThis$"], settle: 1.0) {
+                let b = buttonCenter
+                tap(b); pause(1.5)
+                tap(more); pause(1.5)
+                tap(CGPoint(x: 201, y: 232.5)); pause(1.5)
+                tap(outside); pause(1.8)
+                tap(b); pause(1.5)
+                tap(more); pause(1.5)
+                tap(outside); pause(1.8)
+                tap(b); pause(1.5)
+                tap(more); pause(1.5)
+                tap(CGPoint(x: 201, y: 294.5)); pause(1.8)
+                tap(b); pause(1.5)
+                tap(more); pause(1.5)
+                tap(CGPoint(x: 201, y: 378.5)); pause(1.5)
+                tap(outside); pause(1.8)
+            }
+        }
+    }
 }

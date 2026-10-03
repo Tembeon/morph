@@ -131,6 +131,11 @@ final class MenuAPIScene: StatesScene {
         }
     }
 
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        ExtrasScenes.spinner(view.window)
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemGroupedBackground

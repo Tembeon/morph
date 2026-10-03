@@ -41,7 +41,9 @@ class MorphMenuStyle {
     this.secondaryColor = const Color(0x993C3C43),
     this.disabledColor = const Color(0x4C3C3C43),
     this.separatorColor = const Color(0x14000000),
-    this.submenuColor = const Color(0xFFFBFBFF),
+    this.submenuColor = const Color(0x66FFFFFF),
+    this.submenuRimColor = const Color(0xCCFFFFFF),
+    this.submenuShadowColor = const Color(0x14000000),
     this.paletteSelectionColor = const Color(0x10000000),
   });
 
@@ -94,9 +96,23 @@ class MorphMenuStyle {
   /// the 249 light platter, 50 on the 32 dark one).
   final Color separatorColor;
 
-  /// The fill of a submenu card stacked over the menu (sampled from
-  /// device screenshots: 251 light, 57 dark).
+  /// The tint a submenu card lays over the list under it.
+  ///
+  /// A card is a translucent platter that blurs what lies under it by
+  /// [MorphMenuTuning.cardBlur]: where it covers the list it opened from
+  /// it reads 252 on the 249 light menu and 57 on the 32 dark one; past
+  /// that list's edge only the blur shows (device screenshots, iPhone 16
+  /// Pro). Each further card under it adds half as much.
   final Color submenuColor;
+
+  /// The highlight along the top edge of a submenu card, fading out over
+  /// its first points (device: a one-pixel line at 251 - 255 over the 248
+  /// light card, 65 - 83 over the 57 dark one).
+  final Color submenuRimColor;
+
+  /// The shadow a submenu card casts around itself (device: the light
+  /// list darkens by 5 levels 4 points above a card's top).
+  final Color submenuShadowColor;
 
   /// The platter under the selected palette cell (sampled: 233 on 249
   /// light, 53 on 32 dark).
@@ -118,7 +134,9 @@ class MorphMenuStyle {
     secondaryColor: Color(0x99EBEBF5),
     disabledColor: Color(0x4CEBEBF5),
     separatorColor: Color(0x14FFFFFF),
-    submenuColor: Color(0xFF393939),
+    submenuColor: Color(0x1DFFFFFF),
+    submenuRimColor: Color(0x22FFFFFF),
+    submenuShadowColor: Color(0x33000000),
     paletteSelectionColor: Color(0x18FFFFFF),
   );
 
@@ -152,6 +170,8 @@ class MorphMenuStyle {
     Color? disabledColor,
     Color? separatorColor,
     Color? submenuColor,
+    Color? submenuRimColor,
+    Color? submenuShadowColor,
     Color? paletteSelectionColor,
   }) => MorphMenuStyle(
     buttonSize: buttonSize ?? this.buttonSize,
@@ -169,6 +189,8 @@ class MorphMenuStyle {
     disabledColor: disabledColor ?? this.disabledColor,
     separatorColor: separatorColor ?? this.separatorColor,
     submenuColor: submenuColor ?? this.submenuColor,
+    submenuRimColor: submenuRimColor ?? this.submenuRimColor,
+    submenuShadowColor: submenuShadowColor ?? this.submenuShadowColor,
     paletteSelectionColor: paletteSelectionColor ?? this.paletteSelectionColor,
   );
 }
@@ -1134,16 +1156,22 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                           child: Transform.scale(
                             scale: scale,
                             alignment: .topLeft,
-                            child: _Faded(
-                              opacity: motion.contentOpacity,
-                              blur: motion.contentBlur / scale,
-                              child: Stack(
-                                clipBehavior: .none,
-                                children: [
-                                  ..._glow(motion, style),
-                                  ..._cards(motion, style),
-                                ],
-                              ),
+                            child: Stack(
+                              clipBehavior: .none,
+                              children: [
+                                _Faded(
+                                  opacity: motion.contentOpacity,
+                                  blur: motion.contentBlur / scale,
+                                  child: Stack(
+                                    clipBehavior: .none,
+                                    children: [
+                                      ..._glow(motion, style),
+                                      ..._cards(motion, style, top: false),
+                                    ],
+                                  ),
+                                ),
+                                ..._cards(motion, style, top: true),
+                              ],
                             ),
                           ),
                         ),
@@ -1159,38 +1187,76 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     );
   }
 
-  List<Widget> _cards(MorphMenuMotion motion, MorphMenuStyle style) {
+  List<Widget> _cards(
+    MorphMenuMotion motion,
+    MorphMenuStyle style, {
+    required bool top,
+  }) {
     final cards = motion.cards;
     final width = motion.tuning.menuWidth;
     final radius = motion.tuning.cornerRadius;
+    if (top) {
+      if (cards.length < 2) return const [];
+      final last = cards.length - 1;
+      return [_card(motion, style, cards, last, width, radius)];
+    }
+    final count = cards.length < 2 ? cards.length : cards.length - 1;
     return [
-      for (var i = 0; i < cards.length; i++)
-        _card(motion, style, cards[i], i, width, radius),
+      for (var i = 0; i < count; i++)
+        _card(motion, style, cards, i, width, radius),
     ];
   }
+
+  /// The frame card [index] shows at in the content, scale included.
+  static Rect _shown(
+    MorphMenuMotion motion,
+    List<MorphMenuCard> cards,
+    int index,
+    double width,
+  ) {
+    final card = cards[index];
+    final s = card.scale;
+    final rect = index == 0
+        ? Rect.fromLTWH(0, 0, width, motion.visibleRootHeight)
+        : card.rect;
+    return Rect.fromLTWH(
+      width / 2 + (rect.left - width / 2) * s,
+      rect.top * s,
+      rect.width * s,
+      rect.height * s,
+    );
+  }
+
+  static Rect _local(Rect rect, Offset origin, double k) => Rect.fromLTWH(
+    (rect.left - origin.dx) * k,
+    (rect.top - origin.dy) * k,
+    rect.width * k,
+    rect.height * k,
+  );
 
   Widget _card(
     MorphMenuMotion motion,
     MorphMenuStyle style,
-    MorphMenuCard card,
+    List<MorphMenuCard> cards,
     int index,
     double width,
     double radius,
   ) {
+    final card = cards[index];
     final s = card.scale;
     final layout = card.layout;
-    final content = SizedBox(
-      width: width,
-      height: layout.height,
-      child: Stack(
-        clipBehavior: .none,
-        children: [
-          ?_highlight(motion, style, layout, index),
-          _rowsOf(layout, style),
-        ],
-      ),
-    );
     if (index == 0) {
+      final content = SizedBox(
+        width: width,
+        height: layout.height,
+        child: Stack(
+          clipBehavior: .none,
+          children: [
+            ?_highlight(motion, style, layout, index),
+            _rowsOf(layout, style),
+          ],
+        ),
+      );
       final visible = motion.visibleRootHeight;
       final scrolls = layout.height > visible + 0.5;
       final Widget body = scrolls
@@ -1232,42 +1298,126 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       );
     }
     final rect = card.rect;
-    final q = card.progress.clamp(0.0, 1.0);
+    final shown = _shown(motion, cards, index, width);
+    final k = s == 0 ? 1.0 : 1 / s;
+    final under = <RRect>[
+      for (var j = index - 1; j >= 0; j--)
+        RRect.fromRectAndRadius(
+          _local(_shown(motion, cards, j, width), shown.topLeft, k),
+          Radius.circular(radius * cards[j].scale * k),
+        ),
+    ];
     final cardRadius = math.min(radius, rect.height / 2);
+    final alpha = card.closeOpacity;
+    final platter = card.platterOpacity * alpha;
+    final rowsAlpha = card.rowOpacity * alpha;
+    MorphMenuPlaced? header;
+    for (final element in layout.elements) {
+      if (element.kind == MorphMenuPlacedKind.cardHeader) header = element;
+    }
+    final blur = motion.tuning.cardBlur * platter;
+    final shape = BorderRadius.circular(cardRadius);
     return Positioned(
       key: ValueKey<int>(index),
-      left: width / 2 + (rect.left - width / 2) * s,
-      top: rect.top * s,
+      left: shown.left,
+      top: shown.top,
       width: rect.width,
       height: rect.height,
       child: Transform.scale(
         scale: s,
         alignment: .topLeft,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: style.submenuColor,
-            borderRadius: .circular(cardRadius),
-            boxShadow: [
-              BoxShadow(
-                color: style.shadowColor.withValues(
-                  alpha: style.shadowColor.a * q,
+        child: Stack(
+          clipBehavior: .none,
+          children: [
+            Positioned.fill(
+              child: CustomPaint(
+                painter: _CardShadowPainter(
+                  radius: cardRadius,
+                  color: style.submenuShadowColor,
+                  opacity: platter,
                 ),
-                blurRadius: 24,
-                offset: const Offset(0, 6),
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: .circular(cardRadius),
-            child: OverflowBox(
-              alignment: .topLeft,
-              minWidth: width,
-              maxWidth: width,
-              minHeight: layout.height,
-              maxHeight: layout.height,
-              child: Opacity(opacity: q * card.rowOpacity, child: content),
             ),
-          ),
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: shape,
+                child: BackdropFilter(
+                  enabled: blur > 0.05,
+                  filter: ui.ImageFilter.blur(
+                    sigmaX: blur,
+                    sigmaY: blur,
+                    tileMode: TileMode.clamp,
+                  ),
+                  child: CustomPaint(
+                    painter: _CardPlatterPainter(
+                      radius: cardRadius,
+                      under: under,
+                      tint: style.submenuColor,
+                      rim: style.submenuRimColor,
+                      blur: motion.tuning.cardBlur,
+                      opacity: platter,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned.fill(
+              child: ClipRRect(
+                borderRadius: shape,
+                child: OverflowBox(
+                  alignment: .topLeft,
+                  minWidth: width,
+                  maxWidth: width,
+                  minHeight: layout.height,
+                  maxHeight: layout.height,
+                  child: Transform.translate(
+                    offset: Offset(-rect.left, card.contentTop),
+                    child: SizedBox(
+                      width: width,
+                      height: layout.height,
+                      child: Stack(
+                        clipBehavior: .none,
+                        children: [
+                          ?_highlight(motion, style, layout, index),
+                          Opacity(
+                            opacity: card.rowsOpacity * rowsAlpha,
+                            child: _rowsOf(layout, style),
+                          ),
+                          if (header != null)
+                            Positioned.fill(
+                              child: Opacity(
+                                opacity: rowsAlpha,
+                                child: Stack(
+                                  clipBehavior: .none,
+                                  children: [
+                                    DefaultTextStyle(
+                                      style: MorphTypography.resolve(
+                                        style.textStyle,
+                                      ),
+                                      child: _MenuElement(
+                                        element: header,
+                                        style: style,
+                                        width: layout.width,
+                                        content: widget.host.menuContent,
+                                        onSelect: (int target) =>
+                                            _select(layout, target),
+                                        headerBold: card.headerBold,
+                                        chevronTurn: card.chevronTurn,
+                                        separatorOpacity: card.platterOpacity,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -1283,6 +1433,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     if (index == null || motion.highlightedCard != card) return null;
     if (index >= layout.targets.length) return null;
     final target = layout.targets[index];
+    if (target.kind == MorphMenuTargetKind.back) return null;
     final element = target.element < 0 ? null : layout.elements[target.element];
     final cell = switch (element?.kind) {
       MorphMenuPlacedKind.palette ||
@@ -1373,13 +1524,14 @@ class _MenuRows extends StatelessWidget {
         clipBehavior: .none,
         children: [
           for (final element in layout.elements)
-            _MenuElement(
-              element: element,
-              style: style,
-              width: layout.width,
-              content: content,
-              onSelect: onSelect,
-            ),
+            if (element.kind != MorphMenuPlacedKind.cardHeader)
+              _MenuElement(
+                element: element,
+                style: style,
+                width: layout.width,
+                content: content,
+                onSelect: onSelect,
+              ),
         ],
       ),
     );
@@ -1393,7 +1545,14 @@ class _MenuElement extends StatelessWidget {
     required this.width,
     required this.content,
     required this.onSelect,
+    this.headerBold = 1,
+    this.chevronTurn = 1,
+    this.separatorOpacity = 1,
   });
+
+  final double headerBold;
+  final double chevronTurn;
+  final double separatorOpacity;
 
   final MorphMenuPlaced element;
   final MorphMenuStyle style;
@@ -1596,6 +1755,8 @@ class _MenuElement extends StatelessWidget {
     final entry = element.entry;
     final icon = entry is MorphSubmenu ? entry.icon : null;
     final image = element.imageCenter;
+    final title = element.title ?? '';
+    final bold = headerBold.clamp(0.0, 1.0);
     return Semantics(
       button: true,
       expanded: true,
@@ -1611,21 +1772,38 @@ class _MenuElement extends StatelessWidget {
             end: width - element.titleEnd,
             top: 0,
             bottom: 0,
-            child: Align(
+            child: Stack(
               alignment: AlignmentDirectional.centerStart,
-              child: _text(
-                element.title ?? '',
-                style.textStyle.merge(MorphTypography.title),
-                _title,
-              ),
+              children: [
+                if (bold < 1)
+                  Opacity(
+                    opacity: 1 - bold,
+                    child: _text(title, style.textStyle, _title),
+                  ),
+                if (bold > 0)
+                  Opacity(
+                    opacity: bold,
+                    child: _text(
+                      title,
+                      style.textStyle.merge(MorphTypography.title),
+                      _title,
+                    ),
+                  ),
+              ],
             ),
           ),
           _at(
             _metrics.chevronCenter,
             16,
-            CustomPaint(
-              size: const Size(12.67, 9.33),
-              painter: _ChevronPainter(color: _title, down: true),
+            Transform.flip(
+              flipX: content.rtl,
+              child: Transform.rotate(
+                angle: chevronTurn.clamp(0.0, 1.0) * math.pi / 2,
+                child: CustomPaint(
+                  size: const Size(9.33, 12.67),
+                  painter: _ChevronPainter(color: _title, down: false),
+                ),
+              ),
             ),
           ),
           Positioned(
@@ -1633,7 +1811,10 @@ class _MenuElement extends StatelessWidget {
             right: _metrics.separatorInset,
             bottom: 0,
             height: 1,
-            child: ColoredBox(color: style.separatorColor),
+            child: Opacity(
+              opacity: separatorOpacity.clamp(0.0, 1.0),
+              child: ColoredBox(color: style.separatorColor),
+            ),
           ),
         ],
       ),
@@ -1861,6 +2042,99 @@ class _MarkPainter extends CustomPainter {
 }
 
 /// A chevron pointing forward (mirrored in right-to-left text) or down.
+/// The shadow a submenu card casts around itself, kept off its face: the
+/// card is translucent.
+class _CardShadowPainter extends CustomPainter {
+  const _CardShadowPainter({
+    required this.radius,
+    required this.color,
+    required this.opacity,
+  });
+
+  final double radius;
+  final Color color;
+  final double opacity;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (opacity <= 0 || color.a <= 0) return;
+    final shape = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
+    );
+    canvas.save();
+    final outside = Path();
+    outside.fillType = PathFillType.evenOdd;
+    outside.addRect(shape.outerRect.inflate(40));
+    outside.addRRect(shape);
+    canvas.clipPath(outside);
+    final paint = Paint();
+    paint.color = color.withValues(alpha: color.a * opacity);
+    paint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawRRect(shape, paint);
+    canvas.restore();
+  }
+
+  @override
+  bool shouldRepaint(_CardShadowPainter oldDelegate) =>
+      oldDelegate.radius != radius ||
+      oldDelegate.color != color ||
+      oldDelegate.opacity != opacity;
+}
+
+/// The face of a submenu card over its blurred backdrop: [tint] over the
+/// lists [under] it, each spread by [blur] the way the card's blur
+/// spreads their edges, every further one at half the tint, and [rim]
+/// along the top edge.
+class _CardPlatterPainter extends CustomPainter {
+  const _CardPlatterPainter({
+    required this.radius,
+    required this.under,
+    required this.tint,
+    required this.rim,
+    required this.blur,
+    required this.opacity,
+  });
+
+  final double radius;
+  final List<RRect> under;
+  final Color tint;
+  final Color rim;
+  final double blur;
+  final double opacity;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (opacity <= 0) return;
+    final paint = Paint();
+    paint.maskFilter = blur > 0
+        ? MaskFilter.blur(BlurStyle.normal, blur)
+        : null;
+    var strength = 1.0;
+    for (final list in under) {
+      paint.color = tint.withValues(alpha: tint.a * opacity * strength);
+      canvas.drawRRect(list, paint);
+      strength /= 2;
+    }
+    final shape = RRect.fromRectAndRadius(
+      Offset.zero & size,
+      Radius.circular(radius),
+    );
+    final edge = Paint();
+    edge.style = PaintingStyle.stroke;
+    edge.strokeWidth = 1;
+    final reach = math.min(radius, size.height / 2);
+    edge.shader = ui.Gradient.linear(Offset.zero, Offset(0, reach), [
+      rim.withValues(alpha: rim.a * opacity),
+      rim.withValues(alpha: 0),
+    ]);
+    canvas.drawRRect(shape, edge);
+  }
+
+  @override
+  bool shouldRepaint(_CardPlatterPainter oldDelegate) => true;
+}
+
 class _ChevronPainter extends CustomPainter {
   const _ChevronPainter({required this.color, required this.down});
 

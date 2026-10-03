@@ -78,11 +78,21 @@ class MorphMenuTuning {
     this.backDelay = 0.022,
     this.hoverOpenDelay = 0.525,
     this.submenuActionDelay = 0.019,
+    this.submenuCloseDelay = 0.015,
     this.keptActionDelay = 0.02,
     this.parentScale = 0.97,
     this.parentRowOpacity = 0.5,
     this.cardStartWidth = 230,
     this.cardLead = 36,
+    this.cardRowsFadeIn = 0.25,
+    this.cardRowsFadeOut = 0.55,
+    this.cardPlatterFade = 0.3,
+    this.cardHeaderBoldStart = 0.15,
+    this.cardHeaderBoldEnd = 0.35,
+    this.cardChevronTurn = 0.4,
+    this.cardChevronBack = 0.2,
+    this.cardCloseFadeEnd = 0.2,
+    this.cardBlur = 10,
     this.growSpring = const MorphSpring(0.565, 0.84),
     this.growDelay = 0.045,
     this.shrinkSpring = const MorphSpring(0.4, 1),
@@ -122,6 +132,12 @@ class MorphMenuTuning {
   /// Seconds between the release on a row of a card and its action.
   final double submenuActionDelay;
 
+  /// Seconds between the release on a row of a card and the start of the
+  /// whole menu's close (device: the container moves 0.015 s after the
+  /// lift, before the action's 0.019; a release on a root row closes
+  /// after [dismissDelay]).
+  final double submenuCloseDelay;
+
   /// Seconds between the release on a row that keeps the menu open and
   /// its action.
   final double keptActionDelay;
@@ -139,6 +155,53 @@ class MorphMenuTuning {
   /// How far above its row's center an open card's top sits: the header
   /// centers 5 pt above the row.
   final double cardLead;
+
+  /// The card progress at which a growing card's rows are fully shown:
+  /// on the device film the rows read at full contrast while the card is
+  /// still small, clipped by its edges rather than faded.
+  final double cardRowsFadeIn;
+
+  /// The fraction of its progress at the start of the way back by which
+  /// a card's rows have faded out: on film they are gone while the card
+  /// is still over half its size. The header is not faded: it turns back
+  /// into the row it came from.
+  final double cardRowsFadeOut;
+
+  /// The card progress below which the card's platter fades, as the
+  /// square root of progress over this value: on film the shrunk card
+  /// still shows as a pill around its row at a quarter of its progress
+  /// and fades out as it reaches the row.
+  final double cardPlatterFade;
+
+  /// The card progress at which a growing card's header title starts to
+  /// turn from the row's regular weight to its bold one (film).
+  final double cardHeaderBoldStart;
+
+  /// The card progress at which a growing card's header title is bold;
+  /// on the way back it is regular again within the first tenth of the
+  /// progress (film: bold on one frame, regular on the next).
+  final double cardHeaderBoldEnd;
+
+  /// The card progress at which a growing card's chevron has turned from
+  /// pointing at the trailing edge to pointing down (film, read by eye).
+  final double cardChevronTurn;
+
+  /// The fraction of its progress at the start of the way back at which
+  /// a card's chevron points at the trailing edge again (film, read by
+  /// eye).
+  final double cardChevronBack;
+
+  /// The menu progress at which the top card's rows and platter have
+  /// faded out while the whole menu closes: UIKit shrinks the open card
+  /// with the menu shape at full contrast and without the content blur
+  /// of the root list, fading it only near the end (device film, light
+  /// and dark: legible at a fifth of its size).
+  final double cardCloseFadeEnd;
+
+  /// The standard deviation, in points, of the blur a card puts over what
+  /// lies under it: the edge of the dimmed list under a card shows
+  /// through it spread over about 27 points (device screenshots).
+  final double cardBlur;
 
   /// The spring the menu grows on when its content gets taller while it
   /// is open (a row added through `updateVisibleMenu`, a deferred group
@@ -578,6 +641,38 @@ class _Card {
 
   final MorphSpringState progress;
   bool backing = false;
+
+  /// The progress the card had when it started back to its row.
+  double backFrom = 1;
+}
+
+/// A fade anchored on the progress at its start: [from] at [anchor],
+/// [to] at [end], linear in between; every reversal starts a new one
+/// from the current value, so the opacity never jumps.
+class _Fade {
+  double from = 1;
+  double to = 1;
+  double anchor = 0;
+  double end = 1;
+
+  void start({
+    required double from,
+    required double to,
+    required double anchor,
+    required double end,
+  }) {
+    this.from = from;
+    this.to = to;
+    this.anchor = anchor;
+    this.end = end;
+  }
+
+  double at(double p) {
+    final span = anchor - end;
+    if (span.abs() < 1e-6) return to;
+    final f = ((p - end) / span).clamp(0.0, 1.0);
+    return to + (from - to) * f;
+  }
 }
 
 /// One card of a menu as drawn at the time the motion was last advanced
@@ -590,6 +685,13 @@ class MorphMenuCard {
     required this.scale,
     required this.rowOpacity,
     required this.progress,
+    this.contentTop = 0,
+    this.rowsOpacity = 1,
+    this.platterOpacity = 1,
+    this.headerBold = 1,
+    this.chevronTurn = 1,
+    this.closeOpacity = 1,
+    this.backing = false,
   });
 
   /// The content of the card.
@@ -607,6 +709,31 @@ class MorphMenuCard {
 
   /// How far the card has grown out of its row, 1 for the root list.
   final double progress;
+
+  /// The top of the card's content in the coordinates of [rect]: the
+  /// content rides the row the card grew out of, so the header lies on
+  /// that row while the card is small and the card hands it back to the
+  /// row without a jump.
+  final double contentTop;
+
+  /// The opacity of the card's rows other than its header.
+  final double rowsOpacity;
+
+  /// The opacity of the card's platter.
+  final double platterOpacity;
+
+  /// How bold the header title is, 0 the row's weight and 1 the header's.
+  final double headerBold;
+
+  /// How far the header chevron has turned, 0 pointing at the trailing
+  /// edge like the row's and 1 pointing down.
+  final double chevronTurn;
+
+  /// The opacity of the whole card while the menu closes, 1 otherwise.
+  final double closeOpacity;
+
+  /// Whether the card is on its way back into its row.
+  final bool backing;
 }
 
 /// The motion of a glass button turning into its menu and back: a pure
@@ -706,6 +833,7 @@ class MorphMenuMotion {
   late MorphMenuLayout _root;
   bool _reversed = false;
   final List<_Card> _cards = [];
+  final _Fade _cardFade = _Fade();
   int _resizeGeneration = 0;
   int _dwellGeneration = 0;
 
@@ -956,6 +1084,18 @@ class MorphMenuMotion {
     return extra;
   }
 
+  double _headerCenter(MorphMenuLayout layout) {
+    for (final element in layout.elements) {
+      if (element.kind == MorphMenuPlacedKind.cardHeader) {
+        return element.rect.center.dy;
+      }
+    }
+    return 0;
+  }
+
+  double _cardFadeProgress(double t) =>
+      _phase == _Phase.idle ? 1 : _progress.valueAt(t + tuning.fadeLead);
+
   double _clampCardTop(double top, double height) {
     final cap = math.max(_cap, _rootHeight.target);
     return math.max(0, math.min(top, cap - math.min(height, _cap)));
@@ -1000,13 +1140,39 @@ class MorphMenuMotion {
         tuning.menuWidth,
         math.min(card.layout.height, _cap),
       );
+      final rect = Rect.lerp(card.from, to, q)!;
+      final parent = result[i - 1];
+      final targets = parent.layout.targets;
+      final row = card.source < targets.length
+          ? parent.rect.top +
+                targets[card.source].rect.center.dy -
+                (i == 1 ? scrollOffset : 0)
+          : card.from.center.dy;
+      final ratio = scale == 0 ? 1.0 : parent.scale / scale;
+      final onRow = ratio * row - _headerCenter(card.layout);
+      final contentTop = onRow + (card.top - onRow) * q;
+      final c = q.clamp(0.0, 1.0);
+      final from = card.backFrom.clamp(1e-6, 1.0);
       result.add(
         MorphMenuCard(
           layout: card.layout,
-          rect: Rect.lerp(card.from, to, q)!,
+          rect: rect,
           scale: scale,
           rowOpacity: opacity,
           progress: q,
+          contentTop: contentTop - rect.top,
+          rowsOpacity: card.backing
+              ? _ramp(c, tuning.cardRowsFadeOut * from, from)
+              : _ramp(c, 0, tuning.cardRowsFadeIn),
+          platterOpacity: math.sqrt(_ramp(c, 0, tuning.cardPlatterFade)),
+          headerBold: card.backing
+              ? _ramp(c, 0.9 * from, from)
+              : _ramp(c, tuning.cardHeaderBoldStart, tuning.cardHeaderBoldEnd),
+          chevronTurn: card.backing
+              ? _ramp(c, tuning.cardChevronBack * from, from)
+              : _ramp(c, 0, tuning.cardChevronTurn),
+          closeOpacity: i == count ? _cardFade.at(_cardFadeProgress(t)) : 1,
+          backing: card.backing,
         ),
       );
     }
@@ -1689,6 +1855,13 @@ class MorphMenuMotion {
     final reference = MorphSpringState(tuning.openSpring, 0);
     reference.retarget(t, 1);
     _openReference = reference;
+    final p = _cardFadeProgress(t);
+    _cardFade.start(
+      from: fresh ? 1 : _cardFade.at(p),
+      to: 1,
+      anchor: p,
+      end: 1,
+    );
     _progress.open(t);
     _fade(t, from: opacity, opening: true, fresh: fresh);
     _radius.snap(t, 0);
@@ -1739,6 +1912,13 @@ class MorphMenuMotion {
     final reference = MorphSpringState(tuning.closeSpring, 1);
     reference.retarget(t, 0);
     _closeReference = reference;
+    final p = _cardFadeProgress(t);
+    _cardFade.start(
+      from: _cardFade.at(p),
+      to: 0,
+      anchor: p,
+      end: p > tuning.cardCloseFadeEnd + 0.05 ? tuning.cardCloseFadeEnd : 0,
+    );
     _progress.close(t);
     _fade(t, from: opacity, opening: false);
     final generation = _openGeneration;
@@ -1795,7 +1975,10 @@ class MorphMenuMotion {
             ? tuning.actionDelay
             : tuning.submenuActionDelay;
         _timeline.at(t + delay, (double s) => _activate(card, index));
-        _timeline.at(t + tuning.dismissDelay, _close);
+        _timeline.at(
+          t + (card == 0 ? tuning.dismissDelay : tuning.submenuCloseDelay),
+          _close,
+        );
     }
   }
 
@@ -1852,6 +2035,7 @@ class MorphMenuMotion {
     if (top == 0) return;
     final card = _cards[top - 1];
     card.backing = true;
+    card.backFrom = card.progress.value(t);
     card.progress.retarget(t, 0, spring: tuning.backSpring);
     _setHighlight(null, top - 1);
   }
