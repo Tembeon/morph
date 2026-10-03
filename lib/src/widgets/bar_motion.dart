@@ -188,25 +188,21 @@ class MorphBarItemFrame {
 }
 
 class _Capsule {
-  _Capsule(this.id, Rect rect, MorphSpring spring)
-    : cx = MorphSpringState(spring, rect.center.dx),
-      cy = MorphSpringState(spring, rect.center.dy),
-      w = MorphSpringState(spring, rect.width),
-      h = MorphSpringState(spring, rect.height);
+  _Capsule(this.id, Rect rect, MorphBarTransitionSpec spec)
+    : cx = MorphSpringState(spec.frameSpring, rect.center.dx),
+      cy = MorphSpringState(spec.frameSpring, rect.center.dy),
+      w = MorphSpringState(spec.frameSpring, rect.width),
+      h = MorphSpringState(spec.frameSpring, rect.height),
+      pulseW = MorphSpringState(spec.pulseUpSpring, 1),
+      pulseH = MorphSpringState(spec.pulseUpSpring, 1);
 
   final Object id;
   final MorphSpringState cx;
   final MorphSpringState cy;
   final MorphSpringState w;
   final MorphSpringState h;
-  final MorphSpringState pulseW = MorphSpringState(
-    MorphBarTransitionSpec.standard.pulseUpSpring,
-    1,
-  );
-  final MorphSpringState pulseH = MorphSpringState(
-    MorphBarTransitionSpec.standard.pulseUpSpring,
-    1,
-  );
+  final MorphSpringState pulseW;
+  final MorphSpringState pulseH;
   bool leaving = false;
   int generation = 0;
   Rect target = Rect.zero;
@@ -225,6 +221,7 @@ class _Item {
   final MorphSpringState cy;
   final MorphSpringState presence;
   bool leaving = false;
+  int generation = 0;
 }
 
 /// The motion of a glass bar whose items change: iOS 27's toolbar and
@@ -294,8 +291,11 @@ class MorphBarMotion {
     if (!_timeline.isEmpty) return false;
     for (final c in _capsules) {
       if (c.leaving) return false;
-      for (final s in [c.cx, c.cy, c.w, c.h]) {
-        if (!s.isAtRest(_now, 0.01)) return false;
+      if (!c.cx.isAtRest(_now, 0.01) ||
+          !c.cy.isAtRest(_now, 0.01) ||
+          !c.w.isAtRest(_now, 0.01) ||
+          !c.h.isAtRest(_now, 0.01)) {
+        return false;
       }
       if (!c.pulseW.isAtRest(_now, 1e-4) || !c.pulseH.isAtRest(_now, 1e-4)) {
         return false;
@@ -324,6 +324,28 @@ class MorphBarMotion {
       if (i.id == id && !i.leaving) return i;
     }
     return null;
+  }
+
+  /// Brings back the capsules and items of [layout] that are still on
+  /// their way out: an id has one entry, and the one that leaves turns
+  /// around from where it is.
+  void _revive(List<MorphBarCapsuleLayout> layout) {
+    for (final c in layout) {
+      for (final capsule in _capsules) {
+        if (capsule.id == c.id && capsule.leaving) {
+          capsule.leaving = false;
+          capsule.generation++;
+        }
+      }
+      for (final item in c.items) {
+        for (final i in _items) {
+          if (i.id == item.id && i.leaving) {
+            i.leaving = false;
+            i.generation++;
+          }
+        }
+      }
+    }
   }
 
   Rect _visible(_Capsule c, double t) => Rect.fromCenter(
@@ -410,6 +432,7 @@ class MorphBarMotion {
       return;
     }
     _keepDrift(t, rest: true);
+    _revive(layout);
     final spring = spec.frameSpring;
     final content = spec.contentSpring;
     final targets = {for (final c in layout) c.id: c};
@@ -434,7 +457,7 @@ class MorphBarMotion {
           width: c.rect.width * spec.appearScale,
           height: c.rect.height * spec.appearScale,
         ),
-        spring,
+        spec,
       );
       _capsules.add(born);
     }
@@ -476,8 +499,10 @@ class MorphBarMotion {
       if (i.leaving) continue;
       if (_findItem(layout, i.id) != null) continue;
       i.leaving = true;
+      final generation = ++i.generation;
       final end = newCenters[i.capsule] ?? Offset(i.cx.value(t), i.cy.value(t));
       _timeline.at(t + spec.contentDelay, (double at) {
+        if (i.generation != generation) return;
         i.cx.retarget(at, end.dx, spring: content);
         i.cy.retarget(at, end.dy, spring: content);
         i.presence.retarget(at, 0, spring: content);
@@ -600,7 +625,7 @@ class MorphBarMotion {
     _capsules.clear();
     _items.clear();
     for (final c in layout) {
-      final capsule = _Capsule(c.id, c.rect, spec.frameSpring);
+      final capsule = _Capsule(c.id, c.rect, spec);
       capsule.target = c.rect;
       _capsules.add(capsule);
       for (final i in c.items) {

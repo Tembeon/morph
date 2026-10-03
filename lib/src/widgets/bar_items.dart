@@ -148,7 +148,16 @@ class MorphBarMetrics {
     this.backChevronWidth = 16.33,
     this.backChevronGap = 6,
     this.backTrailingPadding = 17,
+    this.backChevronHeight = 23,
   });
+
+  /// The largest text scale bar labels and titles follow, as the tab bar
+  /// labels do (iOS 27 caps bar text at the accessibility sizes).
+  static const double maxTextScale = 1.25;
+
+  /// The line height of bar labels and titles, as a multiple of the font
+  /// size: the line box UIKit's labels lay out in.
+  static const double lineHeight = 1.2;
 
   /// The height of a capsule.
   final double capsuleHeight;
@@ -204,6 +213,9 @@ class MorphBarMetrics {
 
   /// The space after the back button's label.
   final double backTrailingPadding;
+
+  /// The height of the box the back chevron is drawn in.
+  final double backChevronHeight;
 
   /// A navigation bar's buttons: capsules 44 tall, buttons 36 tall
   /// inset by 4, 16 between buttons, labels padded by 12, icons by 7.
@@ -345,7 +357,10 @@ class MorphPlacedGroup {
 TextStyle morphBarLabelStyle(MorphBarMetrics metrics, {bool bold = false}) =>
     MorphTypography.resolve(
       (bold ? MorphTypography.barButtonProminent : MorphTypography.barButton)
-          .copyWith(fontSize: metrics.fontSize, height: 1.2),
+          .copyWith(
+            fontSize: metrics.fontSize,
+            height: MorphBarMetrics.lineHeight,
+          ),
     );
 
 /// The width of the content of [button].
@@ -397,8 +412,13 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   required MorphBarMetrics metrics,
   required TextScaler scaler,
   required TextDirection direction,
+  double Function(MorphBarButton button, {required bool bold})? contentWidth,
 }) {
   final rtl = direction == TextDirection.rtl;
+  final measure =
+      contentWidth ??
+      (MorphBarButton b, {required bool bold}) =>
+          morphBarContentWidth(b, metrics, scaler, direction, bold: bold);
   final out = <MorphBarCapsuleLayout>[];
   final leading = [
     for (final g in groups)
@@ -415,16 +435,7 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   ) {
     final widths = [
       for (final b in group.buttons)
-        math.max(
-          metrics.minButtonWidth,
-          morphBarContentWidth(
-            b,
-            metrics,
-            scaler,
-            direction,
-            bold: group.prominent,
-          ),
-        ),
+        math.max(metrics.minButtonWidth, measure(b, bold: group.prominent)),
     ];
     final single = group.buttons.length == 1 && group.buttons.first.back;
     final inner =
@@ -458,8 +469,7 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   var right = width - trailingInset;
   for (var i = 0; i < trailing.length; i++) {
     final g = trailing[trailing.length - 1 - i];
-    final probe = capsule(g, 0, '');
-    final c = capsule(g, right - probe.rect.width, g.id ?? ('trailing', i));
+    final c = _shift(capsule(g, 0, g.id ?? ('trailing', i)), right);
     out.add(c);
     right = c.rect.left - metrics.groupGap;
   }
@@ -471,6 +481,13 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
           MorphBarItemLayout(i.id, _mirror(i.rect, width)),
       ]),
   ];
+}
+
+MorphBarCapsuleLayout _shift(MorphBarCapsuleLayout c, double right) {
+  final d = Offset(right - c.rect.width, 0);
+  return MorphBarCapsuleLayout(c.id, c.rect.shift(d), [
+    for (final i in c.items) MorphBarItemLayout(i.id, i.rect.shift(d)),
+  ]);
 }
 
 Rect _mirror(Rect r, double width) =>
@@ -551,7 +568,11 @@ class _MorphBarItemsState extends State<MorphBarItems>
   BuildContext? _scopeContext;
   List<MorphBarCapsuleLayout> _layout = const [];
   List<MorphBarCapsuleLayout>? _driftLayout;
-  String _signature = '';
+  bool _hasLayout = false;
+  double _laidWidth = 0;
+  final Map<(String?, bool, bool), double> _widths = {};
+  (TextScaler, TextDirection, MorphBarMetrics)? _widthsFor;
+  bool _prune = false;
   Object? _pressedCapsule;
   Object? _pressedButton;
 
@@ -560,6 +581,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
     _motion.advance(t);
     for (final p in _presses.values) {
       p.advance(t);
+    }
+    if (_prune && _motion.isSettled) {
+      _prune = false;
+      _pruneMaps();
     }
     final start = _holdStart;
     final holding = _holdButton;
@@ -710,10 +735,52 @@ class _MorphBarItemsState extends State<MorphBarItems>
     menu.flight = flight;
   }
 
+  double _contentWidth(
+    MorphBarButton button,
+    TextScaler scaler,
+    TextDirection direction, {
+    required bool bold,
+  }) {
+    final metrics = widget.metrics;
+    final key = (scaler, direction, metrics);
+    if (_widthsFor != key) {
+      _widthsFor = key;
+      _widths.clear();
+    }
+    if (button.label == null && !button.back) {
+      return morphBarContentWidth(button, metrics, scaler, direction);
+    }
+    return _widths.putIfAbsent(
+      (button.label, button.back, bold),
+      () =>
+          morphBarContentWidth(button, metrics, scaler, direction, bold: bold),
+    );
+  }
+
+  bool _sameLayout(double width, List<MorphBarCapsuleLayout> layout) {
+    if (!_hasLayout || width != _laidWidth) return false;
+    if (layout.length != _layout.length) return false;
+    for (var k = 0; k < layout.length; k++) {
+      final a = layout[k];
+      final b = _layout[k];
+      if (a.id != b.id || a.rect != b.rect) return false;
+      if (a.items.length != b.items.length) return false;
+      for (var n = 0; n < a.items.length; n++) {
+        if (a.items[n].id != b.items[n].id ||
+            a.items[n].rect != b.items[n].rect) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
   void _relayout(double width) {
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final scaler =
-        MediaQuery.maybeTextScalerOf(context)?.clamp(maxScaleFactor: 1.25) ??
+        MediaQuery.maybeTextScalerOf(
+          context,
+        )?.clamp(maxScaleFactor: MorphBarMetrics.maxTextScale) ??
         TextScaler.noScaling;
     List<MorphBarCapsuleLayout> lay(List<MorphPlacedGroup> groups) =>
         morphLayoutBarGroups(
@@ -725,21 +792,14 @@ class _MorphBarItemsState extends State<MorphBarItems>
           metrics: widget.metrics,
           scaler: scaler,
           direction: direction,
+          contentWidth: (MorphBarButton b, {required bool bold}) =>
+              _contentWidth(b, scaler, direction, bold: bold),
         );
     final layout = lay(widget.groups);
     final driftGroups = widget.driftGroups;
     _driftLayout = driftGroups == null || widget.driftProgress == null
         ? null
         : lay(driftGroups);
-    final signature = [
-      width,
-      for (final c in layout) ...[
-        c.id,
-        c.rect,
-        for (final i in c.items) i.id,
-        for (final i in c.items) i.rect,
-      ],
-    ].join('|');
     for (final g in widget.groups) {
       for (final b in g.group.buttons) {
         _buttons[b.id] = b;
@@ -758,14 +818,44 @@ class _MorphBarItemsState extends State<MorphBarItems>
         _capsuleOf[i.id] = c.id;
       }
     }
-    if (signature == _signature) return;
-    final first = _signature.isEmpty;
-    _signature = signature;
+    _refreshMenu();
+    if (_sameLayout(width, layout)) return;
+    final first = !_hasLayout;
+    _hasLayout = true;
+    _laidWidth = width;
     _layout = layout;
     _motion.reducedMotion = morphReducedMotionOf(context);
     _motion.setLayout(clock, layout, animated: !first);
+    _prune = true;
     if (!first) wake();
     widget.onLayout?.call(layout);
+  }
+
+  void _refreshMenu() {
+    final menu = _menu;
+    if (menu == null) return;
+    final button = _buttons[menu.button.id];
+    final entries = button?.menu;
+    if (button == null || entries == null || entries.isEmpty) return;
+    menu.button = button;
+    if (identical(entries, menu.content.entries)) return;
+    menu.content.entries = entries;
+    menu.motion.updateLayout(clock, animate: menu.motion.isPresented);
+    wake();
+  }
+
+  /// Forgets the buttons and capsules that are no longer drawn.
+  void _pruneMaps() {
+    final items = {for (final f in _motion.items) f.id};
+    final capsules = {for (final c in _motion.capsules) c.id};
+    _buttons.removeWhere((Object id, MorphBarButton _) => !items.contains(id));
+    _capsuleOf.removeWhere((Object id, Object _) => !items.contains(id));
+    _prominent.removeWhere((Object id, bool _) => !capsules.contains(id));
+    _disabled.removeWhere((Object id, bool _) => !capsules.contains(id));
+    _presses.removeWhere(
+      (Object id, MorphGlassButtonMotion press) =>
+          !capsules.contains(id) && id != _pressedCapsule && press.isSettled,
+    );
   }
 
   MorphGlassButtonMotion _press(Object capsule, Size size) {
@@ -1105,7 +1195,7 @@ class _BarMenu implements MorphMenuHost {
   });
 
   final _MorphBarItemsState state;
-  final MorphBarButton button;
+  MorphBarButton button;
   final Object capsule;
   final MorphMenuStyle style;
   final OverlayState overlay;
@@ -1237,7 +1327,7 @@ class _ButtonContent extends StatelessWidget {
           children: [
             SizedBox(
               width: metrics.backChevronWidth,
-              height: 23,
+              height: metrics.backChevronHeight,
               child: CustomPaint(
                 painter: MorphBackChevronPainter(
                   color: iconColor,
