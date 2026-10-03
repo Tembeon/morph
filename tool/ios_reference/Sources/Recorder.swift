@@ -158,7 +158,7 @@ final class Recorder: NSObject {
             for root in roots { sampleControlLayers(root, now: now) }
             for v in flexViews { sampleFlex(v, now: now) }
         }
-        if mode == .menu { sampleMenuLayers(now: now) }
+        if mode == .menu || tabLayers { sampleMenuLayers(now: now) }
         for view in tracked {
             guard let entry = sample(view) else { continue }
             let id = ObjectIdentifier(view).hashValue
@@ -378,10 +378,17 @@ final class Recorder: NSObject {
     private var describedClasses = Set<String>()
     private var layerIds: [ObjectIdentifier: Int] = [:]
 
+    private lazy var tabLayers = env["PROBE_TABLAYERS"] == "1"
+
     private func layerRoots() -> [CALayer] {
         var roots: [CALayer] = []
         func find(_ v: UIView) {
             let n = NSStringFromClass(type(of: v))
+            if tabLayers {
+                if n.contains("_UIBottomTabBarGroupView") { roots.append(v.layer); return }
+                v.subviews.forEach(find)
+                return
+            }
             if n.contains("_UIMorphAnimationContainerView") { roots.append(v.layer); return }
             if n.contains("_UIContextMenuContainerView") { roots.append(v.layer); return }
             v.subviews.forEach(find)
@@ -419,6 +426,24 @@ final class Recorder: NSObject {
                 }
                 if let d = l.delegate as? UIView { row["view"] = NSStringFromClass(type(of: d)) }
                 if let nm = l.name { row["name"] = String(nm.prefix(120)) }
+                if tabLayers {
+                    if let bg = rgba(p.backgroundColor) { row["bg"] = bg }
+                    if let cf = l.compositingFilter { row["comp"] = String(describing: cf).prefix(60).description }
+                    if l.contents != nil { row["img"] = true }
+                    if let fl = l.filters as? [NSObject] {
+                        for f in fl {
+                            let nm = (Probe.object(f, "name") as? String) ?? "?"
+                            if let v = p.value(forKeyPath: "filters.\(nm).inputColorMatrix") as? NSValue, String(cString: v.objCType).contains("ColorMatrix") {
+                                var m = [Float](repeating: 0, count: 20)
+                                m.withUnsafeMutableBytes { buf in val_getValue(v, buf.baseAddress!, 80) }
+                                row["cm_" + nm] = m.map { round4(Double($0)) }
+                            }
+                            for key in ["inputAmount", "inputColor", "inputRadius"] {
+                                if let n = p.value(forKeyPath: "filters.\(nm).\(key)") as? NSNumber { row["f_\(nm)_\(key)"] = round4(n.doubleValue) }
+                            }
+                        }
+                    }
+                }
                 if let fl = l.filters as? [NSObject], !fl.isEmpty {
                     var names: [String] = []
                     for f in fl {

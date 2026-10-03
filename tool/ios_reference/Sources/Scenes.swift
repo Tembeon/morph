@@ -2,7 +2,8 @@ import UIKit
 
 /// Scene names:
 /// - segmented (default): seg2/seg3/seg4/seg5/segContent/segContent4/segNarrow rows;
-/// - tabbar<N>: floating tab bar with N (2..5) tabs;
+/// - tabbar<N>: floating tab bar with N (2..5) tabs; PROBE_DARK=1/0 forces the appearance,
+///   PROBE_TABLAYERS=1 logs every layer of the bar group per frame (menu-style `L` rows);
 /// - sw, swOn, st, st5, sl<W>, slT<N>, slV<pct>, gb<W>x<H>, gbp<W>x<H>: one centered control
 ///   (see Controls.swift);
 /// - menu: glass button menu, shaped by PROBE_POS (center/tl/tr/bl/br/bottom/left),
@@ -113,6 +114,7 @@ final class TabBarScene: UITabBarController {
             vc.tabBarItem = UITabBarItem(title: titles[index], image: UIImage(systemName: symbols[index]), tag: index)
             return vc
         }
+        if let d = ProcessInfo.processInfo.environment["PROBE_DARK"] { overrideUserInterfaceStyle = d == "1" ? .dark : .light }
     }
 
     required init?(coder: NSCoder) { fatalError() }

@@ -1,11 +1,14 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -33,7 +36,13 @@ class MorphTabItem {
 /// the first and last tabs, and the release picks the tab nearest the
 /// finger. While pressed, the whole bar swells by
 /// [MorphLensTuning.chromeGrowth] pixels around its center, lens
-/// included.
+/// included, and brightens: a wash over the whole bar and a soft spot
+/// under the finger ([MorphTouchGlowMotion]) that spreads and fades when
+/// the finger lifts.
+///
+/// The tabs inside the lens wear the selected style and the others the
+/// regular one, cut along the lens outline, so the selection's tint
+/// travels with the lens and a tab half under it is half tinted.
 ///
 /// Inside a [Scrollable] the bar reacts to a touch only once the touch
 /// is its own, as UIKit delays the touches of a scroll view's content:
@@ -83,14 +92,19 @@ class MorphTabBar extends StatefulWidget {
 @immutable
 class MorphTabBarStyle {
   /// Creates a style; the defaults are the iOS 27 light appearance.
+  ///
+  /// The platter and the tab colors are what UIKit's color matrices make
+  /// of the measured bar: the platter darkens the bar under the selection
+  /// and the tab glyphs are vibrant, so their exact color follows the
+  /// backdrop; these are their values over a bar on a plain page.
   const MorphTabBarStyle({
     this.barColor = const Color(0xB8FFFFFF),
     this.shadowColor = const Color(0x24000000),
-    this.platterColor = const Color(0x14000000),
+    this.platterColor = const Color(0x13000000),
     this.liftedLensColor = const Color(0x33FFFFFF),
     this.lensBorderColor = const Color(0x40000000),
-    this.selectedColor = const Color(0xFF007AFF),
-    this.color = const Color(0xFF1C1C1E),
+    this.selectedColor = const Color(0xFF0082FC),
+    this.color = const Color(0xFF0D0D0D),
     this.blurSigma = 12,
     this.disabledOpacity = 0.35,
   });
@@ -110,10 +124,10 @@ class MorphTabBarStyle {
   /// The outline of the lifted lens.
   final Color lensBorderColor;
 
-  /// The tint of the selected tab.
+  /// The tint of the tabs inside the selection lens.
   final Color selectedColor;
 
-  /// The tint of the other tabs.
+  /// The tint of the tabs outside the selection lens.
   final Color color;
 
   /// The blur of the backdrop behind the bar.
@@ -129,11 +143,11 @@ class MorphTabBarStyle {
   static const dark = MorphTabBarStyle(
     barColor: Color(0xB81C1C1E),
     shadowColor: Color(0x66000000),
-    platterColor: Color(0xB5000000),
+    platterColor: Color(0xAF000000),
     liftedLensColor: Color(0x1FFFFFFF),
     lensBorderColor: Color(0x40FFFFFF),
-    selectedColor: Color(0xFF0A84FF),
-    color: Color(0xFFF2F2F7),
+    selectedColor: Color(0xFF0397FF),
+    color: Color(0xFFFAFAFA),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -183,6 +197,7 @@ class _MorphTabBarState extends State<MorphTabBar>
 
   _Geometry _layout = _geometry(0, 0);
   MorphLensMotion? _motion;
+  final MorphTouchGlowMotion _glow = _createGlow();
   MorphTabBarStyle _style = MorphTabBarStyle.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
@@ -190,6 +205,23 @@ class _MorphTabBarState extends State<MorphTabBar>
 
   @override
   MorphLensMotion get motion => _motion!;
+
+  static MorphTouchGlowMotion _createGlow() {
+    final spec = MorphFlexSpec.forSize(const Size(274, _barHeight));
+    return MorphTouchGlowMotion(
+      washPeak: spec.bigGlowOpacity,
+      spotPeak: spec.littleGlowOpacity,
+    );
+  }
+
+  @override
+  void advanceMotion(double t) {
+    super.advanceMotion(t);
+    _glow.advance(t);
+  }
+
+  @override
+  bool get motionSettled => super.motionSettled && _glow.isSettled(clock);
 
   @override
   double trackPosition(Offset local) =>
@@ -290,6 +322,8 @@ class _MorphTabBarState extends State<MorphTabBar>
     );
   }
 
+  MorphGlassGlow? _glowNow() => _glow.glowAt(clock, _brightness);
+
   List<MorphGlassSurface> _surfaces() {
     final size = Size(_layout.width, _barHeight);
     final lift = motion.lift.clamp(0.0, 1.0);
@@ -303,6 +337,7 @@ class _MorphTabBarState extends State<MorphTabBar>
         color: _style.barColor,
         brightness: _brightness,
         enabled: _enabled,
+        glow: _glowNow(),
       ),
       MorphGlassSurface(
         kind: MorphGlassKind.lens,
@@ -319,8 +354,40 @@ class _MorphTabBarState extends State<MorphTabBar>
   }
 
   void _down(PointerDownEvent event) {
-    if (_enabled) handleDown(event);
+    if (!_enabled || event.buttons != kPrimaryButton) return;
+    handleDown(event);
+    _glow.pointerDown(clock, event.localPosition);
   }
+
+  void _move(PointerMoveEvent event) {
+    handleMove(event);
+    _glow.pointerMove(clock, event.localPosition);
+  }
+
+  void _up(PointerUpEvent event) {
+    handleUp(event);
+    _glow.pointerUp(clock);
+  }
+
+  void _cancel(PointerCancelEvent event) {
+    handleCancel(event);
+    _glow.pointerUp(clock);
+  }
+
+  Widget _row(TextScaler scaler, {required bool selected}) => Row(
+    children: [
+      for (final item in widget.items)
+        SizedBox(
+          width: _layout.pitch,
+          child: _TabLabel(
+            item: item,
+            scaler: scaler,
+            selected: selected,
+            color: selected ? _style.selectedColor : _style.color,
+          ),
+        ),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -335,36 +402,51 @@ class _MorphTabBarState extends State<MorphTabBar>
     final style = _style;
     final geometry = _layout;
     final glass = MorphGlass.maybeOf(context);
-    final Widget tabs = Semantics(
-      container: true,
-      explicitChildNodes: true,
-      role: SemanticsRole.tabBar,
-      child: Row(
-        children: [
-          for (var i = 0; i < widget.items.length; i++)
-            SizedBox(
-              width: geometry.pitch,
-              child: Semantics(
-                container: true,
-                role: SemanticsRole.tab,
-                selected: i == motion.selected,
-                enabled: _enabled,
-                label: widget.items[i].label,
-                onTap: _enabled ? () => _select(i) : null,
-                child: ExcludeSemantics(
-                  child: _TabLabel(
-                    item: widget.items[i],
-                    scaler: scaler,
-                    selected: i == motion.selected,
-                    color: i == motion.selected
-                        ? style.selectedColor
-                        : style.color,
-                  ),
-                ),
+    final Widget tabs = Stack(
+      children: [
+        Positioned.fill(
+          child: ClipPath(
+            clipper: _LensClipper(this, inside: false),
+            child: Semantics(
+              container: true,
+              explicitChildNodes: true,
+              role: SemanticsRole.tabBar,
+              child: Row(
+                children: [
+                  for (var i = 0; i < widget.items.length; i++)
+                    SizedBox(
+                      width: geometry.pitch,
+                      child: Semantics(
+                        container: true,
+                        role: SemanticsRole.tab,
+                        selected: i == motion.selected,
+                        enabled: _enabled,
+                        label: widget.items[i].label,
+                        onTap: _enabled ? () => _select(i) : null,
+                        child: ExcludeSemantics(
+                          child: _TabLabel(
+                            item: widget.items[i],
+                            scaler: scaler,
+                            selected: false,
+                            color: style.color,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-        ],
-      ),
+          ),
+        ),
+        Positioned.fill(
+          child: ExcludeSemantics(
+            child: ClipPath(
+              clipper: _LensClipper(this, inside: true),
+              child: _row(scaler, selected: true),
+            ),
+          ),
+        ),
+      ],
     );
     return MorphDisabled(
       enabled: _enabled,
@@ -378,9 +460,9 @@ class _MorphTabBarState extends State<MorphTabBar>
           dragAxis: .horizontal,
           delaysInScrollable: true,
           onPointerDown: _down,
-          onPointerMove: handleMove,
-          onPointerUp: handleUp,
-          onPointerCancel: handleCancel,
+          onPointerMove: _move,
+          onPointerUp: _up,
+          onPointerCancel: _cancel,
           child: AnimatedBuilder(
             animation: frames,
             builder: (BuildContext context, Widget? child) {
@@ -397,6 +479,9 @@ class _MorphTabBarState extends State<MorphTabBar>
                   children: glass == null
                       ? [
                           Positioned.fill(child: _Glass(style: style)),
+                          Positioned.fill(
+                            child: CustomPaint(painter: _GlowPainter(this)),
+                          ),
                           Positioned.fill(
                             child: CustomPaint(painter: _LensPainter(this)),
                           ),
@@ -484,20 +569,52 @@ class _TabLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = MorphTypography.resolve(
+      selected ? MorphTypography.tabLabelSelected : MorphTypography.tabLabel,
+    ).copyWith(color: color);
+    if (!selected) {
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(item.icon, size: 24, color: color),
+          const SizedBox(height: 2),
+          Text(item.label, maxLines: 1, textScaler: scaler, style: style),
+        ],
+      );
+    }
+    final icon = item.icon;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(item.icon, size: 24, color: color),
+        SizedBox.square(
+          dimension: 24,
+          child: Center(
+            child: RichText(
+              textDirection: TextDirection.ltr,
+              text: TextSpan(
+                text: String.fromCharCode(icon.codePoint),
+                style: TextStyle(
+                  inherit: false,
+                  color: color,
+                  fontSize: 24,
+                  fontFamily: icon.fontFamily,
+                  fontFamilyFallback: icon.fontFamilyFallback,
+                  package: icon.fontPackage,
+                  height: 1,
+                  leadingDistribution: TextLeadingDistribution.even,
+                ),
+              ),
+            ),
+          ),
+        ),
         const SizedBox(height: 2),
-        Text(
-          item.label,
+        RichText(
           maxLines: 1,
           textScaler: scaler,
-          style: MorphTypography.resolve(
-            selected
-                ? MorphTypography.tabLabelSelected
-                : MorphTypography.tabLabel,
-          ).copyWith(color: color),
+          text: TextSpan(
+            text: item.label,
+            style: DefaultTextStyle.of(context).style.merge(style),
+          ),
         ),
       ],
     );
@@ -536,4 +653,50 @@ class _LensPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_LensPainter oldDelegate) => true;
+}
+
+class _GlowPainter extends CustomPainter {
+  _GlowPainter(this.state) : super(repaint: state.frames);
+
+  final _MorphTabBarState state;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final glow = state._glowNow();
+    if (glow == null) return;
+    morphPaintGlassGlow(
+      canvas,
+      RRect.fromRectAndRadius(
+        Offset.zero & size,
+        const Radius.circular(_MorphTabBarState._radius),
+      ),
+      glow,
+    );
+  }
+
+  @override
+  bool shouldRepaint(_GlowPainter oldDelegate) => true;
+}
+
+class _LensClipper extends CustomClipper<Path> {
+  _LensClipper(this.state, {required this.inside})
+    : super(reclip: state.frames);
+
+  final _MorphTabBarState state;
+  final bool inside;
+
+  @override
+  Path getClip(Size size) {
+    final bar = Size(size.width + 16, _MorphTabBarState._barHeight);
+    final lens = Path();
+    lens.addRRect(state._lensShape(bar).shift(const Offset(-8, 0)));
+    if (inside) return lens;
+    final all = Path();
+    all.addRect(Offset.zero & size);
+    return Path.combine(PathOperation.difference, all, lens);
+  }
+
+  @override
+  bool shouldReclip(_LensClipper oldDelegate) =>
+      oldDelegate.state != state || oldDelegate.inside != inside;
 }

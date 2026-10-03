@@ -714,6 +714,49 @@ final class ProbeUITests: XCTestCase {
         }
     }
 
+    /// Tab bar look (2026-10-03): the held bar's brightening, the touch glow, the platter and
+    /// the selected tint over time, in dark and light (PROBE_DARK), with every layer of the bar
+    /// group logged per frame (PROBE_TABLAYERS). Filmed by the screen recorder alongside.
+    func testTabLook() {
+        for dark in ["1", "0"] {
+            let tag = dark == "1" ? "dark" : "light"
+            capture("look-tabbar3-\(tag)", scene: "tabbar3", extra: ["PROBE_DARK": dark, "PROBE_TABLAYERS": "1"]) {
+                let c = tabCenters()
+                pause(1.0)
+                tap(c[1], hold: 0.06)
+                pause(2.0)
+                synth([Stroke(points: [(0, c[2])], liftAt: 1.5)], name: "hold-other")
+                pause(2.0)
+                synth([Stroke(points: [(0, c[2])], liftAt: 1.5)], name: "hold-selected")
+                pause(2.0)
+                tap(c[0], hold: 0.06)
+                pause(2.0)
+                tap(c[0], hold: 0.06)
+                pause(2.0)
+                drag(c[0], c[2], pressFor: 0.4, moveFor: 1.0, holdFor: 0.6)
+                pause(2.0)
+            }
+        }
+    }
+
+    /// What turns the touch glow into its dragging state (scale 2, half opacity): distance from
+    /// the touch-down or the finger leaving its tab. Slow drags (PROBE_STEP_HZ points) of 25 to
+    /// 60 pt, inside one tab and across the boundary between two.
+    func testTabGlowDrag() {
+        capture("look-tabbar3-glowdrag", scene: "tabbar3", extra: ["PROBE_DARK": "1", "PROBE_TABLAYERS": "1"]) {
+            let c = tabCenters()
+            let y = c[0].y
+            let moves: [(Double, Double)] = [
+                (c[1].x, c[1].x + 25), (c[1].x - 20, c[1].x + 20), (c[0].x, c[0].x - 35),
+                (c[1].x - 30, c[1].x + 30), (c[0].x + 10, c[0].x + 50), (c[1].x, c[1].x + 60),
+            ]
+            for (a, b) in moves {
+                drag(CGPoint(x: a, y: y), CGPoint(x: b, y: y), pressFor: 0.4, moveFor: 0.8, holdFor: 0.5)
+                pause(2.0)
+            }
+        }
+    }
+
     func testRecapMenu() {
         // Separate synth calls: within one record the synthesizer starts the next stroke at the
         // previous lift, whatever the planned gap; the realized gap is read from the touch rows.

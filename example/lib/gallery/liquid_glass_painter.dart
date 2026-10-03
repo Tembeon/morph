@@ -416,6 +416,13 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
             key: const ValueKey<String>('body'),
             child: _layer(body, shared: !chrome, spacing: spacing),
           ),
+        for (var i = 0; i < body.length; i++)
+          if (body[i].glow != null)
+            Positioned.fromRect(
+              key: ValueKey<(String, int)>(('glow', i)),
+              rect: body[i].bounds,
+              child: buildGlow(context, body[i]),
+            ),
         for (var i = 0; i < floating.length; i++)
           if (glassness(floating[i]) < 1)
             Positioned.fromRect(

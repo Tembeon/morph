@@ -77,6 +77,7 @@ export 'src/widgets/glass.dart'
         MorphGlassOptics,
         MorphGlassPainter,
         MorphGlassSurface;
+export 'src/widgets/glass_glow.dart' show MorphGlassGlow, MorphTouchGlowMotion;
 export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonMotion, MorphGlassButtonStyle;
 export 'src/widgets/lens_motion.dart'

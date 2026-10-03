@@ -188,9 +188,16 @@ void main() {
       );
       final one = tester.widget<Text>(find.text('One')).style;
       final two = tester.widget<Text>(find.text('Two')).style;
-      expect(one?.fontWeight, FontWeight.w600);
+      expect(one?.fontWeight, FontWeight.w500);
       expect(two?.fontWeight, FontWeight.w500);
       expect(two?.letterSpacing, 0.117);
+      final lensCopy = tester
+          .widgetList<RichText>(find.byType(RichText))
+          .map((RichText r) => r.text)
+          .whereType<TextSpan>()
+          .where((TextSpan s) => s.text == 'One')
+          .map((TextSpan s) => s.style?.fontWeight);
+      expect(lensCopy, contains(FontWeight.w600));
       debugDefaultTargetPlatformOverride = null;
     });
 

@@ -1342,6 +1342,42 @@ Public pieces:
   Recordings: tool/ios_reference/recordings/device-behaviours
   (testBehaviours; PROBE_LENS_ANIMS logs lens layer CAAnimations - none
   exist, the lag is not a CA animation).
+- THE TAB BAR LOOK (2026-10-03, device, testTabLook / testTabGlowDrag,
+  PROBE_TABLAYERS=1 logs every layer of _UIBottomTabBarGroupView per
+  frame, PROBE_DARK on tabbar<N>; fixtures ios27-device/tabglow, pinned
+  by tab_bar_glow_test): the held bar's brightening is
+  `_UIFlexInteraction`'s two glows in `_UIFlexInteractionGlowContainerView`
+  (over the bar glass, under the tab content, riding the bar swell).
+  Both are vibrantColorMatrix filters - they transform the BACKDROP, a
+  white bg/disc is only their coverage: BigGlow (bar-sized) rows sum to
+  1 with +0.05 offset (dark bar 32 -> 43, light 250 -> 255), LittleGlow
+  (93 pt disc) gain 4.0 dark / 1.667 light, no offset; on screen the
+  spot is a Gaussian of 0.568 x diameter at 0.38 of the layer strength
+  (video fit, exp(-r^2 / 2 s^2) with s 55.7 pt at 98 pt). Peaks are
+  `MorphFlexSpec.forSize(274 x 62)` bigGlowOpacity 0.845 and
+  littleGlowOpacity 0.2845 exactly (Codename One's "0.33675" was their
+  ratio). Rise 0.1 s crit after 0.042 s (fit), hold while down, fall
+  0.5 s crit after 0.02 s with the spot growing x4; a move 50 pt from
+  the landing (40 never, 60 always, inside a tab or across) turns the
+  spot x2 at half strength on the 0.5 s spring until the lift; the spot
+  follows the finger in the bar's unswollen coordinates. The rise rows
+  jitter one 60 Hz frame (the first tap after launch ~15 ms late), so
+  the replay bounds rms (0.03 / 0.012) and the max at one frame of rise.
+  Seam: `MorphGlassSurface.glow` (`MorphGlassGlow`: wash, center,
+  radius, gain), `MorphGlassPainter.buildGlow` (additive wash +
+  colorDodge Gaussian, exact over gray; the default buildLayer, the flat
+  bar and the gallery painter call it). SELECTED TINT: UIKit draws a
+  selected-style copy of ALL items masked by the lens (and cuts the
+  regular content with a destOut view), so the tint and the semibold
+  title travel with the lens; the tab bar does the same with two rows
+  clipped along the lens outline each frame (the copy is RichText so
+  `find.text` still finds one row). Colors are the item vibrant
+  matrices over the measured bar: dark selected (0.2148 g + 0.3778 b,
+  +0.5686, +1) -> 0x0397FF over the platter, unselected 0.3125 x +
+  0.9375 -> 250; light selected 0x0082FC, unselected 0.3125 x - 0.25 ->
+  13. Platter (_UITabSelectionView colorMatrix over a 2 pt blur): 0.87 x
+  - 0.07 dark (32 -> 10, 0xAF000000), 1.13 x - 0.2 light (250 -> 231,
+  0x13000000).
 - KNOWN UIKIT ARTIFACTS, DELIBERATELY NOT REPRODUCED: the tab bar's
   bar-local glitch (one frame of bar-local coordinates fed into its own
   integrator at each lift after the first: a spurious drift/scale kick

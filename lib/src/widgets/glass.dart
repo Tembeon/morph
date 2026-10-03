@@ -2,6 +2,7 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/widgets/glass_glow.dart';
 
 /// The role a surface plays in a control.
 ///
@@ -118,6 +119,7 @@ class MorphGlassSurface {
     this.optics,
     this.enabled = true,
     this.glass = true,
+    this.glow,
   });
 
   /// The role of the surface.
@@ -156,6 +158,11 @@ class MorphGlassSurface {
   /// [shape], nothing sampled from the backdrop.
   final bool glass;
 
+  /// The glow a finger raises on the surface, or null when it is not
+  /// lit; a painter draws it with [MorphGlassPainter.buildGlow] over the
+  /// surface and under the control's content.
+  final MorphGlassGlow? glow;
+
   /// The box the surface occupies in the control's local coordinates.
   Rect get bounds => shape.outerRect;
 
@@ -193,6 +200,28 @@ abstract class MorphGlassPainter {
   /// [MorphGlassSurface.color], as the control does without a painter.
   Widget buildFill(BuildContext context, MorphGlassSurface surface) =>
       CustomPaint(painter: _FillPainter(surface.localShape, surface.color));
+
+  /// Builds the widget that draws the [MorphGlassSurface.glow] of
+  /// [surface], sized to its bounds and placed over the surface.
+  ///
+  /// The default applies the glow's wash and spot to what is already
+  /// painted, inside [MorphGlassSurface.localShape]. A painter that
+  /// renders [buildLayer] itself places this over each lit surface.
+  Widget buildGlow(BuildContext context, MorphGlassSurface surface) {
+    final glow = surface.glow;
+    if (glow == null) return const SizedBox.expand();
+    return CustomPaint(
+      painter: MorphGlassGlowPainter(
+        surface.localShape,
+        MorphGlassGlow(
+          wash: glow.wash,
+          center: glow.center - surface.bounds.topLeft,
+          radius: glow.radius,
+          gain: glow.gain,
+        ),
+      ),
+    );
+  }
 
   /// Builds one glass layer of a control: its [surfaces], back to front,
   /// in a box that fills the layer, with the control's [content] over
@@ -233,13 +262,19 @@ abstract class MorphGlassPainter {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        for (final surface in surfaces)
+        for (final surface in surfaces) ...[
           Positioned.fromRect(
             rect: surface.bounds,
             child: surface.glass
                 ? buildSurface(context, surface)
                 : buildFill(context, surface),
           ),
+          if (surface.glow != null)
+            Positioned.fromRect(
+              rect: surface.bounds,
+              child: buildGlow(context, surface),
+            ),
+        ],
         if (content != null) Positioned.fill(child: content),
       ],
     );

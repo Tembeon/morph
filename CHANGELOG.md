@@ -732,7 +732,36 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   The gallery's liquid painter blends a bar's capsules at the spacing
   (it had stopped blending them because its old blend of 18 melted
   groups 12 apart).
-
+- NEW: the tab bar's touch glow, measured on the iPhone 16 Pro (iOS
+  27.0.1, dark and light, per-frame layers of the bar group plus screen
+  recordings). A press lights the bar with UIKit's two flex interaction
+  glows, both color matrices over the bar rather than paint: a wash that
+  adds 0.05 per channel at opacity 1 (the held dark bar goes 32 -> 43)
+  and a soft spot under the finger that multiplies by 4.0 (dark) / 1.667
+  (light) at its center, a 93 pt disc whose screen falloff is a Gaussian
+  of 0.568 x its diameter at 0.38 of the layer's strength. They peak at
+  the bar's flex spec glow opacities (0.845 and 0.2845 for 62 pt), rise
+  on a 0.1 s critically damped spring 0.042 s after the touch, hold
+  while the finger is down, and fall on 0.5 s 0.02 s after the release
+  while the spot spreads fourfold; a finger that moves 50 pt from its
+  landing (bracketed by drags of 40 and 60 pt) spreads the spot to twice
+  its size at half strength. `MorphTouchGlowMotion` (pure, replayed in
+  tab_bar_glow_test against fixture ios27-device/tabglow; opacity rms
+  at most 0.022 / 0.007) and `MorphGlassGlow` (wash, center, radius, gain) on
+  the new `MorphGlassSurface.glow`; `MorphGlassPainter.buildGlow` paints
+  it (additive wash and color-dodge spot, exact over gray), the default
+  `buildLayer` and the flat bar call it, and so does the example's
+  liquid painter.
+- The tab bar's selected tint follows the lens: the tabs inside the
+  lens outline wear the selected style (tint and semibold title), the
+  rest the regular one, cut along the outline every frame, so the blue
+  travels with the lens and a tab half under it is half blue, as in
+  UIKit (a selected copy of the items masked by the lens). Colors are
+  what UIKit's vibrant color matrices make of the measured bar: selected
+  0xFF0397FF dark / 0xFF0082FC light (was systemBlue), unselected
+  0xFFFAFAFA / 0xFF0D0D0D, resting platter 0xAF000000 / 0x13000000 (the
+  platter's matrix: 0.87 x - 0.07 dark, 1.13 x - 0.2 light, over a
+  2 pt blur).
 
 ## 0.6.0 - 2026-09-03
 

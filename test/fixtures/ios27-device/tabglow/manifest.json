@@ -1,0 +1,25 @@
+{
+ "device": "iPhone 16 Pro (iPhone17,1) real device, iOS 27.0.1, 402x874 pt @3x; rows at the display link (60 Hz while the bar idles between gestures)",
+ "probe": "tool/ios_reference (device.sh PROBE_PLAN=tablook / tabglowdrag, PROBE_TABLAYERS=1, PROBE_DARK); recorded 2026-10-03",
+ "format": "jsonl. k=start {t, scene, rec, scale, maxfps, w, h}; k=touch {t, phase 0 began / 1 moved / 3 ended, x, y} (window points, media clock); k=big = _UIFlexInteraction.BigGlow presentation {a opacity, w, h, x (window bbox; the glow container rides the bar swell)}; k=little = _UIFlexInteraction.LittleGlow {a opacity, x, y, w (window bbox), s (layer transform scale)}. Rows are logged only when a value changed. The glows sit in _UIFlexInteractionGlowContainerView over the bar glass and under the tab content; both carry vibrantColorMatrix filters: BigGlow (white) adds 0.05 per channel at opacity 1 (rows sum to 1), LittleGlow multiplies by 4.0 (dark) / 1.667 (light). Peaks equal the bar flex spec (274 x 62): bigGlowOpacity 0.845, littleGlowOpacity 0.2845.",
+ "captures": [
+  {
+   "file": "tabbar3-glow-dark.jsonl",
+   "bytes": 81388,
+   "scene": "tabbar3",
+   "gesture": "tap 1; hold 2 for 1.5 s; hold 2 (selected) 1.5 s; tap 0; tap 0 (selected); drag 0 -> 2 (press 0.4 s, 1 s move, hold 0.6 s)"
+  },
+  {
+   "file": "tabbar3-glow-light.jsonl",
+   "bytes": 81079,
+   "scene": "tabbar3",
+   "gesture": "the dark sequence in the light appearance"
+  },
+  {
+   "file": "tabbar3-glow-drags.jsonl",
+   "bytes": 168080,
+   "scene": "tabbar3",
+   "gesture": "dark; drags of 25, 40, 35, 60, 40 and 60 pt (press 0.4 s, 0.8 s move, hold 0.5 s), inside one tab and across a boundary"
+  }
+ ]
+}
