@@ -146,7 +146,7 @@ void main() {
       tester,
       () => [
         MorphBarButtonGroup([
-          MorphBarButton(id: 'edit', label: 'Edit', onPressed: _noop),
+          const MorphBarButton(id: 'edit', label: 'Edit', onPressed: _noop),
           if (more) _icon('b'),
         ], id: 'G'),
       ],

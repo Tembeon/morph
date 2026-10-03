@@ -41,7 +41,7 @@ Future<void> _stack(WidgetTester tester) async {
   }
 }
 
-Future<void> _hold(WidgetTester tester, TestGesture gesture, double s) async {
+Future<void> _hold(WidgetTester tester, TestGesture? gesture, double s) async {
   final frames = (s / 0.016).round();
   for (var i = 0; i < frames; i++) {
     await tester.pump(const Duration(milliseconds: 16));
@@ -143,6 +143,20 @@ void main() {
     expect(tester.getRect(back).center.dx, closeTo(rest.center.dx, 0.01));
     expect(tester.getRect(back).center.dy, closeTo(rest.center.dy, 0.01));
     expect(find.text('Message'), findsWidgets);
+  });
+
+  testWidgets('screen readers open the back menu with a long press', (
+    WidgetTester tester,
+  ) async {
+    final semantics = tester.ensureSemantics();
+    await _stack(tester);
+    tester.semantics.longPress(find.semantics.byLabel('Back'));
+    await _hold(tester, null, 0.8);
+    expect(find.text('Mailboxes'), findsOneWidget);
+    await tester.tapAt(const Offset(300, 700));
+    await tester.pumpAndSettle();
+    expect(find.text('Mailboxes'), findsNothing);
+    semantics.dispose();
   });
 
   test('the measured timing', () {

@@ -41,6 +41,10 @@ class MorphBarButton {
 
   /// Creates the back button of a navigation bar: a chevron followed by
   /// [label], usually the previous screen's title.
+  ///
+  /// Screen readers announce [semanticLabel], else [label]; a back button
+  /// without either has no spoken name, so pass a localized
+  /// [semanticLabel] (the navigation stack passes its `backLabel`).
   const MorphBarButton.back({
     this.label,
     this.onPressed,
@@ -1289,6 +1293,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
         enabled: button.enabled,
         label: button.semanticLabel ?? button.label,
         onTap: button.onPressed,
+        onLongPress: (button.menu?.isNotEmpty ?? false) && _menu == null
+            ? () => _openMenu(clock, button.id)
+            : null,
         child: Listener(
           behavior: HitTestBehavior.opaque,
           onPointerDown: (PointerDownEvent e) => _down(button, e),
