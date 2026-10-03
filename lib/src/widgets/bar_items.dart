@@ -15,6 +15,8 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
+import 'package:morph/src/widgets/menu_content.dart';
+import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -78,8 +80,9 @@ class MorphBarButton {
   /// [MorphMenuButton], grown out of the capsule. A finger still on the
   /// capsule when it lifts after that fires the button and closes the
   /// menu (UIKit pops one screen); one moved off leaves the menu open,
-  /// and a tap on a row selects it.
-  final List<MorphMenuItem>? menu;
+  /// and a tap on a row selects it. Any [MorphMenuEntry] works here, as
+  /// in [MorphMenuButton.items].
+  final List<MorphMenuEntry>? menu;
 
   /// Whether the button accepts taps.
   bool get enabled => onPressed != null;
@@ -648,9 +651,13 @@ class _MorphBarItemsState extends State<MorphBarItems>
       overlay: overlay,
       origin: origin,
     );
+    menu.content.entries = items;
+    menu.content.rtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    menu.content.titleStyle = MorphTypography.resolve(menu.style.textStyle);
+    menu.content.beginSession();
     final motion = MorphMenuMotion(
       button: rect,
-      itemCount: items.length,
+      layout: menu.content.root,
       bounds: overlayBox.size,
       padding: morphTargetPaddingOf(
         context,
@@ -668,9 +675,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         },
       ),
     );
-    motion.onSelected = (int index) {
-      if (index < items.length) items[index].onSelected?.call();
-    };
+    morphConnectMenu(motion, menu.content);
     motion.advance(t);
     menu.motion = motion;
     _menu = menu;
@@ -1108,6 +1113,13 @@ class _BarMenu implements MorphMenuHost {
   /// The bar's top left corner in the overlay, where the motion lives.
   final Offset origin;
   final ValueNotifier<int> repaint = ValueNotifier<int>(0);
+  late final MorphMenuContent content = MorphMenuContent(
+    onChanged: ({required bool animate}) {
+      if (!state.mounted) return;
+      motion.updateLayout(state.clock, animate: animate && motion.isPresented);
+      state.wake();
+    },
+  );
   late MorphMenuMotion motion;
   MorphFlight? flight;
   int? _pointer;
@@ -1136,7 +1148,13 @@ class _BarMenu implements MorphMenuHost {
   }
 
   @override
-  List<MorphMenuItem> get menuItems => button.menu ?? const [];
+  MorphMenuContent get menuContent => content;
+
+  @override
+  double get menuClock => state.clock;
+
+  @override
+  void menuWake() => state.wake();
 
   @override
   Listenable get menuRepaint => repaint;
@@ -1176,12 +1194,6 @@ class _BarMenu implements MorphMenuHost {
     if (event.pointer != _pointer) return;
     _pointer = null;
     motion.pointerCancel(state.stamp(event));
-    state.wake();
-  }
-
-  @override
-  void menuSelect(int index) {
-    motion.select(state.clock, index);
     state.wake();
   }
 }

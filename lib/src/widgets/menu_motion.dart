@@ -5,6 +5,7 @@ import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
+import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_morph_spec.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -68,7 +69,94 @@ class MorphMenuTuning {
     this.fusionCloseHold = 0.057,
     this.fusionSpring = const MorphSpring(0.4286, 1),
     this.fusionCutoff = 0.2,
+    this.metrics = MorphMenuMetrics.standard,
+    this.submenuSpring = const MorphSpring(0.395, 0.86),
+    this.submenuDelay = 0.076,
+    this.deeperSubmenuSpring = const MorphSpring(0.405, 0.84),
+    this.deeperSubmenuDelay = 0.04,
+    this.backSpring = const MorphSpring(0.4, 1),
+    this.backDelay = 0.022,
+    this.hoverOpenDelay = 0.525,
+    this.submenuActionDelay = 0.019,
+    this.keptActionDelay = 0.02,
+    this.parentScale = 0.97,
+    this.parentRowOpacity = 0.5,
+    this.cardStartWidth = 230,
+    this.cardLead = 36,
+    this.growSpring = const MorphSpring(0.565, 0.84),
+    this.growDelay = 0.045,
+    this.shrinkSpring = const MorphSpring(0.4, 1),
+    this.shrinkDelay = 0.03,
   });
+
+  /// The layout of the inside of the menu.
+  final MorphMenuMetrics metrics;
+
+  /// The spring a submenu card grows out of its row on, over the root
+  /// menu: one spring for every property (iPhone 16 Pro, iOS 27.0.1,
+  /// `_UIContextMenuListView` frames; 0.37 pt rms on the card height).
+  final MorphSpring submenuSpring;
+
+  /// Seconds between the release on a submenu row of the root menu and
+  /// the start of its card.
+  final double submenuDelay;
+
+  /// The spring of a card opened from another card.
+  final MorphSpring deeperSubmenuSpring;
+
+  /// Seconds between the release on a submenu row of a card and the
+  /// start of the next card.
+  final double deeperSubmenuDelay;
+
+  /// The spring a card shrinks back into its row on, critically damped.
+  final MorphSpring backSpring;
+
+  /// Seconds between the release on a card's header and the start of the
+  /// way back.
+  final double backDelay;
+
+  /// Seconds a held finger rests on a submenu row before its card opens
+  /// (0.523 and 0.527 s in two device runs).
+  final double hoverOpenDelay;
+
+  /// Seconds between the release on a row of a card and its action.
+  final double submenuActionDelay;
+
+  /// Seconds between the release on a row that keeps the menu open and
+  /// its action.
+  final double keptActionDelay;
+
+  /// The scale of every card under an open card, per card above it,
+  /// about the top center of the menu.
+  final double parentScale;
+
+  /// The opacity of the rows of a card under an open card.
+  final double parentRowOpacity;
+
+  /// The width a card starts at, centered on its row.
+  final double cardStartWidth;
+
+  /// How far above its row's center an open card's top sits: the header
+  /// centers 5 pt above the row.
+  final double cardLead;
+
+  /// The spring the menu grows on when its content gets taller while it
+  /// is open (a row added through `updateVisibleMenu`, a deferred group
+  /// answered; both fit 0.565 / 0.84 on the device).
+  final MorphSpring growSpring;
+
+  /// Seconds between a content change (the action that made it) and the
+  /// start of the growth: 0.045 and about 0.03 in two device runs, about
+  /// 0.07 after the touch-up that ran the action.
+  final double growDelay;
+
+  /// The spring the menu shrinks on when its content gets shorter,
+  /// critically damped.
+  final MorphSpring shrinkSpring;
+
+  /// Seconds between a content change and the start of the shrink (about
+  /// 0.05 after the touch-up that ran the action).
+  final double shrinkDelay;
 
   /// The morph tuning the menu's open and close springs come from.
   final MorphMenuMorphSpec morph;
@@ -432,6 +520,7 @@ class _Pointer {
   final bool startedInMenu;
   Offset position;
   bool openedByHold = false;
+  bool scrolled = false;
 }
 
 /// A damped spring driven by an input, integrated from samples.
@@ -466,6 +555,60 @@ class _DrivenKick {
   }
 }
 
+/// A submenu card stacked over the menu.
+class _Card {
+  _Card({
+    required this.layout,
+    required this.source,
+    required this.from,
+    required this.top,
+    required this.progress,
+  });
+
+  MorphMenuLayout layout;
+
+  /// The index of the target in the card below that opened this one.
+  final int source;
+
+  /// The frame the card grows out of, in content coordinates.
+  final Rect from;
+
+  /// The top of the open card, in content coordinates.
+  double top;
+
+  final MorphSpringState progress;
+  bool backing = false;
+}
+
+/// One card of a menu as drawn at the time the motion was last advanced
+/// to: the root list is card 0, each open submenu stacks one more.
+class MorphMenuCard {
+  /// Creates a card.
+  const MorphMenuCard({
+    required this.layout,
+    required this.rect,
+    required this.scale,
+    required this.rowOpacity,
+    required this.progress,
+  });
+
+  /// The content of the card.
+  final MorphMenuLayout layout;
+
+  /// The frame of the card in the menu's content coordinates, before
+  /// [scale].
+  final Rect rect;
+
+  /// The scale of the card about the top center of the menu content.
+  final double scale;
+
+  /// The opacity of the card's rows; cards under an open card dim.
+  final double rowOpacity;
+
+  /// How far the card has grown out of its row, 1 for the root list.
+  final double progress;
+}
+
 /// The motion of a glass button turning into its menu and back: a pure
 /// function of the touches it is fed, the progress it reads and the time
 /// it is advanced to.
@@ -491,28 +634,44 @@ class _DrivenKick {
 /// integrated over every [advance], so it carries through every
 /// reversal.
 ///
+/// The content is a [MorphMenuLayout]: uniform rows for a plain
+/// [itemCount], or whatever the `layout` builder lays out. A submenu
+/// target opens a card that grows out of its row over the menu
+/// ([MorphMenuTuning.submenuSpring]), the cards under it shrink to
+/// [MorphMenuTuning.parentScale] and dim, and the menu grows to cover the
+/// card; a card's header, or a touch beside it, sends it back. Content
+/// that changes while the menu is open ([updateLayout]) resizes the menu
+/// on [MorphMenuTuning.growSpring] or [MorphMenuTuning.shrinkSpring].
+/// Content taller than [MorphMenuMetrics.maxHeight] or the safe area is
+/// cut to it and scrolls by [scrollOffset].
+///
 /// Feed pointer events in the coordinate space of [bounds] with their
 /// timestamps, call [advance] with the frame time, then read [menuBlob],
 /// [buttonBlob] and the crossfade values. A tap opens on release, a hold
 /// opens after [MorphMenuTuning.holdDuration]; a release outside the
-/// menu closes it and a release on a row selects that row.
+/// menu closes it and a release on a target chooses it.
 class MorphMenuMotion {
-  /// Creates the motion of the button at [button] whose menu has
-  /// [itemCount] rows, inside [bounds] minus the safe-area [padding].
+  /// Creates the motion of the button at [button] whose menu is [layout]
+  /// (uniform rows of [itemCount] when null), inside [bounds] minus the
+  /// safe-area [padding].
   ///
-  /// [sourceHeight] is the height of the view the menu shape starts from;
-  /// it defaults to the button's height and differs for bar buttons,
-  /// whose glass platter is larger than the button. [progress] defaults
-  /// to [MorphMenuProgress.spring] of [tuning].
+  /// [layout] is asked for the content in the order it shows: reversed
+  /// when the menu opens upward. [sourceHeight] is the height of the view
+  /// the menu shape starts from; it defaults to the button's height and
+  /// differs for bar buttons, whose glass platter is larger than the
+  /// button. [progress] defaults to [MorphMenuProgress.spring] of
+  /// [tuning].
   MorphMenuMotion({
     required Rect button,
-    required this._itemCount,
+    this._itemCount = 0,
     required this._bounds,
+    MorphMenuLayout Function({required bool reversed})? layout,
     this._padding = EdgeInsets.zero,
     double? sourceHeight,
     this.tuning = MorphMenuTuning.standard,
     MorphMenuProgress? progress,
   }) : _button = button,
+       _layoutFor = layout,
        _sourceHeight = sourceHeight ?? button.height,
        _flex = MorphFlexSpec.forSize(button.size),
        _progress = progress ?? MorphMenuProgress.spring(tuning) {
@@ -520,6 +679,8 @@ class MorphMenuMotion {
     _press = MorphSpringState(_flex.trackingSpring, 1);
     _leanX = MorphSpringState(tuning.flexSpring, 0);
     _leanY = MorphSpringState(tuning.flexSpring, 0);
+    _root = _build(reversed: false);
+    _rootHeight = MorphSpringState(tuning.growSpring, _visibleRoot(_root));
     _place(1);
   }
 
@@ -527,6 +688,7 @@ class MorphMenuMotion {
   final MorphMenuTuning tuning;
 
   final MorphMenuProgress _progress;
+  final MorphMenuLayout Function({required bool reversed})? _layoutFor;
 
   Rect _button;
   int _itemCount;
@@ -539,6 +701,13 @@ class MorphMenuMotion {
   late final MorphSpringState _press;
   late final MorphSpringState _leanX;
   late final MorphSpringState _leanY;
+  late MorphSpringState _rootHeight;
+
+  late MorphMenuLayout _root;
+  bool _reversed = false;
+  final List<_Card> _cards = [];
+  int _resizeGeneration = 0;
+  int _dwellGeneration = 0;
 
   final _DrivenKick _menuKick = _DrivenKick();
   final _DrivenKick _buttonKick = _DrivenKick();
@@ -551,7 +720,8 @@ class MorphMenuMotion {
   _Phase _phase = _Phase.idle;
   double _sourceScale = 1;
   Rect _pressed = Rect.zero;
-  Rect _menu = Rect.zero;
+  double _left = 0;
+  double _anchor = 0;
   bool _down = true;
   double _amplitude = 1;
   double _closeAmplitude = 1;
@@ -572,6 +742,7 @@ class MorphMenuMotion {
   ({double t, Offset position})? _earlyRelease;
   _Pointer? _pointer;
   int? _highlighted;
+  int _highlightCard = 0;
   Offset? _glowAt;
   double _glowFrom = 0;
   double _glowStart = 0;
@@ -579,9 +750,31 @@ class MorphMenuMotion {
 
   final MorphTimeline _timeline = MorphTimeline(now: 0);
 
-  /// Called with the row index when a row is selected, at the moment its
-  /// action runs, which is before the menu starts closing.
+  /// Called with the target index when a target of the root list runs its
+  /// action, which is before the menu starts closing.
   void Function(int index)? onSelected;
+
+  /// Called with the target whenever an action runs, on any card.
+  void Function(MorphMenuTarget target)? onActivate;
+
+  /// Called when the highlighted target changes, with the old and the new
+  /// one (null for none).
+  void Function(MorphMenuTarget? from, MorphMenuTarget? to)? onHighlight;
+
+  /// Lays out the card opened by a submenu target; no card opens while
+  /// it is null or returns null.
+  MorphMenuLayout? Function(MorphMenuTarget target)? submenuLayout;
+
+  /// Whether choosing a target closes the menu: null leaves it to the
+  /// target ([MorphMenuTarget.keepsOpen]), true always closes, false
+  /// never does (SwiftUI's `menuActionDismissBehavior`).
+  bool? dismissOnSelect;
+
+  /// How far the root list is scrolled, in points.
+  ///
+  /// Only content taller than the menu scrolls; the host keeps this in
+  /// step with its scroll view so touches find the rows under them.
+  double scrollOffset = 0;
 
   double get _now => _timeline.now;
 
@@ -591,11 +784,47 @@ class MorphMenuMotion {
   /// The layout frame of the button.
   Rect get button => _button;
 
-  /// The number of rows of the menu.
+  /// The number of rows of a uniform menu.
   int get itemCount => _itemCount;
 
   /// The bounds the menu is placed in.
   Size get bounds => _bounds;
+
+  /// The content of the root list, in the order it shows.
+  MorphMenuLayout get layout => _root;
+
+  /// Whether the content shows in reverse order, as a menu opening upward
+  /// does.
+  bool get reversed => _reversed;
+
+  /// The height of the root list's content; more than the menu's when it
+  /// scrolls.
+  double get contentHeight => _root.height;
+
+  /// The height of the menu's visible root list.
+  double get visibleRootHeight => _rootHeight.value(_now);
+
+  MorphMenuLayout _build({required bool reversed}) {
+    final builder = _layoutFor;
+    if (builder != null) return builder(reversed: reversed);
+    return MorphMenuLayout.uniform(
+      _itemCount,
+      width: tuning.menuWidth,
+      rowHeight: tuning.rowHeight,
+      inset: tuning.verticalPadding,
+      reversed: reversed,
+    );
+  }
+
+  double get _cap => math.max(
+    tuning.rowHeight + 2 * tuning.verticalPadding,
+    math.min(
+      tuning.metrics.maxHeight,
+      _bounds.height - _padding.top - _padding.bottom,
+    ),
+  );
+
+  double _visibleRoot(MorphMenuLayout layout) => math.min(layout.height, _cap);
 
   /// Updates the geometry; ignored while the menu is shown.
   void relayout({
@@ -612,8 +841,67 @@ class MorphMenuMotion {
     _itemCount = itemCount ?? _itemCount;
     _sourceHeight = sourceHeight ?? button.height;
     _flex = MorphFlexSpec.forSize(button.size);
+    _root = _build(reversed: false);
+    _rootHeight.snap(_now, _visibleRoot(_root));
     _place(_press.value(_now));
   }
+
+  /// Lays the content out again at time [t], as after a change of the
+  /// entries while the menu is open.
+  ///
+  /// With [animate] the menu grows on [MorphMenuTuning.growSpring] or
+  /// shrinks on [MorphMenuTuning.shrinkSpring] after their delays, the
+  /// way an open UIKit menu takes `updateVisibleMenu`; otherwise the new
+  /// height applies at once. Open cards are laid out again from the
+  /// targets that opened them; a card whose target is gone closes.
+  void updateLayout(double t, {bool animate = true}) {
+    advance(t);
+    _root = _build(reversed: _reversed);
+    for (var i = 0; i < _cards.length; i++) {
+      final card = _cards[i];
+      final parent = i == 0 ? _root : _cards[i - 1].layout;
+      final source = card.source < parent.targets.length
+          ? parent.targets[card.source]
+          : null;
+      final layout = source == null || source.kind != .submenu
+          ? null
+          : submenuLayout?.call(source);
+      if (layout == null) {
+        _cards.removeRange(i, _cards.length);
+        _setHighlight(null, 0);
+        break;
+      }
+      card.layout = layout;
+      card.top = _clampCardTop(card.top, layout.height);
+    }
+    if (_highlighted != null) {
+      final targets = _layoutOf(_highlightCard).targets;
+      if (_highlighted! >= targets.length) _setHighlight(null, 0);
+    }
+    final height = _visibleRoot(_root);
+    if (_phase == _Phase.idle || !animate) {
+      _resizeGeneration++;
+      _rootHeight.snap(t, height);
+      if (_phase == _Phase.idle) _place(_press.value(t));
+      return;
+    }
+    if ((height - _rootHeight.target).abs() < 1e-6) return;
+    final grow = height > _rootHeight.target;
+    final generation = ++_resizeGeneration;
+    _timeline.at(t + (grow ? tuning.growDelay : tuning.shrinkDelay), (
+      double s,
+    ) {
+      if (generation != _resizeGeneration) return;
+      _rootHeight.retarget(
+        s,
+        height,
+        spring: grow ? tuning.growSpring : tuning.shrinkSpring,
+      );
+    });
+  }
+
+  MorphMenuLayout _layoutOf(int card) =>
+      card == 0 || card > _cards.length ? _root : _cards[card - 1].layout;
 
   /// The progress of the morph at the time the motion was last advanced
   /// to, read from its [MorphMenuProgress]: 0 is the button, 1 the menu.
@@ -641,11 +929,96 @@ class MorphMenuMotion {
   /// [MorphMenuTuning.earlyCloseDelay] after the opening.
   bool get isOpenPending => _openPending;
 
-  /// The final frame of the open menu.
-  Rect get menuRect => _menu;
+  /// The frame of the open menu at the time the motion was last advanced
+  /// to; its height follows resizes and submenu cards.
+  Rect get menuRect => _frameAt(_now);
+
+  Rect get _menu => _frameAt(_now);
+
+  Rect _frameAt(double t) {
+    final h = _rootHeight.value(t) + _cardsExtra(t);
+    var top = _down ? _anchor : _anchor - h;
+    final maxBottom = _bounds.height - _padding.bottom;
+    top = math.max(_padding.top, math.min(top, maxBottom - h));
+    return Rect.fromLTWH(_left, top, tuning.menuWidth, h);
+  }
+
+  double _cardsExtra(double t) {
+    var reach = _rootHeight.target;
+    var extra = 0.0;
+    for (final card in _cards) {
+      final bottom = card.top + math.min(card.layout.height, _cap);
+      if (bottom > reach) {
+        extra += (bottom - reach) * card.progress.value(t);
+        reach = bottom;
+      }
+    }
+    return extra;
+  }
+
+  double _clampCardTop(double top, double height) {
+    final cap = math.max(_cap, _rootHeight.target);
+    return math.max(0, math.min(top, cap - math.min(height, _cap)));
+  }
+
+  /// Whether a submenu card is open or opening.
+  bool get hasSubmenu => _cards.any((_Card card) => !card.backing);
+
+  /// The cards of the menu, the root list first.
+  List<MorphMenuCard> get cards {
+    final t = _now;
+    final result = <MorphMenuCard>[];
+    final count = _cards.length;
+    for (var i = 0; i <= count; i++) {
+      var scale = 1.0;
+      for (var k = i; k < count; k++) {
+        final q = _cards[k].progress.value(t);
+        scale *= 1 - (1 - tuning.parentScale) * q;
+      }
+      final above = i < count ? _cards[i].progress.value(t) : 0.0;
+      final opacity = (1 - (1 - tuning.parentRowOpacity) * above).clamp(
+        0.0,
+        1.0,
+      );
+      if (i == 0) {
+        result.add(
+          MorphMenuCard(
+            layout: _root,
+            rect: Rect.fromLTWH(0, 0, tuning.menuWidth, _root.height),
+            scale: scale,
+            rowOpacity: opacity,
+            progress: 1,
+          ),
+        );
+        continue;
+      }
+      final card = _cards[i - 1];
+      final q = card.progress.value(t);
+      final to = Rect.fromLTWH(
+        0,
+        card.top,
+        tuning.menuWidth,
+        math.min(card.layout.height, _cap),
+      );
+      result.add(
+        MorphMenuCard(
+          layout: card.layout,
+          rect: Rect.lerp(card.from, to, q)!,
+          scale: scale,
+          rowOpacity: opacity,
+          progress: q,
+        ),
+      );
+    }
+    return result;
+  }
+
+  /// The final frame of the menu content; for a uniform menu, of the
+  /// rows.
+  Rect get finalMenuRect => _menu;
 
   /// Whether the menu opens below the button; otherwise it opens above it
-  /// and its rows are reversed.
+  /// and its content is reversed.
   bool get opensDown => _down;
 
   /// The button's frame at the scale it had when the menu opened, which
@@ -655,8 +1028,28 @@ class MorphMenuMotion {
   /// The scale of the button's press growth.
   double get pressScale => _press.value(_now);
 
-  /// The row under the finger, or the selected row while the menu closes.
+  /// The highlighted target of [highlightedCard] - under the finger, or
+  /// the chosen one while the menu closes.
   int? get highlighted => _highlighted;
+
+  /// The card [highlighted] belongs to, 0 for the root list.
+  int get highlightedCard => _highlightCard;
+
+  void _setHighlight(int? target, int card) {
+    if (target == _highlighted && card == _highlightCard) return;
+    final from = _targetOf(_highlightCard, _highlighted);
+    _highlighted = target;
+    _highlightCard = card;
+    _dwellGeneration++;
+    final to = _targetOf(card, target);
+    if (from != null || to != null) onHighlight?.call(from, to);
+  }
+
+  MorphMenuTarget? _targetOf(int card, int? index) {
+    if (index == null) return null;
+    final targets = _layoutOf(card).targets;
+    return index < targets.length ? targets[index] : null;
+  }
 
   /// The center of the glow under a finger on the menu.
   Offset? get glowCenter => _glowAt;
@@ -731,11 +1124,12 @@ class MorphMenuMotion {
   /// as wide as it is tall or wider is centered on the shape.
   Rect get contentRect {
     final menu = menuBlob;
+    final frame = _menu;
     final scale = _contentScale(menu);
-    final width = _menu.width * scale;
-    final height = _menu.height * scale;
+    final width = frame.width * scale;
+    final height = frame.height * scale;
     final shape = menu.rect;
-    if (_menu.height > _menu.width) {
+    if (frame.height > frame.width) {
       return Rect.fromLTWH(
         shape.center.dx - width / 2,
         shape.top,
@@ -762,7 +1156,10 @@ class MorphMenuMotion {
       ? progress
       : _progress.valueAt(_now + tuning.fadeLead);
 
-  double get _relativeKick => _menu.height > 0 ? menuKick / _menu.height : 0;
+  double get _relativeKick {
+    final height = _menu.height;
+    return height > 0 ? menuKick / height : 0;
+  }
 
   static double _ramp(double value, double from, double to) =>
       ((value - from) / (to - from)).clamp(0.0, 1.0);
@@ -820,13 +1217,14 @@ class MorphMenuMotion {
   /// The menu shape: grows out of the button into the menu.
   MorphMenuBlob get menuBlob {
     final p = progress;
+    final frame = _menu;
     final w = tuning.menuWidth;
-    final h = _menu.height;
+    final h = frame.height;
     final s0 = 0.5 * _sourceHeight / math.max(w, h);
     final scale = s0 + (1 - s0) * p;
     final localHeight = w + (h - w) * p;
     final from = _button.center;
-    final to = _menu.center;
+    final to = frame.center;
     final sign = _down ? 1.0 : -1.0;
     final center = Offset(
       from.dx + (to.dx - from.dx) * p + _leanX.value(_now),
@@ -838,7 +1236,7 @@ class MorphMenuMotion {
         width: w * scale,
         height: localHeight * scale,
       ),
-      radius: _localRadius(p, localHeight) * scale,
+      radius: _localRadius(p, localHeight, h) * scale,
       scale: scale,
       localSize: Size(w, localHeight),
     );
@@ -880,6 +1278,8 @@ class MorphMenuMotion {
     if (_phase == _Phase.opening) {
       return _progress.isAtRestAt(t) &&
           _radius.isAtRest(t, 1e-3) &&
+          _rootHeight.isAtRest(t, 1e-3) &&
+          _cards.every((_Card card) => card.progress.isAtRest(t, 1e-3)) &&
           _menuKick.isAtRest &&
           _buttonKick.isAtRest &&
           _fusionAtRest(t);
@@ -887,18 +1287,45 @@ class MorphMenuMotion {
     return true;
   }
 
-  /// The row at [position], in item order, or null.
-  int? rowAt(Offset position) {
-    if (_phase == _Phase.idle || !_menu.contains(position)) return null;
-    final slot =
-        ((position.dy - _menu.top - tuning.verticalPadding) / tuning.rowHeight)
-            .floor();
-    if (slot < 0 || slot >= _itemCount) return null;
-    return slotOf(slot);
+  /// The target at [position] on the top card, or null.
+  int? rowAt(Offset position) => _hitAt(position).target;
+
+  ({int card, int? target, bool beside}) _hitAt(Offset position) {
+    final top = _topCard;
+    if (_phase == _Phase.idle) return (card: top, target: null, beside: false);
+    final frame = _menu;
+    if (!frame.contains(position)) {
+      return (card: top, target: null, beside: false);
+    }
+    final local = position - frame.topLeft;
+    if (top > 0) {
+      final card = cards[top];
+      if (!card.rect.contains(local)) {
+        return (card: top, target: null, beside: true);
+      }
+      return (
+        card: top,
+        target: card.layout.targetAt(local - card.rect.topLeft),
+        beside: false,
+      );
+    }
+    return (
+      card: 0,
+      target: _root.targetAt(local + Offset(0, scrollOffset)),
+      beside: false,
+    );
   }
 
-  /// The visual slot, from the top of the menu, of row [index]; rows are
-  /// reversed when the menu opens upward.
+  int get _topCard {
+    var top = _cards.length;
+    while (top > 0 && _cards[top - 1].backing) {
+      top--;
+    }
+    return top;
+  }
+
+  /// The visual slot, from the top of a uniform menu, of row [index];
+  /// rows are reversed when the menu opens upward.
   int slotOf(int index) => _down ? index : _itemCount - 1 - index;
 
   /// Opens the menu at time [t].
@@ -916,11 +1343,31 @@ class MorphMenuMotion {
     _close(t);
   }
 
-  /// Selects row [index] at time [t] as a release on it would.
+  /// Chooses target [index] of the top card at time [t] as a release on
+  /// it would.
   void select(double t, int index) {
     advance(t);
     if (_phase != _Phase.opening) return;
-    _select(t, index);
+    final card = _topCard;
+    if (index < 0 || index >= _layoutOf(card).targets.length) return;
+    _select(t, card, index);
+  }
+
+  /// Highlights target [index] of the top card at time [t], as a finger
+  /// or the keyboard would; null clears the highlight.
+  void highlight(double t, int? index) {
+    advance(t);
+    if (_phase != _Phase.opening) return;
+    _setHighlight(index, _topCard);
+  }
+
+  /// Sends the top submenu card back into its row at time [t]; returns
+  /// whether there was one.
+  bool back(double t) {
+    advance(t);
+    if (_phase != _Phase.opening || _topCard == 0) return false;
+    _back(t);
+    return true;
   }
 
   /// A finger touched down at [position].
@@ -928,12 +1375,13 @@ class MorphMenuMotion {
     advance(t);
     if (_pointer != null) return;
     if (_phase == _Phase.opening) {
-      _pointer = _Pointer(
+      final pointer = _Pointer(
         fromButton: false,
         position: position,
         startedInMenu: _menu.contains(position),
       );
-      _highlighted = rowAt(position);
+      _pointer = pointer;
+      _track(t, pointer, position);
       _glow(t, position, on: true);
       return;
     }
@@ -966,6 +1414,25 @@ class MorphMenuMotion {
     });
   }
 
+  void _track(double t, _Pointer pointer, Offset position) {
+    if (pointer.scrolled) return;
+    final hit = _hitAt(position);
+    _setHighlight(hit.target, hit.card);
+    final target = _targetOf(hit.card, hit.target);
+    if (target == null || target.kind != MorphMenuTargetKind.submenu) return;
+    final generation = _dwellGeneration;
+    final card = hit.card;
+    final index = hit.target!;
+    _timeline.at(t + tuning.hoverOpenDelay, (double s) {
+      if (generation != _dwellGeneration ||
+          !identical(_pointer, pointer) ||
+          _phase != _Phase.opening) {
+        return;
+      }
+      _openCard(s, card, index);
+    });
+  }
+
   /// The finger moved to [position].
   void pointerMove(double t, Offset position) {
     advance(t);
@@ -973,12 +1440,26 @@ class MorphMenuMotion {
     if (pointer == null) return;
     pointer.position = position;
     if (_phase != _Phase.opening) return;
-    _highlighted = rowAt(position);
+    final hit = _hitAt(position);
+    if (hit.target != _highlighted || hit.card != _highlightCard) {
+      _track(t, pointer, position);
+    }
     _glowAt = position;
     final lean = (position - _menu.center) * tuning.flexGain;
     final limit = tuning.flexLimit;
     _leanX.retarget(t, lean.dx.clamp(-limit, limit));
     _leanY.retarget(t, lean.dy.clamp(-limit, limit));
+  }
+
+  /// The finger on the menu started to scroll its content: it no longer
+  /// chooses anything.
+  void pointerScrolled(double t) {
+    advance(t);
+    final pointer = _pointer;
+    if (pointer == null || pointer.scrolled) return;
+    pointer.scrolled = true;
+    _setHighlight(null, _highlightCard);
+    _relax(t);
   }
 
   /// The finger lifted at [position].
@@ -1003,14 +1484,18 @@ class MorphMenuMotion {
       if (_openPending) _earlyRelease = (t: t, position: position);
       return;
     }
-    final row = rowAt(position);
-    if (row != null) {
-      _select(t, row);
-    } else {
-      _highlighted = null;
-      if (!pointer.fromButton && !_menu.contains(position)) {
-        _timeline.at(t + tuning.dismissDelay, _close);
-      }
+    if (pointer.scrolled) return;
+    final hit = _hitAt(position);
+    final target = hit.target;
+    if (target != null) {
+      _select(t, hit.card, target);
+      return;
+    }
+    _setHighlight(null, _highlightCard);
+    if (hit.beside) {
+      _timeline.at(t + tuning.backDelay, _back);
+    } else if (!pointer.fromButton && !_menu.contains(position)) {
+      _timeline.at(t + tuning.dismissDelay, _close);
     }
   }
 
@@ -1021,7 +1506,7 @@ class MorphMenuMotion {
     _pointer = null;
     if (pointer == null) return;
     _relax(t);
-    if (_phase == _Phase.opening) _highlighted = null;
+    if (_phase == _Phase.opening) _setHighlight(null, _highlightCard);
     if (pointer.fromButton) _release(t);
   }
 
@@ -1031,6 +1516,12 @@ class MorphMenuMotion {
     if (t < _now) return;
     _timeline.runDue(t);
     _sample(t);
+    for (var i = _cards.length - 1; i >= 0; i--) {
+      final card = _cards[i];
+      if (card.backing && card.progress.isAtRest(t, 1e-3)) {
+        _cards.removeAt(i);
+      }
+    }
     if (_phase == _Phase.closing &&
         _progress.isAtRestAt(t) &&
         _menuKick.isAtRest &&
@@ -1038,6 +1529,9 @@ class MorphMenuMotion {
         _fusionAtRest(t)) {
       _phase = _Phase.idle;
       _highlighted = null;
+      _highlightCard = 0;
+      _cards.clear();
+      scrollOffset = 0;
       _menuKick.reset();
       _buttonKick.reset();
       _openReference = null;
@@ -1134,7 +1628,8 @@ class MorphMenuMotion {
       width: _button.width * sourceScale,
       height: _button.height * sourceScale,
     );
-    final size = Size(tuning.menuWidth, tuning.menuHeight(_itemCount));
+    final height = _visibleRoot(_root);
+    final size = Size(tuning.menuWidth, height);
     final placed = place(
       button: _pressed,
       size: size,
@@ -1142,8 +1637,15 @@ class MorphMenuMotion {
       padding: _padding,
       edgeMargin: tuning.edgeMargin,
     );
-    _menu = placed.rect;
+    _left = placed.rect.left;
     _down = placed.down;
+    _anchor = _down ? placed.rect.top : placed.rect.bottom;
+    final reversed = !_down;
+    if (reversed != _reversed) {
+      _reversed = reversed;
+      _root = _build(reversed: reversed);
+    }
+    _rootHeight.snap(_now, height);
     _amplitude = kickAmplitude(size.height);
     _closeAmplitude = _interpolate(_closeKickAmplitude, size.height);
     _sourceAmplitude = _interpolate(_sourceKickAmplitude, size.height);
@@ -1181,16 +1683,19 @@ class MorphMenuMotion {
   void _takeEarlyTouch(double t) {
     final pointer = _pointer;
     if (pointer != null && !pointer.fromButton) {
-      _highlighted = rowAt(pointer.position);
+      _setHighlight(rowAt(pointer.position), _topCard);
       _glow(t, pointer.position, on: true);
     }
     final release = _earlyRelease;
     _earlyRelease = null;
     if (release == null) return;
     final row = rowAt(release.position);
-    if (row != null) {
-      _highlighted = row;
-      _timeline.at(t + tuning.actionDelay, (double s) => onSelected?.call(row));
+    final target = _targetOf(0, row);
+    if (row != null &&
+        target != null &&
+        target.kind == MorphMenuTargetKind.action) {
+      _setHighlight(row, 0);
+      _timeline.at(t + tuning.actionDelay, (double s) => _activate(0, row));
       _timeline.at(t + tuning.earlyCloseDelay, _close);
     } else if (!_menu.contains(release.position)) {
       _timeline.at(t + tuning.earlyCloseDelay, _close);
@@ -1207,6 +1712,7 @@ class MorphMenuMotion {
     _closeSource = _sourceScale;
     _closeLive = _press.value(t);
     _openGeneration++;
+    _resizeGeneration++;
     _phase = _Phase.closing;
     _fusions.add((start: t, opening: false));
     _relax(t);
@@ -1225,10 +1731,109 @@ class MorphMenuMotion {
     });
   }
 
-  void _select(double t, int index) {
-    _highlighted = index;
-    _timeline.at(t + tuning.actionDelay, (double s) => onSelected?.call(index));
-    _timeline.at(t + tuning.dismissDelay, _close);
+  void _activate(int card, int index) {
+    final target = _targetOf(card, index);
+    if (target == null) return;
+    if (card == 0) onSelected?.call(index);
+    onActivate?.call(target);
+  }
+
+  void _select(double t, int card, int index) {
+    final target = _targetOf(card, index);
+    if (target == null) return;
+    switch (target.kind) {
+      case MorphMenuTargetKind.submenu:
+        _setHighlight(index, card);
+        final delay = card == 0
+            ? tuning.submenuDelay
+            : tuning.deeperSubmenuDelay;
+        final generation = _openGeneration;
+        _timeline.at(t + delay, (double s) {
+          if (generation != _openGeneration || _phase != _Phase.opening) {
+            return;
+          }
+          _openCard(s, card, index);
+        });
+      case MorphMenuTargetKind.back:
+        _setHighlight(null, card);
+        _timeline.at(t + tuning.backDelay, _back);
+      case MorphMenuTargetKind.action:
+        final keep = switch (dismissOnSelect) {
+          null => target.keepsOpen,
+          final bool dismiss => !dismiss,
+        };
+        if (keep) {
+          _setHighlight(null, card);
+          _timeline.at(
+            t + tuning.keptActionDelay,
+            (double s) => _activate(card, index),
+          );
+          return;
+        }
+        _setHighlight(index, card);
+        final delay = card == 0
+            ? tuning.actionDelay
+            : tuning.submenuActionDelay;
+        _timeline.at(t + delay, (double s) => _activate(card, index));
+        _timeline.at(t + tuning.dismissDelay, _close);
+    }
+  }
+
+  void _openCard(double t, int card, int index) {
+    if (_phase != _Phase.opening) return;
+    final source = _targetOf(card, index);
+    if (source == null || source.kind != MorphMenuTargetKind.submenu) return;
+    while (_cards.length > card) {
+      final last = _cards.last;
+      if (!last.backing) break;
+      if (_cards.length == card + 1 && last.source == index) {
+        last.backing = false;
+        last.progress.retarget(
+          t,
+          1,
+          spring: card == 0 ? tuning.submenuSpring : tuning.deeperSubmenuSpring,
+        );
+        _setHighlight(null, card + 1);
+        return;
+      }
+      _cards.removeLast();
+    }
+    if (_cards.length != card) return;
+    final layout = submenuLayout?.call(source);
+    if (layout == null) return;
+    final shown = cards[card];
+    final rowCenter =
+        shown.rect.top + source.rect.center.dy - (card == 0 ? scrollOffset : 0);
+    final from = Rect.fromCenter(
+      center: Offset(tuning.menuWidth / 2, rowCenter),
+      width: tuning.cardStartWidth,
+      height: source.rect.height,
+    );
+    final spring = card == 0
+        ? tuning.submenuSpring
+        : tuning.deeperSubmenuSpring;
+    final progress = MorphSpringState(spring, 0);
+    progress.retarget(t, 1);
+    _cards.add(
+      _Card(
+        layout: layout,
+        source: index,
+        from: from,
+        top: _clampCardTop(rowCenter - tuning.cardLead, layout.height),
+        progress: progress,
+      ),
+    );
+    _setHighlight(null, card + 1);
+  }
+
+  void _back(double t) {
+    if (_phase != _Phase.opening) return;
+    final top = _topCard;
+    if (top == 0) return;
+    final card = _cards[top - 1];
+    card.backing = true;
+    card.progress.retarget(t, 0, spring: tuning.backSpring);
+    _setHighlight(null, top - 1);
   }
 
   void _release(double t) {
@@ -1258,7 +1863,7 @@ class MorphMenuMotion {
   }
 
   double _openingRadius(double t) {
-    final target = math.min(tuning.cornerRadius, _menu.height / 2);
+    final target = math.min(tuning.cornerRadius, _frameAt(t).height / 2);
     return _radiusFrom + (target - _radiusFrom) * _radius.value(t);
   }
 
@@ -1268,7 +1873,7 @@ class MorphMenuMotion {
     return half + (_closeRadius - half) * p / _closeProgress;
   }
 
-  double _localRadius(double p, double localHeight) {
+  double _localRadius(double p, double localHeight, double height) {
     final raw = _phase == _Phase.closing
         ? _closingRadius(p)
         : _openingRadius(_now);

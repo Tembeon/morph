@@ -5,7 +5,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/bar_items.dart';
-import 'package:morph/src/widgets/menu.dart';
+import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';

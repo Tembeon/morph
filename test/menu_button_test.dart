@@ -8,6 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/menu.dart';
+import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 
 const _dir = 'test/fixtures/ios27/menu';
@@ -916,7 +917,7 @@ void main() {
           bounds: screen,
           padding: safe,
         );
-        final menu = motion.tuning.menuHeight(rows);
+        final menu = motion.menuRect.height;
         final tall = menu > motion.tuning.menuWidth;
         void check(String phase) {
           final shape = motion.menuBlob.rect;

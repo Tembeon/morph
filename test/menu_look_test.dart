@@ -67,7 +67,7 @@ void main() {
   testWidgets('a dark theme resolves the dark menu', (tester) async {
     await tester.pumpWidget(_app(brightness: Brightness.dark));
     await _open(tester);
-    expect(_titleStyle(tester, 'Copy').color, const Color(0xFFFFFFFF));
+    expect(_titleStyle(tester, 'Copy').color, const Color(0xF5FFFFFF));
     expect(
       _titleStyle(tester, 'Delete').color,
       MorphMenuStyle.dark.destructiveColor,

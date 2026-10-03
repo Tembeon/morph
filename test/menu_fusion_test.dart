@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
+import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 

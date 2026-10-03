@@ -90,11 +90,36 @@ export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonMotion, MorphGlassButtonStyle;
 export 'src/widgets/lens_motion.dart'
     show MorphLensMotion, MorphLensSlot, MorphLensTuning;
-export 'src/widgets/menu.dart'
-    show MorphMenuButton, MorphMenuItem, MorphMenuStyle;
+export 'src/widgets/menu.dart' show MorphMenuButton, MorphMenuStyle;
+export 'src/widgets/menu_entries.dart'
+    show
+        MorphMenuDeferred,
+        MorphMenuDivider,
+        MorphMenuElementSize,
+        MorphMenuEntry,
+        MorphMenuIconVisibility,
+        MorphMenuItem,
+        MorphMenuOrder,
+        MorphMenuSection,
+        MorphMenuState,
+        MorphMenuWidget,
+        MorphSubmenu;
+export 'src/widgets/menu_layout.dart'
+    show
+        MorphMenuLayout,
+        MorphMenuMetrics,
+        MorphMenuPlaced,
+        MorphMenuPlacedKind,
+        MorphMenuTarget,
+        MorphMenuTargetKind;
 export 'src/widgets/menu_morph_spec.dart' show MorphMenuMorphSpec;
 export 'src/widgets/menu_motion.dart'
-    show MorphMenuBlob, MorphMenuMotion, MorphMenuProgress, MorphMenuTuning;
+    show
+        MorphMenuBlob,
+        MorphMenuCard,
+        MorphMenuMotion,
+        MorphMenuProgress,
+        MorphMenuTuning;
 export 'src/widgets/morph_context_menu.dart'
     show MorphContextMenuRegion, MorphSatellite;
 export 'src/widgets/navigation_bar.dart'
