@@ -43,6 +43,16 @@ keepsMenuPresented); `UIDeferredMenuElement`;
   every open/close and falling back to nothing (`fusionEnvelope`); facing
   edges draw to a point, the shrunk button is absorbed, a neck joins the
   shapes across the gap. Fixture `ios27-device/menu/fusion.json`.
+  morph (menu_fusion.dart `morphMenuSilhouette`): the field grid (every
+  2nd trace node below a 4 pt step) is sampled everywhere, the trace grid
+  only in 2-cell blocks whose corners leave the edge within reach (the
+  blurred field is 1-Lipschitz); a node whose blur window sees one
+  straight side of the nearer shape keeps its unblurred distance (exact:
+  the symmetric kernel leaves a linear field unchanged), one inside a
+  single round corner takes the Rice mean of the distance to the corner's
+  center with the kernel's variance (within 0.006 pt of the kernel);
+  the rest is the separable kernel. Pinned against a brute-force blur by
+  menu_fusion_test. Cost: glass-renderer.md.
 - ONE CLOCK: the menu draws from its own closed-form progress spring on the
   clock its kicks run on (trace: open kick error 0.27 / 1.0 pt vs 1.14 / 3.7
   when reading the flight controller).

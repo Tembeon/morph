@@ -73,7 +73,18 @@ measurements.
   thickness blends button -> menu by the nearer shape over the blur
   radius; the menu field is blurred at least 24 pt deep
   (`MorphMenuFusion.shadedDepth`, the bevel depth) and kept at every 2nd
-  trace node below a 4 pt step.
+  trace node below a 4 pt step. The field's gradient is the field's own
+  normal TURNED to the optical corners: the analytic shapes take their
+  normals from a 1.5x corner radius (`kOpticalCornerRadiusScale`), so
+  each field node turns its gradient by the angle between the nearer
+  shape's exact and optical normal (blended across shapes like the half
+  thickness; `morphOpticalCornerScale`), and a fused corner lights where
+  the same shape alone does (glass_renderer_test pins the angle).
+- FAKE GLASS (no Flutter GPU: tests, the first frames, devices without
+  it) draws the fused outline too: `GlassField.outline` reaches
+  ConsolidatedFakeGlassLayer, which clips its backdrop and surfaces to it
+  and tints the neck (outline minus shapes, even-odd - Skia's path ops
+  refused an outline running along its capsules).
 
 ## Adaptive policy (`MorphAdaptiveGlass`, glass_tier.dart)
 
@@ -142,9 +153,17 @@ NEVER while a pointer is down. Engineering defaults, not measurements.
 - Tier 2 vs the pre-move gallery painter (2b3773c, same audit): resting
   shots pixel-identical, held shots within timing noise (max channel diff
   <= 19, 0.001 percent of pixels over 15); raster p95 equal within noise.
-- FUSED OUTLINE COST per frame (AOT, UI thread, 10-row menu, 100-call
-  mean): blur radius 4 pt 2.7 ms (the step-2 grid), 10 pt 0.66 ms, 20 pt
-  0.31 ms; two fused bar capsules 0.65 ms (only while fused).
+- FUSED OUTLINE COST per frame (profile, UI thread, 10-row menu 260 x 440
+  over its 48 pt button, 100-call mean; `--dart-define=AUDIT_OUTLINES_ONLY=
+  true` times only this): before the sparse fusion (4a57cb7) blur radius
+  4 pt 2.02 ms, 10 pt 0.67, 20 pt 0.31, two fused bar capsules 0.68;
+  after it 0.71 / 0.61 / 0.36 / 0.12 (two runs each, +-2 percent). The
+  JIT microbenchmark (benchmark/glass_outline_benchmark_test.dart, or a
+  warmed 300-call loop in flutter test) tracks the device within ~20
+  percent. What remains is the separable blur near corners, the button
+  and the neck (~0.4 ms at 4 pt) and the field grid itself; the trace
+  (edge-id stitching, quadratic B-spline through the crossings) costs
+  0.07 ms.
 - Earlier verdicts: LiquidGlassCapture drops whole controls on iOS
   (renders on macOS) - not used; FROST ~1 ms raster per frosted surface per
   frame (Controls page 13-15 ms vs 2.6 ms), so only bars, menus and lifted
@@ -171,6 +190,5 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
 
 ## Open
 
-- Date picker dark platter color (date-picker.md).
 - Dark lifted slider thumb look (slider.md).
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).

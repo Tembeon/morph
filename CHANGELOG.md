@@ -988,6 +988,20 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   (BREAKING: `MorphDatePickerTuning.weekHeight` is gone, new
   `sixWeekRowHeight`), and the day grid sits 1 pt lower, where UIKit's
   first row is.
+- Fused glass is cheaper and closer to the shapes it fuses. The menu's
+  blurred silhouette samples its trace grid only near the edge and skips
+  the blur wherever the kernel cannot change the field (one straight
+  side) or has a closed form (one round corner); a bar's fused capsules
+  sample the merge law only near the edge too. On the iPhone 16 Pro a
+  ten-row menu at a 4 pt blur now costs 0.71 ms of UI thread per frame
+  (was 2.02), 0.61 at 10 pt, 0.36 at 20 pt, two fused capsules 0.12 ms
+  (was 0.68). A fused body's corners turn their light on the 1.5x
+  optical radius the shapes alone use, the fake glass that stands in
+  without Flutter GPU draws the fused outline (it drew the separate
+  shapes, and threw holding Back on a pushed page), and the bar's flat
+  painter fuses through the same groups and outline as every tier. The
+  dark date picker's platter is the dark menu's glass, 0xF2222222 (it
+  drew 44 gray where UIKit shows 32).
 
 ## 0.6.0 - 2026-09-03
 

@@ -189,3 +189,6 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 - Container spacing reaches the painter as `buildLayer(spacing:)`; the
   fused outline of capsules within spacing - 0.5 is traced by the package
   (`morphGlassContainerOutline`, skin law, step 2) - see glass-renderer.md.
+  The bar's own flat painter (no MorphGlass installed) draws the same
+  groups and outline per color (`morphGlassContainerGroups` +
+  `morphGlassContainerOutline`), no trace of its own.

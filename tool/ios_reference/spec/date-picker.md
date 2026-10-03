@@ -177,7 +177,12 @@ Calendar drawn by morph; wheels are ListWheelScrollViews.
   12 PM, back 3 = 9 AM); the flip's animation is not measured (200 ms ease,
   like the accessibility steps). `use24HourFormat` null follows
   MediaQuery.alwaysUse24HourFormat (the phone's 24-Hour Time).
-- Dark platter color (owner film, 44 vs native 33 gray): the renderer draws
-  the surface color as the tint; `MorphDatePickerStyle.dark` platterColor
-  0xF22C2C2E is the cause - the menu's measured dark glass 0xF2222222 reads
-  33 - 34. OPEN (date_picker.dart not changed yet).
+- Dark platter color [device film]: the native overlay reads 32 gray over
+  black (references/date-video/calendar-dark and wheels-dark, 32,31,34 /
+  32,32,32), exactly the native dark menu's interior (references/dark/
+  menu-open.png, 32): the platter is the menu's material.
+  `MorphDatePickerStyle.dark` platterColor is now the menu's measured dark
+  glass 0xF2222222 (reads 33 - 34 through the renderer; 0xF22C2C2E drew
+  44). Light: native 249,248,255 over the film's page vs ours 247,246,249
+  with 0xF2F9F9FB - 2 darker and less blue, not changed (no light menu
+  reference to tie it to yet; a fresh light x3date shot decides).
