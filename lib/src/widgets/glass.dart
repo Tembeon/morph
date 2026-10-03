@@ -212,11 +212,23 @@ abstract class MorphGlassPainter {
   /// clips it to that slot, so a label under a moving lens grows in place
   /// and never slides; only the lens window moves. Empty means the content
   /// is one item that fills the layer.
+  ///
+  /// A positive [spacing] makes the glass surfaces one glass container
+  /// with that spacing, as UIKit's `UIGlassContainerEffect` and SwiftUI's
+  /// `GlassEffectContainer` do: two surfaces closer than [spacing] lean
+  /// toward each other and fuse once they are within half of it, by the
+  /// merge law of the skin (`MorphSkin`, whose blend width the spacing
+  /// is, 1:1); surfaces [spacing] or more apart do not touch. Zero keeps
+  /// every surface separate. The bars pass 12, the spacing UIKit gives the
+  /// glass container of a navigation bar and of a toolbar, which is also
+  /// the gap between two groups of one bar: resting groups never fuse,
+  /// moving ones fuse while they pass closer.
   Widget buildLayer(
     BuildContext context,
     List<MorphGlassSurface> surfaces, {
     Widget? content,
     List<Rect> contentSlots = const [],
+    double spacing = 0,
   }) {
     return Stack(
       clipBehavior: Clip.none,
@@ -283,6 +295,7 @@ class MorphGlassLayer extends StatelessWidget {
     required this.surfaces,
     this.content,
     this.contentSlots = const [],
+    this.spacing = 0,
     super.key,
   });
 
@@ -302,6 +315,9 @@ class MorphGlassLayer extends StatelessWidget {
   /// handed to [MorphGlassPainter.buildLayer].
   final List<Rect> contentSlots;
 
+  /// The glass container spacing handed to [MorphGlassPainter.buildLayer].
+  final double spacing;
+
   @override
   Widget build(BuildContext context) {
     return MetaData(
@@ -313,6 +329,7 @@ class MorphGlassLayer extends StatelessWidget {
           surfaces(),
           content: child,
           contentSlots: contentSlots,
+          spacing: spacing,
         ),
         child: content,
       ),

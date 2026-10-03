@@ -4,8 +4,9 @@ import 'package:morph_example/gallery/gallery.dart';
 
 /// Sheets the way UIKit presents them: a floating glass sheet at the
 /// medium detent that docks edge to edge at the large one, a large-only
-/// sheet, an undimmed medium detent over a live page, and a sheet with a
-/// list that hands its drags to the sheet.
+/// sheet, an undimmed medium detent over a live page, a sheet with a
+/// list that hands its drags to the sheet, and a sheet that zooms out of
+/// the button that presents it.
 class SheetPage extends StatefulWidget {
   /// Creates the page.
   const SheetPage({super.key});
@@ -23,9 +24,11 @@ class _SheetPageState extends State<SheetPage> {
     List<MorphSheetDetent> detents, {
     MorphSheetDetent? undimmed,
     bool list = false,
+    Object? from,
   }) async {
     final result = await presentMorphSheet<String>(
       context,
+      from: from,
       detents: detents,
       largestUndimmedDetent: undimmed,
       grabberVisible: detents.length > 1,
@@ -43,68 +46,89 @@ class _SheetPageState extends State<SheetPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const GalleryBar(title: 'Sheets'),
-      body: ListView(
-        padding: const .all(20),
-        children: [
-          Text(_last, style: const TextStyle(color: Color(0xFF8E8E93))),
-          const SizedBox(height: 16),
-          for (final (label, onTap) in <(String, VoidCallback)>[
-            (
-              'Medium and large',
-              () => _present('Medium and large', const [
-                MorphSheetDetent.medium,
-                MorphSheetDetent.large,
-              ]),
+      body: MorphScope(child: Builder(builder: _list)),
+    );
+  }
+
+  Widget _list(BuildContext context) {
+    return ListView(
+      padding: const .all(20),
+      children: [
+        Text(_last, style: const TextStyle(color: Color(0xFF8E8E93))),
+        const SizedBox(height: 16),
+        for (final (label, onTap) in <(String, VoidCallback)>[
+          (
+            'Medium and large',
+            () => _present('Medium and large', const [
+              MorphSheetDetent.medium,
+              MorphSheetDetent.large,
+            ]),
+          ),
+          (
+            'Large only',
+            () => _present('Large only', const [MorphSheetDetent.large]),
+          ),
+          (
+            'Small, medium, large',
+            () => _present('Three detents', const [
+              MorphSheetDetent.height(200),
+              MorphSheetDetent.medium,
+              MorphSheetDetent.large,
+            ]),
+          ),
+          (
+            'Undimmed medium',
+            () => _present('Undimmed medium', const [
+              MorphSheetDetent.medium,
+              MorphSheetDetent.large,
+            ], undimmed: MorphSheetDetent.medium),
+          ),
+          (
+            'List that drags the sheet',
+            () => _present('List', const [
+              MorphSheetDetent.medium,
+              MorphSheetDetent.large,
+            ], list: true),
+          ),
+        ])
+          Padding(
+            padding: const .only(bottom: 12),
+            child: SizedBox(
+              height: 48,
+              child: MorphGlassButton(onPressed: onTap, child: Text(label)),
             ),
-            (
-              'Large only',
-              () => _present('Large only', const [MorphSheetDetent.large]),
-            ),
-            (
-              'Small, medium, large',
-              () => _present('Three detents', const [
-                MorphSheetDetent.height(200),
-                MorphSheetDetent.medium,
-                MorphSheetDetent.large,
-              ]),
-            ),
-            (
-              'Undimmed medium',
-              () => _present('Undimmed medium', const [
-                MorphSheetDetent.medium,
-                MorphSheetDetent.large,
-              ], undimmed: MorphSheetDetent.medium),
-            ),
-            (
-              'List that drags the sheet',
-              () => _present('List', const [
-                MorphSheetDetent.medium,
-                MorphSheetDetent.large,
-              ], list: true),
-            ),
-          ])
-            Padding(
-              padding: const .only(bottom: 12),
-              child: SizedBox(
-                height: 48,
-                child: MorphGlassButton(onPressed: onTap, child: Text(label)),
+          ),
+        Padding(
+          padding: const .only(bottom: 12),
+          child: SizedBox(
+            height: 48,
+            child: MorphTag(
+              id: 'zoom',
+              shape: const StadiumBorder(),
+              child: MorphGlassButton(
+                onPressed: () => _present('Zoomed from its button', const [
+                  MorphSheetDetent.medium,
+                  MorphSheetDetent.large,
+                ], from: 'zoom'),
+                child: const Text('Zoom from this button'),
               ),
             ),
-          const SizedBox(height: 12),
-          Text(
-            'Taps on the page behind an undimmed sheet: $_taps',
-            style: const TextStyle(color: Color(0xFF8E8E93)),
           ),
-          const SizedBox(height: 8),
-          SizedBox(
-            height: 48,
-            child: MorphGlassButton(
-              onPressed: () => setState(() => _taps++),
-              child: const Text('Tap me through the sheet'),
-            ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Taps on the page behind an undimmed sheet: $_taps',
+          style: const TextStyle(color: Color(0xFF8E8E93)),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 48,
+          child: MorphGlassButton(
+            onPressed: () => setState(() => _taps++),
+            child: const Text('Tap me through the sheet'),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

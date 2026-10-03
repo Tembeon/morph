@@ -5,6 +5,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
@@ -252,6 +253,18 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
         label: below?.backTitle ?? below?.title,
         semanticLabel: 'Back',
         onPressed: () => _navigator.currentState?.maybePop(),
+        menu: [
+          for (var i = index - 1; i >= 0; i--)
+            MorphMenuItem(
+              title: _configs[pages[i]]?.title ?? '',
+              onSelected: () {
+                final target = pages[i];
+                _navigator.currentState?.popUntil(
+                  (Route<Object?> route) => route == target,
+                );
+              },
+            ),
+        ],
       ),
     ]);
   }

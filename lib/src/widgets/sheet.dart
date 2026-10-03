@@ -2,10 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/widgets/zoom_motion.dart';
 
 /// The look of a sheet presented with [presentMorphSheet].
 @immutable
@@ -77,9 +79,21 @@ class MorphSheetStyle {
 /// down on content scrolled to its top moves the sheet, and a drag up
 /// expands the sheet before the content scrolls. `Navigator.pop` closes
 /// the sheet with a result.
+///
+/// With [from], the id of a [MorphTag] under the [MorphScope] around
+/// [context], the sheet zooms out of that source instead of sliding up,
+/// as a UIKit sheet presented with `preferredTransition = .zoom`: the
+/// source hides, a container grows from its frame into the sheet's while
+/// the source's look crossfades into the sheet's content, and every
+/// dismissal - a pop, a tap on the dimming, a drag down from the smallest
+/// detent, which UIKit commits at once - zooms the sheet back into the
+/// source, which shows again when the zoom has come to rest. See
+/// [MorphZoomMotion] for the measured motion; [zoom] tunes it.
 Future<T?> presentMorphSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
+  Object? from,
+  MorphZoomTuning zoom = MorphZoomTuning.standard,
   List<MorphSheetDetent> detents = const [MorphSheetDetent.large],
   MorphSheetDetent? initialDetent,
   MorphSheetDetent? largestUndimmedDetent,
@@ -93,6 +107,8 @@ Future<T?> presentMorphSheet<T>(
   return Navigator.of(context, rootNavigator: useRootNavigator).push<T>(
     MorphSheetRoute<T>(
       builder: builder,
+      source: from == null ? null : MorphScope.of(context).tagOf(from),
+      zoom: zoom,
       detents: detents,
       initialDetent: initialDetent,
       largestUndimmedDetent: largestUndimmedDetent,
@@ -112,6 +128,8 @@ class MorphSheetRoute<T> extends PopupRoute<T> {
   MorphSheetRoute({
     required this.builder,
     required this.detents,
+    this.source,
+    this.zoom = MorphZoomTuning.standard,
     this.initialDetent,
     this.largestUndimmedDetent,
     this.grabberVisible = false,
@@ -123,6 +141,13 @@ class MorphSheetRoute<T> extends PopupRoute<T> {
 
   /// Builds the sheet's content.
   final WidgetBuilder builder;
+
+  /// The tag the sheet zooms out of and back into, or null for a sheet
+  /// that slides up from the bottom.
+  final MorphTagState? source;
+
+  /// The measured zoom used when there is a [source].
+  final MorphZoomTuning zoom;
 
   /// The heights the sheet rests at.
   final List<MorphSheetDetent> detents;
@@ -253,6 +278,11 @@ class _SheetViewState extends State<_SheetView>
     with SingleTickerProviderStateMixin<_SheetView>, MorphClock<_SheetView>
     implements MorphSheet {
   MorphSheetMotion? _motion;
+  MorphZoomMotion? _zoom;
+  Rect? _sourceRect;
+  Rect? _zoomTarget;
+  bool _sourceHidden = false;
+  final GlobalKey _contentKey = GlobalKey();
   late final _SheetScrollController _scroll = _SheetScrollController(this);
   double _dragY = 0;
   double _stamp = 0;
@@ -281,8 +311,19 @@ class _SheetViewState extends State<_SheetView>
   @override
   void dispose() {
     if (_route._view == this) _route._view = null;
+    _revealSource();
     _scroll.dispose();
     super.dispose();
+  }
+
+  void _revealSource() {
+    if (!_sourceHidden) return;
+    _sourceHidden = false;
+    final source = _route.source;
+    if (source == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+      if (source.mounted) source.reveal();
+    });
   }
 
   @override
@@ -290,13 +331,40 @@ class _SheetViewState extends State<_SheetView>
     final motion = _motion;
     if (motion == null) return;
     motion.advance(t);
+    final zoom = _zoom;
+    if (zoom != null) {
+      zoom.advance(t);
+      if (_leaving && zoom.isClosed) {
+        _revealSource();
+        _route._finished();
+      }
+      return;
+    }
     if (_leaving && motion.isDismissed) _route._finished();
   }
 
   @override
   bool get motionSettled {
     final motion = _motion;
-    return motion == null || motion.isSettled;
+    final zoom = _zoom;
+    return (motion == null || motion.isSettled) &&
+        (zoom == null || zoom.isSettled);
+  }
+
+  bool get _zooming {
+    final zoom = _zoom;
+    return zoom != null && !(zoom.isOpening && zoom.isSettled);
+  }
+
+  Rect? _captureSource() {
+    final source = _route.source;
+    final box = context.findRenderObject();
+    if (source == null || box is! RenderBox || !box.hasSize) {
+      return _sourceRect;
+    }
+    final rect = source.tryCaptureRect(box);
+    if (rect != null) _sourceRect = rect;
+    return _sourceRect;
   }
 
   @override
@@ -317,6 +385,14 @@ class _SheetViewState extends State<_SheetView>
     _leaving = true;
     if (motion == null) {
       _route._finished();
+      return;
+    }
+    final zoom = _zoom;
+    if (zoom != null) {
+      _zoomTarget ??= motion.visibleRect(clock, _size.height);
+      motion.dragCancel(clock);
+      zoom.close(clock);
+      wake();
       return;
     }
     if (!motion.isDismissing) motion.dismiss(clock);
@@ -362,7 +438,19 @@ class _SheetViewState extends State<_SheetView>
       created.onDismiss = () {
         if (mounted && !_leaving) Navigator.of(context).maybePop();
       };
-      created.present(clock);
+      final source = _route.source;
+      if (source != null && source.mounted) {
+        created.presentInPlace(clock);
+        final zoom = MorphZoomMotion(tuning: _route.zoom);
+        zoom.open(clock);
+        _zoom = zoom;
+        _sourceHidden = true;
+        WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+          if (_sourceHidden && source.mounted) source.hideForFlight();
+        });
+      } else {
+        created.present(clock);
+      }
       _motion = created;
       wake();
     } else {
@@ -423,7 +511,15 @@ class _SheetViewState extends State<_SheetView>
   void _dragUpdate(DragUpdateDetails details) {
     final motion = _motion;
     if (motion == null || !motion.isDragging) return;
-    _dragY = details.globalPosition.dy;
+    final y = details.globalPosition.dy;
+    if (_zoom != null &&
+        _route.dismissible &&
+        y > _dragY &&
+        motion.height(_stamp) <= motion.heights.first + 0.5) {
+      _requestDismiss();
+      return;
+    }
+    _dragY = y;
     motion.dragUpdate(_stamp, _dragY);
   }
 
@@ -499,7 +595,7 @@ class _SheetViewState extends State<_SheetView>
               viewPadding: media.viewPadding.copyWith(top: 0),
               viewInsets: EdgeInsets.zero,
             ),
-            child: content,
+            child: KeyedSubtree(key: _contentKey, child: content),
           ),
           builder: (BuildContext context, Widget? child) {
             final t = motion.time;
@@ -530,6 +626,17 @@ class _SheetViewState extends State<_SheetView>
               grabber: _route.grabberVisible,
               child: child!,
             );
+            if (_zooming) {
+              return _buildZoom(
+                size: size,
+                style: style,
+                sheet: sheet,
+                height: h,
+                scale: s,
+                bottomRadius: math.max(0, bottomRadius),
+                dimOpacity: dimOpacity,
+              );
+            }
             final transform = Matrix4.translationValues(
               0,
               motion.shift(t) + motion.offset(t),
@@ -594,6 +701,121 @@ class _SheetViewState extends State<_SheetView>
       },
     );
   }
+}
+
+extension on _SheetViewState {
+  Widget _buildZoom({
+    required Size size,
+    required MorphSheetStyle style,
+    required Widget sheet,
+    required double height,
+    required double scale,
+    required double bottomRadius,
+    required double dimOpacity,
+  }) {
+    final zoom = _zoom!;
+    final motion = _motion!;
+    final t = motion.time;
+    final destination = _zoomTarget ?? motion.visibleRect(t, size.height);
+    final source = _captureSource() ?? destination;
+    final rect = zoom.rect(t, source, destination);
+    final p = zoom.sizeProgress(t).clamp(0.0, 1.0);
+    final from = _cornerRadius(_route.source, source.size);
+    Radius corner(double to) =>
+        Radius.circular(math.max(0, from + (to - from) * p));
+    final top = corner(MorphSheetTuning.topRadius * scale);
+    final bottom = corner(bottomRadius * scale);
+    final shape = RRect.fromRectAndCorners(
+      Offset.zero & rect.size,
+      topLeft: top,
+      topRight: top,
+      bottomLeft: bottom,
+      bottomRight: bottom,
+    );
+    final fit = scale * MorphZoomMotion.contentScale(rect, destination.size);
+    final fade = zoom.fade(t);
+    final tag = _route.source;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Semantics(
+            onTap: _route.dismissible ? _requestDismiss : null,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: zoom.isOpening ? _requestDismiss : null,
+              child: ColoredBox(
+                color: style.dimmingColor.withValues(
+                  alpha: dimOpacity * zoom.dimming(t),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Positioned.fromRect(
+          rect: rect,
+          child: IgnorePointer(
+            child: ClipRRect(
+              clipper: _ShapeClipper(shape),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    width: size.width,
+                    height: height,
+                    child: Transform.scale(
+                      scale: fit,
+                      alignment: Alignment.topLeft,
+                      child: Opacity(opacity: fade, child: sheet),
+                    ),
+                  ),
+                  if (tag != null && fade < 1 && !source.isEmpty)
+                    Positioned.fill(
+                      child: Opacity(
+                        opacity: 1 - fade,
+                        child: ExcludeFocus(
+                          child: ExcludeSemantics(
+                            child: FittedBox(
+                              fit: BoxFit.fill,
+                              alignment: Alignment.topLeft,
+                              child: SizedBox.fromSize(
+                                size: source.size,
+                                child: MorphSurfaceSpecScope(
+                                  spec: tag.surfaceSpec,
+                                  child: tag.replica,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// The corner radius of [tag]'s shape at [size]: a stadium or a circle is
+/// rounded by half the shorter side, a rounded rectangle by its top
+/// leading radius.
+double _cornerRadius(MorphTagState? tag, Size size) {
+  final shape = tag?.shape;
+  final half = size.shortestSide / 2;
+  return switch (shape) {
+    StadiumBorder() || CircleBorder() => half,
+    RoundedRectangleBorder(:final borderRadius) ||
+    ContinuousRectangleBorder(:final borderRadius) ||
+    RoundedSuperellipseBorder(
+      :final borderRadius,
+    ) => math.min(half, borderRadius.resolve(TextDirection.ltr).topLeft.x),
+    _ => 0,
+  };
 }
 
 class _SheetBody extends StatelessWidget {

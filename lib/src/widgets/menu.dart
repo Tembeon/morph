@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/scope.dart';
@@ -216,14 +217,24 @@ class MorphMenuButton extends StatefulWidget {
   State<MorphMenuButton> createState() => _MorphMenuButtonState();
 }
 
-/// The progress of the menu: the measured spring in motion time, the
-/// clock the kicks run on, with the flight that carries the menu sent the
-/// same way.
-class _FlightProgress extends MorphMenuProgress {
-  _FlightProgress(this._state, MorphMenuTuning tuning)
-    : _spring = MorphMenuProgress.spring(tuning);
+/// The progress of a menu that flies on the engine: the measured spring
+/// in motion time, the clock the kicks run on, with the flight that
+/// carries the menu sent the same way through [onOpen] and [onClose].
+@internal
+class MorphMenuFlightProgress extends MorphMenuProgress {
+  /// Creates the progress of [tuning]'s spring.
+  MorphMenuFlightProgress(
+    MorphMenuTuning tuning, {
+    required this.onOpen,
+    required this.onClose,
+  }) : _spring = MorphMenuProgress.spring(tuning);
 
-  final _MorphMenuButtonState _state;
+  /// Called when the menu opens: launches or retargets its flight.
+  final VoidCallback onOpen;
+
+  /// Called when the menu closes: closes its flight.
+  final VoidCallback onClose;
+
   final MorphMenuProgress _spring;
 
   @override
@@ -235,21 +246,86 @@ class _FlightProgress extends MorphMenuProgress {
   @override
   void open(double t) {
     _spring.open(t);
-    _state._launch();
+    onOpen();
   }
 
   @override
   void close(double t) {
     _spring.close(t);
-    final flight = _state._flight;
-    if (flight != null && !flight.isFinished) flight.close();
+    onClose();
   }
+}
+
+/// What [MorphMenuLayer] draws a menu from: the motion, the rows and the
+/// look of the source, and where the touches on the open menu go.
+@internal
+abstract interface class MorphMenuHost {
+  /// The look of the menu.
+  MorphMenuStyle get menuStyle;
+
+  /// The look of the source, shown inside the shrinking source shape.
+  Widget get menuGlyph;
+
+  /// The rows of the menu.
+  List<MorphMenuItem> get menuItems;
+
+  /// Notifies when the motion has advanced.
+  Listenable get menuRepaint;
+
+  /// The motion, or null before the menu first opens.
+  MorphMenuMotion? get menuMotion;
+
+  /// A finger touched the open menu.
+  void menuPointerDown(PointerDownEvent event);
+
+  /// A finger on the menu moved.
+  void menuPointerMove(PointerMoveEvent event);
+
+  /// A finger on the menu lifted.
+  void menuPointerUp(PointerUpEvent event);
+
+  /// A touch on the menu was cancelled.
+  void menuPointerCancel(PointerCancelEvent event);
+
+  /// Selects row [index], as assistive technology does.
+  void menuSelect(int index);
 }
 
 class _MorphMenuButtonState extends State<MorphMenuButton>
     with
         SingleTickerProviderStateMixin<MorphMenuButton>,
-        MorphClock<MorphMenuButton> {
+        MorphClock<MorphMenuButton>
+    implements MorphMenuHost {
+  @override
+  MorphMenuStyle get menuStyle => _style;
+
+  @override
+  Widget get menuGlyph => widget.child ?? _Ellipsis(color: _style.iconColor);
+
+  @override
+  List<MorphMenuItem> get menuItems => widget.items;
+
+  @override
+  Listenable get menuRepaint => _repaint;
+
+  @override
+  MorphMenuMotion? get menuMotion => _motion;
+
+  @override
+  void menuPointerDown(PointerDownEvent event) => _menuDown(event);
+
+  @override
+  void menuPointerMove(PointerMoveEvent event) => _move(event);
+
+  @override
+  void menuPointerUp(PointerUpEvent event) => _up(event);
+
+  @override
+  void menuPointerCancel(PointerCancelEvent event) => _cancel(event);
+
+  @override
+  void menuSelect(int index) => _selectFromSemantics(index);
+
   final Object _tagId = Object();
   final ValueNotifier<int> _repaint = ValueNotifier<int>(0);
   MorphMenuMotion? _motion;
@@ -313,7 +389,14 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
       bounds: overlayBox.size,
       padding: padding,
       tuning: widget.tuning,
-      progress: _FlightProgress(this, widget.tuning),
+      progress: MorphMenuFlightProgress(
+        widget.tuning,
+        onOpen: _launch,
+        onClose: () {
+          final flight = _flight;
+          if (flight != null && !flight.isFinished) flight.close();
+        },
+      ),
     );
     motion.advance(clock);
     motion.onSelected = _selected;
@@ -333,7 +416,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
             _motion?.menuRect ?? Rect.zero,
       ),
       builder: (BuildContext context, MorphFlight flight) =>
-          _MenuLayer(state: this, flight: flight),
+          MorphMenuLayer(host: this, flight: flight),
       motion: MorphMotion.springs(
         name: 'menu',
         open: tuning.openSpring,
@@ -683,28 +766,33 @@ class _Faded extends StatelessWidget {
 /// look, laid out over the whole overlay and drawn from the motion. The
 /// rows are built once per build of the vessel; every frame moves only
 /// the wrappers around them.
-class _MenuLayer extends StatelessWidget {
-  const _MenuLayer({required this.state, required this.flight});
+@internal
+class MorphMenuLayer extends StatelessWidget {
+  /// Creates the layer of [host]'s menu carried by [flight].
+  const MorphMenuLayer({required this.host, required this.flight, super.key});
 
-  final _MorphMenuButtonState state;
+  /// The menu drawn.
+  final MorphMenuHost host;
+
+  /// The flight that carries the menu.
   final MorphFlight flight;
 
   @override
   Widget build(BuildContext context) {
-    final style = state._style;
-    final glyph = state.widget.child ?? _Ellipsis(color: style.iconColor);
+    final style = host.menuStyle;
+    final glyph = host.menuGlyph;
     final Widget rows = RepaintBoundary(
       key: const ValueKey<String>('rows'),
       child: DefaultTextStyle(
         style: MorphTypography.resolve(style.textStyle),
-        child: _MenuRows(state: state),
+        child: _MenuRows(host: host),
       ),
     );
     return ListenableBuilder(
-      listenable: Listenable.merge([state._repaint, flight.frameTicks]),
+      listenable: Listenable.merge([host.menuRepaint, flight.frameTicks]),
       child: rows,
       builder: (BuildContext context, Widget? rows) {
-        final motion = state._motion;
+        final motion = host.menuMotion;
         if (motion == null) return const SizedBox.shrink();
         final menu = motion.menuBlob;
         final source = motion.buttonBlob;
@@ -714,10 +802,10 @@ class _MenuLayer extends StatelessWidget {
           ignoring: !motion.isOpen,
           child: Listener(
             behavior: .opaque,
-            onPointerDown: state._menuDown,
-            onPointerMove: state._move,
-            onPointerUp: state._up,
-            onPointerCancel: state._cancel,
+            onPointerDown: host.menuPointerDown,
+            onPointerMove: host.menuPointerMove,
+            onPointerUp: host.menuPointerUp,
+            onPointerCancel: host.menuPointerCancel,
             child: _MenuShapes(
               style: style,
               glyph: glyph,
@@ -764,7 +852,7 @@ class _MenuLayer extends StatelessWidget {
 
   List<Widget> _feedback(MorphMenuMotion motion, MorphMenuStyle style) {
     final tuning = motion.tuning;
-    final count = math.min(state.widget.items.length, motion.itemCount);
+    final count = math.min(host.menuItems.length, motion.itemCount);
     final highlighted = motion.highlighted;
     final glow = motion.glowCenter;
     final glowOpacity = motion.glowOpacity;
@@ -818,15 +906,15 @@ Offset _contentLocal(MorphMenuMotion motion, Offset position) {
 
 /// The rows of the menu, laid out in the open menu's frame.
 class _MenuRows extends StatelessWidget {
-  const _MenuRows({required this.state});
+  const _MenuRows({required this.host});
 
-  final _MorphMenuButtonState state;
+  final MorphMenuHost host;
 
   @override
   Widget build(BuildContext context) {
-    final motion = state._motion;
+    final motion = host.menuMotion;
     if (motion == null) return const SizedBox.shrink();
-    final items = state.widget.items;
+    final items = host.menuItems;
     final tuning = motion.tuning;
     final count = math.min(items.length, motion.itemCount);
     final leading = items.any((MorphMenuItem item) => item.icon != null);
@@ -842,8 +930,8 @@ class _MenuRows extends StatelessWidget {
   }
 
   Widget _row(int index, double height, {required bool leading}) {
-    final style = state._style;
-    final item = state.widget.items[index];
+    final style = host.menuStyle;
+    final item = host.menuItems[index];
     final color = item.destructive
         ? style.destructiveColor
         : style.textStyle.color ?? style.iconColor;
@@ -851,7 +939,7 @@ class _MenuRows extends StatelessWidget {
     return Semantics(
       button: true,
       label: item.title,
-      onTap: () => state._selectFromSemantics(index),
+      onTap: () => host.menuSelect(index),
       excludeSemantics: true,
       child: SizedBox(
         height: height,

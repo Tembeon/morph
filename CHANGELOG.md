@@ -685,6 +685,53 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   pt as in UIKit (was 112.0), a large title "Settings" 132.96 (was
   143.9). Hard-coded `letterSpacing` values are gone from the widgets
   (the menu's -0.4, the large title's +0.4, the date wheel's +0.35).
+- NEW: the zoom from a source (`preferredTransition = .zoom`), measured
+  on the iPhone 16 Pro (iOS 27.0.1) from screen recordings - the zoom
+  does not show in the presentation layers. `presentMorphSheet(from:)`
+  takes the id of a `MorphTag`: the source hides, a container grows out
+  of its frame into the sheet's while the source's look (stretched over
+  the container) crossfades into the sheet's content (laid out at its
+  own size, scaled to fit from the top leading corner), and every
+  dismissal zooms back into the source, which shows again once the zoom
+  rests. `MorphZoomMotion` / `MorphZoomTuning`: the container's center
+  and size ride springs of their own, fitted to device presents (center
+  0.349 / 0.833, size 0.472 / 0.748, 3.3 pt rms) and dismissals (center
+  0.442 / 0.762, size 0.203 / 1.0, 5.2 pt rms); the crossfade is a 0.154
+  s critically damped spring, 0.045 s late on the way in; the dimming
+  rides `_UIZoomTransitionSpec`'s zoomIn 0.34 / 1.0 and zoomOut 0.34 /
+  0.92 (device fits 0.322 / 1.0 and 0.354 / 0.919). A drag down from the
+  smallest detent dismisses at once, as UIKit commits a zoom sheet's
+  drag (three slow device drags, one turning back up, all dismissed).
+  Replayed in sheet_zoom_test (fixture ios27-device/zoom). Not built: the
+  zoom into a pushed page (recorded, same family, left for the stack).
+- NEW: the back button's long-press menu. `MorphBarButton.menu` gives a
+  bar button the menu of `MorphMenuButton`, grown out of its capsule on
+  the engine (a vessel flight from the bar's own tag); the measured
+  timing is `MorphBarMenuTuning` (device holds: a release before 0.4 s
+  is a tap - 0.25 and 0.35 popped, 0.45 did not - and the menu opens
+  0.595 s after the touch, 0.584 - 0.609 over seven holds). A finger
+  still on the button when it lifts after the opening fires the button
+  and closes the menu (UIKit pops one screen, 4/4); one moved away
+  leaves the menu open. `MorphNavigationStack` gives its back button
+  the back stack, nearest screen first, and a row pops to that screen.
+  The menu machinery behind `MorphMenuButton` is shared through an
+  internal host (`MorphMenuHost`, `MorphMenuLayer`,
+  `MorphMenuFlightProgress`).
+- NEW: capsules of one bar fuse as UIKit's do. Every capsule of a
+  navigation bar, and of a toolbar, is an element of ONE SDF layer
+  whose smoothness - the glass container spacing - is 12 (read from the
+  layers on the iPhone 16 Pro and the simulator, constant through item
+  changes and group splits). `MorphBarMetrics.containerSpacing` (12)
+  goes to the glass seam: BREAKING (painters) `MorphGlassPainter.
+  buildLayer` takes `spacing`, the container spacing of the surfaces it
+  hands over (0 keeps them apart). Groups rest 12 apart, where the
+  merge law's reach ends, so resting groups never touch; a group that
+  splits, or capsules passing during an item change, fuse while closer.
+  The flat fallback traces the fused outline with the skin's law
+  (cell 2) whenever two same-colored capsules are within the spacing.
+  The gallery's liquid painter blends a bar's capsules at the spacing
+  (it had stopped blending them because its old blend of 18 melted
+  groups 12 apart).
 
 
 ## 0.6.0 - 2026-09-03

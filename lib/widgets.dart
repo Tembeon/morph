@@ -47,7 +47,12 @@ export 'src/widgets/alert_motion.dart'
         MorphPopoverTuning,
         morphPlacePopover;
 export 'src/widgets/bar_items.dart'
-    show MorphBarButton, MorphBarButtonGroup, MorphBarMetrics, MorphBarStyle;
+    show
+        MorphBarButton,
+        MorphBarButtonGroup,
+        MorphBarMenuTuning,
+        MorphBarMetrics,
+        MorphBarStyle;
 export 'src/widgets/bar_motion.dart'
     show
         MorphBarCapsuleFrame,
@@ -137,3 +142,4 @@ export 'src/widgets/tab_bar.dart'
 export 'src/widgets/toolbar.dart' show MorphToolbar;
 export 'src/widgets/typography.dart' show MorphTypography;
 export 'src/widgets/widgets_theme.dart' show MorphWidgetsTheme;
+export 'src/widgets/zoom_motion.dart' show MorphZoomMotion, MorphZoomTuning;

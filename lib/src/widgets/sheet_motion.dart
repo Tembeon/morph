@@ -373,6 +373,14 @@ class MorphSheetMotion {
     _offset.retarget(t, 0, spring: MorphSheetTuning.spring);
   }
 
+  /// Puts the sheet at its detent at time [t] without a slide, for a sheet
+  /// whose arrival another motion draws (the zoom out of a source).
+  void presentInPlace(double t) {
+    advance(t);
+    _dismissing = false;
+    _offset.snap(t, 0);
+  }
+
   /// Slides the sheet out below the screen.
   void dismiss(double t) {
     advance(t);

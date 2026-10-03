@@ -4,10 +4,18 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/flight.dart';
+import 'package:morph/src/liquid_field.dart';
+import 'package:morph/src/motion.dart';
+import 'package:morph/src/scope.dart';
+import 'package:morph/src/show.dart';
+import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/menu.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/typography.dart';
 
@@ -25,6 +33,7 @@ class MorphBarButton {
     this.icon,
     this.onPressed,
     this.semanticLabel,
+    this.menu,
   }) : assert(label != null || icon != null, 'a label or an icon'),
        back = false;
 
@@ -34,6 +43,7 @@ class MorphBarButton {
     this.label,
     this.onPressed,
     this.semanticLabel,
+    this.menu,
     this.id = 'morph.back',
   }) : icon = null,
        back = true;
@@ -57,8 +67,35 @@ class MorphBarButton {
   /// Whether this is a back button.
   final bool back;
 
+  /// The rows of the menu a long press on the button opens, or null for a
+  /// button without one.
+  ///
+  /// UIKit's long press on a bar button, measured on the back button of
+  /// an iPhone 16 Pro (iOS 27.0.1): a touch released before
+  /// [MorphBarMenuTuning.recognition] is a tap; held past it the button
+  /// no longer fires on release, and its capsule turns into the menu
+  /// [MorphBarMenuTuning.open] after the touch - the menu of
+  /// [MorphMenuButton], grown out of the capsule. A finger still on the
+  /// capsule when it lifts after that fires the button and closes the
+  /// menu (UIKit pops one screen); one moved off leaves the menu open,
+  /// and a tap on a row selects it.
+  final List<MorphMenuItem>? menu;
+
   /// Whether the button accepts taps.
   bool get enabled => onPressed != null;
+}
+
+/// The measured timing of a bar button's long-press menu
+/// ([MorphBarButton.menu]).
+abstract final class MorphBarMenuTuning {
+  /// Seconds of touch after which a release is no longer a tap: UIKit's
+  /// back button popped on releases at 0.25 and 0.35 s and opened its
+  /// menu instead at 0.45 s.
+  static const double recognition = 0.4;
+
+  /// Seconds from the touch to the opening of the menu: 0.584 - 0.609 s
+  /// over seven device holds.
+  static const double open = 0.595;
 }
 
 /// Buttons that share one glass capsule.
@@ -101,6 +138,7 @@ class MorphBarMetrics {
     required this.iconPadding,
     required this.minButtonWidth,
     this.groupGap = 12,
+    this.containerSpacing = 12,
     this.iconSize = 24,
     this.fontSize = 17,
     this.backChevronInset = 12,
@@ -123,6 +161,19 @@ class MorphBarMetrics {
 
   /// The space between two capsules on one side of the bar.
   final double groupGap;
+
+  /// The spacing of the glass container the bar's capsules share: two
+  /// capsules closer than this lean toward each other and fuse within
+  /// half of it (see [MorphGlassPainter.buildLayer]).
+  ///
+  /// UIKit renders every capsule of a navigation bar, and every capsule
+  /// of a toolbar, as an element of one SDF layer whose smoothness - the
+  /// container spacing - is 12 on iOS 27 (read from the layers on the
+  /// iPhone 16 Pro and the simulator, constant through item changes).
+  /// Resting groups sit [groupGap] apart, as far as the spacing reaches,
+  /// so they never touch; a group splitting or two groups passing during
+  /// an item change fuse while they are closer.
+  final double containerSpacing;
 
   /// The space on each side of a button's label.
   final double labelPadding;
@@ -468,6 +519,12 @@ class _MorphBarItemsState extends State<MorphBarItems>
   final Map<Object, MorphBarButton> _buttons = {};
   final Map<Object, bool> _prominent = {};
   final Map<Object, Object> _capsuleOf = {};
+  final LiquidTracer _tracer = LiquidTracer();
+  final Object _menuTag = Object();
+  _BarMenu? _menu;
+  double? _holdStart;
+  Object? _holdButton;
+  BuildContext? _scopeContext;
   List<MorphBarCapsuleLayout> _layout = const [];
   List<MorphBarCapsuleLayout>? _driftLayout;
   String _signature = '';
@@ -480,11 +537,138 @@ class _MorphBarItemsState extends State<MorphBarItems>
     for (final p in _presses.values) {
       p.advance(t);
     }
+    final start = _holdStart;
+    final holding = _holdButton;
+    if (start != null &&
+        holding != null &&
+        t - start >= MorphBarMenuTuning.open) {
+      _holdStart = null;
+      _openMenu(start + MorphBarMenuTuning.open, holding);
+    }
+    final menu = _menu;
+    if (menu != null) {
+      menu.motion.advance(t);
+      menu.repaint.value++;
+      final flight = menu.flight;
+      if (!menu.motion.isPresented && (flight == null || flight.isFinished)) {
+        _menu = null;
+        menu.repaint.dispose();
+      }
+    }
   }
 
   @override
   bool get motionSettled =>
-      _motion.isSettled && _presses.values.every((p) => p.isSettled);
+      _motion.isSettled &&
+      _presses.values.every((p) => p.isSettled) &&
+      _holdStart == null &&
+      (_menu?.motion.isSettled ?? true);
+
+  @override
+  void dispose() {
+    final menu = _menu;
+    _menu = null;
+    final flight = menu?.flight;
+    if (flight != null && !flight.isFinished) {
+      WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+        flight.close();
+      });
+    }
+    super.dispose();
+  }
+
+  /// Whether the capsule [id] is drawn by an open menu instead of the bar.
+  bool _carried(Object id) {
+    final menu = _menu;
+    if (menu == null || menu.capsule != id) return false;
+    final flight = menu.flight;
+    return flight != null && flight.isAirborne;
+  }
+
+  void _openMenu(double t, Object buttonId) {
+    final button = _buttons[buttonId];
+    final items = button?.menu;
+    final capsuleId = _capsuleOf[buttonId];
+    final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
+    final scopeContext = _scopeContext;
+    if (button == null ||
+        items == null ||
+        items.isEmpty ||
+        capsule == null ||
+        scopeContext == null ||
+        _menu != null) {
+      return;
+    }
+    final overlay = Overlay.of(context);
+    final box = context.findRenderObject();
+    final overlayBox = overlay.context.findRenderObject();
+    if (box is! RenderBox || overlayBox is! RenderBox) return;
+    final origin = box.localToGlobal(Offset.zero, ancestor: overlayBox);
+    final rect = capsule.rect.shift(origin);
+    final tuning = MorphMenuTuning.standard;
+    final menu = _BarMenu(
+      state: this,
+      button: button,
+      capsule: capsuleId!,
+      style: MorphMenuStyle.resolve(context, null),
+      overlay: overlay,
+    );
+    final motion = MorphMenuMotion(
+      button: rect,
+      itemCount: items.length,
+      bounds: overlayBox.size,
+      padding: morphTargetPaddingOf(
+        context,
+        overlayBox.size,
+        overlayBox: overlayBox,
+      ),
+      sourceHeight: rect.height,
+      tuning: tuning,
+      progress: MorphMenuFlightProgress(
+        tuning,
+        onOpen: () => _launchMenu(menu, scopeContext),
+        onClose: () {
+          final flight = menu.flight;
+          if (flight != null && !flight.isFinished) flight.close();
+        },
+      ),
+    );
+    motion.onSelected = (int index) {
+      if (index < items.length) items[index].onSelected?.call();
+    };
+    motion.advance(t);
+    menu.motion = motion;
+    _menu = menu;
+    motion.open(t, sourceScale: _presses[capsuleId]?.scale ?? 1);
+    wake();
+  }
+
+  void _launchMenu(_BarMenu menu, BuildContext scopeContext) {
+    if (!mounted || !scopeContext.mounted) return;
+    final tuning = menu.motion.tuning;
+    final flight = showMorph(
+      scopeContext,
+      from: _menuTag,
+      target: MorphTargetSpec.vessel(
+        rectFor: (Size size, EdgeInsets padding) => menu.motion.menuRect,
+      ),
+      builder: (BuildContext context, MorphFlight flight) =>
+          MorphMenuLayer(host: menu, flight: flight),
+      motion: MorphMotion.springs(
+        name: 'menu',
+        open: tuning.openSpring,
+        close: tuning.closeSpring,
+      ),
+      maxScrimOpacity: 0,
+      onDismissRequested: () {
+        menu.motion.close(clock);
+        wake();
+      },
+      semanticLabel: menu.button.semanticLabel ?? menu.button.label,
+      overlay: menu.overlay,
+    );
+    menu.flight = flight;
+  }
 
   void _relayout(double width) {
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
@@ -566,7 +750,14 @@ class _MorphBarItemsState extends State<MorphBarItems>
     _pressedCapsule = capsuleId;
     _pressedButton = button.id;
     final press = _press(capsuleId!, capsule.rect.size);
-    press.pointerDown(stamp(event), event.localPosition - capsule.rect.topLeft);
+    final t = stamp(event);
+    press.pointerDown(t, event.localPosition - capsule.rect.topLeft);
+    final items = button.menu;
+    if (items != null && items.isNotEmpty && _menu == null) {
+      _holdStart = t;
+      _holdButton = button.id;
+      wake();
+    }
   }
 
   Offset _local(Object capsuleId, Offset global) {
@@ -588,9 +779,27 @@ class _MorphBarItemsState extends State<MorphBarItems>
     if (id == null) return;
     _pressedCapsule = null;
     _pressedButton = null;
+    final t = stamp(event);
     final activated =
-        _presses[id]?.pointerUp(stamp(event), _local(id, event.position)) ??
-        false;
+        _presses[id]?.pointerUp(t, _local(id, event.position)) ?? false;
+    final start = _holdStart;
+    final held = _holdButton != null && start != null;
+    final recognized = held && t - start >= MorphBarMenuTuning.recognition;
+    if (held && !recognized) {
+      _holdStart = null;
+      _holdButton = null;
+    }
+    final menu = _menu;
+    if (menu != null && menu.button.id == buttonId) {
+      _holdButton = null;
+      if (activated && menu.motion.isOpen) {
+        _buttons[buttonId]?.onPressed?.call();
+        menu.motion.close(t);
+        wake();
+      }
+      return;
+    }
+    if (recognized) return;
     if (activated && buttonId != null) _buttons[buttonId]?.onPressed?.call();
   }
 
@@ -599,6 +808,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
     if (id == null) return;
     _pressedCapsule = null;
     _pressedButton = null;
+    _holdStart = null;
+    _holdButton = null;
     _presses[id]?.pointerCancel(stamp(event));
   }
 
@@ -608,7 +819,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final glass = MorphGlass.maybeOf(context);
     final brightness = morphBrightnessOf(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
-    return LayoutBuilder(
+    final items = LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         _relayout(constraints.maxWidth);
         final progress = widget.driftProgress;
@@ -642,44 +853,70 @@ class _MorphBarItemsState extends State<MorphBarItems>
 
             final surfaces = [
               for (final c in capsules)
-                MorphGlassSurface(
-                  kind: MorphGlassKind.button,
-                  shape: RRect.fromRectAndRadius(
-                    lifted(c.id, c.rect),
-                    Radius.circular(math.min(c.rect.width, c.rect.height) / 2),
+                if (!_carried(c.id))
+                  MorphGlassSurface(
+                    kind: MorphGlassKind.button,
+                    shape: RRect.fromRectAndRadius(
+                      lifted(c.id, c.rect),
+                      Radius.circular(
+                        math.min(c.rect.width, c.rect.height) / 2,
+                      ),
+                    ),
+                    color: (_prominent[c.id] ?? false)
+                        ? style.prominentColor
+                        : style.capsuleColor,
+                    brightness: brightness,
                   ),
-                  color: (_prominent[c.id] ?? false)
-                      ? style.prominentColor
-                      : style.capsuleColor,
-                  brightness: brightness,
-                ),
             ];
+            final menuCapsule = _menuCapsule();
             final content = Stack(
               clipBehavior: Clip.none,
               children: [
+                Positioned.fromRect(
+                  rect: menuCapsule ?? Rect.zero,
+                  child: IgnorePointer(
+                    child: Builder(
+                      builder: (BuildContext context) {
+                        _scopeContext = context;
+                        return MorphTag(
+                          id: _menuTag,
+                          shape: const StadiumBorder(),
+                          child: const SizedBox.expand(),
+                        );
+                      },
+                    ),
+                  ),
+                ),
                 for (final f in items)
                   if (_buttons[f.id] case final button?)
-                    _buildItem(
-                      button,
-                      f,
-                      style,
-                      direction,
-                      capsuleId: _capsuleOf[f.id],
-                    ),
+                    if (!_carried(_capsuleOf[f.id] ?? f.id))
+                      _buildItem(
+                        button,
+                        f,
+                        style,
+                        direction,
+                        capsuleId: _capsuleOf[f.id],
+                      ),
               ],
             );
-            return SizedBox(
+            final bar = SizedBox(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
               child: glass == null
                   ? CustomPaint(
-                      painter: _CapsulePainter(surfaces, style),
+                      painter: _CapsulePainter(
+                        surfaces,
+                        style,
+                        spacing: widget.metrics.containerSpacing,
+                        tracer: _tracer,
+                      ),
                       child: content,
                     )
                   : glass.buildLayer(
                       context,
                       surfaces,
                       content: content,
+                      spacing: widget.metrics.containerSpacing,
                       contentSlots: [
                         for (final f in items)
                           Rect.fromCenter(
@@ -690,10 +927,21 @@ class _MorphBarItemsState extends State<MorphBarItems>
                       ],
                     ),
             );
+            return bar;
           },
         );
       },
     );
+    if (MorphScope.maybeOf(context) != null) return items;
+    return MorphScope(child: items);
+  }
+
+  Rect? _menuCapsule() {
+    final id =
+        _menu?.capsule ??
+        (_holdButton == null ? null : _capsuleOf[_holdButton]);
+    if (id == null) return null;
+    return _capsuleLayout(id)?.rect;
   }
 
   Widget _buildItem(
@@ -765,6 +1013,102 @@ class _MorphBarItemsState extends State<MorphBarItems>
       height: frame.size.height,
       child: content,
     );
+  }
+}
+
+/// The long-press menu of one bar button: the measured menu of
+/// [MorphMenuButton] grown out of the button's capsule, carried by an
+/// engine flight from the bar's own tag.
+class _BarMenu implements MorphMenuHost {
+  _BarMenu({
+    required this.state,
+    required this.button,
+    required this.capsule,
+    required this.style,
+    required this.overlay,
+  });
+
+  final _MorphBarItemsState state;
+  final MorphBarButton button;
+  final Object capsule;
+  final MorphMenuStyle style;
+  final OverlayState overlay;
+  final ValueNotifier<int> repaint = ValueNotifier<int>(0);
+  late MorphMenuMotion motion;
+  MorphFlight? flight;
+  int? _pointer;
+
+  @override
+  MorphMenuStyle get menuStyle => style;
+
+  @override
+  Widget get menuGlyph {
+    final frame = state._capsuleLayout(capsule);
+    return SizedBox.fromSize(
+      size: frame?.rect.size ?? Size.zero,
+      child: Center(
+        child: _ButtonContent(
+          button: button,
+          metrics: state.widget.metrics,
+          color: MorphBarStyle.resolve(
+            state.context,
+            state.widget.style,
+          ).foregroundColor,
+          bold: false,
+          direction: Directionality.maybeOf(state.context) ?? TextDirection.ltr,
+        ),
+      ),
+    );
+  }
+
+  @override
+  List<MorphMenuItem> get menuItems => button.menu ?? const [];
+
+  @override
+  Listenable get menuRepaint => repaint;
+
+  @override
+  MorphMenuMotion? get menuMotion => motion;
+
+  Offset _local(Offset global) {
+    final box = overlay.context.findRenderObject();
+    return box is RenderBox ? box.globalToLocal(global) : global;
+  }
+
+  @override
+  void menuPointerDown(PointerDownEvent event) {
+    if (_pointer != null || event.buttons != kPrimaryButton) return;
+    _pointer = event.pointer;
+    motion.pointerDown(state.stamp(event), _local(event.position));
+    state.wake();
+  }
+
+  @override
+  void menuPointerMove(PointerMoveEvent event) {
+    if (event.pointer != _pointer) return;
+    motion.pointerMove(state.stamp(event), _local(event.position));
+  }
+
+  @override
+  void menuPointerUp(PointerUpEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
+    motion.pointerUp(state.stamp(event), _local(event.position));
+    state.wake();
+  }
+
+  @override
+  void menuPointerCancel(PointerCancelEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
+    motion.pointerCancel(state.stamp(event));
+    state.wake();
+  }
+
+  @override
+  void menuSelect(int index) {
+    motion.select(state.clock, index);
+    state.wake();
   }
 }
 
@@ -877,31 +1221,91 @@ class MorphBackChevronPainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.mirrored != mirrored;
 }
 
+/// The flat capsules: each one an RRect, except capsules of one color
+/// closer than [spacing], which are drawn as the fused outline of the
+/// skin's merge law.
 class _CapsulePainter extends CustomPainter {
-  _CapsulePainter(this.surfaces, this.style);
+  _CapsulePainter(
+    this.surfaces,
+    this.style, {
+    required this.spacing,
+    required this.tracer,
+  });
 
   final List<MorphGlassSurface> surfaces;
   final MorphBarStyle style;
+  final double spacing;
+  final LiquidTracer tracer;
+
+  /// Within this much of the spacing the merge moves an outline by less
+  /// than a hundredth of a point, so resting groups whose layout lands a
+  /// rounding error under the spacing keep their exact capsules.
+  static const double _fusionSlack = 0.5;
+
+  bool _fuses(List<MorphGlassSurface> group) {
+    if (spacing <= 0) return false;
+    for (var i = 0; i < group.length; i++) {
+      for (var j = i + 1; j < group.length; j++) {
+        if (liquidRectGap(group[i].bounds, group[j].bounds) <
+            spacing - _fusionSlack) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    for (final s in surfaces) {
-      if (s.bounds.isEmpty) continue;
-      final shadow = Paint();
-      shadow.color = style.shadowColor;
-      shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-      canvas.drawRRect(s.shape.shift(const Offset(0, 2)), shadow);
+    final visible = [
+      for (final s in surfaces)
+        if (!s.bounds.isEmpty) s,
+    ];
+    final byColor = <Color, List<MorphGlassSurface>>{};
+    for (final s in visible) {
+      (byColor[s.color] ??= []).add(s);
     }
-    for (final s in surfaces) {
-      if (s.bounds.isEmpty) continue;
-      final fill = Paint();
-      fill.color = s.color;
-      canvas.drawRRect(s.shape, fill);
-      final rim = Paint();
-      rim.style = PaintingStyle.stroke;
-      rim.strokeWidth = 0.5;
-      rim.color = style.rimColor;
-      canvas.drawRRect(s.shape.deflate(0.25), rim);
+    final fused = <Color, Path>{};
+    for (final entry in byColor.entries) {
+      if (!_fuses(entry.value)) continue;
+      fused[entry.key] = tracer.trace(
+        LiquidField([
+          for (final s in entry.value)
+            MorphMass.box(s.bounds, radius: s.shape.tlRadiusX),
+        ], k: spacing),
+        cell: 2,
+      );
+    }
+    final shadow = Paint();
+    shadow.color = style.shadowColor;
+    shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    final fill = Paint();
+    final rim = Paint();
+    rim.style = PaintingStyle.stroke;
+    rim.strokeWidth = 0.5;
+    rim.color = style.rimColor;
+    for (final entry in byColor.entries) {
+      final path = fused[entry.key];
+      if (path != null) {
+        canvas.drawPath(path.shift(const Offset(0, 2)), shadow);
+        continue;
+      }
+      for (final s in entry.value) {
+        canvas.drawRRect(s.shape.shift(const Offset(0, 2)), shadow);
+      }
+    }
+    for (final entry in byColor.entries) {
+      fill.color = entry.key;
+      final path = fused[entry.key];
+      if (path != null) {
+        canvas.drawPath(path, fill);
+        canvas.drawPath(path, rim);
+        continue;
+      }
+      for (final s in entry.value) {
+        canvas.drawRRect(s.shape, fill);
+        canvas.drawRRect(s.shape.deflate(0.25), rim);
+      }
     }
   }
 

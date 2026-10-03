@@ -460,10 +460,34 @@ Public pieces:
   (pop-edge-drift-*: 0.49 at no lag, 0.50 at 1-2 ticks, 0.16-0.27 pt
   rms); the inner capsule with no counterpart stays put on the device
   too. The stack learns of the swipe from MorphNavigationRoute's edge
-  gesture (start / settled), not from userGestureInProgress. NOT
-  reproduced: the back button long-press menu, the large title's
-  tall-bar inset bookkeeping (ours scrolls as content), a drift of the
-  toolbar (not measured).
+  gesture (start / settled), not from userGestureInProgress. BACK MENU
+  (`MorphBarButton.menu`, device holds 2026-10-03, probe scene snback in
+  Sources/SheetNav.swift, SheetNavUITests): a release before 0.4 s is a
+  tap (0.25 / 0.35 popped, 0.45 did not), the menu opens 0.595 s after
+  the touch (0.584 - 0.609, 7 holds; a release in between still opens
+  it), a finger lifting on the button after the opening fires the
+  button and closes the menu (UIKit pops one, 4/4), one moved off
+  leaves it open; rows = the back stack nearest first; the look is
+  MorphMenuButton's liquid morph out of the capsule (filmed). Built on
+  the menu machinery through the internal MorphMenuHost /
+  MorphMenuLayer / MorphMenuFlightProgress: the bar owns the gesture
+  (hold clock in its MorphClock), the menu motion gets the capsule as
+  its button (sourceHeight = capsule height), a vessel flight from the
+  bar's own invisible MorphTag carries it, and the bar hides that
+  capsule while the flight is airborne (no ring-out on the capsule after
+  the latch, unlike MorphMenuButton). CONTAINER SPACING: every capsule
+  of a nav bar, and of a toolbar, is a CASDFElementLayer of ONE
+  CASDFLayer (SwiftUI.SDFLayer host) with smoothness 12 on device and
+  simulator, constant through setItems, splits and merges (snbars,
+  PROBE_SPLIT); `MorphBarMetrics.containerSpacing` hands it to
+  `buildLayer(spacing:)`. At 12, resting groups (12 apart) sit exactly
+  at the law's reach; a split (UIKit keeps the trailing item's element
+  and births the other at its own center at 0.2 scale - ours keys by
+  place from the edge, NOT changed) fuses while closer. The flat
+  fallback traces the fused outline per color with the skin's tracer
+  (cell 2) when two capsules are within spacing - 0.5. NOT reproduced:
+  the large title's tall-bar inset bookkeeping (ours scrolls as
+  content), a drift of the toolbar (not measured).
 - SHEETS (sheet.dart, sheet_motion.dart; 2026-10-03, iOS 27 simulator,
   iPhone 16 Pro geometry, XCUITest touches): `presentMorphSheet` pushes a
   `MorphSheetRoute` (a PopupRoute: transitionDuration zero, the reverse
@@ -487,10 +511,31 @@ Public pieces:
   ms, press swell 1.00854 on 0.2835/0.70 after 28 ms. Not reproduced:
   the present's 8 pt horizontal drift (a first-frame artifact), the one
   frame per docking that reads the sheet at y 0, the ~2 percent vertical
-  stretch of a sheet pulled below its smallest detent, the zoom
-  transition (`_UIZoomTransitionSpec` zoomIn 0.34/1.0, zoomOut 0.34/0.92
-  read, geometry not captured), keyboard avoidance (layout only: the
-  maximum shrinks by the keyboard). Replays: sheet_test (programmatic,
+  stretch of a sheet pulled below its smallest detent, keyboard
+  avoidance (layout only: the maximum shrinks by the keyboard). ZOOM
+  (`presentMorphSheet(from:)`, zoom_motion.dart, 2026-10-03): the zoom
+  is INVISIBLE to presentation-layer sampling (the sheet's views sit at
+  their final frames from the first tick; only the source's
+  _UIReparentingView alpha and a portal alpha move), so it was measured
+  from device screen recordings (probe scene snzoom: grey page, magenta
+  source, green sheet; chromatic-pixel bbox per frame). The container
+  is NOT one lerp (one spring: 10 - 20 pt rms): its center and size ride
+  separate springs, fitted per direction (open center 0.349/0.833, size
+  0.472/0.748; close center 0.442/0.762, size 0.203/1.0) - a native-
+  fidelity exemption (two springs on one container), so it lives in the
+  widget layer, not in an engine flight frame; the source is found and
+  hidden through the engine's MorphTag (tryCaptureRect each frame,
+  hideForFlight / reveal deferred to post-frame). The sheet content is
+  laid out at its size and scaled uniformly to fit from the top leading
+  corner, the source's replica is stretched over the container, the
+  crossfade is a 0.154 crit spring (0.045 s late on open), dimming rides
+  zoomIn / zoomOut (the read PTSettings). The content subtree carries a
+  GlobalKey so the hand-over between the zoom layer and the sheet keeps
+  its state. A drag down from the smallest detent dismisses at once
+  (UIKit committed every slow drag, even one turning back up). NOT
+  built: the push zoom (recorded in snpush) and the ~0.1 s of
+  interactive scrub UIKit shows before a drag commits. Replays:
+  sheet_test (programmatic,
   0.8 - 2.1 pt rms incl. present jank), sheet_drag_test (16 simulator +
   26 device drags/flicks, outcomes exact, tolerances in the file; the
   device rows replay best UNSHIFTED, the simulator's +1/60). Every drag
@@ -642,8 +687,10 @@ Public pieces:
   group when several - the menu fuses with its button) reading the
   nearest BackdropGroup's shared copy (root group in GalleryApp, own
   groups for the glass page's scene and card; bars/menus take their own
-  copy); only a menu fuses with its button (blend group) - bar capsules
-  12 apart stayed melted at blend 18 before; a resting lens/knob/thumb
+  copy); a menu fuses with its button (blend group, 18) and a bar's
+  capsules fuse at the bar's container spacing (`buildLayer(spacing:)`,
+  12: groups 12 apart stay separate - they melted at 18 before); a
+  resting lens/knob/thumb
   is an opaque platter, lifted it is clear glass in its own INDEPENDENT
   layer (own backdrop copy) above body + content, and a lens shows the
   content once more inside its outline, each item scaled about ITS OWN
@@ -1198,7 +1245,10 @@ Public pieces:
   `xcodebuild test-without-building -only-testing:ProbeUITests/<Class>/
   <test>` with TEST_RUNNER_PROBE_ONLY / TEST_RUNNER_PROBE_STEP_HZ, then
   `devicectl device copy from` Documents (device.sh's PROBE_PLAN covers
-  ProbeUITests and bars only). XCUIElement keyboard frames exclude the
+  ProbeUITests and bars only). Zoom / back menu / bar container pass:
+  Sources/SheetNav.swift (`snzoom`, `snpush`, `snback`, `snbars` with
+  the SDF sampler and PROBE_SPLIT) and UITests/SheetNavUITests.swift.
+  XCUIElement keyboard frames exclude the
   bottom row: the iPhone 16 Pro keyboard is 328 pt tall (top 546). Glass morphs that live
   in SwiftUI (the tab bar's search morph) do not show in view frames:
   record the simulator screen (`xcrun simctl io <udid> recordVideo
@@ -1702,7 +1752,7 @@ Every step must be green after each change (analyze from the package
 root also covers example). Motion fidelity is judged by the REPLAY
 tests against the recordings; the human eye judges on glacial / slow-mo
 and, for the widgets, on the iPhone next to the native controls (the
-example has an iOS target). Agent self-verification is the tests (579
+example has an iOS target). Agent self-verification is the tests (624
 in the package + 15 in example) plus the autodemo with no EXCEPTION in
 the log and `AUTODEMO done` at its end (autodemo: every gallery page in
 turn - push, center tap, horizontal drag, upward scroll, pop home - then

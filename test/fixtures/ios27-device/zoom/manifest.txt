@@ -1,0 +1,5 @@
+zoom.json - UIKit zoom transition into a page sheet (preferredTransition .zoom), iPhone 16 Pro, iOS 27.0.1,
+2026-10-03. Device screen recordings (tool/ios_reference/screen_recorder) of the probe scene snzoom
+(Sources/SheetNav.swift): grey page, magenta 140x48 capsule (radius 24) or 160x100 card (radius 16) at
+y 300, green sheet at the medium detent. Four transitions: present/dismiss from each source. Frame times
+are relative to the transition start found by the spring fit (sheet_zoom_test replays them).
