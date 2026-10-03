@@ -69,3 +69,8 @@ Local patches (each its own commit, revertable alone):
   float filtering is needed), uploaded through a small ring of
   host-visible textures written again only three frames after their
   last use. The material pass still reads the shapes.
+- 2026-10-03 fake glass draws the fused outline: GlassField.outline (the
+  traced zero contour, layer coordinates) is handed by LiquidGlassLayer to
+  ConsolidatedFakeGlassLayer (`outline`), which then clips its backdrop
+  and surfaces to it and tints the part no shape covers (the neck) like
+  the first shape; without an outline it is upstream's per-shape union.

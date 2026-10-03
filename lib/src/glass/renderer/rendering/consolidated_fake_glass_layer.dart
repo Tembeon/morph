@@ -24,8 +24,13 @@ class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
     required this.backdropKey,
     required this.surfaceShader,
     required super.child,
+    this.outline,
     super.key,
   });
+
+  /// The outline of the one body the layer's shapes fused into, in the
+  /// layer's coordinates, which the backdrop and surfaces are clipped to.
+  final Path? outline;
 
   final GeometryRenderLink link;
   final LiquidGlassSettings settings;
@@ -41,6 +46,7 @@ class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
         defaultAppearance: defaultAppearance,
         backdropKey: backdropKey,
         surfaceShader: surfaceShader,
+        outline: outline,
       );
 
   @override
@@ -54,7 +60,8 @@ class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
       ..settings = settings
       ..defaultAppearance = defaultAppearance
       ..backdropKey = backdropKey
-      ..surfaceShader = surfaceShader;
+      ..surfaceShader = surfaceShader
+      ..outline = outline;
   }
 }
 
@@ -75,7 +82,20 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     required super.defaultAppearance,
     required super.backdropKey,
     required this._surfaceShader,
+    this._outline,
   });
+
+  Path? _outline;
+
+  /// The fused body's outline (morph local patch): with it the backdrop
+  /// and the surfaces are clipped to the body, its neck tinted like its
+  /// first shape, instead of drawn per shape.
+  Path? get outline => _outline;
+  set outline(Path? value) {
+    if (identical(_outline, value)) return;
+    _outline = value;
+    markNeedsPaint();
+  }
 
   FragmentShader? _surfaceShader;
   FragmentShader? get surfaceShader => _surfaceShader;
@@ -120,7 +140,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
   Rect? debugClipBounds;
 
   @visibleForTesting
-  Path? get debugClipPath => _cachedClipPath;
+  Path? get debugClipPath => _outline ?? _cachedClipPath;
 
   final List<_FakeGlassPaintStage> _debugLastPaintStages = [];
 
@@ -233,14 +253,17 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
       _cachedClipClasses = rebuiltClasses;
       rememberFrameInputs();
     }
-    final bounds = _cachedClipBounds;
+    final outline = _outline;
+    final bounds = outline == null
+        ? _cachedClipBounds
+        : _cachedClipBounds?.expandToInclude(outline.getBounds());
     if (bounds == null) {
       debugClipBounds = null;
       effectPaintBounds = Offset.zero & size;
       _releaseLayers();
       return;
     }
-    final clipPath = _cachedClipPath!;
+    final clipPath = outline ?? _cachedClipPath!;
 
     debugClipBounds = bounds;
     effectPaintBounds = expandEffectBounds(bounds);
@@ -297,7 +320,60 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
   ) {
     final shader = surfaceShader;
-    if (shader == null) return;
+    final outline = _outline;
+    if (outline != null) {
+      canvas.save();
+      canvas.translate(offset.dx, offset.dy);
+      canvas.clipPath(outline);
+      _paintNeck(canvas, outline, geometries);
+      canvas.translate(-offset.dx, -offset.dy);
+    }
+    if (shader != null) {
+      _paintShapeSurfaces(canvas, offset, shader, geometries);
+    }
+    if (outline != null) canvas.restore();
+  }
+
+  /// Tints the part of the fused body no shape covers - the neck - like
+  /// the first shape.
+  void _paintNeck(
+    Canvas canvas,
+    Path outline,
+    List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
+  ) {
+    final shapes = Path();
+    LiquidGlassAppearance? first;
+    for (final (_, geometry, geometryToLayer) in geometries) {
+      for (final shape in geometry.shapes) {
+        first ??= shape.appearance;
+        final toLayer = shape.shapeToGeometry == null
+            ? geometryToLayer
+            : geometryToLayer.multiplied(shape.shapeToGeometry!);
+        shapes.addPath(
+          shape.shape.getOuterPath(Offset.zero & shape.renderObject.size),
+          Offset.zero,
+          matrix4: toLayer.storage,
+        );
+      }
+    }
+    if (first == null) return;
+    final tint = first.colorModel.approximateSurfaceTint(first.tint);
+    final paint = Paint();
+    paint.color = tint.withValues(
+      alpha: tint.a * first.visibility.clamp(0.0, 1.0),
+    );
+    canvas.drawPath(
+      Path.combine(PathOperation.difference, outline, shapes),
+      paint,
+    );
+  }
+
+  void _paintShapeSurfaces(
+    Canvas canvas,
+    Offset offset,
+    FragmentShader shader,
+    List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
+  ) {
     for (final (_, geometry, geometryToLayer) in geometries) {
       for (final shape in geometry.shapes) {
         canvas

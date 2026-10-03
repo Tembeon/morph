@@ -64,17 +64,26 @@ class MorphMenuFusion {
 /// as one even-odd path, with the blurred field itself for a renderer that
 /// shades the body.
 ///
-/// The half thickness each node of the field belongs to blends from the
+/// The half thickness each node of the field belongs to, and the turn of
+/// its normal toward the optical corners of the shapes, blend from the
 /// button's to the menu's over the blur radius, by which of the two shapes
 /// is nearer.
+///
+/// The field grid (every second trace node below a 4 pt step) is sampled
+/// everywhere; the trace grid only in blocks whose corners leave the edge
+/// within reach. A node whose blur window sees one straight side of one
+/// shape takes its unblurred distance: the kernel is symmetric, so it
+/// leaves a linear field unchanged.
 @internal
 MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
   final double step = (radius / 3).clamp(2.0, 6.0);
-  final Rect trace = menu.outerRect
+  final int stride = step < 4 ? 2 : 1;
+  const int b = 2;
+  final Rect area = menu.outerRect
       .expandToInclude(source.outerRect)
       .inflate(2 * step);
-  final int cols = (trace.width / step).ceil() + 1;
-  final int rows = (trace.height / step).ceil() + 1;
+  final int cols = ((area.width / step).ceil() ~/ b) * b + b + 1;
+  final int rows = ((area.height / step).ceil() ~/ b) * b + b + 1;
   final int reach = (3 * radius / step).ceil();
   final Float64List kernel = Float64List(2 * reach + 1);
   var sum = 0.0;
@@ -87,100 +96,294 @@ MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
   for (var k = 0; k < kernel.length; k++) {
     kernel[k] /= sum;
   }
-  final int width = cols + 2 * reach;
-  final int height = rows + 2 * reach;
-  final double left = trace.left - reach * step;
-  final double top = trace.top - reach * step;
-  final _Box g = _Box(menu);
-  final _Box s = _Box(source);
-  final Float64List field = Float64List(width * height);
-  final Float64List nearer = Float64List(width * height);
-  for (var j = 0; j < height; j++) {
-    final double y = top + j * step;
-    final int row = j * width;
-    for (var i = 0; i < width; i++) {
-      final double x = left + i * step;
-      final double dg = g.distance(x, y);
-      final double ds = s.distance(x, y);
-      field[row + i] = math.min(dg, ds);
-      nearer[row + i] = ds - dg;
-    }
-  }
+  final f = _BlurredUnion(menu, source, area, step, cols, rows, kernel);
+  final boxes = MorphOutlineBoxes([menu, source]);
   final double band = 1.26 * radius + 1.5 * step;
-  final double shadedDepth = MorphMenuFusion.shadedDepth;
-  final Float64List across = Float64List(cols * height);
-  across.fillRange(0, across.length, double.nan);
-  final Float64List blurred = Float64List(cols * rows);
-  for (var j = 0; j < rows; j++) {
-    for (var i = 0; i < cols; i++) {
-      final double raw = field[(j + reach) * width + i + reach];
-      if (raw > band || raw < -math.max(band, shadedDepth)) {
-        blurred[j * cols + i] = raw;
-        continue;
-      }
-      var v = 0.0;
-      for (var k = 0; k < kernel.length; k++) {
-        final int at = (j + k) * cols + i;
-        var h = across[at];
-        if (h.isNaN) {
-          h = 0;
-          final int from = (j + k) * width + i;
-          for (var m = 0; m < kernel.length; m++) {
-            h += kernel[m] * field[from + m];
-          }
-          across[at] = h;
-        }
-        v += kernel[k] * h;
-      }
-      blurred[j * cols + i] = v;
-    }
-  }
+  final double depth = math.max(band, MorphMenuFusion.shadedDepth);
   final double halfMenu = menu.outerRect.shortestSide / 2;
   final double halfSource = source.outerRect.shortestSide / 2;
   final double blend = math.max(radius, step);
-  final Float64List halfMinor = Float64List(cols * rows);
-  for (var j = 0; j < rows; j++) {
-    for (var i = 0; i < cols; i++) {
-      final double towardMenu =
-          (0.5 + nearer[(j + reach) * width + i + reach] / (2 * blend)).clamp(
-            0.0,
-            1.0,
-          );
-      halfMinor[j * cols + i] =
-          halfSource + (halfMenu - halfSource) * towardMenu;
+  final int fieldCols = (cols - 1) ~/ stride + 1;
+  final int fieldRows = (rows - 1) ~/ stride + 1;
+  final Float64List trace = Float64List(cols * rows);
+  final Float64List distance = Float64List(fieldCols * fieldRows);
+  final Float64List halfMinor = Float64List(fieldCols * fieldRows);
+  final Float64List turn = Float64List(fieldCols * fieldRows * 2);
+  final Float64List unblurred = Float64List(fieldCols * fieldRows);
+  final Float64List sourceTurn = Float64List(2);
+  sourceTurn[0] = 1;
+  final bool menuTurns = boxes.turns(0);
+  final bool sourceTurns = boxes.turns(1);
+  for (var fj = 0; fj < fieldRows; fj++) {
+    final int j = fj * stride;
+    final double y = area.top + j * step;
+    for (var fi = 0; fi < fieldCols; fi++) {
+      final int i = fi * stride;
+      final double x = area.left + i * step;
+      final int at = fj * fieldCols + fi;
+      final double dg = f.menuDistance(i, j);
+      final double ds = f.sourceDistance(i, j);
+      final double raw = math.min(dg, ds);
+      final double value = raw > band || raw < -depth
+          ? raw
+          : f.linear(i, j, dg, ds)
+          ? raw
+          : f.blurred(i, j);
+      distance[at] = value;
+      unblurred[at] = raw;
+      trace[j * cols + i] = value;
+      final double towardMenu = (0.5 + (ds - dg) / (2 * blend)).clamp(0.0, 1.0);
+      halfMinor[at] = halfSource + (halfMenu - halfSource) * towardMenu;
+      if (menuTurns) {
+        boxes.opticalTurn(0, x, y, turn, at * 2);
+      } else {
+        turn[at * 2] = 1;
+      }
+      if (sourceTurns) {
+        boxes.opticalTurn(1, x, y, sourceTurn, 0);
+      }
+      if ((menuTurns || sourceTurns) && towardMenu < 1) {
+        turn[at * 2] =
+            sourceTurn[0] + (turn[at * 2] - sourceTurn[0]) * towardMenu;
+        turn[at * 2 + 1] =
+            sourceTurn[1] + (turn[at * 2 + 1] - sourceTurn[1]) * towardMenu;
+        morphNormalizeTurn(turn, at * 2);
+      }
     }
   }
-  return morphGlassOutlineFromGrid(
-    blurred,
-    halfMinor,
-    cols,
-    rows,
-    left: trace.left,
-    top: trace.top,
+  final int blockCols = (cols - 1) ~/ b;
+  final int blockRows = (rows - 1) ~/ b;
+  final Uint8List near = Uint8List(blockCols * blockRows);
+  final double slop = b * step * math.sqrt1_2;
+  final int span = b ~/ stride;
+  for (var bj = 0; bj < blockRows; bj++) {
+    for (var bi = 0; bi < blockCols; bi++) {
+      final int corner = bj * span * fieldCols + bi * span;
+      final double c0 = unblurred[corner];
+      final double c1 = unblurred[corner + span];
+      final double c2 = unblurred[corner + span * fieldCols];
+      final double c3 = unblurred[corner + span * fieldCols + span];
+      final double lo = math.min(math.min(c0, c1), math.min(c2, c3));
+      final double hi = math.max(math.max(c0, c1), math.max(c2, c3));
+      if (lo - slop > band) {
+        morphFillOutlineBlock(trace, cols, stride, b, bi, bj, 1);
+      } else if (hi + slop < -band) {
+        morphFillOutlineBlock(trace, cols, stride, b, bi, bj, -1);
+      } else {
+        near[bj * blockCols + bi] = 1;
+        for (var j = bj * b; j <= bj * b + b; j++) {
+          for (var i = bi * b; i <= bi * b + b; i++) {
+            if (i % stride == 0 && j % stride == 0) continue;
+            final double dg = f.menuDistance(i, j);
+            final double ds = f.sourceDistance(i, j);
+            final double raw = math.min(dg, ds);
+            trace[j * cols + i] = raw.abs() > band || f.linear(i, j, dg, ds)
+                ? raw
+                : f.blurred(i, j);
+          }
+        }
+      }
+    }
+  }
+  return morphGlassOutlineFromFields(
+    trace: trace,
+    cols: cols,
+    rows: rows,
+    near: near,
+    blockCols: blockCols,
+    block: b,
+    distance: distance,
+    halfMinor: halfMinor,
+    turn: turn,
+    stride: stride,
+    left: area.left,
+    top: area.top,
     step: step,
-    fieldStride: step < 4 ? 2 : 1,
   );
 }
 
-class _Box {
-  _Box(RRect shape)
-    : cx = shape.center.dx,
-      cy = shape.center.dy,
-      r = math.min(shape.tlRadiusX, math.min(shape.width, shape.height) / 2),
-      hx = shape.width / 2,
-      hy = shape.height / 2;
+/// The union of two rounded boxes on a grid and its Gaussian blur, both
+/// evaluated on demand: the trace and field grid of [morphMenuSilhouette]
+/// padded by the kernel's reach, node (i, j) of the trace grid at padded
+/// node (i + reach, j + reach).
+///
+/// The unblurred distance and the horizontal pass of the separable blur
+/// are remembered per node in buffers kept across calls (an outline is
+/// fused on the UI thread, one at a time), so each is computed once.
+class _BlurredUnion {
+  _BlurredUnion(
+    RRect menu,
+    RRect source,
+    Rect area,
+    double step,
+    this.cols,
+    int rows,
+    this.kernel,
+  ) : reach = kernel.length ~/ 2,
+      width = cols + kernel.length - 1,
+      height = rows + kernel.length - 1,
+      window = (kernel.length ~/ 2) * step,
+      _menuX = Float64List(cols + kernel.length - 1),
+      _menuY = Float64List(rows + kernel.length - 1),
+      _sourceX = Float64List(cols + kernel.length - 1),
+      _sourceY = Float64List(rows + kernel.length - 1),
+      _menuRadius = _cornerOf(menu),
+      _sourceRadius = _cornerOf(source),
+      _menuInner = Offset(
+        menu.width / 2 - _cornerOf(menu),
+        menu.height / 2 - _cornerOf(menu),
+      ),
+      _sourceInner = Offset(
+        source.width / 2 - _cornerOf(source),
+        source.height / 2 - _cornerOf(source),
+      ) {
+    final double left = area.left - reach * step;
+    final double top = area.top - reach * step;
+    for (var i = 0; i < width; i++) {
+      final double x = left + i * step;
+      _menuX[i] = (x - menu.center.dx).abs() - _menuInner.dx;
+      _sourceX[i] = (x - source.center.dx).abs() - _sourceInner.dx;
+    }
+    for (var j = 0; j < height; j++) {
+      final double y = top + j * step;
+      _menuY[j] = (y - menu.center.dy).abs() - _menuInner.dy;
+      _sourceY[j] = (y - source.center.dy).abs() - _sourceInner.dy;
+    }
+    _Scratch.begin(width * height, cols * height);
+    _rawValues = _Scratch.raw;
+    _rawStamps = _Scratch.rawStamp;
+    _acrossValues = _Scratch.across;
+    _acrossStamps = _Scratch.acrossStamp;
+    _generation = _Scratch.generation;
+  }
 
-  final double cx;
-  final double cy;
-  final double r;
-  final double hx;
-  final double hy;
+  static double _cornerOf(RRect shape) =>
+      math.min(shape.tlRadiusX, math.min(shape.width, shape.height) / 2);
 
-  double distance(double x, double y) {
-    final double qx = (x - cx).abs() - (hx - r);
-    final double qy = (y - cy).abs() - (hy - r);
-    final double ox = math.max(qx, 0);
-    final double oy = math.max(qy, 0);
-    return math.sqrt(ox * ox + oy * oy) + math.min(math.max(qx, qy), 0) - r;
+  final int cols;
+  final Float64List kernel;
+  final int reach;
+  final int width;
+  final int height;
+
+  /// The distance from a node to the farthest node of its blur window
+  /// along each axis.
+  final double window;
+
+  final Float64List _menuX;
+  final Float64List _menuY;
+  final Float64List _sourceX;
+  final Float64List _sourceY;
+  final double _menuRadius;
+  final double _sourceRadius;
+  final Offset _menuInner;
+  final Offset _sourceInner;
+
+  /// The menu's distance at trace node (i, j).
+  double menuDistance(int i, int j) =>
+      morphBoxDistance(_menuX[i + reach], _menuY[j + reach], _menuRadius);
+
+  /// The button's distance at trace node (i, j).
+  double sourceDistance(int i, int j) =>
+      morphBoxDistance(_sourceX[i + reach], _sourceY[j + reach], _sourceRadius);
+
+  late final Float64List _rawValues;
+  late final Int32List _rawStamps;
+  late final Float64List _acrossValues;
+  late final Int32List _acrossStamps;
+  late final int _generation;
+
+  /// The blurred union at trace node (i, j).
+  double blurred(int i, int j) {
+    final Float64List kernel = this.kernel;
+    final int taps = kernel.length;
+    final int generation = _generation;
+    final Float64List acrossValues = _acrossValues;
+    final Int32List acrossStamps = _acrossStamps;
+    final Float64List rawValues = _rawValues;
+    final Int32List rawStamps = _rawStamps;
+    final Float64List menuX = _menuX;
+    final Float64List sourceX = _sourceX;
+    final double menuRadius = _menuRadius;
+    final double sourceRadius = _sourceRadius;
+    var v = 0.0;
+    for (var k = 0; k < taps; k++) {
+      final int row = j + k;
+      final int at = row * cols + i;
+      double h;
+      if (acrossStamps[at] == generation) {
+        h = acrossValues[at];
+      } else {
+        h = 0;
+        final double menuY = _menuY[row];
+        final double sourceY = _sourceY[row];
+        final int base = row * width + i;
+        for (var m = 0; m < taps; m++) {
+          final int node = base + m;
+          double raw;
+          if (rawStamps[node] == generation) {
+            raw = rawValues[node];
+          } else {
+            raw = math.min(
+              morphBoxDistance(menuX[i + m], menuY, menuRadius),
+              morphBoxDistance(sourceX[i + m], sourceY, sourceRadius),
+            );
+            rawStamps[node] = generation;
+            rawValues[node] = raw;
+          }
+          h += kernel[m] * raw;
+        }
+        acrossStamps[at] = generation;
+        acrossValues[at] = h;
+      }
+      v += kernel[k] * h;
+    }
+    return v;
+  }
+
+  /// Whether the union is linear over the blur window of trace node (i, j),
+  /// where the menu's distance is [dg] and the button's [ds]: one shape is
+  /// nearer over the whole window and the window sees one straight side
+  /// of it.
+  bool linear(int i, int j, double dg, double ds) {
+    if ((dg - ds).abs() < 2 * math.sqrt2 * window) return false;
+    return dg < ds
+        ? _straight(_menuX[i + reach], _menuY[j + reach], _menuInner)
+        : _straight(_sourceX[i + reach], _sourceY[j + reach], _sourceInner);
+  }
+
+  bool _straight(double qx, double qy, Offset inner) {
+    final double r = window;
+    return (qx + r <= 0 && qy - qx >= 2 * r && qy + inner.dy >= r) ||
+        (qy + r <= 0 && qx - qy >= 2 * r && qx + inner.dx >= r);
+  }
+}
+
+/// The buffers [_BlurredUnion] remembers its nodes in, kept across calls
+/// and invalidated by a generation count instead of being cleared.
+abstract final class _Scratch {
+  static Float64List raw = Float64List(0);
+  static Int32List rawStamp = Int32List(0);
+  static Float64List across = Float64List(0);
+  static Int32List acrossStamp = Int32List(0);
+  static int generation = 0;
+
+  static void begin(int rawNodes, int acrossNodes) {
+    if (raw.length < rawNodes) {
+      raw = Float64List(rawNodes + rawNodes ~/ 2);
+      rawStamp = Int32List(raw.length);
+      rawStamp.fillRange(0, rawStamp.length, generation);
+    }
+    if (across.length < acrossNodes) {
+      across = Float64List(acrossNodes + acrossNodes ~/ 2);
+      acrossStamp = Int32List(across.length);
+      acrossStamp.fillRange(0, acrossStamp.length, generation);
+    }
+    generation++;
+    if (generation == 0x3FFFFFFF) {
+      generation = 1;
+      rawStamp.fillRange(0, rawStamp.length, 0);
+      acrossStamp.fillRange(0, acrossStamp.length, 0);
+    }
   }
 }

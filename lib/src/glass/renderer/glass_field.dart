@@ -27,6 +27,7 @@ class GlassField {
     required this.rows,
     required this.origin,
     required this.step,
+    this.outline,
   });
 
   /// Four values per node, row-major.
@@ -44,6 +45,11 @@ class GlassField {
   /// The distance between neighboring nodes, in logical pixels.
   final double step;
 
+  /// The zero contour of the field as a path in the layer's logical
+  /// coordinates, when its owner traced it: fake glass, which draws no
+  /// field, clips its backdrop and surfaces to it.
+  final Path? outline;
+
   /// The box the grid spans.
   Rect get bounds =>
       Rect.fromLTWH(origin.dx, origin.dy, (cols - 1) * step, (rows - 1) * step);
@@ -55,5 +61,6 @@ class GlassField {
     rows: rows,
     origin: origin + offset,
     step: step,
+    outline: outline?.shift(offset),
   );
 }

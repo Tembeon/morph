@@ -25,7 +25,8 @@ import 'package:morph_example/gallery/gallery.dart';
 /// pull `tmp/glass/` from the app's data container. The glass tier is the
 /// gallery's: `--dart-define=GALLERY_GLASS=liquid` (or frosted, flat)
 /// pins it for the whole run; the report also times the package's outline
-/// fusion (the menu's blurred silhouette and a bar's fused capsules).
+/// fusion (the menu's blurred silhouette and a bar's fused capsules), and
+/// `--dart-define=AUDIT_OUTLINES_ONLY=true` times only that.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -115,6 +116,10 @@ class _Audit {
     if (outDir.existsSync()) outDir.deleteSync(recursive: true);
     outDir.createSync(recursive: true);
     _clock.start();
+    if (_outlinesOnly) {
+      _outlines();
+      return;
+    }
     await MorphGlassRenderer.precache();
     runApp(const GalleryApp());
     await settle(1500);
@@ -126,6 +131,10 @@ class _Audit {
   }
 
   final Map<String, double> _outlineMicros = {};
+
+  /// Whether the run only times the outlines
+  /// (`--dart-define=AUDIT_OUTLINES_ONLY=true`).
+  static const bool _outlinesOnly = bool.fromEnvironment('AUDIT_OUTLINES_ONLY');
 
   /// Times the fused outlines the package computes per frame while a
   /// menu morphs or bar capsules pass close: the mean of 100 calls each,

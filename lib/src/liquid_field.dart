@@ -1062,47 +1062,12 @@ List<(Offset, Offset)> _marchGrid(
   return segments;
 }
 
-/// The zero iso-contour of a field sampled on a grid, as closed loops
-/// smoothed by [smoothPasses] Chaikin passes: [values] holds [cols] x
-/// [rows] samples, row-major, the vertex (i, j) at ([left] + i [step],
-/// [top] + j [step]). Negative is inside. A saddle cell is resolved by
-/// the mean of its corners.
+/// The evaluator of [field] for a sampling loop: the merge law at (x, y)
+/// without an [Offset] or a normal allocated per call, the same values as
+/// [LiquidField.eval].
 @internal
-List<List<Offset>> liquidGridContours(
-  Float64List values,
-  int cols,
-  int rows, {
-  required double left,
-  required double top,
-  required double step,
-  int smoothPasses = 2,
-}) {
-  assert(values.length == cols * rows, 'values must hold cols x rows.');
-  final List<(Offset, Offset)> segments = _marchGrid(
-    values,
-    cols,
-    rows,
-    left,
-    top,
-    step,
-    (double x, double y) {
-      final int i = ((x - left) / step).floor().clamp(0, cols - 2);
-      final int j = ((y - top) / step).floor().clamp(0, rows - 2);
-      return (values[j * cols + i] +
-              values[j * cols + i + 1] +
-              values[(j + 1) * cols + i] +
-              values[(j + 1) * cols + i + 1]) /
-          4;
-    },
-  );
-  final List<List<Offset>> loops = _stitch(segments, step);
-  if (smoothPasses <= 0) {
-    return loops;
-  }
-  return <List<Offset>>[
-    for (final List<Offset> loop in loops) _chaikin(loop, smoothPasses),
-  ];
-}
+double Function(double x, double y) liquidFieldSampler(LiquidField field) =>
+    _FieldSampler(field.shapes, field.k).eval;
 
 /// Stitches loose segments into closed loops: endpoints snap together
 /// with half-grid-step precision - on thin necks numerically identical

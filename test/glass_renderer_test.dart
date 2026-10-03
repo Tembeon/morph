@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
+import 'package:morph/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_liquid_native.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -438,6 +441,11 @@ void main() {
       );
       expect(layer.field, same(morphGlassOutlineField(outline)));
       expect(find.byType(ClipPath), findsNothing);
+      final fake = tester.renderObject<RenderConsolidatedFakeGlassLayer>(
+        find.byType(ConsolidatedFakeGlassLayer),
+      );
+      expect(fake.outline, same(outline.path));
+      expect(fake.debugClipPath, same(outline.path));
     });
   });
 
@@ -474,6 +482,49 @@ void main() {
         expect(unit / near, greaterThan(0.85));
       },
     );
+
+    test('fused corners turn their light where the shapes alone do', () {
+      const menu = RRect.fromLTRBXY(0, 0, 200, 120, 30, 30);
+      const button = RRect.fromLTRBXY(80, 128, 124, 172, 22, 22);
+      Offset optical(Offset p) {
+        const r = 30 * morphOpticalCornerScale;
+        final qx = (p.dx - 100).abs() - 100 + r;
+        final qy = (p.dy - 60).abs() - 60 + r;
+        final sx = p.dx < 100 ? -1.0 : 1.0;
+        final sy = p.dy < 60 ? -1.0 : 1.0;
+        if (qx > 0 && qy > 0) {
+          final n = Offset(qx, qy) / Offset(qx, qy).distance;
+          return Offset(sx * n.dx, sy * n.dy);
+        }
+        return qx > qy ? Offset(sx, 0) : Offset(0, sy);
+      }
+
+      for (final outline in [
+        morphMenuSilhouette(menu, button, 1.5),
+        morphGlassContainerOutline([menu, button], 12),
+      ]) {
+        final field = morphGlassOutlineField(outline)!;
+        var corner = 0;
+        for (var j = 0; j < field.rows; j++) {
+          for (var i = 0; i < field.cols; i++) {
+            final at = (j * field.cols + i) * 4;
+            final p = field.origin + Offset(i * field.step, j * field.step);
+            if (field.samples[at].abs() > 3 || p.dy > 100) continue;
+            final g = Offset(field.samples[at + 1], field.samples[at + 2]);
+            final want = optical(p);
+            final angle =
+                (math.atan2(g.dy, g.dx) - math.atan2(want.dy, want.dx)).abs();
+            expect(
+              math.min(angle, 2 * math.pi - angle),
+              lessThan(0.06),
+              reason: '$p',
+            );
+            if (want.dx != 0 && want.dy != 0) corner++;
+          }
+        }
+        expect(corner, greaterThan(8));
+      }
+    });
 
     test('a container fuses only what lies within its spacing', () {
       final shapes = [

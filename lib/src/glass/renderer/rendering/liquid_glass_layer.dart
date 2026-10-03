@@ -100,7 +100,8 @@ class LiquidGlassLayer extends StatefulWidget {
   /// With a field the geometry pass shades the body the field describes
   /// instead of the shapes' own outlines or blend groups; the shapes still
   /// supply the appearance, the shadows and the bounds of the matte, which
-  /// must contain the body. Fake glass ignores the field.
+  /// must contain the body. Fake glass, which shades no field, clips its
+  /// backdrop and surfaces to the field's [GlassField.outline] instead.
   final GlassField? field;
 
   /// The subtree in which you should include at least one [LiquidGlass] widget.
@@ -382,6 +383,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
               defaultAppearance: defaultAppearance,
               backdropKey: backdropKey,
               surfaceShader: surfaceShader,
+              outline: widget.field?.outline,
               child: child,
             ),
           ),
