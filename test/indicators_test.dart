@@ -8,6 +8,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
 const _progress = 'test/fixtures/ios27/progress';
+const _deviceProgress = 'test/fixtures/ios27-device/progress';
 const _pages = 'test/fixtures/ios27/page_control';
 
 List<Map<String, Object?>> _rows(String path) => [
@@ -21,9 +22,16 @@ double _d(Map<String, Object?> r, String k) => (r[k]! as num).toDouble();
 /// Replays a scripted progress capture: the fill of a 300 point
 /// UIProgressView starting at [initial], each `progress:` script action
 /// aligned to the recording within two frames of its call. Returns the
-/// rms errors of the fill width and opacity.
-({double width, double opacity}) _replayProgress(String file, double initial) {
-  final rows = _rows('$_progress/$file');
+/// rms errors of the fill width and opacity. Device captures log several
+/// views; [id] picks the fill's rows there.
+({double width, double opacity}) _replayProgress(
+  String file,
+  double initial, {
+  String dir = _progress,
+  int? id,
+  double frame = 1 / 60,
+}) {
+  final rows = _rows('$dir/$file');
   final actions = [
     for (final r in rows)
       if (r['k'] == 'evt' &&
@@ -32,9 +40,8 @@ double _d(Map<String, Object?> r, String k) => (r[k]! as num).toDouble();
   ];
   final fill = [
     for (final r in rows)
-      if (r['k'] == 'V') r,
+      if (r['k'] == 'V' && (id == null || r['id'] == id)) r,
   ];
-  final frame = 1 / 60;
   List<double> run(List<double> starts, double until, {bool opacity = false}) {
     final motion = MorphProgressMotion(value: initial);
     final errors = <double>[];
@@ -58,18 +65,31 @@ double _d(Map<String, Object?> r, String k) => (r[k]! as num).toDouble();
 
   double sq(List<double> e) => e.fold(0.0, (a, b) => a + b * b);
   final starts = <double>[];
-  for (var k = 0; k < actions.length; k++) {
-    final until = k + 1 < actions.length ? actions[k + 1].$2 : double.infinity;
-    var best = actions[k].$2;
+  var k = 0;
+  while (k < actions.length) {
+    var end = k + 1;
+    while (end < actions.length && actions[end].$2 - actions[k].$2 < 0.01) {
+      end++;
+    }
+    final until = end < actions.length ? actions[end].$2 : double.infinity;
+    var bestLag = 0.0;
     var bestErr = double.infinity;
     for (var lag = -0.034; lag <= 0.034; lag += 0.001) {
-      final e = sq(run([...starts, actions[k].$2 + lag], until));
+      final e = sq(
+        run([
+          ...starts,
+          for (var j = k; j < end; j++) actions[j].$2 + lag,
+        ], until),
+      );
       if (e < bestErr) {
         bestErr = e;
-        best = actions[k].$2 + lag;
+        bestLag = lag;
       }
     }
-    starts.add(best);
+    for (var j = k; j < end; j++) {
+      starts.add(actions[j].$2 + bestLag);
+    }
+    k = end;
   }
   double rms(List<double> e) => math.sqrt(sq(e) / e.length);
   return (
@@ -122,6 +142,24 @@ void main() {
       expect(r.width, lessThan(0.6));
       expect(r.opacity, lessThan(0.02));
     });
+
+    for (final (file, initial) in [
+      ('progress2.jsonl', 0.2),
+      ('progress3.jsonl', 0.5),
+      ('progress-additive.jsonl', 0.2),
+    ]) {
+      test('replays the device: $file', () {
+        final r = _replayProgress(
+          file,
+          initial,
+          dir: _deviceProgress,
+          id: 4,
+          frame: 1 / 120,
+        );
+        expect(r.width, lessThan(0.6));
+        expect(r.opacity, lessThan(0.02));
+      });
+    }
   });
 
   group('MorphActivityIndicatorFrames', () {

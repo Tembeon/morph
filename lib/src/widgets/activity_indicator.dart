@@ -16,7 +16,9 @@ class MorphActivityIndicatorStyle {
   /// The light appearance.
   static const light = MorphActivityIndicatorStyle();
 
-  /// The dark appearance: the dark secondaryLabel.
+  /// The dark appearance: the dark secondaryLabel. Measured on an iPhone
+  /// 16 Pro (iOS 27.0.1): the head spoke renders 120, 120, 125 on black,
+  /// the same coverage of 0xEBEBF5 as the light head's of 0x3C3C43.
   static const dark = MorphActivityIndicatorStyle(color: Color(0x99EBEBF5));
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
