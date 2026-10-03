@@ -593,6 +593,8 @@ class _AlertViewState extends State<_AlertView>
           ? MorphPopoverTuning.cornerRadius
           : MorphAlertTuning.cornerRadius,
       onChoose: _choose,
+      frames: frames,
+      opacity: _opacity,
     );
     final interactive = Listener(
       onPointerDown: _down,
@@ -647,6 +649,11 @@ class _AlertViewState extends State<_AlertView>
             : _alertLayout(context, keyed, style, padding),
       ),
     );
+  }
+
+  double _opacity() {
+    final t = _alert?.time ?? _popover?.time ?? 0;
+    return (_alert?.opacity(t) ?? _popover?.opacity(t) ?? 1).clamp(0.0, 1.0);
   }
 
   bool _fitsInRow(
@@ -706,14 +713,11 @@ class _AlertViewState extends State<_AlertView>
               child: Padding(
                 padding: padding,
                 child: Center(
-                  child: Opacity(
-                    opacity: motion.opacity(t),
-                    child: Transform.scale(
-                      scale: motion.scale(t),
-                      child: IgnorePointer(
-                        ignoring: motion.isDismissing,
-                        child: child,
-                      ),
+                  child: Transform.scale(
+                    scale: motion.scale(t),
+                    child: IgnorePointer(
+                      ignoring: motion.isDismissing,
+                      child: child,
                     ),
                   ),
                 ),
@@ -844,7 +848,7 @@ class _PopoverFlow extends FlowDelegate {
     }
     if (opacity <= 0) return;
     context.paintChild(0, transform: arrow, opacity: opacity);
-    context.paintChild(1, transform: around(content.topLeft), opacity: opacity);
+    context.paintChild(1, transform: around(content.topLeft));
   }
 
   @override
@@ -901,6 +905,8 @@ class _AlertCard extends StatelessWidget {
     required this.style,
     required this.radius,
     required this.onChoose,
+    required this.frames,
+    required this.opacity,
     super.key,
   });
 
@@ -916,6 +922,8 @@ class _AlertCard extends StatelessWidget {
   final MorphAlertStyle style;
   final double radius;
   final ValueChanged<MorphAlertAction> onChoose;
+  final Listenable frames;
+  final double Function() opacity;
 
   @override
   Widget build(BuildContext context) {
@@ -1058,67 +1066,88 @@ class _AlertCard extends StatelessWidget {
       physics: const ClampingScrollPhysics(),
       children: [content],
     );
-    final clipped = ClipRRect(
-      borderRadius: BorderRadius.circular(radius),
-      child: scroll,
+    final clipped = ListenableBuilder(
+      listenable: frames,
+      builder: (BuildContext context, Widget? child) =>
+          Opacity(opacity: opacity(), child: child),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        child: scroll,
+      ),
     );
     return SizedBox(
       width: width,
-      child: glass == null
-          ? CustomPaint(
-              painter: _PlatterPainter(style: style, radius: radius),
-              child: clipped,
-            )
-          : Stack(
-              children: [
-                Positioned.fill(
-                  child: LayoutBuilder(
-                    builder: (BuildContext context, BoxConstraints box) =>
-                        glass.buildSurface(
-                          context,
-                          MorphGlassSurface(
-                            kind: MorphGlassKind.menu,
-                            shape: RRect.fromRectAndRadius(
-                              Offset.zero & box.biggest,
-                              Radius.circular(radius),
-                            ),
-                            color: style.platterColor,
-                            brightness: brightness,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: LayoutBuilder(
+              builder: (BuildContext context, BoxConstraints box) =>
+                  ListenableBuilder(
+                    listenable: frames,
+                    builder: (BuildContext context, Widget? _) {
+                      final shape = RRect.fromRectAndRadius(
+                        Offset.zero & box.biggest,
+                        Radius.circular(radius),
+                      );
+                      if (glass == null) {
+                        return CustomPaint(
+                          painter: _PlatterPainter(
+                            style: style,
+                            shape: shape,
+                            opacity: opacity(),
                           ),
+                        );
+                      }
+                      return glass.buildSurface(
+                        context,
+                        MorphGlassSurface(
+                          kind: MorphGlassKind.menu,
+                          shape: shape,
+                          color: style.platterColor,
+                          brightness: brightness,
+                          opacity: opacity(),
                         ),
+                      );
+                    },
                   ),
-                ),
-                clipped,
-              ],
             ),
+          ),
+          clipped,
+        ],
+      ),
     );
   }
 }
 
 class _PlatterPainter extends CustomPainter {
-  const _PlatterPainter({required this.style, required this.radius});
+  const _PlatterPainter({
+    required this.style,
+    required this.shape,
+    required this.opacity,
+  });
 
   final MorphAlertStyle style;
-  final double radius;
+  final RRect shape;
+  final double opacity;
+
+  Color _faded(Color c) => c.withValues(alpha: c.a * opacity);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final shape = RRect.fromRectAndRadius(
-      Offset.zero & size,
-      Radius.circular(radius),
-    );
     final shadow = Paint();
-    shadow.color = style.shadowColor;
+    shadow.color = _faded(style.shadowColor);
     shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 24);
     canvas.drawRRect(shape.shift(const Offset(0, 8)), shadow);
     final fill = Paint();
-    fill.color = style.platterColor;
+    fill.color = _faded(style.platterColor);
     canvas.drawRRect(shape, fill);
   }
 
   @override
   bool shouldRepaint(_PlatterPainter oldDelegate) =>
-      oldDelegate.style != style || oldDelegate.radius != radius;
+      oldDelegate.style != style ||
+      oldDelegate.shape != shape ||
+      oldDelegate.opacity != opacity;
 }
 
 class _AlertButton extends StatefulWidget {

@@ -661,6 +661,11 @@ Public pieces:
   overlaps a source by 3 pt rather than switching sides); a candidate
   whose slide brings the arrow within 48 pt (radius + half arrow) of a
   corner is skipped; least total slide wins (15/15 captured placements).
+  The alert's and the popover's glass fade through
+  `MorphGlassSurface.opacity` and the content through its own Opacity
+  above the glass (an Opacity above the glass read an empty backdrop:
+  a gray platter while fading); filmed against UIKit on the device,
+  references/alert-video/ (native top, ours bottom).
   Without a source an iPhone action sheet IS an alert (cancel last). NOT
   reproduced: the source button's tint dimming, the 0.7 s first popover
   present latency on the simulator, the arrow in the glass painter (the
@@ -728,6 +733,24 @@ Public pieces:
   66/106/243 light, 64/107/248 dark (not the accent); resting
   placeholder lighter than focused (149 vs 133 on 252 light, 110 vs 142
   on 32 dark); keyboardAppearance follows the brightness.
+  LEFTOVERS PASS (2026-10-03, device, ExtrasUITests.testX3Timing /
+  testX3Shots / testX3AlertVideo, morph's board via PROBE_BUNDLE):
+  KEYBOARD - UIKit's search text field reports autocorrectionType NO,
+  spellCheckingType default, capitalization by sentences, return key
+  Search; that pair keeps the prediction bar on screen but empty (328 pt
+  keyboard). Flutter's engine sets spellChecking from the same
+  `autocorrect` flag, and autocorrect false drops the bar (the keyboard
+  27 pt shorter, the focused field 27 pt lower than native - filmed), so
+  the field keeps autocorrect on (suggestions show in the bar: NOT
+  reproduced without an engine change) and asks for sentence
+  capitalization. TAB MORPH REVERSAL (films tm-*): a tap on the tab
+  circle while the morph into the field runs turns it around with its
+  velocity (UIKit, taps 0.125 and 0.225 s after the search tap; at 0.375
+  the keyboard covers the circle), so the tab circle takes taps whenever
+  searching until the close button shows (focus progress 0.5); a tap on
+  the search circle while the morph back runs is IGNORED by UIKit
+  (0.125 / 0.225 / 0.375 s), as ours always did. The reversal's start
+  latency was not readable (film clock), ours retargets at the lift.
 - DATE PICKER (date_picker.dart, date_picker_motion.dart; iOS 27
   simulator via XCUITest, fixtures ios27/date_picker): compact labels
   115 x 34.33 (date) / 70 x 36 (time) capsules, tertiarySystemFill,
@@ -762,14 +785,35 @@ Public pieces:
   the 200 x 32 band (ListWheelScrollView magnifier), on a true cylinder
   of radius 73.5 (Flutter's angle is dy*pi/H for diameterRatio < 1, so
   squeeze = 32.4*pi/(172*0.4405) restores arc = row; perspective
-  ~0), darkened toward the edges by cos^1.4 (ShaderMask), columns at
+  ~0), darkened toward the edges by a measured table
+  (`_WheelMetrics.fade`, ShaderMask: lossless device screenshots, digit
+  contrast per pixel row native over ours; rows at 31 / 57 / 72 pt show
+  0.34 / 0.24 / 0.05 of the band's contrast, ours now 0.34 / 0.24 /
+  0.06 - cos^1.4 gave 0.37 / 0.25 / 0.09), columns at
   73.5 / 148.5 pt, fast deceleration (a 64 pt drag turns two rows as on
   the device; the default physics turned six). Picking a day applies at once and keeps the overlay open;
   a tap outside (on touch-up) or Escape closes. Months page on a 0.3 s
   sine ease (2 px rms; UIScrollView's exact curve differs). Simplified:
   the calendar is drawn by morph (header, weekday initials, day grid,
   today tint, selected disc - geometry from the view tree), the time
-  wheels are ListWheelScrollViews (no 12-hour AM/PM column).
+  wheels are ListWheelScrollViews. 12-HOUR WHEELS (device,
+  en_US@hours=h12, tree dump + screenshots): hour 1..12 right-aligned
+  ending 51.33 pt in (55 in the band), minutes centered 110.67, AM/PM
+  left-aligned at 158 (156 in the band), same 232 x 204 platter; the
+  hour wheel crossing 11 <-> 12 flips AM/PM (7 AM +5 rows = 12 PM, back 3
+  = 9 AM); the flip's animation is not measured (200 ms ease, like the
+  accessibility steps). `use24HourFormat` null follows
+  MediaQuery.alwaysUse24HourFormat (the phone's 24-Hour Time).
+  QUICK SUCCESSION (device rows, fixtures tm-openclose-* /
+  tm-closeopen-*, the filler-stroke trick below): a tap outside while
+  the overlay opens turns the same overlay around from its value and
+  velocity, 0.037 s after the lift (`closeDelayWhileOpening`; from rest
+  0.055), even when the tap lifts before the opening started (0.003
+  scale rms with the open start fitted 0.131 - 0.146); a tap on the
+  label while it closes opens a NEW overlay from hidden 0.072 s after
+  the lift (`reopenDelay`) while the old one finishes its close (two
+  platters on screen) - the closing overlay no longer swallows that tap
+  (its outside Listener is IgnorePointer while leaving).
 - `MorphPageControl` (page_control.dart): dots 9.67/7.67 pt on a 17.67
   pitch, tap halves step on the lift, platter after 0.193 s of touch on
   a critically damped 0.100 s spring, out 0.032 s after the lift on
@@ -1457,8 +1501,14 @@ Public pieces:
   XCUIApplication.launchEnvironment into the Flutter app (hence the
   board). Other agents install the gallery under the same bundle id:
   reinstall the scenes app inside every lock session and check the
-  binary (`strings App.framework/App | grep tabauto`). Strokes of ONE
-  synthesized record start together, not one after another.
+  binary (`strings App.framework/App | grep tabauto`). TIMING TWO TAPS:
+  the synthesizer starts every stroke of ONE record at the previous
+  stroke's lift whatever its planned offset (logged touch rows; two
+  strokes planned at the same offset start together), and separate
+  synth calls are 0.2+ s apart - so a gap is a FILLER stroke held at an
+  inert point (ExtrasUITests.twoTaps: tap, filler held `gap` seconds,
+  tap; the gaps arrive to the millisecond). Films of a still scene are
+  dark-system on this phone: PROBE_DARK=0 does not force light.
 - READING UIKIT'S TUNING LIVE: enumerate classes with
   `objc_copyClassList` and walk the RAW pointer array (load each entry
   as an OpaquePointer, unsafeBitCast to AnyClass - Swift's typed view of

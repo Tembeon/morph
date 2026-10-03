@@ -16,7 +16,8 @@ import 'package:morph_example/gallery/liquid_glass.dart';
 /// of scene buttons the UI test taps by position: a row per scene
 /// ([scenes]: the toolbar search, the tab bar search without and with
 /// activation, the date, time and date-and-time pickers) 70 points apart
-/// from 150 points down, light at x 100 and dark at x 300. Every scene
+/// from 150 points down (the alert, action sheet and 12-hour time scenes
+/// follow the first six), light at x 100 and dark at x 300. Every scene
 /// keeps a spinner turning at the top trailing corner, as the probe's
 /// scenes do under PROBE_SPINNER, so the recorder never sees a still
 /// screen.
@@ -43,6 +44,9 @@ const List<String> scenes = [
   'date',
   'time',
   'both',
+  'alert',
+  'sheet',
+  'time12',
 ];
 
 Widget _scene(String name) => switch (name) {
@@ -50,6 +54,12 @@ Widget _scene(String name) => switch (name) {
   'search' => const _SearchPage(),
   'time' => const _DatePage(mode: MorphDatePickerMode.time),
   'both' => const _DatePage(mode: MorphDatePickerMode.dateAndTime),
+  'alert' => const _AlertPage(sheet: false),
+  'sheet' => const _AlertPage(sheet: true),
+  'time12' => const _DatePage(
+    mode: MorphDatePickerMode.time,
+    use24HourFormat: false,
+  ),
   _ => const _DatePage(mode: MorphDatePickerMode.date),
 };
 
@@ -253,9 +263,10 @@ class _TabPageState extends State<_TabPage> {
 /// top on the grouped background, 3 October 2026 7:41 as the value (what
 /// the probe's UTC picker shows) and as today.
 class _DatePage extends StatefulWidget {
-  const _DatePage({required this.mode});
+  const _DatePage({required this.mode, this.use24HourFormat});
 
   final MorphDatePickerMode mode;
+  final bool? use24HourFormat;
 
   @override
   State<_DatePage> createState() => _DatePageState();
@@ -279,8 +290,60 @@ class _DatePageState extends State<_DatePage> {
               child: MorphDatePicker(
                 value: _value,
                 mode: widget.mode,
+                use24HourFormat: widget.use24HourFormat,
                 today: DateTime(2026, 10, 3),
                 onChanged: (DateTime v) => setState(() => _value = v),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The probe's alert scene: a glass Show button 120 x 48 centered 600
+/// points down that presents an alert with OK, Delete and Cancel, or (with
+/// [sheet]) an action sheet popover anchored on the button.
+class _AlertPage extends StatelessWidget {
+  const _AlertPage({required this.sheet});
+
+  final bool sheet;
+
+  static const List<MorphAlertAction> _actions = [
+    MorphAlertAction(title: 'OK'),
+    MorphAlertAction(title: 'Delete', style: .destructive),
+    MorphAlertAction(title: 'Cancel', style: .cancel),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: galleryBackgroundColor(Theme.of(context).brightness),
+      body: Stack(
+        children: [
+          Positioned(
+            left: MediaQuery.sizeOf(context).width / 2 - 60,
+            top: 600 - 24,
+            width: 120,
+            height: 48,
+            child: Builder(
+              builder: (BuildContext anchor) => MorphGlassButton(
+                onPressed: () => sheet
+                    ? showMorphActionSheet(
+                        context,
+                        anchor: anchor,
+                        title: 'Title',
+                        message: 'A message for the alert.',
+                        actions: _actions,
+                      )
+                    : showMorphAlert(
+                        context,
+                        title: 'Title',
+                        message: 'A message for the alert.',
+                        actions: _actions,
+                      ),
+                child: const Text('Show'),
               ),
             ),
           ),

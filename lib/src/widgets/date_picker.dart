@@ -197,7 +197,14 @@ String _defaultTime(DateTime d, {required bool twentyFour}) {
 /// and extends toward the leading side; see [MorphDatePickerMotion] and
 /// [morphPlaceDatePicker]. While it is open the label's text takes the
 /// accent color. Choosing a day or turning a wheel calls [onChanged] at
-/// once and the overlay stays open; a tap outside or Escape closes it.
+/// once and the overlay stays open; a tap outside or Escape closes it,
+/// turning an overlay that still opens around. A tap on the label while
+/// the overlay closes opens a new one at once, as UIKit does, while the
+/// old one finishes its close.
+///
+/// In 12-hour time the wheels are the hour (1 to 12), the minute and AM/PM,
+/// as UIKit lays them out; the hour wheel turning past 11 and 12 switches
+/// AM and PM.
 ///
 /// The calendar shows one month with the chosen day filled and today
 /// tinted; the chevrons turn the month with a slide. The labels are
@@ -245,7 +252,8 @@ class MorphDatePicker extends StatefulWidget {
   final String Function(DateTime)? timeFormatter;
 
   /// Whether times use 24 hours; null follows the platform's
-  /// [MediaQueryData.alwaysUse24HourFormat].
+  /// [MediaQueryData.alwaysUse24HourFormat] (the device's 24-Hour Time
+  /// setting on iOS), as UIKit follows the locale's.
   final bool? use24HourFormat;
 
   /// The first column of the calendar, as a [DateTime] weekday.
@@ -268,6 +276,7 @@ enum _Part { date, time }
 
 class _MorphDatePickerState extends State<MorphDatePicker> {
   _Part? _open;
+  int _closing = 0;
   final Map<_Part, GlobalKey> _labels = {
     _Part.date: GlobalKey(debugLabel: 'date'),
     _Part.time: GlobalKey(debugLabel: 'time'),
@@ -302,6 +311,7 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
         part: part,
         label: rect,
         style: widget.style,
+        reopening: _closing > 0,
       ),
     );
     if (mounted) setState(() => _open = null);
@@ -482,13 +492,18 @@ class _DatePickerRoute extends PopupRoute<void> {
     required this.part,
     required this.label,
     required this.style,
+    required this.reopening,
   });
 
   final _MorphDatePickerState picker;
   final _Part part;
   final Rect label;
   final MorphDatePickerStyle? style;
+
+  /// Whether the overlay opens while an earlier one is still closing.
+  final bool reopening;
   _OverlayViewState? _view;
+  bool _closing = false;
 
   @override
   Color? get barrierColor => null;
@@ -519,6 +534,10 @@ class _DatePickerRoute extends PopupRoute<void> {
   bool didPop(void result) {
     final popped = super.didPop(result);
     controller?.stop();
+    if (!_closing) {
+      _closing = true;
+      picker._closing++;
+    }
     final view = _view;
     if (view == null || !view.mounted) {
       _finished();
@@ -529,6 +548,10 @@ class _DatePickerRoute extends PopupRoute<void> {
   }
 
   void _finished() {
+    if (_closing) {
+      _closing = false;
+      picker._closing--;
+    }
     final c = controller;
     if (c != null && !isActive && c.value != 0) c.value = 0;
   }
@@ -573,7 +596,12 @@ class _OverlayViewState extends State<_OverlayView>
   void initState() {
     super.initState();
     _route._view = this;
-    _motion.open(clock);
+    _motion.open(
+      clock,
+      delay: _route.reopening
+          ? MorphDatePickerTuning.reopenDelay
+          : MorphDatePickerTuning.openDelay,
+    );
     wake();
   }
 
@@ -630,7 +658,7 @@ class _OverlayViewState extends State<_OverlayView>
 
   void _leave() {
     if (_leaving) return;
-    _leaving = true;
+    setState(() => _leaving = true);
     _motion.close(clock);
     wake();
   }
@@ -767,21 +795,26 @@ class _OverlayViewState extends State<_OverlayView>
             return Stack(
               children: [
                 Positioned.fill(
-                  child: Listener(
-                    behavior: HitTestBehavior.opaque,
-                    onPointerDown: (PointerDownEvent e) => _outside = e.pointer,
-                    onPointerUp: (PointerUpEvent e) {
-                      if (e.pointer == _outside) {
-                        final other = _otherLabelAt(e.position);
-                        if (other == null) {
-                          _close();
-                        } else {
-                          _switchTo(other);
+                  child: IgnorePointer(
+                    ignoring: _leaving,
+                    child: Listener(
+                      behavior: HitTestBehavior.opaque,
+                      onPointerDown: (PointerDownEvent e) =>
+                          _outside = e.pointer,
+                      onPointerUp: (PointerUpEvent e) {
+                        if (e.pointer == _outside) {
+                          final other = _otherLabelAt(e.position);
+                          if (other == null) {
+                            _close();
+                          } else {
+                            _switchTo(other);
+                          }
                         }
-                      }
-                      _outside = null;
-                    },
-                    onPointerCancel: (PointerCancelEvent e) => _outside = null,
+                        _outside = null;
+                      },
+                      onPointerCancel: (PointerCancelEvent e) =>
+                          _outside = null,
+                    ),
                   ),
                 ),
                 ListenableBuilder(
@@ -1424,19 +1457,29 @@ class _TimeWheels extends StatefulWidget {
 
 class _TimeWheelsState extends State<_TimeWheels> {
   static const int _loops = 100;
+  static const Duration _step = Duration(milliseconds: 200);
+  static const Curve _stepCurve = Cubic(0.25, 0.1, 0.25, 1);
+  late final int _hourCount = widget.twentyFour ? 24 : 12;
+  late int _hourIndex =
+      _hourCount * (_loops ~/ 2) + widget.value.hour % _hourCount;
   late final FixedExtentScrollController _hours = FixedExtentScrollController(
-    initialItem: 24 * (_loops ~/ 2) + widget.value.hour,
+    initialItem: _hourIndex,
   );
   late final FixedExtentScrollController _minutes = FixedExtentScrollController(
     initialItem: 60 * (_loops ~/ 2) + widget.value.minute,
   );
+  late final FixedExtentScrollController _meridiem =
+      FixedExtentScrollController(initialItem: widget.value.hour < 12 ? 0 : 1);
   late int _hour = widget.value.hour;
   late int _minute = widget.value.minute;
+
+  bool get _pm => _hour >= 12;
 
   @override
   void dispose() {
     _hours.dispose();
     _minutes.dispose();
+    _meridiem.dispose();
     super.dispose();
   }
 
@@ -1447,8 +1490,33 @@ class _TimeWheelsState extends State<_TimeWheels> {
 
   String _hourText(int h) {
     if (widget.twentyFour) return _two(h);
-    final twelve = h % 12 == 0 ? 12 : h % 12;
-    return '$twelve';
+    return h == 0 ? '12' : '$h';
+  }
+
+  void _hourChanged(int index) {
+    if (widget.twentyFour) {
+      setState(() => _hour = index % 24);
+      _emit();
+      return;
+    }
+    final crossed = index ~/ 12 - _hourIndex ~/ 12;
+    _hourIndex = index;
+    var pm = _pm;
+    if (crossed.isOdd) {
+      pm = !pm;
+      if (_meridiem.hasClients) {
+        _meridiem.animateToItem(pm ? 1 : 0, duration: _step, curve: _stepCurve);
+      }
+    }
+    setState(() => _hour = index % 12 + (pm ? 12 : 0));
+    _emit();
+  }
+
+  void _meridiemChanged(int index) {
+    final pm = index == 1;
+    if (pm == _pm) return;
+    setState(() => _hour = _hour % 12 + (pm ? 12 : 0));
+    _emit();
   }
 
   Widget _wheel({
@@ -1458,26 +1526,35 @@ class _TimeWheelsState extends State<_TimeWheels> {
     required int selected,
     required ValueChanged<int> onSelected,
     required String label,
+    bool looping = true,
+    AlignmentGeometry alignment = Alignment.center,
+    EdgeInsetsGeometry padding = EdgeInsets.zero,
   }) {
     final style = widget.style;
     final row = MorphTypography.resolve(
       TextStyle(fontSize: _WheelMetrics.fontSize, color: style.wheelColor),
     );
+    final up = looping || selected + 1 < count;
+    final down = looping || selected > 0;
     return Semantics(
       label: label,
       value: text(selected),
-      increasedValue: text((selected + 1) % count),
-      decreasedValue: text((selected - 1) % count),
-      onIncrease: () => controller.animateToItem(
-        controller.selectedItem + 1,
-        duration: const Duration(milliseconds: 200),
-        curve: const Cubic(0.25, 0.1, 0.25, 1),
-      ),
-      onDecrease: () => controller.animateToItem(
-        controller.selectedItem - 1,
-        duration: const Duration(milliseconds: 200),
-        curve: const Cubic(0.25, 0.1, 0.25, 1),
-      ),
+      increasedValue: up ? text((selected + 1) % count) : null,
+      decreasedValue: down ? text((selected - 1) % count) : null,
+      onIncrease: up
+          ? () => controller.animateToItem(
+              controller.selectedItem + 1,
+              duration: _step,
+              curve: _stepCurve,
+            )
+          : null,
+      onDecrease: down
+          ? () => controller.animateToItem(
+              controller.selectedItem - 1,
+              duration: _step,
+              curve: _stepCurve,
+            )
+          : null,
       child: ExcludeSemantics(
         child: ListWheelScrollView.useDelegate(
           controller: controller,
@@ -1493,14 +1570,18 @@ class _TimeWheelsState extends State<_TimeWheels> {
               decelerationRate: ScrollDecelerationRate.fast,
             ),
           ),
-          onSelectedItemChanged: (int i) => onSelected(i % count),
+          onSelectedItemChanged: onSelected,
           childDelegate: ListWheelChildBuilderDelegate(
-            childCount: count * _loops,
-            builder: (BuildContext context, int i) => Center(
-              child: Text(
-                text(i % count),
-                textScaler: TextScaler.noScaling,
-                style: row,
+            childCount: looping ? count * _loops : count,
+            builder: (BuildContext context, int i) => Padding(
+              padding: padding,
+              child: Align(
+                alignment: alignment,
+                child: Text(
+                  text(i % count),
+                  textScaler: TextScaler.noScaling,
+                  style: row,
+                ),
               ),
             ),
           ),
@@ -1509,9 +1590,20 @@ class _TimeWheelsState extends State<_TimeWheels> {
     );
   }
 
+  Widget _column(_WheelColumn column, Widget wheel) => Positioned(
+    left: column.left - _WheelMetrics.inset,
+    width: column.width,
+    top: 0,
+    bottom: 0,
+    child: wheel,
+  );
+
   @override
   Widget build(BuildContext context) {
     final style = widget.style;
+    final twelve = !widget.twentyFour;
+    final hour = twelve ? _WheelMetrics.hour12 : _WheelMetrics.hour24;
+    final minute = twelve ? _WheelMetrics.minute12 : _WheelMetrics.minute24;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: _WheelMetrics.inset,
@@ -1531,42 +1623,62 @@ class _TimeWheelsState extends State<_TimeWheels> {
               ),
             ),
           ),
-          ShaderMask(
-            blendMode: BlendMode.dstIn,
-            shaderCallback: _WheelMetrics.shade,
-            child: Row(
-              children: [
-                const SizedBox(width: _WheelMetrics.lead),
-                SizedBox(
-                  width: _WheelMetrics.column,
-                  child: _wheel(
-                    controller: _hours,
-                    count: 24,
-                    text: _hourText,
-                    selected: _hour,
-                    label: 'Hour',
-                    onSelected: (int h) {
-                      setState(() => _hour = h);
-                      _emit();
-                    },
+          Positioned.fill(
+            child: ShaderMask(
+              blendMode: BlendMode.dstIn,
+              shaderCallback: _WheelMetrics.shade,
+              child: Stack(
+                children: [
+                  _column(
+                    hour,
+                    _wheel(
+                      controller: _hours,
+                      count: _hourCount,
+                      text: _hourText,
+                      selected: _hour % _hourCount,
+                      label: 'Hour',
+                      alignment: twelve
+                          ? Alignment.centerRight
+                          : Alignment.center,
+                      padding: EdgeInsets.only(
+                        right: twelve ? _WheelMetrics.hour12End : 0,
+                      ),
+                      onSelected: _hourChanged,
+                    ),
                   ),
-                ),
-                const SizedBox(width: _WheelMetrics.gap),
-                SizedBox(
-                  width: _WheelMetrics.column,
-                  child: _wheel(
-                    controller: _minutes,
-                    count: 60,
-                    text: _two,
-                    selected: _minute,
-                    label: 'Minute',
-                    onSelected: (int m) {
-                      setState(() => _minute = m);
-                      _emit();
-                    },
+                  _column(
+                    minute,
+                    _wheel(
+                      controller: _minutes,
+                      count: 60,
+                      text: _two,
+                      selected: _minute,
+                      label: 'Minute',
+                      onSelected: (int m) {
+                        setState(() => _minute = m % 60);
+                        _emit();
+                      },
+                    ),
                   ),
-                ),
-              ],
+                  if (twelve)
+                    _column(
+                      _WheelMetrics.meridiem,
+                      _wheel(
+                        controller: _meridiem,
+                        count: 2,
+                        looping: false,
+                        text: (int i) => i == 0 ? 'AM' : 'PM',
+                        selected: _pm ? 1 : 0,
+                        label: 'AM/PM',
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.only(
+                          left: _WheelMetrics.meridiemStart,
+                        ),
+                        onSelected: _meridiemChanged,
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],
@@ -1574,6 +1686,9 @@ class _TimeWheelsState extends State<_TimeWheels> {
     );
   }
 }
+
+/// A wheel's box across the platter, from its leading edge.
+typedef _WheelColumn = ({double left, double width});
 
 /// The layout of the time wheels, read from UIKit's views on an iPhone 16
 /// Pro (232 x 204 platter): the column view 218 x 172 inside, the band 200
@@ -1587,44 +1702,89 @@ abstract final class _WheelMetrics {
   static const double band = 32;
   static const double bandInset = 9;
   static const double column = 72;
-  static const double lead = 73.5 - inset - column / 2;
-  static const double gap = 148.5 - 73.5 - column;
+
+  /// The 24-hour hour wheel, labels centered 73.5 points in.
+  static const _WheelColumn hour24 = (left: 73.5 - column / 2, width: column);
+
+  /// The 24-hour minute wheel, labels centered 148.5 points in.
+  static const _WheelColumn minute24 = (
+    left: 148.5 - column / 2,
+    width: column,
+  );
+
+  /// The 12-hour hour wheel: its numbers end 51.33 points in (55 at the
+  /// band's size), so one and two digits share their trailing edge; the
+  /// box reaches past them so the band's magnified numbers are not cut.
+  static const _WheelColumn hour12 = (left: 0, width: 60);
+
+  /// The space after the 12-hour hour numbers in [hour12].
+  static const double hour12End = 60 - 51.33;
+
+  /// The 12-hour minute wheel, labels centered 110.67 points in.
+  static const _WheelColumn minute12 = (left: 110.67 - 30, width: 60);
+
+  /// The AM/PM wheel: its labels start 158 points in (156 at the band's
+  /// size), [meridiemStart] into a box wide enough for the band's
+  /// magnified labels.
+  static const _WheelColumn meridiem = (left: 150, width: 56);
+
+  /// The space before the AM/PM labels in [meridiem].
+  static const double meridiemStart = 158 - 150;
   static const double diameterRatio = 2 * 73.5 / 172;
   static const double perspective = 0.0001;
   static const double squeeze = row * math.pi / (172 * 0.4405);
   static const double fontSize = 21;
   static const double magnification = 23.5 / 21;
 
-  /// The radius of the cylinder the rows sit on.
-  static const double radius = 73.5;
+  /// How much of the rows outside the band shows, by distance from the
+  /// band's center: (distance, alpha) pairs, linear between them, on top
+  /// of the wheels' faded opacity.
+  ///
+  /// Read from lossless screenshots of the wheels on an iPhone 16 Pro
+  /// (dark, 07:41): the contrast of each pixel row of the digits against
+  /// the platter, native over ours, times the mask that drew ours; the
+  /// rows then show 0.33, 0.22 and 0.05 of the band's contrast at 31, 57
+  /// and 72 points out.
+  static const List<(double, double)> fade = [
+    (16, 1),
+    (22, 0.86),
+    (26, 0.855),
+    (30, 0.83),
+    (34, 0.815),
+    (38, 0.81),
+    (52, 0.62),
+    (55, 0.55),
+    (58, 0.455),
+    (61, 0.39),
+    (70, 0.15),
+    (72, 0.1),
+    (86, 0),
+  ];
 
-  /// How fast the rows outside the band darken toward the cylinder's
-  /// edges: their opacity falls as the cosine of their angle to this
-  /// power (screen recording: 0.36, 0.25 and 0.06 of black on the platter
-  /// at 31, 57 and 72 points out, where the labels report 0.447).
-  static const double shadePower = 1.4;
+  static double _fadeAt(double y) {
+    final d = y.abs();
+    if (d <= fade.first.$1) return 1;
+    for (var i = 1; i < fade.length; i++) {
+      final (x1, a1) = fade[i];
+      if (d <= x1) {
+        final (x0, a0) = fade[i - 1];
+        return a0 + (a1 - a0) * (d - x0) / (x1 - x0);
+      }
+    }
+    return fade.last.$2;
+  }
 
   /// The mask that darkens the rows toward the cylinder's edges, over the
   /// wheels' box: opaque inside the band.
   static Shader shade(Rect rect) {
     final half = rect.height / 2;
-    const steps = 24;
-    double cosAt(double y) {
-      final s = (y / radius).clamp(-1.0, 1.0);
-      return math.sqrt(1 - s * s);
-    }
-
-    final edge = cosAt(band / 2);
+    const steps = 86;
     final stops = <double>[];
     final colors = <Color>[];
     for (var i = 0; i <= steps; i++) {
       final f = i / steps;
-      final y = (f * 2 - 1) * half;
-      final a = y.abs() <= band / 2
-          ? 1.0
-          : math.pow(cosAt(y) / edge, shadePower).toDouble().clamp(0.0, 1.0);
       stops.add(f);
-      colors.add(Color.fromRGBO(0, 0, 0, a));
+      colors.add(Color.fromRGBO(0, 0, 0, _fadeAt((f * 2 - 1) * half)));
     }
     return LinearGradient(
       begin: Alignment.topCenter,

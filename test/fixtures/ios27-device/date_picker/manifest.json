@@ -7,7 +7,13 @@
   "files": {
     "vid-date.jsonl": "picker centered 300 pt from the top: a 0.6 s press on the label (opens on the lift), month paging, a day, a tap outside (close), then synthesized open/close strokes (one record fires its strokes together - only the last open and its close are usable)",
     "vid-both.jsonl": "date-and-time picker: the date label opens the calendar, a tap on the time label turns the open overlay into the wheels, a tap outside closes",
-    "wheels.json": "the time overlay's labels at rest: rows fs 21 at ea 0.447 outside the band, fs 23.5 inside it, the band 200 x 32"
+    "wheels.json": "the time overlay's labels at rest: rows fs 21 at ea 0.447 outside the band, fs 23.5 inside it, the band 200 x 32",
+    "tm-openclose-050.jsonl": "(2026-10-03 leftovers pass, ExtrasUITests.testX3Timing) a tap on the label, a filler stroke held 0.05 s at an inert point, a tap outside while the overlay opens; rows: touch, V (id, sx, a, bh) of _UIDatePickerOverlayPlatterView",
+    "tm-closeopen-050.jsonl": "(same pass) an open overlay, a tap outside, a filler held 0.05 s, a tap on the label while it closes: a NEW platter (second id) opens while the first finishes its close",
+    "tm-openclose-150.jsonl": "(2026-10-03 leftovers pass, ExtrasUITests.testX3Timing) a tap on the label, a filler stroke held 0.15 s at an inert point, a tap outside while the overlay opens; rows: touch, V (id, sx, a, bh) of _UIDatePickerOverlayPlatterView",
+    "tm-closeopen-150.jsonl": "(same pass) an open overlay, a tap outside, a filler held 0.15 s, a tap on the label while it closes: a NEW platter (second id) opens while the first finishes its close",
+    "tm-openclose-300.jsonl": "(2026-10-03 leftovers pass, ExtrasUITests.testX3Timing) a tap on the label, a filler stroke held 0.30 s at an inert point, a tap outside while the overlay opens; rows: touch, V (id, sx, a, bh) of _UIDatePickerOverlayPlatterView",
+    "tm-closeopen-300.jsonl": "(same pass) an open overlay, a tap outside, a filler held 0.30 s, a tap on the label while it closes: a NEW platter (second id) opens while the first finishes its close"
   },
   "units": "points (pt), window coordinates, seconds on the device media clock"
 }

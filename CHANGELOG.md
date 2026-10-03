@@ -861,6 +861,27 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   `wheelFadedOpacity`. Not reproduced: UIKit's empty prediction bar on
   the search keyboard, and a tap on the tab circle during the tab
   morph (ignored here; the device capture could not time one).
+- The search and date picker leftovers, measured on the iPhone 16 Pro.
+  The tab bar's tab circle takes a tap while the morph into the search
+  field still runs and turns the morph around with its velocity, as
+  UIKit does (the search circle keeps ignoring taps while the morph
+  back runs, as UIKit does too). The search field asks for sentence
+  capitalization like UIKit's; UIKit's empty prediction bar (autocorrect
+  off, spell checking on) cannot be asked for through Flutter's engine,
+  which ties both to one flag, and dropping the bar would lower the
+  focused field 27 points, so the bar keeps its suggestions. The date
+  picker: a tap outside while the overlay opens turns it around 0.037 s
+  after the lift (new `MorphDatePickerTuning.closeDelayWhileOpening`),
+  a tap on the label while it closes opens a new overlay 0.072 s after
+  the lift while the old one finishes (new
+  `MorphDatePickerTuning.reopenDelay`; before, the closing overlay
+  swallowed the tap); 12-hour time gets UIKit's AM/PM wheel, the hour
+  wheel 1 - 12 with right-aligned numbers, and AM/PM flips as the hours
+  pass 11 and 12; the rows beside the band fade by a table read from
+  device screenshots (they showed 9 percent more contrast than UIKit's).
+  Alerts and action sheet popovers fade their glass through
+  `MorphGlassSurface.opacity` instead of an opacity layer: no gray
+  platter while they appear and leave.
 - A flight's scrim can run on springs of its own: `scrimMotion:
   MorphScrimMotion(motion:, openDelay:, closeDelay:)` on `showMorph` and
   `MorphFlight.launch`. The scrim then follows the flight's open / close

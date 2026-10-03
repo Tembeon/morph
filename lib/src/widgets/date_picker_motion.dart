@@ -38,6 +38,19 @@ abstract final class MorphDatePickerTuning {
   /// closing spring (an iPhone 16 Pro: 0.052 and 0.062 s).
   static const double closeDelay = 0.055;
 
+  /// The time from the lift of the tap outside to the start of the
+  /// closing spring while the overlay is still opening: the close turns
+  /// the opening around from its value and velocity (an iPhone 16 Pro,
+  /// taps 0.05 - 0.3 s after the opening tap: 0.030, 0.042 and 0.038 s,
+  /// 0.003 rms of the scale with the springs unchanged).
+  static const double closeDelayWhileOpening = 0.037;
+
+  /// The time from the lift of a tap on the label to the start of the
+  /// open while the previous overlay is still closing: UIKit opens a new
+  /// overlay from its hidden state and lets the old one finish its close
+  /// (an iPhone 16 Pro, taps 0.05 - 0.3 s into the close: 0.072 s).
+  static const double reopenDelay = 0.072;
+
   /// The time from the lift of the tap on the other label to the start of
   /// the [switchSpring] (an iPhone 16 Pro: 0.088 s).
   static const double switchDelay = 0.088;
@@ -258,11 +271,23 @@ class MorphDatePickerMotion {
   }
 
   /// Closes the overlay at time [t], the spring starting [delay] seconds
-  /// later ([MorphDatePickerTuning.closeDelay] by default).
-  void close(double t, {double delay = MorphDatePickerTuning.closeDelay}) {
+  /// later: by default [MorphDatePickerTuning.closeDelay] from rest and
+  /// [MorphDatePickerTuning.closeDelayWhileOpening] while the overlay
+  /// still opens.
+  void close(double t, {double? delay}) {
     advance(t);
+    final spring = _spring(t);
+    final opening = _pendingAt != null || !spring.isAtRest(t, 0.002);
     _open = false;
-    _schedule(t + delay, 0, MorphDatePickerTuning.closeSpring);
+    _schedule(
+      t +
+          (delay ??
+              (opening
+                  ? MorphDatePickerTuning.closeDelayWhileOpening
+                  : MorphDatePickerTuning.closeDelay)),
+      0,
+      MorphDatePickerTuning.closeSpring,
+    );
   }
 
   double? _pendingAt;

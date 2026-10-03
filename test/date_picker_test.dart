@@ -283,6 +283,76 @@ void main() {
       },
     );
 
+    for (final gap in ['050', '150', '300']) {
+      test('a tap outside while it opens turns it around (gap $gap)', () {
+        final rows = load('tm-openclose-$gap.jsonl');
+        final lifts = ups(rows);
+        // UIKit's open latency varies by a frame from tap to tap (0.131 -
+        // 0.146 s here); it is fitted, the close is not.
+        List<double> errors(double openAt) {
+          final m = MorphDatePickerMotion();
+          m.open(lifts.first, delay: openAt - lifts.first);
+          m.close(lifts.last);
+          final out = <double>[];
+          for (final r in rows) {
+            if (r['k'] != 'V') continue;
+            final t = _d(r, 't');
+            // One row per capture reads the platter's hidden state
+            // mid-flight (a presentation-layer artifact).
+            if (t < lifts.first + 0.1 ||
+                (_d(r, 'sx') == 0.2 && t > lifts.first + 0.16)) {
+              continue;
+            }
+            out.add(m.scale(t) - _d(r, 'sx'));
+            out.add(m.opacity(t) - _d(r, 'a').clamp(0.0, 1.0));
+          }
+          return out;
+        }
+
+        final (openAt, rms) = _fit(lifts.first + 0.1, 0.07, errors);
+        expect(errors(openAt).length, greaterThan(60));
+        expect(openAt - lifts.first, closeTo(0.14, 0.012));
+        expect(rms, lessThan(0.015));
+      });
+
+      test('a tap on the label while it closes opens a new one (gap $gap)', () {
+        final rows = load('tm-closeopen-$gap.jsonl');
+        final lifts = ups(rows);
+        final closeUp = lifts[1];
+        final reopenUp = lifts[lifts.length - 2];
+        final ids = <int>[];
+        for (final r in rows) {
+          if (r['k'] == 'V' && !ids.contains(r['id'])) ids.add(r['id']! as int);
+        }
+        final old = MorphDatePickerMotion();
+        old.open(lifts.first);
+        old.close(closeUp);
+        final fresh = MorphDatePickerMotion();
+        fresh.open(reopenUp, delay: MorphDatePickerTuning.reopenDelay);
+        final closing = <double>[];
+        final opening = <double>[];
+        for (final r in rows) {
+          if (r['k'] != 'V') continue;
+          final t = _d(r, 't');
+          if (t < closeUp + MorphDatePickerTuning.closeDelay ||
+              t > reopenUp + 1) {
+            continue;
+          }
+          if (r['id'] == ids.first) {
+            if (t > closeUp + 0.04 && _d(r, 'sx') == 0.2) continue;
+            closing.add(old.scale(t) - _d(r, 'sx'));
+          } else {
+            opening.add(fresh.scale(t) - _d(r, 'sx'));
+            opening.add(fresh.opacity(t) - _d(r, 'a').clamp(0.0, 1.0));
+          }
+        }
+        expect(closing.length, greaterThan(20));
+        expect(opening.length, greaterThan(60));
+        expect(_rms(closing), lessThan(0.02));
+        expect(_rms(opening), lessThan(0.02));
+      });
+    }
+
     test('the other label turns the overlay on a 0.25 s spring', () {
       final rows = load('vid-both.jsonl');
       final lifts = ups(rows);
@@ -379,6 +449,39 @@ void main() {
       expect(picked.single, DateTime(2026, 10, 15, 9, 41));
       expect(find.text('October 2026'), findsOneWidget);
       expect(find.text('Oct 15, 2026'), findsOneWidget);
+      await tester.tapAt(const Offset(220, 900));
+      await tester.pumpAndSettle();
+      expect(find.text('October 2026'), findsNothing);
+    });
+
+    testWidgets('a tap on the label while it closes opens a new overlay', (
+      tester,
+    ) async {
+      await pump(tester, onChanged: (_) {});
+      await tester.tap(find.text('Oct 3, 2026'));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(220, 900));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 150));
+      expect(find.text('October 2026'), findsOneWidget);
+      await tester.tap(find.text('Oct 3, 2026'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.text('October 2026'), findsNWidgets(2));
+      await tester.pumpAndSettle();
+      expect(find.text('October 2026'), findsOneWidget);
+      final label = tester.widget<Text>(find.text('Oct 3, 2026'));
+      expect(label.style?.color, MorphDatePickerStyle.light.accentColor);
+      await tester.tapAt(const Offset(220, 900));
+      await tester.pumpAndSettle();
+      expect(find.text('October 2026'), findsNothing);
+    });
+
+    testWidgets('a tap outside while it opens closes it', (tester) async {
+      await pump(tester, onChanged: (_) {});
+      await tester.tap(find.text('Oct 3, 2026'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
       await tester.tapAt(const Offset(220, 900));
       await tester.pumpAndSettle();
       expect(find.text('October 2026'), findsNothing);
@@ -661,6 +764,96 @@ void main() {
         tester.getRect(find.text('41').last).center.dx,
         closeTo(16 + 148.5, 0.5),
       );
+    });
+  });
+
+  group('MorphDatePicker 12-hour wheels', () {
+    Future<List<DateTime>> open(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(402, 874));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final changes = <DateTime>[];
+      var value = DateTime(2026, 10, 3, 7, 41);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) => Align(
+              alignment: const Alignment(0, -0.3135),
+              child: MorphDatePicker(
+                value: value,
+                mode: MorphDatePickerMode.time,
+                use24HourFormat: false,
+                onChanged: (DateTime v) {
+                  changes.add(v);
+                  setState(() => value = v);
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('7:41 AM'));
+      await tester.pumpAndSettle();
+      return changes;
+    }
+
+    testWidgets('an AM/PM wheel sits where UIKit puts it', (tester) async {
+      await open(tester);
+      expect(find.byType(ListWheelScrollView), findsNWidgets(3));
+      // UIKit's labels on an iPhone 16 Pro (en_US@hours=h12, platter at
+      // 16): hours end 51.33 points in, minutes centered 110.67, AM and PM
+      // start 158.
+      expect(
+        tester.getRect(find.text('8').last).right,
+        closeTo(16 + 51.33, 0.5),
+      );
+      expect(
+        tester.getRect(find.text('6').last).right,
+        closeTo(16 + 51.33, 0.5),
+      );
+      expect(
+        tester.getRect(find.text('42').last).center.dx,
+        closeTo(16 + 110.67, 0.5),
+      );
+      expect(tester.getRect(find.text('PM')).left, closeTo(16 + 158, 0.5));
+      final am = tester.getRect(find.text('AM'));
+      expect(
+        am.center.dy,
+        closeTo(tester.getRect(find.text('41').last).center.dy, 1),
+      );
+    });
+
+    testWidgets('the hour wheel turns AM into PM between 11 and 12', (
+      tester,
+    ) async {
+      final changes = await open(tester);
+      final hour = tester.getCenter(find.text('7').last);
+      await tester.timedDragFrom(
+        hour,
+        const Offset(0, -5 * 32.4),
+        const Duration(seconds: 1),
+      );
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2026, 10, 3, 12, 41));
+      expect(find.text('12:41 PM'), findsOneWidget);
+      await tester.timedDragFrom(
+        hour,
+        const Offset(0, 3 * 32.4),
+        const Duration(seconds: 1),
+      );
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2026, 10, 3, 9, 41));
+      expect(find.text('9:41 AM'), findsOneWidget);
+    });
+
+    testWidgets('the AM/PM wheel moves twelve hours', (tester) async {
+      final changes = await open(tester);
+      await tester.timedDragFrom(
+        tester.getCenter(find.text('AM')),
+        const Offset(0, -32.4),
+        const Duration(milliseconds: 600),
+      );
+      await tester.pumpAndSettle();
+      expect(changes.last, DateTime(2026, 10, 3, 19, 41));
     });
   });
 

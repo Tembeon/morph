@@ -262,6 +262,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
       maxLines: 1,
       textInputAction: TextInputAction.search,
       keyboardAppearance: brightness,
+      textCapitalization: TextCapitalization.sentences,
       rendererIgnoresPointer: true,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,

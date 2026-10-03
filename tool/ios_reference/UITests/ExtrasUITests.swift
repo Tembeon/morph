@@ -24,8 +24,10 @@ final class ExtrasUITests: XCTestCase {
         Thread.sleep(forTimeInterval: 2.5)
         if let bundle = env["PROBE_BUNDLE"], !bundle.isEmpty {
             // morph's search_date_scenes.dart board: a row per scene, light at x 100, dark at x 300.
-            let scenes = ["search", "tab", "tabauto", "date", "time", "both"]
-            let key = scene == "x3search" ? (extra["PROBE_SEARCH"] ?? "toolbar") : (extra["PROBE_DMODE"] ?? "date")
+            let scenes = ["search", "tab", "tabauto", "date", "time", "both", "alert", "sheet", "time12"]
+            var key = scene == "x3search" ? (extra["PROBE_SEARCH"] ?? "toolbar") : (extra["PROBE_DMODE"] ?? "date")
+            if scene == "x3alert" { key = extra["PROBE_ALERT"] ?? "alert" }
+            if key == "time", extra["PROBE_LOCALE"]?.contains("h12") == true { key = "time12" }
             let row = scenes.firstIndex(of: key == "toolbar" ? "search" : key) ?? 0
             tap(p(extra["PROBE_DARK"] == "1" ? 300 : 100, 150 + 70 * CGFloat(row)))
             Thread.sleep(forTimeInterval: 1.5)
@@ -255,6 +257,120 @@ final class ExtrasUITests: XCTestCase {
                 tap(p(s.width / 2 - 37, 300)); pause(1.4)
                 tap(p(s.width / 2 + 59.5, 300)); pause(1.6)
                 tap(p(s.width / 2, s.height - 120)); pause(1.4)
+            }
+        }
+    }
+
+    // MARK: timing, keyboard, wheels and alert passes (device; PROBE_BUNDLE runs them on morph's board)
+
+    /// One tap as a stroke starting `at` seconds into its record.
+    private func tapStroke(_ q: CGPoint, at: Double, hold: Double = 0.06) -> Stroke {
+        Stroke(points: [(at, q)], liftAt: at + hold)
+    }
+
+    /// Two taps in ONE synthesized record, the second starting `gap` seconds after the
+    /// first lifts. The synthesizer starts every stroke of a record at the previous
+    /// stroke's lift whatever its planned offset, so the gap is a FILLER stroke held
+    /// `gap` seconds at the inert point `filler` (the logged touch rows tell what was
+    /// delivered).
+    private func twoTaps(_ a: CGPoint, _ b: CGPoint, gap: Double, filler: CGPoint, name: String) {
+        let lift = 0.0667
+        synth([tapStroke(a, at: 0, hold: lift),
+               Stroke(points: [(lift + 0.01, filler)], liftAt: lift + 0.01 + gap),
+               tapStroke(b, at: lift + 0.02 + gap, hold: lift)], name: name)
+    }
+
+    func testX3Timing() {
+        let gaps = (env["PROBE_GAPS"] ?? "0.12,0.25").split(separator: ",").compactMap { Double($0) }
+        for gap in gaps {
+            let g = String(format: "%03d", Int((gap * 1000).rounded()))
+            capture("tm-tab-in-\(g)", scene: "x3search", extra: ["PROBE_SEARCH": "tabauto"], settle: 1.0) {
+                let s = screen
+                twoTaps(p(s.width - 52, s.height - 52), p(52, s.height - 52), gap: gap, filler: p(s.width / 2, 110), name: "tabin")
+                pause(2.5)
+            }
+            capture("tm-tab-out-\(g)", scene: "x3search", extra: ["PROBE_SEARCH": "tabauto"], settle: 1.0) {
+                let s = screen
+                tap(p(s.width - 52, s.height - 52)); pause(2.2)
+                closeSearch(); pause(1.8)
+                twoTaps(p(52, s.height - 52), p(s.width - 52, s.height - 52), gap: gap, filler: p(s.width / 2, 110), name: "tabout")
+                pause(2.5)
+            }
+            capture("tm-date-oc-\(g)", scene: "x3date", settle: 1.0) {
+                let s = screen
+                twoTaps(p(s.width / 2, 300), p(s.width / 2, s.height - 120), gap: gap, filler: p(s.width / 2, 150), name: "openclose")
+                pause(2.0)
+            }
+            capture("tm-date-co-\(g)", scene: "x3date", settle: 1.0) {
+                let s = screen
+                tap(p(s.width / 2, 300)); pause(1.4)
+                twoTaps(p(s.width / 2, s.height - 120), p(s.width / 2, 300), gap: gap, filler: p(s.width / 2, 150), name: "closeopen")
+                pause(2.0)
+                tap(p(s.width / 2, s.height - 120)); pause(1.4)
+            }
+        }
+    }
+
+    private func logWheels(_ tag: String) {
+        for (i, w) in app.pickerWheels.allElementsBoundByIndex.enumerated() {
+            NSLog("PROBE wheel \(tag) \(i) \(w.frame) value=\(w.value as? String ?? "?")")
+        }
+    }
+
+    /// Still screenshots (lossless attachments) of the search keyboard and the time wheels,
+    /// and the 12-hour wheels' behaviour (drags through 12 and on the AM/PM column).
+    func testX3Shots() {
+        let modes = (env["PROBE_VIDEO_DARK"]).flatMap { $0.isEmpty ? nil : [$0] } ?? ["0", "1"]
+        for dark in modes {
+            let tag = dark == "1" ? "-dark" : ""
+            capture("kb-search\(tag)", scene: "x3search", extra: ["PROBE_SEARCH": "toolbar", "PROBE_TBITEMS": "1", "PROBE_DARK": dark], settle: 0.5) {
+                let s = screen
+                tap(p(s.width / 2, s.height - 52), hold: 0.08); pause(2.0); shot("kb-empty\(tag)")
+                app.typeText("It"); pause(1.2); shot("kb-typed\(tag)")
+                closeSearch(); pause(1.2)
+            }
+            capture("wh-24\(tag)", scene: "x3date", extra: ["PROBE_DMODE": "time", "PROBE_DARK": dark], settle: 0.5) {
+                let s = screen
+                tap(p(s.width / 2, 300)); pause(1.6); shot("wheels-24\(tag)"); logWheels("24\(tag)")
+                tap(p(s.width / 2, s.height - 120)); pause(1.2)
+            }
+            capture("wh-12\(tag)", scene: "x3date", extra: ["PROBE_DMODE": "time", "PROBE_DARK": dark, "PROBE_LOCALE": "en_US@hours=h12", "PROBE_SCRIPT": "tree-wh12\(tag)@4.6"], settle: 0.5) {
+                let s = screen
+                tap(p(s.width / 2, 300)); pause(1.6); shot("wheels-12\(tag)"); logWheels("12\(tag)")
+                if dark == "0" {
+                    let wheels = app.pickerWheels.allElementsBoundByIndex
+                    if wheels.count >= 3 {
+                        let h = wheels[0].frame, ap = wheels[2].frame
+                        // hours 7 -> 12 and past: five rows up, slowly, held before the lift
+                        path(p(h.midX, h.midY + 40), pressFor: 0.05, [(p(h.midX, h.midY + 40 - 162), 1.2, 0.4)]); pause(1.6)
+                        shot("wheels-12-hour"); logWheels("12-hour")
+                        path(p(ap.midX, ap.midY + 20), pressFor: 0.05, [(p(ap.midX, ap.midY + 20 - 34), 0.5, 0.3)]); pause(1.6)
+                        shot("wheels-12-ampm"); logWheels("12-ampm")
+                        path(p(h.midX, h.midY - 40), pressFor: 0.05, [(p(h.midX, h.midY - 40 + 96), 0.8, 0.4)]); pause(1.6)
+                        shot("wheels-12-back"); logWheels("12-back")
+                    }
+                }
+                tap(p(s.width / 2, s.height - 120)); pause(1.2)
+            }
+        }
+    }
+
+    /// The alert and the action sheet popover appearing and leaving (film it): the Show
+    /// button at the scene's center x, 600 pt down.
+    func testX3AlertVideo() {
+        let modes = (env["PROBE_VIDEO_DARK"]).flatMap { $0.isEmpty ? nil : [$0] } ?? ["0", "1"]
+        for dark in modes {
+            let tag = dark == "1" ? "-dark" : ""
+            capture("vid-alert\(tag)", scene: "x3alert", extra: ["PROBE_DARK": dark], settle: 0.8) {
+                let s = screen
+                let cy = (62 + s.height - 34) / 2
+                tap(p(s.width / 2, 600)); pause(1.6); shot("alert-open\(tag)")
+                tap(p(s.width / 2, cy + 92)); pause(1.4)
+            }
+            capture("vid-ash\(tag)", scene: "x3alert", extra: ["PROBE_ALERT": "sheet", "PROBE_DARK": dark], settle: 0.8) {
+                let s = screen
+                tap(p(s.width / 2, 600)); pause(1.6); shot("ash-open\(tag)")
+                tap(p(s.width / 2, 120)); pause(1.4)
             }
         }
     }

@@ -403,6 +403,12 @@ final class X3SearchList: X3ScriptedScene, UITableViewDataSource, UISearchResult
             }
             toolbarItems = items
         }
+        for name in [UIResponder.keyboardWillShowNotification, UIResponder.keyboardDidShowNotification, UIResponder.keyboardWillHideNotification] {
+            NotificationCenter.default.addObserver(forName: name, object: nil, queue: .main) { n in
+                let f = (n.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect) ?? .zero
+                Recorder.shared.log(["k": "evt", "e": "keyboard", "n": n.name.rawValue, "y": f.minY, "h": f.height, "t": CACurrentMediaTime()])
+            }
+        }
         let table = UITableView(frame: view.bounds, style: .plain)
         table.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         table.dataSource = self
@@ -421,7 +427,27 @@ final class X3SearchList: X3ScriptedScene, UITableViewDataSource, UISearchResult
         Recorder.shared.log(["k": "evt", "e": "update", "text": searchController.searchBar.text ?? "", "t": CACurrentMediaTime()])
     }
     func willPresentSearchController(_ searchController: UISearchController) { Recorder.shared.log(["k": "evt", "e": "willPresentSearch", "t": CACurrentMediaTime()]) }
-    func didPresentSearchController(_ searchController: UISearchController) { Recorder.shared.log(["k": "evt", "e": "didPresentSearch", "t": CACurrentMediaTime()]) }
+    func didPresentSearchController(_ searchController: UISearchController) {
+        Recorder.shared.log(["k": "evt", "e": "didPresentSearch", "t": CACurrentMediaTime()])
+        X3SearchList.logTraits(searchController.searchBar.searchTextField)
+    }
+
+    /// The text input traits of the search text field (what decides the keyboard's bar).
+    static func logTraits(_ f: UITextField) {
+        var row: [String: Any] = ["k": "evt", "e": "traits", "t": CACurrentMediaTime(),
+            "autocorrection": f.autocorrectionType.rawValue, "spellChecking": f.spellCheckingType.rawValue,
+            "autocapitalization": f.autocapitalizationType.rawValue, "keyboardType": f.keyboardType.rawValue,
+            "returnKey": f.returnKeyType.rawValue, "smartQuotes": f.smartQuotesType.rawValue,
+            "smartDashes": f.smartDashesType.rawValue, "smartInsert": f.smartInsertDeleteType.rawValue,
+            "appearance": f.keyboardAppearance.rawValue, "enablesReturn": f.enablesReturnKeyAutomatically,
+            "contentType": f.textContentType?.rawValue ?? "nil"]
+        if #available(iOS 17.0, *) { row["inlinePrediction"] = f.inlinePredictionType.rawValue }
+        if #available(iOS 18.0, *) {
+            row["writingTools"] = f.writingToolsBehavior.rawValue
+            row["mathExpression"] = f.mathExpressionCompletionType.rawValue
+        }
+        Recorder.shared.log(row)
+    }
     func willDismissSearchController(_ searchController: UISearchController) { Recorder.shared.log(["k": "evt", "e": "willDismissSearch", "t": CACurrentMediaTime()]) }
     func didDismissSearchController(_ searchController: UISearchController) { Recorder.shared.log(["k": "evt", "e": "didDismissSearch", "t": CACurrentMediaTime()]) }
 

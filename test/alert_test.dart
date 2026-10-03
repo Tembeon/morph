@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -835,4 +836,109 @@ void main() {
       expect(ok.dx, closeTo(220, 0.5));
     });
   });
+
+  group('the platter fades through its glass', () {
+    Future<_RecordingGlass> open(
+      WidgetTester tester,
+      Future<void> Function(BuildContext, BuildContext) show,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(440, 956));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final glass = _RecordingGlass();
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (BuildContext context, Widget? child) =>
+              MorphGlass(painter: glass, child: child!),
+          home: Builder(
+            builder: (BuildContext context) => Stack(
+              children: [
+                Positioned(
+                  left: 160,
+                  top: 576,
+                  width: 120,
+                  height: 48,
+                  child: Builder(
+                    builder: (BuildContext anchor) => GestureDetector(
+                      key: const ValueKey('source'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => show(context, anchor),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(const ValueKey('source')));
+      return glass;
+    }
+
+    Future<void> expectGlassFades(
+      WidgetTester tester,
+      _RecordingGlass glass,
+    ) async {
+      final seen = <double>[];
+      for (var i = 0; i < 12; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        final surface = find.byKey(const ValueKey('glass'));
+        if (surface.evaluate().isEmpty) continue;
+        seen.add(glass.last!.opacity);
+        expect(_underOpacityLayer(tester.renderObject(surface.last)), isFalse);
+      }
+      expect(seen.where((o) => o > 0.02 && o < 0.98), isNotEmpty);
+    }
+
+    testWidgets('an alert', (tester) async {
+      final glass = await open(
+        tester,
+        (BuildContext c, BuildContext _) => showMorphAlert(
+          c,
+          title: 'Title',
+          actions: const [MorphAlertAction(title: 'OK')],
+        ),
+      );
+      await expectGlassFades(tester, glass);
+      await tester.pumpAndSettle();
+      expect(glass.last!.opacity, closeTo(1, 0.001));
+      await tester.tap(find.text('OK'));
+      await expectGlassFades(tester, glass);
+    });
+
+    testWidgets('an action sheet popover', (tester) async {
+      final glass = await open(
+        tester,
+        (BuildContext c, BuildContext anchor) => showMorphActionSheet(
+          c,
+          anchor: anchor,
+          title: 'Title',
+          actions: const [MorphAlertAction(title: 'OK')],
+        ),
+      );
+      await expectGlassFades(tester, glass);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await expectGlassFades(tester, glass);
+    });
+  });
+}
+
+class _RecordingGlass extends MorphGlassPainter {
+  MorphGlassSurface? last;
+
+  @override
+  Widget buildSurface(BuildContext context, MorphGlassSurface surface) {
+    last = surface;
+    return const RepaintBoundary(
+      key: ValueKey('glass'),
+      child: ColoredBox(color: Color(0xFF00FF00)),
+    );
+  }
+}
+
+bool _underOpacityLayer(RenderObject box) {
+  for (Layer? l = box.debugLayer?.parent; l != null; l = l.parent) {
+    if (l is OpacityLayer && (l.alpha ?? 255) < 255) return true;
+  }
+  return false;
 }

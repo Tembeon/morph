@@ -32,7 +32,10 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// focus and clears the text, and the field falls straight back to its
 /// place above the tab circle as the keyboard leaves; tapping the tab
 /// circle asks to stop searching, and the field turns back into the
-/// circle.
+/// circle. The tab circle takes the tap while the morph into the field
+/// still runs (the morph turns around with its velocity, as UIKit's does)
+/// until the keyboard covers it; the search circle ignores taps until the
+/// morph back to the bar has settled, as UIKit's does.
 ///
 /// This is UIKit's search tab with `automaticallyActivatesSearch`: only
 /// then does iOS 27 set the search tab apart as a circle. A search tab
@@ -333,7 +336,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                     key: const ValueKey<String>('tab'),
                     rect: barRect,
                     child: IgnorePointer(
-                      ignoring: !settled || _focusMotion.isFocused,
+                      ignoring: !widget.searching || p >= 0.5,
                       child: Opacity(
                         opacity: (1 - p).clamp(0.0, 1.0),
                         child: _MorphingTabs(

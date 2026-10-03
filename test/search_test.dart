@@ -661,6 +661,26 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('asks for the keyboard UIKit gives a search field', (
+      tester,
+    ) async {
+      await pump(tester, const MorphSearchField());
+      final editable = tester.widget<EditableText>(find.byType(EditableText));
+      // UIKit's search field turns autocorrection off and keeps spell
+      // checking, which leaves the keyboard's prediction bar empty; the
+      // engine ties both to one flag, and turning it off drops the bar
+      // (the keyboard 26 points shorter), so it stays on.
+      expect(editable.autocorrect, isTrue);
+      expect(editable.textCapitalization, TextCapitalization.sentences);
+      expect(editable.textInputAction, TextInputAction.search);
+      await tester.tap(find.byType(MorphSearchField));
+      await tester.pump();
+      final config = tester.testTextInput.setClientArgs!;
+      expect(config['textCapitalization'], 'TextCapitalization.sentences');
+      expect(config['inputAction'], 'TextInputAction.search');
+      await tester.pumpAndSettle();
+    });
+
     testWidgets('is 48 tall and lifts under a held touch', (tester) async {
       await pump(tester, const MorphSearchField());
       expect(tester.getSize(find.byType(MorphSearchField)).height, 48);
@@ -984,6 +1004,79 @@ void main() {
       await tester.pumpAndSettle();
       expect(asked, [true, false]);
       expect(find.byType(MorphTabBar), findsOneWidget);
+    });
+
+    Future<List<bool>> pumpTabs(WidgetTester tester) async {
+      await tester.binding.setSurfaceSize(const Size(_w, _h));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      var searching = false;
+      final asked = <bool>[];
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) => Stack(
+              children: [
+                Positioned.fill(
+                  child: MorphSearchTabBar(
+                    items: const [
+                      MorphTabItem(icon: Icons.home, label: 'Home'),
+                      MorphTabItem(icon: Icons.book, label: 'Library'),
+                    ],
+                    selected: 0,
+                    onChanged: (_) {},
+                    searching: searching,
+                    onSearchingChanged: (bool v) {
+                      asked.add(v);
+                      setState(() => searching = v);
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      return asked;
+    }
+
+    testWidgets('the tab circle turns the morph around mid-way', (
+      tester,
+    ) async {
+      final asked = await pumpTabs(tester);
+      await tester.tapAt(const Offset(388, 904));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 120));
+      const search = ValueKey<String>('search');
+      final before = tester.getRect(find.byKey(search)).left;
+      await tester.tapAt(const Offset(52, 904));
+      expect(asked, [true, false]);
+      await tester.pump();
+      final after = tester.getRect(find.byKey(search)).left;
+      expect((after - before).abs(), lessThan(12));
+      await tester.pump(const Duration(milliseconds: 80));
+      expect(tester.getRect(find.byKey(search)).left, greaterThan(after));
+      await tester.pumpAndSettle();
+      expect(find.byType(MorphTabBar), findsOneWidget);
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
+
+    testWidgets('the search circle ignores taps until the bar is back', (
+      tester,
+    ) async {
+      final asked = await pumpTabs(tester);
+      await tester.tapAt(const Offset(388, 904));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(_w - 8 - 24, _h - 8 - 24));
+      await tester.pumpAndSettle();
+      await tester.tapAt(const Offset(52, 904));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 150));
+      await tester.tapAt(const Offset(388, 904));
+      await tester.pumpAndSettle();
+      expect(asked, [true, false]);
+      await tester.tapAt(const Offset(388, 904));
+      await tester.pumpAndSettle();
+      expect(asked, [true, false, true]);
     });
 
     testWidgets('an activating search tab takes the focus mid-morph', (
