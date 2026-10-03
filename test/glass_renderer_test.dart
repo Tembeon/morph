@@ -452,8 +452,8 @@ void main() {
         var checked = 0;
         var near = 0;
         var unit = 0;
-        for (var j = 2; j < field.rows - 2; j += 3) {
-          for (var i = 2; i < field.cols - 2; i += 3) {
+        for (var j = 2; j < field.rows - 2; j += 2) {
+          for (var i = 2; i < field.cols - 2; i += 2) {
             final at = (j * field.cols + i) * 4;
             final d = field.samples[at];
             if (d.abs() < 2) continue;
@@ -470,7 +470,7 @@ void main() {
             checked++;
           }
         }
-        expect(checked, greaterThan(100));
+        expect(checked, greaterThan(50));
         expect(unit / near, greaterThan(0.85));
       },
     );

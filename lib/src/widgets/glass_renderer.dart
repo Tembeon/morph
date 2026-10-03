@@ -20,8 +20,9 @@ enum MorphGlassTier {
   flat,
 
   /// Frosted glass: the backdrop blurred inside each outline and tinted by
-  /// the surface's color, with a thin rim. No shader, so it runs wherever
-  /// Flutter runs, the web included.
+  /// the surface's color, with a thin rim; a resting lens, knob or thumb
+  /// stays its opaque platter. No shader, so it runs wherever Flutter
+  /// runs, the web included.
   frosted,
 
   /// Liquid glass: refraction at the rim, magnification and the measured
@@ -273,6 +274,10 @@ class MorphGlassRenderer extends MorphGlassPainter {
     if (!surface.glass) return buildFill(context, surface);
     return switch (effectiveTier) {
       MorphGlassTier.flat => buildFill(context, surface),
+      MorphGlassTier.frosted when glassness(surface) == 0 => buildFill(
+        context,
+        surface,
+      ),
       MorphGlassTier.frosted => _FrostedSurface(surface: surface),
       MorphGlassTier.liquid => morphLiquidSurface(this, context, surface),
     };

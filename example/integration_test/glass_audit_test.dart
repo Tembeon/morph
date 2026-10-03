@@ -7,6 +7,11 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
+// The audit times the package's outline fusion on the device.
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass_outline.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 
@@ -17,7 +22,10 @@ import 'package:morph_example/gallery/gallery.dart';
 ///
 /// Build it as a profile app (`flutter build ios --profile -t
 /// integration_test/glass_audit_test.dart`), launch it with devicectl and
-/// pull `tmp/glass/` from the app's data container.
+/// pull `tmp/glass/` from the app's data container. The glass tier is the
+/// gallery's: `--dart-define=GALLERY_GLASS=liquid` (or frosted, flat)
+/// pins it for the whole run; the report also times the package's outline
+/// fusion (the menu's blurred silhouette and a bar's fused capsules).
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -114,6 +122,41 @@ class _Audit {
     await _tabBar();
     await _controls();
     await _menu();
+    _outlines();
+  }
+
+  final Map<String, double> _outlineMicros = {};
+
+  /// Times the fused outlines the package computes per frame while a
+  /// menu morphs or bar capsules pass close: the mean of 100 calls each,
+  /// on shapes that move a little every call so nothing is reused.
+  void _outlines() {
+    double time(void Function(int i) body) {
+      final watch = Stopwatch();
+      watch.start();
+      for (var i = 0; i < 100; i++) {
+        body(i);
+      }
+      return watch.elapsedMicroseconds / 100;
+    }
+
+    for (final radius in [4.0, 10.0, 20.0]) {
+      _outlineMicros['menu10-r${radius.round()}'] = time(
+        // ignore: invalid_use_of_internal_member
+        (i) => morphMenuSilhouette(
+          RRect.fromLTRBXY(70, 200 + i * 0.01, 330, 640, 32, 32),
+          const RRect.fromLTRBXY(177, 652, 225, 700, 24, 24),
+          radius,
+        ),
+      );
+    }
+    _outlineMicros['bar-capsules'] = time(
+      // ignore: invalid_use_of_internal_member
+      (i) => morphGlassContainerOutline([
+        RRect.fromLTRBXY(16 + i * 0.01, 60, 160, 104, 22, 22),
+        const RRect.fromLTRBXY(166, 60, 210, 104, 22, 22),
+      ], 12),
+    );
   }
 
   Future<void> _segmented() async {
@@ -258,6 +301,20 @@ class _Audit {
   Future<void> _menu() async {
     await open('Menu');
     await shot('menu-resting');
+    final tall = find.byWidgetPredicate(
+      (Widget w) => w is MorphMenuButton && w.items.length == 10,
+    );
+    await tap(tester.getCenter(tall));
+    await settle(900);
+    await shot('menu-tall-open');
+    timeDilation = 10;
+    await tap(const Offset(20, 300));
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 250));
+      await shot('menu-tall-close-$i');
+    }
+    timeDilation = 1;
+    await settle(1500);
     final button = find.byType(MorphMenuButton).at(1);
     await measure('menu', () async {
       for (var i = 0; i < 2; i++) {
@@ -276,6 +333,11 @@ class _Audit {
     double pick(List<double> v, double q) =>
         v[math.min(v.length - 1, (v.length * q).floor())];
     return {
+      'tier': const String.fromEnvironment(
+        'GALLERY_GLASS',
+        defaultValue: 'auto',
+      ),
+      'outline_us': _outlineMicros,
       for (final MapEntry(key: scene, value: (start, end)) in _scenes.entries)
         scene: () {
           final frames = timings.sublist(start, end);

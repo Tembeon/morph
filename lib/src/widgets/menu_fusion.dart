@@ -30,8 +30,8 @@ class MorphMenuFusion {
   /// The radius below which the silhouette is the plain union.
   static const double minimumRadius = 1;
 
-  /// How deep inside the body the field stays blurred, past the band the
-  /// trace needs, in logical pixels.
+  /// How deep inside the body the field stays blurred at least, in
+  /// logical pixels (the trace itself needs only the band near the edge).
   ///
   /// A renderer bends light by the field's distance and normal within its
   /// bevel (20 points deep on the iOS 27 presets); farther in, the face is
@@ -94,12 +94,16 @@ MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
   final _Box g = _Box(menu);
   final _Box s = _Box(source);
   final Float64List field = Float64List(width * height);
+  final Float64List nearer = Float64List(width * height);
   for (var j = 0; j < height; j++) {
     final double y = top + j * step;
     final int row = j * width;
     for (var i = 0; i < width; i++) {
       final double x = left + i * step;
-      field[row + i] = math.min(g.distance(x, y), s.distance(x, y));
+      final double dg = g.distance(x, y);
+      final double ds = s.distance(x, y);
+      field[row + i] = math.min(dg, ds);
+      nearer[row + i] = ds - dg;
     }
   }
   final double band = 1.26 * radius + 1.5 * step;
@@ -110,7 +114,7 @@ MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
   for (var j = 0; j < rows; j++) {
     for (var i = 0; i < cols; i++) {
       final double raw = field[(j + reach) * width + i + reach];
-      if (raw > band || raw < -band - shadedDepth) {
+      if (raw > band || raw < -math.max(band, shadedDepth)) {
         blurred[j * cols + i] = raw;
         continue;
       }
@@ -136,11 +140,9 @@ MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
   final double blend = math.max(radius, step);
   final Float64List halfMinor = Float64List(cols * rows);
   for (var j = 0; j < rows; j++) {
-    final double y = trace.top + j * step;
     for (var i = 0; i < cols; i++) {
-      final double x = trace.left + i * step;
       final double towardMenu =
-          (0.5 + (s.distance(x, y) - g.distance(x, y)) / (2 * blend)).clamp(
+          (0.5 + nearer[(j + reach) * width + i + reach] / (2 * blend)).clamp(
             0.0,
             1.0,
           );
@@ -156,6 +158,7 @@ MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
     left: trace.left,
     top: trace.top,
     step: step,
+    fieldStride: step < 4 ? 2 : 1,
   );
 }
 

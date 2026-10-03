@@ -7,7 +7,7 @@ import 'package:morph/src/liquid_field.dart';
 
 /// The silhouette a control has fused some of its glass surfaces into.
 ///
-/// A control hands one to [MorphGlassPainter.buildLayer] when its glass
+/// A control hands one to `MorphGlassPainter.buildLayer` when its glass
 /// surfaces are one body whose edge is not their own shapes - a menu
 /// joined to its button by a neck. The package computes it once, by the
 /// same law on every quality tier, so a flat fill, frosted glass and
@@ -17,8 +17,6 @@ import 'package:morph/src/liquid_field.dart';
 /// package fused also carries the body's signed distance field, from which
 /// the package's own renderer shades the body as liquid glass; an outline
 /// created from a path alone is clipped instead.
-///
-/// [MorphGlassPainter.buildLayer]: package:morph/widgets.dart
 @immutable
 class MorphGlassOutline {
   /// Creates an outline from its edge alone.
@@ -50,8 +48,10 @@ GlassField? morphGlassOutlineField(MorphGlassOutline outline) => outline._field;
 /// node belongs to.
 ///
 /// The edge is the field's zero contour, traced by the skin's marching
-/// squares; the gradient comes from central differences, so the normals a
-/// renderer reads are the field's own.
+/// squares on every node; the field a renderer shades from keeps every
+/// [fieldStride]th node along each axis (a fine trace grid needs no fine
+/// shading grid: the shader interpolates a smooth field), with the
+/// gradient from central differences, so its normals are the field's own.
 @internal
 MorphGlassOutline morphGlassOutlineFromGrid(
   Float64List distance,
@@ -62,26 +62,34 @@ MorphGlassOutline morphGlassOutlineFromGrid(
   required double top,
   required double step,
   int smoothPasses = 2,
+  int fieldStride = 1,
 }) {
   assert(cols >= 2 && rows >= 2, 'A field needs two nodes along each axis.');
-  final samples = Float32List(cols * rows * 4);
-  for (var j = 0; j < rows; j++) {
+  final stride =
+      (cols - 1) ~/ fieldStride >= 1 && (rows - 1) ~/ fieldStride >= 1
+      ? fieldStride
+      : 1;
+  final fieldCols = (cols - 1) ~/ stride + 1;
+  final fieldRows = (rows - 1) ~/ stride + 1;
+  final samples = Float32List(fieldCols * fieldRows * 4);
+  for (var fj = 0; fj < fieldRows; fj++) {
+    final j = fj * stride;
     final up = math.max(j - 1, 0);
     final down = math.min(j + 1, rows - 1);
-    for (var i = 0; i < cols; i++) {
+    for (var fi = 0; fi < fieldCols; fi++) {
+      final i = fi * stride;
       final back = math.max(i - 1, 0);
       final ahead = math.min(i + 1, cols - 1);
       final at = j * cols + i;
-      final gx =
+      final out = (fj * fieldCols + fi) * 4;
+      samples[out] = distance[at];
+      samples[out + 1] =
           (distance[j * cols + ahead] - distance[j * cols + back]) /
           ((ahead - back) * step);
-      final gy =
+      samples[out + 2] =
           (distance[down * cols + i] - distance[up * cols + i]) /
           ((down - up) * step);
-      samples[at * 4] = distance[at];
-      samples[at * 4 + 1] = gx;
-      samples[at * 4 + 2] = gy;
-      samples[at * 4 + 3] = halfMinor[at];
+      samples[out + 3] = halfMinor[at];
     }
   }
   final path = Path();
@@ -105,10 +113,10 @@ MorphGlassOutline morphGlassOutlineFromGrid(
     path,
     GlassField(
       samples: samples,
-      cols: cols,
-      rows: rows,
+      cols: fieldCols,
+      rows: fieldRows,
       origin: Offset(left, top),
-      step: step,
+      step: step * stride,
     ),
   );
 }
@@ -219,6 +227,7 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
     left: area.left,
     top: area.top,
     step: _fusionStep,
+    fieldStride: 2,
   );
 }
 

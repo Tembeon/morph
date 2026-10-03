@@ -58,9 +58,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   `flutter run` opens it. `--dart-define=MORPH_AUTODEMO=true` walks
   every gallery page with synthetic gestures and exits;
   `--dart-define=MORPH_BENCH=true` still runs the release bench, now on
-  a card of its own. The web build draws frosted glass: the liquid
-  glass renderer sits behind a conditional import, so the web example
-  builds without that package.
+  a card of its own. The web build draws frosted glass: the liquid tier
+  sits behind a conditional import and its shaders compile to stubs
+  there, so the web example builds as is.
 - The glass seam: `MorphGlass(painter:)` installs a `MorphGlassPainter`
   whose `buildSurface` renders every glass surface of the controls below
   it - track, lens, knob, thumb, button, bar, menu (`MorphGlassKind`) -
@@ -74,20 +74,18 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   the lens's `MorphGlassOptics` (UIKit's refraction values, `small` and
   `large`). Without a painter the controls draw their flat fills as
   before.
-- Example: the gallery draws every control in liquid glass - a
-  `LiquidGlassRendererPainter` over whynotmake-it's Flutter GPU
-  renderer (`liquid_glass_renderer` 1.0.0-dev.1, Apache-2.0, vendored
-  under `example/third_party/` as a path dependency of the example only;
-  the package stays shader-free), installed at the gallery root. The
-  Glass renderer page edits one session-wide settings model - renderer
-  (liquid, frosted, flat), material preset, blur, refraction, rim light,
-  tint, frost on controls, fallback glass, appearance, right to left,
-  disabled - and every page follows at once. Resting lenses, knobs and
-  thumbs stay opaque platters and turn into glass as they lift; a lifted
-  lens magnifies what it covers by `1 + 0.16 * lift`. The iOS and macOS
-  runners enable Impeller and Flutter GPU; the Pages workflow builds on
-  Flutter 3.47.2 and drops the renderer from the web build, whose
-  shader compiler rejects its fragment shaders.
+- Example: the gallery draws every control with the package's
+  `MorphGlassRenderer` (see the renderer bullet below; it started as an
+  example-only painter over a vendored copy of whynotmake-it's
+  renderer), installed at the gallery root through
+  `MorphAdaptiveGlass`. The Glass renderer page edits one session-wide
+  settings model - tier (auto, liquid, frosted, flat), material preset,
+  blur, refraction, rim light, tint, frost on controls, appearance,
+  right to left, disabled - and every page follows at once. Resting
+  lenses, knobs and thumbs stay opaque platters and turn into glass as
+  they lift; a lifted lens magnifies what it covers by
+  `1 + 0.16 * lift`. The iOS and macOS runners enable Impeller and
+  Flutter GPU; the Pages workflow builds on Flutter 3.47.2.
 - Theming: every control takes a `style` (`MorphSwitchStyle`,
   `MorphSliderStyle`, `MorphStepperStyle`, `MorphGlassButtonStyle`
   join `MorphSegmentedStyle` and `MorphTabBarStyle`), each with `light`
@@ -936,10 +934,60 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   The motion hands the fused silhouette out (`MorphMenuMotion.silhouette`,
   `fusionRadius`), the flat glass draws it, and painters receive it
   through the glass seam. BREAKING for glass painters:
-  `MorphGlassPainter.buildLayer` takes an `outline:` - the silhouette a
-  control already fused its glass surfaces into - and a new `buildBody`
-  draws it (the default fills it flat); an override of `buildLayer` must
+  `MorphGlassPainter.buildLayer` takes an `outline:` - a
+  `MorphGlassOutline`, the silhouette a control already fused its glass
+  surfaces into (its `path`, and for the package's own renderer the
+  sampled distance field behind it) - and a new `buildBody` draws it
+  (the default fills the path flat); an override of `buildLayer` must
   accept the new parameter.
+- The glass renderer lives in the package. The owner's rule that no
+  glass shader lives in morph is cancelled: whynotmake-it's
+  `liquid_glass_renderer` (Apache-2.0, upstream ab1c2d29, with the
+  local patches listed in `lib/src/glass/renderer/VENDORED` and a
+  NOTICE) moves from `example/third_party` into
+  `lib/src/glass/renderer` as morph's own renderer; its shaders are
+  package assets and `hook/build.dart` builds its Flutter GPU bundle.
+  BREAKING for consumers: morph now needs Flutter 3.47 (Flutter GPU)
+  and depends on equatable, flutter_gpu, flutter_gpu_shaders,
+  flutter_shaders, hooks and logging. The one public entry is
+  `MorphGlassRenderer`, a `MorphGlassPainter` with quality tiers
+  (`MorphGlassTier.flat`, `frosted`, `liquid`) and the liquid tier's
+  settings (`MorphGlassMaterial`, blur, refraction, light, tint,
+  frostControls) plus the measured lens optics as constants;
+  `MorphAdaptiveGlass` installs it and picks the tier from the frame
+  timings the device achieves (`MorphGlassTierPolicy`: a window with a
+  quarter of its frames over budget steps down at once, a calm window
+  steps back up after a wait that doubles with every repeated failure,
+  never while a finger is down), or pins the tier given. The package
+  computes every shape once and every tier shades the same outlines:
+  the menu's blurred silhouette and the capsules a glass container
+  fuses (`spacing`, by the skin's merge law) arrive as a
+  `MorphGlassOutline` with a sampled distance field, and the liquid
+  tier shades it in a new field geometry pass - the menu's neck is
+  liquid glass now, not frost under clipped glass - while the
+  renderer's own blend groups are gone. On the web the final-render
+  shaders compile to stubs and the renderer draws frosted glass, so
+  the web example builds without removing anything.
+- The compact date picker's month title works (measured on an iPhone
+  16 Pro, light and dark): a tap on it turns the calendar into month
+  and year wheels inside the same platter, as UIKit does. The grid, the
+  weekday initials and the month chevrons fade out and the wheels in on
+  a 0.25 s ease in and out (new `MorphDatePickerTuning.yearPicker*`,
+  starting 0.069 s after the lift, back 0.019 s after; a second tap
+  restarts the fades from where they stand), the title takes the accent
+  at once and its chevron turns a quarter to point down, adding up its
+  turns as UIKit does (`MorphDatePickerMotion.showYearPicker`,
+  `yearPicker`, `yearPickerTurn`). The wheels open on the shown month;
+  one coming to rest moves the chosen day to its month and year,
+  keeping the day where the month has it (the 31st turned to November
+  is the 30th), and the title follows. The title is a button for
+  screen readers ("Show year picker" / "Hide year picker", the month as
+  its value), the wheels adjustable. The time wheels share the wheel
+  code. A six-week month no longer grows the calendar: UIKit keeps it
+  320 x 332 and packs the rows 38 pt apart with a 38 pt disc
+  (BREAKING: `MorphDatePickerTuning.weekHeight` is gone, new
+  `sixWeekRowHeight`), and the day grid sits 1 pt lower, where UIKit's
+  first row is.
 
 ## 0.6.0 - 2026-09-03
 
