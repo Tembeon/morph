@@ -1,6 +1,23 @@
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
+import 'package:morph/src/widgets/menu.dart';
+
+/// The measured placement of an iOS 27 toolbar on a phone.
+abstract final class MorphToolbarMetrics {
+  /// The space between the screen's sides and the outer capsules:
+  /// `_UIToolbarPaddingSpec` phoneSides, 28 (read from the tuning on
+  /// iOS 27, and the capsule frames on the iPhone 16 Pro).
+  static const double sideInset = 28;
+
+  /// The space between the bottom of the screen and the capsules:
+  /// `_UIToolbarPaddingSpec` phoneBottom, 28.
+  static const double bottomInset = 28;
+
+  /// The space between a keyboard and the capsules (not measured; an
+  /// engineering default).
+  static const double keyboardInset = 8;
+}
 
 /// The iOS 27 toolbar: glass capsules floating over the bottom of the
 /// screen.
@@ -25,9 +42,11 @@ class MorphToolbar extends StatelessWidget {
     this.leading = const [],
     this.trailing = const [],
     this.style,
-    this.sideInset = 28,
-    this.bottomInset = 28,
-    this.keyboardInset = 8,
+    this.menuStyle,
+    this.menuOverlay,
+    this.sideInset = MorphToolbarMetrics.sideInset,
+    this.bottomInset = MorphToolbarMetrics.bottomInset,
+    this.keyboardInset = MorphToolbarMetrics.keyboardInset,
     super.key,
   });
 
@@ -39,6 +58,12 @@ class MorphToolbar extends StatelessWidget {
 
   /// The look; null resolves it from the theme.
   final MorphBarStyle? style;
+
+  /// The look of the buttons' menus; null resolves it from the theme.
+  final MorphMenuStyle? menuStyle;
+
+  /// The overlay the buttons' menus fly in; null uses the nearest one.
+  final OverlayState? menuOverlay;
 
   /// The space between the screen's sides and the outer capsules.
   final double sideInset;
@@ -78,6 +103,8 @@ class MorphToolbar extends StatelessWidget {
             leadingInset: sideInset,
             trailingInset: sideInset,
             style: style,
+            menuStyle: menuStyle,
+            menuOverlay: menuOverlay,
             groups: [
               for (final g in leading)
                 MorphPlacedGroup(g, MorphBarSide.leading),

@@ -1,10 +1,12 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
 import 'package:morph/src/scope.dart';
@@ -64,41 +66,40 @@ class MorphNavigationConfig {
   /// [title].
   final String? backTitle;
 
-  /// A key of everything the bars show: equal signatures draw the same
-  /// bars, whatever the callbacks.
-  String get signature => [
+  /// Whether the screen shows a toolbar.
+  bool get hasToolbar =>
+      toolbarLeading.isNotEmpty || toolbarTrailing.isNotEmpty;
+
+  /// Whether [other] shows the same bars with the same callbacks: buttons
+  /// compare by value, their callbacks and icon widgets by identity, so a
+  /// screen that rebuilds with new closures hands them to the bars.
+  @override
+  bool operator ==(Object other) =>
+      other is MorphNavigationConfig &&
+      other.title == title &&
+      other.leading == leading &&
+      listEquals(other.trailing, trailing) &&
+      listEquals(other.toolbarLeading, toolbarLeading) &&
+      listEquals(other.toolbarTrailing, toolbarTrailing) &&
+      other.titleVisible == titleVisible &&
+      other.scrolledUnder == scrolledUnder &&
+      other.animate == animate &&
+      other.edgeEffect == edgeEffect &&
+      other.backTitle == backTitle;
+
+  @override
+  int get hashCode => Object.hash(
     title,
+    leading,
+    Object.hashAll(trailing),
+    Object.hashAll(toolbarLeading),
+    Object.hashAll(toolbarTrailing),
     titleVisible,
     scrolledUnder,
     animate,
     edgeEffect,
     backTitle,
-    _groups([?leading]),
-    _groups(trailing),
-    _groups(toolbarLeading),
-    _groups(toolbarTrailing),
-  ].join('|');
-
-  static String _groups(List<MorphBarButtonGroup> groups) => [
-    for (final g in groups)
-      [g.id, g.prominent, for (final b in g.buttons) _button(b)].join(','),
-  ].join(';');
-
-  static String _button(MorphBarButton b) {
-    final icon = b.icon;
-    return [
-      b.id,
-      b.label,
-      b.enabled,
-      b.semanticLabel,
-      icon.runtimeType,
-      if (icon is Icon) icon.icon,
-    ].join('/');
-  }
-
-  /// Whether the screen shows a toolbar.
-  bool get hasToolbar =>
-      toolbarLeading.isNotEmpty || toolbarTrailing.isNotEmpty;
+  );
 }
 
 class _StackScope extends InheritedWidget {
@@ -125,16 +126,32 @@ class MorphNavigationStack extends StatefulWidget {
   const MorphNavigationStack({
     required this.home,
     this.style,
+    this.menuStyle,
+    this.menuOverlay,
+    this.backLabel = 'Back',
     this.navigatorKey,
     this.observers = const [],
     super.key,
   });
 
   /// The first screen.
+  ///
+  /// Read once, when the stack's navigator is created, like [navigatorKey]
+  /// and [observers].
   final Widget home;
 
   /// The look of the bars; null resolves it from the theme.
   final MorphBarStyle? style;
+
+  /// The look of the back button's menu; null resolves it from the theme.
+  final MorphMenuStyle? menuStyle;
+
+  /// The overlay the back button's menu flies in; null uses the nearest
+  /// one around the bar.
+  final OverlayState? menuOverlay;
+
+  /// The label screen readers announce for the back button.
+  final String backLabel;
 
   /// The key of the stack's navigator.
   final GlobalKey<NavigatorState>? navigatorKey;
@@ -169,11 +186,26 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
   Route<Object?>? _swiped;
   Animation<double>? _swipeProgress;
 
+  @override
+  void didUpdateWidget(MorphNavigationStack oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    assert(
+      oldWidget.navigatorKey == widget.navigatorKey,
+      'MorphNavigationStack.navigatorKey cannot change: the navigator is '
+      'created once.',
+    );
+  }
+
+  /// Whether [route] is a screen of this stack's own navigator.
+  bool _owns(Route<Object?> route) =>
+      route.navigator != null && route.navigator == _navigator.currentState;
+
   void _publish(Route<Object?> route, MorphNavigationConfig config) {
+    if (!_owns(route)) return;
     final before = _configs[route];
     _configs[route] = config;
     final waited = _pending.remove(route);
-    if (!waited && before?.signature == config.signature) return;
+    if (!waited && before == config) return;
     _refresh();
   }
 
@@ -213,6 +245,10 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     _routes.remove(route);
     _configs.remove(route);
     _pending.remove(route);
+    if (_swiped == route) {
+      _swiped = null;
+      _swipeProgress = null;
+    }
     _refresh();
   }
 
@@ -254,7 +290,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     return MorphBarButtonGroup([
       MorphBarButton.back(
         label: below?.backTitle ?? below?.title,
-        semanticLabel: 'Back',
+        semanticLabel: widget.backLabel,
         onPressed: () => _navigator.currentState?.maybePop(),
         menu: [
           for (var i = index - 1; i >= 0; i--)
@@ -262,9 +298,9 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
               title: _configs[pages[i]]?.title ?? '',
               onSelected: () {
                 final target = pages[i];
-                _navigator.currentState?.popUntil(
-                  (Route<Object?> route) => route == target,
-                );
+                final navigator = _navigator.currentState;
+                if (navigator == null || !target.isActive) return;
+                navigator.popUntil((Route<Object?> route) => route == target);
               },
             ),
         ],
@@ -319,6 +355,8 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
               titleExitShift: _titleExit,
               drift: drift,
               style: widget.style,
+              menuStyle: widget.menuStyle,
+              menuOverlay: widget.menuOverlay,
             ),
           ),
           if (hasToolbar)
@@ -330,6 +368,8 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
                 leading: config?.toolbarLeading ?? const [],
                 trailing: config?.toolbarTrailing ?? const [],
                 style: widget.style,
+                menuStyle: widget.menuStyle,
+                menuOverlay: widget.menuOverlay,
               ),
             ),
         ],
@@ -444,13 +484,20 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   @override
   bool get opaque => !_zooms;
 
+  /// The duration of the route's controller when nothing drives it with
+  /// a spring: it only bounds a pop the navigator runs on its own.
+  static const Duration _slideDuration = Duration(milliseconds: 600);
+
+  /// The reverse duration of a zoomed page's controller, which the zoom
+  /// sets to 0 itself when it rests.
+  static const Duration _zoomReverseDuration = Duration(seconds: 1);
+
   @override
-  Duration get transitionDuration =>
-      _zooms ? Duration.zero : const Duration(milliseconds: 600);
+  Duration get transitionDuration => _zooms ? Duration.zero : _slideDuration;
 
   @override
   Duration get reverseTransitionDuration =>
-      _zooms ? const Duration(seconds: 1) : transitionDuration;
+      _zooms ? _zoomReverseDuration : transitionDuration;
 
   @override
   bool get popGestureEnabled => super.popGestureEnabled && !isFirst;
@@ -463,14 +510,13 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   TickerFuture didPush() {
     final future = super.didPush();
     final c = controller;
-    if (c == null) return future;
-    if (_reduced || _zooms) return future;
+    if (c == null || _zooms) return future;
     return c.animateWith(
       SpringSimulation(
         MorphNavigationTransition.pushSpring.description,
         c.value,
         1,
-        MorphNavigationTransition.pushVelocity,
+        _reduced ? 0 : MorphNavigationTransition.pushVelocity,
       ),
     );
   }
@@ -494,7 +540,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
       }
       return popped;
     }
-    if (c == null || _reduced) return popped;
+    if (c == null) return popped;
     final interactive = _interactivePop;
     _interactivePop = false;
     c.animateBackWith(
@@ -504,7 +550,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
             : MorphNavigationTransition.pushSpring.description,
         c.value,
         0,
-        interactive ? 0 : -MorphNavigationTransition.pushVelocity,
+        interactive || _reduced ? 0 : -MorphNavigationTransition.pushVelocity,
       ),
     );
     return popped;
@@ -529,6 +575,12 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     Widget child,
   ) {
     if (_zooms) return MorphPushZoomPage(host: this, child: child);
+    if (morphReducedMotionOf(context)) {
+      return FadeTransition(
+        opacity: animation,
+        child: _EdgePop(route: this, child: child),
+      );
+    }
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     return AnimatedBuilder(
       animation: Listenable.merge([animation, secondaryAnimation]),
@@ -581,10 +633,28 @@ class _EdgePopState extends State<_EdgePop> {
   HorizontalDragGestureRecognizer? _drag;
   bool _active = false;
   _MorphNavigationStackState? _stack;
+  NavigatorState? _navigator;
+  VoidCallback? _detach;
 
   @override
   void dispose() {
     _drag?.dispose();
+    _detach?.call();
+    _detach = null;
+    if (_navigator != null) {
+      final navigator = _navigator;
+      final stack = _stack;
+      final route = widget.route;
+      _navigator = null;
+      _stack = null;
+      _active = false;
+      SchedulerBinding.instance.addPostFrameCallback((Duration _) {
+        if (navigator != null && navigator.mounted) {
+          navigator.didStopUserGesture();
+        }
+        stack?._swipeEnded(route);
+      });
+    }
     super.dispose();
   }
 
@@ -610,7 +680,9 @@ class _EdgePopState extends State<_EdgePop> {
   void _start(DragStartDetails details) {
     final route = widget.route;
     _active = true;
-    route.navigator?.didStartUserGesture();
+    final navigator = route.navigator;
+    _navigator = navigator;
+    navigator?.didStartUserGesture();
     final animation = route.animation;
     final stack = context.getInheritedWidgetOfExactType<_StackScope>()?.state;
     _stack = stack;
@@ -637,8 +709,13 @@ class _EdgePopState extends State<_EdgePop> {
         v > flick ||
         (v > -flick && c.value < 1 - MorphNavigationTransition.popDistance);
     if (commit) {
-      route._interactivePop = true;
-      route.navigator?.pop();
+      final navigator = route.navigator;
+      if (route.isCurrent) {
+        route._interactivePop = true;
+        navigator?.pop();
+      } else if (route.isActive) {
+        navigator?.removeRoute(route);
+      }
     } else {
       c.animateWith(
         SpringSimulation(
@@ -669,15 +746,17 @@ class _EdgePopState extends State<_EdgePop> {
 
   void _stopWhenSettled(AnimationController c) {
     final route = widget.route;
-    final navigator = route.navigator;
-    final stack = _stack;
-    _stack = null;
     void stop() {
+      _detach = null;
+      final navigator = _navigator;
+      final stack = _stack;
+      _navigator = null;
+      _stack = null;
       navigator?.didStopUserGesture();
       stack?._swipeEnded(route);
     }
 
-    if (!c.isAnimating) {
+    if (!mounted || !c.isAnimating) {
       stop();
       return;
     }
@@ -688,6 +767,7 @@ class _EdgePopState extends State<_EdgePop> {
     }
 
     c.addStatusListener(listener);
+    _detach = () => c.removeStatusListener(listener);
   }
 
   @override
@@ -722,6 +802,7 @@ class MorphNavigationScaffold extends StatefulWidget {
     this.edgeEffect = MorphScrollEdgeEffectStyle.hard,
     this.backgroundColor,
     this.backTitle,
+    this.backLabel = 'Back',
     this.controller,
     this.style,
     super.key,
@@ -753,11 +834,17 @@ class MorphNavigationScaffold extends StatefulWidget {
   /// The scroll edge effect under the navigation bar; null draws none.
   final MorphScrollEdgeEffectStyle? edgeEffect;
 
-  /// The color behind the content; defaults to the system background.
+  /// The color behind the content; defaults to the
+  /// [MorphScrollEdgeEffectThemeData.backgroundColor] of the ambient theme
+  /// (the system background), the color the edge effect fades toward.
   final Color? backgroundColor;
 
   /// The label of the next screen's back button; defaults to [title].
   final String? backTitle;
+
+  /// The label screen readers announce for the back button the scaffold
+  /// draws itself, outside a [MorphNavigationStack].
+  final String backLabel;
 
   /// The controller of the scroll view.
   final ScrollController? controller;
@@ -836,19 +923,19 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
 
   @override
   Widget build(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<_StackScope>();
     final route = ModalRoute.of(context);
+    final stack = context
+        .dependOnInheritedWidgetOfExactType<_StackScope>()
+        ?.state;
+    final shared = stack != null && route != null && stack._owns(route);
     final config = _config;
-    if (scope != null && route != null) scope.state._publish(route, config);
+    if (shared) stack._publish(route, config);
     final media = MediaQuery.maybeOf(context);
     final top = media?.padding.top ?? 0;
     final hasToolbar = config.hasToolbar;
     final background =
         widget.backgroundColor ??
-        switch (morphBrightnessOf(context)) {
-          Brightness.dark => const Color(0xFF000000),
-          Brightness.light => const Color(0xFFFFFFFF),
-        };
+        MorphScrollEdgeEffectThemeData.resolve(context, null).backgroundColor;
     final physics = widget.largeTitle
         ? const MorphLargeTitleScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(
@@ -880,12 +967,12 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
       ),
     );
     final body = ColoredBox(color: background, child: scroll);
-    if (scope != null && route != null) return body;
+    if (shared) return body;
     var leading = widget.leading;
     if (leading == null && (route?.canPop ?? false)) {
       leading = MorphBarButtonGroup([
         MorphBarButton.back(
-          semanticLabel: 'Back',
+          semanticLabel: widget.backLabel,
           onPressed: () => Navigator.maybePop(context),
         ),
       ]);

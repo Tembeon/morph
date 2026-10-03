@@ -86,6 +86,28 @@ class MorphBarButton {
 
   /// Whether the button accepts taps.
   bool get enabled => onPressed != null;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphBarButton &&
+      other.id == id &&
+      other.label == label &&
+      other.icon == icon &&
+      other.onPressed == onPressed &&
+      other.semanticLabel == semanticLabel &&
+      other.back == back &&
+      listEquals(other.menu, menu);
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    label,
+    icon,
+    onPressed,
+    semanticLabel,
+    back,
+    menu == null ? null : Object.hashAll(menu!),
+  );
 }
 
 /// The measured timing of a bar button's long-press menu
@@ -123,6 +145,16 @@ class MorphBarButtonGroup {
 
   /// Whether the capsule is tinted with the style's prominent color.
   final bool prominent;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphBarButtonGroup &&
+      other.id == id &&
+      other.prominent == prominent &&
+      listEquals(other.buttons, buttons);
+
+  @override
+  int get hashCode => Object.hash(id, prominent, Object.hashAll(buttons));
 }
 
 /// The measured geometry of the glass buttons of a bar.
@@ -508,6 +540,8 @@ class MorphBarItems extends StatefulWidget {
     required this.leadingInset,
     required this.trailingInset,
     this.style,
+    this.menuStyle,
+    this.menuOverlay,
     this.onLayout,
     this.driftGroups,
     this.driftProgress,
@@ -532,6 +566,12 @@ class MorphBarItems extends StatefulWidget {
 
   /// The look; null resolves it from the theme.
   final MorphBarStyle? style;
+
+  /// The look of the buttons' menus; null resolves it from the theme.
+  final MorphMenuStyle? menuStyle;
+
+  /// The overlay the buttons' menus fly in; null uses the nearest one.
+  final OverlayState? menuOverlay;
 
   /// Called with the laid-out capsules whenever the layout changes.
   final ValueChanged<List<MorphBarCapsuleLayout>>? onLayout;
@@ -661,10 +701,21 @@ class _MorphBarItemsState extends State<MorphBarItems>
         _menu != null) {
       return;
     }
-    final overlay = Overlay.of(context);
+    final overlay = widget.menuOverlay ?? Overlay.maybeOf(context);
     final box = context.findRenderObject();
-    final overlayBox = overlay.context.findRenderObject();
-    if (box is! RenderBox || overlayBox is! RenderBox) return;
+    final overlayBox = overlay?.context.findRenderObject();
+    if (overlay == null || box is! RenderBox || overlayBox is! RenderBox) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: FlutterError(
+            'A bar button menu could not open: '
+            '${overlay == null ? 'there is no Overlay around the bar' : 'the bar or its overlay is not laid out'}.',
+          ),
+          library: 'morph',
+        ),
+      );
+      return;
+    }
     final origin = box.localToGlobal(Offset.zero, ancestor: overlayBox);
     final rect = capsule.rect.shift(origin);
     final tuning = MorphMenuTuning.standard;
@@ -672,7 +723,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       state: this,
       button: button,
       capsule: capsuleId!,
-      style: MorphMenuStyle.resolve(context, null),
+      style: MorphMenuStyle.resolve(context, widget.menuStyle),
       overlay: overlay,
       origin: origin,
     );

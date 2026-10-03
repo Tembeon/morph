@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -47,7 +48,7 @@ abstract final class MorphNavigationBarMetrics {
 TextStyle morphLargeTitleStyle(Color color) => MorphTypography.resolve(
   MorphTypography.largeTitle.copyWith(
     fontSize: MorphNavigationBarMetrics.largeTitleSize,
-    height: 1.2,
+    height: MorphBarMetrics.lineHeight,
     color: color,
   ),
 );
@@ -56,7 +57,7 @@ TextStyle morphLargeTitleStyle(Color color) => MorphTypography.resolve(
 TextStyle morphInlineTitleStyle(Color color) => MorphTypography.resolve(
   MorphTypography.title.copyWith(
     fontSize: MorphNavigationBarMetrics.titleSize,
-    height: 1.2,
+    height: MorphBarMetrics.lineHeight,
     color: color,
   ),
 );
@@ -123,6 +124,8 @@ class MorphNavigationBar extends StatefulWidget {
     this.titleExitShift = -MorphNavigationTransition.parallax,
     this.drift,
     this.style,
+    this.menuStyle,
+    this.menuOverlay,
     this.sideInset = MorphNavigationBarMetrics.sideInset,
     super.key,
   });
@@ -168,6 +171,13 @@ class MorphNavigationBar extends StatefulWidget {
   /// The look; null resolves it from the theme.
   final MorphBarStyle? style;
 
+  /// The look of the buttons' menus, such as the back button's; null
+  /// resolves it from the theme.
+  final MorphMenuStyle? menuStyle;
+
+  /// The overlay the buttons' menus fly in; null uses the nearest one.
+  final OverlayState? menuOverlay;
+
   /// The space between the screen's sides and the outer capsules.
   final double sideInset;
 
@@ -194,9 +204,34 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
   );
   String? _outgoing;
   double _exitShift = 0;
+  final Map<(String, TextScaler, TextDirection), Size> _titleSizes = {};
+
+  Size _titleSize(String title, TextScaler scaler, TextDirection direction) {
+    if (_titleSizes.length > 8) _titleSizes.clear();
+    return _titleSizes.putIfAbsent((title, scaler, direction), () {
+      final painter = TextPainter(
+        text: TextSpan(
+          text: title,
+          style: morphInlineTitleStyle(const Color(0xFF000000)),
+        ),
+        textDirection: direction,
+        textScaler: scaler,
+        maxLines: 1,
+      );
+      painter.layout();
+      final size = painter.size;
+      painter.dispose();
+      return size;
+    });
+  }
 
   @override
-  void advanceMotion(double t) => _motion.advance(t);
+  void advanceMotion(double t) {
+    _motion.advance(t);
+    if (_outgoing != null && _swap.isAtRest(t, 1e-3)) {
+      setState(() => _outgoing = null);
+    }
+  }
 
   @override
   bool get motionSettled =>
@@ -204,9 +239,8 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
 
   double get _swapProgress {
     if (_outgoing == null) return 1;
-    final p = _swap.value(clock).clamp(0.0, 1.0);
-    if (_swap.isAtRest(clock, 1e-3)) _outgoing = null;
-    return p;
+    if (_swap.isAtRest(clock, 1e-3)) return 1;
+    return _swap.value(clock).clamp(0.0, 1.0);
   }
 
   @override
@@ -266,6 +300,11 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
           child: LayoutBuilder(
             builder: (BuildContext context, BoxConstraints constraints) {
               final width = constraints.maxWidth;
+              final scaler =
+                  MediaQuery.maybeTextScalerOf(
+                    context,
+                  )?.clamp(maxScaleFactor: MorphBarMetrics.maxTextScale) ??
+                  TextScaler.noScaling;
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -276,6 +315,8 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                       leadingInset: widget.sideInset,
                       trailingInset: widget.sideInset,
                       style: widget.style,
+                      menuStyle: widget.menuStyle,
+                      menuOverlay: widget.menuOverlay,
                       onLayout: (layout) => _onLayout([
                         for (final c in layout) ...[c.rect.left, c.rect.right],
                       ]),
@@ -290,6 +331,8 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                   if (_outgoing case final outgoing?)
                     _InlineTitle(
                       title: outgoing,
+                      size: _titleSize(outgoing, scaler, direction),
+                      scaler: scaler,
                       opacity: () => 1 - _swapProgress,
                       shift: () => _exitShift * width * _swapProgress,
                       motion: null,
@@ -302,6 +345,8 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                   if (widget.title case final title?)
                     _InlineTitle(
                       title: title,
+                      size: _titleSize(title, scaler, direction),
+                      scaler: scaler,
                       opacity: () => _swapProgress,
                       shift: () => 0,
                       motion: _motion,
@@ -374,6 +419,8 @@ bool _listEquals(List<double> a, List<double> b) {
 class _InlineTitle extends StatelessWidget {
   const _InlineTitle({
     required this.title,
+    required this.size,
+    required this.scaler,
     required this.opacity,
     required this.shift,
     required this.motion,
@@ -385,6 +432,8 @@ class _InlineTitle extends StatelessWidget {
   });
 
   final String title;
+  final Size size;
+  final TextScaler scaler;
   final double Function() opacity;
   final double Function() shift;
   final MorphNavigationTitleMotion? motion;
@@ -397,19 +446,8 @@ class _InlineTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final style = morphInlineTitleStyle(color);
-    final scaler =
-        MediaQuery.maybeTextScalerOf(context)?.clamp(maxScaleFactor: 1.25) ??
-        TextScaler.noScaling;
-    final painter = TextPainter(
-      text: TextSpan(text: title, style: style),
-      textDirection: direction,
-      textScaler: scaler,
-      maxLines: 1,
-    );
-    painter.layout();
-    final textWidth = painter.width;
-    final textHeight = painter.height;
-    painter.dispose();
+    final textWidth = size.width;
+    final textHeight = size.height;
     const pad = MorphNavigationBarMetrics.titlePadding;
     final center = width / 2;
     var lo = 0.0;
@@ -446,7 +484,11 @@ class _InlineTitle extends StatelessWidget {
             final blur = m?.titleBlur ?? 0;
             if (blur > 0.05) {
               out = ImageFiltered(
-                imageFilter: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                imageFilter: ui.ImageFilter.blur(
+                  sigmaX: blur,
+                  sigmaY: blur,
+                  tileMode: TileMode.decal,
+                ),
                 child: out,
               );
             }
@@ -466,6 +508,7 @@ class _InlineTitle extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             textAlign: TextAlign.center,
+            textScaler: scaler,
             style: style,
           ),
         ),

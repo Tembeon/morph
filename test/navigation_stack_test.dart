@@ -295,4 +295,235 @@ void main() {
       expect(_item(tester, 'add').dx, closeTo(add.dx, 0.01));
     });
   });
+
+  group('the stack keeps its bookkeeping honest', () {
+    Widget page(
+      String title, {
+      List<MorphBarButtonGroup> trailing = const [],
+    }) => MorphNavigationScaffold(
+      title: title,
+      trailing: trailing,
+      slivers: const [SliverToBoxAdapter(child: SizedBox(height: 2000))],
+    );
+
+    Future<NavigatorState> pumpStack(WidgetTester tester, Widget home) async {
+      await _setScreen(tester);
+      late BuildContext context;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MorphNavigationStack(
+            home: Builder(
+              builder: (BuildContext c) {
+                context = c;
+                return home;
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      return Navigator.of(context);
+    }
+
+    testWidgets('a new callback reaches the shared bar', (tester) async {
+      final pressed = <int>[];
+      late StateSetter set;
+      var count = 0;
+      await pumpStack(
+        tester,
+        StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            set = setState;
+            final seen = count;
+            return page(
+              'Inbox',
+              trailing: [
+                MorphBarButtonGroup([
+                  MorphBarButton(
+                    id: 'add',
+                    icon: const SizedBox.square(dimension: 24),
+                    semanticLabel: 'add',
+                    onPressed: () => pressed.add(seen),
+                  ),
+                ]),
+              ],
+            );
+          },
+        ),
+      );
+      set(() => count = 7);
+      await tester.pumpAndSettle();
+      await tester.tap(_key('add'));
+      await tester.pumpAndSettle();
+      expect(pressed, [7]);
+    });
+
+    testWidgets('a swipe pops its own page, not one pushed during it', (
+      tester,
+    ) async {
+      final navigator = await pumpStack(tester, page('Inbox'));
+      navigator.push(
+        MorphNavigationRoute<void>(builder: (_) => page('Message')),
+      );
+      await tester.pumpAndSettle();
+      final gesture = await tester.startGesture(const Offset(4, 500));
+      for (var i = 0; i < 16; i++) {
+        await gesture.moveBy(const Offset(14, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      navigator.push(MorphNavigationRoute<void>(builder: (_) => page('Third')));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(find.text('Third'), findsWidgets);
+      expect(find.text('Message', skipOffstage: false), findsNothing);
+      expect(navigator.userGestureInProgress, isFalse);
+    });
+
+    testWidgets('a page removed during its swipe ends the user gesture', (
+      tester,
+    ) async {
+      final navigator = await pumpStack(tester, page('Inbox'));
+      late Route<Object?> message;
+      navigator.push(
+        MorphNavigationRoute<void>(
+          builder: (BuildContext context) {
+            message = ModalRoute.of(context)!;
+            return page('Message');
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      final gesture = await tester.startGesture(const Offset(4, 500));
+      for (var i = 0; i < 8; i++) {
+        await gesture.moveBy(const Offset(14, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(navigator.userGestureInProgress, isTrue);
+      navigator.removeRoute(message);
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(navigator.userGestureInProgress, isFalse);
+      expect(find.text('Inbox'), findsWidgets);
+    });
+
+    testWidgets('a back menu row whose screen is gone does nothing', (
+      tester,
+    ) async {
+      final navigator = await pumpStack(tester, page('Mailboxes'));
+      late Route<Object?> inbox;
+      navigator.push(
+        MorphNavigationRoute<void>(
+          builder: (BuildContext context) {
+            inbox = ModalRoute.of(context)!;
+            return page('Inbox');
+          },
+        ),
+      );
+      await tester.pumpAndSettle();
+      navigator.push(
+        MorphNavigationRoute<void>(builder: (_) => page('Message')),
+      );
+      await tester.pumpAndSettle();
+      final bar = tester.widget<MorphNavigationBar>(
+        find.byType(MorphNavigationBar),
+      );
+      final row = bar.leading!.buttons.single.menu!.first as MorphMenuItem;
+      expect(row.title, 'Inbox');
+      navigator.removeRoute(inbox);
+      await tester.pumpAndSettle();
+      row.onSelected!();
+      await tester.pumpAndSettle();
+      expect(find.text('Message'), findsWidgets);
+    });
+
+    testWidgets('the open back menu follows a renamed screen', (tester) async {
+      final title = ValueNotifier<String>('Inbox');
+      addTearDown(title.dispose);
+      final navigator = await pumpStack(tester, page('Mailboxes'));
+      navigator.push(
+        MorphNavigationRoute<void>(
+          builder: (_) => ValueListenableBuilder<String>(
+            valueListenable: title,
+            builder: (BuildContext context, String value, Widget? _) =>
+                page(value),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      navigator.push(
+        MorphNavigationRoute<void>(builder: (_) => page('Message')),
+      );
+      await tester.pumpAndSettle();
+      final gesture = await tester.startGesture(
+        tester.getCenter(_key('morph.back')),
+      );
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(find.text('Mailboxes'), findsOneWidget);
+      await gesture.moveTo(const Offset(300, 700));
+      await gesture.up();
+      await tester.pump(const Duration(milliseconds: 16));
+      title.value = 'Topics';
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(find.text('Topics'), findsWidgets);
+      await tester.tapAt(const Offset(300, 700));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a scaffold of a navigator inside a page keeps its own bars', (
+      tester,
+    ) async {
+      await pumpStack(
+        tester,
+        Navigator(
+          onGenerateRoute: (RouteSettings settings) =>
+              MorphNavigationRoute<void>(builder: (_) => page('Nested')),
+        ),
+      );
+      expect(find.byType(MorphNavigationBar), findsNWidgets(2));
+      expect(find.text('Nested'), findsOneWidget);
+    });
+
+    testWidgets('reduced motion fades a pushed page in place', (tester) async {
+      await _setScreen(tester);
+      late BuildContext context;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MediaQuery(
+            data: const MediaQueryData(size: _screen, disableAnimations: true),
+            child: MorphNavigationStack(
+              home: Builder(
+                builder: (BuildContext c) {
+                  context = c;
+                  return page('Inbox');
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      Navigator.of(
+        context,
+      ).push(MorphNavigationRoute<void>(builder: (_) => page('Message')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      final message = find.byWidgetPredicate(
+        (w) => w is MorphNavigationScaffold && w.title == 'Message',
+      );
+      expect(tester.getTopLeft(message).dx, 0);
+      final fade = tester.widget<FadeTransition>(
+        find.ancestor(of: message, matching: find.byType(FadeTransition)).first,
+      );
+      expect(fade.opacity.value, inExclusiveRange(0.05, 0.95));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(message).dx, 0);
+    });
+  });
 }
