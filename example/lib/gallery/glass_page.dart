@@ -85,6 +85,10 @@ class _GlassPageState extends State<GlassPage> {
 
   static const _renderers = ['Liquid', 'Frosted', 'Flat'];
   static const _materials = ['Regular', 'Toolbar', 'Clear'];
+
+  /// The iOS Settings > Display & Brightness > Liquid Glass choice; the
+  /// knob below sets any position between the two.
+  static const _liquidGlass = ['Clear', 'Tinted'];
   static const _appearances = ['System', 'Light', 'Dark'];
 
   Widget _scene(BuildContext context) {
@@ -212,8 +216,16 @@ class _GlassPageState extends State<GlassPage> {
                   max: 2,
                   onChanged: liquid ? (double v) => settings.light = v : null,
                 ),
+                _Choice(
+                  label: 'Liquid Glass',
+                  segments: _liquidGlass,
+                  selected: settings.tint < 0.5 ? 0 : 1,
+                  onChanged: liquid
+                      ? (int i) => settings.tint = i.toDouble()
+                      : null,
+                ),
                 _Knob(
-                  label: 'Tint',
+                  label: 'Clear to tinted',
                   value: settings.tint,
                   max: 1,
                   onChanged: liquid ? (double v) => settings.tint = v : null,

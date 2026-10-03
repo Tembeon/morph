@@ -71,6 +71,9 @@ class GalleryGlassSettings extends ChangeNotifier {
   set light(double value) => _set(_light, value, () => _light = value);
 
   /// The Liquid Glass slider of iOS Settings, 0 clear and 1 tinted.
+  ///
+  /// Starts at 0, Clear, the closest to the owner's iPhone 16 Pro: there
+  /// the bars frost by the renderer's 2 pt.
   double get tint => _tint;
   set tint(double value) => _set(_tint, value, () => _tint = value);
 

@@ -2,7 +2,7 @@ liquid_glass_renderer 1.0.0-dev.1, vendored for the morph example gallery.
 
 Upstream:  https://github.com/whynotmake-it/flutter_liquid_glass
 Branch:    release/01-renderer-core
-Commit:    cbbac8453c4e023a2bc3b2fd7a2f06e8652e1bf7 (2026-10-02)
+Commit:    ab1c2d294683f7eea6ee8da6c81d5cd0225ee129 (2026-10-02)
 Path:      packages/liquid_glass_renderer
 License:   Apache-2.0 (LICENSE), copyright Tim Lehmann for whynotmake.it;
            third_party/ keeps the Flutter (BSD) and Inigo Quilez (MIT)
@@ -14,3 +14,18 @@ Left out: doc/, example/, test/, coverage/, analysis_options.yaml
 (it includes lintervention, a dev dependency of the upstream repo).
 The sources are unmodified. Only the morph example depends on it; the
 morph package itself stays shader-free.
+
+Update history:
+- cbbac8453c4e023a2bc3b2fd7a2f06e8652e1bf7 (2026-10-01): first vendoring.
+- ab1c2d2 (2026-10-02, release/01-renderer-core head on 2026-10-03):
+  default frost 3.7 -> 2.0 pt and ios27RegularFrost refitted
+  (2 * exp(2.23 * min(t, 0.5) + 2 * max(t - 0.5, 0)): 2 / 6.1 / 16.6 pt
+  at slider 0 / 0.5 / 1); glint dimmed to 0.8 in the dark toolbar
+  preset and 0.6 in the clear preset; the real and fake glass layers
+  share one render base (LiquidGlassRenderObject, GlassFrameState);
+  the fake glass backdrop-edge shader removed (Impeller coverage
+  workaround). No API change the gallery uses. Upstream's
+  LiquidGlassLoupe (re-renders its source at magnified resolution) and
+  LoupeTabBar are EXAMPLE code there, not part of the package, and were
+  already present at cbbac845; the renderer itself never enlarges its
+  backdrop (backdropShrink is clamped to 0..0.75).

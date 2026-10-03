@@ -389,6 +389,83 @@ void main() {
     );
   });
 
+  testWidgets('a lifted lens on a bar minifies the bar, not the label', (
+    tester,
+  ) async {
+    const lens = RRect.fromLTRBXY(10, -6, 120, 68, 37, 37);
+    const slot = Rect.fromLTWH(0, 0, 100, 62);
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: SizedBox(
+            width: 300,
+            height: 62,
+            child: Builder(
+              builder: (BuildContext context) =>
+                  const LiquidGlassRendererPainter().buildLayer(
+                    context,
+                    const [
+                      MorphGlassSurface(
+                        kind: MorphGlassKind.bar,
+                        shape: RRect.fromLTRBXY(0, 0, 300, 62, 31, 31),
+                        color: Color(0xB81C1C1E),
+                        brightness: Brightness.dark,
+                      ),
+                      MorphGlassSurface(
+                        kind: MorphGlassKind.lens,
+                        shape: lens,
+                        color: Color(0x1FFFFFFF),
+                        brightness: Brightness.dark,
+                        lift: 1,
+                        optics: MorphGlassOptics.large,
+                      ),
+                    ],
+                    content: const Row(
+                      children: [
+                        SizedBox(width: 100, child: Center(child: Text('A'))),
+                      ],
+                    ),
+                    contentSlots: const [slot],
+                  ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final layers = tester
+        .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
+        .toList();
+    expect(layers.first.settings.backdropShrink, 0);
+    expect(
+      layers.last.settings.backdropShrink,
+      LiquidGlassRendererPainter.lensShrink,
+    );
+    final base = tester.getRect(find.text('A').first);
+    final copy = tester.getRect(
+      find.descendant(
+        of: find.byKey(const ValueKey<(String, int)>(('copy', 0))),
+        matching: find.text('A'),
+      ),
+    );
+    const shrink = 1 - LiquidGlassRendererPainter.lensShrink;
+    final seen = Rect.fromCenter(
+      center: lens.center + (copy.center - lens.center) * shrink,
+      width: copy.width * shrink,
+      height: copy.height * shrink,
+    );
+    expect(seen.center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
+    expect(seen.center.dy, moreOrLessEquals(base.center.dy, epsilon: 0.01));
+    expect(
+      seen.width,
+      moreOrLessEquals(
+        base.width * (1 + LiquidGlassRendererPainter.lensMagnification),
+        epsilon: 0.01,
+      ),
+    );
+  });
+
   testWidgets('the glass page settings reach every page', (tester) async {
     await _pumpGallery(tester);
     expect(find.byType(MorphGlass), findsOneWidget);
