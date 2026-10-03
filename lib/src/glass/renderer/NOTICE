@@ -1,0 +1,12 @@
+morph glass renderer
+Copyright 2025 Tim Lehmann for whynotmake.it (liquid_glass_renderer)
+
+This directory is derived from liquid_glass_renderer
+(https://github.com/whynotmake-it/flutter_liquid_glass, commit
+ab1c2d294683f7eea6ee8da6c81d5cd0225ee129), licensed under the Apache
+License, Version 2.0 (LICENSE). The morph authors changed it; VENDORED
+lists every change.
+
+Parts of the shaders are adapted from Flutter's Impeller shaders
+(BSD-style license, third_party/flutter/LICENSE) and from Inigo Quilez's
+superellipse distance (MIT License, third_party/inigo_quilez/LICENSE).

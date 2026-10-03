@@ -1,4 +1,9 @@
-liquid_glass_renderer 1.0.0-dev.1, vendored for the morph example gallery.
+liquid_glass_renderer 1.0.0-dev.1, vendored into morph as its glass renderer.
+
+Since 2026-10-03 this is morph's own renderer (lib/src/glass/renderer),
+tuned freely; it was vendored under example/third_party before. It stays
+Apache-2.0 (LICENSE, NOTICE); the third_party/ notices cover adapted
+shader code.
 
 Upstream:  https://github.com/whynotmake-it/flutter_liquid_glass
 Branch:    release/01-renderer-core
@@ -8,13 +13,14 @@ License:   Apache-2.0 (LICENSE), copyright Tim Lehmann for whynotmake.it;
            third_party/ keeps the Flutter (BSD) and Inigo Quilez (MIT)
            notices for adapted shader code.
 
-Copied: LICENSE, README.md, CHANGELOG.md, pubspec.yaml,
-liquid_glass_renderer.shaderbundle.json, hook/, lib/, third_party/.
-Left out: doc/, example/, test/, coverage/, analysis_options.yaml
-(it includes lintervention, a dev dependency of the upstream repo).
-The sources are unmodified except for the local patches listed below.
-Only the morph example depends on it; the morph package itself stays
-shader-free.
+Copied: LICENSE, lib/, third_party/; hook/build.dart and the shader
+bundle manifest moved to the morph package root (hook/build.dart,
+morph_glass.shaderbundle.json), the shaders to shaders/ here, the
+dependencies and the shader asset list to morph's pubspec.yaml.
+Left out: README.md, CHANGELOG.md, pubspec.yaml, doc/, example/, test/,
+coverage/, analysis_options.yaml (it includes lintervention, a dev
+dependency of the upstream repo). The sources are upstream's except for
+the local patches listed below.
 
 Update history:
 - cbbac8453c4e023a2bc3b2fd7a2f06e8652e1bf7 (2026-10-01): first vendoring.
@@ -43,3 +49,23 @@ Local patches (each its own commit, revertable alone):
   liquid_glass_settings.dart, rendering/liquid_glass_layer.dart,
   assets/shaders/liquid_glass_final_render_core.glsl.
   backdropSamplingReach still assumes the center (an over-estimate).
+- 2026-10-03 moved into the package: imports rewritten to
+  package:morph/src/glass/renderer/, flutter/material swapped for
+  flutter/widgets (GlassGlow's default glow is Color(0x3DFFFFFF), the
+  value of Colors.white24), a catch clause given its `on Object`, asset
+  keys under packages/morph/, the bundle renamed morph_glass.shaderbundle,
+  dart format.
+- 2026-10-03 web stubs: the three final-render .frag files compile to an
+  empty shader under SKIA_GRAPHICS_BACKEND (the web's SkSL compiler
+  rejects the core's texture sampling: "Only simple shader sampling is
+  supported"); the web never draws liquid glass.
+- 2026-10-03 field geometry: LiquidGlassLayer.field (GlassField,
+  glass_field.dart) - a sampled signed distance field of one body its
+  owner fused already; the geometry pass then runs
+  shaders/gpu/geometry_field_fragment.glsl (new bundle entry
+  GeometryFieldFragment) instead of the shape pass: the same matte
+  encoding, distance / normal / half thickness interpolated bilinearly
+  from an RGBA32F texture of the field's nodes (sampled nearest, so no
+  float filtering is needed), uploaded through a small ring of
+  host-visible textures written again only three frames after their
+  last use. The material pass still reads the shapes.
