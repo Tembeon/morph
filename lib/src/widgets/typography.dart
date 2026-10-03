@@ -153,17 +153,26 @@ abstract final class MorphTypography {
 
   /// The style a widget paints [style] with on this platform.
   ///
+  /// The result is complete (`inherit` false): a label drawn with it reads
+  /// the same under any ancestor - in an overlay, a bare `WidgetsApp`, or
+  /// a `MaterialApp` page without a `Material`, where an inheriting style
+  /// would pick up the yellow double underline and monospace family of
+  /// the missing-text-style fallback - and a `TextPainter` measuring it
+  /// sees exactly what is painted.
+  ///
   /// On Apple platforms, for the system font (no `fontFamily`, or one of
   /// Flutter's system font aliases): the optical size and weight axes
   /// unless `fontVariations` is set, and [tracking] of the font size
   /// unless `letterSpacing` is set. Elsewhere, and for any other family,
-  /// [style] unchanged. [apple] overrides the platform check (tests).
+  /// [style] as it is otherwise. [apple] overrides the platform check
+  /// (tests).
   static TextStyle resolve(TextStyle style, {bool? apple}) {
-    if (!(apple ?? usesAppleSystemFont)) return style;
-    if (!_isSystemFamily(style.fontFamily)) return style;
+    final complete = style.inherit ? style.copyWith(inherit: false) : style;
+    if (!(apple ?? usesAppleSystemFont)) return complete;
+    if (!_isSystemFamily(style.fontFamily)) return complete;
     final size = style.fontSize ?? 14;
     final wght = weightAxis(style.fontWeight ?? FontWeight.w400);
-    return style.copyWith(
+    return complete.copyWith(
       letterSpacing: style.letterSpacing ?? tracking(size),
       fontVariations:
           style.fontVariations ??

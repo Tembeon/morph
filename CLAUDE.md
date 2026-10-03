@@ -119,7 +119,9 @@ Cross-cutting policy:
 - TYPOGRAPHY: every label a control paints goes through
   `MorphTypography.resolve(style)` (opsz, wght 510/590, CoreText
   tracking; Apple platforms only, identity elsewhere; caller
-  letterSpacing / fontVariations win) - typography.md.
+  letterSpacing / fontVariations win; the result is complete,
+  `inherit: false`, so no label depends on an ambient DefaultTextStyle
+  wherever it is mounted) - typography.md.
 - A11Y / INPUT: each segment is a selectable button in a mutually
   exclusive group; the tab bar carries tab bar / tab roles; switch and
   slider take `semanticLabel`; slider adjust actions and arrows move by

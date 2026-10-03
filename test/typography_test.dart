@@ -79,11 +79,29 @@ void main() {
       expect(varied.letterSpacing, -0.431);
     });
 
+    test('never inherits the ambient style', () {
+      for (final apple in [true, false]) {
+        expect(
+          MorphTypography.resolve(
+            MorphTypography.menuItem,
+            apple: apple,
+          ).inherit,
+          isFalse,
+        );
+      }
+    });
+
     test('leaves other families and other platforms alone', () {
       const custom = TextStyle(fontFamily: 'Inter', fontSize: 17);
-      expect(MorphTypography.resolve(custom, apple: true), same(custom));
+      expect(
+        MorphTypography.resolve(custom, apple: true),
+        custom.copyWith(inherit: false),
+      );
       const plain = TextStyle(fontSize: 17);
-      expect(MorphTypography.resolve(plain, apple: false), same(plain));
+      expect(
+        MorphTypography.resolve(plain, apple: false),
+        plain.copyWith(inherit: false),
+      );
       final alias = MorphTypography.resolve(
         const TextStyle(fontFamily: 'CupertinoSystemText', fontSize: 13),
         apple: true,

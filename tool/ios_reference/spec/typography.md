@@ -27,8 +27,17 @@ tracking from the `trak` table, wght medium 510 / semibold 590.
 - Width parity: 25 labels within 0.01 pt ("Unread messages" segment 108.58
   pt; large title "Settings" 132.96).
 - Apple platforms only (macOS CoreText path inferred, not measured);
-  elsewhere `resolve` is the identity. Caller `letterSpacing` /
+  elsewhere `resolve` adds no axes or tracking. Caller `letterSpacing` /
   `fontVariations` win; custom families untouched.
+- Every resolved style is COMPLETE (`inherit: false`) on every platform:
+  a label never merges with the ambient DefaultTextStyle. Labels mounted
+  in an overlay with no Material above it (the nav bar back menu's
+  vessel in the root overlay, 2026-10-03 owner report) used to pick up
+  MaterialApp's missing-style fallback (yellow double underline,
+  monospace), and a TextPainter measuring the style saw something else
+  than what was painted. Pinned by test/overlay_text_style_test.dart
+  (every overlay of the widget layer in a bare WidgetsApp whose ambient
+  style is that fallback).
 
 ## Fixtures / recordings
 
