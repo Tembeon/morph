@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -42,7 +43,7 @@ class MorphMenuStyle {
     this.disabledColor = const Color(0x4C3C3C43),
     this.separatorColor = const Color(0x14000000),
     this.submenuColor = const Color(0x66FFFFFF),
-    this.submenuRimColor = const Color(0xCCFFFFFF),
+    this.submenuRimColor = const Color(0xFFFFFFFF),
     this.submenuShadowColor = const Color(0x14000000),
     this.paletteSelectionColor = const Color(0x10000000),
   });
@@ -135,7 +136,7 @@ class MorphMenuStyle {
     disabledColor: Color(0x4CEBEBF5),
     separatorColor: Color(0x14FFFFFF),
     submenuColor: Color(0x1DFFFFFF),
-    submenuRimColor: Color(0x22FFFFFF),
+    submenuRimColor: Color(0x33FFFFFF),
     submenuShadowColor: Color(0x33000000),
     paletteSelectionColor: Color(0x18FFFFFF),
   );
@@ -972,6 +973,7 @@ class MorphMenuLayer extends StatefulWidget {
 class _MorphMenuLayerState extends State<MorphMenuLayer> {
   final ScrollController _scroll = ScrollController();
   Expando<Widget> _rows = Expando<Widget>();
+  final Expando<ValueNotifier<int?>> _hidden = Expando<ValueNotifier<int?>>();
   MorphMenuStyle? _rowsStyle;
 
   @override
@@ -1014,12 +1016,16 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         child: _MenuRows(
           layout: layout,
           style: style,
+          hidden: _hiddenOf(layout),
           content: widget.host.menuContent,
           onSelect: (int target) => _select(layout, target),
         ),
       ),
     );
   }
+
+  ValueNotifier<int?> _hiddenOf(MorphMenuLayout layout) =>
+      _hidden[layout] ??= ValueNotifier<int?>(null);
 
   void _select(MorphMenuLayout layout, int target) {
     final host = widget.host;
@@ -1245,6 +1251,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     final card = cards[index];
     final s = card.scale;
     final layout = card.layout;
+    _hiddenOf(layout).value = index + 1 < cards.length
+        ? cards[index + 1].source
+        : null;
     if (index == 0) {
       final content = SizedBox(
         width: width,
@@ -1506,11 +1515,13 @@ class _MenuRows extends StatelessWidget {
   const _MenuRows({
     required this.layout,
     required this.style,
+    required this.hidden,
     required this.content,
     required this.onSelect,
   });
 
   final MorphMenuLayout layout;
+  final ValueListenable<int?> hidden;
   final MorphMenuStyle style;
   final MorphMenuContent content;
   final ValueChanged<int> onSelect;
@@ -1524,7 +1535,21 @@ class _MenuRows extends StatelessWidget {
         clipBehavior: .none,
         children: [
           for (final element in layout.elements)
-            if (element.kind != MorphMenuPlacedKind.cardHeader)
+            if (element.entry is MorphSubmenu &&
+                element.kind == MorphMenuPlacedKind.row)
+              ValueListenableBuilder<int?>(
+                valueListenable: hidden,
+                builder: (BuildContext context, int? hidden, Widget? _) =>
+                    _MenuElement(
+                      element: element,
+                      style: style,
+                      width: layout.width,
+                      content: content,
+                      onSelect: onSelect,
+                      hidden: hidden == element.target,
+                    ),
+              )
+            else if (element.kind != MorphMenuPlacedKind.cardHeader)
               _MenuElement(
                 element: element,
                 style: style,
@@ -1548,7 +1573,10 @@ class _MenuElement extends StatelessWidget {
     this.headerBold = 1,
     this.chevronTurn = 1,
     this.separatorOpacity = 1,
+    this.hidden = false,
   });
+
+  final bool hidden;
 
   final double headerBold;
   final double chevronTurn;
@@ -1597,6 +1625,10 @@ class _MenuElement extends StatelessWidget {
     return Positioned.fromRect(
       rect: rect,
       child: switch (element.kind) {
+        MorphMenuPlacedKind.row when hidden => Opacity(
+          opacity: 0,
+          child: _row(),
+        ),
         MorphMenuPlacedKind.row => _row(),
         MorphMenuPlacedKind.header => _header(),
         MorphMenuPlacedKind.separator => ColoredBox(
@@ -2122,7 +2154,7 @@ class _CardPlatterPainter extends CustomPainter {
     );
     final edge = Paint();
     edge.style = PaintingStyle.stroke;
-    edge.strokeWidth = 1;
+    edge.strokeWidth = 2;
     final reach = math.min(radius, size.height / 2);
     edge.shader = ui.Gradient.linear(Offset.zero, Offset(0, reach), [
       rim.withValues(alpha: rim.a * opacity),

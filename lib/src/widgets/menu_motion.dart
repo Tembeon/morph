@@ -92,6 +92,7 @@ class MorphMenuTuning {
     this.cardChevronTurn = 0.4,
     this.cardChevronBack = 0.2,
     this.cardCloseFadeEnd = 0.2,
+    this.cardCloseCenter = 0.5,
     this.cardBlur = 10,
     this.growSpring = const MorphSpring(0.565, 0.84),
     this.growDelay = 0.045,
@@ -197,6 +198,12 @@ class MorphMenuTuning {
   /// of the root list, fading it only near the end (device film, light
   /// and dark: legible at a fifth of its size).
   final double cardCloseFadeEnd;
+
+  /// How far the menu closes, in progress from 1, before the open card is
+  /// centered on the shrinking shape: UIKit's close morph starts from the
+  /// list under the card, so the card's rows ride the middle of the drop
+  /// (device film) instead of the top of the frame.
+  final double cardCloseCenter;
 
   /// The standard deviation, in points, of the blur a card puts over what
   /// lies under it: the edge of the dimmed list under a card shows
@@ -692,6 +699,7 @@ class MorphMenuCard {
     this.chevronTurn = 1,
     this.closeOpacity = 1,
     this.backing = false,
+    this.source,
   });
 
   /// The content of the card.
@@ -734,6 +742,10 @@ class MorphMenuCard {
 
   /// Whether the card is on its way back into its row.
   final bool backing;
+
+  /// The target of the card below that opened this one, null for the
+  /// root list. Its header stands in for that row while the card shows.
+  final int? source;
 }
 
 /// The motion of a glass button turning into its menu and back: a pure
@@ -1173,6 +1185,7 @@ class MorphMenuMotion {
               : _ramp(c, 0, tuning.cardChevronTurn),
           closeOpacity: i == count ? _cardFade.at(_cardFadeProgress(t)) : 1,
           backing: card.backing,
+          source: card.source,
         ),
       );
     }
@@ -1295,6 +1308,22 @@ class MorphMenuMotion {
     final width = frame.width * scale;
     final height = frame.height * scale;
     final shape = menu.rect;
+    _Card? card;
+    for (final open in _cards) {
+      if (!open.backing) card = open;
+    }
+    if (card != null) {
+      final f = ((1 - progress) / tuning.cardCloseCenter).clamp(0.0, 1.0);
+      final middle = frame.height / 2;
+      final focus = card.top + math.min(card.layout.height, _cap) / 2;
+      final anchor = middle + (focus - middle) * f;
+      return Rect.fromLTWH(
+        shape.center.dx - width / 2,
+        shape.center.dy - anchor * scale,
+        width,
+        height,
+      );
+    }
     if (frame.height > frame.width) {
       return Rect.fromLTWH(
         shape.center.dx - width / 2,
