@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
@@ -226,6 +227,83 @@ void main() {
     expect(motion.fusionRadius, 0);
     expect(motion.silhouette, isNull);
     expect(motion.isPresented, isFalse);
+  });
+
+  test('the sparse field is the blurred union, its path the zero contour', () {
+    double box(RRect s, double x, double y) {
+      final r = math.min(s.tlRadiusX, math.min(s.width, s.height) / 2);
+      final qx = (x - s.center.dx).abs() - (s.width / 2 - r);
+      final qy = (y - s.center.dy).abs() - (s.height / 2 - r);
+      final ox = math.max(qx, 0.0);
+      final oy = math.max(qy, 0.0);
+      return math.sqrt(ox * ox + oy * oy) + math.min(math.max(qx, qy), 0.0) - r;
+    }
+
+    final random = math.Random(3);
+    for (var n = 0; n < 12; n++) {
+      final radius = 1 + random.nextDouble() * 19;
+      final step = (radius / 3).clamp(2.0, 6.0);
+      final reach = (3 * radius / step).ceil();
+      final top = 100 + random.nextDouble() * 50;
+      final width = 120 + random.nextDouble() * 160;
+      final height = 60 + random.nextDouble() * 300;
+      final corner = random.nextDouble() * 60;
+      final g = RRect.fromLTRBXY(
+        70,
+        top,
+        70 + width,
+        top + height,
+        corner,
+        corner,
+      );
+      final d = 6 + random.nextDouble() * 40;
+      final cx = 70 + random.nextDouble() * width;
+      final cy = top + height + random.nextDouble() * 30 - 10;
+      final s = RRect.fromLTRBXY(
+        cx - d / 2,
+        cy,
+        cx + d / 2,
+        cy + d,
+        d / 2,
+        d / 2,
+      );
+      final outline = morphMenuSilhouette(g, s, radius);
+      final field = morphGlassOutlineField(outline)!;
+      final band = 1.26 * radius + 1.5 * step;
+      for (var j = 0; j < field.rows; j += 3) {
+        for (var i = 0; i < field.cols; i += 3) {
+          final x = field.origin.dx + i * field.step;
+          final y = field.origin.dy + j * field.step;
+          var sum = 0.0;
+          var blurred = 0.0;
+          for (var a = -reach; a <= reach; a++) {
+            for (var b = -reach; b <= reach; b++) {
+              final w = math.exp(
+                -0.5 * (a * a + b * b) * step * step / (radius * radius),
+              );
+              sum += w;
+              blurred +=
+                  w *
+                  math.min(
+                    box(g, x + a * step, y + b * step),
+                    box(s, x + a * step, y + b * step),
+                  );
+            }
+          }
+          blurred /= sum;
+          final raw = math.min(box(g, x, y), box(s, x, y));
+          final want = raw > band || raw < -math.max(band, 24) ? raw : blurred;
+          expect(
+            field.samples[(j * field.cols + i) * 4],
+            closeTo(want, 0.01),
+            reason: '($x, $y) at radius $radius',
+          );
+          if (blurred.abs() > 0.5) {
+            expect(outline.path.contains(Offset(x, y)), blurred < 0);
+          }
+        }
+      }
+    }
   });
 
   test('a small radius leaves the plain union', () {

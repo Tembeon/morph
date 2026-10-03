@@ -95,6 +95,19 @@ class MorphOutlineBoxes {
     return morphBoxDistance(qx, qy, r);
   }
 
+  /// Whether (x, y) lies where box [i]'s optical normals can differ from
+  /// its exact ones: in the square of a corner of the optical radius.
+  bool inOpticalCorner(int i, double x, double y) {
+    final hx = _data[i * 5 + 2];
+    final hy = _data[i * 5 + 3];
+    final optical = math.min(
+      _data[i * 5 + 4] * morphOpticalCornerScale,
+      math.min(hx, hy),
+    );
+    return (x - _data[i * 5]).abs() > hx - optical &&
+        (y - _data[i * 5 + 1]).abs() > hy - optical;
+  }
+
   /// The rotation from box [i]'s exact normal at (x, y) to its optical
   /// normal, the one a corner [morphOpticalCornerScale] times rounder
   /// gives, as (cos, sin) written into [out] at [at].
@@ -657,6 +670,7 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
   final halfMinor = Float64List(fieldCols * fieldRows);
   final turn = Float64List(fieldCols * fieldRows * 2);
   final fold = Float64List(2);
+  final turns = [for (var i = 0; i < boxes.length; i++) boxes.turns(i)];
   for (var fj = 0; fj < fieldRows; fj++) {
     final y = area.top + fj * stride * step;
     for (var fi = 0; fi < fieldCols; fi++) {
@@ -665,19 +679,37 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
       var d = boxes.distance(0, x, y);
       var m = d;
       var half = boxes.halfMinor(0);
-      boxes.opticalTurn(0, x, y, turn, at * 2);
+      var turned = turns[0] && boxes.inOpticalCorner(0, x, y);
+      if (turned) {
+        boxes.opticalTurn(0, x, y, turn, at * 2);
+      } else {
+        turn[at * 2] = 1;
+      }
       for (var i = 1; i < boxes.length; i++) {
         final di = boxes.distance(i, x, y);
-        final w = (0.5 + (di - d) / (2 * spacing)).clamp(0.0, 1.0);
-        boxes.opticalTurn(i, x, y, fold, 0);
+        final share = 0.5 + (di - d) / (2 * spacing);
+        final w = share < 0
+            ? 0.0
+            : share > 1
+            ? 1.0
+            : share;
         half = boxes.halfMinor(i) + (half - boxes.halfMinor(i)) * w;
-        turn[at * 2] = fold[0] + (turn[at * 2] - fold[0]) * w;
-        turn[at * 2 + 1] = fold[1] + (turn[at * 2 + 1] - fold[1]) * w;
+        if (turns[i] && boxes.inOpticalCorner(i, x, y)) {
+          boxes.opticalTurn(i, x, y, fold, 0);
+          turned = true;
+        } else {
+          fold[0] = 1;
+          fold[1] = 0;
+        }
+        if (turned) {
+          turn[at * 2] = fold[0] + (turn[at * 2] - fold[0]) * w;
+          turn[at * 2 + 1] = fold[1] + (turn[at * 2 + 1] - fold[1]) * w;
+        }
         final e = math.max(spacing - (d - di).abs(), 0.0);
         d = math.min(d, di) - e * e / (4 * spacing);
         m = math.min(m, di);
       }
-      morphNormalizeTurn(turn, at * 2);
+      if (turned) morphNormalizeTurn(turn, at * 2);
       final value = sample(x, y);
       distance[at] = value;
       minimum[at] = m;
@@ -700,11 +732,7 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
       final d = minimum[corner + span * fieldCols + span];
       final lo = math.min(math.min(a, b2), math.min(c, d));
       final hi = math.max(math.max(a, b2), math.max(c, d));
-      if (hi + reach < 0) {
-        morphFillOutlineBlock(trace, cols, stride, b, bi, bj, -1);
-      } else if (lo - reach > depth) {
-        morphFillOutlineBlock(trace, cols, stride, b, bi, bj, 1);
-      } else {
+      if (hi + reach >= 0 && lo - reach <= depth) {
         near[bj * blockCols + bi] = 1;
         for (var j = bj * b; j <= bj * b + b; j++) {
           final y = area.top + j * step;
@@ -731,28 +759,6 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
     top: area.top,
     step: step,
   );
-}
-
-/// Sets the trace nodes of block ([bi], [bj]), [b] cells a side, that are
-/// not field nodes (every [stride]th node) to [sign]: a block far from the
-/// edge needs only its sign.
-@internal
-void morphFillOutlineBlock(
-  Float64List trace,
-  int cols,
-  int stride,
-  int b,
-  int bi,
-  int bj,
-  double sign,
-) {
-  if (stride == 1) return;
-  for (var j = bj * b; j <= bj * b + b; j++) {
-    for (var i = bi * b; i <= bi * b + b; i++) {
-      if (i % stride == 0 && j % stride == 0) continue;
-      trace[j * cols + i] = sign;
-    }
-  }
 }
 
 /// Normalizes the (cos, sin) pair at [at], blended from several turns.
