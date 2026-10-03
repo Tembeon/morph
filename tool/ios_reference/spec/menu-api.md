@@ -108,8 +108,44 @@ Submenus [rows, fits]:
   the touch) and slides onto a submenu row opens it 0.525 s after ENTERING
   the row (0.523 / 0.527, two runs); sliding on to a sub row and lifting
   fires it 0.019 s after the lift.
-- Choosing a sub row closes the whole stack toward the button (container
-  0.355 / 0.84 fit on the view rows).
+- Choosing a sub row closes the whole stack toward the button. The close
+  starts 0.015 s after the lift on a card row (before the action's 0.019),
+  0.04 - 0.05 s after a lift outside (the container's first visible change
+  lags both by the same 0.024 s: mm-sub-select vs mm-sub-tap).
+
+Submenu film [film, 2026-10-04, light + dark; MenuAPIUITests.testMenuFilm,
+PROBE_SPINNER=1, layer log off; morph side
+example/integration_test/menu_submenu_video_test.dart; montages
+`references/menu-api/film/` (native top, morph bottom; `*-before` = the
+port of 4f810d3, `*-after` = now); numbers in
+`test/fixtures/ios27-device/menu_api/film-sub.json`]:
+- Layers: every list (root and each card) is its own glass element - a
+  `_GlassGroupView` with a `UISDFBackdropView` and a `UISDFView`; an open
+  card lives in a second `MagicMorphView`. The card is NOT an opaque fill:
+  it blurs what lies under it (the dimmed list's edge spreads over ~27 pt,
+  a destructive row shows as a red smear) and lifts it: over the list it
+  opened from 57 on the 32 dark menu / 252 on the 249.5 light one, past
+  that list's edge only the blur (34 / 248.5), over two lists 68 (each
+  further list adds about half); a bright top rim (dark 65 - 83, light
+  251 - 255) and a faint shadow outside (light list -5 levels 4 pt above).
+- The card's header IS its row: it opens on the row (regular title, the
+  chevron pointing at the trailing edge), turns bold and the chevron down
+  while the card grows, and on the way back the title goes regular at once,
+  the chevron turns back and the header lands on the row at full contrast;
+  the card's other rows fade out while it is still over half its size;
+  the platter shrinks to a pill around the row and fades (still at a
+  quarter of its progress, gone about 0.45 s into the back, q ~ 0.007).
+  The row itself never blinks.
+- Growing: the card's rows read at full contrast while the card is still
+  small (clipped by its edges, not faded).
+- Close with a card open: the morph's menu element starts from the list
+  UNDER the card (`R0/1/1/0` 242.5 square after one card, 235.2 after two,
+  250 without), the open card's rows shrink with the drop at full contrast
+  and without blur, centered on it, legible at a fifth of the size and gone
+  near progress 0.2; the list under the card fades as in a plain close.
+  A plain close is unchanged.
+- Taps on the More row, a card header and a card row show no highlight
+  pill on the device (frames during the touch).
 
 Live updates [rows + shots]:
 - `keepsMenuPresented`: the handler runs 0.02 s after the lift and the menu
@@ -189,13 +225,36 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
       light); the root list's own platter shrinking with the 0.97 (3.75 pt
       per side) is NOT drawn - morph's root is the menu glass, which keeps
       its width.
-- [x] Whole-stack close: compared on the recordings - the
-      `_UIContextMenuView` frames of a sub-row close (mm-sub-select) and of
-      a plain row close (mm-palette, "Plain row") are identical frame by
-      frame (w 247.94, 242.44, 234.38, ...): the "0.355 / 0.84" fit is the
-      ordinary menu close seen on the container view, not a submenu
-      spring. The stack closes on the measured morph close (0.49 / 0.80
-      progress + kicks); no recapture needed.
+- [x] Whole-stack close: the progress is the ordinary measured close
+      (0.49 / 0.80 + kicks; the container frames of mm-sub-select and of a
+      plain row close match frame by frame). Fixed 2026-10-04 from film:
+      a card row closes after `submenuCloseDelay` 0.015 (was the root's
+      0.04); the open card rides the drop outside the content blur, its
+      rows and platter fading linearly to 0 at `cardCloseFadeEnd` 0.2;
+      the content is centered on the open card (`cardCloseCenter`: fully
+      by progress 0.5, continuous at the close start) instead of keeping
+      the frame's top on the shape's top.
+- [x] Card look (2026-10-04, film + stills): `MorphMenuStyle.submenuColor`
+      is now a translucent tint (dark 0x1DFFFFFF, light 0x66FFFFFF; was an
+      opaque 57 / 251 fill) over a `BackdropFilter` blur of
+      `MorphMenuTuning.cardBlur` 10 pt, painted over each list under the
+      card (spread by the same blur, each further list at half), plus
+      `submenuRimColor` (top rim) and `submenuShadowColor` (outside only).
+      Drawn by the menu itself, not through the glass seam: the renderer's
+      glass reads the shared page backdrop, not the menu under the card.
+- [x] Card hand-back (2026-10-04, film): the header rides the source row
+      (`MorphMenuCard.contentTop`), the source row is hidden while its card
+      shows, the header title crossfades regular / bold
+      (`cardHeaderBoldStart` 0.15 / `cardHeaderBoldEnd` 0.35; back: within
+      the first tenth), the chevron turns (`cardChevronTurn` 0.4 open,
+      `cardChevronBack` 0.2 back), rows fade in by `cardRowsFadeIn` 0.25
+      and out by `cardRowsFadeOut` 0.55 of the back's start, the platter
+      at sqrt(q / `cardPlatterFade` 0.3), the card is dropped below
+      `cardGone` 0.007. Replays: menu_api_test "submenu close and
+      hand-back" (close delays vs mm-sub-select / mm-sub-tap, header lands
+      on its row within 0.05 pt, never jumps) and "submenu card look"
+      (tint over the measured menu levels within 1.5, the back pill's fade
+      within 0.5 levels of the film).
 - [x] keepsMenuOpen + live update: declarative; grow 0.565 / 0.84, shrink
       0.4 / 1.0. Delays refitted from the action (`evt`) rows: grow 0.045
       s after the action (the second add of mm-resize started about 0.02
@@ -213,7 +272,16 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
       visible (treated alike), large / automatic element sizes as rows,
       the "selection column without glyphs" title start (52, a guess),
       cell highlight shape (12 pt radius, a guess), the palette platter
-      radius, `highlightStateUpdateHandler` timing, submenu cards that do
+      radius, `highlightStateUpdateHandler` timing, the card's own glass
+      refraction / rim light beyond the measured top rim (film: a
+      translucent blurred platter is all that shows), the close's menu
+      element starting from the list under the card (242.5 square; morph's
+      drop still starts from the whole menu, the content is centered on the
+      card instead), the device's missing tap highlight on menu rows (morph
+      still highlights under the finger, except a card header), the header
+      chevron's size (ours is the row chevron turned, a little larger), the
+      chevron turn and bold switch (read by eye from film, not fitted),
+      submenu cards that do
       not fit the cap (cut, not scrolled), the hold-and-slide card spring
       (uses the tap's), Dynamic Type row heights.
 
@@ -232,6 +300,10 @@ MenuAPIUITests); an XCUI query for "More" hits the ellipsis button itself
 (its accessibility label), not the row.
 
 ## Open
+
+- Dark film: the screen recorder dropped most frames of the dark passes
+  (even a second dark pass in one run came out compressed), so the dark
+  motion was judged from the light film and the dark stills only.
 
 - Hover-open dwell from two runs only. (The stack close question is
   settled: see the porting notes above.)
