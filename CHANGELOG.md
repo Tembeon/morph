@@ -861,6 +861,22 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   `wheelFadedOpacity`. Not reproduced: UIKit's empty prediction bar on
   the search keyboard, and a tap on the tab circle during the tab
   morph (ignored here; the device capture could not time one).
+- A flight's scrim can run on springs of its own: `scrimMotion:
+  MorphScrimMotion(motion:, openDelay:, closeDelay:)` on `showMorph` and
+  `MorphFlight.launch`. The scrim then follows the flight's open / close
+  intent on its own spring after its own delay, retargeting with its
+  velocity, and stays up past the handoff latch until it rests (the page
+  takes touches again meanwhile; `landed` comes after it).
+  `MorphFlight.scrimOpacity` and `scrimValue` read it. Without one the
+  scrim follows the flight value as before.
+- `MorphContextMenuRegion` dims like UIKit's context menu (measured on an
+  iPhone 16 Pro): black at 0.2 in light and 0.48 in dark
+  (`measuredDimOpacity`), alpha only, opening on 0.32 / 0.80 and closing
+  on 0.35 / 0.85, 14.5 ms and 12.5 ms after the morph
+  (`measuredDim`, overridable with `scrimMotion:`). BEHAVIOR: the default
+  dim was 0.35 riding the flight value. Its satellites now unfold out of
+  and retract into the held view's center (a menu below a 300 x 200
+  view used to land 15 pt low).
 
 ## 0.6.0 - 2026-09-03
 

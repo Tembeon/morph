@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/scope.dart';
+import 'package:morph/src/scrim.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/theme.dart';
@@ -27,6 +28,10 @@ import 'package:morph/src/theme.dart';
 /// navigators). It must be an ancestor of [context]; anchors for such
 /// a flight are measured in its space ([morphAnchorRect] takes the
 /// same `overlay:`), and the target's rect is computed in it.
+///
+/// [scrimMotion] gives the scrim springs of its own (see
+/// [MorphScrimMotion]); without it the scrim follows the flight value.
+/// Like the rest of the scrim it is fixed at launch.
 MorphFlight showMorph(
   BuildContext context, {
   Object? from,
@@ -41,6 +46,7 @@ MorphFlight showMorph(
   bool barrierDismissible = true,
   double? maxScrimOpacity,
   Color? scrimColor,
+  MorphScrimMotion? scrimMotion,
   Color? shadowColor,
   VoidCallback? onDismissRequested,
   String? semanticLabel,
@@ -57,6 +63,7 @@ MorphFlight showMorph(
     barrierDismissible: barrierDismissible,
     maxScrimOpacity: maxScrimOpacity ?? theme?.maxScrimOpacity ?? 0.45,
     scrimColor: scrimColor ?? theme?.scrimColor ?? Colors.black,
+    scrimMotion: scrimMotion,
     shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
     onDismissRequested: onDismissRequested,
     semanticLabel: semanticLabel,

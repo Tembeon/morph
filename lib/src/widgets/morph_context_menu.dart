@@ -7,9 +7,11 @@ import 'package:material_ui/material_ui.dart';
 import 'package:motor/motor.dart';
 
 import 'package:morph/foundation.dart';
+import 'package:morph/src/frame.dart';
 import 'package:morph/src/measure.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// One block of a context menu beside its hero: a slot above or below
 /// the held surface, built when the menu opens (so its rows read the
@@ -106,6 +108,7 @@ class MorphContextMenuRegion extends StatefulWidget {
     this.motion,
     this.maxScrimOpacity,
     this.scrimColor,
+    this.scrimMotion,
     this.shadowColor,
     this.overlay,
     this.semanticLabel,
@@ -278,12 +281,39 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// The spring of [measuredMotion].
   static const MorphSpring measuredSpring = MorphSpring(0.284, 0.81);
 
-  /// Scrim ceiling; null resolves MorphTheme, then 0.35 - an inkier
-  /// dim than a dialog's, the menu is the only thing that matters.
+  /// Scrim ceiling; null resolves MorphTheme, then
+  /// [measuredDimOpacity] for the ambient brightness.
   final double? maxScrimOpacity;
 
   /// Scrim hue; null resolves MorphTheme, then black.
   final Color? scrimColor;
+
+  /// The scrim's own springs; null is [measuredDim].
+  final MorphScrimMotion? scrimMotion;
+
+  /// UIKit's context-menu dimming, measured on an iPhone 16 Pro (iOS
+  /// 27): a full-screen black view without blur whose alpha alone
+  /// animates, on its own springs beside the morph - open response
+  /// 0.32 s damping 0.80, close 0.35 s / 0.85 (0.001 rms of alpha) -
+  /// starting 14.5 ms after the preview on the way in and 12.5 ms on
+  /// the way out, the same in both appearances.
+  static const MorphScrimMotion measuredDim = MorphScrimMotion(
+    motion: MorphMotion.springs(
+      name: 'contextMenuDim',
+      open: MorphSpring(0.32, 0.80),
+      close: MorphSpring(0.35, 0.85),
+    ),
+    openDelay: Duration(microseconds: 14500),
+    closeDelay: Duration(microseconds: 12500),
+  );
+
+  /// The opacity of UIKit's context-menu dimming over black: 0.2 in
+  /// the light appearance, 0.48 in the dark one (iPhone 16 Pro, iOS 27).
+  static double measuredDimOpacity(Brightness brightness) =>
+      switch (brightness) {
+        Brightness.dark => 0.48,
+        Brightness.light => 0.2,
+      };
 
   /// Shadow color of the flying vessel (which casts none by itself).
   final Color? shadowColor;
@@ -675,8 +705,12 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
           widget.motion ??
           theme?.motion ??
           MorphContextMenuRegion.measuredMotion,
-      maxScrimOpacity: widget.maxScrimOpacity ?? theme?.maxScrimOpacity ?? 0.35,
+      maxScrimOpacity:
+          widget.maxScrimOpacity ??
+          theme?.maxScrimOpacity ??
+          MorphContextMenuRegion.measuredDimOpacity(morphBrightnessOf(context)),
       scrimColor: widget.scrimColor,
+      scrimMotion: widget.scrimMotion ?? MorphContextMenuRegion.measuredDim,
       shadowColor: widget.shadowColor,
       semanticLabel: widget.semanticLabel,
       overlay: overlay,
@@ -950,15 +984,30 @@ class _Retract extends StatelessWidget {
         if (value == 1 || slot.width <= 0 || slot.height <= 0) {
           return Transform(transform: Matrix4.identity(), child: child);
         }
-        final Offset heroCenter =
-            geometry.heroOffset +
-            Offset(geometry.slotWidth / 2, geometry.slotHeight / 2);
+        // The blob is placed where it is SEEN: at the center of the held
+        // view, which the vessel stands on at value 0. The column
+        // overflows that rect by its content alignment and is painted at
+        // the reveal scale about its own center, so both are divided out.
+        final Size source = flight.sourceRect.size;
+        final Alignment align = geometry.contentAlignment;
+        final Offset seen = Offset(
+          source.width / 2 -
+              (source.width - geometry.width) * (align.x + 1) / 2,
+          source.height / 2 -
+              (source.height - geometry.height) * (align.y + 1) / 2,
+        );
+        final double reveal = morphTargetRevealScale(value);
+        final Offset middle = Offset(geometry.width / 2, geometry.height / 2);
         final Rect blob = Rect.fromCenter(
-          center: heroCenter,
+          center: middle + (seen - middle) / reveal,
           width:
-              geometry.heroWidth * MorphContextMenuRegion.measuredRetractScale,
+              geometry.heroWidth *
+              MorphContextMenuRegion.measuredRetractScale /
+              reveal,
           height:
-              geometry.heroHeight * MorphContextMenuRegion.measuredRetractScale,
+              geometry.heroHeight *
+              MorphContextMenuRegion.measuredRetractScale /
+              reveal,
         );
         final Rect now = Rect.lerp(blob, slot, value)!;
         final Matrix4 transform = Matrix4.translationValues(

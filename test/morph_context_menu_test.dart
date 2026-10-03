@@ -1220,6 +1220,35 @@ double _previewSpring(double t) =>
   return best;
 }
 
+/// The start of a preview spring of [_previewResponse] / [_previewDamping]
+/// that grows from an unknown frozen growth to [lifted] through [samples]
+/// (`(t, growth)`): for each start the frozen growth is solved by least
+/// squares, and the start with the least error wins.
+double _frozenStartFit(List<(double, double)> samples, double lifted) {
+  var best = (double.infinity, 0.0);
+  for (int i = -200; i < 400; i++) {
+    final double start = samples.first.$1 - i / 2000;
+    var num = 0.0;
+    var den = 0.0;
+    for (final (t, growth) in samples) {
+      final double x = _previewSpring(t - start);
+      num += (growth - lifted * x) * (1 - x);
+      den += (1 - x) * (1 - x);
+    }
+    final double frozen = den == 0 ? 0 : num / den;
+    var squares = 0.0;
+    for (final (t, growth) in samples) {
+      final double x = _previewSpring(t - start);
+      final double error = frozen + (lifted - frozen) * x - growth;
+      squares += error * error;
+    }
+    if (squares < best.$1) {
+      best = (squares, start);
+    }
+  }
+  return best.$2;
+}
+
 /// The rms error of [device] samples (`(t, value)`) against [ours] (`(t,
 /// value)`, dense from our own clock's zero), at the best placement of
 /// our zero on the device clock within 0.25 s before the first device
@@ -1503,6 +1532,96 @@ void devicePreview() {
   }
 }
 
+/// One frame of a replayed dimming: our clock, the flight value, the
+/// scrim channel's value and the painted scrim opacity.
+typedef _DimFrame = (double t, double value, double dim, double painted);
+
+/// Holds a [size] hero centered at 201, 300 with a [menu] below it for
+/// 1.0 s in [brightness], lets the menu settle, closes it and returns
+/// every 4 ms frame from the first flight frame on (`open`) and from the
+/// close on (`close`).
+Future<({List<_DimFrame> open, List<_DimFrame> close})> _replayDim(
+  WidgetTester tester, {
+  required Size size,
+  required List<num> menu,
+  required Brightness brightness,
+}) async {
+  tester.view.physicalSize = const Size(402, 874);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  MorphFlight? flight;
+  await tester.pumpWidget(
+    MaterialApp(
+      theme: ThemeData(brightness: brightness),
+      builder: (BuildContext context, Widget? child) =>
+          MorphScope(child: child!),
+      home: Stack(
+        children: <Widget>[
+          Positioned(
+            left: 201 - size.width / 2,
+            top: 300 - size.height / 2,
+            child: MorphContextMenuRegion(
+              alignment: Alignment.center,
+              onOpen: (MorphFlight f) => flight = f,
+              below: MorphSatellite(
+                height: menu[3].toDouble(),
+                builder: (BuildContext context, MorphFlight flight) =>
+                    SizedBox(width: menu[2].toDouble()),
+              ),
+              child: SizedBox.fromSize(
+                size: size,
+                child: const ColoredBox(color: Color(0xFF0088FF)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+  double painted() {
+    final Iterable<ColoredBox> boxes = tester
+        .widgetList<ColoredBox>(find.byType(ColoredBox))
+        .where(
+          (ColoredBox box) =>
+              box.color.r == 0 &&
+              box.color.g == 0 &&
+              box.color.b == 0 &&
+              box.color.a > 0,
+        );
+    return boxes.isEmpty ? 0 : boxes.last.color.a;
+  }
+
+  final TestGesture gesture = await tester.startGesture(const Offset(201, 300));
+  final open = <_DimFrame>[];
+  double clock = 0;
+  for (int i = 0; i < 500; i++) {
+    if (i == 250) {
+      await gesture.up();
+    }
+    await tester.pump(const Duration(milliseconds: 4));
+    final MorphFlight? live = flight;
+    if (live == null) {
+      continue;
+    }
+    open.add((clock, live.controller.value, live.scrimValue!, painted()));
+    clock += 0.004;
+  }
+  expect(flight!.controller.isAnimating, isFalse);
+  expect(flight!.scrimValue, 1);
+  flight!.close();
+  final close = <_DimFrame>[
+    (0, flight!.controller.value, flight!.scrimValue!, painted()),
+  ];
+  for (int i = 1; i <= 250; i++) {
+    await tester.pump(const Duration(milliseconds: 4));
+    final double dim = flight!.isFinished ? 0 : flight!.scrimValue!;
+    close.add((i * 0.004, flight!.controller.value, dim, painted()));
+  }
+  expect(flight!.isFinished, isTrue);
+  expect(painted(), 0);
+  return (open: open, close: close);
+}
+
 /// One frame of a replayed hold: our clock, the visible hero and the
 /// menu satellite (null once the menu has left the screen).
 typedef _ReplayFrame = (double t, Rect hero, Rect? menu);
@@ -1782,26 +1901,24 @@ void deviceMorph() {
       double growth(Rect r) => r.longestSide - size.longestSide;
       final parts = (c['menu']! as Map).cast<String, Object?>();
       final previewParts = (c['preview']! as Map).cast<String, Object?>();
-      // Our menu's own endpoints: its center at the launch, at rest, and
-      // on the last frame before the latch (the flight value within a
-      // percent of zero).
-      final double launchY = run.open.first.$3!.center.dy;
-      final double restY = run.close.first.$3!.center.dy;
-      final double homeY = run.close
-          .lastWhere((_ReplayFrame f) => f.$3 != null)
-          .$3!
-          .center
-          .dy;
+      // Normalized by the DEVICE endpoints: the menu grows out of the
+      // held view's center (201, 300) and stands at the device's rect.
       final ourMenuOpen = <(double, double)>[
         for (final (t, _, menuRect) in run.open)
-          if (menuRect != null)
-            (t, (menuRect.center.dy - launchY) / (restY - launchY)),
+          if (menuRect != null) (t, (menuRect.center.dy - 300) / (menuY - 300)),
       ];
       final ourMenuClose = <(double, double)>[
         for (final (t, _, menuRect) in run.close)
           if (menuRect != null)
-            (t, (restY - menuRect.center.dy) / (restY - homeY)),
+            (t, (menuY - menuRect.center.dy) / (menuY - 300)),
       ];
+      expect(run.open.first.$3!.center.dy, closeTo(300, 0.05));
+      expect(run.close.first.$3!.center.dy, closeTo(menuY, 0.05));
+      expect(
+        run.close.lastWhere((_ReplayFrame f) => f.$3 != null).$3!.center.dy,
+        closeTo(300, 1),
+        reason: 'the menu retracts into the held view\'s center',
+      );
       final ourHeroClose = <(double, double)>[
         for (final (t, hero, _) in run.close) (t, 1 - growth(hero) / lifted),
       ];
@@ -1834,6 +1951,174 @@ void deviceMorph() {
         reason: 'hero close',
       );
     });
+  }
+
+  final dimData =
+      (jsonDecode(
+                File(
+                  'test/fixtures/ios27-device/context_menu/dim.json',
+                ).readAsStringSync(),
+              )
+              as Map)
+          .cast<String, Object?>();
+  final dimCases = (dimData['cases']! as List).cast<Map<String, Object?>>();
+
+  test('the dimming is black at 0.2 in light and 0.48 in dark, on the same '
+      'springs in both appearances', () {
+    expect(dimCases, hasLength(4));
+    final MorphMotion dim = MorphContextMenuRegion.measuredDim.motion;
+    for (final c in dimCases) {
+      final String name = c['name']! as String;
+      final bool dark = name.contains('dark');
+      final color = (c['color']! as List).cast<num>();
+      expect(color.take(3), everyElement(0), reason: name);
+      expect(
+        color[3],
+        MorphContextMenuRegion.measuredDimOpacity(
+          dark ? Brightness.dark : Brightness.light,
+        ),
+        reason: name,
+      );
+      final parts = (c['dim']! as Map).cast<String, Object?>();
+      final open = <(double, double)>[
+        for (final f in frames(parts['open'])!) (f[0], f[1]),
+      ];
+      final close = <(double, double)>[
+        for (final f in frames(parts['close'])!) (f[0], 1 - f[1]),
+      ];
+      expect(
+        _springFit(
+          open,
+          response: dim.openSpring!.response,
+          damping: dim.openSpring!.dampingRatio,
+        ).$1,
+        lessThan(0.004),
+        reason: '$name open',
+      );
+      expect(
+        _springFit(
+          close,
+          response: dim.closeSpring!.response,
+          damping: dim.closeSpring!.dampingRatio,
+        ).$1,
+        lessThan(0.002),
+        reason: '$name close',
+      );
+    }
+  });
+
+  for (final String name in <String>['ctxd-m-1', 'ctxd-l-1']) {
+    for (final bool dark in <bool>[false, true]) {
+      testWidgets('$name${dark ? ' (dark)' : ''}: the dimming replays the '
+          'device on its own springs, a beat after the geometry', (
+        WidgetTester tester,
+      ) async {
+        final c = cases.firstWhere(
+          (Map<String, Object?> c) => c['name'] == name,
+        );
+        final size = card(c);
+        final List<num> menu = numbers(c, 'menuRect');
+        final run = await _replayDim(
+          tester,
+          size: size,
+          menu: menu,
+          brightness: dark ? Brightness.dark : Brightness.light,
+        );
+        final double ceiling = dark ? 0.48 : 0.2;
+        for (final f in <_DimFrame>[...run.open, ...run.close]) {
+          expect(f.$4, lessThanOrEqualTo(ceiling + 1e-6));
+          expect(
+            f.$4,
+            moreOrLessEquals(ceiling * f.$3.clamp(0, 1), epsilon: 0.003),
+          );
+        }
+        final dim = (c['dim']! as Map).cast<String, Object?>();
+        // Both clocks start at their own geometry: the device's preview
+        // spring (opening from the size frozen at the presentation) and
+        // our flight value.
+        final previewParts = (c['preview']! as Map).cast<String, Object?>();
+        final double lifted = lift(size);
+        final double deviceOpenStart = _frozenStartFit(<(double, double)>[
+          for (final f in frames(previewParts['open'])!)
+            (f[0], math.max(f[3], f[4]) - size.longestSide),
+        ], lifted);
+        final double deviceCloseStart = _springFit(<(double, double)>[
+          for (final f in frames(previewParts['close'])!)
+            (f[0], 1 - (math.max(f[3], f[4]) - size.longestSide) / lifted),
+        ]).$2;
+        final double ourOpenStart = _springFit(<(double, double)>[
+          for (final f in run.open)
+            if (f.$2 > 0.02 && f.$1 < 0.15) (f.$1, f.$2),
+        ]).$2;
+        final double ourCloseStart = _springFit(<(double, double)>[
+          for (final f in run.close)
+            if (f.$2 < 0.98 && f.$1 < 0.15) (f.$1, 1 - f.$2),
+        ]).$2;
+        double at(List<_DimFrame> ours, double t) {
+          for (int i = 1; i < ours.length; i++) {
+            if (t <= ours[i].$1) {
+              final _DimFrame a = ours[i - 1];
+              final _DimFrame b = ours[i];
+              return a.$3 + (b.$3 - a.$3) * (t - a.$1) / (b.$1 - a.$1);
+            }
+          }
+          return ours.last.$3;
+        }
+
+        double rms(
+          List<List<double>> device,
+          double deviceStart,
+          List<_DimFrame> ours,
+          double ourStart, {
+          double Function(double t)? model,
+        }) {
+          var squares = 0.0;
+          for (final f in device) {
+            final double t = f[0] - deviceStart + ourStart;
+            final double error = (model?.call(t) ?? at(ours, t)) - f[1];
+            squares += error * error;
+          }
+          return math.sqrt(squares / device.length);
+        }
+
+        final List<List<double>> deviceOpen = frames(dim['open'])!;
+        expect(
+          rms(deviceOpen, deviceOpenStart, run.open, ourOpenStart),
+          lessThan(0.004),
+          reason: 'dim open',
+        );
+        expect(
+          rms(
+            frames(dim['close'])!,
+            deviceCloseStart,
+            run.close,
+            ourCloseStart,
+          ),
+          lessThan(0.004),
+          reason: 'dim close',
+        );
+        // The engine's value-driven fade (full at 70 percent of the
+        // travel) misses the device dimming by far.
+        double valueAt(double t) {
+          final _DimFrame f = run.open.lastWhere(
+            (_DimFrame f) => f.$1 <= t,
+            orElse: () => run.open.first,
+          );
+          return (f.$2 / 0.7).clamp(0, 1).toDouble();
+        }
+
+        expect(
+          rms(
+            deviceOpen,
+            deviceOpenStart,
+            run.open,
+            ourOpenStart,
+            model: valueAt,
+          ),
+          greaterThan(0.05),
+        );
+      });
+    }
   }
 
   for (final String name in <String>[

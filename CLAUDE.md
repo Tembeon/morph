@@ -420,15 +420,21 @@ Public pieces:
   press Transform adds min(value, 0) x (measuredPreviewScale - 1) while
   isLanding - the lifted size is linear in the value, so the shrink
   below natural is the same law; device 300x200 dips 0.43 pt, ours
-  matches). NOT on that spring: the dim - a full-screen
-  UIVisualEffectView, black 0.2 (light mode), alpha only, no blur
-  filter - opens on 0.32/0.80 and closes on 0.35/0.85, each about 12 ms
-  after the geometry; the menu's own _UIContextMenuView alpha/scale model
-  also closes on 0.35/0.85 (whether the portal shows that fade is
-  unverified). The region's scrim still rides the engine's
-  morphScrimOpacity (0.35, full at 70 percent of the flight value) -
-  porting the dim needs an engine scrim seam (a scrim outside the
-  shuttle's content opacity), left for an explicit decision. Replayed by
+  matches). NOT on that spring: THE DIM - a full-screen
+  UIVisualEffectView, black 0.2 in light and 0.48 in dark (device
+  2026-10-03, PROBE_DARK on the window, fixture context_menu/dim.json,
+  testW2CtxDimLook), alpha only, no blur filter - opens on 0.32/0.80
+  and closes on 0.35/0.85 (0.001 rms of alpha, both appearances),
+  14.5 ms after the preview's spring on the way in and 12.5 ms on the
+  way out; the menu's own _UIContextMenuView alpha/scale model also
+  closes on 0.35/0.85 (whether the portal shows that fade is
+  unverified). PORTED through the engine's scrim channel
+  (`MorphContextMenuRegion.measuredDim` = MorphScrimMotion with those
+  springs and delays, `measuredDimOpacity(brightness)` the ceiling;
+  explicit maxScrimOpacity > MorphTheme > measured), replayed against
+  the device dim aligned at each side's geometry start (the device's
+  preview fit, ours the flight value): 0.0014 open / 0.0009 close rms
+  of alpha, light and dark. Replayed by
   morph_context_menu_test's device morph group (menu open/close and hero
   close under 1 percent of travel at the best start, hero vs
   preview.json under 0.12 pt open and 0.25 pt close). Replayed by
@@ -442,10 +448,17 @@ Public pieces:
   into a 0.4 x hero blob at the hero center as a pure function of the
   flight value (_Retract; the device blob is 0.4 of the SHORTER side
   tall, 300x200 -> 83x80, 80x160 -> 32x32 - the uniform 0.4 is exact
-  for landscape <= 1.5:1). Gap 16 (device). Measured but not ported:
-  our retract blob lands about 15 pt below the hero center for a
-  below satellite (300x200: menu center 314.6 at value 0, device 300) -
-  geometry, not timing; the replay normalizes by our own endpoints.
+  for landscape <= 1.5:1). Gap 16 (device). The blob is placed where it
+  is SEEN: the held view's center, found through the column's content
+  alignment inside the vessel's value-0 rect (the source) and with the
+  shuttle's 0.95 reveal scale divided out (`morphTargetRevealScale`,
+  frame.dart) - placing it at the lifted slot's center put a below
+  satellite 15 pt low (300x200: 314.6 vs the device's 300). The menu
+  replay normalizes by the DEVICE endpoints (held center 300, device
+  menu rect) and pins our launch / home centers to them. Not reproduced:
+  the blob's WIDTH for a menu narrower than the lifted hero (300x200:
+  device 83.2 x 80, ours 92 x 80 - our blob is 0.4 of the slot, and the
+  250 pt menu is centered in the 326 pt slot).
 - BARS (bar_items.dart, bar_motion.dart, toolbar.dart, navigation_bar.dart,
   navigation_motion.dart, navigation_stack.dart, scroll_edge_effect.dart;
   measured 2026-10-03, fixtures ios27{,-device}/bars, tuning dump in
@@ -971,7 +984,27 @@ Public pieces:
   (continuous at 1) - instead of landing on whatever took the row's
   place; a re-open lifts it. Pinned by morph_source_lost_test. VESSEL
   flights (see target.dart) skip surface, shadow, ghost and crossfade
-  and mount the content over the whole overlay.
+  and mount the content over the whole overlay. THE SCRIM CHANNEL
+  (scrim.dart, 2026-10-03): `scrimMotion: MorphScrimMotion(motion:,
+  openDelay:, closeDelay:)` on launch / showMorph gives the scrim its
+  OWN spring - a third orthogonal DOF (internal MorphScrimChannel on the
+  scope's ticker, joined to frameTicks): it follows the controller's
+  TARGET (open / close / re-open), never its value, each retarget after
+  its direction's delay from the current (value, velocity), a newer
+  request replacing a pending one; the scrim opacity is maxScrimOpacity
+  x clamp(value) (`MorphFlight.scrimOpacity` / `scrimValue`, the one
+  read for the shuttle, the vessel and the settled route page), the
+  drag thinning still multiplies it. Without it the scrim stays
+  morphScrimOpacity of the progress. It OUTLIVES THE LATCH: the shuttle
+  then draws only the scrim (IgnorePointer, no semantics - the page is
+  live), finalize waits for both the value and the scrim to rest (landed
+  comes after the dim), and a re-open during that tail re-hides the tag
+  and rebuilds the content. Reduced motion: instant, no delays. A
+  rebuild of the shuttle's outer build after a consumer disposed a
+  `repaint` Listenable re-subscribes it (the merged Listenable is new
+  each build) - so the latch does not markNeedsBuild the entry; the
+  frame builder sees the latch on the same tick. Pinned by
+  morph_scrim_test.
 - `show.dart` / `anchor.dart` - imperative `showMorph*` (escape hatch)
   and declarative `MorphAnchor(isOpen, onDismiss)` - the morph as a
   function of state; identity is the State itself unless an explicit
@@ -1687,10 +1720,10 @@ Hard-won rules still enforced in the core:
 ## Structural conventions
 
 - ONE frame stream: `MorphFlight.frameTicks` merges the value spring,
-  the displacement channel, the content-size channel and a target's
-  `repaint`; the shuttle and the skin subscribe THERE. A new co-driver
-  of the frame joins the merge - never a notifyListeners backdoor on the
-  controller. Widget-layer driven springs never write into it.
+  the displacement channel, the content-size channel, the scrim channel
+  and a target's `repaint`; the shuttle and the skin subscribe THERE. A
+  new co-driver of the frame joins the merge - never a notifyListeners
+  backdoor on the controller. Widget-layer driven springs never write into it.
 - ONE geometry: `morphFlightGeometry` + `morphConcentricRadius` in
   frame.dart are the only implementations of the frame's rect/radius
   math; computeMorphFrame and the skin's mirror blob both call them.
@@ -1736,7 +1769,9 @@ Hard-won rules still enforced in the core:
    interruption continuity by construction. Precisely: ONE SPRING PER
    DEGREE OF FREEDOM. The gesture displacement is a second, ORTHOGONAL
    DOF with its own always-to-zero spring; the content-size channel is
-   an endpoint filter, not a clock on a property; each DOF stays pure
+   an endpoint filter, not a clock on a property; the scrim channel
+   (`scrimMotion`) is a third DOF whose target is the flight's open /
+   closed INTENT, never the value spring's output; each DOF stays pure
    and continuous, and their superposition preserves the guarantee.
    Forbidden in the engine: two clocks driving the SAME property, or a
    lagging spring whose target is fed from the first.

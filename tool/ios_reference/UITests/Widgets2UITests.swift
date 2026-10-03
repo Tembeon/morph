@@ -209,6 +209,22 @@ final class Widgets2UITests: XCTestCase {
         }
     }
 
+    /// The dimming in each appearance: PROBE_DARK forces the window's style.
+    func testW2CtxDimLook() {
+        let card = p(201, 300)
+        let track = "_UIContextMenu|Dimming|ContextMenuContainer|UIVisualEffect|_UIVisualEffect|Backdrop"
+        for (look, dark) in [("dark", "1"), ("light", "0")] {
+            for run in 1...2 {
+                capture("ctxd-\(look)-l-\(run)", scene: "w2ctx", extra: ["PROBE_CW": "300", "PROBE_CH": "200", "PROBE_W2TRACK": track, "PROBE_W2FILTERS": "1", "PROBE_DARK": dark]) {
+                    path(card, pressFor: 1.0, [])
+                    pause(1.4)
+                    tap(p(201, 820))
+                    pause(1.2)
+                }
+            }
+        }
+    }
+
     // MARK: page control (5 pages, 126 x 25 at 201, 400)
 
     func testW2Page() {

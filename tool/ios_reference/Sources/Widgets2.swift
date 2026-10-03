@@ -492,6 +492,12 @@ final class ContextScene: W2ScriptedScene, UIContextMenuInteractionDelegate {
         card.addInteraction(UIContextMenuInteraction(delegate: self))
     }
 
+    /// PROBE_DARK=1/0 forces the window's appearance: the menu's container lives in the window.
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if let d = env["PROBE_DARK"] { view.window?.overrideUserInterfaceStyle = d == "1" ? .dark : .light }
+    }
+
     func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
         Recorder.shared.log(["k": "evt", "e": "configuration", "t": CACurrentMediaTime()])
         let count = Int(env["PROBE_ITEMS"] ?? "3") ?? 3

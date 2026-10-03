@@ -53,6 +53,7 @@
 /// {@canonicalFor scope.MorphSurfaceSpec}
 /// {@canonicalFor scope.MorphTag}
 /// {@canonicalFor scope.MorphTagState}
+/// {@canonicalFor scrim.MorphScrimMotion}
 /// {@canonicalFor shared.MorphSharedElement}
 /// {@canonicalFor shared.MorphSharedFade}
 /// {@canonicalFor show.showMorph}
@@ -85,6 +86,7 @@ export 'src/skin.dart'
     show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin, MorphStroke;
 export 'src/liquid_field.dart' show MorphMass, MorphSkinStyle;
 export 'src/route.dart' show MorphPageRoute, showMorphRoute;
+export 'src/scrim.dart' show MorphScrimMotion;
 export 'src/shared.dart' show MorphSharedElement, MorphSharedFade;
 export 'src/spring.dart';
 export 'src/scope.dart'

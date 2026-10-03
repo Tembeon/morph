@@ -13,6 +13,7 @@ import 'package:morph/src/frame.dart';
 import 'package:morph/src/gesture.dart';
 import 'package:morph/src/measure.dart';
 import 'package:morph/src/scope.dart';
+import 'package:morph/src/scrim.dart';
 import 'package:morph/src/shared.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/target.dart';
@@ -62,6 +63,7 @@ class MorphFlight {
     required this.barrierDismissible,
     required this.maxScrimOpacity,
     required this.scrimColor,
+    required this.scrimMotion,
     required this.shadowColor,
     required this._overlay,
     required MorphMotion motion,
@@ -71,6 +73,17 @@ class MorphFlight {
         MorphController(vsync: scope, motion: motion, onHandoff: _onHandoff)
           ..disableAnimations = disableAnimations
           ..addListener(_onTick);
+    final MorphScrimMotion? scrim = scrimMotion;
+    if (scrim != null) {
+      final MorphScrimChannel channel = MorphScrimChannel(
+        scrim: scrim,
+        vsync: scope,
+        reducedMotion: () => controller.disableAnimations,
+      );
+      channel.addListener(_onScrimTick);
+      controller.addListener(_followTargetWithScrim);
+      _scrim = channel;
+    }
   }
 
   /// The scope this flight is registered in.
@@ -106,6 +119,45 @@ class MorphFlight {
   /// Scrim hue; its own opacity composes with the animated scrim
   /// opacity.
   final Color scrimColor;
+
+  /// The scrim's own springs, or null for a scrim that follows the
+  /// flight value. See [MorphScrimMotion].
+  final MorphScrimMotion? scrimMotion;
+
+  MorphScrimChannel? _scrim;
+
+  /// The scrim opacity this frame, before a drag's thinning: the scrim
+  /// channel's value times [maxScrimOpacity] when the flight has a
+  /// [scrimMotion], otherwise the value's own fade
+  /// (`morphScrimOpacity`).
+  double get scrimOpacity =>
+      _scrim?.opacity(maxScrimOpacity) ??
+      morphScrimOpacity(maxScrimOpacity, controller.progress);
+
+  /// The scrim channel's value (0 clear, 1 full), or null without a
+  /// [scrimMotion].
+  double? get scrimValue => _scrim?.value;
+
+  /// Whether the shuttle stands past the handoff latch only to finish
+  /// a scrim that rides its own springs.
+  bool get _scrimOnly =>
+      controller.hasHandedOff && _scrim != null && !_scrim!.isAtRest;
+
+  void _followTargetWithScrim() {
+    if (!_finished) {
+      _scrim?.retarget(controller.target);
+    }
+  }
+
+  void _onScrimTick() {
+    if (_finished) {
+      return;
+    }
+    if (controller.hasHandedOff && _scrim!.isAtRest && _entry != null) {
+      _removeEntry();
+    }
+    _onTick();
+  }
 
   /// Shadow color of the flying surface, opacity included.
   final Color shadowColor;
@@ -331,6 +383,7 @@ class MorphFlight {
     controller,
     _drag,
     _contentSize,
+    ?_scrim,
     ?target.repaint,
   ]);
 
@@ -448,6 +501,7 @@ class MorphFlight {
     bool barrierDismissible = true,
     double maxScrimOpacity = 0.45,
     Color scrimColor = Colors.black,
+    MorphScrimMotion? scrimMotion,
     Color shadowColor = const Color(0x99000000),
     VoidCallback? onDismissRequested,
     String? semanticLabel,
@@ -501,6 +555,7 @@ class MorphFlight {
             barrierDismissible: barrierDismissible,
             maxScrimOpacity: maxScrimOpacity,
             scrimColor: scrimColor,
+            scrimMotion: scrimMotion,
             shadowColor: shadowColor,
             // The NEAREST overlay: the flight belongs to the world its
             // scope lives in. A nested navigator (a tab, an embedded
@@ -529,6 +584,9 @@ class MorphFlight {
       return;
     }
     final bool fresh = _entry == null;
+    // A shuttle kept past the latch for its scrim alone: the tag is
+    // visible again and must hide once more, like a fresh launch.
+    final bool relaunch = !fresh && controller.hasHandedOff;
     if (fresh) {
       _insertEntry();
     }
@@ -544,7 +602,7 @@ class MorphFlight {
       _emit(MorphFlightEvent.launched);
     }
     controller.open(velocity: velocity);
-    if (fresh) {
+    if (fresh || relaunch) {
       _hideTagWhenStaged();
     }
   }
@@ -716,7 +774,13 @@ class MorphFlight {
     if (tag.mounted) {
       tag.reveal();
     }
-    _removeEntry();
+    // A scrim on its own springs may still be dimming the page: the
+    // shuttle stays, drawing only the scrim (its frame builder sees the
+    // latch on this very tick), until it rests.
+    final MorphScrimChannel? scrim = _scrim;
+    if (scrim == null || scrim.isAtRest) {
+      _removeEntry();
+    }
     _emit(MorphFlightEvent.latched);
   }
 
@@ -728,7 +792,8 @@ class MorphFlight {
     // interruption of the close, not its end.
     if (controller.target == 0 &&
         !controller.isAnimating &&
-        !controller.isScrubbing) {
+        !controller.isScrubbing &&
+        (_scrim?.isAtRest ?? true)) {
       _finalize();
       return;
     }
@@ -820,6 +885,7 @@ class MorphFlight {
     _disposeSnapshot();
     _disposeDrag();
     _contentSize.reset();
+    _scrim?.reset();
     scope.retireFlight(this);
     _emit(MorphFlightEvent.landed);
     _finishEvents();
@@ -838,6 +904,7 @@ class MorphFlight {
       _disposeSnapshot();
       _disposeDrag();
       _contentSize.reset();
+      _scrim?.reset();
       controller.stop();
       scope.retireFlight(this);
       _emit(MorphFlightEvent.aborted);
@@ -861,6 +928,7 @@ class MorphFlight {
       controller.dispose();
       _drag.dispose();
       _contentSize.dispose();
+      _scrim?.dispose();
       routeOwnsContent.dispose();
     }
   }
@@ -1379,6 +1447,26 @@ class _MorphShuttleState extends State<_MorphShuttle> {
     return KeyEventResult.ignored;
   }
 
+  /// The scrim alone, past the handoff latch: the content is home, the
+  /// page takes touches again, and the dimming finishes on its own
+  /// springs.
+  Widget _lingeringScrim() {
+    if (!flight.modal) {
+      return const SizedBox.shrink();
+    }
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: SizedBox.expand(
+          child: ColoredBox(
+            color: flight.scrimColor.withValues(
+              alpha: flight.scrimColor.a * flight.scrimOpacity,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   /// A vessel's frame: the scrim, then the content over the whole
   /// overlay at full opacity; both take pointers only while the flight
   /// is open or opening, so a closing vessel lets touches reach the page.
@@ -1393,10 +1481,7 @@ class _MorphShuttleState extends State<_MorphShuttle> {
               ignoring: flight.controller.target < 1,
               child: _ShuttleScrim(
                 flight: flight,
-                opacity: morphScrimOpacity(
-                  flight.maxScrimOpacity,
-                  flight.controller.progress,
-                ),
+                opacity: flight.scrimOpacity,
               ),
             ),
           ),
@@ -1486,6 +1571,9 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                     // so the route can adopt it this same frame.
                     return const SizedBox.shrink();
                   }
+                  if (flight._scrimOnly) {
+                    return _lingeringScrim();
+                  }
                   flight.refreshSourceRect();
                   final Rect targetRect = target.resolveRect(
                     overlaySize,
@@ -1556,7 +1644,7 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                                 child: _ShuttleScrim(
                                   flight: flight,
                                   opacity:
-                                      frame.scrimOpacity *
+                                      flight.scrimOpacity *
                                       morphDragScrimFactor(recede, arm),
                                 ),
                               ),

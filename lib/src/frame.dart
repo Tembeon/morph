@@ -82,6 +82,14 @@ const Interval _targetFade = Interval(0.35, 0.90, curve: Curves.easeOut);
 const Interval _surfaceBlend = Interval(0.30, 0.55);
 const Interval _scrimFade = Interval(0, 0.7);
 
+/// The scale the target content is painted at for a flight [value]:
+/// 0.95 while it starts to fade in, 1 once revealed, about the content
+/// box's center. The one implementation of the reveal scale; content
+/// that must stand at a given visible place mid-flight divides it out.
+@internal
+double morphTargetRevealScale(double value) =>
+    lerpDouble(0.95, 1, _targetFade.transform(clampDouble(value, 0, 1)))!;
+
 /// The scrim opacity of a flight at [progress]: it reaches
 /// [maxScrimOpacity] at 70 percent of the travel. The one
 /// implementation every renderer of a flight's scrim calls.
@@ -191,7 +199,7 @@ MorphFrame computeMorphFrame({
     cornerRadius: cornerRadius,
     sourceOpacity: 1 - _sourceFade.transform(p),
     targetOpacity: targetReveal,
-    targetScale: lerpDouble(0.95, 1, targetReveal)!,
+    targetScale: morphTargetRevealScale(value),
     scrimOpacity: morphScrimOpacity(maxScrimOpacity, p),
     // The shadow belongs to the morphing container (the Material
     // container-transform guideline): the shuttle starts with exactly

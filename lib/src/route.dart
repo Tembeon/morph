@@ -451,7 +451,7 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
                           color: flight.scrimColor.withValues(
                             alpha:
                                 flight.scrimColor.a *
-                                flight.maxScrimOpacity *
+                                flight.scrimOpacity *
                                 morphDragScrimFactor(recede, arm),
                           ),
                         ),
