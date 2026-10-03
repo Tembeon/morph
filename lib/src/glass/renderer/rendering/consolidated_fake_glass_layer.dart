@@ -336,12 +336,18 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
 
   /// Tints the part of the fused body no shape covers - the neck - like
   /// the first shape.
+  ///
+  /// The neck is the outline with the shapes cut out by the even-odd rule,
+  /// under the outline clip: no path boolean, which Skia's path ops refuse
+  /// for an outline that runs along its shapes' edges.
   void _paintNeck(
     Canvas canvas,
     Path outline,
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
   ) {
-    final shapes = Path();
+    final neck = Path();
+    neck.fillType = PathFillType.evenOdd;
+    neck.addPath(outline, Offset.zero);
     LiquidGlassAppearance? first;
     for (final (_, geometry, geometryToLayer) in geometries) {
       for (final shape in geometry.shapes) {
@@ -349,7 +355,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
         final toLayer = shape.shapeToGeometry == null
             ? geometryToLayer
             : geometryToLayer.multiplied(shape.shapeToGeometry!);
-        shapes.addPath(
+        neck.addPath(
           shape.shape.getOuterPath(Offset.zero & shape.renderObject.size),
           Offset.zero,
           matrix4: toLayer.storage,
@@ -362,10 +368,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     paint.color = tint.withValues(
       alpha: tint.a * first.visibility.clamp(0.0, 1.0),
     );
-    canvas.drawPath(
-      Path.combine(PathOperation.difference, outline, shapes),
-      paint,
-    );
+    canvas.drawPath(neck, paint);
   }
 
   void _paintShapeSurfaces(

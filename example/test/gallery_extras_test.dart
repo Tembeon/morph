@@ -107,4 +107,36 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Done in Zoomed from its button'), findsOneWidget);
   });
+
+  testWidgets('navigation: holding Back opens its menu over the glass', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1206, 2622);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(const GalleryApp());
+    await tester.pumpAndSettle();
+    final entry = find.widgetWithText(ListTile, 'Navigation');
+    await tester.scrollUntilVisible(
+      entry,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(entry);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Message 1'));
+    await tester.pumpAndSettle();
+    final back = find.bySemanticsLabel('Back');
+    final gesture = await tester.startGesture(tester.getCenter(back.last));
+    for (var i = 0; i < 120; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(tester.takeException(), isNull, reason: 'frame $i of the hold');
+    }
+    expect(find.text('Inbox'), findsWidgets);
+    await gesture.moveBy(const Offset(0, 400));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
 }
