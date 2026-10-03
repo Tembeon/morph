@@ -102,7 +102,13 @@ void main() {
     // exterior half of the AA ramp keeps the silhouette's displacement.
     float bevel;
     float amount;
-    if (uRefractionFitsShape > 0.5) {
+    if (uRefractionFitsShape > 1.5) {
+        // A lifted iOS 27 control lens: one lens over the face whose
+        // displacement grows as x^1.5 from the center line toward the rim.
+        // The final pass reverses it, so the face samples outward.
+        bevel = min(uRefractionHeight, scene.halfMinor);
+        amount = uRefractionAmount;
+    } else if (uRefractionFitsShape > 0.5) {
         // iOS 27 regular glass: the bevel spans at most half of the half
         // short side and the rim samples no deeper than the center line.
         bevel = min(uRefractionHeight, 0.5 * scene.halfMinor);
@@ -118,9 +124,13 @@ void main() {
         amount = uRefractionAmount * lensScale;
     }
     float bevelX = 1.0 - clamp(max(-sd, 0.0) / max(bevel, 0.001), 0.0, 1.0);
-    float displacementMagnitude = bevel > 0.001
-        ? -amount * (1.0 - sqrt(1.0 - bevelX * bevelX))
-        : 0.0;
+    // The lens's rim eases back over its outer fifth to half its peak, so
+    // what lies just outside is drawn into a band rather than a hairline.
+    float profile = uRefractionFitsShape > 1.5
+        ? bevelX * sqrt(bevelX) *
+            (1.0 - 0.54 * smoothstep(0.8, 1.0, bevelX))
+        : 1.0 - sqrt(1.0 - bevelX * bevelX);
+    float displacementMagnitude = bevel > 0.001 ? -amount * profile : 0.0;
 
     fragColor = encodeDisplacementData(
         surfaceNormal,

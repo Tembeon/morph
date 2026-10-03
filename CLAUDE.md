@@ -612,12 +612,41 @@ Public pieces:
   blob) and bent by the button's 60 against a bevel of 20 (ratio 3:
   the rim mirrored the labels); now the lens is clear, bends by UIKit's
   displacement x 2 (18 lifted) with dispersion -0.25, and refracts the
-  bar glass + the magnified labels beneath it. The dark tab bar's resting
+  bar glass + the magnified labels beneath it. LIFTED LENSES BEND OUTWARD
+  (grid audit, 2026-10-03, the "glass shifts the UI under it" report):
+  UIKit's lifted segmented / tab bar lens and switch knob show the
+  backdrop slightly SHRUNK about their center and pull what lies just
+  outside them into a rim band; the old inward 18-over-20 lens mirrored
+  its own inside into the rim (knob grid lines off 1.5 - 2.3 pt, the
+  slider fill smeared along the thumb rim in dark). Now: renderer
+  `refractionLens` (VENDORED patch: displacement x^1.5 of the depth
+  across the half short side, easing to half over the outer fifth, sign
+  flipped in the final pass) with `lensReach` 6.4 and `lensShrink` 0.02
+  -> within 0.6 pt of UIKit's lines; the content copy scales by
+  `magnificationAt` = 1.16 / 0.98 so the visible growth stays 1.16. The
+  lifted SLIDER THUMB is the exception: it bends inward like body glass
+  (UIKit folds the lines 4 pt inside it out of sight but keeps the track
+  out of its top/bottom rim) - `thumbRefraction` 12, no dispersion.
+  Knob and thumb never disperse (UIKit's show no fringes); in dark mode
+  every lifted surface washes by 0x15 white (UIKit thumb +21 levels).
+  Body glass (buttons, bars, menus, panels) was and is an identity map
+  in its face; its rim bends within 0.3 pt of UIKit's. Not displacement
+  but still off: our bar FROST is heavier than UIKit's tab bar (grid lines
+  stay legible through the native bar), and the lifted segmented lens is
+  43 pt tall vs UIKit's 45.5 (widgets layer). Tools: the glass page's
+  Debug grid toggle (`GlassGrid`, 2 pt lines every 16 pt, every fifth
+  red), example/integration_test/glass_grid_test.dart (glass of every
+  kind at fixed rects + held switch / slider / segmented / tab lens,
+  shots + rects.json in `<app tmp>/glassgrid/`) and the probe scene
+  `glassGrid` (PROBE_PLAN=glassgrid; PROBE_BG=grid on single controls)
+  draw the same grid, so line positions inside the glass compare
+  directly. The dark tab bar's resting
   platter is DARKER than the bar (reference 10 vs 35: 0xB5000000, was a
   white 14 percent). Audit tool: example/integration_test/
   glass_audit_test.dart (profile, dark; shots of the reference states and
   per-scene FrameTimings in `<app tmp>/glass/`), iPhone 16 Pro p95 raster
-  2.0 / 2.3 / 2.9 / 3.6 ms (segmented / tab bar / controls / menu). Device
+  1.9 / 2.2 / 3.0 / 3.3 ms (segmented / tab bar / controls / menu; with
+  the outward lens, was 2.0 / 2.3 / 2.9 / 3.6). Device
   verdicts (iPhone 16 Pro, 2026-10-03): LiquidGlassCapture drops whole
   controls on iOS (renders on macOS) - not used; FROST is the dear part
   (~1 ms raster per frosted surface per frame, Controls page 13-15 ms

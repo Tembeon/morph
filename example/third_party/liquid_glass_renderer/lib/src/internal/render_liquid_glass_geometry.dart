@@ -367,6 +367,7 @@ extension on LiquidGlassSettings {
     return effectiveRefractionHeight != other.effectiveRefractionHeight ||
         effectiveRefractionAmount != other.effectiveRefractionAmount ||
         refractionFitsShape != other.refractionFitsShape ||
+        refractionLens != other.refractionLens ||
         contourWidth != other.contourWidth;
   }
 }

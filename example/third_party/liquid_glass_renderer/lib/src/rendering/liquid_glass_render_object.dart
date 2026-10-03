@@ -187,6 +187,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
         _settings?.effectiveRefractionAmount !=
             value.effectiveRefractionAmount ||
         _settings?.refractionFitsShape != value.refractionFitsShape ||
+        _settings?.refractionLens != value.refractionLens ||
         _settings?.contourWidth != value.contourWidth;
     _settings = value;
     _updateShaderSettings();
@@ -327,7 +328,9 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
       value
         ..setColor(appearance.tint)
         ..setFloats([
-          settings.effectiveDisplacementScale * devicePixelRatio,
+          (settings.refractionLens ? -1 : 1) *
+              settings.effectiveDisplacementScale *
+              devicePixelRatio,
           settings.dispersion,
           settings.effectiveEdgeDistanceRange * devicePixelRatio,
           settings.highlight,
@@ -1590,6 +1593,7 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
         edgeDistanceRange:
             settings.effectiveEdgeDistanceRange * devicePixelRatio,
         refractionFitsShape: settings.refractionFitsShape,
+        refractionLens: settings.refractionLens,
         contourExtent: aaPadding * devicePixelRatio,
         writeMaterials: usesShapeAppearances,
         writeTintOnly: usesTintOnlyAppearance,

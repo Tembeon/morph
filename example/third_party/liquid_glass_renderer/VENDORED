@@ -12,5 +12,22 @@ Copied: LICENSE, README.md, CHANGELOG.md, pubspec.yaml,
 liquid_glass_renderer.shaderbundle.json, hook/, lib/, third_party/.
 Left out: doc/, example/, test/, coverage/, analysis_options.yaml
 (it includes lintervention, a dev dependency of the upstream repo).
-The sources are unmodified. Only the morph example depends on it; the
-morph package itself stays shader-free.
+Only the morph example depends on it; the morph package itself stays
+shader-free.
+
+Local modifications (morph, 2026-10-03):
+- refractionLens: LiquidGlassSettings.refractionLens (constructor, JSON,
+  copyWith, props) selects an outward lens for the lifted lenses of iOS
+  27 controls. The geometry pass encodes it as profile 2 (uTextureSize.x)
+  with displacement amount * x^1.5 * (1 - 0.54 * smoothstep(0.8, 1, x)),
+  x = 1 - depth / min(refractionHeight, halfMinor); the render object
+  passes the displacement scale negated, and the final pass decodes with
+  its absolute value and multiplies the displacement by its sign, so the
+  lens samples outward. Settings comparisons that trigger a geometry
+  rebuild include it. Files: lib/src/liquid_glass_settings.dart,
+  lib/src/rendering/liquid_glass_render_object.dart,
+  lib/src/internal/render_liquid_glass_geometry.dart,
+  lib/src/internal/flutter_gpu_geometry_renderer_native.dart,
+  lib/src/internal/flutter_gpu_geometry_renderer_web.dart,
+  lib/assets/shaders/gpu/geometry_fragment.glsl,
+  lib/assets/shaders/liquid_glass_final_render_core.glsl.

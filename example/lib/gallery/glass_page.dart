@@ -164,7 +164,11 @@ class _GlassPageState extends State<GlassPage> {
           BackdropGroup(
             child: Stack(
               children: [
-                Positioned.fill(child: _Backdrop(dark: dark)),
+                Positioned.fill(
+                  child: settings.grid
+                      ? const GlassGrid()
+                      : _Backdrop(dark: dark),
+                ),
                 DefaultTextStyle.merge(
                   style: TextStyle(color: dark ? Colors.white : Colors.black),
                   child: _scene(context),
@@ -229,6 +233,11 @@ class _GlassPageState extends State<GlassPage> {
                   label: 'Fallback glass',
                   value: settings.fake,
                   onChanged: liquid ? (bool v) => settings.fake = v : null,
+                ),
+                _Toggle(
+                  label: 'Debug grid',
+                  value: settings.grid,
+                  onChanged: (bool v) => settings.grid = v,
                 ),
                 _Choice(
                   label: 'Appearance',
@@ -432,4 +441,59 @@ class _Backdrop extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The measurement backdrop of the glass audit: 2 pt black lines every
+/// [pitch] points on white, every fifth line red, anchored at the box's
+/// top left corner.
+///
+/// The UIKit probe (tool/ios_reference, scene `glassGrid`) draws the same
+/// grid, so the offset of a line seen through the glass from where it
+/// lies outside compares the two refractions directly.
+class GlassGrid extends StatelessWidget {
+  /// Creates the grid.
+  const GlassGrid({super.key});
+
+  /// The distance between two lines.
+  static const double pitch = 16;
+
+  /// The width of a line.
+  static const double line = 2;
+
+  @override
+  Widget build(BuildContext context) =>
+      const CustomPaint(painter: _GridPainter(), child: SizedBox.expand());
+}
+
+class _GridPainter extends CustomPainter {
+  const _GridPainter();
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(Offset.zero & size, _fill(Colors.white));
+    final black = _fill(Colors.black);
+    final red = _fill(const Color(0xFFFF0000));
+    const pitch = GlassGrid.pitch;
+    for (var i = 0; i * pitch < size.width; i++) {
+      canvas.drawRect(
+        .fromLTWH(i * pitch, 0, GlassGrid.line, size.height),
+        i % 5 == 0 ? red : black,
+      );
+    }
+    for (var i = 0; i * pitch < size.height; i++) {
+      canvas.drawRect(
+        .fromLTWH(0, i * pitch, size.width, GlassGrid.line),
+        i % 5 == 0 ? red : black,
+      );
+    }
+  }
+
+  static Paint _fill(Color color) {
+    final paint = Paint();
+    paint.color = color;
+    return paint;
+  }
+
+  @override
+  bool shouldRepaint(_GridPainter oldDelegate) => false;
 }

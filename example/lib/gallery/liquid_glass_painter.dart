@@ -26,13 +26,16 @@ enum LiquidGlassMaterial {
 /// knob or thumb is an opaque platter under the control's content;
 /// lifted, it turns into glass in a layer of its own above everything of
 /// the control, with its own backdrop copy, so it refracts what lies
-/// under it - the bar's glass included (glass on glass). A lifted lens
-/// shows the content behind it magnified by `1 + 0.16 * lift`, the growth
-/// the UIKit tab bar shows through its lifted lens: the renderer never
-/// enlarges its backdrop, so the content is drawn once more at that scale
-/// inside the lens's outline, cut out of the plane, and BELOW the lens
-/// glass, which then bends the magnified content and the bar's rim at its
-/// bevel as UIKit's lens does.
+/// under it - the bar's glass included (glass on glass). Lifted, a lens
+/// or knob is one outward lens, as UIKit's: it leaves what lies under its
+/// middle nearly in place, shrunk slightly about its center, and draws
+/// what lies just outside it into its rim; a lifted thumb bends inward at
+/// its rim like a glass button. A lifted lens shows the content behind it
+/// magnified by `1 + 0.16 * lift` about its center, the growth the UIKit
+/// tab bar shows through its lifted lens: the renderer never enlarges its
+/// backdrop, so the content is drawn once more inside the lens's outline,
+/// cut out of the plane, and BELOW the lens glass, which then bends it and
+/// the bar's rim as UIKit's lens does.
 ///
 /// Every backdrop copy is a full-screen readback, so body glass reads the
 /// one copy of the nearest [BackdropGroup] and only lifted glass, which
@@ -43,9 +46,8 @@ enum LiquidGlassMaterial {
 /// Glass in one group does not see what paints between its members: give
 /// a section painted over the page (a card) a group of its own.
 ///
-/// Lift drives the optics of a lens the way [MorphGlassOptics] describes
-/// UIKit's: refraction grows from the resting to the lifted displacement
-/// and frost falls from the resting blur to none.
+/// Lift drives the optics of a lens: its reach and dispersion grow with
+/// it and frost falls from the resting blur of [MorphGlassOptics] to none.
 class LiquidGlassRendererPainter extends MorphGlassPainter {
   /// Creates the painter from the gallery's glass settings.
   const LiquidGlassRendererPainter({
@@ -88,16 +90,52 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   /// The growth of the content seen through a fully lifted lens.
   static const double lensMagnification = 0.16;
 
-  /// The renderer refraction per pixel of UIKit lens displacement.
-  ///
-  /// A lifted lens bends by `9 * 2 = 18`, under the bevel height of 20, so
-  /// its rim compresses what lies just outside it - the edge of the bar
-  /// or track it floats over - as UIKit's lens does, instead of mirroring
-  /// the content inside it as the 60 of a glass button would.
-  static const double lensRefraction = 2;
+  /// The scale of the content copy under a lens lifted by [lift]: the
+  /// visible growth `1 + lensMagnification * lift` divided by the shrink
+  /// the lens glass applies to it again ([lensShrink]).
+  static double magnificationAt(double lift) {
+    final t = lift.clamp(0.0, 1.0);
+    return (1 + lensMagnification * t) / (1 - lensShrink * t);
+  }
 
-  /// The color separation along a lifted lens's rim.
+  /// The peak outward reach of a fully lifted lens (a segmented control's,
+  /// a tab bar's) or switch knob, in points.
+  ///
+  /// A lifted lens is one outward lens (`refractionLens`): its displacement
+  /// grows as the 1.5th power of the depth across the lens, from its center
+  /// line toward the rim, then eases back to half, so it shows what lies
+  /// under it slightly shrunk about its center and draws the edge of the
+  /// track or bar just outside it into a band along its rim. Measured over a
+  /// grid on an iPhone 16 Pro: grid lines 8 pt from the center of the
+  /// 120 x 45 lifted segmented lens and 12.5 pt from the center of the
+  /// 58 x 38 lifted switch knob sit 1.1 and 3.4 pt closer to it.
+  static const double lensReach = 6.4;
+
+  /// How much a fully lifted lens or knob shrinks the backdrop it shows
+  /// beyond its rim profile: along the 120 pt segmented lens, grid lines
+  /// 32 pt from its center sit 0.7 pt closer to it.
+  static const double lensShrink = 0.02;
+
+  /// How far inside its silhouette the rim of a fully lifted slider thumb
+  /// samples, in points.
+  ///
+  /// The thumb is the one lifted surface that bends inward like a glass
+  /// button: its rim folds the grid lines a few points inside it out of
+  /// sight but stays clear of the track along its center line (the 37 pt
+  /// thumb reaches at least 9.4 pt and less than 16 pt deep).
+  static const double thumbRefraction = 12;
+
+  /// The color separation along a lifted lens's rim; a knob and a thumb
+  /// separate none.
   static const double lensDispersion = -0.25;
+
+  /// The wash over what a lifted lens shows in dark mode: the native
+  /// lifted thumb lifts black by 21 levels.
+  static const Color darkLensWash = Color(0x15FFFFFF);
+
+  /// The depth of a lens's refraction: larger than any lens, so the lens
+  /// spans its whole half short side.
+  static const double lensHeight = 1000;
 
   /// The lift below which a lens, knob or thumb is only its platter.
   static const double restingLift = 0.005;
@@ -142,25 +180,47 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
         : frosted
         ? preset.frost
         : 0.0;
-    final amount = optics == null
-        ? preset.refractionAmount
-        : optics.displacementAt(lift) * lensRefraction;
+    if (optics == null) {
+      return preset.copyWith(
+        frost: frost * blur,
+        refractionAmount: preset.refractionAmount * refraction,
+        highlight: preset.highlight * light,
+      );
+    }
+    final highlight = preset.highlight * light * (1 + 0.5 * lift);
+    if (surface.kind == MorphGlassKind.thumb) {
+      return preset.copyWith(
+        frost: frost * blur,
+        refractionAmount: thumbRefraction * lift * refraction,
+        dispersion: 0,
+        highlight: highlight,
+      );
+    }
+    final knob = surface.kind == MorphGlassKind.knob;
     return preset.copyWith(
       frost: frost * blur,
-      refractionAmount: amount * refraction,
-      dispersion: optics == null ? preset.dispersion : lensDispersion * lift,
-      highlight: preset.highlight * light * (1 + 0.5 * lift),
+      refractionLens: true,
+      refractionHeight: lensHeight,
+      backdropShrink: lensShrink * lift,
+      refractionAmount: lensReach * lift * refraction,
+      dispersion: knob ? 0 : lensDispersion * lift,
+      highlight: highlight,
     );
   }
 
   /// The renderer appearance for [surface], tinted by its flat color.
   ///
-  /// A lifted lens, knob or thumb is clear glass: no wash and no tint, so
-  /// what lies under it - a track, a bar's glass - shows through at its own
-  /// brightness, as through UIKit's lifted lens.
+  /// A lifted lens, knob or thumb is clear glass: no tint, so what lies
+  /// under it - a track, a bar's glass - shows through at its own
+  /// brightness, as through UIKit's lifted lens, under [darkLensWash] in
+  /// dark mode.
   LiquidGlassAppearance appearanceFor(MorphGlassSurface surface) =>
       _floats(surface.kind)
-      ? const LiquidGlassAppearance()
+      ? LiquidGlassAppearance(
+          tint: surface.brightness == Brightness.dark
+              ? darkLensWash
+              : const Color(0x00FFFFFF),
+        )
       : switch (material) {
           LiquidGlassMaterial.regular => LiquidGlassAppearance.ios27Regular(
             brightness: surface.brightness,
@@ -398,10 +458,7 @@ class _Magnified extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final center = surface.bounds.center;
-    final scale =
-        1 +
-        LiquidGlassRendererPainter.lensMagnification *
-            surface.lift.clamp(0.0, 1.0);
+    final scale = LiquidGlassRendererPainter.magnificationAt(surface.lift);
     final transform = Matrix4.translationValues(center.dx, center.dy, 0);
     transform.multiply(Matrix4.diagonal3Values(scale, scale, 1));
     transform.multiply(Matrix4.translationValues(-center.dx, -center.dy, 0));

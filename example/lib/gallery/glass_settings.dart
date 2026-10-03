@@ -36,6 +36,7 @@ class GalleryGlassSettings extends ChangeNotifier {
   ThemeMode _appearance = ThemeMode.system;
   bool _rtl = false;
   bool _disabled = false;
+  bool _grid = false;
 
   void _set<T>(T current, T next, void Function() write) {
     if (current == next) return;
@@ -92,6 +93,11 @@ class GalleryGlassSettings extends ChangeNotifier {
   /// Whether the demo controls of every page are disabled.
   bool get disabled => _disabled;
   set disabled(bool value) => _set(_disabled, value, () => _disabled = value);
+
+  /// Whether the glass page's scene stands on the measurement grid
+  /// ([GlassGrid]) instead of its colorful backdrop.
+  bool get grid => _grid;
+  set grid(bool value) => _set(_grid, value, () => _grid = value);
 
   /// The painter these settings select, or null for flat fills.
   MorphGlassPainter? get painter => switch (_renderer) {

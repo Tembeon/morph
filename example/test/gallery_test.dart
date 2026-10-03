@@ -161,27 +161,181 @@ void main() {
     expect(painted, isNotEmpty);
   });
 
-  test('the liquid painter bends a lens by its lift like UIKit', () {
+  test('a lifted lens bends outward and a lifted thumb inward', () {
     const painter = LiquidGlassRendererPainter(refraction: 2, blur: 0.5);
-    MorphGlassSurface lens(MorphGlassOptics optics, double lift) =>
-        MorphGlassSurface(
-          kind: MorphGlassKind.lens,
-          shape: const RRect.fromLTRBXY(0, 0, 80, 28, 14, 14),
-          color: const Color(0xFFFFFFFF),
-          brightness: Brightness.light,
-          lift: lift,
-          optics: optics,
-        );
-    final resting = painter.settingsFor(lens(MorphGlassOptics.large, 0));
-    final lifted = painter.settingsFor(lens(MorphGlassOptics.large, 1));
+    MorphGlassSurface lifted(
+      MorphGlassKind kind,
+      MorphGlassOptics optics,
+      double lift,
+    ) => MorphGlassSurface(
+      kind: kind,
+      shape: const RRect.fromLTRBXY(0, 0, 80, 28, 14, 14),
+      color: const Color(0xFFFFFFFF),
+      brightness: Brightness.light,
+      lift: lift,
+      optics: optics,
+    );
+    final resting = painter.settingsFor(
+      lifted(MorphGlassKind.lens, MorphGlassOptics.large, 0),
+    );
+    final lens = painter.settingsFor(
+      lifted(MorphGlassKind.lens, MorphGlassOptics.large, 1),
+    );
     expect(resting.refractionAmount, 0);
-    expect(lifted.refractionAmount, 36);
-    expect(lifted.dispersion, LiquidGlassRendererPainter.lensDispersion);
-    expect(lifted.highlight, greaterThan(resting.highlight));
-    final frosted = painter.settingsFor(lens(MorphGlassOptics.small, 0));
-    final clear = painter.settingsFor(lens(MorphGlassOptics.small, 1));
+    expect(lens.refractionLens, isTrue);
+    expect(lens.refractionAmount, LiquidGlassRendererPainter.lensReach * 2);
+    expect(lens.backdropShrink, LiquidGlassRendererPainter.lensShrink);
+    expect(lens.dispersion, LiquidGlassRendererPainter.lensDispersion);
+    expect(lens.highlight, greaterThan(resting.highlight));
+    final knob = painter.settingsFor(
+      lifted(MorphGlassKind.knob, MorphGlassOptics.small, 1),
+    );
+    expect(knob.refractionLens, isTrue);
+    expect(knob.dispersion, 0);
+    final thumb = painter.settingsFor(
+      lifted(MorphGlassKind.thumb, MorphGlassOptics.small, 1),
+    );
+    expect(thumb.refractionLens, isFalse);
+    expect(
+      thumb.refractionAmount,
+      LiquidGlassRendererPainter.thumbRefraction * 2,
+    );
+    expect(thumb.dispersion, 0);
+    final frosted = painter.settingsFor(
+      lifted(MorphGlassKind.thumb, MorphGlassOptics.small, 0),
+    );
     expect(frosted.frost, 3);
-    expect(clear.frost, 0);
+    expect(thumb.frost, 0);
+  });
+
+  test('body glass keeps its face in place', () {
+    const painter = LiquidGlassRendererPainter();
+    for (final kind in [
+      MorphGlassKind.button,
+      MorphGlassKind.bar,
+      MorphGlassKind.menu,
+    ]) {
+      final settings = painter.settingsFor(
+        MorphGlassSurface(
+          kind: kind,
+          shape: const RRect.fromLTRBXY(0, 0, 120, 44, 22, 22),
+          color: const Color(0x00FFFFFF),
+          brightness: Brightness.light,
+        ),
+      );
+      expect(settings.refractionLens, isFalse);
+      expect(settings.backdropShrink, 0);
+    }
+  });
+
+  test('a lifted lens washes what it shows only in dark mode', () {
+    const painter = LiquidGlassRendererPainter();
+    LiquidGlassAppearance appearance(Brightness brightness) =>
+        painter.appearanceFor(
+          MorphGlassSurface(
+            kind: MorphGlassKind.thumb,
+            shape: const RRect.fromLTRBXY(0, 0, 57, 37, 18.5, 18.5),
+            color: const Color(0xFFFFFFFF),
+            brightness: brightness,
+            lift: 1,
+            optics: MorphGlassOptics.small,
+          ),
+        );
+    expect(
+      appearance(Brightness.dark).tint,
+      LiquidGlassRendererPainter.darkLensWash,
+    );
+    expect(appearance(Brightness.light).tint.a, 0);
+  });
+
+  testWidgets('every glass surface lands at its own global rect', (
+    tester,
+  ) async {
+    const surfaces = [
+      MorphGlassSurface(
+        kind: MorphGlassKind.bar,
+        shape: RRect.fromLTRBXY(0, 0, 300, 62, 31, 31),
+        color: Color(0xB8FFFFFF),
+        brightness: Brightness.light,
+      ),
+      MorphGlassSurface(
+        kind: MorphGlassKind.lens,
+        shape: RRect.fromLTRBXY(12.5, -6, 120.5, 68, 37, 37),
+        color: Color(0x00FFFFFF),
+        brightness: Brightness.light,
+        lift: 1,
+        optics: MorphGlassOptics.large,
+      ),
+    ];
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Stack(
+          children: [
+            Positioned(
+              left: 37.25,
+              top: 401.5,
+              width: 300,
+              height: 62,
+              child: Builder(
+                builder: (BuildContext context) =>
+                    const LiquidGlassRendererPainter().buildLayer(
+                      context,
+                      surfaces,
+                      content: const Text('Home'),
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    const origin = Offset(37.25, 401.5);
+    final glass = find.byType(LiquidGlass);
+    expect(glass, findsNWidgets(2));
+    expect(tester.getRect(glass.at(0)), surfaces[0].bounds.shift(origin));
+    expect(tester.getRect(glass.at(1)), surfaces[1].bounds.shift(origin));
+  });
+
+  testWidgets('a lifted lens magnifies the content about its center', (
+    tester,
+  ) async {
+    const lens = MorphGlassSurface(
+      kind: MorphGlassKind.lens,
+      shape: RRect.fromLTRBXY(40, 2, 140, 34, 16, 16),
+      color: Color(0x00FFFFFF),
+      brightness: Brightness.light,
+      lift: 1,
+      optics: MorphGlassOptics.large,
+    );
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 300,
+            height: 36,
+            child: Builder(
+              builder: (BuildContext context) =>
+                  const LiquidGlassRendererPainter().buildLayer(context, const [
+                    lens,
+                  ], content: const Text('Label')),
+            ),
+          ),
+        ),
+      ),
+    );
+    final copy = find.ancestor(
+      of: find.text('Label').last,
+      matching: find.byType(Transform),
+    );
+    final matrix = tester.widget<Transform>(copy.first).transform;
+    final center = lens.bounds.center;
+    expect(MatrixUtils.transformPoint(matrix, center), center);
+    expect(
+      matrix.getMaxScaleOnAxis(),
+      moreOrLessEquals(LiquidGlassRendererPainter.magnificationAt(1)),
+    );
   });
 
   testWidgets('a lifted lens shows the content magnified by 16 percent', (
@@ -230,7 +384,10 @@ void main() {
       matching: find.byType(Transform),
     );
     final matrix = tester.widget<Transform>(copy.first).transform;
-    expect(matrix.getMaxScaleOnAxis(), moreOrLessEquals(1.16));
+    expect(
+      matrix.getMaxScaleOnAxis() * (1 - LiquidGlassRendererPainter.lensShrink),
+      moreOrLessEquals(1.16),
+    );
     expect(
       find.ancestor(
         of: find.text('Label').last,
