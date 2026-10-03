@@ -150,7 +150,8 @@ class MorphFocusRingPainter extends CustomPainter {
   bool shouldRepaint(MorphFocusRingPainter oldDelegate) => false;
 }
 
-/// Dims a disabled control to [opacity] of its enabled look.
+/// Dims a disabled control to [opacity] of its enabled look, as one layer
+/// over the whole control; it switches in one frame, as UIKit does.
 @internal
 class MorphDisabled extends StatelessWidget {
   /// Creates the wrapper.

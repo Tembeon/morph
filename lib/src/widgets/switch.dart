@@ -30,7 +30,9 @@ class MorphSwitchStyle {
   /// The fill of the resting knob.
   final Color knobColor;
 
-  /// The opacity of a disabled switch.
+  /// The opacity of a disabled switch, applied to track and knob as one
+  /// layer: UIKit sets its visual element's opacity to 0.5 (iPhone 16 Pro,
+  /// light and dark, on and off).
   final double disabledOpacity;
 
   /// The light appearance.

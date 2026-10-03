@@ -34,7 +34,9 @@ class MorphSliderStyle {
   /// The fill of the tick marks of a stepped slider.
   final Color tickColor;
 
-  /// The opacity of a disabled slider.
+  /// The opacity of a disabled slider, applied to track, fill, thumb and
+  /// ticks as one layer: UIKit sets its glass visual element's opacity to
+  /// 0.5 (iPhone 16 Pro, light and dark).
   final double disabledOpacity;
 
   /// The light appearance.

@@ -263,7 +263,8 @@ class MorphGlassButtonStyle {
     this.foregroundColor = const Color(0xFF000000),
     this.tintedForegroundColor = const Color(0xFFFFFFFF),
     this.shadowColor = const Color(0x1A000000),
-    this.disabledOpacity = 0.35,
+    this.disabledForegroundColor = const Color(0x4C3C3C43),
+    this.disabledTintColor = const Color(0xFFD1D1D6),
   });
 
   /// The fill of the clear glass.
@@ -284,8 +285,17 @@ class MorphGlassButtonStyle {
   /// The shadow under the button.
   final Color shadowColor;
 
-  /// The opacity of a disabled button.
-  final double disabledOpacity;
+  /// The label color of a disabled button, clear or tinted:
+  /// tertiaryLabel.
+  ///
+  /// UIKit leaves the glass of a disabled `.glass()` button untouched and
+  /// draws its title and image in tertiaryLabel (iPhone 16 Pro, iOS
+  /// 27.0.1, light and dark).
+  final Color disabledForegroundColor;
+
+  /// The fill that replaces the tint of a disabled prominent button:
+  /// systemGray4, as UIKit draws a disabled `.prominentGlass()` button.
+  final Color disabledTintColor;
 
   /// The light appearance.
   static const light = MorphGlassButtonStyle();
@@ -296,6 +306,8 @@ class MorphGlassButtonStyle {
     rimColor: Color(0x33FFFFFF),
     foregroundColor: Color(0xFFFFFFFF),
     shadowColor: Color(0x40000000),
+    disabledForegroundColor: Color(0x4CEBEBF5),
+    disabledTintColor: Color(0xFF3A3A3C),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -322,6 +334,11 @@ class MorphGlassButtonStyle {
 ///
 /// The button is focusable; Space and Enter press it. With the
 /// platform's reduced motion on, it glows but never lifts or leans.
+///
+/// A disabled button keeps its glass and draws its label in the style's
+/// [MorphGlassButtonStyle.disabledForegroundColor]; a prominent one swaps
+/// its tint for [MorphGlassButtonStyle.disabledTintColor]. It ignores
+/// touches: no lift, no glow, no lean. The change shows in one frame.
 class MorphGlassButton extends StatefulWidget {
   /// Creates a glass button.
   const MorphGlassButton({
@@ -373,6 +390,15 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
 
   bool get _enabled => widget.onPressed != null;
 
+  @override
+  void didUpdateWidget(MorphGlassButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_enabled && _motion.isPressed) {
+      _motion.pointerCancel(clock);
+      wake();
+    }
+  }
+
   void _down(PointerDownEvent event) {
     if (!_enabled || event.buttons != kPrimaryButton) return;
     final box = context.findRenderObject();
@@ -409,8 +435,15 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
     final brightness = morphBrightnessOf(context);
     final glass = MorphGlass.maybeOf(context);
     _motion.reducedMotion = morphReducedMotionOf(context);
-    final tint = widget.tint;
-    final foreground = tint == null
+    final enabled = _enabled;
+    final tint = widget.tint == null
+        ? null
+        : enabled
+        ? widget.tint
+        : style.disabledTintColor;
+    final foreground = !enabled
+        ? style.disabledForegroundColor
+        : tint == null
         ? style.foregroundColor
         : style.tintedForegroundColor;
     final Widget content = ConstrainedBox(
@@ -435,81 +468,69 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
         ),
       ),
     );
-    return MorphDisabled(
+    return MorphControlFocus(
       enabled: _enabled,
-      opacity: style.disabledOpacity,
-      child: MorphControlFocus(
+      onHighlight: (bool focused) => setState(() => _focused = focused),
+      onActivate: widget.onPressed,
+      child: Semantics(
+        button: true,
         enabled: _enabled,
-        onHighlight: (bool focused) => setState(() => _focused = focused),
-        onActivate: widget.onPressed,
-        child: Semantics(
-          button: true,
+        onTap: widget.onPressed,
+        child: MorphTouchListener(
           enabled: _enabled,
-          onTap: widget.onPressed,
-          child: MorphTouchListener(
-            enabled: _enabled,
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: _down,
-            onPointerMove: _move,
-            onPointerUp: _up,
-            onPointerCancel: _cancel,
-            child: ListenableBuilder(
-              listenable: frames,
-              builder: (BuildContext context, Widget? child) {
-                final lean = _motion.lean;
-                final transform = Matrix4.translationValues(
-                  lean.dx,
-                  lean.dy,
-                  0,
-                );
-                transform.multiply(
-                  Matrix4.diagonal3Values(_motion.scaleX, _motion.scaleY, 1),
-                );
-                return Transform(
-                  transform: transform,
-                  alignment: Alignment.center,
-                  child: child,
-                );
-              },
-              child: CustomPaint(
-                painter: glass == null
-                    ? _GlassButtonPainter(style, tint)
-                    : null,
-                foregroundPainter: _GlowPainter(this, focused: _focused),
-                child: glass == null
-                    ? content
-                    : Stack(
-                        fit: StackFit.passthrough,
-                        children: [
-                          Positioned.fill(
-                            child: ListenableBuilder(
-                              listenable: frames,
-                              builder: (BuildContext context, Widget? _) =>
-                                  LayoutBuilder(
-                                    builder:
-                                        (
-                                          BuildContext context,
-                                          BoxConstraints constraints,
-                                        ) => glass.buildSurface(
-                                          context,
-                                          MorphGlassSurface(
-                                            kind: MorphGlassKind.button,
-                                            shape: _capsule(
-                                              constraints.biggest,
-                                            ),
-                                            color: tint ?? style.fillColor,
-                                            brightness: brightness,
-                                            lift: _lift,
-                                            enabled: _enabled,
-                                          ),
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: _down,
+          onPointerMove: _move,
+          onPointerUp: _up,
+          onPointerCancel: _cancel,
+          child: ListenableBuilder(
+            listenable: frames,
+            builder: (BuildContext context, Widget? child) {
+              final lean = _motion.lean;
+              final transform = Matrix4.translationValues(lean.dx, lean.dy, 0);
+              transform.multiply(
+                Matrix4.diagonal3Values(_motion.scaleX, _motion.scaleY, 1),
+              );
+              return Transform(
+                transform: transform,
+                alignment: Alignment.center,
+                child: child,
+              );
+            },
+            child: CustomPaint(
+              painter: glass == null ? _GlassButtonPainter(style, tint) : null,
+              foregroundPainter: _GlowPainter(this, focused: _focused),
+              child: glass == null
+                  ? content
+                  : Stack(
+                      fit: StackFit.passthrough,
+                      children: [
+                        Positioned.fill(
+                          child: ListenableBuilder(
+                            listenable: frames,
+                            builder: (BuildContext context, Widget? _) =>
+                                LayoutBuilder(
+                                  builder:
+                                      (
+                                        BuildContext context,
+                                        BoxConstraints constraints,
+                                      ) => glass.buildSurface(
+                                        context,
+                                        MorphGlassSurface(
+                                          kind: MorphGlassKind.button,
+                                          shape: _capsule(constraints.biggest),
+                                          color: tint ?? style.fillColor,
+                                          brightness: brightness,
+                                          lift: _lift,
+                                          enabled: _enabled,
                                         ),
-                                  ),
-                            ),
+                                      ),
+                                ),
                           ),
-                          content,
-                        ],
-                      ),
-              ),
+                        ),
+                        content,
+                      ],
+                    ),
             ),
           ),
         ),

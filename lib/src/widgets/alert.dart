@@ -52,6 +52,11 @@ class MorphAlertAction {
   final bool isPreferred;
 
   /// Whether the button accepts taps.
+  ///
+  /// A disabled button keeps its fill and draws its title in
+  /// [MorphAlertStyle.disabledLabelColor]; a disabled preferred button
+  /// shows the plain fill instead of the accent and keeps its semibold
+  /// title.
   final bool enabled;
 }
 
@@ -95,7 +100,7 @@ class MorphAlertStyle {
     this.preferredColor = const Color(0xFF0088FF),
     this.preferredLabelColor = const Color(0xFFFFFFFF),
     this.placeholderColor = const Color(0x4C3C3C43),
-    this.disabledOpacity = 0.35,
+    this.disabledLabelColor = const Color(0x4C3C3C43),
   });
 
   /// The flat stand-in for the glass platter when no [MorphGlassPainter]
@@ -134,8 +139,12 @@ class MorphAlertStyle {
   /// The color of a text field's placeholder.
   final Color placeholderColor;
 
-  /// The opacity of a disabled button (not measured on a device).
-  final double disabledOpacity;
+  /// The color of a disabled button's title: tertiaryLabel, destructive
+  /// or not. UIKit keeps a disabled action's fill and draws its title in
+  /// tertiaryLabel; a disabled preferred action loses the accent fill for
+  /// the plain one and keeps its semibold title (iPhone 16 Pro, iOS
+  /// 27.0.1, light and dark).
+  final Color disabledLabelColor;
 
   /// The light appearance, as UIKit renders it.
   static const light = MorphAlertStyle();
@@ -151,6 +160,7 @@ class MorphAlertStyle {
     preferredColor: Color(0xFF0091FF),
     shadowColor: Color(0x4D000000),
     placeholderColor: Color(0x4CEBEBF5),
+    disabledLabelColor: Color(0x4CEBEBF5),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -373,7 +383,9 @@ TextStyle _buttonText(MorphAlertAction action, MorphAlertStyle style) =>
       MorphTypography.alertAction.copyWith(
         height: 20.33 / 17,
         fontWeight: action.isPreferred ? FontWeight.w600 : null,
-        color: action.isPreferred
+        color: !action.enabled
+            ? style.disabledLabelColor
+            : action.isPreferred
             ? style.preferredLabelColor
             : action.style == MorphAlertActionStyle.destructive
             ? style.destructiveColor
@@ -1175,42 +1187,40 @@ class _AlertButtonState extends State<_AlertButton> {
   Widget build(BuildContext context) {
     final action = widget.action;
     final style = widget.style;
-    final base = action.isPreferred ? style.preferredColor : style.buttonColor;
+    final base = action.isPreferred && action.enabled
+        ? style.preferredColor
+        : style.buttonColor;
     final fill = widget.highlighted
         ? base.withValues(alpha: base.a * MorphAlertTuning.pressedFillOpacity)
         : base;
     void activate() => widget.onChoose(action);
-    return MorphDisabled(
+    return MorphControlFocus(
       enabled: action.enabled,
-      opacity: style.disabledOpacity,
-      child: MorphControlFocus(
+      onHighlight: (bool focused) => setState(() => _focused = focused),
+      onActivate: activate,
+      child: Semantics(
+        container: true,
+        button: true,
         enabled: action.enabled,
-        onHighlight: (bool focused) => setState(() => _focused = focused),
-        onActivate: activate,
-        child: Semantics(
-          container: true,
-          button: true,
-          enabled: action.enabled,
-          label: action.title,
-          onTap: action.enabled ? activate : null,
-          child: ExcludeSemantics(
-            child: MorphFocusRing(
-              visible: _focused,
-              child: Container(
-                constraints: const BoxConstraints(
-                  minHeight: MorphAlertTuning.buttonHeight,
-                ),
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                decoration: ShapeDecoration(
-                  color: fill,
-                  shape: const StadiumBorder(),
-                ),
-                child: Text(
-                  action.title,
-                  textAlign: TextAlign.center,
-                  style: _buttonText(action, style),
-                ),
+        label: action.title,
+        onTap: action.enabled ? activate : null,
+        child: ExcludeSemantics(
+          child: MorphFocusRing(
+            visible: _focused,
+            child: Container(
+              constraints: const BoxConstraints(
+                minHeight: MorphAlertTuning.buttonHeight,
+              ),
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: ShapeDecoration(
+                color: fill,
+                shape: const StadiumBorder(),
+              ),
+              child: Text(
+                action.title,
+                textAlign: TextAlign.center,
+                style: _buttonText(action, style),
               ),
             ),
           ),

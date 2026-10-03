@@ -8,41 +8,59 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 
 /// The look of a [MorphStepper].
+///
+/// The colors are UIKit's on iOS 27, read from the SwiftUI stepper's
+/// layers on an iPhone 16 Pro (iOS 27.0.1): each half is a masked fill, the
+/// divider a 1 x 24 point tertiaryLabel line, a half at its limit draws its
+/// glyph in tertiaryLabel.
 @immutable
 class MorphStepperStyle {
   /// Creates a style; the defaults are the iOS light appearance.
   const MorphStepperStyle({
-    this.backgroundColor = const Color(0x1F767680),
+    this.backgroundColor = const Color(0x163C3C43),
     this.foregroundColor = const Color(0xFF000000),
+    this.limitForegroundColor = const Color(0x4C3C3C43),
     this.pressedOverlay = const Color(0x14000000),
+    this.pressedReplacesFill = false,
     this.dividerColor = const Color(0x4C3C3C43),
-    this.disabledOpacity = 0.35,
+    this.dividerHeight = 24,
   });
 
-  /// The fill of the control: tertiarySystemFill.
+  /// The fill of each half.
   final Color backgroundColor;
 
   /// The color of the minus and plus glyphs.
   final Color foregroundColor;
 
+  /// The color of the glyph of a half that cannot step further: the minus
+  /// at the minimum, the plus at the maximum, whether the stepper is
+  /// enabled or not.
+  final Color limitForegroundColor;
+
   /// The overlay on the pressed half.
   final Color pressedOverlay;
 
-  /// The color of the divider between the halves: separator.
+  /// Whether the pressed half drops its fill under [pressedOverlay]: the
+  /// dark stepper replaces the fill by the overlay, the light one draws
+  /// the overlay over the fill.
+  final bool pressedReplacesFill;
+
+  /// The color of the divider between the halves: tertiaryLabel.
   final Color dividerColor;
 
-  /// The opacity of a disabled stepper.
-  final double disabledOpacity;
+  /// The height of the divider between the halves.
+  final double dividerHeight;
 
   /// The light appearance.
   static const light = MorphStepperStyle();
 
-  /// The dark appearance, from the iOS dark system colors.
+  /// The dark appearance.
   static const dark = MorphStepperStyle(
-    backgroundColor: Color(0x3D767680),
+    backgroundColor: Color(0x14EBEBF5),
     foregroundColor: Color(0xFFFFFFFF),
-    pressedOverlay: Color(0x1FFFFFFF),
-    dividerColor: Color(0x99545458),
+    limitForegroundColor: Color(0x4CEBEBF5),
+    pressedReplacesFill: true,
+    dividerColor: Color(0x4CEBEBF5),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -62,7 +80,9 @@ class MorphStepperStyle {
 /// A stepper that responds to touch exactly like iOS 27's UIStepper.
 ///
 /// The control has no motion: the pressed half darkens instantly under
-/// an 8 percent black overlay and clears instantly on release. A tap
+/// an 8 percent black overlay and clears instantly on release. A disabled
+/// stepper looks exactly like an enabled one and ignores input, as UIKit's
+/// does; a half that cannot step further dims its glyph either way. A tap
 /// commits on release; a held half repeats [repeatInterval] after the
 /// touch and then every [repeatInterval] again, without acceleration.
 /// Sliding to the other half moves the highlight and the repeat with it,
@@ -127,7 +147,8 @@ class MorphStepper extends StatefulWidget {
   /// The delay before the first repeat and between repeats.
   static const Duration repeatInterval = Duration(milliseconds: 500);
 
-  /// The overlay on the pressed half in the light appearance.
+  /// The overlay on the pressed half: black at 8 percent in both
+  /// appearances.
   static const Color pressedOverlay = Color(0x14000000);
 
   /// The color of the divider between the halves in the light appearance.
@@ -252,85 +273,106 @@ class _MorphStepperState extends State<MorphStepper>
     final glass = MorphGlass.maybeOf(context);
     const size = MorphStepper.size;
     final value = _format(widget.value);
+    final foreground = widget.foregroundColor ?? style.foregroundColor;
     final painter = _StepperPainter(
       pressed: _pressed,
       background: glass == null ? background : null,
-      foreground: widget.foregroundColor ?? style.foregroundColor,
+      foreground: foreground,
+      limitForeground: widget.foregroundColor == null
+          ? style.limitForegroundColor
+          : foreground.withValues(alpha: foreground.a * 0.3),
       overlay: style.pressedOverlay,
+      replacesFill: style.pressedReplacesFill,
       divider: style.dividerColor,
+      dividerHeight: style.dividerHeight,
       minusEnabled: _canStep(_Half.minus),
       plusEnabled: _canStep(_Half.plus),
     );
     final brightness = morphBrightnessOf(context);
-    return MorphDisabled(
+    final radius = Radius.circular(size.height / 2);
+    final halves = [
+      (
+        half: _Half.minus,
+        shape: RRect.fromRectAndCorners(
+          Rect.fromLTWH(0, 0, size.width / 2, size.height),
+          topLeft: radius,
+          bottomLeft: radius,
+        ),
+      ),
+      (
+        half: _Half.plus,
+        shape: RRect.fromRectAndCorners(
+          Rect.fromLTWH(size.width / 2, 0, size.width / 2, size.height),
+          topRight: radius,
+          bottomRight: radius,
+        ),
+      ),
+    ];
+    return MorphControlFocus(
       enabled: enabled,
-      opacity: style.disabledOpacity,
-      child: MorphControlFocus(
-        enabled: enabled,
-        onHighlight: (bool focused) => setState(() => _focused = focused),
-        onActivate: () => _key(_Half.plus),
-        onStep: (int delta) => _key(delta > 0 ? _Half.plus : _Half.minus),
-        verticalSteps: true,
-        child: MorphFocusRing(
-          visible: _focused,
-          child: Semantics(
-            container: true,
-            explicitChildNodes: true,
-            child: MorphTouchListener(
-              enabled: enabled,
-              behavior: HitTestBehavior.opaque,
-              onPointerDown: _down,
-              onPointerMove: _move,
-              onPointerUp: _up,
-              onPointerCancel: _cancel,
-              child: SizedBox.fromSize(
-                size: size,
-                child: Stack(
-                  children: [
-                    if (glass != null)
-                      Positioned.fill(
-                        child: glass.buildFill(
-                          context,
-                          MorphGlassSurface(
-                            kind: MorphGlassKind.track,
-                            shape: RRect.fromRectAndRadius(
-                              Offset.zero & size,
-                              Radius.circular(size.height / 2),
+      onHighlight: (bool focused) => setState(() => _focused = focused),
+      onActivate: () => _key(_Half.plus),
+      onStep: (int delta) => _key(delta > 0 ? _Half.plus : _Half.minus),
+      verticalSteps: true,
+      child: MorphFocusRing(
+        visible: _focused,
+        child: Semantics(
+          container: true,
+          explicitChildNodes: true,
+          child: MorphTouchListener(
+            enabled: enabled,
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: _down,
+            onPointerMove: _move,
+            onPointerUp: _up,
+            onPointerCancel: _cancel,
+            child: SizedBox.fromSize(
+              size: size,
+              child: Stack(
+                children: [
+                  if (glass != null)
+                    for (final h in halves)
+                      if (!(style.pressedReplacesFill && _pressed == h.half))
+                        Positioned.fromRect(
+                          rect: h.shape.outerRect,
+                          child: glass.buildFill(
+                            context,
+                            MorphGlassSurface(
+                              kind: MorphGlassKind.track,
+                              shape: h.shape,
+                              color: background,
+                              brightness: brightness,
+                              enabled: enabled,
+                              glass: false,
                             ),
-                            color: background,
-                            brightness: brightness,
-                            enabled: enabled,
-                            glass: false,
                           ),
                         ),
-                      ),
-                    Positioned.fill(child: CustomPaint(painter: painter)),
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: size.width / 2,
-                      child: _HalfSemantics(
-                        label: widget.decrementLabel,
-                        value: value,
-                        enabled: enabled && _canStep(_Half.minus),
-                        onTap: () => _key(_Half.minus),
-                      ),
+                  Positioned.fill(child: CustomPaint(painter: painter)),
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: size.width / 2,
+                    child: _HalfSemantics(
+                      label: widget.decrementLabel,
+                      value: value,
+                      enabled: enabled && _canStep(_Half.minus),
+                      onTap: () => _key(_Half.minus),
                     ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: size.width / 2,
-                      child: _HalfSemantics(
-                        label: widget.incrementLabel,
-                        value: value,
-                        enabled: enabled && _canStep(_Half.plus),
-                        onTap: () => _key(_Half.plus),
-                      ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: size.width / 2,
+                    child: _HalfSemantics(
+                      label: widget.incrementLabel,
+                      value: value,
+                      enabled: enabled && _canStep(_Half.plus),
+                      onTap: () => _key(_Half.plus),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -376,8 +418,11 @@ class _StepperPainter extends CustomPainter {
     required this.pressed,
     required this.background,
     required this.foreground,
+    required this.limitForeground,
     required this.overlay,
+    required this.replacesFill,
     required this.divider,
+    required this.dividerHeight,
     required this.minusEnabled,
     required this.plusEnabled,
   });
@@ -385,8 +430,11 @@ class _StepperPainter extends CustomPainter {
   final _Half? pressed;
   final Color? background;
   final Color foreground;
+  final Color limitForeground;
   final Color overlay;
+  final bool replacesFill;
   final Color divider;
+  final double dividerHeight;
   final bool minusEnabled;
   final bool plusEnabled;
 
@@ -396,34 +444,36 @@ class _StepperPainter extends CustomPainter {
       Offset.zero & size,
       Radius.circular(size.height / 2),
     );
+    final half = size.width / 2;
+    final minusRect = Rect.fromLTWH(0, 0, half, size.height);
+    final plusRect = Rect.fromLTWH(half, 0, half, size.height);
+    final pressedHalf = pressed;
+    canvas.save();
+    canvas.clipRRect(shape);
     final fill = background;
     if (fill != null) {
       final paint = Paint();
       paint.color = fill;
-      canvas.drawRRect(shape, paint);
+      if (!(replacesFill && pressedHalf == _Half.minus)) {
+        canvas.drawRect(minusRect, paint);
+      }
+      if (!(replacesFill && pressedHalf == _Half.plus)) {
+        canvas.drawRect(plusRect, paint);
+      }
     }
-    final half = size.width / 2;
-    final pressedHalf = pressed;
     if (pressedHalf != null) {
-      canvas.save();
-      canvas.clipRRect(shape);
       final paint = Paint();
       paint.color = overlay;
-      canvas.drawRect(
-        pressedHalf == _Half.minus
-            ? Rect.fromLTWH(0, 0, half, size.height)
-            : Rect.fromLTWH(half, 0, half, size.height),
-        paint,
-      );
-      canvas.restore();
+      canvas.drawRect(pressedHalf == _Half.minus ? minusRect : plusRect, paint);
     }
+    canvas.restore();
     final line = Paint();
     line.color = divider;
     canvas.drawRect(
       Rect.fromCenter(
         center: Offset(half, size.height / 2),
         width: 1,
-        height: size.height * 0.56,
+        height: dividerHeight,
       ),
       line,
     );
@@ -434,23 +484,23 @@ class _StepperPainter extends CustomPainter {
     final y = size.height / 2;
     final minusX = half / 2;
     final plusX = half + half / 2;
-    glyph.color = _dimmed(enabled: minusEnabled);
+    glyph.color = minusEnabled ? foreground : limitForeground;
     canvas.drawLine(Offset(minusX - arm, y), Offset(minusX + arm, y), glyph);
-    glyph.color = _dimmed(enabled: plusEnabled);
+    glyph.color = plusEnabled ? foreground : limitForeground;
     canvas.drawLine(Offset(plusX - arm, y), Offset(plusX + arm, y), glyph);
     canvas.drawLine(Offset(plusX, y - arm), Offset(plusX, y + arm), glyph);
   }
-
-  Color _dimmed({required bool enabled}) =>
-      enabled ? foreground : foreground.withValues(alpha: foreground.a * 0.3);
 
   @override
   bool shouldRepaint(_StepperPainter oldDelegate) =>
       oldDelegate.pressed != pressed ||
       oldDelegate.background != background ||
       oldDelegate.foreground != foreground ||
+      oldDelegate.limitForeground != limitForeground ||
       oldDelegate.overlay != overlay ||
+      oldDelegate.replacesFill != replacesFill ||
       oldDelegate.divider != divider ||
+      oldDelegate.dividerHeight != dividerHeight ||
       oldDelegate.minusEnabled != minusEnabled ||
       oldDelegate.plusEnabled != plusEnabled;
 }

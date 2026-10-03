@@ -81,7 +81,7 @@ class MorphSegmentedStyle {
       color: Color(0xFF000000),
     ),
     this.contentPadding = 16,
-    this.disabledOpacity = 0.35,
+    this.disabledOpacity = 0.5,
   });
 
   /// The height of the control.
@@ -117,7 +117,9 @@ class MorphSegmentedStyle {
   /// The horizontal padding around a label when sizing by content.
   final double contentPadding;
 
-  /// The opacity of a disabled control.
+  /// The opacity of a disabled control, applied to the whole control as
+  /// one layer: UIKit sets the segmented control's alpha to 0.5 (iPhone 16
+  /// Pro, light and dark).
   final double disabledOpacity;
 
   /// The light appearance.

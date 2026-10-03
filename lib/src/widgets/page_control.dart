@@ -20,7 +20,6 @@ class MorphPageControlStyle {
     this.currentIndicatorColor = const Color(0xFFFFFFFF),
     this.platterColor = const Color(0xFFF0F0F2),
     this.platterIndicatorColor = const Color(0x40000000),
-    this.disabledOpacity = 0.35,
   });
 
   /// The color of the other pages' dots: white at 45 percent.
@@ -34,9 +33,6 @@ class MorphPageControlStyle {
 
   /// The color of the other pages' dots on the platter.
   final Color platterIndicatorColor;
-
-  /// The opacity of a disabled page control.
-  final double disabledOpacity;
 
   /// The light appearance, as the simulator renders it.
   static const light = MorphPageControlStyle();
@@ -378,6 +374,9 @@ class MorphPageControl extends StatefulWidget {
   final int page;
 
   /// Called with the page the user picks; null disables the control.
+  ///
+  /// A disabled page control looks exactly like an enabled one and
+  /// ignores input, as UIKit's does on iOS 27.
   final ValueChanged<int>? onChanged;
 
   /// How far the current page has progressed, 0 to 1, or null for plain
@@ -464,71 +463,67 @@ class _MorphPageControlState extends State<MorphPageControl>
     final style = MorphPageControlStyle.resolve(context, widget.style);
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     final count = widget.count;
-    return MorphDisabled(
+    return MorphControlFocus(
       enabled: _enabled,
-      opacity: style.disabledOpacity,
-      child: MorphControlFocus(
-        enabled: _enabled,
-        onHighlight: (bool v) => setState(() => _focused = v),
-        onStep: (int delta) => _step(rtl ? -delta : delta),
-        child: MorphFocusRing(
-          visible: _focused,
-          child: Semantics(
-            container: true,
+      onHighlight: (bool v) => setState(() => _focused = v),
+      onStep: (int delta) => _step(rtl ? -delta : delta),
+      child: MorphFocusRing(
+        visible: _focused,
+        child: Semantics(
+          container: true,
+          enabled: _enabled,
+          label: widget.semanticLabel,
+          value: 'page ${widget.page + 1} of $count',
+          increasedValue: widget.page + 1 < count
+              ? 'page ${widget.page + 2} of $count'
+              : null,
+          decreasedValue: widget.page > 0
+              ? 'page ${widget.page} of $count'
+              : null,
+          onIncrease: _enabled && widget.page + 1 < count
+              ? () => _step(1)
+              : null,
+          onDecrease: _enabled && widget.page > 0 ? () => _step(-1) : null,
+          child: MorphTouchListener(
             enabled: _enabled,
-            label: widget.semanticLabel,
-            value: 'page ${widget.page + 1} of $count',
-            increasedValue: widget.page + 1 < count
-                ? 'page ${widget.page + 2} of $count'
-                : null,
-            decreasedValue: widget.page > 0
-                ? 'page ${widget.page} of $count'
-                : null,
-            onIncrease: _enabled && widget.page + 1 < count
-                ? () => _step(1)
-                : null,
-            onDecrease: _enabled && widget.page > 0 ? () => _step(-1) : null,
-            child: MorphTouchListener(
-              enabled: _enabled,
-              behavior: HitTestBehavior.opaque,
-              onPointerDown: (PointerDownEvent e) {
-                if (!_enabled || e.buttons != kPrimaryButton) return;
-                _pointer = e.pointer;
-                _motion.pointerDown(stamp(e), _dotsX(e.localPosition, rtl));
-              },
-              onPointerMove: (PointerMoveEvent e) {
-                if (e.pointer != _pointer) return;
-                _motion.pointerMove(stamp(e), _dotsX(e.localPosition, rtl));
-              },
-              onPointerUp: (PointerUpEvent e) {
-                if (e.pointer != _pointer) return;
-                _pointer = null;
-                _motion.pointerUp(
-                  stamp(e),
-                  _dotsX(e.localPosition, rtl),
-                  width: _size.width,
-                );
-              },
-              onPointerCancel: (PointerCancelEvent e) {
-                if (e.pointer != _pointer) return;
-                _pointer = null;
-                _motion.pointerCancel(stamp(e));
-              },
-              child: ListenableBuilder(
-                listenable: frames,
-                builder: (BuildContext context, Widget? _) => CustomPaint(
-                  size: _size,
-                  painter: _PageControlPainter(
-                    motion: _motion,
-                    style: style,
-                    rtl: rtl,
-                    platter: switch (widget.background) {
-                      MorphPageControlBackground.prominent => true,
-                      MorphPageControlBackground.minimal => false,
-                      MorphPageControlBackground.automatic => null,
-                    },
-                    progress: widget.progress,
-                  ),
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: (PointerDownEvent e) {
+              if (!_enabled || e.buttons != kPrimaryButton) return;
+              _pointer = e.pointer;
+              _motion.pointerDown(stamp(e), _dotsX(e.localPosition, rtl));
+            },
+            onPointerMove: (PointerMoveEvent e) {
+              if (e.pointer != _pointer) return;
+              _motion.pointerMove(stamp(e), _dotsX(e.localPosition, rtl));
+            },
+            onPointerUp: (PointerUpEvent e) {
+              if (e.pointer != _pointer) return;
+              _pointer = null;
+              _motion.pointerUp(
+                stamp(e),
+                _dotsX(e.localPosition, rtl),
+                width: _size.width,
+              );
+            },
+            onPointerCancel: (PointerCancelEvent e) {
+              if (e.pointer != _pointer) return;
+              _pointer = null;
+              _motion.pointerCancel(stamp(e));
+            },
+            child: ListenableBuilder(
+              listenable: frames,
+              builder: (BuildContext context, Widget? _) => CustomPaint(
+                size: _size,
+                painter: _PageControlPainter(
+                  motion: _motion,
+                  style: style,
+                  rtl: rtl,
+                  platter: switch (widget.background) {
+                    MorphPageControlBackground.prominent => true,
+                    MorphPageControlBackground.minimal => false,
+                    MorphPageControlBackground.automatic => null,
+                  },
+                  progress: widget.progress,
                 ),
               ),
             ),

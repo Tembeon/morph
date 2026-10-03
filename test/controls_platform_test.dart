@@ -392,11 +392,13 @@ void main() {
       await tester.pumpAndSettle();
       final text = tester.widget<Text>(find.text('A'));
       expect(text.style?.fontWeight, FontWeight.w500, reason: 'A stays');
-      expect(_opacityAbove(tester, find.text('A')), 0.35);
+      expect(_opacityAbove(tester, find.text('A')), 0.5);
       expect(tester.binding.hasScheduledFrame, isFalse);
     });
 
-    testWidgets('a disabled tab bar ignores input and dims', (tester) async {
+    testWidgets('a disabled tab bar does not select and keeps its look', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         _host(const MorphTabBar(items: _tabs, selected: 0, onChanged: null)),
       );
@@ -413,7 +415,10 @@ void main() {
         isSemantics(isSelected: true),
       );
       semanticsHandle.dispose();
-      expect(_opacityAbove(tester, find.text('One')), 0.35);
+      expect(
+        find.ancestor(of: find.text('One'), matching: find.byType(Opacity)),
+        findsNothing,
+      );
     });
 
     testWidgets('disabled switches and sliders dim to half', (tester) async {

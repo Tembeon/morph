@@ -7,7 +7,6 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/clock.dart';
-import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/search_motion.dart';
@@ -29,7 +28,7 @@ class MorphSearchFieldStyle {
     this.clearColor = const Color(0xFF000000),
     this.clearGlyphColor = const Color(0xFFFFFFFF),
     this.cursorColor = const Color(0xFF426AF3),
-    this.disabledOpacity = 0.35,
+    this.disabledFillColor = const Color(0x0F767680),
   });
 
   /// The flat stand-in for the field's glass when no [MorphGlassPainter]
@@ -68,8 +67,12 @@ class MorphSearchFieldStyle {
   /// 243 light and 64, 107, 248 dark, bluer than the accent).
   final Color cursorColor;
 
-  /// The opacity of a disabled field (not measured on a device).
-  final double disabledOpacity;
+  /// The flat fill that replaces the glass of a disabled field: UIKit's
+  /// disabled UISearchTextField drops its glass, rim and lift for a plain
+  /// 0x767680 fill at 6 percent in light and 12 percent in dark (iPhone 16
+  /// Pro, iOS 27.0.1); the magnifier and the placeholder keep their
+  /// colors.
+  final Color disabledFillColor;
 
   /// The light appearance.
   static const light = MorphSearchFieldStyle();
@@ -86,6 +89,7 @@ class MorphSearchFieldStyle {
     clearColor: Color(0xFFFFFFFF),
     clearGlyphColor: Color(0xFF000000),
     cursorColor: Color(0xFF406BF8),
+    disabledFillColor: Color(0x1F767680),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -114,6 +118,10 @@ class MorphSearchFieldStyle {
 ///
 /// Labels follow the text scale up to [maxTextScale]. Screen readers see
 /// a text field labelled [semanticLabel] (the placeholder by default).
+///
+/// A disabled field ([enabled] false) is a flat fill without glass
+/// ([MorphSearchFieldStyle.disabledFillColor]); it neither lifts nor takes
+/// the focus. The change shows in one frame.
 class MorphSearchField extends StatefulWidget {
   /// Creates a search field.
   const MorphSearchField({
@@ -201,6 +209,12 @@ class _MorphSearchFieldState extends State<MorphSearchField>
 
   @override
   bool get motionSettled => _motion.isSettled;
+
+  @override
+  void didUpdateWidget(MorphSearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.enabled && _focus.hasFocus) _focus.unfocus();
+  }
 
   @override
   void dispose() {
@@ -355,35 +369,33 @@ class _MorphSearchFieldState extends State<MorphSearchField>
         ],
       ),
     );
-    return MorphDisabled(
-      enabled: widget.enabled,
-      opacity: style.disabledOpacity,
-      child: DefaultTextStyle(
-        style: text,
-        child: Listener(
-          onPointerDown: _down,
-          onPointerUp: _up,
-          onPointerCancel: _up,
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: widget.enabled ? _focus.requestFocus : null,
-            child: ListenableBuilder(
-              listenable: frames,
-              builder: (BuildContext context, Widget? child) => Transform.scale(
-                scale: _motion.pressScale(_motion.time),
-                child: child,
-              ),
-              child: SizedBox(
-                height: MorphSearchTuning.height,
-                child: _Capsule(
-                  glass: glass,
-                  color: style.capsuleColor,
-                  rim: style.rimColor,
-                  shadow: style.shadowColor,
-                  brightness: brightness,
-                  enabled: widget.enabled,
-                  child: content,
-                ),
+    return DefaultTextStyle(
+      style: text,
+      child: Listener(
+        onPointerDown: _down,
+        onPointerUp: _up,
+        onPointerCancel: _up,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: widget.enabled ? _focus.requestFocus : null,
+          child: ListenableBuilder(
+            listenable: frames,
+            builder: (BuildContext context, Widget? child) => Transform.scale(
+              scale: _motion.pressScale(_motion.time),
+              child: child,
+            ),
+            child: SizedBox(
+              height: MorphSearchTuning.height,
+              child: _Capsule(
+                glass: glass,
+                color: widget.enabled
+                    ? style.capsuleColor
+                    : style.disabledFillColor,
+                rim: style.rimColor,
+                shadow: style.shadowColor,
+                brightness: brightness,
+                enabled: widget.enabled,
+                child: content,
               ),
             ),
           ),
@@ -417,6 +429,9 @@ class _Capsule extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final painter = glass;
+    if (!enabled) {
+      return CustomPaint(painter: _FlatPainter(color), child: child);
+    }
     if (painter == null) {
       return CustomPaint(
         painter: _CapsulePainter(color: color, rim: rim, shadow: shadow),
@@ -451,6 +466,22 @@ RRect _capsule(Size size) => RRect.fromRectAndRadius(
   Offset.zero & size,
   Radius.circular(math.min(size.width, size.height) / 2),
 );
+
+class _FlatPainter extends CustomPainter {
+  const _FlatPainter(this.color);
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final fill = Paint();
+    fill.color = color;
+    canvas.drawRRect(_capsule(size), fill);
+  }
+
+  @override
+  bool shouldRepaint(_FlatPainter oldDelegate) => oldDelegate.color != color;
+}
 
 class _CapsulePainter extends CustomPainter {
   const _CapsulePainter({

@@ -292,6 +292,18 @@ class MorphLensMotion {
   /// Called with the new index whenever the selection changes.
   void Function(int index)? onSelect;
 
+  /// Whether the slot at an index can be selected; null makes every slot
+  /// selectable.
+  ///
+  /// A touch landing on a slot that cannot be selected neither selects
+  /// nor lifts the lens, but still swells the control (a disabled
+  /// UITabBarItem on an iPhone 16 Pro, iOS 27.0.1: the bar grows under
+  /// the finger, the lens stays). A drag released over such a slot
+  /// returns to the selected one.
+  bool Function(int index)? isSelectable;
+
+  bool _selectable(int index) => isSelectable?.call(index) ?? true;
+
   double get _now => _timeline.now;
 
   /// The index of the selected slot.
@@ -373,6 +385,13 @@ class MorphLensMotion {
   void pointerDown(double t, double x) {
     advance(t);
     final index = slotAt(x);
+    if (!_selectable(index)) {
+      final inert = _Pointer(offset: 0, pressedSelected: false, downX: x);
+      inert.inert = true;
+      _pointer = inert;
+      _chromeTo(t + tuning.chromeLag, 1);
+      return;
+    }
     final onSelected = index == _selected;
     final pointer = _Pointer(
       offset: center - x,
@@ -411,7 +430,9 @@ class MorphLensMotion {
     _pointer = null;
     if (pointer == null) return;
     _chromeTo(t + tuning.chromeLag, 0);
-    final index = slotAt(x);
+    if (pointer.inert) return;
+    final under = slotAt(x);
+    final index = _selectable(under) ? under : _selected;
     if (pointer.pressedSelected) {
       if (index != _selected) _setSelected(index);
       final slot = _slots[_selected];
@@ -627,6 +648,7 @@ class _Pointer {
   final double downX;
   bool dragging = false;
   bool cancelled = false;
+  bool inert = false;
   double x;
   double unliftNotBefore = 0;
 }

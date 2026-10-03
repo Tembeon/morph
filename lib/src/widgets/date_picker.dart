@@ -31,7 +31,7 @@ class MorphDatePickerStyle {
     this.labelFillColor = const Color(0x1F767680),
     this.labelColor = const Color(0xFF000000),
     this.accentColor = const Color(0xFF0088FF),
-    this.platterColor = const Color(0xF2F9F9FB),
+    this.platterColor = const Color(0xF2F9F9FF),
     this.shadowColor = const Color(0x24000000),
     this.titleColor = const Color(0xFF000000),
     this.weekdayColor = const Color(0x993C3C43),
@@ -44,10 +44,12 @@ class MorphDatePickerStyle {
     this.wheelBandColor = const Color(0x1F767680),
     this.wheelColor = const Color(0xFF000000),
     this.wheelFadedOpacity = 0.4,
-    this.disabledOpacity = 0.35,
+    this.unavailableDayOpacity = 0.35,
   });
 
-  /// The fill of a compact label: tertiarySystemFill.
+  /// The fill of a compact label: tertiarySystemFill. A disabled picker's
+  /// labels drop it and keep their text, as UIKit's do (iPhone 16 Pro, iOS
+  /// 27.0.1, light and dark).
   final Color labelFillColor;
 
   /// The color of a compact label's text: label.
@@ -59,6 +61,10 @@ class MorphDatePickerStyle {
 
   /// The flat stand-in for the overlay's material when no
   /// [MorphGlassPainter] is installed; a painter receives it as the tint.
+  ///
+  /// It is the menu's material: the light overlay reads 249, 249, 255 over
+  /// the 242, 242, 247 grouped background on an iPhone 16 Pro, as the
+  /// light menu does, which is 0xF9F9FF at 95 percent.
   final Color platterColor;
 
   /// The shadow of the flat overlay.
@@ -103,8 +109,9 @@ class MorphDatePickerStyle {
   /// black on an iPhone 16 Pro).
   final double wheelFadedOpacity;
 
-  /// The opacity of a disabled picker (not measured on a device).
-  final double disabledOpacity;
+  /// The opacity of a day outside the picker's range (not measured on a
+  /// device).
+  final double unavailableDayOpacity;
 
   /// The light appearance.
   static const light = MorphDatePickerStyle();
@@ -221,7 +228,8 @@ String _defaultTime(DateTime d, {required bool twentyFour}) {
 /// labels are
 /// formatted in English by default ([dateFormatter] and [timeFormatter]
 /// localize them). The label is a focusable button; Space and Enter open
-/// it.
+/// it. A disabled picker draws its labels as text without their capsules
+/// and does not open.
 class MorphDatePicker extends StatefulWidget {
   /// Creates a picker.
   const MorphDatePicker({
@@ -433,56 +441,54 @@ class _CompactLabelState extends State<_CompactLabel>
     final style = MorphDatePickerStyle.resolve(context, widget.style);
     final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
     final label = widget.semanticLabel;
-    return MorphDisabled(
+    return MorphControlFocus(
       enabled: widget.enabled,
-      opacity: style.disabledOpacity,
-      child: MorphControlFocus(
+      onHighlight: (bool focused) => setState(() => _focused = focused),
+      onActivate: () => widget.onOpen(context),
+      child: Semantics(
+        button: true,
         enabled: widget.enabled,
-        onHighlight: (bool focused) => setState(() => _focused = focused),
-        onActivate: () => widget.onOpen(context),
-        child: Semantics(
-          button: true,
-          enabled: widget.enabled,
-          expanded: widget.open,
-          label: label == null ? widget.text : '$label, ${widget.text}',
-          onTap: widget.enabled ? () => widget.onOpen(context) : null,
-          child: ExcludeSemantics(
-            child: Listener(
-              behavior: HitTestBehavior.opaque,
-              onPointerDown: _down,
-              onPointerUp: _up,
-              onPointerCancel: _up,
-              child: MorphFocusRing(
-                visible: _focused,
-                child: Container(
-                  constraints: BoxConstraints(minHeight: widget.height),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: MorphDatePickerTuning.labelPadding,
-                  ),
-                  decoration: ShapeDecoration(
-                    color: style.labelFillColor,
-                    shape: const StadiumBorder(),
-                  ),
-                  child: Center(
-                    widthFactor: 1,
-                    heightFactor: 1,
-                    child: ListenableBuilder(
-                      listenable: frames,
-                      builder: (BuildContext context, Widget? child) => Opacity(
-                        opacity: _motion.highlight(_motion.time),
-                        child: child,
-                      ),
-                      child: Text(
-                        widget.text,
-                        maxLines: 1,
-                        textScaler: scaler,
-                        style: MorphTypography.resolve(
-                          MorphTypography.datePickerCompact.copyWith(
-                            height: 20.33 / 17,
-                            color: widget.open
-                                ? style.accentColor
-                                : style.labelColor,
-                          ),
+        expanded: widget.open,
+        label: label == null ? widget.text : '$label, ${widget.text}',
+        onTap: widget.enabled ? () => widget.onOpen(context) : null,
+        child: ExcludeSemantics(
+          child: Listener(
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: _down,
+            onPointerUp: _up,
+            onPointerCancel: _up,
+            child: MorphFocusRing(
+              visible: _focused,
+              child: Container(
+                constraints: BoxConstraints(minHeight: widget.height),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: MorphDatePickerTuning.labelPadding,
+                ),
+                decoration: widget.enabled
+                    ? ShapeDecoration(
+                        color: style.labelFillColor,
+                        shape: const StadiumBorder(),
+                      )
+                    : null,
+                child: Center(
+                  widthFactor: 1,
+                  heightFactor: 1,
+                  child: ListenableBuilder(
+                    listenable: frames,
+                    builder: (BuildContext context, Widget? child) => Opacity(
+                      opacity: _motion.highlight(_motion.time),
+                      child: child,
+                    ),
+                    child: Text(
+                      widget.text,
+                      maxLines: 1,
+                      textScaler: scaler,
+                      style: MorphTypography.resolve(
+                        MorphTypography.datePickerCompact.copyWith(
+                          height: 20.33 / 17,
+                          color: widget.open
+                              ? style.accentColor
+                              : style.labelColor,
                         ),
                       ),
                     ),
@@ -1488,7 +1494,7 @@ class _Day extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: enabled ? onTap : null,
         child: Opacity(
-          opacity: enabled ? 1 : style.disabledOpacity,
+          opacity: enabled ? 1 : style.unavailableDayOpacity,
           child: Center(
             child: Container(
               width: disc,

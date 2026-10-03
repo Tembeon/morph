@@ -18,13 +18,25 @@ import 'package:morph/src/widgets/typography.dart';
 /// One item of a [MorphTabBar].
 class MorphTabItem {
   /// Creates a tab item.
-  const MorphTabItem({required this.icon, required this.label});
+  const MorphTabItem({
+    required this.icon,
+    required this.label,
+    this.enabled = true,
+  });
 
   /// The item's glyph.
   final IconData icon;
 
   /// The item's title.
   final String label;
+
+  /// Whether the tab can be selected.
+  ///
+  /// A disabled tab looks exactly like an enabled one, as UIKit's
+  /// `UITabBarItem.isEnabled = NO` does on iOS 27. A touch on it does not
+  /// select it and the lens stays where it is, but the bar still swells
+  /// under the finger.
+  final bool enabled;
 }
 
 /// A floating tab bar whose selection lens moves exactly like iOS 27's
@@ -75,7 +87,8 @@ class MorphTabBar extends StatefulWidget {
   final int selected;
 
   /// Called with the new index when the user selects a tab; null disables
-  /// the bar.
+  /// every tab ([MorphTabItem.enabled]): the bar keeps its look and still
+  /// swells under a finger, but nothing selects.
   final ValueChanged<int>? onChanged;
 
   /// The colors of the bar; null resolves them from the theme.
@@ -106,7 +119,6 @@ class MorphTabBarStyle {
     this.selectedColor = const Color(0xFF0082FC),
     this.color = const Color(0xFF0D0D0D),
     this.blurSigma = 12,
-    this.disabledOpacity = 0.35,
   });
 
   /// The translucent fill of the bar.
@@ -132,9 +144,6 @@ class MorphTabBarStyle {
 
   /// The blur of the backdrop behind the bar.
   final double blurSigma;
-
-  /// The opacity of a disabled bar.
-  final double disabledOpacity;
 
   /// The light appearance.
   static const light = MorphTabBarStyle();
@@ -227,7 +236,14 @@ class _MorphTabBarState extends State<MorphTabBar>
   double trackPosition(Offset local) =>
       _rtl ? _layout.width - local.dx : local.dx;
 
-  bool get _enabled => widget.onChanged != null;
+  bool get _enabled =>
+      widget.onChanged != null && widget.items.any((item) => item.enabled);
+
+  bool _selectable(int index) =>
+      widget.onChanged != null &&
+      index >= 0 &&
+      index < widget.items.length &&
+      widget.items[index].enabled;
 
   List<MorphLensSlot> _slots(_Geometry geometry) => [
     for (var i = 0; i < widget.items.length; i++)
@@ -243,6 +259,7 @@ class _MorphTabBarState extends State<MorphTabBar>
       frameRate: motionFrameRate,
     );
     created.onSelect = _selected;
+    created.isSelectable = _selectable;
     return created;
   }
 
@@ -262,17 +279,18 @@ class _MorphTabBarState extends State<MorphTabBar>
   }
 
   void _select(int index) {
-    if (!_enabled) return;
+    if (!_selectable(index)) return;
     motion.select(clock, index);
     wake();
   }
 
   void _step(int delta) {
-    final next = (motion.selected + (_rtl ? -delta : delta)).clamp(
-      0,
-      widget.items.length - 1,
-    );
-    if (next != motion.selected) _select(next);
+    final direction = (_rtl ? -delta : delta).sign;
+    var next = motion.selected + direction;
+    while (next >= 0 && next < widget.items.length && !_selectable(next)) {
+      next += direction;
+    }
+    if (next >= 0 && next < widget.items.length) _select(next);
   }
 
   @override
@@ -354,9 +372,11 @@ class _MorphTabBarState extends State<MorphTabBar>
   }
 
   void _down(PointerDownEvent event) {
-    if (!_enabled || event.buttons != kPrimaryButton) return;
+    if (event.buttons != kPrimaryButton) return;
     handleDown(event);
-    _glow.pointerDown(clock, event.localPosition);
+    if (_selectable(motion.slotAt(trackPosition(event.localPosition)))) {
+      _glow.pointerDown(clock, event.localPosition);
+    }
   }
 
   void _move(PointerMoveEvent event) {
@@ -420,9 +440,9 @@ class _MorphTabBarState extends State<MorphTabBar>
                         container: true,
                         role: SemanticsRole.tab,
                         selected: i == motion.selected,
-                        enabled: _enabled,
+                        enabled: _selectable(i),
                         label: widget.items[i].label,
-                        onTap: _enabled ? () => _select(i) : null,
+                        onTap: _selectable(i) ? () => _select(i) : null,
                         child: ExcludeSemantics(
                           child: _TabLabel(
                             item: widget.items[i],
@@ -448,70 +468,66 @@ class _MorphTabBarState extends State<MorphTabBar>
         ),
       ],
     );
-    return MorphDisabled(
+    return MorphControlFocus(
       enabled: _enabled,
-      opacity: style.disabledOpacity,
-      child: MorphControlFocus(
-        enabled: _enabled,
-        onHighlight: (bool focused) => setState(() => _focused = focused),
-        onStep: _step,
-        child: MorphTouchListener(
-          enabled: _enabled,
-          dragAxis: .horizontal,
-          delaysInScrollable: true,
-          onPointerDown: _down,
-          onPointerMove: _move,
-          onPointerUp: _up,
-          onPointerCancel: _cancel,
-          child: AnimatedBuilder(
-            animation: frames,
-            builder: (BuildContext context, Widget? child) {
-              final grow =
-                  (geometry.width + motion.chromeGrowth) / geometry.width;
-              return Transform.scale(scale: grow, child: child);
-            },
-            child: MorphFocusRing(
-              visible: _focused,
-              child: SizedBox(
-                width: geometry.width,
-                height: _barHeight,
-                child: Stack(
-                  children: glass == null
-                      ? [
-                          Positioned.fill(child: _Glass(style: style)),
-                          Positioned.fill(
-                            child: CustomPaint(painter: _GlowPainter(this)),
-                          ),
-                          Positioned.fill(
-                            child: CustomPaint(painter: _LensPainter(this)),
-                          ),
-                          Positioned.fill(left: 8, right: 8, child: tabs),
-                        ]
-                      : [
-                          Positioned.fill(
-                            child: MorphGlassLayer(
-                              painter: glass,
-                              frames: frames,
-                              surfaces: _surfaces,
-                              content: Padding(
-                                padding: const .symmetric(horizontal: 8),
-                                child: tabs,
-                              ),
-                              contentSlots: [
-                                for (var i = 0; i < widget.items.length; i++)
-                                  Rect.fromCenter(
-                                    center: Offset(
-                                      8 + geometry.pitch * (i + 0.5),
-                                      _barHeight / 2,
-                                    ),
-                                    width: geometry.pitch,
-                                    height: _barHeight,
-                                  ),
-                              ],
+      onHighlight: (bool focused) => setState(() => _focused = focused),
+      onStep: _step,
+      child: MorphTouchListener(
+        enabled: widget.items.isNotEmpty,
+        dragAxis: .horizontal,
+        delaysInScrollable: true,
+        onPointerDown: _down,
+        onPointerMove: _move,
+        onPointerUp: _up,
+        onPointerCancel: _cancel,
+        child: AnimatedBuilder(
+          animation: frames,
+          builder: (BuildContext context, Widget? child) {
+            final grow =
+                (geometry.width + motion.chromeGrowth) / geometry.width;
+            return Transform.scale(scale: grow, child: child);
+          },
+          child: MorphFocusRing(
+            visible: _focused,
+            child: SizedBox(
+              width: geometry.width,
+              height: _barHeight,
+              child: Stack(
+                children: glass == null
+                    ? [
+                        Positioned.fill(child: _Glass(style: style)),
+                        Positioned.fill(
+                          child: CustomPaint(painter: _GlowPainter(this)),
+                        ),
+                        Positioned.fill(
+                          child: CustomPaint(painter: _LensPainter(this)),
+                        ),
+                        Positioned.fill(left: 8, right: 8, child: tabs),
+                      ]
+                    : [
+                        Positioned.fill(
+                          child: MorphGlassLayer(
+                            painter: glass,
+                            frames: frames,
+                            surfaces: _surfaces,
+                            content: Padding(
+                              padding: const .symmetric(horizontal: 8),
+                              child: tabs,
                             ),
+                            contentSlots: [
+                              for (var i = 0; i < widget.items.length; i++)
+                                Rect.fromCenter(
+                                  center: Offset(
+                                    8 + geometry.pitch * (i + 0.5),
+                                    _barHeight / 2,
+                                  ),
+                                  width: geometry.pitch,
+                                  height: _barHeight,
+                                ),
+                            ],
                           ),
-                        ],
-                ),
+                        ),
+                      ],
               ),
             ),
           ),

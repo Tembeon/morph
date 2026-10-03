@@ -240,7 +240,9 @@ class MorphBarStyle {
     this.prominentColor = const Color(0xFF007AFF),
     this.prominentForegroundColor = const Color(0xFFFFFFFF),
     this.titleColor = const Color(0xFF000000),
-    this.disabledOpacity = 0.35,
+    this.disabledIconColor = const Color(0x55000000),
+    this.disabledLabelColor = const Color(0x19000000),
+    this.disabledProminentColor = const Color(0xFFD1D1D6),
   });
 
   /// The fill of a clear capsule.
@@ -264,8 +266,24 @@ class MorphBarStyle {
   /// The color of the bar's titles.
   final Color titleColor;
 
-  /// The opacity of a disabled button (not measured on a device).
-  final double disabledOpacity;
+  /// The color of a disabled plain button's icon and back chevron.
+  ///
+  /// UIKit tints a disabled bar item tertiaryLabel and leaves its capsule
+  /// glass untouched; through the bar's own color path an icon renders at
+  /// about a third of its enabled contrast in light (12 -> 167 on the 245
+  /// capsule) and a quarter in dark (249 -> 83 on 32), measured on an
+  /// iPhone 16 Pro (iOS 27.0.1). This is that rendered result over the
+  /// capsule.
+  final Color disabledIconColor;
+
+  /// The color of a disabled plain button's label: text renders far
+  /// dimmer than icons through the bar's color path (light 13 -> 221 on
+  /// the 245 capsule, dark 249 -> 47 on 32; iPhone 16 Pro, iOS 27.0.1).
+  final Color disabledLabelColor;
+
+  /// The fill of a prominent capsule whose buttons are all disabled:
+  /// systemGray4. Its glyphs stay [prominentForegroundColor].
+  final Color disabledProminentColor;
 
   /// The light appearance.
   static const light = MorphBarStyle();
@@ -278,6 +296,9 @@ class MorphBarStyle {
     foregroundColor: Color(0xFFFFFFFF),
     prominentColor: Color(0xFF0A84FF),
     titleColor: Color(0xFFFFFFFF),
+    disabledIconColor: Color(0x3CFFFFFF),
+    disabledLabelColor: Color(0x12FFFFFF),
+    disabledProminentColor: Color(0xFF3A3A3C),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -518,6 +539,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   final Map<Object, MorphGlassButtonMotion> _presses = {};
   final Map<Object, MorphBarButton> _buttons = {};
   final Map<Object, bool> _prominent = {};
+  final Map<Object, bool> _disabled = {};
   final Map<Object, Object> _capsuleOf = {};
   final Object _menuTag = Object();
   _BarMenu? _menu;
@@ -724,6 +746,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
             g.group.prominent &&
             c.items.any((i) => g.group.buttons.any((b) => b.id == i.id)),
       );
+      _disabled[c.id] = c.items.every(
+        (i) => !(_buttons[i.id]?.enabled ?? true),
+      );
       for (final i in c.items) {
         _capsuleOf[i.id] = c.id;
       }
@@ -872,9 +897,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
                     shape: landing.motion.buttonBlob.rrect.shift(
                       -landing.origin,
                     ),
-                    color: (_prominent[c.id] ?? false)
-                        ? style.prominentColor
-                        : style.capsuleColor,
+                    color: _capsuleColor(c.id, style),
                     brightness: brightness,
                   ),
                   MorphGlassSurface(
@@ -892,9 +915,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
                         math.min(c.rect.width, c.rect.height) / 2,
                       ),
                     ),
-                    color: (_prominent[c.id] ?? false)
-                        ? style.prominentColor
-                        : style.capsuleColor,
+                    color: _capsuleColor(c.id, style),
                     brightness: brightness,
                   ),
             ];
@@ -965,6 +986,13 @@ class _MorphBarItemsState extends State<MorphBarItems>
     return MorphScope(child: items);
   }
 
+  Color _capsuleColor(Object id, MorphBarStyle style) {
+    if (!(_prominent[id] ?? false)) return style.capsuleColor;
+    return (_disabled[id] ?? false)
+        ? style.disabledProminentColor
+        : style.prominentColor;
+  }
+
   Rect? _menuCapsule() {
     final id =
         _menu?.capsule ??
@@ -983,7 +1011,12 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final prominent = capsuleId != null && (_prominent[capsuleId] ?? false);
     final color = prominent
         ? style.prominentForegroundColor
-        : style.foregroundColor;
+        : button.enabled
+        ? style.foregroundColor
+        : style.disabledLabelColor;
+    final iconColor = prominent || button.enabled
+        ? color
+        : style.disabledIconColor;
     final press = capsuleId == null ? null : _presses[capsuleId];
     final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
     final landing = capsuleId == null ? null : _landingOn(capsuleId);
@@ -1006,6 +1039,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       button: button,
       metrics: metrics,
       color: color,
+      iconColor: iconColor,
       bold: prominent,
       direction: direction,
     );
@@ -1020,8 +1054,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       );
     }
     content = Opacity(
-      opacity: (frame.presence * (button.enabled ? 1 : style.disabledOpacity))
-          .clamp(0.0, 1.0),
+      opacity: frame.presence.clamp(0.0, 1.0),
       child: Transform.scale(scale: scale, child: content),
     );
     if (!frame.leaving) {
@@ -1160,11 +1193,13 @@ class _ButtonContent extends StatelessWidget {
     required this.color,
     required this.bold,
     required this.direction,
-  });
+    Color? iconColor,
+  }) : iconColor = iconColor ?? color;
 
   final MorphBarButton button;
   final MorphBarMetrics metrics;
   final Color color;
+  final Color iconColor;
   final bool bold;
   final TextDirection direction;
 
@@ -1193,7 +1228,7 @@ class _ButtonContent extends StatelessWidget {
               height: 23,
               child: CustomPaint(
                 painter: MorphBackChevronPainter(
-                  color: color,
+                  color: iconColor,
                   mirrored: direction == TextDirection.rtl,
                 ),
               ),
@@ -1210,7 +1245,7 @@ class _ButtonContent extends StatelessWidget {
       child:
           text ??
           IconTheme.merge(
-            data: IconThemeData(color: color, size: metrics.iconSize),
+            data: IconThemeData(color: iconColor, size: metrics.iconSize),
             child: SizedBox.square(
               dimension: metrics.iconSize,
               child: Center(child: button.icon),

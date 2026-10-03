@@ -45,11 +45,12 @@ class MorphMenuStyle {
   /// Creates a style; the defaults are the iOS 27 light appearance.
   const MorphMenuStyle({
     this.buttonSize = 48,
-    this.glassColor = const Color(0xF2FFFFFF),
+    this.glassColor = const Color(0xF2F9F9FF),
     this.shadowColor = const Color(0x33000000),
     this.shadowElevation = 12,
     this.textStyle = const TextStyle(fontSize: 17, color: Color(0xFF000000)),
     this.iconColor = const Color(0xFF000000),
+    this.disabledIconColor = const Color(0x4C3C3C43),
     this.iconSize = 20,
     this.destructiveColor = const Color(0xFFFF3B30),
     this.highlightColor = const Color(0x1F000000),
@@ -79,6 +80,11 @@ class MorphMenuStyle {
   /// The color of the button's default glyph and of row glyphs.
   final Color iconColor;
 
+  /// The color of a disabled button's glyph: tertiaryLabel. UIKit leaves
+  /// the glass of a disabled menu button untouched (iPhone 16 Pro, iOS
+  /// 27.0.1, light and dark).
+  final Color disabledIconColor;
+
   /// The size of row glyphs.
   final double iconSize;
 
@@ -107,6 +113,7 @@ class MorphMenuStyle {
     shadowColor: Color(0x66000000),
     textStyle: TextStyle(fontSize: 17, color: Color(0xFFFFFFFF)),
     iconColor: Color(0xFFFFFFFF),
+    disabledIconColor: Color(0x4CEBEBF5),
     destructiveColor: Color(0xFFFF5659),
     highlightColor: Color(0x29FFFFFF),
     glowColor: Color(0xFFFFFFFF),
@@ -133,6 +140,7 @@ class MorphMenuStyle {
     double? shadowElevation,
     TextStyle? textStyle,
     Color? iconColor,
+    Color? disabledIconColor,
     double? iconSize,
     Color? destructiveColor,
     Color? highlightColor,
@@ -145,6 +153,7 @@ class MorphMenuStyle {
     shadowElevation: shadowElevation ?? this.shadowElevation,
     textStyle: textStyle ?? this.textStyle,
     iconColor: iconColor ?? this.iconColor,
+    disabledIconColor: disabledIconColor ?? this.disabledIconColor,
     iconSize: iconSize ?? this.iconSize,
     destructiveColor: destructiveColor ?? this.destructiveColor,
     highlightColor: highlightColor ?? this.highlightColor,
@@ -186,8 +195,16 @@ class MorphMenuButton extends StatefulWidget {
     this.overlay,
     this.semanticLabel = 'More',
     this.onOpen,
+    this.enabled = true,
     super.key,
   });
+
+  /// Whether the button opens its menu.
+  ///
+  /// A disabled menu button keeps its glass and draws its glyph in
+  /// [MorphMenuStyle.disabledIconColor], as UIKit's does; it ignores
+  /// touches, and an open menu closes when the button turns disabled.
+  final bool enabled;
 
   /// The rows of the menu, top to bottom when it opens downward.
   final List<MorphMenuItem> items;
@@ -297,6 +314,18 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         SingleTickerProviderStateMixin<MorphMenuButton>,
         MorphClock<MorphMenuButton>
     implements MorphMenuHost {
+  @override
+  void didUpdateWidget(MorphMenuButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final motion = _motion;
+    if (oldWidget.enabled && !widget.enabled && motion != null) {
+      if (motion.isOpen || motion.isOpenPending) {
+        motion.close(clock);
+        wake();
+      }
+    }
+  }
+
   @override
   MorphMenuStyle get menuStyle => _style;
 
@@ -502,7 +531,11 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   }
 
   void _buttonDown(PointerDownEvent event) {
-    if (event.buttons != kPrimaryButton || _pointer != null) return;
+    if (!widget.enabled ||
+        event.buttons != kPrimaryButton ||
+        _pointer != null) {
+      return;
+    }
     final current = _motion;
     if (current != null && current.isOpen) return;
     final motion = _prepare();
@@ -592,12 +625,24 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         if (!flight.isFinished) flight.markNeedsBuild();
       });
     }
-    final glyph = widget.child ?? _Ellipsis(color: style.iconColor);
+    final enabled = widget.enabled;
+    final iconColor = enabled ? style.iconColor : style.disabledIconColor;
+    final custom = widget.child;
+    final glyph = custom == null
+        ? _Ellipsis(color: iconColor)
+        : enabled
+        ? custom
+        : IconTheme.merge(
+            data: IconThemeData(color: iconColor),
+            child: custom,
+          );
     final Widget button = Semantics(
       button: true,
+      enabled: enabled,
       label: widget.semanticLabel,
-      onTap: _openFromSemantics,
+      onTap: enabled ? _openFromSemantics : null,
       child: MorphTouchListener(
+        enabled: enabled,
         behavior: .opaque,
         onPointerDown: _buttonDown,
         onPointerMove: _move,
