@@ -15,20 +15,24 @@ import 'package:morph/src/widgets/small_lens.dart';
 class MorphSliderStyle {
   /// Creates a style; the defaults are the iOS light appearance.
   const MorphSliderStyle({
-    this.activeColor = const Color(0xFF007AFF),
-    this.trackColor = const Color(0x29787880),
+    this.activeColor = const Color(0xFF0088FF),
+    this.trackColor = const Color(0x1A000000),
     this.thumbColor = const Color(0xFFFFFFFF),
+    this.tickColor = const Color(0xFFC6C6C8),
     this.disabledOpacity = 0.5,
   });
 
-  /// The fill of the track below the value: systemBlue.
+  /// The fill of the track below the value: iOS 27's systemBlue.
   final Color activeColor;
 
-  /// The fill of the track above the value: secondarySystemFill.
+  /// The fill of the track above the value.
   final Color trackColor;
 
   /// The fill of the resting thumb.
   final Color thumbColor;
+
+  /// The fill of the tick marks of a stepped slider.
+  final Color tickColor;
 
   /// The opacity of a disabled slider.
   final double disabledOpacity;
@@ -38,8 +42,9 @@ class MorphSliderStyle {
 
   /// The dark appearance, from the iOS dark system colors.
   static const dark = MorphSliderStyle(
-    activeColor: Color(0xFF0A84FF),
-    trackColor: Color(0x52787880),
+    activeColor: Color(0xFF0091FF),
+    trackColor: Color(0x1AFFFFFF),
+    tickColor: Color(0xFF38383A),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -61,7 +66,9 @@ class MorphSliderStyle {
 /// Only the thumb is a handle: pressing it lifts it into a clear lens,
 /// dragging it moves the value by the finger's travel over the full track
 /// width, a release with speed lets the value glide on, and dragging past
-/// an end stretches the whole track. A tap on the track does nothing. See
+/// an end stretches the whole track. A tap on the track does nothing. With
+/// [ticks] the value snaps to that many evenly spaced stops marked under
+/// the track. See
 /// [MorphSliderMotion] for the measured behavior. In a right-to-left
 /// context the slider is mirrored: the value grows to the left.
 ///
@@ -78,8 +85,13 @@ class MorphSlider extends StatefulWidget {
     this.trackColor,
     this.style,
     this.semanticLabel,
+    this.ticks = 0,
     super.key,
   });
+
+  /// The number of tick marks the value snaps to, like UIKit's
+  /// `numberOfTicks`; below two the slider is continuous.
+  final int ticks;
 
   /// The current value, 0 to 1.
   final double value;
@@ -106,8 +118,11 @@ class MorphSlider extends StatefulWidget {
   /// The height of the control.
   static const double height = 34;
 
-  /// How much one arrow key or adjust action moves the value.
+  /// How much one arrow key or adjust action moves a continuous slider;
+  /// a stepped one moves by one stop.
   static const double keyboardStep = 0.1;
+
+  double get _step => ticks >= 2 ? 1 / (ticks - 1) : keyboardStep;
 
   @override
   State<MorphSlider> createState() => _MorphSliderState();
@@ -127,6 +142,7 @@ class _MorphSliderState extends State<MorphSlider>
       width: 0,
       value: widget.value,
       frameRate: motionFrameRate,
+      ticks: widget.ticks,
     );
     motion.onChanged = _changed;
     motion.onChangeEnd = _ended;
@@ -146,6 +162,7 @@ class _MorphSliderState extends State<MorphSlider>
   @override
   void didUpdateWidget(MorphSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _motion.ticks = widget.ticks;
     if (widget.value != _motion.reportedValue && !_motion.isDragging) {
       _motion.setValue(clock, widget.value);
       wake();
@@ -158,10 +175,7 @@ class _MorphSliderState extends State<MorphSlider>
 
   void _nudge(int delta) {
     if (!_enabled) return;
-    final value = (widget.value + delta * MorphSlider.keyboardStep).clamp(
-      0.0,
-      1.0,
-    );
+    final value = (widget.value + delta * widget._step).clamp(0.0, 1.0);
     if (value == widget.value) return;
     widget.onChanged?.call(value);
     widget.onChangeEnd?.call(value);
@@ -208,9 +222,7 @@ class _MorphSliderState extends State<MorphSlider>
     _motion.pointerCancel(stamp(event), revert: true);
   }
 
-  ({RRect track, RRect thumb, double thumbX, double progress}) _frame(
-    Size size,
-  ) {
+  ({RRect track, RRect fill, RRect thumb, double progress}) _frame(Size size) {
     final motion = _motion;
     final t = motion.time;
     final y = size.height / 2;
@@ -219,6 +231,11 @@ class _MorphSliderState extends State<MorphSlider>
     final track = RRect.fromRectAndRadius(
       Rect.fromLTRB(ends.left, y - height / 2, ends.right, y + height / 2),
       Radius.circular(height / 2),
+    );
+    final fillEnd = math.max(ends.left, motion.fillEnd);
+    final fill = RRect.fromRectAndRadius(
+      Rect.fromLTRB(ends.left, y - height / 2, fillEnd, y + height / 2),
+      Radius.circular(math.min(height, fillEnd - ends.left) / 2),
     );
     final thumbX = motion.thumbCenter;
     final lens = motion.lens;
@@ -235,8 +252,8 @@ class _MorphSliderState extends State<MorphSlider>
     );
     return (
       track: track,
+      fill: fill,
       thumb: thumb,
-      thumbX: thumbX,
       progress: lens.progress(t).clamp(0.0, 1.0),
     );
   }
@@ -343,8 +360,8 @@ class _MorphSliderState extends State<MorphSlider>
                 enabled: _enabled,
                 label: widget.semanticLabel,
                 value: percent(value),
-                increasedValue: percent(value + MorphSlider.keyboardStep),
-                decreasedValue: percent(value - MorphSlider.keyboardStep),
+                increasedValue: percent(value + widget._step),
+                decreasedValue: percent(value - widget._step),
                 onIncrease: _enabled && value < 1 ? () => _nudge(1) : null,
                 onDecrease: _enabled && value > 0 ? () => _nudge(-1) : null,
                 child: MorphTouchListener(
@@ -390,14 +407,21 @@ class _SliderPainter extends CustomPainter {
       rest.color = widget.trackColor ?? style.trackColor;
       canvas.drawRRect(frame.track, rest);
     }
-    canvas.save();
-    canvas.clipRect(
-      Rect.fromLTRB(frame.track.left, 0, frame.thumbX, size.height),
-    );
-    final filled = Paint();
-    filled.color = widget.activeColor ?? style.activeColor;
-    canvas.drawRRect(frame.track, filled);
-    canvas.restore();
+    final ticks = Paint();
+    ticks.color = style.tickColor;
+    final tickY = size.height / 2 + MorphSliderMotion.tickOffset;
+    for (final x in state._motion.tickCenters) {
+      canvas.drawCircle(
+        Offset(x, tickY),
+        MorphSliderMotion.tickSize / 2,
+        ticks,
+      );
+    }
+    if (frame.fill.width > 0) {
+      final filled = Paint();
+      filled.color = widget.activeColor ?? style.activeColor;
+      canvas.drawRRect(frame.fill, filled);
+    }
 
     if (thumb) {
       final shape = frame.thumb;

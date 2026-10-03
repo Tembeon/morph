@@ -424,6 +424,82 @@ Widget _host(Widget child) => Directionality(
   );
 }
 
+/// The fill end the model draws for every value within 0.04 of an end a
+/// device slider in [file] showed while its track was at rest, as the
+/// largest error in points (mid-track the fill presentation trails a fast
+/// value by a frame, and at the ends themselves the stretch rows can lag
+/// the fill's).
+double _fillReplay(String file, double width) {
+  final trace = Trace.load('$_deviceDir/$file');
+  final motion = MorphSliderMotion(width: width, value: 0);
+  var value = 0.0;
+  var worst = 0.0;
+  var track = width;
+  var n = 0;
+  final rows = <(double, int, Object)>[
+    for (final s in trace.states) ((s['t']! as num).toDouble(), 0, s),
+    for (final l in trace.layers) (l.t, 1, l),
+  ];
+  rows.sort((a, b) => a.$1 == b.$1 ? a.$2 - b.$2 : a.$1.compareTo(b.$1));
+  for (final (_, _, row) in rows) {
+    if (row is Map<String, Object?>) {
+      final v = row['v'] as num?;
+      if (v != null) value = v.toDouble();
+      continue;
+    }
+    final layer = row as TraceFrame;
+    if (layer.raw['c'] == 'track') track = layer.w;
+    if (layer.raw['c'] != 'fill' || (track - width).abs() > 0.01) continue;
+    if (value == 0 || value == 1 || (value > 0.04 && value < 0.96)) continue;
+    motion.setValue(0, value);
+    worst = math.max(worst, (motion.fillEnd - layer.w).abs());
+    n++;
+  }
+  expect(n, greaterThan(15), reason: file);
+  return worst;
+}
+
+/// How long before its own timestamp a probe layer row was committed: the
+/// presentation row of a tick shows the state of the previous frame.
+const double _rowLag = 1 / 120;
+
+/// A stepped device slider in [file] replayed into the model: the fill
+/// end and thumb center errors in points and the reported stops.
+({double fill, double thumb, double stops}) _ticksReplay(String file) {
+  final s = _slider(file, value: 0, device: true);
+  s.motion.ticks = 5;
+  final feed = _feedSlider(s.motion, s.left);
+  final fill = <double>[];
+  final thumb = <double>[];
+  var stops = 0.0;
+  final rows = <(double, int, Object)>[
+    for (final st in s.trace.states) ((st['t']! as num).toDouble(), 0, st),
+    for (final l in s.trace.layers) (l.t, 1, l),
+    for (final f in s.trace.frames) (f.t, 2, f),
+  ];
+  rows.sort((a, b) => a.$1 == b.$1 ? a.$2 - b.$2 : a.$1.compareTo(b.$1));
+  final first = s.trace.touches.first.t;
+  for (final (t, _, row) in rows) {
+    if (t < first) continue;
+    s.touches.until(t - _rowLag, feed);
+    s.motion.advance(t - _rowLag);
+    if (row is Map<String, Object?>) {
+      final v = row['v'] as num?;
+      if (v != null) {
+        stops = math.max(stops, (s.motion.reportedValue - v).abs());
+      }
+      continue;
+    }
+    final f = row as TraceFrame;
+    if (f.path == null) {
+      thumb.add(s.motion.thumbCenter + s.left - f.x);
+    } else if (f.raw['c'] == 'fill') {
+      fill.add(s.motion.fillEnd + s.left - (f.x + f.w / 2));
+    }
+  }
+  return (fill: _rms(fill), thumb: _rms(thumb), stops: stops);
+}
+
 void main() {
   group('replays of the native recordings', () {
     testWidgets('a released slider glides on like the device', (
@@ -482,6 +558,43 @@ void main() {
       final e = _leanReplay();
       expect(e.lean, lessThan(0.25));
       expect(e.stretch, lessThan(0.004));
+    });
+
+    test('the fill runs out to the track ends like the device', () {
+      expect(_fillReplay('slider-w300-video-dark.jsonl', 300), lessThan(0.15));
+      expect(
+        _fillReplay('slider-w200-end-max-fill.jsonl', 200),
+        lessThan(0.15),
+      );
+      expect(
+        _fillReplay('slider-w200-end-min-fill.jsonl', 200),
+        lessThan(0.15),
+      );
+    });
+
+    test('a stepped slider snaps on the device S-curve', () {
+      final e = _ticksReplay('slider-ticks5-video-dark.jsonl');
+      expect(e.stops, lessThan(1e-6));
+      expect(e.fill, lessThan(1.7));
+      expect(e.thumb, lessThan(1.4));
+    });
+
+    test('stepped slider ticks sit where the device draws them', () {
+      final trace = Trace.load('$_deviceDir/slider-ticks5-video-dark.jsonl');
+      final recorded = <String, double>{
+        for (final l in trace.layers)
+          if (l.raw['c'] == 'tick') l.path!: l.x - (_deviceControlX - 150),
+      };
+      final ticks = recorded.values.toList();
+      ticks.sort();
+      final motion = MorphSliderMotion(width: 300, value: 0, ticks: 5);
+      final model = motion.tickCenters;
+      expect(model.length, ticks.length);
+      for (var i = 0; i < model.length; i++) {
+        expect(model[i], moreOrLessEquals(ticks[i], epsilon: 1e-6));
+      }
+      final y = trace.layers.firstWhere((l) => l.raw['c'] == 'tick').y;
+      expect(y - 400, MorphSliderMotion.tickOffset);
     });
 
     test('a slider drag maps the finger by the full track width', () {
@@ -643,6 +756,44 @@ void main() {
       );
       await tester.pumpAndSettle();
       expect(value, 1);
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
+    testWidgets('a stepped slider reports stops and settles on one', (
+      tester,
+    ) async {
+      var value = 0.0;
+      final reported = <double>{};
+      double? ended;
+      await tester.pumpWidget(
+        _host(
+          StatefulBuilder(
+            builder: (context, setState) => MorphSlider(
+              value: value,
+              ticks: 5,
+              onChanged: (v) => setState(() {
+                value = v;
+                reported.add(v);
+              }),
+              onChangeEnd: (v) => ended = v,
+            ),
+          ),
+        ),
+      );
+      final box = tester.getRect(find.byType(MorphSlider));
+      final gesture = await tester.startGesture(
+        Offset(box.left + 18.5, box.center.dy),
+      );
+      await tester.pump(const Duration(milliseconds: 16));
+      for (var i = 0; i < 12; i++) {
+        await gesture.moveBy(const Offset(10, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(reported, everyElement(isIn(const [0.0, 0.25, 0.5, 0.75, 1.0])));
+      expect(value, 0.25);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(ended, 0.25);
       expect(tester.binding.hasScheduledFrame, isFalse);
     });
 

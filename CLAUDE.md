@@ -169,7 +169,31 @@ Public pieces:
   (total = 0.123 s x v), stopped at the ends; release speed from
   Flutter's VelocityTracker. Past an end the whole track stretches
   (near edge rubber band 13/0.74, far edge 0.357 of it, height thins
-  6 - 0.2936 n) and springs back ~0.63/0.85.
+  6 - 0.2936 n) and springs back ~0.63/0.85. FILMED 2026-10-03 (screen
+  recordings light + dark, slider_video_test vs the probe's slvid-*
+  captures; crops in references/slider-video/): colors read from the
+  layers - fill 0x0088FF / 0x0091FF, track black / white at 10 percent,
+  ticks 0xC6C6C8 / 0x38383A, thumb platter white in BOTH appearances;
+  the fill is its own rounded bar ending at the thumb center, and
+  within `fillRamp` 0.0198 of an end it is min(center, s v) with s =
+  18.5 / 0.0198 + travel (mirrored at the max end) - full = whole track,
+  empty = nothing (0.1 pt on 200 and 300 pt; mid-track the fill
+  presentation trails a fast value by one frame). TICKS (`ticks`, UIKit
+  numberOfTicks): dots 3 pt at 18 + i travel / (n - 1), 8.5 below the
+  center, static under the stretch; reported value = nearest stop of
+  the finger-mapped value (same slop and full-width mapping); the thumb
+  AND the fill show stop + sign h min(0.72, f^4.5) (f = distance to the
+  stop over the half step h) on a 0.03 crit follow spring, settle 0.035
+  s after the release on 0.115 crit, no glide; replay rms fill 1.6 /
+  thumb 1.3 pt (probe layer rows show the previous frame's state - feed
+  touches one frame early). The 0.72 hold is a compromise: moving
+  frames reach 0.8 of h just before the midpoint, a still finger rests
+  at 0.71. NOT REPRODUCED: two frames of white resting platter at the
+  release of a drag held stretched or stepped (a UIKit flash,
+  native-release-white-flash.png). OPEN for the glass painter (gallery,
+  not the package): the native lifted thumb in dark is a uniform +21
+  gray wash over what it covers with no fill refracted into its rim;
+  ours is black inside with blue bands at the top and bottom rim.
 - `MorphStepper`: NO motion - the pressed half gets an instant 8 percent
   black overlay; commit on release; repeat 0.5 s then every 0.5 s, no
   acceleration; sliding moves highlight and repeat; leaving cancels;
@@ -1084,8 +1108,12 @@ Public pieces:
   full resolution: `: > log.txt; open -W .../MorphRecorder.app --args
   "$PWD/log.txt" /abs/out.mov <seconds>` in the background, then drive
   the phone (device.sh for the native probe scenes; for morph,
-  example/integration_test/menu_video_test.dart built as a profile app
-  and launched with devicectl). The stream is variable-rate and DROPS
+  example/integration_test/menu_video_test.dart or slider_video_test.dart
+  built as a profile app and launched with devicectl; the slider probe
+  plan is PROBE_PLAN=slidervideo, PROBE_DARK on the single-control
+  scenes picks the appearance). Strokes in a video app must be timed
+  on a clock, not per pumped frame (a 120-step loop of 8 ms pumps ran
+  1.7 x slow). The stream is variable-rate and DROPS
   frames during UIKit morph starts (~45 fps, 33-58 ms gaps): extract
   with `-fps_mode passthrough` and real pts, never fps=60, and align the
   native film to the probe's layer rows of the same run (union bbox) to

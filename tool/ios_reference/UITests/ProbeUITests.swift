@@ -619,6 +619,53 @@ final class ProbeUITests: XCTestCase {
         }
     }
 
+    /// One launch per slider scene and appearance for a screen recording (PROBE_PLAN
+    /// slidervideo): taps, a hold, slow and fast drags, a glide, a track tap and both ends on
+    /// the 300 pt slider at 0.3, then a stepped drag on slT5. Gaps of 1.5 s let every motion
+    /// settle so the film can be cut per gesture.
+    func testSliderVideo() {
+        func at(_ f: CGRect, _ v: Double) -> CGPoint { CGPoint(x: f.minX + 18.5 + v * (f.width - 37), y: f.midY) }
+        func value(_ scene: String) -> Double {
+            Double(app.descendants(matching: .any)["c_" + scene].normalizedSliderPosition)
+        }
+        for dark in ["0", "1"] {
+            capture("slvid-w300-\(dark == "1" ? "dark" : "light")", scene: "sl300", extra: ["PROBE_DARK": dark]) {
+                let f = control("sl300")
+                pause(1.0)
+                tap(at(f, 0.3), hold: 0.09)
+                pause(1.5)
+                tap(at(f, 0.3), hold: 0.8)
+                pause(1.5)
+                var p = at(f, value("sl300"))
+                drag(p, CGPoint(x: p.x + 100, y: p.y), pressFor: 0.1, moveFor: 1.0, holdFor: 0.4)
+                pause(1.5)
+                p = at(f, value("sl300"))
+                drag(p, CGPoint(x: p.x - 100, y: p.y), pressFor: 0.1, moveFor: 0.4, holdFor: 0)
+                pause(1.5)
+                tap(CGPoint(x: f.minX + 270, y: f.midY), hold: 0.09)
+                pause(1.5)
+                p = at(f, value("sl300"))
+                synth([path(start: p, pressFor: 0.1, legs: [(CGPoint(x: f.maxX + 40, y: p.y), Double(f.maxX + 40 - p.x) / 150, 0.6)])])
+                pause(1.5)
+                p = at(f, value("sl300"))
+                synth([path(start: p, pressFor: 0.1, legs: [(CGPoint(x: f.minX - 40, y: p.y), Double(p.x - f.minX + 40) / 150, 0.6)])])
+                pause(1.5)
+            }
+            capture("slvid-t5-\(dark == "1" ? "dark" : "light")", scene: "slT5", extra: ["PROBE_DARK": dark]) {
+                let f = control("slT5")
+                pause(1.0)
+                tap(at(f, 0), hold: 0.8)
+                pause(1.5)
+                var p = at(f, value("slT5"))
+                drag(p, CGPoint(x: p.x + 200, y: p.y), pressFor: 0.1, moveFor: 1.6, holdFor: 0.4)
+                pause(1.5)
+                p = at(f, value("slT5"))
+                drag(p, CGPoint(x: p.x - 45, y: p.y), pressFor: 0.1, moveFor: 0.6, holdFor: 0.4)
+                pause(1.5)
+            }
+        }
+    }
+
     func testRecapMenu() {
         // Separate synth calls: within one record the synthesizer starts the next stroke at the
         // previous lift, whatever the planned gap; the realized gap is read from the touch rows.

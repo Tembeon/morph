@@ -437,6 +437,34 @@
    "scene": "sw",
    "gesture": "off switch: press knob 0.1 s, drag +40 pt over 0.4 s, hold 0.25, back to +5 over 0.4 s, hold 0.3, release (rep 3)",
    "note": "recapture 2026-10-02 (open questions); probe tool/ios_reference testRecap*"
+  },
+  {
+   "file": "slider-w300-video-dark.jsonl",
+   "bytes": 938051,
+   "scene": "sl300",
+   "gesture": "dark appearance, value 0.3: tap thumb 90 ms, hold thumb 0.8 s, press 0.1 s + drag +100 pt over 1 s + hold 0.4, press 0.1 s + fling -100 pt over 0.4 s, tap track at +270, press 0.1 s + 150 pt/s to 40 past the max end + hold 0.6, the same to 40 past the min end; 1.5 s gaps",
+   "note": "recapture 2026-10-03 (slider video pass); probe testSliderVideo / testSliderEnds; L rows renamed by role in c (track, fill, tick) with bg rgba"
+  },
+  {
+   "file": "slider-ticks5-video-dark.jsonl",
+   "bytes": 412132,
+   "scene": "slT5",
+   "gesture": "dark appearance, numberOfTicks 5, value 0: hold thumb 0.8 s, press 0.1 s + drag +200 pt over 1.6 s + hold 0.4, press 0.1 s + drag -45 pt over 0.6 s + hold 0.4",
+   "note": "recapture 2026-10-03 (slider video pass); probe testSliderVideo / testSliderEnds; L rows renamed by role in c (track, fill, tick) with bg rgba"
+  },
+  {
+   "file": "slider-w200-end-max-fill.jsonl",
+   "bytes": 463457,
+   "scene": "sl200",
+   "gesture": "as slider-w200-end-max-slow, recaptured with the fill layer",
+   "note": "recapture 2026-10-03 (slider video pass); probe testSliderVideo / testSliderEnds; L rows renamed by role in c (track, fill, tick) with bg rgba"
+  },
+  {
+   "file": "slider-w200-end-min-fill.jsonl",
+   "bytes": 459787,
+   "scene": "sl200",
+   "gesture": "as slider-w200-end-min-slow, recaptured with the fill layer",
+   "note": "recapture 2026-10-03 (slider video pass); probe testSliderVideo / testSliderEnds; L rows renamed by role in c (track, fill, tick) with bg rgba"
   }
  ]
 }

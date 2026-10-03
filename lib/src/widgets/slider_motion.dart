@@ -24,6 +24,16 @@ import 'package:morph/src/widgets/timeline.dart';
 /// either end the whole track stretches toward the finger on a rubber
 /// band and gets thinner; on release it springs back.
 ///
+/// The fill ends under the thumb center, except within [fillRamp] of
+/// either end, where it runs linearly to the track end, so a full slider
+/// is filled to its end and an empty one shows no fill.
+///
+/// With [ticks] (two or more) the value snaps to evenly spaced stops: the
+/// reported value is the stop nearest to where the finger maps, and the
+/// thumb sits still near a stop and slides over to the next one on an
+/// S-curve of the finger's distance from the stop ([tickCurve]); after a
+/// release it springs onto the stop, without a glide.
+///
 /// Times are seconds and positions pixels from the track's left end.
 class MorphSliderMotion {
   /// Creates a slider of track [width] resting at [value] whose thumb
@@ -33,8 +43,10 @@ class MorphSliderMotion {
     required this.width,
     required double value,
     this.frameRate = 120,
+    this.ticks = 0,
   }) : _value = value.clamp(0.0, 1.0),
        _reported = value.clamp(0.0, 1.0),
+       _settle = MorphSpringState(tickReleaseSpring, value.clamp(0.0, 1.0)),
        lens = MorphSmallLens(
          restSize: thumbSize,
          liftedSize: liftedThumbSize,
@@ -87,6 +99,46 @@ class MorphSliderMotion {
   /// Seconds between the release and the return of the stretched track.
   static const double releaseDelay = 0.07;
 
+  /// The span of value at either end over which the fill runs from the
+  /// thumb center to the track end.
+  static const double fillRamp = 0.0198;
+
+  /// The exponent of the stepped slider's S-curve: at a fraction f of the
+  /// way from a stop to the midpoint between two stops, the thumb has left
+  /// the stop by f to this power of that way.
+  static const double tickCurve = 4.5;
+
+  /// The farthest a stepped slider's thumb leaves its stop, as a fraction
+  /// of the way to the midpoint between two stops.
+  static const double tickHold = 0.72;
+
+  /// The spring a dragged stepped slider's thumb follows its place on the
+  /// S-curve with.
+  static const tickFollowSpring = MorphSpring(0.03, 1);
+
+  /// The spring a released stepped slider settles onto its stop on.
+  static const tickReleaseSpring = MorphSpring(0.115, 1);
+
+  /// Seconds between the release and the settle of a stepped slider.
+  static const double tickReleaseDelay = 0.035;
+
+  /// The diameter of a tick mark.
+  static const double tickSize = 3;
+
+  /// The distance of the first tick center from the track's left end;
+  /// the ticks are spaced by the thumb travel, half a point left of the
+  /// thumb centers at the stops.
+  static const double tickInset = 18;
+
+  /// How far below the track center the tick centers sit.
+  static const double tickOffset = 8.5;
+
+  /// The number of tick marks the value snaps to; below two the slider is
+  /// continuous.
+  int ticks;
+
+  bool get _stepped => ticks >= 2;
+
   /// The length of the track.
   double width;
 
@@ -94,6 +146,7 @@ class MorphSliderMotion {
   double _reported;
   final MorphSpringState _stretch = MorphSpringState(releaseSpring, 0);
   _Glide? _glide;
+  final MorphSpringState _settle;
 
   /// The thumb's lens.
   final MorphSmallLens lens;
@@ -132,6 +185,31 @@ class MorphSliderMotion {
   /// The thumb center along the track, stretch included.
   double get thumbCenter => _thumbAt(_now);
 
+  /// Where the thumb shows the value, 0 to 1: the value itself, or for a
+  /// stepped slider the thumb's place on its S-curve or settle.
+  double get position => _positionAt(_now);
+
+  /// The right end of the fill, stretch included: under the thumb center,
+  /// running out to the track end within [fillRamp] of either end.
+  double get fillEnd {
+    final u = position;
+    final half = thumbSize.width / 2;
+    final slope = half / fillRamp + travel;
+    final center = half + u * travel;
+    final end = u < 0.5
+        ? math.min(center, slope * u)
+        : width - math.min(width - center, slope * (1 - u));
+    final ends = trackEnds;
+    if (width <= 0) return ends.left;
+    return ends.left + end * (ends.right - ends.left) / width;
+  }
+
+  /// The tick centers along the unstretched track, empty when continuous.
+  List<double> get tickCenters => [
+    if (_stepped)
+      for (var i = 0; i < ticks; i++) tickInset + i * travel / (ticks - 1),
+  ];
+
   /// The track ends, stretch included.
   ({double left, double right}) get trackEnds {
     final n = stretch;
@@ -150,6 +228,7 @@ class MorphSliderMotion {
       _glide == null &&
       _timeline.isEmpty &&
       _stretch.isAtRest(_now, 0.01) &&
+      _settle.isAtRest(_now, 1e-4) &&
       lens.isSettled(_now);
 
   /// Whether a press at [x] grabs the thumb.
@@ -182,7 +261,22 @@ class MorphSliderMotion {
     press.samples.add((t, x));
     final raw = press.from + (x - press.anchor) / width;
     _stretch.snap(t, _stretchFor(raw));
-    _set(raw.clamp(0.0, 1.0));
+    final clamped = raw.clamp(0.0, 1.0);
+    if (!_stepped) {
+      _set(clamped);
+      return;
+    }
+    final steps = ticks - 1;
+    final stop = (clamped * steps).round() / steps;
+    final half = 0.5 / steps;
+    final f = ((clamped - stop).abs() / half).clamp(0.0, 1.0);
+    final detent =
+        stop +
+        (clamped - stop).sign *
+            half *
+            math.min(tickHold, math.pow(f, tickCurve));
+    _settle.retarget(t, detent, spring: tickFollowSpring);
+    _set(stop);
   }
 
   /// The finger left the slider at [x].
@@ -200,6 +294,11 @@ class MorphSliderMotion {
     if (!press.dragging) return;
     final stretched = _stretch.target != 0;
     _releaseStretch(t);
+    if (_stepped) {
+      _settleOnStop(t);
+      onChangeEnd?.call(_value);
+      return;
+    }
     final speed = velocity ?? _velocity(press.samples);
     if (speed == 0 || stretched) {
       onChangeEnd?.call(_value);
@@ -221,9 +320,18 @@ class MorphSliderMotion {
     if (revert) {
       _stretch.snap(t, 0);
       _set(press.from);
+      _settle.snap(t, press.from);
     }
     _releaseStretch(t);
+    if (_stepped && !revert) _settleOnStop(t);
     onChangeEnd?.call(_value);
+  }
+
+  void _settleOnStop(double t) {
+    _timeline.at(
+      t + tickReleaseDelay,
+      (s) => _settle.retarget(s, _value, spring: tickReleaseSpring),
+    );
   }
 
   /// Sets the value without a touch; the thumb jumps there.
@@ -233,6 +341,7 @@ class MorphSliderMotion {
     _glide = null;
     _value = value.clamp(0.0, 1.0);
     _reported = _value;
+    _settle.snap(t, _value);
   }
 
   /// Advances the motion to time [t].
@@ -299,8 +408,13 @@ class MorphSliderMotion {
 
   double _valueAt(double t) => _glide?.value(t).clamp(0.0, 1.0) ?? _value;
 
+  double _positionAt(double t) {
+    if (!_stepped) return _valueAt(t);
+    return _settle.value(t);
+  }
+
   double _thumbAt(double t) =>
-      thumbSize.width / 2 + _valueAt(t) * travel + _stretch.value(t);
+      thumbSize.width / 2 + _positionAt(t) * travel + _stretch.value(t);
 
   static double _velocity(List<(double, double)> samples) {
     if (samples.isEmpty) return 0;

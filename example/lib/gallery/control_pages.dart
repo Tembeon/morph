@@ -17,6 +17,7 @@ class _ControlsPageState extends State<ControlsPage> {
   bool _on = true;
   double _wide = 0.3;
   double _narrow = 0.6;
+  double _stepped = 0.5;
   double _stepper = 5;
   int _taps = 0;
 
@@ -79,6 +80,21 @@ class _ControlsPageState extends State<ControlsPage> {
                 onChanged: GalleryGlassScope.enabled(
                   context,
                   (v) => setState(() => _narrow = v),
+                ),
+              ),
+            ),
+          ),
+          _Caption('Slider, 5 ticks: ${_stepped.toStringAsFixed(2)}'),
+          Align(
+            alignment: .centerLeft,
+            child: SizedBox(
+              width: 300,
+              child: MorphSlider(
+                value: _stepped,
+                ticks: 5,
+                onChanged: GalleryGlassScope.enabled(
+                  context,
+                  (v) => setState(() => _stepped = v),
                 ),
               ),
             ),

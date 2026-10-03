@@ -330,6 +330,26 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   the progress spring 15 ms ahead (`fadeLead`), as the film shows the
   native fades leading the shapes in both directions. New
   `MorphMenuMotion.contentScale`, `contentRect`, `buttonLookStretch`.
+- `MorphSlider` filmed against the native UISlider (screen recordings of
+  the iPhone 16 Pro, light and dark, the native side paired with the
+  probe's layer rows): the colors are iOS 27's - fill systemBlue
+  0xFF0088FF light / 0xFF0091FF dark (was 0xFF007AFF / 0xFF0A84FF), the
+  track black or white at 10 percent (was a tinted 16 / 32 percent
+  gray). The fill is its own rounded bar ending under the thumb center
+  (a square clip before, visible through the lifted clear thumb) and
+  within `MorphSliderMotion.fillRamp` (0.0198) of either end it runs
+  out to the track end: a full slider is filled to its rounded end, an
+  empty one shows no fill (before, 18.5 pt of track stayed unfilled at
+  1 and 18.5 pt filled at 0; replayed on 300 and 200 pt sliders within
+  0.15 pt). NEW: stepped sliders, `MorphSlider.ticks` (UIKit's
+  `numberOfTicks`): 3 pt dots 8.5 below the track at the thumb's stops
+  (`MorphSliderStyle.tickColor`), the reported value snaps to the
+  nearest stop, the thumb rests near a stop and crosses to the next on
+  an S-curve (`tickCurve` 4.5, held within `tickHold` 0.72 of the half
+  step, followed on `tickFollowSpring` 0.03 / 1), settles on its stop
+  0.035 s after the release on `tickReleaseSpring` 0.115 / 1 and never
+  glides; arrows and adjust actions move one stop. New
+  `MorphSliderMotion.position`, `fillEnd`, `tickCenters`.
 - NEW: iOS 27 bars, measured on the iPhone 16 Pro (iOS 27.0.1) and the
   iOS 27.0 simulator with the probe's new `nav` scene (tuning read live:
   `GlassContainerToolbarPTSettings`, `PocketSettings`,

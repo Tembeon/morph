@@ -10,6 +10,7 @@ final class SingleControlScene: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemGroupedBackground
+        if let d = ProcessInfo.processInfo.environment["PROBE_DARK"] { overrideUserInterfaceStyle = d == "1" ? .dark : .light }
         let control = makeControl()
         control.accessibilityIdentifier = "c_" + name
         control.translatesAutoresizingMaskIntoConstraints = false
