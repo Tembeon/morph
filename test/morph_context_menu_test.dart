@@ -647,9 +647,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 40));
     expect(
-      find.byKey(
-        const ValueKey<String>('morph-shared-fly-morph-context-menu-hero'),
-      ),
+      find.byKey(const ValueKey<Object>('morph-context-menu-hero')),
       findsOneWidget,
     );
     await settle(tester);
@@ -1166,8 +1164,8 @@ void liveSlots() {
 }
 
 const Key _deviceMenu = ValueKey<String>('device-menu');
-const ValueKey<String> _flyingHero = ValueKey<String>(
-  'morph-shared-fly-morph-context-menu-hero',
+const ValueKey<Object> _flyingHero = ValueKey<Object>(
+  'morph-context-menu-hero',
 );
 
 /// The response and damping ratio of the spring UIKit resizes its open

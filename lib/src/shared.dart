@@ -107,8 +107,10 @@ class MorphSharedElementState extends State<MorphSharedElement> {
         !renderObject.hasSize) {
       return null;
     }
-    return renderObject.localToGlobal(.zero, ancestor: anchor) &
-        renderObject.size;
+    return MatrixUtils.transformRect(
+      renderObject.getTransformTo(anchor),
+      Offset.zero & renderObject.size,
+    );
   }
 
   @override
@@ -127,7 +129,7 @@ class MorphSharedElementState extends State<MorphSharedElement> {
     // Inside the shuttle: the original hides while the flying layer
     // owns the element, and hands back at the ends (opacity keeps the
     // layout slot). The hide predicate is canFly - the SAME condition
-    // under which the flying layer can render - not hasPair: the pair
+    // under which the flying layer can render - not the pair registration: it
     // forms during the shuttle's first build, but the flying layer
     // cannot measure until that frame's layout has run, so a marker
     // hiding on registration alone leaves the element visible NOWHERE
@@ -154,9 +156,6 @@ class SharedElementRegistry {
   final Map<Object, MorphSharedElementState> _target =
       <Object, MorphSharedElementState>{};
 
-  /// Whether both sides of [id] are registered.
-  bool hasPair(Object id) => _source.containsKey(id) && _target.containsKey(id);
-
   final Set<Object> _measured = <Object>{};
 
   /// Whether [id] rendered as a flying layer in the last shuttle
@@ -166,7 +165,7 @@ class SharedElementRegistry {
   /// deliberately NOT computed from the marker elements - the markers
   /// must never touch render objects themselves, because during the
   /// route-mode reparent their subtree is briefly inactive. Hiding on
-  /// [hasPair] alone left the element visible NOWHERE on the
+  /// registration alone left the element visible NOWHERE on the
   /// shuttle's first frame (the pair registers during that build, but
   /// nothing is measurable until its layout has run) - a blink on
   /// every launch.
@@ -211,9 +210,39 @@ class SharedSideScope extends InheritedWidget {
       context.dependOnInheritedWidgetOfExactType<SharedSideScope>();
 
   /// Adds a marker to this side's registry.
+  ///
+  /// A second live marker with the same id on one side is reported as
+  /// a [FlutterError] (without throwing) and stays in place: the marker
+  /// registered first is the one that flies.
   void register(Object id, MorphSharedElementState state) {
-    (isTarget ? flight.sharedElements._target : flight.sharedElements._source)
-        .putIfAbsent(id, () => state);
+    final Map<Object, MorphSharedElementState> map = isTarget
+        ? flight.sharedElements._target
+        : flight.sharedElements._source;
+    final MorphSharedElementState? holder = map[id];
+    if (holder == null || !holder.mounted) {
+      map[id] = state;
+      return;
+    }
+    if (holder == state) {
+      return;
+    }
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: FlutterError.fromParts(<DiagnosticsNode>[
+          ErrorSummary(
+            'Duplicate MorphSharedElement(id: $id) on the '
+            '${isTarget ? 'target' : 'source'} side of one flight.',
+          ),
+          ErrorDescription(
+            'Only the marker registered first flies; this one renders in '
+            'place.',
+          ),
+          ErrorHint('Give every shared element on one side its own id.'),
+        ]),
+        library: 'morph',
+        context: ErrorDescription('while registering a shared element'),
+      ),
+    );
   }
 
   /// Removes a marker if [state] still owns the slot.
@@ -291,7 +320,7 @@ List<Widget> buildSharedFlightLayers({
         target.widget.fade == MorphSharedFade.none;
     layers.add(
       Positioned.fromRect(
-        key: ValueKey<String>('morph-shared-fly-$id'),
+        key: ValueKey<Object>(id),
         rect: flying,
         child: IgnorePointer(
           child: Stack(

@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:material_ui/material_ui.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:morph/src/scope.dart';
@@ -546,16 +546,28 @@ EdgeInsets morphContentViewInsets(
 /// A flight that renders in a chosen overlay (the `overlay:` of
 /// showMorph*) works in THAT overlay's space: pass the same [overlay]
 /// here, or the anchor drifts by the nested navigator's own offset.
-/// The overlay must be an ancestor of [context].
+/// The overlay must live in the same render tree as [context].
+///
+/// The rect is the box's whole painted bounds: a paint transform above
+/// it (a press scale) is part of the rect, not just its translation.
+///
+/// Throws a [FlutterError] (in every build mode) when the context has
+/// no laid-out box; [maybeMorphAnchorRect] degrades to null instead.
 Rect morphAnchorRect(BuildContext context, {OverlayState? overlay}) {
   final Rect? rect = maybeMorphAnchorRect(context, overlay: overlay);
-  assert(
-    rect != null,
-    'morphAnchorRect: the context has no laid-out RenderBox (called '
-    'before the first layout, or from a removed widget). Capture the '
-    'anchor at tap time, or use maybeMorphAnchorRect to degrade.',
-  );
-  return rect!;
+  if (rect == null) {
+    throw FlutterError.fromParts(<DiagnosticsNode>[
+      ErrorSummary('morphAnchorRect: the context has no laid-out RenderBox.'),
+      ErrorDescription(
+        'It was called before the first layout, or from a removed widget.',
+      ),
+      ErrorHint(
+        'Capture the anchor at tap time, or use maybeMorphAnchorRect to '
+        'degrade.',
+      ),
+    ]);
+  }
+  return rect;
 }
 
 /// Like [morphAnchorRect], but null when the context has no laid-out
@@ -573,9 +585,8 @@ Rect? maybeMorphAnchorRect(BuildContext context, {OverlayState? overlay}) {
   final RenderObject? overlayBox = host != null && host.mounted
       ? host.context.findRenderObject()
       : null;
-  return render.localToGlobal(
-        Offset.zero,
-        ancestor: overlayBox is RenderBox ? overlayBox : null,
-      ) &
-      render.size;
+  return MatrixUtils.transformRect(
+    render.getTransformTo(overlayBox is RenderBox ? overlayBox : null),
+    Offset.zero & render.size,
+  );
 }

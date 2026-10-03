@@ -89,9 +89,7 @@ void main() {
     // between the endpoints, larger than the source and smaller than
     // the target.
     await tester.pump(const Duration(milliseconds: 300));
-    final Finder flying = find.byKey(
-      const ValueKey<String>('morph-shared-fly-cover'),
-    );
+    final Finder flying = find.byKey(const ValueKey<Object>('cover'));
     expect(flying, findsOneWidget);
     final Rect mid = tester.getRect(flying);
     expect(mid.width, greaterThan(sourceCover.width));
@@ -181,9 +179,7 @@ void main() {
     await tester.tap(find.text('badge-source'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
-    final Finder flying = find.byKey(
-      const ValueKey<String>('morph-shared-fly-badge'),
-    );
+    final Finder flying = find.byKey(const ValueKey<Object>('badge'));
     expect(flying, findsOneWidget);
     // Solo mode: only the TARGET copy rides the flying frame, at full
     // opacity for the whole flight - no fade-through dip.
@@ -246,10 +242,7 @@ void main() {
     }
     // And the handoff is real: by now the flying layer owns the
     // element.
-    expect(
-      find.byKey(const ValueKey<String>('morph-shared-fly-cover')),
-      findsOneWidget,
-    );
+    expect(find.byKey(const ValueKey<Object>('cover')), findsOneWidget);
 
     for (int i = 0; i < 600; i++) {
       await tester.pump(const Duration(milliseconds: 8));
@@ -302,10 +295,7 @@ void main() {
         break;
       }
     }
-    expect(
-      find.byKey(const ValueKey<String>('morph-shared-fly-orphan')),
-      findsNothing,
-    );
+    expect(find.byKey(const ValueKey<Object>('orphan')), findsNothing);
     expect(find.text('alone'), findsOneWidget);
   });
 }

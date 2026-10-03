@@ -1,13 +1,16 @@
 import 'dart:ui' as ui;
 
-import 'package:material_ui/material_ui.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
 import 'package:morph/src/flight.dart';
 
 /// The registry of tags and flights. Installed once near the top of the
-/// tree (not necessarily above the Navigator, but inside MaterialApp).
+/// tree. Overlay flights only need the scope above the launching
+/// context and the tags; morph routes ([showMorphRoute]) launch from
+/// the navigator's own context, so an app that uses them places the
+/// scope ABOVE the Navigator (MaterialApp.builder is the usual home).
 /// A flight's shuttle renders in the NEAREST enclosing [Overlay], so a
 /// nested navigator keeps its flights inside itself; in a
 /// single-navigator app that is the root overlay anyway. Also serves as
@@ -19,22 +22,34 @@ class MorphScope extends StatefulWidget {
   /// The subtree served by this scope.
   final Widget child;
 
-  /// The nearest scope above [context]; asserts when absent.
+  /// The nearest scope above [context]; throws a [FlutterError] when
+  /// absent (in every build mode).
   static MorphScopeState of(BuildContext context) {
     final MorphScopeState? state = maybeOf(context);
-    assert(
-      state != null,
-      'No MorphScope found above this context. Wrap the app once, above '
-      'the Navigator: MaterialApp(builder: (context, child) => '
-      'MorphScope(child: child!)).',
-    );
-    return state!;
+    if (state == null) {
+      throw FlutterError.fromParts(<DiagnosticsNode>[
+        ErrorSummary('No MorphScope found above this context.'),
+        ErrorHint(
+          'Wrap the app once, above the Navigator: MaterialApp(builder: '
+          '(context, child) => MorphScope(child: child!)).',
+        ),
+        context.describeElement('The context that looked for the scope'),
+      ]);
+    }
+    return state;
   }
 
   /// null outside a scope - for consumers that can live without the
-  /// morph engine (e.g. MorphSkin as pure fusion).
+  /// morph engine (e.g. MorphSkin as pure fusion). Takes no dependency:
+  /// safe from callbacks and initState.
   static MorphScopeState? maybeOf(BuildContext context) {
     return context.getInheritedWidgetOfExactType<_MorphScopeMarker>()?.state;
+  }
+
+  static MorphScopeState? _dependOn(BuildContext context) {
+    return context
+        .dependOnInheritedWidgetOfExactType<_MorphScopeMarker>()
+        ?.state;
   }
 
   @override
@@ -54,18 +69,35 @@ class MorphScopeState extends State<MorphScope> with TickerProviderStateMixin {
     null,
   );
 
-  /// The registered tag for [id]; asserts when the tag is not mounted.
+  /// The registered tag for [id]; throws a [FlutterError] (in every
+  /// build mode) when no such tag is mounted in this scope. Callers for
+  /// whom the source is optional use [tryTagOf] and degrade.
   @internal
   MorphTagState tagOf(Object id) {
+    final MorphTagState? tag = tryTagOf(id);
+    if (tag == null) {
+      throw FlutterError.fromParts(<DiagnosticsNode>[
+        ErrorSummary('No MorphTag(id: $id) is mounted in this MorphScope.'),
+        ErrorHint(
+          'Check that the id matches the tag exactly (type included: '
+          '"2" != 2), that the tag is built before the morph launches, '
+          'and that the tag sits under the SAME MorphScope as the '
+          'launching context.',
+        ),
+      ]);
+    }
+    return tag;
+  }
+
+  /// The registered tag for [id], or null when none is mounted in this
+  /// scope or the registered one has left the active tree.
+  @internal
+  MorphTagState? tryTagOf(Object id) {
     final MorphTagState? tag = _tags[id];
-    assert(
-      tag != null,
-      'No MorphTag(id: $id) is mounted in this MorphScope. Check that '
-      'the id matches the tag exactly (type included: "2" != 2), that '
-      'the tag is built before the morph launches, and that the tag '
-      'sits under the SAME MorphScope as the launching context.',
-    );
-    return tag!;
+    if (tag == null || !tag.isTreeActive) {
+      return null;
+    }
+    return tag;
   }
 
   /// The live flight of the tag with [id], or null.
@@ -104,20 +136,65 @@ class MorphScopeState extends State<MorphScope> with TickerProviderStateMixin {
   }
 
   /// Registers a mounted tag; ids must be unique within the scope.
+  ///
+  /// A second live tag with the same id is reported as a [FlutterError]
+  /// (in every build mode, without throwing) and waits: the first tag
+  /// keeps the id, so flights never silently switch to whichever tag
+  /// mounted last, and the waiting tag takes over once the first one
+  /// unregisters. A registration held by a tag that has left the active
+  /// tree (a screen being torn down in the same frame) is handed over
+  /// at once.
   @internal
   void registerTag(Object id, MorphTagState tag) {
-    assert(
-      _tags[id] == null || _tags[id] == tag,
-      'Duplicate MorphTag(id: $id): ids must be unique within a scope.',
+    final MorphTagState? holder = _tags[id];
+    if (holder == null || holder == tag || !holder.isTreeActive) {
+      _tags[id] = tag;
+      return;
+    }
+    final List<MorphTagState> waiting = _waiting.putIfAbsent(
+      id,
+      () => <MorphTagState>[],
     );
-    _tags[id] = tag;
+    if (!waiting.contains(tag)) {
+      waiting.add(tag);
+    }
+    FlutterError.reportError(
+      FlutterErrorDetails(
+        exception: FlutterError.fromParts(<DiagnosticsNode>[
+          ErrorSummary('Duplicate MorphTag(id: $id) in one MorphScope.'),
+          ErrorDescription(
+            'Tag ids must be unique within a scope: a flight launched '
+            'from this id could not know which surface to take off from. '
+            'The tag registered first keeps the id.',
+          ),
+          ErrorHint(
+            'Give each tag its own id (for list rows, include the row '
+            'key), or put the second tag under its own MorphScope.',
+          ),
+        ]),
+        library: 'morph',
+        context: ErrorDescription('while registering a MorphTag'),
+      ),
+    );
   }
 
-  /// Removes a tag registration if [tag] still owns it.
+  final Map<Object, List<MorphTagState>> _waiting =
+      <Object, List<MorphTagState>>{};
+
+  /// Removes a tag registration if [tag] still owns it; a tag waiting
+  /// on a duplicate id takes the id over.
   @internal
   void unregisterTag(Object id, MorphTagState tag) {
+    final List<MorphTagState>? waiting = _waiting[id];
+    waiting?.remove(tag);
     if (_tags[id] == tag) {
       _tags.remove(id);
+      if (waiting != null && waiting.isNotEmpty) {
+        _tags[id] = waiting.removeAt(0);
+      }
+    }
+    if (waiting != null && waiting.isEmpty) {
+      _waiting.remove(id);
     }
   }
 
@@ -343,13 +420,22 @@ class MorphTag extends StatefulWidget {
   /// The declared surface model of the nearest enclosing [MorphTag] -
   /// render the visible surface from it instead of repeating the
   /// values.
+  ///
+  /// Throws a [FlutterError] (in every build mode) outside a tag
+  /// subtree; [maybeSpecOf] degrades to null instead.
   static MorphSurfaceSpec specOf(BuildContext context) {
     final MorphSurfaceSpec? spec = maybeSpecOf(context);
-    assert(
-      spec != null,
-      'MorphTag.specOf called outside of a MorphTag subtree.',
-    );
-    return spec!;
+    if (spec == null) {
+      throw FlutterError.fromParts(<DiagnosticsNode>[
+        ErrorSummary('MorphTag.specOf called outside of a MorphTag subtree.'),
+        ErrorHint(
+          'Call it from a descendant of a MorphTag (or of flight content, '
+          'which republishes the target surface), or use maybeSpecOf.',
+        ),
+        context.describeElement('The context that called specOf'),
+      ]);
+    }
+    return spec;
   }
 
   /// Like [specOf], but null outside a tag subtree.
@@ -364,14 +450,22 @@ class MorphTag extends StatefulWidget {
   /// id - the morph flies from the surface the finger is already on.
   /// Content that launches a morph from elsewhere (a morphable skin
   /// piece, a list controller) still names its source explicitly.
+  ///
+  /// Throws a [FlutterError] (in every build mode) outside a tag
+  /// subtree; [maybeIdOf] degrades to null instead.
   static Object idOf(BuildContext context) {
     final Object? id = maybeIdOf(context);
-    assert(
-      id != null,
-      'No enclosing MorphTag: pass from: explicitly, or call from within '
-      'the source tag\'s subtree.',
-    );
-    return id!;
+    if (id == null) {
+      throw FlutterError.fromParts(<DiagnosticsNode>[
+        ErrorSummary('No enclosing MorphTag.'),
+        ErrorHint(
+          'Pass from: explicitly, or call from within the source tag\'s '
+          'subtree.',
+        ),
+        context.describeElement('The context that looked for the tag'),
+      ]);
+    }
+    return id;
   }
 
   /// Like [idOf], but null outside a tag subtree.
@@ -393,7 +487,7 @@ class MorphTag extends StatefulWidget {
 class MorphTagState extends State<MorphTag> {
   MorphScopeState? _scope;
   bool _hidden = false;
-  final GlobalKey _boundaryKey = GlobalKey();
+  GlobalKey? _boundaryKey;
 
   /// mounted is not enough: in the dismantling frame the element is
   /// already deactivated (findRenderObject throws) but the State is not
@@ -448,14 +542,18 @@ class MorphTagState extends State<MorphTag> {
         elevation: widget.elevation,
       );
 
+  /// Registers with the nearest scope, and re-registers when the tag is
+  /// reparented under another one. Outside any scope the tag stays
+  /// unregistered (a morphable skin piece degrades to pure fusion); a
+  /// launch from it then reports the missing scope.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final MorphScopeState scope = MorphScope.of(context);
+    final MorphScopeState? scope = MorphScope._dependOn(context);
     if (_scope != scope) {
       _scope?.unregisterTag(widget.id, this);
       _scope = scope;
-      scope.registerTag(widget.id, this);
+      scope?.registerTag(widget.id, this);
     }
   }
 
@@ -474,10 +572,6 @@ class MorphTagState extends State<MorphTag> {
     _scope?.unregisterTag(widget.id, this);
     super.dispose();
   }
-
-  /// The tag's global rect in the overlay RenderBox coordinates.
-  @internal
-  Rect captureRect(RenderBox overlayBox) => tryCaptureRect(overlayBox)!;
 
   /// null if the tag has not been laid out yet or is already
   /// deactivated (safe to call from the build phase: it reads the
@@ -530,7 +624,7 @@ class MorphTagState extends State<MorphTag> {
   /// replica.
   @internal
   Future<ui.Image?> captureSnapshot(double pixelRatio) async {
-    final RenderObject? boundary = _boundaryKey.currentContext
+    final RenderObject? boundary = _boundaryKey?.currentContext
         ?.findRenderObject();
     if (boundary is! RenderRepaintBoundary || !boundary.hasSize) {
       return null;
@@ -551,10 +645,14 @@ class MorphTagState extends State<MorphTag> {
       'twice. Remove the key or move it deeper, outside the replicated '
       'part.',
     );
-    final Widget child = RepaintBoundary(
-      key: _boundaryKey,
-      child: widget.child,
-    );
+    // The boundary exists only for the snapshot ghost: a plain tag
+    // adds no layer and no GlobalKey to the tree.
+    final Widget child = widget.snapshotGhost
+        ? RepaintBoundary(
+            key: _boundaryKey ??= GlobalKey(),
+            child: widget.child,
+          )
+        : widget.child;
     return IgnorePointer(
       ignoring: _hidden,
       child: Opacity(
