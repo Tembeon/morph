@@ -128,6 +128,15 @@ class _Audit {
       whileHeld: () => shot('segmented-held-selected'),
     );
     await settle();
+    await tap(textIn(three, 'B'));
+    await settle();
+    await finger(
+      textIn(three, 'B'),
+      const [],
+      holdBefore: const Duration(milliseconds: 500),
+      whileHeld: () => shot('segmented-held-middle'),
+    );
+    await settle();
     await measure('segmented', () async {
       final a = textIn(three, 'A');
       final c = textIn(three, 'C');

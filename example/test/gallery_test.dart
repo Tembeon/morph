@@ -224,8 +224,9 @@ void main() {
       ),
     );
     expect(find.byType(LiquidGlassLayer), findsOneWidget);
-    expect(find.text('Label'), findsNWidgets(2));
+    expect(find.text('Label'), findsNWidgets(4));
     expect(_lensShrink(tester, 0), LiquidGlassRendererPainter.segmentedShrink);
+    expect(_lensShrinkRim(tester, 0), LiquidGlassRendererPainter.lensShrinkRim);
     final base = tester.getRect(find.text('Label').first);
     final seen = _seenThroughLens(tester, 0, null, 'Label');
     expect(seen.center.dx, moreOrLessEquals(base.center.dx, epsilon: 0.01));
@@ -481,23 +482,33 @@ void main() {
   });
 }
 
-/// The backdrop shrink the glass of floating surface [lens] renders with.
-double _lensShrink(WidgetTester tester, int lens) => tester
+LiquidGlassSettings _lensSettings(WidgetTester tester, int lens) => tester
     .widget<LiquidGlassLayer>(
       find.descendant(
         of: find.byKey(ValueKey<(String, int)>(('glass', lens))),
         matching: find.byType(LiquidGlassLayer),
       ),
     )
-    .settings
-    .backdropShrink;
+    .settings;
+
+/// The backdrop shrink the glass of floating surface [lens] renders with.
+double _lensShrink(WidgetTester tester, int lens) =>
+    _lensSettings(tester, lens).backdropShrink;
+
+/// The rim weight of that shrink.
+double _lensShrinkRim(WidgetTester tester, int lens) =>
+    _lensSettings(tester, lens).backdropShrinkRim;
 
 /// Where [text] in content slot [slot], or in the one slot when null,
-/// shows through the glass of
-/// floating surface [lens]: its copy under the glass, minified about the
-/// glass's center the way the renderer reads the backdrop - a point on
+/// shows through the glass of floating surface [lens]: its copy under the
+/// glass, minified the way the renderer reads the backdrop - a point on
 /// the face shows the backdrop `1 + (1 / (1 - shrink) - 1) * visibility`
-/// times farther from that center.
+/// times farther from the nearest point of the glass's center line, which
+/// runs along its longer side over `rim` times the long side less the
+/// short side.
+///
+/// The copy is cut into strips at the line's ends; the text is read in
+/// the strip that holds its center.
 Rect _seenThroughLens(WidgetTester tester, int lens, int? slot, String text) {
   final glass = find.descendant(
     of: find.byKey(ValueKey<(String, int)>(('glass', lens))),
@@ -506,22 +517,48 @@ Rect _seenThroughLens(WidgetTester tester, int lens, int? slot, String text) {
   final visibility =
       tester.widget<LiquidGlass>(glass).appearance?.visibility ?? 1;
   final scale = 1 + (1 / (1 - _lensShrink(tester, lens)) - 1) * visibility;
-  final center = tester.getRect(glass).center;
+  final bounds = tester.getRect(glass);
+  final center = bounds.center;
+  final rim = _lensShrinkRim(tester, lens);
+  final half = rim * (bounds.longestSide - bounds.shortestSide) / 2;
+  final axis = bounds.width >= bounds.height
+      ? Offset(half, 0)
+      : Offset(0, half);
   final copy = find.byKey(ValueKey<(String, int)>(('copy', lens)));
-  final rect = tester.getRect(
-    find.descendant(
-      of: slot == null
-          ? copy
-          : find.descendant(
-              of: copy,
-              matching: find.byKey(ValueKey<int>(slot)),
-            ),
-      matching: find.text(text),
-    ),
+  Finder textIn(Finder scope) => find.descendant(
+    of: slot == null
+        ? scope
+        : find.descendant(of: scope, matching: find.byKey(ValueKey<int>(slot))),
+    matching: find.text(text),
   );
+  final strips = [
+    for (final strip in ['start', 'band', 'end'])
+      find.descendant(of: copy, matching: find.byKey(ValueKey<String>(strip))),
+  ];
+  Rect? rect;
+  var along = 0.0;
+  if (half == 0) {
+    rect = tester.getRect(textIn(copy));
+  } else {
+    final length = axis.distanceSquared;
+    for (final (i, strip) in strips.indexed) {
+      final candidate = tester.getRect(textIn(strip));
+      final t =
+          ((candidate.center - center).dx * axis.dx +
+              (candidate.center - center).dy * axis.dy) /
+          length;
+      if (i == 0 && t < -1 || i == 1 && t.abs() <= 1 || i == 2 && t > 1) {
+        rect = candidate;
+        along = t;
+      }
+    }
+  }
+  final seen = rect!;
+  final anchor = center + axis * along.clamp(-1.0, 1.0);
+  final inBand = half > 0 && along.abs() <= 1;
   return Rect.fromCenter(
-    center: center + (rect.center - center) / scale,
-    width: rect.width / scale,
-    height: rect.height / scale,
+    center: anchor + (seen.center - anchor) / scale,
+    width: inBand && axis.dy == 0 ? seen.width : seen.width / scale,
+    height: inBand && axis.dx == 0 ? seen.height : seen.height / scale,
   );
 }

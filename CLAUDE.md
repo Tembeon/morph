@@ -743,19 +743,34 @@ Public pieces:
   0.890 (vs the SWOLLEN bar) / 0.8125 / 0.755 / 1.000, and the gallery on
   the device shows 0.891 / 0.815 / 0.762. Our bevel (quarter circle,
   bevel min(20, halfMinor/2), amount 18) pulls the backdrop INWARD near
-  the rim while UIKit's minification is outward and fades toward the
-  middle (rim depth 27 px: 9 px, 37 px: 7 px, 47 px: 0 - why the slider's
-  thin track is untouched and the segmented track's END sits at 0.96
-  horizontally); a uniform shrink matches the edges but over-minifies
-  the track's end inside an end segment (0.80). The fitted shrinks come
-  from that bevel formula (it predicted the old tab bar 0.14 at 0.926,
-  the device showed 0.932). The copy is pre-grown about the lens center
-  by `backdropScale` = 1 + (1 / (1 - shrink) - 1) x visibility (the
-  renderer fades the shrink with the glass's visibility; the stillness
-  tests in gallery_test measure the label AS SEEN THROUGH that shrink,
-  reading shrink and visibility from the LiquidGlassLayer / LiquidGlass
-  they render with), so through the glass each item sits on its slot at
-  its control's magnification. The dark tab bar's resting
+  the rim while UIKit's minification is outward. RIM-WEIGHTED SHRINK
+  (2026-10-03): UIKit minifies by DEPTH BELOW THE RIM, not by distance
+  from the center - a capsule shrinks across its straight part and
+  radially about the centers of its round ends (the segmented track's
+  end moves 6.5 px at depth 35 px where the top edge moves 8.5 at 26.5:
+  linear in depth, zero on the center line; the switch knob agrees,
+  7.5 vs 7.5 px). The vendored renderer's LOCAL PATCH
+  `backdropShrinkRim` (0..1, default 0 = upstream bit for bit; its own
+  commit, see VENDORED) shrinks about the nearest point of the long
+  center line, rim x (long - short side) long; `liftedOptics` returns
+  `rim`: segmented and knob 1 (`lensShrinkRim`), tab bar 0.75
+  (`tabBarShrinkRim`: the swollen bar's end inside an end-item lens
+  moves 11 px on the reference, 8 at 1, 20 at 0). Across the lens the
+  rim weight changes nothing, so the edge fits above stand. Device
+  (audit): segmented end 0.960 vs 0.962 (was 0.800), knob 0.869 vs
+  0.870 (was 0.766), tab bar 10 vs 11 px (was 19); every other shot of
+  the audit pixel-identical or at the run-to-run noise. The copy is
+  pre-grown against the same warp by `backdropScale` = 1 + (1 / (1 -
+  shrink) - 1) x visibility in THREE STRIPS cut at the line's ends
+  (`_Magnified`: radial about each end beyond it, across the line beside
+  it - each strip exact, so a label straddling a cap is not
+  approximated), keys 'start' / 'band' / 'end'; the renderer fades the
+  shrink with the glass's visibility. The stillness tests in
+  gallery_test measure the label AS SEEN THROUGH that warp (shrink, rim
+  and visibility read from the LiquidGlassLayer / LiquidGlass they
+  render with, the text read in the strip holding its center), so
+  through the glass each item sits on its slot at its control's
+  magnification. The dark tab bar's resting
   platter is DARKER than the bar (reference 10 vs 35: 0xB5000000, was a
   white 14 percent). Audit tool: example/integration_test/
   glass_audit_test.dart (profile, dark; shots of the reference states and

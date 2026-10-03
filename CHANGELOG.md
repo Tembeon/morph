@@ -656,6 +656,22 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   shrink cannot follow. The copy's pre-growth follows the glass's
   visibility as the renderer does, so a label stays on its slot while
   the lens is still turning into glass.
+- example gallery glass: a lifted lens minifies by depth below its rim,
+  as UIKit's does, instead of by distance from its center. The vendored
+  renderer gains `LiquidGlassSettings.backdropShrinkRim` (0 to 1,
+  default 0 = unchanged): the backdrop shrinks about the nearest point of
+  the glass's long center line, so a capsule minifies across its
+  straight part and radially about the centers of its round ends. The
+  segmented lens and the switch knob use the full line, the tab bar lens
+  three quarters of it. On the iPhone 16 Pro the track's end inside a
+  held end segment now sits at 0.960 of its distance from the lens
+  center (reference 0.962; the center shrink showed 0.800 and too much
+  page beyond the track), the track's end inside the switch knob at
+  0.869 (reference 0.870, was 0.766), and the swollen tab bar's end
+  inside the lens 10 px in (reference 11, was 19); the edges across the
+  lens are unchanged. The content copy under the lens is grown against
+  the same profile in three strips, each exact, so labels still sit on
+  their slots through the glass.
 - Navigation (owner's iPhone pass on the gallery's Navigation page):
   - `MorphNavigationStack` owns the pops of its own screens: its
     navigator sits under a `NavigatorPopHandler`, so while it can pop,

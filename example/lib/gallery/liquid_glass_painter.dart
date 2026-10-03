@@ -126,9 +126,9 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   /// How much smaller a fully lifted segmented lens shows the track.
   ///
   /// The reference (`segmented-held-selected`) shows the track's edges
-  /// 0.8125 of its height apart inside the lens. UIKit's minification
-  /// fades toward the lens's middle: the track's end shows at 0.96 of its
-  /// distance from the lens center, which a uniform shrink cannot follow.
+  /// 0.8125 of its height apart inside the lens, and the track's end at
+  /// 0.964 of its distance from the lens center: the shrink is about the
+  /// lens's center line ([lensShrinkRim]), not its center.
   static const double segmentedShrink = 0.20;
 
   /// How much smaller a fully lifted switch knob shows the track.
@@ -138,26 +138,65 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
   /// unchanged (`slider-thumb-held`), so a thumb does not shrink.
   static const double switchKnobShrink = 0.25;
 
-  /// The growth of the content and the backdrop shrink a fully lifted
-  /// floating surface of [kind] shows, over a bar when [overBar].
+  /// How far a lifted segmented lens or switch knob shrinks the backdrop
+  /// about its center line instead of its center
+  /// (`LiquidGlassSettings.backdropShrinkRim`).
+  ///
+  /// UIKit's lens minifies by depth below its rim: across the straight
+  /// part of the capsule and radially about the centers of its round
+  /// ends. The references fit the full center line: the track's end
+  /// inside a held end segment moves 7 px inward (0.962 of its distance
+  /// from the lens center; about the center it moved 36, 0.800), and
+  /// inside the switch knob 8 px (15 about the center).
+  static const double lensShrinkRim = 1;
+
+  /// The rim weight of a lifted tab bar lens's shrink.
+  ///
+  /// The swollen bar's end inside a lens held on the end item moves 11 px
+  /// inward on the reference (`tabbar3-held-selected`); the full center
+  /// line moves it 8 and the center 20, so three quarters of the line.
+  static const double tabBarShrinkRim = 0.75;
+
+  /// The growth of the content, the backdrop shrink and the shrink's rim
+  /// weight a fully lifted floating surface of [kind] shows, over a bar
+  /// when [overBar].
   ///
   /// A lens over a bar is a tab bar's, a lens over a plain track a
   /// segmented control's, a knob a switch's and a thumb a slider's.
-  static ({double magnification, double shrink}) liftedOptics(
+  static ({double magnification, double shrink, double rim}) liftedOptics(
     MorphGlassKind kind, {
     required bool overBar,
   }) => switch (kind) {
     MorphGlassKind.lens =>
       overBar
-          ? (magnification: tabBarMagnification, shrink: tabBarShrink)
-          : (magnification: segmentedMagnification, shrink: segmentedShrink),
-    MorphGlassKind.knob => (magnification: 0.0, shrink: switchKnobShrink),
+          ? (
+              magnification: tabBarMagnification,
+              shrink: tabBarShrink,
+              rim: tabBarShrinkRim,
+            )
+          : (
+              magnification: segmentedMagnification,
+              shrink: segmentedShrink,
+              rim: lensShrinkRim,
+            ),
+    MorphGlassKind.knob => (
+      magnification: 0.0,
+      shrink: switchKnobShrink,
+      rim: lensShrinkRim,
+    ),
     MorphGlassKind.thumb ||
     MorphGlassKind.track ||
     MorphGlassKind.bar ||
     MorphGlassKind.button ||
-    MorphGlassKind.menu => (magnification: 0.0, shrink: 0.0),
+    MorphGlassKind.menu => (magnification: 0.0, shrink: 0.0, rim: 0.0),
   };
+
+  /// Half the center line a lens with [bounds] shrinks the backdrop about
+  /// at rim weight [rim], from the lens center along its longer side.
+  static Offset shrinkAxis(Rect bounds, double rim) {
+    final half = rim * (bounds.longestSide - bounds.shortestSide) / 2;
+    return bounds.width >= bounds.height ? Offset(half, 0) : Offset(0, half);
+  }
 
   /// How far from its center [surface]'s glass reads the backdrop for a
   /// point on its face when its layer shrinks the backdrop by [shrink].
@@ -309,6 +348,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
     List<MorphGlassSurface> surfaces, {
     bool shared = true,
     double shrink = 0,
+    double rim = 0,
     double spacing = 0,
   }) {
     final menu = surfaces.any(
@@ -336,7 +376,9 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
       child: LiquidGlassLayer(
         settings: shrink == 0
             ? settingsFor(surfaces.first)
-            : settingsFor(surfaces.first).copyWith(backdropShrink: shrink),
+            : settingsFor(
+                surfaces.first,
+              ).copyWith(backdropShrink: shrink, backdropShrinkRim: rim),
         fake: fake,
         useBackdropGroup: shared,
         child: shapes,
@@ -457,6 +499,10 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
                           ).magnification *
                           floating[i].lift.clamp(0.0, 1.0),
                   grow: backdropScale(floating[i], shrinkOf(floating[i])),
+                  axis: shrinkAxis(
+                    floating[i].bounds,
+                    liftedOptics(floating[i].kind, overBar: overBar).rim,
+                  ),
                   child: content,
                 ),
               ),
@@ -466,6 +512,7 @@ class LiquidGlassRendererPainter extends MorphGlassPainter {
                 [floating[i]],
                 shared: false,
                 shrink: shrinkOf(floating[i]),
+                rim: liftedOptics(floating[i].kind, overBar: overBar).rim,
               ),
             ),
           ],
@@ -511,15 +558,19 @@ class _Platter extends StatelessWidget {
 /// UIKit; scaling about the lens center would carry the label along with
 /// the lens.
 ///
-/// The lens glass reads its backdrop [grow] times farther from its center
-/// than it shows it, so the copy is grown by [grow] about that center
-/// first and through the glass each item still shows on its slot.
+/// The lens glass reads its backdrop [grow] times farther from the
+/// nearest point of its center line (half of it is [axis], from the lens
+/// center) than it shows it, so the copy is grown by [grow] about that
+/// line first - across it beside the line, radially about each end beyond
+/// it, each part exact in its own strip - and through the glass each item
+/// still shows on its slot.
 class _Magnified extends StatelessWidget {
   const _Magnified({
     required this.surface,
     required this.slots,
     required this.magnification,
     required this.grow,
+    required this.axis,
     required this.child,
   });
 
@@ -527,7 +578,68 @@ class _Magnified extends StatelessWidget {
   final List<Rect> slots;
   final double magnification;
   final double grow;
+  final Offset axis;
   final Widget child;
+
+  static Matrix4 _across(Offset center, Offset axis, double scale) {
+    final transform = Matrix4.translationValues(center.dx, center.dy, 0);
+    transform.multiply(
+      Matrix4.diagonal3Values(
+        axis.dx == 0 ? scale : 1,
+        axis.dy == 0 ? scale : 1,
+        1,
+      ),
+    );
+    transform.multiply(Matrix4.translationValues(-center.dx, -center.dy, 0));
+    return transform;
+  }
+
+  Widget _grown(Widget items) {
+    final center = surface.bounds.center;
+    if (axis == Offset.zero) {
+      return Transform(transform: _about(center, grow), child: items);
+    }
+    final start = center - axis;
+    final end = center + axis;
+    final reach = surface.bounds.inflate(surface.bounds.longestSide * grow);
+    final alongX = axis.dy == 0;
+    return Stack(
+      fit: .expand,
+      clipBehavior: Clip.none,
+      children: [
+        ClipRect(
+          key: const ValueKey<String>('start'),
+          clipper: _Strip(
+            alongX
+                ? Rect.fromLTRB(reach.left, reach.top, start.dx, reach.bottom)
+                : Rect.fromLTRB(reach.left, reach.top, reach.right, start.dy),
+          ),
+          child: Transform(transform: _about(start, grow), child: items),
+        ),
+        ClipRect(
+          key: const ValueKey<String>('band'),
+          clipper: _Strip(
+            alongX
+                ? Rect.fromLTRB(start.dx, reach.top, end.dx, reach.bottom)
+                : Rect.fromLTRB(reach.left, start.dy, reach.right, end.dy),
+          ),
+          child: Transform(
+            transform: _across(center, axis, grow),
+            child: items,
+          ),
+        ),
+        ClipRect(
+          key: const ValueKey<String>('end'),
+          clipper: _Strip(
+            alongX
+                ? Rect.fromLTRB(end.dx, reach.top, reach.right, reach.bottom)
+                : Rect.fromLTRB(reach.left, end.dy, reach.right, reach.bottom),
+          ),
+          child: Transform(transform: _about(end, grow), child: items),
+        ),
+      ],
+    );
+  }
 
   static Matrix4 _about(Offset center, double scale) {
     final transform = Matrix4.translationValues(center.dx, center.dy, 0);
@@ -557,10 +669,7 @@ class _Magnified extends StatelessWidget {
     if (grow != 1) {
       items = ClipPath(
         clipper: _LensClip([surface.shape], outside: false),
-        child: Transform(
-          transform: _about(surface.bounds.center, grow),
-          child: items,
-        ),
+        child: _grown(items),
       );
     }
     return IgnorePointer(child: ExcludeSemantics(child: items));
@@ -593,6 +702,18 @@ class _SlotLensClip extends CustomClipper<Path> {
   @override
   bool shouldReclip(_SlotLensClip oldClipper) =>
       oldClipper.lens != lens || oldClipper.slot != slot;
+}
+
+class _Strip extends CustomClipper<Rect> {
+  const _Strip(this.rect);
+
+  final Rect rect;
+
+  @override
+  Rect getClip(Size size) => rect;
+
+  @override
+  bool shouldReclip(_Strip oldClipper) => oldClipper.rect != rect;
 }
 
 /// The box a layer may paint into: its control's box grown by the reach
