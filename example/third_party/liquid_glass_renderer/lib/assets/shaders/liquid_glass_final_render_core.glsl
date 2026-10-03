@@ -50,6 +50,9 @@ uniform vec4 uBackdropBounds;
 uniform vec2 uGeometryUVScale;
 // Texel size of the material map's texture; the map fills its top-left.
 uniform vec2 uMaterialTextureSize;
+// Half the line backdropShrink is about, matte device px from the material
+// center. Zero shrinks about the center itself.
+uniform vec2 uBackdropShrinkAxis;
 
 float uDisplacementScale = uOpticalProps.x;
 float uDispersion = uOpticalProps.y;
@@ -680,12 +683,24 @@ void main() {
     vec2 invUSize = 1.0 / uSize;
     vec2 backdropScaleOffset = vec2(0.0);
     if (abs(uBackdropScale - 1.0) > 0.0001) {
-        // backdropShrink is one lens over the whole face, about the material
-        // center of the layer, uniform up to the silhouette. The bevel
-        // displacement adds on top of it. It never enlarges: magnifiers
-        // re-render their content instead (see the example's loupe).
+        // backdropShrink is one lens over the whole face, about the nearest
+        // point of a line through the material center of the layer (the
+        // center itself when the line is empty), uniform up to the
+        // silhouette. The bevel displacement adds on top of it. It never
+        // enlarges: magnifiers re-render their content instead (see the
+        // example's loupe).
+        vec2 shrinkAnchor = uMaterialCenter;
+        float axisLengthSquared = dot(uBackdropShrinkAxis, uBackdropShrinkAxis);
+        if (axisLengthSquared > 0.0) {
+            shrinkAnchor += uBackdropShrinkAxis * clamp(
+                dot(matteCoord - uMaterialCenter, uBackdropShrinkAxis) /
+                    axisLengthSquared,
+                -1.0,
+                1.0
+            );
+        }
         vec2 filterDeltaFromCenter = filterDeltaFromMatteDelta(
-            matteCoord - uMaterialCenter,
+            matteCoord - shrinkAnchor,
             uFilterToMatteBasis
         );
         float magnification = clamp(uBackdropScale, 0.25, 1.0);

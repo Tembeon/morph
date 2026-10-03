@@ -616,6 +616,20 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     shader
       ..setFloat(53, blurPassSigma > 0 ? 1 : 0)
       ..setFloat(54, softensInShader ? 1 : 0);
+    _writeBackdropShrinkAxis(shader);
+  }
+
+  /// Writes uBackdropShrinkAxis (float indices 63 and 64): half the line the
+  /// backdrop shrinks about, in device pixels from the material center.
+  void _writeBackdropShrinkAxis(FragmentShader shader) {
+    final size = _materialSizeInMatte;
+    final rim = settings.effectiveBackdropShrinkRim;
+    final half =
+        rim * (size.longestSide - size.shortestSide) / 2 * devicePixelRatio;
+    final alongX = size.width >= size.height;
+    shader
+      ..setFloat(63, alongX ? half : 0)
+      ..setFloat(64, alongX ? 0 : half);
   }
 
   /// Largest frost, in device pixels, folded into the final pass instead of
@@ -739,6 +753,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// shader
   Rect _geometryMatteBounds = Rect.zero;
   Offset _materialCenterInMatte = Offset.zero;
+  Size _materialSizeInMatte = Size.zero;
   // The matte and material map fill the top-left of textures that only grow.
   Size _geometryTextureSize = Size.zero;
   Size _materialTextureSize = const Size(1, 1);
@@ -812,6 +827,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _geometryTextureSize = result.textureSize;
       _materialTextureSize = result.materialTextureSize;
       _materialCenterInMatte = result.materialCenter;
+      _materialSizeInMatte = result.materialSize;
       _setShapeAppearances(result.appearances);
       _rememberEncodedGeometry(bounds);
       _bindGeometryShader(result.image);
@@ -925,6 +941,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             _geometryTextureSize = gpuResult.textureSize;
             _materialTextureSize = gpuResult.materialTextureSize;
             _materialCenterInMatte = gpuResult.materialCenter;
+            _materialSizeInMatte = gpuResult.materialSize;
             _setShapeAppearances(gpuResult.appearances);
             _rememberEncodedGeometry(geometryBounds);
           }
@@ -1013,6 +1030,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // Nearest: the matte packs 12-bit normal angle and displacement codes
       // across byte boundaries, which filtering between texels would mix.
       ..setImageSampler(1, geometryImage);
+    _writeBackdropShrinkAxis(activeRenderShader);
     if (_materialImage case final materialImage?) {
       if (_usesTintOnlyAppearance) {
         activeRenderShader.setImageSampler(
@@ -1633,6 +1651,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         image: result.image,
         materialImage: renderer.materialImage,
         materialCenter: materialCenter,
+        materialSize: bounds.size,
         textureSize: Size(
           result.textureWidth.toDouble(),
           result.textureHeight.toDouble(),
@@ -1664,6 +1683,7 @@ typedef _GpuGeometryFrame = ({
   ui.Image? materialImage,
   Rect matteBounds,
   Offset materialCenter,
+  Size materialSize,
   List<LiquidGlassAppearance> appearances,
 });
 

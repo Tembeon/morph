@@ -12,8 +12,9 @@ Copied: LICENSE, README.md, CHANGELOG.md, pubspec.yaml,
 liquid_glass_renderer.shaderbundle.json, hook/, lib/, third_party/.
 Left out: doc/, example/, test/, coverage/, analysis_options.yaml
 (it includes lintervention, a dev dependency of the upstream repo).
-The sources are unmodified. Only the morph example depends on it; the
-morph package itself stays shader-free.
+The sources are unmodified except for the local patches listed below.
+Only the morph example depends on it; the morph package itself stays
+shader-free.
 
 Update history:
 - cbbac8453c4e023a2bc3b2fd7a2f06e8652e1bf7 (2026-10-01): first vendoring.
@@ -29,3 +30,16 @@ Update history:
   LoupeTabBar are EXAMPLE code there, not part of the package, and were
   already present at cbbac845; the renderer itself never enlarges its
   backdrop (backdropShrink is clamped to 0..0.75).
+
+Local patches (each its own commit, revertable alone):
+- 2026-10-03 backdropShrinkRim: LiquidGlassSettings.backdropShrinkRim
+  (0 to 1, default 0 = the upstream behaviour, bit for bit: the shader
+  branch is skipped). The backdrop shrinks about the nearest point of a
+  line through the material center along the longer side of the layer's
+  glass bounds, rim x (long side - short side) long, instead of about
+  the center: at 1 a capsule minifies by depth below its rim, as UIKit's
+  lifted lens does. New uniform uBackdropShrinkAxis (vec2, float indices
+  63-64, written with the common uniforms and on geometry bind);
+  liquid_glass_settings.dart, rendering/liquid_glass_layer.dart,
+  assets/shaders/liquid_glass_final_render_core.glsl.
+  backdropSamplingReach still assumes the center (an over-estimate).

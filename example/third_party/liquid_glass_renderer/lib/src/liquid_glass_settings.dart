@@ -24,6 +24,7 @@ class LiquidGlassSettings with Equatable {
     this.refractionAmount = 60.0,
     this.refractionFitsShape = true,
     this.backdropShrink = 0.0,
+    this.backdropShrinkRim = 0.0,
     this.frost = 2.0,
     this.dispersion = 0.0,
     this.highlight = 1.0,
@@ -44,6 +45,10 @@ class LiquidGlassSettings with Equatable {
       refractionFitsShape:
           json['refractionFitsShape'] as bool? ?? defaults.refractionFitsShape,
       backdropShrink: number('backdropShrink', defaults.backdropShrink),
+      backdropShrinkRim: number(
+        'backdropShrinkRim',
+        defaults.backdropShrinkRim,
+      ),
       frost: number('frost', defaults.frost),
       dispersion: number('dispersion', defaults.dispersion),
       highlight: number('highlight', defaults.highlight),
@@ -229,6 +234,21 @@ class LiquidGlassSettings with Equatable {
   /// own layer when it should shrink about itself.
   final double backdropShrink;
 
+  /// How far [backdropShrink] follows the rim instead of the center, from
+  /// `0` to `1`.
+  ///
+  /// At `0` the backdrop shrinks about the center of the layer's glass, so
+  /// a point moves in proportion to its distance from that center. At `1`
+  /// it shrinks about the nearest point of the glass's long center line,
+  /// which spans the long side less the short side: a point moves in
+  /// proportion to its depth below the rim, so a capsule minifies across
+  /// its straight part and radially about the centers of its round ends,
+  /// and the middle of a long lens shows the backdrop in place along its
+  /// length, as a lifted UIKit lens does. In between, the line is that
+  /// fraction of its full length. The line runs along the longer side of
+  /// the layer's glass bounds; a circle or square has none.
+  final double backdropShrinkRim;
+
   /// Backdrop blur sigma in logical pixels.
   ///
   /// The value is absolute and does not change with the material's size.
@@ -291,6 +311,9 @@ class LiquidGlassSettings with Equatable {
   /// Effective backdrop shrink, clamped to `0` to `0.75`.
   double get effectiveBackdropShrink => backdropShrink.clamp(0.0, 0.75);
 
+  /// Effective rim weight of the backdrop shrink, clamped to `0` to `1`.
+  double get effectiveBackdropShrinkRim => backdropShrinkRim.clamp(0.0, 1.0);
+
   /// Effective slider position, clamped to `0` to `1`.
   double get effectiveTintAmount => tintAmount.clamp(0.0, 1.0);
 
@@ -320,6 +343,7 @@ class LiquidGlassSettings with Equatable {
     double? refractionAmount,
     bool? refractionFitsShape,
     double? backdropShrink,
+    double? backdropShrinkRim,
     double? frost,
     double? dispersion,
     double? highlight,
@@ -332,6 +356,7 @@ class LiquidGlassSettings with Equatable {
     refractionAmount: refractionAmount ?? this.refractionAmount,
     refractionFitsShape: refractionFitsShape ?? this.refractionFitsShape,
     backdropShrink: backdropShrink ?? this.backdropShrink,
+    backdropShrinkRim: backdropShrinkRim ?? this.backdropShrinkRim,
     frost: frost ?? this.frost,
     dispersion: dispersion ?? this.dispersion,
     highlight: highlight ?? this.highlight,
@@ -347,6 +372,7 @@ class LiquidGlassSettings with Equatable {
     'refractionAmount': refractionAmount,
     'refractionFitsShape': refractionFitsShape,
     'backdropShrink': backdropShrink,
+    'backdropShrinkRim': backdropShrinkRim,
     'frost': frost,
     'dispersion': dispersion,
     'highlight': highlight,
@@ -362,6 +388,7 @@ class LiquidGlassSettings with Equatable {
     refractionAmount,
     refractionFitsShape,
     backdropShrink,
+    backdropShrinkRim,
     frost,
     dispersion,
     highlight,
