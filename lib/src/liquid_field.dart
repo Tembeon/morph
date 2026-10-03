@@ -35,7 +35,11 @@ class MorphSkinStyle {
     required this.blend,
     this.cell = 6,
     this.smoothPasses = 2,
-  });
+  }) : assert(
+         cell >= liquidMinCell,
+         'cell is the outline grid step in px; the finest supported step '
+         'is $liquidMinCell px.',
+       );
 
   /// Preset name, for debugging and toString.
   final String name;
@@ -45,7 +49,7 @@ class MorphSkinStyle {
   /// of blend and touch at a gap of blend / 2.
   final double blend;
 
-  /// Outline grid step in px.
+  /// Outline grid step in px; the finest step is 2 px.
   final double cell;
 
   /// Chaikin smoothing passes over the traced contour.
@@ -702,6 +706,16 @@ Offset _zeroCrossing(
   return Offset(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t);
 }
 
+/// The finest outline grid step in px: a smaller `cell` traces at this
+/// step.
+@internal
+const double liquidMinCell = 2;
+
+/// The cap on grid cells per cluster whatever the eval budget: a larger
+/// grid is coarsened to fit, so a pathological cluster still traces.
+@internal
+const int liquidMaxClusterCells = 400000;
+
 /// The default cap on field evaluations (grid vertices x shapes) per
 /// cluster per trace. Typical scenes stay far below it; extreme ones (a
 /// screen-wide blob of dozens of fused pieces) coarsen their grid just
@@ -734,7 +748,7 @@ List<List<Offset>> liquidContours(
     evalBudget == null || evalBudget > 0,
     'evalBudget must be positive; null disables the budget.',
   );
-  final double step = math.max(2, cell);
+  final double step = math.max(liquidMinCell, cell);
   final List<List<Offset>> loops = <List<Offset>>[];
   for (final List<MorphMass> cluster in _clusterShapes(field.shapes, field.k)) {
     loops.addAll(
@@ -797,7 +811,7 @@ class LiquidTracer {
     int smoothPasses = 2,
     int? evalBudget = liquidDefaultEvalBudget,
   }) {
-    final double step = math.max(2, cell);
+    final double step = math.max(liquidMinCell, cell);
     final Path path = Path()..fillType = .evenOdd;
     final Map<int, List<_ClusterCacheEntry>> next =
         <int, List<_ClusterCacheEntry>>{};
@@ -949,18 +963,27 @@ _ClusterTrace _traceCluster(
     }
   }
   // A guard against the pathological combination of a huge cluster and
-  // a tiny cell: an empty contour beats a frozen frame. Loud in debug -
-  // a silently vanishing skin is a miserable thing to diagnose.
-  if (cols * rows > 400000) {
+  // a tiny cell (or no eval budget): the grid coarsens to the safety cap
+  // instead of freezing the frame, and the skin never vanishes.
+  if (cols * rows > liquidMaxClusterCells) {
+    final double factor = math.sqrt(cols * rows / liquidMaxClusterCells);
+    step *= factor;
+    cols = (b.width / step).ceil() + 1;
+    rows = (b.height / step).ceil() + 1;
+    while (cols * rows > liquidMaxClusterCells) {
+      step *= 1.01;
+      cols = (b.width / step).ceil() + 1;
+      rows = (b.height / step).ceil() + 1;
+    }
+    extraSmoothPasses = math.max(extraSmoothPasses, factor >= 4 ? 2 : 1);
     assert(() {
       debugPrint(
-        'morph/liquid: cluster grid ${cols}x$rows exceeds the safety cap; '
-        'its contour is skipped. Increase cell (grid step) or reduce the '
-        'cluster extent (${b.width.round()}x${b.height.round()}px).',
+        'morph/liquid: a ${b.width.round()}x${b.height.round()}px cluster '
+        'exceeds the grid safety cap; traced at a ${step.toStringAsFixed(1)} '
+        'px step. Increase cell or set an evalBudget.',
       );
       return true;
     }());
-    return .empty;
   }
 
   final _FieldSampler sampler = _FieldSampler(shapes, k);
@@ -1139,9 +1162,8 @@ List<Offset> _chaikin(List<Offset> points, int passes) {
     for (int i = 0; i < n; i++) {
       final Offset a = out[i];
       final Offset b = out[(i + 1) % n];
-      next
-        ..add(Offset(a.dx * 0.75 + b.dx * 0.25, a.dy * 0.75 + b.dy * 0.25))
-        ..add(Offset(a.dx * 0.25 + b.dx * 0.75, a.dy * 0.25 + b.dy * 0.75));
+      next.add(Offset(a.dx * 0.75 + b.dx * 0.25, a.dy * 0.75 + b.dy * 0.25));
+      next.add(Offset(a.dx * 0.25 + b.dx * 0.75, a.dy * 0.25 + b.dy * 0.75));
     }
     out = next;
   }

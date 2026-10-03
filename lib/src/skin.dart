@@ -288,8 +288,9 @@ class MorphSkin extends StatelessWidget {
          'blend (the smin k) is a distance in px and cannot be negative.',
        ),
        assert(
-         cell == null || cell > 0,
-         'cell is the sampling grid step in px and must be positive.',
+         cell == null || cell >= liquidMinCell,
+         'cell is the sampling grid step in px; the finest supported step '
+         'is $liquidMinCell px.',
        ),
        assert(
          smoothPasses == null || smoothPasses >= 0,
@@ -325,7 +326,8 @@ class MorphSkin extends StatelessWidget {
   final double? blend;
 
   /// Marching-squares grid step in pixels: smaller - crisper and more
-  /// expensive.
+  /// expensive. The finest step is 2 px; smaller values assert in debug
+  /// and trace at 2 px.
   final double? cell;
 
   /// Chaikin smoothing passes over the traced contour.
@@ -334,7 +336,8 @@ class MorphSkin extends StatelessWidget {
   /// Cap on field evaluations per cluster per trace (default
   /// [defaultEvalBudget]): extreme scenes coarsen their grid so the
   /// worst frame stays bounded - quality degrades before the frame
-  /// rate does. null disables the cap.
+  /// rate does. null disables the cap; a fixed safety cap on grid cells
+  /// still coarsens a pathological cluster instead of dropping it.
   final int? evalBudget;
 
   /// The default [evalBudget]: the cap on field evaluations (grid
@@ -1086,25 +1089,33 @@ class RenderMorphSkin extends RenderBox
   List<MorphMass> _flightBlobs(List<_ResolvedPiece> resolved) {
     final List<MorphMass> blobs = <MorphMass>[];
     lastFlightBlobRects = const <Rect>[];
-    Offset? origin;
     for (final _ResolvedPiece r in resolved) {
       final MorphFlight? flight = r.flight;
       if (flight == null || !flight.isAirborne) {
         continue;
       }
-      origin ??= localToGlobal(.zero);
       // The flight rects live in ITS overlay's coordinates, not global
       // ones: under a nested Overlay (an embedded device frame) the two
-      // spaces differ by the overlay's own offset.
+      // spaces differ by the overlay's own offset, and a skin below a
+      // paint transform (a scaled card) sees them scaled too - the whole
+      // transform maps them, not just its translation.
       final RenderBox? overlayBox = flight.overlayBox;
-      final Offset delta =
-          (overlayBox?.localToGlobal(Offset.zero) ?? Offset.zero) - origin;
+      final Matrix4 toLocal;
+      if (overlayBox != null && overlayBox.attached) {
+        toLocal = overlayBox.getTransformTo(this);
+      } else {
+        toLocal = getTransformTo(null);
+        toLocal.invert();
+      }
       final Rect source = flight.sourceRect == .zero
           ? r.rect
-          : flight.sourceRect.shift(delta);
+          : MatrixUtils.transformRect(toLocal, flight.sourceRect);
       final Rect target = flight.lastTargetRect == .zero
           ? source
-          : flight.lastTargetRect.shift(delta);
+          : MatrixUtils.transformRect(toLocal, flight.lastTargetRect);
+      final Offset drag =
+          MatrixUtils.transformPoint(toLocal, flight.appliedDragOffset) -
+          MatrixUtils.transformPoint(toLocal, Offset.zero);
       // The SAME geometry the shuttle renders (morphFlightGeometry),
       // shifted by the displacement channel - the mirror blob cannot
       // drift from the visible container by construction. An offset
@@ -1117,7 +1128,7 @@ class RenderMorphSkin extends RenderBox
             sourceShape: flight.tag.shape,
             targetShape: flight.target.shape,
           );
-      final Rect flying = g.rect.shift(flight.appliedDragOffset);
+      final Rect flying = g.rect.shift(drag);
       final double r0 = g.sourceRadius ?? r.piece.radius;
       final double radius = morphConcentricRadius(
         r0,
@@ -1144,15 +1155,23 @@ class RenderMorphSkin extends RenderBox
     return blobs;
   }
 
+  /// Writes this paint's input signature into the spare buffer (grown
+  /// only when the scene grows) and returns it: a steady animation
+  /// allocates no signature per frame.
   Float64List _computeSignature(
     List<_ResolvedPiece> resolved,
     List<MorphMass> blobs,
   ) {
-    final Float64List sig = Float64List(
-      5 +
-          resolved.length * 6 +
-          (_extraMasses.length + blobs.length) * liquidMassSignatureStride,
-    );
+    final int length =
+        5 +
+        resolved.length * 6 +
+        (_extraMasses.length + blobs.length) * liquidMassSignatureStride;
+    Float64List? spare = _spareSignature;
+    if (spare == null || spare.length != length) {
+      spare = Float64List(length);
+      _spareSignature = spare;
+    }
+    final Float64List sig = spare;
     int i = 0;
     sig[i++] = _k;
     sig[i++] = _cell;
@@ -1237,26 +1256,20 @@ class RenderMorphSkin extends RenderBox
     lastFlightBlobCount = blobs.length;
     final Float64List signature = _computeSignature(resolved, blobs);
     if (!_signaturesMatch(signature)) {
+      _spareSignature = _signature;
       _signature = signature;
       _path = _rebuildPath(resolved, blobs);
     }
 
-    final Canvas canvas = context.canvas
-      ..save()
-      ..translate(offset.dx, offset.dy);
+    final Canvas canvas = context.canvas;
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
     if (_elevation > 0) {
       // A translucent skin must be declared as a transparent occluder,
       // otherwise the shadow is clipped as if the surface were opaque.
       canvas.drawShadow(_path, _shadowColor, _elevation, _color.a < 1);
     }
-    final Paint fill = Paint();
-    final Gradient? gradient = _gradient;
-    if (gradient != null) {
-      fill.shader = gradient.createShader(Offset.zero & size);
-    } else {
-      fill.color = _color;
-    }
-    canvas.drawPath(_path, fill);
+    canvas.drawPath(_path, _fillPaint());
     _paintTints(canvas, resolved);
     // The stroke goes LAST: a tint clips itself by the same path, and
     // painting it over the contour would eat the edge - a tinted piece
@@ -1330,6 +1343,30 @@ class RenderMorphSkin extends RenderBox
     }
   }
 
+  /// The fill paint, kept across frames: the gradient shader is rebuilt
+  /// only when the gradient or the size changes.
+  Paint _fillPaint() {
+    final Paint paint = _cachedFillPaint ??= Paint();
+    final Gradient? gradient = _gradient;
+    if (gradient == null) {
+      paint.shader = null;
+      paint.color = _color;
+      _shaderKey = null;
+      return paint;
+    }
+    final (Gradient, Size) key = (gradient, size);
+    if (_shaderKey != key) {
+      _shaderKey = key;
+      paint.shader = gradient.createShader(Offset.zero & size);
+    }
+    return paint;
+  }
+
+  Paint? _cachedFillPaint;
+  (Gradient, Size)? _shaderKey;
+  Float64List? _spareSignature;
+  final Paint _tintPaint = Paint();
+
   /// The contour's paint, rebuilt only when the stroke itself changes.
   Paint _strokePaint(MorphStroke stroke) {
     final Paint paint = _cachedStrokePaint ?? Paint();
@@ -1368,14 +1405,14 @@ class RenderMorphSkin extends RenderBox
       final double half = rect.shortestSide / 2;
       final double radius =
           (r.piece.radius > half ? half : r.piece.radius) + pad;
-      canvas
-        ..save()
-        ..clipPath(_path)
-        ..drawRRect(
-          RRect.fromRectAndRadius(rect.inflate(pad), Radius.circular(radius)),
-          Paint()..color = tint,
-        )
-        ..restore();
+      _tintPaint.color = tint;
+      canvas.save();
+      canvas.clipPath(_path);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(rect.inflate(pad), Radius.circular(radius)),
+        _tintPaint,
+      );
+      canvas.restore();
     }
   }
 

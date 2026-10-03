@@ -167,6 +167,24 @@ void main() {
   });
 
   group('liquidContours / liquidPath', () {
+    test(
+      'a cluster over the grid safety cap coarsens instead of vanishing',
+      () {
+        const Rect rect = .fromLTWH(0, 0, 3000, 3000);
+        const LiquidField field = LiquidField(<MorphMass>[
+          .box(rect, radius: 40),
+        ], k: 8);
+        final List<List<Offset>> loops = liquidContours(
+          field,
+          cell: 2,
+          evalBudget: null,
+        );
+        expect(loops, hasLength(1));
+        final Path path = liquidPath(field, cell: 2, evalBudget: null);
+        expect(path.contains(rect.center), isTrue);
+      },
+    );
+
     test('a single box is traced by one loop close to its rect', () {
       const Rect rect = .fromLTWH(20, 20, 120, 80);
       const LiquidField field = LiquidField(<MorphMass>[
