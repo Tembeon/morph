@@ -1316,6 +1316,22 @@ class MorphMenuMotion {
     );
   }
 
+  bool _onWidgetRow(Offset position) {
+    final frame = _menu;
+    if (!frame.contains(position)) return false;
+    final local = position - frame.topLeft;
+    final top = _topCard;
+    final card = cards[top];
+    final at = top == 0
+        ? local + Offset(0, scrollOffset)
+        : local - card.rect.topLeft;
+    return card.layout.elements.any(
+      (MorphMenuPlaced element) =>
+          element.kind == MorphMenuPlacedKind.widget &&
+          element.rect.contains(at),
+    );
+  }
+
   int get _topCard {
     var top = _cards.length;
     while (top > 0 && _cards[top - 1].backing) {
@@ -1381,6 +1397,10 @@ class MorphMenuMotion {
         startedInMenu: _menu.contains(position),
       );
       _pointer = pointer;
+      if (_onWidgetRow(position)) {
+        pointer.scrolled = true;
+        return;
+      }
       _track(t, pointer, position);
       _glow(t, position, on: true);
       return;
@@ -1439,7 +1459,7 @@ class MorphMenuMotion {
     final pointer = _pointer;
     if (pointer == null) return;
     pointer.position = position;
-    if (_phase != _Phase.opening) return;
+    if (_phase != _Phase.opening || pointer.scrolled) return;
     final hit = _hitAt(position);
     if (hit.target != _highlighted || hit.card != _highlightCard) {
       _track(t, pointer, position);

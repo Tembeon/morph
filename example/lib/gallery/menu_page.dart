@@ -4,7 +4,10 @@ import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 
 /// Glass menu buttons at the center, near every corner and in the
-/// navigation bar, with two, five and ten rows.
+/// navigation bar, with two, five and ten rows, and one rich menu at the
+/// top: sections, a selection that stays open, a palette, small and
+/// medium cells, subtitles, a disabled row, submenus, a deferred section
+/// and a free-form slider row.
 class MenuPage extends StatefulWidget {
   /// Creates the page.
   const MenuPage({super.key});
@@ -15,6 +18,178 @@ class MenuPage extends StatefulWidget {
 
 class _MenuPageState extends State<MenuPage> {
   String _last = 'Tap or hold a button';
+  String _sort = 'Name';
+  bool _hidden = true;
+  int _color = 3;
+  final Set<String> _styles = {'Bold'};
+  double _volume = 0.6;
+
+  static const _colors = [
+    ('Red', Color(0xFFFF3B30)),
+    ('Orange', Color(0xFFFF9500)),
+    ('Green', Color(0xFF34C759)),
+    ('Blue', Color(0xFF0091FF)),
+    ('Purple', Color(0xFFAF52DE)),
+  ];
+
+  static Future<List<MorphMenuEntry>> _recent() async {
+    await Future<void>.delayed(const Duration(seconds: 1));
+    return const [
+      MorphMenuItem(title: 'Notes.txt', icon: Icons.description_outlined),
+      MorphMenuItem(title: 'Budget.numbers', icon: Icons.table_chart_outlined),
+    ];
+  }
+
+  void _pick(String title) => setState(() => _last = title);
+
+  List<MorphMenuEntry> _rich() => [
+    MorphMenuSection(
+      title: 'Color',
+      palette: true,
+      children: [
+        for (var i = 0; i < _colors.length; i++)
+          MorphMenuItem(
+            title: _colors[i].$1,
+            icon: Icons.circle,
+            iconColor: _colors[i].$2,
+            state: i == _color ? MorphMenuState.on : MorphMenuState.off,
+            keepsMenuOpen: true,
+            onSelected: () => setState(() => _color = i),
+          ),
+      ],
+    ),
+    MorphMenuSection(
+      elementSize: MorphMenuElementSize.small,
+      children: [
+        for (final (title, icon) in const [
+          ('Cut', Icons.content_cut),
+          ('Copy', Icons.copy),
+          ('Paste', Icons.content_paste),
+          ('Share', Icons.ios_share),
+        ])
+          MorphMenuItem(
+            title: title,
+            icon: icon,
+            onSelected: () => _pick(title),
+          ),
+      ],
+    ),
+    MorphMenuSection(
+      elementSize: MorphMenuElementSize.medium,
+      children: [
+        for (final (title, icon) in const [
+          ('Bold', Icons.format_bold),
+          ('Italic', Icons.format_italic),
+          ('Underline', Icons.format_underline),
+        ])
+          MorphMenuItem(
+            title: title,
+            icon: icon,
+            state: _styles.contains(title)
+                ? MorphMenuState.on
+                : MorphMenuState.off,
+            keepsMenuOpen: true,
+            onSelected: () => setState(() {
+              if (!_styles.remove(title)) _styles.add(title);
+            }),
+          ),
+      ],
+    ),
+    MorphMenuSection(
+      title: 'Sort by',
+      singleSelection: true,
+      children: [
+        for (final (title, icon) in const [
+          ('Name', Icons.sort_by_alpha),
+          ('Date', Icons.calendar_today_outlined),
+          ('Size', Icons.swap_vert),
+        ])
+          MorphMenuItem(
+            title: title,
+            icon: icon,
+            state: _sort == title ? MorphMenuState.on : MorphMenuState.off,
+            keepsMenuOpen: true,
+            onSelected: () => setState(() => _sort = title),
+          ),
+      ],
+    ),
+    MorphMenuSection(
+      children: [
+        MorphMenuItem(
+          title: 'Show hidden',
+          icon: Icons.visibility_outlined,
+          state: _hidden ? MorphMenuState.on : MorphMenuState.off,
+          keepsMenuOpen: true,
+          onSelected: () => setState(() => _hidden = !_hidden),
+        ),
+        if (_hidden)
+          MorphMenuItem(
+            title: 'Hidden files',
+            subtitle: '12 items',
+            icon: Icons.folder_open_outlined,
+            onSelected: () => _pick('Hidden files'),
+          ),
+        const MorphMenuItem(
+          title: 'Disabled row',
+          icon: Icons.block,
+          enabled: false,
+        ),
+      ],
+    ),
+    MorphSubmenu(
+      title: 'More',
+      icon: Icons.folder_outlined,
+      children: [
+        MorphMenuItem(
+          title: 'Rename',
+          icon: Icons.edit,
+          onSelected: () => _pick('Rename'),
+        ),
+        MorphMenuItem(
+          title: 'Duplicate',
+          icon: Icons.control_point_duplicate,
+          onSelected: () => _pick('Duplicate'),
+        ),
+        MorphSubmenu(
+          title: 'Move to',
+          icon: Icons.drive_file_move_outline,
+          children: [
+            for (final place in const ['Desktop', 'Documents', 'Downloads'])
+              MorphMenuItem(title: place, onSelected: () => _pick(place)),
+          ],
+        ),
+      ],
+    ),
+    const MorphMenuSection(
+      title: 'Recent',
+      children: [MorphMenuDeferred(_recent, cache: false)],
+    ),
+    MorphMenuWidget(
+      id: 'volume',
+      builder: (BuildContext context) => Padding(
+        padding: const .symmetric(vertical: 10),
+        child: Row(
+          children: [
+            const Icon(Icons.volume_down, size: 20),
+            Expanded(
+              child: MorphSlider(
+                value: _volume,
+                semanticLabel: 'Volume',
+                onChanged: (double value) => setState(() => _volume = value),
+              ),
+            ),
+            const Icon(Icons.volume_up, size: 20),
+          ],
+        ),
+      ),
+    ),
+    MorphMenuItem(
+      title: 'Delete',
+      icon: Icons.delete_outline,
+      destructive: true,
+      onSelected: () => _pick('Delete'),
+    ),
+  ];
 
   static const _titles = [
     ('Copy', Icons.copy),
@@ -70,6 +245,17 @@ class _MenuPageState extends State<MenuPage> {
               ),
             ),
             Center(child: MorphMenuButton(items: _items(5))),
+            Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: const .all(16),
+                child: MorphMenuButton(
+                  items: _rich(),
+                  semanticLabel: 'Options',
+                  child: const Icon(Icons.tune, size: 22),
+                ),
+              ),
+            ),
             Align(
               alignment: const Alignment(0, -0.45),
               child: MorphMenuButton(items: _items(2)),

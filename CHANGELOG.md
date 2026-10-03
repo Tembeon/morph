@@ -135,6 +135,43 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   of a half at its limit in `limitForegroundColor`, tertiaryLabel. The
   light menu and date picker overlay share the material 0xF2F9F9FF (249,
   249, 255 over the grouped background, as UIKit's).
+- The menu API, measured on the iPhone 16 Pro (iOS 27.0.1): BREAKING
+  `MorphMenuButton.items` (and `MorphBarButton.menu`) take sealed
+  `MorphMenuEntry` values - `MorphMenuItem` (new `subtitle`,
+  `selectedIcon`, `iconColor`, `iconVisibility`, `enabled`, `hidden`,
+  `keepsMenuOpen`, `state` on / off / mixed, `onHighlightChanged`),
+  `MorphMenuSection` (header, `singleSelection`, `palette`, small and
+  medium `elementSize` cells, `maxTitleLines`), `MorphSubmenu`,
+  `MorphMenuDivider`, `MorphMenuDeferred` (a "Loading..." row with a
+  spinner until it answers, cached or not) and `MorphMenuWidget`, morph's
+  own free-form row with no UIKit twin. `MorphMenuItem` moved to
+  menu_entries.dart (same name and fields, still exported). The layout is
+  the device's view tree (`MorphMenuMetrics`, `MorphMenuLayout`): 250
+  wide, rows 42 / 60 with a subtitle, glyph and selection columns, 40.33
+  headers, 21 pt group gaps with an inset hairline, palette, small and
+  medium cells; content past 520 pt or the safe area scrolls inside the
+  menu, and a finger that scrolls chooses nothing. Colors per appearance
+  (titles 0.96, secondary 0.6, disabled 0.298, destructive 0xFF4245 /
+  0xFF383C); BREAKING `MorphMenuStyle.rowPadding` is gone (new
+  `secondaryColor`, `disabledColor`, `separatorColor`, `submenuColor`,
+  `paletteSelectionColor`). Submenus open as cards stacked over the menu:
+  a card grows out of its row on 0.395 / 0.86 (0.076 s after the
+  release; deeper cards 0.405 / 0.84 after 0.04 s), the cards below
+  shrink to 0.97 and dim their rows to half, the menu grows to cover the
+  card; its bold header with a chevron goes back on a critically damped
+  0.4 s spring, and a held finger opens a submenu after resting 0.525 s
+  on its row. Choosing a row of a card closes the whole menu on the
+  ordinary menu close (the device's container close is the same frame by
+  frame as a plain menu's). The open menu follows its widget like a
+  SwiftUI menu: a rebuild with other entries updates it in place and
+  resizes it on 0.565 / 0.84 (grow) or 0.4 / 1.0 (shrink).
+  `MorphMenuButton.order` (`MorphMenuOrder`; fixed keeps the order in a
+  menu that opens upward) and `dismissOnSelect`. Keyboard: arrows,
+  Enter / Space, the forward arrow into a submenu, Esc back out and then
+  closed; rows are buttons with checked, mixed and expanded states. An
+  `overlay:` that is not an ancestor of the button now throws instead of
+  measuring garbage. Replayed by menu_api_test (layout from the dumps,
+  card springs, dwell, resize) and pinned by menu_entries_test.
 - Right to left: the segmented control, tab bar, switch and slider
   mirror in an RTL context; the stepper keeps minus on the left.
 - Text scale: segment labels follow the text scale up to 1.4 and size

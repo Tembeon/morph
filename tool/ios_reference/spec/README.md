@@ -287,7 +287,7 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [glass-renderer](glass-renderer.md) | D (tier costs) | P (package renderer, tiers, adaptive policy) | policy numbers are defaults; date picker dark platter color |
 | [skin-merge](skin-merge.md) | D | P | 3+ mass normal mixing unmeasured |
 | [engine-flight](engine-flight.md) | D tuning | P | - |
-| [menu-api](menu-api.md) | D (layout, submenu springs, live updates; light + dark) | to port | free-form rows have no native twin; hover dwell from 2 runs |
+| [menu-api](menu-api.md) | D (layout, submenu springs, live updates; light + dark) | P (menu_api_test, menu_entries_test) | free-form rows have no native twin; hover dwell from 2 runs; root list platter not scaled |
 | [states](states.md) | D disabled (light + dark), light refs | P disabled (disabled_test) | Reduce Motion pass waits for the owner's switch |
 
 Disabled looks are measured for every control and ported (2026-10-03,

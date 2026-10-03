@@ -2,7 +2,9 @@
 
 Status: API surface read from the iOS 27.0 SDK (UIKit headers + the SwiftUI
 swiftinterface); layout, look and motion MEASURED on the iPhone 16 Pro
-(iOS 27.0.1, light + dark, 2026-10-03); NOT ported. Extends
+(iOS 27.0.1, light + dark, 2026-10-03); PORTED 2026-10-04
+(menu_entries.dart, menu_layout.dart, menu_content.dart, menu.dart,
+menu_motion.dart), replayed by test/menu_api_test.dart. Extends
 [menu-button](menu-button.md) (the button-to-menu liquid morph, placement,
 triggers); this page covers what lives INSIDE the menu.
 
@@ -161,26 +163,59 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
 
 ## To port (porting agent)
 
-- [ ] Entry model above (sealed MorphMenuEntry); keep `MorphMenuItem` field
-      names already public (title, icon, destructive, onSelected).
-- [ ] Layout table (layout.json): width 250, rows 42 / 60, columns with and
-      without a selection column, header 40.33, group gap 21 with the 1 pt
-      inset line, palette / small / medium cells, max height 520 + scrolling
-      with an indicator.
-- [ ] Colors per appearance: title 0.96, subtitle/header 0.6, disabled
-      0.298, destructive 0xFF4245 / 0xFF383C; light platter 0xF2F9F9FF
-      (menu-button.md).
-- [ ] Submenus as stacked cards: grow out of the row, parent scale 0.97 and
-      rows alpha 0.5 per level, header row (bold title + chevron down) that
-      goes back; springs open 0.395 / 0.86 (+0.076 s), deeper 0.405 / 0.84,
-      back 0.40 / 1.0 (+0.022 s); hover-open 0.525 s after entering the row
-      with a held finger; a sub action closes the whole stack.
-- [ ] keepsMenuOpen + live update: in place, no implicit redraw (state comes
-      from the app); grow 0.565 / 0.84, shrink 0.40 / 1.0.
-- [ ] Deferred entries: Loading row with the activity indicator, then grow.
-- [ ] MorphMenuWidget free-form rows.
-- [ ] Replay tests from the menu_api fixtures (submenu card geometry per
-      frame, resize).
+- [x] Entry model (sealed MorphMenuEntry: MorphMenuItem, MorphMenuSection,
+      MorphSubmenu, MorphMenuDivider, MorphMenuDeferred, MorphMenuWidget);
+      `MorphMenuItem` keeps title, icon, destructive, onSelected and adds
+      iconColor (morph's, for palettes of colors). `MorphMenuButton.items`
+      kept its name (passport proposed `entries`), plus `order` and
+      `dismissOnSelect`. No `MorphMenuController`: the button is
+      declarative, a rebuild with new entries is the update.
+- [x] Layout table: `MorphMenuMetrics` / `MorphMenuLayout.build`, replayed
+      against the rich1 / rich2 / sub / deferred dumps (positions to 0.02
+      pt). Read from the dumps beyond this page: a header that opens a
+      group starts at the group's top (no top inset at the menu top),
+      rows follow it 38.33 below its top and cells 28.33; small / medium
+      groups are followed by a 1 pt gap holding the hairline and a palette
+      by nothing; the glyph column is per group (an imageless inline group
+      starts titles at 28 next to a 64 group), the selection column
+      menu-wide; headers start at 28, 43 with a selection column; the
+      submenu chevron centers at 219; the card header is 62 with the rows
+      10 below it.
+- [x] Colors per appearance (MorphMenuStyle light / dark).
+- [x] Submenus as stacked cards: springs, delays, 0.97 / 0.5, header back,
+      dwell 0.525, sub action +0.019. The card's frame replays mm-sub-tap
+      under 1 pt rms (progress under 0.01), the back and the deeper card
+      under 1.5 / 2 pt. The card platter color is sampled (57 dark, 251
+      light); the root list's own platter shrinking with the 0.97 (3.75 pt
+      per side) is NOT drawn - morph's root is the menu glass, which keeps
+      its width.
+- [x] Whole-stack close: compared on the recordings - the
+      `_UIContextMenuView` frames of a sub-row close (mm-sub-select) and of
+      a plain row close (mm-palette, "Plain row") are identical frame by
+      frame (w 247.94, 242.44, 234.38, ...): the "0.355 / 0.84" fit is the
+      ordinary menu close seen on the container view, not a submenu
+      spring. The stack closes on the measured morph close (0.49 / 0.80
+      progress + kicks); no recapture needed.
+- [x] keepsMenuOpen + live update: declarative; grow 0.565 / 0.84, shrink
+      0.4 / 1.0. Delays refitted from the action (`evt`) rows: grow 0.045
+      s after the action (the second add of mm-resize started about 0.02
+      s earlier - display-link jitter), shrink 0.03.
+- [x] Deferred entries (cached by `id` or the load function, uncached per
+      opening; the loading row's glyph column counts as an image).
+- [x] MorphMenuWidget free-form rows (measured post-frame, the first
+      measurement snaps, later ones animate; touches on them are the
+      widget's - no highlight, glow, lean or selection).
+- [x] Max height 520 / safe area with scrolling and an indicator (also
+      closes audit M3); a scrolling finger chooses nothing.
+- [x] Replay tests (menu_api_test) and widget tests (menu_entries_test).
+- [ ] Not ported: `maxTitleLines` heights (TextPainter estimate + 22 pt
+      per line, unmeasured), `preferredImageVisibility` automatic vs
+      visible (treated alike), large / automatic element sizes as rows,
+      the "selection column without glyphs" title start (52, a guess),
+      cell highlight shape (12 pt radius, a guess), the palette platter
+      radius, `highlightStateUpdateHandler` timing, submenu cards that do
+      not fit the cap (cut, not scrolled), the hold-and-slide card spring
+      (uses the tap's), Dynamic Type row heights.
 
 ## Recapture
 
@@ -198,9 +233,8 @@ MenuAPIUITests); an XCUI query for "More" hits the ellipsis button itself
 
 ## Open
 
-- Hover-open dwell from two runs only; the close spring from the view rows
-  (0.355 / 0.84) differs from the morph-progress close 0.49 / 0.80 in
-  menu-button.md: compare on one recording before porting the stack close.
+- Hover-open dwell from two runs only. (The stack close question is
+  settled: see the porting notes above.)
 - Large / automatic element size, `maximumNumberOfTitleLines`,
   `preferredImageVisibility`, `highlightStateUpdateHandler`, menuOrder
   priority vs fixed with an upward menu: API read, not measured.
