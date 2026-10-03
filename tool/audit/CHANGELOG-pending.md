@@ -25,3 +25,20 @@ file.
 - Performance: bar animation ticks no longer rebuild button contents, the flat fused outline is traced once per change, and label and title widths are cached.
 
 WP-C left open: PF9 (edge effect BackdropFilter not grouped - visual change, WP-I), MorphBarMenuTuning static-only (P5api), D5 menu host merge (wave 3).
+
+## WP-B engine registry, targets, skin (45fd91d, 6e32d80, 78a8aee)
+
+- BREAKING: misusing a lookup now throws a descriptive FlutterError in every build mode (MorphScope.of, MorphTag.specOf/idOf, morphAnchorRect, an unknown `from:` id) instead of an assert in debug and a bare null-check crash in release.
+- A duplicate MorphTag id in one scope is reported (FlutterError.reportError); the first tag keeps the id and the second takes over when the first leaves. A duplicate shared-element id on one side of a flight is reported too.
+- A MorphTag moved under another MorphScope re-registers there; a tag outside any scope no longer crashes (a scope-less skin degrades to plain fusion).
+- morphAnchorRect, shared-element rects and the skin's flight neck follow the whole paint transform, not just its translation.
+- New MorphTheme.defaultMaxScrimOpacity / defaultScrimColor / defaultShadowColor / defaultTargetElevation.
+- New MorphTheme.scrimMotion; `modal` and `scrimMotion` on showMorphSheet, showMorphDialog and MorphAnchor; a MorphAnchor whose `motion` changes while open updates the live flight.
+- BREAKING: removed MorphDirection, MorphController.direction and MorphMotion.values.
+- A skin cluster too large for the tracing grid coarsens instead of vanishing; `cell` below 2 px asserts in debug.
+- The shared-element flying layer's key is `ValueKey<Object>(id)`.
+- A MorphTag without `snapshotGhost` adds no RepaintBoundary or GlobalKey; skin repaints reuse buffers and paints.
+- Adding one AnimationStatusListener twice to `MorphController.animation` no longer leaks a proxy.
+
+WP-B follow-ups for WP-A (route.dart/flight.dart): add `MorphFlight.geometryTicks` (frameTicks without the scrim) and point the skin at it (PF6 tail); flight/route defaults onto MorphTheme.default*; showMorphRoute resolves MorphTheme.scrimMotion and accepts `modal`; route.dart launches via MorphScope.of(nav.context) (K4 route side). For WP-D: sheet.dart:111 and navigation_stack.dart:564 should use tryTagOf and degrade.
+OWNER DECISION (A8): engine flights clamp size/shape at the target past value 1 (only the centre overshoots), but the device context-menu fixture shows UIKit containers overshoot in size. Changing the pinned rule in morph_frame_test is the owner's call.
