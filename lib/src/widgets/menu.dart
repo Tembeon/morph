@@ -528,6 +528,7 @@ class _MenuShapes extends StatelessWidget {
     required this.sourceRect,
     this.menu,
     this.sourceScale = 1,
+    this.lookStretch = 1,
     this.look,
     this.content,
   });
@@ -538,6 +539,7 @@ class _MenuShapes extends StatelessWidget {
   final RRect source;
   final Rect sourceRect;
   final double sourceScale;
+  final double lookStretch;
   final ({double opacity, double blur})? look;
   final Widget? content;
 
@@ -548,7 +550,11 @@ class _MenuShapes extends StatelessWidget {
     final content = this.content;
     final look = this.look;
     final Widget glyph = Center(
-      child: Transform.scale(scale: sourceScale, child: this.glyph),
+      child: Transform.scale(
+        scaleX: sourceScale * lookStretch,
+        scaleY: sourceScale,
+        child: this.glyph,
+      ),
     );
     final Widget surfaces;
     if (glass == null) {
@@ -603,7 +609,9 @@ class _Faded extends StatelessWidget {
   final double blur;
   final Widget child;
 
-  static final ui.ImageFilter _none = ui.ImageFilter.blur();
+  static final ui.ImageFilter _none = ui.ImageFilter.blur(
+    tileMode: TileMode.decal,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -620,7 +628,11 @@ class _Faded extends StatelessWidget {
                   0, 0, 1, 0, 0, //
                   0, 0, 0, opacity, 0,
                 ]),
-                inner: ui.ImageFilter.blur(sigmaX: blur, sigmaY: blur),
+                inner: ui.ImageFilter.blur(
+                  sigmaX: blur,
+                  sigmaY: blur,
+                  tileMode: TileMode.decal,
+                ),
               )
             : _none,
         child: child,
@@ -659,6 +671,7 @@ class _MenuLayer extends StatelessWidget {
         final menu = motion.menuBlob;
         final source = motion.buttonBlob;
         final size = motion.menuRect.size;
+        final scale = motion.contentScale;
         return IgnorePointer(
           ignoring: !motion.isOpen,
           child: Listener(
@@ -674,6 +687,7 @@ class _MenuLayer extends StatelessWidget {
               source: source.rrect,
               sourceRect: source.rect,
               sourceScale: source.scale,
+              lookStretch: motion.buttonLookStretch,
               look: (
                 opacity: motion.buttonLookOpacity,
                 blur: motion.buttonLookBlur,
@@ -683,24 +697,19 @@ class _MenuLayer extends StatelessWidget {
                 child: ClipRRect(
                   borderRadius: .circular(menu.radius),
                   child: OverflowBox(
-                    alignment: .topCenter,
                     minWidth: size.width,
                     maxWidth: size.width,
                     minHeight: size.height,
                     maxHeight: size.height,
                     child: Transform.scale(
-                      scale: menu.scale,
-                      alignment: .topCenter,
+                      scale: scale,
                       child: _Faded(
                         opacity: motion.contentOpacity,
-                        blur: motion.contentBlur,
+                        blur: motion.contentBlur / scale,
                         child: SizedBox.fromSize(
                           size: size,
                           child: Stack(
-                            children: [
-                              ..._feedback(motion, style, menu),
-                              rows!,
-                            ],
+                            children: [..._feedback(motion, style), rows!],
                           ),
                         ),
                       ),
@@ -715,11 +724,7 @@ class _MenuLayer extends StatelessWidget {
     );
   }
 
-  List<Widget> _feedback(
-    MorphMenuMotion motion,
-    MorphMenuStyle style,
-    MorphMenuBlob menu,
-  ) {
+  List<Widget> _feedback(MorphMenuMotion motion, MorphMenuStyle style) {
     final tuning = motion.tuning;
     final count = math.min(state.widget.items.length, motion.itemCount);
     final highlighted = motion.highlighted;
@@ -744,7 +749,7 @@ class _MenuLayer extends StatelessWidget {
       if (glow != null && glowOpacity > 0)
         Positioned.fromRect(
           rect: Rect.fromCenter(
-            center: (glow - menu.rect.topLeft) / menu.scale,
+            center: _contentLocal(motion, glow),
             width: tuning.glowDiameter,
             height: tuning.glowDiameter,
           ),
@@ -764,6 +769,13 @@ class _MenuLayer extends StatelessWidget {
         ),
     ];
   }
+}
+
+/// [position] in the coordinates of the content laid out at its final
+/// size, which [MorphMenuMotion.contentRect] shows scaled.
+Offset _contentLocal(MorphMenuMotion motion, Offset position) {
+  final frame = motion.contentRect;
+  return (position - frame.topLeft) / motion.contentScale;
 }
 
 /// The rows of the menu, laid out in the open menu's frame.

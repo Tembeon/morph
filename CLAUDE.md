@@ -195,8 +195,15 @@ Public pieces:
   scaled to half the button height that stretches to the menu height
   while scaling up, center lerped button -> menu plus a VERTICAL kick;
   the button blob S shrinks to 0.25 scale and travels 0.25 of the way.
-  Content top-aligned, crossfades on p (alpha p, blur 4(1 - p)); rows
-  do NOT cascade. Opening radius 195.4 -> 32 with a 0.098 s delay
+  LOOK AND CONTENT ARE FILMED, NOT LAYER-READ (2026-10-03 screen
+  recordings; the layer model's "content top-aligned in G scaled by s,
+  alpha p" was wrong on screen): the glyph rides S, alpha falls over
+  p 0.07..0.42, width x(1 + 2.5p), blur 4p; the content stays near its
+  final size - scale 1 - 0.5(1 - p) + 1.3 kick/H, CENTERED on the kicked
+  G, screen blur 8(1 - p) + 6 kick/H, alpha over p 0.53..1 - and G only
+  reveals it; both fades read the spring 15 ms ahead (fadeLead: the film
+  shows them leading the shapes both ways). Blurs use TileMode.decal
+  (clamp smeared the glyph into a grey square). Rows do NOT cascade. Opening radius 195.4 -> 32 with a 0.098 s delay
   (capsule until p crosses 1), close radius linear in p. Placement:
   down (menu.top = pressed button top) when the button sits in the upper
   half of the safe area, else up with rows reversed; centered on the
@@ -1071,6 +1078,19 @@ Public pieces:
   --codec=h264`), extract frames with ffmpeg and read glass edges from
   pixel rows; alpha that UIKit animates outside the sampled layers
   (alerts) also reads best from video.
+- SCREEN RECORDER (device video): `tool/ios_reference/screen_recorder/`
+  builds MorphRecorder.app (`./build.sh`; camera permission granted
+  once), which records the wired iPhone's screen through CoreMediaIO at
+  full resolution: `: > log.txt; open -W .../MorphRecorder.app --args
+  "$PWD/log.txt" /abs/out.mov <seconds>` in the background, then drive
+  the phone (device.sh for the native probe scenes; for morph,
+  example/integration_test/menu_video_test.dart built as a profile app
+  and launched with devicectl). The stream is variable-rate and DROPS
+  frames during UIKit morph starts (~45 fps, 33-58 ms gaps): extract
+  with `-fps_mode passthrough` and real pts, never fps=60, and align the
+  native film to the probe's layer rows of the same run (union bbox) to
+  know p per frame. Hold the device lock while recording; key crops live
+  in references/menu-video/ (native top, morph bottom).
 - READING UIKIT'S TUNING LIVE: enumerate classes with
   `objc_copyClassList` and walk the RAW pointer array (load each entry
   as an OpaquePointer, unsafeBitCast to AnyClass - Swift's typed view of

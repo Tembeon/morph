@@ -25,6 +25,16 @@ class MorphMenuTuning {
     this.sourceEndScale = 0.25,
     this.sourceTravel = 0.25,
     this.crossfadeBlur = 4,
+    this.fadeLead = 0.015,
+    this.lookFadeStart = 0.07,
+    this.lookFadeEnd = 0.42,
+    this.lookStretch = 2.5,
+    this.contentFadeStart = 0.53,
+    this.contentFadeEnd = 1,
+    this.contentShrink = 0.5,
+    this.contentKickScale = 1.3,
+    this.contentBlur = 8,
+    this.contentKickBlur = 6,
     this.tapOpenDelay = 0.05,
     this.holdDuration = 0.22,
     this.dismissDelay = 0.04,
@@ -87,8 +97,56 @@ class MorphMenuTuning {
   /// fraction of the distance.
   final double sourceTravel;
 
-  /// The blur radius of the content crossfade at its far end.
+  /// The blur radius of the button's look per unit of progress.
   final double crossfadeBlur;
+
+  /// Seconds ahead at which the fades of the button's look and of the
+  /// content read the progress spring.
+  ///
+  /// The fades lead the shapes by this much, so they run a little ahead of
+  /// the geometry in both directions: the look leaves and the content
+  /// arrives early while the menu opens, and the content leaves and the
+  /// look returns early while it closes.
+  final double fadeLead;
+
+  /// The progress up to which the button's look stays fully opaque.
+  final double lookFadeStart;
+
+  /// The progress at which the button's look has faded out.
+  ///
+  /// The look leaves early: it is gone while the menu shape is still
+  /// small, and it comes back only once the closing shape is nearly the
+  /// button again.
+  final double lookFadeEnd;
+
+  /// How much wider the button's look grows per unit of progress, on top
+  /// of the button shape's scale; its height follows the shape alone.
+  final double lookStretch;
+
+  /// The progress at which the menu content starts to appear.
+  final double contentFadeStart;
+
+  /// The progress at which the menu content is fully opaque.
+  final double contentFadeEnd;
+
+  /// How much smaller than its final size the content is at progress 0;
+  /// it grows linearly to its final size at progress 1.
+  ///
+  /// The content does not shrink with the menu shape: it stays near its
+  /// final size, centered on the shape, and the shape reveals it.
+  final double contentShrink;
+
+  /// How much the content swells with the menu shape's kick, per unit of
+  /// kick relative to the menu height.
+  final double contentKickScale;
+
+  /// The blur radius of the content, in logical pixels on screen, at
+  /// progress 0; it falls linearly to nothing at progress 1.
+  final double contentBlur;
+
+  /// The extra blur radius of the content per unit of the menu shape's
+  /// kick relative to the menu height.
+  final double contentKickBlur;
 
   /// Seconds between the release of a tap and the start of the opening.
   final double tapOpenDelay;
@@ -324,7 +382,9 @@ class _DrivenKick {
 /// from the button's center to the menu's center and dips past it on a
 /// vertical kick. The button shape shrinks to a quarter and slides a
 /// quarter of the way toward the menu. The two are drawn as one union
-/// without a neck. The content crossfades on the same progress.
+/// without a neck. The button's glyph rides the button shape, widening as
+/// it blurs out early; the menu content stays near its final size,
+/// centered on the menu shape that reveals it, and fades in late.
 ///
 /// The kicks are a second degree of freedom per shape, driven by the
 /// progress spring: while the menu opens, the menu shape's kick chases
@@ -496,17 +556,56 @@ class MorphMenuMotion {
   }
 
   /// The opacity of the menu content.
-  double get contentOpacity => progress.clamp(0.0, 1.0);
+  double get contentOpacity =>
+      _ramp(_leadingProgress, tuning.contentFadeStart, tuning.contentFadeEnd);
 
-  /// The blur radius of the menu content.
-  double get contentBlur =>
-      tuning.crossfadeBlur * (1 - progress).clamp(0.0, 1.0);
+  /// The blur radius of the menu content, in logical pixels on screen.
+  double get contentBlur => math.max(
+    0,
+    tuning.contentBlur * (1 - progress) +
+        tuning.contentKickBlur * _relativeKick,
+  );
 
-  /// The opacity of the button's look inside both shapes.
-  double get buttonLookOpacity => (1 - progress).clamp(0.0, 1.0);
+  /// The scale of the menu content relative to its final size.
+  ///
+  /// The content is centered on [menuBlob] at this scale and clipped by
+  /// it.
+  double get contentScale =>
+      1 -
+      tuning.contentShrink * (1 - progress) +
+      tuning.contentKickScale * _relativeKick;
+
+  /// The frame of the menu content: [menuRect]'s size at [contentScale],
+  /// centered on [menuBlob].
+  Rect get contentRect {
+    final scale = contentScale;
+    return Rect.fromCenter(
+      center: menuBlob.rect.center,
+      width: _menu.width * scale,
+      height: _menu.height * scale,
+    );
+  }
+
+  /// The opacity of the button's look inside the button shape.
+  double get buttonLookOpacity =>
+      1 - _ramp(_leadingProgress, tuning.lookFadeStart, tuning.lookFadeEnd);
 
   /// The blur radius of the button's look.
   double get buttonLookBlur => tuning.crossfadeBlur * progress.clamp(0.0, 1.0);
+
+  /// The horizontal stretch of the button's look relative to the button
+  /// shape's scale.
+  double get buttonLookStretch =>
+      1 + tuning.lookStretch * progress.clamp(0.0, 1.0);
+
+  double get _leadingProgress => _phase == _Phase.idle
+      ? progress
+      : _progress.valueAt(_now + tuning.fadeLead);
+
+  double get _relativeKick => _menu.height > 0 ? menuKick / _menu.height : 0;
+
+  static double _ramp(double value, double from, double to) =>
+      ((value - from) / (to - from)).clamp(0.0, 1.0);
 
   /// The vertical kick of the menu shape, positive toward the side the
   /// menu opens to.

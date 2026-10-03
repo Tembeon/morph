@@ -310,6 +310,26 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   draws its glyph without a layer, so the glass of resting buttons stays
   in one backdrop group (an extra alpha-255 opacity layer per button
   cost a glass painter ~10 ms of raster per frame on the device).
+- `MorphMenuButton` filmed against the native menu (screen recordings of
+  the iPhone 16 Pro at 60 fps, both sides on the same light screen, the
+  native side paired frame by frame with the probe's layer data): the
+  ellipsis no longer rides the whole crossfade. It stays on the button
+  shape, widens to 1 + 2.5 x progress while it blurs, and is gone by
+  progress 0.42 - two to three frames into an open - and returns only
+  as the close nears the button (`lookFadeStart`/`lookFadeEnd`,
+  `lookStretch`); before, it faded over the whole progress and its blur
+  sampled with a clamp tile mode, so a grey square of smeared glyph
+  hung over the menu's top edge for most of every open and close (the
+  blurs now use a decal tile mode). The menu content is no longer a
+  miniature of the menu: it stays near its final size (`contentScale` =
+  1 - 0.5 x (1 - progress) + 1.3 x kick / menu height), centered on the
+  menu shape that reveals it, blurs on screen by 8 x (1 - progress) +
+  6 x kick / menu height and fades in over progress 0.53 - 1
+  (`contentFadeStart`/`contentFadeEnd`, `contentShrink`,
+  `contentKickScale`, `contentBlur`, `contentKickBlur`); both fades read
+  the progress spring 15 ms ahead (`fadeLead`), as the film shows the
+  native fades leading the shapes in both directions. New
+  `MorphMenuMotion.contentScale`, `contentRect`, `buttonLookStretch`.
 - NEW: iOS 27 bars, measured on the iPhone 16 Pro (iOS 27.0.1) and the
   iOS 27.0 simulator with the probe's new `nav` scene (tuning read live:
   `GlassContainerToolbarPTSettings`, `PocketSettings`,

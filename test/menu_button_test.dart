@@ -740,6 +740,70 @@ void main() {
     expect(motion.isSettled, isTrue);
   });
 
+  test('the glyph leaves early and the content arrives late, as filmed', () {
+    final motion = MorphMenuMotion(
+      button: Rect.fromCenter(
+        center: const Offset(195, 422),
+        width: 48,
+        height: 48,
+      ),
+      itemCount: 3,
+      bounds: _screen,
+      padding: _safeArea,
+    );
+    motion.open(0, sourceScale: 1);
+    var t = 0.0;
+    var lookGoneAt = double.nan;
+    var contentFrom = double.nan;
+    while (t < 1) {
+      t += 1 / 120;
+      motion.advance(t);
+      final p = motion.progress;
+      if (lookGoneAt.isNaN && motion.buttonLookOpacity == 0) lookGoneAt = p;
+      if (contentFrom.isNaN && motion.contentOpacity > 0) contentFrom = p;
+      expect(
+        motion.buttonLookStretch,
+        moreOrLessEquals(1 + 2.5 * p.clamp(0.0, 1.0), epsilon: 1e-9),
+      );
+      expect(
+        (motion.contentRect.center - motion.menuBlob.rect.center).distance,
+        lessThan(1e-9),
+      );
+      if (p > 0.6 && p < 0.95) {
+        expect(
+          motion.contentScale,
+          greaterThan(motion.menuBlob.scale),
+          reason: 'the content is revealed near its size, not shrunk',
+        );
+        expect(motion.contentBlur, greaterThan(1));
+      }
+    }
+    expect(lookGoneAt, inInclusiveRange(0.3, 0.42));
+    expect(contentFrom, inInclusiveRange(0.4, 0.53));
+    expect(motion.contentOpacity, moreOrLessEquals(1, epsilon: 1e-3));
+    expect(motion.contentScale, moreOrLessEquals(1, epsilon: 1e-3));
+    expect(motion.contentBlur, lessThan(0.01));
+    expect(
+      (motion.contentRect.topLeft - motion.menuRect.topLeft).distance,
+      lessThan(0.5),
+    );
+
+    motion.close(t);
+    var contentGoneAt = double.nan;
+    var lookBackAt = double.nan;
+    while (motion.isPresented && t < 3) {
+      t += 1 / 120;
+      motion.advance(t);
+      final p = motion.progress;
+      if (contentGoneAt.isNaN && motion.contentOpacity == 0) {
+        contentGoneAt = p;
+      }
+      if (lookBackAt.isNaN && motion.buttonLookOpacity > 0) lookBackAt = p;
+    }
+    expect(contentGoneAt, inInclusiveRange(0.53, 0.7));
+    expect(lookBackAt, inInclusiveRange(0.42, 0.55));
+  });
+
   testWidgets('a tap opens the menu on release and it settles open', (
     WidgetTester tester,
   ) async {
@@ -907,6 +971,26 @@ void main() {
       MorphFlightEvent.landed,
     ]);
     expect(flights.single.isFinished, isTrue);
+  });
+
+  testWidgets('blurred faces do not smear their box edges', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_app(_button(<String>[])));
+    await tester.tap(find.byType(MorphMenuButton));
+    final filters = <String>[];
+    for (var i = 0; i < 24; i++) {
+      await tester.pump(const Duration(microseconds: 8333));
+      for (final widget in tester.widgetList<ImageFiltered>(
+        find.byType(ImageFiltered),
+      )) {
+        if (widget.enabled) filters.add('${widget.imageFilter}');
+      }
+    }
+    expect(filters, isNotEmpty);
+    for (final filter in filters) {
+      expect(filter, contains('decal'));
+    }
   });
 
   testWidgets('the menu moves from its first frame on', (
