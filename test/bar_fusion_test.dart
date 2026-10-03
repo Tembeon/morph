@@ -139,6 +139,35 @@ void main() {
     await tester.pumpAndSettle();
     expect(_drawsPath(tester.renderObject<RenderBox>(rest)), isFalse);
   });
+
+  testWidgets('flat capsules fuse across colors, as every glass tier does', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = _screen * 3;
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _toolbar([
+        MorphBarButtonGroup([_icon('trash'), _icon('folder')]),
+      ]),
+    );
+    await tester.pumpAndSettle();
+    final bar = find.byType(MorphToolbar);
+    await tester.pumpWidget(
+      _toolbar([
+        MorphBarButtonGroup([_icon('trash')]),
+        MorphBarButtonGroup([_icon('folder')], prominent: true),
+      ]),
+    );
+    var fused = false;
+    for (var i = 0; i < 30 && !fused; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      fused = _drawsPath(tester.renderObject<RenderBox>(bar));
+    }
+    expect(fused, isTrue);
+    await tester.pumpAndSettle();
+    expect(_drawsPath(tester.renderObject<RenderBox>(bar)), isFalse);
+  });
 }
 
 bool _drawsPath(RenderObject object) {

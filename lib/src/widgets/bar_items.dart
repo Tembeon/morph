@@ -249,6 +249,46 @@ class MorphBarMetrics {
   /// The height of the box the back chevron is drawn in.
   final double backChevronHeight;
 
+  @override
+  bool operator ==(Object other) =>
+      other is MorphBarMetrics &&
+      other.capsuleHeight == capsuleHeight &&
+      other.buttonHeight == buttonHeight &&
+      other.capsulePadding == capsulePadding &&
+      other.buttonGap == buttonGap &&
+      other.groupGap == groupGap &&
+      other.containerSpacing == containerSpacing &&
+      other.labelPadding == labelPadding &&
+      other.iconPadding == iconPadding &&
+      other.minButtonWidth == minButtonWidth &&
+      other.iconSize == iconSize &&
+      other.fontSize == fontSize &&
+      other.backChevronInset == backChevronInset &&
+      other.backChevronWidth == backChevronWidth &&
+      other.backChevronGap == backChevronGap &&
+      other.backTrailingPadding == backTrailingPadding &&
+      other.backChevronHeight == backChevronHeight;
+
+  @override
+  int get hashCode => Object.hash(
+    capsuleHeight,
+    buttonHeight,
+    capsulePadding,
+    buttonGap,
+    groupGap,
+    containerSpacing,
+    labelPadding,
+    iconPadding,
+    minButtonWidth,
+    iconSize,
+    fontSize,
+    backChevronInset,
+    backChevronWidth,
+    backChevronGap,
+    backTrailingPadding,
+    backChevronHeight,
+  );
+
   /// A navigation bar's buttons: capsules 44 tall, buttons 36 tall
   /// inset by 4, 16 between buttons, labels padded by 12, icons by 7.
   static const navigation = MorphBarMetrics(
@@ -346,6 +386,34 @@ class MorphBarStyle {
     disabledIconColor: Color(0x3CFFFFFF),
     disabledLabelColor: Color(0x12FFFFFF),
     disabledProminentColor: Color(0xFF3A3A3C),
+  );
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphBarStyle &&
+      other.capsuleColor == capsuleColor &&
+      other.rimColor == rimColor &&
+      other.shadowColor == shadowColor &&
+      other.foregroundColor == foregroundColor &&
+      other.prominentColor == prominentColor &&
+      other.prominentForegroundColor == prominentForegroundColor &&
+      other.titleColor == titleColor &&
+      other.disabledIconColor == disabledIconColor &&
+      other.disabledLabelColor == disabledLabelColor &&
+      other.disabledProminentColor == disabledProminentColor;
+
+  @override
+  int get hashCode => Object.hash(
+    capsuleColor,
+    rimColor,
+    shadowColor,
+    foregroundColor,
+    prominentColor,
+    prominentForegroundColor,
+    titleColor,
+    disabledIconColor,
+    disabledLabelColor,
+    disabledProminentColor,
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -613,6 +681,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   final Map<(String?, bool, bool), double> _widths = {};
   (TextScaler, TextDirection, MorphBarMetrics)? _widthsFor;
   bool _prune = false;
+  final _FlatBodies _flat = _FlatBodies();
   Object? _pressedCapsule;
   Object? _pressedButton;
 
@@ -1102,9 +1171,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
               child: glass == null
                   ? CustomPaint(
                       painter: _CapsulePainter(
-                        surfaces,
+                        _flat.of(surfaces, widget.metrics.containerSpacing),
                         style,
-                        spacing: widget.metrics.containerSpacing,
                       ),
                       child: content,
                     )
@@ -1450,58 +1518,96 @@ class MorphBackChevronPainter extends CustomPainter {
       oldDelegate.color != color || oldDelegate.mirrored != mirrored;
 }
 
-/// The flat capsules: each one an RRect, except capsules of one color
-/// the glass container fuses ([spacing], the same groups and outline every
-/// glass tier draws), which are drawn as their fused outline.
-class _CapsulePainter extends CustomPainter {
-  _CapsulePainter(this.surfaces, this.style, {required this.spacing});
+/// The bodies the flat capsules draw, traced once per change of their
+/// shapes.
+///
+/// The grouping rule is the glass renderer's (`MorphGlassLayerParts.of`):
+/// capsules group by geometry alone - the container fuses any two within
+/// its spacing, whatever their colors - and a fused body takes the color
+/// of its first capsule in drawing order, as the renderer's bodies take
+/// the tint of their first surface. Capsules under half a point either way
+/// are not drawn.
+class _FlatBodies {
+  List<RRect> _shapes = const [];
+  List<Color> _colors = const [];
+  double _spacing = double.nan;
+  List<(Color, Object)> _bodies = const [];
 
-  final List<MorphGlassSurface> surfaces;
-  final MorphBarStyle style;
-  final double spacing;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final byColor = <Color, List<MorphGlassSurface>>{};
-    for (final s in surfaces) {
-      if (!s.bounds.isEmpty) (byColor[s.color] ??= []).add(s);
+  List<(Color, Object)> of(List<MorphGlassSurface> surfaces, double spacing) {
+    final visible = [
+      for (final s in surfaces)
+        if (s.bounds.width >= 0.5 && s.bounds.height >= 0.5) s,
+    ];
+    final shapes = [for (final s in visible) s.shape];
+    final colors = [for (final s in visible) s.color];
+    if (spacing == _spacing &&
+        listEquals(shapes, _shapes) &&
+        listEquals(colors, _colors)) {
+      return _bodies;
     }
-    final bodies = <(Color, Object)>[];
-    for (final entry in byColor.entries) {
-      final shapes = [for (final s in entry.value) s.shape];
-      for (final group in morphGlassContainerGroups(shapes, spacing)) {
-        bodies.add((
-          entry.key,
+    _shapes = shapes;
+    _colors = colors;
+    _spacing = spacing;
+    _bodies = [
+      for (final group in morphGlassContainerGroups(shapes, spacing))
+        (
+          colors[group.first],
           group.length == 1
               ? shapes[group.single]
               : morphGlassContainerOutline([
                   for (final i in group) shapes[i],
                 ], spacing).path,
-        ));
-      }
-    }
+        ),
+    ];
+    return _bodies;
+  }
+}
+
+/// The flat capsules (no [MorphGlass] installed): each one an RRect,
+/// except capsules the glass container fuses ([spacing]; see
+/// [_FlatBodies] for the rule every glass tier shares), which are drawn
+/// as their fused outline.
+class _CapsulePainter extends CustomPainter {
+  _CapsulePainter(this.bodies, this.style);
+
+  /// The blur of the drop shadow under a flat capsule (an engineering
+  /// default of the fallback, not measured).
+  static const double shadowBlur = 6;
+
+  /// How far the drop shadow sits below a flat capsule (not measured).
+  static const double shadowOffset = 2;
+
+  /// The width of a flat capsule's rim (not measured).
+  static const double rimWidth = 0.5;
+
+  final List<(Color, Object)> bodies;
+  final MorphBarStyle style;
+
+  @override
+  void paint(Canvas canvas, Size size) {
     final shadow = Paint();
     shadow.color = style.shadowColor;
-    shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, shadowBlur);
+    const down = Offset(0, shadowOffset);
     for (final (_, body) in bodies) {
       switch (body) {
         case final RRect shape:
-          canvas.drawRRect(shape.shift(const Offset(0, 2)), shadow);
+          canvas.drawRRect(shape.shift(down), shadow);
         case final Path path:
-          canvas.drawPath(path.shift(const Offset(0, 2)), shadow);
+          canvas.drawPath(path.shift(down), shadow);
       }
     }
     final fill = Paint();
     final rim = Paint();
     rim.style = PaintingStyle.stroke;
-    rim.strokeWidth = 0.5;
+    rim.strokeWidth = rimWidth;
     rim.color = style.rimColor;
     for (final (color, body) in bodies) {
       fill.color = color;
       switch (body) {
         case final RRect shape:
           canvas.drawRRect(shape, fill);
-          canvas.drawRRect(shape.deflate(0.25), rim);
+          canvas.drawRRect(shape.deflate(rimWidth / 2), rim);
         case final Path path:
           canvas.drawPath(path, fill);
           canvas.drawPath(path, rim);
@@ -1510,5 +1616,6 @@ class _CapsulePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CapsulePainter oldDelegate) => true;
+  bool shouldRepaint(_CapsulePainter oldDelegate) =>
+      !identical(oldDelegate.bodies, bodies) || oldDelegate.style != style;
 }
