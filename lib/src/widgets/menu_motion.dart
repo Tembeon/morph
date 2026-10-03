@@ -94,6 +94,7 @@ class MorphMenuTuning {
     this.cardCloseFadeEnd = 0.2,
     this.cardCloseCenter = 0.5,
     this.cardBlur = 10,
+    this.cardGone = 0.007,
     this.growSpring = const MorphSpring(0.565, 0.84),
     this.growDelay = 0.045,
     this.shrinkSpring = const MorphSpring(0.4, 1),
@@ -209,6 +210,11 @@ class MorphMenuTuning {
   /// lies under it: the edge of the dimmed list under a card shows
   /// through it spread over about 27 points (device screenshots).
   final double cardBlur;
+
+  /// The progress below which a card on its way back is gone: on the
+  /// device film the pill it leaves around its row disappears at once
+  /// about 0.45 s into the critically damped way back.
+  final double cardGone;
 
   /// The spring the menu grows on when its content gets taller while it
   /// is open (a row added through `updateVisibleMenu`, a deferred group
@@ -1733,7 +1739,7 @@ class MorphMenuMotion {
     _sample(t);
     for (var i = _cards.length - 1; i >= 0; i--) {
       final card = _cards[i];
-      if (card.backing && card.progress.isAtRest(t, 1e-3)) {
+      if (card.backing && card.progress.value(t) < tuning.cardGone) {
         _cards.removeAt(i);
       }
     }

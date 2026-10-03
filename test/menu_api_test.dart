@@ -584,4 +584,206 @@ void main() {
       );
     });
   });
+  group('submenu close and hand-back (device frames + film)', () {
+    double closeStart(String name) {
+      final motion = _motion(_sub);
+      final rows = _rows(name);
+      final touches = rows
+          .where((Map<String, Object?> r) => r['k'] == 'touch')
+          .toList();
+      final t0 = _n(touches.firstWhere((r) => r['phase'] == 3), 't');
+      final lift = _n(touches.last, 't') - t0;
+      motion.open(0, sourceScale: 1);
+      motion.advance(1);
+      final menu = rows.firstWhere(
+        (Map<String, Object?> r) =>
+            r['k'] == 'frame' && r['cls'] == '_UIContextMenuView',
+      );
+      final dy = motion.menuRect.top - (_n(menu, 'y') - _n(menu, 'h') / 2);
+      for (final row in touches.skip(2)) {
+        final t = _n(row, 't') - t0;
+        while (motion.time + 0.001 < t) {
+          motion.advance(motion.time + 0.001);
+        }
+        final at = Offset(_n(row, 'x'), _n(row, 'y') + dy);
+        switch (row['phase']) {
+          case 0:
+            motion.pointerDown(t, at);
+          case 3:
+            motion.pointerUp(t, at);
+        }
+      }
+      while (!motion.isClosing && motion.time < lift + 0.2) {
+        motion.advance(motion.time + 0.001);
+      }
+      return motion.time - lift;
+    }
+
+    double deviceStart(String name) {
+      final rows = _rows(name);
+      final lift = _n(
+        rows.lastWhere(
+          (Map<String, Object?> r) => r['k'] == 'touch' && r['phase'] == 3,
+        ),
+        't',
+      );
+      String? before;
+      for (final row in rows) {
+        if (row['k'] != 'frame' || row['cls'] != '_UIContextMenuView') {
+          continue;
+        }
+        final shape = '${row['w']} ${row['h']} ${row['y']}';
+        if (_n(row, 't') > lift && before != null && shape != before) {
+          return _n(row, 't') - lift;
+        }
+        before = shape;
+      }
+      throw StateError('no close in $name');
+    }
+
+    test('a card row closes the menu sooner than a touch outside it', () {
+      final select = closeStart('mm-sub-select');
+      final outside = closeStart('mm-sub-tap');
+      final deviceSelect = deviceStart('mm-sub-select');
+      final deviceOutside = deviceStart('mm-sub-tap');
+      expect(select, moreOrLessEquals(0.015, epsilon: 0.002));
+      expect(outside, moreOrLessEquals(0.04, epsilon: 0.002));
+      expect(
+        (deviceOutside - deviceSelect) - (outside - select),
+        inInclusiveRange(-0.0085, 0.0085),
+        reason:
+            'the container shows the close a frame or two after it '
+            'starts; the two closes keep their gap',
+      );
+      expect(
+        (deviceSelect - select) - (deviceOutside - outside),
+        inInclusiveRange(-0.0085, 0.0085),
+      );
+    });
+
+    test('a card going back hands its header to its row', () {
+      final motion = _motion(_sub);
+      motion.open(0, sourceScale: 1);
+      motion.advance(1);
+      final more = motion.layout.targets.indexWhere(
+        (MorphMenuTarget target) => target.kind == MorphMenuTargetKind.submenu,
+      );
+      motion.select(1, more);
+      motion.advance(2);
+      final row = motion.layout.targets[more].rect.center.dy;
+      final open = motion.cards[1];
+      expect(open.headerBold, 1);
+      expect(open.chevronTurn, 1);
+      expect(open.source, more);
+      expect(open.contentTop + open.rect.top + 31, closeTo(row - 5, 1e-3));
+      expect(motion.back(2), isTrue);
+      double? last;
+      MorphMenuCard? card;
+      for (var t = 2.0; t < 3.5; t += 0.001) {
+        motion.advance(t);
+        if (motion.cards.length < 2) break;
+        card = motion.cards[1];
+        final header = card.scale * (card.rect.top + card.contentTop + 31);
+        final rowShown = motion.cards.first.scale * row;
+        if (last != null) {
+          expect((header - last).abs(), lessThan(0.5), reason: 'at $t');
+        }
+        last = header;
+        if (card.progress < 0.01) {
+          expect(header, closeTo(rowShown, 0.05));
+        }
+      }
+      expect(card, isNotNull);
+      expect(card!.headerBold, 0);
+      expect(card.chevronTurn, 0);
+      expect(card.rowsOpacity, 0);
+      expect(card.platterOpacity, lessThan(0.2));
+      expect(motion.cards.length, 1);
+    });
+
+    test('the open card shrinks with the close and fades late', () {
+      final motion = _motion(_sub);
+      motion.open(0, sourceScale: 1);
+      motion.advance(1);
+      final more = motion.layout.targets.indexWhere(
+        (MorphMenuTarget target) => target.kind == MorphMenuTargetKind.submenu,
+      );
+      motion.select(1, more);
+      motion.advance(2);
+      final before = motion.contentRect;
+      motion.close(2);
+      motion.advance(2.0001);
+      expect(motion.contentRect.top, closeTo(before.top, 0.5));
+      expect(motion.cards.last.closeOpacity, greaterThan(0.95));
+      var faded = false;
+      for (var t = 2.0; t < 3; t += 0.004) {
+        motion.advance(t);
+        if (!motion.isPresented || motion.cards.length < 2) break;
+        final p = motion.progress;
+        final alpha = motion.cards.last.closeOpacity;
+        if (p > 0.6) expect(alpha, greaterThan(0.4));
+        if (p < 0.2 - 0.02) {
+          expect(alpha, 0);
+          faded = true;
+        }
+      }
+      expect(faded, isTrue);
+    });
+  });
+  group('submenu card look (device film and stills)', () {
+    final film =
+        jsonDecode(File('$_dir/film-sub.json').readAsStringSync())
+            as Map<String, Object?>;
+    final card = film['card']! as Map<String, Object?>;
+
+    double over(double under, Color tint) =>
+        under + (255 * tint.r - under) * tint.a;
+
+    test('the card tint lifts the list under it as on the device', () {
+      for (final (name, style) in [
+        ('dark', MorphMenuStyle.dark),
+        ('light', MorphMenuStyle.light),
+      ]) {
+        final measured = card[name]! as Map<String, Object?>;
+        final menu = (measured['menu']! as num).toDouble();
+        final target = (measured['card_over_list']! as num).toDouble();
+        expect(
+          over(menu, style.submenuColor),
+          closeTo(target, 1.5),
+          reason: name,
+        );
+      }
+    });
+
+    test('the pill left by a card going back fades out with it', () {
+      final pill = film['back_pill_light']! as Map<String, Object?>;
+      final rows = [
+        for (final row in pill['rows']! as List<Object?>)
+          [for (final v in row! as List<Object?>) (v! as num).toDouble()],
+      ];
+      const tuning = MorphMenuTuning.standard;
+      final spring = tuning.backSpring;
+      final w = 2 * math.pi / spring.response;
+      double q(double t) {
+        final s = t - 0.105;
+        return (1 + w * s) * math.exp(-w * s);
+      }
+
+      double shown(double t) => q(t) < tuning.cardGone
+          ? 0
+          : math.sqrt((q(t) / tuning.cardPlatterFade).clamp(0.0, 1.0));
+      final base = rows.last[1];
+      final first = rows[1];
+      final scale = (first[1] - base) / shown(first[0]);
+      for (final row in rows.skip(1).take(3)) {
+        expect(
+          base + scale * shown(row[0]),
+          closeTo(row[1], 0.5),
+          reason: 'at ${row[0]} s',
+        );
+      }
+      expect(shown(rows.last[0]), 0);
+      expect(shown(rows[rows.length - 2][0]), greaterThan(0));
+    });
+  });
 }

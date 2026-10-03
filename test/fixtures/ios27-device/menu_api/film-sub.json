@@ -1,0 +1,21 @@
+{
+  "captured": "2026-10-04, iPhone 16 Pro iOS 27.0.1, MorphRecorder film of MenuAPIUITests.testMenuFilm (x5menu sub, PROBE_SPINNER=1, layer log off; touches in mf-sub-light.jsonl) beside example/integration_test/menu_submenu_video_test.dart; stills references/menu-api/mm-sub-open-{dark,light}.png",
+  "note": "values are gray levels (0-255) read from the stills (crop origin 50, 80 pt, 3 px per pt) and the light film; film clocks align to within about 0.05 s only, so timings come from the probe rows (mm-sub-*.jsonl) and the film gives looks",
+  "card": {
+    "dark": {"menu": 32, "card_over_list": 57, "card_past_list": 34, "rim_top": [65, 83], "list_edge_spread_pt": 27, "card_over_two_lists": 68},
+    "light": {"menu": 249.5, "card_over_list": 252, "card_past_list": 248.5, "rim_top": [251, 255], "shadow_4pt_above": 244}
+  },
+  "back_pill_light": {
+    "note": "brightness at the source row while the card shrinks back (back starts 0.105 s after the header touch; film saturates at 255 up to 0.29 s); the row's list reads 250.7",
+    "rows": [[0.29, 255.0], [0.356, 252.7], [0.423, 252.0], [0.49, 251.3], [0.54, 251.3], [0.556, 250.7]]
+  },
+  "back_content": {
+    "header_title": "stays at full contrast and lands on its row; bold on the first back frame, regular on the next",
+    "rows": "fade out while the card is still over half its size",
+    "chevron": "turns from down to trailing within the way back"
+  },
+  "close_with_card": {
+    "note": "the open card's rows shrink with the drop at full contrast and without blur, legible at a fifth of the menu size, gone shortly after; the list under it fades as in a plain close",
+    "card_rows_gone_at_progress": 0.2
+  }
+}
