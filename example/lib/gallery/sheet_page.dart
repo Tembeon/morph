@@ -46,7 +46,7 @@ class _SheetPageState extends State<SheetPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const GalleryBar(title: 'Sheets'),
-      body: MorphScope(child: Builder(builder: _list)),
+      body: _list(context),
     );
   }
 

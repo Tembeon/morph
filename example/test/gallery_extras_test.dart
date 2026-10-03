@@ -84,4 +84,27 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('October 2026'), findsNothing);
   });
+
+  testWidgets('sheets: the zoom button zooms its sheet out of itself', (
+    tester,
+  ) async {
+    await _open(tester, 'Sheets');
+    final button = find.text('Zoom from this button');
+    await tester.ensureVisible(button);
+    await tester.pumpAndSettle();
+    await tester.tap(button);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    await tester.pumpAndSettle();
+    expect(find.text('Zoomed from its button'), findsOneWidget);
+    final route = ModalRoute.of(
+      tester.element(find.text('Zoomed from its button')),
+    );
+    expect(route, isA<MorphSheetRoute<String>>());
+    expect((route! as MorphSheetRoute<String>).source, isNotNull);
+    expect(_unstyledTexts(tester), isEmpty);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(find.text('Done in Zoomed from its button'), findsOneWidget);
+  });
 }
