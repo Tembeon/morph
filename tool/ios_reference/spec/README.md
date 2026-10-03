@@ -55,6 +55,20 @@ rows suffice or a film is needed (glass edges living in SwiftUI, alpha
 outside the sampled layers and anything visual need a film). The keeper
 answers with a fixture path plus a passport update.
 
+## Which target checks what (owner rule, 2026-10-03)
+
+1. Widget tests on the Mac: logic, layout, styles, missing-exception checks.
+2. The SIMULATOR (iPhone 18 Pro, iOS 27, UDID
+   0A107F83-797D-41B2-90E5-F45C0810C426) for visual checks by screenshot:
+   layout, colors, text, layer order. No device lock needed; several
+   simulators may run in parallel.
+3. The iPhone 16 Pro ONLY for what the simulator cannot give: 120 Hz timing
+   and real touches, frame timings / renderer performance, the final glass
+   comparison against native, and golden captures.
+
+Porting and bug agents must not take the phone lock for a check a
+simulator covers.
+
 ## Device lock (one phone, many agents)
 
 `/tmp/morph-native/device.lock` is a DIRECTORY (mkdir is atomic) with an
