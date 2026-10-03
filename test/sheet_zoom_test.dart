@@ -14,13 +14,9 @@ Rect _rect(List<Object?> v) => Rect.fromLTRB(
 );
 
 List<Map<String, Object?>> _segments() {
-  final json =
-      jsonDecode(
-            File(
-              'test/fixtures/ios27-device/zoom/zoom.json',
-            ).readAsStringSync(),
-          )
-          as Map<String, Object?>;
+  final json = jsonDecode(
+    File('test/fixtures/ios27-device/zoom/zoom.json').readAsStringSync(),
+  ) as Map<String, Object?>;
   return (json['segments']! as List<Object?>).cast<Map<String, Object?>>();
 }
 
@@ -195,9 +191,7 @@ void main() {
     expect(shown.opacity, 1);
   });
 
-  testWidgets('a drag down from the smallest detent zooms the sheet away', (
-    WidgetTester tester,
-  ) async {
+  Future<void> present(WidgetTester tester) async {
     _phone(tester);
     await tester.pumpWidget(
       _app(
@@ -212,16 +206,78 @@ void main() {
     await tester.tap(find.byKey(_source));
     await tester.pump();
     await _pumpFor(tester, 1.2);
+  }
+
+  testWidgets('a drag down from the smallest detent scrubs the sheet, a '
+      'short one returns it', (WidgetTester tester) async {
+    await present(tester);
+    final rest = tester.getRect(find.byKey(_content));
     final gesture = await tester.startGesture(const Offset(201, 600));
-    for (var i = 0; i < 6; i++) {
+    for (var i = 0; i < 10; i++) {
       await gesture.moveBy(const Offset(0, 8));
       await tester.pump(const Duration(milliseconds: 16));
     }
-    await _pumpFor(tester, 0.2);
-    final closing = tester.getRect(find.byKey(_content));
-    expect(closing.width, lessThan(380));
+    await _pumpFor(tester, 0.3);
+    final held = tester.getRect(find.byKey(_content));
+    expect(held.width, lessThan(rest.width - 20));
+    expect(held.top, greaterThan(rest.top + 40));
+    await gesture.up();
+    await _pumpFor(tester, 1.0);
+    expect(find.byKey(_content), findsOneWidget);
+    final back = tester.getRect(find.byKey(_content));
+    expect(back.top, closeTo(rest.top, 0.5));
+    expect(back.width, closeTo(rest.width, 0.5));
+  });
+
+  testWidgets('a scrubbed sheet released far enough zooms into the source', (
+    WidgetTester tester,
+  ) async {
+    await present(tester);
+    final gesture = await tester.startGesture(const Offset(201, 600));
+    for (var i = 0; i < 20; i++) {
+      await gesture.moveBy(const Offset(0, 8));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await _pumpFor(tester, 0.3);
+    expect(find.byKey(_content), findsOneWidget);
     await gesture.up();
     await _pumpFor(tester, 1.5);
     expect(find.byKey(_content), findsNothing);
+  });
+
+  test('the scrub frame is the measured one', () {
+    const sheet = Rect.fromLTRB(7.33, 414, 395.33, 867.33);
+    final held = MorphZoomTuning.standard.scrubFrame(sheet, 126);
+    expect(held.left, closeTo(42, 1.5));
+    expect(held.top, closeTo(554.67, 1.5));
+    expect(held.bottom, closeTo(862, 1.5));
+  });
+
+  test('the scrub follows a slow device drag', () {
+    final json = jsonDecode(
+      File('test/fixtures/ios27-device/zoom/scrub.json').readAsStringSync(),
+    ) as Map<String, Object?>;
+    final sheet = _rect(json['sheet']! as List<Object?>);
+    final begin = (json['panBegin']! as num).toDouble();
+    var sum = 0.0;
+    var n = 0;
+    for (final f
+        in (json['slow']! as List<Object?>).cast<Map<String, Object?>>()) {
+      final finger = (f['finger']! as num).toDouble();
+      if (finger <= begin) continue;
+      final r = MorphZoomTuning.standard.scrubFrame(sheet, finger - begin);
+      final want = _rect(f['rect']! as List<Object?>);
+      for (final d in [
+        r.left - want.left,
+        r.top - want.top,
+        r.right - want.right,
+        r.bottom - want.bottom,
+      ]) {
+        sum += d * d;
+        n++;
+      }
+    }
+    expect(n, greaterThan(40));
+    expect(math.sqrt(sum / n), lessThan(1.5));
   });
 }

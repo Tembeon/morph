@@ -102,7 +102,8 @@ export 'src/widgets/navigation_stack.dart'
         MorphNavigationConfig,
         MorphNavigationRoute,
         MorphNavigationScaffold,
-        MorphNavigationStack;
+        MorphNavigationStack,
+        pushMorphZoom;
 export 'src/widgets/page_control.dart'
     show
         MorphPageControl,
@@ -116,6 +117,8 @@ export 'src/widgets/progress.dart'
         MorphProgressStyle,
         MorphProgressView,
         MorphProgressViewStyle;
+export 'src/widgets/push_zoom_motion.dart'
+    show MorphPushZoomMotion, MorphPushZoomTuning;
 export 'src/widgets/scroll_edge_effect.dart'
     show
         MorphScrollEdgeEffect,

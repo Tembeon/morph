@@ -585,6 +585,19 @@ class _MorphBarItemsState extends State<MorphBarItems>
     return flight != null && flight.isAirborne;
   }
 
+  /// The menu whose close rings out on the capsule [id]: after the latch
+  /// the bar draws both shapes of the menu's motion on the capsule until
+  /// they rest, as UIKit keeps its morph container until the kicks ring
+  /// out.
+  _BarMenu? _landingOn(Object id) {
+    final menu = _menu;
+    if (menu == null || menu.capsule != id) return null;
+    if (!menu.motion.isPresented) return null;
+    final flight = menu.flight;
+    if (flight != null && flight.isAirborne) return null;
+    return menu;
+  }
+
   void _openMenu(double t, Object buttonId) {
     final button = _buttons[buttonId];
     final items = button?.menu;
@@ -612,6 +625,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       capsule: capsuleId!,
       style: MorphMenuStyle.resolve(context, null),
       overlay: overlay,
+      origin: origin,
     );
     final motion = MorphMenuMotion(
       button: rect,
@@ -853,7 +867,24 @@ class _MorphBarItemsState extends State<MorphBarItems>
 
             final surfaces = [
               for (final c in capsules)
-                if (!_carried(c.id))
+                if (_landingOn(c.id) case final landing?) ...[
+                  MorphGlassSurface(
+                    kind: MorphGlassKind.button,
+                    shape: landing.motion.buttonBlob.rrect.shift(
+                      -landing.origin,
+                    ),
+                    color: (_prominent[c.id] ?? false)
+                        ? style.prominentColor
+                        : style.capsuleColor,
+                    brightness: brightness,
+                  ),
+                  MorphGlassSurface(
+                    kind: MorphGlassKind.menu,
+                    shape: landing.motion.menuBlob.rrect.shift(-landing.origin),
+                    color: style.capsuleColor,
+                    brightness: brightness,
+                  ),
+                ] else if (!_carried(c.id))
                   MorphGlassSurface(
                     kind: MorphGlassKind.button,
                     shape: RRect.fromRectAndRadius(
@@ -957,9 +988,17 @@ class _MorphBarItemsState extends State<MorphBarItems>
         : style.foregroundColor;
     final press = capsuleId == null ? null : _presses[capsuleId];
     final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
+    final landing = capsuleId == null ? null : _landingOn(capsuleId);
     var center = frame.center;
     var scale = frame.scale;
-    if (press != null && capsule != null) {
+    if (landing != null && capsule != null) {
+      final blob = landing.motion.buttonBlob;
+      center =
+          blob.rect.center -
+          landing.origin +
+          (center - capsule.rect.center) * blob.scale;
+      scale *= blob.scale;
+    } else if (press != null && capsule != null) {
       final c = capsule.rect.center;
       center = c + (center - c) * press.scaleX + press.lean;
       scale *= press.scale;
@@ -1026,6 +1065,7 @@ class _BarMenu implements MorphMenuHost {
     required this.capsule,
     required this.style,
     required this.overlay,
+    required this.origin,
   });
 
   final _MorphBarItemsState state;
@@ -1033,6 +1073,9 @@ class _BarMenu implements MorphMenuHost {
   final Object capsule;
   final MorphMenuStyle style;
   final OverlayState overlay;
+
+  /// The bar's top left corner in the overlay, where the motion lives.
+  final Offset origin;
   final ValueNotifier<int> repaint = ValueNotifier<int>(0);
   late MorphMenuMotion motion;
   MorphFlight? flight;

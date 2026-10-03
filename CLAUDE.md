@@ -559,8 +559,15 @@ Public pieces:
   (hold clock in its MorphClock), the menu motion gets the capsule as
   its button (sourceHeight = capsule height), a vessel flight from the
   bar's own invisible MorphTag carries it, and the bar hides that
-  capsule while the flight is airborne (no ring-out on the capsule after
-  the latch, unlike MorphMenuButton). CONTAINER SPACING: every capsule
+  capsule while the flight is airborne. RING-OUT (filmed 2026-10-03,
+  back-hold-away in the snback film): UIKit's close lands as a wobbling
+  union of the shrinking menu and the capsule, the capsule's top edge 3
+  pt off rest, settled about 0.2 s later; so after the latch the bar
+  draws BOTH shapes of the menu motion on the capsule (button blob +
+  menu blob, surfaces of kinds button/menu, the glyph riding the button
+  blob's center and scale) until the motion goes idle, as
+  MorphMenuButton does (pinned by back_menu_test: the glyph swings ~2
+  pt, then rests exactly). CONTAINER SPACING: every capsule
   of a nav bar, and of a toolbar, is a CASDFElementLayer of ONE
   CASDFLayer (SwiftUI.SDFLayer host) with smoothness 12 on device and
   simulator, constant through setItems, splits and merges (snbars,
@@ -616,16 +623,67 @@ Public pieces:
   crossfade is a 0.154 crit spring (0.045 s late on open), dimming rides
   zoomIn / zoomOut (the read PTSettings). The content subtree carries a
   GlobalKey so the hand-over between the zoom layer and the sheet keeps
-  its state. A drag down from the smallest detent dismisses at once
-  (UIKit committed every slow drag, even one turning back up). NOT
-  built: the push zoom (recorded in snpush) and the ~0.1 s of
-  interactive scrub UIKit shows before a drag commits. Replays:
+  its state. SCRUB (device films 2026-10-03, scrub.json): a drag down
+  from the smallest detent no longer dismisses at once - the sheet
+  follows the finger (`MorphZoomTuning.scrubFrame`: per point of travel
+  since the drag began, top +1.115, sides in 0.275, bottom up 0.04;
+  above the start it grows by at most 17 pt of travel; the travel counts
+  from where the drag recognizer accepted, as UIKit's begins later on a
+  fast drag) and the RELEASE decides: past 100 pt of travel (77 held
+  returned, 126+ dismissed) or faster than 1050 pt/s (the push's
+  threshold, unmeasured here) it zooms into the source from the scrubbed
+  frame (the scrub frame becomes the zoom's destination, so the close
+  is continuous), else it returns on 0.196 crit. The scrub is drawn in
+  the ordinary sheet tree (one Transform maps the laid-out box onto the
+  drawn rect, the body clipped shorter) because swapping to the zoom
+  layer mid-drag would unmount the drag recognizer. NOT REPRODUCED: in
+  the first device session (light appearance) 4 of 5 drags dismissed at
+  once at the slop with no scrub, in the later dark session 2 of 14
+  (a slow 20 pt drag, a fast one from 480) - no trigger found (not press
+  time 30..140 ms, not speed, not start point); morph always scrubs.
+  Replays:
   sheet_test (programmatic,
   0.8 - 2.1 pt rms incl. present jank), sheet_drag_test (16 simulator +
   26 device drags/flicks, outcomes exact, tolerances in the file; the
   device rows replay best UNSHIFTED, the simulator's +1/60). Every drag
   rule above held on the device unchanged (2026-10-03 recapture: two
   flicks sit on the boundary, fd-1000 and lfd-800, left out).
+- PUSH ZOOM (push_zoom.dart, push_zoom_motion.dart; device films
+  2026-10-03 of snpush, fixture ios27-device/push_zoom, pinned by
+  push_zoom_test): `pushMorphZoom(context, from: tagId, builder:)` /
+  `MorphNavigationRoute(zoomSource:)` - the page grows out of the tag
+  as UIKit's `preferredTransition = .zoom` push. The route is
+  non-opaque with a zero transition (the motion finalizes the pop, as
+  the sheet does) and the page below does not parallax (canTransitionTo
+  is false toward a zoom route); the stack's bars change as on any push.
+  `MorphPushZoomMotion` is four springs in POINTS (center x/y, width,
+  height) so a drag can hand over any frame: open center+width
+  0.317/1.0, height 0.406/0.925 (four pushes, 0.98 pt rms); a pop rides
+  UIKit's zoomOut 0.34/0.92 for all four (0.54 pt rms); a drag-dismissal
+  starts from the dragged frame AT REST (a 1200 pt/s flick carried no
+  speed) on 0.45/0.81 (center, width) and 0.33/0.98 (height); a release
+  short of it returns on 0.278/0.927. Crossfade source look -> content
+  0.156 crit 0.01 s late, back 0.191 crit; dimming black 0.15 (grey 128
+  -> 109, unchanged while dragging) on zoomIn/zoomOut; shadow black 0.36,
+  sigma 30, 4 down (scaled by the dimming - its fade is assumed); corner
+  radius source -> display radius by the mean of width and height
+  progress (0.6 pt off); content scaled by width/page width from the
+  container's top (a label read off held drags confirms both
+  directions). DRAG: anywhere on the page (a scroll view with content
+  above the finger keeps its drag), only down or toward the trailing
+  edge within 30 degrees (31 off down and 30.5 off sideways did nothing,
+  up and leading never), slop 13.5; past it the page shrinks about the
+  touch point - down: width 0.00078, height 0.00154 per point, center
+  follows 0.61 of the travel; sideways: 0.00156 / 0.00168, center 0.95
+  (rates blend by the squared direction components). Release: travel
+  past 132.5 (125 held returned, 140 dismissed) or > 1050 pt/s along the
+  drag (70 pt at ~900 returned, 100 pt at ~1200 dismissed) dismisses.
+  Replays feed the logged touches one frame early (rows trail the
+  reaction) and estimate the release speed over 0.05 s. NOT REPRODUCED:
+  a one-frame flash of the final frame at a push start and of the
+  source at a drag dismissal (film artifacts); fast flicks show the page
+  2-3 frames behind the logged touches (synthesizer bursts - those two
+  replays are loose); the edge drag from x 2 replays at 9 pt rms.
 - ALERTS (alert.dart, alert_motion.dart; 2026-10-03, iOS 27 simulator
   iPhone 18 Pro Max 440 x 956, programmatic presents + XCUITest touches,
   springs confirmed on the iPhone 16 Pro by devicectl-launched scenes,
@@ -1461,7 +1519,11 @@ Public pieces:
   `devicectl device copy from` Documents (device.sh's PROBE_PLAN covers
   ProbeUITests and bars only). Zoom / back menu / bar container pass:
   Sources/SheetNav.swift (`snzoom`, `snpush`, `snback`, `snbars` with
-  the SDF sampler and PROBE_SPLIT) and UITests/SheetNavUITests.swift.
+  the SDF sampler and PROBE_SPLIT) and UITests/SheetNavUITests.swift
+  (testSNPush/testSNPushDrag/testSNPushDrag2 for the push zoom,
+  testSNZoomScrub/testSNZoomScrubTiming for the sheet scrub; zoom
+  geometry only shows on film - align each capture by its present/push
+  event against the first frame the source grows).
   XCUIElement keyboard frames exclude the
   bottom row: the iPhone 16 Pro keyboard is 328 pt tall (top 546). Glass morphs that live
   in SwiftUI (the tab bar's search morph) do not show in view frames:

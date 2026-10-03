@@ -3,3 +3,6 @@ zoom.json - UIKit zoom transition into a page sheet (preferredTransition .zoom),
 (Sources/SheetNav.swift): grey page, magenta 140x48 capsule (radius 24) or 160x100 card (radius 16) at
 y 300, green sheet at the medium detent. Four transitions: present/dismiss from each source. Frame times
 are relative to the transition start found by the spring fit (sheet_zoom_test replays them).
+scrub.json - the interactive scrub of a zoom sheet dragged down from its detent (2026-10-03, device films of
+SheetNavUITests testSNZoomScrub / testSNZoomScrubTiming): a slow 80 pt drag per frame, held sheets after fast
+drags, release outcomes. sheet_zoom_test replays the slow drag through MorphZoomTuning.scrubFrame.

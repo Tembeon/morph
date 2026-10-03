@@ -115,6 +115,36 @@ void main() {
     expect(find.text('Thread'), findsWidgets);
   });
 
+  testWidgets('the capsule rings out after the menu closes into it', (
+    WidgetTester tester,
+  ) async {
+    await _stack(tester);
+    final back = find.bySemanticsLabel('Back');
+    final rest = tester.getRect(back);
+    final gesture = await tester.startGesture(_back);
+    await _hold(tester, gesture, 1.0);
+    await gesture.moveTo(const Offset(300, 700));
+    await gesture.up();
+    await _hold(tester, gesture, 0.6);
+    await tester.tapAt(const Offset(300, 700));
+    var landed = false;
+    var swing = 0.0;
+    for (var i = 0; i < 90; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      if (find.text('Mailboxes').evaluate().isNotEmpty) continue;
+      landed = true;
+      final r = tester.getRect(back);
+      final d = (r.center - rest.center).distance;
+      if (d > swing) swing = d;
+    }
+    expect(landed, isTrue);
+    expect(swing, greaterThan(0.3));
+    await tester.pumpAndSettle();
+    expect(tester.getRect(back).center.dx, closeTo(rest.center.dx, 0.01));
+    expect(tester.getRect(back).center.dy, closeTo(rest.center.dy, 0.01));
+    expect(find.text('Message'), findsWidgets);
+  });
+
   test('the measured timing', () {
     expect(MorphBarMenuTuning.recognition, 0.4);
     expect(MorphBarMenuTuning.open, 0.595);

@@ -756,10 +756,37 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   s critically damped spring, 0.045 s late on the way in; the dimming
   rides `_UIZoomTransitionSpec`'s zoomIn 0.34 / 1.0 and zoomOut 0.34 /
   0.92 (device fits 0.322 / 1.0 and 0.354 / 0.919). A drag down from the
-  smallest detent dismisses at once, as UIKit commits a zoom sheet's
-  drag (three slow device drags, one turning back up, all dismissed).
-  Replayed in sheet_zoom_test (fixture ios27-device/zoom). Not built: the
-  zoom into a pushed page (recorded, same family, left for the stack).
+  smallest detent scrubs the sheet - it follows the finger, its top a
+  little ahead (1.115 per point of travel), its sides drawing in (0.275)
+  - and the release decides: past 100 pt of travel or faster than 1050
+  pt/s it zooms into the source from where the finger left it, else it
+  returns on a 0.196 s critically damped spring
+  (`MorphZoomTuning.scrubFrame` and the scrub values; device films:
+  held drags of 77 pt returned, of 126 pt and more dismissed). Some
+  device drags (4 of 5 in one session, 2 of 14 in another) dismissed at
+  once instead, with no trigger found; morph always scrubs.
+  Replayed in sheet_zoom_test (fixtures ios27-device/zoom).
+- NEW: the zoom into a pushed page. `pushMorphZoom(context, from:,
+  builder:)` (or `MorphNavigationRoute(zoomSource:)`) grows the page out
+  of a `MorphTag` as UIKit pushes a view controller whose
+  `preferredTransition` is `.zoom`, measured from device films (iPhone
+  16 Pro, iOS 27.0.1). `MorphPushZoomMotion` / `MorphPushZoomTuning`:
+  center and width open on 0.317 / 1.0, height on 0.406 / 0.925 (0.98
+  pt rms over four pushes); a pop rides UIKit's zoomOut 0.34 / 0.92
+  (0.54 pt rms); the source's look crossfades into the page (0.156 s,
+  back 0.191 s), the page underneath dims by black 0.15 and takes the
+  container's shadow, the corners run from the source's to the
+  display's. A finger dragging the page down, or toward the trailing
+  edge, within 30 degrees, shrinks it about the touch point (measured
+  rates per direction) and on release either zooms it into the source
+  (past 132.5 pt or 1050 pt/s; from rest, on 0.45 / 0.81 and 0.33 /
+  0.98) or returns it (0.278 / 0.927). Replayed in push_zoom_test
+  (fixture ios27-device/push_zoom, five transitions and ten drags,
+  outcomes exact). The gallery's Navigation page has zooming photos.
+- The back button's capsule rings out after its menu closes, as UIKit's
+  does (filmed): after the latch the bar draws both shapes of the menu
+  motion on the capsule until they rest, the glyph riding the button
+  shape, instead of snapping back to the plain capsule.
 - NEW: the back button's long-press menu. `MorphBarButton.menu` gives a
   bar button the menu of `MorphMenuButton`, grown out of its capsule on
   the engine (a vessel flight from the bar's own tag); the measured

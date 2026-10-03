@@ -119,6 +119,42 @@ final class SheetNavUITests: XCTestCase {
         capture("push-zoom-edge", scene: "snpush") { tap(src); pause(1.6); path(p(2, 450), pressFor: 0.05, [(p(300, 450), 0.8, 0.3)]); pause(1.2) }
     }
 
+    func testSNZoomScrub() {
+        let src = p(201, 300)
+        capture("zs-fast-hold", scene: "snzoom") { tap(src); pause(1.6); path(p(201, 520), pressFor: 0.08, [(p(201, 680), 0.1, 0.5)]); pause(1.2) }
+        capture("zs-medium", scene: "snzoom") { tap(src); pause(1.6); path(p(201, 520), pressFor: 0.08, [(p(201, 700), 0.3, 0)]); pause(1.2) }
+        capture("zs-fast-up", scene: "snzoom") { tap(src); pause(1.6); path(p(201, 520), pressFor: 0.08, [(p(201, 640), 0.1, 0), (p(201, 520), 0.2, 0.2)]); pause(1.2) }
+        capture("zs-slow-short", scene: "snzoom") { tap(src); pause(1.6); path(p(201, 520), pressFor: 0.08, [(p(201, 540), 0.4, 0.3)]); pause(1.2) }
+        capture("zs-fast-long", scene: "snzoom") { tap(src); pause(1.6); path(p(201, 480), pressFor: 0.05, [(p(201, 800), 0.25, 0)]); pause(1.2) }
+    }
+
+    func testSNPushDrag() {
+        let src = p(201, 300)
+        capture("pd-down-150", scene: "snpush") { tap(src); pause(1.6); path(p(201, 400), pressFor: 0.1, [(p(201, 550), 0.6, 0.4)]); pause(1.2) }
+        capture("pd-down-110", scene: "snpush") { tap(src); pause(1.6); path(p(201, 400), pressFor: 0.1, [(p(201, 510), 0.6, 0.4)]); pause(1.2) }
+        capture("pd-right-mid", scene: "snpush") { tap(src); pause(1.6); path(p(100, 450), pressFor: 0.1, [(p(300, 450), 0.8, 0.4), (p(100, 450), 0.8, 0.3)]); pause(1.2) }
+        capture("pd-diag", scene: "snpush") { tap(src); pause(1.6); path(p(150, 400), pressFor: 0.1, [(p(300, 650), 0.9, 0.4), (p(150, 400), 0.9, 0.3)]); pause(1.2) }
+        capture("pd-up", scene: "snpush") { tap(src); pause(1.6); path(p(201, 600), pressFor: 0.1, [(p(201, 350), 0.8, 0.4), (p(201, 600), 0.8, 0.3)]); pause(1.2) }
+        capture("pd-flick", scene: "snpush") { tap(src); pause(1.6); path(p(201, 400), pressFor: 0.06, [(p(201, 470), 0.07, 0)]); pause(1.2) }
+        capture("pd-left", scene: "snpush") { tap(src); pause(1.6); path(p(300, 450), pressFor: 0.1, [(p(100, 450), 0.8, 0.4)]); pause(1.2) }
+    }
+
+    func testSNZoomScrubTiming() {
+        let src = p(201, 300)
+        for ms in [30, 60, 90, 110, 140] {
+            capture("zt-press-\(ms)", scene: "snzoom") { tap(src); pause(1.6); path(p(201, 520), pressFor: Double(ms) / 1000, [(p(201, 680), 0.1, 0.3)]); pause(1.2) }
+        }
+        capture("zt-slow-90", scene: "snzoom") { tap(src); pause(1.6); path(p(201, 520), pressFor: 0.09, [(p(201, 600), 0.5, 0.3)]); pause(1.2) }
+    }
+
+    func testSNPushDrag2() {
+        let src = p(201, 300)
+        capture("pd-down-125", scene: "snpush") { tap(src); pause(1.6); path(p(201, 400), pressFor: 0.1, [(p(201, 525), 0.6, 0.4)]); pause(1.2) }
+        capture("pd-down-140", scene: "snpush") { tap(src); pause(1.6); path(p(201, 400), pressFor: 0.1, [(p(201, 540), 0.6, 0.4)]); pause(1.2) }
+        capture("pd-flick-100", scene: "snpush") { tap(src); pause(1.6); path(p(201, 400), pressFor: 0.06, [(p(201, 500), 0.08, 0)]); pause(1.2) }
+        capture("pd-right-down", scene: "snpush") { tap(src); pause(1.6); path(p(100, 400), pressFor: 0.1, [(p(270, 500), 0.7, 0.4)]); pause(1.2) }
+    }
+
     func testSNBack() {
         let back = p(50, 84)
         capture("back-hold-open", scene: "snback", settle: 1.0) { path(back, pressFor: 1.2, []); pause(1.6); tap(p(300, 700)); pause(1.2) }

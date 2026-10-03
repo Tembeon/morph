@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
@@ -29,6 +30,13 @@ class MorphZoomTuning {
     this.openFadeDelay = 0.045,
     this.openDimmingSpring = const MorphSpring(0.34, 1),
     this.closeDimmingSpring = const MorphSpring(0.34, 0.92),
+    this.scrubSideRate = 0.275,
+    this.scrubTopRate = 1.115,
+    this.scrubBottomRate = 0.04,
+    this.scrubStretch = 17,
+    this.scrubReturnSpring = const MorphSpring(0.196, 1),
+    this.scrubDismissTravel = 100,
+    this.scrubDismissVelocity = 1050,
   });
 
   /// The spring the container's center travels on toward the sheet.
@@ -64,6 +72,52 @@ class MorphZoomTuning {
   /// The spring of the dimming while the sheet zooms out: UIKit's zoomOut
   /// spring (device fit 0.350 - 0.357 / 0.919).
   final MorphSpring closeDimmingSpring;
+
+  /// How far each side of a scrubbed sheet draws in per point the finger
+  /// has travelled since the drag began (held device drags: 0.27 - 0.28).
+  final double scrubSideRate;
+
+  /// How far a scrubbed sheet's top moves down per point of travel (the
+  /// top runs a little ahead of the finger: 1.115 on a slow drag, the
+  /// same held after fast ones).
+  final double scrubTopRate;
+
+  /// How far a scrubbed sheet's bottom rises per point of travel (0.03 -
+  /// 0.05).
+  final double scrubBottomRate;
+
+  /// The most a finger back above where the drag began grows a scrubbed
+  /// sheet by, in points of travel (the device showed 17).
+  final double scrubStretch;
+
+  /// The spring a scrubbed sheet released short of a dismissal returns to
+  /// its detent on (device fit 0.196 s, critically damped).
+  final MorphSpring scrubReturnSpring;
+
+  /// The travel past which a released scrubbed sheet zooms back into its
+  /// source: held drags of 77 points returned, of 126 and more dismissed.
+  final double scrubDismissTravel;
+
+  /// The downward release speed, in points per second, past which a
+  /// scrubbed sheet zooms back into its source whatever its travel (the
+  /// push zoom's measured threshold; a sheet flicked 125 points
+  /// dismissed).
+  final double scrubDismissVelocity;
+
+  /// The frame of [sheet] scrubbed by a finger that has travelled
+  /// [travel] points down since the drag began: the sheet's top follows
+  /// the finger a little ahead of it, its sides draw in and its bottom
+  /// barely rises; a finger back above where the drag began grows the
+  /// sheet the same way, by at most [scrubStretch] of travel.
+  Rect scrubFrame(Rect sheet, double travel) {
+    final e = math.max(travel, -scrubStretch);
+    return Rect.fromLTRB(
+      sheet.left + scrubSideRate * e,
+      sheet.top + scrubTopRate * e,
+      sheet.right - scrubSideRate * e,
+      sheet.bottom - scrubBottomRate * e,
+    );
+  }
 
   /// The measured tuning.
   static const standard = MorphZoomTuning();

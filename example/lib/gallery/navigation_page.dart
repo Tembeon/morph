@@ -4,7 +4,9 @@ import 'package:morph_example/gallery/gallery.dart';
 
 /// A small mail app on the measured navigation stack: a large-title list
 /// whose bar buttons morph into the detail screen's on a push, a toolbar
-/// that swaps its item sets, and the soft or hard scroll edge effect.
+/// that swaps its item sets, the soft or hard scroll edge effect, and a
+/// row of photos that zoom into their pages (drag a photo page down or to
+/// the right to zoom it back).
 class NavigationDemoPage extends StatefulWidget {
   /// Creates the page.
   const NavigationDemoPage({super.key});
@@ -29,7 +31,9 @@ class _NavigationDemoPageState extends State<NavigationDemoPage> {
       type: MaterialType.transparency,
       child: _DemoScope(
         state: this,
-        child: MorphNavigationStack(home: _Inbox(onClose: close.maybePop)),
+        child: MorphScope(
+          child: MorphNavigationStack(home: _Inbox(onClose: close.maybePop)),
+        ),
       ),
     );
   }
@@ -160,9 +164,77 @@ class _Inbox extends StatelessWidget {
             ),
           ),
         ),
+        const SliverToBoxAdapter(child: _Photos()),
         SliverList.builder(
           itemCount: 60,
           itemBuilder: (BuildContext context, int i) => _Row(index: i),
+        ),
+      ],
+    );
+  }
+}
+
+class _Photos extends StatelessWidget {
+  const _Photos();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    child: Row(
+      children: [
+        for (var i = 0; i < 4; i++) ...[
+          if (i > 0) const SizedBox(width: 8),
+          Expanded(
+            child: AspectRatio(
+              aspectRatio: 1,
+              child: GestureDetector(
+                onTap: () => pushMorphZoom<void>(
+                  context,
+                  from: 'photo-$i',
+                  builder: (_) => _Photo(index: i),
+                ),
+                child: MorphTag(
+                  id: 'photo-$i',
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(12)),
+                  ),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: _palette[(i * 2 + 1) % _palette.length],
+                      borderRadius: const BorderRadius.all(Radius.circular(12)),
+                    ),
+                    child: const Center(
+                      child: Icon(Icons.photo, color: Colors.white),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ],
+    ),
+  );
+}
+
+class _Photo extends StatelessWidget {
+  const _Photo({required this.index});
+
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _palette[(index * 2 + 1) % _palette.length];
+    return MorphNavigationScaffold(
+      title: 'Photo ${index + 1}',
+      backgroundColor: color,
+      edgeEffect: null,
+      slivers: const [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(
+            child: Icon(Icons.photo, color: Colors.white, size: 120),
+          ),
         ),
       ],
     );

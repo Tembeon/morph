@@ -6,6 +6,7 @@ import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
+import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/zoom_motion.dart';
 
@@ -281,11 +282,15 @@ class _SheetViewState extends State<_SheetView>
   MorphZoomMotion? _zoom;
   Rect? _sourceRect;
   Rect? _zoomTarget;
+  Size? _zoomContent;
   bool _sourceHidden = false;
   final GlobalKey _contentKey = GlobalKey();
   late final _SheetScrollController _scroll = _SheetScrollController(this);
   double _dragY = 0;
   double _stamp = 0;
+  double? _scrubFrom;
+  double _scrubTravel = 0;
+  MorphSpringState? _scrubBack;
   bool _leaving = false;
   int _index = 0;
   Size _size = Size.zero;
@@ -331,6 +336,8 @@ class _SheetViewState extends State<_SheetView>
     final motion = _motion;
     if (motion == null) return;
     motion.advance(t);
+    final back = _scrubBack;
+    if (back != null && back.isAtRest(t, 0.05)) _scrubBack = null;
     final zoom = _zoom;
     if (zoom != null) {
       zoom.advance(t);
@@ -348,7 +355,15 @@ class _SheetViewState extends State<_SheetView>
     final motion = _motion;
     final zoom = _zoom;
     return (motion == null || motion.isSettled) &&
-        (zoom == null || zoom.isSettled);
+        (zoom == null || zoom.isSettled) &&
+        _scrubBack == null;
+  }
+
+  /// How far a finger scrubbing the sheet before a zoom dismissal has
+  /// travelled down at time [t], or null when nothing scrubs it.
+  double? _scrubAt(double t) {
+    if (_scrubFrom != null) return _scrubTravel;
+    return _scrubBack?.value(t);
   }
 
   bool get _zooming {
@@ -389,7 +404,14 @@ class _SheetViewState extends State<_SheetView>
     }
     final zoom = _zoom;
     if (zoom != null) {
-      _zoomTarget ??= motion.visibleRect(clock, _size.height);
+      final natural = motion.visibleRect(clock, _size.height);
+      final scrub = _scrubAt(clock);
+      _zoomContent ??= natural.size;
+      _zoomTarget ??= scrub == null
+          ? natural
+          : _route.zoom.scrubFrame(natural, scrub);
+      _scrubFrom = null;
+      _scrubBack = null;
       motion.dragCancel(clock);
       zoom.close(clock);
       wake();
@@ -509,14 +531,23 @@ class _SheetViewState extends State<_SheetView>
   }
 
   void _dragUpdate(DragUpdateDetails details) {
+    final y = details.globalPosition.dy;
+    final from = _scrubFrom;
+    if (from != null) {
+      _scrubTravel = y - from;
+      wake();
+      return;
+    }
     final motion = _motion;
     if (motion == null || !motion.isDragging) return;
-    final y = details.globalPosition.dy;
     if (_zoom != null &&
         _route.dismissible &&
         y > _dragY &&
         motion.height(_stamp) <= motion.heights.first + 0.5) {
-      _requestDismiss();
+      motion.dragCancel(_stamp);
+      _scrubFrom = _dragY;
+      _scrubTravel = y - _dragY;
+      wake();
       return;
     }
     _dragY = y;
@@ -527,9 +558,34 @@ class _SheetViewState extends State<_SheetView>
       _release(details.velocity.pixelsPerSecond.dy);
 
   void _release(double velocity) {
+    if (_scrubFrom != null) {
+      _endScrub(velocity);
+      return;
+    }
     final motion = _motion;
     if (motion == null || !motion.isDragging) return;
     motion.dragEnd(_stamp, velocity);
+    wake();
+  }
+
+  /// The finger left a scrubbed sheet moving down at [velocity] points
+  /// per second: far enough or fast enough it zooms back into the source,
+  /// otherwise it returns to its detent.
+  void _endScrub(double velocity) {
+    final travel = _scrubTravel;
+    final tuning = _route.zoom;
+    if (travel > tuning.scrubDismissTravel ||
+        velocity > tuning.scrubDismissVelocity) {
+      _requestDismiss();
+      return;
+    }
+    _scrubFrom = null;
+    final back = MorphSpringState(
+      tuning.scrubReturnSpring,
+      math.max(travel, -tuning.scrubStretch),
+    );
+    back.retarget(_stamp, 0);
+    _scrubBack = back;
     wake();
   }
 
@@ -564,9 +620,9 @@ class _SheetViewState extends State<_SheetView>
     final media = MediaQuery.of(context);
     final glass = MorphGlass.maybeOf(context);
     final brightness = morphBrightnessOf(context);
-    final reported = MediaQuery.maybeDisplayCornerRadiiOf(
-      context,
-    )?.bottomLeft.x;
+    final reported = MediaQuery.maybeDisplayCornerRadiiOf(context)
+        ?.bottomLeft
+        .x;
     final floatingRadius =
         (reported ?? MorphSheetTuning.fallbackDisplayRadius) -
         MorphSheetTuning.floatingInset;
@@ -637,12 +693,38 @@ class _SheetViewState extends State<_SheetView>
                 dimOpacity: dimOpacity,
               );
             }
+            final natural = motion.visibleRect(t, size.height);
+            final scrub = _scrubAt(t);
+            final drawn = scrub == null
+                ? natural
+                : _route.zoom.scrubFrame(natural, scrub);
+            final k = size.width <= 0 ? 1.0 : drawn.width / size.width;
             final transform = Matrix4.translationValues(
-              0,
-              motion.shift(t) + motion.offset(t),
+              drawn.left,
+              drawn.top,
               0,
             );
-            transform.multiply(Matrix4.diagonal3Values(s, s, 1));
+            transform.multiply(Matrix4.diagonal3Values(k, k, 1));
+            final body = scrub == null
+                ? sheet
+                : _SheetBody(
+                    shape: RRect.fromLTRBAndCorners(
+                      0,
+                      0,
+                      size.width,
+                      math.min(h, drawn.height / k),
+                      topLeft: shape.tlRadius,
+                      topRight: shape.trRadius,
+                      bottomLeft: shape.blRadius,
+                      bottomRight: shape.brRadius,
+                    ),
+                    dock: dock,
+                    style: style,
+                    glass: glass,
+                    brightness: brightness,
+                    grabber: _route.grabberVisible,
+                    child: child,
+                  );
             return Stack(
               children: [
                 if (dim > 0)
@@ -660,35 +742,42 @@ class _SheetViewState extends State<_SheetView>
                       ),
                     ),
                   ),
-                Positioned(
-                  left: 0,
-                  top: size.height - h,
-                  width: size.width,
-                  height: h,
+                Positioned.fill(
                   child: Transform(
-                    alignment: Alignment.center,
                     transform: transform,
-                    child: Semantics(
-                      scopesRoute: true,
-                      namesRoute: _route.semanticLabel != null,
-                      explicitChildNodes: true,
-                      label: _route.semanticLabel,
-                      child: Listener(
-                        behavior: HitTestBehavior.translucent,
-                        onPointerDown: _down,
-                        onPointerMove: _move,
-                        onPointerUp: _up,
-                        onPointerCancel: _up,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onVerticalDragStart: _dragStart,
-                          onVerticalDragUpdate: _dragUpdate,
-                          onVerticalDragEnd: _dragEnd,
-                          onVerticalDragCancel: () {
-                            _motion?.dragCancel(clock);
-                            wake();
-                          },
-                          child: sheet,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: SizedBox(
+                        width: size.width,
+                        height: h,
+                        child: Semantics(
+                          scopesRoute: true,
+                          namesRoute: _route.semanticLabel != null,
+                          explicitChildNodes: true,
+                          label: _route.semanticLabel,
+                          child: Listener(
+                            behavior: HitTestBehavior.translucent,
+                            onPointerDown: _down,
+                            onPointerMove: _move,
+                            onPointerUp: _up,
+                            onPointerCancel: _up,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onVerticalDragStart: _dragStart,
+                              onVerticalDragUpdate: _dragUpdate,
+                              onVerticalDragEnd: _dragEnd,
+                              onVerticalDragCancel: () {
+                                if (_scrubFrom != null) {
+                                  _scrubTravel = 0;
+                                  _endScrub(0);
+                                  return;
+                                }
+                                _motion?.dragCancel(clock);
+                                wake();
+                              },
+                              child: body,
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -716,7 +805,8 @@ extension on _SheetViewState {
     final zoom = _zoom!;
     final motion = _motion!;
     final t = motion.time;
-    final destination = _zoomTarget ?? motion.visibleRect(t, size.height);
+    final natural = motion.visibleRect(t, size.height);
+    final destination = _zoomTarget ?? natural;
     final source = _captureSource() ?? destination;
     final rect = zoom.rect(t, source, destination);
     final p = zoom.sizeProgress(t).clamp(0.0, 1.0);
@@ -732,7 +822,9 @@ extension on _SheetViewState {
       bottomLeft: bottom,
       bottomRight: bottom,
     );
-    final fit = scale * MorphZoomMotion.contentScale(rect, destination.size);
+    final fit =
+        scale *
+        MorphZoomMotion.contentScale(rect, _zoomContent ?? natural.size);
     final fade = zoom.fade(t);
     final tag = _route.source;
     return Stack(
