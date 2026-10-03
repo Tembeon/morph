@@ -4,7 +4,7 @@ publish_to: 'none'
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.12.2
+  sdk: ^3.13.0
 
 dependencies:
   flutter:
@@ -13,8 +13,6 @@ dependencies:
   morph:
     path: ../
   motor: ^1.1.0
-  liquid_glass_renderer:
-    path: third_party/liquid_glass_renderer
 
 dev_dependencies:
   flutter_test:

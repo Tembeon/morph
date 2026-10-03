@@ -1,4 +1,4 @@
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/liquid_glass_painter.dart';
 

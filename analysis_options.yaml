@@ -16,9 +16,12 @@ analyzer:
 
     # Allow having TODOs in the code.
     todo: info
+
+    # build/shaderbundles/ (the glass renderer's Flutter GPU bundle, an
+    # asset of the package) is written by hook/build.dart on every build.
+    asset_directory_does_not_exist: ignore
   exclude:
     - build/**
-    - example/third_party/**
     - android/**
     - ios/**
     - web/**

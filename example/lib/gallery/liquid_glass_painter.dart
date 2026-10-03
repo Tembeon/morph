@@ -2,7 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/widgets.dart';
-import 'package:liquid_glass_renderer/liquid_glass_renderer.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/widgets.dart';
 
 /// The iOS 27 glass materials the renderer is fitted to.
