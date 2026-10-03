@@ -62,12 +62,16 @@ controls on iOS - not used. Audit p95 raster 2.0 / 2.3 / 2.9 / 3.6 ms
 
 ## References and tools
 
-`references/dark/*.png` (16 states), `*-video/` crops. Audit:
+`references/dark/*.png` (16 states + 9 second-pass shots), `references/light/*.png`
+(the same 25 states forced light, 2026-10-03), `references/disabled/` (the
+disabled look, see states.md), `*-video/` crops. Audit:
 example/integration_test/glass_audit_test.dart (profile, dark, writes
 `<app tmp>/glass/`). Static refs recapture: `PROBE_PLAN=refs
 PROBE_RESULT=<path>.xcresult ./device.sh`, export attachments with
-`xcrun xcresulttool export attachments`; switch the phone to Light for the
-light set. Widgets2UITests.testW2Refs, ExtrasUITests.testX3Shots.
+`xcrun xcresulttool export attachments`; the light set needs no phone
+switch: `TEST_RUNNER_PROBE_REF_DARK=0` on ProbeUITests/testReferences and
+Widgets2UITests/testW2Refs (xcodebuild test-without-building, see README).
+ExtrasUITests.testX3Shots.
 
 ## morph
 
@@ -82,7 +86,8 @@ Tests: glass_renderer_test, lifted_lens_look_test.
 
 ## Open / gaps
 
-- LIGHT reference set (rerun refs in Light).
+- Light audit: run glass_audit_test in light and compare with
+  `references/light/` (captured, not yet compared).
 - Popover arrow is drawn flat.
 - `UIGlassEffect.tintColor` / tinted glass and `interactive = false` as a
   consumer API on arbitrary surfaces.

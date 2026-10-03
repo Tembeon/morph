@@ -1,0 +1,29 @@
+{
+ "device": "iPhone 16 Pro (iPhone17,1) real device, iOS 27.0.1, 402x874 pt @3x, ProMotion; display link 120 Hz (CADisableMinimumFrameDurationOnPhone, preferredFrameRateRange 80..120 pref 120)",
+ "probe": "tool/ios_reference StatesUITests (testProgressDevice: scene w2progress, W2Sampler; testActivityDevice: scene x4ind, X3Sampler)",
+ "simulator_counterpart": "test/fixtures/ios27/progress",
+ "format": "jsonl. k=start (env_PROBE_SCRIPT = the scripted setProgress calls, action@seconds after the scene appeared); k=evt e=script a=<action> t; k=V view rows: cls, id (stable per view), x/y/w/h window bbox of the presentation layer, bw/bh, a opacity, ea effective alpha, cr, bg, tint. progress*: ids 1-4 = default-style UIProgressView 300 pt (4 = the FILL UIImageView, x = its center), 5-8 = bar style (8 = fill). activity-startstop: ids 9/10 = medium indicator + its UIImageView, 11/12 = large; k=anim rows describe each CAAnimation once (contents + contentsMultiplyColor CAKeyframeAnimation, dur 0.8, nvals 16).",
+ "notes": "recapture 2026-10-03 (keeper device checks; the simulator files keep their names)",
+ "captures": [
+  {
+   "file": "progress2.jsonl",
+   "script": "from 0.2: progress:0.3@1; progress:1.0@2; progress:0.0@3.5; progress:0.05@5 (all animated)",
+   "bytes": 113146
+  },
+  {
+   "file": "progress3.jsonl",
+   "script": "from 0.5: progress:0.52@1; progress:0.0@2; progress:0.5@3.5; progress:0.45@5",
+   "bytes": 70904
+  },
+  {
+   "file": "progress-additive.jsonl",
+   "script": "from 0.2: progress:0.9@1; progress:0.4@1.25 (retarget 0.25 s into a 0.7 s animation); progress:0.6@3.0; progress:1.0@3.1",
+   "bytes": 47961
+  },
+  {
+   "file": "activity-startstop.jsonl",
+   "script": "running; stop@2 (hidesWhenStopped YES); start@4; hide:0@5.5 (hidesWhenStopped NO); stop@6; start@8; PROBE_SETTINGS dump: _UIActivityIndicatorSettings fullLoopDuration 0.8, color 60/60/67 alpha 0.6",
+   "bytes": 20438
+  }
+ ]
+}

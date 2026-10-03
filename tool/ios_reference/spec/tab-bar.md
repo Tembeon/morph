@@ -80,6 +80,16 @@ positional on the iPhone 16 Pro: every change from/to the THIRD slot of a
 animation. CN1's 393 pt 5-tab bar was slow on other slots: the rule is a
 function of geometry not derivable from two widths.
 
+## Disabled item [device, light + dark, 2026-10-03]
+
+- `UITabBarItem.isEnabled = NO` draws NOTHING different: the bar is
+  pixel-identical to the enabled bar (both rows of the selected-tint copy
+  keep their colors); only `_UITabButton.enabled` turns false.
+- Whether a disabled item still lifts / glows under a touch: capture
+  `dis-tab-touch` prepared (StatesUITests testDisabledTouch), not yet run.
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
+- To port: no disabled dim on tab items (morph dims by 0.35 today).
+
 ## Fixtures
 
 Device `ios27-device/lens/tabbar{2,3,4,5}-*` (taps, pairs, scrub mid /
@@ -108,7 +118,7 @@ controls_scroll_test.
 
 - Slow lift (above). Bar-local glitch (deliberate).
 - Tab bar deformation replay only on undeformed frames.
-- Disabled opacity unmeasured.
+- Reduce Motion unmeasured (plan in states.md).
 
 ## API gaps
 

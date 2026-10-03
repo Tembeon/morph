@@ -265,20 +265,22 @@ final class Widgets2UITests: XCTestCase {
 
     // MARK: still references (attachments of the result bundle)
 
+    /// PROBE_REF_DARK=1/0 forces the appearance of every reference (unset = the phone's own).
     func testW2Refs() {
+        let rx = env["PROBE_REF_DARK"].map { ["PROBE_DARK": $0] } ?? [:]
         func shot(_ name: String) {
             let a = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
             a.name = name
             a.lifetime = .keepAlways
             add(a)
         }
-        capture("ref-sheet", scene: "w2sheet") { tap(p(201, 300)); pause(1.3); shot("sheet-medium"); path(p(201, 440), pressFor: 0.1, [(p(201, 120), 0.6, 0.3)]); pause(1.2); shot("sheet-large") }
-        capture("ref-page", scene: "w2page") { shot("page-control") }
-        capture("ref-page-prominent", scene: "w2page", extra: ["PROBE_PCSTYLE": "prominent"]) { shot("page-control-prominent") }
-        capture("ref-progress", scene: "w2progress") { shot("progress") }
-        capture("ref-ctx", scene: "w2ctx") { path(p(201, 300), pressFor: 1.0, []); pause(1.0); shot("ctx-open"); tap(p(201, 820)) }
-        capture("ref-search", scene: "w2search", extra: ["PROBE_SEARCH": "tab"]) { shot("search-tab-rest") }
-        capture("ref-alert", scene: "w2alert", extra: ["PROBE_SCRIPT": "show@0.5"]) { pause(1.2); shot("alert") }
-        capture("ref-actionsheet", scene: "w2alert", extra: ["PROBE_ALERT": "sheet", "PROBE_SCRIPT": "show@0.5"]) { pause(1.2); shot("actionsheet") }
+        capture("ref-sheet", scene: "w2sheet", extra: rx) { tap(p(201, 300)); pause(1.3); shot("sheet-medium"); path(p(201, 440), pressFor: 0.1, [(p(201, 120), 0.6, 0.3)]); pause(1.2); shot("sheet-large") }
+        capture("ref-page", scene: "w2page", extra: rx) { shot("page-control") }
+        capture("ref-page-prominent", scene: "w2page", extra: rx.merging(["PROBE_PCSTYLE": "prominent"]) { $1 }) { shot("page-control-prominent") }
+        capture("ref-progress", scene: "w2progress", extra: rx) { shot("progress") }
+        capture("ref-ctx", scene: "w2ctx", extra: rx) { path(p(201, 300), pressFor: 1.0, []); pause(1.0); shot("ctx-open"); tap(p(201, 820)) }
+        capture("ref-search", scene: "w2search", extra: rx.merging(["PROBE_SEARCH": "tab"]) { $1 }) { shot("search-tab-rest") }
+        capture("ref-alert", scene: "w2alert", extra: rx.merging(["PROBE_SCRIPT": "show@0.5"]) { $1 }) { pause(1.2); shot("alert") }
+        capture("ref-actionsheet", scene: "w2alert", extra: rx.merging(["PROBE_ALERT": "sheet", "PROBE_SCRIPT": "show@0.5"]) { $1 }) { pause(1.2); shot("actionsheet") }
     }
 }

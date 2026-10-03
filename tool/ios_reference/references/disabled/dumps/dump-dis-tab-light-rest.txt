@@ -1,0 +1,116 @@
+Probe.RecordingWindow 0.00,0.00 402.00x874.00 a=1.0 tint=- tam=1
+    [L] UIWindowLayer name=Probe.RecordingWindow (dev.tembeon.morph.probe) op=1.0 cr=0.0
+  _UITouchFallbackView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+      [L] CALayer name=- op=1.0 cr=0.0
+  UITransitionView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+      [L] CALayer name=- op=1.0 cr=0.0
+    UIDropShadowView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+        [L] CALayer name=- op=1.0 cr=0.0
+      UILayoutContainerView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+          [L] CALayer name=UILayoutContainerView (Probe.DisabledTabScene) op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000]
+        UITransitionView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UIViewControllerWrapperView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                [L] CALayer name=UIView (UIViewController) op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000]
+        _UITabContainerView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          _UIBottomTabBarGroupView 0.00,791.00 402.00x83.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _UITouchPassthroughView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UITabBar 0.00,791.00 402.00x83.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIKit._UITabBarItemPlatterView 21.00,791.00 360.00x62.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  _TtCC5UIKit32_UITabBarVisualProvider_FloatingP33_3C6E5A7AE2316B749C88F887559DAAB619SelectedContentView 21.00,791.00 360.00x62.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    _UITabButton 25.00,795.00 98.00x54.00 a=1.0 enabled=true hl=false sel=true tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIImageView 57.33,801.00 33.33x28.00 a=1.0 #house tint=[0.0000,0.5333,1.0000,1.0000] tam=1 image=symbol rm=0
+                          [L] CALayer name=- op=1.0 cr=0.0 img=82x72
+                      _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D16TitleWrapperView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "gaussianBlur", "name": "gaussianBlur"]]
+                        _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D5Label 59.33,830.00 29.33x12.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Home tc=[0.0000,0.5333,1.0000,1.0000] enabledLbl=true fs=10.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                    _UITabButton 109.67,795.00 98.00x54.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIImageView 141.67,800.00 34.00x29.33 a=1.0 #books.vertical tint=[0.0000,0.5333,1.0000,1.0000] tam=1 image=symbol rm=0
+                          [L] CALayer name=- op=1.0 cr=0.0 img=85x76
+                      _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D16TitleWrapperView 109.67,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "gaussianBlur", "name": "gaussianBlur"]]
+                        _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D5Label 141.00,830.00 35.67x12.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Library tc=[0.0000,0.5333,1.0000,1.0000] enabledLbl=true fs=10.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                    _UITabButton 194.33,795.00 98.00x54.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIImageView 226.67,802.67 33.67x24.67 a=1.0 #dot.radiowaves.left.and.right tint=[0.0000,0.5333,1.0000,1.0000] tam=1 image=symbol rm=0
+                          [L] CALayer name=- op=1.0 cr=0.0 img=89x62
+                      _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D16TitleWrapperView 194.33,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "gaussianBlur", "name": "gaussianBlur"]]
+                        _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D5Label 229.33,830.00 28.33x12.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Radio tc=[0.0000,0.5333,1.0000,1.0000] enabledLbl=true fs=10.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                    _UITabButton 279.00,795.00 98.00x54.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIImageView 315.00,802.33 26.00x25.00 a=1.0 #person tint=[0.0000,0.5333,1.0000,1.0000] tam=1 image=symbol rm=0
+                          [L] CALayer name=- op=1.0 cr=0.0 img=60x63
+                      _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D16TitleWrapperView 279.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "gaussianBlur", "name": "gaussianBlur"]]
+                        _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D5Label 311.67,830.00 33.00x12.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Profile tc=[0.0000,0.5333,1.0000,1.0000] enabledLbl=true fs=10.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                  _UILiquidLensView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "opacityPair", "name": "opacityPair"]]
+                    UIView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      _UITabSelectionView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                          [L] CABackdropLayer name=- op=1.0 cr=0.0 filters=[["name": "gaussianBlur", "type": "gaussianBlur", "inputRadius": 2.0, "inputNormalizeEdges": 1.0], ["type": "colorMatrix", "name": "colorMatrix", "inputColorMatrix": [1.1851, -0.0502, -0.005, 0.0, -0.2, -0.0149, 1.1499, -0.0051, 0.0, -0.2, -0.0149, -0.05, 1.1949, 0.0, -0.2, 0.0, 0.0, 0.0, 1.0, 0.0]]]
+                      _TtCE5UIKitCSo17_UILiquidLensViewP33_4C400BD973F5E4E0B779D1A21A7AEB2714ClearGlassView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        UIView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                            [L] CALayer name=_UILiquidLensView.ClearGlassView.liftedContentWarpWrapper op=1.0 cr=0.0 filters=[["type": "displacementMap", "name": "displacementMap"]]
+                          _TtCE5UIKitCSo17_UILiquidLensViewP33_4C400BD973F5E4E0B779D1A21A7AEB277SDFView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                              [L] CASDFLayer name=warpSDF op=1.0 cr=0.0
+                            _TtCE5UIKitCSo17_UILiquidLensViewP33_4C400BD973F5E4E0B779D1A21A7AEB2714SDFElementView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                                [L] CASDFElementLayer name=- op=1.0 cr=0.0
+                          _UIPortalView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                              [L] CAPortalLayer name=- op=1.0 cr=0.0
+                        UIView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                            [L] CALayer name=_UILiquidLensView.ClearGlassView.innerShadowView op=1.0 cr=0.0
+                  _TtCC5UIKit20_UITabBarPlatterViewP33_022AA364308030F4627162921FD6D31A11ContentView 21.00,791.00 360.00x62.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    _UITabButton 25.00,795.00 98.00x54.00 a=1.0 enabled=true hl=false sel=true tint=[0.0000,0.0000,0.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIImageView 57.33,801.00 33.33x28.00 a=1.0 #house tint=[0.0000,0.0000,0.0000,1.0000] tam=1 image=symbol rm=0
+                          [L] CALayer name=- op=1.0 cr=0.0 img=82x72
+                      _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D16TitleWrapperView 25.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.0000,0.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "gaussianBlur", "name": "gaussianBlur"]]
+                        _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D5Label 59.67,830.00 29.00x12.00 a=1.0 tint=[0.0000,0.0000,0.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Home tc=[0.0000,0.0000,0.0000,1.0000] enabledLbl=true fs=10.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                    _UITabButton 109.67,795.00 98.00x54.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.0000,0.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIImageView 141.67,800.00 34.00x29.33 a=1.0 #books.vertical tint=[0.0000,0.0000,0.0000,1.0000] tam=1 image=symbol rm=0
+                          [L] CALayer name=- op=1.0 cr=0.0 img=85x76
+                      _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D16TitleWrapperView 109.67,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.0000,0.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "gaussianBlur", "name": "gaussianBlur"]]
+                        _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D5Label 141.33,830.00 35.00x12.00 a=1.0 tint=[0.0000,0.0000,0.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Library tc=[0.0000,0.0000,0.0000,1.0000] enabledLbl=true fs=10.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                    _UITabButton 194.33,795.00 98.00x54.00 a=1.0 enabled=false hl=false sel=false tint=[0.0000,0.0000,0.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIImageView 226.67,802.67 33.67x24.67 a=1.0 #dot.radiowaves.left.and.right tint=[0.0000,0.0000,0.0000,1.0000] tam=1 image=symbol rm=0
+                          [L] CALayer name=- op=1.0 cr=0.0 img=89x62
+                      _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D16TitleWrapperView 194.33,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.0000,0.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "gaussianBlur", "name": "gaussianBlur"]]
+                        _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D5Label 229.33,830.00 28.00x12.00 a=1.0 tint=[0.0000,0.0000,0.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Radio tc=[0.0000,0.0000,0.0000,1.0000] enabledLbl=true fs=10.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                    _UITabButton 279.00,795.00 98.00x54.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.0000,0.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIImageView 315.00,802.33 26.00x25.00 a=1.0 #person tint=[0.0000,0.0000,0.0000,1.0000] tam=1 image=symbol rm=0
+                          [L] CALayer name=- op=1.0 cr=0.0 img=60x63
+                      _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D16TitleWrapperView 279.00,795.00 98.00x54.00 a=1.0 tint=[0.0000,0.0000,0.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0 filters=[["type": "gaussianBlur", "name": "gaussianBlur"]]
+                        _TtCC5UIKit12_UITabButtonP33_4EA307C86E0356016F55ED2F1518661D5Label 311.67,830.00 32.33x12.00 a=1.0 tint=[0.0000,0.0000,0.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Profile tc=[0.0000,0.0000,0.0000,1.0000] enabledLbl=true fs=10.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                  _TtCE5UIKitCSo17_UILiquidLensViewP33_4C400BD973F5E4E0B779D1A21A7AEB2711DestOutView 21.00,791.00 98.00x54.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,1.0000]
+                      [L] CALayer name=- op=1.0 cr=27.0 bg=[0.0000,0.0000,0.0000,1.0000] cf=destOut
+                  _TtCC5UIKit20_UITabBarPlatterViewP33_022AA364308030F4627162921FD6D31A18BadgeContainerView 21.00,791.00 360.00x62.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0

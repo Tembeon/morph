@@ -91,6 +91,15 @@ outside at ea 0.447); fade toward the edges by a table read from device
 screenshots; fast deceleration (64 pt drag turns two rows). 12-hour: AM/PM
 wheel, hour wheel 1 - 12 right-aligned, AM/PM flips as hours pass 11/12.
 
+## Disabled compact labels [device, light + dark, 2026-10-03]
+
+- `UIDatePicker.isEnabled = NO`: the tertiarySystemFill capsule behind each
+  label (dark 0x767680 at 0.24, light at 0.12) is REMOVED; the date and
+  time text keep the label color (pixel-identical text). No opacity.
+- One frame, no animation.
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
+- To port: disabled labels draw text only, no capsule, no press dim.
+
 ## Fixtures
 
 Device `ios27-device/date_picker/` (vid-date, vid-both, wheels.json,

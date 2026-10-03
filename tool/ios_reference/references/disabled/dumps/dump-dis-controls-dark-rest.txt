@@ -1,0 +1,534 @@
+Probe.RecordingWindow 0.00,0.00 402.00x874.00 a=1.0 tint=- tam=1
+    [L] UIWindowLayer name=Probe.RecordingWindow (dev.tembeon.morph.probe) op=1.0 cr=0.0
+  UITransitionView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+      [L] CALayer name=- op=1.0 cr=0.0
+    UIDropShadowView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+        [L] CALayer name=- op=1.0 cr=0.0
+      UIView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,1.0000]
+          [L] CALayer name=UIView (Probe.DisabledControlsScene) op=1.0 cr=0.0 bg=[0.0000,0.0000,0.0000,1.0000]
+        UISegmentedControl 16.00,90.00 170.00x33.00 a=1.0 #x3_en_seg enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=16.5
+          UIView 16.00,90.00 170.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=nan
+          UIImageView 16.00,90.00 56.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+              [L] CALayer name=- op=1.0 cr=0.0 img=81x105
+            UIImageView 72.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIImageView 72.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0
+          UIImageView 72.00,90.00 57.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+              [L] CALayer name=- op=1.0 cr=0.0 img=3x105
+            UIImageView 129.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIImageView 129.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0
+          UIImageView 129.00,90.00 57.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+              [L] CALayer name=- op=1.0 cr=0.0 img=81x105
+            UIImageView 186.00,90.00 0.00x33.00 a=0.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                [L] CALayer name=- op=0.0 cr=0.0
+              UIImageView 186.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0
+          UIView 16.00,90.00 170.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _UILiquidLensView 18.00,92.00 52.00x29.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 18.00,92.00 52.00x29.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 18.00,92.00 52.00x29.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.9216,0.9216,0.9608,0.3000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[0.9216,0.9216,0.9608,0.3000]
+            UIView 16.00,90.00 170.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UISegment 72.00,90.00 57.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UISegmentLabel 84.00,98.67 33.00x15.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 text=Night tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=13.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+              UISegment 129.00,90.00 57.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UISegmentLabel 150.00,98.67 15.33x15.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 text=All tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=13.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+              UISegment 16.00,90.00 56.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UISegmentLabel 32.00,98.67 24.00x15.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 text=Day tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=13.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+            _TtCE5UIKitCSo17_UILiquidLensViewP33_4C400BD973F5E4E0B779D1A21A7AEB2711DestOutView 16.00,90.00 52.00x29.00 a=0.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,1.0000]
+                [L] CALayer name=- op=0.0 cr=14.5 bg=[0.0000,0.0000,0.0000,1.0000] cf=destOut
+        UISegmentedControl 216.00,90.00 170.00x33.00 a=0.5 #x3_dis_seg enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=0.5 cr=16.5
+          UIView 216.00,90.00 170.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=nan
+          UIImageView 216.00,90.00 56.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+              [L] CALayer name=- op=1.0 cr=0.0 img=81x105
+            UIImageView 272.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIImageView 272.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0
+          UIImageView 272.00,90.00 57.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+              [L] CALayer name=- op=1.0 cr=0.0 img=3x105
+            UIImageView 329.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIImageView 329.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0
+          UIImageView 329.00,90.00 57.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+              [L] CALayer name=- op=1.0 cr=0.0 img=81x105
+            UIImageView 386.00,90.00 0.00x33.00 a=0.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                [L] CALayer name=- op=0.0 cr=0.0
+              UIImageView 386.00,90.00 0.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0
+          UIView 216.00,90.00 170.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _UILiquidLensView 218.00,92.00 52.00x29.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 218.00,92.00 52.00x29.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 218.00,92.00 52.00x29.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.9216,0.9216,0.9608,0.3000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[0.9216,0.9216,0.9608,0.3000]
+            UIView 216.00,90.00 170.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UISegment 272.00,90.00 57.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UISegmentLabel 284.00,98.67 33.00x15.67 a=1.0 tint=[1.0000,1.0000,1.0000,1.0000] tam=1 text=Night tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=13.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+              UISegment 329.00,90.00 57.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UISegmentLabel 350.00,98.67 15.33x15.67 a=1.0 tint=[1.0000,1.0000,1.0000,1.0000] tam=1 text=All tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=13.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+              UISegment 216.00,90.00 56.00x33.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UISegmentLabel 232.00,98.67 24.00x15.67 a=1.0 tint=[1.0000,1.0000,1.0000,1.0000] tam=1 text=Day tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=13.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+            _TtCE5UIKitCSo17_UILiquidLensViewP33_4C400BD973F5E4E0B779D1A21A7AEB2711DestOutView 216.00,90.00 52.00x29.00 a=0.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,1.0000]
+                [L] CALayer name=- op=0.0 cr=14.5 bg=[0.0000,0.0000,0.0000,1.0000] cf=destOut
+        UISwitch 70.67,140.00 63.00x28.00 a=1.0 #x3_en_swOff enabled=true hl=false sel=false tint=- tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UISwitchModernVisualElement 70.67,140.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 70.67,140.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.9216,0.9216,0.9608,0.2980]
+                [L] CALayer name=- op=1.0 cr=14.0 bg=[0.9216,0.9216,0.9608,0.2980]
+            UIView 70.67,140.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=14.0
+              UIImageView -496.33,140.00 630.00x31.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0 HID img=1890x3
+              UIView 70.67,140.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIImageView 118.67,154.00 0.00x0.00 a=1.0 tint=[0.7000,0.7000,0.7000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                UIImageView 85.67,154.00 0.00x0.00 a=0.0 tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=0.0 cr=0.0
+            _UILiquidLensView 72.67,142.00 37.00x24.00 a=1.0 tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 72.67,142.00 37.00x24.00 a=1.0 tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 72.67,142.00 37.00x24.00 a=1.0 tint=[0.9216,0.9216,0.9608,0.2980] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000]
+        UISwitch 270.67,140.00 63.00x28.00 a=1.0 #x3_dis_swOff enabled=false hl=false sel=false tint=- tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UISwitchModernVisualElement 270.67,140.00 63.00x28.00 a=0.5 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=0.5 cr=0.0
+            UIView 270.67,140.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.9216,0.9216,0.9608,0.2980]
+                [L] CALayer name=- op=1.0 cr=14.0 bg=[0.9216,0.9216,0.9608,0.2980]
+            UIView 270.67,140.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=14.0
+              UIImageView -296.33,140.00 630.00x31.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0 HID img=1890x3
+              UIView 270.67,140.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIImageView 318.67,154.00 0.00x0.00 a=1.0 tint=[0.7000,0.7000,0.7000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                UIImageView 285.67,154.00 0.00x0.00 a=0.0 tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=0.0 cr=0.0
+            _UILiquidLensView 272.67,142.00 37.00x24.00 a=1.0 tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 272.67,142.00 37.00x24.00 a=1.0 tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 272.67,142.00 37.00x24.00 a=1.0 tint=[0.9216,0.9216,0.9608,0.2980] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000]
+        UISwitch 70.67,186.00 63.00x28.00 a=1.0 #x3_en_swOn enabled=true hl=false sel=false tint=- tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UISwitchModernVisualElement 70.67,186.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 70.67,186.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.9216,0.9216,0.9608,0.2980]
+                [L] CALayer name=- op=1.0 cr=14.0 bg=[0.9216,0.9216,0.9608,0.2980]
+            UIView 70.67,186.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.1882,0.8196,0.3451,1.0000]
+                [L] CALayer name=- op=1.0 cr=14.0 bg=[0.1882,0.8196,0.3451,1.0000]
+              UIImageView 70.67,186.00 630.00x31.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0 HID img=1890x3
+              UIView 70.67,186.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIImageView 118.67,200.00 0.00x0.00 a=0.0 tint=[0.7000,0.7000,0.7000,1.0000] tam=1
+                    [L] CALayer name=- op=0.0 cr=0.0
+                UIImageView 85.67,200.00 0.00x0.00 a=1.0 tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+            _UILiquidLensView 94.67,188.00 37.00x24.00 a=1.0 tint=[0.1882,0.8196,0.3451,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 94.67,188.00 37.00x24.00 a=1.0 tint=[0.1882,0.8196,0.3451,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 94.67,188.00 37.00x24.00 a=1.0 tint=[0.1882,0.8196,0.3451,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000]
+        UISwitch 270.67,186.00 63.00x28.00 a=1.0 #x3_dis_swOn enabled=false hl=false sel=false tint=- tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UISwitchModernVisualElement 270.67,186.00 63.00x28.00 a=0.5 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=0.5 cr=0.0
+            UIView 270.67,186.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.9216,0.9216,0.9608,0.2980]
+                [L] CALayer name=- op=1.0 cr=14.0 bg=[0.9216,0.9216,0.9608,0.2980]
+            UIView 270.67,186.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.1882,0.8196,0.3451,1.0000]
+                [L] CALayer name=- op=1.0 cr=14.0 bg=[0.1882,0.8196,0.3451,1.0000]
+              UIImageView 270.67,186.00 630.00x31.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=bitmap rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0 HID img=1890x3
+              UIView 270.67,186.00 63.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIImageView 318.67,200.00 0.00x0.00 a=0.0 tint=[0.7000,0.7000,0.7000,1.0000] tam=1
+                    [L] CALayer name=- op=0.0 cr=0.0
+                UIImageView 285.67,200.00 0.00x0.00 a=1.0 tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+            _UILiquidLensView 294.67,188.00 37.00x24.00 a=1.0 tint=[0.1882,0.8196,0.3451,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 294.67,188.00 37.00x24.00 a=1.0 tint=[0.1882,0.8196,0.3451,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 294.67,188.00 37.00x24.00 a=1.0 tint=[0.1882,0.8196,0.3451,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000]
+        UISlider 16.00,232.00 170.00x28.00 a=1.0 #x3_en_slider enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UIKit._UISliderGlassVisualElement 16.00,232.00 170.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 16.00,243.00 170.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=3.0
+              UIView 16.00,243.00 170.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,0.1000]
+                  [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,0.1000]
+              UIView 16.00,243.00 58.40x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.5686,1.0000,1.0000]
+                  [L] CALayer name=- op=1.0 cr=3.0 bg=[0.0000,0.5686,1.0000,1.0000]
+            _UILiquidLensView 56.00,234.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 56.00,234.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 56.00,234.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000] shadow=0.14/5.0
+        UISlider 216.00,232.00 170.00x28.00 a=1.0 #x3_dis_slider enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UIKit._UISliderGlassVisualElement 216.00,232.00 170.00x28.00 a=0.5 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=0.5 cr=0.0
+            UIView 216.00,243.00 170.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=3.0
+              UIView 216.00,243.00 170.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,0.1000]
+                  [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,0.1000]
+              UIView 216.00,243.00 58.40x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.5686,1.0000,1.0000]
+                  [L] CALayer name=- op=1.0 cr=3.0 bg=[0.0000,0.5686,1.0000,1.0000]
+            _UILiquidLensView 256.00,234.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 256.00,234.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 256.00,234.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000] shadow=0.14/5.0
+        UISlider 16.00,278.00 170.00x28.00 a=1.0 #x3_en_sliderT enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UIKit._UISliderGlassVisualElement 16.00,278.00 170.00x28.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 16.00,298.00 170.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIView 32.50,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+              UIView 65.75,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+              UIView 99.00,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+              UIView 132.25,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+              UIView 165.50,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+            UIView 16.00,289.00 170.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=3.0
+              UIView 16.00,289.00 170.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,0.1000]
+                  [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,0.1000]
+              UIView 16.00,289.00 85.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.5686,1.0000,1.0000]
+                  [L] CALayer name=- op=1.0 cr=3.0 bg=[0.0000,0.5686,1.0000,1.0000]
+            _UILiquidLensView 83.00,280.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 83.00,280.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 83.00,280.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000] shadow=0.14/5.0
+        UISlider 216.00,278.00 170.00x28.00 a=1.0 #x3_dis_sliderT enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UIKit._UISliderGlassVisualElement 216.00,278.00 170.00x28.00 a=0.5 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=0.5 cr=0.0
+            UIView 216.00,298.00 170.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIView 232.50,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+              UIView 265.75,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+              UIView 299.00,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+              UIView 332.25,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+              UIView 365.50,299.00 3.00x3.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.2196,0.2196,0.2275,1.0000]
+                  [L] CALayer name=- op=1.0 cr=1.5 bg=[0.2196,0.2196,0.2275,1.0000]
+            UIView 216.00,289.00 170.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=3.0
+              UIView 216.00,289.00 170.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,0.1000]
+                  [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,0.1000]
+              UIView 216.00,289.00 85.00x6.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.5686,1.0000,1.0000]
+                  [L] CALayer name=- op=1.0 cr=3.0 bg=[0.0000,0.5686,1.0000,1.0000]
+            _UILiquidLensView 283.00,280.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "opacityPair", "type": "opacityPair"]]
+              UIView 283.00,280.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 283.00,280.00 37.00x24.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[1.0000,1.0000,1.0000,1.0000]
+                    [L] CALayer name=- op=1.0 cr=0.0 bg=[1.0000,1.0000,1.0000,1.0000] shadow=0.14/5.0
+        UIStepper 54.00,324.00 94.00x32.00 a=1.0 #x3_en_stepper enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UIStepperDesignLibraryVisualElement 54.00,324.00 94.00x32.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _TtGC5UIKit17UICoreHostingViewVS_20DesignLibraryStepper_ 54.00,324.00 94.00x32.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+                  [L] 54.67,324.00 46.33x32.00 CALayer name=- op=1.0 cr=0.0 MASK
+                    (mask) [L] 54.67,324.00 0.00x0.00 SwiftUI.MaskLayer name=- op=1.0 cr=0.0 fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    (mask)   [L] 54.67,324.00 93.00x32.00 CAShapeLayer name=- op=1.0 cr=16.0 bg=[0.0000,0.0000,0.0000,1.0000] fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    (mask)   [L] 54.67,324.00 46.33x32.00 CAShapeLayer name=- op=1.0 cr=0.0 bg=[0.0000,0.0000,0.0000,1.0000] cf=sourceIn fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    [L] 54.67,324.00 46.33x32.00 CALayer name=- op=1.0 cr=0.0 bg=[0.9216,0.9216,0.9608,0.0784]
+                  [L] 71.00,339.00 13.33x2.00 _TtC7SwiftUIP33_E19F490D25D5E0EC8A24903AF958E34115ColorShapeLayer name=- op=1.0 cr=0.0 fill=[1.0000,1.0000,1.0000,1.0000] stroke=-
+                  [L] 101.00,324.00 46.67x32.00 CALayer name=- op=1.0 cr=0.0 MASK
+                    (mask) [L] 101.00,324.00 0.00x0.00 SwiftUI.MaskLayer name=- op=1.0 cr=0.0 fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    (mask)   [L] 54.67,324.00 93.00x32.00 CAShapeLayer name=- op=1.0 cr=16.0 bg=[0.0000,0.0000,0.0000,1.0000] fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    (mask)   [L] 101.00,324.00 46.67x32.00 CAShapeLayer name=- op=1.0 cr=0.0 bg=[0.0000,0.0000,0.0000,1.0000] cf=sourceIn fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    [L] 101.00,324.00 46.67x32.00 CALayer name=- op=1.0 cr=0.0 bg=[0.9216,0.9216,0.9608,0.0784]
+                  [L] 117.67,333.33 13.33x13.33 _TtC7SwiftUIP33_E19F490D25D5E0EC8A24903AF958E34115ColorShapeLayer name=- op=1.0 cr=0.0 fill=[1.0000,1.0000,1.0000,1.0000] stroke=-
+                  [L] 100.67,328.00 1.00x24.00 CALayer name=- op=1.0 cr=0.5 bg=[0.9216,0.9216,0.9608,0.2980]
+        UIStepper 254.00,324.00 94.00x32.00 a=1.0 #x3_dis_stepper enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UIStepperDesignLibraryVisualElement 254.00,324.00 94.00x32.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _TtGC5UIKit17UICoreHostingViewVS_20DesignLibraryStepper_ 254.00,324.00 94.00x32.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+                  [L] 254.67,324.00 46.33x32.00 CALayer name=- op=1.0 cr=0.0 MASK
+                    (mask) [L] 254.67,324.00 0.00x0.00 SwiftUI.MaskLayer name=- op=1.0 cr=0.0 fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    (mask)   [L] 254.67,324.00 93.00x32.00 CAShapeLayer name=- op=1.0 cr=16.0 bg=[0.0000,0.0000,0.0000,1.0000] fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    (mask)   [L] 254.67,324.00 46.33x32.00 CAShapeLayer name=- op=1.0 cr=0.0 bg=[0.0000,0.0000,0.0000,1.0000] cf=sourceIn fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    [L] 254.67,324.00 46.33x32.00 CALayer name=- op=1.0 cr=0.0 bg=[0.9216,0.9216,0.9608,0.0784]
+                  [L] 271.00,339.00 13.33x2.00 _TtC7SwiftUIP33_E19F490D25D5E0EC8A24903AF958E34115ColorShapeLayer name=- op=1.0 cr=0.0 fill=[1.0000,1.0000,1.0000,1.0000] stroke=-
+                  [L] 301.00,324.00 46.67x32.00 CALayer name=- op=1.0 cr=0.0 MASK
+                    (mask) [L] 301.00,324.00 0.00x0.00 SwiftUI.MaskLayer name=- op=1.0 cr=0.0 fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    (mask)   [L] 254.67,324.00 93.00x32.00 CAShapeLayer name=- op=1.0 cr=16.0 bg=[0.0000,0.0000,0.0000,1.0000] fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    (mask)   [L] 301.00,324.00 46.67x32.00 CAShapeLayer name=- op=1.0 cr=0.0 bg=[0.0000,0.0000,0.0000,1.0000] cf=sourceIn fill=[0.0000,0.0000,0.0000,1.0000] stroke=-
+                    [L] 301.00,324.00 46.67x32.00 CALayer name=- op=1.0 cr=0.0 bg=[0.9216,0.9216,0.9608,0.0784]
+                  [L] 317.67,333.33 13.33x13.33 _TtC7SwiftUIP33_E19F490D25D5E0EC8A24903AF958E34115ColorShapeLayer name=- op=1.0 cr=0.0 fill=[1.0000,1.0000,1.0000,1.0000] stroke=-
+                  [L] 300.67,328.00 1.00x24.00 CALayer name=- op=1.0 cr=0.5 bg=[0.9216,0.9216,0.9608,0.2980]
+        UIButton 41.00,374.00 120.00x44.00 a=1.0 #x3_en_glass enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+            [L] CALayer name=- op=1.0 cr=22.0
+          _UISystemBackgroundView 41.00,374.00 120.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 41.00,374.00 120.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UILabel 80.00,385.67 42.00x20.33 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Glass tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                  [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+        UIButton 241.00,374.00 120.00x44.00 a=1.0 #x3_dis_glass enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+            [L] CALayer name=- op=1.0 cr=22.0
+          _UISystemBackgroundView 241.00,374.00 120.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 241.00,374.00 120.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UILabel 280.00,385.67 42.00x20.33 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Glass tc=[0.9216,0.9216,0.9608,0.2980] enabledLbl=true fs=17.0
+                  [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+        UIButton 41.00,436.00 120.00x44.00 a=1.0 #x3_en_prominent enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+            [L] CALayer name=- op=1.0 cr=22.0
+          _UISystemBackgroundView 41.00,436.00 120.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 41.00,436.00 120.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UILabel 80.00,447.67 42.00x20.33 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Glass tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                  [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+        UIButton 241.00,436.00 120.00x44.00 a=1.0 #x3_dis_prominent enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+            [L] CALayer name=- op=1.0 cr=22.0
+          _UISystemBackgroundView 241.00,436.00 120.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 241.00,436.00 120.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UILabel 280.00,447.67 42.00x20.33 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Glass tc=[0.9216,0.9216,0.9608,0.2980] enabledLbl=true fs=17.0
+                  [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+        UIButton 79.00,498.00 44.00x44.00 a=1.0 #x3_en_glassIcon enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+            [L] CALayer name=- op=1.0 cr=22.0
+          _UISystemBackgroundView 79.00,498.00 44.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 79.00,498.00 44.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIImageView 86.83,506.00 28.00x26.67 a=1.0 #star.fill tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0 img=72x68
+        UIButton 279.00,498.00 44.00x44.00 a=1.0 #x3_dis_glassIcon enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+            [L] CALayer name=- op=1.0 cr=22.0
+          _UISystemBackgroundView 279.00,498.00 44.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 279.00,498.00 44.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIImageView 286.83,506.00 28.00x26.67 a=1.0 #star.fill tint=[0.9216,0.9216,0.9608,0.2980] tam=1 image=symbol rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0 cmul=[0.9216,0.9216,0.9608,0.2980] img=72x68
+        UIButton 77.00,560.00 48.00x48.00 a=1.0 #x3_en_menu enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+            [L] CALayer name=- op=1.0 cr=24.0
+          _UISystemBackgroundView 77.00,560.00 48.00x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 77.00,560.00 48.00x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIImageView 89.00,580.00 23.67x8.00 a=1.0 #ellipsis tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0 img=59x12
+        UIButton 277.00,560.00 48.00x48.00 a=1.0 #x3_dis_menu enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+            [L] CALayer name=- op=1.0 cr=24.0
+          _UISystemBackgroundView 277.00,560.00 48.00x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 277.00,560.00 48.00x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              UIImageView 289.00,580.00 23.67x8.00 a=1.0 #ellipsis tint=[0.9216,0.9216,0.9608,0.2980] tam=1 image=symbol rm=0
+                  [L] CALayer name=- op=1.0 cr=0.0 cmul=[0.9216,0.9216,0.9608,0.2980] img=59x12
+        UIPageControl 47.00,626.33 108.33x25.67 a=1.0 #x3_en_page enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          _UIPageControlContentView 47.00,626.33 108.33x25.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=12.833333333333334
+            UIVisualEffectView 47.00,626.33 108.33x25.67 a=0.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 effect=Optional(<UIBlurEffect: 0x108662620> style=UIBlurEffectStyleSystemThinMaterial)
+                [L] CALayer name=UIVisualEffectView op=0.0 cr=0.0
+              _UIVisualEffectBackdropView 47.00,626.33 108.33x25.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] UICABackdropLayer name=- op=1.0 cr=12.833333333333334 filters=[["name": "luminanceCurveMap", "type": "luminanceCurveMap"], ["inputAmount": 1.35, "name": "colorSaturate", "type": "colorSaturate"], ["inputNormalizeEdges": 1.0, "inputRadius": 29.5, "name": "gaussianBlur", "type": "gaussianBlur"]]
+            _UIPageControlIndicatorContentView 61.00,626.33 80.33x25.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              _UIPageIndicatorView 61.17,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 61.17,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,0.4500] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 cmul=[1.0000,1.0000,1.0000,0.4500] img=23x23
+              _UIPageIndicatorView 78.50,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 78.50,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 img=23x23
+              _UIPageIndicatorView 96.50,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 96.50,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,0.4500] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 cmul=[1.0000,1.0000,1.0000,0.4500] img=23x23
+              _UIPageIndicatorView 114.17,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 114.17,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,0.4500] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 cmul=[1.0000,1.0000,1.0000,0.4500] img=23x23
+              _UIPageIndicatorView 131.83,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 131.83,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,0.4500] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 cmul=[1.0000,1.0000,1.0000,0.4500] img=23x23
+        UIPageControl 247.00,626.33 108.33x25.67 a=1.0 #x3_dis_page enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          _UIPageControlContentView 247.00,626.33 108.33x25.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=12.833333333333334
+            UIVisualEffectView 247.00,626.33 108.33x25.67 a=0.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 effect=Optional(<UIBlurEffect: 0x108661870> style=UIBlurEffectStyleSystemThinMaterial)
+                [L] CALayer name=UIVisualEffectView op=0.0 cr=0.0
+              _UIVisualEffectBackdropView 247.00,626.33 108.33x25.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] UICABackdropLayer name=- op=1.0 cr=12.833333333333334 filters=[["name": "luminanceCurveMap", "type": "luminanceCurveMap"], ["inputAmount": 1.35, "name": "colorSaturate", "type": "colorSaturate"], ["inputNormalizeEdges": 1.0, "inputRadius": 29.5, "name": "gaussianBlur", "type": "gaussianBlur"]]
+            _UIPageControlIndicatorContentView 261.00,626.33 80.33x25.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              _UIPageIndicatorView 261.17,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 261.17,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,0.4500] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 cmul=[1.0000,1.0000,1.0000,0.4500] img=23x23
+              _UIPageIndicatorView 278.50,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 278.50,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 img=23x23
+              _UIPageIndicatorView 296.50,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 296.50,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,0.4500] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 cmul=[1.0000,1.0000,1.0000,0.4500] img=23x23
+              _UIPageIndicatorView 314.17,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 314.17,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,0.4500] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 cmul=[1.0000,1.0000,1.0000,0.4500] img=23x23
+              _UIPageIndicatorView 331.83,634.33 9.67x9.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UIPageIndicatorImageView 331.83,634.33 9.67x9.67 a=1.0 #circlebadge.fill tint=[1.0000,1.0000,1.0000,0.4500] tam=1 image=symbol rm=0
+                    [L] CALayer name=- op=1.0 cr=0.0 cmul=[1.0000,1.0000,1.0000,0.4500] img=23x23
+        UISearchTextField 20.00,670.00 362.00x36.00 a=1.0 #x3_en_search enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 field= ph=Search tfEnabled=true
+            [L] CALayer name=- op=1.0 cr=0.0
+          _UITouchPassthroughView 20.00,670.00 315.67x32.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+          UIImageView 32.00,678.00 20.33x19.33 a=1.0 #magnifyingglass tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+              [L] CALayer name=- op=1.0 cr=0.0 img=49x50
+          UISearchBarTextFieldLabel 59.33,678.00 53.33x20.33 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 text=Search tc=[0.9216,0.9216,0.9608,0.2980] enabledLbl=true fs=17.0
+              [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+          _UITextLayoutCanvasView 59.33,672.00 315.67x32.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _UITextLayoutFragmentView 59.33,678.00 0.00x21.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+        UISearchTextField 20.00,716.00 362.00x36.00 a=1.0 #x3_dis_search enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.4627,0.4627,0.5020,0.1200] field= ph=Search tfEnabled=false
+            [L] CALayer name=- op=1.0 cr=0.0 bg=[0.4627,0.4627,0.5020,0.1200]
+          _UITouchPassthroughView 20.00,716.00 315.67x32.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+          UIImageView 32.00,724.00 20.33x19.33 a=1.0 #magnifyingglass tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+              [L] CALayer name=- op=1.0 cr=0.0 img=49x50
+          UISearchBarTextFieldLabel 59.33,724.00 53.33x20.33 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 text=Search tc=[0.9216,0.9216,0.9608,0.2980] enabledLbl=true fs=17.0
+              [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+          _UITextLayoutCanvasView 59.33,718.00 315.67x32.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _UITextLayoutFragmentView 59.33,724.00 0.00x21.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+        UIDatePicker 20.00,770.00 198.33x36.00 a=1.0 #x3_en_date enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          _UIDatePickerIOSCompactView 20.00,770.00 198.33x36.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _UIDatePickerCompactDateLabel 20.00,770.00 124.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=1.7976931348623157e+308
+              UIButton 20.00,770.00 124.33x36.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+                  [L] CALayer name=- op=1.0 cr=18.0
+                _UISystemBackgroundView 20.00,770.00 124.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  UIView 20.00,770.00 124.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.4627,0.4627,0.5020,0.2400]
+                      [L] CALayer name=- op=1.0 cr=0.0 bg=[0.4627,0.4627,0.5020,0.2400]
+                  UIView 20.00,770.00 124.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                _UIDatePickerLinkedLabel 32.00,777.00 100.33x22.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  UILabel 32.00,777.00 100.33x22.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Sep 21, 2026 tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                      [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+            _UIDatePickerCompactTimeLabel 148.33,770.00 70.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=1.7976931348623157e+308
+              UIButton 148.33,770.00 70.00x36.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+                  [L] CALayer name=- op=1.0 cr=18.0
+                _UISystemBackgroundView 148.33,770.00 70.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  UIView 148.33,770.00 70.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.4627,0.4627,0.5020,0.2400]
+                      [L] CALayer name=- op=1.0 cr=0.0 bg=[0.4627,0.4627,0.5020,0.2400]
+                  UIView 148.33,770.00 70.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                UIView 146.33,768.00 4.00x4.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000]
+                    [L] CALayer name=- op=1.0 cr=8.0 bg=[0.0000,0.0000,0.0000,0.0000]
+                UILabel 160.33,777.00 46.00x22.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=16:13 tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                UILabel 148.33,770.00 20.67x22.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text= tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 HID contents
+                UILabel 173.33,770.00 21.00x22.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text= tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 HID contents
+                UILabel 148.33,770.00 0.00x0.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text= tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 HID
+        UIDatePicker 20.00,816.00 198.33x36.00 a=1.0 #x3_dis_date enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          _UIDatePickerIOSCompactView 20.00,816.00 198.33x36.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            _UIDatePickerCompactDateLabel 20.00,816.00 124.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=1.7976931348623157e+308
+              UIButton 20.00,816.00 124.33x36.00 a=1.0 enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+                  [L] CALayer name=- op=1.0 cr=18.0
+                _UISystemBackgroundView 20.00,816.00 124.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  UIView 20.00,816.00 124.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                _UIDatePickerLinkedLabel 32.00,823.00 100.33x22.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  UILabel 32.00,823.00 100.33x22.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Sep 21, 2026 tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                      [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+            _UIDatePickerCompactTimeLabel 148.33,816.00 70.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=1.7976931348623157e+308
+              UIButton 148.33,816.00 70.00x36.00 a=1.0 enabled=false hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1 cfg.fg=- cfg.bg=-
+                  [L] CALayer name=- op=1.0 cr=18.0
+                _UISystemBackgroundView 148.33,816.00 70.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  UIView 148.33,816.00 70.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                UIView 146.33,814.00 4.00x4.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000]
+                    [L] CALayer name=- op=1.0 cr=8.0 bg=[0.0000,0.0000,0.0000,0.0000]
+                UILabel 160.33,823.00 46.00x22.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=16:13 tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                UILabel 148.33,816.00 20.67x22.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text= tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 HID contents
+                UILabel 173.33,816.00 21.00x22.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text= tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 HID contents
+                UILabel 148.33,816.00 0.00x0.00 a=1.0 HIDDEN tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text= tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 HID

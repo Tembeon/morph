@@ -1,0 +1,120 @@
+Probe.RecordingWindow 0.00,0.00 402.00x874.00 a=1.0 tint=- tam=1
+    [L] UIWindowLayer name=Probe.RecordingWindow (dev.tembeon.morph.probe) op=1.0 cr=0.0
+  UITransitionView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+      [L] CALayer name=- op=1.0 cr=0.0
+    UIDropShadowView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+        [L] CALayer name=- op=1.0 cr=0.0
+      UIView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.5242,0.5242,0.5242,0.8000] tam=2 bg=[0.9490,0.9490,0.9686,1.0000]
+          [L] CALayer name=UIView (Probe.DisabledAlertScene) op=1.0 cr=0.0 bg=[0.9490,0.9490,0.9686,1.0000]
+  UITransitionView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+      [L] CALayer name=- op=1.0 cr=0.0
+    UIView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.2000]
+        [L] CALayer name=- op=1.0 cr=0.0 bg=[0.0000,0.0000,0.0000,0.2000]
+    UIView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+        [L] CALayer name=- op=1.0 cr=0.0
+    _UIKeyboardLayoutAlignmentView 0.00,874.00 0.00x0.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+        [L] CALayer name=- op=1.0 cr=0.0
+    _UIAlertControllerPhoneTVMacView 41.00,291.00 320.00x320.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+        [L] CALayer name=_UIAlertControllerPhoneTVMacView (UIAlertController) op=1.0 cr=34.0
+      UIView 41.00,291.00 320.00x320.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+          [L] CALayer name=- op=1.0 cr=0.0
+        _UIAlertControllerInterfaceActionGroupView 41.00,291.00 320.00x320.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000]
+            [L] CALayer name=- op=1.0 cr=0.0 bg=[0.0000,0.0000,0.0000,0.0000]
+          _UIAlertBackground 41.00,291.00 320.00x320.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=34.0
+          UIView 41.00,291.00 320.00x320.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=34.0
+            _UIInterfaceActionGroupHeaderScrollView 41.00,291.00 320.00x72.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              _UIAlertControllerLayoutObservingContainerView 41.00,291.00 320.00x72.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIView 41.00,291.00 320.00x0.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                UILabel 71.00,313.00 260.00x20.33 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Title tc=[0.0000,0.0000,0.0000,1.0000] enabledLbl=true fs=17.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                UILabel 71.00,340.67 260.00x18.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=A message under the title. tc=[0.2353,0.2353,0.2627,0.6000] enabledLbl=true fs=15.0
+                    [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                UIView 201.00,291.00 0.00x0.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                UIView 41.00,291.00 320.00x0.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+              _UIScrollViewScrollIndicator 355.00,252.00 3.00x36.00 a=0.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=0.0 cr=0.0
+                UIView 355.00,252.00 3.00x36.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.3500]
+                    [L] CALayer name=- op=1.0 cr=1.5 bg=[0.0000,0.0000,0.0000,0.3500]
+              _UIScrollViewScrollIndicator 2.00,357.00 36.00x3.00 a=0.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=0.0 cr=0.0
+                UIView 2.00,357.00 36.00x3.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.3500]
+                    [L] CALayer name=- op=1.0 cr=1.5 bg=[0.0000,0.0000,0.0000,0.3500]
+              _UIAlertControllerGradientView 41.00,361.00 320.00x2.00 a=0.0555555559694767 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                  [L] CAGradientLayer name=- op=0.055555556 cr=0.0
+            _UIInterfaceActionRepresentationsSequenceView 41.00,363.00 320.00x248.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              _UIInterfaceActionSeparatableSequenceView 41.00,363.00 320.00x248.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                UIStackView 57.00,379.00 288.00x216.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  _UIInterfaceActionCustomViewRepresentationView 57.00,379.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    _UIAlertControllerFilledBackgroundView 57.00,379.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIView 57.00,379.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.4627,0.4627,0.5020,0.1200]
+                          [L] CALayer name=- op=1.0 cr=24.0
+                    _UIAlertControllerActionView 57.00,379.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIView 169.67,379.00 63.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        UILabel 169.67,393.00 63.00x20.33 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Enabled tc=[0.0000,0.0000,0.0000,1.0000] enabledLbl=true fs=17.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                  _UIInterfaceActionCustomViewRepresentationView 57.00,435.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    _UIAlertControllerFilledBackgroundView 57.00,435.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIView 57.00,435.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.4627,0.4627,0.5020,0.1200]
+                          [L] CALayer name=- op=1.0 cr=24.0
+                    _UIAlertControllerActionView 57.00,435.00 288.00x48.00 a=1.0 tint=[0.5242,0.5242,0.5242,0.8000] tam=2
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIView 167.00,435.00 68.33x48.00 a=1.0 tint=[0.5242,0.5242,0.5242,0.8000] tam=2
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        UILabel 167.00,449.00 68.33x20.33 a=1.0 tint=[0.5242,0.5242,0.5242,0.8000] tam=2 bg=[0.0000,0.0000,0.0000,0.0000] text=Disabled tc=[0.2353,0.2353,0.2627,0.2980] enabledLbl=true fs=17.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                  _UIInterfaceActionCustomViewRepresentationView 57.00,491.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    _UIAlertControllerFilledBackgroundView 57.00,491.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIView 57.00,491.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.4627,0.4627,0.5020,0.1200]
+                          [L] CALayer name=- op=1.0 cr=24.0
+                    _UIAlertControllerActionView 57.00,491.00 288.00x48.00 a=1.0 tint=[0.5242,0.5242,0.5242,0.8000] tam=2
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIView 175.67,491.00 50.67x48.00 a=1.0 tint=[0.5242,0.5242,0.5242,0.8000] tam=2
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        UILabel 175.67,505.00 50.67x20.33 a=1.0 tint=[0.5242,0.5242,0.5242,0.8000] tam=2 bg=[0.0000,0.0000,0.0000,0.0000] text=Delete tc=[0.2353,0.2353,0.2627,0.2980] enabledLbl=true fs=17.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                  _UIInterfaceActionCustomViewRepresentationView 57.00,547.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    _UIAlertControllerFilledBackgroundView 57.00,547.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIView 57.00,547.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.4627,0.4627,0.5020,0.1200]
+                          [L] CALayer name=- op=1.0 cr=24.0
+                    _UIAlertControllerActionView 57.00,547.00 288.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UIView 174.00,547.00 54.00x48.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        UILabel 174.00,561.00 54.00x20.33 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Cancel tc=[0.0000,0.0000,0.0000,1.0000] enabledLbl=true fs=17.0
+                            [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+              _UIScrollViewScrollIndicator 355.00,453.00 3.00x7.00 a=0.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=0.0 cr=0.0
+                UIView 355.00,453.00 3.00x7.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.3500]
+                    [L] CALayer name=- op=1.0 cr=1.5 bg=[0.0000,0.0000,0.0000,0.3500]
+              _UIScrollViewScrollIndicator 131.00,605.00 7.00x3.00 a=0.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=0.0 cr=0.0
+                UIView 131.00,605.00 7.00x3.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.3500]
+                    [L] CALayer name=- op=1.0 cr=1.5 bg=[0.0000,0.0000,0.0000,0.3500]
+UITextEffectsWindow 0.00,0.00 402.00x874.00 a=1.0 tint=- tam=1
+    [L] UIWindowLayer name=UITextEffectsWindow (dev.tembeon.morph.probe) op=1.0 cr=0.0
+  UITrackingWindowView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+      [L] CALayer name=UITrackingWindowView (UITrackingElementWindowController) op=1.0 cr=0.0
+    UIKeyboardItemContainerView 0.00,874.00 402.00x0.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+        [L] CALayer name=- op=1.0 cr=0.0
+    UIEditingOverlayGestureView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5333,1.0000,1.0000] tam=1
+        [L] CALayer name=UIEditingOverlayGestureView (UIEditingOverlayViewController) op=1.0 cr=0.0

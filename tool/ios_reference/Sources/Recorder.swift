@@ -80,6 +80,9 @@ final class Recorder: NSObject {
         startRow["sim"] = true
         #endif
         for (k, v) in env where k.hasPrefix("PROBE_") { startRow["env_" + k] = v }
+        startRow["rm"] = UIAccessibility.isReduceMotionEnabled
+        startRow["rmXfade"] = UIAccessibility.prefersCrossFadeTransitions
+        startRow["rt"] = UIAccessibility.isReduceTransparencyEnabled
         log(startRow)
         let link = CADisplayLink(target: self, selector: #selector(tick(_:)))
         link.preferredFrameRateRange = CAFrameRateRange(minimum: 80, maximum: 120, preferred: 120)
@@ -87,7 +90,7 @@ final class Recorder: NSObject {
         self.link = link
         if let pat = ProcessInfo.processInfo.environment["PROBE_SETTINGS"] {
             let text = SettingsDump.run(pattern: pat)
-            try? text.write(to: docs.appendingPathComponent("settings.txt"), atomically: true, encoding: .utf8)
+            try? text.write(to: docs.appendingPathComponent(env["PROBE_REC"].map { "settings-\($0).txt" } ?? "settings.txt"), atomically: true, encoding: .utf8)
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak self] in
             self?.dumpTree(name: "tree-\(scene).txt")

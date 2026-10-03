@@ -35,6 +35,16 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
 - Geometry in morph style: height 32, inset 2, contentPadding 16
   ([layout], simulator view tree).
 
+## Disabled [device, light + dark, 2026-10-03]
+
+- The WHOLE control at opacity 0.5 (`UISegmentedControl` alpha 0.5; track,
+  platter and labels together). Pixels = 0.5 enabled + 0.5 background, rms
+  0.11 (dark) / 0.27 (light) of 8 bit. Label colors unchanged.
+- Switches in one frame both ways (no animation).
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
+- To port: `disabledOpacity` 0.5 (was 0.35) applied to the whole control
+  as one layer; no other change.
+
 ## Fixtures
 
 Device `ios27-device/lens/segmented-*` (seg2/seg3 taps, tap-selected,
@@ -59,7 +69,7 @@ owns a touch after 150 ms or a horizontal drag past slop).
 ## Not reproduced / open
 
 - GRAD axis of the label font.
-- Disabled opacity 0.35 unmeasured.
+- Reduce Motion unmeasured (plan in states.md).
 
 ## API gaps (UIKit has, morph lacks)
 

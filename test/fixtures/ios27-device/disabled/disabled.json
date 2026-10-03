@@ -1,0 +1,341 @@
+{
+ "device": "iPhone 16 Pro (iPhone17,1), iOS 27.0.1, 402x874 pt @3x",
+ "captured": "2026-10-03, StatesUITests testDisabled (scenes x4dis, x4disbars, x4distab, x4disalert; States.swift)",
+ "method": "each control twice in one screen (enabled / disabled twin); a deep view+layer dump (references/disabled/dumps) and lossless screenshots (references/disabled/{dark,light}); pixels are 8-bit sRGB of the device screenshot; layer colors are sRGB rgba 0..1",
+ "colors": {
+  "tertiaryLabel": {
+   "dark": [
+    0.9216,
+    0.9216,
+    0.9608,
+    0.298
+   ],
+   "light": [
+    0.2353,
+    0.2353,
+    0.2627,
+    0.298
+   ]
+  },
+  "systemGray4": {
+   "dark": [
+    0.2275,
+    0.2275,
+    0.2353,
+    1
+   ],
+   "light": [
+    0.8196,
+    0.8196,
+    0.8392,
+    1
+   ]
+  }
+ },
+ "transition": "every change lands on the next frame, both directions, no CAAnimation (rec rows in tool/ios_reference/recordings/device-disabled2)",
+ "controls": {
+  "segmented": {
+   "rule": "whole control opacity 0.5",
+   "opacity": 0.5,
+   "pixel_rms_vs_rule": {
+    "dark": 0.11,
+    "light": 0.27
+   }
+  },
+  "switch": {
+   "rule": "UISwitchModernVisualElement opacity 0.5 (off and on)",
+   "opacity": 0.5,
+   "pixel_rms_vs_rule": {
+    "dark": 0.07,
+    "light": 0.05
+   }
+  },
+  "slider": {
+   "rule": "_UISliderGlassVisualElement opacity 0.5 (track, fill, thumb, ticks)",
+   "opacity": 0.5,
+   "pixel_rms_vs_rule": {
+    "dark": 0.09,
+    "light": 0.1
+   }
+  },
+  "stepper": {
+   "rule": "no change (pixel-identical)",
+   "opacity": 1.0,
+   "limit_half_glyph": {
+    "dark": [
+     0.9216,
+     0.9216,
+     0.9608,
+     0.298
+    ],
+    "light": [
+     0.2353,
+     0.2353,
+     0.2627,
+     0.298
+    ]
+   }
+  },
+  "page_control": {
+   "rule": "no change (pixel-identical)",
+   "opacity": 1.0
+  },
+  "tab_bar_item": {
+   "rule": "no change (pixel-identical); _UITabButton.enabled false",
+   "opacity": 1.0
+  },
+  "glass_button": {
+   "rule": "glass unchanged; title/image color tertiaryLabel",
+   "content": {
+    "dark": [
+     0.9216,
+     0.9216,
+     0.9608,
+     0.298
+    ],
+    "light": [
+     0.2353,
+     0.2353,
+     0.2627,
+     0.298
+    ]
+   },
+   "pixels": {
+    "dark": {
+     "body": 31.7,
+     "label_peak_enabled": 249,
+     "label_peak_disabled": 93
+    },
+    "light": {
+     "body": [
+      244.6,
+      244.6,
+      250.1
+     ],
+     "label_peak_enabled": 13,
+     "label_peak_disabled": 189
+    }
+   }
+  },
+  "prominent_glass_button": {
+   "rule": "tint accent -> systemGray4; title tertiaryLabel",
+   "content": {
+    "dark": [
+     0.9216,
+     0.9216,
+     0.9608,
+     0.298
+    ],
+    "light": [
+     0.2353,
+     0.2353,
+     0.2627,
+     0.298
+    ]
+   },
+   "pixels": {
+    "dark": {
+     "body_enabled": [
+      0,
+      145,
+      255
+     ],
+     "body_disabled": [
+      59.7,
+      59.7,
+      59.7
+     ],
+     "label_peak_disabled": [
+      121,
+      121,
+      124
+     ]
+    },
+    "light": {
+     "body_enabled": [
+      0,
+      133.6,
+      251.3
+     ],
+     "body_disabled": [
+      210.3,
+      210.3,
+      214.3
+     ],
+     "label_peak_disabled": [
+      159,
+      159,
+      164
+     ]
+    }
+   }
+  },
+  "menu_button": {
+   "rule": "as glass_button (glyph tertiaryLabel, glass unchanged)",
+   "content": {
+    "dark": [
+     0.9216,
+     0.9216,
+     0.9608,
+     0.298
+    ],
+    "light": [
+     0.2353,
+     0.2353,
+     0.2627,
+     0.298
+    ]
+   }
+  },
+  "search_field": {
+   "rule": "glass replaced by a flat fill, no rim; magnifier and placeholder unchanged",
+   "fill": {
+    "dark": [
+     0.4627,
+     0.4627,
+     0.502,
+     0.12
+    ],
+    "light": [
+     0.4627,
+     0.4627,
+     0.502,
+     0.06
+    ]
+   },
+   "pixels": {
+    "dark": {
+     "body_enabled": 31.6,
+     "body_disabled": [
+      14,
+      14,
+      15
+     ]
+    },
+    "light": {
+     "body_enabled": [
+      244.3,
+      244.3,
+      249.8
+     ],
+     "body_disabled": [
+      235,
+      235,
+      240
+     ]
+    }
+   }
+  },
+  "date_picker_labels": {
+   "rule": "capsule fill removed, text unchanged",
+   "removed_fill": {
+    "dark": [
+     0.4627,
+     0.4627,
+     0.502,
+     0.24
+    ],
+    "light": [
+     0.4627,
+     0.4627,
+     0.502,
+     0.12
+    ]
+   }
+  },
+  "bar_item_plain": {
+   "rule": "tint tertiaryLabel through the bar color path; capsule glass unchanged",
+   "tint": {
+    "dark": [
+     0.9216,
+     0.9216,
+     0.9608,
+     0.298
+    ],
+    "light": [
+     0.2353,
+     0.2353,
+     0.2627,
+     0.298
+    ]
+   },
+   "rendered_peak": {
+    "dark": {
+     "capsule": 32,
+     "icon_enabled": 249,
+     "icon_disabled": 83,
+     "text_enabled": 249,
+     "text_disabled": 47
+    },
+    "light": {
+     "capsule": [
+      244,
+      244,
+      249
+     ],
+     "icon_enabled": 12,
+     "icon_disabled": 167,
+     "text_enabled": 13,
+     "text_disabled": 221
+    }
+   }
+  },
+  "bar_item_prominent": {
+   "rule": "tint accent -> systemGray4, glyph stays white",
+   "pixels": {
+    "dark": {
+     "body_disabled": [
+      59.8,
+      59.8,
+      59.8
+     ],
+     "glyph": 255
+    },
+    "light": {
+     "body_disabled": [
+      209.8,
+      209.8,
+      214.2
+     ],
+     "glyph": 255
+    }
+   }
+  },
+  "alert_action": {
+   "rule": "title tertiaryLabel (destructive too), fill unchanged; a disabled preferred action loses the accent fill and keeps the semibold weight",
+   "title": {
+    "dark": [
+     0.9216,
+     0.9216,
+     0.9608,
+     0.298
+    ],
+    "light": [
+     0.2353,
+     0.2353,
+     0.2627,
+     0.298
+    ]
+   },
+   "preferred_fw": 0.3,
+   "pixels": {
+    "dark": {
+     "fill": 60,
+     "title_peak_disabled": 111
+    },
+    "light": {
+     "fill": [
+      198,
+      198,
+      203
+     ],
+     "title_peak_disabled": [
+      121,
+      121,
+      126
+     ]
+    }
+   }
+  }
+ }
+}

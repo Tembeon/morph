@@ -50,6 +50,22 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
   (radius + half arrow) of a corner; least total slide wins (15/15).
 - Without a source an iPhone action sheet IS an alert (cancel last).
 
+## Disabled actions [device, light + dark, 2026-10-03, scene x4disalert]
+
+- `UIAlertAction.isEnabled = NO`: the title turns tertiaryLabel (dark 0x4CEBEBF5, light 0x4C3C3C43) - a destructive
+  action loses its red too; the action's fill (tertiarySystemFill)
+  is unchanged; the action view's tintAdjustmentMode dims.
+- A disabled PREFERRED action loses the accent fill (it shows the plain
+  tertiarySystemFill) and keeps the semibold title (fw 0.3) in
+  tertiaryLabel; enabling it brings the accent fill + white title back.
+- Rendered title peak: dark 111 on the 60 fill, light 121 on 198.
+- One frame, no animation, both ways (rows: column alert Enabled /
+  Disabled / Delete / Cancel; row alert Cancel + disabled preferred OK with
+  a text field).
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
+- To port: `enabled` on the action model; disabled preferred = plain fill,
+  semibold tertiaryLabel title; no touch feedback (unmeasured, assume none).
+
 ## Fixtures
 
 Device `ios27-device/alert/` (present-dismiss, press, tap, slide, lean,

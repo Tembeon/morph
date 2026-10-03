@@ -76,9 +76,11 @@ launched with `open` - ask first).
 ## Recording pipeline
 
 Probe app: `Sources/` (App, Scenes, Controls, Recorder, Settings, Merge,
-Bars, Widgets2 `w2*`, Extras `x3*`, SheetNav `sn*`, Typography `fonts`),
-UITests in `UITests/` (ProbeUITests, BarsUITests, Widgets2UITests,
-ExtrasUITests, SheetNavUITests, MenuAnchorUITests). The recorder samples
+Bars, Widgets2 `w2*`, Extras `x3*`, SheetNav `sn*`, Typography `fonts`,
+States `x4*`), UITests in `UITests/` (ProbeUITests, BarsUITests,
+Widgets2UITests, ExtrasUITests, SheetNavUITests, MenuAnchorUITests,
+StatesUITests); `reduce_motion.sh` replays the representative captures
+with Reduce Motion on ([states](states.md)). The recorder samples
 presentation layers every display-link tick and logs only changed rows:
 lens frame rows, `_UIFlexInteraction` / `_UIVelocityIntegrator` state, the
 menu's morph container layer tree, control layers, touches (from a
@@ -108,7 +110,8 @@ coordinate from the window size, so it runs on the 402 pt phone too.
   ProbeUITests and bars only; everything else goes through xcodebuild as
   above.
 - Common env: `PROBE_SCENE`, `PROBE_REC` (record name), `PROBE_DARK=1`
-  forces dark, `PROBE_DARK=0` forces light (unset = system appearance),
+  forces dark, `PROBE_DARK=0` forces light (unset = system appearance; App.swift
+  sets it on the window, so every scene honours it),
   `PROBE_SCRIPT="action@seconds;..."` (w2/x3/sn scenes), `PROBE_W2TRACK` /
   `PROBE_X3TRACK` (class regex, `.` = everything), `PROBE_W2DEPTH` /
   `PROBE_X3DEPTH`, `PROBE_W2FILTERS=1` (backdrop filter inputs),
@@ -188,10 +191,12 @@ state, evt, L, V, f, ...), one manifest per family. Recaptures APPEND
 record; e.g. lens-model.md, controls-model.txt, menu-model.txt,
 device-report.txt, recapture-report.txt, merge-report.txt, *-params.json,
 /tmp/cn1/REPORT.md). Lossless reference PNGs: `tool/ios_reference/references/`
-(`dark/` static set; `{menu,slider,search,date,alert}-video/` native-top /
-morph-bottom crops; `merge/`). The LIGHT static set is still pending
-(switch the phone to Light, rerun `PROBE_SKIP_BUILD=1 PROBE_PLAN=refs
-PROBE_RESULT=... ./device.sh`, export into references/light/).
+(`dark/` and `light/` static sets - testReferences + testW2Refs with
+`TEST_RUNNER_PROBE_REF_DARK=1/0`, attachments exported with xcresulttool;
+`disabled/` the disabled look; `states/` stepper press and indicators;
+`{menu,slider,search,date,alert}-video/` native-top / morph-bottom crops;
+`merge/`). Every start row records `rm` / `rmXfade` / `rt` (Reduce Motion,
+cross-fade preference, Reduce Transparency).
 
 ## Frame rates (device findings, apply everywhere)
 
@@ -250,7 +255,7 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [search-tab-bar](search-tab-bar.md) | D film | P | glass morph rect-lerp fit only |
 | [switch](switch.md) | D | P | checkbox style, title, on/off images |
 | [slider](slider.md) | D + film | P | white release flash; thumbless style, neutral value, tick titles/images, min/max images; dark lifted thumb look |
-| [stepper](stepper.md) | S | P | wraps, continuous, autorepeat flag, images; device check |
+| [stepper](stepper.md) | D+S | P | wraps, continuous, autorepeat flag, images; device colors to port |
 | [glass-button](glass-button.md) | D | P | clear glass, sizes, corner styles, subtitle, menus |
 | [menu-button](menu-button.md) | D + film | P | submenus, palettes, inline sections, selection state, "Ask Siri" row |
 | [context-menu](context-menu.md) | D | P | preview-vc, commit/pop preview, badges, rich/compact appearance |
@@ -261,12 +266,15 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [search](search.md) | D + film | P | scope bar, suggestions, placements other than bottom toolbar |
 | [date-picker](date-picker.md) | D + film (incl. month/year wheels) | P | inline/wheels styles, countdown, yearAndMonth mode, minuteInterval, locale/calendar |
 | [page-control](page-control.md) | D | P | far scrub irregular steps; vertical direction, custom indicator images |
-| [progress-view](progress-view.md) | S | P | bar style look, observedProgress |
-| [activity-indicator](activity-indicator.md) | S | P | none of note |
+| [progress-view](progress-view.md) | D+S | P | bar style look, observedProgress |
+| [activity-indicator](activity-indicator.md) | D+S | P | dark default color to port |
 | [typography](typography.md) | D == S | P | Dynamic Type, GRAD axis, date wheel |
-| [glass-optics](glass-optics.md) | D (refs, layers) | P (renderer) | light reference set; lens rim minification profile approximated |
+| [glass-optics](glass-optics.md) | D (refs dark + light, layers) | P (renderer) | light audit against references/light; lens rim minification profile approximated |
 | [glass-renderer](glass-renderer.md) | D (tier costs) | P (package renderer, tiers, adaptive policy) | policy numbers are defaults; date picker dark platter color |
 | [skin-merge](skin-merge.md) | D | P | 3+ mass normal mixing unmeasured |
 | [engine-flight](engine-flight.md) | D tuning | P | - |
+| [states](states.md) | D disabled (light + dark), light refs | to port | Reduce Motion pass waits for the owner's switch |
 
-Disabled opacities and Reduce Motion are unmeasured for EVERY control.
+Disabled looks are measured for every control (2026-10-03, [states](states.md),
+to port). Reduce Motion is unmeasured for every control: the pass is
+prepared (`reduce_motion.sh`) and waits for the owner to switch the setting.

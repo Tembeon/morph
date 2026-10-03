@@ -1,0 +1,229 @@
+Probe.RecordingWindow 0.00,0.00 402.00x874.00 a=1.0 tint=- tam=1
+    [L] UIWindowLayer name=Probe.RecordingWindow (dev.tembeon.morph.probe) op=1.0 cr=0.0
+  UITransitionView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+      [L] CALayer name=- op=1.0 cr=0.0
+    UIDropShadowView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+        [L] CALayer name=- op=1.0 cr=0.0
+      UILayoutContainerView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+          [L] CALayer name=UILayoutContainerView (UINavigationController) op=1.0 cr=0.0
+        UINavigationTransitionView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          UIViewControllerWrapperView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIView 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,1.0000]
+                [L] CALayer name=UIView (Probe.DisabledBarsScene) op=1.0 cr=0.0 bg=[0.0000,0.0000,0.0000,1.0000]
+              UILabel 132.00,427.00 138.00x20.33 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=enabled | disabled tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                  [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+        UINavigationBar 0.00,62.00 402.00x54.00 a=1.0 #Bars tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          _UIBarBackground 0.00,0.00 402.00x116.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+          UIKit.NavigationBarContentView 0.00,62.00 402.00x54.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            UIKit.NavigationBarTransitionContainer 0.00,62.00 402.00x54.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "gaussianBlur", "type": "gaussianBlur"]]
+              _UINavigationBarHostedViewContainer 0.00,62.00 402.00x54.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _UINavigationBarHostedViewWrapper 183.00,73.67 36.00x20.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0 filters=[["name": "gaussianBlur", "inputRadius": 0.0, "type": "gaussianBlur"]]
+                  _UINavigationBarTitleControl 183.00,73.67 36.00x20.67 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    _UIIntrinsicContentSizeInvalidationForwardingWrapperView 183.00,73.67 36.00x20.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      UILabel 183.00,73.67 36.00x20.67 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 bg=[0.0000,0.0000,0.0000,0.0000] text=Bars tc=[1.0000,1.0000,1.0000,1.0000] enabledLbl=true fs=17.0
+                          [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+              UIView 0.00,62.00 402.00x54.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+              UIKit.NavigationBarPlatterContainer_v2 0.00,62.00 402.00x54.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] CALayer name=- op=1.0 cr=0.0
+                _TtGC5UIKitP10$1a4b4e2b027PlatterContainerHostingViewVS_P10$1a4b4e48427NavigationBarPlatterContent_ 0.00,62.00 402.00x54.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  SwiftUI._UIInheritedView 0.00,62.00 402.00x54.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    SwiftUI._UIInheritedView 0.00,62.00 402.00x54.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                        [L] SwiftUI.SDFLayer name=- op=1.0 cr=0.0
+                          [L] 16.00,62.00 370.00x44.00 CALayer name=- op=1.0 cr=0.0
+                            [L] 16.00,62.00 370.00x44.00 CABackdropLayer name=@0 op=1.0 cr=0.0 filters=[["name": "glassBackground", "type": "glassBackground"]]
+                              [L] 16.00,62.00 370.00x44.00 CASDFLayer name=@0 op=1.0 cr=0.0
+                                [L] 0.00,62.00 0.00x0.00 CALayer name=- op=1.0 cr=0.0
+                                  [L] 16.00,62.00 62.33x44.00 CASDFElementLayer name=- op=1.0 cr=22.0
+                                  [L] 90.33,62.00 62.33x44.00 CASDFElementLayer name=- op=1.0 cr=22.0
+                                  [L] 231.33,62.00 98.67x44.00 CASDFElementLayer name=- op=1.0 cr=22.0
+                                  [L] 342.00,62.00 44.00x44.00 CASDFElementLayer name=- op=1.0 cr=22.0
+                            [L] 16.00,62.00 370.00x44.00 CALayer name=@1 op=1.0 cr=0.0
+                              [L] 16.00,62.00 370.00x44.00 CALayer name=@0 op=1.0 cr=0.0
+                                [L] 16.00,62.00 370.00x44.00 CASDFLayer name=@0 op=1.0 cr=0.0 filters=[["name": "vibrantColorMatrix", "type": "vibrantColorMatrix"]]
+                                  [L] 0.00,62.00 0.00x0.00 CALayer name=- op=1.0 cr=0.0
+                                    [L] 16.00,62.00 62.33x44.00 CASDFElementLayer name=- op=1.0 cr=22.0 HID
+                                    [L] 90.33,62.00 62.33x44.00 CASDFElementLayer name=- op=1.0 cr=22.0 HID
+                                    [L] 231.33,62.00 98.67x44.00 CASDFElementLayer name=- op=1.0 cr=22.0 HID
+                                    [L] 342.00,62.00 44.00x44.00 CASDFElementLayer name=- op=1.0 cr=22.0
+                                [L] 16.00,62.00 370.00x44.00 CASDFLayer name=@1 op=1.0 cr=0.0 cf=destIn
+                                  [L] 0.00,62.00 0.00x0.00 _TtC7SwiftUIP33_05C1F5BE6EE7940FED05100EA822F7B314SDFPortalLayer name=- op=1.0 cr=0.0
+                            [L] 16.00,62.00 370.00x44.00 _TtC7SwiftUIP33_05C1F5BE6EE7940FED05100EA822F7B314SDFPortalLayer name=@2 op=1.0 cr=0.0
+                            [L] 16.00,62.00 370.00x44.00 CASDFLayer name=@3 op=1.0 cr=0.0 filters=[["name": "vibrantColorMatrix", "type": "vibrantColorMatrix"]]
+                              [L] 0.00,62.00 0.00x0.00 _TtC7SwiftUIP33_05C1F5BE6EE7940FED05100EA822F7B314SDFPortalLayer name=- op=1.0 cr=0.0
+                      SwiftUI._UIInheritedView 0.00,62.00 0.00x0.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        _TtC5UIKitP33_F83AB3ECBB2C378B4FCEB681A4D7DB7430UIPlatformGlassInteractionView 16.00,62.00 62.33x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                            [L] CALayer name=- op=1.0 cr=0.0
+                          SwiftUI._UIInheritedView 16.00,62.00 62.33x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b4e5d433NavigationBarPlatterRepresentable__ 20.00,66.00 54.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              _TtCC5UIKit19NavigationButtonBar15ItemWrapperView 20.00,66.00 54.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                  [L] CALayer name=- op=1.0 cr=0.0
+                                _UIButtonBarButton 20.00,66.00 54.33x36.00 a=1.0 #x3_en_navText enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                    [L] CALayer name=- op=1.0 cr=0.0
+                                  _UIModernBarButton 32.00,68.00 30.33x32.33 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                      [L] CALayer name=- op=1.0 cr=0.0
+                                    UIButtonLabel 32.00,74.00 30.33x20.33 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1 text=Edit tc=[0.0000,0.5686,1.0000,1.0000] enabledLbl=true fs=17.0
+                                        [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                        _TtC5UIKitP33_F83AB3ECBB2C378B4FCEB681A4D7DB7430UIPlatformGlassInteractionView 90.33,62.00 62.33x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                            [L] CALayer name=- op=1.0 cr=0.0
+                          SwiftUI._UIInheritedView 90.33,62.00 62.33x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b4e5d433NavigationBarPlatterRepresentable__ 94.33,66.00 54.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              _TtCC5UIKit19NavigationButtonBar15ItemWrapperView 94.33,66.00 54.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                  [L] CALayer name=- op=1.0 cr=0.0
+                                _UIButtonBarButton 94.33,66.00 54.33x36.00 a=1.0 #x3_dis_navTextD enabled=false hl=false sel=false tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                                    [L] CALayer name=- op=1.0 cr=0.0
+                                  _UIModernBarButton 106.33,68.00 30.33x32.33 a=1.0 enabled=false hl=false sel=false tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                                      [L] CALayer name=- op=1.0 cr=0.0
+                                    UIButtonLabel 106.33,74.00 30.33x20.33 a=1.0 tint=[0.9216,0.9216,0.9608,0.2980] tam=1 text=Edit tc=[0.9216,0.9216,0.9608,0.2980] enabledLbl=true fs=17.0
+                                        [L] _UILabelLayer name=- op=1.0 cr=0.0 contents
+                        _TtC5UIKitP33_F83AB3ECBB2C378B4FCEB681A4D7DB7430UIPlatformGlassInteractionView 231.33,62.00 98.67x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                            [L] CALayer name=- op=1.0 cr=0.0
+                          SwiftUI._UIInheritedView 231.33,62.00 41.33x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b4e5d433NavigationBarPlatterRepresentable__ 235.33,66.00 37.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              _TtCC5UIKit19NavigationButtonBar15ItemWrapperView 235.33,66.00 37.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                  [L] CALayer name=- op=1.0 cr=0.0
+                                _UIButtonBarButton 235.33,66.00 37.33x36.00 a=1.0 #x3_dis_navIconD enabled=false hl=false sel=false tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                                    [L] CALayer name=- op=1.0 cr=0.0
+                                  _UIModernBarButton 242.33,73.33 23.33x22.00 a=1.0 enabled=false hl=false sel=false tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                                      [L] CALayer name=- op=1.0 cr=0.0
+                                    UIImageView 242.33,73.33 23.33x22.00 a=1.0 #plus tint=[0.9216,0.9216,0.9608,0.2980] tam=1 image=symbol rm=0
+                                        [L] CALayer name=- op=1.0 cr=0.0 img=54x54
+                          SwiftUI._UIInheritedView 288.67,62.00 41.33x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b4e5d433NavigationBarPlatterRepresentable__ 288.67,66.00 37.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              _TtCC5UIKit19NavigationButtonBar15ItemWrapperView 288.67,66.00 37.33x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                  [L] CALayer name=- op=1.0 cr=0.0
+                                _UIButtonBarButton 288.67,66.00 37.33x36.00 a=1.0 #x3_en_navIcon enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                    [L] CALayer name=- op=1.0 cr=0.0
+                                  _UIModernBarButton 295.67,73.33 23.33x22.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                      [L] CALayer name=- op=1.0 cr=0.0
+                                    UIImageView 295.67,73.33 23.33x22.00 a=1.0 #plus tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=symbol rm=0
+                                        [L] CALayer name=- op=1.0 cr=0.0 img=54x54
+                        _TtC5UIKitP33_F83AB3ECBB2C378B4FCEB681A4D7DB7430UIPlatformGlassInteractionView 342.00,62.00 44.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                            [L] CALayer name=- op=1.0 cr=0.0
+                          SwiftUI._UIInheritedView 342.00,62.00 44.00x44.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b4e5d433NavigationBarPlatterRepresentable__ 346.00,66.00 36.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              _TtCC5UIKit19NavigationButtonBar15ItemWrapperView 346.00,66.00 36.00x36.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                  [L] CALayer name=- op=1.0 cr=0.0
+                                _UIButtonBarButton 346.00,66.00 36.00x36.00 a=1.0 #x3_dis_navProm enabled=false hl=false sel=false tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                                    [L] CALayer name=- op=1.0 cr=0.0
+                                  _UIModernBarButton 348.00,73.00 32.00x22.67 a=1.0 enabled=false hl=false sel=false tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                                      [L] CALayer name=- op=1.0 cr=0.0
+                                    UIImageView 352.00,73.00 24.00x22.67 a=1.0 #checkmark tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+                                        [L] CALayer name=- op=1.0 cr=0.0 img=56x56
+                _UIPointerInteractionAssistantEffectContainerView 0.00,62.00 0.00x0.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+          _UIPointerInteractionAssistantEffectContainerView 0.00,62.00 0.00x0.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+        _UIFloatingBarContainerView 0.00,0.00 402.00x874.00 a=1.0 #Toolbar tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+            [L] CALayer name=- op=1.0 cr=0.0
+          _TtGC5UIKitP10$1a4b5f59422FloatingBarHostingViewVS_20FloatingBarContainer_ 0.00,0.00 402.00x874.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0
+            SwiftUI._UIInheritedView 0.00,62.00 402.00x812.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                [L] CALayer name=- op=1.0 cr=0.0
+              SwiftUI._UIInheritedView 0.00,62.00 402.00x812.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                  [L] SwiftUI.SDFLayer name=- op=1.0 cr=0.0
+                    [L] 28.00,798.00 346.00x48.00 CALayer name=- op=1.0 cr=0.0
+                      [L] 28.00,798.00 346.00x48.00 CABackdropLayer name=@0 op=1.0 cr=0.0 filters=[["name": "glassBackground", "type": "glassBackground"]]
+                        [L] 28.00,798.00 346.00x48.00 CASDFLayer name=@0 op=1.0 cr=0.0
+                          [L] 0.00,62.00 0.00x0.00 CALayer name=- op=1.0 cr=0.0
+                            [L] 28.00,798.00 105.33x48.00 CASDFElementLayer name=- op=1.0 cr=24.0
+                            [L] 266.00,798.00 48.00x48.00 CASDFElementLayer name=- op=1.0 cr=24.0
+                            [L] 326.00,798.00 48.00x48.00 CASDFElementLayer name=- op=1.0 cr=24.0
+                      [L] 28.00,798.00 346.00x48.00 CALayer name=@1 op=1.0 cr=0.0
+                        [L] 28.00,798.00 346.00x48.00 CALayer name=@0 op=1.0 cr=0.0
+                          [L] 28.00,798.00 346.00x48.00 CASDFLayer name=@0 op=1.0 cr=0.0 filters=[["name": "vibrantColorMatrix", "type": "vibrantColorMatrix"]]
+                            [L] 0.00,62.00 0.00x0.00 CALayer name=- op=1.0 cr=0.0
+                              [L] 28.00,798.00 105.33x48.00 CASDFElementLayer name=- op=1.0 cr=24.0 HID
+                              [L] 266.00,798.00 48.00x48.00 CASDFElementLayer name=- op=1.0 cr=24.0
+                              [L] 326.00,798.00 48.00x48.00 CASDFElementLayer name=- op=1.0 cr=24.0 HID
+                          [L] 28.00,798.00 346.00x48.00 CASDFLayer name=@1 op=1.0 cr=0.0 filters=[["name": "vibrantColorMatrix", "type": "vibrantColorMatrix"]]
+                            [L] 0.00,62.00 0.00x0.00 CALayer name=- op=1.0 cr=0.0
+                              [L] 28.00,798.00 105.33x48.00 CASDFElementLayer name=- op=1.0 cr=24.0 HID
+                              [L] 266.00,798.00 48.00x48.00 CASDFElementLayer name=- op=1.0 cr=24.0 HID
+                              [L] 326.00,798.00 48.00x48.00 CASDFElementLayer name=- op=1.0 cr=24.0
+                          [L] 28.00,798.00 346.00x48.00 CASDFLayer name=@2 op=1.0 cr=0.0 cf=destIn
+                            [L] 0.00,62.00 0.00x0.00 _TtC7SwiftUIP33_05C1F5BE6EE7940FED05100EA822F7B314SDFPortalLayer name=- op=1.0 cr=0.0
+                      [L] 28.00,798.00 346.00x48.00 _TtC7SwiftUIP33_05C1F5BE6EE7940FED05100EA822F7B314SDFPortalLayer name=@2 op=1.0 cr=0.0
+                      [L] 28.00,798.00 346.00x48.00 CASDFLayer name=@3 op=1.0 cr=0.0 filters=[["name": "vibrantColorMatrix", "type": "vibrantColorMatrix"]]
+                        [L] 0.00,62.00 0.00x0.00 _TtC7SwiftUIP33_05C1F5BE6EE7940FED05100EA822F7B314SDFPortalLayer name=- op=1.0 cr=0.0
+                SwiftUI._UIInheritedView 0.00,62.00 0.00x0.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                    [L] CALayer name=- op=1.0 cr=0.0
+                  _TtC5UIKitP33_F83AB3ECBB2C378B4FCEB681A4D7DB7430UIPlatformGlassInteractionView 28.00,798.00 105.33x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    SwiftUI._UIInheritedView 28.00,798.00 50.67x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b5fa6820ButtonRepresentation__ 33.00,803.00 40.67x38.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper 33.00,803.00 40.67x38.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                            [L] CALayer name=- op=1.0 cr=0.0
+                          _UIButtonBarButton 33.00,803.00 40.67x38.00 a=1.0 #x3_en_tbIcon enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _UIModernBarButton 41.00,805.67 24.67x30.00 a=1.0 enabled=true hl=false sel=false tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              UIImageView 41.00,805.67 24.67x30.00 a=1.0 #square.and.arrow.up tint=[0.0000,0.5686,1.0000,1.0000] tam=1 image=symbol rm=0
+                                  [L] CALayer name=- op=1.0 cr=0.0 img=58x78
+                    SwiftUI._UIInheritedView 82.67,798.00 50.67x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b5fa6820ButtonRepresentation__ 87.67,803.00 40.67x38.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper 87.67,803.00 40.67x38.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                            [L] CALayer name=- op=1.0 cr=0.0
+                          _UIButtonBarButton 87.67,803.00 40.67x38.00 a=1.0 #x3_dis_tbIconD enabled=false hl=false sel=false tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _UIModernBarButton 95.67,805.67 24.67x30.00 a=1.0 enabled=false hl=false sel=false tint=[0.9216,0.9216,0.9608,0.2980] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              UIImageView 95.67,805.67 24.67x30.00 a=1.0 #square.and.arrow.up tint=[0.9216,0.9216,0.9608,0.2980] tam=1 image=symbol rm=0
+                                  [L] CALayer name=- op=1.0 cr=0.0 img=58x78
+                  _TtC5UIKitP33_F83AB3ECBB2C378B4FCEB681A4D7DB7430UIPlatformGlassInteractionView 266.00,798.00 48.00x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    SwiftUI._UIInheritedView 266.00,798.00 48.00x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b5fa6820ButtonRepresentation__ 271.00,803.00 38.00x38.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper 271.00,803.00 38.00x38.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                            [L] CALayer name=- op=1.0 cr=0.0
+                          _UIButtonBarButton 271.00,803.00 38.00x38.00 a=1.0 #x3_en_tbProm enabled=true hl=false sel=false tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _UIModernBarButton 272.00,811.00 36.00x22.67 a=1.0 enabled=true hl=false sel=false tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              UIImageView 278.00,811.00 24.00x22.67 a=1.0 #checkmark tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+                                  [L] CALayer name=- op=1.0 cr=0.0 img=56x56
+                  _TtC5UIKitP33_F83AB3ECBB2C378B4FCEB681A4D7DB7430UIPlatformGlassInteractionView 326.00,798.00 48.00x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                      [L] CALayer name=- op=1.0 cr=0.0
+                    SwiftUI._UIInheritedView 326.00,798.00 48.00x48.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                        [L] CALayer name=- op=1.0 cr=0.0
+                      _TtGC5UIKit22UICorePlatformViewHostGVS_32PlatformViewRepresentableAdaptorVS_P10$1a4b5fa6820ButtonRepresentation__ 331.00,803.00 38.00x38.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                          [L] CALayer name=- op=1.0 cr=0.0
+                        _TtC5UIKitP33_DDE14AA6B49FCAFC5A54255A118E1D8713ButtonWrapper 331.00,803.00 38.00x38.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+                            [L] CALayer name=- op=1.0 cr=0.0
+                          _UIButtonBarButton 331.00,803.00 38.00x38.00 a=1.0 #x3_dis_tbPromD enabled=false hl=false sel=false tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                              [L] CALayer name=- op=1.0 cr=0.0
+                            _UIModernBarButton 332.00,811.00 36.00x22.67 a=1.0 enabled=false hl=false sel=false tint=[1.0000,1.0000,1.0000,1.0000] tam=1
+                                [L] CALayer name=- op=1.0 cr=0.0
+                              UIImageView 338.00,811.00 24.00x22.67 a=1.0 #checkmark tint=[1.0000,1.0000,1.0000,1.0000] tam=1 image=symbol rm=0
+                                  [L] CALayer name=- op=1.0 cr=0.0 img=56x56
+          _UIPointerInteractionAssistantEffectContainerView 0.00,0.00 0.00x0.00 a=1.0 tint=[0.0000,0.5686,1.0000,1.0000] tam=1
+              [L] CALayer name=- op=1.0 cr=0.0

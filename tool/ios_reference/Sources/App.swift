@@ -18,6 +18,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         let sceneName = ProcessInfo.processInfo.environment["PROBE_SCENE"]
             ?? UserDefaults.standard.string(forKey: "scene")
             ?? "segmented"
+        if let d = ProcessInfo.processInfo.environment["PROBE_DARK"] { window.overrideUserInterfaceStyle = d == "1" ? .dark : .light }
         window.rootViewController = Scenes.make(sceneName)
         window.makeKeyAndVisible()
         self.window = window

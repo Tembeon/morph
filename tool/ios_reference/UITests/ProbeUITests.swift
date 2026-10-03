@@ -856,39 +856,41 @@ final class ProbeUITests: XCTestCase {
         wait(for: [done], timeout: 30)
     }
 
+    /// PROBE_REF_DARK=1/0 forces the appearance of every reference (unset = the phone's own).
     func testReferences() {
-        capture("ref-segmented", scene: "segmented") {
+        let rx = env["PROBE_REF_DARK"].map { ["PROBE_DARK": $0] } ?? [:]
+        capture("ref-segmented", scene: "segmented", extra: rx) {
             let c = segCenters("seg3")
             shot("segmented-resting")
             shotHeld(c[0], after: 0.7, "segmented-held-selected")
         }
-        capture("ref-tabbar3", scene: "tabbar3") {
+        capture("ref-tabbar3", scene: "tabbar3", extra: rx) {
             let c = tabCenters()
             shot("tabbar3-resting")
             shotHeld(c[0], after: 0.7, "tabbar3-held-selected")
             pause(1.6)
             shotHeld(c[1], after: 0.7, "tabbar3-held-other")
         }
-        capture("ref-switch", scene: "sw") {
+        capture("ref-switch", scene: "sw", extra: rx) {
             let f = control("sw")
             shot("switch-off")
             shotHeld(CGPoint(x: f.midX - 11, y: f.midY), after: 0.7, "switch-off-knob-held")
             pause(1.6)
             shot("switch-on")
         }
-        capture("ref-slider", scene: "sl300") {
+        capture("ref-slider", scene: "sl300", extra: rx) {
             let f = control("sl300")
             shot("slider-resting")
             shotHeld(CGPoint(x: f.minX + 18.5 + 0.3 * (f.width - 37), y: f.midY), after: 0.7, "slider-thumb-held")
         }
         for (w, h) in [(120, 44), (44, 44)] {
-            capture("ref-gb\(w)x\(h)", scene: "gb\(w)x\(h)") {
+            capture("ref-gb\(w)x\(h)", scene: "gb\(w)x\(h)", extra: rx) {
                 let f = control("gb\(w)x\(h)")
                 shot("glass-\(w)x\(h)-resting")
                 shotHeld(CGPoint(x: f.midX, y: f.midY), after: 0.7, "glass-\(w)x\(h)-pressed")
             }
         }
-        capture("ref-menu", scene: "menu") {
+        capture("ref-menu", scene: "menu", extra: rx) {
             let f = menuButton()
             shot("menu-button-resting")
             tap(CGPoint(x: f.midX, y: f.midY), hold: 0.1)

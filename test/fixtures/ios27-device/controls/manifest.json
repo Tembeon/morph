@@ -465,6 +465,41 @@
    "scene": "sl200",
    "gesture": "as slider-w200-end-min-slow, recaptured with the fill layer",
    "note": "recapture 2026-10-03 (slider video pass); probe testSliderVideo / testSliderEnds; L rows renamed by role in c (track, fill, tick) with bg rgba"
+  },
+  {
+   "file": "stepper-plus-tap.jsonl",
+   "bytes": 18113,
+   "scene": "st5",
+   "gesture": "tap the plus half (224.5, 400) 90 ms",
+   "note": "recapture 2026-10-03 (keeper device checks of the simulator-only stepper); probe StatesUITests testStepperDevice; scene st5 (UIStepper value 5, 94 x 32 at 154..248 x 384..416, phone appearance dark unless the file name says light/dark); dl rows kept 0.15 s before .. 1.1 s after the touches; L rows: 0.0.0.x = SwiftUI DesignLibraryStepper layers (per half a masked fill layer with bg, ImageLayer / ColorShapeLayer glyphs, the 1 pt divider)"
+  },
+  {
+   "file": "stepper-plus-hold2500.jsonl",
+   "bytes": 45122,
+   "scene": "st5",
+   "gesture": "press the plus half 2.5 s (autorepeat)",
+   "note": "recapture 2026-10-03 (keeper device checks of the simulator-only stepper); probe StatesUITests testStepperDevice; scene st5 (UIStepper value 5, 94 x 32 at 154..248 x 384..416, phone appearance dark unless the file name says light/dark); dl rows kept 0.15 s before .. 1.1 s after the touches; L rows: 0.0.0.x = SwiftUI DesignLibraryStepper layers (per half a masked fill layer with bg, ImageLayer / ColorShapeLayer glyphs, the 1 pt divider)"
+  },
+  {
+   "file": "stepper-minus-press-slide.jsonl",
+   "bytes": 42796,
+   "scene": "st5",
+   "gesture": "press the minus half 0.3 s, slide to 23 pt past the trailing edge over 0.8 s (30 Hz points), hold, lift at 1.5 s",
+   "note": "recapture 2026-10-03 (keeper device checks of the simulator-only stepper); probe StatesUITests testStepperDevice; scene st5 (UIStepper value 5, 94 x 32 at 154..248 x 384..416, phone appearance dark unless the file name says light/dark); dl rows kept 0.15 s before .. 1.1 s after the touches; L rows: 0.0.0.x = SwiftUI DesignLibraryStepper layers (per half a masked fill layer with bg, ImageLayer / ColorShapeLayer glyphs, the 1 pt divider)"
+  },
+  {
+   "file": "stepper-pressed-dark.jsonl",
+   "bytes": 30441,
+   "scene": "st5",
+   "gesture": "PROBE_DARK=1: press the plus half 1.2 s (screenshot at 0.5 s: references/states/stepper-plus-pressed-dark.png)",
+   "note": "recapture 2026-10-03 (keeper device checks of the simulator-only stepper); probe StatesUITests testStepperDevice; scene st5 (UIStepper value 5, 94 x 32 at 154..248 x 384..416, phone appearance dark unless the file name says light/dark); dl rows kept 0.15 s before .. 1.1 s after the touches; L rows: 0.0.0.x = SwiftUI DesignLibraryStepper layers (per half a masked fill layer with bg, ImageLayer / ColorShapeLayer glyphs, the 1 pt divider)"
+  },
+  {
+   "file": "stepper-pressed-light.jsonl",
+   "bytes": 30550,
+   "scene": "st5",
+   "gesture": "PROBE_DARK=0: as -dark",
+   "note": "recapture 2026-10-03 (keeper device checks of the simulator-only stepper); probe StatesUITests testStepperDevice; scene st5 (UIStepper value 5, 94 x 32 at 154..248 x 384..416, phone appearance dark unless the file name says light/dark); dl rows kept 0.15 s before .. 1.1 s after the touches; L rows: 0.0.0.x = SwiftUI DesignLibraryStepper layers (per half a masked fill layer with bg, ImageLayer / ColorShapeLayer glyphs, the 1 pt divider)"
   }
  ]
 }

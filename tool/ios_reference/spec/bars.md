@@ -97,6 +97,22 @@ shapes [film]. `MorphBarMenuTuning`.
   percent). Automatic under a nav bar = hard; nothing under a floating
   toolbar.
 
+## Disabled items [device, light + dark, 2026-10-03, scene x4disbars]
+
+- Plain item (`UIBarButtonItem.isEnabled = NO`, nav bar and toolbar): the
+  item tint becomes tertiaryLabel (dark 0x4CEBEBF5, light 0x4C3C3C43); the capsule glass is unchanged. Through the
+  bar's color path the RENDERED content differs by kind:
+  ICON (plus, share) dark peak 249 -> 83 on the 32 capsule, light 12 -> 167
+  on 245; TEXT (Edit) dark 249 -> 47, light 13 -> 221 (text is far dimmer).
+- Prominent item (`style .prominent`): the accent body becomes systemGray4
+  (dark 59.8 gray, light 209.8/209.8/214.2), the glyph stays WHITE.
+- A disabled item shares its capsule group with enabled ones like any item.
+- One frame, no animation, both ways.
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
+- To port: per-item enabled flag; plain items draw content at the measured
+  rendered color (icon / text tables above, per appearance), prominent
+  items swap the tint to systemGray4 and keep a white glyph; no opacity.
+
 ## Fixtures
 
 Device `ios27-device/bars/`: toolbar-swap, push-pop, scroll-edge.json,

@@ -1,0 +1,8 @@
+{
+ "family": "disabled",
+ "files": {
+  "disabled.json": "the measured disabled look per control and appearance (see tool/ios_reference/spec/states.md)"
+ },
+ "raw": "tool/ios_reference/references/disabled/dumps (deep dumps at rest), tool/ios_reference/references/disabled/{dark,light} (dis-<scene>.png at rest, dis-<scene>-enabled.png after enabling the twins)",
+ "recapture": "xcodebuild test-without-building -only-testing:ProbeUITests/StatesUITests/testDisabled (TEST_RUNNER_PROBE_DARKS=1,0), devicectl copy Documents, xcresulttool export attachments"
+}

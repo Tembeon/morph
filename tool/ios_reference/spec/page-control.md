@@ -30,6 +30,12 @@ pause/resume).
 - Progress capsule 27.33 pt; old fill fades on 0.381/0.963, widths change
   on 0.398/0.927 [sim].
 
+## Disabled [device, light + dark, 2026-10-03]
+
+- `isEnabled = NO` draws NOTHING different (pixel-identical).
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
+- To port: no disabled dim; non-interactive only.
+
 ## Fixtures
 
 Device `ios27-device/page_control/pc-{tap-right,hold,scrub}.jsonl`;

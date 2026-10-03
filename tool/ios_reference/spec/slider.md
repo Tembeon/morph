@@ -50,6 +50,15 @@ thumbless), `trackConfiguration` (`UISliderTrackConfiguration`:
   frames reach 0.8 h, still finger 0.71).
 - Lifted thumb: shrink 0 (track unchanged inside).
 
+## Disabled [device, light + dark, 2026-10-03]
+
+- `_UISliderGlassVisualElement` at opacity 0.5: track, fill, thumb platter
+  and tick dots together (plain and 5-tick slider). Pixels exact: rms
+  0.09 / 0.10 of 8 bit against 0.5 enabled + 0.5 background.
+- One frame, no animation, both ways.
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
+- To port: the guessed 0.5 is right; one layer over the whole slider.
+
 ## Fixtures
 
 Device `ios27-device/controls/slider-*` (w300 drags/flings/glides/taps/
@@ -81,7 +90,7 @@ to its start value).
   (renderer issue, not package motion).
 - Owner report "native thumb reaches the end under the finger" did not
   reproduce with synthesized touches; a hand-recorded probe drag is next.
-- Disabled opacity 0.5 unmeasured.
+- Reduce Motion unmeasured (plan in states.md).
 
 ## API gaps
 

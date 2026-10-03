@@ -50,6 +50,18 @@ will/didPresent, will/didDismiss; UISearchBar scope buttons, tokens
   the final keyboard frame). Closing falls straight from above the keyboard
   to rest (no dip). 0.7 - 2 pt rms over 300 pt.
 
+## Disabled field [device, light + dark, 2026-10-03]
+
+- `UISearchTextField.isEnabled = NO`: the GLASS capsule is replaced by a
+  flat fill 0x767680 at 0.12 dark / 0.06 light (the field's own layer bg;
+  pixels 14,14,15 on black / 235,235,240 on 242,242,247), no rim, no lift.
+  Magnifier unchanged (label color), placeholder unchanged (tertiaryLabel,
+  rendered 80 dark / 183 light on the flat fill).
+- One frame, no animation.
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
+- To port: `enabled: false` on MorphSearchField -> flat fill instead of
+  glass, no press lift, no focus.
+
 ## Fixtures
 
 Device `ios27-device/search/` (search-toolbar, search-tap, search-hold);

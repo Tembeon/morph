@@ -33,6 +33,22 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
 - Reused by: bar capsules (recorded 1 + 16/w), search field (0.05 s after
   contact), alert platter (pull 0.25, stretch 0.6).
 
+## Disabled [device, light + dark, 2026-10-03]
+
+- `.glass()`: the glass is UNCHANGED (body and rim pixel-identical: body
+  31.7 dark / 244.6,244.6,250.1 light, same rim profile); the title and the
+  image turn tertiaryLabel (dark 0x4CEBEBF5, light 0x4C3C3C43) (label textColor, image contentsMultiplyColor). Rendered
+  peak: dark 249 -> 93 on the 32 body, light 13 -> 189 on 245.
+- `.prominentGlass()`: the accent tint becomes systemGray4 (body dark
+  59.7 gray = 0x3A3A3C within noise, light 210.3/210.3/214.3 = 0xD1D1D6;
+  the enabled body is the tint itself, 0x0091FF dark / 0,134,251 light);
+  the title turns tertiaryLabel too (peak dark 121, light 159).
+- No opacity on the control. One frame, no animation, both ways.
+- Touch on a disabled button: capture prepared (testDisabledTouch), not run.
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
+- To port: drop the 0.35 dim; content color -> tertiaryLabel; prominent
+  tint -> systemGray4 (light 0xD1D1D6 / dark 0x3A3A3C); glass untouched.
+
 ## Fixtures
 
 Device `ios27-device/controls/button-glass-{44x44,60x44,120x44,200x44,
@@ -54,7 +70,7 @@ Scenes `gb<W>x<H>`, `gbp<W>x<H>` (prominent); `PROBE_TINT`. Device plan
 
 ## Not reproduced / open
 
-- Disabled opacity 0.35 unmeasured; Reduce Motion unmeasured.
+- Reduce Motion unmeasured (plan in states.md).
 
 ## API gaps
 

@@ -28,6 +28,16 @@ sliding).
   track end inside at 0.869 with full rim) - glass-optics.
 - Colors (morph defaults): active 0xFF34C759, track 0x29787880, knob white.
 
+## Disabled [device, light + dark, 2026-10-03]
+
+- `UISwitchModernVisualElement` at opacity 0.5 (track, knob and on-color
+  together, off and on alike). Pixels exact: rms 0.07 / 0.05 of 8 bit
+  against 0.5 enabled + 0.5 background.
+- One frame, no animation, both ways.
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
+- To port: the guessed 0.5 is right; check it is applied to the whole
+  switch as one layer (not per part).
+
 ## Fixtures
 
 Device `ios27-device/controls/switch-*` (off/on tap, hold800, drags right
@@ -48,7 +58,7 @@ controls_platform_test.
 
 ## Not reproduced / open
 
-- Disabled opacity 0.5 unmeasured.
+- Reduce Motion unmeasured (plan in states.md).
 
 ## API gaps
 

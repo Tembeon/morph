@@ -85,6 +85,14 @@ keepsMenuPresented); `UIDeferredMenuElement`;
   after: ordinary dismiss, device +0.028 s vs dismissDelay 0.04, the
   early-outside-200 capture, not replayed). Replay 0.008 rms of progress.
 
+## Disabled button [device, light + dark, 2026-10-03]
+
+- A disabled glass menu button (`showsMenuAsPrimaryAction`) looks like a
+  disabled `.glass()` button: glass unchanged, the glyph tertiaryLabel (dark 0x4CEBEBF5, light 0x4C3C3C43); no opacity.
+  One frame, no animation.
+- Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
+- To port: the button face dims its glyph only (see glass-button.md).
+
 ## Fixtures
 
 Device `ios27-device/menu/*` (center3 tap/quicktap/hold700/dismiss/
