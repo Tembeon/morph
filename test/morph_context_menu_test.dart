@@ -120,6 +120,16 @@ Future<void> settle(WidgetTester tester) async {
   }
 }
 
+/// Pumps [span] in 8 ms frames: the hold clock is a ticker, and a
+/// growth read at a coarse step would lag by the gap before its first
+/// tick.
+Future<void> frames(WidgetTester tester, Duration span) async {
+  const Duration step = Duration(milliseconds: 8);
+  for (Duration t = Duration.zero; t < span; t += step) {
+    await tester.pump(step);
+  }
+}
+
 _HostState _host(WidgetTester tester) =>
     tester.state<_HostState>(find.byType(_Host));
 
@@ -132,8 +142,8 @@ void frame(WidgetTester tester) {
 /// The width of the menu column: the hero is narrower than the default
 /// minimum, so the minimum wins.
 const double _menuWidth = 250;
-const double _menuHeight =
-    _aboveHeight + 8 + 48 + 8 + _belowHeight; // above, gap, hero, gap, below
+const double _gap = MorphContextMenuRegion.measuredMenuGap;
+const double _menuHeight = _aboveHeight + _gap + 48 + _gap + _belowHeight;
 
 void main() {
   test('the hold and the lift match an iPhone 16 Pro', () {
@@ -162,13 +172,213 @@ void main() {
       final card = (c['card']! as List).cast<num>();
       final preview = (c['preview']! as List).cast<num>();
       final width = card[0].toDouble();
+      final longest = math.max(width, card[1].toDouble());
       final lift = math.min(
-        (MorphContextMenuRegion.measuredLiftScale - 1) * width,
+        (MorphContextMenuRegion.measuredLiftScale - 1) * longest,
         MorphContextMenuRegion.measuredLiftPoints,
       );
-      expect(preview[2].toDouble(), closeTo(width + lift, 0.05));
+      expect(
+        preview[2].toDouble(),
+        closeTo(width * (1 + lift / longest), 0.05),
+      );
     }
     expect(opened, 4);
+  });
+
+  group('device growth', () {
+    final data =
+        (jsonDecode(
+                  File(
+                    'test/fixtures/ios27-device/context_menu/growth.json',
+                  ).readAsStringSync(),
+                )
+                as Map)
+            .cast<String, Object?>();
+    final cases = (data['cases']! as List).cast<Map<String, Object?>>();
+    Size card(Map<String, Object?> c) {
+      final size = (c['card']! as List).cast<num>();
+      return Size(size[0].toDouble(), size[1].toDouble());
+    }
+
+    List<(double, double)> ramp(Map<String, Object?> c) => <(double, double)>[
+      for (final sample in (c['ramp']! as List).cast<List<Object?>>())
+        ((sample[0]! as num).toDouble(), (sample[1]! as num).toDouble()),
+    ];
+
+    Duration seconds(double t) => Duration(microseconds: (t * 1e6).round());
+
+    test('the growth law replays every held frame on four preview sizes', () {
+      var count = 0;
+      var squares = 0.0;
+      for (final c in cases) {
+        // The first frames hold the configuration's value while the
+        // render server catches up (a 1 - 1.5 point step on one frame).
+        for (final (t, growth) in ramp(c).where(((double, double) s) {
+          return s.$1 > 0.235;
+        })) {
+          final error =
+              MorphContextMenuRegion.measuredHoldGrowth(seconds(t)) - growth;
+          expect(error.abs(), lessThan(0.25), reason: '${c['name']} at $t');
+          squares += error * error;
+          count++;
+        }
+      }
+      expect(count, greaterThan(900));
+      expect(math.sqrt(squares / count), lessThan(0.1));
+    });
+
+    test('the growth is the same number of points for every size', () {
+      for (final c in cases.where(
+        (Map<String, Object?> c) => (c['name']! as String).endsWith('-1200'),
+      )) {
+        final (t, growth) = ramp(c).last;
+        expect(t, greaterThan(0.73), reason: '${c['name']}');
+        expect(growth, closeTo(14.1, 0.2), reason: '${c['name']}');
+      }
+      expect(
+        MorphContextMenuRegion.measuredHoldGrowth(
+          MorphContextMenuRegion.measuredHoldDuration,
+        ),
+        closeTo(14.92, 0.01),
+      );
+      expect(
+        MorphContextMenuRegion.measuredHoldGrowth(const Duration(seconds: 2)),
+        MorphContextMenuRegion.measuredHoldGrowthPoints,
+      );
+    });
+
+    test('a release before the commit point cancels, after it opens', () {
+      final commit =
+          MorphContextMenuRegion.measuredCommitDuration.inMicroseconds / 1e6;
+      var opened = 0;
+      var cancelled = 0;
+      for (final c in cases) {
+        final up = (c['liftUp']! as num).toDouble();
+        final events = (c['events']! as Map).cast<String, Object?>();
+        final shown = events['willDisplay'] as num?;
+        if (up < commit) {
+          expect(shown, isNull, reason: '${c['name']} let go at $up');
+          cancelled++;
+        } else {
+          expect(shown, isNotNull, reason: '${c['name']} let go at $up');
+          expect(
+            shown!.toDouble(),
+            lessThan(
+              math.min(
+                up + 0.06,
+                MorphContextMenuRegion.measuredHoldDuration.inMicroseconds /
+                        1e6 +
+                    0.025,
+              ),
+            ),
+            reason: '${c['name']}',
+          );
+          opened++;
+        }
+      }
+      expect(cancelled, 7);
+      expect(opened, 20);
+    });
+
+    test('the open preview lifts along its longest side; the menu stands '
+        '16 points off it and grows out of a blob at its center', () {
+      for (final c in cases.where((Map<String, Object?> c) {
+        return c['preview'] != null;
+      })) {
+        final size = card(c);
+        final preview = (c['preview']! as List).cast<num>();
+        final lift = math.min(
+          (MorphContextMenuRegion.measuredLiftScale - 1) * size.longestSide,
+          MorphContextMenuRegion.measuredLiftPoints,
+        );
+        final scale = 1 + lift / size.longestSide;
+        expect(preview[2], closeTo(size.width * scale, 0.05));
+        expect(preview[3], closeTo(size.height * scale, 0.05));
+        final menu = (c['menu']! as List).cast<num>();
+        final gap = (menu[1] - menu[3] / 2) - (preview[1] + preview[3] / 2);
+        expect(
+          gap,
+          closeTo(MorphContextMenuRegion.measuredMenuGap, 0.01),
+          reason: '${c['name']}',
+        );
+        final blob = (c['blob'] as List?)?.cast<num>();
+        if (blob == null) {
+          continue;
+        }
+        // The blob is 0.4 of the shorter side tall everywhere; landscape
+        // previews up to 1.5 : 1 keep their aspect in it (the model's
+        // uniform 0.4), the 300 x 200 one narrows to 83 x 80 and the
+        // portrait one squares off at 32 x 32.
+        expect(
+          blob[1],
+          closeTo(
+            MorphContextMenuRegion.measuredRetractScale * size.shortestSide,
+            0.4,
+          ),
+          reason: '${c['name']}',
+        );
+        if (size.width <= 120) {
+          expect(
+            blob[0],
+            closeTo(
+              MorphContextMenuRegion.measuredRetractScale * size.width,
+              0.4,
+            ),
+            reason: '${c['name']}',
+          );
+        }
+      }
+    });
+
+    testWidgets('a held 120 x 80 hero replays the device frames', (
+      WidgetTester tester,
+    ) async {
+      frame(tester);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (BuildContext context, Widget? child) =>
+              MorphScope(child: child!),
+          home: Center(
+            child: MorphContextMenuRegion(
+              below: MorphSatellite(
+                height: 40,
+                builder: (BuildContext context, MorphFlight flight) =>
+                    const Text('below'),
+              ),
+              child: const SizedBox(
+                key: _heroBox,
+                width: 120,
+                height: 80,
+                child: ColoredBox(color: Color(0xFF0088FF)),
+              ),
+            ),
+          ),
+        ),
+      );
+      final c = cases.firstWhere(
+        (Map<String, Object?> c) => c['name'] == 'ctxg-m-1200',
+      );
+      final TestGesture gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(_heroBox)),
+      );
+      // The hold clock starts on the first frame after the touch.
+      await tester.pump();
+      var now = 0.0;
+      for (final (t, growth) in ramp(c).where(((double, double) s) {
+        return s.$1 > 0.235;
+      })) {
+        await tester.pump(seconds(t - now));
+        now = t;
+        expect(
+          tester.getRect(find.byKey(_heroBox)).width - 120,
+          closeTo(growth, 0.35),
+          reason: 'at $t',
+        );
+      }
+      await gesture.up();
+      await settle(tester);
+      expect(find.text('below'), findsOneWidget);
+    });
   });
 
   testWidgets('a tap passes through; a hold lifts the hero, then opens the '
@@ -183,20 +393,38 @@ void main() {
     final TestGesture gesture = await tester.startGesture(
       tester.getCenter(find.text('hero')),
     );
-    // The lift: the hero grows under the finger before anything opens.
-    // Inside a scrollable the press waits for the touch deadline; the
-    // spring's first tick after its start reads t = 0, so the growth
-    // shows on the frame after.
-    await tester.pump(const Duration(milliseconds: 150));
-    await tester.pump(const Duration(milliseconds: 100));
-    expect(tester.getRect(find.byKey(_heroBox)).width, greaterThan(161));
+    // The growth: nothing for UIKit's first 0.184 s, then the measured
+    // ramp under the resting finger, a function of the time held.
+    await frames(tester, const Duration(milliseconds: 160));
+    expect(tester.getRect(find.byKey(_heroBox)).width, _heroSize.width);
+    await frames(tester, const Duration(milliseconds: 240));
+    expect(
+      tester.getRect(find.byKey(_heroBox)).width,
+      moreOrLessEquals(
+        _heroSize.width +
+            MorphContextMenuRegion.measuredHoldGrowth(
+              const Duration(milliseconds: 400),
+            ),
+        epsilon: 0.3,
+      ),
+    );
     expect(_host(tester).holds, 0);
-    // The hold threshold (UIKit's 0.78 s): the menu takes off.
-    await tester.pump(const Duration(milliseconds: 530));
+    // The hold threshold (UIKit's 0.78 s): the menu takes off from the
+    // grown hero.
+    await frames(tester, const Duration(milliseconds: 384));
     expect(_host(tester).holds, 1);
     final MorphFlight flight = _host(tester).flight!;
     final double liftedSourceWidth = flight.sourceRect.width;
-    expect(liftedSourceWidth, greaterThan(_heroSize.width + 1));
+    expect(
+      liftedSourceWidth,
+      moreOrLessEquals(
+        _heroSize.width +
+            MorphContextMenuRegion.measuredHoldGrowth(
+              MorphContextMenuRegion.measuredHoldDuration,
+            ),
+        epsilon: 0.3,
+      ),
+    );
     await tester.pump(const Duration(milliseconds: 80));
     expect(
       flight.sourceRect.width,
@@ -258,6 +486,82 @@ void main() {
     expect(_host(tester).opens, 1);
     first.close();
     await settle(tester);
+  });
+
+  testWidgets('a release past the commit point opens the menu; one before '
+      'it drops the grown hero at once', (WidgetTester tester) async {
+    frame(tester);
+    await tester.pumpWidget(const _Host());
+    final Offset hero = tester.getCenter(find.text('hero'));
+
+    TestGesture gesture = await tester.startGesture(hero);
+    await frames(tester, const Duration(milliseconds: 360));
+    expect(tester.getRect(find.byKey(_heroBox)).width, greaterThan(161));
+    await gesture.up();
+    await tester.pump();
+    expect(
+      tester.getRect(find.byKey(_heroBox)).width,
+      _heroSize.width,
+      reason: 'UIKit drops a preview let go early on the next frame',
+    );
+    await settle(tester);
+    expect(find.text('above'), findsNothing);
+    expect(_host(tester).holds, 0);
+    expect(_host(tester).taps, 1, reason: 'an early release is a tap');
+
+    gesture = await tester.startGesture(hero);
+    await frames(tester, const Duration(milliseconds: 480));
+    expect(_host(tester).holds, 0, reason: 'committed, not yet held');
+    final double grown = tester.getRect(find.byKey(_heroBox)).width;
+    expect(grown, greaterThan(_heroSize.width + 8));
+    await gesture.up();
+    await tester.pump();
+    expect(_host(tester).holds, 1);
+    final MorphFlight flight = _host(tester).flight!;
+    expect(
+      flight.sourceRect.width,
+      moreOrLessEquals(grown, epsilon: 0.3),
+      reason: 'the flight takes off from the grown hero',
+    );
+    await settle(tester);
+    expect(find.text('above'), findsOneWidget);
+    expect(_host(tester).taps, 1, reason: 'a committed release is no tap');
+    flight.close();
+    await settle(tester);
+  });
+
+  testWidgets('the satellites grow out of the hero and retract into it', (
+    WidgetTester tester,
+  ) async {
+    frame(tester);
+    await tester.pumpWidget(const _Host());
+    await tester.tap(find.text('more'));
+    await settle(tester);
+    final MorphFlight flight = _host(tester).flight!;
+    Rect hero() => tester.getRect(find.byKey(_heroBox).last);
+    final Rect rest = tester.getRect(find.text('reply'));
+    flight.close();
+    await tester.pump();
+    for (int i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final double value = flight.controller.value;
+    expect(value, inExclusiveRange(0.05, 0.95));
+    final Rect now = tester.getRect(find.text('reply'));
+    // The below slot (100 tall) squeezes toward a blob 0.4 of the
+    // 48-point hero; the shuttle's own reveal scale (0.95 - 1) rides on
+    // top of it.
+    const double blob =
+        MorphContextMenuRegion.measuredRetractScale * 48 / _belowHeight;
+    final double squeezed = rest.height * (blob + (1 - blob) * value);
+    expect(now.height, inInclusiveRange(squeezed * 0.95, squeezed + 0.01));
+    expect(
+      (now.center.dy - hero().center.dy).abs(),
+      lessThan((rest.center.dy - hero().center.dy).abs()),
+      reason: 'the actions retract toward the hero',
+    );
+    await settle(tester);
+    expect(find.text('reply'), findsNothing);
   });
 
   testWidgets('a scroll cancels the press and never opens', (

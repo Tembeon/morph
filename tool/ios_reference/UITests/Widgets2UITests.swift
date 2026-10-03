@@ -157,6 +157,41 @@ final class Widgets2UITests: XCTestCase {
         capture("ctx-hold-big", scene: "w2ctx", extra: ["PROBE_CW": "300", "PROBE_CH": "200"]) { path(card, pressFor: 1.0, []); pause(1.5); tap(p(201, 820)); pause(1.2) }
     }
 
+    /// The pre-open growth of the held preview: hold lengths around the threshold on previews of
+    /// four sizes (small, the 120 x 80 default, portrait, large), and a long hold before the close.
+    func testW2CtxGrowth() {
+        let card = p(201, 300)
+        let sizes: [(String, String, String)] = [("s", "60", "40"), ("m", "120", "80"), ("t", "80", "160"), ("l", "300", "200")]
+        for (name, w, h) in sizes {
+            let extra = ["PROBE_CW": w, "PROBE_CH": h]
+            for hold in [0.3, 0.6, 0.8, 1.2] {
+                let ms = Int((hold * 1000).rounded())
+                capture("ctxg-\(name)-\(ms)", scene: "w2ctx", extra: extra) {
+                    path(card, pressFor: hold, [])
+                    pause(1.4)
+                    tap(p(201, 820))
+                    pause(1.2)
+                }
+            }
+        }
+    }
+
+    /// Where a release stops cancelling and starts opening the menu (0.3 s cancels, 0.6 s opens).
+    func testW2CtxCommit() {
+        let card = p(201, 300)
+        for (name, w, h) in [("m", "120", "80"), ("l", "300", "200")] {
+            for hold in [0.35, 0.4, 0.43, 0.46, 0.5, 0.55] {
+                let ms = Int((hold * 1000).rounded())
+                capture("ctxc-\(name)-\(ms)", scene: "w2ctx", extra: ["PROBE_CW": w, "PROBE_CH": h]) {
+                    path(card, pressFor: hold, [])
+                    pause(1.4)
+                    tap(p(201, 820))
+                    pause(1.2)
+                }
+            }
+        }
+    }
+
     // MARK: page control (5 pages, 126 x 25 at 201, 400)
 
     func testW2Page() {

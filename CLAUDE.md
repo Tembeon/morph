@@ -301,10 +301,30 @@ Public pieces:
   to an ancestor. onHold = the threshold (the haptic moment), onOpen
   hands out the flight; the region does NOT abort its flight on dispose
   - a hero deleted from its own menu dissolves via the engine's
-  source-lost path. Pinned by morph_context_menu_test. NOT yet
-  calibrated against UIKit's context menu preview (dimming view, the
-  _UIContentPlatterView lift 120x80 -> 138x92) - the region keeps the
-  engine's own flight.
+  source-lost path. Pinned by morph_context_menu_test. THE GROWTH
+  (device, 2026-10-03, fixture context_menu/growth.json): the held
+  hero's scale is 1 + measuredHoldGrowth(t) / longest side, t = the
+  hold clock (a Ticker started on the pointer down, so the first frame
+  after the touch is t = 0; shown only once the tap is down): 0 until
+  0.184, 32 pt/s to 8 pt at 0.434, 20 pt/s to 15 pt - absolute points
+  on every size (60x40 and 300x200 both +14 by 0.74 s), long axis (an
+  80x160 grows in height). The long-press recognizer runs at the COMMIT
+  point (min(0.42 s, holdDuration)); past it a release opens the menu
+  (UIKit: 0.400 cancels, 0.433 opens, knee 0.434) and a Timer opens it
+  at holdDuration. The tap's cancel arrives BEFORE the winner's
+  onLongPressStart, so _drop's verdict waits a microtask; pointer up /
+  cancel on the raw Listener stops the clock (a swipe taken before the
+  touch deadline never sends tap down/cancel). An early release snaps
+  to rest (UIKit too, next frame). The open preview in UIKit continues
+  to min(15 percent of the long side, 26) - NOT ported: the menu's hero
+  stays at its natural size (the column geometry and its tests), so the
+  grown hero shrinks back on takeoff. Satellites unfold out of / retract
+  into a 0.4 x hero blob at the hero center as a pure function of the
+  flight value (_Retract; the device blob is 0.4 of the SHORTER side
+  tall, 300x200 -> 83x80, 80x160 -> 32x32 - the uniform 0.4 is exact
+  for landscape <= 1.5:1). Gap 16 (device). The engine's own flight
+  carries everything else (UIKit's dimming and the preview's
+  undershooting return are not modelled).
 - BARS (bar_items.dart, bar_motion.dart, toolbar.dart, navigation_bar.dart,
   navigation_motion.dart, navigation_stack.dart, scroll_edge_effect.dart;
   measured 2026-10-03, fixtures ios27{,-device}/bars, tuning dump in

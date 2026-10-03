@@ -395,6 +395,23 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   0.78 s (was 0.5 s), and the held hero lifts to UIKit's preview size -
   the smaller of 15 percent and 26 points (1.15 at 120 pt, 1.087 at 300
   pt) - instead of the glass button's lift.
+- `MorphContextMenuRegion` grows the held hero as UIKit grows its
+  preview before the menu (iPhone 16 Pro, 60 x 40 to 300 x 200
+  previews, 28 holds): BREAKING (behavior) instead of lifting on
+  contact, the hero scales by `1 + growth / longest side`, where the
+  growth (`measuredHoldGrowth`, the same points for every size) is 0
+  until 0.184 s, 32 pt/s to 8 pt at 0.434 s, then 20 pt/s to 15 pt;
+  the flight takes off from the grown hero, and a release before the
+  commit point drops it at once. NEW: a release past
+  `measuredCommitDuration` (0.42 s; 0.400 s cancelled, 0.433 s opened)
+  opens the menu, and the child's tap no longer fires; the default
+  `gap` is UIKit's 16 pt (`measuredMenuGap`, was 8); the satellites
+  unfold out of a blob of 0.4 times the hero at its center and retract
+  into it on the way home (`measuredRetractScale`). The open preview's
+  lift (`measuredLiftScale` / `measuredLiftPoints`) is read along the
+  longest side (80 x 160 opens at 92 x 184). The probe gained
+  `testW2CtxGrowth` / `testW2CtxCommit`; fixture
+  `ios27-device/context_menu/growth.json`.
 - NEW: alerts and action sheets (iOS 27 simulator and iPhone 16 Pro,
   2026-10-03):
   `showMorphAlert`, `showMorphActionSheet`, `MorphAlertRoute`,

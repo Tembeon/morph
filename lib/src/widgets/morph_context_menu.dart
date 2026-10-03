@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:motor/motor.dart';
 
@@ -37,13 +38,15 @@ class MorphSatellite {
 }
 
 /// A surface that becomes its own context menu when HELD - the
-/// message-bubble pattern. The thing under the finger lifts on the
-/// touch, and on the hold threshold it flies to where its satellites
-/// fit: a reactions capsule above, the actions below, both arriving on
-/// the flight's own spring. The hero keeps its identity for the whole
-/// journey (a shared element, never a copy fading in over a copy); the
-/// scrim is modal and a tap on it flies everything home; the finger may
-/// let go any time once the menu is up.
+/// message-bubble pattern. The thing under a resting finger grows as
+/// UIKit's preview does ([measuredHoldGrowth]), and on the hold
+/// threshold it flies to where its satellites fit: a reactions capsule
+/// above, the actions below, both arriving on the flight's own spring.
+/// A finger let go past [measuredCommitDuration] opens the menu too. The
+/// hero keeps its identity for the whole journey (a shared element,
+/// never a copy fading in over a copy); the scrim is modal and a tap on
+/// it flies everything home; the finger may let go any time once the
+/// menu is up.
 ///
 /// The region owns the gesture and the physics, the app owns every
 /// pixel: the hero is [child] itself, drawing its own surface - the
@@ -62,10 +65,12 @@ class MorphSatellite {
 /// aligns its satellites to its trailing edge. The hero prefers to stay
 /// where it stands; when the satellites would leave the overlay (or
 /// its safe area, or the keyboard's edge) the whole column shifts to
-/// fit, and the hero visibly travels with it. The satellites ride the
-/// hero rigidly for the whole flight: the vessel's content alignment is
-/// chosen so the hero slot coincides with the flying hero at every
-/// spring value.
+/// fit, and the hero visibly travels with it. The column rides the hero
+/// for the whole flight: the vessel's content alignment is chosen so
+/// the hero slot coincides with the flying hero at every spring value,
+/// and each satellite unfolds out of a blob at the hero's center
+/// ([measuredRetractScale]) on the way out and retracts into it on the
+/// way home, as UIKit's menu does.
 ///
 /// The column is live: the hero's slot and every content-sized
 /// satellite are measured and spring to what their content becomes
@@ -87,7 +92,7 @@ class MorphContextMenuRegion extends StatefulWidget {
     this.below,
     this.replica,
     this.width = 250,
-    this.gap = 8,
+    this.gap = measuredMenuGap,
     this.margin = 12,
     this.alignment = AlignmentDirectional.centerStart,
     this.holdDuration = measuredHoldDuration,
@@ -128,7 +133,8 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// The menu's minimum width; a wider hero widens the menu to itself.
   final double width;
 
-  /// Space between the hero and each satellite.
+  /// Space between the hero and each satellite; UIKit's
+  /// [measuredMenuGap] by default.
   final double gap;
 
   /// The menu's distance from the overlay's edges (past the safe area).
@@ -139,7 +145,8 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// their content to.
   final AlignmentGeometry alignment;
 
-  /// How long the finger must rest before the menu opens.
+  /// How long the finger must rest before the menu opens; a finger let
+  /// go past [measuredCommitDuration] opens it at the release.
   final Duration holdDuration;
 
   /// UIKit's hold before a context menu shows: 0.755 - 0.80 s from the
@@ -148,21 +155,70 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// iPhone 16 Pro.
   static const Duration measuredHoldDuration = Duration(milliseconds: 780);
 
-  /// Whether the hero lifts under the finger: a uniform scale of
-  /// `1 + lift / width` to UIKit's context menu preview size, where a
-  /// 120 x 80 preview opens at 1.15 and a 300 x 200 one at 1.087 (the
-  /// lift is the smaller of 15 percent and [measuredLiftPoints]); press
-  /// and release ride the glass button's springs from
-  /// [MorphFlexSpec.forSize] for the hero's size.
+  /// Whether the hero grows under a resting finger: a uniform scale of
+  /// `1 + growth / longest side`, the growth [measuredHoldGrowth] of the
+  /// time held - the same number of points for every size, as UIKit's
+  /// preview grows. The flight takes off from the grown hero; a finger
+  /// that lets go or scrolls before the commit point drops it back at
+  /// once.
   final bool lifts;
 
-  /// The most a held hero widens, in points (26 measured on a 300 point
-  /// preview).
+  /// UIKit's growth of a held context menu preview before its menu opens,
+  /// in points along the preview's longest side, after [held] time since
+  /// the touch: nothing for 0.184 s, then 32 points per second to 8
+  /// points at 0.434 s, then 20 points per second to 15 points at
+  /// 0.784 s, where it stays.
+  ///
+  /// Fitted to iPhone 16 Pro recordings (iOS 27, 120 Hz) of previews of
+  /// 60 x 40, 120 x 80, 80 x 160 and 300 x 200 points, within 0.21
+  /// points of every frame. A pure function of the hold time.
+  static double measuredHoldGrowth(Duration held) {
+    final double t = held.inMicroseconds / Duration.microsecondsPerSecond;
+    if (t <= _growthStart) {
+      return 0;
+    }
+    if (t <= _growthKnee) {
+      return _growthFastRate * (t - _growthStart);
+    }
+    return math.min(
+      _growthKneePoints + _growthSlowRate * (t - _growthKnee),
+      measuredHoldGrowthPoints,
+    );
+  }
+
+  /// UIKit's commit point of a held preview: let go after it and the
+  /// menu opens anyway (0.400 s cancelled and 0.433 s opened on an
+  /// iPhone 16 Pro, with the growth's knee at 0.434 s). Past it the press
+  /// belongs to the region - the child's own tap no longer fires. A
+  /// [holdDuration] shorter than this commits at the hold itself.
+  static const Duration measuredCommitDuration = Duration(milliseconds: 420);
+
+  /// The most a held preview grows before its menu opens, in points.
+  static const double measuredHoldGrowthPoints = 15;
+
+  static const double _growthStart = 0.184;
+  static const double _growthKnee = 0.434;
+  static const double _growthFastRate = 32;
+  static const double _growthSlowRate = 20;
+  static const double _growthKneePoints =
+      _growthFastRate * (_growthKnee - _growthStart);
+
+  /// The most UIKit's open preview has grown over its natural size, in
+  /// points along its longest side (26 measured on a 300 x 200 preview);
+  /// a smaller preview grows by [measuredLiftScale] instead.
   static const double measuredLiftPoints = 26;
 
-  /// The largest scale a held hero lifts to (1.15 measured on a 120 point
-  /// preview).
+  /// The largest scale of UIKit's open preview (1.15 measured on 60 x 40,
+  /// 120 x 80 and 80 x 160 previews).
   static const double measuredLiftScale = 1.15;
+
+  /// Space UIKit leaves between an open preview and its menu, in points.
+  static const double measuredMenuGap = 16;
+
+  /// The size of the blob a UIKit menu grows out of and retracts into, as
+  /// a share of the preview, at the preview's center (48 x 32 for a
+  /// 120 x 80 preview).
+  static const double measuredRetractScale = 0.4;
 
   /// Whether the region listens for gestures; a disabled region is a
   /// plain wrapper that [open] can still drive.
@@ -246,6 +302,16 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     initialValue: 0,
   );
   MorphFlexSpec _flex = MorphFlexSpec.ultraSmall;
+  // The hold clock: started on the touch, its elapsed time is the hold
+  // time the growth is a function of. The growth shows only once the
+  // tap is down (past a scrollable's touch deadline).
+  late final Ticker _holdClock = createTicker(_onHoldTick);
+  bool _growing = false;
+  int? _clockPointer;
+  // Past the commit point the press is the region's: a release opens
+  // the menu, and the timer opens it at the hold duration.
+  bool _committed = false;
+  Timer? _holdTimer;
 
   // The recognizers are owned here, not by a RawGestureDetector: the
   // hold duration is a constructor argument of the long-press
@@ -286,12 +352,18 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         : null;
   }
 
+  Duration get _commitDuration =>
+      widget.holdDuration < MorphContextMenuRegion.measuredCommitDuration
+      ? widget.holdDuration
+      : MorphContextMenuRegion.measuredCommitDuration;
+
   LongPressGestureRecognizer _makeHold() {
     final LongPressGestureRecognizer hold = LongPressGestureRecognizer(
       debugOwner: this,
-      duration: widget.holdDuration,
+      duration: _commitDuration,
     );
-    hold.onLongPressStart = _onHold;
+    hold.onLongPressStart = _onCommit;
+    hold.onLongPressEnd = _onCommittedRelease;
     return hold;
   }
 
@@ -353,6 +425,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     _tap.dispose();
     _hold.dispose();
     _ownership.dispose();
+    _holdTimer?.cancel();
+    _holdClock.dispose();
     _press.dispose();
     super.dispose();
   }
@@ -364,6 +438,13 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     _tap.addPointer(event);
     _hold.addPointer(event);
     _ownership.addPointer(event);
+    if (event.buttons == kPrimaryButton &&
+        _pressOwner == null &&
+        !_holdClock.isActive) {
+      _growing = false;
+      _clockPointer = event.pointer;
+      _holdClock.start();
+    }
   }
 
   void _lift(TapDownDetails details) {
@@ -371,17 +452,24 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     if (box is RenderBox && box.hasSize) {
       _size = box.size;
     }
-    if (!widget.lifts || _size.isEmpty) {
+    if (!widget.lifts || _size.isEmpty || !_holdClock.isActive) {
       return;
     }
     _flex = MorphFlexSpec.forSize(_size);
-    _press.motion = _flex.trackingSpring.toMotion();
-    _press.animateTo(
-      math.min(
-        (MorphContextMenuRegion.measuredLiftScale - 1) * _size.width,
-        MorphContextMenuRegion.measuredLiftPoints,
-      ),
-    );
+    _growing = true;
+  }
+
+  void _onHoldTick(Duration held) {
+    if (_growing) {
+      _press.value = MorphContextMenuRegion.measuredHoldGrowth(held);
+    }
+  }
+
+  void _stopGrowth() {
+    _growing = false;
+    if (_holdClock.isActive) {
+      _holdClock.stop();
+    }
   }
 
   void _settlePress() {
@@ -390,23 +478,72 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   }
 
   void _drop() {
-    // Winning the long-press arena cancels the tap recognizer. That
-    // cancellation must not start a second spring under a flight which
-    // re-reads this tag's transformed rect every frame: the shuttle
-    // would chase a shrinking source and the held surface would shake.
-    // The flight owns the lift through takeoff; ordinary taps and
-    // canceled scroll attempts still release immediately.
-    if (_pressOwner == null) {
-      _settlePress();
+    // Winning the long-press arena cancels the tap recognizer, and the
+    // arena rejects the tap BEFORE it starts the winner: the verdict
+    // waits a microtask. A committed press keeps growing, and a flight
+    // which re-reads this tag's transformed rect every frame owns the
+    // grown size through takeoff - the shuttle would chase a shrinking
+    // source otherwise. Ordinary taps and canceled scroll attempts drop
+    // at once, as UIKit drops a preview let go before its commit point.
+    scheduleMicrotask(() {
+      if (!mounted || _pressOwner != null || _committed) {
+        return;
+      }
+      _stopGrowth();
+      _press.value = 0;
+    });
+  }
+
+  void _onCommit(LongPressStartDetails details) {
+    final Duration rest = widget.holdDuration - _commitDuration;
+    if (rest <= Duration.zero) {
+      _onHold();
+      return;
+    }
+    _committed = true;
+    _holdTimer?.cancel();
+    _holdTimer = Timer(rest, _onHold);
+  }
+
+  void _onCommittedRelease(LongPressEndDetails details) {
+    if (_committed) {
+      _onHold();
     }
   }
 
-  void _onHold(LongPressStartDetails details) {
+  void _onPointerUp(PointerUpEvent event) {
+    // The tap reports its own end only once it went down: a swipe that
+    // a scrollable took before the touch deadline stops the clock here.
+    if (event.pointer == _clockPointer && !_committed) {
+      _drop();
+    }
+  }
+
+  void _onPointerCancel(PointerCancelEvent event) {
+    if (event.pointer != _clockPointer) {
+      return;
+    }
+    if (!_committed) {
+      _drop();
+      return;
+    }
+    _committed = false;
+    _holdTimer?.cancel();
+    _holdTimer = null;
+    _stopGrowth();
+    _press.value = 0;
+  }
+
+  void _onHold() {
+    _committed = false;
+    _holdTimer?.cancel();
+    _holdTimer = null;
     widget.onHold?.call();
     // The tap cancel may run immediately before or after this callback.
     // Freeze whichever press value is on screen and hand that one stable
     // rect to the flight. Source tracking itself stays live, so scrolling
     // and layout changes still move the return address normally.
+    _stopGrowth();
     _press.stop(canceled: true);
     final MorphFlight flight = _open();
     _pressOwner = flight;
@@ -541,13 +678,18 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
             crossAxisAlignment: .stretch,
             children: <Widget>[
               if (above != null) ...<Widget>[
-                _slot(
-                  extent: geometry.above,
-                  fixed: above.height != null,
-                  alignment: Alignment.bottomCenter,
-                  width: geometry.width,
-                  onSize: geometry.reportAbove,
-                  child: aboveContent!,
+                _Retract(
+                  flight: flight,
+                  geometry: geometry,
+                  slot: Rect.fromLTWH(0, 0, geometry.width, geometry.above),
+                  child: _slot(
+                    extent: geometry.above,
+                    fixed: above.height != null,
+                    alignment: Alignment.bottomCenter,
+                    width: geometry.width,
+                    onSize: geometry.reportAbove,
+                    child: aboveContent!,
+                  ),
                 ),
                 SizedBox(height: geometry.gap),
               ],
@@ -581,13 +723,23 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
               ),
               if (below != null) ...<Widget>[
                 SizedBox(height: geometry.gap),
-                _slot(
-                  extent: geometry.below,
-                  fixed: below.height != null,
-                  alignment: Alignment.topCenter,
-                  width: geometry.width,
-                  onSize: geometry.reportBelow,
-                  child: belowContent!,
+                _Retract(
+                  flight: flight,
+                  geometry: geometry,
+                  slot: Rect.fromLTWH(
+                    0,
+                    geometry.aboveExtent + geometry.heroHeight + geometry.gap,
+                    geometry.width,
+                    geometry.below,
+                  ),
+                  child: _slot(
+                    extent: geometry.below,
+                    fixed: below.height != null,
+                    alignment: Alignment.topCenter,
+                    width: geometry.width,
+                    onSize: geometry.reportBelow,
+                    child: belowContent!,
+                  ),
                 ),
               ],
             ],
@@ -647,7 +799,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       listenable: _press,
       child: tagged,
       builder: (BuildContext context, Widget? child) => Transform.scale(
-        scale: _size.isEmpty ? 1 : 1 + _press.value / _size.width,
+        scale: _size.isEmpty ? 1 : 1 + _press.value / _size.longestSide,
         child: child,
       ),
     );
@@ -656,8 +808,70 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       child: Listener(
         behavior: HitTestBehavior.deferToChild,
         onPointerDown: _onPointerDown,
+        onPointerUp: _onPointerUp,
+        onPointerCancel: _onPointerCancel,
         child: lifted,
       ),
+    );
+  }
+}
+
+/// A satellite unfolding out of the hero: at flight value 0 the slot is
+/// squeezed into a blob of [MorphContextMenuRegion.measuredRetractScale]
+/// times the hero at the hero's center, at 1 it stands in place - the
+/// menu grows out of the held surface and retracts into it on the way
+/// home, a pure function of the flight's value.
+class _Retract extends StatelessWidget {
+  const _Retract({
+    required this.flight,
+    required this.geometry,
+    required this.slot,
+    required this.child,
+  });
+
+  final MorphFlight flight;
+  final _MenuGeometry geometry;
+
+  /// The slot's rect in the column.
+  final Rect slot;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: flight.frameTicks,
+      child: child,
+      builder: (BuildContext context, Widget? child) {
+        final double value = flight.controller.value.clamp(0.0, 1.0);
+        // One Transform on every frame, identity at rest: a tree that
+        // changed shape at the boundary would remount the satellite.
+        if (value >= 1 || slot.width <= 0 || slot.height <= 0) {
+          return Transform(transform: Matrix4.identity(), child: child);
+        }
+        final Offset heroCenter =
+            geometry.heroOffset +
+            Offset(geometry.heroWidth / 2, geometry.heroHeight / 2);
+        final Rect blob = Rect.fromCenter(
+          center: heroCenter,
+          width:
+              geometry.heroWidth * MorphContextMenuRegion.measuredRetractScale,
+          height:
+              geometry.heroHeight * MorphContextMenuRegion.measuredRetractScale,
+        );
+        final Rect now = Rect.lerp(blob, slot, value)!;
+        final Matrix4 transform = Matrix4.translationValues(
+          now.left - slot.left,
+          now.top - slot.top,
+          0,
+        );
+        transform.scaleByDouble(
+          now.width / slot.width,
+          now.height / slot.height,
+          1,
+          1,
+        );
+        return Transform(transform: transform, child: child);
+      },
     );
   }
 }
