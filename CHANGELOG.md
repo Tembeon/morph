@@ -31,6 +31,8 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   Scrolled parent menus retain their offset when a submenu opens or
   returns; parent drag, wheel and ballistic scrolling stay locked until
   the last submenu has returned.
+  Taps on the exposed parent return one level without unlocking scrolling;
+  outside taps dismiss the whole stack, including after a blocked drag.
 - The measured controls: `MorphSegmentedControl` (+
   `MorphSegmentedStyle`) and `MorphTabBar` (+ `MorphTabItem`,
   `MorphTabBarStyle`) - one liquid selection lens on
