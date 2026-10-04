@@ -1,9 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_host.dart';
 
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -40,11 +39,9 @@ double morphLensLabelWidth(String text, TextStyle style, TextScaler scaler) {
   return width;
 }
 
-/// Drives a [MorphLensMotion] from a [MorphClock] and raw
-/// pointer events.
+/// Drives a [MorphLensMotion] from a [MorphControlHost].
 @internal
-mixin MorphLensDriver<T extends StatefulWidget>
-    on State<T>, SingleTickerProviderStateMixin<T>, MorphClock<T> {
+mixin MorphLensDriver<T extends StatefulWidget> on MorphControlHost<T> {
   /// The motion this state drives; created by the host.
   MorphLensMotion get motion;
 
@@ -75,35 +72,18 @@ mixin MorphLensDriver<T extends StatefulWidget>
     });
   }
 
-  int? _pointer;
+  @override
+  void onControlDown(double t, PointerDownEvent event) =>
+      motion.pointerDown(t, trackPosition(event.localPosition));
 
-  /// Whether [event] belongs to the gesture currently driving this lens.
-  bool ownsPointer(PointerEvent event) => event.pointer == _pointer;
+  @override
+  void onControlMove(double t, PointerMoveEvent event) =>
+      motion.pointerMove(t, trackPosition(event.localPosition));
 
-  /// Handles a raw pointer down.
-  void handleDown(PointerDownEvent event) {
-    if (event.buttons != kPrimaryButton || _pointer != null) return;
-    _pointer = event.pointer;
-    motion.pointerDown(stamp(event), trackPosition(event.localPosition));
-  }
+  @override
+  void onControlUp(double t, PointerUpEvent event) =>
+      motion.pointerUp(t, trackPosition(event.localPosition));
 
-  /// Handles a raw pointer move.
-  void handleMove(PointerMoveEvent event) {
-    if (!ownsPointer(event)) return;
-    motion.pointerMove(stamp(event), trackPosition(event.localPosition));
-  }
-
-  /// Handles a raw pointer up.
-  void handleUp(PointerUpEvent event) {
-    if (!ownsPointer(event)) return;
-    _pointer = null;
-    motion.pointerUp(stamp(event), trackPosition(event.localPosition));
-  }
-
-  /// Handles a cancelled pointer.
-  void handleCancel(PointerCancelEvent event) {
-    if (!ownsPointer(event)) return;
-    _pointer = null;
-    motion.pointerCancel(stamp(event));
-  }
+  @override
+  void onControlCancel(double t) => motion.pointerCancel(t);
 }

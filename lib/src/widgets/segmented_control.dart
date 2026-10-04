@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
@@ -158,18 +158,15 @@ class MorphSegmentedStyle {
   );
 }
 
-class _MorphSegmentedControlState extends State<MorphSegmentedControl>
-    with
-        SingleTickerProviderStateMixin<MorphSegmentedControl>,
-        MorphClock<MorphSegmentedControl>,
-        MorphLensDriver<MorphSegmentedControl> {
+class _MorphSegmentedControlState
+    extends MorphControlHost<MorphSegmentedControl>
+    with MorphLensDriver<MorphSegmentedControl> {
   MorphLensMotion? _motion;
   List<MorphLensSlot> _slots = const [];
   MorphSegmentedStyle _style = MorphSegmentedStyle.light;
   Brightness _brightness = Brightness.light;
   TextScaler _scaler = TextScaler.noScaling;
   bool _rtl = false;
-  bool _focused = false;
   double _width = 0;
 
   @override
@@ -328,9 +325,8 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
     ];
   }
 
-  void _down(PointerDownEvent event) {
-    if (_enabled) handleDown(event);
-  }
+  @override
+  bool get controlEnabled => _enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -390,14 +386,14 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
           opacity: style.disabledOpacity,
           child: MorphControlFocus(
             enabled: _enabled,
-            onHighlight: (bool focused) => setState(() => _focused = focused),
+            onHighlight: highlightControlFocus,
             onStep: _step,
             child: MorphFocusRing(
-              visible: _focused,
+              visible: controlFocused,
               child: MorphTouchListener(
                 enabled: _enabled,
                 dragAxis: .horizontal,
-                onPointerDown: _down,
+                onPointerDown: handleDown,
                 onPointerMove: handleMove,
                 onPointerUp: handleUp,
                 onPointerCancel: handleCancel,

@@ -1,8 +1,7 @@
 import 'dart:math' as math;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
@@ -103,8 +102,7 @@ class MorphSwitch extends StatefulWidget {
   State<MorphSwitch> createState() => _MorphSwitchState();
 }
 
-class _MorphSwitchState extends State<MorphSwitch>
-    with SingleTickerProviderStateMixin<MorphSwitch>, MorphClock<MorphSwitch> {
+class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
   static const Size _trackSize = MorphSwitchMotion.trackSize;
   static const double _inset = MorphSwitchMotion.inset;
 
@@ -112,8 +110,6 @@ class _MorphSwitchState extends State<MorphSwitch>
   MorphSwitchStyle _style = MorphSwitchStyle.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
-  bool _focused = false;
-  int? _pointer;
   bool _reconcilePending = false;
 
   MorphSwitchMotion _create() {
@@ -153,6 +149,24 @@ class _MorphSwitchState extends State<MorphSwitch>
   }
 
   bool get _enabled => widget.onChanged != null;
+
+  @override
+  bool get controlEnabled => _enabled;
+
+  @override
+  void onControlDown(double t, PointerDownEvent event) =>
+      _motion.pointerDown(t, _x(event.localPosition));
+
+  @override
+  void onControlMove(double t, PointerMoveEvent event) =>
+      _motion.pointerMove(t, _x(event.localPosition));
+
+  @override
+  void onControlUp(double t, PointerUpEvent event) =>
+      _motion.pointerUp(t, _x(event.localPosition));
+
+  @override
+  void onControlCancel(double t) => _motion.pointerCancel(t);
 
   double _x(Offset local) => _rtl ? _trackSize.width - local.dx : local.dx;
 
@@ -230,10 +244,10 @@ class _MorphSwitchState extends State<MorphSwitch>
       opacity: _style.disabledOpacity,
       child: MorphControlFocus(
         enabled: _enabled,
-        onHighlight: (bool value) => setState(() => _focused = value),
+        onHighlight: highlightControlFocus,
         onActivate: _toggle,
         child: MorphFocusRing(
-          visible: _focused,
+          visible: controlFocused,
           child: Semantics(
             container: true,
             toggled: widget.value,
@@ -243,29 +257,10 @@ class _MorphSwitchState extends State<MorphSwitch>
             child: MorphTouchListener(
               enabled: _enabled,
               dragAxis: .horizontal,
-              onPointerDown: (PointerDownEvent e) {
-                if (!_enabled ||
-                    e.buttons != kPrimaryButton ||
-                    _pointer != null) {
-                  return;
-                }
-                _pointer = e.pointer;
-                _motion.pointerDown(stamp(e), _x(e.localPosition));
-              },
-              onPointerMove: (PointerMoveEvent e) {
-                if (e.pointer != _pointer) return;
-                _motion.pointerMove(stamp(e), _x(e.localPosition));
-              },
-              onPointerUp: (PointerUpEvent e) {
-                if (e.pointer != _pointer) return;
-                _pointer = null;
-                _motion.pointerUp(stamp(e), _x(e.localPosition));
-              },
-              onPointerCancel: (PointerCancelEvent e) {
-                if (e.pointer != _pointer) return;
-                _pointer = null;
-                _motion.pointerCancel(stamp(e));
-              },
+              onPointerDown: handleDown,
+              onPointerMove: handleMove,
+              onPointerUp: handleUp,
+              onPointerCancel: handleCancel,
               child: glass == null
                   ? CustomPaint(size: _trackSize, painter: _SwitchPainter(this))
                   : SizedBox.fromSize(

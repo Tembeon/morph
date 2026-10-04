@@ -1,9 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -406,13 +405,8 @@ class MorphPageControl extends StatefulWidget {
   State<MorphPageControl> createState() => _MorphPageControlState();
 }
 
-class _MorphPageControlState extends State<MorphPageControl>
-    with
-        SingleTickerProviderStateMixin<MorphPageControl>,
-        MorphClock<MorphPageControl> {
+class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
   late MorphPageControlMotion _motion = _create();
-  bool _focused = false;
-  int? _pointer;
 
   double _dotsX(Offset local, bool rtl) {
     final x = rtl ? _size.width - local.dx : local.dx;
@@ -447,11 +441,6 @@ class _MorphPageControlState extends State<MorphPageControl>
   @override
   void didUpdateWidget(MorphPageControl oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_enabled && _pointer != null) {
-      _pointer = null;
-      _motion.pointerCancel(clock);
-      wake();
-    }
     if (widget.count != oldWidget.count ||
         (widget.progress == null) != (oldWidget.progress == null)) {
       _motion = _create();
@@ -468,6 +457,29 @@ class _MorphPageControlState extends State<MorphPageControl>
   int get _page => _count == 0 ? 0 : widget.page.clamp(0, _count - 1);
 
   bool get _enabled => widget.onChanged != null && _count > 0;
+
+  @override
+  bool get controlEnabled => _enabled;
+
+  bool get _rtl => Directionality.maybeOf(context) == TextDirection.rtl;
+
+  @override
+  void onControlDown(double t, PointerDownEvent event) =>
+      _motion.pointerDown(t, _dotsX(event.localPosition, _rtl));
+
+  @override
+  void onControlMove(double t, PointerMoveEvent event) =>
+      _motion.pointerMove(t, _dotsX(event.localPosition, _rtl));
+
+  @override
+  void onControlUp(double t, PointerUpEvent event) => _motion.pointerUp(
+    t,
+    _dotsX(event.localPosition, _rtl),
+    width: _size.width,
+  );
+
+  @override
+  void onControlCancel(double t) => _motion.pointerCancel(t);
 
   void _step(int delta) {
     if (!_enabled) return;
@@ -494,10 +506,10 @@ class _MorphPageControlState extends State<MorphPageControl>
         'page $page of $count';
     return MorphControlFocus(
       enabled: _enabled,
-      onHighlight: (bool v) => setState(() => _focused = v),
+      onHighlight: highlightControlFocus,
       onStep: (int delta) => _step(rtl ? -delta : delta),
       child: MorphFocusRing(
-        visible: _focused,
+        visible: controlFocused,
         child: Semantics(
           container: true,
           enabled: _enabled,
@@ -510,33 +522,10 @@ class _MorphPageControlState extends State<MorphPageControl>
           child: MorphTouchListener(
             enabled: _enabled,
             behavior: HitTestBehavior.opaque,
-            onPointerDown: (PointerDownEvent e) {
-              if (!_enabled ||
-                  _pointer != null ||
-                  e.buttons != kPrimaryButton) {
-                return;
-              }
-              _pointer = e.pointer;
-              _motion.pointerDown(stamp(e), _dotsX(e.localPosition, rtl));
-            },
-            onPointerMove: (PointerMoveEvent e) {
-              if (e.pointer != _pointer) return;
-              _motion.pointerMove(stamp(e), _dotsX(e.localPosition, rtl));
-            },
-            onPointerUp: (PointerUpEvent e) {
-              if (e.pointer != _pointer) return;
-              _pointer = null;
-              _motion.pointerUp(
-                stamp(e),
-                _dotsX(e.localPosition, rtl),
-                width: _size.width,
-              );
-            },
-            onPointerCancel: (PointerCancelEvent e) {
-              if (e.pointer != _pointer) return;
-              _pointer = null;
-              _motion.pointerCancel(stamp(e));
-            },
+            onPointerDown: handleDown,
+            onPointerMove: handleMove,
+            onPointerUp: handleUp,
+            onPointerCancel: handleCancel,
             child: CustomPaint(
               size: _size,
               painter: _PageControlPainter(

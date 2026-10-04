@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/slider_motion.dart';
@@ -130,15 +130,12 @@ class MorphSlider extends StatefulWidget {
   State<MorphSlider> createState() => _MorphSliderState();
 }
 
-class _MorphSliderState extends State<MorphSlider>
-    with SingleTickerProviderStateMixin<MorphSlider>, MorphClock<MorphSlider> {
+class _MorphSliderState extends MorphControlHost<MorphSlider> {
   late final MorphSliderMotion _motion = _create();
   VelocityTracker? _tracker;
   MorphSliderStyle _style = MorphSliderStyle.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
-  bool _focused = false;
-  int? _pointer;
   bool _reconcilePending = false;
 
   MorphSliderMotion _create() {
@@ -195,55 +192,55 @@ class _MorphSliderState extends State<MorphSlider>
     widget.onChangeEnd?.call(value);
   }
 
-  void _down(PointerDownEvent event) {
-    if (!_enabled || event.buttons != kPrimaryButton || _pointer != null) {
-      return;
-    }
-    if (!_motion.hitsThumb(_x(event.localPosition))) return;
-    _pointer = event.pointer;
+  @override
+  bool get controlEnabled => _enabled;
+
+  @override
+  bool acceptsControlPointer(PointerDownEvent event) =>
+      _motion.hitsThumb(_x(event.localPosition));
+
+  @override
+  void onControlDown(double t, PointerDownEvent event) {
     final tracker = VelocityTracker.withKind(event.kind);
     tracker.addPosition(event.timeStamp, event.localPosition);
     _tracker = tracker;
-    _motion.pointerDown(stamp(event), _x(event.localPosition));
+    _motion.pointerDown(t, _x(event.localPosition));
   }
 
-  void _move(PointerMoveEvent event) {
-    if (event.pointer != _pointer) return;
+  @override
+  void onControlMove(double t, PointerMoveEvent event) {
     final tracker = _tracker;
     if (tracker == null) return;
     tracker.addPosition(event.timeStamp, event.localPosition);
-    _motion.pointerMove(stamp(event), _x(event.localPosition));
+    _motion.pointerMove(t, _x(event.localPosition));
   }
 
-  void _up(PointerUpEvent event) {
-    if (event.pointer != _pointer) return;
-    _pointer = null;
+  @override
+  void onControlUp(double t, PointerUpEvent event) {
     final tracker = _tracker;
     if (tracker == null) return;
     _tracker = null;
     tracker.addPosition(event.timeStamp, event.localPosition);
     final velocity = tracker.getVelocity().pixelsPerSecond.dx;
     _motion.pointerUp(
-      stamp(event),
+      t,
       _x(event.localPosition),
       velocity: _rtl ? -velocity : velocity,
     );
   }
 
-  void _cancel(PointerCancelEvent event) {
-    if (event.pointer != _pointer) return;
-    _pointer = null;
+  @override
+  void onControlCancel(double t) {
     if (_tracker == null) return;
     _tracker = null;
-    _motion.pointerCancel(stamp(event));
+    _motion.pointerCancel(t);
   }
 
-  void _lost(PointerCancelEvent event) {
-    if (event.pointer != _pointer) return;
-    _pointer = null;
+  @override
+  void onControlLost(double t) {
     if (_tracker == null) return;
     _tracker = null;
-    _motion.pointerCancel(stamp(event), revert: true);
+    _motion.pointerCancel(t, revert: true);
   }
 
   ({RRect track, RRect fill, RRect thumb, double progress}) _frame(Size size) {
@@ -373,11 +370,11 @@ class _MorphSliderState extends State<MorphSlider>
           opacity: _style.disabledOpacity,
           child: MorphControlFocus(
             enabled: _enabled,
-            onHighlight: (bool focused) => setState(() => _focused = focused),
+            onHighlight: highlightControlFocus,
             onStep: (int delta) => _nudge(_rtl ? -delta : delta),
             verticalSteps: true,
             child: MorphFocusRing(
-              visible: _focused,
+              visible: controlFocused,
               child: Semantics(
                 container: true,
                 slider: true,
@@ -392,11 +389,11 @@ class _MorphSliderState extends State<MorphSlider>
                   enabled: _enabled,
                   dragAxis: .horizontal,
                   behavior: HitTestBehavior.opaque,
-                  onPointerDown: _down,
-                  onPointerMove: _move,
-                  onPointerUp: _up,
-                  onPointerCancel: _cancel,
-                  onPointerLost: _lost,
+                  onPointerDown: handleDown,
+                  onPointerMove: handleMove,
+                  onPointerUp: handleUp,
+                  onPointerCancel: handleCancel,
+                  onPointerLost: handleLost,
                   child: visual,
                 ),
               ),

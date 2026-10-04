@@ -1,6 +1,5 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -158,14 +157,10 @@ class MorphStepper extends StatefulWidget {
 
 enum _Half { minus, plus }
 
-class _MorphStepperState extends State<MorphStepper>
-    with
-        SingleTickerProviderStateMixin<MorphStepper>,
-        MorphClock<MorphStepper> {
+class _MorphStepperState extends MorphControlHost<MorphStepper> {
   static final double _interval =
       MorphStepper.repeatInterval.inMicroseconds / 1e6;
 
-  int? _pointer;
   _Half? _pressed;
   bool _repeated = false;
   final MorphTimeline _repeats = MorphTimeline();
@@ -176,13 +171,12 @@ class _MorphStepperState extends State<MorphStepper>
 
   double get _value =>
       widget.value.isFinite ? widget.value.clamp(_minimum, _maximum) : _minimum;
-  bool _focused = false;
 
   @override
-  void didUpdateWidget(MorphStepper oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.onChanged == null) _end();
-  }
+  bool get controlEnabled => widget.onChanged != null;
+
+  @override
+  bool get stampPointerUpdates => false;
 
   @override
   void advanceMotion(double t) => _repeats.runDue(t);
@@ -213,18 +207,16 @@ class _MorphStepperState extends State<MorphStepper>
     widget.onChanged?.call(next);
   }
 
-  void _down(PointerDownEvent event) {
-    if (widget.onChanged == null ||
-        _pointer != null ||
-        event.buttons != kPrimaryButton) {
-      return;
-    }
-    final half = _halfAt(event.localPosition);
-    if (half == null) return;
-    _pointer = event.pointer;
+  @override
+  bool acceptsControlPointer(PointerDownEvent event) =>
+      _halfAt(event.localPosition) != null;
+
+  @override
+  void onControlDown(double t, PointerDownEvent event) {
+    final half = _halfAt(event.localPosition)!;
     _repeated = false;
     setState(() => _pressed = half);
-    _repeats.insert(stamp(event) + _interval, _repeat);
+    _repeats.insert(t + _interval, _repeat);
   }
 
   void _repeat(double t) {
@@ -235,8 +227,8 @@ class _MorphStepperState extends State<MorphStepper>
     _repeats.insert(t + _interval, _repeat);
   }
 
-  void _move(PointerMoveEvent event) {
-    if (event.pointer != _pointer) return;
+  @override
+  void onControlMove(double t, PointerMoveEvent event) {
     final half = _halfAt(event.localPosition);
     if (half == null) {
       _end();
@@ -245,21 +237,20 @@ class _MorphStepperState extends State<MorphStepper>
     if (half != _pressed) setState(() => _pressed = half);
   }
 
-  void _up(PointerUpEvent event) {
-    if (event.pointer != _pointer) return;
+  @override
+  void onControlUp(double t, PointerUpEvent event) {
     final half = _pressed;
     final repeated = _repeated;
     _end();
     if (half != null && !repeated) _stepBy(half);
   }
 
-  void _cancel(PointerCancelEvent event) {
-    if (event.pointer == _pointer) _end();
-  }
+  @override
+  void onControlCancel(double t) => _end();
 
   void _end() {
     _repeats.clear();
-    _pointer = null;
+    releaseControlPointer();
     if (_pressed != null) setState(() => _pressed = null);
   }
 
@@ -314,22 +305,22 @@ class _MorphStepperState extends State<MorphStepper>
     ];
     return MorphControlFocus(
       enabled: enabled,
-      onHighlight: (bool focused) => setState(() => _focused = focused),
+      onHighlight: highlightControlFocus,
       onActivate: () => _key(_Half.plus),
       onStep: (int delta) => _key(delta > 0 ? _Half.plus : _Half.minus),
       verticalSteps: true,
       child: MorphFocusRing(
-        visible: _focused,
+        visible: controlFocused,
         child: Semantics(
           container: true,
           explicitChildNodes: true,
           child: MorphTouchListener(
             enabled: enabled,
             behavior: HitTestBehavior.opaque,
-            onPointerDown: _down,
-            onPointerMove: _move,
-            onPointerUp: _up,
-            onPointerCancel: _cancel,
+            onPointerDown: handleDown,
+            onPointerMove: handleMove,
+            onPointerUp: handleUp,
+            onPointerCancel: handleCancel,
             child: SizedBox.fromSize(
               size: size,
               child: Stack(

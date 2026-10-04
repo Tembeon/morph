@@ -1,11 +1,10 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -227,11 +226,8 @@ abstract final class MorphTabBarMetrics {
   }
 }
 
-class _MorphTabBarState extends State<MorphTabBar>
-    with
-        SingleTickerProviderStateMixin<MorphTabBar>,
-        MorphClock<MorphTabBar>,
-        MorphLensDriver<MorphTabBar> {
+class _MorphTabBarState extends MorphControlHost<MorphTabBar>
+    with MorphLensDriver<MorphTabBar> {
   static const double _barHeight = MorphTabBarMetrics.height;
   static const double _lensHeight = MorphTabBarMetrics.lensHeight;
   static const double _radius = MorphTabBarMetrics.radius;
@@ -242,7 +238,6 @@ class _MorphTabBarState extends State<MorphTabBar>
   MorphTabBarStyle _style = MorphTabBarStyle.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
-  bool _focused = false;
 
   @override
   MorphLensMotion get motion => _motion!;
@@ -388,30 +383,32 @@ class _MorphTabBarState extends State<MorphTabBar>
     ];
   }
 
-  void _down(PointerDownEvent event) {
-    if (event.buttons != kPrimaryButton) return;
-    handleDown(event);
-    if (!ownsPointer(event)) return;
+  @override
+  bool get controlEnabled => widget.items.isNotEmpty;
+
+  @override
+  void onControlDown(double t, PointerDownEvent event) {
+    super.onControlDown(t, event);
     if (_selectable(motion.slotAt(trackPosition(event.localPosition)))) {
       _glow.pointerDown(clock, event.localPosition);
     }
   }
 
-  void _move(PointerMoveEvent event) {
-    if (!ownsPointer(event)) return;
-    handleMove(event);
+  @override
+  void onControlMove(double t, PointerMoveEvent event) {
+    super.onControlMove(t, event);
     _glow.pointerMove(clock, event.localPosition);
   }
 
-  void _up(PointerUpEvent event) {
-    if (!ownsPointer(event)) return;
-    handleUp(event);
+  @override
+  void onControlUp(double t, PointerUpEvent event) {
+    super.onControlUp(t, event);
     _glow.pointerUp(clock);
   }
 
-  void _cancel(PointerCancelEvent event) {
-    if (!ownsPointer(event)) return;
-    handleCancel(event);
+  @override
+  void onControlCancel(double t) {
+    super.onControlCancel(t);
     _glow.pointerUp(clock);
   }
 
@@ -496,16 +493,16 @@ class _MorphTabBarState extends State<MorphTabBar>
     );
     return MorphControlFocus(
       enabled: _enabled,
-      onHighlight: (bool focused) => setState(() => _focused = focused),
+      onHighlight: highlightControlFocus,
       onStep: _step,
       child: MorphTouchListener(
         enabled: widget.items.isNotEmpty,
         dragAxis: .horizontal,
         delaysInScrollable: true,
-        onPointerDown: _down,
-        onPointerMove: _move,
-        onPointerUp: _up,
-        onPointerCancel: _cancel,
+        onPointerDown: handleDown,
+        onPointerMove: handleMove,
+        onPointerUp: handleUp,
+        onPointerCancel: handleCancel,
         child: AnimatedBuilder(
           animation: frames,
           builder: (BuildContext context, Widget? child) {
@@ -514,7 +511,7 @@ class _MorphTabBarState extends State<MorphTabBar>
             return Transform.scale(scale: grow, child: child);
           },
           child: MorphFocusRing(
-            visible: _focused,
+            visible: controlFocused,
             child: SizedBox(
               width: geometry.width,
               height: _barHeight,

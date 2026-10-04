@@ -1,9 +1,8 @@
 import 'dart:math' as math;
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -395,14 +394,10 @@ class MorphGlassButton extends StatefulWidget {
   State<MorphGlassButton> createState() => _MorphGlassButtonState();
 }
 
-class _MorphGlassButtonState extends State<MorphGlassButton>
-    with
-        SingleTickerProviderStateMixin<MorphGlassButton>,
-        MorphClock<MorphGlassButton> {
+class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
   final MorphGlassButtonMotion _motion = MorphGlassButtonMotion(
     size: Size.zero,
   );
-  bool _focused = false;
 
   @override
   void advanceMotion(double t) => _motion.advance(t);
@@ -413,37 +408,32 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
   bool get _enabled => widget.onPressed != null;
 
   @override
-  void didUpdateWidget(MorphGlassButton oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (!_enabled && _motion.isPressed) {
-      _motion.pointerCancel(clock);
-      wake();
-    }
-  }
+  bool get controlEnabled => _enabled;
 
-  void _down(PointerDownEvent event) {
-    if (!_enabled || event.buttons != kPrimaryButton) return;
+  @override
+  bool acceptsControlPointer(PointerDownEvent event) {
     final box = context.findRenderObject();
-    if (box is! RenderBox || !box.hasSize) return;
+    if (box is! RenderBox || !box.hasSize) return false;
     _motion.size = box.size;
-    _motion.pointerDown(stamp(event), event.localPosition);
+    return true;
   }
 
-  void _move(PointerMoveEvent event) {
-    if (!_motion.isPressed) return;
-    _motion.pointerMove(stamp(event), event.localPosition);
-  }
+  @override
+  void onControlDown(double t, PointerDownEvent event) =>
+      _motion.pointerDown(t, event.localPosition);
 
-  void _up(PointerUpEvent event) {
-    if (!_motion.isPressed) return;
-    final activated = _motion.pointerUp(stamp(event), event.localPosition);
+  @override
+  void onControlMove(double t, PointerMoveEvent event) =>
+      _motion.pointerMove(t, event.localPosition);
+
+  @override
+  void onControlUp(double t, PointerUpEvent event) {
+    final activated = _motion.pointerUp(t, event.localPosition);
     if (activated) widget.onPressed?.call();
   }
 
-  void _cancel(PointerCancelEvent event) {
-    if (!_motion.isPressed) return;
-    _motion.pointerCancel(stamp(event));
-  }
+  @override
+  void onControlCancel(double t) => _motion.pointerCancel(t);
 
   double get _lift {
     final lifted = _motion.liftedScale - 1;
@@ -492,7 +482,7 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
     );
     return MorphControlFocus(
       enabled: _enabled,
-      onHighlight: (bool focused) => setState(() => _focused = focused),
+      onHighlight: highlightControlFocus,
       onActivate: widget.onPressed,
       child: Semantics(
         button: true,
@@ -501,10 +491,10 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
         child: MorphTouchListener(
           enabled: _enabled,
           behavior: HitTestBehavior.opaque,
-          onPointerDown: _down,
-          onPointerMove: _move,
-          onPointerUp: _up,
-          onPointerCancel: _cancel,
+          onPointerDown: handleDown,
+          onPointerMove: handleMove,
+          onPointerUp: handleUp,
+          onPointerCancel: handleCancel,
           child: ListenableBuilder(
             listenable: frames,
             builder: (BuildContext context, Widget? child) {
@@ -520,7 +510,7 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
               );
             },
             child: MorphFocusRing(
-              visible: _focused,
+              visible: controlFocused,
               child: MorphControlCapsule(
                 painter: glass,
                 frames: frames,
