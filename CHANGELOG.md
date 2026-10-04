@@ -44,7 +44,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   before, such menus fell back to flat platters without the Liquid Glass
   contour. Closing submenu cards keep UIKit's copied card material on its
   carrier, and cards cast the measured light shadow through the new
-  `MorphGlassSurface.shadows`.
+  `MorphGlassSurface.shadows`. The menu glass now starts its close together
+  with the card container, as on the device (outside 0.059 s, card row
+  0.031 s after the release), so a closing submenu folds into one body.
 - Alerts, action sheets, sheets (and their content), the date picker
   overlay, context menu flights and the source replica of a sheet or push
   zoom draw with the glass painter above the control that presented them,
