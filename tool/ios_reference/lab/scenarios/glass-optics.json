@@ -1,0 +1,132 @@
+{
+  "schema": 1,
+  "id": "glass-optics",
+  "canvas": {
+    "width": 402,
+    "height": 874,
+    "scale": 3
+  },
+  "appearance": "light",
+  "background": {
+    "kind": "solid",
+    "color": "#F2F2F7"
+  },
+  "marker": [
+    8,
+    56,
+    100,
+    10
+  ],
+  "widgets": [
+    {
+      "id": "glass",
+      "kind": "button",
+      "rect": [
+        141,
+        380,
+        120,
+        44
+      ],
+      "title": ""
+    }
+  ],
+  "tracks": [
+    {
+      "id": "button",
+      "native": {
+        "identifier": "glass"
+      },
+      "flutter": {
+        "key": "glass"
+      }
+    },
+    {
+      "id": "lift",
+      "properties": [
+        "scaleX",
+        "scaleY"
+      ],
+      "native": {
+        "identifier": "glass",
+        "source": "layer",
+        "layerClass": "_UIMultiLayer$"
+      },
+      "flutter": {
+        "type": "Transform",
+        "within": "glass",
+        "paintChild": true
+      }
+    },
+    {
+      "id": "platter",
+      "native": {
+        "identifier": "glass",
+        "source": "layer",
+        "layerClass": "_UIMultiLayer$"
+      },
+      "flutter": {
+        "type": "Transform",
+        "within": "glass",
+        "paintChild": true
+      }
+    }
+  ],
+  "regions": [
+    {
+      "id": "face",
+      "rect": [
+        161,
+        391,
+        80,
+        20
+      ]
+    },
+    {
+      "id": "left-rim",
+      "rect": [
+        135,
+        383,
+        16,
+        38
+      ]
+    },
+    {
+      "id": "top-rim",
+      "rect": [
+        150,
+        373,
+        100,
+        14
+      ]
+    },
+    {
+      "id": "shadow",
+      "rect": [
+        128,
+        431,
+        147,
+        25
+      ]
+    },
+    {
+      "id": "background",
+      "rect": [
+        15,
+        380,
+        60,
+        50
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "settle",
+      "action": "wait",
+      "seconds": 1
+    },
+    {
+      "id": "surface",
+      "action": "shot"
+    }
+  ]
+}

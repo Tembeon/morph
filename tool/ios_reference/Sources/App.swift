@@ -23,5 +23,6 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window.makeKeyAndVisible()
         self.window = window
         Recorder.shared.start(scene: sceneName, window: window)
+        LabCapture.shared.start(window: window)
     }
 }

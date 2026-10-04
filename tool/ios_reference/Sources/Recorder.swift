@@ -13,9 +13,13 @@ final class RecordingWindow: UIWindow {
                 Recorder.shared.log([
                     "k": "touch",
                     "t": touch.timestamp,
+                    "delivered_t": CACurrentMediaTime(),
                     "phase": touch.phase.rawValue,
                     "x": p.x,
                     "y": p.y,
+                    "pointer": "\(ObjectIdentifier(touch))",
+                    "pressure": touch.maximumPossibleForce > 0 ? touch.force / touch.maximumPossibleForce : 0,
+                    "radius": touch.majorRadius,
                 ])
             }
         }

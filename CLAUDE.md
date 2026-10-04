@@ -23,8 +23,11 @@ keyboard) were never committed on their own - they sit in the same
 uncommitted working tree as 0.7.0, so their pre-measured variants
 (Tug-lifted context menu, MorphReveal satellites, the measured
 showMorphMenu popover) are reachable only if the owner commits/tags
-them separately. No A/B labs, no "feel" knobs: when a value has no
+them separately. No production "feel" knobs: when a value has no
 measurement behind it, the job is to measure it, not to tune it.
+The owner's measurement laboratory in `tool/ios_reference/lab` compares
+native and Flutter using shared scenarios, real touches, layers and films;
+it is tooling, with no production feel knobs or unmeasured tuning promotion.
 Example scenes may still carry scene values (layout, blend of a
 mockup), never physics that pretends to be native.
 

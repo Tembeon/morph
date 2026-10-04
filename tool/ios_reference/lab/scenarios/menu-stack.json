@@ -1,0 +1,180 @@
+{
+  "schema": 1,
+  "id": "menu-stack",
+  "canvas": {
+    "width": 402,
+    "height": 874,
+    "scale": 3
+  },
+  "appearance": "light",
+  "background": {
+    "kind": "solid",
+    "color": "#F2F2F7"
+  },
+  "marker": [
+    8,
+    56,
+    100,
+    10
+  ],
+  "widgets": [
+    {
+      "id": "menu",
+      "kind": "menu",
+      "rect": [
+        179,
+        300,
+        44,
+        44
+      ],
+      "items": [
+        {
+          "title": "Copy"
+        },
+        {
+          "title": "Share"
+        },
+        {
+          "title": "More",
+          "children": [
+            {
+              "title": "Sub one"
+            },
+            {
+              "title": "Sub two"
+            },
+            {
+              "title": "Deeper",
+              "children": [
+                {
+                  "title": "Deep one"
+                },
+                {
+                  "title": "Deep two"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tracks": [
+    {
+      "id": "source",
+      "native": {
+        "identifier": "menu"
+      },
+      "flutter": {
+        "key": "menu"
+      }
+    },
+    {
+      "id": "rows",
+      "native": {
+        "class": "_UIContextMenuListView$",
+        "all": true
+      },
+      "flutter": {
+        "type": "_MenuRows",
+        "all": true
+      }
+    }
+  ],
+  "regions": [
+    {
+      "id": "stack",
+      "rect": [
+        50,
+        340,
+        302,
+        490
+      ]
+    }
+  ],
+  "steps": [
+    {
+      "id": "rest",
+      "action": "shot"
+    },
+    {
+      "id": "open",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "identifier": "menu"
+      }
+    },
+    {
+      "id": "opened",
+      "action": "shot"
+    },
+    {
+      "id": "more",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "More",
+        "last": true
+      }
+    },
+    {
+      "id": "stacked",
+      "action": "shot"
+    },
+    {
+      "id": "deeper",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "Deeper",
+        "last": true
+      }
+    },
+    {
+      "id": "deep-stacked",
+      "action": "shot"
+    },
+    {
+      "id": "outside",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 25,
+          "y": 830
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2
+    },
+    {
+      "id": "closed",
+      "action": "shot"
+    }
+  ]
+}

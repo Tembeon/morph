@@ -15,6 +15,7 @@ enum Scenes {
     }
 
     static func make(_ name: String) -> UIViewController {
+        if name == "lab", let spec = LabScenario.environment() { return LabScene(spec) }
         if let x4 = StatesScenes.make(name) { return x4 }
         if let x5 = MenuScenes.make(name) { return x5 }
         if let w2 = Widgets2Scenes.make(name) { return w2 }

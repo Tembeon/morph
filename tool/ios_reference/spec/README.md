@@ -89,6 +89,12 @@ launched with `open` - ask first).
 
 ## Recording pipeline
 
+The shared [measurement laboratory](../lab/README.md) drives matching native
+and Flutter scenarios with real XCUITest input, captures timestamped films
+and telemetry, and generates interactive regional/motion reports. It uses
+the same device lock and provenance rules. See its README for selectors,
+custom-scene adapters, replay, fitting, clocks and capture limitations.
+
 Probe app: `Sources/` (App, Scenes, Controls, Recorder, Settings, Merge,
 Bars, Widgets2 `w2*`, Extras `x3*`, SheetNav `sn*`, Typography `fonts`,
 States `x4*`, Menus `x5menu`), UITests in `UITests/` (ProbeUITests,

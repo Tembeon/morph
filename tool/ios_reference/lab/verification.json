@@ -1,0 +1,1448 @@
+{
+  "schema": 1,
+  "date": "2026-10-04",
+  "device": "iPhone 16 Pro",
+  "os": "iOS 27.0.1",
+  "simulatorUsed": false,
+  "backend": "USB AVCaptureVideoDataOutput + AVAssetWriter H.264 32 Mbit/s; original PTS; no frame reordering",
+  "checks": {
+    "pythonTests": 24,
+    "packageTests": 1056,
+    "galleryTests": 14,
+    "dartFormatFiles": 251,
+    "dartFormatChanged": 0,
+    "analyzerIssues": 0,
+    "dartdocWarnings": 0,
+    "dartdocErrors": 0
+  },
+  "runs": [
+    {
+      "run": "button-phone-20261004-09",
+      "status": "EVIDENCE",
+      "scenarioSha256": "9422fac078eb5f47e60cae57d602786ff09c05cb4703295fc047020bc34782a3",
+      "alignment": "geometry: first delivered touch; input paths: first source touch; one offset, no time warping",
+      "failures": [],
+      "fidelityGatesDeclared": false,
+      "quality": {
+        "native": {
+          "metadata": {
+            "t": 199434.13825908338,
+            "scale": 3,
+            "rm": false,
+            "id": "button-press-drag",
+            "w": 402,
+            "k": "lab_start",
+            "side": "native",
+            "h": 874,
+            "maxfps": 120,
+            "os": "27.0.1",
+            "rt": false,
+            "sha256": "9422fac078eb5f47e60cae57d602786ff09c05cb4703295fc047020bc34782a3"
+          },
+          "errors": [],
+          "cadence": {
+            "count": 1270,
+            "medianGapMs": 8.33474998944439,
+            "p95GapMs": 8.33475001854822,
+            "maxGapMs": 29.02083334629424,
+            "achievedHz": 119.97960361935966,
+            "gapsOverTwoPeriods": 4
+          },
+          "markerCount": 1270,
+          "samplingCostMs": {
+            "median": 0.5891666660318151,
+            "p95": 1.133549996302463,
+            "max": 2.3514999775215983
+          },
+          "touchClockBasis": "delivery",
+          "timingUncertainty": "native marker predicts targetTimestamp; Flutter marker is logged postFrame; physical presentation is not timestamped",
+          "usbSource": {
+            "cadence": {
+              "count": 951,
+              "medianGapMs": 16.666666662786156,
+              "p95GapMs": 50.01666664611548,
+              "maxGapMs": 466.6999999899417,
+              "achievedHz": 60.00000001396984,
+              "gapsOverTwoPeriods": 97
+            },
+            "delegateDropCount": 0,
+            "encoderDropCount": 14,
+            "movieAcceptedCount": 933,
+            "firstBuffer": {
+              "attachments": {
+                "CGColorSpace": "<CGColorSpace 0x771d291740> (kCGColorSpaceICCBased; kCGColorSpaceModelRGB; QuickTime 'nclc' Video (1,13,1))",
+                "CVImageBufferColorPrimaries": "ITU_R_709_2",
+                "CVImageBufferTransferFunction": "IEC_sRGB",
+                "CVImageBufferYCbCrMatrix": "ITU_R_709_2"
+              },
+              "height": 2622,
+              "host_t": 256971.6225220834,
+              "k": "capture_buffer",
+              "movieAccepted": true,
+              "pixelFormat": 846624121,
+              "pts": 256971.343,
+              "recording": true,
+              "width": 1206
+            },
+            "note": "delegate drops do not include upstream USB omissions or movie-output drops",
+            "movieDecodedCount": 933
+          }
+        },
+        "candidate": {
+          "metadata": {
+            "k": "lab_start",
+            "t": 0.010585,
+            "side": "flutter",
+            "id": "button-press-drag",
+            "w": 402.0,
+            "h": 874.0,
+            "scale": 3.0,
+            "maxfps": 120.0,
+            "rm": false,
+            "rt": false,
+            "os": "Version 27.0.1 (Build 24A446)",
+            "tier": "liquid",
+            "sha256": "9422fac078eb5f47e60cae57d602786ff09c05cb4703295fc047020bc34782a3",
+            "rtSource": "XCUITest runner UIAccessibility"
+          },
+          "errors": [],
+          "cadence": {
+            "count": 1275,
+            "medianGapMs": 8.349500000000411,
+            "p95GapMs": 8.973350000000051,
+            "maxGapMs": 17.86000000000021,
+            "achievedHz": 119.76765075752449,
+            "gapsOverTwoPeriods": 2
+          },
+          "markerCount": 1295,
+          "samplingCostMs": {
+            "median": 0.7030000000005643,
+            "p95": 1.1547999999998113,
+            "max": 1.9850000000003476
+          },
+          "touchClockBasis": "delivery",
+          "timingUncertainty": "native marker predicts targetTimestamp; Flutter marker is logged postFrame; physical presentation is not timestamped",
+          "usbSource": {
+            "cadence": {
+              "count": 1031,
+              "medianGapMs": 16.666666662786156,
+              "p95GapMs": 50.0000000174623,
+              "maxGapMs": 283.33333335467614,
+              "achievedHz": 60.00000001396984,
+              "gapsOverTwoPeriods": 73
+            },
+            "delegateDropCount": 0,
+            "encoderDropCount": 0,
+            "movieAcceptedCount": 1009,
+            "firstBuffer": {
+              "attachments": {
+                "CGColorSpace": "<CGColorSpace 0x772f239740> (kCGColorSpaceICCBased; kCGColorSpaceModelRGB; QuickTime 'nclc' Video (1,13,1))",
+                "CVImageBufferColorPrimaries": "ITU_R_709_2",
+                "CVImageBufferTransferFunction": "IEC_sRGB",
+                "CVImageBufferYCbCrMatrix": "ITU_R_709_2"
+              },
+              "height": 2622,
+              "host_t": 257095.69931191672,
+              "k": "capture_buffer",
+              "pixelFormat": 846624121,
+              "pts": 257095.43488333334,
+              "recording": false,
+              "width": 1206
+            },
+            "note": "delegate drops do not include upstream USB omissions or movie-output drops",
+            "movieDecodedCount": 1009
+          }
+        }
+      },
+      "input": {
+        "nativeCount": 3,
+        "candidateCount": 3,
+        "durationErrorMs": {
+          "count": 3,
+          "rms": 0.0003849087116811659,
+          "max": 0.000666681444272399,
+          "p95": 0.0006000162102282047
+        },
+        "startDriftMs": {
+          "count": 3,
+          "rms": 28.334242747277628,
+          "max": 37.98166668275371,
+          "p95": 37.2913625149522
+        },
+        "pathErrorPt": {
+          "count": 290,
+          "rms": 0.10509232287575618,
+          "max": 0.718540158717067,
+          "p95": 0.22602836601221768
+        }
+      },
+      "tracks": {
+        "button": {
+          "nativeCount": 1270,
+          "candidateCount": 1287,
+          "pairedCount": 1269,
+          "motion": {
+            "native": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 1269,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 1269,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 1269,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 1269,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            },
+            "candidate": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 1286,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 1286,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 1286,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 1286,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            }
+          },
+          "properties": {
+            "left": {
+              "count": 1269,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "top": {
+              "count": 1269,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "scaleY": {
+              "count": 1269,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "opacity": {
+              "count": 1269,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "width": {
+              "count": 1269,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "height": {
+              "count": 1269,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "scaleX": {
+              "count": 1269,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            }
+          },
+          "maxHorizontalStepPt": 0.0,
+          "maxClipLossPt": 0,
+          "identityChanges": 0
+        },
+        "lift": {
+          "nativeCount": 1270,
+          "candidateCount": 1286,
+          "pairedCount": 1269,
+          "motion": {
+            "native": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            },
+            "candidate": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            }
+          },
+          "properties": {
+            "scaleX": {
+              "count": 1269,
+              "rms": 0.004865201362155016,
+              "max": 0.044682105805980754,
+              "p95": 0.00861011258120101
+            },
+            "scaleY": {
+              "count": 1269,
+              "rms": 0.0048434939627610895,
+              "max": 0.044682105805980754,
+              "p95": 0.008158479586202276
+            }
+          },
+          "maxHorizontalStepPt": null,
+          "maxClipLossPt": 0,
+          "identityChanges": 0
+        },
+        "platter": {
+          "nativeCount": 1270,
+          "candidateCount": 1277,
+          "pairedCount": 1269,
+          "motion": {
+            "native": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 1269,
+                  "rms": 23.900255175467073,
+                  "max": 218.31674669424015,
+                  "p95": 22.137921196368268
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 1269,
+                  "rms": 8.781615374747366,
+                  "max": 80.04947378789034,
+                  "p95": 8.211846694152785
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 1269,
+                  "rms": 50.19601213444923,
+                  "max": 436.6334933884735,
+                  "p95": 50.86485328473641
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 1269,
+                  "rms": 18.162455435126535,
+                  "max": 160.09894757577385,
+                  "p95": 18.396213740981494
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            },
+            "candidate": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 1276,
+                  "rms": 16.486303622269613,
+                  "max": 100.90030653421704,
+                  "p95": 47.407796159338204
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 1276,
+                  "rms": 5.904535329188686,
+                  "max": 36.996779062545,
+                  "p95": 15.615169650161459
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 1276,
+                  "rms": 34.83810969525983,
+                  "max": 201.80061306843822,
+                  "p95": 105.52602526341695
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 1276,
+                  "rms": 12.536089900772039,
+                  "max": 73.9935581250983,
+                  "p95": 36.957310679540434
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            }
+          },
+          "properties": {
+            "left": {
+              "count": 1269,
+              "rms": 0.2903895711065828,
+              "max": 2.680926348358838,
+              "p95": 0.47098210958055514
+            },
+            "top": {
+              "count": 1269,
+              "rms": 0.19165549021341255,
+              "max": 1.2991314578128481,
+              "p95": 0.3960989060808514
+            },
+            "scaleY": {
+              "count": 1269,
+              "rms": 0.004843495212953315,
+              "max": 0.044682105805980754,
+              "p95": 0.008158479586202276
+            },
+            "opacity": {
+              "count": 1269,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "width": {
+              "count": 1269,
+              "rms": 0.5838243193127542,
+              "max": 5.361852696717733,
+              "p95": 1.0332135097441097
+            },
+            "height": {
+              "count": 1269,
+              "rms": 0.2131137893699444,
+              "max": 1.966012655463139,
+              "p95": 0.35897310179289516
+            },
+            "scaleX": {
+              "count": 1269,
+              "rms": 0.004865202660939605,
+              "max": 0.044682105805980754,
+              "p95": 0.00861011258120101
+            }
+          },
+          "maxHorizontalStepPt": 0.6982085571077903,
+          "maxClipLossPt": 0,
+          "identityChanges": 0
+        }
+      },
+      "events": {
+        "discreteLatencyDifferenceMs": {
+          "count": 2,
+          "rms": 21.878271213954886,
+          "max": 30.891791691472825,
+          "p95": 29.43401668968031
+        },
+        "groups": [
+          {
+            "id": "glass",
+            "event": "activate",
+            "nativeCount": 2,
+            "candidateCount": 2,
+            "latencyDifferenceMs": {
+              "count": 2,
+              "rms": 21.878271213954886,
+              "max": 30.891791691472825,
+              "p95": 29.43401668968031
+            },
+            "native": [
+              {
+                "k": "lab_event",
+                "id": "glass",
+                "t": 0.12396529165562242,
+                "e": "activate",
+                "fromDownMs": 123.96529165562242,
+                "fromUpMs": 0.8786666730884463
+              },
+              {
+                "id": "glass",
+                "e": "activate",
+                "t": 2.5331782083085272,
+                "k": "lab_event",
+                "fromDownMs": 1383.5442083072849,
+                "fromUpMs": 1.2243333330843598
+              }
+            ],
+            "candidate": [
+              {
+                "k": "lab_event",
+                "t": 0.12222899999999992,
+                "id": "glass",
+                "e": "activate",
+                "value": null,
+                "fromDownMs": 122.22899999999993,
+                "fromUpMs": -0.1340000000000785
+              },
+              {
+                "k": "lab_event",
+                "t": 2.56407,
+                "id": "glass",
+                "e": "activate",
+                "value": null,
+                "fromDownMs": 1382.3790000000004,
+                "fromUpMs": -0.20500000000023277
+              }
+            ]
+          }
+        ]
+      },
+      "sha256": {
+        "out/button-phone-20261004-09/scenario.json": "978971a4bc890f8eb90b694892e1effe93e638df92c8de109b7ba623c2c830b9",
+        "out/button-phone-20261004-09/native/manifest.json": "0a2f39a92282230c4a1b32703843f27a098df135e125736bc831077ccaaeed71",
+        "out/button-phone-20261004-09/flutter/manifest.json": "2c8f926a5c5ec5c2c7409cfe1254b8d97c9c3ffb685d801e9f444faef819d3a3",
+        "out/button-phone-20261004-09/native/trace.jsonl": "974d8e32e8d4efae64f7e298d052520cfc748a041272985b7c77065802b00ccb",
+        "out/button-phone-20261004-09/flutter/trace.jsonl": "573782483b925cecdefcd963258f189d0eccce35a1ff6c2da145dca2245fc893",
+        "out/button-phone-20261004-09/report/report.json": "d5dede838833779f2a5270ad5523a9f520e8e5614e99a5ab72e0cb96437db1f6"
+      },
+      "film": {
+        "native": {
+          "decodedCount": 933,
+          "mappedCount": 472,
+          "duplicateMarkers": 1,
+          "imageMetadata": {
+            "width": 1206,
+            "height": 2622,
+            "mode": "RGB",
+            "iccSha256": null,
+            "gamma": 0.45455
+          },
+          "cadence": {
+            "count": 933,
+            "medianGapMs": 16.666999999999987,
+            "p95GapMs": 50.00000000000071,
+            "maxGapMs": 466.667,
+            "achievedHz": 59.998800023999564,
+            "gapsOverTwoPeriods": 99
+          },
+          "activeDecodedCount": 472,
+          "leadTailFrames": 461,
+          "decodedMarkerCoverage": 1.0,
+          "ptsAnomalies": {
+            "duplicate": 0,
+            "backwards": 0
+          },
+          "gestureCoverage": [
+            {
+              "stroke": 0,
+              "start": 0.0,
+              "end": 0.623086624982534,
+              "coverage": 0.9063327135767764,
+              "window": "down through release + 500 ms"
+            },
+            {
+              "stroke": 1,
+              "start": 1.1496340000012424,
+              "end": 3.031953874975443,
+              "coverage": 0.8671254887959849,
+              "window": "down through release + 500 ms"
+            },
+            {
+              "stroke": 2,
+              "start": 3.88293574997806,
+              "end": 5.282145583332749,
+              "coverage": 0.86891565824256,
+              "window": "down through release + 500 ms"
+            }
+          ]
+        },
+        "candidate": {
+          "decodedCount": 1009,
+          "mappedCount": 499,
+          "duplicateMarkers": 3,
+          "imageMetadata": {
+            "width": 1206,
+            "height": 2622,
+            "mode": "RGB",
+            "iccSha256": null,
+            "gamma": 0.45455
+          },
+          "cadence": {
+            "count": 1009,
+            "medianGapMs": 16.666999999999987,
+            "p95GapMs": 49.99999999999982,
+            "maxGapMs": 283.333,
+            "achievedHz": 59.998800023999564,
+            "gapsOverTwoPeriods": 72
+          },
+          "activeDecodedCount": 499,
+          "leadTailFrames": 510,
+          "decodedMarkerCoverage": 1.0,
+          "ptsAnomalies": {
+            "duplicate": 0,
+            "backwards": 0
+          },
+          "gestureCoverage": [
+            {
+              "stroke": 0,
+              "start": 0.0,
+              "end": 0.622363,
+              "coverage": 0.8684722581515939,
+              "window": "down through release + 500 ms"
+            },
+            {
+              "stroke": 1,
+              "start": 1.1816909999999998,
+              "end": 3.0642750000000003,
+              "coverage": 0.8459994348193749,
+              "window": "down through release + 500 ms"
+            },
+            {
+              "stroke": 2,
+              "start": 3.9071350000000002,
+              "end": 5.306483,
+              "coverage": 0.8615548098114265,
+              "window": "down through release + 500 ms"
+            }
+          ]
+        },
+        "failures": [],
+        "toleranceMs": 25.0,
+        "pairedGestureCoverage": [
+          {
+            "stroke": 0,
+            "start": 0.0,
+            "end": 0.623086624982534,
+            "coverage": 0.8877313005405387,
+            "window": "down through release + 500 ms"
+          },
+          {
+            "stroke": 1,
+            "start": 1.1496340000012424,
+            "end": 3.031953874975443,
+            "coverage": 0.805099943507696,
+            "window": "down through release + 500 ms"
+          },
+          {
+            "stroke": 2,
+            "start": 3.88293574997806,
+            "end": 5.282145583332749,
+            "coverage": 0.8390890025125424,
+            "window": "down through release + 500 ms"
+          }
+        ],
+        "pairedCount": 244
+      },
+      "liftPeak": {
+        "native": 1.1440390514378151,
+        "candidate": 1.144105251047152
+      }
+    },
+    {
+      "run": "menu-phone-20261004-03",
+      "status": "EVIDENCE",
+      "scenarioSha256": "f6aa671a7cd9fe8446fd27e26023bd1efdccba15e7552e3c54bf3c7d83325b0d",
+      "alignment": "geometry: first delivered touch; input paths: first source touch; one offset, no time warping",
+      "failures": [],
+      "fidelityGatesDeclared": false,
+      "quality": {
+        "native": {
+          "metadata": {
+            "w": 402,
+            "k": "lab_start",
+            "maxfps": 120,
+            "h": 874,
+            "t": 199045.49695150004,
+            "os": "27.0.1",
+            "sha256": "f6aa671a7cd9fe8446fd27e26023bd1efdccba15e7552e3c54bf3c7d83325b0d",
+            "side": "native",
+            "id": "menu-stack",
+            "scale": 3,
+            "rm": false,
+            "rt": false
+          },
+          "errors": [],
+          "cadence": {
+            "count": 1706,
+            "medianGapMs": 8.33474998944439,
+            "p95GapMs": 8.33475001854822,
+            "maxGapMs": 103.09470834909007,
+            "achievedHz": 119.97960361935966,
+            "gapsOverTwoPeriods": 9
+          },
+          "markerCount": 1706,
+          "samplingCostMs": {
+            "median": 0.6249583384487778,
+            "p95": 1.1807395858340897,
+            "max": 1.5890833165030926
+          },
+          "touchClockBasis": "delivery",
+          "timingUncertainty": "native marker predicts targetTimestamp; Flutter marker is logged postFrame; physical presentation is not timestamped"
+        },
+        "candidate": {
+          "metadata": {
+            "k": "lab_start",
+            "t": 0.004357,
+            "side": "flutter",
+            "id": "menu-stack",
+            "w": 402.0,
+            "h": 874.0,
+            "scale": 3.0,
+            "maxfps": 120.0,
+            "rm": false,
+            "rt": false,
+            "os": "Version 27.0.1 (Build 24A446)",
+            "tier": "liquid",
+            "sha256": "f6aa671a7cd9fe8446fd27e26023bd1efdccba15e7552e3c54bf3c7d83325b0d",
+            "rtSource": "XCUITest runner UIAccessibility"
+          },
+          "errors": [],
+          "cadence": {
+            "count": 1720,
+            "medianGapMs": 8.335000000000093,
+            "p95GapMs": 9.306899999999539,
+            "maxGapMs": 25.591000000000363,
+            "achievedHz": 119.97600479903885,
+            "gapsOverTwoPeriods": 5
+          },
+          "markerCount": 1749,
+          "samplingCostMs": {
+            "median": 0.6890000000001617,
+            "p95": 1.1431000000007074,
+            "max": 3.7730000000006925
+          },
+          "touchClockBasis": "delivery",
+          "timingUncertainty": "native marker predicts targetTimestamp; Flutter marker is logged postFrame; physical presentation is not timestamped"
+        }
+      },
+      "input": {
+        "nativeCount": 4,
+        "candidateCount": 4,
+        "durationErrorMs": {
+          "count": 4,
+          "rms": 0.32950000604614615,
+          "max": 0.6590000120922923,
+          "p95": 0.5601500102784482
+        },
+        "startDriftMs": {
+          "count": 4,
+          "rms": 179.22927945969602,
+          "max": 231.8337083561346,
+          "p95": 230.25827085511992
+        },
+        "pathErrorPt": {
+          "count": 63,
+          "rms": 0.37562411321265265,
+          "max": 0.6666666666666288,
+          "p95": 0.6666666666666288
+        }
+      },
+      "tracks": {
+        "rows/0": {
+          "nativeCount": 1031,
+          "candidateCount": 916,
+          "pairedCount": 902,
+          "motion": {
+            "native": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 1028,
+                  "rms": 73.89230745705702,
+                  "max": 688.9590921874293,
+                  "p95": 20.031776513184173
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 1028,
+                  "rms": 18.255175542826407,
+                  "max": 169.8783179801108,
+                  "p95": 5.738095057425805
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 1028,
+                  "rms": 147.78461491411403,
+                  "max": 1377.9181843748484,
+                  "p95": 40.06355302636954
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 1028,
+                  "rms": 122.95679960854288,
+                  "max": 1146.427929399878,
+                  "p95": 33.33287611793749
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            },
+            "candidate": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 915,
+                  "rms": 173.6816673165186,
+                  "max": 2149.1767029865387,
+                  "p95": 161.09200025446881
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 915,
+                  "rms": 26.51384116258129,
+                  "max": 192.12141468669054,
+                  "p95": 52.981306847197125
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 915,
+                  "rms": 347.3633346330372,
+                  "max": 4298.35340597307,
+                  "p95": 322.18400050893763
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 915,
+                  "rms": 202.8601874256937,
+                  "max": 2510.2383890882775,
+                  "p95": 188.1554562972194
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            }
+          },
+          "properties": {
+            "scaleX": {
+              "count": 902,
+              "rms": 0.12367726355408802,
+              "max": 0.8150502911620136,
+              "p95": 0.1043629311399978
+            },
+            "top": {
+              "count": 902,
+              "rms": 3.5441875655493478,
+              "max": 22.601904210463374,
+              "p95": 3.4778132045406136
+            },
+            "opacity": {
+              "count": 902,
+              "rms": 0.42098508730458617,
+              "max": 1.0,
+              "p95": 0.5018587153363249
+            },
+            "left": {
+              "count": 902,
+              "rms": 12.878504650342265,
+              "max": 91.84351830769398,
+              "p95": 12.864945942922299
+            },
+            "width": {
+              "count": 902,
+              "rms": 25.75700930068453,
+              "max": 183.68703661538802,
+              "p95": 25.729891885844626
+            },
+            "scaleY": {
+              "count": 902,
+              "rms": 0.12367726355408802,
+              "max": 0.8150502911620136,
+              "p95": 0.1043629311399978
+            },
+            "height": {
+              "count": 902,
+              "rms": 64.47142076589513,
+              "max": 165.59157619844135,
+              "p95": 64.21989515905867
+            }
+          },
+          "maxHorizontalStepPt": 15.936145252645076,
+          "maxClipLossPt": 38.67562172431917,
+          "identityChanges": 0
+        },
+        "rows/1": {
+          "nativeCount": 680,
+          "candidateCount": 571,
+          "pairedCount": 550,
+          "motion": {
+            "native": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 678,
+                  "rms": 94.30500389988558,
+                  "max": 710.2671053478637,
+                  "p95": 62.65399298600057
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 678,
+                  "rms": 108.2228920541754,
+                  "max": 1834.3585613681025,
+                  "p95": 76.3353348385637
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 678,
+                  "rms": 188.61000779977115,
+                  "max": 1420.5342106957273,
+                  "p95": 125.30798597199535
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 678,
+                  "rms": 217.60596819089153,
+                  "max": 1181.8844632988437,
+                  "p95": 541.0181287248886
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            },
+            "candidate": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 568,
+                  "rms": 102.51294626511135,
+                  "max": 725.9553772369321,
+                  "p95": 59.33355292374088
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 568,
+                  "rms": 40.62166044526135,
+                  "max": 283.9374289458957,
+                  "p95": 39.220411743585075
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 568,
+                  "rms": 205.0258925302227,
+                  "max": 1451.9107544738677,
+                  "p95": 118.66710584748301
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 568,
+                  "rms": 170.5815425851453,
+                  "max": 1207.989747722255,
+                  "p95": 98.73103206510633
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            }
+          },
+          "properties": {
+            "width": {
+              "count": 550,
+              "rms": 32.97946427375555,
+              "max": 189.36807898501334,
+              "p95": 36.85263238598767
+            },
+            "opacity": {
+              "count": 550,
+              "rms": 0.37193295673674576,
+              "max": 1.0,
+              "p95": 0.9100342124700525
+            },
+            "height": {
+              "count": 550,
+              "rms": 35.21546449890315,
+              "max": 166.00000377075838,
+              "p95": 109.28394899950433
+            },
+            "scaleX": {
+              "count": 550,
+              "rms": 0.14791189780616026,
+              "max": 0.8093301970743024,
+              "p95": 0.17741052954395065
+            },
+            "top": {
+              "count": 550,
+              "rms": 6.623140833565693,
+              "max": 37.05396265232815,
+              "p95": 13.199376649595015
+            },
+            "left": {
+              "count": 550,
+              "rms": 16.489732136877777,
+              "max": 94.68403949250668,
+              "p95": 18.426316192993834
+            },
+            "scaleY": {
+              "count": 550,
+              "rms": 0.14791189780616026,
+              "max": 0.8093301970743024,
+              "p95": 0.17741052954395065
+            }
+          },
+          "maxHorizontalStepPt": 0.3867382526895966,
+          "maxClipLossPt": 155.00530156214944,
+          "identityChanges": 2
+        },
+        "rows/2": {
+          "nativeCount": 336,
+          "candidateCount": 236,
+          "pairedCount": 208,
+          "motion": {
+            "native": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 335,
+                  "rms": 138.7957700999432,
+                  "max": 732.234129224602,
+                  "p95": 304.27752213091327
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 335,
+                  "rms": 451.5106760090982,
+                  "max": 5177.470236617937,
+                  "p95": 571.8841245969337
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 335,
+                  "rms": 277.5915401998864,
+                  "max": 1464.468258449204,
+                  "p95": 608.5550442618303
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 335,
+                  "rms": 305.30421717893597,
+                  "max": 3402.188787903514,
+                  "p95": 733.6305093996052
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            },
+            "candidate": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 234,
+                  "rms": 164.5531720526276,
+                  "max": 748.4059471557574,
+                  "p95": 511.40601918199434
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 234,
+                  "rms": 246.13824551000306,
+                  "max": 1117.0046911662648,
+                  "p95": 763.2793436473153
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 234,
+                  "rms": 329.1063441052551,
+                  "max": 1496.8118943115185,
+                  "p95": 1022.8120383639916
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 234,
+                  "rms": 218.52661248588953,
+                  "max": 993.8830978228513,
+                  "p95": 679.1471934736882
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            }
+          },
+          "properties": {
+            "scaleY": {
+              "count": 208,
+              "rms": 0.23524346956750436,
+              "max": 0.8034331909586269,
+              "p95": 0.7302124766251551
+            },
+            "width": {
+              "count": 208,
+              "rms": 55.22149272084011,
+              "max": 195.22482515835802,
+              "p95": 166.24457049835416
+            },
+            "height": {
+              "count": 208,
+              "rms": 44.8055071570594,
+              "max": 129.62928390514975,
+              "p95": 117.0588734429906
+            },
+            "opacity": {
+              "count": 208,
+              "rms": 0.3028958436536852,
+              "max": 1.0,
+              "p95": 0.9209948430954197
+            },
+            "left": {
+              "count": 208,
+              "rms": 27.610746360420055,
+              "max": 97.612412579179,
+              "p95": 83.12228524917708
+            },
+            "top": {
+              "count": 208,
+              "rms": 41.311586306305706,
+              "max": 145.88729440597518,
+              "p95": 124.25205832269884
+            },
+            "scaleX": {
+              "count": 208,
+              "rms": 0.23524346956750436,
+              "max": 0.8034331909586269,
+              "p95": 0.7302124766251551
+            }
+          },
+          "maxHorizontalStepPt": 6.106263423443778,
+          "maxClipLossPt": 112.68974273803451,
+          "identityChanges": 1
+        },
+        "source": {
+          "nativeCount": 1706,
+          "candidateCount": 1725,
+          "pairedCount": 1703,
+          "motion": {
+            "native": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 1703,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 1703,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 1703,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 1703,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            },
+            "candidate": {
+              "left": {
+                "velocityPtPerSecond": {
+                  "count": 1724,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "top": {
+                "velocityPtPerSecond": {
+                  "count": 1724,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "width": {
+                "velocityPtPerSecond": {
+                  "count": 1724,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "height": {
+                "velocityPtPerSecond": {
+                  "count": 1724,
+                  "rms": 0.0,
+                  "max": 0.0,
+                  "p95": 0.0
+                }
+              },
+              "scrollY": {
+                "velocityPtPerSecond": {
+                  "count": 0,
+                  "rms": null,
+                  "max": null,
+                  "p95": null
+                }
+              }
+            }
+          },
+          "properties": {
+            "width": {
+              "count": 1703,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "opacity": {
+              "count": 1703,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "left": {
+              "count": 1703,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "height": {
+              "count": 1703,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "scaleX": {
+              "count": 1703,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "scaleY": {
+              "count": 1703,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            },
+            "top": {
+              "count": 1703,
+              "rms": 0.0,
+              "max": 0.0,
+              "p95": 0.0
+            }
+          },
+          "maxHorizontalStepPt": 0.0,
+          "maxClipLossPt": 0,
+          "identityChanges": 0
+        }
+      },
+      "events": {
+        "discreteLatencyDifferenceMs": {
+          "count": 0,
+          "rms": null,
+          "max": null,
+          "p95": null
+        },
+        "groups": []
+      },
+      "sha256": {
+        "out/menu-phone-20261004-03/scenario.json": "ff39a92ae7484c374cb5db218f4ecd3c831408cb3113115520177c5fbcbf4930",
+        "out/menu-phone-20261004-03/native/manifest.json": "b17a50f0205bcfab66afb1db5d32d9a7448b596445d00250ea74e82302842b0e",
+        "out/menu-phone-20261004-03/flutter/manifest.json": "dfda4947bc66bf31cf825dfad9575dfb9f739f79869d136325585ceec58dc22a",
+        "out/menu-phone-20261004-03/native/trace.jsonl": "306947212e94007e9c8dde6e361f6c86f884105f1546fb4f7057fe082aa3a6ca",
+        "out/menu-phone-20261004-03/flutter/trace.jsonl": "1f997e7357b6ab856c286229de15f0124bc0f45399998d9a9d1d66590ef5fbd0",
+        "out/menu-phone-20261004-03/report/report.json": "6f84d8512280ac062b216834e2ca63c9120637f8ac0b0ec0b249f3e67ad89ff9"
+      }
+    }
+  ],
+  "analysisSourceHashes": {
+    "morph_lab/__init__.py": "27e8febb48ada44153ea2add9969a2c50a9831a74d9755fdd53c549a888b1cc2",
+    "morph_lab/analysis.py": "40f435ae21a69008c0b19ccd50c6d18d41b84434e32f44548be0ef064f4dc322",
+    "morph_lab/capture.py": "e4542053c2db7fac2c616f59c7390aa136fbd208d96b3a60e6a53d7be972ba29",
+    "morph_lab/cli.py": "517843ea88253139288ff28957416e75327dfb86b9e5f04ac8d4c87a3d06db04",
+    "morph_lab/fitting.py": "c9a69f1f541057e3125cc2c9e80013c5caefefbb740d57d252192412cad4158c",
+    "morph_lab/images.py": "a059a5fba002b0868e9e7b4e6f4d2b07e8e2d498bed87a78d4df76fb0fc30a10",
+    "morph_lab/report.py": "79382a40d83485217c32899e9522b0ee8ea73fbb4e3f65128182a730add84a2f",
+    "morph_lab/scenario.py": "169398a395ff963c5da0e5bca3b13aa2e18c53ff5e1b4516be9b1730ee713f28"
+  }
+}
