@@ -306,6 +306,25 @@ Root scroll ownership correction [widget regression + phone, 2026-10-04]:
   verification passes 1052 package tests, 11 example tests, analyze 0 and
   documentation 0 warnings/errors.
 
+Parent tap correction [widget regression + phone, 2026-10-04]:
+- The exposed parent's sole pan recognizer can win the gesture arena on
+  touch-down without any drag movement. Cancelling menu selection in
+  onPanStart therefore suppressed ordinary parent taps as if they were
+  scrolls. Selection cancellation now runs onPanUpdate only; the stable
+  scroll subtree, input lock and NeverScrollableScrollPhysics remain.
+- A parent tap returns one card per tap, retaining the root scroll offset.
+  A tap outside the stack dismisses the entire menu after a blocked parent
+  drag too. Both installed-glass and painter widget paths exercise these
+  gestures at two submenu levels in test/menu_scroll_test.dart.
+- The phone gallery harness returns Move to and More by tapping the
+  exposed root list, reopens both levels and dismisses the stack outside.
+  Both parent-tap regressions fail before the callback correction (three
+  cards remain where two are expected). On the phone, all seven offsets
+  retain 311.159197 pt, span 0; the final outside tap leaves no menu cards.
+  Film, stills and checks: references/menu-api/film/submenu-tap-*.
+  Verification: 1056 package tests, 11 example tests, analyze 0 and
+  documentation 0 warnings/errors.
+
 Live updates [rows + shots]:
 - `keepsMenuPresented`: the handler runs 0.02 s after the lift and the menu
   stays, but UIKit does NOT redraw a checkmark / palette selection / state by

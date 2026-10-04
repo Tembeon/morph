@@ -2,6 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/menu.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/widgets.dart';
 
 final _entries = <MorphMenuEntry>[
@@ -37,16 +38,19 @@ ScrollController _scroll(WidgetTester tester) => tester
     )
     .controller!;
 
-Future<void> _open(WidgetTester tester) async {
-  await tester.pumpWidget(
-    MaterialApp(
-      home: Scaffold(
-        body: Align(
-          alignment: const Alignment(0, -0.9),
-          child: MorphMenuButton(items: _entries),
-        ),
+Future<void> _open(WidgetTester tester, {bool liquid = false}) async {
+  isLocalTest = true;
+  addTearDown(() => isLocalTest = false);
+  final app = MaterialApp(
+    home: Scaffold(
+      body: Align(
+        alignment: const Alignment(0, -0.9),
+        child: MorphMenuButton(items: _entries),
       ),
     ),
+  );
+  await tester.pumpWidget(
+    liquid ? MorphGlass(painter: const MorphGlassRenderer(), child: app) : app,
   );
   await tester.tap(find.byType(MorphMenuButton));
   await _settle(tester);
@@ -134,6 +138,53 @@ void main() {
     expect(_scroll(tester).offset, greaterThan(offset + 30));
     expect(tester.takeException(), isNull);
   });
+
+  for (final liquid in [false, true]) {
+    final material = liquid ? 'liquid' : 'painted';
+    testWidgets('$material parent taps return one submenu at a time', (
+      WidgetTester tester,
+    ) async {
+      await _open(tester, liquid: liquid);
+      final offset = _scroll(tester).offset;
+      await _tap(tester, 'More');
+      await _tap(tester, 'Deeper');
+      for (var count = 2; count >= 1; count--) {
+        final motion = _layer(tester).host.menuMotion!;
+        final point = Offset(
+          motion.menuRect.center.dx,
+          motion.menuRect.top + 40,
+        );
+        await tester.tapAt(point);
+        await _settle(tester);
+        expect(motion.cards.length, count);
+        expect(_scroll(tester).offset, closeTo(offset, 0.001));
+      }
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('$material outside taps dismiss after a blocked parent drag', (
+      WidgetTester tester,
+    ) async {
+      await _open(tester, liquid: liquid);
+      await _tap(tester, 'More');
+      await _tap(tester, 'Deeper');
+      final motion = _layer(tester).host.menuMotion!;
+      final offset = _scroll(tester).offset;
+      await tester.dragFrom(
+        Offset(motion.menuRect.center.dx, motion.menuRect.top + 90),
+        const Offset(0, -70),
+      );
+      await _settle(tester);
+      expect(motion.cards.length, 3);
+      expect(_scroll(tester).offset, closeTo(offset, 0.001));
+      await tester.tapAt(
+        Offset(motion.menuRect.right + 10, motion.menuRect.center.dy),
+      );
+      await _settle(tester);
+      expect(find.byType(MorphMenuLayer), findsNothing);
+      expect(tester.takeException(), isNull);
+    });
+  }
 
   testWidgets('opening a submenu stops an existing parent scroll activity', (
     WidgetTester tester,

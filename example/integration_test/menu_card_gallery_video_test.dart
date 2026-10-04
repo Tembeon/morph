@@ -47,6 +47,7 @@ void main() {
     void mark(String label) =>
         debugPrint('MENU_GALLERY $label ${clock.elapsedMicroseconds / 1e6}');
     final offsets = <Map<String, Object?>>[];
+    var rootOffset = 0.0;
     ScrollController scroll() => tester
         .widget<CustomScrollView>(find.byType(CustomScrollView).last)
         .controller!;
@@ -72,6 +73,17 @@ void main() {
       record('parent drag');
     }
 
+    Future<void> parentTap(int cards) async {
+      final viewport = tester.getRect(find.byType(CustomScrollView).last);
+      mark('parent tap');
+      await tester.tapAt(Offset(viewport.center.dx, viewport.top + 90));
+      await tester.pump(const Duration(seconds: 2));
+      expect(find.text('Desktop'), findsNothing);
+      expect(find.text('Rename'), cards == 2 ? findsOneWidget : findsNothing);
+      expect(scroll().offset, closeTo(rootOffset, 0.5));
+      record('parent tap to $cards cards');
+    }
+
     Future<void> tap(String title) async {
       mark(title);
       await tester.tapAt(tester.getCenter(find.text(title).last));
@@ -91,7 +103,7 @@ void main() {
     );
     await tester.pump(const Duration(seconds: 2));
     record('scrolled root');
-    final rootOffset = scroll().offset;
+    rootOffset = scroll().offset;
     await tap('More');
     expect(scroll().offset, closeTo(rootOffset, 0.5));
     record('More open');
@@ -99,10 +111,10 @@ void main() {
     await tap('Move to');
     record('Move to open');
     await parentDrag();
-    await tap('Move to');
-    record('Move to back');
+    await parentTap(2);
+    await parentTap(1);
     await tap('More');
-    record('More back');
+    await tap('Move to');
     expect(scroll().offset, closeTo(rootOffset, 0.5));
     File(
       '${Directory.systemTemp.path}/menu_gallery_scroll.json',
@@ -110,6 +122,7 @@ void main() {
     mark('outside');
     await tester.tapAt(const Offset(201, 840));
     await tester.pump(const Duration(seconds: 3));
+    expect(find.byType(CustomScrollView), findsNothing);
     mark('done');
   });
 }

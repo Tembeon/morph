@@ -1,0 +1,67 @@
+{
+  "device": "iPhone 16 Pro, iOS 27.0.1, 402x874 pt",
+  "capture": "MorphRecorder via open -g -W; variable PTS, fps_mode passthrough",
+  "regression_before": {
+    "painted_parent_tap": {
+      "expected_cards": 2,
+      "actual_cards": 3
+    },
+    "liquid_parent_tap": {
+      "expected_cards": 2,
+      "actual_cards": 3
+    }
+  },
+  "phone_offsets": [
+    {
+      "phase": "scrolled root",
+      "elapsed": 4.017293,
+      "offset": 311.15919700252374
+    },
+    {
+      "phase": "More open",
+      "elapsed": 6.026904,
+      "offset": 311.15919700252374
+    },
+    {
+      "phase": "parent drag",
+      "elapsed": 8.03589,
+      "offset": 311.15919700252374
+    },
+    {
+      "phase": "Move to open",
+      "elapsed": 10.042835,
+      "offset": 311.15919700252374
+    },
+    {
+      "phase": "parent drag",
+      "elapsed": 12.053155,
+      "offset": 311.15919700252374
+    },
+    {
+      "phase": "parent tap to 2 cards",
+      "elapsed": 14.063503,
+      "offset": 311.15919700252374
+    },
+    {
+      "phase": "parent tap to 1 cards",
+      "elapsed": 16.071373,
+      "offset": 311.15919700252374
+    }
+  ],
+  "offset_span_pt": 0.0,
+  "outside_dismissal": {
+    "film_pts_s": 45,
+    "remaining_menu_cards": 0
+  },
+  "verification": {
+    "package_tests": 1056,
+    "example_tests": 11,
+    "analysis_issues": 0,
+    "doc_warnings": 0,
+    "doc_errors": 0
+  },
+  "movie_trim": {
+    "start_pts_s": 33,
+    "duration_s": 13
+  }
+}

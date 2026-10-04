@@ -1132,8 +1132,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
               borderRadius: .circular(locked ? radius : 0),
               child: GestureDetector(
                 behavior: .opaque,
-                onPanStart: locked
-                    ? (DragStartDetails details) => _scrollGesture()
+                onPanUpdate: locked
+                    ? (DragUpdateDetails details) => _scrollGesture()
                     : null,
                 child: IgnorePointer(ignoring: locked, child: body),
               ),
