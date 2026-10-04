@@ -147,6 +147,52 @@ void main() {
     expect(motion.cardGlassTransferred, isFalse);
   });
 
+  testWidgets('a menu in the navigator overlay draws with its button painter', (
+    WidgetTester tester,
+  ) async {
+    isLocalTest = true;
+    addTearDown(() => isLocalTest = false);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MorphGlass(
+          painter: MorphGlassRenderer(),
+          child: Scaffold(
+            body: Center(
+              child: MorphMenuButton(
+                items: [
+                  MorphSubmenu(
+                    title: 'More',
+                    children: [MorphMenuItem(title: 'Last')],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphMenuButton));
+    await tester.pumpAndSettle();
+    final layer = find.byType(MorphMenuLayer);
+    expect(
+      find.ancestor(of: layer, matching: find.byType(MorphGlass)),
+      findsNothing,
+    );
+    expect(
+      find.descendant(of: layer, matching: find.byType(LiquidGlassLayer)),
+      findsOneWidget,
+    );
+    await tester.tapAt(tester.getCenter(find.text('More').last));
+    await tester.pumpAndSettle();
+    expect(
+      find.descendant(
+        of: find.byKey(const ValueKey<int>(1)),
+        matching: find.byType(LiquidGlassLayer),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets(
     'submenus use the installed liquid renderer and fresh backdrops',
     (WidgetTester tester) async {

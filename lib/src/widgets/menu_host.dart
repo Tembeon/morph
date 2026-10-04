@@ -6,6 +6,7 @@ import 'package:morph/src/flight.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
+import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
@@ -68,6 +69,7 @@ class MorphMenuController implements MorphMenuHost {
   bool _disposed = false;
   bool _repaintDisposed = false;
   MorphMenuStyle? _lastStyle;
+  MorphGlassPainter? _lastGlass;
   Widget? _lastGlyph;
   double _detachedTime = 0;
   Duration _detachedFrame = Duration.zero;
@@ -78,6 +80,15 @@ class MorphMenuController implements MorphMenuHost {
   @override
   MorphMenuStyle get menuStyle =>
       _disposed ? _lastStyle ?? MorphMenuStyle.light : _lastStyle = style();
+
+  @override
+  MorphGlassPainter? get menuGlass {
+    final context = _disposed ? null : scopeContext();
+    if (context != null && context.mounted) {
+      _lastGlass = context.getInheritedWidgetOfExactType<MorphGlass>()?.painter;
+    }
+    return _lastGlass;
+  }
 
   @override
   Widget get menuGlyph =>

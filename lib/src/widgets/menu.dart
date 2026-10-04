@@ -390,6 +390,13 @@ abstract interface class MorphMenuHost {
   /// The content of the menu.
   MorphMenuContent get menuContent;
 
+  /// The glass painter installed above the menu's source, or null when the
+  /// source has none.
+  ///
+  /// The menu is the source's own glass carried into an overlay, which may
+  /// sit above the source's [MorphGlass]; the menu draws with this painter.
+  MorphGlassPainter? get menuGlass;
+
   /// Notifies when the motion has advanced.
   Listenable get menuRepaint;
 
@@ -938,7 +945,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             final size = motion.menuRect.size;
             final scale = motion.contentScale;
             final at = motion.contentRect.topLeft - menu.rect.topLeft;
-            return IgnorePointer(
+            final layer = IgnorePointer(
               ignoring: !motion.isOpen,
               child: Listener(
                 behavior: .opaque,
@@ -1006,6 +1013,10 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                 ),
               ),
             );
+            final painter = host.menuGlass;
+            return painter == null
+                ? layer
+                : MorphGlass(painter: painter, child: layer);
           },
         ),
       ),
@@ -1162,7 +1173,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     }
     final blur = motion.tuning.cardBlur * platter;
     final shape = BorderRadius.circular(cardRadius);
-    final glass = MorphGlass.maybeOf(context);
+    final glass = widget.host.menuGlass ?? MorphGlass.maybeOf(context);
     final surface = MorphGlassSurface(
       kind: MorphGlassKind.menu,
       shape: RRect.fromRectAndRadius(
