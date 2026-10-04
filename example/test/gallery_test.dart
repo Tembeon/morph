@@ -42,6 +42,24 @@ Future<void> _back(WidgetTester tester) async {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    final reports = <FlutterErrorDetails>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = reports.add;
+    try {
+      await MorphGlassRenderer.precache();
+    } finally {
+      FlutterError.onError = previous;
+    }
+    expect(MorphGlassRenderer.liquidAvailable, isFalse);
+    expect(reports.single.library, 'morph glass');
+    expect(
+      reports.single.exception.toString(),
+      contains(MorphGlassRenderer.liquidUnavailableReason!),
+    );
+  });
+
   for (final brightness in Brightness.values) {
     testWidgets('every page opens in ${brightness.name} with styled text', (
       tester,

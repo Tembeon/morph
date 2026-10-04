@@ -129,6 +129,7 @@ class MorphNavigationStack extends StatefulWidget {
     required this.home,
     this.style,
     this.menuStyle,
+    this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.backLabel = 'Back',
     this.navigatorKey,
@@ -147,6 +148,9 @@ class MorphNavigationStack extends StatefulWidget {
 
   /// The look of the back button's menu; null resolves it from the theme.
   final MorphMenuStyle? menuStyle;
+
+  /// The bar buttons' menu recognition, opening delay and menu motion.
+  final MorphBarMenuTuning menuTuning;
 
   /// The overlay the back button's menu flies in; null uses the nearest
   /// one around the bar.
@@ -358,6 +362,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
               drift: drift,
               style: widget.style,
               menuStyle: widget.menuStyle,
+              menuTuning: widget.menuTuning,
               menuOverlay: widget.menuOverlay,
             ),
           ),
@@ -371,6 +376,7 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
                 trailing: config?.toolbarTrailing ?? const [],
                 style: widget.style,
                 menuStyle: widget.menuStyle,
+                menuTuning: widget.menuTuning,
                 menuOverlay: widget.menuOverlay,
               ),
             ),

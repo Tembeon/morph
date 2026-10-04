@@ -1,22 +1,36 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Whether this build carries the liquid tier: not on the web.
 @internal
-const bool morphLiquidGlassAvailable = false;
+bool get morphLiquidGlassAvailable {
+  unawaited(_capability.precache());
+  return false;
+}
+
+/// The cached web capability failure, or null before initialization.
+@internal
+String? get morphLiquidGlassUnavailableReason => _capability.unavailableReason;
 
 /// The web's permanently unavailable liquid capability.
 @internal
 ValueListenable<bool> get morphLiquidGlassCapability => _capability;
 
-final ValueNotifier<bool> _capability = ValueNotifier(false);
+final LiquidCapability _capability = LiquidCapability(
+  load: () async {
+    throw UnsupportedError('The web has no liquid glass tier.');
+  },
+);
 
-/// Completes at once: there are no liquid glass shaders to load.
+/// Reports the unavailable web tier once and caches its reason.
 @internal
-Future<void> morphPrecacheLiquidGlass() async {}
+Future<void> morphPrecacheLiquidGlass() => _capability.precache();
 
 /// Never called on the web, where [MorphGlassRenderer.effectiveTier] is at
 /// most frosted.

@@ -43,6 +43,24 @@ Future<void> _open(WidgetTester tester, String title) async {
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(() async {
+    final reports = <FlutterErrorDetails>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = reports.add;
+    try {
+      await MorphGlassRenderer.precache();
+    } finally {
+      FlutterError.onError = previous;
+    }
+    expect(MorphGlassRenderer.liquidAvailable, isFalse);
+    expect(reports.single.library, 'morph glass');
+    expect(
+      reports.single.exception.toString(),
+      contains(MorphGlassRenderer.liquidUnavailableReason!),
+    );
+  });
+
   testWidgets('alerts: an alert and an anchored action sheet', (tester) async {
     await _open(tester, 'Alerts');
     await tester.tap(find.text('Three buttons, destructive, cancel last'));

@@ -125,6 +125,7 @@ class MorphNavigationBar extends StatefulWidget {
     this.drift,
     this.style,
     this.menuStyle,
+    this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.sideInset = MorphNavigationBarMetrics.sideInset,
     super.key,
@@ -174,6 +175,9 @@ class MorphNavigationBar extends StatefulWidget {
   /// The look of the buttons' menus, such as the back button's; null
   /// resolves it from the theme.
   final MorphMenuStyle? menuStyle;
+
+  /// The bar buttons' menu recognition, opening delay and menu motion.
+  final MorphBarMenuTuning menuTuning;
 
   /// The overlay the buttons' menus fly in; null uses the nearest one.
   final OverlayState? menuOverlay;
@@ -316,6 +320,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                       trailingInset: widget.sideInset,
                       style: widget.style,
                       menuStyle: widget.menuStyle,
+                      menuTuning: widget.menuTuning,
                       menuOverlay: widget.menuOverlay,
                       onLayout: (layout) => _onLayout([
                         for (final c in layout) ...[c.rect.left, c.rect.right],

@@ -39,6 +39,13 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   the last submenu has returned.
   Taps on the exposed parent return one level without unlocking scrolling;
   outside taps dismiss the whole stack, including after a blocked drag.
+- Liquid glass initialization failures report once per isolate through
+  `FlutterError.reportError` in every build mode (library `morph glass`);
+  `MorphGlassRenderer.liquidUnavailableReason` exposes the cached cause.
+- Bar menus accept an instance `MorphBarMenuTuning` through `menuTuning` on
+  `MorphNavigationStack`, `MorphNavigationBar` and `MorphToolbar`, including
+  recognition, opening delay and `MorphMenuTuning`; measured defaults stay
+  unchanged. BREAKING: `recognition` and `open` are instance fields.
 - The measured controls: `MorphSegmentedControl` (+
   `MorphSegmentedStyle`) and `MorphTabBar` (+ `MorphTabItem`,
   `MorphTabBarStyle`) - one liquid selection lens on

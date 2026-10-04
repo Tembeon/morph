@@ -115,15 +115,43 @@ class MorphBarButton {
 
 /// The measured timing of a bar button's long-press menu
 /// ([MorphBarButton.menu]).
-abstract final class MorphBarMenuTuning {
+@immutable
+class MorphBarMenuTuning {
+  /// Creates a tuning with the measured bar-menu defaults.
+  const MorphBarMenuTuning({
+    this.recognition = 0.4,
+    this.open = 0.595,
+    this.menu = MorphMenuTuning.standard,
+  }) : assert(recognition >= 0),
+       assert(open >= recognition);
+
+  /// The timing and menu motion measured on the iPhone 16 Pro, iOS 27.0.1.
+  static const standard = MorphBarMenuTuning();
+
   /// Seconds of touch after which a release is no longer a tap: UIKit's
   /// back button popped on releases at 0.25 and 0.35 s and opened its
   /// menu instead at 0.45 s.
-  static const double recognition = 0.4;
+  final double recognition;
 
   /// Seconds from the touch to the opening of the menu: 0.584 - 0.609 s
   /// over seven device holds.
-  static const double open = 0.595;
+  final double open;
+
+  /// The menu's geometry, springs and content timing after recognition.
+  ///
+  /// Defaults to [MorphMenuTuning.standard], the measured liquid morph
+  /// shared with [MorphMenuButton]. [open] controls when the bar starts it.
+  final MorphMenuTuning menu;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphBarMenuTuning &&
+      other.recognition == recognition &&
+      other.open == open &&
+      other.menu == menu;
+
+  @override
+  int get hashCode => Object.hash(recognition, open, menu);
 }
 
 /// Buttons that share one glass capsule.
@@ -612,6 +640,7 @@ class MorphBarItems extends StatefulWidget {
     required this.trailingInset,
     this.style,
     this.menuStyle,
+    this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.onLayout,
     this.driftGroups,
@@ -640,6 +669,9 @@ class MorphBarItems extends StatefulWidget {
 
   /// The look of the buttons' menus; null resolves it from the theme.
   final MorphMenuStyle? menuStyle;
+
+  /// The buttons' menu recognition, opening delay and menu motion.
+  final MorphBarMenuTuning menuTuning;
 
   /// The overlay the buttons' menus fly in; null uses the nearest one.
   final OverlayState? menuOverlay;
@@ -703,9 +735,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final holding = _holdButton;
     if (start != null &&
         holding != null &&
-        t - start >= MorphBarMenuTuning.open) {
+        t - start >= widget.menuTuning.open) {
       _holdStart = null;
-      _openMenu(start + MorphBarMenuTuning.open, holding);
+      _openMenu(start + widget.menuTuning.open, holding);
     }
     final menu = _menu;
     if (menu != null) {
@@ -787,7 +819,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     morphCheckOverlayAncestor(context, overlay);
     final origin = box.localToGlobal(Offset.zero, ancestor: overlayBox);
     final rect = capsule.rect.shift(origin);
-    final tuning = MorphMenuTuning.standard;
+    final tuning = widget.menuTuning.menu;
     final menu = _BarMenu(
       state: this,
       button: button,
@@ -1008,7 +1040,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         _presses[id]?.pointerUp(t, _local(id, event.position)) ?? false;
     final start = _holdStart;
     final held = _holdButton != null && start != null;
-    final recognized = held && t - start >= MorphBarMenuTuning.recognition;
+    final recognized = held && t - start >= widget.menuTuning.recognition;
     if (held && !recognized) {
       _holdStart = null;
       _holdButton = null;

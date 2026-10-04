@@ -42,6 +42,11 @@ bool get morphLiquidGlassAvailable {
   return _capability.value;
 }
 
+/// The cached runtime initialization failure, or null before failure.
+@internal
+String? get morphLiquidGlassUnavailableReason =>
+    isLocalTest ? null : _capability.unavailableReason;
+
 /// Notifies when runtime shader initialization completes successfully.
 @internal
 ValueListenable<bool> get morphLiquidGlassCapability => _capability;

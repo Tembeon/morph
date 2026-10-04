@@ -77,10 +77,11 @@ enum MorphGlassMaterial {
 /// Android manifest, and use Impeller. Call [precache] before installing
 /// a fixed renderer; [MorphAdaptiveGlass] follows initialization itself.
 /// Until shaders are ready, or if they fail, liquid draws frosted and
-/// reports [MorphGlassTier.frosted]. A failure logs once in debug builds.
-/// Native builds need Flutter's data asset support enabled to package the GPU
-/// bundle (`flutter config --enable-dart-data-assets` on toolchains with
-/// the feature flag). Toolchains without data assets keep the frosted fallback.
+/// reports [MorphGlassTier.frosted]. An initialization failure is reported
+/// once per isolate through [FlutterError.reportError] in every build mode,
+/// with library `morph glass`; [liquidUnavailableReason] exposes its reason.
+/// Native builds must package the GPU shader bundle from the package's
+/// build hook in `build/shaderbundles/`.
 /// Wrap a fixed renderer's controls in [BackdropGroup] to share backdrop
 /// copies; overlapping glass that samples other glass needs its own group.
 @immutable
@@ -129,6 +130,16 @@ class MorphGlassRenderer extends MorphGlassPainter {
   /// shaders; there [MorphGlassTier.liquid] draws [MorphGlassTier.frosted].
   static bool get liquidAvailable => morphLiquidGlassAvailable;
 
+  /// The reason liquid glass initialization failed on this runtime.
+  ///
+  /// Null until initialization fails, including while it is pending and
+  /// after it succeeds. Await [precache] before reading a resolved result.
+  /// Failures are cached for the isolate, shared by all renderer instances,
+  /// and reported once through [FlutterError.reportError] in every build
+  /// mode. The web reports that it has no liquid glass tier.
+  static String? get liquidUnavailableReason =>
+      morphLiquidGlassUnavailableReason;
+
   /// The best tier currently available on this runtime.
   static MorphGlassTier get bestTier =>
       liquidAvailable ? MorphGlassTier.liquid : MorphGlassTier.frosted;
@@ -136,10 +147,14 @@ class MorphGlassRenderer extends MorphGlassPainter {
   /// The tier this renderer draws: [tier], or [bestTier] when the build
   /// cannot draw [tier].
   MorphGlassTier get effectiveTier =>
-      tier.index <= bestTier.index ? tier : bestTier;
+      tier == MorphGlassTier.liquid ? bestTier : tier;
 
   /// Loads the liquid tier's shaders, so the first glass on screen is
-  /// already the real one; completes at once where there is no liquid tier.
+  /// already the real one.
+  ///
+  /// Unsupported runtimes and shader loading failures complete normally,
+  /// report once through [FlutterError.reportError], and expose the cause
+  /// through [liquidUnavailableReason].
   /// On Android, calling before `runApp` can wait for the engine's GPU
   /// context initialization; it does not wait for an application frame.
   static Future<void> precache() => morphPrecacheLiquidGlass();

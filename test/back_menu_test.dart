@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/widgets.dart';
 
 const _screen = Size(402, 874);
@@ -10,7 +12,10 @@ Widget _page(String title) => MorphNavigationScaffold(
   slivers: const [SliverToBoxAdapter(child: SizedBox(height: 2000))],
 );
 
-Future<void> _stack(WidgetTester tester) async {
+Future<void> _stack(
+  WidgetTester tester, {
+  MorphBarMenuTuning menuTuning = MorphBarMenuTuning.standard,
+}) async {
   tester.view.physicalSize = _screen * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
@@ -23,6 +28,7 @@ Future<void> _stack(WidgetTester tester) async {
           padding: EdgeInsets.only(top: 62, bottom: 34),
         ),
         child: MorphNavigationStack(
+          menuTuning: menuTuning,
           home: Builder(
             builder: (BuildContext context) {
               home = context;
@@ -159,8 +165,109 @@ void main() {
     semantics.dispose();
   });
 
+  testWidgets('custom recognition and opening delay reach the back menu', (
+    WidgetTester tester,
+  ) async {
+    const menu = MorphMenuTuning(menuWidth: 290);
+    const tuning = MorphBarMenuTuning(recognition: 0.1, open: 0.3, menu: menu);
+    await _stack(tester, menuTuning: tuning);
+    expect(
+      tester
+          .widget<MorphNavigationBar>(find.byType(MorphNavigationBar))
+          .menuTuning,
+      same(tuning),
+    );
+    expect(
+      tester.widget<MorphBarItems>(find.byType(MorphBarItems)).menuTuning,
+      same(tuning),
+    );
+    final gesture = await tester.startGesture(_back);
+    await _hold(tester, gesture, 0.16);
+    await gesture.up();
+    await _hold(tester, null, 0.08);
+    expect(find.byType(MorphMenuLayer), findsNothing);
+    expect(find.text('Message'), findsWidgets);
+    await _hold(tester, null, 0.16);
+    final layer = tester.widget<MorphMenuLayer>(find.byType(MorphMenuLayer));
+    expect(layer.host.menuMotion!.tuning, same(menu));
+    await _hold(tester, null, 0.6);
+    expect(find.text('Mailboxes'), findsOneWidget);
+    expect(find.text('Message'), findsWidgets);
+    await tester.tapAt(const Offset(350, 700));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('custom recognition keeps a shorter hold as a tap', (
+    WidgetTester tester,
+  ) async {
+    await _stack(
+      tester,
+      menuTuning: const MorphBarMenuTuning(recognition: 0.7, open: 0.9),
+    );
+    final gesture = await tester.startGesture(_back);
+    await _hold(tester, gesture, 0.5);
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.text('Message'), findsNothing);
+    expect(find.text('Thread'), findsWidgets);
+    expect(find.byType(MorphMenuLayer), findsNothing);
+  });
+
+  testWidgets('standalone bars and the stack toolbar forward menu tuning', (
+    WidgetTester tester,
+  ) async {
+    const tuning = MorphBarMenuTuning(recognition: 0.2, open: 0.5);
+    const group = MorphBarButtonGroup([
+      MorphBarButton(id: 'item', label: 'Item'),
+    ]);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Column(
+          children: [
+            MorphNavigationBar(menuTuning: tuning),
+            MorphToolbar(menuTuning: tuning, trailing: [group]),
+          ],
+        ),
+      ),
+    );
+    final rows = tester.widgetList<MorphBarItems>(find.byType(MorphBarItems));
+    expect(rows, hasLength(2));
+    expect(rows.every((row) => identical(row.menuTuning, tuning)), isTrue);
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: MorphNavigationStack(
+          menuTuning: tuning,
+          home: MorphNavigationScaffold(
+            title: 'Home',
+            toolbarTrailing: [group],
+            slivers: [SliverToBoxAdapter(child: SizedBox(height: 2000))],
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<MorphToolbar>(find.byType(MorphToolbar)).menuTuning,
+      same(tuning),
+    );
+    final stackRows = tester.widgetList<MorphBarItems>(
+      find.byType(MorphBarItems),
+    );
+    expect(stackRows, hasLength(2));
+    expect(stackRows.every((row) => identical(row.menuTuning, tuning)), isTrue);
+  });
+
   test('the measured timing', () {
-    expect(MorphBarMenuTuning.recognition, 0.4);
-    expect(MorphBarMenuTuning.open, 0.595);
+    expect(MorphBarMenuTuning.standard.recognition, 0.4);
+    expect(MorphBarMenuTuning.standard.open, 0.595);
+    expect(MorphBarMenuTuning.standard.menu, MorphMenuTuning.standard);
+    expect(
+      const MorphBarMenuTuning(recognition: 0.2, open: 0.5),
+      const MorphBarMenuTuning(recognition: 0.2, open: 0.5),
+    );
+    expect(
+      const MorphBarMenuTuning(recognition: 0.2, open: 0.5).hashCode,
+      const MorphBarMenuTuning(recognition: 0.2, open: 0.5).hashCode,
+    );
   });
 }

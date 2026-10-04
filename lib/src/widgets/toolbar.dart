@@ -43,6 +43,7 @@ class MorphToolbar extends StatelessWidget {
     this.trailing = const [],
     this.style,
     this.menuStyle,
+    this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.sideInset = MorphToolbarMetrics.sideInset,
     this.bottomInset = MorphToolbarMetrics.bottomInset,
@@ -61,6 +62,9 @@ class MorphToolbar extends StatelessWidget {
 
   /// The look of the buttons' menus; null resolves it from the theme.
   final MorphMenuStyle? menuStyle;
+
+  /// The bar buttons' menu recognition, opening delay and menu motion.
+  final MorphBarMenuTuning menuTuning;
 
   /// The overlay the buttons' menus fly in; null uses the nearest one.
   final OverlayState? menuOverlay;
@@ -104,6 +108,7 @@ class MorphToolbar extends StatelessWidget {
             trailingInset: sideInset,
             style: style,
             menuStyle: menuStyle,
+            menuTuning: menuTuning,
             menuOverlay: menuOverlay,
             groups: [
               for (final g in leading)

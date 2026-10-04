@@ -79,7 +79,10 @@ Local patches (some commits include related package changes):
   final programs resolve once before morph reports liquid availability.
   Precaching before runApp does not await an application frame.
   Failed geometry bundle futures remain cached. Unavailable runtimes draw
-  the frosted tier with one debug log; the adaptive host follows readiness.
+  the frosted tier; the adaptive host follows readiness. Initialization
+  failures report once through FlutterError.reportError in every build mode
+  (library morph glass), with the cached reason exposed by
+  MorphGlassRenderer.liquidUnavailableReason.
 - 2026-10-04 WP-I packaging: the build hook creates build/shaderbundles/
   under the package root on every run (the pubspec asset entry always
   resolves) and, for native targets only, compiles
