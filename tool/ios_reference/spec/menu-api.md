@@ -622,3 +622,42 @@ Close timing and one closing body [device element fits + phone film, 2026-10-05]
 - [ ] Opening: native glass element starts 0.07-0.15 s after the tap's
   release (mm-sub-tap 0.150, mm-sub-palette 0.120; plain replays median
   0.082) versus tapOpenDelay 0.05; not changed here.
+
+Opening timing, close residual and root rows [device fits + films, 2026-10-05]:
+- tapOpenDelay 0.05 -> 0.089 (e57255f): the menu replay solves the open
+  start on the open spring from the recorded glass scale; in all 17 device
+  captures it lies 0.069-0.140 s after the tap's release (mean 0.0893,
+  median 0.085). menu_button_test pins the mean.
+- Open-phase widths, robust estimator (bright-face bbox, min channel >=
+  246, 0.2/99.8 percentiles) fitted with the open curve per gesture: native
+  starts 0.140 / 0.0735 (run 10), 0.114 / 0.084 (run 11), 0.1155 / 0.0745
+  (run 12) after release; ours 0.047 / 0.0515 and 0.065 / 0.059 at the old
+  delay, 0.0875 / 0.0995 at 0.089 (fit RMS 10-15 pt on both sides: the
+  estimator, not the spring). The remaining open difference is the
+  native start's own spread (0.07-0.14 s), not a shape error.
+- Late-close gap: the native visible outline IS the element bounds. Run
+  10's native plain close fits the production close spring started 0.058
+  s after release at 1.84 pt RMS (contour width), no blurred-union
+  inflation. A replay of mm-sub-tap puts our root blob within 1 pt of the
+  native morph element in width and 1-4 pt in center (world radii agree:
+  native radii are local, x element scale). Our film close starts 5-10 ms
+  before its configured delay (fits 0.035 vs 0.04, 0.0485 vs 0.059);
+  suspected cause: MorphClock stamps a touch during ticking with the last
+  frame's clock (up to one frame early). Not changed: pointer and frame
+  timestamps are in different timebases on iOS (35.7 s apart in the lab
+  trace), so a correction needs its own measurement.
+- Run lab/out/menu-phone-20261005-12 (5cca0fd: open delay and close
+  timing; coverage 0.87-1.0, EVIDENCE): contour-width residual close with
+  More open RMS 7.8 pt (run 11: 10.8), plain root close 7.4 (13.6);
+  More/Deeper/back steps 0.6-0.9 pt. The run also carried 64da136 (root
+  rows under a closing card on the carrier at full contrast, from the
+  layer trace: root _UIContextMenuListView alpha 1 inside the fading
+  _UIContextMenuView). The film rejected it: root-row-zone ink (y 300-390
+  pt) native 15.0 / 21.0 / 12.2 vs ours 20.8 / 29.4 / 19.1 at +0.09 /
+  +0.10 / +0.14 s, against 15.4 / 23.5 with the rows hidden (run 11).
+  Reverted (b8950d2); something above the native list attenuates it on
+  screen (unmeasured).
+- [ ] Kept card copy outline faintly visible inside our body at +0.167
+  s: native copy layers are backdrop 171 + key-fill 175 fading with the
+  carrier while its CASDFOutputEffect layer 172 stays alpha 1; which of
+  them draws the native dark contour is not established.
