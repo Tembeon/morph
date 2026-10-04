@@ -133,12 +133,11 @@ class _GlassPageState extends State<GlassPage> {
     final dark = Theme.of(context).brightness == Brightness.dark;
     final drawn = MorphAdaptiveGlass.tierOf(context);
     final liquid = drawn == MorphGlassTier.liquid;
-    return Scaffold(
-      appBar: const GalleryBar(title: 'Glass renderer'),
-      body: ListView(
-        padding: const .only(bottom: 40),
-        children: [
-          BackdropGroup(
+    return GalleryPage(
+      title: 'Glass renderer',
+      slivers: [
+        SliverToBoxAdapter(
+          child: BackdropGroup(
             child: Stack(
               children: [
                 Positioned.fill(child: _Backdrop(dark: dark)),
@@ -149,9 +148,11 @@ class _GlassPageState extends State<GlassPage> {
               ],
             ),
           ),
-          Padding(
-            padding: const .fromLTRB(16, 20, 16, 0),
-            child: _Card(
+        ),
+        SliverToBoxAdapter(
+          child: BackdropGroup(
+            child: MorphListSection(
+              header: 'Renderer',
               children: [
                 _Choice(
                   label: 'Tier',
@@ -169,12 +170,9 @@ class _GlassPageState extends State<GlassPage> {
                     _ => null,
                   },
                 ),
-                Padding(
-                  padding: const .symmetric(vertical: 4),
-                  child: Text(
-                    'Drawing: ${drawn?.name ?? 'none'}',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
+                MorphListRow(
+                  title: const Text('Drawing'),
+                  detail: Text(drawn?.name ?? 'none'),
                 ),
                 _Choice(
                   label: 'Material',
@@ -226,6 +224,16 @@ class _GlassPageState extends State<GlassPage> {
                       ? (bool v) => settings.frostControls = v
                       : null,
                 ),
+              ],
+            ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: BackdropGroup(
+            child: MorphListSection(
+              header: 'Gallery',
+              footer: 'These settings apply to every page of the gallery.',
+              children: [
                 _Choice(
                   label: 'Appearance',
                   segments: _appearances,
@@ -246,28 +254,8 @@ class _GlassPageState extends State<GlassPage> {
               ],
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Card extends StatelessWidget {
-  const _Card({required this.children});
-
-  final List<Widget> children;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: galleryCardColor(context),
-      borderRadius: .circular(26),
-      child: BackdropGroup(
-        child: Padding(
-          padding: const .symmetric(horizontal: 16, vertical: 8),
-          child: Column(children: children),
         ),
-      ),
+      ],
     );
   }
 }
@@ -287,8 +275,7 @@ class _Choice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const .symmetric(vertical: 8),
+    return MorphListRow(
       child: Row(
         children: [
           SizedBox(width: 96, child: Text(label)),
@@ -321,8 +308,7 @@ class _Knob extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final onChanged = this.onChanged;
-    return Padding(
-      padding: const .symmetric(vertical: 8),
+    return MorphListRow(
       child: Row(
         children: [
           SizedBox(width: 96, child: Text(label)),
@@ -364,13 +350,12 @@ class _Toggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const .symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(child: Text(label)),
-          MorphSwitch(value: value, semanticLabel: label, onChanged: onChanged),
-        ],
+    return MorphListRow(
+      title: Text(label),
+      trailing: MorphSwitch(
+        value: value,
+        semanticLabel: label,
+        onChanged: onChanged,
       ),
     );
   }

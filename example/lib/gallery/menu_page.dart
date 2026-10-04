@@ -3,11 +3,14 @@ import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 
-/// Glass menu buttons at the center, near every corner and in the
-/// navigation bar, with two, five and ten rows, and one rich menu at the
-/// top: sections, a selection that stays open, a palette, small and
-/// medium cells, subtitles, a disabled row, submenus, a deferred section
-/// and a free-form slider row.
+/// Glass menu buttons at the center and near every corner, with two,
+/// five and ten rows, a bar button whose long press opens its menu, and
+/// one rich menu at the top: sections, a selection that stays open, a
+/// palette, small and medium cells, subtitles, a disabled row, submenus,
+/// a deferred section and a free-form slider row.
+///
+/// The menus fly in the app's root overlay, above the navigation stack's
+/// bars, as UIKit menus show above the bars.
 class MenuPage extends StatefulWidget {
   /// Creates the page.
   const MenuPage({super.key});
@@ -220,66 +223,78 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: GalleryBar(
-        title: 'Menu',
-        actions: [
-          MorphMenuButton(
-            enabled: !GalleryGlassScope.of(context).disabled,
-            items: _items(3),
-            style: MorphMenuStyle.resolve(
+    final overlay = Overlay.of(context, rootOverlay: true);
+    MorphMenuButton button(List<MorphMenuEntry> items, {Widget? child}) =>
+        MorphMenuButton(
+          items: items,
+          overlay: overlay,
+          semanticLabel: child == null ? null : 'Options',
+          child: child,
+        );
+    return GalleryPage(
+      title: 'Menu',
+      trailing: [
+        MorphBarButtonGroup([
+          MorphBarButton(
+            id: 'menu',
+            icon: const Icon(Icons.more_horiz),
+            semanticLabel: 'More',
+            onPressed: GalleryGlassScope.enabled(
               context,
-              null,
-            ).copyWith(buttonSize: 44),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Align(
-              alignment: const Alignment(0, 0.35),
-              child: Text(
-                _last,
-                style: const TextStyle(color: Color(0xFF8E8E93)),
-              ),
+              () => setState(() => _last = 'Hold the bar button for its menu'),
             ),
-            Center(child: MorphMenuButton(items: _items(5))),
-            Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const .all(16),
-                child: MorphMenuButton(
-                  items: _rich(),
-                  semanticLabel: 'Options',
-                  child: const Icon(Icons.tune, size: 22),
+            menu: _items(3),
+          ),
+        ]),
+      ],
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Stack(
+            children: [
+              Align(
+                alignment: const Alignment(0, 0.35),
+                child: Text(
+                  _last,
+                  style: TextStyle(color: gallerySecondaryColor(context)),
                 ),
               ),
-            ),
-            Align(
-              alignment: const Alignment(0, -0.45),
-              child: MorphMenuButton(items: _items(2)),
-            ),
-            Align(
-              alignment: const Alignment(0, 0.7),
-              child: MorphMenuButton(items: _items(10)),
-            ),
-            for (final alignment in const [
-              Alignment.topLeft,
-              Alignment.topRight,
-              Alignment.bottomLeft,
-              Alignment.bottomRight,
-            ])
+              Center(child: button(_items(5))),
               Align(
-                alignment: alignment,
+                alignment: Alignment.topCenter,
                 child: Padding(
                   padding: const .all(16),
-                  child: MorphMenuButton(items: _items(3)),
+                  child: button(
+                    _rich(),
+                    child: const Icon(Icons.tune, size: 22),
+                  ),
                 ),
               ),
-          ],
+              Align(
+                alignment: const Alignment(0, -0.45),
+                child: button(_items(2)),
+              ),
+              Align(
+                alignment: const Alignment(0, 0.7),
+                child: button(_items(10)),
+              ),
+              for (final alignment in const [
+                Alignment.topLeft,
+                Alignment.topRight,
+                Alignment.bottomLeft,
+                Alignment.bottomRight,
+              ])
+                Align(
+                  alignment: alignment,
+                  child: Padding(
+                    padding: const .all(16),
+                    child: button(_items(3)),
+                  ),
+                ),
+            ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

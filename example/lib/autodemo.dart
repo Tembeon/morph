@@ -3,9 +3,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 
-/// Walks every gallery page with a few synthetic gestures, prints
+/// Walks every gallery page with a few synthetic gestures through the
+/// gallery's navigation stack, prints
 /// `AUTODEMO` progress lines and exits.
 ///
 /// Each page is pushed, tapped at its center, dragged across and scrolled,
@@ -22,7 +24,7 @@ Future<void> runAutodemo(GlobalKey<NavigatorState> navigatorKey) async {
       break;
     }
     _report('page ${entry.title}');
-    navigator.push(MaterialPageRoute<void>(builder: entry.builder));
+    navigator.push(MorphNavigationRoute<void>(builder: entry.builder));
     await _pause(900);
     final size = _viewSize();
     await _drag(pointer++, size.center(Offset.zero), Offset.zero);

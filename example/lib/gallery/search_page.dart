@@ -55,92 +55,103 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
-    final list = ListView(
-      padding: const .fromLTRB(16, 8, 16, 140),
-      children: [
-        Padding(
-          padding: const .symmetric(vertical: 8),
-          child: MorphSegmentedControl(
-            segments: const ['Toolbar', 'Tab bar', 'Inline'],
-            selected: _mode,
-            onChanged: (int i) => setState(() {
-              _mode = i;
-              _query = '';
-              _searching = false;
-            }),
+    final list = GalleryPage(
+      title: 'Search',
+      slivers: [
+        SliverPadding(
+          padding: const .fromLTRB(16, 8, 16, 0),
+          sliver: SliverList.list(
+            children: [
+              Padding(
+                padding: const .symmetric(vertical: 8),
+                child: MorphSegmentedControl(
+                  segments: const ['Toolbar', 'Tab bar', 'Inline'],
+                  selected: _mode,
+                  onChanged: (int i) => setState(() {
+                    _mode = i;
+                    _query = '';
+                    _searching = false;
+                  }),
+                ),
+              ),
+              if (_mode == 2)
+                Padding(
+                  padding: const .symmetric(vertical: 8),
+                  child: MorphSearchField(
+                    enabled: !GalleryGlassScope.of(context).disabled,
+                    placeholder: 'Search fruit',
+                    onChanged: (String q) => setState(() => _query = q),
+                  ),
+                ),
+              if (_last.isNotEmpty)
+                Padding(
+                  padding: const .symmetric(vertical: 8),
+                  child: Text(
+                    _last,
+                    style: TextStyle(color: gallerySecondaryColor(context)),
+                  ),
+                ),
+            ],
           ),
         ),
-        if (_mode == 2)
-          Padding(
-            padding: const .symmetric(vertical: 8),
-            child: MorphSearchField(
-              enabled: !GalleryGlassScope.of(context).disabled,
-              placeholder: 'Search fruit',
-              onChanged: (String q) => setState(() => _query = q),
+        if (_matches.isNotEmpty)
+          SliverToBoxAdapter(
+            child: MorphListSection(
+              children: [
+                for (final f in _matches) MorphListRow(title: Text(f)),
+              ],
             ),
           ),
-        if (_last.isNotEmpty)
-          Padding(
-            padding: const .symmetric(vertical: 8),
-            child: Text(
-              _last,
-              style: const TextStyle(color: Color(0xFF8E8E93)),
-            ),
-          ),
-        for (final f in _matches) ListTile(title: Text(f)),
+        const SliverPadding(padding: .only(bottom: 140)),
       ],
     );
-    return Scaffold(
-      appBar: const GalleryBar(title: 'Search'),
-      resizeToAvoidBottomInset: false,
-      body: Stack(
-        children: [
-          Positioned.fill(child: list),
-          if (_mode == 0)
-            Positioned.fill(
-              child: MorphSearchToolbar(
-                placeholder: 'Search fruit',
-                onChanged: (String q) => setState(() => _query = q),
-                onActiveChanged: (bool on) =>
-                    setState(() => _last = on ? 'Searching' : 'Search ended'),
-                leading: [
-                  MorphBarButton(
-                    id: 'filter',
-                    icon: const Icon(Icons.filter_list),
-                    semanticLabel: 'Filter',
-                    onPressed: () => setState(() => _last = 'Filter'),
-                  ),
-                ],
-                trailing: [
-                  MorphBarButton(
-                    id: 'compose',
-                    icon: const Icon(Icons.edit_outlined),
-                    semanticLabel: 'Compose',
-                    onPressed: () => setState(() => _last = 'Compose'),
-                  ),
-                ],
-              ),
+    return Stack(
+      children: [
+        Positioned.fill(child: list),
+        if (_mode == 0)
+          Positioned.fill(
+            child: MorphSearchToolbar(
+              placeholder: 'Search fruit',
+              onChanged: (String q) => setState(() => _query = q),
+              onActiveChanged: (bool on) =>
+                  setState(() => _last = on ? 'Searching' : 'Search ended'),
+              leading: [
+                MorphBarButton(
+                  id: 'filter',
+                  icon: const Icon(Icons.filter_list),
+                  semanticLabel: 'Filter',
+                  onPressed: () => setState(() => _last = 'Filter'),
+                ),
+              ],
+              trailing: [
+                MorphBarButton(
+                  id: 'compose',
+                  icon: const Icon(Icons.edit_outlined),
+                  semanticLabel: 'Compose',
+                  onPressed: () => setState(() => _last = 'Compose'),
+                ),
+              ],
             ),
-          if (_mode == 1)
-            Positioned.fill(
-              child: MorphSearchTabBar(
-                items: const [
-                  MorphTabItem(icon: Icons.home_outlined, label: 'Home'),
-                  MorphTabItem(icon: Icons.library_books, label: 'Library'),
-                ],
-                selected: _tab,
-                onChanged: (int i) => setState(() => _tab = i),
-                searching: _searching,
-                onSearchingChanged: (bool on) => setState(() {
-                  _searching = on;
-                  if (!on) _query = '';
-                }),
-                placeholder: 'Search fruit',
-                onQueryChanged: (String q) => setState(() => _query = q),
-              ),
+          ),
+        if (_mode == 1)
+          Positioned.fill(
+            child: MorphSearchTabBar(
+              items: const [
+                MorphTabItem(icon: Icons.home_outlined, label: 'Home'),
+                MorphTabItem(icon: Icons.library_books, label: 'Library'),
+              ],
+              selected: _tab,
+              onChanged: (int i) => setState(() => _tab = i),
+              searching: _searching,
+              onSearchingChanged: (bool on) => setState(() {
+                _searching = on;
+                if (!on) _query = '';
+              }),
+              placeholder: 'Search fruit',
+              onQueryChanged: (String q) => setState(() => _query = q),
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 }

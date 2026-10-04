@@ -22,7 +22,9 @@ void main() {
     await MorphGlassRenderer.precache();
     runApp(const GalleryApp());
     await tester.pump(const Duration(seconds: 2));
-    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    final navigator = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
     unawaited(
       navigator.push(
         MaterialPageRoute<void>(
@@ -33,8 +35,8 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
     final button = tester.getCenter(find.byType(MorphMenuButton));
     final outside = Offset(
-      tester.getSize(find.byType(Scaffold).last).width - 50,
-      tester.getSize(find.byType(Scaffold).last).height - 120,
+      (tester.view.physicalSize / tester.view.devicePixelRatio).width - 50,
+      (tester.view.physicalSize / tester.view.devicePixelRatio).height - 120,
     );
     var pointer = 1;
     Future<void> tap(Offset at, int holdMs) async {

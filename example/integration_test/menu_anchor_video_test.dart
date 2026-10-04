@@ -26,7 +26,9 @@ void main() {
     await MorphGlassRenderer.precache();
     runApp(const GalleryApp());
     await tester.pump(const Duration(seconds: 2));
-    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    final navigator = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
     var pointer = 1;
     Future<void> tap(Offset at) async {
       final gesture = await tester.createGesture(pointer: pointer++);
@@ -37,7 +39,7 @@ void main() {
 
     Future<void> play(Finder button) async {
       final center = tester.getCenter(button);
-      final size = tester.getSize(find.byType(Scaffold).last);
+      final size = (tester.view.physicalSize / tester.view.devicePixelRatio);
       final outside = Offset(
         center.dx < size.width / 2 ? size.width - 30 : 30,
         center.dy < size.height / 2 ? size.height - 60 : 120,
@@ -126,25 +128,29 @@ class _Page extends StatelessWidget {
           ),
       ],
     );
-    return Scaffold(
-      backgroundColor: galleryBackgroundColor(Theme.of(context).brightness),
-      appBar: const GalleryBar(title: 'Menu'),
-      body: alignment == Alignment.center
-          ? Center(child: button)
-          : SafeArea(
-              child: Align(
-                alignment: alignment,
-                child: Padding(
-                  padding: EdgeInsets.only(
-                    left: 20,
-                    right: 20,
-                    top: alignment.y < 0 ? 80 : 0,
-                    bottom: alignment.y > 0 ? 20 : 0,
+    return GalleryPage(
+      title: 'Menu',
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: alignment == Alignment.center
+              ? Center(child: button)
+              : SafeArea(
+                  child: Align(
+                    alignment: alignment,
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: 20,
+                        right: 20,
+                        top: alignment.y < 0 ? 80 : 0,
+                        bottom: alignment.y > 0 ? 20 : 0,
+                      ),
+                      child: button,
+                    ),
                   ),
-                  child: button,
                 ),
-              ),
-            ),
+        ),
+      ],
     );
   }
 }

@@ -30,16 +30,29 @@ Future<void> _pumpGallery(
   );
 }
 
-/// Leaves a gallery page: through its app bar's back button, or, for a
-/// page that brings its own navigation stack, by popping the gallery's
-/// navigator.
+/// The gallery's page navigator: the navigation stack's.
+NavigatorState _pages(WidgetTester tester) => tester.state<NavigatorState>(
+  find
+      .descendant(
+        of: find.byType(MorphNavigationStack),
+        matching: find.byType(Navigator),
+      )
+      .first,
+);
+
+/// Leaves a gallery page through the navigation bar's back button.
 Future<void> _back(WidgetTester tester) async {
-  if (find.byType(BackButton).evaluate().isNotEmpty) {
-    await tester.pageBack();
-    return;
-  }
-  tester.state<NavigatorState>(find.byType(Navigator).first).pop();
+  await tester.tap(find.bySemanticsLabel('Back').last);
 }
+
+Finder _slowMotion(String factor) =>
+    find.bySemanticsLabel('Slow motion $factor');
+
+Future<void> _settle(WidgetTester tester) => tester.pumpAndSettle(
+  const Duration(milliseconds: 100),
+  EnginePhase.sendSemanticsUpdate,
+  const Duration(seconds: 10),
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -66,10 +79,11 @@ void main() {
     ) async {
       await _pumpGallery(tester, brightness: brightness);
       expect(
-        tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor ??
-            Theme.of(
-              tester.element(find.byType(Scaffold)),
-            ).scaffoldBackgroundColor,
+        tester
+            .widget<MorphNavigationScaffold>(
+              find.byType(MorphNavigationScaffold),
+            )
+            .backgroundColor,
         galleryBackgroundColor(brightness),
       );
       for (final entry in galleryEntries) {
@@ -85,8 +99,8 @@ void main() {
           const Duration(seconds: 10),
         );
         expect(_unstyledTexts(tester), isEmpty, reason: entry.title);
-        expect(find.byType(SlowMotionToggle), findsOneWidget);
-        await _back(tester);
+        expect(_slowMotion('1x'), findsOneWidget, reason: entry.title);
+        _pages(tester).popUntil((Route<Object?> route) => route.isFirst);
         await tester.pumpAndSettle(
           const Duration(milliseconds: 100),
           EnginePhase.sendSemanticsUpdate,
@@ -109,7 +123,7 @@ void main() {
         .byType(MorphMenuButton)
         .evaluate()
         .map((Element e) => tester.getCenter(find.byWidget(e.widget)));
-    final screen = tester.getCenter(find.byType(Scaffold));
+    const screen = Offset(201, 437);
     final nearest = center.reduce(
       (a, b) => (a - screen).distance < (b - screen).distance ? a : b,
     );
@@ -123,50 +137,52 @@ void main() {
     expect(_unstyledTexts(tester), isEmpty);
   });
 
-  testWidgets('the slow-motion toggle sits in the bar, clear of the tab bar', (
+  testWidgets('the slow-motion button sits in the bar, clear of the tab bar', (
     tester,
   ) async {
     await _pumpGallery(tester);
     await tester.tap(find.text('Tab bar'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 10),
-    );
-    final toggle = tester.getRect(find.byType(SlowMotionToggle));
+    await _settle(tester);
+    final toggle = tester.getRect(_slowMotion('1x'));
     final bar = tester.getRect(find.byType(MorphTabBar));
     expect(toggle.overlaps(bar), isFalse);
     expect(
       toggle.bottom,
-      lessThanOrEqualTo(tester.getRect(find.byType(AppBar)).bottom),
+      lessThanOrEqualTo(tester.getRect(find.byType(MorphNavigationBar)).bottom),
     );
-    await tester.tap(find.byType(SlowMotionToggle));
+    expect(toggle.right, lessThanOrEqualTo(402 - 16));
+    await tester.tap(_slowMotion('1x'));
     await tester.pump();
     expect(timeDilation, 5);
-    expect(find.text('Slow-mo 5x'), findsOneWidget);
-    await tester.tap(find.byType(SlowMotionToggle));
+    await tester.pump(const Duration(seconds: 3));
+    expect(_slowMotion('5x'), findsOneWidget);
+    await tester.tap(_slowMotion('5x'));
     await tester.pump();
-    await tester.tap(find.byType(SlowMotionToggle));
+    await tester.pump(const Duration(seconds: 6));
+    await tester.tap(_slowMotion('10x'));
     await tester.pump();
     expect(timeDilation, 1);
-    expect(find.text('Slow-mo off'), findsOneWidget);
+    await _settle(tester);
+    expect(_slowMotion('1x'), findsOneWidget);
   });
 
-  testWidgets('the menu button in the bar keeps the UIKit 16 pt inset', (
+  testWidgets('holding the bar button of the menu page opens its menu', (
     tester,
   ) async {
     await _pumpGallery(tester);
     await tester.tap(find.text('Menu'));
-    await tester.pumpAndSettle(
-      const Duration(milliseconds: 100),
-      EnginePhase.sendSemanticsUpdate,
-      const Duration(seconds: 10),
+    await _settle(tester);
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.bySemanticsLabel('More')),
     );
-    final inBar = find.descendant(
-      of: find.byType(AppBar),
-      matching: find.byType(MorphMenuButton),
-    );
-    expect(tester.getRect(inBar).right, 402 - 16);
+    for (var i = 0; i < 100; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+    await gesture.moveBy(const Offset(0, 300));
+    await gesture.up();
+    await _settle(tester);
+    expect(find.text('Copy'), findsOneWidget);
+    expect(_unstyledTexts(tester), isEmpty);
   });
 
   testWidgets('the glass page settings reach every page', (tester) async {
@@ -205,7 +221,7 @@ void main() {
       EnginePhase.sendSemanticsUpdate,
       const Duration(seconds: 10),
     );
-    await tester.pageBack();
+    await _back(tester);
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
       EnginePhase.sendSemanticsUpdate,

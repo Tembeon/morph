@@ -26,53 +26,57 @@ class _SegmentedPageState extends State<SegmentedPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const GalleryBar(title: 'Segmented control'),
-      body: ListView(
-        padding: const .all(20),
-        children: [
-          for (final (title, segments, byContent) in _rows) ...[
-            Padding(
-              padding: const .only(left: 4, bottom: 8, top: 12),
-              child: Text(
-                title,
-                style: const TextStyle(color: Color(0xFF8E8E93)),
-              ),
-            ),
-            MorphSegmentedControl(
-              segments: segments,
-              sizeByContent: byContent,
-              selected: _selected[title] ?? 0,
-              onChanged: GalleryGlassScope.enabled(
-                context,
-                (int i) => setState(() => _selected[title] = i),
-              ),
-            ),
-          ],
-          const SizedBox(height: 24),
-          const Text(
-            'Tap a segment: the lens moves on release. Press the selected '
-            'segment and drag it; past the ends it rubber-bands.',
-            style: TextStyle(color: Color(0xFF8E8E93)),
-          ),
-          Padding(
-            padding: const .symmetric(vertical: 24),
-            child: Center(
-              child: SizedBox(
-                width: 150,
-                child: MorphSegmentedControl(
-                  segments: const ['X', 'Y', 'Z'],
-                  selected: _selected['narrow'] ?? 0,
+    return GalleryPage(
+      title: 'Segmented control',
+      slivers: [
+        SliverPadding(
+          padding: const .all(20),
+          sliver: SliverList.list(
+            children: [
+              for (final (title, segments, byContent) in _rows) ...[
+                Padding(
+                  padding: const .only(left: 4, bottom: 8, top: 12),
+                  child: Text(
+                    title,
+                    style: TextStyle(color: gallerySecondaryColor(context)),
+                  ),
+                ),
+                MorphSegmentedControl(
+                  segments: segments,
+                  sizeByContent: byContent,
+                  selected: _selected[title] ?? 0,
                   onChanged: GalleryGlassScope.enabled(
                     context,
-                    (int i) => setState(() => _selected['narrow'] = i),
+                    (int i) => setState(() => _selected[title] = i),
+                  ),
+                ),
+              ],
+              const SizedBox(height: 24),
+              Text(
+                'Tap a segment: the lens moves on release. Press the selected '
+                'segment and drag it; past the ends it rubber-bands.',
+                style: TextStyle(color: gallerySecondaryColor(context)),
+              ),
+              Padding(
+                padding: const .symmetric(vertical: 24),
+                child: Center(
+                  child: SizedBox(
+                    width: 150,
+                    child: MorphSegmentedControl(
+                      segments: const ['X', 'Y', 'Z'],
+                      selected: _selected['narrow'] ?? 0,
+                      onChanged: GalleryGlassScope.enabled(
+                        context,
+                        (int i) => setState(() => _selected['narrow'] = i),
+                      ),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -100,66 +104,70 @@ class _TabBarPageState extends State<TabBarPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const GalleryBar(title: 'Tab bar'),
-      body: Stack(
-        children: [
-          ListView.builder(
-            padding: const .fromLTRB(16, 8, 16, 120),
-            itemCount: 40,
-            itemBuilder: (BuildContext context, int i) {
-              if (i == 0) {
-                return Padding(
-                  padding: const .only(bottom: 12),
-                  child: MorphSegmentedControl(
-                    segments: const ['2', '3', '4', '5'],
-                    selected: _count - 2,
-                    onChanged: (int v) => setState(() {
-                      _count = v + 2;
-                      _selected = _selected.clamp(0, _count - 1);
-                    }),
-                  ),
-                );
-              }
-              return Container(
-                height: 64,
-                margin: const .only(bottom: 8),
-                decoration: BoxDecoration(
-                  color: HSLColor.fromAHSL(
-                    1,
-                    (i * 37) % 360,
-                    0.55,
-                    0.62,
-                  ).toColor(),
-                  borderRadius: .circular(14),
-                ),
-                alignment: .centerLeft,
-                padding: const .symmetric(horizontal: 16),
-                child: Text(
-                  '${_items[_selected].label} row $i',
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-              );
-            },
-          ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 21,
-            child: Center(
-              child: MorphTabBar(
-                key: ValueKey(_count),
-                items: _items.sublist(0, _count),
-                selected: _selected,
-                onChanged: GalleryGlassScope.enabled(
-                  context,
-                  (int i) => setState(() => _selected = i),
-                ),
+    return Stack(
+      children: [
+        GalleryPage(
+          title: 'Tab bar',
+          slivers: [
+            SliverPadding(
+              padding: const .fromLTRB(16, 8, 16, 120),
+              sliver: SliverList.builder(
+                itemCount: 40,
+                itemBuilder: (BuildContext context, int i) {
+                  if (i == 0) {
+                    return Padding(
+                      padding: const .only(bottom: 12),
+                      child: MorphSegmentedControl(
+                        segments: const ['2', '3', '4', '5'],
+                        selected: _count - 2,
+                        onChanged: (int v) => setState(() {
+                          _count = v + 2;
+                          _selected = _selected.clamp(0, _count - 1);
+                        }),
+                      ),
+                    );
+                  }
+                  return Container(
+                    height: 64,
+                    margin: const .only(bottom: 8),
+                    decoration: BoxDecoration(
+                      color: HSLColor.fromAHSL(
+                        1,
+                        (i * 37) % 360,
+                        0.55,
+                        0.62,
+                      ).toColor(),
+                      borderRadius: .circular(14),
+                    ),
+                    alignment: .centerLeft,
+                    padding: const .symmetric(horizontal: 16),
+                    child: Text(
+                      '${_items[_selected].label} row $i',
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 21,
+          child: Center(
+            child: MorphTabBar(
+              key: ValueKey(_count),
+              items: _items.sublist(0, _count),
+              selected: _selected,
+              onChanged: GalleryGlassScope.enabled(
+                context,
+                (int i) => setState(() => _selected = i),
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

@@ -21,7 +21,7 @@ Future<void> _open(WidgetTester tester, String title) async {
     EnginePhase.sendSemanticsUpdate,
     const Duration(seconds: 10),
   );
-  final entry = find.widgetWithText(ListTile, title);
+  final entry = find.widgetWithText(MorphListRow, title);
   await tester.scrollUntilVisible(
     entry,
     200,
@@ -39,7 +39,13 @@ Future<void> _open(WidgetTester tester, String title) async {
     EnginePhase.sendSemanticsUpdate,
     const Duration(seconds: 10),
   );
-  expect(find.widgetWithText(AppBar, title), findsOneWidget);
+  expect(
+    find.descendant(
+      of: find.byType(MorphNavigationBar),
+      matching: find.text(title),
+    ),
+    findsWidgets,
+  );
 }
 
 void main() {
@@ -206,7 +212,7 @@ void main() {
       EnginePhase.sendSemanticsUpdate,
       const Duration(seconds: 10),
     );
-    final entry = find.widgetWithText(ListTile, 'Navigation');
+    final entry = find.widgetWithText(MorphListRow, 'Navigation');
     await tester.scrollUntilVisible(
       entry,
       200,

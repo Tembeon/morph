@@ -121,7 +121,7 @@ class _Audit {
   }
 
   Future<void> back() async {
-    await tester.pageBack();
+    await tester.tap(find.bySemanticsLabel('Back').last);
     await settle(800);
   }
 

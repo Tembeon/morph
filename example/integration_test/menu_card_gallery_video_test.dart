@@ -20,9 +20,11 @@ void main() {
     await MorphGlassRenderer.precache();
     runApp(const GalleryApp());
     await tester.pump(const Duration(seconds: 2));
-    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    final navigator = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
     final settings = GalleryGlassScope.of(
-      tester.element(find.byType(Navigator)),
+      tester.element(find.byType(Navigator).first),
     );
     settings.appearance = ThemeMode.light;
     unawaited(

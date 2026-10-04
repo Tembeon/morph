@@ -3,9 +3,9 @@ import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 
-/// A small mail app on the measured navigation stack: a large-title list
-/// whose bar buttons morph into the detail screen's on a push, a toolbar
-/// that swaps its item sets, the soft or hard scroll edge effect, and a
+/// A small mail app on the gallery's measured navigation stack: a
+/// large-title list whose bar buttons morph into the detail screen's on
+/// a push, a toolbar that swaps its item sets, the soft or hard scroll edge effect, and a
 /// row of photos that zoom into their pages (drag a photo page down or to
 /// the right to zoom it back).
 class NavigationDemoPage extends StatefulWidget {
@@ -22,34 +22,13 @@ class _NavigationDemoPageState extends State<NavigationDemoPage> {
 
   void _swapSet() => setState(() => _set = (_set + 1) % 3);
 
-  void _setEdge(MorphScrollEdgeEffectStyle edge) =>
-      setState(() => _edge = edge);
-
   @override
-  Widget build(BuildContext context) {
-    final close = Navigator.of(context);
-    return Material(
-      type: MaterialType.transparency,
-      child: _DemoScope(
-        state: this,
-        child: MorphScope(
-          child: MorphNavigationStack(home: _Inbox(onClose: close.maybePop)),
-        ),
-      ),
-    );
-  }
-}
-
-class _DemoScope extends InheritedWidget {
-  const _DemoScope({required this.state, required super.child});
-
-  final _NavigationDemoPageState state;
-
-  static _NavigationDemoPageState of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<_DemoScope>()!.state;
-
-  @override
-  bool updateShouldNotify(_DemoScope oldWidget) => true;
+  Widget build(BuildContext context) => _Inbox(
+    edge: _edge,
+    set: _set,
+    onSwap: _swapSet,
+    onEdge: (MorphScrollEdgeEffectStyle edge) => setState(() => _edge = edge),
+  );
 }
 
 const _palette = [
@@ -73,14 +52,21 @@ MorphBarButton _icon(String id, IconData icon, VoidCallback? onPressed) =>
     );
 
 class _Inbox extends StatelessWidget {
-  const _Inbox({required this.onClose});
+  const _Inbox({
+    required this.edge,
+    required this.set,
+    required this.onSwap,
+    required this.onEdge,
+  });
 
-  final VoidCallback onClose;
+  final MorphScrollEdgeEffectStyle edge;
+  final int set;
+  final VoidCallback onSwap;
+  final ValueChanged<MorphScrollEdgeEffectStyle> onEdge;
 
   @override
   Widget build(BuildContext context) {
-    final state = _DemoScope.of(context);
-    final swap = state._swapSet;
+    final swap = onSwap;
     final sets = <(List<MorphBarButtonGroup>, List<MorphBarButtonGroup>)>[
       (
         [
@@ -124,14 +110,11 @@ class _Inbox extends StatelessWidget {
         ],
       ),
     ];
-    final (toolbarLeading, toolbarTrailing) = sets[state._set];
-    return MorphNavigationScaffold(
+    final (toolbarLeading, toolbarTrailing) = sets[set];
+    return GalleryPage(
       title: 'Inbox',
       largeTitle: true,
-      edgeEffect: state._edge,
-      leading: MorphBarButtonGroup([
-        MorphBarButton(id: 'close', label: 'Close', onPressed: onClose),
-      ]),
+      edgeEffect: edge,
       trailing: [
         MorphBarButtonGroup([
           _icon('add', Icons.add, GalleryGlassScope.enabled(context, () {})),
@@ -148,31 +131,22 @@ class _Inbox extends StatelessWidget {
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-            child: Row(
-              children: [
-                const SlowMotionToggle(),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: MorphSegmentedControl(
-                    segments: const ['Hard edge', 'Soft edge'],
-                    selected: state._edge == MorphScrollEdgeEffectStyle.hard
-                        ? 0
-                        : 1,
-                    onChanged: (i) => state._setEdge(
-                      i == 0
-                          ? MorphScrollEdgeEffectStyle.hard
-                          : MorphScrollEdgeEffectStyle.soft,
-                    ),
-                  ),
-                ),
-              ],
+            child: MorphSegmentedControl(
+              segments: const ['Hard edge', 'Soft edge'],
+              selected: edge == MorphScrollEdgeEffectStyle.hard ? 0 : 1,
+              onChanged: (i) => onEdge(
+                i == 0
+                    ? MorphScrollEdgeEffectStyle.hard
+                    : MorphScrollEdgeEffectStyle.soft,
+              ),
             ),
           ),
         ),
         const SliverToBoxAdapter(child: _Photos()),
         SliverList.builder(
           itemCount: 60,
-          itemBuilder: (BuildContext context, int i) => _Row(index: i),
+          itemBuilder: (BuildContext context, int i) =>
+              _Row(index: i, edge: edge),
         ),
       ],
     );
@@ -247,18 +221,21 @@ class _Photo extends StatelessWidget {
 }
 
 class _Row extends StatelessWidget {
-  const _Row({required this.index});
+  const _Row({required this.index, required this.edge});
 
   final int index;
+  final MorphScrollEdgeEffectStyle edge;
 
   @override
   Widget build(BuildContext context) {
     final color = _palette[index % _palette.length];
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.of(
-        context,
-      ).push(MorphNavigationRoute<void>(builder: (_) => _Detail(index: index))),
+      onTap: () => Navigator.of(context).push(
+        MorphNavigationRoute<void>(
+          builder: (_) => _Detail(index: index, edge: edge),
+        ),
+      ),
       child: Container(
         height: 72,
         color: color.withValues(alpha: 0.85),
@@ -278,9 +255,10 @@ class _Row extends StatelessWidget {
 }
 
 class _Detail extends StatefulWidget {
-  const _Detail({required this.index});
+  const _Detail({required this.index, required this.edge});
 
   final int index;
+  final MorphScrollEdgeEffectStyle edge;
 
   @override
   State<_Detail> createState() => _DetailState();
@@ -291,10 +269,9 @@ class _DetailState extends State<_Detail> {
 
   @override
   Widget build(BuildContext context) {
-    final demo = _DemoScope.of(context);
-    return MorphNavigationScaffold(
+    return GalleryPage(
       title: 'Message ${widget.index}',
-      edgeEffect: demo._edge,
+      edgeEffect: widget.edge,
       trailing: [
         MorphBarButtonGroup([
           _icon(

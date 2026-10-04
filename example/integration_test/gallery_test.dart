@@ -139,7 +139,7 @@ class _Qa {
   }
 
   Future<void> back() async {
-    await tester.pageBack();
+    await tester.tap(find.bySemanticsLabel('Back').last);
     await settle(700);
   }
 
@@ -499,17 +499,12 @@ class _Qa {
     await open('Menu');
     _enter('menu');
     await shot('menu-resting');
-    final barButton = find.descendant(
-      of: find.byType(AppBar),
-      matching: find.byType(MorphMenuButton),
-    );
-    final appBar = tester.getCenter(barButton);
+    final appBar = tester.getCenter(find.bySemanticsLabel('More'));
     final all = find.byType(MorphMenuButton);
     final rects = [
-      for (var i = 0; i < all.evaluate().length; i++)
-        if (tester.getCenter(all.at(i)) != appBar) tester.getRect(all.at(i)),
+      for (var i = 0; i < all.evaluate().length; i++) tester.getRect(all.at(i)),
     ];
-    final size = tester.getSize(find.byType(Scaffold));
+    final size = _screen(tester);
     Offset nearest(Offset p) => rects
         .map((r) => r.center)
         .reduce((a, b) => (a - p).distance < (b - p).distance ? a : b);
@@ -554,7 +549,15 @@ class _Qa {
       ('bottom-right', bottomRight),
       ('app-bar', appBar),
     ]) {
-      await tap(at);
+      if (name == 'app-bar') {
+        await finger(
+          at,
+          line(at, at + const Offset(0, 160), 8),
+          holdBefore: const Duration(milliseconds: 700),
+        );
+      } else {
+        await tap(at);
+      }
       await settle();
       await shot('menu-open-$name');
       final copy = find.text('Copy');
@@ -832,7 +835,7 @@ class _Qa {
     await open('Menu');
     await shot('dark-menu-button-resting');
     final all = find.byType(MorphMenuButton);
-    final size = tester.getSize(find.byType(Scaffold));
+    final size = _screen(tester);
     final mid = Offset(size.width / 2, size.height / 2);
     var center = tester.getCenter(all.first);
     for (var i = 0; i < all.evaluate().length; i++) {
@@ -903,3 +906,6 @@ class _Qa {
   /// directory, pulled with `devicectl device copy from`.
   static final Directory outDir = Directory('${Directory.systemTemp.path}/qa');
 }
+
+Size _screen(WidgetTester tester) =>
+    tester.view.physicalSize / tester.view.devicePixelRatio;

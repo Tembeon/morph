@@ -42,12 +42,11 @@ class _SpecInspectorPageState extends State<SpecInspectorPage> {
       ),
       ('Stretch threshold', spec.scaleDistanceThreshold.toStringAsFixed(0)),
     ];
-    return Scaffold(
-      appBar: const GalleryBar(title: 'Size to physics'),
-      body: ListView(
-        padding: const .all(16),
-        children: [
-          SizedBox(
+    return GalleryPage(
+      title: 'Size to physics',
+      slivers: [
+        SliverToBoxAdapter(
+          child: SizedBox(
             height: 220,
             child: Center(
               child: Container(
@@ -63,61 +62,54 @@ class _SpecInspectorPageState extends State<SpecInspectorPage> {
               ),
             ),
           ),
-          _Row(
-            label: 'Loupe',
-            child: MorphSwitch(
-              value: _loupe,
-              semanticLabel: 'Loupe',
-              onChanged: (bool v) => setState(() => _loupe = v),
-            ),
-          ),
-          _Knob(
-            label: 'Width',
-            value: _width,
-            min: 20,
-            max: 360,
-            onChanged: (double v) => setState(() => _width = v),
-          ),
-          _Knob(
-            label: 'Height',
-            value: _height,
-            min: 20,
-            max: 200,
-            onChanged: (double v) => setState(() => _height = v),
-          ),
-          for (final (label, value) in rows)
-            _Row(
-              label: label,
-              child: Text(
-                value,
-                style: const TextStyle(
-                  color: Color(0xFF8E8E93),
-                  fontFeatures: [FontFeature.tabularFigures()],
+        ),
+        SliverToBoxAdapter(
+          child: MorphListSection(
+            header: 'Surface',
+            children: [
+              MorphListRow(
+                title: const Text('Loupe'),
+                trailing: MorphSwitch(
+                  value: _loupe,
+                  semanticLabel: 'Loupe',
+                  onChanged: (bool v) => setState(() => _loupe = v),
                 ),
               ),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Row extends StatelessWidget {
-  const _Row({required this.label, required this.child});
-
-  final String label;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const .symmetric(horizontal: 4, vertical: 10),
-      child: Row(
-        children: [
-          Expanded(child: Text(label)),
-          child,
-        ],
-      ),
+              _Knob(
+                label: 'Width',
+                value: _width,
+                min: 20,
+                max: 360,
+                onChanged: (double v) => setState(() => _width = v),
+              ),
+              _Knob(
+                label: 'Height',
+                value: _height,
+                min: 20,
+                max: 200,
+                onChanged: (double v) => setState(() => _height = v),
+              ),
+            ],
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: MorphListSection(
+            header: 'Physics',
+            children: [
+              for (final (label, value) in rows)
+                MorphListRow(
+                  title: Text(label),
+                  detail: Text(
+                    value,
+                    style: const TextStyle(
+                      fontFeatures: [FontFeature.tabularFigures()],
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
@@ -139,8 +131,7 @@ class _Knob extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const .symmetric(horizontal: 4, vertical: 8),
+    return MorphListRow(
       child: Column(
         crossAxisAlignment: .start,
         children: [

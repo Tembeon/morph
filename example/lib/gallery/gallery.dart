@@ -26,7 +26,8 @@ class GalleryApp extends StatefulWidget {
   /// Creates the app.
   const GalleryApp({this.navigatorKey, super.key});
 
-  /// The key of the app's navigator, for a driver that walks the pages.
+  /// The key of the gallery's page navigator (the navigation stack's),
+  /// for a driver that walks the pages.
   final GlobalKey<NavigatorState>? navigatorKey;
 
   @override
@@ -36,17 +37,30 @@ class GalleryApp extends StatefulWidget {
 class _GalleryAppState extends State<GalleryApp> {
   final _settings = GalleryGlassSettings();
 
-  static ThemeData _theme(Brightness brightness) => ThemeData(
-    brightness: brightness,
-    colorScheme: ColorScheme.fromSeed(
-      seedColor: const Color(0xFF007AFF),
+  static ThemeData _theme(Brightness brightness) {
+    final list = switch (brightness) {
+      Brightness.light => MorphListStyle.light,
+      Brightness.dark => MorphListStyle.dark,
+    };
+    final edge = switch (brightness) {
+      Brightness.light => MorphScrollEdgeEffectThemeData(
+        backgroundColor: list.backgroundColor,
+      ),
+      Brightness.dark => MorphScrollEdgeEffectThemeData.dark,
+    };
+    return ThemeData(
       brightness: brightness,
-    ),
-    scaffoldBackgroundColor: galleryBackgroundColor(brightness),
-    splashFactory: NoSplash.splashFactory,
-    splashColor: Colors.transparent,
-    highlightColor: Colors.transparent,
-  );
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF007AFF),
+        brightness: brightness,
+      ),
+      scaffoldBackgroundColor: list.backgroundColor,
+      splashFactory: NoSplash.splashFactory,
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      extensions: [MorphWidgetsTheme(scrollEdgeEffect: edge)],
+    );
+  }
 
   @override
   void dispose() {
@@ -62,7 +76,6 @@ class _GalleryAppState extends State<GalleryApp> {
         final renderer = _settings.renderer;
         final tier = _settings.tier;
         return MaterialApp(
-          navigatorKey: widget.navigatorKey,
           title: 'Morph widgets',
           debugShowCheckedModeBanner: false,
           theme: _theme(Brightness.light),
@@ -82,7 +95,10 @@ class _GalleryAppState extends State<GalleryApp> {
               ),
             );
           },
-          home: const GalleryHome(),
+          home: MorphNavigationStack(
+            navigatorKey: widget.navigatorKey,
+            home: const GalleryHome(),
+          ),
         );
       },
     );
@@ -91,63 +107,76 @@ class _GalleryAppState extends State<GalleryApp> {
 
 /// The grouped background of a gallery page: iOS systemGroupedBackground.
 Color galleryBackgroundColor(Brightness brightness) => switch (brightness) {
-  Brightness.light => const Color(0xFFF2F2F7),
-  Brightness.dark => const Color(0xFF000000),
+  Brightness.light => MorphListStyle.light.backgroundColor,
+  Brightness.dark => MorphListStyle.dark.backgroundColor,
 };
 
 /// The fill of a grouped card on a gallery page: iOS
 /// secondarySystemGroupedBackground.
 Color galleryCardColor(BuildContext context) =>
-    switch (Theme.of(context).brightness) {
-      Brightness.light => const Color(0xFFFFFFFF),
-      Brightness.dark => const Color(0xFF1C1C1E),
-    };
+    MorphListStyle.resolve(context, null).cellColor;
 
-/// The navigation bar of every gallery page: the title, the page's own
-/// [actions] and the [SlowMotionToggle] at the trailing edge, inset like
-/// a UIKit navigation bar's buttons.
-class GalleryBar extends StatelessWidget implements PreferredSizeWidget {
-  /// Creates the bar.
-  const GalleryBar({required this.title, this.actions = const [], super.key});
+/// The secondary text of a gallery page: iOS secondaryLabel.
+Color gallerySecondaryColor(BuildContext context) =>
+    MorphListStyle.resolve(context, null).secondaryColor;
+
+/// One screen of the gallery: a [MorphNavigationScaffold] on the grouped
+/// background whose navigation bar ends with the slow-motion button.
+///
+/// The slow-motion button cycles the app's time dilation through 1x, 5x
+/// and 10x, and turns prominent while the motion is slowed. The measured
+/// motion runs on ticker time, its per-frame deformation filters step on
+/// a fixed 60 or 120 Hz sub-clock in that same time, and touches are
+/// stamped on it too, so the widgets slow down as a whole and trace the
+/// same curves as at full speed; only the finger keeps real time, so a
+/// drag reads faster relative to the motion.
+class GalleryPage extends StatefulWidget {
+  /// Creates a page.
+  const GalleryPage({
+    required this.title,
+    required this.slivers,
+    this.largeTitle = false,
+    this.leading,
+    this.trailing = const [],
+    this.toolbarLeading = const [],
+    this.toolbarTrailing = const [],
+    this.edgeEffect = MorphScrollEdgeEffectStyle.hard,
+    this.backgroundColor,
+    super.key,
+  });
 
   /// The page's title.
   final String title;
 
-  /// The page's own bar buttons, before the slow-motion toggle.
-  final List<Widget> actions;
+  /// The page's content.
+  final List<Widget> slivers;
+
+  /// Whether the title shows large above the content.
+  final bool largeTitle;
+
+  /// The group at the leading edge of the navigation bar.
+  final MorphBarButtonGroup? leading;
+
+  /// The page's own bar button groups, before the slow-motion button.
+  final List<MorphBarButtonGroup> trailing;
+
+  /// The groups at the leading edge of the toolbar.
+  final List<MorphBarButtonGroup> toolbarLeading;
+
+  /// The groups at the trailing edge of the toolbar.
+  final List<MorphBarButtonGroup> toolbarTrailing;
+
+  /// The scroll edge effect under the navigation bar.
+  final MorphScrollEdgeEffectStyle? edgeEffect;
+
+  /// The color behind the content; null is the grouped background.
+  final Color? backgroundColor;
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
-  @override
-  Widget build(BuildContext context) {
-    return AppBar(
-      title: Text(title),
-      backgroundColor: Colors.transparent,
-      actions: [
-        const SlowMotionToggle(),
-        for (final action in actions) ...[const SizedBox(width: 8), action],
-        const SizedBox(width: 16),
-      ],
-    );
-  }
+  State<GalleryPage> createState() => _GalleryPageState();
 }
 
-/// A magnifier for the eye: cycles the app's time dilation through 1x,
-/// 5x and 10x. The measured motion runs on ticker time, its per-frame
-/// deformation filters step on a fixed 60 or 120 Hz sub-clock in that same
-/// time, and touches are stamped on it too, so the widgets slow down as a
-/// whole and trace the same curves as at full speed; only the finger keeps
-/// real time, so a drag reads faster relative to the motion.
-class SlowMotionToggle extends StatefulWidget {
-  /// Creates the toggle.
-  const SlowMotionToggle({super.key});
-
-  @override
-  State<SlowMotionToggle> createState() => _SlowMotionToggleState();
-}
-
-class _SlowMotionToggleState extends State<SlowMotionToggle> {
+class _GalleryPageState extends State<GalleryPage> {
   static const _factors = [1.0, 5.0, 10.0];
 
   int get _index {
@@ -162,34 +191,48 @@ class _SlowMotionToggleState extends State<SlowMotionToggle> {
   @override
   Widget build(BuildContext context) {
     final factor = _factors[_index];
-    final dark = Theme.of(context).brightness == Brightness.dark;
-    final idle = factor == 1;
-    return Semantics(
-      button: true,
-      child: GestureDetector(
-        onTap: _cycle,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: idle
-                ? (dark ? const Color(0xFF2C2C2E) : const Color(0xFFFFFFFF))
-                : const Color(0xFFFF9500),
-            borderRadius: .circular(16),
-          ),
-          child: Padding(
-            padding: const .symmetric(horizontal: 12, vertical: 7),
-            child: DefaultTextStyle(
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: .w600,
-                color: idle
-                    ? (dark ? const Color(0xFFEBEBF5) : const Color(0xFF3C3C43))
-                    : Colors.white,
-              ),
-              child: Text(idle ? 'Slow-mo off' : 'Slow-mo ${factor.round()}x'),
-            ),
-          ),
+    final slowMotion = MorphBarButtonGroup(
+      [
+        MorphBarButton(
+          id: 'slowmo',
+          label: '${factor.round()}x',
+          semanticLabel: 'Slow motion ${factor.round()}x',
+          onPressed: _cycle,
         ),
-      ),
+      ],
+      id: 'slowmo',
+      prominent: factor != 1,
+    );
+    return MorphNavigationScaffold(
+      title: widget.title,
+      largeTitle: widget.largeTitle,
+      leading: widget.leading,
+      trailing: [...widget.trailing, slowMotion],
+      toolbarLeading: widget.toolbarLeading,
+      toolbarTrailing: widget.toolbarTrailing,
+      edgeEffect: widget.edgeEffect,
+      backgroundColor:
+          widget.backgroundColor ??
+          MorphListStyle.resolve(context, null).backgroundColor,
+      slivers: widget.slivers,
+    );
+  }
+}
+
+/// A caption above a demo on a gallery page, in the list header's
+/// secondary color.
+class GalleryCaption extends StatelessWidget {
+  /// Creates a caption.
+  const GalleryCaption(this.text, {super.key});
+
+  /// The caption.
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const .only(left: 4, bottom: 10, top: 24),
+      child: Text(text, style: TextStyle(color: gallerySecondaryColor(context))),
     );
   }
 }
@@ -273,38 +316,34 @@ final List<GalleryEntry> galleryEntries = [
   ),
 ];
 
-/// The gallery's home: a grouped list of entries.
+/// The gallery's home: a grouped list of entries under a large title;
+/// each row pushes its page onto the gallery's navigation stack.
 class GalleryHome extends StatelessWidget {
   /// Creates the home page.
   const GalleryHome({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const GalleryBar(title: 'Widgets'),
-      body: ListView(
-        padding: const .all(16),
-        children: [
-          Material(
-            color: galleryCardColor(context),
-            borderRadius: .circular(26),
-            clipBehavior: .antiAlias,
-            child: Column(
-              children: [
-                for (final entry in galleryEntries)
-                  ListTile(
-                    title: Text(entry.title),
-                    subtitle: Text(entry.subtitle),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.of(
-                      context,
-                    ).push(MaterialPageRoute<void>(builder: entry.builder)),
-                  ),
-              ],
-            ),
+    return GalleryPage(
+      title: 'Widgets',
+      largeTitle: true,
+      slivers: [
+        SliverToBoxAdapter(
+          child: MorphListSection(
+            children: [
+              for (final entry in galleryEntries)
+                MorphListRow(
+                  title: Text(entry.title),
+                  subtitle: Text(entry.subtitle),
+                  chevron: true,
+                  onTap: () => Navigator.of(
+                    context,
+                  ).push(MorphNavigationRoute<void>(builder: entry.builder)),
+                ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

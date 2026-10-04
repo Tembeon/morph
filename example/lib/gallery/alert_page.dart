@@ -147,53 +147,60 @@ class _AlertPageState extends State<AlertPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const GalleryBar(title: 'Alerts'),
-      body: Stack(
-        children: [
-          ListView(
-            padding: const .fromLTRB(20, 20, 20, 120),
-            children: [
-              Text(_last, style: const TextStyle(color: Color(0xFF8E8E93))),
-              const SizedBox(height: 16),
-              for (final (label, name, field) in const [
-                ('Two buttons in a row', 'two', false),
-                ('Three buttons, destructive, cancel last', 'three', false),
-                ('A preferred action', 'preferred', false),
-                ('A text field', 'field', true),
-                ('Disabled actions', 'disabled', false),
-                ('A disabled preferred action', 'disabledPreferred', false),
-              ])
-                Padding(
-                  padding: const .only(bottom: 12),
-                  child: _button(label, () => _alert(name, field: field)),
-                ),
-              const SizedBox(height: 12),
-              Padding(
-                padding: const .only(bottom: 12),
-                child: _sheetButton('Action sheet from this button'),
+    return Stack(
+      children: [
+        GalleryPage(
+          title: 'Alerts',
+          slivers: [
+            SliverPadding(
+              padding: const .fromLTRB(20, 20, 20, 120),
+              sliver: SliverList.list(
+                children: [
+                  Text(
+                    _last,
+                    style: TextStyle(color: gallerySecondaryColor(context)),
+                  ),
+                  const SizedBox(height: 16),
+                  for (final (label, name, field) in const [
+                    ('Two buttons in a row', 'two', false),
+                    ('Three buttons, destructive, cancel last', 'three', false),
+                    ('A preferred action', 'preferred', false),
+                    ('A text field', 'field', true),
+                    ('Disabled actions', 'disabled', false),
+                    ('A disabled preferred action', 'disabledPreferred', false),
+                  ])
+                    Padding(
+                      padding: const .only(bottom: 12),
+                      child: _button(label, () => _alert(name, field: field)),
+                    ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const .only(bottom: 12),
+                    child: _sheetButton('Action sheet from this button'),
+                  ),
+                  Padding(
+                    padding: const .only(bottom: 12),
+                    child: _sheetButton(
+                      'Action sheet without a source',
+                      anchored: false,
+                    ),
+                  ),
+                ],
               ),
-              Padding(
-                padding: const .only(bottom: 12),
-                child: _sheetButton(
-                  'Action sheet without a source',
-                  anchored: false,
-                ),
-              ),
-            ],
-          ),
-          Positioned(
-            left: 20,
-            bottom: 40,
-            child: SizedBox(width: 120, child: _sheetButton('Low left')),
-          ),
-          Positioned(
-            right: 20,
-            bottom: 40,
-            child: SizedBox(width: 120, child: _sheetButton('Low right')),
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+        Positioned(
+          left: 20,
+          bottom: 40,
+          child: SizedBox(width: 120, child: _sheetButton('Low left')),
+        ),
+        Positioned(
+          right: 20,
+          bottom: 40,
+          child: SizedBox(width: 120, child: _sheetButton('Low right')),
+        ),
+      ],
     );
   }
 }

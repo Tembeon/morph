@@ -25,9 +25,11 @@ void main() {
     runApp(const GalleryApp());
     await tester.pump(const Duration(seconds: 2));
     final settings = GalleryGlassScope.of(
-      tester.element(find.byType(Navigator)),
+      tester.element(find.byType(Navigator).first),
     );
-    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
+    final navigator = tester.state<NavigatorState>(
+      find.byType(Navigator).first,
+    );
     final clock = Stopwatch();
     clock.start();
     var pointer = 1;

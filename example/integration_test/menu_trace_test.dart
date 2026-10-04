@@ -163,7 +163,8 @@ class _Trace {
       await tester.pump(const Duration(seconds: 2));
       await tester.tap(find.text('Menu'));
       await tester.pump(const Duration(seconds: 1));
-      final screen = tester.getCenter(find.byType(Scaffold).last);
+      final screen = (tester.view.physicalSize / tester.view.devicePixelRatio)
+          .center(Offset.zero);
       final all = find.byType(MorphMenuButton).evaluate();
       button = all
           .map((Element e) {
@@ -178,7 +179,7 @@ class _Trace {
       await tester.pump(const Duration(seconds: 2));
       button = tester.getCenter(find.byType(MorphMenuButton));
     }
-    final size = tester.getSize(find.byType(Scaffold));
+    final size = tester.view.physicalSize / tester.view.devicePixelRatio;
     _events.add({
       'e': 'screen',
       'w': size.width,

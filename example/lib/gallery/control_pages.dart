@@ -31,137 +31,127 @@ class _ControlsPageState extends State<ControlsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const GalleryBar(title: 'Controls'),
-      body: ListView(
-        padding: const .all(20),
-        children: [
-          const _Caption('Switch'),
-          Row(
+    return GalleryPage(
+      title: 'Controls',
+      slivers: [
+        SliverPadding(
+          padding: const .all(20),
+          sliver: SliverList.list(
             children: [
-              MorphSwitch(
-                value: _off,
-                onChanged: GalleryGlassScope.enabled(
-                  context,
-                  (v) => setState(() => _off = v),
-                ),
-              ),
-              const SizedBox(width: 24),
-              MorphSwitch(
-                value: _on,
-                onChanged: GalleryGlassScope.enabled(
-                  context,
-                  (v) => setState(() => _on = v),
-                ),
-              ),
-            ],
-          ),
-          _Caption('Slider, 300 wide: ${_wide.toStringAsFixed(2)}'),
-          Align(
-            alignment: .centerLeft,
-            child: SizedBox(
-              width: 300,
-              child: MorphSlider(
-                value: _wide,
-                onChanged: GalleryGlassScope.enabled(
-                  context,
-                  (v) => setState(() => _wide = v),
-                ),
-              ),
-            ),
-          ),
-          _Caption('Slider, 200 wide: ${_narrow.toStringAsFixed(2)}'),
-          Align(
-            alignment: .centerLeft,
-            child: SizedBox(
-              width: 200,
-              child: MorphSlider(
-                value: _narrow,
-                onChanged: GalleryGlassScope.enabled(
-                  context,
-                  (v) => setState(() => _narrow = v),
-                ),
-              ),
-            ),
-          ),
-          _Caption('Slider, 5 ticks: ${_stepped.toStringAsFixed(2)}'),
-          Align(
-            alignment: .centerLeft,
-            child: SizedBox(
-              width: 300,
-              child: MorphSlider(
-                value: _stepped,
-                ticks: 5,
-                onChanged: GalleryGlassScope.enabled(
-                  context,
-                  (v) => setState(() => _stepped = v),
-                ),
-              ),
-            ),
-          ),
-          _Caption('Glass buttons, tapped $_taps times'),
-          Wrap(
-            spacing: 16,
-            runSpacing: 16,
-            crossAxisAlignment: .center,
-            children: [
-              for (final (label, size, icon) in _buttons)
-                SizedBox.fromSize(
-                  size: size,
-                  child: MorphGlassButton(
-                    padding: .zero,
-                    onPressed: GalleryGlassScope.enabled(
+              const GalleryCaption('Switch'),
+              Row(
+                children: [
+                  MorphSwitch(
+                    value: _off,
+                    onChanged: GalleryGlassScope.enabled(
                       context,
-                      () => setState(() => _taps++),
+                      (v) => setState(() => _off = v),
                     ),
-                    child: icon
-                        ? const Icon(Icons.favorite_border)
-                        : Text(label),
+                  ),
+                  const SizedBox(width: 24),
+                  MorphSwitch(
+                    value: _on,
+                    onChanged: GalleryGlassScope.enabled(
+                      context,
+                      (v) => setState(() => _on = v),
+                    ),
+                  ),
+                ],
+              ),
+              GalleryCaption('Slider, 300 wide: ${_wide.toStringAsFixed(2)}'),
+              Align(
+                alignment: .centerLeft,
+                child: SizedBox(
+                  width: 300,
+                  child: MorphSlider(
+                    value: _wide,
+                    onChanged: GalleryGlassScope.enabled(
+                      context,
+                      (v) => setState(() => _wide = v),
+                    ),
                   ),
                 ),
-              SizedBox(
-                width: 120,
-                height: 44,
-                child: MorphGlassButton(
-                  padding: .zero,
-                  tint: const Color(0xFF007AFF),
-                  onPressed: GalleryGlassScope.enabled(
-                    context,
-                    () => setState(() => _taps++),
+              ),
+              GalleryCaption('Slider, 200 wide: ${_narrow.toStringAsFixed(2)}'),
+              Align(
+                alignment: .centerLeft,
+                child: SizedBox(
+                  width: 200,
+                  child: MorphSlider(
+                    value: _narrow,
+                    onChanged: GalleryGlassScope.enabled(
+                      context,
+                      (v) => setState(() => _narrow = v),
+                    ),
                   ),
-                  child: const Text('Prominent'),
+                ),
+              ),
+              GalleryCaption('Slider, 5 ticks: ${_stepped.toStringAsFixed(2)}'),
+              Align(
+                alignment: .centerLeft,
+                child: SizedBox(
+                  width: 300,
+                  child: MorphSlider(
+                    value: _stepped,
+                    ticks: 5,
+                    onChanged: GalleryGlassScope.enabled(
+                      context,
+                      (v) => setState(() => _stepped = v),
+                    ),
+                  ),
+                ),
+              ),
+              GalleryCaption('Glass buttons, tapped $_taps times'),
+              Wrap(
+                spacing: 16,
+                runSpacing: 16,
+                crossAxisAlignment: .center,
+                children: [
+                  for (final (label, size, icon) in _buttons)
+                    SizedBox.fromSize(
+                      size: size,
+                      child: MorphGlassButton(
+                        padding: .zero,
+                        onPressed: GalleryGlassScope.enabled(
+                          context,
+                          () => setState(() => _taps++),
+                        ),
+                        child: icon
+                            ? const Icon(Icons.favorite_border)
+                            : Text(label),
+                      ),
+                    ),
+                  SizedBox(
+                    width: 120,
+                    height: 44,
+                    child: MorphGlassButton(
+                      padding: .zero,
+                      tint: const Color(0xFF007AFF),
+                      onPressed: GalleryGlassScope.enabled(
+                        context,
+                        () => setState(() => _taps++),
+                      ),
+                      child: const Text('Prominent'),
+                    ),
+                  ),
+                ],
+              ),
+              GalleryCaption('Stepper: ${_stepper.toInt()}'),
+              Align(
+                alignment: .centerLeft,
+                child: MorphStepper(
+                  value: _stepper,
+                  max: 10,
+                  onChanged: GalleryGlassScope.enabled(
+                    context,
+                    (v) => setState(() => _stepper = v),
+                  ),
                 ),
               ),
             ],
           ),
-          _Caption('Stepper: ${_stepper.toInt()}'),
-          Align(
-            alignment: .centerLeft,
-            child: MorphStepper(
-              value: _stepper,
-              max: 10,
-              onChanged: GalleryGlassScope.enabled(
-                context,
-                (v) => setState(() => _stepper = v),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _Caption extends StatelessWidget {
-  const _Caption(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const .only(left: 4, bottom: 10, top: 24),
-      child: Text(text, style: const TextStyle(color: Color(0xFF8E8E93))),
+        ),
+      ],
     );
   }
 }

@@ -23,10 +23,20 @@ import 'package:morph_example/gallery/glass_settings.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await MorphGlassRenderer.precache();
-  final navigatorKey = GlobalKey<NavigatorState>();
-  runApp(GalleryApp(navigatorKey: navigatorKey));
+  runApp(const GalleryApp());
   WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-    navigatorKey.currentState?.push(
+    NavigatorState? root;
+    void visit(Element element) {
+      if (root != null) return;
+      if (element is StatefulElement && element.state is NavigatorState) {
+        root = element.state as NavigatorState;
+        return;
+      }
+      element.visitChildren(visit);
+    }
+
+    WidgetsBinding.instance.rootElement?.visitChildren(visit);
+    root?.push(
       PageRouteBuilder<void>(
         pageBuilder: (_, _, _) => const _Board(),
         transitionDuration: Duration.zero,
