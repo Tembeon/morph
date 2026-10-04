@@ -40,7 +40,7 @@ class MorphMenuTuning {
     this.contentKickBlur = 6,
     this.tapOpenDelay = 0.05,
     this.holdDuration = 0.22,
-    this.dismissDelay = 0.04,
+    this.dismissDelay = 0.059,
     this.earlyCloseDelay = 0.016,
     this.actionDelay = 0.016,
     this.pressDelay = 0.015,
@@ -78,7 +78,7 @@ class MorphMenuTuning {
     this.backDelay = 0.022,
     this.hoverOpenDelay = 0.525,
     this.submenuActionDelay = 0.019,
-    this.submenuCloseDelay = 0.015,
+    this.submenuCloseDelay = 0.031,
     this.keptActionDelay = 0.02,
     this.parentScale = 0.97,
     this.parentRowOpacity = 0.5,
@@ -94,7 +94,7 @@ class MorphMenuTuning {
     this.cardCloseFadeEnd = 0.2,
     this.cardCloseCenter = 0.5,
     this.cardContainerSpring = const MorphSpring(0.35, 0.85),
-    this.cardContainerDelay = 0.015,
+    this.cardContainerDelay = 0,
     this.cardContainerEndWidth = 50,
     this.cardBlur = 10,
     this.cardDisplacement = 0,
@@ -217,9 +217,9 @@ class MorphMenuTuning {
   final double submenuActionDelay;
 
   /// Seconds between the release on a row of a card and the start of the
-  /// whole menu's close (device: the container moves 0.015 s after the
-  /// lift, before the action's 0.019; a release on a root row closes
-  /// after [dismissDelay]).
+  /// whole menu's close: the menu glass of mm-sub-select replays the close
+  /// spring at 0.19 pt RMS from 0.031 s after the lift, together with
+  /// the container; a release on a root row closes after [dismissDelay].
   final double submenuCloseDelay;
 
   /// Seconds between the release on a row that keeps the menu open and
@@ -299,8 +299,10 @@ class MorphMenuTuning {
   /// device window bounds at 0.016 pt RMS, independently of the glass.
   final MorphSpring cardContainerSpring;
 
-  /// The container's presentation delay after the close starts, in
-  /// seconds (device traces: 9-20 ms, mean 15.1 ms).
+  /// The container's delay after the close starts, in seconds. The
+  /// container and the menu glass start together: in mm-sub-tap the
+  /// container fit starts 0.0197 s and the glass 0.0200 s after the
+  /// release plus 0.04 s (container records: 9-20 ms, mean 15.1 ms).
   final double cardContainerDelay;
 
   /// The width the 250 pt list container shrinks to on the device.
@@ -447,7 +449,9 @@ class MorphMenuTuning {
   final double holdDuration;
 
   /// Seconds between a release that dismisses and the start of the
-  /// closing.
+  /// closing: the mean glass close start of 13 device outside dismissals
+  /// (nine plain menus, four with a submenu), spread 0.046 - 0.074 s,
+  /// each replaying the close spring at 0.2 - 0.4 pt RMS.
   final double dismissDelay;
 
   /// Seconds between the opening and the start of the closing when the

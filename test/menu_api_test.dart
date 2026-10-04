@@ -760,7 +760,8 @@ void main() {
             ),
           ],
           tuning: MorphMenuTuning(
-            cardContainerDelay: _n(record, 'presentation_delay'),
+            dismissDelay: _n(record, 'start_after_lift'),
+            submenuCloseDelay: _n(record, 'start_after_lift'),
           ),
         );
         final rows = _rows(name);
@@ -886,13 +887,92 @@ void main() {
       throw StateError('no close in $name');
     }
 
+    test('the menu glass closes with its container', () {
+      final fixture =
+          jsonDecode(File('$_dir/glass-close.json').readAsStringSync())
+              as Map<String, Object?>;
+      final carriers =
+          (jsonDecode(File('$_dir/card-container.json').readAsStringSync())
+                  as Map<String, Object?>)['records']!
+              as Map<String, Object?>;
+      final motion = _motion(_sub);
+      motion.open(0, sourceScale: 1);
+      motion.advance(1);
+      final more = motion.layout.targets.indexWhere(
+        (MorphMenuTarget target) => target.kind == MorphMenuTargetKind.submenu,
+      );
+      motion.select(1, more);
+      motion.advance(2);
+      final start = motion.rootBlob.rect.width;
+      motion.close(2);
+      final model = <double>[];
+      for (var k = 0; k <= 480; k++) {
+        motion.advance(2 + k / 1200);
+        model.add(motion.rootBlob.rect.width / start);
+      }
+      double at(double t) {
+        if (t <= 0) return 1;
+        final x = t * 1200;
+        final i = x.floor();
+        if (i >= model.length - 1) return model.last;
+        return model[i] + (model[i + 1] - model[i]) * (x - i);
+      }
+
+      final outside = <double>[];
+      for (final MapEntry(:key, :value)
+          in (fixture['records']! as Map<String, Object?>).entries) {
+        final record = value! as Map<String, Object?>;
+        final samples = [
+          for (final raw in record['samples']! as List<Object?>)
+            (raw! as List<Object?>).cast<num>(),
+        ];
+        final w0 = samples.first[1].toDouble();
+        var best = (delay: 0.0, rms: double.infinity);
+        for (var d = 0.0; d <= 0.1; d += 0.0005) {
+          final errors = [
+            for (final s in samples)
+              if (s[0] < d + 0.3) w0 * at(s[0] - d) - s[1],
+          ];
+          final rms = _rms(errors);
+          if (rms < best.rms) best = (delay: d, rms: rms);
+        }
+        expect(best.rms, lessThan(0.6), reason: key);
+        final carrier = carriers[key] as Map<String, Object?>?;
+        final lift = carrier?['start_after_lift'] as num?;
+        if (lift != null) {
+          expect(
+            best.delay,
+            moreOrLessEquals(lift.toDouble(), epsilon: 0.0015),
+            reason: '$key glass and container start together',
+          );
+        }
+        if (record['kind'] == 'outside') {
+          outside.add(best.delay);
+        } else {
+          expect(
+            best.delay,
+            moreOrLessEquals(
+              MorphMenuTuning.standard.submenuCloseDelay,
+              epsilon: 0.001,
+            ),
+          );
+        }
+      }
+      outside.sort();
+      expect(
+        MorphMenuTuning.standard.dismissDelay,
+        inInclusiveRange(outside.first, outside.last + 0.001),
+      );
+      expect(MorphMenuTuning.standard.cardContainerDelay, 0);
+    });
+
     test('a card row closes the menu sooner than a touch outside it', () {
       final select = closeStart('mm-sub-select');
       final outside = closeStart('mm-sub-tap');
       final deviceSelect = deviceStart('mm-sub-select');
       final deviceOutside = deviceStart('mm-sub-tap');
-      expect(select, moreOrLessEquals(0.015, epsilon: 0.002));
-      expect(outside, moreOrLessEquals(0.04, epsilon: 0.002));
+      expect(select, moreOrLessEquals(0.031, epsilon: 0.002));
+      expect(outside, moreOrLessEquals(0.059, epsilon: 0.002));
       expect(
         (deviceOutside - deviceSelect) - (outside - select),
         inInclusiveRange(-0.0085, 0.0085),

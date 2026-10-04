@@ -585,7 +585,7 @@ void main() {
           motion.pointerMove(touch.t, touch.at);
       }
       if (touch.phase == 3 && i > 1 && touches[i - 1].t == touches[i - 2].t) {
-        motion.advance(touch.t + 0.8);
+        motion.advance(touch.t + 1.0);
         expect(motion.isPresented, isFalse);
         swallowed++;
       }
@@ -1448,7 +1448,7 @@ void main() {
     expect(closing, lessThan(0.9));
     expect(closing, greaterThan(0));
     await tester.tapAt(tester.getCenter(find.byType(MorphMenuButton)));
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 20; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
     expect(flights, hasLength(1));
