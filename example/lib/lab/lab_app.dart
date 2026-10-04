@@ -360,7 +360,23 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
         items: [
           ..._items(spec['items']! as List<Object?>, emit),
           if (spec['systemFooter'] == 'askSiri') ...[
-            const MorphMenuDivider(),
+            MorphMenuWidget(
+              height: 20,
+              builder: (context) => Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Center(
+                  child: SizedBox(
+                    height: 1,
+                    child: ColoredBox(
+                      color: MorphMenuStyle.resolve(
+                        context,
+                        null,
+                      ).separatorColor,
+                    ),
+                  ),
+                ),
+              ),
+            ),
             MorphMenuItem(
               title: 'Ask Siri',
               icon: Icons.circle_outlined,

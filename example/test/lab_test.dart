@@ -56,7 +56,7 @@ void main() {
           (row) => row['k'] == 'lab_sample' && row['id'] == 'rows/0',
         );
         final values = root['values']! as Map<String, Object?>;
-        expect(values['height'], closeTo(209, 0.01));
+        expect(values['height'], closeTo(208, 0.01));
       }
     }
     final cards = rows
