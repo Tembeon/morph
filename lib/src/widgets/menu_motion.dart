@@ -714,6 +714,7 @@ class _Pointer {
   Offset position;
   bool openedByHold = false;
   bool scrolled = false;
+  bool leftButton = false;
 }
 
 /// A damped spring driven by an input, integrated from samples.
@@ -923,7 +924,9 @@ class MorphMenuCard {
 /// timestamps, call [advance] with the frame time, then read [menuBlob],
 /// [buttonBlob] and the crossfade values. A tap opens on release, a hold
 /// opens after [MorphMenuTuning.holdDuration]; a release outside the
-/// menu closes it and a release on a target chooses it.
+/// menu closes it and a release on a target chooses it. The finger that
+/// opened the menu by holding chooses only after it has left the button:
+/// released on the button it leaves the menu open, as UIKit does.
 class MorphMenuMotion {
   /// Creates the motion of the button at [button] whose menu is [layout]
   /// (uniform rows of [itemCount] when null), inside [bounds] minus the
@@ -1851,6 +1854,9 @@ class MorphMenuMotion {
     final pointer = _pointer;
     if (pointer == null) return;
     pointer.position = position;
+    if (pointer.fromButton && !_button.contains(position)) {
+      pointer.leftButton = true;
+    }
     if (_phase != _Phase.opening || pointer.scrolled) return;
     final hit = _hitAt(position);
     if (hit.target != _highlighted || hit.card != _highlightCard) {
@@ -1897,6 +1903,10 @@ class MorphMenuMotion {
       return;
     }
     if (pointer.scrolled) return;
+    if (pointer.fromButton && !pointer.leftButton) {
+      _setHighlight(null, _highlightCard);
+      return;
+    }
     final hit = _hitAt(position);
     final target = hit.target;
     if (target != null) {

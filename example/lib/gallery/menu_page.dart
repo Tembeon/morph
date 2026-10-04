@@ -4,7 +4,7 @@ import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 
 /// Glass menu buttons at the center and near every corner, with two,
-/// five and ten rows, a bar button whose long press opens its menu, and
+/// five and ten rows, a bar button whose tap opens its menu, and
 /// one rich menu at the top: sections, a selection that stays open, a
 /// palette, small and medium cells, subtitles, a disabled row, submenus,
 /// a deferred section and a free-form slider row.
@@ -234,10 +234,7 @@ class _MenuPageState extends State<MenuPage> {
             id: 'menu',
             icon: const Icon(Icons.more_horiz),
             semanticLabel: 'More',
-            onPressed: GalleryGlassScope.enabled(
-              context,
-              () => setState(() => _last = 'Hold the bar button for its menu'),
-            ),
+            enabled: !GalleryGlassScope.of(context).disabled,
             menu: _items(3),
           ),
         ]),

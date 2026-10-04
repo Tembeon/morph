@@ -549,15 +549,7 @@ class _Qa {
       ('bottom-right', bottomRight),
       ('app-bar', appBar),
     ]) {
-      if (name == 'app-bar') {
-        await finger(
-          at,
-          line(at, at + const Offset(0, 160), 8),
-          holdBefore: const Duration(milliseconds: 700),
-        );
-      } else {
-        await tap(at);
-      }
+      await tap(at);
       await settle();
       await shot('menu-open-$name');
       final copy = find.text('Copy');

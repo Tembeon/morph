@@ -260,7 +260,15 @@ void main() {
   test('the measured timing', () {
     expect(MorphBarMenuTuning.standard.recognition, 0.4);
     expect(MorphBarMenuTuning.standard.open, 0.595);
-    expect(MorphBarMenuTuning.standard.menu, MorphMenuTuning.standard);
+    expect(
+      MorphBarMenuTuning.standard.menu,
+      same(MorphBarMenuTuning.measuredMenu),
+    );
+    expect(MorphBarMenuTuning.measuredMenu.tapOpenDelay, 0.102);
+    expect(
+      MorphBarMenuTuning.measuredMenu.holdDuration,
+      MorphMenuTuning.standard.holdDuration,
+    );
     expect(
       const MorphBarMenuTuning(recognition: 0.2, open: 0.5),
       const MorphBarMenuTuning(recognition: 0.2, open: 0.5),

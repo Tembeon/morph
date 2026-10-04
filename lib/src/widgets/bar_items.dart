@@ -36,6 +36,7 @@ class MorphBarButton {
     this.onPressed,
     this.semanticLabel,
     this.menu,
+    this.enabled = true,
   }) : assert(label != null || icon != null, 'a label or an icon'),
        back = false;
 
@@ -50,6 +51,7 @@ class MorphBarButton {
     this.onPressed,
     this.semanticLabel,
     this.menu,
+    this.enabled = true,
     this.id = 'morph.back',
   }) : icon = null,
        back = true;
@@ -64,7 +66,8 @@ class MorphBarButton {
   /// when there is no [label].
   final Widget? icon;
 
-  /// Called when the button is tapped; null disables the button.
+  /// Called when the button is tapped; null disables the button unless
+  /// it has a [menu], which a tap then opens.
   final VoidCallback? onPressed;
 
   /// The label screen readers announce; defaults to [label].
@@ -73,11 +76,20 @@ class MorphBarButton {
   /// Whether this is a back button.
   final bool back;
 
-  /// The rows of the menu a long press on the button opens, or null for a
-  /// button without one.
+  /// The rows of the button's menu, or null for a button without one.
   ///
-  /// UIKit's long press on a bar button, measured on the back button of
-  /// an iPhone 16 Pro (iOS 27.0.1): a touch released before
+  /// Without [onPressed] the menu is the button's primary action, as a
+  /// `UIBarButtonItem(menu:)` without a primary action, measured on an
+  /// iPhone 16 Pro (iOS 27.0.1): the menu of [MorphMenuButton] with its
+  /// triggers - a tap opens it on release after the bar tuning's
+  /// [MorphMenuTuning.tapOpenDelay] (see [MorphBarMenuTuning.measuredMenu]),
+  /// a held finger opens it after [MorphMenuTuning.holdDuration] and may
+  /// slide onto a row and choose it on release, and a release on the
+  /// button leaves it open.
+  ///
+  /// With [onPressed] the menu opens on a long press, UIKit's long press
+  /// on a bar button, measured on the back button of an iPhone 16 Pro
+  /// (iOS 27.0.1): a touch released before
   /// [MorphBarMenuTuning.recognition] is a tap; held past it the button
   /// no longer fires on release, and its capsule turns into the menu
   /// [MorphBarMenuTuning.open] after the touch - the menu of
@@ -88,8 +100,17 @@ class MorphBarButton {
   /// in [MorphMenuButton.items].
   final List<MorphMenuEntry>? menu;
 
-  /// Whether the button accepts taps.
-  bool get enabled => onPressed != null;
+  /// Whether the button may be used, as `UIBarButtonItem.isEnabled`;
+  /// false draws the disabled look.
+  final bool enabled;
+
+  /// Whether the button accepts taps: it is [enabled] and has an
+  /// [onPressed] or a [menu].
+  bool get interactive => enabled && (onPressed != null || opensMenuOnTap);
+
+  /// Whether a tap opens the [menu]: the button has rows and no
+  /// [onPressed].
+  bool get opensMenuOnTap => onPressed == null && (menu?.isNotEmpty ?? false);
 
   @override
   bool operator ==(Object other) =>
@@ -100,6 +121,7 @@ class MorphBarButton {
       other.onPressed == onPressed &&
       other.semanticLabel == semanticLabel &&
       other.back == back &&
+      other.enabled == enabled &&
       listEquals(other.menu, menu);
 
   @override
@@ -110,24 +132,39 @@ class MorphBarButton {
     onPressed,
     semanticLabel,
     back,
+    enabled,
     menu == null ? null : Object.hashAll(menu!),
   );
 }
 
-/// The measured timing of a bar button's long-press menu
-/// ([MorphBarButton.menu]).
+/// The measured timing of a bar button's menu ([MorphBarButton.menu]):
+/// the long press of a button with an action, the tap and hold of a
+/// button whose menu is its primary action.
 @immutable
 class MorphBarMenuTuning {
   /// Creates a tuning with the measured bar-menu defaults.
   const MorphBarMenuTuning({
     this.recognition = 0.4,
     this.open = 0.595,
-    this.menu = MorphMenuTuning.standard,
+    this.menu = measuredMenu,
   }) : assert(recognition >= 0),
        assert(open >= recognition);
 
   /// The timing and menu motion measured on the iPhone 16 Pro, iOS 27.0.1.
   static const standard = MorphBarMenuTuning();
+
+  /// The menu of a bar item: [MorphMenuTuning.standard] with the bar
+  /// item's later tap opening.
+  ///
+  /// A `UIBarButtonItem(menu:)` without a primary action opens on a tap's
+  /// release 0.013 s after the inline glass menu button does: the first
+  /// morph frame follows the release by 0.0610 - 0.0632 s on four repeat
+  /// taps against 0.0489 - 0.0495 s inline (iPhone 16 Pro, iOS 27.0.1,
+  /// same probe and scene; first taps after a launch differ by 0.000 -
+  /// 0.040 s, mean 0.016). Holds open 0.256 s inline and 0.260 - 0.264 s
+  /// on the bar, within one display frame, so [MorphMenuTuning.holdDuration]
+  /// is shared. Everything else is the inline menu's.
+  static const measuredMenu = MorphMenuTuning(tapOpenDelay: 0.102);
 
   /// Seconds of touch after which a release is no longer a tap: UIKit's
   /// back button popped on releases at 0.25 and 0.35 s and opened its
@@ -140,8 +177,9 @@ class MorphBarMenuTuning {
 
   /// The menu's geometry, springs and content timing after recognition.
   ///
-  /// Defaults to [MorphMenuTuning.standard], the measured liquid morph
-  /// shared with [MorphMenuButton]. [open] controls when the bar starts it.
+  /// Defaults to [measuredMenu], the measured liquid morph shared with
+  /// [MorphMenuButton]. [open] controls when a long press starts it; a
+  /// button without an action opens it on its own tap and hold timing.
   final MorphMenuTuning menu;
 
   @override
@@ -710,6 +748,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   _BarMenu? _menu;
   double? _holdStart;
   Object? _holdButton;
+  int? _menuFinger;
   BuildContext? _scopeContext;
   List<MorphBarCapsuleLayout> _layout = const [];
   List<MorphBarCapsuleLayout>? _driftLayout;
@@ -745,7 +784,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
     if (menu != null) {
       menu.host.advance(t);
       final flight = menu.flight;
-      if (!menu.motion.isPresented && (flight == null || flight.isFinished)) {
+      if (!menu.motion.isPresented &&
+          !menu.motion.isOpenPending &&
+          !menu.host.hasPointer &&
+          (flight == null || flight.isFinished)) {
         _menu = null;
         menu.host.dispose();
       }
@@ -789,19 +831,26 @@ class _MorphBarItemsState extends State<MorphBarItems>
   }
 
   void _openMenu(double t, Object buttonId) {
+    final menu = _prepareMenu(t, buttonId);
+    if (menu == null) return;
+    menu.motion.open(t, sourceScale: _presses[menu.capsule]?.scale ?? 1);
+    wake();
+  }
+
+  _BarMenu? _prepareMenu(double t, Object buttonId) {
     final button = _buttons[buttonId];
     final items = button?.menu;
     final capsuleId = _capsuleOf[buttonId];
     final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
     final scopeContext = _scopeContext;
     if (button == null ||
-        !button.enabled ||
+        !button.interactive ||
         items == null ||
         items.isEmpty ||
         capsule == null ||
         scopeContext == null ||
         _menu != null) {
-      return;
+      return null;
     }
     final overlay = widget.menuOverlay ?? morphPresentationOverlayOf(context);
     final box = context.findRenderObject();
@@ -816,7 +865,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
           library: 'morph',
         ),
       );
-      return;
+      return null;
     }
     morphCheckOverlayAncestor(context, overlay);
     final origin = box.localToGlobal(Offset.zero, ancestor: overlayBox);
@@ -850,8 +899,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     );
     motion.advance(t);
     _menu = menu;
-    motion.open(t, sourceScale: _presses[capsuleId]?.scale ?? 1);
-    wake();
+    return menu;
   }
 
   double _contentWidth(
@@ -931,7 +979,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
             c.items.any((i) => g.group.buttons.any((b) => b.id == i.id)),
       );
       _disabled[c.id] = c.items.every(
-        (i) => !(_buttons[i.id]?.enabled ?? true),
+        (i) => !(_buttons[i.id]?.interactive ?? true),
       );
       for (final i in c.items) {
         _capsuleOf[i.id] = c.id;
@@ -956,7 +1004,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final button = _buttons[menu.button.id];
     final entries = button?.menu;
     if (button == null ||
-        !button.enabled ||
+        !button.interactive ||
         entries == null ||
         entries.isEmpty) {
       menu.host.close();
@@ -1001,7 +1049,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   }
 
   void _down(MorphBarButton button, PointerDownEvent event) {
-    if (!button.enabled || event.buttons != kPrimaryButton) return;
+    if (!button.interactive || event.buttons != kPrimaryButton) return;
     final capsuleId = _capsuleOf[button.id];
     final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
     if (capsule == null) return;
@@ -1010,6 +1058,19 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final press = _press(capsuleId!, capsule.rect.size);
     final t = stamp(event);
     press.pointerDown(t, event.localPosition - capsule.rect.topLeft);
+    if (button.opensMenuOnTap) {
+      final current = _menu;
+      final menu = current == null
+          ? _prepareMenu(t, button.id)
+          : current.button.id == button.id
+          ? current
+          : null;
+      if (menu == null || menu.host.hasPointer) return;
+      _menuFinger = event.pointer;
+      menu.host.menuPointerDown(event);
+      wake();
+      return;
+    }
     final items = button.menu;
     if (items != null && items.isNotEmpty && _menu == null) {
       _holdStart = t;
@@ -1026,6 +1087,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   }
 
   void _move(PointerMoveEvent event) {
+    if (event.pointer == _menuFinger) _menu?.host.menuPointerMove(event);
     final id = _pressedCapsule;
     if (id == null) return;
     _presses[id]?.pointerMove(stamp(event), _local(id, event.position));
@@ -1040,6 +1102,12 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final t = stamp(event);
     final activated =
         _presses[id]?.pointerUp(t, _local(id, event.position)) ?? false;
+    if (event.pointer == _menuFinger) {
+      _menuFinger = null;
+      _menu?.host.menuPointerUp(event);
+      wake();
+      return;
+    }
     final start = _holdStart;
     final held = _holdButton != null && start != null;
     final recognized = held && t - start >= widget.menuTuning.recognition;
@@ -1062,6 +1130,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
   }
 
   void _cancel(PointerCancelEvent event) {
+    if (event.pointer == _menuFinger) {
+      _menuFinger = null;
+      _menu?.host.menuPointerCancel(event);
+    }
     final id = _pressedCapsule;
     if (id == null) return;
     _pressedCapsule = null;
@@ -1230,10 +1302,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final prominent = capsuleId != null && (_prominent[capsuleId] ?? false);
     final color = prominent
         ? style.prominentForegroundColor
-        : button.enabled
+        : button.interactive
         ? style.foregroundColor
         : style.disabledLabelColor;
-    final iconColor = prominent || button.enabled
+    final iconColor = prominent || button.interactive
         ? color
         : style.disabledIconColor;
     final press = capsuleId == null ? null : _presses[capsuleId];
@@ -1287,14 +1359,17 @@ class _MorphBarItemsState extends State<MorphBarItems>
     if (!frame.leaving) {
       content = Semantics(
         button: true,
-        enabled: button.enabled,
+        enabled: button.interactive,
         label: button.semanticLabel ?? button.label,
         expanded: (button.menu?.isNotEmpty ?? false)
             ? _menu?.button.id == button.id && (_menu?.motion.isOpen ?? false)
             : null,
-        onTap: button.onPressed,
+        onTap: button.opensMenuOnTap
+            ? (_menu == null ? () => _openMenu(clock, button.id) : null)
+            : button.onPressed,
         onLongPress:
-            button.enabled &&
+            button.interactive &&
+                !button.opensMenuOnTap &&
                 (button.menu?.isNotEmpty ?? false) &&
                 _menu == null
             ? () => _openMenu(clock, button.id)

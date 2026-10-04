@@ -83,6 +83,12 @@ button and closes the menu (pops one, 4/4); moved off leaves it open. Rows
 the capsule [film]; after the latch the capsule rings out with both menu
 shapes [film]. `MorphBarMenuTuning`.
 
+An item whose menu is its primary action (`UIBarButtonItem(menu:)`, no
+action; `MorphBarButton(menu:)` without `onPressed`) opens on a tap's
+release and on a 0.22 s hold like the inline menu button, its tap 0.013 s
+later [device, 2026-10-05]: see menu-button.md "Bar item menu as primary
+action".
+
 ## Spec - inline title, large title, edge effect
 
 - Inline title: crit 0.45 in / 0.7 out, +15 pt rise, blur 4; edge effect

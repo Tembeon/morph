@@ -902,10 +902,10 @@ class _GlassItem extends StatelessWidget {
       label: button.semanticLabel ?? label,
       excludeSemantics: true,
       button: true,
-      enabled: button.enabled,
-      onTap: button.onPressed,
+      enabled: button.enabled && button.onPressed != null,
+      onTap: button.enabled ? button.onPressed : null,
       child: MorphGlassButton(
-        onPressed: button.onPressed,
+        onPressed: button.enabled ? button.onPressed : null,
         padding: EdgeInsets.zero,
         minSize: const Size.square(MorphSearchTuning.height),
         style: style,

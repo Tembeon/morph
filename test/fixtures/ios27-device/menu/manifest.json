@@ -216,5 +216,6 @@
    "gesture": "tap open (0.1 s) + outside tap of 200 ms starting at the release (recapture 2026-10-03)",
    "bytes": 51732
   }
- ]
+ ],
+ "navbar_tap": "navbar-tap.json (2026-10-05): UIBarButtonItem(menu:) WITHOUT a primary action (scene menu, the nav bar's ellipsis item) - navbar3-repeat (5 tap opens + outside dismissals), navbar3-quicktap (33 ms tap), navbar3-hold300 / navbar3-hold700 (holds released on the button), navbar3-dragselect (hold 0.7 s, slide to row 3, release) - plus navbar3-dismiss and the inline references center3-repeat / center3-hold700 / center3-dragselect, reduced to logged touches, actions and the spans of the morph container (first/last tick with a MagicMorphView / MagicMorphLayer / LensingSDFLayer row), times from the first touch. Findings: a tap opens on release (first morph frame 0.0610 - 0.0632 s after later releases vs 0.0489 - 0.0495 inline: +0.013; first release after a launch 0.094 - 0.125), a hold opens at 0.260 - 0.264 s while the finger is down (inline 0.256), a release on the button after a hold leaves the menu open (no close in 1.6 s; same inline), a slide onto a row chooses it 0.012 s after the lift. Raw: tool/ios_reference/recordings/device-navbar-20261005."
 }

@@ -460,6 +460,26 @@ final class ProbeUITests: XCTestCase {
             NSLog("PROBE navbar button frame \(b.frame)")
             openDismiss(b.frame)
         }
+        // 2026-10-05: UIBarButtonItem(menu:) without a primary action - tap timing over
+        // several opens, a quick tap, a hold and a hold-slide onto a row.
+        func navbarButton() -> CGRect {
+            let bar = app.navigationBars.firstMatch
+            XCTAssertTrue(bar.waitForExistence(timeout: 5))
+            let b = bar.buttons.element(boundBy: bar.buttons.count - 1)
+            NSLog("PROBE navbar button frame \(b.frame)")
+            return b.frame
+        }
+        capture("navbar3-repeat", scene: "menu") { openDismiss(navbarButton(), cycles: 5) }
+        capture("navbar3-quicktap", scene: "menu") { let f = navbarButton(); tap(CGPoint(x: f.midX, y: f.midY), hold: 0.031); pause(1.6) }
+        capture("navbar3-hold700", scene: "menu") { let f = navbarButton(); tap(CGPoint(x: f.midX, y: f.midY), hold: 0.736); pause(1.6) }
+        capture("navbar3-hold300", scene: "menu") { let f = navbarButton(); tap(CGPoint(x: f.midX, y: f.midY), hold: 0.3); pause(1.6) }
+        capture("navbar3-dragselect", scene: "menu") {
+            let f = navbarButton()
+            let c = CGPoint(x: f.midX, y: f.midY)
+            let row3 = CGPoint(x: f.midX - 100, y: f.minY + 10 + 21 + 84)
+            synth([path(start: c, pressFor: 0.7, legs: [(row3, 0.3, 0.3)])], name: "dragselect")
+            pause(1.6)
+        }
     }
 
     // MARK: recapture (2026-10-02 open questions)

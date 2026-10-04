@@ -82,7 +82,9 @@ keepsMenuPresented); `UIDeferredMenuElement`;
   it fits, else edge-aligned with the PRESSED edge; clamped into the safe
   area unioned with the keyboard.
 - Tap opens on release (`tapOpenDelay`); hold opens after 0.22 s and the
-  finger may slide onto a row; item action fires BEFORE the close; menu is
+  finger may slide onto a row; a held finger released without having left
+  the button chooses nothing and leaves the menu open (center3-hold700,
+  navbar3-hold300/700 - no action, no close); item action fires BEFORE the close; menu is
   hit-testable from its first frame; a tap on the button while it closes
   re-opens on the touch-up with velocity reversal.
 - EARLY TOUCH [device, center3-closemidopen / retap-midopen /
@@ -94,6 +96,29 @@ keepsMenuPresented); `UIDeferredMenuElement`;
   downward menu); finger still down at opening = menu finger (released
   after: ordinary dismiss, device +0.028 s vs dismissDelay 0.04, the
   early-outside-200 capture, not replayed). Replay 0.008 rms of progress.
+
+## Bar item menu as primary action [device, 2026-10-05]
+
+`UIBarButtonItem(menu:)` WITHOUT a primary action (probe scene `menu`, the
+nav bar's ellipsis item; captures navbar3-repeat / quicktap / hold300 /
+hold700 / dragselect, ProbeUITests.testMenu; summary fixture
+`ios27-device/menu/navbar-tap.json`, raw
+`recordings/device-navbar-20261005`). It behaves as the inline
+`showsMenuAsPrimaryAction` button, measured on the same metric (first tick
+of the morph container):
+- Tap opens on RELEASE, 0.013 s later than the inline button: 0.0610 -
+  0.0632 s after later releases (4 taps) vs 0.0489 - 0.0495 inline; first
+  releases after a launch 0.094 - 0.125 s vs 0.086 - 0.108. morph:
+  `MorphBarMenuTuning.measuredMenu` = standard with tapOpenDelay 0.102.
+- Hold opens WHILE DOWN at 0.260 - 0.264 s (3 holds) vs 0.256 inline:
+  within a frame, `holdDuration` shared. A release on the button after it
+  leaves the menu open; a slide onto a row chooses it (action 0.012 s
+  after the lift).
+- Geometry: the morph out of the bar capsule is the menu motion replayed
+  by navbar3-dismiss (menu_button_test; no source kick on the close).
+- morph: `MorphBarButton(menu:)` with null `onPressed` (bar_items.dart);
+  the bar feeds the finger into the menu motion as MorphMenuButton does.
+  Pinned by bar_menu_tap_test (also asserts the recorded differences).
 
 ## Disabled button [device, light + dark, 2026-10-03]
 
