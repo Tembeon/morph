@@ -1146,9 +1146,18 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   handled. Style resolution and capsule painting share implementations,
   glass glow is consolidated, controls accept localization callbacks,
   and date wheels follow updated bounds. Per-tick layout work is removed.
-- Remaining audit/fidelity work: scroll-edge backdrop grouping (PF9),
-  configurable bar-menu tuning (P5api), the menu-host merge (D5), and
-  lens-family style forwarders (D2). Engine flights still clamp size and
+- The seven measured control hosts (segmented control, tab bar, switch,
+  slider, stepper, glass button, page control) share one internal
+  MorphControlHost: clock and ticker lifecycle, pointer gate, event
+  stamping, focus and disable cancellation; the pure motion classes stay
+  exported.
+- MorphMenuButton and the bar's button/back menus share one internal menu
+  host. A menu closes when its button is disposed; menu constants live in
+  MorphMenuTuning; long-idle kicks skip ahead; the More label is
+  localizable and menus carry their semantics; the context menu follows
+  `enabled` and `tagId` changes.
+- Remaining audit/fidelity work: scroll-edge backdrop grouping (PF9) and
+  configurable bar-menu tuning (P5api). Engine flights still clamp size and
   shape past progress 1 while their centers overshoot (A8). Submenu dark
   film dropped frames, so dark styling was judged from stills; the close
   drop starts from the whole menu instead of the list, row tap highlights
@@ -1156,7 +1165,8 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   header chevron remains slightly large.
 - Coordinator verification of the combined audit tree before docs cleanup:
   formatting and analysis clean,
-  966 package and 11 example tests, zero dartdoc warnings, and iOS
+  1014 package and 11 example tests (after the control and menu host
+  merges), zero dartdoc warnings, and iOS
   release, web wasm and macOS builds plus the macOS autodemo passed.
 
 ## 0.6.0 - 2026-09-03
