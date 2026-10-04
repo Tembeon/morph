@@ -6,6 +6,7 @@ import 'package:morph/src/flight.dart';
 import 'package:morph/src/gesture.dart';
 import 'package:morph/src/measure.dart';
 import 'package:morph/src/scope.dart';
+import 'package:morph/src/scrim.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/theme.dart';
@@ -34,6 +35,14 @@ import 'package:morph/src/theme.dart';
 /// belongs to the navigator that owns its context, so a morph route
 /// launched inside a nested navigator (a tab, an embedded flow) stays
 /// there. Pass [useRootNavigator] to push above everything instead.
+/// [overlay] chooses the shuttle's home independently; a different overlay
+/// retains the content in the shuttle for the route lifetime.
+/// [scrimMotion] resolves from [MorphTheme] when omitted.
+/// Set [modal] to false to keep the page underneath interactive without
+/// a scrim or modal barrier. Back still dismisses the route; Escape follows
+/// [barrierDismissible].
+/// The source scope is resolved from [context], including scopes inside
+/// a navigator's page.
 Future<T?> showMorphRoute<T>(
   BuildContext context, {
   Object? from,
@@ -41,24 +50,41 @@ Future<T?> showMorphRoute<T>(
   MorphTargetSpec? target,
   MorphMotion? motion,
   bool barrierDismissible = true,
+  bool modal = true,
   bool useRootNavigator = false,
   double? maxScrimOpacity,
   Color? scrimColor,
+  MorphScrimMotion? scrimMotion,
+  OverlayState? overlay,
   Color? shadowColor,
   String? semanticLabel,
 }) {
+  final Object source = from ?? MorphTag.idOf(context);
+  MorphFlight.checkRouteLaunch(MorphScope.of(context).liveFlightOf(source));
   final MorphTheme? theme = MorphTheme.maybeOf(context);
   return Navigator.of(context, rootNavigator: useRootNavigator).push(
     MorphPageRoute<T>(
-      from: from ?? MorphTag.idOf(context),
+      from: source,
       builder: builder,
       target: target ?? MorphTargetSpec.dialog(),
       motion: motion ?? theme?.motion,
       barrierDismissible: barrierDismissible,
-      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-      maxScrimOpacity: maxScrimOpacity ?? theme?.maxScrimOpacity ?? 0.45,
-      scrimColor: scrimColor ?? theme?.scrimColor ?? Colors.black,
-      shadowColor: shadowColor ?? theme?.shadowColor ?? const Color(0x99000000),
+      modal: modal,
+      sourceContext: context,
+      barrierLabel: Localizations.of<MaterialLocalizations>(
+        context,
+        MaterialLocalizations,
+      )?.modalBarrierDismissLabel,
+      maxScrimOpacity:
+          maxScrimOpacity ??
+          theme?.maxScrimOpacity ??
+          MorphTheme.defaultMaxScrimOpacity,
+      scrimColor:
+          scrimColor ?? theme?.scrimColor ?? MorphTheme.defaultScrimColor,
+      scrimMotion: scrimMotion ?? theme?.scrimMotion,
+      overlay: overlay,
+      shadowColor:
+          shadowColor ?? theme?.shadowColor ?? MorphTheme.defaultShadowColor,
       semanticLabel: semanticLabel,
     ),
   );
@@ -83,13 +109,17 @@ class MorphPageRoute<T> extends PopupRoute<T> {
     required this.builder,
     required this.target,
     this.motion,
+    this.modal = true,
+    this.sourceContext,
     // Private named parameters (callers pass the public names) backing
     // the ModalRoute getter overrides.
     this._barrierDismissible = true,
     this._barrierLabel,
-    this.maxScrimOpacity = 0.45,
-    this.scrimColor = Colors.black,
-    this.shadowColor = const Color(0x99000000),
+    this.maxScrimOpacity = MorphTheme.defaultMaxScrimOpacity,
+    this.scrimColor = MorphTheme.defaultScrimColor,
+    this.scrimMotion,
+    this.overlay,
+    this.shadowColor = MorphTheme.defaultShadowColor,
     this.semanticLabel,
     super.settings,
   });
@@ -108,12 +138,34 @@ class MorphPageRoute<T> extends PopupRoute<T> {
   /// Motion profile; this constructor does not consult [MorphTheme].
   final MorphMotion? motion;
 
+  /// Whether the route blocks input to the page underneath and draws a
+  /// scrim. False omits both the shuttle scrim and the route's modal barrier.
+  /// Escape dismissal still follows [barrierDismissible].
+  final bool modal;
+
+  /// A mounted context under the source tag's [MorphScope].
+  ///
+  /// [showMorphRoute] supplies its launching context. Direct pushes may
+  /// omit it when the scope sits above the navigator; otherwise pass a
+  /// context inside the page's scope. Used only when the route is pushed.
+  final BuildContext? sourceContext;
+
   /// Scrim opacity in the settled state.
   final double maxScrimOpacity;
 
   /// Scrim hue; its own opacity composes with the animated scrim
   /// opacity. This constructor does not consult [MorphTheme].
   final Color scrimColor;
+
+  /// The scrim's independent springs, or null to follow the flight value.
+  /// This constructor does not consult [MorphTheme].
+  final MorphScrimMotion? scrimMotion;
+
+  /// The shuttle's overlay; null uses this route's navigator overlay.
+  ///
+  /// With a different overlay, the shuttle retains the content for the
+  /// route lifetime, preserving that overlay's coordinates and stacking.
+  final OverlayState? overlay;
 
   /// Shadow color of the flying surface and the settled page, opacity
   /// included. This constructor does not consult [MorphTheme].
@@ -147,6 +199,10 @@ class MorphPageRoute<T> extends PopupRoute<T> {
   // The spring animates the visuals; the route machinery is instant.
   @override
   Duration get transitionDuration => .zero;
+
+  @override
+  Widget buildModalBarrier() =>
+      modal ? super.buildModalBarrier() : const SizedBox.shrink();
 
   // How deep the predictive-back preview scrubs the value at full
   // gesture progress: enough for the card to visibly shrink toward its
@@ -220,28 +276,35 @@ class MorphPageRoute<T> extends PopupRoute<T> {
 
   @override
   TickerFuture didPush() {
-    WidgetsBinding.instance.addObserver(_backObserver);
     final NavigatorState nav = navigator!;
     final MorphFlight flight = .launch(
-      nav.context,
+      sourceContext ?? nav.context,
       from: from,
       target: target,
       builder: builder,
       motion: motion,
+      modal: modal,
       barrierDismissible: _barrierDismissible,
       maxScrimOpacity: maxScrimOpacity,
       scrimColor: scrimColor,
+      scrimMotion: scrimMotion,
       shadowColor: shadowColor,
       semanticLabel: semanticLabel,
       routeMode: true,
-      overlay: nav.overlay,
+      overlay: overlay ?? nav.overlay,
       // Pre-latch the scrim belongs to the shuttle: its dismiss taps
       // route through the Navigator so the route lifecycle stays the
       // single source of truth.
       onDismissRequested: _handleDismissRequest,
     );
     _flight = flight;
+    WidgetsBinding.instance.addObserver(_backObserver);
     flight.controller.addListener(_onFlightTick);
+    flight.closed.then((Object? _) {
+      if (isActive) {
+        navigator?.removeRoute(this);
+      }
+    });
     return super.didPush();
   }
 
@@ -290,6 +353,9 @@ class MorphPageRoute<T> extends PopupRoute<T> {
       return;
     }
     final MorphController c = flight.controller;
+    if (overlay != null && overlay != navigator?.overlay) {
+      return;
+    }
     if (c.target >= 1 && !c.isAnimating && !c.isScrubbing && isActive) {
       flight.routeOwnsContent.value = true;
     }
@@ -300,13 +366,13 @@ class MorphPageRoute<T> extends PopupRoute<T> {
   // cover popped away): re-evaluate on the route lifecycle, not only
   // on controller ticks.
   @override
-  void didChangeNext(Route<dynamic>? nextRoute) {
+  void didChangeNext(Route<Object?>? nextRoute) {
     super.didChangeNext(nextRoute);
     _syncSecondLatch();
   }
 
   @override
-  void didPopNext(Route<dynamic> nextRoute) {
+  void didPopNext(Route<Object?> nextRoute) {
     super.didPopNext(nextRoute);
     _syncSecondLatch();
   }
@@ -336,7 +402,16 @@ class MorphPageRoute<T> extends PopupRoute<T> {
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(_backObserver);
-    _flight?.controller.removeListener(_onFlightTick);
+    final MorphFlight? flight = _flight;
+    flight?.controller.removeListener(_onFlightTick);
+    if (flight != null && !flight.isFinished) {
+      flight.routeOwnsContent.value = false;
+      if (flight.tag.mounted) {
+        flight.close();
+      } else {
+        flight.abort();
+      }
+    }
     super.dispose();
   }
 
@@ -436,7 +511,7 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
                 );
                 // Keep the flight's belief fresh while the route owns
                 // the layout: a pop closes FROM this rect.
-                flight.lastTargetRect = rect;
+                flight.updateTargetRect(rect);
                 final Offset drag = flight.appliedDragOffset;
                 final double recede = morphDragRecede(drag.distance);
                 final double arm = morphDragArm(flight.dragOffset.distance);
@@ -445,18 +520,19 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
                     // The visual scrim only: taps fall through to the
                     // route's transparent modal barrier, which owns
                     // dismiss behavior and semantics.
-                    Positioned.fill(
-                      child: IgnorePointer(
-                        child: ColoredBox(
-                          color: flight.scrimColor.withValues(
-                            alpha:
-                                flight.scrimColor.a *
-                                flight.scrimOpacity *
-                                morphDragScrimFactor(recede, arm),
+                    if (flight.modal)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: ColoredBox(
+                            color: flight.scrimColor.withValues(
+                              alpha:
+                                  flight.scrimColor.a *
+                                  flight.scrimOpacity *
+                                  morphDragScrimFactor(recede, arm),
+                            ),
                           ),
                         ),
                       ),
-                    ),
                     Positioned.fromRect(
                       rect: rect.shift(drag),
                       child: Transform.scale(
@@ -479,6 +555,7 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
               child: Material(
                 color: spec.color,
                 shape: spec.shape,
+                animationDuration: .zero,
                 clipBehavior: target.clipBehavior,
                 elevation: spec.elevation,
                 shadowColor: flight.shadowColor,

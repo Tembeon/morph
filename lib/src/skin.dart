@@ -855,7 +855,7 @@ class RenderMorphSkin extends RenderBox
   void detach() {
     _scope?.lastFlight.removeListener(_onFlightLaunched);
     for (final MapEntry<MorphFlight, VoidCallback> sub in _flightSubs.entries) {
-      sub.key.frameTicks.removeListener(sub.value);
+      sub.key.geometryTicks.removeListener(sub.value);
     }
     _flightSubs.clear();
     _flightFellowship.clear();
@@ -947,11 +947,11 @@ class RenderMorphSkin extends RenderBox
       _flightFellowship.putIfAbsent(flight, () => _launchFellowship(piece));
       void tick() => markNeedsPaint();
       _flightSubs[flight] = tick;
-      flight.frameTicks.addListener(tick);
+      flight.geometryTicks.addListener(tick);
       flight.closed.then((Object? _) {
         final VoidCallback? sub = _flightSubs.remove(flight);
         if (sub != null) {
-          flight.frameTicks.removeListener(sub);
+          flight.geometryTicks.removeListener(sub);
         }
         _flightFellowship.remove(flight);
         if (attached) {
@@ -962,7 +962,7 @@ class RenderMorphSkin extends RenderBox
     if (_flightSubs.isNotEmpty) {
       for (final MorphFlight flight in _flightSubs.keys.toList()) {
         if (!(active?.contains(flight) ?? false)) {
-          flight.frameTicks.removeListener(_flightSubs.remove(flight)!);
+          flight.geometryTicks.removeListener(_flightSubs.remove(flight)!);
         }
       }
     }

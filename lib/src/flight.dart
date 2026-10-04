@@ -17,6 +17,7 @@ import 'package:morph/src/scrim.dart';
 import 'package:morph/src/shared.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/target.dart';
+import 'package:morph/src/theme.dart';
 
 /// Builds the target content of a flight; called once per flight and
 /// reused between spring ticks.
@@ -69,10 +70,13 @@ class MorphFlight {
     required MorphMotion motion,
     required bool disableAnimations,
   }) {
-    controller =
-        MorphController(vsync: scope, motion: motion, onHandoff: _onHandoff)
-          ..disableAnimations = disableAnimations
-          ..addListener(_onTick);
+    controller = MorphController(
+      vsync: scope,
+      motion: motion,
+      onHandoff: _onHandoff,
+    );
+    controller.disableAnimations = disableAnimations;
+    controller.addListener(_onTick);
     final MorphScrimMotion? scrim = scrimMotion;
     if (scrim != null) {
       final MorphScrimChannel channel = MorphScrimChannel(
@@ -173,16 +177,29 @@ class MorphFlight {
   /// the overlay unnamed (still scoped).
   String? semanticLabel;
 
-  /// The single spring every visual property derives from.
+  /// The value spring, for observation, motion changes and custom scrubbing.
+  ///
+  /// Use [open], [close], [toggle] and [abort] for lifecycle changes;
+  /// driving the controller's lifecycle directly bypasses flight history,
+  /// source visibility and finalization.
   late final MorphController controller;
   OverlayEntry? _entry;
 
   /// The source rect in overlay coordinates; engine-written every
   /// frame, read-only for apps.
-  Rect sourceRect = .zero;
+  Rect get sourceRect => _sourceRect;
+  Rect _sourceRect = .zero;
 
-  /// The current target rect, refreshed by the shuttle every frame.
-  Rect lastTargetRect = .zero;
+  /// The current target rect, refreshed by the shuttle or settled route.
+  /// Read-only for apps.
+  Rect get lastTargetRect => _lastTargetRect;
+  Rect _lastTargetRect = .zero;
+
+  /// Records the target geometry resolved by the shuttle or settled route.
+  @internal
+  void updateTargetRect(Rect rect) {
+    _lastTargetRect = rect;
+  }
 
   bool _finished = false;
   bool _controllerDisposed = false;
@@ -330,6 +347,11 @@ class MorphFlight {
           // Popped from the history side (Esc, back, Navigator.pop):
           // dismiss the flight, honoring the declarative close route.
           requestDismiss();
+          WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+            if (isOpenOrOpening) {
+              _restoreHistoryEntry();
+            }
+          });
         }
       },
     );
@@ -374,17 +396,23 @@ class MorphFlight {
   /// (see [_ContentSizeChannel]).
   late final _ContentSizeChannel _contentSize = _ContentSizeChannel(this);
 
-  /// One subscription point for everything that renders a flight frame:
-  /// the value spring, the displacement channel, the content-size
-  /// spring and the target's own repaint merged. The shuttle and the
-  /// skin listen HERE, so a new co-driver of the frame never needs a
-  /// second subscription seam.
-  late final Listenable frameTicks = .merge(<Listenable>[
+  /// Geometry changes from the value spring, displacement, content size
+  /// and the target's repaint signal; excludes independent scrim ticks.
+  ///
+  /// Skins use this stream to follow the flying surface without repainting
+  /// when only its scrim changes.
+  late final Listenable geometryTicks = .merge(<Listenable>[
     controller,
     _drag,
     _contentSize,
-    ?_scrim,
     ?target.repaint,
+  ]);
+
+  /// All visual changes, including [geometryTicks] and independent scrim
+  /// ticks. The shuttle and settled route page use this stream.
+  late final Listenable frameTicks = .merge(<Listenable>[
+    geometryTicks,
+    ?_scrim,
   ]);
 
   /// The content size the target is placed for this frame, for a
@@ -488,9 +516,23 @@ class MorphFlight {
     }
   }
 
+  /// Rejects adoption of an overlay flight by a Navigator route.
+  @internal
+  static void checkRouteLaunch(MorphFlight? existing) {
+    if (existing != null && existing.routeContentKey == null) {
+      throw FlutterError(
+        'showMorphRoute(from: ${existing.tag.id}): an overlay flight is '
+        'already live for this tag. A route cannot adopt an overlay flight '
+        'mid-air - the content ownership chains differ. Close the overlay '
+        'first, or retarget it with showMorph.',
+      );
+    }
+  }
+
   /// Launches (or retargets) the flight for [from]. Prefer the
   /// showMorph* entry points: they also resolve [MorphTheme] defaults,
   /// this method does not.
+  @internal
   static MorphFlight launch(
     BuildContext context, {
     required Object from,
@@ -499,10 +541,10 @@ class MorphFlight {
     MorphMotion? motion,
     bool modal = true,
     bool barrierDismissible = true,
-    double maxScrimOpacity = 0.45,
-    Color scrimColor = Colors.black,
+    double maxScrimOpacity = MorphTheme.defaultMaxScrimOpacity,
+    Color scrimColor = MorphTheme.defaultScrimColor,
     MorphScrimMotion? scrimMotion,
-    Color shadowColor = const Color(0x99000000),
+    Color shadowColor = MorphTheme.defaultShadowColor,
     VoidCallback? onDismissRequested,
     String? semanticLabel,
     bool routeMode = false,
@@ -517,13 +559,9 @@ class MorphFlight {
     // was disposed would drive show/hide on a defunct State.
     final MorphFlight? existing = scope.liveFlightOf(from);
     if (existing != null) {
-      assert(
-        !routeMode || existing.routeContentKey != null,
-        'showMorphRoute(from: $from): an overlay flight is already live '
-        'for this tag. A route cannot adopt an overlay flight mid-air - '
-        'the content ownership chains differ. Close the overlay first, '
-        'or retarget it with showMorph.',
-      );
+      if (routeMode) {
+        checkRouteLaunch(existing);
+      }
       if (motion != null) {
         existing.controller.motion = motion;
       }
@@ -540,41 +578,37 @@ class MorphFlight {
       // builder, barrier and scrim - the content lives in the shuttle
       // and cannot be swapped mid-air. Only motion, dismissal routing
       // and the semantic label are updated.
-      existing
-        ..open()
-        .._addHistoryEntry(context);
+      existing.open();
+      existing._addHistoryEntry(context);
       return existing;
     }
-    final MorphFlight flight =
-        MorphFlight._(
-            scope: scope,
-            tag: scope.tagOf(from),
-            target: target,
-            builder: builder,
-            modal: modal,
-            barrierDismissible: barrierDismissible,
-            maxScrimOpacity: maxScrimOpacity,
-            scrimColor: scrimColor,
-            scrimMotion: scrimMotion,
-            shadowColor: shadowColor,
-            // The NEAREST overlay: the flight belongs to the world its
-            // scope lives in. A nested navigator (a tab, an embedded
-            // device mockup) keeps its flights inside itself; in a
-            // single-navigator app this is the root overlay anyway.
-            overlay: overlay ?? Overlay.of(context),
-            motion: motion ?? .liquid,
-            disableAnimations:
-                MediaQuery.maybeDisableAnimationsOf(context) ?? false,
-          )
-          ..onDismissRequested = onDismissRequested
-          ..semanticLabel = semanticLabel;
+    final MorphFlight flight = MorphFlight._(
+      scope: scope,
+      tag: scope.tagOf(from),
+      target: target,
+      builder: builder,
+      modal: modal,
+      barrierDismissible: barrierDismissible,
+      maxScrimOpacity: maxScrimOpacity,
+      scrimColor: scrimColor,
+      scrimMotion: scrimMotion,
+      shadowColor: shadowColor,
+      // The NEAREST overlay: the flight belongs to the world its
+      // scope lives in. A nested navigator (a tab, an embedded
+      // device mockup) keeps its flights inside itself; in a
+      // single-navigator app this is the root overlay anyway.
+      overlay: overlay ?? Overlay.of(context),
+      motion: motion ?? .liquid,
+      disableAnimations: MediaQuery.maybeDisableAnimationsOf(context) ?? false,
+    );
+    flight.onDismissRequested = onDismissRequested;
+    flight.semanticLabel = semanticLabel;
     if (routeMode) {
       flight.enableRouteMode();
     }
     scope.adoptFlight(flight);
-    flight
-      ..open()
-      .._addHistoryEntry(context);
+    flight.open();
+    flight._addHistoryEntry(context);
     return flight;
   }
 
@@ -607,13 +641,13 @@ class MorphFlight {
     }
   }
 
-  /// Retargets the spring toward closed; from rest the close velocity
-  /// hint scales with the flight's pixel travel so a far close lands
-  /// heavier.
+  /// Retargets the spring toward closed with its current velocity.
+  /// An explicit [velocity] overrides that velocity; a close from rest
+  /// starts still.
   ///
   /// [result] is what [closed] completes with at finalization - "what
-  /// did the user pick". Every close overwrites it (a dismissal after
-  /// a value-carrying close honestly reports null).
+  /// did the user pick". An accepted close replaces the result;
+  /// repeated calls while already closing leave it unchanged.
   void close({double? velocity, Object? result}) {
     if (_finished || (controller.target == 0 && !controller.isScrubbing)) {
       return;
@@ -644,7 +678,7 @@ class MorphFlight {
     }
     final Rect? fresh = tag.tryCaptureRect(overlayBox);
     if (fresh != null) {
-      sourceRect = fresh;
+      _sourceRect = fresh;
     }
   }
 
@@ -677,8 +711,29 @@ class MorphFlight {
   }
 
   RenderBox? get _overlayBox {
+    if (!_overlay.mounted) {
+      abort();
+      throw _overlayError;
+    }
     final RenderObject? box = _overlay.context.findRenderObject();
     return box is RenderBox ? box : null;
+  }
+
+  FlutterError get _overlayError => FlutterError(
+    'MorphFlight(from: ${tag.id}): its Overlay has been unmounted. '
+    'Keep the chosen overlay mounted for the flight lifetime, or close '
+    'the flight before removing the overlay. The flight has been aborted '
+    'and its source revealed.',
+  );
+
+  void _abortForLostOverlay() {
+    if (_finished) {
+      return;
+    }
+    abort();
+    FlutterError.reportError(
+      FlutterErrorDetails(exception: _overlayError, library: 'morph'),
+    );
   }
 
   /// The box of the overlay the shuttle renders in - the coordinate
@@ -764,9 +819,8 @@ class MorphFlight {
     final OverlayEntry? entry = _entry;
     _entry = null;
     if (entry != null) {
-      entry
-        ..remove()
-        ..dispose();
+      entry.remove();
+      entry.dispose();
     }
   }
 
@@ -786,6 +840,10 @@ class MorphFlight {
 
   void _onTick() {
     if (_finished) {
+      return;
+    }
+    if (!_overlay.mounted) {
+      _abortForLostOverlay();
       return;
     }
     // A scrub parks the ticker with the target still at 0: that is an
@@ -1130,9 +1188,8 @@ class _DragChannel extends ChangeNotifier {
     // The ticker restarts, so its clock restarts too - the simulations
     // above are created at the same moment and stay consistent.
     _ticker ??= _flight.scope.createTicker(_tick);
-    _ticker!
-      ..stop()
-      ..start();
+    _ticker!.stop();
+    _ticker!.start();
   }
 
   void _tick(Duration elapsed) {
@@ -1350,16 +1407,17 @@ class MorphFlightScope extends InheritedWidget {
   /// The flight this content belongs to.
   final MorphFlight flight;
 
-  /// The enclosing flight; asserts outside flight content.
+  /// The enclosing flight; throws a [FlutterError] outside flight content.
   static MorphFlight of(BuildContext context) {
     final MorphFlightScope? scope = context
         .getInheritedWidgetOfExactType<MorphFlightScope>();
-    assert(
-      scope != null,
-      'No MorphFlightScope found: flight consumers only work inside the '
-      'content of a morph overlay.',
-    );
-    return scope!.flight;
+    if (scope == null) {
+      throw FlutterError(
+        'No MorphFlightScope found: flight consumers only work inside the '
+        'content of a morph overlay.',
+      );
+    }
+    return scope.flight;
   }
 
   @override
@@ -1385,6 +1443,10 @@ class _MorphShuttleState extends State<_MorphShuttle> {
   );
   final GlobalKey _sourceAnchorKey = GlobalKey();
   final GlobalKey _targetAnchorKey = GlobalKey();
+  late final Listenable _frameTicks = Listenable.merge(<Listenable>[
+    flight.frameTicks,
+    flight.routeOwnsContent,
+  ]);
 
   @override
   void initState() {
@@ -1409,6 +1471,11 @@ class _MorphShuttleState extends State<_MorphShuttle> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+      if (!flight._overlay.mounted) {
+        flight._abortForLostOverlay();
+      }
+    });
     _focusScope.dispose();
     // Return focus to where the shuttle's autofocus took it from: after
     // Esc/close, keyboard navigation continues from the same place
@@ -1550,7 +1617,6 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                 overlaySize,
                 overlayBox: flight.overlayBox,
               );
-              final MediaQueryData mediaQuery = MediaQuery.of(context);
               final EdgeInsets overlayViewInsets = morphOverlayViewInsetsOf(
                 context,
                 overlaySize,
@@ -1558,10 +1624,7 @@ class _MorphShuttleState extends State<_MorphShuttle> {
               );
               final MorphTargetSpec target = flight.target;
               return ListenableBuilder(
-                listenable: .merge(<Listenable>[
-                  flight.frameTicks,
-                  flight.routeOwnsContent,
-                ]),
+                listenable: _frameTicks,
                 child: content,
                 builder: (BuildContext context, Widget? content) {
                   if (flight.routeOwnsContent.value) {
@@ -1580,7 +1643,7 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                     padding,
                     flight.contentSize,
                   );
-                  flight.lastTargetRect = targetRect;
+                  flight.updateTargetRect(targetRect);
                   if (target.isVessel) {
                     return _buildVessel(content!);
                   }
@@ -1719,17 +1782,16 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                                                     // they fly to.
                                                     child: KeyedSubtree(
                                                       key: _targetAnchorKey,
-                                                      child: MediaQuery(
-                                                        data: mediaQuery.copyWith(
-                                                          viewInsets:
-                                                              morphContentViewInsets(
+                                                      child:
+                                                          _MorphContentMediaQuery(
+                                                            overlayViewInsets:
                                                                 overlayViewInsets,
+                                                            targetRect:
                                                                 targetRect,
+                                                            overlaySize:
                                                                 overlaySize,
-                                                              ),
-                                                        ),
-                                                        child: content!,
-                                                      ),
+                                                            child: content!,
+                                                          ),
                                                     ),
                                                   ),
                                                 ),
@@ -1773,6 +1835,34 @@ class _MorphShuttleState extends State<_MorphShuttle> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _MorphContentMediaQuery extends StatelessWidget {
+  const _MorphContentMediaQuery({
+    required this.overlayViewInsets,
+    required this.targetRect,
+    required this.overlaySize,
+    required this.child,
+  });
+
+  final EdgeInsets overlayViewInsets;
+  final Rect targetRect;
+  final Size overlaySize;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return MediaQuery(
+      data: MediaQuery.of(context).copyWith(
+        viewInsets: morphContentViewInsets(
+          overlayViewInsets,
+          targetRect,
+          overlaySize,
+        ),
+      ),
+      child: child,
     );
   }
 }

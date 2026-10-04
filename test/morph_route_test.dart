@@ -30,7 +30,8 @@ class _CounterState extends State<Counter> {
 }
 
 final Finder shuttleFinder = find.byWidgetPredicate(
-  (Widget w) => w is Material && w.animationDuration == .zero,
+  (Widget w) =>
+      w is Material && w.animationDuration == .zero && w.child is Stack,
 );
 
 Widget host() {
@@ -98,6 +99,13 @@ void main() {
     expect(shuttleFinder, findsNothing);
     expect(find.text('count-0'), findsOneWidget);
     expect(flight.isFinished, isFalse);
+    final Material pageSurface = tester.widget<Material>(
+      find.byWidgetPredicate(
+        (Widget widget) =>
+            widget is Material && widget.elevation == flight.target.elevation,
+      ),
+    );
+    expect(pageSurface.animationDuration, Duration.zero);
 
     // Mutate state while the ROUTE owns the subtree.
     await tester.tap(find.text('count-0'));
@@ -118,6 +126,98 @@ void main() {
     expect(scope.flightOf('card'), isNull);
     expect(find.text('count-1'), findsNothing);
     expect(find.text('go'), findsOneWidget);
+  });
+
+  testWidgets('removing a settled route reveals and retires its flight', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(host());
+    await tester.tap(find.text('go'));
+    await settle(tester);
+    final MorphScopeState scope = tester.state<MorphScopeState>(
+      find.byType(MorphScope),
+    );
+    final MorphFlight flight = scope.flightOf('card')!;
+    final ModalRoute<Object?> route = ModalRoute.of(
+      tester.element(find.text('count-0')),
+    )!;
+    expect(flight.routeOwnsContent.value, isTrue);
+    expect(
+      tester
+          .widget<Opacity>(
+            find.descendant(
+              of: find.byType(MorphTag),
+              matching: find.byType(Opacity),
+            ),
+          )
+          .opacity,
+      0,
+    );
+
+    tester.state<NavigatorState>(find.byType(Navigator)).removeRoute(route);
+    await settle(tester);
+
+    expect(flight.isFinished, isTrue);
+    expect(scope.flightOf('card'), isNull);
+    expect(
+      tester
+          .widget<Opacity>(
+            find.descendant(
+              of: find.byType(MorphTag),
+              matching: find.byType(Opacity),
+            ),
+          )
+          .opacity,
+      1,
+    );
+    expect(find.text('count-0'), findsNothing);
+    expect(find.text('go'), findsOneWidget);
+    expect(await flight.closed, isNull);
+  });
+
+  testWidgets('showMorphRoute works without Material localizations', (
+    WidgetTester tester,
+  ) async {
+    late BuildContext sourceContext;
+    await tester.pumpWidget(
+      WidgetsApp(
+        color: const Color(0xFF000000),
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        onGenerateRoute: (RouteSettings settings) => PageRouteBuilder<void>(
+          settings: settings,
+          pageBuilder:
+              (
+                BuildContext context,
+                Animation<double> animation,
+                Animation<double> secondaryAnimation,
+              ) => MorphTag(
+                id: 'card',
+                child: Builder(
+                  builder: (BuildContext context) {
+                    sourceContext = context;
+                    return const Text('source');
+                  },
+                ),
+              ),
+        ),
+      ),
+    );
+    final NavigatorState navigator = Navigator.of(sourceContext);
+    final Future<void> closed = showMorphRoute<void>(
+      sourceContext,
+      builder: (BuildContext context, MorphFlight flight) =>
+          const Text('destination'),
+    );
+    await settle(tester);
+    expect(find.text('destination'), findsOneWidget);
+    final ModalRoute<Object?> route = ModalRoute.of(
+      tester.element(find.text('destination')),
+    )!;
+    expect(route.barrierLabel, isNull);
+    navigator.pop();
+    await settle(tester);
+    await closed;
   });
 
   testWidgets('flight.close() from content retires the route', (
@@ -257,9 +357,8 @@ void main() {
 
     // A second gesture, committed this time: pop plus the ordinary
     // close from the scrubbed value.
-    route
-      ..handleStartBackGesture()
-      ..handleUpdateBackGestureProgress(progress: 0.6);
+    route.handleStartBackGesture();
+    route.handleUpdateBackGestureProgress(progress: 0.6);
     await tester.pump();
     route.handleCommitBackGesture();
     await tester.pump();
