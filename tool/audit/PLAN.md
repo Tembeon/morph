@@ -32,6 +32,15 @@ C1, G1, ... refer to it).
   entry changes while open, no dark-mode simulator pass, audit M2 (close
   the motion on dispose - hit a locked-tree assert) still open.
 
+
+## Status 2026-10-04 early morning (owner asleep)
+
+- Audit waves 1-2 landed: WP-B (45fd91d, 6e32d80, 78a8aee), WP-C (da7e6db..4e8df30), WP-A (5f4ab8e), WP-I (ffc0c1e + device fix f8b921d), WP-D (fa0df3c), WP-G (d84e125). A, I, D, G were written by Codex (gpt-6.1-sol) in a sandbox that cannot run flutter test; the coordinator verified the combined tree (966 + 11 tests, analyze 0, doc 0, iOS/web/macOS builds, autodemo).
+- Submenu calibration by film landed (42b53f7..0cc68ff).
+- CHANGELOG lines of all of the above wait in tool/audit/CHANGELOG-pending.md (merge into CHANGELOG.md 0.7.0, then delete the file).
+- LESSON: WP-I's shader packaging silently fell back to frosted on the device (the build hook never gets data assets on Flutter 3.47.2). Fixed in f8b921d. The fallback diagnostic prints only in debug - make a liquid->frosted fallback observable in release (an onFallback callback or a one-time FlutterError.reportError), and always verify renderer changes on the device (glass_audit now records liquid_available).
+- Remaining: WP-F lens-family controls (incl. the lens travel spring 0.401/0.856 code vs 0.392/0.863 passports), WP-J docs/hygiene (+ merging CHANGELOG-pending), wave 3 (WP-H control host mixin, D5 menu host merge), owner decision A8 (engine flights clamp size past value 1, UIKit overshoots size), then the performance passport.
+
 ## Order of work (owner's priorities)
 
 1. Menu API leftovers (see above) - small, can ride with WP-E.
