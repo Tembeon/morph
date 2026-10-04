@@ -39,6 +39,12 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   the last submenu has returned.
   Taps on the exposed parent return one level without unlocking scrolling;
   outside taps dismiss the whole stack, including after a blocked drag.
+- Menus draw with the glass painter of their button even when the
+  `MorphGlass` sits below the Navigator whose overlay carries the menu;
+  before, such menus fell back to flat platters without the Liquid Glass
+  contour. Closing submenu cards keep UIKit's copied card material on its
+  carrier, and cards cast the measured light shadow through the new
+  `MorphGlassSurface.shadows`.
 - Liquid glass initialization failures report once per isolate through
   `FlutterError.reportError` in every build mode (library `morph glass`);
   `MorphGlassRenderer.liquidUnavailableReason` exposes the cached cause.
