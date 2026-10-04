@@ -57,6 +57,12 @@ void main() {
         );
         final values = root['values']! as Map<String, Object?>;
         expect(values['height'], closeTo(208, 0.01));
+        const metrics = MorphMenuMetrics.standard;
+        expect(
+          tester.getTopLeft(find.text('Ask Siri')).dx -
+              tester.getTopLeft(find.text('Copy')).dx,
+          closeTo(metrics.titleStart - metrics.plainTitleStart, 0.01),
+        );
       }
     }
     final cards = rows

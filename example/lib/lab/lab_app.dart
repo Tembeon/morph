@@ -377,10 +377,9 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
                 ),
               ),
             ),
-            MorphMenuItem(
-              title: 'Ask Siri',
-              icon: Icons.circle_outlined,
-              onSelected: () => emit('selected', 'Ask Siri'),
+            MorphMenuWidget(
+              height: MorphMenuMetrics.standard.rowHeight,
+              builder: _askSiriRow,
             ),
           ],
         ],
@@ -388,6 +387,56 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
       ),
       _ => throw StateError('No lab builder for ${spec['kind']}'),
     };
+  }
+
+  static Widget _askSiriRow(BuildContext context) {
+    const metrics = MorphMenuMetrics.standard;
+    final style = MorphMenuStyle.resolve(context, null);
+    final color = style.textStyle.color ?? style.iconColor;
+    final inset = metrics.widgetInset;
+    return Semantics(
+      button: true,
+      label: 'Ask Siri',
+      excludeSemantics: true,
+      child: SizedBox(
+        height: metrics.rowHeight,
+        child: Stack(
+          children: [
+            PositionedDirectional(
+              start:
+                  metrics.imageCenter - inset - MorphMenuTuning.imageSlot / 2,
+              width: MorphMenuTuning.imageSlot,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Icon(
+                  Icons.circle_outlined,
+                  size: style.iconSize,
+                  color: color,
+                ),
+              ),
+            ),
+            PositionedDirectional(
+              start: metrics.titleStart - inset,
+              end: metrics.width - metrics.titleEnd - inset,
+              top: 0,
+              bottom: 0,
+              child: Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  'Ask Siri',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: MorphTypography.resolve(
+                    style.textStyle,
+                  ).copyWith(color: color),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   List<MorphMenuEntry> _items(

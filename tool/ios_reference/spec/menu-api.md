@@ -570,9 +570,16 @@ Painter scope and copied card material [macOS diagnostic + phone stills, 2026-10
 - [ ] Native shows a bright 1 px line inside the contour on the card's
   sides (249 - 253 over a 244 face); ours shows none there (glint only
   along the light axis) and the face is ~2 levels darker.
-- [ ] Root rows and card headers sit 34.7 pt right of native in lab runs
-  since the lab footer gained an icon (b67cb75): the icon reserves a
-  leading image column natively absent.
+- [x] Root rows and card headers sat 34.7 pt right of native in lab runs
+  since the lab footer gained an icon (b67cb75): the footer's glyph row
+  shared the root group, and the glyph column is per group (36 pt =
+  titleStart 64 - plainTitleStart 28), so the root rows took the column.
+  Natively the footer is its own group, separated by 20 pt instead of an
+  inline group's 21. The library rule matches the dumps; the lab adapter
+  now draws the footer as two free-form rows (20 pt hairline + 42 pt
+  glyph and title at the column positions), so the root keeps 208 pt and
+  its rows keep 28 (example/test/lab_test.dart). The footer row is not a
+  menu target: it neither highlights nor selects.
 - [ ] Close phase: a macOS slow-motion burst shows the root morph blob and
   the retained card copy as two bodies; native shows two bodies at +0.10 s
   and one body by +0.13 s. Needs a phone film once the screen capture
