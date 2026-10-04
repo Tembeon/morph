@@ -177,7 +177,6 @@ void main() {
     motion.advance(2);
     motion.close(2);
     var error = 0.0;
-    var rootError = 0.0;
     final frames = fixture['frames']! as List<Object?>;
     for (final value in frames) {
       final row = value! as Map<String, Object?>;
@@ -191,14 +190,8 @@ void main() {
       final residual =
           motion.cardMaterialOpacity - (row['opacity']! as num).toDouble();
       error += residual * residual;
-      final rows =
-          motion.underCardsOpacity -
-          (row['container_alpha']! as num).toDouble() *
-              (row['root_list_alpha']! as num).toDouble();
-      rootError += rows * rows;
     }
     expect(math.sqrt(error / frames.length), lessThan(0.015));
-    expect(math.sqrt(rootError / frames.length), lessThan(0.015));
     motion.open(motion.time);
     expect(motion.cardMaterialOpacity, 1);
   });

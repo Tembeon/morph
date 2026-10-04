@@ -1,359 +1,288 @@
 {
- "source": "rec-mm-sub-tap.jsonl; copied CASDFLayer 175 (key-fill highlight) in R1/1/0/2/1/0/1/1, copied CASDFElementLayer 174 in R1/1/0/2/1/0/1/0/0/0/0 has local bounds 250 x 208 and eight radii of 32. World geometry follows the ancestor carrier, not a new radius animation. Original layers becoming hidden does not remove these copies.",
- "source_sha256": "932a58b4f435bfd97c07a360cad54b8022612892b4422994ca6c1cec40c21edd",
- "logical_close": 127030.068686125,
- "carrier_delay": 0.01969054,
- "frames": [
-  {
-   "dt": 0.01555083335551899,
-   "opacity": 0.997,
-   "width": 250,
-   "height": 208,
-   "cx": 201,
-   "cy": 305.51,
-   "container_alpha": 1,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.023885500035248697,
-   "opacity": 0.997,
-   "width": 249.45,
-   "height": 207.54,
-   "cx": 201,
-   "cy": 305.17,
-   "container_alpha": 0.997,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.03222016670042649,
-   "opacity": 0.978,
-   "width": 245.53,
-   "height": 204.28,
-   "cx": 201,
-   "cy": 302.73,
-   "container_alpha": 0.978,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.04055483336560428,
-   "opacity": 0.943,
-   "width": 238.63,
-   "height": 198.54,
-   "cx": 201,
-   "cy": 298.44,
-   "container_alpha": 0.943,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.048929250027867965,
-   "opacity": 0.898,
-   "width": 229.56,
-   "height": 190.99,
-   "cx": 201,
-   "cy": 292.8,
-   "container_alpha": 0.898,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.05726400003186427,
-   "opacity": 0.845,
-   "width": 218.98,
-   "height": 182.19,
-   "cx": 201,
-   "cy": 286.22,
-   "container_alpha": 0.845,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.06559875002130866,
-   "opacity": 0.727,
-   "width": 207.45,
-   "height": 172.6,
-   "cx": 201,
-   "cy": 279.04,
-   "container_alpha": 0.787,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.07393350002530497,
-   "opacity": 0.727,
-   "width": 195.4,
-   "height": 162.57,
-   "cx": 201,
-   "cy": 271.55,
-   "container_alpha": 0.727,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.08226825002930127,
-   "opacity": 0.666,
-   "width": 183.18,
-   "height": 152.41,
-   "cx": 201,
-   "cy": 263.95,
-   "container_alpha": 0.666,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.09060300003329758,
-   "opacity": 0.605,
-   "width": 171.08,
-   "height": 142.34,
-   "cx": 201,
-   "cy": 256.42,
-   "container_alpha": 0.605,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.09893775002274197,
-   "opacity": 0.49,
-   "width": 159.31,
-   "height": 132.55,
-   "cx": 201,
-   "cy": 249.1,
-   "container_alpha": 0.547,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.10727250002673827,
-   "opacity": 0.49,
-   "width": 148.03,
-   "height": 123.16,
-   "cx": 201,
-   "cy": 242.08,
-   "container_alpha": 0.49,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.11560725003073458,
-   "opacity": 0.437,
-   "width": 137.35,
-   "height": 114.27,
-   "cx": 201,
-   "cy": 235.44,
-   "container_alpha": 0.437,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.12394200003473088,
-   "opacity": 0.387,
-   "width": 127.34,
-   "height": 105.95,
-   "cx": 201,
-   "cy": 229.21,
-   "container_alpha": 0.387,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.13227675002417527,
-   "opacity": 0.34,
-   "width": 118.05,
-   "height": 98.22,
-   "cx": 201,
-   "cy": 223.44,
-   "container_alpha": 0.34,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.14061150002817158,
-   "opacity": 0.298,
-   "width": 109.51,
-   "height": 91.11,
-   "cx": 201,
-   "cy": 218.12,
-   "container_alpha": 0.298,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.14894625003216788,
-   "opacity": 0.259,
-   "width": 101.71,
-   "height": 84.63,
-   "cx": 201,
-   "cy": 213.27,
-   "container_alpha": 0.259,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.15728100002161227,
-   "opacity": 0.223,
-   "width": 94.65,
-   "height": 78.75,
-   "cx": 201,
-   "cy": 208.87,
-   "container_alpha": 0.223,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.16561575002560858,
-   "opacity": 0.191,
-   "width": 88.28,
-   "height": 73.45,
-   "cx": 201,
-   "cy": 204.92,
-   "container_alpha": 0.191,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.17395050002960488,
-   "opacity": 0.163,
-   "width": 82.6,
-   "height": 68.72,
-   "cx": 201,
-   "cy": 201.38,
-   "container_alpha": 0.163,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.1822852500336012,
-   "opacity": 0.138,
-   "width": 77.54,
-   "height": 64.52,
-   "cx": 201,
-   "cy": 198.24,
-   "container_alpha": 0.138,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.19062000002304558,
-   "opacity": 0.115,
-   "width": 73.08,
-   "height": 60.8,
-   "cx": 201,
-   "cy": 195.46,
-   "container_alpha": 0.115,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.19895475002704188,
-   "opacity": 0.096,
-   "width": 69.17,
-   "height": 57.55,
-   "cx": 201,
-   "cy": 193.03,
-   "container_alpha": 0.096,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2072895000310382,
-   "opacity": 0.079,
-   "width": 65.75,
-   "height": 54.71,
-   "cx": 201,
-   "cy": 190.9,
-   "container_alpha": 0.079,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2156242500350345,
-   "opacity": 0.064,
-   "width": 62.79,
-   "height": 52.24,
-   "cx": 201,
-   "cy": 189.06,
-   "container_alpha": 0.064,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.22395900002447888,
-   "opacity": 0.051,
-   "width": 60.25,
-   "height": 50.13,
-   "cx": 201,
-   "cy": 187.48,
-   "container_alpha": 0.051,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2322937500284752,
-   "opacity": 0.04,
-   "width": 58.07,
-   "height": 48.32,
-   "cx": 201,
-   "cy": 186.12,
-   "container_alpha": 0.04,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2406285000324715,
-   "opacity": 0.031,
-   "width": 56.22,
-   "height": 46.78,
-   "cx": 201,
-   "cy": 184.97,
-   "container_alpha": 0.031,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.24896325002191588,
-   "opacity": 0.023,
-   "width": 54.67,
-   "height": 45.48,
-   "cx": 201,
-   "cy": 184.01,
-   "container_alpha": 0.023,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2572980000259122,
-   "opacity": 0.017,
-   "width": 53.37,
-   "height": 44.41,
-   "cx": 201,
-   "cy": 183.2,
-   "container_alpha": 0.017,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2656327500299085,
-   "opacity": 0.011,
-   "width": 52.3,
-   "height": 43.51,
-   "cx": 201,
-   "cy": 182.53,
-   "container_alpha": 0.011,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2739675000339048,
-   "opacity": 0.007,
-   "width": 51.42,
-   "height": 42.78,
-   "cx": 201,
-   "cy": 181.99,
-   "container_alpha": 0.007,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2823022500233492,
-   "opacity": 0.004,
-   "width": 50.71,
-   "height": 42.19,
-   "cx": 201,
-   "cy": 181.55,
-   "container_alpha": 0.004,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2906370000273455,
-   "opacity": 0.001,
-   "width": 50.15,
-   "height": 41.72,
-   "cx": 201,
-   "cy": 181.2,
-   "container_alpha": 0.001,
-   "root_list_alpha": 1
-  },
-  {
-   "dt": 0.2989717500313418,
-   "opacity": -0.001,
-   "width": 49.71,
-   "height": 41.36,
-   "cx": 201,
-   "cy": 180.92,
-   "container_alpha": -0.001,
-   "root_list_alpha": 1
-  }
- ],
- "root_list": "_UIContextMenuListView -6081896530572189139 (the root list under the card) inside _UIContextMenuView 2641978354769738251; frame alpha a."
+  "source": "rec-mm-sub-tap.jsonl; copied CASDFLayer 175 (key-fill highlight) in R1/1/0/2/1/0/1/1, copied CASDFElementLayer 174 in R1/1/0/2/1/0/1/0/0/0/0 has local bounds 250 x 208 and eight radii of 32. World geometry follows the ancestor carrier, not a new radius animation. Original layers becoming hidden does not remove these copies.",
+  "source_sha256": "932a58b4f435bfd97c07a360cad54b8022612892b4422994ca6c1cec40c21edd",
+  "logical_close": 127030.068686125,
+  "carrier_delay": 0.01969054,
+  "frames": [
+    {
+      "dt": 0.01555083335551899,
+      "opacity": 0.997,
+      "width": 250,
+      "height": 208,
+      "cx": 201,
+      "cy": 305.51
+    },
+    {
+      "dt": 0.023885500035248697,
+      "opacity": 0.997,
+      "width": 249.45,
+      "height": 207.54,
+      "cx": 201,
+      "cy": 305.17
+    },
+    {
+      "dt": 0.03222016670042649,
+      "opacity": 0.978,
+      "width": 245.53,
+      "height": 204.28,
+      "cx": 201,
+      "cy": 302.73
+    },
+    {
+      "dt": 0.04055483336560428,
+      "opacity": 0.943,
+      "width": 238.63,
+      "height": 198.54,
+      "cx": 201,
+      "cy": 298.44
+    },
+    {
+      "dt": 0.048929250027867965,
+      "opacity": 0.898,
+      "width": 229.56,
+      "height": 190.99,
+      "cx": 201,
+      "cy": 292.8
+    },
+    {
+      "dt": 0.05726400003186427,
+      "opacity": 0.845,
+      "width": 218.98,
+      "height": 182.19,
+      "cx": 201,
+      "cy": 286.22
+    },
+    {
+      "dt": 0.06559875002130866,
+      "opacity": 0.727,
+      "width": 207.45,
+      "height": 172.6,
+      "cx": 201,
+      "cy": 279.04
+    },
+    {
+      "dt": 0.07393350002530497,
+      "opacity": 0.727,
+      "width": 195.4,
+      "height": 162.57,
+      "cx": 201,
+      "cy": 271.55
+    },
+    {
+      "dt": 0.08226825002930127,
+      "opacity": 0.666,
+      "width": 183.18,
+      "height": 152.41,
+      "cx": 201,
+      "cy": 263.95
+    },
+    {
+      "dt": 0.09060300003329758,
+      "opacity": 0.605,
+      "width": 171.08,
+      "height": 142.34,
+      "cx": 201,
+      "cy": 256.42
+    },
+    {
+      "dt": 0.09893775002274197,
+      "opacity": 0.49,
+      "width": 159.31,
+      "height": 132.55,
+      "cx": 201,
+      "cy": 249.1
+    },
+    {
+      "dt": 0.10727250002673827,
+      "opacity": 0.49,
+      "width": 148.03,
+      "height": 123.16,
+      "cx": 201,
+      "cy": 242.08
+    },
+    {
+      "dt": 0.11560725003073458,
+      "opacity": 0.437,
+      "width": 137.35,
+      "height": 114.27,
+      "cx": 201,
+      "cy": 235.44
+    },
+    {
+      "dt": 0.12394200003473088,
+      "opacity": 0.387,
+      "width": 127.34,
+      "height": 105.95,
+      "cx": 201,
+      "cy": 229.21
+    },
+    {
+      "dt": 0.13227675002417527,
+      "opacity": 0.34,
+      "width": 118.05,
+      "height": 98.22,
+      "cx": 201,
+      "cy": 223.44
+    },
+    {
+      "dt": 0.14061150002817158,
+      "opacity": 0.298,
+      "width": 109.51,
+      "height": 91.11,
+      "cx": 201,
+      "cy": 218.12
+    },
+    {
+      "dt": 0.14894625003216788,
+      "opacity": 0.259,
+      "width": 101.71,
+      "height": 84.63,
+      "cx": 201,
+      "cy": 213.27
+    },
+    {
+      "dt": 0.15728100002161227,
+      "opacity": 0.223,
+      "width": 94.65,
+      "height": 78.75,
+      "cx": 201,
+      "cy": 208.87
+    },
+    {
+      "dt": 0.16561575002560858,
+      "opacity": 0.191,
+      "width": 88.28,
+      "height": 73.45,
+      "cx": 201,
+      "cy": 204.92
+    },
+    {
+      "dt": 0.17395050002960488,
+      "opacity": 0.163,
+      "width": 82.6,
+      "height": 68.72,
+      "cx": 201,
+      "cy": 201.38
+    },
+    {
+      "dt": 0.1822852500336012,
+      "opacity": 0.138,
+      "width": 77.54,
+      "height": 64.52,
+      "cx": 201,
+      "cy": 198.24
+    },
+    {
+      "dt": 0.19062000002304558,
+      "opacity": 0.115,
+      "width": 73.08,
+      "height": 60.8,
+      "cx": 201,
+      "cy": 195.46
+    },
+    {
+      "dt": 0.19895475002704188,
+      "opacity": 0.096,
+      "width": 69.17,
+      "height": 57.55,
+      "cx": 201,
+      "cy": 193.03
+    },
+    {
+      "dt": 0.2072895000310382,
+      "opacity": 0.079,
+      "width": 65.75,
+      "height": 54.71,
+      "cx": 201,
+      "cy": 190.9
+    },
+    {
+      "dt": 0.2156242500350345,
+      "opacity": 0.064,
+      "width": 62.79,
+      "height": 52.24,
+      "cx": 201,
+      "cy": 189.06
+    },
+    {
+      "dt": 0.22395900002447888,
+      "opacity": 0.051,
+      "width": 60.25,
+      "height": 50.13,
+      "cx": 201,
+      "cy": 187.48
+    },
+    {
+      "dt": 0.2322937500284752,
+      "opacity": 0.04,
+      "width": 58.07,
+      "height": 48.32,
+      "cx": 201,
+      "cy": 186.12
+    },
+    {
+      "dt": 0.2406285000324715,
+      "opacity": 0.031,
+      "width": 56.22,
+      "height": 46.78,
+      "cx": 201,
+      "cy": 184.97
+    },
+    {
+      "dt": 0.24896325002191588,
+      "opacity": 0.023,
+      "width": 54.67,
+      "height": 45.48,
+      "cx": 201,
+      "cy": 184.01
+    },
+    {
+      "dt": 0.2572980000259122,
+      "opacity": 0.017,
+      "width": 53.37,
+      "height": 44.41,
+      "cx": 201,
+      "cy": 183.2
+    },
+    {
+      "dt": 0.2656327500299085,
+      "opacity": 0.011,
+      "width": 52.3,
+      "height": 43.51,
+      "cx": 201,
+      "cy": 182.53
+    },
+    {
+      "dt": 0.2739675000339048,
+      "opacity": 0.007,
+      "width": 51.42,
+      "height": 42.78,
+      "cx": 201,
+      "cy": 181.99
+    },
+    {
+      "dt": 0.2823022500233492,
+      "opacity": 0.004,
+      "width": 50.71,
+      "height": 42.19,
+      "cx": 201,
+      "cy": 181.55
+    },
+    {
+      "dt": 0.2906370000273455,
+      "opacity": 0.001,
+      "width": 50.15,
+      "height": 41.72,
+      "cx": 201,
+      "cy": 181.2
+    },
+    {
+      "dt": 0.2989717500313418,
+      "opacity": -0.001,
+      "width": 49.71,
+      "height": 41.36,
+      "cx": 201,
+      "cy": 180.92
+    }
+  ]
 }

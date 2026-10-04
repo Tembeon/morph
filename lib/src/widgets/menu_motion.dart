@@ -1212,14 +1212,6 @@ class MorphMenuMotion {
   double get cardMaterialOpacity =>
       cardGlassTransferred ? _cardContainer.value(_now).clamp(0.0, 1.0) : 1;
 
-  /// Visibility of the lists under the top card, the root rows included.
-  /// In a whole-stack close they stay at full contrast inside the shrinking
-  /// carrier and fade with it: mm-sub-tap's root _UIContextMenuListView
-  /// keeps alpha 1 while its _UIContextMenuView fades as
-  /// [cardMaterialOpacity]. Otherwise the content fades as in a plain close.
-  double get underCardsOpacity =>
-      cardGlassTransferred ? cardMaterialOpacity : contentOpacity;
-
   /// Whether a tap's release has scheduled the opening and the menu is
   /// not on its way yet.
   ///

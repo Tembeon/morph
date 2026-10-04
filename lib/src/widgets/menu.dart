@@ -991,7 +991,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                                 clipBehavior: .none,
                                 children: [
                                   _Faded(
-                                    opacity: motion.underCardsOpacity,
+                                    opacity: motion.cardGlassTransferred
+                                        ? 0
+                                        : motion.contentOpacity,
                                     blur: motion.contentBlur / scale,
                                     child: Stack(
                                       clipBehavior: .none,
