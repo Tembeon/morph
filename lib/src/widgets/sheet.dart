@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/scope.dart';
+import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/motion_route.dart';
@@ -124,8 +125,9 @@ Future<T?> presentMorphSheet<T>(
     semanticLabel: semanticLabel,
   );
   route._zoomSource = MorphZoomSource.resolve(context, from);
-  route._glass = MorphGlassCarrier(context);
-  return Navigator.of(context, rootNavigator: useRootNavigator).push<T>(route);
+  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+  route._themes = MorphThemeCarrier(context, to: navigator.context);
+  return navigator.push<T>(route);
 }
 
 /// The route [presentMorphSheet] pushes: the sheet as a real navigator
@@ -156,7 +158,7 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T> {
   final Object? source;
 
   MorphZoomSource? _zoomSource;
-  MorphGlassCarrier? _glass;
+  MorphThemeCarrier? _themes;
 
   /// The measured zoom used when there is a [source].
   final MorphZoomTuning zoom;
@@ -211,7 +213,7 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T> {
   ) {
     _zoomSource ??= MorphZoomSource.resolve(context, source);
     final view = _SheetView(route: this);
-    return _glass?.install(context, view) ?? view;
+    return _themes?.install(view) ?? view;
   }
 
   @override

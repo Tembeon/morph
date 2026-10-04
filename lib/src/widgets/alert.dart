@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/motion_route.dart';
@@ -210,8 +211,9 @@ Future<MorphAlertAction?> showMorphAlert(
     textFields: textFields,
     style: style,
   );
-  route._glass = MorphGlassCarrier(context);
-  return Navigator.of(context, rootNavigator: useRootNavigator).push(route);
+  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+  route._themes = MorphThemeCarrier(context, to: navigator.context);
+  return navigator.push(route);
 }
 
 /// Shows an action sheet the way iOS 27 presents one, and completes with
@@ -259,8 +261,9 @@ Future<MorphAlertAction?> showMorphActionSheet(
     actionSheet: true,
     source: source,
   );
-  route._glass = MorphGlassCarrier(anchor ?? context);
-  return Navigator.of(context, rootNavigator: useRootNavigator).push(route);
+  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+  route._themes = MorphThemeCarrier(anchor ?? context, to: navigator.context);
+  return navigator.push(route);
 }
 
 /// The route [showMorphAlert] and [showMorphActionSheet] push: the alert
@@ -304,7 +307,7 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
 
   _AlertViewState? _view;
   MorphAlertAction? _chosen;
-  MorphGlassCarrier? _glass;
+  MorphThemeCarrier? _themes;
 
   /// Whether the route presents as a popover next to [source].
   bool get isPopover => actionSheet && source != null;
@@ -334,7 +337,7 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
     Animation<double> secondaryAnimation,
   ) {
     final view = _AlertView(route: this);
-    return _glass?.install(context, view) ?? view;
+    return _themes?.install(view) ?? view;
   }
 
   @override

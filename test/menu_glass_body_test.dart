@@ -224,8 +224,8 @@ void main() {
     await tester.pumpAndSettle();
     final layer = find.byType(MorphMenuLayer);
     expect(
-      find.ancestor(of: layer, matching: find.byType(MorphGlass)),
-      findsNothing,
+      MorphGlass.maybeOf(tester.element(layer)),
+      isA<MorphGlassRenderer>(),
     );
     expect(
       find.descendant(of: layer, matching: find.byType(LiquidGlassLayer)),

@@ -38,15 +38,18 @@ measurements.
 
 - OVERLAYS: a control whose glass flies into an overlay or a route
   carries the painter it resolves at its source; an overlay above the
-  installing MorphGlass otherwise draws the flat fallback. Menus and bar
-  button menus: `MorphMenuHost.menuGlass`; alerts, action sheets, sheets
-  (and their content), the date picker overlay and the context menu
-  flight: `MorphGlassCarrier` from the presenting context; the zoom
-  replica of a sheet or push zoom: the carrier of its source tag
-  (test/glass_carry_test.dart). Engine flights (`showMorph*`) cannot
-  carry it (the engine never imports widgets): a glass control used as a
-  `MorphTag` source draws its ghost replica with the painter above the
-  flight's overlay.
+  installing MorphGlass otherwise draws the flat fallback. `MorphGlass`
+  is an InheritedTheme and the package carries the source's
+  InheritedThemes (`MorphThemeCarrier`): engine flights (`showMorph*`,
+  `showMorphRoute`, `MorphAnchor`, the context menu) wrap the whole
+  shuttle and the settled route page, so a glass control used as a
+  `MorphTag` source draws its ghost, and the dialog or sheet content
+  draws its glass, with the source painter, following a tier switch one
+  frame late; alerts, action sheets, sheets (and their content) and the
+  date picker overlay capture from the presenting context; the zoom
+  replica from its source tag. Menus and bar button menus also pass
+  `MorphMenuHost.menuGlass` (test/glass_carry_test.dart,
+  test/flight_theme_carry_test.dart). Closed 2026-10-05: no residual.
 - Flutter GPU data passes (geometry, field, material) run with blending
   disabled: impeller's ColorAttachmentDescriptor default, unchanged by
   flutter_gpu unless setColorBlendEnable is called (Flutter 3.47.2).

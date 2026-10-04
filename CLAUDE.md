@@ -37,8 +37,13 @@ Flutter-style split, two entrypoints:
 - `lib/foundation.dart` - the ENGINE export (identity, flights,
   retargeting, targets, routes, the liquid skin, `MorphSpring`).
 - `lib/widgets.dart` - the measured widget layer (`lib/src/widgets/`),
-  re-exports foundation. BOUNDARY: widgets import foundation and motor,
-  the engine NEVER imports widgets. The package carries ONE glass
+  re-exports foundation. The old isolation rule (the engine never
+  imports widgets) is CANCELLED (owner decision 2026-10-05): widget and
+  render quality come first, so the engine may know the widget layer
+  and the glass renderer when that makes a surface right. Prefer a
+  general Flutter mechanism over a glass special case where one exists
+  (InheritedTheme carries the glass painter through flights). The
+  package carries ONE glass
   renderer (`lib/src/glass/renderer`, owner decision 2026-10-03 - the
   old "no shader in the package" rule is CANCELLED): the package computes
   every shape once, the renderer only SHADES the outline it is given, at
@@ -154,11 +159,16 @@ Cross-cutting policy:
   capsules, menus, popovers, the date picker overlay, alerts, floating
   sheets, the search capsule; a lens/knob/thumb is an opaque platter at
   rest and clear glass only while lifted. Without a painter: flat fills.
-- A surface presented ABOVE its source (menu, alert, sheet, date picker,
-  context menu flight, zoom replica) draws with the painter installed
-  above the SOURCE, carried into the overlay or route
-  (`MorphGlassCarrier`, `MorphMenuHost.menuGlass`); a MorphGlass inside a
-  page is invisible from the navigator's overlay.
+- A surface presented ABOVE its source draws with the painter installed
+  above the SOURCE; a MorphGlass inside a page is invisible from the
+  navigator's overlay. `MorphGlass` is an InheritedTheme, and every
+  presenter carries the source's InheritedThemes (themes.dart,
+  `MorphThemeCarrier`, the popup-route precedent): engine flights
+  (`MorphFlight.sourceThemes`, the whole shuttle and the settled route
+  page - ghost, surface, content), alerts / action sheets / sheets / the
+  date picker (captured from the presenting context up to the
+  navigator, recaptured on each page build), the zoom replica (from its
+  tag). Menus also carry `MorphMenuHost.menuGlass` explicitly.
 - Fade glass through `MorphGlassSurface.opacity`, never through an
   Opacity above it (it reads an empty backdrop), and never put an
   OpacityLayer between resting glass (it breaks BackdropGroup sharing).
@@ -248,7 +258,21 @@ Cross-cutting policy:
   travel, opacity = clamp((progress / dissolveStart - 0.5) * 2), a pure
   function of the spring value from the moment the dissolve begins
   (continuous at 1) - instead of landing on whatever took the row's
-  place; a re-open lifts it. Pinned by morph_source_lost_test. VESSEL
+  place; a re-open lifts it. Pinned by morph_source_lost_test. SOURCE
+  THEMES (2026-10-05): the shuttle and the settled route page build
+  everything under `MorphFlight.sourceThemes` - the InheritedThemes
+  between the source tag and the flight's overlay (Theme, DefaultTextStyle,
+  IconTheme, MorphGlass, ...), Flutter's popup-route precedent with the
+  tag's context as the launching context, so target content gets the
+  source's themes too. Captured once at launch (one ancestor walk); the
+  flight makes the tag depend on those theme elements, and the tag's
+  didChangeDependencies asks a live flight to recapture after the frame
+  (a MorphAdaptiveGlass tier switch reaches an open dialog one frame
+  late). The kinds captured are fixed at launch (a recapture that finds
+  other kinds is ignored, so the subtree never changes shape); a lost
+  source keeps the last capture. The wrap sits ABOVE the route content
+  key on both sides, so the content chain under the key is unchanged.
+  Pinned by flight_theme_carry_test. VESSEL
   flights (see target.dart) skip surface, shadow, ghost and crossfade
   and mount the content over the whole overlay. THE SCRIM CHANNEL
   (scrim.dart, 2026-10-03): `scrimMotion: MorphScrimMotion(motion:,

@@ -545,7 +545,8 @@ class MorphTagState extends State<MorphTag> {
   /// Registers with the nearest scope, and re-registers when the tag is
   /// reparented under another one. Outside any scope the tag stays
   /// unregistered (a morphable skin piece degrades to pure fusion); a
-  /// launch from it then reports the missing scope.
+  /// launch from it then reports the missing scope. A live flight from
+  /// this tag re-reads the source themes it carries.
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -554,6 +555,10 @@ class MorphTagState extends State<MorphTag> {
       _scope?.unregisterTag(widget.id, this);
       _scope = scope;
       scope?.registerTag(widget.id, this);
+    }
+    final MorphFlight? flight = scope?.liveFlightOf(widget.id);
+    if (flight != null && identical(flight.tag, this)) {
+      flight.sourceDependenciesChanged();
     }
   }
 

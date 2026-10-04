@@ -18,6 +18,7 @@ import 'package:morph/src/shared.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/theme.dart';
+import 'package:morph/src/themes.dart';
 
 /// Builds the target content of a flight; called once per flight and
 /// reused between spring ticks.
@@ -88,6 +89,8 @@ class MorphFlight {
       controller.addListener(_followTargetWithScrim);
       _scrim = channel;
     }
+    sourceThemes = MorphThemeCarrier(tag.context, to: _overlay.context);
+    morphDependOnThemes(tag.context, to: _overlay.context);
   }
 
   /// The scope this flight is registered in.
@@ -166,6 +169,33 @@ class MorphFlight {
   /// Shadow color of the flying surface, opacity included.
   final Color shadowColor;
   final OverlayState _overlay;
+
+  /// The inherited themes of the source tag ([InheritedTheme], such as
+  /// the theme, the default text style or the glass painter): the
+  /// shuttle and the settled route page draw everything under them, the
+  /// way a popup route draws under the themes of the context that showed
+  /// it. They follow the source while it is in the tree, one frame late,
+  /// and stay as last seen once it is gone.
+  @internal
+  late final MorphThemeCarrier sourceThemes;
+
+  bool _themesRefreshPending = false;
+
+  /// Re-reads the source's themes after the current frame; called by the
+  /// tag when one of its dependencies changed.
+  @internal
+  void sourceDependenciesChanged() {
+    if (_finished || !tag.isTreeActive || !_overlay.mounted) return;
+    morphDependOnThemes(tag.context, to: _overlay.context);
+    if (_themesRefreshPending) return;
+    _themesRefreshPending = true;
+    SchedulerBinding.instance.addPostFrameCallback((Duration _) {
+      _themesRefreshPending = false;
+      if (_finished || _controllerDisposed || !tag.isTreeActive) return;
+      sourceThemes.refresh(tag.context);
+    });
+    SchedulerBinding.instance.ensureVisualUpdate();
+  }
 
   /// The declarative close route: when set, a scrim tap or Esc does not
   /// close the flight itself but asks the state owner - who flips state,
@@ -988,6 +1018,7 @@ class MorphFlight {
       _contentSize.dispose();
       _scrim?.dispose();
       routeOwnsContent.dispose();
+      sourceThemes.dispose();
     }
   }
 }
@@ -1573,6 +1604,14 @@ class _MorphShuttleState extends State<_MorphShuttle> {
 
   @override
   Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: flight.sourceThemes,
+      builder: (BuildContext context, Widget? _) =>
+          flight.sourceThemes.wrap(Builder(builder: _buildThemed)),
+    );
+  }
+
+  Widget _buildThemed(BuildContext context) {
     final ColorScheme scheme = Theme.of(context).colorScheme;
     final MorphSurfaceSpec targetSpec = resolveMorphTargetSurface(
       flight,

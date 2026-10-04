@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/date_picker_motion.dart';
@@ -351,13 +352,14 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
     if (box is! RenderBox || !box.hasSize) return;
     final rect = box.localToGlobal(Offset.zero) & box.size;
     setState(() => _open = part);
-    await Navigator.of(context, rootNavigator: true).push(
+    final navigator = Navigator.of(context, rootNavigator: true);
+    await navigator.push(
       _DatePickerRoute(
         picker: this,
         part: part,
         label: rect,
         reopening: _closing > 0,
-        glass: MorphGlassCarrier(context),
+        themes: MorphThemeCarrier(context, to: navigator.context),
       ),
     );
     if (mounted) setState(() => _open = null);
@@ -582,11 +584,11 @@ class _DatePickerRoute extends PopupRoute<void> {
     required this.part,
     required this.label,
     required this.reopening,
-    required this.glass,
+    required this.themes,
   });
 
   final _MorphDatePickerState picker;
-  final MorphGlassCarrier glass;
+  final MorphThemeCarrier themes;
   final _Part part;
   final Rect label;
 
@@ -618,7 +620,7 @@ class _DatePickerRoute extends PopupRoute<void> {
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
-  ) => glass.install(context, _OverlayView(route: this));
+  ) => themes.install(_OverlayView(route: this));
 
   @override
   bool didPop(void result) {

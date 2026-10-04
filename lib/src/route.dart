@@ -450,6 +450,17 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
       return const SizedBox.shrink();
     }
     return ListenableBuilder(
+      listenable: flight.sourceThemes,
+      builder: (BuildContext context, Widget? _) => flight.sourceThemes.wrap(
+        Builder(
+          builder: (BuildContext context) => _buildThemed(context, flight),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThemed(BuildContext context, MorphFlight flight) {
+    return ListenableBuilder(
       listenable: flight.routeOwnsContent,
       builder: (BuildContext context, Widget? _) {
         if (!flight.routeOwnsContent.value) {
