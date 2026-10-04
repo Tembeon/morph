@@ -22,6 +22,7 @@ enum Scenes {
         if let sn = SheetNavScenes.make(name) { return sn }
         if let x3 = ExtrasScenes.make(name) { return x3 }
         if let fonts = TypographyScenes.make(name) { return fonts }
+        if let list = ListScenes.make(name) { return list }
         if name.hasPrefix("tabbar") {
             let count = Int(name.dropFirst("tabbar".count)) ?? 4
             return TabBarScene(count: count)

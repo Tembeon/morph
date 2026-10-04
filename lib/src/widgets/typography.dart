@@ -114,6 +114,28 @@ abstract final class MorphTypography {
     fontWeight: FontWeight.w400,
   );
 
+  /// Body text: the title and value of a list row and the default text of
+  /// a navigation scaffold's content (UIKit's body style).
+  static const body = TextStyle(fontSize: 17, fontWeight: FontWeight.w400);
+
+  /// The secondary line under a list row's title.
+  static const listSubtitle = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w400,
+  );
+
+  /// The header above a section of an inset grouped list.
+  static const listHeader = TextStyle(
+    fontSize: 17,
+    fontWeight: FontWeight.w600,
+  );
+
+  /// The footer below a section of an inset grouped list.
+  static const listFooter = TextStyle(
+    fontSize: 13,
+    fontWeight: FontWeight.w400,
+  );
+
   /// Whether text resolves to Apple's system font on this platform.
   static bool get usesAppleSystemFont =>
       !kIsWeb &&

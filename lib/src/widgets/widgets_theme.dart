@@ -7,6 +7,7 @@ import 'package:morph/src/widgets/alert.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/date_picker.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/list.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/page_control.dart';
 import 'package:morph/src/widgets/progress.dart';
@@ -50,6 +51,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
     this.alert,
     this.searchField,
     this.datePicker,
+    this.list,
   });
 
   /// The look of every [MorphSegmentedControl] without its own style.
@@ -102,6 +104,10 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
   /// The look of every [MorphDatePicker] without its own style.
   final MorphDatePickerStyle? datePicker;
 
+  /// The look of every [MorphListSection] and [MorphListRow] without its
+  /// own style.
+  final MorphListStyle? list;
+
   /// The extension from the ambient [Theme], or null when there is no
   /// [Theme] above [context] or it has no such extension.
   static MorphWidgetsTheme? maybeOf(BuildContext context) {
@@ -131,6 +137,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
     MorphAlertStyle? alert,
     MorphSearchFieldStyle? searchField,
     MorphDatePickerStyle? datePicker,
+    MorphListStyle? list,
   }) => MorphWidgetsTheme(
     segmented: segmented ?? this.segmented,
     tabBar: tabBar ?? this.tabBar,
@@ -148,6 +155,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
     alert: alert ?? this.alert,
     searchField: searchField ?? this.searchField,
     datePicker: datePicker ?? this.datePicker,
+    list: list ?? this.list,
   );
 
   /// Chooses the nearer endpoint's measured appearance without blending.

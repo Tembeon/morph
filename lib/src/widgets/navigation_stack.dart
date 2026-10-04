@@ -16,6 +16,7 @@ import 'package:morph/src/widgets/push_zoom.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
 import 'package:morph/src/widgets/toolbar.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/zoom_source.dart';
 
@@ -815,6 +816,10 @@ class _EdgePopState extends State<_EdgePop> {
 /// inline title rises in, and a drag released halfway settles it to
 /// either side ([MorphLargeTitleScrollPhysics]). The edge effect shows
 /// once content lies under the bar.
+///
+/// Text in the content reads in UIKit's body style ([MorphTypography.body]
+/// in the label color of the bar style), so a plain [Text] on the page
+/// needs no Material ancestor.
 class MorphNavigationScaffold extends StatefulWidget {
   /// Creates a scaffold scrolling [slivers].
   const MorphNavigationScaffold({
@@ -992,7 +997,17 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
         ],
       ),
     );
-    final body = ColoredBox(color: background, child: scroll);
+    final body = ColoredBox(
+      color: background,
+      child: DefaultTextStyle(
+        style: MorphTypography.resolve(
+          MorphTypography.body.copyWith(
+            color: MorphBarStyle.resolve(context, widget.style).titleColor,
+          ),
+        ),
+        child: scroll,
+      ),
+    );
     if (shared) return body;
     var leading = widget.leading;
     if (leading == null && (route?.canPop ?? false)) {

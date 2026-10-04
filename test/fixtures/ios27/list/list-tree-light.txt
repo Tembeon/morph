@@ -1,0 +1,155 @@
+style=insetGrouped dark=false
+bgconfig normal grouped=[1.0, 1.0, 1.0, 1.0] cr=0.0 plain=[1.0, 1.0, 1.0, 1.0]
+bgconfig highlighted grouped=[0.82, 0.82, 0.839, 1.0] cr=0.0 plain=[0.82, 0.82, 0.839, 1.0]
+bgconfig selected grouped=[0.82, 0.82, 0.839, 1.0] cr=0.0 plain=[0.82, 0.82, 0.839, 1.0]
+color systemGroupedBackground=[0.949, 0.949, 0.969, 1.0]
+color secondarySystemGroupedBackground=[1.0, 1.0, 1.0, 1.0]
+color separator=[0.235, 0.235, 0.263, 0.12]
+color label=[0.0, 0.0, 0.0, 1.0]
+color secondaryLabel=[0.235, 0.235, 0.263, 0.6]
+color tertiaryLabel=[0.235, 0.235, 0.263, 0.298]
+color systemGray4=[0.82, 0.82, 0.839, 1.0]
+color systemGray5=[0.898, 0.898, 0.918, 1.0]
+table separatorInset=UIEdgeInsets(top: 0.0, left: 16.0, bottom: 0.0, right: 0.0) layoutMargins=UIEdgeInsets(top: 176.0, left: 20.0, bottom: 42.0, right: 20.0) directional=NSDirectionalEdgeInsets(top: 176.0, leading: 20.0, bottom: 42.0, trailing: 20.0) sectionHeaderTopPadding=-1.0 rowHeight=-1.0 estimated=-1.0
+Probe.RecordingWindow 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+  UITransitionView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+    UIDropShadowView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+      UILayoutContainerView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+        UINavigationTransitionView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+          UIViewControllerWrapperView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+            UIView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+              UITableView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.949, 0.949, 0.969, 1.0]
+                _UITouchPassthroughView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  _TtCC5UIKit20ScrollEdgeEffectView12BackdropView 0.0,0.0 402.0x102.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                UITableViewWrapperView 20.0,168.0 362.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  UITableViewCell 20.0,890.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous HIDDEN sepInset=UIEdgeInsets(top: 0.0, left: 15.999999999999993, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,890.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,890.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,890.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,906.67 108.33x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=After a header font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                    _UITableViewCellSeparatorView 20.0,942.33 362.0x1.0 a=0.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,782.0 362.0x53.0 a=1.0 cr=0.0 mc=12 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 16.0, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,782.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,782.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,782.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,798.33 80.33x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Movement font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                      UILabel 312.33,798.33 53.67x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=12.0 px font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.235, 0.235, 0.263, 0.6] lines=0
+                    _UITableViewCellSeparatorView 20.0,834.0 362.0x1.0 a=0.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,729.0 362.0x53.0 a=1.0 cr=0.0 mc=0 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 16.000000000000007, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,729.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,729.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,729.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,745.33 111.67x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Release spring font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                      UILabel 308.67,745.33 57.33x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=0.350 s font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.235, 0.235, 0.263, 0.6] lines=0
+                    _UITableViewCellSeparatorView 36.0,781.0 330.0x1.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,676.0 362.0x53.0 a=1.0 cr=0.0 mc=3 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 16.0, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,676.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,676.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,676.0 331.67x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,692.33 24.67x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Lift font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                      UILabel 279.33,692.33 64.33x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=16.00 px font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.235, 0.235, 0.263, 0.6] lines=0
+                    _UITableCellAccessoryButton 351.67,695.33 10.33x14.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIImageView 351.67,695.33 10.33x14.0 a=1.0 cr=0.0 mc=15 cc=continuous tint=[0.0, 0.533, 1.0, 1.0] img=10.33x14.0
+                    _UITableViewCellSeparatorView 36.0,728.0 330.0x1.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,588.0 362.0x53.0 a=1.0 cr=0.0 mc=12 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 16.000000000000007, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,588.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,588.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,588.0 318.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,604.33 99.67x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Checked row font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                    _UITableCellAccessoryButton 340.5,605.67 19.0x17.33 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIImageView 340.5,605.67 19.0x17.33 a=1.0 cr=0.0 mc=15 cc=continuous tint=[0.0, 0.533, 1.0, 1.0] img=19.0x17.33
+                    _UITableViewCellSeparatorView 20.0,640.0 362.0x1.0 a=0.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,434.33 362.0x53.0 a=1.0 cr=0.0 mc=12 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 16.000000000000004, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,434.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,434.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,434.33 279.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,450.67 47.33x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Loupe font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                    UISwitch 299.0,447.0 63.0x28.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UISwitchModernVisualElement 299.0,447.0 63.0x28.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                        UIView 299.0,447.0 63.0x28.0 a=1.0 cr=14.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.298]
+                        UIView 299.0,447.0 63.0x28.0 a=1.0 cr=14.0 mc=15 cc=continuous bg=[0.204, 0.78, 0.349, 1.0]
+                          UIImageView 299.0,447.0 630.0x31.0 a=1.0 cr=0.0 mc=15 cc=continuous HIDDEN tint=[0.0, 0.533, 1.0, 1.0] img=630.0x1.0
+                          UIView 299.0,447.0 63.0x28.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                            UIImageView 347.0,461.0 0.0x0.0 a=0.0 cr=0.0 mc=15 cc=continuous tint=[0.7, 0.7, 0.7, 1.0]
+                            UIImageView 314.0,461.0 0.0x0.0 a=1.0 cr=0.0 mc=15 cc=continuous tint=[1.0, 1.0, 1.0, 1.0]
+                        _UILiquidLensView 323.0,449.0 37.0x24.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                          UIView 323.0,449.0 37.0x24.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                            UIView 323.0,449.0 37.0x24.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    _UITableViewCellSeparatorView 20.0,486.33 362.0x1.0 a=0.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,381.33 362.0x53.0 a=1.0 cr=0.0 mc=0 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 56.0, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,381.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,381.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,381.33 331.67x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      _UIListContentImageView 33.67,393.67 28.67x28.67 a=1.0 cr=0.0 mc=15 cc=continuous tint=[0.0, 0.533, 1.0, 1.0] img=22.0x22.0 sym=textStyle=UICTFontTextStyleBody, scale=Large
+                      UILabel 76.0,397.67 63.0x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Settings font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                    _UITableCellAccessoryButton 351.67,400.67 10.33x14.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIImageView 351.67,400.67 10.33x14.0 a=1.0 cr=0.0 mc=15 cc=continuous tint=[0.0, 0.533, 1.0, 1.0] img=10.33x14.0
+                    _UITableViewCellSeparatorView 76.0,433.33 290.0x1.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,328.33 362.0x53.0 a=1.0 cr=0.0 mc=0 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 16.000000000000004, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,328.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,328.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,328.33 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,344.67 45.33x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Width font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                      UILabel 345.0,344.67 21.0x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=94 font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.235, 0.235, 0.263, 0.6] lines=0
+                    _UITableViewCellSeparatorView 36.0,380.33 330.0x1.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,259.0 362.0x69.33 a=1.0 cr=0.0 mc=0 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 16.0, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,259.0 362.0x69.33 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,259.0 362.0x69.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,259.0 331.67x69.33 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,274.67 57.0x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Tab bar font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                      UILabel 36.0,295.0 191.33x18.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Floating bar with 2 to 5 tabs font=.SFUI-Regular fs=15.0 fw=0.0 tc=[0.235, 0.235, 0.263, 0.6] lines=0
+                    _UITableCellAccessoryButton 351.67,286.67 10.33x14.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIImageView 351.67,286.67 10.33x14.0 a=1.0 cr=0.0 mc=15 cc=continuous tint=[0.0, 0.533, 1.0, 1.0] img=10.33x14.0
+                    _UITableViewCellSeparatorView 36.0,327.33 330.0x1.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,206.0 362.0x53.0 a=1.0 cr=0.0 mc=3 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 16.0, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,206.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,206.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[1.0, 1.0, 1.0, 1.0]
+                    UIListContentView 20.0,206.0 331.67x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,222.33 145.33x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Segmented control font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                    _UITableCellAccessoryButton 351.67,225.33 10.33x14.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIImageView 351.67,225.33 10.33x14.0 a=1.0 cr=0.0 mc=15 cc=continuous tint=[0.0, 0.533, 1.0, 1.0] img=10.33x14.0
+                    _UITableViewCellSeparatorView 36.0,258.0 330.0x1.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                  UITableViewCell 20.0,535.0 362.0x53.0 a=1.0 cr=0.0 mc=3 cc=continuous sepInset=UIEdgeInsets(top: 0.0, left: 15.999999999999993, bottom: 0.0, right: 16.0) margins=NSDirectionalEdgeInsets(top: 15.0, leading: 16.0, bottom: 15.0, trailing: 16.0)
+                    _UISystemBackgroundView 20.0,535.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UIView 20.0,535.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.82, 0.82, 0.839, 1.0]
+                    UIListContentView 20.0,535.0 362.0x53.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 36.0,551.33 99.33x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Selected row font=.SFUI-Regular fs=17.0 fw=0.0 tc=[0.0, 0.0, 0.0, 1.0] lines=0
+                    _UITableViewCellSeparatorView 36.0,587.0 330.0x1.0 a=0.0 cr=0.0 mc=15 cc=continuous bg=[0.235, 0.235, 0.263, 0.12]
+                UITableViewHeaderFooterView 0.0,168.0 402.0x38.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  _UISystemBackgroundView 0.0,168.0 402.0x38.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  _UITableViewHeaderFooterContentView 20.0,168.0 362.0x38.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                    _UITableViewHeaderFooterViewLabel 36.0,179.67 68.0x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Controls font=.SFUI-Semibold fs=17.0 fw=0.30000001192092896 tc=[0.235, 0.235, 0.263, 0.6] lines=0
+                UITableViewHeaderFooterView 0.0,487.33 402.0x30.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  _UISystemBackgroundView 0.0,487.33 402.0x30.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  _UITableViewHeaderFooterContentView 20.0,487.33 362.0x30.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                    _UITableViewHeaderFooterViewLabel 36.0,495.0 228.0x15.67 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=A footer explains the section above it. font=.SFUI-Regular fs=13.0 fw=0.0 tc=[0.235, 0.235, 0.263, 0.6] lines=0
+                UITableViewHeaderFooterView 0.0,852.33 402.0x38.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  _UISystemBackgroundView 0.0,852.33 402.0x38.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  _UITableViewHeaderFooterContentView 20.0,852.33 362.0x38.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                    _UITableViewHeaderFooterViewLabel 36.0,864.0 41.0x20.33 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=More font=.SFUI-Semibold fs=17.0 fw=0.30000001192092896 tc=[0.235, 0.235, 0.263, 0.6] lines=0
+                _UINavigationBarLargeTitleView 0.0,116.0 402.0x52.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  UILabel 16.0,119.67 132.67x40.67 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Widgets font=.SFUI-Bold fs=34.0 fw=0.4000000059604645 tc=[0.0, 0.0, 0.0, 1.0] lines=1
+                _UITouchPassthroughView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                  UIKit.ScrollEdgeEffectView 0.0,0.0 402.0x102.0 a=0.0 cr=0.0 mc=15 cc=continuous
+                _UIScrollViewScrollIndicator 396.0,119.0 3.0x645.67 a=0.0 cr=0.0 mc=15 cc=continuous
+                  UIView 396.0,119.0 3.0x645.67 a=1.0 cr=1.5 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.35]
+                _UIScrollViewScrollIndicator 65.0,868.0 272.0x3.0 a=0.0 cr=0.0 mc=15 cc=continuous
+                  UIView 65.0,868.0 272.0x3.0 a=1.0 cr=1.5 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.35]
+        UINavigationBar 0.0,62.0 402.0x106.0 a=1.0 cr=0.0 mc=15 cc=continuous
+          _UIBarBackground 0.0,0.0 402.0x168.0 a=1.0 cr=0.0 mc=15 cc=continuous
+          UIKit.NavigationBarLargeTitleView 0.0,116.0 402.0x52.0 a=1.0 cr=0.0 mc=15 cc=continuous
+          UIKit.NavigationBarContentView 0.0,62.0 402.0x54.0 a=1.0 cr=0.0 mc=15 cc=continuous
+            UIKit.NavigationBarTransitionContainer 0.0,62.0 402.0x54.0 a=1.0 cr=0.0 mc=15 cc=continuous
+              _UINavigationBarHostedViewContainer 0.0,62.0 402.0x54.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                _UINavigationBarHostedViewWrapper 167.67,88.67 66.67x20.67 a=0.0 cr=0.0 mc=15 cc=continuous
+                  _UINavigationBarTitleControl 167.67,88.67 66.67x20.67 a=1.0 cr=0.0 mc=15 cc=continuous
+                    _UIIntrinsicContentSizeInvalidationForwardingWrapperView 167.67,88.67 66.67x20.67 a=1.0 cr=0.0 mc=15 cc=continuous
+                      UILabel 167.67,88.67 66.33x20.67 a=1.0 cr=0.0 mc=15 cc=continuous bg=[0.0, 0.0, 0.0, 0.0] text=Widgets font=.SFUI-Semibold fs=17.0 fw=0.30000001192092896 tc=[0.0, 0.0, 0.0, 1.0] lines=1
+              UIView 0.0,62.0 402.0x54.0 a=1.0 cr=0.0 mc=15 cc=continuous
+              UIKit.NavigationBarPlatterContainer_v2 0.0,62.0 402.0x54.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                _TtGC5UIKitP10$1c5763a3c27PlatterContainerHostingViewVS_P10$1c5763c1027NavigationBarPlatterContent_ 0.0,62.0 402.0x54.0 a=1.0 cr=0.0 mc=15 cc=continuous
+                _UIPointerInteractionAssistantEffectContainerView 0.0,62.0 0.0x0.0 a=1.0 cr=0.0 mc=15 cc=continuous
+          _UIPointerInteractionAssistantEffectContainerView 0.0,62.0 0.0x0.0 a=1.0 cr=0.0 mc=15 cc=continuous
+        _UIFloatingBarContainerView 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+          _TtGC5UIKitP10$1c5774cd822FloatingBarHostingViewVS_20FloatingBarContainer_ 0.0,0.0 402.0x874.0 a=1.0 cr=0.0 mc=15 cc=continuous
+          _UIPointerInteractionAssistantEffectContainerView 0.0,0.0 0.0x0.0 a=1.0 cr=0.0 mc=15 cc=continuous

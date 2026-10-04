@@ -1,0 +1,7 @@
+Inset grouped list, iOS 27.0 simulator (iPhone 18 Pro, 402 x 874 pt), 2026-10-05.
+Probe scene `list` (tool/ios_reference/Sources/Lists.swift), PROBE_DARK=0 / 1.
+list-tree-<appearance>.txt: resolved background configurations (normal,
+highlighted, selected), system colors, list content configuration paddings,
+then the window's view tree: class, frame in window points, alpha, corner
+radius, masked corners, resolved background / text / tint colors, fonts.
+Screenshots: tool/ios_reference/references/list/native-list-{light,dark}.png.

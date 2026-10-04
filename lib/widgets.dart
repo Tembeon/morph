@@ -122,6 +122,8 @@ export 'src/widgets/menu_motion.dart'
         MorphMenuTuning;
 export 'src/widgets/morph_context_menu.dart'
     show MorphContextMenuRegion, MorphSatellite;
+export 'src/widgets/list.dart'
+    show MorphListMetrics, MorphListRow, MorphListSection, MorphListStyle;
 export 'src/widgets/navigation_bar.dart'
     show
         MorphLargeTitle,
