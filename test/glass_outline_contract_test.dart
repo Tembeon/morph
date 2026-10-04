@@ -60,4 +60,23 @@ void main() {
     await tester.pumpWidget(host(separate: false));
     expect(body.evaluate().single, same(element));
   });
+
+  test('a plain union at spacing 0 carries a finite field', () {
+    for (final shapes in [
+      [
+        const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
+        const RRect.fromLTRBXY(40, 0, 100, 40, 12, 12),
+      ],
+      [
+        const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
+        const RRect.fromLTRBXY(70, 0, 130, 40, 12, 12),
+        const RRect.fromLTRBXY(0, 50, 130, 90, 20, 20),
+      ],
+    ]) {
+      final field = morphGlassOutlineField(
+        morphGlassContainerOutline(shapes, 0),
+      )!;
+      expect(field.samples.where((value) => value.isNaN), isEmpty);
+    }
+  });
 }

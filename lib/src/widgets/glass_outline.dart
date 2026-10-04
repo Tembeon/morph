@@ -692,12 +692,7 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
       }
       for (var i = 1; i < boxes.length; i++) {
         final di = boxes.distance(i, x, y);
-        final share = 0.5 + (di - d) / (2 * spacing);
-        final w = share < 0
-            ? 0.0
-            : share > 1
-            ? 1.0
-            : share;
+        final w = _share(d, di, spacing);
         half = boxes.halfMinor(i) + (half - boxes.halfMinor(i)) * w;
         if (turns[i] && boxes.inOpticalCorner(i, x, y)) {
           boxes.opticalTurn(i, x, y, fold, 0);
@@ -711,7 +706,7 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
           turn[at * 2 + 1] = fold[1] + (turn[at * 2 + 1] - fold[1]) * w;
         }
         final e = math.max(spacing - (d - di).abs(), 0.0);
-        d = math.min(d, di) - e * e / (4 * spacing);
+        d = e > 0 ? math.min(d, di) - e * e / (4 * spacing) : math.min(d, di);
         m = math.min(m, di);
       }
       if (turned) morphNormalizeTurn(turn, at * 2);
@@ -764,6 +759,25 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
     top: area.top,
     step: step,
   );
+}
+
+/// The weight the merge so far keeps against a box at distance [di] when
+/// the merge is at distance [d]: the polynomial smooth minimum's mix over
+/// [spacing], the plain minimum's choice at spacing 0.
+double _share(double d, double di, double spacing) {
+  if (spacing <= 0) {
+    return di > d
+        ? 1.0
+        : di < d
+        ? 0.0
+        : 0.5;
+  }
+  final share = 0.5 + (di - d) / (2 * spacing);
+  return share < 0
+      ? 0.0
+      : share > 1
+      ? 1.0
+      : share;
 }
 
 /// Normalizes the (cos, sin) pair at [at], blended from several turns.
