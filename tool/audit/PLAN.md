@@ -40,7 +40,8 @@ C1, G1, ... refer to it).
 - CHANGELOG lines of all of the above wait in tool/audit/CHANGELOG-pending.md (merge into CHANGELOG.md 0.7.0, then delete the file).
 - LESSON: WP-I's shader packaging silently fell back to frosted on the device (the build hook never gets data assets on Flutter 3.47.2). Fixed in f8b921d. The fallback diagnostic prints only in debug - make a liquid->frosted fallback observable in release (an onFallback callback or a one-time FlutterError.reportError), and always verify renderer changes on the device (glass_audit now records liquid_available).
 - WP-F (2ecf687; travel spring 0.401/0.856 confirmed by the replays, passports fixed) and WP-J (76cc9ab; CHANGELOG-pending merged and deleted) landed. Tree: 985 + 11 tests, analyze 0, doc 0, iOS + web build.
-- Remaining: wave 3 (WP-H control host mixin, D5 menu host merge), owner decision A8 (engine flights clamp size past value 1, UIKit overshoots size), then the performance passport.
+- Wave 3 landed: WP-H control host (cfce3b1), D5 menu host merge + WP-E rest (793dc9f). Tree: 1014 + 11 tests, analyze 0, doc 0, iOS/web/macOS builds, autodemo clean. The audit is DONE except PF9 (edge effect backdrop grouping, visual change) and P5api (configurable bar-menu tuning).
+- Next: make a liquid->frosted fallback observable in release; owner decision A8 (engine flights clamp size past value 1, UIKit overshoots size), then the performance passport.
 
 ## Order of work (owner's priorities)
 
