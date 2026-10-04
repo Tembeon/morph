@@ -232,7 +232,10 @@ class GalleryCaption extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const .only(left: 4, bottom: 10, top: 24),
-      child: Text(text, style: TextStyle(color: gallerySecondaryColor(context))),
+      child: Text(
+        text,
+        style: TextStyle(color: gallerySecondaryColor(context)),
+      ),
     );
   }
 }
