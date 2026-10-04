@@ -39,7 +39,8 @@ C1, G1, ... refer to it).
 - Submenu calibration by film landed (42b53f7..0cc68ff).
 - CHANGELOG lines of all of the above wait in tool/audit/CHANGELOG-pending.md (merge into CHANGELOG.md 0.7.0, then delete the file).
 - LESSON: WP-I's shader packaging silently fell back to frosted on the device (the build hook never gets data assets on Flutter 3.47.2). Fixed in f8b921d. The fallback diagnostic prints only in debug - make a liquid->frosted fallback observable in release (an onFallback callback or a one-time FlutterError.reportError), and always verify renderer changes on the device (glass_audit now records liquid_available).
-- Remaining: WP-F lens-family controls (incl. the lens travel spring 0.401/0.856 code vs 0.392/0.863 passports), WP-J docs/hygiene (+ merging CHANGELOG-pending), wave 3 (WP-H control host mixin, D5 menu host merge), owner decision A8 (engine flights clamp size past value 1, UIKit overshoots size), then the performance passport.
+- WP-F (2ecf687; travel spring 0.401/0.856 confirmed by the replays, passports fixed) and WP-J (76cc9ab; CHANGELOG-pending merged and deleted) landed. Tree: 985 + 11 tests, analyze 0, doc 0, iOS + web build.
+- Remaining: wave 3 (WP-H control host mixin, D5 menu host merge), owner decision A8 (engine flights clamp size past value 1, UIKit overshoots size), then the performance passport.
 
 ## Order of work (owner's priorities)
 
