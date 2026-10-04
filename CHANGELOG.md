@@ -18,6 +18,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   cards retain full platters, rims and shadows, with the measured 0.97
   parent glass scale. Regression frames cap the horizontal hand-off step
   at 0.5 pt; the root platter replays native device bounds at 0.014 pt RMS.
+  Closing stacks use UIKit's independent 0.35/0.85 container spring,
+  with the deeper-card anchor scaled by 0.97 and no submenu tap flash;
+  visible closing bounds replay at 0.055 pt RMS after clock alignment.
 - The measured controls: `MorphSegmentedControl` (+
   `MorphSegmentedStyle`) and `MorphTabBar` (+ `MorphTabItem`,
   `MorphTabBarStyle`) - one liquid selection lens on
