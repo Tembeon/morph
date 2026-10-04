@@ -52,6 +52,18 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   zoom draw with the glass painter above the control that presented them,
   as menus do; before, a `MorphGlass` below the Navigator left them on the
   flat fallback.
+- Engine flights (`showMorph*`, `showMorphDialog` / `Sheet`,
+  `showMorphRoute`, `MorphAnchor`) carry the inherited themes of their
+  source tag, as Flutter's popup routes carry those of the context that
+  showed them: the source ghost, the surface and the target content draw
+  under the source's `Theme`, `DefaultTextStyle`, `IconTheme` and glass
+  painter (`MorphGlass` is now an `InheritedTheme`), on the shuttle and
+  on the settled route page, and follow a change at the source such as a
+  `MorphAdaptiveGlass` tier switch. Before, a `MorphGlass` or a `Theme`
+  inside a page was invisible to the flight, so a `MorphGlassButton`
+  used as a `MorphTag` source flew on the flat fallback. Alerts, sheets
+  and the date picker now carry all of the presenter's inherited themes
+  too, not only its glass painter.
 - Liquid glass initialization failures report once per isolate through
   `FlutterError.reportError` in every build mode (library `morph glass`);
   `MorphGlassRenderer.liquidUnavailableReason` exposes the cached cause.
