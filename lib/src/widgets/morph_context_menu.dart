@@ -973,7 +973,9 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
 /// times the hero's natural size at the hero's center, at 1 it stands in
 /// place - the
 /// menu grows out of the held surface and retracts into it on the way
-/// home, a pure function of the flight's value.
+/// home, a pure function of the flight's value. The satellite rect uses
+/// the engine's flight geometry, including its size overshoot above 1;
+/// the column's content remains laid out at its natural size.
 class _Retract extends StatelessWidget {
   const _Retract({
     required this.flight,
@@ -995,8 +997,6 @@ class _Retract extends StatelessWidget {
       listenable: flight.frameTicks,
       child: child,
       builder: (BuildContext context, Widget? child) {
-        // The open's overshoot carries the satellites past their slots,
-        // as UIKit's menu overshoots with its preview.
         final double value = math.max(flight.controller.value, 0);
         // One Transform on every frame, identity at rest: a tree that
         // changed shape at the boundary would remount the satellite.
@@ -1028,7 +1028,13 @@ class _Retract extends StatelessWidget {
               MorphContextMenuRegion.measuredRetractScale /
               reveal,
         );
-        final Rect now = Rect.lerp(blob, slot, value)!;
+        final Rect now = morphFlightGeometry(
+          value: value,
+          sourceRect: blob,
+          targetRect: slot,
+          sourceShape: flight.tag.shape,
+          targetShape: flight.target.shape,
+        ).rect;
         final Matrix4 transform = Matrix4.translationValues(
           now.left - slot.left,
           now.top - slot.top,

@@ -141,8 +141,15 @@ engine flight on a transparent vessel surface spec; `scrimMotion`
   natural.
 - SPRING port: `measuredMotion` = MorphMotion.springs(measuredSpring both
   ways), default for the region (explicit motion > MorphTheme >
-  measuredMotion) - no exemption needed. _Retract does not clamp above 1
-  (the device menu overshoots its rect). The close's residual undershoot
+  measuredMotion) - no exemption needed. Container size and concentric
+  radius extrapolate above 1 in the engine. _Retract uses that same
+  morphFlightGeometry helper for the satellite's blob-to-slot rect, with
+  no separate Rect.lerp overshoot formula or extra scale. The column lays
+  content out at its natural size, so merely clamping _Retract would erase
+  the satellite's size overshoot even as the outer container grows: the
+  device replay's width/height peaks would become exactly 1.0. The menu
+  rect's own size interpolation is applied once through the engine helper.
+  The close's residual undershoot
   plays on the SOURCE hero (_followLanding: the press Transform adds
   min(value, 0) x (measuredPreviewScale - 1) while isLanding).
 - DIM port: through the engine's scrim channel
@@ -164,6 +171,13 @@ engine flight on a transparent vessel surface spec; `scrimMotion`
   preview.json under 0.12 pt open / 0.25 close); device preview group
   (s/m/t/l: open size and center exact, menu at the device rect, never
   back through natural size while open).
+- Engine size-overshoot change (2026-10-04): menu center RMS as percent of
+  device travel, before -> after: ctxd-m-1 open 0.473 -> 0.456, close
+  0.680 -> 0.680; ctxd-l-1 open 0.487 -> 0.499, close 0.614 -> 0.614.
+  Hero close remains 0.528 / 0.559 percent respectively. Menu size RMS is
+  unchanged: width 0.659 / 1.069 percent, height 0.726 / 0.577 percent;
+  the larger width error includes the blob-width gap below. Size peaks
+  remain above 1, with no widget-specific overshoot formula.
 - Not reproduced: the blob's WIDTH for a menu narrower than the lifted
   hero (300x200: device 83.2 x 80, ours 92 x 80 - our blob is 0.4 of the
   slot, the 250 pt menu centered in the 326 pt slot). The native preview

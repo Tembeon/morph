@@ -1933,6 +1933,43 @@ void deviceMorph() {
         for (final f in frames(previewParts['close'])!)
           (f[0], 1 - (math.max(f[3], f[4]) - size.longestSide) / lifted),
       ];
+      debugPrint(
+        '$name replay: menu open ${_replayError(deviceMenuOpen, ourMenuOpen)}, '
+        'menu close ${_replayError(deviceMenuClose, ourMenuClose)}, '
+        'hero close ${_replayError(deviceHeroClose, ourHeroClose)}',
+      );
+      for (final int axis in <int>[3, 4]) {
+        final double extent = menu[axis - 1].toDouble();
+        final double blob = frames(parts['open'])!.first[axis];
+        final deviceSize = <(double, double)>[
+          for (final f in frames(parts['open'])!)
+            (f[0], (f[axis] - blob) / (extent - blob)),
+        ];
+        final ourSize = <(double, double)>[
+          for (final (t, _, rect) in run.open)
+            if (rect != null)
+              (
+                t,
+                ((axis == 3 ? rect.width : rect.height) - blob) /
+                    (extent - blob),
+              ),
+        ];
+        final double sizeError = _replayError(deviceSize, ourSize);
+        final double peak = ourSize
+            .map(((double, double) f) => f.$2)
+            .reduce(math.max);
+        debugPrint(
+          '$name menu axis $axis: rms $sizeError, '
+          'device peak ${deviceSize.map(((double, double) f) => f.$2).reduce(math.max)}, '
+          'replay peak $peak',
+        );
+        expect(
+          sizeError,
+          lessThan(axis == 3 && name == 'ctxd-l-1' ? 0.011 : 0.008),
+          reason: '$name menu size axis $axis',
+        );
+        expect(peak, inInclusiveRange(1.01, 1.02));
+      }
       expect(
         _replayError(deviceMenuOpen, ourMenuOpen),
         lessThan(0.01),

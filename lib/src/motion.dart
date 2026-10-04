@@ -72,11 +72,11 @@ class MorphMotion {
     return null;
   }
 
-  /// Drives open retargets. It may overshoot 1: an engine flight's
-  /// container then travels on past the target center and settles
-  /// back, while its size and shape hold at the target (the frame's
-  /// overdrag rule). Widget-layer morphs that measured a size overshoot
-  /// on the device (the context menu) draw it in their own geometry.
+  /// Drives open retargets, including geometry overshoot above 1.
+  ///
+  /// The container's center, size and concentric corner radius follow
+  /// the raw value past the target and settle back together. Opacity,
+  /// color and elevation remain bounded at their endpoint values.
   Motion get openMotion => openSpring?.toMotion() ?? _openMotion!;
 
   /// Drives close retargets; the handoff latch fires on its first zero
@@ -87,7 +87,9 @@ class MorphMotion {
   ///
   /// Open is the morph's eject spring (0.5 s, damping ratio 0.75) and
   /// close its absorb spring (0.7 s, 0.8), both at the morph's speed of
-  /// 0.7, which UIKit applies by dividing time.
+  /// 0.7, which UIKit applies by dividing time. The open peaks near
+  /// 1.028, overshooting center and size by about 3 percent of their
+  /// travel; the close dips about 1.5 percent below zero after handoff.
   static const MorphMotion liquid = MorphMotion.springs(
     name: 'liquid',
     open: MorphSpring(0.35, 0.75),

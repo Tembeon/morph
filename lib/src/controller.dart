@@ -64,16 +64,20 @@ class MorphController extends ChangeNotifier {
   /// source widget - a safe point to swap without flicker.
   VoidCallback? onHandoff;
 
-  /// The raw spring value. May leave `[0, 1]`: past 1 an engine
-  /// flight's container travels on past the target center while its
-  /// size and shape hold at the target; undershoot below 0 comes after
-  /// the handoff latch, once the source widget is back.
+  /// The raw spring value, including overshoot outside `0..1`.
+  ///
+  /// Above 1 the container's center, size and concentric corner radius
+  /// extrapolate past the target. Below 0 size and radius hold at the
+  /// source; the close's undershoot follows the handoff latch, once the
+  /// live source widget is back.
   double get value => _value;
 
   /// The spring velocity in value units per second.
   double get velocity => _velocity;
 
-  /// The value for opacity and shape curves: clamped to `[0, 1]`.
+  /// The value for bounded appearance curves and phases, clamped to `0..1`.
+  ///
+  /// Geometry uses [value] so its open overshoot remains visible.
   double get progress => clampDouble(_value, 0, 1);
 
   /// The current retarget destination: 1 open, 0 closed.

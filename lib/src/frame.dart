@@ -28,14 +28,17 @@ class MorphFrame {
     required this.surfaceColor,
   });
 
-  /// The container rect in overlay coordinates.
+  /// The container rect in overlay coordinates, including size overshoot.
   final Rect rect;
 
   /// The container outline for this frame.
   final ShapeBorder shape;
 
   /// The derived corner radius when both shapes can be expressed by one;
-  /// null when falling back to ShapeBorder.lerp.
+  /// null when falling back to [ShapeBorder.lerp].
+  ///
+  /// The radius extrapolates above 1 with size and stays within half the
+  /// live rect's shortest side.
   final double? cornerRadius;
 
   /// Opacity of the source ghost (fades out early in the flight).
@@ -104,13 +107,11 @@ double morphScrimOpacity(double maxScrimOpacity, double progress) =>
 /// implementation serves both renderings of a flight - the shuttle
 /// frame and the liquid mirror blob - so the two can never drift apart.
 ///
-/// Geometry rides the raw spring value: position and size share one
-/// clock - a "position leads" split is not supported by platform
-/// references. Beyond the travel range (gesture overdrag past `[0, 1]`)
-/// the morph ONLY shifts along its trajectory and does not stretch:
-/// the center extrapolates while size and shape freeze at the edge -
-/// like an iOS sheet that hits its limit and rides with the finger
-/// instead of inflating.
+/// Center and size are linear in the spring value through and beyond 1,
+/// so an open overshoot carries the container past its target rect.
+/// Below 0 the center extrapolates while size holds at the source; the
+/// close's residual undershoot belongs to the live source after handoff.
+/// Extrapolated dimensions are bounded below by zero.
 ({Rect rect, double? sourceRadius, double? targetRadius}) morphFlightGeometry({
   required double value,
   required Rect sourceRect,
@@ -118,7 +119,7 @@ double morphScrimOpacity(double maxScrimOpacity, double progress) =>
   required ShapeBorder sourceShape,
   required ShapeBorder targetShape,
 }) {
-  final double p = clampDouble(value, 0, 1);
+  final double p = math.max(value, 0);
   final Offset center = Offset.lerp(
     sourceRect.center,
     targetRect.center,
@@ -136,18 +137,19 @@ double morphScrimOpacity(double maxScrimOpacity, double progress) =>
   );
 }
 
-/// The concentric-corners radius of a frame: the endpoint radii lerped
-/// by progress and capped by half the shortest side of the CURRENT
-/// rect - a capsule-to-rectangle morph resolves through the container's
-/// own growth and structurally cannot lag behind it.
+/// The concentric-corners radius of a frame, linear in the spring value.
+///
+/// Endpoint radii extrapolate above 1 with the container's size and hold
+/// at the source below 0. The radius stays between zero and half the live
+/// rect's shortest side, so a capsule follows the container's growth.
 double morphConcentricRadius(
   double sourceRadius,
   double targetRadius,
-  double progress,
+  double value,
   Rect rect,
 ) {
   return clampDouble(
-    lerpDouble(sourceRadius, targetRadius, progress)!,
+    lerpDouble(sourceRadius, targetRadius, math.max(value, 0))!,
     0,
     rect.shortestSide / 2,
   );
@@ -155,6 +157,12 @@ double morphConcentricRadius(
 
 /// Computes every render value of a flight frame from one spring
 /// [value] - the whole visual contract in a single pure function.
+///
+/// Center, size and concentric radius extrapolate above 1. Below 0 only
+/// the center extrapolates. Opacity, reveal scale, elevation and color
+/// use the value clamped to `0..1`. Uniform shapes also clamp their border
+/// side interpolation; unsupported shape pairs use [ShapeBorder.lerp]
+/// with the nonnegative value.
 MorphFrame computeMorphFrame({
   required double value,
   required Rect sourceRect,
@@ -184,12 +192,14 @@ MorphFrame computeMorphFrame({
   double? cornerRadius;
   ShapeBorder shape;
   if (geometry.sourceRadius == null || geometry.targetRadius == null) {
-    shape = ShapeBorder.lerp(sourceShape, targetShape, p) ?? targetShape;
+    shape =
+        ShapeBorder.lerp(sourceShape, targetShape, math.max(value, 0)) ??
+        targetShape;
   } else {
     cornerRadius = morphConcentricRadius(
       geometry.sourceRadius!,
       geometry.targetRadius!,
-      p,
+      value,
       rect,
     );
     shape = _shapeFromRadius(sourceShape, targetShape, cornerRadius, p);

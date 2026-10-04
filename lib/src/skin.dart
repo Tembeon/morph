@@ -1077,7 +1077,7 @@ class RenderMorphSkin extends RenderBox
   }
 
   /// Companion blobs of flown-away pieces: a mirror of the flight frame
-  /// geometry (center by value, size by progress, radius via the
+  /// geometry (center and size by value, radius via the
   /// concentric lerp with its cap) translated into the group's local
   /// coordinates. The blob is hidden under the shuttle for most of the
   /// flight - only the neck tail shows. The blob necks ONLY to the
@@ -1133,7 +1133,7 @@ class RenderMorphSkin extends RenderBox
       final double radius = morphConcentricRadius(
         r0,
         g.targetRadius ?? r0,
-        flight.controller.progress,
+        flight.controller.value,
         flying,
       );
       final Set<Object> fellow = _flightFellowship[flight] ?? const <Object>{};

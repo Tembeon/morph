@@ -1188,9 +1188,12 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   MorphMenuTuning; long-idle kicks skip ahead; the More label is
   localizable and menus carry their semantics; the context menu follows
   `enabled` and `tagId` changes.
+- BREAKING: engine flights now overshoot in size as well as position;
+  concentric corner radii follow the same raw spring value past 1.
+  Context-menu satellites use the engine geometry once, and the close
+  handoff and source undershoot stay unchanged.
 - Remaining audit/fidelity work: scroll-edge backdrop grouping (PF9) and
-  configurable bar-menu tuning (P5api). Engine flights still clamp size and
-  shape past progress 1 while their centers overshoot (A8). Submenu dark
+  configurable bar-menu tuning (P5api). Submenu dark
   film dropped frames, so dark styling was judged from stills; the close
   drop starts from the whole menu instead of the list, row tap highlights
   differ from the films, chevron turn/bold switching is estimated and the

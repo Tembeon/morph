@@ -62,7 +62,7 @@ void main() {
   });
 
   test('radius structurally cannot lag: capped at half the side', () {
-    for (double v = 0; v <= 1.0001; v += 0.02) {
+    for (double v = 0; v <= 1.2001; v += 0.02) {
       final MorphFrame f = frameAt(
         v,
         targetShape: const RoundedRectangleBorder(
@@ -91,26 +91,108 @@ void main() {
     expect(frameAt(0.7).targetScale, greaterThan(0.95));
   });
 
-  test('beyond the travel range the morph shifts but does not stretch', () {
+  test('above 1 center, size and radius extrapolate on the same value', () {
     final MorphFrame over = frameAt(1.2);
-    expect(centerProgress(over), greaterThan(1));
-    expect(over.rect.size, target.size, reason: 'size is frozen at the edge');
+    expect(centerProgress(over), moreOrLessEquals(1.2));
+    expect(sizeProgress(over), moreOrLessEquals(1.2));
+    expect(over.rect.size, const Size(460, 350));
+    expect(radiusOf(over), moreOrLessEquals(28.6));
+  });
 
+  test('below 0 the source size and radius hold through close undershoot', () {
     final MorphFrame under = frameAt(-0.2);
     expect(centerProgress(under), lessThan(0));
+    expect(under.rect.size, source.size);
+    expect(radiusOf(under), 25);
+    expect(under.sourceOpacity, 1);
+    expect(under.targetOpacity, 0);
+  });
+
+  test('appearance properties clamp while geometry overshoots', () {
+    final MorphFrame over = frameAt(1.1);
+    expect(over.scrimOpacity, moreOrLessEquals(0.45));
+    expect(radiusOf(over), moreOrLessEquals(28.3));
+    expect(over.targetOpacity, 1);
+    expect(over.sourceOpacity, 0);
+    expect(over.targetScale, 1);
+    expect(over.elevation, 24);
+    expect(over.surfaceColor, Colors.white);
+  });
+
+  test('the device menu width peak extrapolates beyond its target rect', () {
+    const Rect blob = Rect.fromLTWH(159.4, 260, 83.2, 80);
+    const Rect menu = Rect.fromLTWH(76, 424.67, 250, 208);
+    const double peakWidth = 253.16;
+    final double value = (peakWidth - blob.width) / (menu.width - blob.width);
+    final MorphFrame frame = computeMorphFrame(
+      value: value,
+      sourceRect: blob,
+      targetRect: menu,
+      sourceShape: const StadiumBorder(),
+      targetShape: const RoundedRectangleBorder(
+        borderRadius: .all(.circular(32)),
+      ),
+      sourceColor: Colors.black,
+      targetColor: Colors.white,
+      maxScrimOpacity: 0.2,
+    );
+    expect(value, closeTo(1.0189448441247, 1e-12));
     expect(
-      under.rect.size,
-      source.size,
-      reason: 'pulling past the button does not degenerate the rect',
+      frame.rect.width,
+      closeTo(peakWidth, 1e-9),
+      reason: 'context_menu/morph.json ctxd-l-1 at 1.1235 seconds',
+    );
+    expect(frame.rect.height, closeTo(210.4249400479616, 1e-9));
+    expect(frame.cornerRadius, closeTo(31.8484412470024, 1e-9));
+    expect(
+      (frame.rect.center.dy - blob.center.dy) /
+          (menu.center.dy - blob.center.dy),
+      closeTo(value, 1e-12),
     );
   });
 
-  test('surface properties clamp on overshoot', () {
-    final MorphFrame over = frameAt(1.1);
-    expect(over.scrimOpacity, moreOrLessEquals(0.45));
-    expect(radiusOf(over), 28);
-    expect(over.targetOpacity, 1);
-    expect(over.sourceOpacity, 0);
+  test('overshoot respects the radius floor and nonnegative dimensions', () {
+    final MorphFrame over = frameAt(
+      12,
+      targetShape: const RoundedRectangleBorder(),
+    );
+    expect(over.cornerRadius, 0);
+    final MorphFrame shrink = computeMorphFrame(
+      value: 2,
+      sourceRect: target,
+      targetRect: source,
+      sourceShape: const StadiumBorder(),
+      targetShape: const StadiumBorder(),
+      sourceColor: Colors.black,
+      targetColor: Colors.white,
+      maxScrimOpacity: 0.45,
+    );
+    expect(shrink.rect.size, Size.zero);
+    expect(shrink.cornerRadius, 0);
+  });
+
+  testWidgets('a liquid open overshoots size by its spring travel', (
+    WidgetTester tester,
+  ) async {
+    final MorphController controller = MorphController(
+      vsync: const TestVSync(),
+      motion: MorphMotion.liquid,
+    );
+    addTearDown(controller.dispose);
+    controller.open();
+    await tester.pump();
+    double peak = 1;
+    for (int i = 0; i < 100; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      final MorphFrame frame = frameAt(controller.value);
+      expect(centerProgress(frame), closeTo(controller.value, 1e-9));
+      expect(sizeProgress(frame), closeTo(controller.value, 1e-9));
+      peak = math.max(peak, sizeProgress(frame));
+    }
+    expect(controller.isAnimating, isFalse);
+    expect(peak, closeTo(1.028, 0.001));
+    expect(frameAt(peak).rect.width, closeTo(408.4, 0.3));
+    expect(frameAt(peak).rect.height, closeTo(307, 0.25));
   });
 
   test('an unknown shape pair falls back to ShapeBorder.lerp', () {
