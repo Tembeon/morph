@@ -11,6 +11,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/typography.dart';
+import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphSearchField] and a [MorphSearchToolbar].
@@ -97,13 +98,13 @@ class MorphSearchFieldStyle {
   static MorphSearchFieldStyle resolve(
     BuildContext context,
     MorphSearchFieldStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.searchField ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.searchField,
+    light: light,
+    dark: dark,
+  );
 }
 
 /// The iOS 27 search field: a glass capsule with a magnifier, the text
@@ -213,7 +214,12 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   @override
   void didUpdateWidget(MorphSearchField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!widget.enabled && _focus.hasFocus) _focus.unfocus();
+    if (!widget.enabled) {
+      if (_focus.hasFocus) _focus.unfocus();
+      _downAt = null;
+      _motion.pointerCancel(clock);
+      wake();
+    }
   }
 
   @override
@@ -371,7 +377,9 @@ class _MorphSearchFieldState extends State<MorphSearchField>
     );
     return DefaultTextStyle(
       style: text,
-      child: Listener(
+      child: MorphTouchListener(
+        enabled: widget.enabled && !_focus.hasFocus,
+        delaysInScrollable: true,
         onPointerDown: _down,
         onPointerUp: _up,
         onPointerCancel: _up,
@@ -381,83 +389,30 @@ class _MorphSearchFieldState extends State<MorphSearchField>
           child: ListenableBuilder(
             listenable: frames,
             builder: (BuildContext context, Widget? child) => Transform.scale(
-              scale: _motion.pressScale(_motion.time),
+              scale: widget.enabled ? _motion.pressScale(_motion.time) : 1,
               child: child,
             ),
             child: SizedBox(
               height: MorphSearchTuning.height,
-              child: _Capsule(
-                glass: glass,
-                color: widget.enabled
-                    ? style.capsuleColor
-                    : style.disabledFillColor,
-                rim: style.rimColor,
-                shadow: style.shadowColor,
-                brightness: brightness,
-                enabled: widget.enabled,
-                child: content,
-              ),
+              child: widget.enabled
+                  ? MorphControlCapsule(
+                      painter: glass,
+                      frames: frames,
+                      color: style.capsuleColor,
+                      rim: style.rimColor,
+                      shadow: style.shadowColor,
+                      brightness: brightness,
+                      enabled: widget.enabled,
+                      child: content,
+                    )
+                  : CustomPaint(
+                      painter: _FlatPainter(style.disabledFillColor),
+                      child: content,
+                    ),
             ),
           ),
         ),
       ),
-    );
-  }
-}
-
-/// A 48 point glass capsule behind [child], drawn by the installed
-/// [MorphGlassPainter] or flat.
-class _Capsule extends StatelessWidget {
-  const _Capsule({
-    required this.glass,
-    required this.color,
-    required this.rim,
-    required this.shadow,
-    required this.brightness,
-    required this.enabled,
-    required this.child,
-  });
-
-  final MorphGlassPainter? glass;
-  final Color color;
-  final Color rim;
-  final Color shadow;
-  final Brightness brightness;
-  final bool enabled;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    final painter = glass;
-    if (!enabled) {
-      return CustomPaint(painter: _FlatPainter(color), child: child);
-    }
-    if (painter == null) {
-      return CustomPaint(
-        painter: _CapsulePainter(color: color, rim: rim, shadow: shadow),
-        child: child,
-      );
-    }
-    return Stack(
-      fit: StackFit.passthrough,
-      children: [
-        Positioned.fill(
-          child: LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints box) =>
-                painter.buildSurface(
-                  context,
-                  MorphGlassSurface(
-                    kind: MorphGlassKind.button,
-                    shape: _capsule(box.biggest),
-                    color: color,
-                    brightness: brightness,
-                    enabled: enabled,
-                  ),
-                ),
-          ),
-        ),
-        child,
-      ],
     );
   }
 }
@@ -481,41 +436,6 @@ class _FlatPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FlatPainter oldDelegate) => oldDelegate.color != color;
-}
-
-class _CapsulePainter extends CustomPainter {
-  const _CapsulePainter({
-    required this.color,
-    required this.rim,
-    required this.shadow,
-  });
-
-  final Color color;
-  final Color rim;
-  final Color shadow;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final shape = _capsule(size);
-    final shadowPaint = Paint();
-    shadowPaint.color = shadow;
-    shadowPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawRRect(shape.shift(const Offset(0, 2)), shadowPaint);
-    final fill = Paint();
-    fill.color = color;
-    canvas.drawRRect(shape, fill);
-    final stroke = Paint();
-    stroke.style = PaintingStyle.stroke;
-    stroke.strokeWidth = 0.5;
-    stroke.color = rim;
-    canvas.drawRRect(shape.deflate(0.25), stroke);
-  }
-
-  @override
-  bool shouldRepaint(_CapsulePainter oldDelegate) =>
-      oldDelegate.color != color ||
-      oldDelegate.rim != rim ||
-      oldDelegate.shadow != shadow;
 }
 
 class _MagnifierPainter extends CustomPainter {

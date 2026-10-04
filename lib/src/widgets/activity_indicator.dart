@@ -26,13 +26,13 @@ class MorphActivityIndicatorStyle {
   static MorphActivityIndicatorStyle resolve(
     BuildContext context,
     MorphActivityIndicatorStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.activityIndicator ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.activityIndicator,
+    light: light,
+    dark: dark,
+  );
 }
 
 /// The two sizes of a [MorphActivityIndicator], after
@@ -160,6 +160,15 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
     with
         SingleTickerProviderStateMixin<MorphActivityIndicator>,
         MorphClock<MorphActivityIndicator> {
+  final ValueNotifier<int> _image = ValueNotifier<int>(0);
+  double _startedAt = 0;
+
+  @override
+  void dispose() {
+    _image.dispose();
+    super.dispose();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -167,7 +176,10 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
   }
 
   @override
-  void advanceMotion(double t) {}
+  void advanceMotion(double t) {
+    if (!widget.animating) return;
+    _image.value = MorphActivityIndicatorFrames.frameAt(t - _startedAt);
+  }
 
   @override
   bool get motionSettled => !widget.animating;
@@ -175,7 +187,13 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
   @override
   void didUpdateWidget(MorphActivityIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.animating && !oldWidget.animating) wake();
+    if (widget.animating != oldWidget.animating) {
+      _image.value = 0;
+      if (widget.animating) {
+        _startedAt = clock;
+        wake();
+      }
+    }
   }
 
   @override
@@ -207,7 +225,34 @@ class _SpinnerPainter extends CustomPainter {
     required this.state,
     required this.color,
     required this.size,
-  }) : super(repaint: state.frames);
+  }) : super(repaint: state._image) {
+    final metrics = MorphActivityIndicator.metrics(size);
+    _paints = [
+      for (
+        var frame = 0;
+        frame < MorphActivityIndicatorFrames.frameCount;
+        frame++
+      )
+        [
+          for (var i = 0; i < MorphActivityIndicatorFrames.spokes; i++)
+            _paint(
+              color,
+              metrics.width,
+              MorphActivityIndicatorFrames.strength(i, frame),
+            ),
+        ],
+    ];
+  }
+
+  static Paint _paint(Color color, double width, double strength) {
+    final paint = Paint();
+    paint.color = color.withValues(alpha: color.a * strength);
+    paint.strokeWidth = width;
+    paint.strokeCap = StrokeCap.round;
+    return paint;
+  }
+
+  late final List<List<Paint>> _paints;
 
   final _MorphActivityIndicatorState state;
   final Color color;
@@ -216,20 +261,13 @@ class _SpinnerPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size box) {
     final m = MorphActivityIndicator.metrics(size);
-    final frame = state.widget.animating
-        ? MorphActivityIndicatorFrames.frameAt(state.clock)
-        : 0;
+    final frame = state.widget.animating ? state._image.value : 0;
     final center = box.center(Offset.zero);
     final half = m.width / 2;
     for (var i = 0; i < MorphActivityIndicatorFrames.spokes; i++) {
       final angle = i * 2 * math.pi / MorphActivityIndicatorFrames.spokes;
       final dir = Offset(math.sin(angle), -math.cos(angle));
-      final paint = Paint();
-      paint.color = color.withValues(
-        alpha: color.a * MorphActivityIndicatorFrames.strength(i, frame),
-      );
-      paint.strokeWidth = m.width;
-      paint.strokeCap = StrokeCap.round;
+      final paint = _paints[frame][i];
       canvas.drawLine(
         center + dir * (m.inner + half),
         center + dir * (m.outer - half),
@@ -239,5 +277,8 @@ class _SpinnerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_SpinnerPainter oldDelegate) => true;
+  bool shouldRepaint(_SpinnerPainter oldDelegate) =>
+      oldDelegate.state != state ||
+      oldDelegate.color != color ||
+      oldDelegate.size != size;
 }

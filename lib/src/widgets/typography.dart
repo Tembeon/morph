@@ -14,7 +14,7 @@ import 'package:flutter/widgets.dart';
 /// weight-axis values (`wght` 510 for medium, 590 for semibold) and SF
 /// Pro's size-dependent tracking ([tracking]). Without them a 13 pt label
 /// is drawn about 1 percent wide and a 34 pt title about 8 percent wide.
-/// Everywhere else the style is returned as is: the platform's own font
+/// Everywhere else the style keeps its metrics: the platform's own font
 /// at the same size and weight, without SF tracking - SF Pro is never
 /// bundled, its license limits it to Apple platforms.
 abstract final class MorphTypography {
@@ -159,6 +159,11 @@ abstract final class MorphTypography {
   /// would pick up the yellow double underline and monospace family of
   /// the missing-text-style fallback - and a `TextPainter` measuring it
   /// sees exactly what is painted.
+  ///
+  /// Ambient app font families are not inherited, including on Android
+  /// and web. Set [TextStyle.fontFamily] on the supplied style to use an
+  /// app font; SF Pro is not bundled and its measured metrics apply only
+  /// on Apple platforms.
   ///
   /// On Apple platforms, for the system font (no `fontFamily`, or one of
   /// Flutter's system font aliases): the optical size and weight axes

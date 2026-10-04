@@ -48,13 +48,13 @@ class MorphPageControlStyle {
   static MorphPageControlStyle resolve(
     BuildContext context,
     MorphPageControlStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.pageControl ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.pageControl,
+    light: light,
+    dark: dark,
+  );
 }
 
 /// When a [MorphPageControl] shows its platter, after
@@ -143,12 +143,12 @@ class MorphPageControlMotion {
     required int count,
     required int page,
     this.showsProgress = false,
-  }) : _page = page,
+  }) : _page = count > 0 ? page.clamp(0, count - 1) : 0,
        _widths = [
          for (var i = 0; i < count; i++)
            MorphSpringState(
              MorphPageControlTuning.widthSpring,
-             _restWidth(i == page, showsProgress),
+             _restWidth(i == page.clamp(0, count - 1), showsProgress),
            ),
        ];
 
@@ -210,6 +210,7 @@ class MorphPageControlMotion {
   /// dots.
   void pointerDown(double t, double x) {
     advance(t);
+    if (count == 0) return;
     _downX = x;
     _scrubbing = false;
     _stepped = false;
@@ -228,7 +229,7 @@ class MorphPageControlMotion {
   void pointerMove(double t, double x) {
     advance(t);
     final from = _downX;
-    if (from == null) return;
+    if (from == null || count == 0) return;
     if (!_scrubbing && (x - from).abs() <= MorphPageControlTuning.scrubSlop) {
       return;
     }
@@ -258,7 +259,7 @@ class MorphPageControlMotion {
     final from = _downX;
     _downX = null;
     _hidePlatter(t);
-    if (from == null || _scrubbing || _stepped) {
+    if (count == 0 || from == null || _scrubbing || _stepped) {
       _scrubbing = false;
       return;
     }
@@ -293,6 +294,7 @@ class MorphPageControlMotion {
   /// Shows [page] from time [t]; animated only while showing progress.
   void setPage(double t, int page) {
     advance(t);
+    if (count == 0) return;
     final next = page.clamp(0, count - 1);
     if (next == _page) return;
     final previous = _page;
@@ -312,7 +314,8 @@ class MorphPageControlMotion {
   }
 
   /// The width of indicator [index] at time [t].
-  double width(int index, double t) => _widths[index].value(t);
+  double width(int index, double t) =>
+      index >= 0 && index < count ? _widths[index].value(t) : 0;
 
   /// The opacity of the fill of indicator [index] at time [t]: 1 on the
   /// current page, fading on the page just left, 0 elsewhere.
@@ -324,6 +327,7 @@ class MorphPageControlMotion {
 
   /// The width of all indicators and the gaps between them at time [t].
   double contentWidth(double t) {
+    if (count == 0) return 0;
     var w = MorphPageControlTuning.spacing * (count - 1);
     for (var i = 0; i < count; i++) {
       w += width(i, t);
@@ -334,6 +338,7 @@ class MorphPageControlMotion {
   /// The center of indicator [index] from the start of the dots at
   /// time [t].
   double center(int index, double t) {
+    if (index < 0 || index >= count) return 0;
     var x = 0.0;
     for (var i = 0; i < index; i++) {
       x += width(i, t) + MorphPageControlTuning.spacing;
@@ -364,6 +369,7 @@ class MorphPageControl extends StatefulWidget {
     this.background = MorphPageControlBackground.automatic,
     this.style,
     this.semanticLabel,
+    this.semanticValueFormatter,
     super.key,
   });
 
@@ -392,6 +398,10 @@ class MorphPageControl extends StatefulWidget {
   /// The label screen readers announce for the control.
   final String? semanticLabel;
 
+  /// Formats the adjustable value from a one-based page and page count.
+  /// Null uses the English "page n of count". Empty controls have no value.
+  final String Function(int page, int count)? semanticValueFormatter;
+
   @override
   State<MorphPageControl> createState() => _MorphPageControlState();
 }
@@ -410,12 +420,17 @@ class _MorphPageControlState extends State<MorphPageControl>
   }
 
   void _picked(int page) {
-    if (page != widget.page) widget.onChanged?.call(page);
+    if (page != _page) widget.onChanged?.call(page);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _motion.page == _page) return;
+      _motion.setPage(clock, _page);
+      wake();
+    });
   }
 
   MorphPageControlMotion _create() {
     final motion = MorphPageControlMotion(
-      count: math.max(1, widget.count),
+      count: math.max(0, widget.count),
       page: widget.page.clamp(0, math.max(0, widget.count - 1)),
       showsProgress: widget.progress != null,
     );
@@ -432,6 +447,11 @@ class _MorphPageControlState extends State<MorphPageControl>
   @override
   void didUpdateWidget(MorphPageControl oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!_enabled && _pointer != null) {
+      _pointer = null;
+      _motion.pointerCancel(clock);
+      wake();
+    }
     if (widget.count != oldWidget.count ||
         (widget.progress == null) != (oldWidget.progress == null)) {
       _motion = _create();
@@ -443,11 +463,16 @@ class _MorphPageControlState extends State<MorphPageControl>
     }
   }
 
-  bool get _enabled => widget.onChanged != null;
+  int get _count => math.max(0, widget.count);
+
+  int get _page => _count == 0 ? 0 : widget.page.clamp(0, _count - 1);
+
+  bool get _enabled => widget.onChanged != null && _count > 0;
 
   void _step(int delta) {
-    final next = (widget.page + delta).clamp(0, widget.count - 1);
-    if (next != widget.page) widget.onChanged?.call(next);
+    if (!_enabled) return;
+    final next = (_page + delta).clamp(0, _count - 1);
+    if (next != _page) widget.onChanged?.call(next);
   }
 
   Size get _size {
@@ -462,7 +487,11 @@ class _MorphPageControlState extends State<MorphPageControl>
   Widget build(BuildContext context) {
     final style = MorphPageControlStyle.resolve(context, widget.style);
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
-    final count = widget.count;
+    final count = _count;
+    final page = _page;
+    String value(int page) =>
+        widget.semanticValueFormatter?.call(page, count) ??
+        'page $page of $count';
     return MorphControlFocus(
       enabled: _enabled,
       onHighlight: (bool v) => setState(() => _focused = v),
@@ -473,22 +502,20 @@ class _MorphPageControlState extends State<MorphPageControl>
           container: true,
           enabled: _enabled,
           label: widget.semanticLabel,
-          value: 'page ${widget.page + 1} of $count',
-          increasedValue: widget.page + 1 < count
-              ? 'page ${widget.page + 2} of $count'
-              : null,
-          decreasedValue: widget.page > 0
-              ? 'page ${widget.page} of $count'
-              : null,
-          onIncrease: _enabled && widget.page + 1 < count
-              ? () => _step(1)
-              : null,
-          onDecrease: _enabled && widget.page > 0 ? () => _step(-1) : null,
+          value: count == 0 ? null : value(page + 1),
+          increasedValue: page + 1 < count ? value(page + 2) : null,
+          decreasedValue: page > 0 ? value(page) : null,
+          onIncrease: _enabled && page + 1 < count ? () => _step(1) : null,
+          onDecrease: _enabled && page > 0 ? () => _step(-1) : null,
           child: MorphTouchListener(
             enabled: _enabled,
             behavior: HitTestBehavior.opaque,
             onPointerDown: (PointerDownEvent e) {
-              if (!_enabled || e.buttons != kPrimaryButton) return;
+              if (!_enabled ||
+                  _pointer != null ||
+                  e.buttons != kPrimaryButton) {
+                return;
+              }
               _pointer = e.pointer;
               _motion.pointerDown(stamp(e), _dotsX(e.localPosition, rtl));
             },
@@ -510,21 +537,19 @@ class _MorphPageControlState extends State<MorphPageControl>
               _pointer = null;
               _motion.pointerCancel(stamp(e));
             },
-            child: ListenableBuilder(
-              listenable: frames,
-              builder: (BuildContext context, Widget? _) => CustomPaint(
-                size: _size,
-                painter: _PageControlPainter(
-                  motion: _motion,
-                  style: style,
-                  rtl: rtl,
-                  platter: switch (widget.background) {
-                    MorphPageControlBackground.prominent => true,
-                    MorphPageControlBackground.minimal => false,
-                    MorphPageControlBackground.automatic => null,
-                  },
-                  progress: widget.progress,
-                ),
+            child: CustomPaint(
+              size: _size,
+              painter: _PageControlPainter(
+                frames: frames,
+                motion: _motion,
+                style: style,
+                rtl: rtl,
+                platter: switch (widget.background) {
+                  MorphPageControlBackground.prominent => true,
+                  MorphPageControlBackground.minimal => false,
+                  MorphPageControlBackground.automatic => null,
+                },
+                progress: widget.progress,
               ),
             ),
           ),
@@ -536,12 +561,13 @@ class _MorphPageControlState extends State<MorphPageControl>
 
 class _PageControlPainter extends CustomPainter {
   _PageControlPainter({
+    required Listenable frames,
     required this.motion,
     required this.style,
     required this.rtl,
     required this.platter,
     required this.progress,
-  });
+  }) : super(repaint: frames);
 
   final MorphPageControlMotion motion;
   final MorphPageControlStyle style;
@@ -616,5 +642,10 @@ class _PageControlPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_PageControlPainter oldDelegate) => true;
+  bool shouldRepaint(_PageControlPainter oldDelegate) =>
+      oldDelegate.motion != motion ||
+      oldDelegate.style != style ||
+      oldDelegate.rtl != rtl ||
+      oldDelegate.platter != platter ||
+      oldDelegate.progress != progress;
 }

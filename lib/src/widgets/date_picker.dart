@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/date_picker_motion.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/typography.dart';
+import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// What a [MorphDatePicker] picks.
@@ -143,13 +144,13 @@ class MorphDatePickerStyle {
   static MorphDatePickerStyle resolve(
     BuildContext context,
     MorphDatePickerStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.datePicker ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.datePicker,
+    light: light,
+    dark: dark,
+  );
 }
 
 const List<String> _months = [
@@ -245,6 +246,10 @@ class MorphDatePicker extends StatefulWidget {
     this.today,
     this.style,
     this.semanticLabel,
+    this.localize,
+    this.calendarTitleFormatter,
+    this.daySemanticFormatter,
+    this.numberFormatter,
     super.key,
   });
 
@@ -258,10 +263,13 @@ class MorphDatePicker extends StatefulWidget {
   /// What the picker picks.
   final MorphDatePickerMode mode;
 
-  /// The earliest day that can be picked; null for no limit.
+  /// The earliest moment that can be picked; null for no limit. The
+  /// calendar disables earlier days and the time wheels honor the time
+  /// on the boundary day.
   final DateTime? firstDate;
 
-  /// The latest day that can be picked; null for no limit.
+  /// The latest moment that can be picked; null for no limit. The time
+  /// wheels honor its time on the boundary day.
   final DateTime? lastDate;
 
   /// Formats the date label; null for English, such as "Oct 3, 2026".
@@ -286,6 +294,25 @@ class MorphDatePicker extends StatefulWidget {
 
   /// The label screen readers announce before the value.
   final String? semanticLabel;
+
+  /// Translates fixed English text: full month names, uppercase weekday
+  /// abbreviations, "Show year picker", "Hide year picker", "Previous
+  /// month", "Next month", "Hour", "Minute", "AM/PM", "AM", "PM",
+  /// "Month" and "Year". Null preserves the measured en_US labels.
+  /// Use [dateFormatter] and [timeFormatter] for the compact labels.
+  final String Function(String)? localize;
+
+  /// Formats the calendar header from its displayed month.
+  /// Null joins the translated month name and formatted year.
+  final String Function(DateTime)? calendarTitleFormatter;
+
+  /// Formats each calendar day's screen-reader label.
+  /// Null joins its formatted day, translated month name and year.
+  final String Function(DateTime)? daySemanticFormatter;
+
+  /// Formats day numbers and wheel values, including years, hours and
+  /// minutes. Null preserves the measured English digits and padding.
+  final String Function(int)? numberFormatter;
 
   @override
   State<MorphDatePicker> createState() => _MorphDatePickerState();
@@ -329,7 +356,6 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
         picker: this,
         part: part,
         label: rect,
-        style: widget.style,
         reopening: _closing > 0,
       ),
     );
@@ -337,6 +363,16 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
   }
 
   void _changed(DateTime value) => widget.onChanged?.call(value);
+
+  @override
+  void didUpdateWidget(MorphDatePicker oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _routeView?._reconcile();
+    });
+  }
+
+  _OverlayViewState? _routeView;
 
   @override
   Widget build(BuildContext context) {
@@ -405,6 +441,7 @@ class _CompactLabelState extends State<_CompactLabel>
         SingleTickerProviderStateMixin<_CompactLabel>,
         MorphClock<_CompactLabel> {
   final MorphDatePickerMotion _motion = MorphDatePickerMotion();
+  late final Animation<double> _highlight = _LabelHighlight(_motion, frames);
   bool _focused = false;
   int? _pointer;
 
@@ -423,6 +460,16 @@ class _CompactLabelState extends State<_CompactLabel>
     _pointer = event.pointer;
     _motion.reducedMotion = morphReducedMotionOf(context);
     _motion.press(stamp(event));
+  }
+
+  @override
+  void didUpdateWidget(_CompactLabel oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.enabled && _pointer != null) {
+      _pointer = null;
+      _motion.release(clock);
+      wake();
+    }
   }
 
   void _up(PointerEvent event) {
@@ -452,7 +499,9 @@ class _CompactLabelState extends State<_CompactLabel>
         label: label == null ? widget.text : '$label, ${widget.text}',
         onTap: widget.enabled ? () => widget.onOpen(context) : null,
         child: ExcludeSemantics(
-          child: Listener(
+          child: MorphTouchListener(
+            enabled: widget.enabled,
+            delaysInScrollable: true,
             behavior: HitTestBehavior.opaque,
             onPointerDown: _down,
             onPointerUp: _up,
@@ -473,12 +522,10 @@ class _CompactLabelState extends State<_CompactLabel>
                 child: Center(
                   widthFactor: 1,
                   heightFactor: 1,
-                  child: ListenableBuilder(
-                    listenable: frames,
-                    builder: (BuildContext context, Widget? child) => Opacity(
-                      opacity: _motion.highlight(_motion.time),
-                      child: child,
-                    ),
+                  child: FadeTransition(
+                    opacity: widget.enabled
+                        ? _highlight
+                        : const AlwaysStoppedAnimation<double>(1),
                     child: Text(
                       widget.text,
                       maxLines: 1,
@@ -503,19 +550,42 @@ class _CompactLabelState extends State<_CompactLabel>
   }
 }
 
+class _LabelHighlight extends Animation<double> {
+  _LabelHighlight(this.motion, this.frames);
+
+  final MorphDatePickerMotion motion;
+  final Listenable frames;
+
+  @override
+  double get value => motion.highlight(motion.time);
+
+  @override
+  AnimationStatus get status => AnimationStatus.forward;
+
+  @override
+  void addListener(VoidCallback listener) => frames.addListener(listener);
+
+  @override
+  void removeListener(VoidCallback listener) => frames.removeListener(listener);
+
+  @override
+  void addStatusListener(AnimationStatusListener listener) {}
+
+  @override
+  void removeStatusListener(AnimationStatusListener listener) {}
+}
+
 class _DatePickerRoute extends PopupRoute<void> {
   _DatePickerRoute({
     required this.picker,
     required this.part,
     required this.label,
-    required this.style,
     required this.reopening,
   });
 
   final _MorphDatePickerState picker;
   final _Part part;
   final Rect label;
-  final MorphDatePickerStyle? style;
 
   /// Whether the overlay opens while an earlier one is still closing.
   final bool reopening;
@@ -592,9 +662,10 @@ class _OverlayViewState extends State<_OverlayView>
         MorphClock<_OverlayView> {
   final MorphDatePickerMotion _motion = MorphDatePickerMotion();
   bool _leaving = false;
-  late DateTime _value = widget.route.picker.widget.value;
+  late DateTime _value = _bounded(_picker.value);
   late DateTime _month = DateTime(_value.year, _value.month);
   DateTime? _previousMonth;
+  int _queuedTurns = 0;
   int? _outside;
   late _Part _part = widget.route.part;
   late Rect _label = widget.route.label;
@@ -613,6 +684,7 @@ class _OverlayViewState extends State<_OverlayView>
   void initState() {
     super.initState();
     _route._view = this;
+    _route.picker._routeView = this;
     _motion.open(
       clock,
       delay: _route.reopening
@@ -625,12 +697,18 @@ class _OverlayViewState extends State<_OverlayView>
   @override
   void dispose() {
     if (_route._view == this) _route._view = null;
+    if (_route.picker._routeView == this) _route.picker._routeView = null;
     super.dispose();
   }
 
   @override
   void advanceMotion(double t) {
     _motion.advance(t);
+    if (_queuedTurns != 0 && _motion.page(t) >= 1) {
+      final direction = _queuedTurns.sign;
+      _queuedTurns -= direction;
+      _turn(direction);
+    }
     if (_fromPart != null && _swap.isAtRest(t, 0.001)) {
       setState(() => _fromPart = null);
     }
@@ -639,7 +717,9 @@ class _OverlayViewState extends State<_OverlayView>
 
   @override
   bool get motionSettled =>
-      _motion.isSettled && _swap.isAtRest(_motion.time, 0.001);
+      _queuedTurns == 0 &&
+      _motion.isSettled &&
+      _swap.isAtRest(_motion.time, 0.001);
 
   _Part? _otherLabelAt(Offset position) {
     for (final part in _Part.values) {
@@ -685,15 +765,55 @@ class _OverlayViewState extends State<_OverlayView>
     Navigator.of(context).pop();
   }
 
+  DateTime _bounded(DateTime value) {
+    final first = _picker.firstDate;
+    final last = _picker.lastDate;
+    if (first != null && last != null && last.isBefore(first)) return first;
+    if (first != null && value.isBefore(first)) return first;
+    if (last != null && value.isAfter(last)) return last;
+    return value;
+  }
+
   void _pick(DateTime value) {
-    setState(() => _value = value);
-    if (_route.picker.mounted) _route.picker._changed(value);
+    if (!_route.picker.mounted || !_route.picker._enabled) return;
+    final next = _bounded(value);
+    setState(() => _value = next);
+    _route.picker._changed(next);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _reconcile());
+  }
+
+  void _reconcile() {
+    if (!mounted || !_route.picker.mounted) return;
+    if (!_route.picker._enabled) {
+      _close();
+      return;
+    }
+    final value = _bounded(_picker.value);
+    setState(() {
+      if (_value != value) {
+        _month = DateTime(value.year, value.month);
+        _previousMonth = null;
+      }
+      _value = value;
+    });
   }
 
   void _turn(int direction) {
+    if (_motion.page(clock) < 1) {
+      _queuedTurns += direction;
+      wake();
+      return;
+    }
+    final next = DateTime(_month.year, _month.month + direction);
+    final first = _picker.firstDate;
+    final last = _picker.lastDate;
+    if ((first != null && next.isBefore(DateTime(first.year, first.month))) ||
+        (last != null && next.isAfter(DateTime(last.year, last.month)))) {
+      return;
+    }
     setState(() {
       _previousMonth = _month;
-      _month = DateTime(_month.year, _month.month + direction);
+      _month = next;
     });
     _motion.turnPage(clock, direction);
     wake();
@@ -736,7 +856,7 @@ class _OverlayViewState extends State<_OverlayView>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphDatePickerStyle.resolve(context, _route.style);
+    final style = MorphDatePickerStyle.resolve(context, _picker.style);
     final media = MediaQuery.of(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final glass = MorphGlass.maybeOf(context);
@@ -749,6 +869,10 @@ class _OverlayViewState extends State<_OverlayView>
     Widget contentFor(_Part part) => part == _Part.time
         ? _TimeWheels(
             value: _value,
+            firstDate: _picker.firstDate,
+            lastDate: _picker.lastDate,
+            localize: _picker.localize,
+            numberFormatter: _picker.numberFormatter,
             twentyFour: _route.picker._twentyFour,
             style: style,
             onChanged: _pick,
@@ -760,6 +884,10 @@ class _OverlayViewState extends State<_OverlayView>
             motion: _motion,
             frames: frames,
             firstDayOfWeek: _picker.firstDayOfWeek,
+            localize: _picker.localize,
+            numberFormatter: _picker.numberFormatter,
+            titleFormatter: _picker.calendarTitleFormatter,
+            dayFormatter: _picker.daySemanticFormatter,
             firstDate: _picker.firstDate,
             lastDate: _picker.lastDate,
             today: _picker.today ?? _dateOnly(DateTime.now()),
@@ -1103,6 +1231,10 @@ class _Calendar extends StatelessWidget {
     required this.onTurn,
     required this.onTitle,
     required this.onPickMonth,
+    required this.localize,
+    required this.numberFormatter,
+    required this.titleFormatter,
+    required this.dayFormatter,
   });
 
   final DateTime value;
@@ -1119,6 +1251,13 @@ class _Calendar extends StatelessWidget {
   final ValueChanged<int> onTurn;
   final VoidCallback onTitle;
   final void Function(int year, int month) onPickMonth;
+  final String Function(String)? localize;
+  final String Function(int)? numberFormatter;
+  final String Function(DateTime)? titleFormatter;
+  final String Function(DateTime)? dayFormatter;
+
+  String _text(String value) => localize?.call(value) ?? value;
+  String _number(int value) => numberFormatter?.call(value) ?? '$value';
 
   bool _canTurn(int direction) {
     final next = DateTime(month.year, month.month + direction);
@@ -1162,7 +1301,9 @@ class _Calendar extends StatelessWidget {
         color: style.weekdayColor,
       ),
     );
-    final titleText = '${_months[month.month - 1]} ${month.year}';
+    final titleText =
+        titleFormatter?.call(month) ??
+        '${_text(_months[month.month - 1])} ${_number(month.year)}';
     final calendar = Padding(
       padding: const EdgeInsets.only(top: _CalendarMetrics.top),
       child: Column(
@@ -1181,8 +1322,8 @@ class _Calendar extends StatelessWidget {
                           button: true,
                           liveRegion: true,
                           label: years
-                              ? 'Hide year picker'
-                              : 'Show year picker',
+                              ? _text('Hide year picker')
+                              : _text('Show year picker'),
                           value: titleText,
                           onTap: onTitle,
                           excludeSemantics: true,
@@ -1256,13 +1397,13 @@ class _Calendar extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           _ChevronButton(
-                            label: 'Previous month',
+                            label: _text('Previous month'),
                             forward: false,
                             color: style.chevronColor,
                             onTap: _canTurn(-1) ? () => onTurn(-1) : null,
                           ),
                           _ChevronButton(
-                            label: 'Next month',
+                            label: _text('Next month'),
                             forward: true,
                             color: style.chevronColor,
                             onTap: _canTurn(1) ? () => onTurn(1) : null,
@@ -1300,7 +1441,9 @@ class _Calendar extends StatelessWidget {
                                   SizedBox(
                                     width: _CalendarMetrics.cell,
                                     child: Text(
-                                      _weekdays[(firstDayOfWeek + i) % 7],
+                                      _text(
+                                        _weekdays[(firstDayOfWeek + i) % 7],
+                                      ),
                                       textAlign: TextAlign.center,
                                       style: weekday,
                                     ),
@@ -1368,6 +1511,8 @@ class _Calendar extends StatelessWidget {
       lastDate: lastDate,
       style: style,
       onChanged: onPickMonth,
+      localize: localize,
+      numberFormatter: numberFormatter,
     );
     return Stack(
       children: [
@@ -1421,6 +1566,10 @@ class _Calendar extends StatelessWidget {
                       final date = DateTime(month.year, month.month, day);
                       return _Day(
                         date: date,
+                        semanticLabel:
+                            dayFormatter?.call(date) ??
+                            '${_number(date.day)} ${_text(_months[date.month - 1])} ${_number(date.year)}',
+                        text: _number(date.day),
                         disc: math.min(_CalendarMetrics.cell, row),
                         selected: _sameDay(date, value),
                         today: _sameDay(date, today),
@@ -1453,6 +1602,8 @@ class _Calendar extends StatelessWidget {
 class _Day extends StatelessWidget {
   const _Day({
     required this.date,
+    required this.semanticLabel,
+    required this.text,
     required this.disc,
     required this.selected,
     required this.today,
@@ -1462,6 +1613,8 @@ class _Day extends StatelessWidget {
   });
 
   final DateTime date;
+  final String semanticLabel;
+  final String text;
   final double disc;
   final bool selected;
   final bool today;
@@ -1487,7 +1640,7 @@ class _Day extends StatelessWidget {
       button: true,
       selected: selected,
       enabled: enabled,
-      label: '${date.day} ${_months[date.month - 1]} ${date.year}',
+      label: semanticLabel,
       onTap: enabled ? onTap : null,
       excludeSemantics: true,
       child: GestureDetector(
@@ -1504,7 +1657,7 @@ class _Day extends StatelessWidget {
                   ? null
                   : BoxDecoration(color: fill, shape: BoxShape.circle),
               child: Text(
-                '${date.day}',
+                text,
                 textScaler: TextScaler.noScaling,
                 style: MorphTypography.resolve(
                   (selected
@@ -1707,12 +1860,20 @@ class _TimeWheels extends StatefulWidget {
   const _TimeWheels({
     required this.value,
     required this.twentyFour,
+    required this.firstDate,
+    required this.lastDate,
     required this.style,
     required this.onChanged,
+    required this.localize,
+    required this.numberFormatter,
   });
 
   final DateTime value;
   final bool twentyFour;
+  final DateTime? firstDate;
+  final DateTime? lastDate;
+  final String Function(String)? localize;
+  final String Function(int)? numberFormatter;
   final MorphDatePickerStyle style;
   final ValueChanged<DateTime> onChanged;
 
@@ -1722,21 +1883,21 @@ class _TimeWheels extends StatefulWidget {
 
 class _TimeWheelsState extends State<_TimeWheels> {
   static const int _loops = _WheelGeometry.loops;
-  late final int _hourCount = widget.twentyFour ? 24 : 12;
-  late int _hourIndex =
-      _hourCount * (_loops ~/ 2) + widget.value.hour % _hourCount;
+  int get _hourCount => widget.twentyFour ? 24 : 12;
+  late int _hourIndex = _hourCount * (_loops ~/ 2) + _hour % _hourCount;
   late final FixedExtentScrollController _hours = FixedExtentScrollController(
     initialItem: _hourIndex,
   );
   late final FixedExtentScrollController _minutes = FixedExtentScrollController(
-    initialItem: 60 * (_loops ~/ 2) + widget.value.minute,
+    initialItem: 60 * (_loops ~/ 2) + _minute,
   );
   late final FixedExtentScrollController _meridiem =
-      FixedExtentScrollController(initialItem: widget.value.hour < 12 ? 0 : 1);
-  late int _hour = widget.value.hour;
-  late int _minute = widget.value.minute;
+      FixedExtentScrollController(initialItem: _hour < 12 ? 0 : 1);
+  late int _hour = _bounded(widget.value).hour;
+  late int _minute = _bounded(widget.value).minute;
 
   bool get _pm => _hour >= 12;
+  bool _syncing = false;
 
   @override
   void dispose() {
@@ -1746,22 +1907,70 @@ class _TimeWheelsState extends State<_TimeWheels> {
     super.dispose();
   }
 
+  @override
+  void didUpdateWidget(_TimeWheels oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final value = _bounded(widget.value);
+    _sync(value, formatChanged: oldWidget.twentyFour != widget.twentyFour);
+  }
+
+  DateTime _bounded(DateTime value) {
+    final first = widget.firstDate;
+    final last = widget.lastDate;
+    if (first != null && last != null && last.isBefore(first)) return first;
+    if (first != null && value.isBefore(first)) return first;
+    if (last != null && value.isAfter(last)) return last;
+    return value;
+  }
+
+  void _sync(DateTime value, {bool formatChanged = false}) {
+    _syncing = true;
+    final hourChanged = _hour != value.hour || formatChanged;
+    final minuteChanged = _minute != value.minute;
+    _hour = value.hour;
+    _minute = value.minute;
+    if (hourChanged && _hours.hasClients) {
+      _hourIndex = _hourCount * (_loops ~/ 2) + _hour % _hourCount;
+      _hours.jumpToItem(_hourIndex);
+    }
+    if (minuteChanged && _minutes.hasClients) {
+      _minutes.jumpToItem(60 * (_loops ~/ 2) + _minute);
+    }
+    if (_meridiem.hasClients && _meridiem.selectedItem != (_pm ? 1 : 0)) {
+      _meridiem.jumpToItem(_pm ? 1 : 0);
+    }
+    _syncing = false;
+  }
+
   void _emit() {
     final v = widget.value;
-    widget.onChanged(DateTime(v.year, v.month, v.day, _hour, _minute));
+    final next = _bounded(DateTime(v.year, v.month, v.day, _hour, _minute));
+    widget.onChanged(next);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() => _sync(_bounded(widget.value)));
+    });
   }
 
   String _hourText(int h) {
-    if (widget.twentyFour) return _two(h);
-    return h == 0 ? '12' : '$h';
+    final hour = widget.twentyFour
+        ? h
+        : h == 0
+        ? 12
+        : h;
+    return widget.numberFormatter?.call(hour) ??
+        (widget.twentyFour ? _two(hour) : '$hour');
   }
 
   void _hourChanged(int index) {
+    if (_syncing) return;
     if (widget.twentyFour) {
+      if (index % 24 == _hour) return;
       setState(() => _hour = index % 24);
       _emit();
       return;
     }
+    if (index == _hourIndex) return;
     final crossed = index ~/ 12 - _hourIndex ~/ 12;
     _hourIndex = index;
     var pm = _pm;
@@ -1780,6 +1989,7 @@ class _TimeWheelsState extends State<_TimeWheels> {
   }
 
   void _meridiemChanged(int index) {
+    if (_syncing) return;
     final pm = index == 1;
     if (pm == _pm) return;
     setState(() => _hour = _hour % 12 + (pm ? 12 : 0));
@@ -1830,7 +2040,7 @@ class _TimeWheelsState extends State<_TimeWheels> {
                       count: _hourCount,
                       text: _hourText,
                       selected: _hour % _hourCount,
-                      label: 'Hour',
+                      label: widget.localize?.call('Hour') ?? 'Hour',
                       alignment: twelve
                           ? Alignment.centerRight
                           : Alignment.center,
@@ -1847,10 +2057,12 @@ class _TimeWheelsState extends State<_TimeWheels> {
                       style: style,
                       controller: _minutes,
                       count: 60,
-                      text: _two,
+                      text: (value) =>
+                          widget.numberFormatter?.call(value) ?? _two(value),
                       selected: _minute,
-                      label: 'Minute',
+                      label: widget.localize?.call('Minute') ?? 'Minute',
                       onSelected: (int m) {
+                        if (_syncing || m % 60 == _minute) return;
                         setState(() => _minute = m % 60);
                         _emit();
                       },
@@ -1865,9 +2077,11 @@ class _TimeWheelsState extends State<_TimeWheels> {
                         controller: _meridiem,
                         count: 2,
                         looping: false,
-                        text: (int i) => i == 0 ? 'AM' : 'PM',
+                        text: (int i) =>
+                            widget.localize?.call(i == 0 ? 'AM' : 'PM') ??
+                            (i == 0 ? 'AM' : 'PM'),
                         selected: _pm ? 1 : 0,
-                        label: 'AM/PM',
+                        label: widget.localize?.call('AM/PM') ?? 'AM/PM',
                         alignment: Alignment.centerLeft,
                         padding: const EdgeInsets.only(
                           left: _WheelMetrics.meridiemStart,
@@ -1899,11 +2113,15 @@ class _MonthYearWheels extends StatefulWidget {
     required this.lastDate,
     required this.style,
     required this.onChanged,
+    required this.localize,
+    required this.numberFormatter,
   });
 
   final DateTime month;
   final DateTime? firstDate;
   final DateTime? lastDate;
+  final String Function(String)? localize;
+  final String Function(int)? numberFormatter;
   final MorphDatePickerStyle style;
   final void Function(int year, int month) onChanged;
 
@@ -1913,11 +2131,8 @@ class _MonthYearWheels extends StatefulWidget {
 
 class _MonthYearWheelsState extends State<_MonthYearWheels> {
   static const int _loops = _WheelGeometry.loops;
-  late final int _firstYear = widget.firstDate?.year ?? 1;
-  late final int _lastYear = math.max(
-    _firstYear,
-    widget.lastDate?.year ?? 9999,
-  );
+  int get _firstYear => widget.firstDate?.year ?? 1;
+  int get _lastYear => math.max(_firstYear, widget.lastDate?.year ?? 9999);
   late int _month = widget.month.month;
   late int _year = widget.month.year.clamp(_firstYear, _lastYear);
   late final FixedExtentScrollController _monthWheel =
@@ -1939,10 +2154,41 @@ class _MonthYearWheelsState extends State<_MonthYearWheels> {
     super.dispose();
   }
 
+  bool _syncing = false;
+
+  @override
+  void didUpdateWidget(_MonthYearWheels oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.month != oldWidget.month ||
+        widget.firstDate != oldWidget.firstDate ||
+        widget.lastDate != oldWidget.lastDate) {
+      _sync();
+    }
+  }
+
+  void _sync() {
+    _syncing = true;
+    _month = widget.month.month;
+    _year = widget.month.year.clamp(_firstYear, _lastYear);
+    _emitted = (_year, _month);
+    if (_monthWheel.hasClients && _monthWheel.selectedItem % 12 != _month - 1) {
+      _monthWheel.jumpToItem(12 * (_loops ~/ 2) + _month - 1);
+    }
+    if (_yearWheel.hasClients &&
+        _yearWheel.selectedItem != _year - _firstYear) {
+      _yearWheel.jumpToItem(_year - _firstYear);
+    }
+    _syncing = false;
+  }
+
   bool _settled(ScrollEndNotification notification) {
+    if (_syncing) return false;
     if (_emitted != (_year, _month)) {
       _emitted = (_year, _month);
       widget.onChanged(_year, _month);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(_sync);
+      });
     }
     return false;
   }
@@ -1980,15 +2226,17 @@ class _MonthYearWheelsState extends State<_MonthYearWheels> {
                       style: style,
                       controller: _monthWheel,
                       count: 12,
-                      text: (int i) => _months[i],
+                      text: (int i) =>
+                          widget.localize?.call(_months[i]) ?? _months[i],
                       selected: _month - 1,
-                      label: 'Month',
+                      label: widget.localize?.call('Month') ?? 'Month',
                       alignment: AlignmentDirectional.centerStart,
                       padding: const EdgeInsetsDirectional.only(
                         start: _MonthYearMetrics.monthStart,
                       ),
-                      onSelected: (int i) =>
-                          setState(() => _month = i % 12 + 1),
+                      onSelected: (int i) {
+                        if (!_syncing) setState(() => _month = i % 12 + 1);
+                      },
                     ),
                   ),
                   PositionedDirectional(
@@ -2002,11 +2250,14 @@ class _MonthYearWheelsState extends State<_MonthYearWheels> {
                       controller: _yearWheel,
                       count: _lastYear - _firstYear + 1,
                       looping: false,
-                      text: (int i) => '${_firstYear + i}',
+                      text: (int i) =>
+                          widget.numberFormatter?.call(_firstYear + i) ??
+                          '${_firstYear + i}',
                       selected: _year - _firstYear,
-                      label: 'Year',
-                      onSelected: (int i) =>
-                          setState(() => _year = _firstYear + i),
+                      label: widget.localize?.call('Year') ?? 'Year',
+                      onSelected: (int i) {
+                        if (!_syncing) setState(() => _year = _firstYear + i);
+                      },
                     ),
                   ),
                 ],

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart' as sdk;
 import 'package:material_ui/material_ui.dart';
 import 'package:meta/meta.dart';
 
@@ -20,13 +21,17 @@ import 'package:morph/src/widgets/tab_bar.dart';
 
 /// Ambient looks for the measured controls as a [ThemeExtension].
 ///
+/// Compatible with both material_ui and Flutter's Material ThemeData;
+/// the nearest theme of either family owns the control's appearance.
+///
 /// Each control resolves its look in this order: its own `style`
 /// argument, then the matching field here, then its built-in table for
 /// the ambient brightness (`light` or `dark` on each style class). A
 /// [ThemeData] already stands for one brightness, so this extension holds
 /// one style per control; put a dark one in the dark theme.
 @immutable
-class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme> {
+class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
+    implements sdk.ThemeExtension<MorphWidgetsTheme> {
   /// Creates the extension; null fields fall through to the built-ins.
   const MorphWidgetsTheme({
     this.segmented,
@@ -100,10 +105,14 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme> {
   /// The extension from the ambient [Theme], or null when there is no
   /// [Theme] above [context] or it has no such extension.
   static MorphWidgetsTheme? maybeOf(BuildContext context) {
-    if (context.findAncestorWidgetOfExactType<Theme>() == null) return null;
-    return Theme.of(context).extension<MorphWidgetsTheme>();
+    return switch (_themeHost(context)) {
+      Theme() => Theme.of(context).extension<MorphWidgetsTheme>(),
+      sdk.Theme() => sdk.Theme.of(context).extension<MorphWidgetsTheme>(),
+      _ => null,
+    };
   }
 
+  /// Copies this extension with the supplied non-null control styles.
   @override
   MorphWidgetsTheme copyWith({
     MorphSegmentedStyle? segmented,
@@ -141,6 +150,7 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme> {
     datePicker: datePicker ?? this.datePicker,
   );
 
+  /// Chooses the nearer endpoint's measured appearance without blending.
   @override
   MorphWidgetsTheme lerp(MorphWidgetsTheme? other, double t) {
     if (other == null) return this;
@@ -153,13 +163,43 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme> {
 /// [MediaQuery], otherwise light.
 @internal
 Brightness morphBrightnessOf(BuildContext context) {
-  if (context.findAncestorWidgetOfExactType<Theme>() != null) {
-    return Theme.of(context).brightness;
-  }
-  return MediaQuery.maybePlatformBrightnessOf(context) ?? Brightness.light;
+  return switch (_themeHost(context)) {
+    Theme() => Theme.of(context).brightness,
+    sdk.Theme() => sdk.Theme.of(context).brightness,
+    _ => MediaQuery.maybePlatformBrightnessOf(context) ?? Brightness.light,
+  };
 }
 
 /// Whether the platform asks for reduced motion above [context].
 @internal
 bool morphReducedMotionOf(BuildContext context) =>
     MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+Widget? _themeHost(BuildContext context) {
+  Widget? host;
+  context.visitAncestorElements((element) {
+    final widget = element.widget;
+    if (widget is Theme || widget is sdk.Theme) {
+      host = widget;
+      return false;
+    }
+    return true;
+  });
+  return host;
+}
+
+/// Resolves a control style from an explicit value, the nearest supported
+/// Material theme extension, then the measured brightness table.
+@internal
+T morphResolveStyle<T>(
+  BuildContext context,
+  T? explicit, {
+  required T? Function(MorphWidgetsTheme) themed,
+  required T light,
+  required T dark,
+}) {
+  if (explicit != null) return explicit;
+  final theme = MorphWidgetsTheme.maybeOf(context);
+  return (theme == null ? null : themed(theme)) ??
+      (morphBrightnessOf(context) == Brightness.dark ? dark : light);
+}

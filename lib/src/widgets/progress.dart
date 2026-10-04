@@ -33,13 +33,13 @@ class MorphProgressStyle {
   static MorphProgressStyle resolve(
     BuildContext context,
     MorphProgressStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.progress ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.progress,
+    light: light,
+    dark: dark,
+  );
 }
 
 /// The two looks of a [MorphProgressView], after UIProgressView.Style.

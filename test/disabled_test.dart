@@ -328,7 +328,7 @@ void main() {
         final under = style.pressedReplacesFill
             ? bg
             : _over(style.backgroundColor, bg);
-        final want = _over(MorphStepper.pressedOverlay, under);
+        final want = _over(const Color(0x14000000), under);
         for (var c = 0; c < 3; c++) {
           expect(pressed[c], closeTo(want[c], 1.5), reason: brightness.name);
         }

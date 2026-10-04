@@ -68,13 +68,13 @@ class MorphStepperStyle {
   static MorphStepperStyle resolve(
     BuildContext context,
     MorphStepperStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.stepper ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.stepper,
+    light: light,
+    dark: dark,
+  );
 }
 
 /// A stepper that responds to touch exactly like iOS 27's UIStepper.
@@ -107,6 +107,7 @@ class MorphStepper extends StatefulWidget {
     this.style,
     this.decrementLabel = 'Decrement',
     this.incrementLabel = 'Increment',
+    this.semanticValueFormatter,
     super.key,
   });
 
@@ -141,18 +142,15 @@ class MorphStepper extends StatefulWidget {
   /// The label screen readers announce for the plus half.
   final String incrementLabel;
 
+  /// Formats the value announced by each half. Null uses up to twelve
+  /// significant digits, without binary floating-point tails.
+  final String Function(double)? semanticValueFormatter;
+
   /// The size of the control.
   static const Size size = Size(94, 32);
 
   /// The delay before the first repeat and between repeats.
   static const Duration repeatInterval = Duration(milliseconds: 500);
-
-  /// The overlay on the pressed half: black at 8 percent in both
-  /// appearances.
-  static const Color pressedOverlay = Color(0x14000000);
-
-  /// The color of the divider between the halves in the light appearance.
-  static const Color dividerColor = Color(0x4C3C3C43);
 
   @override
   State<MorphStepper> createState() => _MorphStepperState();
@@ -171,19 +169,19 @@ class _MorphStepperState extends State<MorphStepper>
   _Half? _pressed;
   bool _repeated = false;
   final MorphTimeline _repeats = MorphTimeline();
-  double _value = 0;
-  bool _focused = false;
+  double get _minimum => widget.min.isFinite ? widget.min : 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _value = widget.value;
-  }
+  double get _maximum =>
+      widget.max.isFinite && widget.max >= _minimum ? widget.max : _minimum;
+
+  double get _value =>
+      widget.value.isFinite ? widget.value.clamp(_minimum, _maximum) : _minimum;
+  bool _focused = false;
 
   @override
   void didUpdateWidget(MorphStepper oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _value = widget.value;
+    if (widget.onChanged == null) _end();
   }
 
   @override
@@ -193,8 +191,8 @@ class _MorphStepperState extends State<MorphStepper>
   bool get motionSettled => _repeats.isEmpty;
 
   bool _canStep(_Half half) => switch (half) {
-    _Half.minus => _value > widget.min,
-    _Half.plus => _value < widget.max,
+    _Half.minus => _value > _minimum,
+    _Half.plus => _value < _maximum,
   };
 
   _Half? _halfAt(Offset local) {
@@ -204,10 +202,15 @@ class _MorphStepperState extends State<MorphStepper>
   }
 
   void _stepBy(_Half half) {
-    if (!_canStep(half)) return;
+    if (widget.onChanged == null ||
+        !widget.step.isFinite ||
+        widget.step <= 0 ||
+        !_canStep(half)) {
+      return;
+    }
     final delta = half == _Half.plus ? widget.step : -widget.step;
-    _value = (_value + delta).clamp(widget.min, widget.max);
-    widget.onChanged?.call(_value);
+    final next = (_value + delta).clamp(_minimum, _maximum);
+    widget.onChanged?.call(next);
   }
 
   void _down(PointerDownEvent event) {
@@ -272,7 +275,8 @@ class _MorphStepperState extends State<MorphStepper>
     final background = widget.backgroundColor ?? style.backgroundColor;
     final glass = MorphGlass.maybeOf(context);
     const size = MorphStepper.size;
-    final value = _format(widget.value);
+    final value =
+        widget.semanticValueFormatter?.call(_value) ?? _format(_value);
     final foreground = widget.foregroundColor ?? style.foregroundColor;
     final painter = _StepperPainter(
       pressed: _pressed,
@@ -381,9 +385,11 @@ class _MorphStepperState extends State<MorphStepper>
     );
   }
 
-  static String _format(double value) => value == value.roundToDouble()
-      ? value.toInt().toString()
-      : value.toString();
+  static String _format(double value) {
+    if (!value.isFinite) return '$value';
+    if (value == value.roundToDouble()) return value.toInt().toString();
+    return double.parse(value.toStringAsPrecision(12)).toString();
+  }
 }
 
 class _HalfSemantics extends StatelessWidget {

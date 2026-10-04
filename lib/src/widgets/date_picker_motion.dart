@@ -265,9 +265,9 @@ class MorphDatePickerMotion {
   double _pageStart = double.negativeInfinity;
   int _pageDirection = 0;
 
-  /// Whether the picker reduces its motion: the overlay and the pages
-  /// still move, only quicker; the label does not dim. An approximation;
-  /// it is not measured.
+  /// Whether the label skips its press dimming. Overlay springs and page
+  /// turns retain their measured timing. This Reduce Motion approximation
+  /// is not measured on the device.
   bool reducedMotion = false;
 
   /// The time the motion was last advanced to.
@@ -294,7 +294,9 @@ class MorphDatePickerMotion {
 
   /// Advances the motion to time [t].
   void advance(double t) {
-    if (t > _now) _now = t;
+    if (t < _now) return;
+    _applyPending(t);
+    _now = t;
   }
 
   /// Opens the overlay at time [t]: the spring starts [delay] seconds
@@ -332,19 +334,26 @@ class MorphDatePickerMotion {
 
   void _schedule(double at, double target, MorphSpring spring) {
     final pending = _pendingAt;
-    if (pending != null && at >= pending) _spring(pending);
+    if (pending != null && at >= pending) _applyPending(pending);
     _pendingAt = at;
     _pendingTarget = target;
     _pendingSpring = spring;
   }
 
+  void _applyPending(double t) {
+    final at = _pendingAt;
+    if (at == null || t < at) return;
+    _pendingAt = null;
+    _progress.retarget(at, _pendingTarget, spring: _pendingSpring);
+  }
+
   MorphSpringState _spring(double t) {
     final at = _pendingAt;
-    if (at != null && t >= at) {
-      _pendingAt = null;
-      _progress.retarget(at, _pendingTarget, spring: _pendingSpring);
-    }
-    return _progress;
+    if (at == null || t < at) return _progress;
+    final projected = MorphSpringState(_pendingSpring, _progress.value(at));
+    projected.setState(at, _progress.value(at), _progress.velocity(at));
+    projected.retarget(at, _pendingTarget);
+    return projected;
   }
 
   /// The overlay's progress at time [t]: 0 hidden, 1 open.
@@ -387,9 +396,10 @@ class MorphDatePickerMotion {
   }
 
   /// Turns the calendar one month forward ([direction] 1) or back (-1) at
-  /// time [t].
+  /// time [t]. A running turn completes before another can start.
   void turnPage(double t, int direction) {
     advance(t);
+    if (page(t) < 1) return;
     _pageStart = t;
     _pageDirection = direction;
   }

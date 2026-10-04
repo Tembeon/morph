@@ -2,10 +2,12 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -167,6 +169,26 @@ class MorphGlassButtonMotion {
   /// The center of the little glow.
   Offset get littleGlowCenter => Offset(_glowX.value(_now), _glowY.value(_now));
 
+  /// The measured touch's glow through the shared glass color model.
+  ///
+  /// Its timing and growth follow this button's flex interaction; the
+  /// wash and spot color matrices use the glass glow seam.
+  MorphGlassGlow? glowAt(Brightness brightness) {
+    final big = bigGlowOpacity;
+    final little = littleGlowOpacity;
+    if (big <= 0.001 && little <= 0.001) return null;
+    return MorphGlassGlow(
+      wash: MorphTouchGlowMotion.washOffset * big,
+      center: littleGlowCenter,
+      radius:
+          MorphTouchGlowMotion.spotSpread * littleGlowSize * littleGlowScale,
+      gain:
+          MorphTouchGlowMotion.spotGain(brightness) *
+          MorphTouchGlowMotion.spotCore *
+          little,
+    );
+  }
+
   /// Whether every part of the button is at rest.
   bool get isSettled =>
       _down == null &&
@@ -315,13 +337,13 @@ class MorphGlassButtonStyle {
   static MorphGlassButtonStyle resolve(
     BuildContext context,
     MorphGlassButtonStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.glassButton ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.glassButton,
+    light: light,
+    dark: dark,
+  );
 }
 
 /// A glass button that responds to touch exactly like iOS 27's
@@ -497,44 +519,118 @@ class _MorphGlassButtonState extends State<MorphGlassButton>
                 child: child,
               );
             },
-            child: CustomPaint(
-              painter: glass == null ? _GlassButtonPainter(style, tint) : null,
-              foregroundPainter: _GlowPainter(this, focused: _focused),
-              child: glass == null
-                  ? content
-                  : Stack(
-                      fit: StackFit.passthrough,
-                      children: [
-                        Positioned.fill(
-                          child: ListenableBuilder(
-                            listenable: frames,
-                            builder: (BuildContext context, Widget? _) =>
-                                LayoutBuilder(
-                                  builder:
-                                      (
-                                        BuildContext context,
-                                        BoxConstraints constraints,
-                                      ) => glass.buildSurface(
-                                        context,
-                                        MorphGlassSurface(
-                                          kind: MorphGlassKind.button,
-                                          shape: _capsule(constraints.biggest),
-                                          color: tint ?? style.fillColor,
-                                          brightness: brightness,
-                                          lift: _lift,
-                                          enabled: _enabled,
-                                        ),
-                                      ),
-                                ),
-                          ),
-                        ),
-                        content,
-                      ],
-                    ),
+            child: MorphFocusRing(
+              visible: _focused,
+              child: MorphControlCapsule(
+                painter: glass,
+                frames: frames,
+                color: tint ?? style.fillColor,
+                rim: tint == null ? style.rimColor : style.tintedRimColor,
+                shadow: style.shadowColor,
+                brightness: brightness,
+                enabled: enabled,
+                lift: () => _lift,
+                glow: () => _motion.glowAt(brightness),
+                child: content,
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A capsule surface shared by glass buttons and search fields.
+@internal
+class MorphControlCapsule extends StatelessWidget {
+  /// Creates a capsule with optional frame-driven lift and glow.
+  const MorphControlCapsule({
+    required this.painter,
+    required this.frames,
+    required this.color,
+    required this.rim,
+    required this.shadow,
+    required this.brightness,
+    required this.enabled,
+    required this.child,
+    this.lift,
+    this.glow,
+    super.key,
+  });
+
+  /// The installed glass painter, or null for the flat appearance.
+  final MorphGlassPainter? painter;
+
+  /// Notifications for the surface's motion.
+  final Listenable frames;
+
+  /// The fill or glass tint.
+  final Color color;
+
+  /// The flat appearance's rim.
+  final Color rim;
+
+  /// The flat appearance's shadow.
+  final Color shadow;
+
+  /// The surface's resolved brightness.
+  final Brightness brightness;
+
+  /// Whether the surface accepts input.
+  final bool enabled;
+
+  /// The current lift, or null for a resting surface.
+  final double Function()? lift;
+
+  /// The current glow, or null for an unlit surface.
+  final MorphGlassGlow? Function()? glow;
+
+  /// The content above the surface.
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final glass = painter;
+    if (glass == null) {
+      return CustomPaint(
+        painter: _CapsulePainter(
+          frames: frames,
+          color: color,
+          rim: rim,
+          shadow: shadow,
+          glow: glow,
+        ),
+        child: child,
+      );
+    }
+    return Stack(
+      fit: StackFit.passthrough,
+      children: [
+        Positioned.fill(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final shape = _capsule(constraints.biggest);
+              return MorphGlassLayer(
+                painter: glass,
+                frames: frames,
+                surfaces: () => [
+                  MorphGlassSurface(
+                    kind: MorphGlassKind.button,
+                    shape: shape,
+                    color: color,
+                    brightness: brightness,
+                    enabled: enabled,
+                    lift: lift?.call() ?? 0,
+                    glow: glow?.call(),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+        child,
+      ],
     );
   }
 }
@@ -544,73 +640,43 @@ RRect _capsule(Size size) => RRect.fromRectAndRadius(
   Radius.circular(math.min(size.width, size.height) / 2),
 );
 
-class _GlassButtonPainter extends CustomPainter {
-  _GlassButtonPainter(this.style, this.tint);
+class _CapsulePainter extends CustomPainter {
+  _CapsulePainter({
+    required Listenable frames,
+    required this.color,
+    required this.rim,
+    required this.shadow,
+    required this.glow,
+  }) : super(repaint: frames);
 
-  final MorphGlassButtonStyle style;
-  final Color? tint;
+  final Color color;
+  final Color rim;
+  final Color shadow;
+  final MorphGlassGlow? Function()? glow;
 
   @override
   void paint(Canvas canvas, Size size) {
     final shape = _capsule(size);
-    final shadow = Paint();
-    shadow.color = style.shadowColor;
-    shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
-    canvas.drawRRect(shape.shift(const Offset(0, 2)), shadow);
+    final shadowPaint = Paint();
+    shadowPaint.color = shadow;
+    shadowPaint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    canvas.drawRRect(shape.shift(const Offset(0, 2)), shadowPaint);
     final fill = Paint();
-    fill.color = tint ?? style.fillColor;
+    fill.color = color;
     canvas.drawRRect(shape, fill);
-    final rim = Paint();
-    rim.style = PaintingStyle.stroke;
-    rim.strokeWidth = 0.5;
-    rim.color = tint == null ? style.rimColor : style.tintedRimColor;
-    canvas.drawRRect(shape.deflate(0.25), rim);
+    final stroke = Paint();
+    stroke.style = PaintingStyle.stroke;
+    stroke.strokeWidth = 0.5;
+    stroke.color = rim;
+    canvas.drawRRect(shape.deflate(0.25), stroke);
+    final light = glow?.call();
+    if (light != null) morphPaintGlassGlow(canvas, shape, light);
   }
 
   @override
-  bool shouldRepaint(_GlassButtonPainter oldDelegate) =>
-      oldDelegate.tint != tint || oldDelegate.style != style;
-}
-
-class _GlowPainter extends CustomPainter {
-  _GlowPainter(this.state, {required this.focused})
-    : super(repaint: state.frames);
-
-  final _MorphGlassButtonState state;
-  final bool focused;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (focused) MorphFocusRingPainter.paintRing(canvas, Offset.zero & size);
-    final motion = state._motion;
-    final big = motion.bigGlowOpacity;
-    final little = motion.littleGlowOpacity;
-    if (big <= 0.001 && little <= 0.001) return;
-    final shape = _capsule(size);
-    canvas.save();
-    canvas.clipRRect(shape);
-    if (big > 0.001) {
-      final paint = Paint();
-      paint.color = Color.fromRGBO(255, 255, 255, 0.18 * big);
-      canvas.drawRRect(shape, paint);
-    }
-    if (little > 0.001) {
-      final radius =
-          MorphGlassButtonMotion.littleGlowSize / 2 * motion.littleGlowScale;
-      final center = motion.littleGlowCenter;
-      final paint = Paint();
-      paint.shader = RadialGradient(
-        colors: [
-          Color.fromRGBO(255, 255, 255, 0.6 * little),
-          const Color(0x00FFFFFF),
-        ],
-      ).createShader(Rect.fromCircle(center: center, radius: radius));
-      canvas.drawCircle(center, radius, paint);
-    }
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(_GlowPainter oldDelegate) =>
-      oldDelegate.state != state || oldDelegate.focused != focused;
+  bool shouldRepaint(_CapsulePainter oldDelegate) =>
+      oldDelegate.color != color ||
+      oldDelegate.rim != rim ||
+      oldDelegate.shadow != shadow ||
+      oldDelegate.glow != glow;
 }
