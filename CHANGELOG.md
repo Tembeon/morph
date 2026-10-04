@@ -14,6 +14,10 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Adds a shared native/Flutter measurement laboratory with real XCUITest
+  input, timestamped films from one buffer stream, layer/render-tree
+  telemetry, regional glass metrics, gesture replay, spring fitting and
+  interactive reports with provenance and capture-validity checks.
 - Submenu headers keep their source-row columns through hand-back; stacked
   cards retain full platters, rims and shadows, with the measured 0.97
   parent glass scale. Regression frames cap the horizontal hand-off step
