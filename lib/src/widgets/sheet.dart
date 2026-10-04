@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/zoom_motion.dart';
 import 'package:morph/src/widgets/zoom_source.dart';
@@ -22,6 +23,7 @@ class MorphSheetStyle {
     this.floatingColor = const Color(0xF2F9F9F9),
     this.grabberColor = const Color(0x4D3C3C43),
     this.dimmingColor = const Color(0xFF000000),
+    this.textColor = const Color(0xFF000000),
   });
 
   /// The opaque fill of a sheet docked at the large detent:
@@ -39,6 +41,9 @@ class MorphSheetStyle {
   /// [MorphSheetTuning.dimmingOpacity] times this color's own.
   final Color dimmingColor;
 
+  /// The color of the content's default text (body style): label.
+  final Color textColor;
+
   /// The light appearance.
   static const light = MorphSheetStyle();
 
@@ -47,6 +52,7 @@ class MorphSheetStyle {
     dockedColor: Color(0xFF2C2C2E),
     floatingColor: Color(0xF2232325),
     grabberColor: Color(0x4DEBEBF5),
+    textColor: Color(0xFFFFFFFF),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -617,7 +623,12 @@ class _SheetViewState extends State<_SheetView>
     final content = _SheetScope(
       state: this,
       detent: detent,
-      child: Builder(builder: _route.builder),
+      child: DefaultTextStyle(
+        style: MorphTypography.resolve(
+          MorphTypography.body.copyWith(color: style.textColor),
+        ),
+        child: Builder(builder: _route.builder),
+      ),
     );
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {

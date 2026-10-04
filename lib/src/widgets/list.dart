@@ -324,7 +324,8 @@ class _RowPlace extends InheritedWidget {
 ///
 /// The [title] reads 17 pt in the label color with an optional 15 pt
 /// [subtitle] below it; a [detail] sits at the trailing edge in the
-/// secondary color (the value cell); a [leading] symbol is centered in a
+/// secondary color (the value cell), taking at most half the text
+/// area and wrapping past it; a [leading] symbol is centered in a
 /// slot 28 pt from the card's edge and moves the text and the separator
 /// to 56 pt; a [trailing] control (a switch, say) and the
 /// disclosure [chevron] end 20 pt from the card's edge. A single-line row
@@ -437,7 +438,7 @@ class _MorphListRowState extends State<MorphListRow> {
         (leading == null
             ? 0
             : MorphListMetrics.leadingWidth + MorphListMetrics.leadingGap);
-    final content = Row(
+    Widget content(double width) => Row(
       children: [
         if (leading != null) ...[
           SizedBox(
@@ -472,7 +473,14 @@ class _MorphListRowState extends State<MorphListRow> {
         ),
         if (detail != null) ...[
           const SizedBox(width: MorphListMetrics.gap),
-          DefaultTextStyle(style: secondary, child: detail),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: width / 2),
+            child: DefaultTextStyle(
+              style: secondary,
+              textAlign: TextAlign.end,
+              child: detail,
+            ),
+          ),
         ],
         if (accessory) const SizedBox(width: MorphListMetrics.gap),
         ?trailing,
@@ -494,7 +502,13 @@ class _MorphListRowState extends State<MorphListRow> {
               : MorphListMetrics.contentInset,
           MorphListMetrics.rowPadding,
         ),
-        child: Center(widthFactor: 1, child: content),
+        child: Center(
+          widthFactor: 1,
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints constraints) =>
+                content(constraints.maxWidth),
+          ),
+        ),
       ),
     );
     final highlighted = _active && (_pressed || _focused);

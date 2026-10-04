@@ -70,6 +70,9 @@ its content the body style.
   fades the deselection): morph highlights on Flutter's tap-down, removes on
   release, no fade. Keyboard focus shows the highlight (unmeasured).
 - Disabled cell look (no change drawn).
+- A value cell whose title and detail do not fit side by side stacks them
+  (`prefersSideBySideTextAndSecondaryText`); morph keeps them side by side
+  and wraps the detail within half the row.
 - Chevron glyph: a stroked polyline fitted to the 3x screenshot (2 pt
   stroke), not the SF Symbol.
 - Card inset on other screen widths (only 402 pt read), Dynamic Type.
