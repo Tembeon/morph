@@ -584,3 +584,41 @@ Painter scope and copied card material [macOS diagnostic + phone stills, 2026-10
   the retained card copy as two bodies; native shows two bodies at +0.10 s
   and one body by +0.13 s. Needs a phone film once the screen capture
   device is available.
+
+Close timing and one closing body [device element fits + phone film, 2026-10-05]:
+- Film run lab/out/menu-phone-20261005-10 (c4d14a7's parent af03154, valid
+  acquisition: EVIDENCE, every gesture window >= 0.815 coverage) showed
+  our close body 15-27 ms ahead of native in BOTH outside closes, so the
+  kept card copy stuck out below a too-small morph body (two bodies until
+  +0.19 s; native is one body from about +0.13 s).
+- Cause: the menu glass close started at the container's logical close.
+  Native glass element widths after the last release (glass-close.json:
+  mm-sub-tap/back/deeper/open-light outside, mm-sub-select card row)
+  replay the unchanged close spring at 0.16-0.39 pt RMS when the close
+  starts 0.050-0.0595 s (outside) and 0.031 s (card row) after release,
+  each within 1.5 ms of that record's container fit (card-container.json
+  start_after_lift). Nine plain dismissals solved by the menu replay start
+  0.046-0.074 s, mean 0.0605. So the container and the glass start
+  together: dismissDelay 0.04 -> 0.059 (mean of 13), submenuCloseDelay
+  0.015 -> 0.031, cardContainerDelay 0.015 -> 0 (c4d14a7). Regression:
+  menu_api_test "the menu glass closes with its container".
+- Film run lab/out/menu-phone-20261005-11 (c4d14a7, EVIDENCE, coverage
+  0.815-0.947): More's outside close now shows two bodies at +0.09/+0.10 s
+  and ONE body with the card rows inside from +0.167 s, like native.
+  Contour-width residual over 0-0.30 s after release (Flutter - native):
+  close-submenu RMS 10.8 pt, mean -7.4; close-root RMS 13.6, mean -11.0
+  (run 10: larger lead). Early frames agree within 2 pt (+0.083: 236 vs
+  235; +0.100: 205 vs 203); from +0.117 to +0.18 s ours stays 15-20 pt
+  narrower. Open/More/Deeper/back steps: contour width RMS 0.4-1.0 pt
+  (opening phases are noisy for this estimator). Settled More stills:
+  submenu rim MAE 5.100 (run 09: 10.994), shadow 2.945, face 1.574,
+  parent rim 6.711 (11.128).
+- [ ] Late close: native visible body 15-20 pt wider than ours at
+  +0.12..+0.18 s although the element widths replay at < 0.4 pt; suspect
+  the visible silhouette vs element bounds (blurred SDF union) - measure.
+- [ ] At +0.09 s native still shows the root rows blurred under the card;
+  ours has faded them. The kept card copy's own contour is faintly
+  visible inside our body at +0.167 s; native shows none.
+- [ ] Opening: native glass element starts 0.07-0.15 s after the tap's
+  release (mm-sub-tap 0.150, mm-sub-palette 0.120; plain replays median
+  0.082) versus tapOpenDelay 0.05; not changed here.
