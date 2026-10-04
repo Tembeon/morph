@@ -28,6 +28,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   nested edges and face levels consistent with native glass. Closing card
   material hands off at the native 12 ms SDF match, removing the inner
   rectangular platter and blurred parent-row ghosts.
+  Scrolled parent menus retain their offset when a submenu opens or
+  returns; parent drag, wheel and ballistic scrolling stay locked until
+  the last submenu has returned.
 - The measured controls: `MorphSegmentedControl` (+
   `MorphSegmentedStyle`) and `MorphTabBar` (+ `MorphTabItem`,
   `MorphTabBarStyle`) - one liquid selection lens on
