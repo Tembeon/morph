@@ -5,9 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/flight.dart';
-import 'package:morph/src/motion.dart';
 import 'package:morph/src/scope.dart';
-import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
@@ -17,6 +15,7 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
+import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -710,12 +709,11 @@ class _MorphBarItemsState extends State<MorphBarItems>
     }
     final menu = _menu;
     if (menu != null) {
-      menu.motion.advance(t);
-      menu.repaint.value++;
+      menu.host.advance(t);
       final flight = menu.flight;
       if (!menu.motion.isPresented && (flight == null || flight.isFinished)) {
         _menu = null;
-        menu.repaint.dispose();
+        menu.host.dispose();
       }
     }
   }
@@ -731,12 +729,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   void dispose() {
     final menu = _menu;
     _menu = null;
-    final flight = menu?.flight;
-    if (flight != null && !flight.isFinished) {
-      WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-        flight.close();
-      });
-    }
+    menu?.host.dispose();
     super.dispose();
   }
 
@@ -768,6 +761,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
     final scopeContext = _scopeContext;
     if (button == null ||
+        !button.enabled ||
         items == null ||
         items.isEmpty ||
         capsule == null ||
@@ -790,6 +784,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       );
       return;
     }
+    morphCheckOverlayAncestor(context, overlay);
     final origin = box.localToGlobal(Offset.zero, ancestor: overlayBox);
     final rect = capsule.rect.shift(origin);
     final tuning = MorphMenuTuning.standard;
@@ -804,10 +799,11 @@ class _MorphBarItemsState extends State<MorphBarItems>
     menu.content.entries = items;
     menu.content.rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     menu.content.titleStyle = MorphTypography.resolve(menu.style.textStyle);
+    menu.content.textScaler =
+        MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling;
     menu.content.beginSession();
-    final motion = MorphMenuMotion(
+    final motion = menu.host.prepare(
       button: rect,
-      layout: menu.content.root,
       bounds: overlayBox.size,
       padding: morphTargetPaddingOf(
         context,
@@ -816,48 +812,12 @@ class _MorphBarItemsState extends State<MorphBarItems>
       ),
       sourceHeight: rect.height,
       tuning: tuning,
-      progress: MorphMenuFlightProgress(
-        tuning,
-        onOpen: () => _launchMenu(menu, scopeContext),
-        onClose: () {
-          final flight = menu.flight;
-          if (flight != null && !flight.isFinished) flight.close();
-        },
-      ),
+      overlay: overlay,
     );
-    morphConnectMenu(motion, menu.content);
     motion.advance(t);
-    menu.motion = motion;
     _menu = menu;
     motion.open(t, sourceScale: _presses[capsuleId]?.scale ?? 1);
     wake();
-  }
-
-  void _launchMenu(_BarMenu menu, BuildContext scopeContext) {
-    if (!mounted || !scopeContext.mounted) return;
-    final tuning = menu.motion.tuning;
-    final flight = showMorph(
-      scopeContext,
-      from: _menuTag,
-      target: MorphTargetSpec.vessel(
-        rectFor: (Size size, EdgeInsets padding) => menu.motion.menuRect,
-      ),
-      builder: (BuildContext context, MorphFlight flight) =>
-          MorphMenuLayer(host: menu, flight: flight),
-      motion: MorphMotion.springs(
-        name: 'menu',
-        open: tuning.openSpring,
-        close: tuning.closeSpring,
-      ),
-      maxScrimOpacity: 0,
-      onDismissRequested: () {
-        menu.motion.close(clock);
-        wake();
-      },
-      semanticLabel: menu.button.semanticLabel ?? menu.button.label,
-      overlay: menu.overlay,
-    );
-    menu.flight = flight;
   }
 
   double _contentWidth(
@@ -961,12 +921,15 @@ class _MorphBarItemsState extends State<MorphBarItems>
     if (menu == null) return;
     final button = _buttons[menu.button.id];
     final entries = button?.menu;
-    if (button == null || entries == null || entries.isEmpty) return;
+    if (button == null ||
+        !button.enabled ||
+        entries == null ||
+        entries.isEmpty) {
+      menu.host.close();
+      return;
+    }
     menu.button = button;
-    if (identical(entries, menu.content.entries)) return;
-    menu.content.entries = entries;
-    menu.motion.updateLayout(clock, animate: menu.motion.isPresented);
-    wake();
+    menu.host.updateEntries(entries);
   }
 
   /// Forgets the buttons and capsules that are no longer drawn.
@@ -1292,8 +1255,14 @@ class _MorphBarItemsState extends State<MorphBarItems>
         button: true,
         enabled: button.enabled,
         label: button.semanticLabel ?? button.label,
+        expanded: (button.menu?.isNotEmpty ?? false)
+            ? _menu?.button.id == button.id && (_menu?.motion.isOpen ?? false)
+            : null,
         onTap: button.onPressed,
-        onLongPress: (button.menu?.isNotEmpty ?? false) && _menu == null
+        onLongPress:
+            button.enabled &&
+                (button.menu?.isNotEmpty ?? false) &&
+                _menu == null
             ? () => _openMenu(clock, button.id)
             : null,
         child: Listener(
@@ -1322,7 +1291,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
 /// The long-press menu of one bar button: the measured menu of
 /// [MorphMenuButton] grown out of the button's capsule, carried by an
 /// engine flight from the bar's own tag.
-class _BarMenu implements MorphMenuHost {
+class _BarMenu {
   _BarMenu({
     required this.state,
     required this.button,
@@ -1337,26 +1306,22 @@ class _BarMenu implements MorphMenuHost {
   final Object capsule;
   final MorphMenuStyle style;
   final OverlayState overlay;
-
-  /// The bar's top left corner in the overlay, where the motion lives.
   final Offset origin;
-  final ValueNotifier<int> repaint = ValueNotifier<int>(0);
-  late final MorphMenuContent content = MorphMenuContent(
-    onChanged: ({required bool animate}) {
-      if (!state.mounted) return;
-      motion.updateLayout(state.clock, animate: animate && motion.isPresented);
-      state.wake();
-    },
+  late final MorphMenuController host = MorphMenuController(
+    tagId: state._menuTag,
+    scopeContext: () => state._scopeContext,
+    clock: () => state.clock,
+    stamp: state.stamp,
+    wake: state.wake,
+    style: () => style,
+    glyph: () => glyph,
+    semanticLabel: () => button.semanticLabel ?? button.label,
   );
-  late MorphMenuMotion motion;
-  MorphFlight? flight;
-  int? _pointer;
+  MorphMenuContent get content => host.menuContent;
+  MorphMenuMotion get motion => host.menuMotion!;
+  MorphFlight? get flight => host.flight;
 
-  @override
-  MorphMenuStyle get menuStyle => style;
-
-  @override
-  Widget get menuGlyph {
+  Widget get glyph {
     final frame = state._capsuleLayout(capsule);
     return SizedBox.fromSize(
       size: frame?.rect.size ?? Size.zero,
@@ -1373,56 +1338,6 @@ class _BarMenu implements MorphMenuHost {
         ),
       ),
     );
-  }
-
-  @override
-  MorphMenuContent get menuContent => content;
-
-  @override
-  double get menuClock => state.clock;
-
-  @override
-  void menuWake() => state.wake();
-
-  @override
-  Listenable get menuRepaint => repaint;
-
-  @override
-  MorphMenuMotion? get menuMotion => motion;
-
-  Offset _local(Offset global) {
-    final box = overlay.context.findRenderObject();
-    return box is RenderBox ? box.globalToLocal(global) : global;
-  }
-
-  @override
-  void menuPointerDown(PointerDownEvent event) {
-    if (_pointer != null || event.buttons != kPrimaryButton) return;
-    _pointer = event.pointer;
-    motion.pointerDown(state.stamp(event), _local(event.position));
-    state.wake();
-  }
-
-  @override
-  void menuPointerMove(PointerMoveEvent event) {
-    if (event.pointer != _pointer) return;
-    motion.pointerMove(state.stamp(event), _local(event.position));
-  }
-
-  @override
-  void menuPointerUp(PointerUpEvent event) {
-    if (event.pointer != _pointer) return;
-    _pointer = null;
-    motion.pointerUp(state.stamp(event), _local(event.position));
-    state.wake();
-  }
-
-  @override
-  void menuPointerCancel(PointerCancelEvent event) {
-    if (event.pointer != _pointer) return;
-    _pointer = null;
-    motion.pointerCancel(state.stamp(event));
-    state.wake();
   }
 }
 

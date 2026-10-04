@@ -19,7 +19,7 @@ class MorphMenuTuning {
   /// Creates a tuning from explicit values.
   const MorphMenuTuning({
     this.morph = MorphMenuMorphSpec.standard,
-    this.menuWidth = 250,
+    this.menuWidth = defaultMenuWidth,
     this.rowHeight = 42,
     this.verticalPadding = 10,
     this.cornerRadius = 32,
@@ -53,7 +53,7 @@ class MorphMenuTuning {
     this.closeKickReach = 31.7,
     this.sourceKickSpring = const MorphSpring(0.3102, 0.6335),
     this.sourceKickGain = 2.02,
-    this.edgeMargin = 8,
+    this.edgeMargin = defaultEdgeMargin,
     this.glowDiameter = 160,
     this.glowOpacity = 0.5,
     this.glowFade = 0.07,
@@ -100,6 +100,83 @@ class MorphMenuTuning {
     this.shrinkSpring = const MorphSpring(0.4, 1),
     this.shrinkDelay = 0.03,
   });
+
+  /// The menu width from the iOS 27 view tree, in points.
+  static const double defaultMenuWidth = 250;
+
+  /// The horizontal placement margin from the device menu traces.
+  static const double defaultEdgeMargin = 8;
+
+  /// The diameter of the measured round glass menu button, in points.
+  static const double buttonDiameter = 48;
+
+  /// The numerical integration step of the measured driven kicks, in seconds.
+  static const double kickIntegrationStep = 0.001;
+
+  /// The driven kick displacement considered at rest, in points.
+  static const double kickRestValue = 0.01;
+
+  /// The driven kick velocity considered at rest, in points per second.
+  static const double kickRestVelocity = 0.1;
+
+  /// The remaining idle span above which kick integration skips ahead.
+  ///
+  /// This numerical optimization threshold is not a measured motion value.
+  static const double kickSkipSpan = 1;
+
+  /// The row glyph size from the iOS 27 menu view tree, in points.
+  static const double rowIconSize = 20;
+
+  /// The context menu edge margin; an engineering default, not measured.
+  static const double contextMargin = 12;
+
+  /// The gap below a row title, from the 60-point subtitle row view tree.
+  static const double subtitleGap = 2.67;
+
+  /// The checkmark bounds from the iOS 27 menu view tree.
+  static const Size checkSize = Size(13.33, 12.33);
+
+  /// The mixed-state dash bounds from the iOS 27 menu view tree.
+  static const Size mixedSize = Size(12.67, 3.67);
+
+  /// The submenu chevron bounds from the iOS 27 menu view tree.
+  static const Size chevronSize = Size(9.33, 12.67);
+
+  /// The selection glyph slot; a layout default, not measured.
+  static const double markSlot = 16;
+
+  /// The row image slot; a layout default, not measured.
+  static const double imageSlot = 30;
+
+  /// The cell highlight radius; a rendering default, not measured.
+  static const double cellHighlightRadius = 12;
+
+  /// The submenu shadow blur; a rendering default, not measured.
+  static const double shadowBlur = 6;
+
+  /// The submenu shadow clip extent; a rendering default, not measured.
+  static const double shadowReach = 40;
+
+  /// The submenu rim stroke width; a rendering default, not measured.
+  static const double cardRimWidth = 2;
+
+  /// The ellipsis glyph box; a rendering default, not measured.
+  static const double ellipsisSize = 24;
+
+  /// The ellipsis dot pitch; a rendering default, not measured.
+  static const double ellipsisPitch = 7;
+
+  /// The ellipsis dot radius; a rendering default, not measured.
+  static const double ellipsisRadius = 2.2;
+
+  /// The smallest painted blur; a rendering default, not measured.
+  static const double blurThreshold = 0.05;
+
+  /// The menu scroll indicator width; a rendering default, not measured.
+  static const double scrollThickness = 3;
+
+  /// The menu scroll indicator edge inset; a rendering default, not measured.
+  static const double scrollInset = 4;
 
   /// The layout of the inside of the menu.
   final MorphMenuMetrics metrics;
@@ -465,8 +542,9 @@ class MorphMenuTuning {
   final double fusionCloseHold;
 
   /// The spring the fusion falls on, critically damped: fitted free to
-  /// 0.424 to 0.433 s in both directions, the `liquidMorph` blur-in
-  /// spring 0.3 at its speed of 0.7.
+  /// 0.424 to 0.433 s in both directions from the device's logged
+  /// Gaussian radius. This envelope fit is independent of
+  /// [MorphMenuMorphSpec.atSpeed]; that method scales the progress springs.
   final MorphSpring fusionSpring;
 
   /// The fusion radius under which the container drops its blur: the
@@ -604,7 +682,9 @@ class _DrivenKick {
   double value = 0;
   double velocity = 0;
 
-  bool get isAtRest => value.abs() < 0.01 && velocity.abs() < 0.1;
+  bool get isAtRest =>
+      value.abs() < MorphMenuTuning.kickRestValue &&
+      velocity.abs() < MorphMenuTuning.kickRestVelocity;
 
   void reset() {
     value = 0;
@@ -617,13 +697,23 @@ class _DrivenKick {
     double from,
     double to,
     MorphSpring spring,
-    double Function(double t)? input,
-  ) {
-    final steps = math.max(1, ((to - from) / 0.001).ceil());
+    double Function(double t)? input, {
+    bool Function(double t)? inputAtRest,
+  }) {
+    final steps = math.max(
+      1,
+      ((to - from) / MorphMenuTuning.kickIntegrationStep).ceil(),
+    );
     final h = (to - from) / steps;
     final k = spring.stiffness;
     final c = spring.damping;
     for (var i = 0; i < steps; i++) {
+      final sample = from + i * h;
+      if (to - sample > MorphMenuTuning.kickSkipSpan &&
+          isAtRest &&
+          (inputAtRest?.call(sample) ?? input == null)) {
+        return;
+      }
       final target = input == null ? 0.0 : input(from + (i + 0.5) * h);
       velocity += (k * (target - value) - c * velocity) * h;
       value += velocity * h;
@@ -1556,6 +1646,9 @@ class MorphMenuMotion {
 
   /// Closes the menu at time [t].
   void close(double t) {
+    _openPending = false;
+    _timeline.clear();
+    _pointer = null;
     advance(t);
     _close(t);
   }
@@ -1774,7 +1867,7 @@ class MorphMenuMotion {
     required Size size,
     required Size bounds,
     EdgeInsets padding = EdgeInsets.zero,
-    double edgeMargin = 8,
+    double edgeMargin = MorphMenuTuning.defaultEdgeMargin,
   }) {
     final down =
         button.center.dy <= (padding.top + bounds.height - padding.bottom) / 2;
@@ -1828,6 +1921,7 @@ class MorphMenuMotion {
         open == null || !opening
             ? null
             : (double s) => tuning.openKickGain * a * open.velocity(s),
+        inputAtRest: open == null || !opening ? null : open.isAtRest,
       );
       _buttonKick.step(
         from,
@@ -1837,6 +1931,7 @@ class MorphMenuMotion {
             ? null
             : (double s) =>
                   tuning.sourceKickGain * _sourceAmplitude * close.velocity(s),
+        inputAtRest: close?.isAtRest,
       );
     }
     if (t >= from) _sampleTime = t;

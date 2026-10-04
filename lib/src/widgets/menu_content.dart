@@ -7,8 +7,8 @@ import 'package:morph/src/widgets/menu_layout.dart';
 /// answers of deferred groups, the measured heights of free-form rows;
 /// lays them out and runs their actions.
 ///
-/// Both menu hosts (the menu button and the bar button menus) keep one,
-/// so a menu's content behaves the same wherever it opens.
+/// The shared menu host keeps one content model, so entries behave the
+/// same in a menu button and a bar button menu.
 @internal
 class MorphMenuContent {
   /// Creates the content; [onChanged] runs when it changes on its own (a

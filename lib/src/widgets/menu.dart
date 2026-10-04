@@ -8,9 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/flight.dart';
-import 'package:morph/src/motion.dart';
 import 'package:morph/src/scope.dart';
-import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/activity_indicator.dart';
 import 'package:morph/src/widgets/clock.dart';
@@ -19,6 +17,7 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_layout.dart';
+import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -28,14 +27,14 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 class MorphMenuStyle {
   /// Creates a style; the defaults are the iOS 27 light appearance.
   const MorphMenuStyle({
-    this.buttonSize = 48,
+    this.buttonSize = MorphMenuTuning.buttonDiameter,
     this.glassColor = const Color(0xF2F9F9FF),
     this.shadowColor = const Color(0x33000000),
     this.shadowElevation = 12,
     this.textStyle = const TextStyle(fontSize: 17, color: Color(0xF5000000)),
     this.iconColor = const Color(0xF5000000),
     this.disabledIconColor = const Color(0x4C3C3C43),
-    this.iconSize = 20,
+    this.iconSize = MorphMenuTuning.rowIconSize,
     this.destructiveColor = const Color(0xFFFF383C),
     this.highlightColor = const Color(0x1F000000),
     this.glowColor = const Color(0xFFFFFFFF),
@@ -238,7 +237,7 @@ class MorphMenuButton extends StatefulWidget {
     this.style,
     this.tuning = MorphMenuTuning.standard,
     this.overlay,
-    this.semanticLabel = 'More',
+    this.semanticLabel,
     this.onOpen,
     this.enabled = true,
     this.order = MorphMenuOrder.automatic,
@@ -271,8 +270,9 @@ class MorphMenuButton extends StatefulWidget {
   /// It must be an ancestor of this button.
   final OverlayState? overlay;
 
-  /// The accessibility label of the button.
-  final String semanticLabel;
+  /// The localized accessibility label supplied by the caller; null leaves
+  /// the label to the button's child.
+  final String? semanticLabel;
 
   /// Called with the flight of the menu each time a new one launches;
   /// its [MorphFlight.events] are the seam for haptics.
@@ -409,12 +409,30 @@ abstract interface class MorphMenuHost {
 class _MorphMenuButtonState extends State<MorphMenuButton>
     with
         SingleTickerProviderStateMixin<MorphMenuButton>,
-        MorphClock<MorphMenuButton>
-    implements MorphMenuHost {
+        MorphClock<MorphMenuButton> {
+  final Object _tagId = Object();
+  BuildContext? _scopeContext;
+  MorphMenuStyle _style = MorphMenuStyle.light;
+  late final MorphMenuController _host = MorphMenuController(
+    tagId: _tagId,
+    scopeContext: () => _scopeContext,
+    clock: () => clock,
+    stamp: stamp,
+    wake: wake,
+    style: () => _style,
+    glyph: () => widget.child ?? _Ellipsis(color: _style.iconColor),
+    semanticLabel: () => _semanticLabel,
+    onOpen: (MorphFlight flight) => widget.onOpen?.call(flight),
+  );
+
+  String? get _semanticLabel => widget.semanticLabel;
+  MorphMenuContent get _content => _host.menuContent;
+  MorphMenuMotion? get _motion => _host.menuMotion;
+  MorphFlight? get _flight => _host.flight;
+
   @override
   void initState() {
     super.initState();
-    _content = MorphMenuContent(onChanged: _contentChanged);
     _content.entries = widget.items;
     _content.order = widget.order;
   }
@@ -422,104 +440,18 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   @override
   void didUpdateWidget(MorphMenuButton oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _content.entries = widget.items;
-    _content.order = widget.order;
-    final motion = _motion;
-    if (motion == null) return;
-    motion.dismissOnSelect = widget.dismissOnSelect;
-    if (oldWidget.enabled && !widget.enabled) {
-      if (motion.isOpen || motion.isOpenPending) {
-        motion.close(clock);
-        wake();
-        return;
-      }
-    }
-    if (!identical(oldWidget.items, widget.items) ||
-        oldWidget.order != widget.order) {
-      if (motion.isPresented) {
-        motion.updateLayout(clock);
-        wake();
-      } else {
-        motion.updateLayout(clock, animate: false);
-      }
-    }
+    _host.updateEntries(
+      widget.items,
+      order: widget.order,
+      dismissOnSelect: widget.dismissOnSelect,
+    );
+    if (oldWidget.enabled && !widget.enabled) _host.close();
   }
-
-  void _contentChanged({required bool animate}) {
-    final motion = _motion;
-    if (_disposed || motion == null) return;
-    motion.updateLayout(clock, animate: animate && motion.isPresented);
-    wake();
-  }
-
-  late final MorphMenuContent _content;
-
-  @override
-  MorphMenuStyle get menuStyle => _style;
-
-  @override
-  Widget get menuGlyph => widget.child ?? _Ellipsis(color: _style.iconColor);
-
-  @override
-  MorphMenuContent get menuContent => _content;
-
-  @override
-  Listenable get menuRepaint => _repaint;
-
-  @override
-  MorphMenuMotion? get menuMotion => _motion;
-
-  @override
-  double get menuClock => clock;
-
-  @override
-  void menuWake() => wake();
-
-  @override
-  void menuPointerDown(PointerDownEvent event) => _menuDown(event);
-
-  @override
-  void menuPointerMove(PointerMoveEvent event) => _move(event);
-
-  @override
-  void menuPointerUp(PointerUpEvent event) => _up(event);
-
-  @override
-  void menuPointerCancel(PointerCancelEvent event) => _cancel(event);
-
-  final Object _tagId = Object();
-  final ValueNotifier<int> _repaint = ValueNotifier<int>(0);
-  MorphMenuMotion? _motion;
-  MorphFlight? _flight;
-  BuildContext? _scopeContext;
-  OverlayState? _overlay;
-  int? _pointer;
-  int? _early;
-  bool _routing = false;
-  bool _disposed = false;
-  bool _repaintDisposed = false;
-  MorphMenuStyle _style = MorphMenuStyle.light;
 
   @override
   void dispose() {
-    _disposed = true;
-    _content.dispose();
-    _unroute();
-    final flight = _flight;
-    if (flight == null || flight.isFinished) {
-      _disposeRepaint();
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-        flight.close();
-      });
-    }
+    _host.dispose();
     super.dispose();
-  }
-
-  void _disposeRepaint() {
-    if (_repaintDisposed) return;
-    _repaintDisposed = true;
-    _repaint.dispose();
   }
 
   MorphMenuMotion _prepare() {
@@ -527,7 +459,6 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     if (current != null && current.isPresented) return current;
     final overlay = widget.overlay ?? Overlay.of(context);
     if (widget.overlay != null) morphCheckOverlayAncestor(context, overlay);
-    _overlay = overlay;
     final box = context.findRenderObject()! as RenderBox;
     final overlayBox = overlay.context.findRenderObject()! as RenderBox;
     final origin = box.localToGlobal(Offset.zero, ancestor: overlayBox);
@@ -542,186 +473,39 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     _content.textScaler =
         MediaQuery.maybeTextScalerOf(context) ?? TextScaler.noScaling;
     _content.beginSession();
-    if (current != null && identical(current.tuning, widget.tuning)) {
-      current.relayout(
-        button: button,
-        bounds: overlayBox.size,
-        padding: padding,
-      );
-      current.dismissOnSelect = widget.dismissOnSelect;
-      return current;
-    }
-    final motion = MorphMenuMotion(
+    return _host.prepare(
       button: button,
-      layout: _content.root,
       bounds: overlayBox.size,
       padding: padding,
       tuning: widget.tuning,
-      progress: MorphMenuFlightProgress(
-        widget.tuning,
-        onOpen: _launch,
-        onClose: () {
-          final flight = _flight;
-          if (flight != null && !flight.isFinished) flight.close();
-        },
-      ),
+      overlay: overlay,
+      dismissOnSelect: widget.dismissOnSelect,
     );
-    morphConnectMenu(motion, _content, dismissOnSelect: widget.dismissOnSelect);
-    motion.advance(clock);
-    _motion = motion;
-    return motion;
-  }
-
-  void _launch() {
-    final launchContext = _scopeContext;
-    if (_disposed || launchContext == null || !launchContext.mounted) {
-      _motion?.close(clock);
-      return;
-    }
-    final tuning = widget.tuning;
-    final flight = showMorph(
-      launchContext,
-      from: _tagId,
-      target: MorphTargetSpec.vessel(
-        rectFor: (Size size, EdgeInsets padding) =>
-            _motion?.menuRect ?? Rect.zero,
-      ),
-      builder: (BuildContext context, MorphFlight flight) =>
-          MorphMenuLayer(host: this, flight: flight),
-      motion: MorphMotion.springs(
-        name: 'menu',
-        open: tuning.openSpring,
-        close: tuning.closeSpring,
-      ),
-      maxScrimOpacity: 0,
-      onDismissRequested: _dismissRequested,
-      semanticLabel: widget.semanticLabel,
-      overlay: _overlay,
-    );
-    if (identical(flight, _flight)) return;
-    _flight = flight;
-    flight.closed.whenComplete(() {
-      if (identical(_flight, flight)) _flight = null;
-      if (_disposed && _flight == null) _disposeRepaint();
-    });
-    widget.onOpen?.call(flight);
-  }
-
-  void _dismissRequested() {
-    _motion?.close(clock);
-    wake();
   }
 
   @override
-  void advanceMotion(double t) {
-    final motion = _motion;
-    if (motion == null) return;
-    motion.advance(t);
-    if (_early == null && !motion.isOpenPending) _unroute();
-    _repaint.value++;
-  }
-
-  void _route() {
-    if (_routing) return;
-    _routing = true;
-    GestureBinding.instance.pointerRouter.addGlobalRoute(_earlyEvent);
-  }
-
-  void _unroute() {
-    if (!_routing) return;
-    _routing = false;
-    GestureBinding.instance.pointerRouter.removeGlobalRoute(_earlyEvent);
-  }
-
-  void _earlyEvent(PointerEvent event) {
-    final motion = _motion;
-    if (motion == null) return;
-    if (event is PointerDownEvent) {
-      if (!motion.isOpenPending ||
-          _pointer != null ||
-          event.buttons != kPrimaryButton) {
-        return;
-      }
-      _pointer = event.pointer;
-      _early = event.pointer;
-      motion.pointerDown(stamp(event), _local(event.position));
-      return;
-    }
-    if (event.pointer != _early) return;
-    if (event is PointerMoveEvent) {
-      _move(event);
-    } else if (event is PointerUpEvent) {
-      _early = null;
-      _up(event);
-    } else if (event is PointerCancelEvent) {
-      _early = null;
-      _cancel(event);
-    }
-  }
+  void advanceMotion(double t) => _host.advance(t);
 
   @override
   bool get motionSettled => _motion?.isSettled ?? true;
 
-  Offset _local(Offset global) {
-    final box = _overlay?.context.findRenderObject() as RenderBox?;
-    return box == null ? global : box.globalToLocal(global);
-  }
-
   void _buttonDown(PointerDownEvent event) {
     if (!widget.enabled ||
         event.buttons != kPrimaryButton ||
-        _pointer != null) {
+        _host.hasPointer ||
+        (_motion?.isOpen ?? false)) {
       return;
     }
-    final current = _motion;
-    if (current != null && current.isOpen) return;
-    final motion = _prepare();
-    _pointer = event.pointer;
-    motion.pointerDown(stamp(event), _local(event.position));
-  }
-
-  void _menuDown(PointerDownEvent event) {
-    final motion = _motion;
-    if (motion == null || _pointer != null) return;
-    if (event.buttons != kPrimaryButton) return;
-    _pointer = event.pointer;
-    motion.pointerDown(stamp(event), _local(event.position));
-  }
-
-  void _move(PointerMoveEvent event) {
-    if (event.pointer != _pointer) return;
-    _motion?.pointerMove(stamp(event), _local(event.position));
-  }
-
-  void _up(PointerUpEvent event) {
-    if (event.pointer != _pointer) return;
-    _pointer = null;
-    final motion = _motion;
-    if (motion == null) return;
-    motion.pointerUp(stamp(event), _local(event.position));
-    if (motion.isOpenPending) _route();
-  }
-
-  void _cancel(PointerCancelEvent event) {
-    if (event.pointer != _pointer) return;
-    _pointer = null;
-    _motion?.pointerCancel(stamp(event));
+    _prepare();
+    _host.menuPointerDown(event);
   }
 
   void _openFromSemantics() {
-    final motion = _prepare();
-    motion.open(clock);
+    _prepare().open(clock);
     wake();
   }
 
-  /// Whether the motion is up while no vessel shows it: after the latch
-  /// the rest of the close plays on the button itself.
-  bool get _landing {
-    final motion = _motion;
-    if (motion == null || !motion.isPresented) return false;
-    final flight = _flight;
-    return flight == null || !flight.isAirborne;
-  }
+  bool get _landing => _host.isLanding;
 
   Widget _face(BuildContext context, MorphMenuStyle style, Widget glyph) {
     final motion = _motion;
@@ -768,20 +552,23 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
             data: IconThemeData(color: iconColor),
             child: custom,
           );
-    final open = _motion?.isOpen ?? false;
-    final Widget button = Semantics(
-      button: true,
-      enabled: enabled,
-      expanded: open,
-      label: widget.semanticLabel,
-      onTap: enabled ? _openFromSemantics : null,
+    final Widget button = ListenableBuilder(
+      listenable: frames,
+      builder: (BuildContext context, Widget? child) => Semantics(
+        button: true,
+        enabled: enabled,
+        expanded: _motion?.isOpen ?? false,
+        label: _semanticLabel,
+        onTap: enabled ? _openFromSemantics : null,
+        child: child,
+      ),
       child: MorphTouchListener(
         enabled: enabled,
         behavior: .opaque,
         onPointerDown: _buttonDown,
-        onPointerMove: _move,
-        onPointerUp: _up,
-        onPointerCancel: _cancel,
+        onPointerMove: _host.menuPointerMove,
+        onPointerUp: _host.menuPointerUp,
+        onPointerCancel: _host.menuPointerCancel,
         child: SizedBox.square(
           dimension: style.buttonSize,
           child: ListenableBuilder(
@@ -925,8 +712,9 @@ class _Faded extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final blurred = blur > 0.05 && opacity > 0;
+    final blurred = blur > MorphMenuTuning.blurThreshold && opacity > 0;
     return Opacity(
+      alwaysIncludeSemantics: true,
       opacity: blurred ? 1 : opacity,
       child: ImageFiltered(
         enabled: blurred,
@@ -1110,85 +898,90 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     final host = widget.host;
     final style = host.menuStyle;
     final glyph = host.menuGlyph;
-    return Focus(
-      autofocus: true,
-      onKeyEvent: _key,
-      child: ListenableBuilder(
-        listenable: Listenable.merge([
-          host.menuRepaint,
-          widget.flight.frameTicks,
-        ]),
-        builder: (BuildContext context, Widget? _) {
-          final motion = host.menuMotion;
-          if (motion == null) return const SizedBox.shrink();
-          final menu = motion.menuBlob;
-          final source = motion.buttonBlob;
-          final size = motion.menuRect.size;
-          final scale = motion.contentScale;
-          final at = motion.contentRect.topLeft - menu.rect.topLeft;
-          return IgnorePointer(
-            ignoring: !motion.isOpen,
-            child: Listener(
-              behavior: .opaque,
-              onPointerDown: host.menuPointerDown,
-              onPointerMove: host.menuPointerMove,
-              onPointerUp: host.menuPointerUp,
-              onPointerCancel: host.menuPointerCancel,
-              child: _MenuShapes(
-                style: style,
-                glyph: glyph,
-                menu: menu.rrect,
-                source: source.rrect,
-                sourceRect: source.rect,
-                sourceScale: source.scale,
-                outline: motion.silhouette,
-                lookStretch: motion.buttonLookStretch,
-                look: (
-                  opacity: motion.buttonLookOpacity,
-                  blur: motion.buttonLookBlur,
-                ),
-                content: Positioned.fromRect(
-                  rect: menu.rect,
-                  child: ClipRRect(
-                    borderRadius: .circular(menu.radius),
-                    child: Stack(
-                      clipBehavior: .none,
-                      children: [
-                        Positioned(
-                          left: at.dx,
-                          top: at.dy,
-                          width: size.width,
-                          height: size.height,
-                          child: Transform.scale(
-                            scale: scale,
-                            alignment: .topLeft,
-                            child: Stack(
-                              clipBehavior: .none,
-                              children: [
-                                _Faded(
-                                  opacity: motion.contentOpacity,
-                                  blur: motion.contentBlur / scale,
-                                  child: Stack(
-                                    clipBehavior: .none,
-                                    children: [
-                                      ..._glow(motion, style),
-                                      ..._cards(motion, style, top: false),
-                                    ],
+    return Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: ui.SemanticsRole.menu,
+      child: Focus(
+        autofocus: true,
+        onKeyEvent: _key,
+        child: ListenableBuilder(
+          listenable: Listenable.merge([
+            host.menuRepaint,
+            widget.flight.frameTicks,
+          ]),
+          builder: (BuildContext context, Widget? _) {
+            final motion = host.menuMotion;
+            if (motion == null) return const SizedBox.shrink();
+            final menu = motion.menuBlob;
+            final source = motion.buttonBlob;
+            final size = motion.menuRect.size;
+            final scale = motion.contentScale;
+            final at = motion.contentRect.topLeft - menu.rect.topLeft;
+            return IgnorePointer(
+              ignoring: !motion.isOpen,
+              child: Listener(
+                behavior: .opaque,
+                onPointerDown: host.menuPointerDown,
+                onPointerMove: host.menuPointerMove,
+                onPointerUp: host.menuPointerUp,
+                onPointerCancel: host.menuPointerCancel,
+                child: _MenuShapes(
+                  style: style,
+                  glyph: glyph,
+                  menu: menu.rrect,
+                  source: source.rrect,
+                  sourceRect: source.rect,
+                  sourceScale: source.scale,
+                  outline: motion.silhouette,
+                  lookStretch: motion.buttonLookStretch,
+                  look: (
+                    opacity: motion.buttonLookOpacity,
+                    blur: motion.buttonLookBlur,
+                  ),
+                  content: Positioned.fromRect(
+                    rect: menu.rect,
+                    child: ClipRRect(
+                      borderRadius: .circular(menu.radius),
+                      child: Stack(
+                        clipBehavior: .none,
+                        children: [
+                          Positioned(
+                            left: at.dx,
+                            top: at.dy,
+                            width: size.width,
+                            height: size.height,
+                            child: Transform.scale(
+                              scale: scale,
+                              alignment: .topLeft,
+                              child: Stack(
+                                clipBehavior: .none,
+                                children: [
+                                  _Faded(
+                                    opacity: motion.contentOpacity,
+                                    blur: motion.contentBlur / scale,
+                                    child: Stack(
+                                      clipBehavior: .none,
+                                      children: [
+                                        ..._glow(motion, style),
+                                        ..._cards(motion, style, top: false),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                ..._cards(motion, style, top: true),
-                              ],
+                                  ..._cards(motion, style, top: true),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
@@ -1274,10 +1067,12 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
               child: RawScrollbar(
                 controller: _scroll,
                 thumbColor: style.secondaryColor,
-                thickness: 3,
-                radius: const Radius.circular(1.5),
+                thickness: MorphMenuTuning.scrollThickness,
+                radius: const Radius.circular(
+                  MorphMenuTuning.scrollThickness / 2,
+                ),
                 mainAxisMargin: radius / 2,
-                crossAxisMargin: 4,
+                crossAxisMargin: MorphMenuTuning.scrollInset,
                 child: CustomScrollView(
                   controller: _scroll,
                   slivers: [SliverToBoxAdapter(child: content)],
@@ -1351,7 +1146,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
               child: ClipRRect(
                 borderRadius: shape,
                 child: BackdropFilter(
-                  enabled: blur > 0.05,
+                  enabled: blur > MorphMenuTuning.blurThreshold,
                   filter: ui.ImageFilter.blur(
                     sigmaX: blur,
                     sigmaY: blur,
@@ -1461,7 +1256,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         decoration: BoxDecoration(
           color: style.highlightColor,
           borderRadius: .circular(
-            cell ? 12 : math.min(rect.height / 2, motion.tuning.rowHeight / 2),
+            cell
+                ? MorphMenuTuning.cellHighlightRadius
+                : math.min(rect.height / 2, motion.tuning.rowHeight / 2),
           ),
         ),
       ),
@@ -1686,6 +1483,7 @@ class _MenuElement extends StatelessWidget {
     final image = element.imageCenter;
     return Semantics(
       button: true,
+      role: ui.SemanticsRole.menuItem,
       enabled: enabled,
       checked: state == MorphMenuState.off || submenu
           ? null
@@ -1701,11 +1499,11 @@ class _MenuElement extends StatelessWidget {
           if (check != null && state != MorphMenuState.off)
             _at(
               check,
-              16,
+              MorphMenuTuning.markSlot,
               CustomPaint(
                 size: state == MorphMenuState.on
-                    ? const Size(13.33, 12.33)
-                    : const Size(12.67, 3.67),
+                    ? MorphMenuTuning.checkSize
+                    : MorphMenuTuning.mixedSize,
                 painter: _MarkPainter(
                   color: color,
                   mixed: state == MorphMenuState.mixed,
@@ -1715,7 +1513,7 @@ class _MenuElement extends StatelessWidget {
           if (image != null && icon != null)
             _at(
               image,
-              30,
+              MorphMenuTuning.imageSlot,
               Icon(icon, size: style.iconSize, color: iconColor ?? color),
             ),
           PositionedDirectional(
@@ -1734,7 +1532,7 @@ class _MenuElement extends StatelessWidget {
                   maxLines: element.maxLines,
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 2.67),
+                  const SizedBox(height: MorphMenuTuning.subtitleGap),
                   _text(subtitle, _subtitleStyle, style.secondaryColor),
                 ],
               ],
@@ -1743,11 +1541,11 @@ class _MenuElement extends StatelessWidget {
           if (submenu)
             _at(
               _metrics.chevronCenter,
-              16,
+              MorphMenuTuning.markSlot,
               Transform.flip(
                 flipX: content.rtl,
                 child: CustomPaint(
-                  size: const Size(9.33, 12.67),
+                  size: MorphMenuTuning.chevronSize,
                   painter: _ChevronPainter(color: color, down: false),
                 ),
               ),
@@ -1791,6 +1589,7 @@ class _MenuElement extends StatelessWidget {
     final bold = headerBold.clamp(0.0, 1.0);
     return Semantics(
       button: true,
+      role: ui.SemanticsRole.menuItem,
       expanded: true,
       label: element.title,
       onTap: _tap,
@@ -1798,7 +1597,11 @@ class _MenuElement extends StatelessWidget {
       child: Stack(
         children: [
           if (image != null && icon != null)
-            _at(image, 30, Icon(icon, size: style.iconSize, color: _title)),
+            _at(
+              image,
+              MorphMenuTuning.imageSlot,
+              Icon(icon, size: style.iconSize, color: _title),
+            ),
           PositionedDirectional(
             start: element.titleStart,
             end: width - element.titleEnd,
@@ -1826,13 +1629,13 @@ class _MenuElement extends StatelessWidget {
           ),
           _at(
             _metrics.chevronCenter,
-            16,
+            MorphMenuTuning.markSlot,
             Transform.flip(
               flipX: content.rtl,
               child: Transform.rotate(
                 angle: chevronTurn.clamp(0.0, 1.0) * math.pi / 2,
                 child: CustomPaint(
-                  size: const Size(9.33, 12.67),
+                  size: MorphMenuTuning.chevronSize,
                   painter: _ChevronPainter(color: _title, down: false),
                 ),
               ),
@@ -1940,6 +1743,7 @@ class _MenuElement extends StatelessWidget {
     }
     return Semantics(
       button: true,
+      role: ui.SemanticsRole.menuItem,
       enabled: enabled,
       selected: selected,
       label: title,
@@ -1957,7 +1761,11 @@ class _MenuElement extends StatelessWidget {
       excludeSemantics: true,
       child: Stack(
         children: [
-          _at(check, 30, MorphActivityIndicator(color: style.disabledColor)),
+          _at(
+            check,
+            MorphMenuTuning.imageSlot,
+            MorphActivityIndicator(color: style.disabledColor),
+          ),
           PositionedDirectional(
             start: element.titleStart,
             end: width - element.titleEnd,
@@ -2097,12 +1905,15 @@ class _CardShadowPainter extends CustomPainter {
     canvas.save();
     final outside = Path();
     outside.fillType = PathFillType.evenOdd;
-    outside.addRect(shape.outerRect.inflate(40));
+    outside.addRect(shape.outerRect.inflate(MorphMenuTuning.shadowReach));
     outside.addRRect(shape);
     canvas.clipPath(outside);
     final paint = Paint();
     paint.color = color.withValues(alpha: color.a * opacity);
-    paint.maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
+    paint.maskFilter = const MaskFilter.blur(
+      BlurStyle.normal,
+      MorphMenuTuning.shadowBlur,
+    );
     canvas.drawRRect(shape, paint);
     canvas.restore();
   }
@@ -2154,7 +1965,7 @@ class _CardPlatterPainter extends CustomPainter {
     );
     final edge = Paint();
     edge.style = PaintingStyle.stroke;
-    edge.strokeWidth = 2;
+    edge.strokeWidth = MorphMenuTuning.cardRimWidth;
     final reach = math.min(radius, size.height / 2);
     edge.shader = ui.Gradient.linear(Offset.zero, Offset(0, reach), [
       rim.withValues(alpha: rim.a * opacity),
@@ -2250,7 +2061,7 @@ class _Ellipsis extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox.square(
-      dimension: 24,
+      dimension: MorphMenuTuning.ellipsisSize,
       child: CustomPaint(painter: _EllipsisPainter(color)),
     );
   }
@@ -2266,8 +2077,16 @@ class _EllipsisPainter extends CustomPainter {
     final paint = Paint();
     paint.color = color;
     final center = size.center(Offset.zero);
-    for (final dx in const [-7.0, 0.0, 7.0]) {
-      canvas.drawCircle(center + Offset(dx, 0), 2.2, paint);
+    for (final dx in const [
+      -MorphMenuTuning.ellipsisPitch,
+      0.0,
+      MorphMenuTuning.ellipsisPitch,
+    ]) {
+      canvas.drawCircle(
+        center + Offset(dx, 0),
+        MorphMenuTuning.ellipsisRadius,
+        paint,
+      );
     }
   }
 

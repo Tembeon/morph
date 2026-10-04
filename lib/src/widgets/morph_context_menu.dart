@@ -10,6 +10,8 @@ import 'package:morph/foundation.dart';
 import 'package:morph/src/frame.dart';
 import 'package:morph/src/measure.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/widgets/menu_motion.dart';
+import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
@@ -96,9 +98,9 @@ class MorphContextMenuRegion extends StatefulWidget {
     this.above,
     this.below,
     this.replica,
-    this.width = 250,
+    this.width = MorphMenuTuning.defaultMenuWidth,
     this.gap = measuredMenuGap,
-    this.margin = 12,
+    this.margin = MorphMenuTuning.contextMargin,
     this.alignment = AlignmentDirectional.centerStart,
     this.holdDuration = measuredHoldDuration,
     this.lifts = true,
@@ -387,17 +389,12 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   late final Ticker _holdClock = createTicker(_onHoldTick);
   bool _growing = false;
   int? _clockPointer;
-  // Past the commit point the press is the region's: a release opens
-  // the menu, and the timer opens it at the hold duration.
+  Duration _holdOrigin = Duration.zero;
+  Duration? _holdOffset;
   bool _committed = false;
-  Timer? _holdTimer;
 
-  // The recognizers are owned here, not by a RawGestureDetector: the
-  // hold duration is a constructor argument of the long-press
-  // recognizer, and swapping the recognizer must not remount the
-  // subtree (a MorphTag inside would re-register mid-frame).
   late final TapGestureRecognizer _tap = TapGestureRecognizer(debugOwner: this);
-  late LongPressGestureRecognizer _hold = _makeHold();
+  late _MotionHoldRecognizer _hold = _makeHold();
   // The third arena member keeps a held press from a scrollable: a
   // finger that stayed still past the touch delay and then wanders is
   // claimed here, after the tap and the hold above gave it up, instead
@@ -414,7 +411,10 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   StreamSubscription<MorphFlightEvent>? _pressWatch;
   _MenuGeometry? _geometry;
 
-  Object get _tagId => widget.tagId ?? this;
+  Object? _sessionTag;
+  Object get _tagId => _flight != null && !_flight!.isFinished
+      ? _sessionTag ?? widget.tagId ?? this
+      : widget.tagId ?? this;
 
   @override
   void initState() {
@@ -436,11 +436,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       ? widget.holdDuration
       : MorphContextMenuRegion.measuredCommitDuration;
 
-  LongPressGestureRecognizer _makeHold() {
-    final LongPressGestureRecognizer hold = LongPressGestureRecognizer(
-      debugOwner: this,
-      duration: _commitDuration,
-    );
+  _MotionHoldRecognizer _makeHold() {
+    final hold = _MotionHoldRecognizer(debugOwner: this);
     hold.onLongPressStart = _onCommit;
     hold.onLongPressEnd = _onCommittedRelease;
     return hold;
@@ -460,10 +457,24 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   @override
   void didUpdateWidget(MorphContextMenuRegion oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.holdDuration != widget.holdDuration) {
+    if (oldWidget.enabled && !widget.enabled ||
+        oldWidget.tagId != widget.tagId ||
+        oldWidget.holdDuration != widget.holdDuration) {
+      _committed = false;
+      _stopGrowth();
+      _clockPointer = null;
+      _press.value = 0;
       _hold.dispose();
       _hold = _makeHold();
       _hold.gestureSettings = MediaQuery.maybeGestureSettingsOf(context);
+    }
+    if (oldWidget.tagId != widget.tagId) {
+      final flight = _flight;
+      if (flight != null && !flight.isFinished) {
+        WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+          if (!flight.isFinished) flight.close();
+        });
+      }
     }
     if (oldWidget.opensOnSecondaryTap != widget.opensOnSecondaryTap) {
       _syncSecondaryDoor();
@@ -505,7 +516,6 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     _tap.dispose();
     _hold.dispose();
     _ownership.dispose();
-    _holdTimer?.cancel();
     _holdClock.dispose();
     _press.dispose();
     _landing.dispose();
@@ -524,6 +534,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         !_holdClock.isActive) {
       _growing = false;
       _clockPointer = event.pointer;
+      _holdOrigin = SchedulerBinding.instance.currentSystemFrameTimeStamp;
+      _holdOffset = null;
       _holdClock.start();
     }
   }
@@ -540,10 +552,21 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     _growing = true;
   }
 
-  void _onHoldTick(Duration held) {
+  void _onHoldTick(Duration elapsed) {
+    _holdOffset ??= Duration(
+      microseconds:
+          ((SchedulerBinding.instance.currentSystemFrameTimeStamp - _holdOrigin)
+                      .inMicroseconds /
+                  timeDilation)
+              .round(),
+    );
+    final held = elapsed + _holdOffset!;
     if (_growing) {
       _press.value = MorphContextMenuRegion.measuredHoldGrowth(held);
     }
+    if (!widget.enabled || _clockPointer == null) return;
+    if (!_committed && held >= _commitDuration) _hold.commit();
+    if (_committed && held >= widget.holdDuration) _onHold();
   }
 
   void _stopGrowth() {
@@ -576,14 +599,8 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   }
 
   void _onCommit(LongPressStartDetails details) {
-    final Duration rest = widget.holdDuration - _commitDuration;
-    if (rest <= Duration.zero) {
-      _onHold();
-      return;
-    }
+    if (!widget.enabled || !_holdClock.isActive) return;
     _committed = true;
-    _holdTimer?.cancel();
-    _holdTimer = Timer(rest, _onHold);
   }
 
   void _onCommittedRelease(LongPressEndDetails details) {
@@ -609,16 +626,13 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       return;
     }
     _committed = false;
-    _holdTimer?.cancel();
-    _holdTimer = null;
     _stopGrowth();
     _press.value = 0;
   }
 
   void _onHold() {
+    if (!mounted || !widget.enabled || !_holdClock.isActive) return;
     _committed = false;
-    _holdTimer?.cancel();
-    _holdTimer = null;
     widget.onHold?.call();
     // The tap cancel may run immediately before or after this callback.
     // Freeze whichever press value is on screen and hand that one stable
@@ -668,6 +682,10 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
 
   MorphFlight _open() {
     final OverlayState? overlay = widget.overlay;
+    if (overlay != null) morphCheckOverlayAncestor(context, overlay);
+    if (_flight == null || _flight!.isFinished) {
+      _sessionTag = widget.tagId ?? this;
+    }
     // The region's own box, ABOVE the press transform: the hero's
     // natural rect, grown or not - the size the hero lands at, and the
     // center the open menu lifts it about.
@@ -732,6 +750,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
           geometry.dispose();
           if (identical(_geometry, geometry)) {
             _geometry = null;
+            if (mounted) setState(() {});
           }
         }),
       );
@@ -1335,5 +1354,19 @@ class _MenuGeometry extends ChangeNotifier {
       extent.spring = null;
     }
     super.dispose();
+  }
+}
+
+/// A long press whose arena deadline is advanced by the hold ticker.
+class _MotionHoldRecognizer extends LongPressGestureRecognizer {
+  _MotionHoldRecognizer({super.debugOwner});
+
+  @override
+  Duration? get deadline => null;
+
+  void commit() {
+    if (state == GestureRecognizerState.possible && primaryPointer != null) {
+      didExceedDeadline();
+    }
   }
 }
