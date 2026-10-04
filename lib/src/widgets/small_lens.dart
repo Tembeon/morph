@@ -7,6 +7,18 @@ import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
 
+/// The small lens fill at [progress], preserving [liftedOpacity] of the
+/// resting [color] when fully lifted. The flat fallback and switch keep
+/// a fifth; the slider's rendered glass uses a fully transparent fill.
+@internal
+Color morphSmallLensFill(
+  Color color,
+  double progress, {
+  double liftedOpacity = 0.2,
+}) => color.withValues(
+  alpha: color.a * (1 - (1 - liftedOpacity) * progress.clamp(0.0, 1.0)),
+);
+
 /// Paints the flat look of a small lens lifted by [progress], from 0 at
 /// rest to 1 fully lifted: the resting [color] fades to a fifth of its
 /// opacity and a rim appears, dark on a light appearance and light on a
@@ -20,7 +32,7 @@ void paintMorphSmallLens(
   required Brightness brightness,
 }) {
   final fill = Paint();
-  fill.color = color.withValues(alpha: color.a * (1 - 0.8 * progress));
+  fill.color = morphSmallLensFill(color, progress);
   canvas.drawRRect(shape, fill);
   if (progress <= 0.01) return;
   final rim = Paint();
@@ -107,16 +119,21 @@ class MorphSmallLens {
   /// Whether the lens is lifted or lifting.
   bool get isLifted => _progress.target == 1;
 
-  /// Lifts the lens at time [t].
+  /// Lifts the lens at time [t], carrying its current value and velocity.
+  /// The measured initial velocity applies only to a spring at rest.
   void lift(double t) {
     _timeline.clear();
     if (isLifted || reducedMotion) return;
     _liftStart = t;
+    final progressResting = _progress.isAtRest(t, 0.002);
     _progress.retarget(t, 1, spring: liftSpring);
-    _progress.setState(t, _progress.value(t), liftVelocity);
+    if (progressResting) {
+      _progress.setState(t, _progress.value(t), liftVelocity);
+    }
     final at = t + sizeLag;
+    final sizeResting = _size.isAtRest(at, 0.002);
     _size.retarget(at, 1, spring: liftSpring);
-    _size.setState(at, _size.value(at), liftVelocity);
+    if (sizeResting) _size.setState(at, _size.value(at), liftVelocity);
   }
 
   /// Lands the lens at time [t], or once it has hung for [hangTime].
@@ -160,6 +177,14 @@ class MorphSmallLens {
     _stretch.retarget(t, reducedMotion ? 1 : 1 + stretchGain * af);
   }
 
+  /// Primes the deformation loop at [position] after a discontinuous
+  /// programmatic move or a relayout, restoring an undeformed lens.
+  void resetFlex(double t, double position) {
+    _previous = position;
+    _flex.reset(position);
+    _stretch.snap(t, 1);
+  }
+
   /// The lift progress at time [t]: 0 solid and resting, 1 clear and
   /// lifted; it may overshoot slightly.
   double progress(double t) => _progress.value(t);
@@ -177,7 +202,7 @@ class MorphSmallLens {
   double scaleX(double t) => _stretch.value(t);
 
   /// The squash across the track at time [t].
-  double scaleY(double t) => 2 - _stretch.value(t);
+  double scaleY(double t) => math.max(1e-6, 2 - _stretch.value(t));
 
   /// Whether the lens is at rest at time [t].
   bool isSettled(double t) =>

@@ -59,7 +59,11 @@ class MorphLensTuning {
   /// How many pixels the lens grows taller while lifted.
   final double liftHeight;
 
-  /// The spring that carries the lens between slots after a tap.
+  /// The spring that carries the lens between slots after a tap:
+  /// 0.401/0.856 fitted to test/fixtures/ios27{,-device}/lens. The
+  /// device segmented replay and tab bar scrub release reject the former
+  /// passport value 0.392/0.863 at their unchanged tolerances
+  /// (lens_test.dart and lens_scrub_test.dart).
   final MorphSpring travelSpring;
 
   /// The spring that lifts and lands the lens and resizes it between
@@ -225,6 +229,8 @@ typedef MorphLensSlot = ({double center, double width});
 /// lengths are pixels along the track, all times seconds.
 class MorphLensMotion {
   /// Creates a lens resting in [selected] among [slots].
+  /// Empty slots have selection -1 and ignore input; other indices clamp
+  /// to the available slots.
   ///
   /// [startDelay] overrides the tuning's delay between a selecting touch
   /// and the start of the motion.
@@ -238,10 +244,12 @@ class MorphLensMotion {
     double? startDelay,
   }) : startDelay = startDelay ?? tuning.startDelay,
        _slots = List.of(slots),
-       _selected = selected,
-       _restWidth = slots[selected].width,
+       _selected = _index(selected, slots.length),
+       _restWidth = slots.isEmpty
+           ? 0
+           : slots[_index(selected, slots.length)].width,
        _frames = MorphSubClock(frameRate) {
-    final slot = _slots[selected];
+    final slot = _slot;
     _travel = MorphSpringState(tuning.travelSpring, slot.center);
     _width = MorphSpringState(tuning.liftSpring, slot.width);
     _lift = MorphSpringState(tuning.liftSpring, 0);
@@ -306,8 +314,17 @@ class MorphLensMotion {
 
   double get _now => _timeline.now;
 
-  /// The index of the selected slot.
+  /// The index of the selected slot, or -1 when there are no slots.
   int get selected => _selected;
+
+  static int _index(int index, int count) =>
+      count == 0 ? -1 : index.clamp(0, count - 1);
+
+  MorphLensSlot _slotFor(int index) => _slots.isEmpty
+      ? (center: 0, width: 0)
+      : _slots[_index(index, _slots.length)];
+
+  MorphLensSlot get _slot => _slotFor(_selected);
 
   /// The slots the lens can rest in.
   List<MorphLensSlot> get slots => _slots;
@@ -315,11 +332,23 @@ class MorphLensMotion {
   /// Replaces the slots, snapping the lens to the selected one.
   set slots(List<MorphLensSlot> value) {
     _slots = List.of(value);
-    _selected = _selected.clamp(0, _slots.length - 1);
-    final slot = _slots[_selected];
+    _selected = _index(_selected, _slots.length);
+    final slot = _slot;
     _travel.snap(_now, slot.center);
     _width.snap(_now, slot.width);
     _restWidth = slot.width;
+    if (_slots.isEmpty) {
+      _timeline.clear();
+      _pointer = null;
+      _flag = false;
+      _lift.retarget(_now, 0);
+      _chrome.retarget(_now, 0);
+    }
+    _drift.snap(_now, 0);
+    _scaleX.snap(_now, 1);
+    _scaleY.snap(_now, 1);
+    _previousVisible = slot.center;
+    _flex.reset(slot.center);
   }
 
   /// The time the lens was last advanced to.
@@ -369,7 +398,7 @@ class MorphLensMotion {
 
   /// The index of the slot nearest to [x].
   int slotAt(double x) {
-    var best = 0;
+    var best = -1;
     var bestDistance = double.infinity;
     for (var i = 0; i < _slots.length; i++) {
       final distance = (_slots[i].center - x).abs();
@@ -384,6 +413,7 @@ class MorphLensMotion {
   /// A finger touched the track at [x].
   void pointerDown(double t, double x) {
     advance(t);
+    if (_slots.isEmpty || _pointer != null) return;
     final index = slotAt(x);
     if (!_selectable(index)) {
       final inert = _Pointer(offset: 0, pressedSelected: false, downX: x);
@@ -438,8 +468,12 @@ class MorphLensMotion {
       final slot = _slots[_selected];
       _restWidth = slot.width;
       _timeline.at(t + tuning.releaseDelay, (double s) {
-        _travel.retarget(s, slot.center, spring: tuning.travelSpring);
-        _width.retarget(s, slot.width);
+        _travel.retarget(
+          s,
+          _slotFor(index).center,
+          spring: tuning.travelSpring,
+        );
+        _width.retarget(s, _slotFor(index).width);
       });
       final unliftAt = math.max(
         t + tuning.releaseDelay,
@@ -466,12 +500,22 @@ class MorphLensMotion {
     _lift.retarget(t, 0);
   }
 
-  /// Selects [index] without a touch: the lens travels without lifting.
-  void select(double t, int index) {
+  /// Selects the clamped [index] without a touch: the lens travels without
+  /// lifting. With [notify] false, reconciles the parent's selection and
+  /// cancels pending touch reactions without calling [onSelect].
+  void select(double t, int index, {bool notify = true}) {
     advance(t);
-    if (index == _selected) return;
-    _setSelected(index);
-    final slot = _slots[index];
+    if (_slots.isEmpty) return;
+    final selected = _index(index, _slots.length);
+    if (selected == _selected) return;
+    if (!notify) {
+      _timeline.clear();
+      _flag = false;
+      _lift.retarget(t, 0);
+    }
+    _selected = selected;
+    if (notify) onSelect?.call(selected);
+    final slot = _slots[selected];
     _resetFlex();
     _travel.retarget(t, slot.center, spring: tuning.travelSpring);
     _width.retarget(t, slot.width);
@@ -514,6 +558,7 @@ class MorphLensMotion {
       return;
     }
     final width = _restWidth;
+    if (width <= 0) return;
     final af = _flex.af;
     double drift;
     double sx;
@@ -587,8 +632,8 @@ class MorphLensMotion {
             math.max(0, distance - tuning.hangReferenceDistance);
     _restWidth = slot.width;
     _timeline.at(start, (s) {
-      _travel.retarget(s, slot.center, spring: tuning.travelSpring);
-      _width.retarget(s, slot.width);
+      _travel.retarget(s, _slotFor(index).center, spring: tuning.travelSpring);
+      _width.retarget(s, _slotFor(index).width);
       _liftTo(s, 1);
     });
     final landing = (tuning.hangFromTouch ? t : start) + hang;
@@ -631,8 +676,9 @@ class MorphLensMotion {
   }
 
   static double _tanh(double x) {
-    final e = math.exp(2 * x);
-    return (e - 1) / (e + 1);
+    if (x.isNaN) return 0;
+    final e = math.exp(-2 * x.abs());
+    return x.sign * (1 - e) / (1 + e);
   }
 }
 

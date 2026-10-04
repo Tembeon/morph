@@ -25,7 +25,9 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
   nearest the FINGER. dragGain 1.
 - Tap on the selected segment: lifts in place, lands no earlier than
   `pressHang` 0.25 s after the touch (or `releaseDelay` after a longer hold).
-- Lens lift +24 x +16 px; travel 0.392/0.863; flex gains see lens-and-flex.
+- Lens lift +24 x +16 px; travel 0.401/0.856; flex gains see lens-and-flex.
+  Replay-verified against ios27{,-device}/lens: the former passport
+  0.392/0.863 fails the device tap replay at unchanged tolerances.
 - Text: segments 13 regular, selected 13 medium (wght 510; UIKit also uses
   GRAD 466/448 `.SFUI-RegularG3`, not reproduced - width unaffected).
   Labels follow text scale up to 1.4, sized by the wider of both styles.

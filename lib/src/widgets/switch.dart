@@ -49,13 +49,13 @@ class MorphSwitchStyle {
   static MorphSwitchStyle resolve(
     BuildContext context,
     MorphSwitchStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.switchStyle ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.switchStyle,
+    light: light,
+    dark: dark,
+  );
 }
 
 /// A switch that moves exactly like iOS 27's UISwitch.
@@ -105,14 +105,16 @@ class MorphSwitch extends StatefulWidget {
 
 class _MorphSwitchState extends State<MorphSwitch>
     with SingleTickerProviderStateMixin<MorphSwitch>, MorphClock<MorphSwitch> {
-  static const Size _trackSize = Size(63, 28);
-  static const double _inset = 2;
+  static const Size _trackSize = MorphSwitchMotion.trackSize;
+  static const double _inset = MorphSwitchMotion.inset;
 
   late final MorphSwitchMotion _motion = _create();
   MorphSwitchStyle _style = MorphSwitchStyle.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
   bool _focused = false;
+  int? _pointer;
+  bool _reconcilePending = false;
 
   MorphSwitchMotion _create() {
     final motion = MorphSwitchMotion(
@@ -125,6 +127,14 @@ class _MorphSwitchState extends State<MorphSwitch>
 
   void _changed(bool value) {
     if (value != widget.value) widget.onChanged?.call(value);
+    if (_reconcilePending) return;
+    _reconcilePending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _reconcilePending = false;
+      if (!mounted || widget.value == _motion.value) return;
+      _motion.setValue(clock, value: widget.value);
+      wake();
+    });
   }
 
   @override
@@ -197,9 +207,7 @@ class _MorphSwitchState extends State<MorphSwitch>
       MorphGlassSurface(
         kind: MorphGlassKind.knob,
         shape: frame.knob,
-        color: _style.knobColor.withValues(
-          alpha: _style.knobColor.a * (1 - 0.8 * frame.progress),
-        ),
+        color: morphSmallLensFill(_style.knobColor, frame.progress),
         brightness: _brightness,
         lift: frame.progress,
         scaleX: _motion.lens.scaleX(t),
@@ -236,16 +244,26 @@ class _MorphSwitchState extends State<MorphSwitch>
               enabled: _enabled,
               dragAxis: .horizontal,
               onPointerDown: (PointerDownEvent e) {
-                if (!_enabled || e.buttons != kPrimaryButton) return;
+                if (!_enabled ||
+                    e.buttons != kPrimaryButton ||
+                    _pointer != null) {
+                  return;
+                }
+                _pointer = e.pointer;
                 _motion.pointerDown(stamp(e), _x(e.localPosition));
               },
               onPointerMove: (PointerMoveEvent e) {
+                if (e.pointer != _pointer) return;
                 _motion.pointerMove(stamp(e), _x(e.localPosition));
               },
               onPointerUp: (PointerUpEvent e) {
+                if (e.pointer != _pointer) return;
+                _pointer = null;
                 _motion.pointerUp(stamp(e), _x(e.localPosition));
               },
               onPointerCancel: (PointerCancelEvent e) {
+                if (e.pointer != _pointer) return;
+                _pointer = null;
                 _motion.pointerCancel(stamp(e));
               },
               child: glass == null

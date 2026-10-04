@@ -40,7 +40,7 @@ class MorphSliderMotion {
   /// lens filters its motion at [frameRate] frames per second of motion
   /// time.
   MorphSliderMotion({
-    required this.width,
+    required this._width,
     required double value,
     this.frameRate = 120,
     this.ticks = 0,
@@ -140,7 +140,15 @@ class MorphSliderMotion {
   bool get _stepped => ticks >= 2;
 
   /// The length of the track.
-  double width;
+  double get width => _width;
+  double _width;
+
+  /// Changes the track width without feeding the relayout into flex.
+  set width(double value) {
+    if (_width == value) return;
+    _width = value;
+    lens.resetFlex(_now, _thumbAt(_now));
+  }
 
   double _value;
   double _reported;
@@ -342,6 +350,8 @@ class MorphSliderMotion {
     _value = value.clamp(0.0, 1.0);
     _reported = _value;
     _settle.snap(t, _value);
+    _stretch.snap(t, 0);
+    lens.resetFlex(t, _thumbAt(t));
   }
 
   /// Advances the motion to time [t].

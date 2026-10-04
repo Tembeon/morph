@@ -54,13 +54,13 @@ class MorphSliderStyle {
   static MorphSliderStyle resolve(
     BuildContext context,
     MorphSliderStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.slider ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.slider,
+    light: light,
+    dark: dark,
+  );
 }
 
 /// A slider that moves exactly like iOS 27's UISlider.
@@ -138,6 +138,8 @@ class _MorphSliderState extends State<MorphSlider>
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
   bool _focused = false;
+  int? _pointer;
+  bool _reconcilePending = false;
 
   MorphSliderMotion _create() {
     final motion = MorphSliderMotion(
@@ -151,7 +153,17 @@ class _MorphSliderState extends State<MorphSlider>
     return motion;
   }
 
-  void _changed(double value) => widget.onChanged?.call(value);
+  void _changed(double value) {
+    widget.onChanged?.call(value);
+    if (_reconcilePending) return;
+    _reconcilePending = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _reconcilePending = false;
+      if (!mounted || widget.value == _motion.reportedValue) return;
+      _motion.setValue(clock, widget.value);
+      wake();
+    });
+  }
 
   void _ended(double value) => widget.onChangeEnd?.call(value);
 
@@ -184,8 +196,11 @@ class _MorphSliderState extends State<MorphSlider>
   }
 
   void _down(PointerDownEvent event) {
-    if (!_enabled || event.buttons != kPrimaryButton) return;
+    if (!_enabled || event.buttons != kPrimaryButton || _pointer != null) {
+      return;
+    }
     if (!_motion.hitsThumb(_x(event.localPosition))) return;
+    _pointer = event.pointer;
     final tracker = VelocityTracker.withKind(event.kind);
     tracker.addPosition(event.timeStamp, event.localPosition);
     _tracker = tracker;
@@ -193,6 +208,7 @@ class _MorphSliderState extends State<MorphSlider>
   }
 
   void _move(PointerMoveEvent event) {
+    if (event.pointer != _pointer) return;
     final tracker = _tracker;
     if (tracker == null) return;
     tracker.addPosition(event.timeStamp, event.localPosition);
@@ -200,6 +216,8 @@ class _MorphSliderState extends State<MorphSlider>
   }
 
   void _up(PointerUpEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
     final tracker = _tracker;
     if (tracker == null) return;
     _tracker = null;
@@ -213,12 +231,16 @@ class _MorphSliderState extends State<MorphSlider>
   }
 
   void _cancel(PointerCancelEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
     if (_tracker == null) return;
     _tracker = null;
     _motion.pointerCancel(stamp(event));
   }
 
   void _lost(PointerCancelEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
     if (_tracker == null) return;
     _tracker = null;
     _motion.pointerCancel(stamp(event), revert: true);
@@ -284,7 +306,7 @@ class _MorphSliderState extends State<MorphSlider>
       MorphGlassSurface(
         kind: MorphGlassKind.thumb,
         shape: _visual(frame.thumb),
-        color: color.withValues(alpha: color.a * (1 - frame.progress)),
+        color: morphSmallLensFill(color, frame.progress, liftedOpacity: 0),
         brightness: _brightness,
         lift: frame.progress,
         scaleX: _motion.lens.scaleX(t),

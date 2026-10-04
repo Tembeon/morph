@@ -39,6 +39,12 @@ class MorphSwitchMotion {
   /// for a ProMotion display, 60 for a 60 Hz one.
   final double frameRate;
 
+  /// The 63 x 28 track measured from the UISwitch view tree.
+  static const Size trackSize = Size(63, 28);
+
+  /// The 2 pixel resting knob inset measured from the UISwitch view tree.
+  static const double inset = 2;
+
   /// How far the knob travels between off and on.
   static const double travel = 22;
 
@@ -178,6 +184,7 @@ class MorphSwitchMotion {
     if (value == _value) return;
     _timeline.clear();
     _value = value;
+    lens.resetFlex(t, knob);
     _knob.retarget(t, value ? travel : 0);
     _colorTo(t, on: value);
   }

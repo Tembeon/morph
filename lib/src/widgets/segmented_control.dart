@@ -34,10 +34,10 @@ class MorphSegmentedControl extends StatefulWidget {
     super.key,
   });
 
-  /// The labels of the segments.
+  /// The labels of the segments; an empty list draws an inert empty control.
   final List<String> segments;
 
-  /// The index of the selected segment.
+  /// The index of the selected segment, clamped to the available segments.
   final int selected;
 
   /// Called with the new index when the user selects a segment; null
@@ -149,13 +149,13 @@ class MorphSegmentedStyle {
   static MorphSegmentedStyle resolve(
     BuildContext context,
     MorphSegmentedStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.segmented ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.segmented,
+    light: light,
+    dark: dark,
+  );
 }
 
 class _MorphSegmentedControlState extends State<MorphSegmentedControl>
@@ -179,18 +179,6 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
   double trackPosition(Offset local) => _rtl ? _width - local.dx : local.dx;
 
   bool get _enabled => widget.onChanged != null;
-
-  @override
-  void didUpdateWidget(MorphSegmentedControl oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final current = _motion;
-    if (current != null &&
-        widget.selected != current.selected &&
-        widget.selected < _slots.length) {
-      current.select(clock, widget.selected);
-      wake();
-    }
-  }
 
   List<MorphLensSlot> _layout(double width) {
     final style = _style;
@@ -219,17 +207,19 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
     return slots;
   }
 
-  double _measure(String text, TextStyle style) {
-    final painter = TextPainter(
-      text: TextSpan(text: text, style: MorphTypography.resolve(style)),
-      textDirection: TextDirection.ltr,
-      textScaler: _scaler,
-    );
-    painter.layout();
-    final width = painter.width;
-    painter.dispose();
-    return width;
-  }
+  double _measure(String text, TextStyle style) =>
+      morphLensLabelWidth(text, style, _scaler);
+
+  double _naturalWidth() => widget.segments.fold<double>(
+    0,
+    (total, label) =>
+        total +
+        math.max(
+          _measure(label, _style.textStyle),
+          _measure(label, _style.selectedTextStyle),
+        ) +
+        2 * _style.contentPadding,
+  );
 
   void _sync(double width) {
     _width = width;
@@ -239,7 +229,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
       final created = MorphLensMotion(
         tuning: MorphLensTuning.segmented,
         slots: slots,
-        selected: widget.selected.clamp(0, slots.length - 1),
+        selected: widget.selected,
         height: _style.height - 2 * _style.inset,
         frameRate: motionFrameRate,
       );
@@ -249,10 +239,22 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
       current.slots = slots;
     }
     _slots = slots;
+    final selected = slots.isEmpty
+        ? -1
+        : widget.selected.clamp(0, slots.length - 1);
+    if (motion.selected != selected) {
+      motion.select(clock, selected, notify: false);
+      wake();
+    }
   }
 
   void _selected(int index) {
     if (index != widget.selected) widget.onChanged?.call(index);
+    reconcileSelection(
+      () => widget.segments.isEmpty
+          ? -1
+          : widget.selected.clamp(0, widget.segments.length - 1),
+    );
   }
 
   void _select(int index) {
@@ -263,7 +265,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
 
   void _step(int delta) {
     final current = _motion;
-    if (current == null) return;
+    if (current == null || _slots.isEmpty) return;
     final next = (current.selected + (_rtl ? -delta : delta)).clamp(
       0,
       _slots.length - 1,
@@ -284,19 +286,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
       Offset.zero & size,
       Radius.circular(size.height / 2),
     );
-    final motion = this.motion;
-    final lensSize = motion.size;
-    final width = lensSize.width * motion.scaleX;
-    final height = lensSize.height * motion.scaleY;
-    final center = _rtl ? size.width - motion.center : motion.center;
-    final lens = RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: Offset(center, size.height / 2),
-        width: width,
-        height: height,
-      ),
-      Radius.circular(math.min(width, height) / 2),
-    );
+    final lens = morphLensShape(motion, size, rtl: _rtl);
     return (track: track, lens: lens, lift: motion.lift.clamp(0.0, 1.0));
   }
 
@@ -354,7 +344,13 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
     final style = _style;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
-        _sync(constraints.maxWidth);
+        final width = constraints.hasBoundedWidth
+            ? constraints.maxWidth
+            : _naturalWidth();
+        _sync(width);
+        if (widget.segments.isEmpty) {
+          return SizedBox(width: width, height: style.height);
+        }
         motion.reducedMotion = morphReducedMotionOf(context);
         final selected = motion.selected;
         final labels = Row(
@@ -378,7 +374,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
                         overflow: TextOverflow.ellipsis,
                         textScaler: _scaler,
                         style: MorphTypography.resolve(
-                          i == widget.selected
+                          i == selected
                               ? style.selectedTextStyle
                               : style.textStyle,
                         ),
@@ -407,7 +403,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
                 onPointerCancel: handleCancel,
                 child: SizedBox(
                   height: style.height,
-                  width: constraints.maxWidth,
+                  width: width,
                   child: glass == null
                       ? CustomPaint(
                           painter: _SegmentedPainter(this),
@@ -418,7 +414,7 @@ class _MorphSegmentedControlState extends State<MorphSegmentedControl>
                           frames: frames,
                           surfaces: _surfaces,
                           content: labels,
-                          contentSlots: _contentSlots(constraints.maxWidth),
+                          contentSlots: _contentSlots(width),
                         ),
                 ),
               ),

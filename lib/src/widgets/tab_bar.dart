@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/gestures.dart' show kPrimaryButton;
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
@@ -83,7 +84,7 @@ class MorphTabBar extends StatefulWidget {
   /// The tabs, two to five.
   final List<MorphTabItem> items;
 
-  /// The index of the selected tab.
+  /// The index of the selected tab, clamped to the available items.
   final int selected;
 
   /// Called with the new index when the user selects a tab; null disables
@@ -164,35 +165,66 @@ class MorphTabBarStyle {
   static MorphTabBarStyle resolve(
     BuildContext context,
     MorphTabBarStyle? explicit,
-  ) =>
-      explicit ??
-      MorphWidgetsTheme.maybeOf(context)?.tabBar ??
-      switch (morphBrightnessOf(context)) {
-        Brightness.dark => dark,
-        Brightness.light => light,
-      };
+  ) => morphResolveStyle(
+    context,
+    explicit,
+    themed: (theme) => theme.tabBar,
+    light: light,
+    dark: dark,
+  );
 }
 
 typedef _Geometry = ({double pitch, double lens, double width});
 
-/// The horizontal room a label keeps inside its tab.
-const double _labelPadding = 12;
+/// Geometry measured from iOS 27 tab bar view trees on the simulator and
+/// iPhone: 62 pixel bar, 54 pixel lens, 86/68 pixel pitch and 94/98/77
+/// pixel lens widths for two through five tabs (tab-bar.md).
+@internal
+abstract final class MorphTabBarMetrics {
+  /// The resting bar height.
+  static const double height = 62;
 
-/// The bar's measured geometry for a tab count, widened so the widest
-/// label of [labelWidth] pixels fits its tab.
-_Geometry _geometry(int count, double labelWidth) {
-  final measured = count <= 4 ? 86.0 : 68.0;
-  final pitch = math.max(measured, labelWidth + 2 * _labelPadding);
-  final lens = switch (count) {
-    <= 3 => 94.0,
-    4 => 98.0,
-    _ => 77.0,
+  /// The resting lens height.
+  static const double lensHeight = 54;
+
+  /// The capsule corner radius.
+  static const double radius = 31;
+
+  /// The horizontal content inset.
+  static const double sideInset = 8;
+
+  /// The icon size measured from native tab content.
+  static const double iconSize = 24;
+
+  /// The gap between the icon and label.
+  static const double labelGap = 2;
+
+  /// The horizontal space a label keeps inside its tab.
+  static const double labelPadding = 12;
+
+  /// The native slot pitch for [count] tabs.
+  static double pitch(int count) => count <= 4 ? 86 : 68;
+
+  /// The native lens width for [count] tabs.
+  static double lensWidth(int count) => switch (count) {
+    <= 3 => 94,
+    4 => 98,
+    _ => 77,
   };
-  return (
-    pitch: pitch,
-    lens: lens + pitch - measured,
-    width: pitch * count + 16,
-  );
+
+  /// The bar geometry widened to fit [labelWidth].
+  static ({double pitch, double lens, double width}) geometry(
+    int count,
+    double labelWidth,
+  ) {
+    final measured = pitch(count);
+    final slot = math.max(measured, labelWidth + 2 * labelPadding);
+    return (
+      pitch: slot,
+      lens: lensWidth(count) + slot - measured,
+      width: slot * count + 2 * sideInset,
+    );
+  }
 }
 
 class _MorphTabBarState extends State<MorphTabBar>
@@ -200,11 +232,11 @@ class _MorphTabBarState extends State<MorphTabBar>
         SingleTickerProviderStateMixin<MorphTabBar>,
         MorphClock<MorphTabBar>,
         MorphLensDriver<MorphTabBar> {
-  static const double _barHeight = 62;
-  static const double _lensHeight = 54;
-  static const double _radius = 31;
+  static const double _barHeight = MorphTabBarMetrics.height;
+  static const double _lensHeight = MorphTabBarMetrics.lensHeight;
+  static const double _radius = MorphTabBarMetrics.radius;
 
-  _Geometry _layout = _geometry(0, 0);
+  _Geometry _layout = MorphTabBarMetrics.geometry(0, 0);
   MorphLensMotion? _motion;
   final MorphTouchGlowMotion _glow = _createGlow();
   MorphTabBarStyle _style = MorphTabBarStyle.light;
@@ -247,7 +279,10 @@ class _MorphTabBarState extends State<MorphTabBar>
 
   List<MorphLensSlot> _slots(_Geometry geometry) => [
     for (var i = 0; i < widget.items.length; i++)
-      (center: 8 + geometry.pitch * (i + 0.5), width: geometry.lens),
+      (
+        center: MorphTabBarMetrics.sideInset + geometry.pitch * (i + 0.5),
+        width: geometry.lens,
+      ),
   ];
 
   MorphLensMotion _create(_Geometry geometry) {
@@ -271,11 +306,23 @@ class _MorphTabBarState extends State<MorphTabBar>
       current.slots = _slots(geometry);
     }
     _layout = geometry;
+    final selected = widget.items.isEmpty
+        ? -1
+        : widget.selected.clamp(0, widget.items.length - 1);
+    if (motion.selected != selected) {
+      motion.select(clock, selected, notify: false);
+      wake();
+    }
   }
 
   void _selected(int index) {
     setState(() {});
     if (index != widget.selected) widget.onChanged?.call(index);
+    reconcileSelection(
+      () => widget.items.isEmpty
+          ? -1
+          : widget.selected.clamp(0, widget.items.length - 1),
+    );
   }
 
   void _select(int index) {
@@ -293,52 +340,22 @@ class _MorphTabBarState extends State<MorphTabBar>
     if (next >= 0 && next < widget.items.length) _select(next);
   }
 
-  @override
-  void didUpdateWidget(MorphTabBar oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final current = _motion;
-    if (current != null &&
-        oldWidget.items.length == widget.items.length &&
-        widget.selected != current.selected) {
-      current.select(clock, widget.selected);
-      wake();
-    }
-  }
-
   double _widestLabel(TextScaler scaler) {
     var widest = 0.0;
     for (final item in widget.items) {
-      final painter = TextPainter(
-        text: TextSpan(
-          text: item.label,
-          style: MorphTypography.resolve(MorphTypography.tabLabelSelected),
+      widest = math.max(
+        widest,
+        morphLensLabelWidth(
+          item.label,
+          MorphTypography.tabLabelSelected,
+          scaler,
         ),
-        textDirection: TextDirection.ltr,
-        textScaler: scaler,
-        maxLines: 1,
       );
-      painter.layout();
-      widest = math.max(widest, painter.width);
-      painter.dispose();
     }
     return widest;
   }
 
-  RRect _lensShape(Size size) {
-    final motion = this.motion;
-    final lensSize = motion.size;
-    final width = lensSize.width * motion.scaleX;
-    final height = lensSize.height * motion.scaleY;
-    final center = _rtl ? size.width - motion.center : motion.center;
-    return RRect.fromRectAndRadius(
-      Rect.fromCenter(
-        center: Offset(center, size.height / 2),
-        width: width,
-        height: height,
-      ),
-      Radius.circular(math.min(width, height) / 2),
-    );
-  }
+  RRect _lensShape(Size size) => morphLensShape(motion, size, rtl: _rtl);
 
   MorphGlassGlow? _glowNow() => _glow.glowAt(clock, _brightness);
 
@@ -374,22 +391,26 @@ class _MorphTabBarState extends State<MorphTabBar>
   void _down(PointerDownEvent event) {
     if (event.buttons != kPrimaryButton) return;
     handleDown(event);
+    if (!ownsPointer(event)) return;
     if (_selectable(motion.slotAt(trackPosition(event.localPosition)))) {
       _glow.pointerDown(clock, event.localPosition);
     }
   }
 
   void _move(PointerMoveEvent event) {
+    if (!ownsPointer(event)) return;
     handleMove(event);
     _glow.pointerMove(clock, event.localPosition);
   }
 
   void _up(PointerUpEvent event) {
+    if (!ownsPointer(event)) return;
     handleUp(event);
     _glow.pointerUp(clock);
   }
 
   void _cancel(PointerCancelEvent event) {
+    if (!ownsPointer(event)) return;
     handleCancel(event);
     _glow.pointerUp(clock);
   }
@@ -417,7 +438,10 @@ class _MorphTabBarState extends State<MorphTabBar>
     final scaler = MediaQuery.textScalerOf(
       context,
     ).clamp(maxScaleFactor: MorphTabBar.maxTextScale);
-    _sync(_geometry(widget.items.length, _widestLabel(scaler)));
+    _sync(
+      MorphTabBarMetrics.geometry(widget.items.length, _widestLabel(scaler)),
+    );
+    if (widget.items.isEmpty) return const SizedBox(height: _barHeight);
     motion.reducedMotion = morphReducedMotionOf(context);
     final style = _style;
     final geometry = _layout;
@@ -425,35 +449,37 @@ class _MorphTabBarState extends State<MorphTabBar>
     final Widget tabs = Stack(
       children: [
         Positioned.fill(
-          child: ClipPath(
-            clipper: _LensClipper(this, inside: false),
-            child: Semantics(
-              container: true,
-              explicitChildNodes: true,
-              role: SemanticsRole.tabBar,
-              child: Row(
-                children: [
-                  for (var i = 0; i < widget.items.length; i++)
-                    SizedBox(
-                      width: geometry.pitch,
-                      child: Semantics(
-                        container: true,
-                        role: SemanticsRole.tab,
-                        selected: i == motion.selected,
-                        enabled: _selectable(i),
-                        label: widget.items[i].label,
-                        onTap: _selectable(i) ? () => _select(i) : null,
-                        child: ExcludeSemantics(
-                          child: _TabLabel(
-                            item: widget.items[i],
-                            scaler: scaler,
-                            selected: false,
-                            color: style.color,
+          child: ClipRect(
+            child: ClipPath(
+              clipper: _LensClipper(this, inside: false),
+              child: Semantics(
+                container: true,
+                explicitChildNodes: true,
+                role: SemanticsRole.tabBar,
+                child: Row(
+                  children: [
+                    for (var i = 0; i < widget.items.length; i++)
+                      SizedBox(
+                        width: geometry.pitch,
+                        child: Semantics(
+                          container: true,
+                          role: SemanticsRole.tab,
+                          selected: i == motion.selected,
+                          enabled: _selectable(i),
+                          label: widget.items[i].label,
+                          onTap: _selectable(i) ? () => _select(i) : null,
+                          child: ExcludeSemantics(
+                            child: _TabLabel(
+                              item: widget.items[i],
+                              scaler: scaler,
+                              selected: false,
+                              color: style.color,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -502,7 +528,11 @@ class _MorphTabBarState extends State<MorphTabBar>
                         Positioned.fill(
                           child: CustomPaint(painter: _LensPainter(this)),
                         ),
-                        Positioned.fill(left: 8, right: 8, child: tabs),
+                        Positioned.fill(
+                          left: MorphTabBarMetrics.sideInset,
+                          right: MorphTabBarMetrics.sideInset,
+                          child: tabs,
+                        ),
                       ]
                     : [
                         Positioned.fill(
@@ -511,14 +541,17 @@ class _MorphTabBarState extends State<MorphTabBar>
                             frames: frames,
                             surfaces: _surfaces,
                             content: Padding(
-                              padding: const .symmetric(horizontal: 8),
+                              padding: const .symmetric(
+                                horizontal: MorphTabBarMetrics.sideInset,
+                              ),
                               child: tabs,
                             ),
                             contentSlots: [
                               for (var i = 0; i < widget.items.length; i++)
                                 Rect.fromCenter(
                                   center: Offset(
-                                    8 + geometry.pitch * (i + 0.5),
+                                    MorphTabBarMetrics.sideInset +
+                                        geometry.pitch * (i + 0.5),
                                     _barHeight / 2,
                                   ),
                                   width: geometry.pitch,
@@ -592,8 +625,8 @@ class _TabLabel extends StatelessWidget {
       return Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(item.icon, size: 24, color: color),
-          const SizedBox(height: 2),
+          Icon(item.icon, size: MorphTabBarMetrics.iconSize, color: color),
+          const SizedBox(height: MorphTabBarMetrics.labelGap),
           Text(item.label, maxLines: 1, textScaler: scaler, style: style),
         ],
       );
@@ -603,7 +636,7 @@ class _TabLabel extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SizedBox.square(
-          dimension: 24,
+          dimension: MorphTabBarMetrics.iconSize,
           child: Center(
             child: RichText(
               textDirection: TextDirection.ltr,
@@ -612,7 +645,7 @@ class _TabLabel extends StatelessWidget {
                 style: TextStyle(
                   inherit: false,
                   color: color,
-                  fontSize: 24,
+                  fontSize: MorphTabBarMetrics.iconSize,
                   fontFamily: icon.fontFamily,
                   fontFamilyFallback: icon.fontFamilyFallback,
                   package: icon.fontPackage,
@@ -623,7 +656,7 @@ class _TabLabel extends StatelessWidget {
             ),
           ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: MorphTabBarMetrics.labelGap),
         RichText(
           maxLines: 1,
           textScaler: scaler,
@@ -703,13 +736,20 @@ class _LensClipper extends CustomClipper<Path> {
 
   @override
   Path getClip(Size size) {
-    final bar = Size(size.width + 16, _MorphTabBarState._barHeight);
+    final bar = Size(
+      size.width + 2 * MorphTabBarMetrics.sideInset,
+      _MorphTabBarState._barHeight,
+    );
     final lens = Path();
-    lens.addRRect(state._lensShape(bar).shift(const Offset(-8, 0)));
+    lens.addRRect(
+      state
+          ._lensShape(bar)
+          .shift(const Offset(-MorphTabBarMetrics.sideInset, 0)),
+    );
     if (inside) return lens;
-    final all = Path();
-    all.addRect(Offset.zero & size);
-    return Path.combine(PathOperation.difference, all, lens);
+    lens.fillType = PathFillType.evenOdd;
+    lens.addRect(Offset.zero & size);
+    return lens;
   }
 
   @override

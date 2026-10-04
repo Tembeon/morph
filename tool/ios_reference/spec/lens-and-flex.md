@@ -28,7 +28,7 @@ MorphFlexSpec.forSize (= dynamicWithSize) [tuning]:
   0.2845).
 `loupeForSize` = liquidLensWithSize.
 
-MorphLensSpec [tuning]: small lift 0.27/0.625, unlift 0.5/0.7, small
+Lens PTSettings [tuning]: small lift 0.27/0.625, unlift 0.5/0.7, small
 optics; large 0.25/1 both ways; hang 0.22 s.
 
 Flex loop (`_UIVelocityIntegrator`) [tuning + device fit]:
@@ -45,13 +45,18 @@ Flex loop (`_UIVelocityIntegrator`) [tuning + device fit]:
 - width changes by -2D, center shifts +D: the LEADING edge rides the
   travel spring exactly, only the trailing edge lags.
 
-Lens frame (MorphLensMotion): center on travel spring 0.392/0.863; lift and
+Lens frame (MorphLensMotion): center on travel spring 0.401/0.856; lift and
 slot-width changes share ONE critically damped 0.25 s spring; lift +24 x
 +16 px (segmented) / +16 x +16 (tab bar) [fit, device].
+The former passport value 0.392/0.863 fails the device segmented tap
+replay and tab bar scrub release replay at the existing tolerances;
+0.401/0.856 keeps both green (lens_test.dart, lens_scrub_test.dart,
+ios27{,-device}/lens fixtures).
 
 Small lens (switch knob, slider thumb, `MorphSmallLens`) [fit, device]:
 lift 0.27/0.625 (peak 1.12; measured initial velocity part of the fit),
-min hang 0.22 s from lift start; unlift glass progress 0.40/1.0, SIZE on
+initial velocity 18/s only from rest; a re-lift during landing carries
+the current value and velocity. Min hang 0.22 s from lift start; unlift glass progress 0.40/1.0, SIZE on
 its own 0.48/0.70 (dips under rest); stretch sx* = 1 + 5.0e-5 a,
 sy* = 2 - sx*, presentation on smallLoupe 0.444/0.56.
 
@@ -65,7 +70,7 @@ sy, lifted, lpp, p_driftX, f_driftX, f_scaleX, vi_x, vi_vx, vi_ax),
 
 lib/src/widgets: spring_state.dart, timeline.dart, clock.dart,
 flex_integrator.dart (MorphFlexIntegrator, MorphSubClock), flex_spec.dart,
-lens_spec.dart, lens_motion.dart, lens_driver.dart, small_lens.dart,
+lens_motion.dart, lens_driver.dart, small_lens.dart,
 lib/src/spring.dart. Tests: lens_test, lens_scrub_test, switch_test,
 controls_test, timeline_test, spec_test.
 
@@ -83,7 +88,7 @@ Sub-clock runs at the DEVICE refresh rate (`motionFrameRate` 120, 60 on a
 ## Implementation notes (moved from CLAUDE.md)
 
 - `MorphLensDriver` (MorphClock + raw pointer events into a
-  `MorphLensMotion`) accepts the primary button only.
+  `MorphLensMotion`) accepts the primary button and one pointer at a time.
 - Reduced motion (`reducedMotion` on MorphLensMotion, MorphSmallLens,
   MorphGlassButtonMotion, from `MediaQuery.disableAnimations`): lens and
   knob travel, the button glows, nothing lifts, deforms, leans or swells;

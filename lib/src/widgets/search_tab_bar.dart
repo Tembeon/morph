@@ -238,7 +238,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
 
   double _fallbackBarWidth() {
     final count = widget.items.length;
-    return (count <= 4 ? 86.0 : 68.0) * count + 16;
+    return MorphTabBarMetrics.geometry(count, 0).width;
   }
 
   void _measureBar() {
@@ -250,6 +250,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
 
   @override
   Widget build(BuildContext context) {
+    final selected = widget.items.isEmpty
+        ? -1
+        : widget.selected.clamp(0, widget.items.length - 1);
     final tabStyle = MorphTabBarStyle.resolve(context, widget.style);
     final searchStyle = MorphSearchFieldStyle.resolve(
       context,
@@ -271,7 +274,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     final bar = MorphTabBar(
       key: _bar,
       items: widget.items,
-      selected: widget.selected,
+      selected: selected,
       onChanged: widget.onChanged,
       style: widget.style,
     );
@@ -330,7 +333,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                     child: bar,
                   ),
                 );
-              } else {
+              } else if (widget.items.isNotEmpty) {
                 children.add(
                   Positioned.fromRect(
                     key: const ValueKey<String>('tab'),
@@ -341,7 +344,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                         opacity: (1 - p).clamp(0.0, 1.0),
                         child: _MorphingTabs(
                           items: widget.items,
-                          selected: widget.selected,
+                          selected: selected,
                           progress: q,
                           restRect: geometry.bar,
                           rect: barRect,
@@ -349,7 +352,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                           glass: glass,
                           brightness: brightness,
                           rtl: rtl,
-                          label: widget.items[widget.selected].label,
+                          label: widget.items[selected].label,
                           onTap: () => widget.onSearchingChanged(false),
                         ),
                       ),
@@ -458,14 +461,16 @@ class _MorphingTabs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final q = progress.clamp(0.0, 1.0);
-    final pitch = (restRect.width - 16) / items.length;
+    final pitch =
+        (restRect.width - 2 * MorphTabBarMetrics.sideInset) / items.length;
     final shape = RRect.fromRectAndRadius(
       Offset.zero & rect.size,
       Radius.circular(math.min(rect.width, rect.height) / 2),
     );
     final fade = (1 - q * 2).clamp(0.0, 1.0);
     final selectedCenter = Offset(
-      8 + pitch * (rtl ? items.length - 1 - selected + 0.5 : selected + 0.5),
+      MorphTabBarMetrics.sideInset +
+          pitch * (rtl ? items.length - 1 - selected + 0.5 : selected + 0.5),
       restRect.height / 2,
     );
     final iconCenter = Offset.lerp(
@@ -516,7 +521,7 @@ class _MorphingTabs extends StatelessWidget {
                           left:
                               restRect.left -
                               rect.left +
-                              8 +
+                              MorphTabBarMetrics.sideInset +
                               pitch * (rtl ? items.length - 1 - i : i),
                           top: restRect.top - rect.top,
                           width: pitch,
@@ -572,8 +577,8 @@ class _TabGlyph extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Icon(item.icon, size: 24, color: color),
-        SizedBox(height: 2 * labelVisible),
+        Icon(item.icon, size: MorphTabBarMetrics.iconSize, color: color),
+        SizedBox(height: MorphTabBarMetrics.labelGap * labelVisible),
         if (labelVisible > 0.01)
           Opacity(
             opacity: labelVisible,
