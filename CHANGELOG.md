@@ -45,6 +45,11 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   contour. Closing submenu cards keep UIKit's copied card material on its
   carrier, and cards cast the measured light shadow through the new
   `MorphGlassSurface.shadows`.
+- Alerts, action sheets, sheets (and their content), the date picker
+  overlay, context menu flights and the source replica of a sheet or push
+  zoom draw with the glass painter above the control that presented them,
+  as menus do; before, a `MorphGlass` below the Navigator left them on the
+  flat fallback.
 - Liquid glass initialization failures report once per isolate through
   `FlutterError.reportError` in every build mode (library `morph glass`);
   `MorphGlassRenderer.liquidUnavailableReason` exposes the cached cause.
