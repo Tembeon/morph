@@ -14,6 +14,22 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Adds inset grouped lists: `MorphListSection` (header, card, footer)
+  and `MorphListRow` (title, subtitle, value detail, leading symbol,
+  trailing control, disclosure chevron, custom content, tap highlight,
+  keyboard activation, RTL), with `MorphListStyle` light/dark tables and
+  `MorphListMetrics`, all read from iOS 27's inset grouped UITableView
+  (spec/lists.md).
+- Adds `MorphWidgetsTheme.list`, the ambient `MorphListStyle`.
+- Adds `MorphTypography.body`, `listSubtitle`, `listHeader` and
+  `listFooter`, the measured list cell and section label roles.
+- `MorphNavigationScaffold` gives its content UIKit's body text style in
+  the bar style's label color, so plain text on a page needs no Material.
+- Adds `MorphSheetStyle.textColor`: sheet content reads in the body text
+  style, label colored.
+- The example gallery runs entirely on `MorphNavigationStack`,
+  `MorphNavigationScaffold` and the list widgets: no Scaffold, AppBar,
+  ListTile or MaterialPageRoute remain in it.
 - Adds a shared native/Flutter measurement laboratory with real XCUITest
   input, timestamped films from one buffer stream, layer/render-tree
   telemetry, regional glass metrics, gesture replay, spring fitting and
