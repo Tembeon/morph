@@ -11,11 +11,13 @@ import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
+import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/push_zoom.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
 import 'package:morph/src/widgets/toolbar.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
+import 'package:morph/src/widgets/zoom_source.dart';
 
 /// What one screen of a [MorphNavigationStack] shows in the shared bars.
 @immutable
@@ -425,7 +427,7 @@ class _Observer extends NavigatorObserver {
 /// zooms it back into the source or returns it. See
 /// [MorphPushZoomMotion]; [pushMorphZoom] pushes such a page.
 class MorphNavigationRoute<T> extends PageRoute<T>
-    implements MorphPushZoomHost {
+    with MorphMotionRouteMixin<T> {
   /// Creates a route for the page [builder] builds.
   MorphNavigationRoute({
     required this.builder,
@@ -437,9 +439,13 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   /// Builds the page.
   final WidgetBuilder builder;
 
-  /// The tag the page zooms out of and back into, or null for a page
-  /// that slides in.
-  final MorphTagState? zoomSource;
+  /// The source tag's id, or null for a page that slides in.
+  ///
+  /// An absent or unlaid-out tag shows the page in place.
+  final Object? zoomSource;
+
+  MorphZoomSource? _zoomSource;
+  late final _NavigationZoomHost<T> _zoomHost = _NavigationZoomHost<T>(this);
 
   /// The measured zoom used when there is a [zoomSource].
   final MorphPushZoomTuning zoom;
@@ -452,25 +458,15 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   AnimationController? get _gestureController => controller;
 
   @override
-  MorphTagState get zoomFrom => zoomSource!;
+  bool get usesMotionRoute => _zooms;
 
   @override
-  MorphPushZoomTuning get zoomTuning => zoom;
-
-  @override
-  bool get zoomIsCurrent => isCurrent;
-
-  @override
-  void zoomPop() => navigator?.maybePop();
-
-  @override
-  void zoomClosed() {
-    final c = controller;
-    if (c != null && !isActive && c.value != 0) c.value = 0;
+  bool leaveMotionRoute() {
+    final view = _zoomView;
+    if (view == null || !view.mounted) return false;
+    view.leave();
+    return true;
   }
-
-  @override
-  void attachZoomView(MorphPushZoomPageState? view) => _zoomView = view;
 
   @override
   Color? get barrierColor => null;
@@ -530,16 +526,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
   bool didPop(T? result) {
     final popped = super.didPop(result);
     final c = controller;
-    if (_zooms) {
-      c?.stop();
-      final view = _zoomView;
-      if (view == null || !view.mounted) {
-        c?.value = 0;
-      } else {
-        view.leave();
-      }
-      return popped;
-    }
+    if (_zooms) return popped;
     if (c == null) return popped;
     final interactive = _interactivePop;
     _interactivePop = false;
@@ -574,7 +561,10 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    if (_zooms) return MorphPushZoomPage(host: this, child: child);
+    if (_zooms) {
+      _zoomSource ??= MorphZoomSource.resolve(context, zoomSource);
+      return MorphPushZoomPage(host: _zoomHost, child: child);
+    }
     if (morphReducedMotionOf(context)) {
       return FadeTransition(
         opacity: animation,
@@ -604,20 +594,50 @@ class MorphNavigationRoute<T> extends PageRoute<T>
 /// zoomed out of the [MorphTag] with id [from] under the [MorphScope]
 /// around [context], as UIKit pushes a view controller whose
 /// `preferredTransition` is `.zoom`; see [MorphNavigationRoute.zoomSource].
+///
+/// An absent or unlaid-out source shows the page in place. If the source
+/// disappears while the page is open, its content stays usable and its
+/// dismissal dissolves instead of landing on the old source frame.
 Future<T?> pushMorphZoom<T>(
   BuildContext context, {
   required WidgetBuilder builder,
   required Object from,
   MorphPushZoomTuning zoom = MorphPushZoomTuning.standard,
   RouteSettings? settings,
-}) => Navigator.of(context).push<T>(
-  MorphNavigationRoute<T>(
+}) {
+  final route = MorphNavigationRoute<T>(
     builder: builder,
-    zoomSource: MorphScope.of(context).tagOf(from),
+    zoomSource: from,
     zoom: zoom,
     settings: settings,
-  ),
-);
+  );
+  route._zoomSource = MorphZoomSource.resolve(context, from);
+  return Navigator.of(context).push<T>(route);
+}
+
+class _NavigationZoomHost<T> implements MorphPushZoomHost {
+  _NavigationZoomHost(this.route);
+
+  final MorphNavigationRoute<T> route;
+
+  @override
+  MorphZoomSource get zoomFrom => route._zoomSource!;
+
+  @override
+  MorphPushZoomTuning get zoomTuning => route.zoom;
+
+  @override
+  bool get zoomIsCurrent => route.isCurrent;
+
+  @override
+  void zoomPop() => route.popMotionRoute();
+
+  @override
+  void zoomClosed() => route.finishMotionRoute();
+
+  @override
+  void attachZoomView(MorphPushZoomPageState? view) => route._zoomView = view;
+}
 
 class _EdgePop extends StatefulWidget {
   const _EdgePop({required this.route, required this.child});

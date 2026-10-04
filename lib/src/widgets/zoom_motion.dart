@@ -20,6 +20,15 @@ import 'package:morph/src/widgets/spring_state.dart';
 /// of its own.
 @immutable
 class MorphZoomTuning {
+  /// UIKit's zoom-in dimming spring from `_UIZoomTransitionSpec`.
+  static const zoomInSpring = MorphSpring(0.34, 1);
+
+  /// UIKit's zoom-out spring from `_UIZoomTransitionSpec`.
+  static const zoomOutSpring = MorphSpring(0.34, 0.92);
+
+  /// The push zoom's measured dismissal speed, in points per second.
+  static const double dismissVelocityThreshold = 1050;
+
   /// Creates a tuning from explicit values.
   const MorphZoomTuning({
     this.openCenterSpring = const MorphSpring(0.349, 0.833),
@@ -28,15 +37,15 @@ class MorphZoomTuning {
     this.closeSizeSpring = const MorphSpring(0.203, 1),
     this.fadeSpring = const MorphSpring(0.154, 1),
     this.openFadeDelay = 0.045,
-    this.openDimmingSpring = const MorphSpring(0.34, 1),
-    this.closeDimmingSpring = const MorphSpring(0.34, 0.92),
+    this.openDimmingSpring = zoomInSpring,
+    this.closeDimmingSpring = zoomOutSpring,
     this.scrubSideRate = 0.275,
     this.scrubTopRate = 1.115,
     this.scrubBottomRate = 0.04,
     this.scrubStretch = 17,
     this.scrubReturnSpring = const MorphSpring(0.196, 1),
     this.scrubDismissTravel = 100,
-    this.scrubDismissVelocity = 1050,
+    this.scrubDismissVelocity = dismissVelocityThreshold,
   });
 
   /// The spring the container's center travels on toward the sheet.

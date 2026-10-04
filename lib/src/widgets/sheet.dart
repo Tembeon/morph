@@ -5,10 +5,12 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/zoom_motion.dart';
+import 'package:morph/src/widgets/zoom_source.dart';
 
 /// The look of a sheet presented with [presentMorphSheet].
 @immutable
@@ -90,6 +92,10 @@ class MorphSheetStyle {
 /// detent, which UIKit commits at once - zooms the sheet back into the
 /// source, which shows again when the zoom has come to rest. See
 /// [MorphZoomMotion] for the measured motion; [zoom] tunes it.
+///
+/// An absent or unlaid-out source presents a sliding sheet. If the source
+/// disappears while the sheet is open, its content stays usable and its
+/// dismissal dissolves instead of landing on the old source frame.
 Future<T?> presentMorphSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
@@ -105,26 +111,26 @@ Future<T?> presentMorphSheet<T>(
   bool useRootNavigator = false,
 }) {
   assert(detents.isNotEmpty, 'A sheet needs at least one detent.');
-  return Navigator.of(context, rootNavigator: useRootNavigator).push<T>(
-    MorphSheetRoute<T>(
-      builder: builder,
-      source: from == null ? null : MorphScope.of(context).tagOf(from),
-      zoom: zoom,
-      detents: detents,
-      initialDetent: initialDetent,
-      largestUndimmedDetent: largestUndimmedDetent,
-      grabberVisible: grabberVisible,
-      dismissible: dismissible,
-      style: style,
-      semanticLabel: semanticLabel,
-    ),
+  final route = MorphSheetRoute<T>(
+    builder: builder,
+    source: from,
+    zoom: zoom,
+    detents: detents,
+    initialDetent: initialDetent,
+    largestUndimmedDetent: largestUndimmedDetent,
+    grabberVisible: grabberVisible,
+    dismissible: dismissible,
+    style: style,
+    semanticLabel: semanticLabel,
   );
+  route._zoomSource = MorphZoomSource.resolve(context, from);
+  return Navigator.of(context, rootNavigator: useRootNavigator).push<T>(route);
 }
 
 /// The route [presentMorphSheet] pushes: the sheet as a real navigator
 /// route, so the back button, `Navigator.pop` and pop scopes work as on
 /// any route.
-class MorphSheetRoute<T> extends PopupRoute<T> {
+class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T> {
   /// Creates the route.
   MorphSheetRoute({
     required this.builder,
@@ -143,9 +149,12 @@ class MorphSheetRoute<T> extends PopupRoute<T> {
   /// Builds the sheet's content.
   final WidgetBuilder builder;
 
-  /// The tag the sheet zooms out of and back into, or null for a sheet
-  /// that slides up from the bottom.
-  final MorphTagState? source;
+  /// The source tag's id, or null for a sheet that slides up from below.
+  ///
+  /// An absent or unlaid-out tag presents a sliding sheet.
+  final Object? source;
+
+  MorphZoomSource? _zoomSource;
 
   /// The measured zoom used when there is a [source].
   final MorphZoomTuning zoom;
@@ -172,14 +181,13 @@ class MorphSheetRoute<T> extends PopupRoute<T> {
   /// The label screen readers announce for the sheet.
   final String? semanticLabel;
 
-  final ValueNotifier<int> _popRequests = ValueNotifier<int>(0);
   _SheetViewState? _view;
 
   @override
   Color? get barrierColor => null;
 
   @override
-  bool get barrierDismissible => false;
+  bool get barrierDismissible => dismissible;
 
   @override
   String? get barrierLabel => null;
@@ -198,30 +206,17 @@ class MorphSheetRoute<T> extends PopupRoute<T> {
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
-  ) => _SheetView(route: this);
+  ) {
+    _zoomSource ??= MorphZoomSource.resolve(context, source);
+    return _SheetView(route: this);
+  }
 
   @override
-  bool didPop(T? result) {
-    final popped = super.didPop(result);
-    controller?.stop();
+  bool leaveMotionRoute() {
     final view = _view;
-    if (view == null || !view.mounted) {
-      controller?.value = 0;
-    } else {
-      view._leave();
-    }
-    return popped;
-  }
-
-  void _finished() {
-    final c = controller;
-    if (c != null && !isActive && c.value != 0) c.value = 0;
-  }
-
-  @override
-  void dispose() {
-    _popRequests.dispose();
-    super.dispose();
+    if (view == null || !view.mounted) return false;
+    view._leave();
+    return true;
   }
 }
 
@@ -240,8 +235,10 @@ abstract class MorphSheet {
   /// The sheet around [context].
   static MorphSheet of(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<_SheetScope>();
-    assert(scope != null, 'MorphSheet.of called outside a MorphSheetRoute.');
-    return scope!.state;
+    if (scope == null) {
+      throw FlutterError('MorphSheet.of called outside a MorphSheetRoute.');
+    }
+    return scope.state;
   }
 
   /// The sheet around [context], or null outside one.
@@ -252,18 +249,27 @@ abstract class MorphSheet {
   /// drags to the sheet as UIKit does.
   static ScrollController scrollControllerOf(BuildContext context) {
     final scope = context.dependOnInheritedWidgetOfExactType<_SheetScope>();
-    assert(scope != null, 'MorphSheet.scrollControllerOf outside a sheet.');
-    return scope!.state._scroll;
+    if (scope == null) {
+      throw FlutterError(
+        'MorphSheet.scrollControllerOf called outside a MorphSheetRoute.',
+      );
+    }
+    return scope.state._scroll;
   }
 }
 
 class _SheetScope extends InheritedWidget {
-  const _SheetScope({required this.state, required super.child});
+  const _SheetScope({
+    required this.state,
+    required this.detent,
+    required super.child,
+  });
 
   final _SheetViewState state;
+  final MorphSheetDetent detent;
 
   @override
-  bool updateShouldNotify(_SheetScope oldWidget) => false;
+  bool updateShouldNotify(_SheetScope oldWidget) => oldWidget.detent != detent;
 }
 
 class _SheetView extends StatefulWidget {
@@ -280,10 +286,9 @@ class _SheetViewState extends State<_SheetView>
     implements MorphSheet {
   MorphSheetMotion? _motion;
   MorphZoomMotion? _zoom;
-  Rect? _sourceRect;
   Rect? _zoomTarget;
   Size? _zoomContent;
-  bool _sourceHidden = false;
+  late final MorphZoomSource _source = _route._zoomSource!;
   final GlobalKey _contentKey = GlobalKey();
   late final _SheetScrollController _scroll = _SheetScrollController(this);
   double _dragY = 0;
@@ -302,7 +307,7 @@ class _SheetViewState extends State<_SheetView>
   List<MorphSheetDetent> get detents => _route.detents;
 
   @override
-  MorphSheetDetent get detent => detents[_motion?.index ?? _index];
+  MorphSheetDetent get detent => detents[_index];
 
   @override
   void initState() {
@@ -316,19 +321,9 @@ class _SheetViewState extends State<_SheetView>
   @override
   void dispose() {
     if (_route._view == this) _route._view = null;
-    _revealSource();
+    _source.reveal();
     _scroll.dispose();
     super.dispose();
-  }
-
-  void _revealSource() {
-    if (!_sourceHidden) return;
-    _sourceHidden = false;
-    final source = _route.source;
-    if (source == null) return;
-    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-      if (source.mounted) source.reveal();
-    });
   }
 
   @override
@@ -342,12 +337,12 @@ class _SheetViewState extends State<_SheetView>
     if (zoom != null) {
       zoom.advance(t);
       if (_leaving && zoom.isClosed) {
-        _revealSource();
-        _route._finished();
+        _source.reveal();
+        _route.finishMotionRoute();
       }
       return;
     }
-    if (_leaving && motion.isDismissed) _route._finished();
+    if (_leaving && motion.isDismissed) _route.finishMotionRoute();
   }
 
   @override
@@ -371,17 +366,6 @@ class _SheetViewState extends State<_SheetView>
     return zoom != null && !(zoom.isOpening && zoom.isSettled);
   }
 
-  Rect? _captureSource() {
-    final source = _route.source;
-    final box = context.findRenderObject();
-    if (source == null || box is! RenderBox || !box.hasSize) {
-      return _sourceRect;
-    }
-    final rect = source.tryCaptureRect(box);
-    if (rect != null) _sourceRect = rect;
-    return _sourceRect;
-  }
-
   @override
   void animateTo(MorphSheetDetent detent) {
     final i = detents.indexOf(detent);
@@ -399,7 +383,7 @@ class _SheetViewState extends State<_SheetView>
     final motion = _motion;
     _leaving = true;
     if (motion == null) {
-      _route._finished();
+      _route.finishMotionRoute();
       return;
     }
     final zoom = _zoom;
@@ -423,7 +407,7 @@ class _SheetViewState extends State<_SheetView>
 
   void _requestDismiss() {
     if (!_route.dismissible || _leaving) return;
-    Navigator.of(context).maybePop();
+    _route.popMotionRoute();
   }
 
   double _maximum(Size size, EdgeInsets padding) =>
@@ -456,20 +440,18 @@ class _SheetViewState extends State<_SheetView>
         undimmedIndex: undimmedAt == null || undimmedAt < 0 ? null : undimmedAt,
         dismissible: _route.dismissible,
       );
-      created.onDetentChanged = (int sorted) => _index = _order[sorted];
-      created.onDismiss = () {
-        if (mounted && !_leaving) Navigator.of(context).maybePop();
+      created.onDetentChanged = (int sorted) {
+        if (mounted) setState(() => _index = _order[sorted]);
       };
-      final source = _route.source;
-      if (source != null && source.mounted) {
+      created.onDismiss = () {
+        if (mounted && !_leaving) _route.popMotionRoute();
+      };
+      if (_source.capture(context) != null && !_source.isLost) {
         created.presentInPlace(clock);
         final zoom = MorphZoomMotion(tuning: _route.zoom);
         zoom.open(clock);
         _zoom = zoom;
-        _sourceHidden = true;
-        WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-          if (_sourceHidden && source.mounted) source.hideForFlight();
-        });
+        _source.hide();
       } else {
         created.present(clock);
       }
@@ -515,8 +497,8 @@ class _SheetViewState extends State<_SheetView>
     if (!motion.isDragging) motion.unpress(_stamp);
     if (event is PointerUpEvent &&
         !_touchDragged &&
-        !motion.isDragging &&
         _touchFrom.dy < MorphSheetTuning.grabberHitHeight) {
+      if (motion.isDragging) motion.dragCancel(_stamp);
       motion.tapGrabber(_stamp);
     }
     wake();
@@ -629,6 +611,7 @@ class _SheetViewState extends State<_SheetView>
     final dockedRadius = reported ?? 0;
     final content = _SheetScope(
       state: this,
+      detent: detent,
       child: Builder(builder: _route.builder),
     );
     return LayoutBuilder(
@@ -807,10 +790,10 @@ extension on _SheetViewState {
     final t = motion.time;
     final natural = motion.visibleRect(t, size.height);
     final destination = _zoomTarget ?? natural;
-    final source = _captureSource() ?? destination;
+    final source = _source.capture(context) ?? destination;
     final rect = zoom.rect(t, source, destination);
     final p = zoom.sizeProgress(t).clamp(0.0, 1.0);
-    final from = _cornerRadius(_route.source, source.size);
+    final from = _source.radius(source.size);
     Radius corner(double to) =>
         Radius.circular(math.max(0, from + (to - from) * p));
     final top = corner(MorphSheetTuning.topRadius * scale);
@@ -826,7 +809,6 @@ extension on _SheetViewState {
         scale *
         MorphZoomMotion.contentScale(rect, _zoomContent ?? natural.size);
     final fade = zoom.fade(t);
-    final tag = _route.source;
     return Stack(
       children: [
         Positioned.fill(
@@ -847,11 +829,17 @@ extension on _SheetViewState {
           rect: rect,
           child: IgnorePointer(
             child: ClipRRect(
-              clipper: _ShapeClipper(shape),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned(
+              clipper: MorphZoomShapeClipper(shape),
+              child: Opacity(
+                opacity: _source.opacity(
+                  zoom.sizeProgress(t),
+                  closing: !zoom.isOpening,
+                ),
+                child: _source.crossfade(
+                  fade: fade,
+                  size: source.size,
+                  closing: !zoom.isOpening,
+                  content: (double opacity) => Positioned(
                     left: 0,
                     top: 0,
                     width: size.width,
@@ -859,31 +847,10 @@ extension on _SheetViewState {
                     child: Transform.scale(
                       scale: fit,
                       alignment: Alignment.topLeft,
-                      child: Opacity(opacity: fade, child: sheet),
+                      child: Opacity(opacity: opacity, child: sheet),
                     ),
                   ),
-                  if (tag != null && fade < 1 && !source.isEmpty)
-                    Positioned.fill(
-                      child: Opacity(
-                        opacity: 1 - fade,
-                        child: ExcludeFocus(
-                          child: ExcludeSemantics(
-                            child: FittedBox(
-                              fit: BoxFit.fill,
-                              alignment: Alignment.topLeft,
-                              child: SizedBox.fromSize(
-                                size: source.size,
-                                child: MorphSurfaceSpecScope(
-                                  spec: tag.surfaceSpec,
-                                  child: tag.replica,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
+                ),
               ),
             ),
           ),
@@ -891,23 +858,6 @@ extension on _SheetViewState {
       ],
     );
   }
-}
-
-/// The corner radius of [tag]'s shape at [size]: a stadium or a circle is
-/// rounded by half the shorter side, a rounded rectangle by its top
-/// leading radius.
-double _cornerRadius(MorphTagState? tag, Size size) {
-  final shape = tag?.shape;
-  final half = size.shortestSide / 2;
-  return switch (shape) {
-    StadiumBorder() || CircleBorder() => half,
-    RoundedRectangleBorder(:final borderRadius) ||
-    ContinuousRectangleBorder(:final borderRadius) ||
-    RoundedSuperellipseBorder(
-      :final borderRadius,
-    ) => math.min(half, borderRadius.resolve(TextDirection.ltr).topLeft.x),
-    _ => 0,
-  };
 }
 
 class _SheetBody extends StatelessWidget {
@@ -936,7 +886,7 @@ class _SheetBody extends StatelessWidget {
       alpha: style.dockedColor.a * dock,
     );
     return ClipRRect(
-      clipper: _ShapeClipper(shape),
+      clipper: MorphZoomShapeClipper(shape),
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -978,18 +928,6 @@ class _SheetBody extends StatelessWidget {
       ),
     );
   }
-}
-
-class _ShapeClipper extends CustomClipper<RRect> {
-  _ShapeClipper(this.shape);
-
-  final RRect shape;
-
-  @override
-  RRect getClip(Size size) => shape;
-
-  @override
-  bool shouldReclip(_ShapeClipper oldClipper) => oldClipper.shape != shape;
 }
 
 class _SheetScrollController extends ScrollController {

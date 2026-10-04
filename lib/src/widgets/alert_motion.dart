@@ -23,6 +23,39 @@ abstract final class MorphAlertTuning {
   /// The opacity of the black dimming behind an alert.
   static const double dimmingOpacity = 0.2;
 
+  /// The alert text size in points, from the UIKit layout captures.
+  static const double textFontSize = 17;
+
+  /// The 17-point text line height in the UIKit layout captures.
+  static const double textLineHeight = 20.33;
+
+  /// The line-height multiplier of 17-point alert text.
+  static const double textHeight = textLineHeight / textFontSize;
+
+  /// The message line-height multiplier from the UIKit layout captures.
+  static const double messageHeight = 1.2;
+
+  /// The preferred action's semibold weight from the UIKit layout captures.
+  static const FontWeight preferredWeight = FontWeight.w600;
+
+  /// The single header's regular weight from the UIKit layout captures.
+  static const FontWeight singleHeaderWeight = FontWeight.w400;
+
+  /// The button's horizontal text inset from the UIKit layout captures.
+  static const double buttonTextInset = 12;
+
+  /// The screen-side alert margin, an engineering layout default.
+  static const double screenMargin = 20;
+
+  /// The text scale cap, an engineering layout default.
+  static const double maxTextScale = 2;
+
+  /// The flat fallback shadow sigma, an engineering rendering default.
+  static const double flatShadowSigma = 24;
+
+  /// The flat fallback shadow offset, an engineering rendering default.
+  static const double flatShadowOffset = 8;
+
   /// The width of an alert.
   static const double width = 320;
 
@@ -448,7 +481,15 @@ MorphPopoverPlacement morphPlacePopover({
   final y = edge == MorphPopoverArrowEdge.bottom
       ? math.max(top, source.top - arrow - size.height)
       : math.min(bottom - size.height, source.bottom + arrow);
-  return _placement(edge, size, y, x, source.center.dx);
+  final inset = math.min(clearance, size.width / 2);
+  final center = source.center.dx.clamp(x + inset, x + size.width - inset);
+  return _placement(
+    edge,
+    size,
+    y.clamp(top, math.max(top, bottom - size.height)),
+    x,
+    center,
+  );
 }
 
 MorphPopoverPlacement _placement(

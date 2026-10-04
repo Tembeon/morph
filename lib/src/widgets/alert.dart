@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
@@ -220,7 +221,9 @@ Future<MorphAlertAction?> showMorphAlert(
 /// sheet) or an [anchorRect] (in global coordinates), the sheet is a
 /// glass popover next to its source: it grows out of its arrow tip on a
 /// spring and shrinks back into it, placed by [morphPlacePopover]; see
-/// [MorphPopoverMotion]. The popover does not lift under a touch. The
+/// [MorphPopoverMotion]. An [anchor] must be mounted and laid out;
+/// otherwise this function throws a descriptive [FlutterError].
+/// The popover does not lift under a touch. The
 /// cancel action does not show there; a tap outside runs it. Without a source, iOS 27 presents an action sheet on
 /// an iPhone as an alert, and so does this function, the cancel action at
 /// the bottom. Otherwise it behaves like [showMorphAlert].
@@ -236,10 +239,17 @@ Future<MorphAlertAction?> showMorphActionSheet(
 }) {
   Rect? source = anchorRect;
   if (source == null && anchor != null) {
-    final box = anchor.findRenderObject();
-    if (box is RenderBox && box.hasSize) {
-      source = box.localToGlobal(Offset.zero) & box.size;
+    if (!anchor.mounted) {
+      throw FlutterError('showMorphActionSheet anchor is no longer mounted.');
     }
+    final box = anchor.findRenderObject();
+    if (box is! RenderBox || !box.attached || !box.hasSize) {
+      throw FlutterError('showMorphActionSheet anchor must be laid out.');
+    }
+    source = MatrixUtils.transformRect(
+      box.getTransformTo(null),
+      Offset.zero & box.size,
+    );
   }
   return Navigator.of(context, rootNavigator: useRootNavigator).push(
     MorphAlertRoute(
@@ -256,7 +266,8 @@ Future<MorphAlertAction?> showMorphActionSheet(
 /// The route [showMorphAlert] and [showMorphActionSheet] push: the alert
 /// as a real navigator route, so the back button, `Navigator.pop` and pop
 /// scopes work as on any route.
-class MorphAlertRoute extends PopupRoute<MorphAlertAction> {
+class MorphAlertRoute extends PopupRoute<MorphAlertAction>
+    with MorphMotionRouteMixin<MorphAlertAction> {
   /// Creates the route.
   MorphAlertRoute({
     this.title,
@@ -323,27 +334,24 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction> {
   ) => _AlertView(route: this);
 
   @override
-  bool didPop(MorphAlertAction? result) {
-    _chosen = result;
-    final popped = super.didPop(result);
-    controller?.stop();
+  MorphAlertAction? motionRouteResult(MorphAlertAction? result) =>
+      result ?? _cancel;
+
+  @override
+  void motionRouteDidPop(MorphAlertAction? result) => _chosen = result;
+
+  @override
+  bool leaveMotionRoute() {
     final view = _view;
-    if (view == null || !view.mounted) {
-      _finished();
-    } else {
-      view._leave();
-    }
-    return popped;
+    if (view == null || !view.mounted) return false;
+    view._leave();
+    return true;
   }
 
-  bool _done = false;
   bool _ran = false;
 
-  void _finished() {
-    final c = controller;
-    if (c != null && !isActive && c.value != 0) c.value = 0;
-    if (_done) return;
-    _done = true;
+  @override
+  void motionRouteDidFinish() {
     final chosen = _chosen;
     if (chosen != null && !_ran) {
       _ran = true;
@@ -381,8 +389,10 @@ List<MorphAlertAction> _ordered(
 TextStyle _buttonText(MorphAlertAction action, MorphAlertStyle style) =>
     MorphTypography.resolve(
       MorphTypography.alertAction.copyWith(
-        height: 20.33 / 17,
-        fontWeight: action.isPreferred ? FontWeight.w600 : null,
+        height: MorphAlertTuning.textHeight,
+        fontWeight: action.isPreferred
+            ? MorphAlertTuning.preferredWeight
+            : null,
         color: !action.enabled
             ? style.disabledLabelColor
             : action.isPreferred
@@ -462,7 +472,7 @@ class _AlertViewState extends State<_AlertView>
     _popover?.advance(t);
     _press.advance(t);
     final gone = _alert?.isDismissed ?? _popover?.isDismissed ?? false;
-    if (_leaving && gone) _route._finished();
+    if (_leaving && gone) _route.finishMotionRoute();
   }
 
   @override
@@ -484,7 +494,7 @@ class _AlertViewState extends State<_AlertView>
 
   void _choose(MorphAlertAction action) {
     if (_leaving || !action.enabled) return;
-    Navigator.of(context).pop(action);
+    _route.popMotionRoute(action);
   }
 
   void _cancelOutside() {
@@ -494,7 +504,7 @@ class _AlertViewState extends State<_AlertView>
       _route._ran = true;
       cancel.onPressed?.call();
     }
-    Navigator.of(context).pop(cancel);
+    _route.popMotionRoute(cancel);
   }
 
   void _escape() {
@@ -502,7 +512,7 @@ class _AlertViewState extends State<_AlertView>
     if (cancel != null) {
       _choose(cancel);
     } else if (_route.actionSheet) {
-      Navigator.of(context).pop();
+      _route.popMotionRoute(null);
     }
   }
 
@@ -583,7 +593,10 @@ class _AlertViewState extends State<_AlertView>
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final width = popover
         ? MorphAlertTuning.popoverWidth
-        : math.min(MorphAlertTuning.width, media.size.width - 40);
+        : math.min(
+            MorphAlertTuning.width,
+            media.size.width - 2 * MorphAlertTuning.screenMargin,
+          );
     final row = rowCandidate && _fitsInRow(width, style, scaler, direction);
     _shown = _ordered(_route.actions, row: row, popover: popover);
     while (_buttonKeys.length < _shown.length) {
@@ -605,6 +618,7 @@ class _AlertViewState extends State<_AlertView>
           ? MorphPopoverTuning.cornerRadius
           : MorphAlertTuning.cornerRadius,
       onChoose: _choose,
+      onSubmit: _return,
       frames: frames,
       opacity: _opacity,
     );
@@ -651,10 +665,15 @@ class _AlertViewState extends State<_AlertView>
       math.max(media.padding.bottom, media.viewInsets.bottom),
     );
     return MediaQuery(
-      data: media.copyWith(textScaler: scaler.clamp(maxScaleFactor: 2)),
+      data: media.copyWith(
+        textScaler: scaler.clamp(maxScaleFactor: MorphAlertTuning.maxTextScale),
+      ),
       child: DefaultTextStyle(
         style: MorphTypography.resolve(
-          TextStyle(fontSize: 17, color: style.labelColor),
+          TextStyle(
+            fontSize: MorphAlertTuning.textFontSize,
+            color: style.labelColor,
+          ),
         ),
         child: popover
             ? _popoverLayout(context, keyed, style, padding, direction)
@@ -687,7 +706,7 @@ class _AlertViewState extends State<_AlertView>
         maxLines: 1,
       );
       painter.layout();
-      final fits = painter.width + 24 <= each;
+      final fits = painter.width + 2 * MorphAlertTuning.buttonTextInset <= each;
       painter.dispose();
       if (!fits) return false;
     }
@@ -750,7 +769,6 @@ class _AlertViewState extends State<_AlertView>
   ) {
     final motion = _popover!;
     final source = _route.source!;
-    final origin = _overlayOrigin(context);
     return Stack(
       children: [
         Positioned.fill(
@@ -764,16 +782,14 @@ class _AlertViewState extends State<_AlertView>
             delegate: _PopoverFlow(
               motion: motion,
               frames: frames,
-              source: source.shift(-origin),
+              source: source,
+              origin: () => _overlayOrigin(context),
               padding: padding,
               direction: direction,
             ),
             children: [
               CustomPaint(
-                painter: _ArrowPainter(
-                  color: style.platterColor,
-                  shadow: style.shadowColor,
-                ),
+                painter: _ArrowPainter(color: style.platterColor),
                 child: const SizedBox(
                   width: MorphPopoverTuning.arrowWidth,
                   height: MorphPopoverTuning.arrowLength,
@@ -799,12 +815,14 @@ class _PopoverFlow extends FlowDelegate {
     required this.motion,
     required Listenable frames,
     required this.source,
+    required this.origin,
     required this.padding,
     required this.direction,
   }) : super(repaint: frames);
 
   final MorphPopoverMotion motion;
   final Rect source;
+  final Offset Function() origin;
   final EdgeInsets padding;
   final TextDirection direction;
 
@@ -823,7 +841,7 @@ class _PopoverFlow extends FlowDelegate {
     if (size == null) return;
     final placement = morphPlacePopover(
       size: size,
-      source: source,
+      source: source.shift(-origin()),
       screen: context.size,
       padding: padding,
       textDirection: direction,
@@ -876,10 +894,9 @@ class _PopoverFlow extends FlowDelegate {
 }
 
 class _ArrowPainter extends CustomPainter {
-  const _ArrowPainter({required this.color, required this.shadow});
+  const _ArrowPainter({required this.color});
 
   final Color color;
-  final Color shadow;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -899,8 +916,7 @@ class _ArrowPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ArrowPainter oldDelegate) =>
-      oldDelegate.color != color || oldDelegate.shadow != shadow;
+  bool shouldRepaint(_ArrowPainter oldDelegate) => oldDelegate.color != color;
 }
 
 class _AlertCard extends StatelessWidget {
@@ -917,6 +933,7 @@ class _AlertCard extends StatelessWidget {
     required this.style,
     required this.radius,
     required this.onChoose,
+    required this.onSubmit,
     required this.frames,
     required this.opacity,
     super.key,
@@ -934,6 +951,7 @@ class _AlertCard extends StatelessWidget {
   final MorphAlertStyle style;
   final double radius;
   final ValueChanged<MorphAlertAction> onChoose;
+  final VoidCallback onSubmit;
   final Listenable frames;
   final double Function() opacity;
 
@@ -953,8 +971,8 @@ class _AlertCard extends StatelessWidget {
           textAlign: TextAlign.start,
           style: MorphTypography.resolve(
             MorphTypography.alertTitle.copyWith(
-              height: 20.33 / 17,
-              fontWeight: both ? null : FontWeight.w400,
+              height: MorphAlertTuning.textHeight,
+              fontWeight: both ? null : MorphAlertTuning.singleHeaderWeight,
               color: style.titleColor,
             ),
           ),
@@ -967,12 +985,12 @@ class _AlertCard extends StatelessWidget {
           style: MorphTypography.resolve(
             single
                 ? TextStyle(
-                    fontSize: 17,
-                    height: 20.33 / 17,
+                    fontSize: MorphAlertTuning.textFontSize,
+                    height: MorphAlertTuning.textHeight,
                     color: style.titleColor,
                   )
                 : MorphTypography.alertMessage.copyWith(
-                    height: 1.2,
+                    height: MorphAlertTuning.messageHeight,
                     color: style.messageColor,
                   ),
           ),
@@ -987,6 +1005,7 @@ class _AlertCard extends StatelessWidget {
             controller: controllers[i],
             style: style,
             autofocus: i == 0,
+            onSubmit: onSubmit,
           ),
         ),
     ];
@@ -1148,8 +1167,14 @@ class _PlatterPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final shadow = Paint();
     shadow.color = _faded(style.shadowColor);
-    shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 24);
-    canvas.drawRRect(shape.shift(const Offset(0, 8)), shadow);
+    shadow.maskFilter = const MaskFilter.blur(
+      BlurStyle.normal,
+      MorphAlertTuning.flatShadowSigma,
+    );
+    canvas.drawRRect(
+      shape.shift(const Offset(0, MorphAlertTuning.flatShadowOffset)),
+      shadow,
+    );
     final fill = Paint();
     fill.color = _faded(style.platterColor);
     canvas.drawRRect(shape, fill);
@@ -1212,7 +1237,9 @@ class _AlertButtonState extends State<_AlertButton> {
                 minHeight: MorphAlertTuning.buttonHeight,
               ),
               alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(
+                horizontal: MorphAlertTuning.buttonTextInset,
+              ),
               decoration: ShapeDecoration(
                 color: fill,
                 shape: const StadiumBorder(),
@@ -1236,12 +1263,14 @@ class _AlertField extends StatefulWidget {
     required this.controller,
     required this.style,
     required this.autofocus,
+    required this.onSubmit,
   });
 
   final MorphAlertTextField field;
   final TextEditingController controller;
   final MorphAlertStyle style;
   final bool autofocus;
+  final VoidCallback onSubmit;
 
   @override
   State<_AlertField> createState() => _AlertFieldState();
@@ -1261,12 +1290,18 @@ class _AlertFieldState extends State<_AlertField> {
     final style = widget.style;
     final controller = widget.controller;
     final text = MorphTypography.resolve(
-      TextStyle(fontSize: 17, height: 20.33 / 17, color: style.titleColor),
+      TextStyle(
+        fontSize: MorphAlertTuning.textFontSize,
+        height: MorphAlertTuning.textHeight,
+        color: style.titleColor,
+      ),
     );
     final placeholder = widget.field.placeholder;
     return Container(
       height: MorphAlertTuning.buttonHeight,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
+      padding: const EdgeInsets.symmetric(
+        horizontal: MorphAlertTuning.fieldInset,
+      ),
       decoration: ShapeDecoration(
         color: style.buttonColor,
         shape: const StadiumBorder(),
@@ -1300,6 +1335,8 @@ class _AlertFieldState extends State<_AlertField> {
               cursorColor: style.preferredColor,
               backgroundCursorColor: style.placeholderColor,
               maxLines: 1,
+              textInputAction: TextInputAction.done,
+              onSubmitted: (_) => widget.onSubmit(),
             ),
           ),
         ],

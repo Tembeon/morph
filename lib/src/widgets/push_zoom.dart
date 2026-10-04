@@ -4,16 +4,16 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
+import 'package:morph/src/widgets/zoom_source.dart';
 
 /// What a page zoomed out of a source needs from its route.
 @internal
 abstract interface class MorphPushZoomHost {
-  /// The tag the page zooms out of and back into.
-  MorphTagState get zoomFrom;
+  /// The source geometry and lifetime.
+  MorphZoomSource get zoomFrom;
 
   /// The measured zoom.
   MorphPushZoomTuning get zoomTuning;
@@ -55,8 +55,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
         SingleTickerProviderStateMixin<MorphPushZoomPage>,
         MorphClock<MorphPushZoomPage> {
   MorphPushZoomMotion? _motion;
-  Rect? _sourceRect;
-  bool _sourceHidden = false;
+  late final MorphZoomSource _source = _host.zoomFrom;
   bool _leaving = false;
   bool _finished = false;
   late final _ZoomPanRecognizer _pan = _ZoomPanRecognizer(this);
@@ -89,28 +88,8 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
   void dispose() {
     _host.attachZoomView(null);
     _pan.dispose();
-    _revealSource();
+    _source.reveal();
     super.dispose();
-  }
-
-  void _revealSource() {
-    if (!_sourceHidden) return;
-    _sourceHidden = false;
-    final source = _host.zoomFrom;
-    WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-      if (source.mounted) source.reveal();
-    });
-  }
-
-  Rect? _captureSource() {
-    final own = context.findRenderObject();
-    final box = own is RenderBox && own.hasSize
-        ? own
-        : Overlay.maybeOf(context)?.context.findRenderObject();
-    if (box is! RenderBox || !box.hasSize) return _sourceRect;
-    final rect = _host.zoomFrom.tryCaptureRect(box);
-    if (rect != null) _sourceRect = rect;
-    return _sourceRect;
   }
 
   @override
@@ -119,14 +98,14 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
     if (motion == null) return;
     motion.advance(t);
     if (!motion.isDragging) {
-      final source = _captureSource();
+      final source = _source.capture(context);
       if (source != null && source != motion.source && !motion.isOpening) {
         motion.retargetEnds(t, source: source);
       }
     }
     if (_leaving && !_finished && motion.isClosed) {
       _finished = true;
-      _revealSource();
+      _source.reveal();
       _host.zoomClosed();
     }
   }
@@ -143,7 +122,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
       _host.zoomClosed();
       return;
     }
-    final source = _captureSource() ?? motion.source;
+    final source = _source.capture(context) ?? motion.source;
     motion.close(clock, source);
     wake();
   }
@@ -159,16 +138,12 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
       return;
     }
     final created = MorphPushZoomMotion(tuning: _host.zoomTuning);
-    final source = _host.zoomFrom;
-    final rect = source.mounted ? _captureSource() : null;
+    final rect = _source.capture(context);
     if (rect == null) {
       created.showInPlace(clock, page, page);
     } else {
       created.open(clock, rect, page);
-      _sourceHidden = true;
-      WidgetsBinding.instance.addPostFrameCallback((Duration _) {
-        if (_sourceHidden && source.mounted) source.hideForFlight();
-      });
+      _source.hide();
     }
     _motion = created;
     wake();
@@ -259,7 +234,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
                       0.0,
                       motion.radius(
                         t,
-                        _sourceRadius(_host.zoomFrom, motion.source.size),
+                        _source.radius(motion.source.size),
                         displayRadius,
                       ),
                     );
@@ -270,8 +245,6 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
                 Offset.zero & rect.size,
                 Radius.circular(radius),
               );
-              final source = _host.zoomFrom;
-              final showSource = !open && fade < 1 && source.mounted;
               return Stack(
                 clipBehavior: Clip.none,
                 children: [
@@ -289,32 +262,40 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
                   ),
                   Positioned.fromRect(
                     rect: rect,
-                    child: DecoratedBox(
-                      decoration: ShapeDecoration(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(radius),
-                        ),
-                        shadows: [
-                          if (!open && dim > 0)
-                            BoxShadow(
-                              color: Color.fromRGBO(
-                                0,
-                                0,
-                                0,
-                                tuning.shadowOpacity * dim,
-                              ),
-                              offset: Offset(0, tuning.shadowOffset),
-                              blurRadius: _blurRadius(tuning.shadowSigma),
-                            ),
-                        ],
+                    child: Opacity(
+                      opacity: _source.opacity(
+                        motion.source == motion.page
+                            ? motion.fade(t)
+                            : motion.reach(t),
+                        closing: !motion.isOpening,
                       ),
-                      child: ClipRRect(
-                        clipper: _ShapeClipper(shape),
-                        clipBehavior: open ? Clip.none : Clip.antiAlias,
-                        child: Stack(
-                          clipBehavior: Clip.none,
-                          children: [
-                            Positioned(
+                      child: DecoratedBox(
+                        decoration: ShapeDecoration(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(radius),
+                          ),
+                          shadows: [
+                            if (!open && dim > 0)
+                              BoxShadow(
+                                color: Color.fromRGBO(
+                                  0,
+                                  0,
+                                  0,
+                                  tuning.shadowOpacity * dim,
+                                ),
+                                offset: Offset(0, tuning.shadowOffset),
+                                blurRadius: _blurRadius(tuning.shadowSigma),
+                              ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          clipper: MorphZoomShapeClipper(shape),
+                          clipBehavior: open ? Clip.none : Clip.antiAlias,
+                          child: _source.crossfade(
+                            fade: fade,
+                            size: motion.source.size,
+                            closing: !motion.isOpening,
+                            content: (double opacity) => Positioned(
                               left: (rect.width - size.width) / 2,
                               top: 0,
                               width: size.width,
@@ -324,34 +305,14 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
                                 alignment: Alignment.topCenter,
                                 child: IgnorePointer(
                                   ignoring: !open,
-                                  child: Opacity(opacity: fade, child: child),
-                                ),
-                              ),
-                            ),
-                            if (showSource)
-                              Positioned.fill(
-                                child: IgnorePointer(
                                   child: Opacity(
-                                    opacity: 1 - fade,
-                                    child: ExcludeFocus(
-                                      child: ExcludeSemantics(
-                                        child: FittedBox(
-                                          fit: BoxFit.fill,
-                                          alignment: Alignment.topLeft,
-                                          child: SizedBox.fromSize(
-                                            size: motion.source.size,
-                                            child: MorphSurfaceSpecScope(
-                                              spec: source.surfaceSpec,
-                                              child: source.replica,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
+                                    opacity: opacity,
+                                    child: child,
                                   ),
                                 ),
                               ),
-                          ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -367,34 +328,6 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
 }
 
 double _blurRadius(double sigma) => (sigma - 0.5) / 0.57735;
-
-/// The corner radius of [tag]'s shape at [size]: a stadium or a circle is
-/// rounded by half the shorter side, a rounded rectangle by its top
-/// leading radius.
-double _sourceRadius(MorphTagState tag, Size size) {
-  final half = size.shortestSide / 2;
-  return switch (tag.shape) {
-    StadiumBorder() || CircleBorder() => half,
-    RoundedRectangleBorder(:final borderRadius) ||
-    ContinuousRectangleBorder(:final borderRadius) ||
-    RoundedSuperellipseBorder(
-      :final borderRadius,
-    ) => math.min(half, borderRadius.resolve(TextDirection.ltr).topLeft.x),
-    _ => 0,
-  };
-}
-
-class _ShapeClipper extends CustomClipper<RRect> {
-  _ShapeClipper(this.shape);
-
-  final RRect shape;
-
-  @override
-  RRect getClip(Size size) => shape;
-
-  @override
-  bool shouldReclip(_ShapeClipper oldClipper) => oldClipper.shape != shape;
-}
 
 /// A pan that wins the arena after [MorphPushZoomTuning.dragSlop] points
 /// when it heads where the page follows, and gives up otherwise.

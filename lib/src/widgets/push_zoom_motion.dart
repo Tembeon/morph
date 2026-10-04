@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/widgets/zoom_motion.dart';
 
 /// The measured motion of UIKit's zoom transition into a pushed page
 /// (`preferredTransition = .zoom` on a view controller pushed onto a
@@ -23,15 +24,15 @@ class MorphPushZoomTuning {
   const MorphPushZoomTuning({
     this.openSpring = const MorphSpring(0.317, 1),
     this.openHeightSpring = const MorphSpring(0.406, 0.925),
-    this.closeSpring = const MorphSpring(0.34, 0.92),
+    this.closeSpring = MorphZoomTuning.zoomOutSpring,
     this.dismissSpring = const MorphSpring(0.45, 0.81),
     this.dismissHeightSpring = const MorphSpring(0.33, 0.98),
     this.returnSpring = const MorphSpring(0.278, 0.927),
     this.openFadeSpring = const MorphSpring(0.156, 1),
     this.openFadeDelay = 0.01,
     this.closeFadeSpring = const MorphSpring(0.191, 1),
-    this.openDimmingSpring = const MorphSpring(0.34, 1),
-    this.closeDimmingSpring = const MorphSpring(0.34, 0.92),
+    this.openDimmingSpring = MorphZoomTuning.zoomInSpring,
+    this.closeDimmingSpring = MorphZoomTuning.zoomOutSpring,
     this.dimmingOpacity = 0.15,
     this.shadowOpacity = 0.36,
     this.shadowSigma = 30,
@@ -45,7 +46,7 @@ class MorphPushZoomTuning {
     this.sidewaysHeightRate = 0.00168,
     this.sidewaysGain = 0.95,
     this.dismissDistance = 132.5,
-    this.dismissVelocity = 1050,
+    this.dismissVelocity = MorphZoomTuning.dismissVelocityThreshold,
   });
 
   /// The spring the container's center and width travel on toward the
@@ -171,17 +172,23 @@ class MorphPushZoomTuning {
 /// finger's speed.
 class MorphPushZoomMotion {
   /// Creates a motion resting at the page.
-  MorphPushZoomMotion({this.tuning = MorphPushZoomTuning.standard});
+  MorphPushZoomMotion({this.tuning = MorphPushZoomTuning.standard})
+    : _cx = MorphSpringState(tuning.openSpring, 0),
+      _cy = MorphSpringState(tuning.openSpring, 0),
+      _w = MorphSpringState(tuning.openSpring, 0),
+      _h = MorphSpringState(tuning.openHeightSpring, 0),
+      _fade = MorphSpringState(tuning.openFadeSpring, 1),
+      _dim = MorphSpringState(tuning.openDimmingSpring, 1);
 
   /// The measured behavior this motion reproduces.
   final MorphPushZoomTuning tuning;
 
-  final MorphSpringState _cx = MorphSpringState(const MorphSpring(0.34, 1), 0);
-  final MorphSpringState _cy = MorphSpringState(const MorphSpring(0.34, 1), 0);
-  final MorphSpringState _w = MorphSpringState(const MorphSpring(0.34, 1), 0);
-  final MorphSpringState _h = MorphSpringState(const MorphSpring(0.34, 1), 0);
-  final MorphSpringState _fade = MorphSpringState(const MorphSpring(0.2, 1), 1);
-  final MorphSpringState _dim = MorphSpringState(const MorphSpring(0.34, 1), 1);
+  final MorphSpringState _cx;
+  final MorphSpringState _cy;
+  final MorphSpringState _w;
+  final MorphSpringState _h;
+  final MorphSpringState _fade;
+  final MorphSpringState _dim;
   double? _fadeAt;
   double _now = 0;
   bool _opening = true;
