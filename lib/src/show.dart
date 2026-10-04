@@ -21,8 +21,10 @@ import 'package:morph/src/theme.dart';
 /// Ambient defaults resolve as explicit parameter > [MorphTheme] >
 /// built-in.
 ///
-/// The shuttle renders in the NEAREST enclosing [Overlay] - a nested
-/// navigator keeps its flights inside itself. [overlay] chooses another
+/// The shuttle renders in [morphPresentationOverlayOf]: the nearest
+/// enclosing [Overlay] outside any [MorphPresentationBoundary] - a nested
+/// navigator keeps its flights inside itself, a navigation stack's page
+/// flies above the stack's bars. [overlay] chooses another
 /// home: the overlay of whatever navigator owns the page, to fly above
 /// chrome layered over nested navigators (a floating bar over tab
 /// navigators). It must be an ancestor of [context]; anchors for such

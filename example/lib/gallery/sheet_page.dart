@@ -33,7 +33,6 @@ class _SheetPageState extends State<SheetPage> {
       largestUndimmedDetent: undimmed,
       grabberVisible: detents.length > 1,
       semanticLabel: name,
-      useRootNavigator: true,
       builder: (BuildContext context) =>
           list ? const _ListSheet() : _PlainSheet(title: name),
     );

@@ -47,6 +47,9 @@
 /// {@canonicalFor liquid_field.MorphMass}
 /// {@canonicalFor liquid_field.MorphSkinStyle}
 /// {@canonicalFor motion.MorphMotion}
+/// {@canonicalFor presentation.MorphPresentationBoundary}
+/// {@canonicalFor presentation.morphPresentationNavigatorOf}
+/// {@canonicalFor presentation.morphPresentationOverlayOf}
 /// {@canonicalFor route.MorphPageRoute}
 /// {@canonicalFor route.showMorphRoute}
 /// {@canonicalFor scope.MorphScope}
@@ -86,6 +89,7 @@ export 'src/gesture.dart';
 export 'src/skin.dart'
     show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin, MorphStroke;
 export 'src/liquid_field.dart' show MorphMass, MorphSkinStyle;
+export 'src/presentation.dart';
 export 'src/route.dart' show MorphPageRoute, showMorphRoute;
 export 'src/scrim.dart' show MorphScrimMotion;
 export 'src/shared.dart' show MorphSharedElement, MorphSharedFade;

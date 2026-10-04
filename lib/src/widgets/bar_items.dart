@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/flight.dart';
+import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
@@ -673,7 +674,8 @@ class MorphBarItems extends StatefulWidget {
   /// The buttons' menu recognition, opening delay and menu motion.
   final MorphBarMenuTuning menuTuning;
 
-  /// The overlay the buttons' menus fly in; null uses the nearest one.
+  /// The overlay the buttons' menus fly in; null uses
+  /// [morphPresentationOverlayOf].
   final OverlayState? menuOverlay;
 
   /// Called with the laid-out capsules whenever the layout changes.
@@ -801,7 +803,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         _menu != null) {
       return;
     }
-    final overlay = widget.menuOverlay ?? Overlay.maybeOf(context);
+    final overlay = widget.menuOverlay ?? morphPresentationOverlayOf(context);
     final box = context.findRenderObject();
     final overlayBox = overlay?.context.findRenderObject();
     if (overlay == null || box is! RenderBox || overlayBox is! RenderBox) {

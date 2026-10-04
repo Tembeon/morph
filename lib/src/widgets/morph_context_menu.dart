@@ -320,8 +320,10 @@ class MorphContextMenuRegion extends StatefulWidget {
   /// Shadow color of the flying vessel (which casts none by itself).
   final Color? shadowColor;
 
-  /// The overlay the menu renders in; null is the nearest enclosing
-  /// one ([showMorph]'s `overlay:` semantics). A floating bar layered
+  /// The overlay the menu renders in; null is
+  /// [morphPresentationOverlayOf] ([showMorph]'s `overlay:` semantics),
+  /// above the bars of a navigation stack the region sits in. A floating
+  /// bar layered
   /// over a nested navigator wants the navigator's owner's overlay.
   final OverlayState? overlay;
 

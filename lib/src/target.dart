@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
+import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/theme.dart';
 
@@ -538,8 +539,9 @@ EdgeInsets morphContentViewInsets(
 }
 
 /// The rect of [context]'s render box in the coordinate space of the
-/// enclosing [Overlay] - the space every flight, and therefore every
-/// [MorphTargetSpec.rectFor], works in. Use it to capture popover
+/// overlay a presentation from [context] renders in
+/// ([morphPresentationOverlayOf]) - the space every flight, and therefore
+/// every [MorphTargetSpec.rectFor], works in. Use it to capture popover
 /// anchors at tap time: a raw `localToGlobal` returns SCREEN
 /// coordinates, which silently drift from overlay coordinates the
 /// moment the morph lives inside a nested navigator.
@@ -582,7 +584,7 @@ Rect? maybeMorphAnchorRect(BuildContext context, {OverlayState? overlay}) {
   if (render is! RenderBox || !render.attached || !render.hasSize) {
     return null;
   }
-  final OverlayState? host = overlay ?? Overlay.maybeOf(context);
+  final OverlayState? host = overlay ?? morphPresentationOverlayOf(context);
   final RenderObject? overlayBox = host != null && host.mounted
       ? host.context.findRenderObject()
       : null;

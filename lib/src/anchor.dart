@@ -140,8 +140,8 @@ class MorphAnchor extends StatefulWidget {
   /// it).
   final String? semanticLabel;
 
-  /// The overlay the flight renders in; null is the nearest enclosing
-  /// one ([showMorph]'s `overlay:` semantics).
+  /// The overlay the flight renders in; null is
+  /// [morphPresentationOverlayOf] ([showMorph]'s `overlay:` semantics).
   final OverlayState? overlay;
 
   @override

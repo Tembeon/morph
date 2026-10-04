@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/flight.dart';
+import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/activity_indicator.dart';
@@ -276,7 +277,9 @@ class MorphMenuButton extends StatefulWidget {
   /// The measured motion.
   final MorphMenuTuning tuning;
 
-  /// The overlay the menu shows in, or null for the nearest one.
+  /// The overlay the menu shows in, or null for
+  /// [morphPresentationOverlayOf]: above the bars of a navigation stack
+  /// the button sits in, as UIKit shows its menus.
   ///
   /// It must be an ancestor of this button.
   final OverlayState? overlay;
@@ -475,7 +478,10 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   MorphMenuMotion _prepare() {
     final current = _motion;
     if (current != null && current.isPresented) return current;
-    final overlay = widget.overlay ?? Overlay.of(context);
+    final overlay =
+        widget.overlay ??
+        morphPresentationOverlayOf(context) ??
+        Overlay.of(context);
     if (widget.overlay != null) morphCheckOverlayAncestor(context, overlay);
     final box = context.findRenderObject()! as RenderBox;
     final overlayBox = overlay.context.findRenderObject()! as RenderBox;

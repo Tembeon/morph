@@ -303,7 +303,13 @@ Cross-cutting policy:
   `tagId` is given. Overlay flights render in the NEAREST enclosing
   Overlay: the flight belongs to the world its scope lives in, so a
   nested navigator (a tab, an embedded device mockup) keeps its flights
-  inside itself. `overlay:` (showMorph*/MorphAnchor/MorphMenuButton/
+  inside itself - except across a `MorphPresentationBoundary`
+  (presentation.dart; MorphNavigationStack installs one): presenters
+  default to `morphPresentationOverlayOf` / `morphPresentationNavigatorOf`,
+  the overlay / navigator around the OUTERMOST boundary, so menus,
+  context menus, dialogs and sheets from a stack page cover the stack's
+  bars as on iOS (pinned by presentation_boundary_test); morphAnchorRect
+  measures in the same overlay by default. `overlay:` (showMorph*/MorphAnchor/MorphMenuButton/
   MorphContextMenuRegion) CHOOSES the shuttle's home for chrome layered
   over nested navigators (Sonatide: tabs are nested navigators under a
   floating bar; sheets sit on the shell's own navigator, which is

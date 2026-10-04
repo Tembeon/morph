@@ -179,7 +179,8 @@ class MorphNavigationBar extends StatefulWidget {
   /// The bar buttons' menu recognition, opening delay and menu motion.
   final MorphBarMenuTuning menuTuning;
 
-  /// The overlay the buttons' menus fly in; null uses the nearest one.
+  /// The overlay the buttons' menus fly in; null uses
+  /// [morphPresentationOverlayOf].
   final OverlayState? menuOverlay;
 
   /// The space between the screen's sides and the outer capsules.

@@ -16,6 +16,7 @@ import 'package:morph/src/scope.dart';
 import 'package:morph/src/scrim.dart';
 import 'package:morph/src/shared.dart';
 import 'package:morph/src/motion.dart';
+import 'package:morph/src/presentation.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/theme.dart';
 import 'package:morph/src/themes.dart';
@@ -578,10 +579,10 @@ class MorphFlight {
     VoidCallback? onDismissRequested,
     String? semanticLabel,
     bool routeMode = false,
-    // The shuttle's home. Defaults to the NEAREST overlay above
-    // [context]; a route passes its navigator's own overlay explicitly
-    // (the navigator's context sits ABOVE that overlay), and an app
-    // passes one to fly above chrome layered over a nested navigator.
+    // The shuttle's home. Defaults to morphPresentationOverlayOf; a
+    // route passes its navigator's own overlay explicitly (the
+    // navigator's context sits ABOVE that overlay), and an app passes
+    // one to fly above chrome layered over a nested navigator.
     OverlayState? overlay,
   }) {
     final MorphScopeState scope = MorphScope.of(context);
@@ -623,11 +624,12 @@ class MorphFlight {
       scrimColor: scrimColor,
       scrimMotion: scrimMotion,
       shadowColor: shadowColor,
-      // The NEAREST overlay: the flight belongs to the world its
-      // scope lives in. A nested navigator (a tab, an embedded
-      // device mockup) keeps its flights inside itself; in a
-      // single-navigator app this is the root overlay anyway.
-      overlay: overlay ?? Overlay.of(context),
+      // The nearest overlay outside any presentation boundary: a
+      // nested navigator (a tab, an embedded device mockup) keeps its
+      // flights inside itself, a navigation stack's pages fly above
+      // the stack's bars.
+      overlay:
+          overlay ?? morphPresentationOverlayOf(context) ?? Overlay.of(context),
       motion: motion ?? .liquid,
       disableAnimations: MediaQuery.maybeDisableAnimationsOf(context) ?? false,
     );

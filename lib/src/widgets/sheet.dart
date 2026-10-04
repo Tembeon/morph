@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/clock.dart';
@@ -103,6 +104,12 @@ class MorphSheetStyle {
 /// An absent or unlaid-out source presents a sliding sheet. If the source
 /// disappears while the sheet is open, its content stays usable and its
 /// dismissal dissolves instead of landing on the old source frame.
+///
+/// The sheet is pushed on [morphPresentationNavigatorOf] when
+/// [useRootNavigator] is null: from a page of a navigation stack it
+/// covers the stack's bars, as a UIKit sheet covers the navigation bar of
+/// the controller that presents it. True pushes on the root navigator,
+/// false on the nearest one.
 Future<T?> presentMorphSheet<T>(
   BuildContext context, {
   required WidgetBuilder builder,
@@ -115,7 +122,7 @@ Future<T?> presentMorphSheet<T>(
   bool dismissible = true,
   MorphSheetStyle? style,
   String? semanticLabel,
-  bool useRootNavigator = false,
+  bool? useRootNavigator,
 }) {
   assert(detents.isNotEmpty, 'A sheet needs at least one detent.');
   final route = MorphSheetRoute<T>(
@@ -131,7 +138,10 @@ Future<T?> presentMorphSheet<T>(
     semanticLabel: semanticLabel,
   );
   route._zoomSource = MorphZoomSource.resolve(context, from);
-  final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
+  final navigator = switch (useRootNavigator) {
+    null => morphPresentationNavigatorOf(context) ?? Navigator.of(context),
+    final bool root => Navigator.of(context, rootNavigator: root),
+  };
   route._themes = MorphThemeCarrier(context, to: navigator.context);
   return navigator.push<T>(route);
 }

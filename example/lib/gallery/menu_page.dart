@@ -8,9 +8,6 @@ import 'package:morph_example/gallery/glass_settings.dart';
 /// one rich menu at the top: sections, a selection that stays open, a
 /// palette, small and medium cells, subtitles, a disabled row, submenus,
 /// a deferred section and a free-form slider row.
-///
-/// The menus fly in the app's root overlay, above the navigation stack's
-/// bars, as UIKit menus show above the bars.
 class MenuPage extends StatefulWidget {
   /// Creates the page.
   const MenuPage({super.key});
@@ -223,11 +220,9 @@ class _MenuPageState extends State<MenuPage> {
 
   @override
   Widget build(BuildContext context) {
-    final overlay = Overlay.of(context, rootOverlay: true);
     MorphMenuButton button(List<MorphMenuEntry> items, {Widget? child}) =>
         MorphMenuButton(
           items: items,
-          overlay: overlay,
           semanticLabel: child == null ? null : 'Options',
           child: child,
         );

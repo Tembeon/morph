@@ -209,3 +209,9 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
   The open back menu follows entry changes (a renamed screen below).
 - Reduced motion (not recorded on UIKit yet): pages fade in place on the
   push spring instead of sliding.
+- PRESENTATIONS ABOVE THE BARS: UIKit shows menus, context menus, alerts
+  and sheets presented from a page above the navigation bar and toolbar.
+  The stack installs a `MorphPresentationBoundary` around itself; every
+  morph presenter without an explicit `overlay:` / `useRootNavigator:`
+  uses the overlay / navigator around the outermost boundary
+  (presentation_boundary_test).

@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
+import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
 import 'package:morph/src/widgets/motion_route.dart';
@@ -153,8 +154,8 @@ class MorphNavigationStack extends StatefulWidget {
   /// The bar buttons' menu recognition, opening delay and menu motion.
   final MorphBarMenuTuning menuTuning;
 
-  /// The overlay the back button's menu flies in; null uses the nearest
-  /// one around the bar.
+  /// The overlay the bars' menus fly in; null uses
+  /// [morphPresentationOverlayOf], the overlay around the stack.
   final OverlayState? menuOverlay;
 
   /// The label screen readers announce for the back button.
@@ -344,44 +345,46 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     final hasToolbar = config?.hasToolbar ?? false;
     return _StackScope(
       state: this,
-      child: Stack(
-        children: [
-          Positioned.fill(child: _navigatorWidget),
-          Positioned(
-            left: 0,
-            right: 0,
-            top: 0,
-            child: MorphNavigationBar(
-              title: config?.title,
-              leading: leading,
-              trailing: config?.trailing ?? const [],
-              titleVisible: config?.titleVisible ?? true,
-              scrolledUnder: config?.scrolledUnder ?? false,
-              animate: config?.animate ?? true,
-              edgeEffect: config?.edgeEffect,
-              titleExitShift: _titleExit,
-              drift: drift,
-              style: widget.style,
-              menuStyle: widget.menuStyle,
-              menuTuning: widget.menuTuning,
-              menuOverlay: widget.menuOverlay,
-            ),
-          ),
-          if (hasToolbar)
+      child: MorphPresentationBoundary(
+        child: Stack(
+          children: [
+            Positioned.fill(child: _navigatorWidget),
             Positioned(
               left: 0,
               right: 0,
-              bottom: 0,
-              child: MorphToolbar(
-                leading: config?.toolbarLeading ?? const [],
-                trailing: config?.toolbarTrailing ?? const [],
+              top: 0,
+              child: MorphNavigationBar(
+                title: config?.title,
+                leading: leading,
+                trailing: config?.trailing ?? const [],
+                titleVisible: config?.titleVisible ?? true,
+                scrolledUnder: config?.scrolledUnder ?? false,
+                animate: config?.animate ?? true,
+                edgeEffect: config?.edgeEffect,
+                titleExitShift: _titleExit,
+                drift: drift,
                 style: widget.style,
                 menuStyle: widget.menuStyle,
                 menuTuning: widget.menuTuning,
                 menuOverlay: widget.menuOverlay,
               ),
             ),
-        ],
+            if (hasToolbar)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: MorphToolbar(
+                  leading: config?.toolbarLeading ?? const [],
+                  trailing: config?.toolbarTrailing ?? const [],
+                  style: widget.style,
+                  menuStyle: widget.menuStyle,
+                  menuTuning: widget.menuTuning,
+                  menuOverlay: widget.menuOverlay,
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
