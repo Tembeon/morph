@@ -18,7 +18,8 @@ import 'package:morph_example/gallery/glass_settings.dart';
 /// Build it as a profile app (`flutter build ios --profile -t
 /// integration_test/menu_submenu_video_test.dart`), launch it with
 /// devicectl and record the screen; it waits [_lead] before the first
-/// pass.
+/// pass. `VIDEO_LIGHT_ONLY=true` records one light pass. The measured
+/// 62 pt system footer keeps the probe and this harness at the same height.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -48,13 +49,14 @@ void main() {
     }
 
     await tester.pump(_lead);
-    for (final mode in const [ThemeMode.dark, ThemeMode.light]) {
+    const modes = bool.fromEnvironment('VIDEO_LIGHT_ONLY')
+        ? [ThemeMode.light]
+        : [ThemeMode.dark, ThemeMode.light];
+    for (final mode in modes) {
       settings.appearance = mode;
       unawaited(
         navigator.push(
-          PageRouteBuilder<void>(
-            pageBuilder: (context, _, _) => const _Page(),
-          ),
+          PageRouteBuilder<void>(pageBuilder: (context, _, _) => const _Page()),
         ),
       );
       await tester.pump(const Duration(seconds: 2));
@@ -141,6 +143,7 @@ class _Page extends StatelessWidget {
                     icon: Icons.delete_outline,
                     destructive: true,
                   ),
+                  MorphMenuWidget(height: 62, builder: _nativeFooter),
                 ],
               ),
             ),
@@ -150,6 +153,45 @@ class _Page extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget _nativeFooter(BuildContext context) {
+  final style = MorphMenuStyle.resolve(context, null);
+  return SizedBox(
+    height: 62,
+    child: Stack(
+      children: [
+        Positioned(
+          left: 8,
+          right: 8,
+          top: 10,
+          height: 1,
+          child: ColoredBox(color: style.separatorColor),
+        ),
+        Positioned(
+          left: 12,
+          top: 20,
+          height: 42,
+          width: 24,
+          child: Icon(
+            Icons.assistant_outlined,
+            size: 22,
+            color: style.iconColor,
+          ),
+        ),
+        Positioned(
+          left: 48,
+          right: 12,
+          top: 20,
+          height: 42,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text('Ask Siri', style: style.textStyle),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _Spinner extends StatelessWidget {

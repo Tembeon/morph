@@ -152,10 +152,14 @@ Rect _element(MorphMenuLayout layout, String title) {
   throw StateError('no $title');
 }
 
-MorphMenuMotion _motion(List<MorphMenuEntry> entries) {
+MorphMenuMotion _motion(
+  List<MorphMenuEntry> entries, {
+  MorphMenuTuning tuning = MorphMenuTuning.standard,
+}) {
   final content = MorphMenuContent(onChanged: ({required bool animate}) {});
   content.entries = entries;
   final motion = MorphMenuMotion(
+    tuning: tuning,
     button: Rect.fromCenter(
       center: const Offset(201, 150),
       width: 48,
@@ -219,6 +223,22 @@ double _rms(List<double> errors) => errors.isEmpty
         errors.fold<double>(0, (double a, double e) => a + e * e) /
             errors.length,
       );
+
+Rect _windowCard(MorphMenuMotion motion, int index) {
+  final card = motion.cards[index];
+  final width = motion.tuning.menuWidth;
+  final local = index == 0
+      ? Rect.fromLTWH(0, 0, width, motion.visibleRootHeight)
+      : card.rect;
+  final content = motion.contentRect;
+  final scale = motion.contentScale;
+  return Rect.fromLTWH(
+    content.left + (width / 2 + (local.left - width / 2) * card.scale) * scale,
+    content.top + local.top * card.scale * scale,
+    local.width * card.scale * scale,
+    local.height * card.scale * scale,
+  );
+}
 
 void main() {
   group('layout (device view tree)', () {
@@ -413,7 +433,7 @@ void main() {
         }
         if (frame['cls'] == '_UIContextMenuListView') {
           if ('${frame['id']}' == rootId) {
-            widths.add(250 * motion.cards.first.scale - _n(frame, 'w'));
+            widths.add(motion.rootBlob.rect.width - _n(frame, 'w'));
           } else if (motion.cards.length > 1) {
             final card = motion.cards[1].rect;
             cardErrors.add(card.width - _n(frame, 'w'));
@@ -427,6 +447,36 @@ void main() {
       expect(_rms(widths), lessThan(0.1), reason: 'root list width');
       expect(cardErrors.length, greaterThan(20));
       expect(_rms(cardErrors), lessThan(1), reason: 'card frame');
+    });
+
+    test('the root glass width and height replay the native parent list', () {
+      final motion = _motion([
+        ..._sub,
+        MorphMenuWidget(
+          height: 62,
+          builder: (BuildContext context) => const SizedBox.shrink(),
+        ),
+      ]);
+      final errors = <double>[];
+      final rootId =
+          '${_rows('mm-sub-tap').firstWhere((Map<String, Object?> row) => row['cls'] == '_UIContextMenuListView')['id']}';
+      _replay('mm-sub-tap', motion, (double t, Map<String, Object?> frame) {
+        if (t > 4.5 ||
+            frame['cls'] != '_UIContextMenuListView' ||
+            '${frame['id']}' != rootId) {
+          return;
+        }
+        errors.add(motion.rootBlob.rect.width - _n(frame, 'w'));
+        errors.add(motion.rootBlob.rect.height - _n(frame, 'h'));
+      });
+      expect(errors.length, greaterThan(40));
+      expect(_rms(errors), lessThan(0.1));
+      final path = Platform.environment['MENU_FRAME_DUMP'];
+      if (path != null) {
+        File('$path/root-replay.json').writeAsStringSync(
+          jsonEncode({'samples': errors.length, 'rms_pt': _rms(errors)}),
+        );
+      }
     });
 
     test('the header sends the card back into its row', () {
@@ -585,6 +635,201 @@ void main() {
     });
   });
   group('submenu close and hand-back (device frames + film)', () {
+    test(
+      'a closing card reverses continuously, including its pending start',
+      () {
+        for (final delay in [0.001, 0.08, 0.15, 0.24]) {
+          final motion = _motion(_sub);
+          motion.open(0, sourceScale: 1);
+          motion.advance(1);
+          final more = motion.layout.targets.indexWhere(
+            (MorphMenuTarget target) =>
+                target.kind == MorphMenuTargetKind.submenu,
+          );
+          motion.select(1, more);
+          motion.advance(2);
+          final settled = _windowCard(motion, 1);
+          motion.close(2);
+          motion.advance(2 + delay);
+          final before = _windowCard(motion, 1);
+          motion.open(2 + delay);
+          final after = _windowCard(motion, 1);
+          expect(after.left, closeTo(before.left, 1e-8));
+          expect(after.top, closeTo(before.top, 1e-8));
+          expect(after.width, closeTo(before.width, 1e-8));
+          expect(after.height, closeTo(before.height, 1e-8));
+          motion.advance(4);
+          final restored = _windowCard(motion, 1);
+          expect(restored.left, closeTo(settled.left, 0.05));
+          expect(restored.top, closeTo(settled.top, 0.05));
+          expect(restored.width, closeTo(settled.width, 0.05));
+          expect(restored.height, closeTo(settled.height, 0.05));
+        }
+      },
+    );
+
+    for (final name in ['mm-sub-tap', 'mm-sub-back', 'mm-sub-deeper']) {
+      test('$name opening and hand-back replay native window bounds', () {
+        final fit =
+            jsonDecode(File('$_dir/card-container.json').readAsStringSync())
+                as Map<String, Object?>;
+        final records = fit['records']! as Map<String, Object?>;
+        final record = records[name]! as Map<String, Object?>;
+        final motion = _motion(
+          [
+            ..._sub,
+            MorphMenuWidget(
+              height: 62,
+              builder: (BuildContext context) => const SizedBox.shrink(),
+            ),
+          ],
+          tuning: MorphMenuTuning(
+            submenuDelay: _n(record, 'submenu_delay'),
+            deeperSubmenuDelay:
+                (record['deeper_delay'] as num?)?.toDouble() ?? 0.04,
+            backDelay: (record['back_delay'] as num?)?.toDouble() ?? 0.022,
+          ),
+        );
+        final rows = _rows(name);
+        final initial = rows.firstWhere(
+          (Map<String, Object?> row) =>
+              row['k'] == 'frame' && row['cls'] == '_UIContextMenuView',
+        );
+        final listIds = rows
+            .where((row) => row['cls'] == '_UIContextMenuListView')
+            .map((row) => '${row['id']}')
+            .toSet()
+            .toList();
+        double? dy;
+        final errors = <double>[];
+        final frames = <Map<String, Object?>>[];
+        _replay(name, motion, (double t, Map<String, Object?> row) {
+          dy ??=
+              motion.menuRect.top - (_n(initial, 'y') - _n(initial, 'h') / 2);
+          if (!motion.isOpen || row['cls'] != '_UIContextMenuListView') return;
+          final index = listIds.indexOf('${row['id']}');
+          if (index < 0 || index >= motion.cards.length) return;
+          final rect = _windowCard(motion, index);
+          final expected = Rect.fromCenter(
+            center: Offset(_n(row, 'x'), _n(row, 'y') + dy!),
+            width: _n(row, 'w'),
+            height: _n(row, 'h'),
+          );
+          errors.addAll([
+            rect.center.dx - expected.center.dx,
+            rect.center.dy - expected.center.dy,
+            rect.width - expected.width,
+            rect.height - expected.height,
+          ]);
+          frames.add({
+            't': t,
+            'index': index,
+            'actual': [rect.left, rect.top, rect.width, rect.height],
+            'native': [
+              expected.left,
+              expected.top,
+              expected.width,
+              expected.height,
+            ],
+          });
+        });
+        final path = Platform.environment['MENU_FRAME_DUMP'];
+        if (path != null) {
+          File('$path/opening-$name.json').writeAsStringSync(
+            jsonEncode({'rms_pt': _rms(errors), 'frames': frames}),
+          );
+        }
+        expect(frames.length, greaterThan(50));
+        expect(_rms(errors), lessThan(1.5), reason: '$name window bounds');
+      });
+    }
+
+    for (final name in ['mm-sub-select', 'mm-sub-tap', 'mm-sub-deeper']) {
+      test('$name closing cards replay their native window bounds', () {
+        final fit =
+            jsonDecode(File('$_dir/card-container.json').readAsStringSync())
+                as Map<String, Object?>;
+        final records = fit['records']! as Map<String, Object?>;
+        final record = records[name]! as Map<String, Object?>;
+        final motion = _motion(
+          [
+            ..._sub,
+            MorphMenuWidget(
+              height: 62,
+              builder: (BuildContext context) => const SizedBox.shrink(),
+            ),
+          ],
+          tuning: MorphMenuTuning(
+            cardContainerDelay: _n(record, 'presentation_delay'),
+          ),
+        );
+        final rows = _rows(name);
+        final initial = rows.firstWhere(
+          (Map<String, Object?> row) =>
+              row['k'] == 'frame' && row['cls'] == '_UIContextMenuView',
+        );
+        final listIds = rows
+            .where((row) => row['cls'] == '_UIContextMenuListView')
+            .map((row) => '${row['id']}')
+            .toSet()
+            .toList();
+        double? dy;
+        final errors = <double>[];
+        final frames = <Map<String, Object?>>[];
+        _replay(name, motion, (double t, Map<String, Object?> row) {
+          dy ??=
+              motion.menuRect.top - (_n(initial, 'y') - _n(initial, 'h') / 2);
+          if (!motion.isClosing || row['cls'] != '_UIContextMenuListView') {
+            return;
+          }
+          final index = listIds.indexOf('${row['id']}');
+          final cards = motion.cards;
+          if (index < 0 || index >= cards.length) return;
+          final card = cards[index];
+          final alpha = index == cards.length - 1
+              ? card.closeOpacity
+              : motion.contentOpacity;
+          if (alpha <= 0) return;
+          final width = motion.tuning.menuWidth;
+          final local = index == 0
+              ? Rect.fromLTWH(0, 0, width, motion.visibleRootHeight)
+              : card.rect;
+          final rect = _windowCard(motion, index);
+          final nativeScale = _n(row, 'w') / (local.width * card.scale);
+          final expected = Rect.fromCenter(
+            center: Offset(_n(row, 'x'), _n(row, 'y') + dy! * nativeScale),
+            width: _n(row, 'w'),
+            height: _n(row, 'h'),
+          );
+          errors.addAll([
+            rect.center.dx - expected.center.dx,
+            rect.center.dy - expected.center.dy,
+            rect.width - expected.width,
+            rect.height - expected.height,
+          ]);
+          frames.add({
+            't': t,
+            'index': index,
+            'actual': [rect.left, rect.top, rect.width, rect.height],
+            'native': [
+              expected.left,
+              expected.top,
+              expected.width,
+              expected.height,
+            ],
+          });
+        });
+        final path = Platform.environment['MENU_FRAME_DUMP'];
+        if (path != null) {
+          File('$path/carrier-$name.json').writeAsStringSync(
+            jsonEncode({'rms_pt': _rms(errors), 'frames': frames}),
+          );
+        }
+        expect(frames.length, greaterThan(25));
+        expect(_rms(errors), lessThan(1), reason: '$name window bounds');
+      });
+    }
+
     double closeStart(String name) {
       final motion = _motion(_sub);
       final rows = _rows(name);

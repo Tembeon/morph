@@ -12,6 +12,7 @@ import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_body_shadow.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -175,7 +176,11 @@ List<BoxShadow> _shadows(MorphGlassSurface surface) => switch (surface.kind) {
   ],
 };
 
-Widget _glass(MorphGlassRenderer renderer, MorphGlassSurface surface) {
+Widget _glass(
+  MorphGlassRenderer renderer,
+  MorphGlassSurface surface, {
+  bool shadows = true,
+}) {
   final base = morphLiquidAppearance(renderer, surface);
   return LiquidGlass(
     shape: _shape(surface.localShape),
@@ -185,7 +190,7 @@ Widget _glass(MorphGlassRenderer renderer, MorphGlassSurface surface) {
           MorphGlassRenderer.glassness(surface) *
           surface.opacity.clamp(0.0, 1.0),
     ),
-    shadows: _shadows(surface),
+    shadows: shadows ? _shadows(surface) : const [],
     child: const SizedBox.expand(),
   );
 }
@@ -199,6 +204,7 @@ Widget _layer(
   double shrink = 0,
   double rim = 0,
   GlassField? field,
+  bool shadows = true,
 }) {
   final settings = morphLiquidSettings(renderer, surfaces.first);
   return ClipRect(
@@ -215,7 +221,7 @@ Widget _layer(
           for (final surface in surfaces)
             Positioned.fromRect(
               rect: surface.bounds,
-              child: _glass(renderer, surface),
+              child: _glass(renderer, surface, shadows: shadows),
             ),
         ],
       ),
@@ -261,7 +267,20 @@ Widget morphLiquidBody(
   final chrome = surfaces.any(_chrome);
   final field = morphGlassOutlineField(outline);
   if (field != null) {
-    return _layer(renderer, surfaces, shared: !chrome, field: field);
+    return CustomPaint(
+      painter: MorphGlassBodyShadow(
+        outline.path,
+        _shadows(surfaces.first),
+        surfaces.first.opacity.clamp(0.0, 1.0),
+      ),
+      child: _layer(
+        renderer,
+        surfaces,
+        shared: !chrome,
+        field: field,
+        shadows: false,
+      ),
+    );
   }
   return ClipPath(
     clipper: MorphGlassOutlineClip(outline.path),

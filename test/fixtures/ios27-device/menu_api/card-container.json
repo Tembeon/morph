@@ -1,0 +1,54 @@
+{
+  "source": "Presentation-layer _UIContextMenuView window bounds in mm-sub-select, mm-sub-tap and mm-sub-deeper; carrier progress = (width - 50) / 200. Least-squares damped spring fit; delay is relative to the logical close (0.015 s on a row, 0.04 s outside).",
+  "captured": "2026-10-03; fitted 2026-10-04",
+  "spring": {
+    "response": 0.35,
+    "damping": 0.85
+  },
+  "end_width_pt": 50,
+  "mean_presentation_delay": 0.015098443333333333,
+  "note": "Presentation timing varies by about one display frame. Geometry replay uses each run's recorded delay; production uses the measured 15 ms mean. Invisible cleanup/reparenting frames are excluded from visible-card replay. Opening and hand-back replay also use per-run recorded start delays on the existing measured springs, preserving production defaults.",
+  "records": {
+    "mm-sub-select": {
+      "response": 0.35001775,
+      "damping": 0.84997581,
+      "start_after_lift": 0.0312332,
+      "presentation_delay": 0.0162332,
+      "rms_width_pt": 0.01377666,
+      "samples": 62
+    },
+    "mm-sub-tap": {
+      "response": 0.35005466,
+      "damping": 0.84993475,
+      "start_after_lift": 0.05969054,
+      "presentation_delay": 0.01969054,
+      "rms_width_pt": 0.0159836,
+      "samples": 62,
+      "submenu_delay": 0.075729884189919,
+      "submenu_delay_rms_height_pt": 0.21096990404864646,
+      "submenu_delay_samples": 62
+    },
+    "mm-sub-deeper": {
+      "response": 0.34999691,
+      "damping": 0.84999617,
+      "start_after_lift": 0.04937159,
+      "presentation_delay": 0.00937159,
+      "rms_width_pt": 0.01005945,
+      "samples": 64,
+      "submenu_delay": 0.07408825183612465,
+      "submenu_delay_rms_height_pt": 0.21368166908515934,
+      "submenu_delay_samples": 61,
+      "deeper_delay": 0.04145608639305491,
+      "deeper_delay_rms_height_pt": 0.17774322725632272,
+      "deeper_delay_samples": 57
+    },
+    "mm-sub-back": {
+      "submenu_delay": 0.06506059583624964,
+      "submenu_delay_rms_height_pt": 0.21157019781354436,
+      "submenu_delay_samples": 62,
+      "back_delay": 0.02216442952825791,
+      "back_delay_rms_height_pt": 0.03955153838960993,
+      "back_delay_samples": 65
+    }
+  }
+}

@@ -93,6 +93,9 @@ class MorphMenuTuning {
     this.cardChevronBack = 0.2,
     this.cardCloseFadeEnd = 0.2,
     this.cardCloseCenter = 0.5,
+    this.cardContainerSpring = const MorphSpring(0.35, 0.85),
+    this.cardContainerDelay = 0.015,
+    this.cardContainerEndWidth = 50,
     this.cardBlur = 10,
     this.cardGone = 0.007,
     this.growSpring = const MorphSpring(0.565, 0.84),
@@ -222,7 +225,8 @@ class MorphMenuTuning {
   final double keptActionDelay;
 
   /// The scale of every card under an open card, per card above it,
-  /// about the top center of the menu.
+  /// about the top center of the menu, including its glass platter
+  /// (device list widths: 250, 242.5, 235.225 pt).
   final double parentScale;
 
   /// The opacity of the rows of a card under an open card.
@@ -277,11 +281,20 @@ class MorphMenuTuning {
   /// and dark: legible at a fifth of its size).
   final double cardCloseFadeEnd;
 
-  /// How far the menu closes, in progress from 1, before the open card is
-  /// centered on the shrinking shape: UIKit's close morph starts from the
-  /// list under the card, so the card's rows ride the middle of the drop
-  /// (device film) instead of the top of the frame.
+  /// The progress span over which opening content approaches the open
+  /// card's center. Closing stacks use [cardContainerSpring] instead.
   final double cardCloseCenter;
+
+  /// The closing spring of the submenu lists' container, fitted to
+  /// device window bounds at 0.016 pt RMS, independently of the glass.
+  final MorphSpring cardContainerSpring;
+
+  /// The container's presentation delay after the close starts, in
+  /// seconds (device traces: 9-20 ms, mean 15.1 ms).
+  final double cardContainerDelay;
+
+  /// The width the 250 pt list container shrinks to on the device.
+  final double cardContainerEndWidth;
 
   /// The standard deviation, in points, of the blur a card puts over what
   /// lies under it: the edge of the dimmed list under a card shows
@@ -916,6 +929,7 @@ class MorphMenuMotion {
     _leanY = MorphSpringState(tuning.flexSpring, 0);
     _root = _build(reversed: false);
     _rootHeight = MorphSpringState(tuning.growSpring, _visibleRoot(_root));
+    _cardContainer = MorphSpringState(tuning.cardContainerSpring, 1);
     _place(1);
   }
 
@@ -937,6 +951,8 @@ class MorphMenuMotion {
   late final MorphSpringState _leanX;
   late final MorphSpringState _leanY;
   late MorphSpringState _rootHeight;
+  late final MorphSpringState _cardContainer;
+  bool _cardContainerActive = false;
 
   late MorphMenuLayout _root;
   bool _reversed = false;
@@ -1307,6 +1323,9 @@ class MorphMenuMotion {
   /// the chosen one while the menu closes.
   int? get highlighted => _highlighted;
 
+  /// Whether the held button's finger is sliding through the menu.
+  bool get isSliding => _pointer?.openedByHold ?? false;
+
   /// The card [highlighted] belongs to, 0 for the root list.
   int get highlightedCard => _highlightCard;
 
@@ -1381,23 +1400,42 @@ class MorphMenuMotion {
         tuning.contentKickBlur * _relativeKick,
   );
 
-  /// The scale of the menu content relative to its final size: the menu
-  /// shape's scale plus a swell with its kick.
+  /// The scale of the menu content relative to its final size. Closing
+  /// cards use their measured container; other content follows the menu
+  /// shape's scale plus its kick.
   ///
-  /// The content is placed by [contentRect] at this scale and clipped by
-  /// [menuBlob].
-  double get contentScale => _contentScale(menuBlob);
+  /// The content is placed by [contentRect] at this scale. Root rows
+  /// clip to their platter; each submenu clips its rows independently.
+  double get contentScale {
+    if (!_cardContainerActive) return _contentScale(menuBlob);
+    final end = (tuning.cardContainerEndWidth / tuning.menuWidth).clamp(
+      0.0,
+      1.0,
+    );
+    return end + (1 - end) * _cardContainer.value(_now);
+  }
 
   double _contentScale(MorphMenuBlob menu) =>
       menu.scale + tuning.contentKickScale * _relativeKick;
 
-  /// The frame of the menu content: [menuRect]'s size at [contentScale],
-  /// riding [menuBlob].
+  /// The frame of the menu content at [contentScale]. Closing cards
+  /// contract about the button's center; other content rides [menuBlob].
   ///
   /// A menu taller than it is wide keeps its first row on the shape's top
   /// edge, like a list scrolled to its start, and grows below it; a menu
   /// as wide as it is tall or wider is centered on the shape.
   Rect get contentRect {
+    if (_cardContainerActive) {
+      final frame = _menu;
+      final scale = contentScale;
+      final at = _button.center + (frame.topLeft - _button.center) * scale;
+      return Rect.fromLTWH(
+        at.dx,
+        at.dy,
+        frame.width * scale,
+        frame.height * scale,
+      );
+    }
     final menu = menuBlob;
     final frame = _menu;
     final scale = _contentScale(menu);
@@ -1466,15 +1504,16 @@ class MorphMenuMotion {
   /// [MorphMenuTuning.fusionRadius], so a reversal never makes it jump.
   double get fusionRadius => _fusionAt(_now);
 
-  /// The silhouette of [menuBlob] and [buttonBlob] fused at
-  /// [fusionRadius], in the motion's coordinates, or null while the
-  /// radius is under 1 pixel and the silhouette
-  /// is the plain union of the two shapes.
+  /// The silhouette of [rootBlob] and [buttonBlob] fused at
+  /// [fusionRadius], in the motion's coordinates. Below 1 pixel it
+  /// carries the plain union's field; null only while idle.
   MorphGlassOutline? get silhouette {
     if (_phase == _Phase.idle) return null;
     final radius = fusionRadius;
-    if (radius < MorphMenuFusion.minimumRadius) return null;
-    return _fusion.outline(menuBlob.rrect, buttonBlob.rrect, radius);
+    if (radius < MorphMenuFusion.minimumRadius) {
+      return morphGlassContainerOutline([rootBlob.rrect, buttonBlob.rrect], 0);
+    }
+    return _fusion.outline(rootBlob.rrect, buttonBlob.rrect, radius);
   }
 
   double _fusionAt(double t) {
@@ -1506,10 +1545,11 @@ class MorphMenuMotion {
   double get buttonKick => _buttonKick.value;
 
   /// The menu shape: grows out of the button into the menu.
-  MorphMenuBlob get menuBlob {
+  MorphMenuBlob get menuBlob => _blobFor(_menu);
+
+  MorphMenuBlob _blobFor(Rect frame, {double parentScale = 1}) {
     final p = progress;
-    final frame = _menu;
-    final w = tuning.menuWidth;
+    final w = frame.width;
     final h = frame.height;
     final s0 = 0.5 * _sourceHeight / math.max(w, h);
     final scale = s0 + (1 - s0) * p;
@@ -1527,10 +1567,26 @@ class MorphMenuMotion {
         width: w * scale,
         height: localHeight * scale,
       ),
-      radius: _localRadius(p, localHeight, h) * scale,
+      radius: _localRadius(p, localHeight, h) * parentScale * scale,
       scale: scale,
       localSize: Size(w, localHeight),
     );
+  }
+
+  /// The root list's glass shape, scaled about its top center by the
+  /// submenu parents' measured 0.97 scale, independently of the vessel
+  /// that contains the full stack. With no cards this is [menuBlob].
+  MorphMenuBlob get rootBlob {
+    if (_cards.isEmpty) return menuBlob;
+    final frame = _menu;
+    final parentScale = cards.first.scale;
+    final root = Rect.fromLTWH(
+      frame.left + frame.width * (1 - parentScale) / 2,
+      frame.top,
+      frame.width * parentScale,
+      visibleRootHeight * parentScale,
+    );
+    return _blobFor(root, parentScale: parentScale);
   }
 
   /// The button shape: shrinks into the menu.
@@ -1570,6 +1626,7 @@ class MorphMenuMotion {
       return _progress.isAtRestAt(t) &&
           _radius.isAtRest(t, 1e-3) &&
           _rootHeight.isAtRest(t, 1e-3) &&
+          (!_cardContainerActive || _cardContainer.isAtRest(t, 1e-3)) &&
           _cards.every((_Card card) => card.progress.isAtRest(t, 1e-3)) &&
           _menuKick.isAtRest &&
           _buttonKick.isAtRest &&
@@ -1845,6 +1902,7 @@ class MorphMenuMotion {
       _highlighted = null;
       _highlightCard = 0;
       _cards.clear();
+      _cardContainerActive = false;
       scrollOffset = 0;
       _menuKick.reset();
       _buttonKick.reset();
@@ -1981,6 +2039,12 @@ class MorphMenuMotion {
       _radiusFrom = _closingRadius(_progress.valueAt(t));
     }
     _phase = _Phase.opening;
+    if (fresh) {
+      _cardContainerActive = false;
+      _cardContainer.snap(t, 1);
+    } else if (_cardContainerActive) {
+      _cardContainer.retarget(t, 1, spring: tuning.openSpring);
+    }
     _fusions.add((start: t, opening: true));
     final reference = MorphSpringState(tuning.openSpring, 0);
     reference.retarget(t, 1);
@@ -2052,6 +2116,16 @@ class MorphMenuMotion {
     _progress.close(t);
     _fade(t, from: opacity, opening: false);
     final generation = _openGeneration;
+    if (_cards.isNotEmpty && !_cardContainerActive) {
+      _cardContainerActive = true;
+      _cardContainer.snap(t, 1);
+    }
+    if (_cardContainerActive) {
+      _timeline.at(t + tuning.cardContainerDelay, (double s) {
+        if (generation != _openGeneration || _phase != _Phase.closing) return;
+        _cardContainer.retarget(s, 0, spring: tuning.cardContainerSpring);
+      });
+    }
     _timeline.at(t + tuning.closeKickDelay, (double s) {
       if (generation != _openGeneration || _phase != _Phase.closing) return;
       _sample(s);
@@ -2135,8 +2209,8 @@ class MorphMenuMotion {
     final layout = submenuLayout?.call(source);
     if (layout == null) return;
     final shown = cards[card];
-    final rowCenter =
-        shown.rect.top + source.rect.center.dy - (card == 0 ? scrollOffset : 0);
+    final rowLocal = source.rect.center.dy - (card == 0 ? scrollOffset : 0);
+    final rowCenter = shown.rect.top + rowLocal;
     final from = Rect.fromCenter(
       center: Offset(tuning.menuWidth / 2, rowCenter),
       width: tuning.cardStartWidth,
@@ -2152,7 +2226,12 @@ class MorphMenuMotion {
         layout: layout,
         source: index,
         from: from,
-        top: _clampCardTop(rowCenter - tuning.cardLead, layout.height),
+        top: _clampCardTop(
+          shown.rect.top +
+              (rowLocal - tuning.cardLead) *
+                  (card == 0 ? 1 : tuning.parentScale),
+          layout.height,
+        ),
         progress: progress,
       ),
     );

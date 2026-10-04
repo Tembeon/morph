@@ -147,6 +147,69 @@ port of 4f810d3, `*-after` = now); numbers in
 - Taps on the More row, a card header and a card row show no highlight
   pill on the device (frames during the touch).
 
+Submenu bounds correction [device film + widget frames, 2026-10-04]:
+- The first gallery More card appeared to jump right on hand-back: the
+  selection column placed its source title at 79, but the header used 64.
+  The last header-to-row frame moved 15.0 pt. Headers now inherit their
+  source row's title/glyph columns and approach the parent's scaled columns
+  on the card spring. LTR/RTL, first/deeper hand-backs sampled every 8.333 ms
+  have a maximum horizontal step of 0.045 pt (gate 0.5); the centered
+  whole-stack close has no horizontal center displacement.
+- The vessel's rounded clip cut the full-width card rims and outside
+  shadows. Cards now escape that clip and clip only their own rows and
+  backdrop. The root list clips separately; its glass and fusion outline
+  use `MorphMenuMotion.rootBlob`, shrinking about the top center to 0.97
+  per open card. The open widths are 250, 242.5, 235.225 (and 228.16825 for
+  the root under three cards). The root platter's width/height replay
+  `mm-sub-tap` at 0.0137 pt RMS over 74 samples, with the native 62 pt
+  system footer included in the comparison layout.
+- Each card supplies glass beyond the union of the lists under it, while
+  keeping those lists visible through the measured backdrop blur/tint.
+  The material paints after that blur, so it reaches the card's own edge;
+  its top rim and outside shadow remain independent of the vessel bounds.
+- Closing cards have a separate window-space carrier, not the glass's
+  0.49/0.80 drop and kick. Fits of `_UIContextMenuView` in `mm-sub-select`,
+  `mm-sub-tap` and `mm-sub-deeper` give 0.3500/0.8500, shrinking from 250
+  to 50 pt about the source button (width fit 0.010-0.016 pt RMS). The
+  carrier starts 9-20 ms after the logical close, mean 15.1 ms. This removes
+  the premature swell and misplaced content of the previous close.
+  `card-container.json` preserves the fits and per-record presentation
+  delays: replay of visible card window x/y/width/height is 0.041-0.055 pt
+  RMS (previous carrier: 26-29 pt). Production uses the measured 15 ms
+  mean; replay aligns each recording's presentation delay, not its spring.
+- A deeper card's endpoint uses its parent's 0.97 scale for the offset
+  from that parent's top. The previous second-card top was 4.23 pt too low.
+  Full opening/hand-back window-bounds replay is 0.837 pt (first), 0.584 pt
+  (back), 0.643 pt (deeper), including per-record start alignment. The
+  existing 0.395/0.86, 0.405/0.84 and 0.40/1.0 springs remain unchanged.
+  Submenu taps do not flash the row pill seen in the previous film;
+  held-button slides still highlight. A close reversed before or after
+  the carrier starts keeps its position and velocity.
+- The liquid renderer shaded the fused field but painted each primitive's
+  exterior shadow above it. The source circle's shadow formed an interior
+  rim, including a halo outside the blurred silhouette. Fused bodies now
+  paint one shadow outside that silhouette and disable primitive shadows.
+  The menu keeps the plain union's distance field when Gaussian radius
+  returns to zero, rather than reverting to independent glass surfaces.
+  `test/menu_glass_body_test.dart` fails twice before these corrections;
+  it verifies a single silhouette shadow and continuous field ownership.
+  The phone close film confirms the internal button circle is gone.
+- Regression: `test/menu_card_bounds_test.dart` dumps rendered card rects
+  per frame with `MENU_FRAME_DUMP=<directory>` (close, four LTR/RTL header
+  hand-backs, 577 nested samples over three levels). It checks the 0.5 pt
+  continuity limit, full scaled widths, absence of enclosing menu/vessel
+  clips, and dark platter pixels past the root.
+  `test/menu_api_test.dart` additionally dumps complete native window-bounds
+  replays for opening, hand-back and three whole-stack closes. Invisible
+  UIKit cleanup/reparenting frames are excluded from the visible-card gate.
+- Phone-only verification was requested; no simulator was started. Native:
+  `MenuAPIUITests.testMenuFilm`, light, spinner on. Ours:
+  `menu_submenu_video_test.dart` with `VIDEO_LIGHT_ONLY=true` and the measured
+  system-footer geometry, plus `menu_card_gallery_video_test.dart` on the
+  actual gallery Options button. MorphRecorder runs with `open -g -W`;
+  extraction preserves variable frame timestamps with `-fps_mode passthrough`.
+  New stills and the close comparison are in `references/menu-api/film/`.
+
 Live updates [rows + shots]:
 - `keepsMenuPresented`: the handler runs 0.02 s after the lift and the menu
   stays, but UIKit does NOT redraw a checkmark / palette selection / state by
@@ -222,12 +285,11 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
       dwell 0.525, sub action +0.019. The card's frame replays mm-sub-tap
       under 1 pt rms (progress under 0.01), the back and the deeper card
       under 1.5 / 2 pt. The card platter color is sampled (57 dark, 251
-      light); the root list's own platter shrinking with the 0.97 (3.75 pt
-      per side) is NOT drawn - morph's root is the menu glass, which keeps
-      its width.
+      light); the root list's glass platter and fusion outline shrink
+      with the 0.97 (3.75 pt per side), independently of the vessel.
 - [x] Whole-stack close: the progress is the ordinary measured close
-      (0.49 / 0.80 + kicks; the container frames of mm-sub-select and of a
-      plain row close match frame by frame). Fixed 2026-10-04 from film:
+      (glass 0.49 / 0.80 + kicks; list carrier 0.35 / 0.85 from window
+      frame fits). Fixed 2026-10-04 from film and full card window bounds:
       a card row closes after `submenuCloseDelay` 0.015 (was the root's
       0.04); the open card rides the drop outside the content blur, its
       rows and platter fading linearly to 0 at `cardCloseFadeEnd` 0.2;
@@ -240,8 +302,9 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
       `MorphMenuTuning.cardBlur` 10 pt, painted over each list under the
       card (spread by the same blur, each further list at half), plus
       `submenuRimColor` (top rim) and `submenuShadowColor` (outside only).
-      Drawn by the menu itself, not through the glass seam: the renderer's
-      glass reads the shared page backdrop, not the menu under the card.
+      Overlapping lists are blurred and tinted by the menu itself; exposed
+      parts of each card draw the translucent menu material after that blur.
+      Each card retains its own measured rim and outside shadow.
 - [x] Card hand-back (2026-10-04, film): the header rides the source row
       (`MorphMenuCard.contentTop`), the source row is hidden while its card
       shows, the header title crossfades regular / bold
@@ -274,11 +337,9 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
       cell highlight shape (12 pt radius, a guess), the palette platter
       radius, `highlightStateUpdateHandler` timing, the card's own glass
       refraction / rim light beyond the measured top rim (film: a
-      translucent blurred platter is all that shows), the close's menu
-      element starting from the list under the card (242.5 square; morph's
-      drop still starts from the whole menu, the content is centered on the
-      card instead), the device's missing tap highlight on menu rows (morph
-      still highlights under the finger, except a card header), the header
+      translucent blurred platter is all that shows), the device's missing
+      tap highlight on menu rows (morph still highlights under the finger,
+      except a card header), the header
       chevron's size (ours is the row chevron turned, a little larger), the
       chevron turn and bold switch (read by eye from film, not fitted),
       submenu cards that do

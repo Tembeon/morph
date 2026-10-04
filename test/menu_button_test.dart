@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/foundation.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
@@ -390,6 +391,16 @@ const _items = [
 
 class _Recorder extends MorphGlassPainter {
   final List<MorphGlassSurface> seen = [];
+
+  @override
+  Widget buildBody(
+    BuildContext context,
+    MorphGlassOutline outline,
+    List<MorphGlassSurface> surfaces,
+  ) {
+    seen.addAll(surfaces);
+    return super.buildBody(context, outline, surfaces);
+  }
 
   @override
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) {

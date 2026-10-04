@@ -1,0 +1,84 @@
+{
+  "captured": "2026-10-04",
+  "device": "iPhone 16 Pro, iOS 27.0.1",
+  "simulator": "Not used, owner requested phone only",
+  "original_renderer_regressions": "6 failures: four 15 pt source-column hand-backs, dark platter edge, enclosing rounded vessel clip",
+  "hand_back": {
+    "header-ltr-root": {
+      "frames": 120,
+      "max_horizontal_step_pt": 0.044834583918316184
+    },
+    "header-ltr-nested": {
+      "frames": 120,
+      "max_horizontal_step_pt": 0.044815450895384856
+    },
+    "header-rtl-root": {
+      "frames": 120,
+      "max_horizontal_step_pt": 0.04483458391837303
+    },
+    "header-rtl-nested": {
+      "frames": 120,
+      "max_horizontal_step_pt": 0.044815450895384856
+    }
+  },
+  "whole_stack_close": {
+    "frames": 45,
+    "max_center_step_pt": 2.842170943040401e-14
+  },
+  "nested": {
+    "samples": 577,
+    "enclosing_clips": 0,
+    "settled_widths_pt": [
+      250,
+      242.5,
+      235.225,
+      228.16825
+    ]
+  },
+  "native_root": {
+    "samples": 74,
+    "rms_pt": 0.013631892611130242
+  },
+  "verification": {
+    "package_tests": 1044,
+    "example_tests": 11,
+    "analyze_issues": 0,
+    "dartdoc_warnings": 0,
+    "dartdoc_errors": 0
+  },
+  "film": "Native left, Morph right; four times slower; variable frame timestamps preserved. Close clocks aligned by 2.060 s; first opening by 2.130 s; camera/phase alignment uncertainty approximately 50 ms. Internal button shadow rim removed. Symbols and chevron artwork remain different as documented in the passport; film is not a pixel identity assertion.",
+  "native_opening": {
+    "mm-sub-tap": {
+      "frames": 98,
+      "rms_pt": 0.8371738877277353
+    },
+    "mm-sub-back": {
+      "frames": 202,
+      "rms_pt": 0.5839380753884106
+    },
+    "mm-sub-deeper": {
+      "frames": 240,
+      "rms_pt": 0.6430319717097029
+    }
+  },
+  "native_closing": {
+    "mm-sub-select": {
+      "frames": 28,
+      "rms_pt": 0.05030547209234462
+    },
+    "mm-sub-tap": {
+      "frames": 28,
+      "rms_pt": 0.05482231075901158
+    },
+    "mm-sub-deeper": {
+      "frames": 40,
+      "rms_pt": 0.040659694978453446
+    }
+  },
+  "glass_body": {
+    "baseline_regression_failures": 2,
+    "primitive_shadows": 0,
+    "fused_exterior_shadows": 1,
+    "zero_radius_uses_union_field": true
+  }
+}

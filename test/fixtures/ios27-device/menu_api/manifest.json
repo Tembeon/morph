@@ -15,6 +15,7 @@
   "mm-tall-scroll.jsonl": "30 rows: drag up 300 pt in 0.5 s + hold, flick down",
   "mm-deferred.jsonl": "uncached deferred element answered after 2 s",
   "mm-palette.jsonl": "tap the Green palette cell (keepsMenuPresented), then Plain row",
-  "mm-swiftui2.jsonl": "SwiftUI Menu: Count button (menuActionDismissBehavior .disabled) x2, Show hidden toggle"
+  "mm-swiftui2.jsonl": "SwiftUI Menu: Count button (menuActionDismissBehavior .disabled) x2, Show hidden toggle",
+  "card-container.json": "window-bounds fits for the independent 0.35/0.85 closing carrier, per-run presentation delays, submenu opening and hand-back start alignment"
  }
 }

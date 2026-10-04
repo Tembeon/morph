@@ -929,7 +929,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                 child: _MenuShapes(
                   style: style,
                   glyph: glyph,
-                  menu: menu.rrect,
+                  menu: motion.rootBlob.rrect,
                   source: source.rrect,
                   sourceRect: source.rect,
                   sourceScale: source.scale,
@@ -943,6 +943,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                     rect: menu.rect,
                     child: ClipRRect(
                       borderRadius: .circular(menu.radius),
+                      clipBehavior: motion.cards.length > 1
+                          ? .none
+                          : .antiAlias,
                       child: Stack(
                         clipBehavior: .none,
                         children: [
@@ -1096,7 +1099,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           alignment: .topLeft,
           child: Opacity(
             opacity: card.rowOpacity,
-            child: ClipRect(child: body),
+            child: cards.length > 1
+                ? ClipRRect(borderRadius: .circular(radius), child: body)
+                : ClipRect(child: body),
           ),
         ),
       );
@@ -1121,6 +1126,16 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     }
     final blur = motion.tuning.cardBlur * platter;
     final shape = BorderRadius.circular(cardRadius);
+    final surface = MorphGlassSurface(
+      kind: MorphGlassKind.menu,
+      shape: RRect.fromRectAndRadius(
+        Offset.zero & rect.size,
+        Radius.circular(cardRadius),
+      ),
+      color: style.glassColor,
+      brightness: morphBrightnessOf(context),
+      opacity: platter,
+    );
     return Positioned(
       key: ValueKey<int>(index),
       left: shown.left,
@@ -1152,15 +1167,30 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                     sigmaY: blur,
                     tileMode: TileMode.clamp,
                   ),
-                  child: CustomPaint(
-                    painter: _CardPlatterPainter(
-                      radius: cardRadius,
-                      under: under,
-                      tint: style.submenuColor,
-                      rim: style.submenuRimColor,
-                      blur: motion.tuning.cardBlur,
-                      opacity: platter,
-                    ),
+                  child: Stack(
+                    clipBehavior: .none,
+                    children: [
+                      Positioned.fill(
+                        child: ClipPath(
+                          clipper: _CardBackdropClipper(under),
+                          child: CustomPaint(
+                            painter: _CardBasePainter(surface),
+                          ),
+                        ),
+                      ),
+                      Positioned.fill(
+                        child: CustomPaint(
+                          painter: _CardPlatterPainter(
+                            radius: cardRadius,
+                            under: under,
+                            tint: style.submenuColor,
+                            rim: style.submenuRimColor,
+                            blur: motion.tuning.cardBlur,
+                            opacity: platter,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -1199,7 +1229,11 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                                         style.textStyle,
                                       ),
                                       child: _MenuElement(
-                                        element: header,
+                                        element: _headerAt(
+                                          cards,
+                                          index,
+                                          header,
+                                        ),
                                         style: style,
                                         width: layout.width,
                                         content: widget.host.menuContent,
@@ -1227,6 +1261,41 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     );
   }
 
+  static MorphMenuPlaced _headerAt(
+    List<MorphMenuCard> cards,
+    int index,
+    MorphMenuPlaced header,
+  ) {
+    final card = cards[index];
+    final parent = cards[index - 1];
+    final source = card.source;
+    if (source == null || source >= parent.layout.targets.length) return header;
+    final target = parent.layout.targets[source];
+    if (target.element < 0) return header;
+    final row = parent.layout.elements[target.element];
+    final ratio = parent.scale / card.scale;
+    final center = card.layout.width / 2;
+    final q = card.progress.clamp(0.0, 1.0);
+    double column(double source) {
+      final from = center + (source - center) * ratio;
+      return from + (source - from) * q;
+    }
+
+    final image = row.imageCenter;
+    return MorphMenuPlaced(
+      kind: header.kind,
+      rect: header.rect,
+      entry: header.entry,
+      title: header.title,
+      imageCenter: image == null || header.imageCenter == null
+          ? header.imageCenter
+          : column(image),
+      titleStart: column(row.titleStart),
+      titleEnd: column(row.titleEnd),
+      target: header.target,
+    );
+  }
+
   Widget? _highlight(
     MorphMenuMotion motion,
     MorphMenuStyle style,
@@ -1238,6 +1307,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     if (index >= layout.targets.length) return null;
     final target = layout.targets[index];
     if (target.kind == MorphMenuTargetKind.back) return null;
+    if (target.kind == MorphMenuTargetKind.submenu && !motion.isSliding) {
+      return null;
+    }
     final element = target.element < 0 ? null : layout.elements[target.element];
     final cell = switch (element?.kind) {
       MorphMenuPlacedKind.palette ||
@@ -1923,6 +1995,46 @@ class _CardShadowPainter extends CustomPainter {
       oldDelegate.radius != radius ||
       oldDelegate.color != color ||
       oldDelegate.opacity != opacity;
+}
+
+class _CardBackdropClipper extends CustomClipper<Path> {
+  const _CardBackdropClipper(this.under);
+
+  final List<RRect> under;
+
+  @override
+  Path getClip(Size size) {
+    var path = Path();
+    path.addRect(Offset.zero & size);
+    for (final list in under) {
+      final cut = Path();
+      cut.addRRect(list);
+      path = Path.combine(PathOperation.difference, path, cut);
+    }
+    return path;
+  }
+
+  @override
+  bool shouldReclip(_CardBackdropClipper oldClipper) => true;
+}
+
+class _CardBasePainter extends CustomPainter {
+  const _CardBasePainter(this.surface);
+
+  final MorphGlassSurface surface;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint();
+    paint.color = surface.color.withValues(
+      alpha: surface.color.a * surface.opacity,
+    );
+    canvas.drawRRect(surface.shape, paint);
+  }
+
+  @override
+  bool shouldRepaint(_CardBasePainter oldPainter) =>
+      oldPainter.surface != surface;
 }
 
 /// The face of a submenu card over its blurred backdrop: [tint] over the
