@@ -58,7 +58,7 @@ holds the protocol (probe, recorder, synthesizer quirks, fixtures, device
 lock, provenance, status) and there is one passport per control or family
 (lens-and-flex, segmented-control, tab-bar, search-tab-bar, switch, slider,
 stepper, glass-button, menu-button, context-menu, bars, navigation-pages,
-sheets, alerts, search, date-picker, page-control, progress-view,
+sheets, alerts, search, date-picker, page-control, progress-view, lists,
 activity-indicator, typography, glass-optics, glass-renderer, skin-merge,
 engine-flight) - read the passport for the control you touch, and
 lens-and-flex.md for anything that lifts.
@@ -114,7 +114,9 @@ MorphSatellite, the bars (MorphNavigationBar, MorphToolbar,
 MorphNavigationStack, MorphScrollEdgeEffect, push zoom), sheets
 (presentMorphSheet incl. zoom), alerts and action-sheet popovers,
 MorphSearchField / MorphSearchToolbar, MorphDatePicker,
-MorphPageControl, MorphProgressView, MorphActivityIndicator.
+MorphPageControl, MorphProgressView, MorphActivityIndicator, the inset
+grouped list (MorphListSection / MorphListRow; MorphNavigationScaffold
+and sheets give their content the body text style).
 `MorphSpring` is the engine's (spring.dart); `MorphFlexSpec` ports
 `_UIFlexInteractionSpec` (lens-and-flex.md).
 
@@ -639,7 +641,9 @@ Cross-cutting policy:
 
 ## Example
 
-The example app IS the measured gallery (`example/lib/gallery/`;
+The example app IS the measured gallery (`example/lib/gallery/`, one
+MorphNavigationStack whose pages are GalleryPage scaffolds and list
+sections, no Material Scaffold/AppBar/ListTile;
 `example/lib/main.dart` runs `GalleryApp`, so a plain `flutter run`
 opens it): one page per measured widget family plus the Glass renderer
 page (tier, material, dark, RTL, disabled) and Size to physics
