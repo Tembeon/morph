@@ -1351,7 +1351,7 @@ void main() {
       final copy = find.text('Copy');
       if (copy.evaluate().isEmpty) continue;
       final clip = find.ancestor(of: copy, matching: find.byType(ClipRRect));
-      heights.add(tester.getRect(clip.first).height);
+      heights.add(tester.getRect(clip.last).height);
     }
     expect(heights, hasLength(3));
     expect(heights[0], greaterThan(24.5), reason: 'no held first frame');

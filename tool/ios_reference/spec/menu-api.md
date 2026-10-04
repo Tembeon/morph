@@ -283,6 +283,29 @@ Submenu material correction [device rows + film, 2026-10-04]:
   record the 10 pt root blur and complete nested surfaces before this final
   dark-tone adjustment. The report records each capture's provenance.
 
+Root scroll ownership correction [widget regression + phone, 2026-10-04]:
+- Opening a submenu replaced the root ClipRect with ClipRRect. That
+  remounted its Scrollable and reset a scrolled parent to zero (180 pt
+  to zero in regression frame 10). The root keeps one ClipRRect subtree,
+  with zero radius alone and the measured card radius while stacked.
+- Parent input and scroll physics are disabled while any submenu card
+  remains, including hand-back. Existing ballistic activity stops at
+  the first stacked frame. A drag on the exposed parent cancels selection
+  without moving the parent or turning that drag into a back tap; a tap
+  beside the card retains the measured hand-back behavior.
+- test/menu_scroll_test.dart checks offsets every 8.333 ms through opening
+  and hand-back, two nested levels, parent drag/wheel input, stopping an
+  existing ballistic activity and restoring scrolling after the final
+  card returns. Before the fix, offset preservation and parent input
+  locking both fail; the blocked parent drag moves 72.166 pt. No springs,
+  layout metrics or submenu timing change.
+- The gallery phone harness opens More and Move to after scrolling, drags
+  the exposed parent at both levels and returns through both headers.
+  All seven snapshots retain 311.159208 pt (span 0). Film, stills and
+  offsets are in references/menu-api/film/submenu-scroll-*; required
+  verification passes 1052 package tests, 11 example tests, analyze 0 and
+  documentation 0 warnings/errors.
+
 Live updates [rows + shots]:
 - `keepsMenuPresented`: the handler runs 0.02 s after the lift and the menu
   stays, but UIKit does NOT redraw a checkmark / palette selection / state by

@@ -775,6 +775,7 @@ class MorphMenuLayer extends StatefulWidget {
 
 class _MorphMenuLayerState extends State<MorphMenuLayer> {
   final ScrollController _scroll = ScrollController();
+  bool _parentScrollLocked = false;
   Expando<Widget> _rows = Expando<Widget>();
   final Expando<ValueNotifier<int?>> _hidden = Expando<ValueNotifier<int?>>();
   MorphMenuStyle? _rowsStyle;
@@ -801,11 +802,15 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     if (notification is ScrollUpdateNotification &&
         notification.dragDetails != null &&
         (notification.scrollDelta ?? 0) != 0) {
-      final host = widget.host;
-      host.menuMotion?.pointerScrolled(host.menuClock);
-      host.menuWake();
+      _scrollGesture();
     }
     return false;
+  }
+
+  void _scrollGesture() {
+    final host = widget.host;
+    host.menuMotion?.pointerScrolled(host.menuClock);
+    host.menuWake();
   }
 
   Widget _rowsOf(MorphMenuLayout layout, MorphMenuStyle style) {
@@ -1069,6 +1074,11 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         ? cards[index + 1].source
         : null;
     if (index == 0) {
+      final locked = cards.length > 1;
+      if (locked && !_parentScrollLocked && _scroll.hasClients) {
+        (_scroll.position as ScrollPositionWithSingleContext).goIdle();
+      }
+      _parentScrollLocked = locked;
       final content = SizedBox(
         width: width,
         height: layout.height,
@@ -1096,6 +1106,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                 crossAxisMargin: MorphMenuTuning.scrollInset,
                 child: CustomScrollView(
                   controller: _scroll,
+                  physics: locked ? const NeverScrollableScrollPhysics() : null,
                   slivers: [SliverToBoxAdapter(child: content)],
                 ),
               ),
@@ -1117,9 +1128,16 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           alignment: .topLeft,
           child: Opacity(
             opacity: card.rowOpacity,
-            child: cards.length > 1
-                ? ClipRRect(borderRadius: .circular(radius), child: body)
-                : ClipRect(child: body),
+            child: ClipRRect(
+              borderRadius: .circular(locked ? radius : 0),
+              child: GestureDetector(
+                behavior: .opaque,
+                onPanStart: locked
+                    ? (DragStartDetails details) => _scrollGesture()
+                    : null,
+                child: IgnorePointer(ignoring: locked, child: body),
+              ),
+            ),
           ),
         ),
       );

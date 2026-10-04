@@ -1,0 +1,67 @@
+{
+  "source": "iPhone16Pro, gallery Options menu; menu_card_gallery_video_test.dart; MorphRecorder via open -g -W, variable PTS; frames25/27/31/37s. Parent drags happen after More and Move to open.",
+  "phone_frames": [
+    {
+      "phase": "scrolled root",
+      "elapsed": 4.017243,
+      "offset": 311.15920841588843
+    },
+    {
+      "phase": "More open",
+      "elapsed": 6.02673,
+      "offset": 311.15920841588843
+    },
+    {
+      "phase": "parent drag",
+      "elapsed": 8.035541,
+      "offset": 311.15920841588843
+    },
+    {
+      "phase": "Move to open",
+      "elapsed": 10.042779,
+      "offset": 311.15920841588843
+    },
+    {
+      "phase": "parent drag",
+      "elapsed": 12.053029,
+      "offset": 311.15920841588843
+    },
+    {
+      "phase": "Move to back",
+      "elapsed": 14.06069,
+      "offset": 311.15920841588843
+    },
+    {
+      "phase": "More back",
+      "elapsed": 16.068821,
+      "offset": 311.15920841588843
+    }
+  ],
+  "phone_offset_span_pt": 0.0,
+  "before_widget_regression": {
+    "opening_offset_before_pt": 179.9959920049083,
+    "opening_offset_after_pt": 0,
+    "parent_drag_offset_delta_pt": 72.1659422433362
+  },
+  "after_widget_regression": {
+    "offset_tolerance_pt": 0.001,
+    "opening_frames": 120,
+    "hand_back_frames": 120,
+    "nested_levels": 2,
+    "parent_inputs": [
+      "drag",
+      "wheel"
+    ],
+    "stops_ballistic_activity": true,
+    "restores_root_scroll": true
+  },
+  "checks": {
+    "format_files": 248,
+    "format_changes": 0,
+    "analyze_issues": 0,
+    "package_tests": 1052,
+    "example_tests": 11,
+    "doc_warnings": 0,
+    "doc_errors": 0
+  }
+}
