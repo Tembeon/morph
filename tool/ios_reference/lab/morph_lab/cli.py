@@ -3,12 +3,24 @@ import json
 from pathlib import Path
 import sys
 
-from .analysis import cadence, compare, read_rows
+from .analysis import cadence, compare, compare_windows, read_rows
 from .capture import capture
 from .images import compare_films, compare_pair, compare_transfer, extract
 from .report import write_report
 from .scenario import LabError, digest, load
 from .fitting import fit_spring
+
+
+def read_capture(directory):
+    directory = Path(directory)
+    rows = read_rows(directory / "trace.jsonl")
+    journal = directory / "runner-events.json"
+    if journal.exists():
+        seen = {row.get("id") for row in rows if row.get("k") == "lab_assert"}
+        for row in json.loads(journal.read_text()):
+            if row.get("k") == "lab_assert" and row.get("id") not in seen:
+                rows.append({**row, "source": "XCUITest runner journal"})
+    return rows
 
 
 def main():
@@ -33,6 +45,7 @@ def main():
     evaluate.add_argument("--candidate", required=True)
     evaluate.add_argument("--out", required=True)
     evaluate.add_argument("--no-film", action="store_true")
+    evaluate.add_argument("--event-windows", action="store_true")
     frames = sub.add_parser("extract")
     frames.add_argument("movie")
     frames.add_argument("--out", required=True)
@@ -104,9 +117,11 @@ def main():
             print(args.out)
         elif args.command == "compare":
             native_dir, candidate_dir = Path(args.native), Path(args.candidate)
-            native = read_rows(native_dir / "trace.jsonl")
-            candidate = read_rows(candidate_dir / "trace.jsonl")
+            native = read_capture(native_dir)
+            candidate = read_capture(candidate_dir)
             result = compare(native, candidate, scenario)
+            if args.event_windows:
+                result["eventWindows"] = compare_windows(native, candidate, scenario)
             for side, directory in (("native", native_dir), ("candidate", candidate_dir)):
                 path = directory / "capture-buffers.jsonl"
                 if path.exists():
@@ -126,7 +141,8 @@ def main():
                             result["failures"].append(f"{side} film: decoded frame count differs from accepted source buffers")
             has_films = (native_dir / "frames/frames.json").exists() and (candidate_dir / "frames/frames.json").exists()
             if has_films and not args.no_film:
-                result["film"] = compare_films(native_dir / "frames", candidate_dir / "frames", native, candidate, scenario)
+                result["film"] = compare_films(native_dir / "frames", candidate_dir / "frames", native, candidate, scenario,
+                                               result.get("eventWindows"))
                 result["failures"].extend(result["film"]["failures"])
             elif not args.no_film:
                 result["failures"].append("film: paired recordings are missing")

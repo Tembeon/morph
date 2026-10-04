@@ -82,3 +82,37 @@ motion-channel selection, next/last frame navigation, split, overlay,
 amplified difference, region crop, true 4x zoom and edge-profile selection.
 No browser errors were reported. HDR, a ScreenCaptureKit backend and
 automated ramp-coordinate inversion are not implemented.
+
+## Full shared menu audit
+
+`out/menu-phone-20261004-06` supersedes the earlier geometry-only menu
+pilot for visual review. It uses nine gestures, the phone's automatic
+62 pt Ask Siri footer and a corresponding Flutter adapter row. Both
+XCUITest passes verified the footer exists. The adapter uses an ordinary
+21 pt group gap, making its footer 63 pt and root 209 pt versus native
+62/208 pt. This 1 pt residual and the placeholder Siri glyph limit
+geometry and optical equivalence claims. The first film pilots exposed that composition
+mismatch and remain preserved rather than becoming calibration targets.
+
+The final report is EVIDENCE with no fidelity thresholds: 851 global
+pairs, all nine paired gesture windows above 80% coverage, accepted and
+decoded counts 1800/1684, zero encoder drops, active marker coverage 100%
+and received-path RMS 0.192450 pt. Stimulus-relative windows retain global
+runner drift, release differences and original PTS; they never fit away
+response delay or override a failed global acquisition.
+
+The audit found remaining rim, shadow, opening-phase and closing-composition
+residuals. Its reviewed stills, frame panels, short films, diagnostic width
+intervals, source hashes and detailed limitations are saved in
+`../references/menu-api/lab/20261004/`. No production constants changed.
+34 Python tests passed, including content assertions, missing clip channels,
+remount continuity, ordered parallel metrics and shared report assets.
+The package passed 1056 tests, the gallery 14, format changed zero of 251
+files, analyze reported zero issues and dartdoc zero warnings/errors.
+The release gallery was installed/launched and the device lock released.
+
+After a desktop restart the lightweight menu viewer exports 5.4 MB of
+initial data instead of about 135 MB. Per-frame profiles load on demand
+without rounding or changing report.json. Export roundtrip and JavaScript
+syntax pass; the restarted browser refused reopening under its URL policy,
+so the new loading path has not been reverified interactively.

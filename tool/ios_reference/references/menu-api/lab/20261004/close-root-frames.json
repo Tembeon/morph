@@ -1,0 +1,70 @@
+{
+  "step": "close-root",
+  "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+  "durations": {
+    "native": 0.12404750002315268,
+    "candidate": 0.12448200000000043
+  },
+  "selected": [
+    {
+      "native": "frames/001550-native.png",
+      "candidate": "frames/001509-candidate.png",
+      "t": 0.1829157916654367,
+      "deltaMs": -7.8687916654374135,
+      "nativePts": 32.53,
+      "candidatePts": 30.05,
+      "nativeSequence": 2989,
+      "candidateSequence": 2996
+    },
+    {
+      "native": "frames/001552-native.png",
+      "candidate": "frames/001817-candidate.png",
+      "t": 0.1995852083491627,
+      "deltaMs": 9.517791650836216,
+      "nativePts": 32.555,
+      "candidatePts": 30.083333,
+      "nativeSequence": 2991,
+      "candidateSequence": 3000
+    },
+    {
+      "native": "frames/001818-native.png",
+      "candidate": "frames/001513-candidate.png",
+      "t": 0.24959320834022947,
+      "deltaMs": -8.091208340225364,
+      "nativePts": 32.596667,
+      "candidatePts": 30.116667,
+      "nativeSequence": 2996,
+      "candidateSequence": 3004
+    },
+    {
+      "native": "frames/001560-native.png",
+      "candidate": "frames/001517-candidate.png",
+      "t": 0.3162705416616518,
+      "deltaMs": -7.648541661652075,
+      "nativePts": 32.663333,
+      "candidatePts": 30.183333,
+      "nativeSequence": 3004,
+      "candidateSequence": 3012
+    },
+    {
+      "native": "frames/001566-native.png",
+      "candidate": "frames/001521-candidate.png",
+      "t": 0.382947875012178,
+      "deltaMs": -6.934875012177599,
+      "nativePts": 32.73,
+      "candidatePts": 30.25,
+      "nativeSequence": 3012,
+      "candidateSequence": 3020
+    },
+    {
+      "native": "frames/001574-native.png",
+      "candidate": "frames/001529-candidate.png",
+      "t": 0.4662945416639559,
+      "deltaMs": -7.308541663952894,
+      "nativePts": 32.813333,
+      "candidatePts": 30.333333,
+      "nativeSequence": 3022,
+      "candidateSequence": 3030
+    }
+  ]
+}

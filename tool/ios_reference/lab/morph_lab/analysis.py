@@ -114,6 +114,12 @@ def capture_quality(rows, scenario):
         start["rt"] = environments[0].get("rt")
         start["rtSource"] = "XCUITest runner UIAccessibility"
     errors = [r for r in rows if r.get("k") == "lab_error"]
+    assertions = [r for r in rows if r.get("k") == "lab_assert"]
+    expected_assertions = [step for step in scenario["steps"] if step["action"] == "assert"]
+    for step in expected_assertions:
+        observed = [row for row in assertions if row.get("id") == step["id"]]
+        if len(observed) != 1 or observed[0].get("expected") != step["exists"] or observed[0].get("actual") != step["exists"]:
+            errors.append({"e": "semantic assertion missing or failed", "id": step["id"]})
     if start.get("sha256") != digest(scenario):
         errors.append({"e": "scenario digest missing or mismatched"})
     expected = scenario["canvas"]
@@ -125,6 +131,7 @@ def capture_quality(rows, scenario):
     costs = [r["cost_ms"] for r in rows if r.get("k") == "lab_tick"]
     down = [r for r in rows if r.get("k") == "touch" and r.get("phase") == 0]
     return {"metadata": start, "errors": errors, "cadence": cadence(ticks), "markerCount": len(marker),
+            "semanticAssertions": assertions,
             "samplingCostMs": {"median": percentile(costs, 50), "p95": percentile(costs, 95), "max": max(costs, default=None)},
             "touchClockBasis": "delivery" if down and "delivered_t" in down[0] else "source fallback",
             "timingUncertainty": "native marker predicts targetTimestamp; Flutter marker is logged postFrame; physical presentation is not timestamped"}
@@ -159,9 +166,9 @@ def interpolate(samples, times, t, max_gap=0.05):
 
 def clipping(row):
     v = row["values"]
-    if v.get("opacity", 1) <= 0.01:
-        return 0
     if not all(k in v for k in ("left", "top", "width", "height")):
+        return None
+    if v.get("opacity", 1) <= 0.01:
         return 0
     l, t, w, h = (v[k] for k in ("left", "top", "width", "height"))
     losses = []
@@ -170,15 +177,18 @@ def clipping(row):
     return max(losses, default=0)
 
 
-def compare_geometry(native, candidate):
+def compare_geometry(native, candidate, origins=None, window=None):
     left, right = tracks(native), tracks(candidate)
-    oa, ob = origin(native), origin(candidate)
+    oa, ob = origins or (origin(native), origin(candidate))
     output = {}
     all_errors = []
-    max_step = 0
-    max_clip = 0
+    max_step = None
+    max_clip = None
     for name in sorted(set(left) | set(right)):
         a, b = left.get(name, []), right.get(name, [])
+        if window:
+            a = [r for r in a if window[0] <= r["t"] - oa <= window[1]]
+            b = [r for r in b if window[0] <= r["t"] - ob <= window[1]]
         bt = [r["t"] for r in b]
         errors = defaultdict(list)
         paired = []
@@ -199,11 +209,14 @@ def compare_geometry(native, candidate):
                     if key in ("left", "top", "width", "height"):
                         all_errors.append(error)
         steps = [abs(y["values"]["left"] - x["values"]["left"]) for x, y in zip(b, b[1:])
-                 if "left" in x["values"] and "left" in y["values"] and 0 < y["t"] - x["t"] <= 0.05 and x["values"].get("opacity", 1) > 0.01 and y["values"].get("opacity", 1) > 0.01]
-        clip = [clipping(r) for r in b]
+                 if "left" in x["values"] and "left" in y["values"] and x.get("identity") == y.get("identity")
+                 and 0 < y["t"] - x["t"] <= 0.05 and x["values"].get("opacity", 1) > 0.01 and y["values"].get("opacity", 1) > 0.01]
+        clip = [loss for r in b if (loss := clipping(r)) is not None]
         identities = [r.get("identity") for r in b]
-        max_step = max(max_step, max(steps, default=0))
-        max_clip = max(max_clip, max(clip, default=0))
+        if steps:
+            max_step = max(max_step or 0, max(steps))
+        if clip:
+            max_clip = max(max_clip or 0, max(clip))
         motion = {}
         for side, samples in (("native", a), ("candidate", b)):
             motion[side] = {}
@@ -218,6 +231,34 @@ def compare_geometry(native, candidate):
                         "native": [{"t": r["t"] - oa, "values": r["values"]} for r in a],
                         "candidate": [{"t": r["t"] - ob, "values": r["values"]} for r in b]}
     return {"boundsErrorPt": statistics(all_errors), "maxHorizontalStepPt": max_step, "maxClipLossPt": max_clip, "tracks": output}
+
+
+def compare_windows(native, candidate, scenario):
+    a, b = strokes(native), strokes(candidate)
+    steps = [step["id"] for step in scenario["steps"] if step["action"] == "gesture"
+             for _ in step.get("paths", [step])]
+    oa, ob = origin(native), origin(candidate)
+    windows = []
+    for index, (left, right) in enumerate(zip(a, b)):
+        first_a, first_b = left["points"][0], right["points"][0]
+        ta = first_a.get("delivered_t", first_a["t"])
+        tb = first_b.get("delivered_t", first_b["t"])
+        last_a, last_b = left["points"][-1], right["points"][-1]
+        duration_a = last_a.get("delivered_t", last_a["t"]) - ta
+        duration_b = last_b.get("delivered_t", last_b["t"]) - tb
+        end = max(duration_a, duration_b) + 0.75
+        for fingers, anchor in ((a, ta), (b, tb)):
+            if index + 1 < len(fingers):
+                point = fingers[index + 1]["points"][0]
+                end = min(end, point.get("delivered_t", point["t"]) - anchor)
+        windows.append({"stroke": index, "step": steps[index] if index < len(steps) else str(index),
+                        "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+                        "start": -0.15, "end": end, "nativeOrigin": ta, "candidateOrigin": tb,
+                        "nativeGlobalOffset": ta - oa, "candidateGlobalOffset": tb - ob,
+                        "startDriftMs": ((tb - ob) - (ta - oa)) * 1000,
+                        "releaseDifferenceMs": (duration_b - duration_a) * 1000,
+                        "geometry": compare_geometry(native, candidate, (ta, tb), (-0.15, end))})
+    return windows
 
 
 def response_windows(rows, threshold=0.1):

@@ -68,6 +68,8 @@ def validate(data):
             raise LabError("slider value must be <= 1")
         if widget["kind"] == "segmented" and not widget.get("labels"):
             raise LabError("segmented control needs labels")
+        if "systemFooter" in widget and (widget["kind"] != "menu" or widget["systemFooter"] != "askSiri"):
+            raise LabError("systemFooter supports askSiri on menus only")
     seen = set()
     for track in data.get("tracks", []):
         tid = identifier(track.get("id"), "track.id")
@@ -136,6 +138,12 @@ def validate(data):
                     raise LabError("native cancellation uses a background step; synthetic cancel is replay-only")
         elif action in ("wait", "background"):
             number(step.get("seconds"), f"step {sid}.seconds", 0.01)
+        elif action == "assert":
+            anchor = step.get("anchor")
+            if not isinstance(anchor, dict) or not (anchor.get("identifier") or anchor.get("label")):
+                raise LabError("assert needs an identifier or label anchor")
+            if not isinstance(step.get("exists"), bool):
+                raise LabError("assert.exists must be boolean")
         elif action != "shot":
             raise LabError(f"unknown action {action}")
     if not data.get("steps"):

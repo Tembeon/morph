@@ -1,0 +1,1291 @@
+{
+  "schema": 1,
+  "run": "out/menu-phone-20261004-06",
+  "scenarioSha256": "6bd6ddaa06a730087c442f478da5cba5f9d5b9484858bca3944fa5df9ad6d30c",
+  "scenario": {
+    "schema": 1,
+    "id": "menu-return",
+    "canvas": {
+      "width": 402,
+      "height": 874,
+      "scale": 3
+    },
+    "appearance": "light",
+    "background": {
+      "kind": "solid",
+      "color": "#F2F2F7"
+    },
+    "marker": [
+      8,
+      56,
+      100,
+      10
+    ],
+    "widgets": [
+      {
+        "id": "menu",
+        "kind": "menu",
+        "rect": [
+          179,
+          300,
+          44,
+          44
+        ],
+        "items": [
+          {
+            "title": "Copy"
+          },
+          {
+            "title": "Share"
+          },
+          {
+            "title": "More",
+            "children": [
+              {
+                "title": "Sub one"
+              },
+              {
+                "title": "Sub two"
+              },
+              {
+                "title": "Deeper",
+                "children": [
+                  {
+                    "title": "Deep one"
+                  },
+                  {
+                    "title": "Deep two"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "systemFooter": "askSiri"
+      }
+    ],
+    "tracks": [
+      {
+        "id": "source",
+        "native": {
+          "identifier": "menu"
+        },
+        "flutter": {
+          "key": "menu"
+        }
+      },
+      {
+        "id": "rows",
+        "native": {
+          "class": "_UIContextMenuListView$",
+          "all": true
+        },
+        "flutter": {
+          "type": "_MenuRows",
+          "all": true
+        },
+        "properties": [
+          "left",
+          "top",
+          "width",
+          "height"
+        ]
+      }
+    ],
+    "regions": [
+      {
+        "id": "menu-and-source",
+        "rect": [
+          50,
+          250,
+          302,
+          490
+        ]
+      },
+      {
+        "id": "submenu-rim-left",
+        "rect": [
+          73,
+          475,
+          7,
+          65
+        ]
+      },
+      {
+        "id": "submenu-shadow-left",
+        "rect": [
+          57,
+          455,
+          14,
+          105
+        ]
+      },
+      {
+        "id": "submenu-face",
+        "rect": [
+          180,
+          477,
+          40,
+          7
+        ]
+      },
+      {
+        "id": "parent-rim-left",
+        "rect": [
+          77,
+          310,
+          7,
+          35
+        ]
+      }
+    ],
+    "steps": [
+      {
+        "id": "rest",
+        "action": "shot"
+      },
+      {
+        "id": "open",
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2,
+        "anchor": {
+          "identifier": "menu"
+        }
+      },
+      {
+        "id": "root-footer",
+        "action": "assert",
+        "anchor": {
+          "label": "Ask Siri"
+        },
+        "exists": true
+      },
+      {
+        "id": "more",
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2,
+        "anchor": {
+          "label": "More",
+          "last": true
+        }
+      },
+      {
+        "id": "submenu",
+        "action": "shot"
+      },
+      {
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2,
+        "anchor": {
+          "label": "Deeper",
+          "last": true
+        },
+        "id": "deeper"
+      },
+      {
+        "id": "deep-stacked",
+        "action": "shot"
+      },
+      {
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2,
+        "anchor": {
+          "label": "Deeper",
+          "last": true
+        },
+        "id": "back-deeper"
+      },
+      {
+        "id": "returned-more",
+        "action": "shot"
+      },
+      {
+        "id": "back",
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2,
+        "anchor": {
+          "label": "More",
+          "last": true
+        }
+      },
+      {
+        "id": "returned",
+        "action": "shot"
+      },
+      {
+        "id": "more-again",
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2,
+        "anchor": {
+          "label": "More",
+          "last": true
+        }
+      },
+      {
+        "id": "close-submenu",
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 25,
+            "y": 830
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2
+      },
+      {
+        "id": "closed-submenu",
+        "action": "shot"
+      },
+      {
+        "id": "open-again",
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 0,
+            "y": 0
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2,
+        "anchor": {
+          "identifier": "menu"
+        }
+      },
+      {
+        "id": "close-root",
+        "action": "gesture",
+        "points": [
+          {
+            "t": 0,
+            "x": 25,
+            "y": 830
+          }
+        ],
+        "upAt": 0.12,
+        "after": 1.2
+      },
+      {
+        "id": "closed-root",
+        "action": "shot"
+      }
+    ]
+  },
+  "captureGitHead": "740ed11f2e05dc2b5619c923298e752dfeeb324f",
+  "sourceHashes": {
+    "lib/foundation.dart": "09c8b91bb3c1636a7b4d45f1a717313aed2db4395ac34b48cda02bb1b435c687",
+    "lib/src/anchor.dart": "1e20fe0990dd730f837462cf525a9d9e6181f4e039d254c5bcf2d9c20f8b748f",
+    "lib/src/benchmark_scenes.dart": "c9127b1dc2f26b493763abbb38550d0573e06124a71ed2c51297fed2c9cb0e3c",
+    "lib/src/controller.dart": "6ca46f59ff634a6f004ca863fe466cc7547342e42840b0d0141518cc24d27d0c",
+    "lib/src/flight.dart": "b41340b9ed999fe14e232d89a3224ba53bd5c026ba6754a4252bf25899fd2526",
+    "lib/src/frame.dart": "e864266d30f684a8d1e4eff921d4cc28caf364a4c3a4495a935179beff03d8de",
+    "lib/src/gesture.dart": "3df123fbb09ac8c25fe181740951e59decd1ca8ba96cba3b73a1090f2caddf24",
+    "lib/src/glass/renderer/fake_glass.dart": "afe87c016131e13010e0609399a339815567d4f0b37e9fd56ef207af5381023f",
+    "lib/src/glass/renderer/glass_field.dart": "6795f0391fe4301bec3e7b1afcdeb8ec10b63ce48a97760429ace825f53f2e15",
+    "lib/src/glass/renderer/glass_shadow.dart": "6c2340cf3384e74a1fc3f8afa51da2804b9f073be2410ba5574300521c965dcd",
+    "lib/src/glass/renderer/internal/ancestor_clip.dart": "9ec68fea5ae2401c924ee2ef491c1a76ef0793171f2ced4733990ccacf9955a7",
+    "lib/src/glass/renderer/internal/backdrop_capture_debug.dart": "f38aec8999d73208ccfe3d6d206aff37a00073aaa04f2a3dad8afc8b62f4a68c",
+    "lib/src/glass/renderer/internal/content_snapshot.dart": "c31b7004b1d6bf2fe8603f6e9858365b1e618a59345a09a7b2fe27683645c281",
+    "lib/src/glass/renderer/internal/fake_glass_color.dart": "265cec365a52dbe3693670e7e9b317e31af573c1d71cb1a7357a161b801ee8ec",
+    "lib/src/glass/renderer/internal/filter_pass_transform.dart": "c3d7d8143267ca18ae7174a0791efe141eb2a0fb6c594a07fcd3956ead382e40",
+    "lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart": "a55b67b87dad64ddd4e33ae9a0512dbd8c86ba5a3ad6f2699cfc60c11e2605b1",
+    "lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart": "c653e479470709293e219929eb361739282b6be60377c19cf2d1ec9e7eb72651",
+    "lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_web.dart": "a0eeaba8601c50da50ec4c6d843a4bbe987876b6b3eab52e4edd7849d2962c0b",
+    "lib/src/glass/renderer/internal/glass_composition_probe.dart": "38f3c479814ffdd74d2302754a2cef60376c1b4ac045e6ec674926a1f2bcfa21",
+    "lib/src/glass/renderer/internal/glass_defaults.dart": "2e7385ea6af1118e8d648e94431bbd2c44130f1a57a13a821add41ecc0165af2",
+    "lib/src/glass/renderer/internal/liquid_capability.dart": "9728ae35bd7cf54bf30ad482206f1e57c5fe2bdda9f910921f9cf728c0429cce",
+    "lib/src/glass/renderer/internal/multi_shader_builder.dart": "0a528d1d9c0123ff7318bb36131c186817b05b168976b920a07fbe3618b2d335",
+    "lib/src/glass/renderer/internal/optimized_clip.dart": "684526e7df44b158007e899bc4ae9b92fb5a9e6bd5d3c88b4e5b42b01751d177",
+    "lib/src/glass/renderer/internal/paint_fake_glass_surface.dart": "359c07b62fc6afb053a312e0edfe72c02ace055e8d25c9a991aa20e22af48bb6",
+    "lib/src/glass/renderer/internal/render_liquid_glass_geometry.dart": "e0a96b5ddd2f96416d05c7cfc45fe69585f975a5f2e8ba405cc1f250b60a01f4",
+    "lib/src/glass/renderer/internal/retained_glass_clip.dart": "fc65aab41e6faea9aca58ca2926f4363f353f89d1b0194317de2464a64a1aca1",
+    "lib/src/glass/renderer/internal/rounded_superellipse_parameters.dart": "cdd802cc1d24287f5858d5a23cb294dd1f8b882e055f55ad1d1627c46f9c191c",
+    "lib/src/glass/renderer/internal/snap_rect_to_pixels.dart": "f9cc984b31dfc3e337049ea168bd08bd823e2a05d964b5c66b5ff9043b926334",
+    "lib/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart": "83851b27157b73f520f5014c2ff8e2bec3787cb0f7b2a8b993c9b16e07a4cdd7",
+    "lib/src/glass/renderer/liquid_glass.dart": "5c29481a0f852996560f6a9f59f5c1a3ff34c6560588beda5e0cef51b14b4f4d",
+    "lib/src/glass/renderer/liquid_glass_appearance.dart": "78c089c7f54a558cdc2cd7c7ce768b5751efc94d7926c54222c0bf9a904c1f53",
+    "lib/src/glass/renderer/liquid_glass_color_model.dart": "a0bfdf6dcb12056d06d554caa9b8b687ba3a1ce6dddd32bcf6edfa6bbe4fc2c4",
+    "lib/src/glass/renderer/liquid_glass_render_scope.dart": "8edebaf5db4bce9ce48382a5be6233dd50c52c86d7d1229a95fc8924920321ee",
+    "lib/src/glass/renderer/liquid_glass_settings.dart": "2c880098e7040972d80c79c2f14512c09159f75b00b77ae2a4e6b58c713451d3",
+    "lib/src/glass/renderer/liquid_glass_visibility.dart": "136c2503ce1eca069b8c194097cfa343b939c3effdffeca567ad29c2c7400ec1",
+    "lib/src/glass/renderer/liquid_shape.dart": "b0752bf95825d810f52f89a543c6513f5c751cd357cb436776336d00f5f250a3",
+    "lib/src/glass/renderer/renderer.dart": "33a1a77a84c92e9f9997f342626a89729c6adb851b0b955f5a842c4b600dcb55",
+    "lib/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart": "754b1f912c4b6c1f5a3a2264601ad530cc791a806f2f2061c18cd5d465e50ae3",
+    "lib/src/glass/renderer/rendering/liquid_glass_layer.dart": "39614c1b3f286c7dde69a777506ae4cae4249b3a80051917e00b45a2f7166f91",
+    "lib/src/glass/renderer/rendering/liquid_glass_render_object.dart": "dcedb20294b7861f87a5e260492c2b6f7c75b3767a8f161e510dfd210aab17af",
+    "lib/src/glass/renderer/shaders/fake_glass_shape.glsl": "bf7793b26533f6b00e1f0ed6f21ad4bf609a4ee8434ded745a637f6d7956b59c",
+    "lib/src/glass/renderer/shaders/fake_glass_surface.frag": "df6e9b0ec791dc9856bb45fba5bafd66c5a4293c641e7e661e01b6533044ca9b",
+    "lib/src/glass/renderer/shaders/gpu/displacement_encoding.glsl": "2070d3d537bd05e049f3dd0c25caf533b352e3fb8a8bdd469fcd3c37ab1735ff",
+    "lib/src/glass/renderer/shaders/gpu/geometry_field_fragment.glsl": "62a3da803d401d9f0bde00404aa01d641d889d00b32ac8271d3321a6f2387190",
+    "lib/src/glass/renderer/shaders/gpu/geometry_fragment.glsl": "5e288901fe0990a4ac765bfe2f57325bead9d60171d55a4373277a3c1cdeae54",
+    "lib/src/glass/renderer/shaders/gpu/geometry_vertex.glsl": "9c688a341c5da32249c4b3b26ed5e28581155fbe435950304c0230396af4480e",
+    "lib/src/glass/renderer/shaders/gpu/material_gradient_fragment.glsl": "74c3d8c7c2bb4571e79232812d7abd6ee0c62b134641cf4cec7d8c930da9844b",
+    "lib/src/glass/renderer/shaders/gpu/material_sdf.glsl": "275915e8b65bd7f3b23ae88ae5c679f514f2eef539fdfd205870b692623fff9e",
+    "lib/src/glass/renderer/shaders/gpu/material_tint_gradient_fragment.glsl": "f04c2dd5bb998082e904d984ffa8734fa982b085c743adf5746855f02fe46f82",
+    "lib/src/glass/renderer/shaders/gpu/sdf.glsl": "ba50f647375dc795fd41f88d79183aca4b3b7ba7b52432c827f995a5bd475b28",
+    "lib/src/glass/renderer/shaders/liquid_glass_final_render.frag": "97ace340a6269158785ff95bc7fb8f8216e947505d78167309b5f8e45789be70",
+    "lib/src/glass/renderer/shaders/liquid_glass_final_render_core.glsl": "16915049dfa1b98ca7d748ecae439ca5430f89389ede9a0974c56d7fb4b50912",
+    "lib/src/glass/renderer/shaders/liquid_glass_final_render_material.frag": "3cd597dd2b04a54525264342b4d4158a6a8d066edbe6896c5af564d24e9a64c9",
+    "lib/src/glass/renderer/shaders/liquid_glass_final_render_tint.frag": "38cdbc9e0e498cd4dbae8b002bda9261ec9798fe788adbc30801080d83770e83",
+    "lib/src/glass/renderer/shaders/render.glsl": "b908cdf6d5cb8e63ea0ef6b9ff86705bcbe938ffc97682325872732e18d1cfe4",
+    "lib/src/glass/renderer/shaders.dart": "ca91b4a5dc7a4ae8e0038d2dc8806bef8f0af535524a8aebeca76d2eaf0eafe3",
+    "lib/src/liquid_field.dart": "a688ec5d6609961d125b99e98982485448c56f2bb0af909e8486957dcbdc77d6",
+    "lib/src/measure.dart": "6c7b94c0e01923c16878a75a5f6c7b78b5cf1b903e7e1f446917cead9731792b",
+    "lib/src/motion.dart": "cd5c3cebe8742b4864610d2a54df9336ef8444957b3afdb6c244f60cf8640dac",
+    "lib/src/route.dart": "a745695cd65cabb07cb48de0ec896e6cb5d49abd9be67695efb1bb89d5169467",
+    "lib/src/scope.dart": "7d856c0364fe93b5bedf8387ba3ca7923e319c2d3ac20bab4186ce687e7175ba",
+    "lib/src/scrim.dart": "647aa8b3303a030fdc361c1efec66311c7c164ca8cc7ae2dd796c81f488b496d",
+    "lib/src/shared.dart": "90ae9ee36c56116c5f70fafe239f3eddb077bb4f4e6d8f2a885523348d84544b",
+    "lib/src/show.dart": "5d43c4cd8159861cabef77b60f3c7d5d4e1bdfa22fe8c56df144129cc54fee9f",
+    "lib/src/skin.dart": "abe7cbb23a1c06f36f344f3b8135ad0930f48bdc62d43f34d8af42b46370d644",
+    "lib/src/spring.dart": "b3ff495ebe95f60b6508630cda2ed74fc32ba451bacb411d8776701137effdcc",
+    "lib/src/target.dart": "94f7580f85bcc5e61cd19c3f7aa642ba401d4674caf4024ecd395605903315fd",
+    "lib/src/theme.dart": "ed4c0b22d4542a0a84ab274d8d1fb054b78f6dd50e28753866327e4e1b54446f",
+    "lib/src/widgets/activity_indicator.dart": "9cd49ac1dbf095ba8c6d157e74a1a0e728a4047d43948da7d0405ca8169d350a",
+    "lib/src/widgets/alert.dart": "4c03c3618bd8a75646076e83a26127edabea1a8d4b3db0934e8ebd669a085947",
+    "lib/src/widgets/alert_motion.dart": "848c74a98b9f83324fd9e51398ca13aa588ef853d68863a2a340f758ba1c3ad1",
+    "lib/src/widgets/bar_items.dart": "e4e4c5c000b22415fd7d6e2e30faedf2eb87a3c1b036d30773ebc934eec25ee5",
+    "lib/src/widgets/bar_motion.dart": "7008050b0b2d8bbca70c08c0a7dba252dd78925480320b027e094c8db2fc409b",
+    "lib/src/widgets/clock.dart": "251ed23454ac2640edd13f4b2477d007f623e111f3111ffce9509d048034af3e",
+    "lib/src/widgets/control_focus.dart": "8a9df42a5489e0ff32cca4023f24043ed9c1d8cefa6684ad66920756cd5e09ad",
+    "lib/src/widgets/control_host.dart": "2539f8d61dedd3965a290ab8ab92aeb92bc78bdf61d3e57ab2ed82309de7b57b",
+    "lib/src/widgets/date_picker.dart": "93bd319679e2db1f1df5b8c5cc8f370b758024a220484a11f06386261ce7c2ae",
+    "lib/src/widgets/date_picker_motion.dart": "f6db730fdc405948887304282a0d1b3712397177966fed028148fcf75fc79dcc",
+    "lib/src/widgets/flex_integrator.dart": "e2ff88c46350415c767e6f4a8a261a29a63a8f711e54dc1b82a25bed0830bacd",
+    "lib/src/widgets/flex_spec.dart": "3e620750da457f862a0c619f02820663b1de6117b021c346e0497a53634529d8",
+    "lib/src/widgets/glass.dart": "5265397134cc12bf56ccf08ba3c4f07044c9b46398fe4b4156e6c0491b369e44",
+    "lib/src/widgets/glass_body_shadow.dart": "0a94ec4d68a45ec12017c3aa6039fbeaa6b220fa1ad87e2df71aa8fe9053f6e4",
+    "lib/src/widgets/glass_button.dart": "ff925d64c49f6ec616a03f36b2093e31f15eee62c609f2e56f981e5c32687ee5",
+    "lib/src/widgets/glass_glow.dart": "9c6631b32abe4fd5f6141845157cc8ac96de29d35f866dfce796b5b23c5a2f2f",
+    "lib/src/widgets/glass_liquid.dart": "08766002eba889babdee4de68ba015fa0d1f68b024cd81bfc450ee4af4f9a63f",
+    "lib/src/widgets/glass_liquid_native.dart": "fbb5625b3f9ced11cfea576833255219846df798cf428ce0ef8e4c00d8bedf75",
+    "lib/src/widgets/glass_liquid_web.dart": "9c2293eb6464c440c2abea388dc4711cb7da9b85cdbd6e3e9f49d0d90673425b",
+    "lib/src/widgets/glass_outline.dart": "475ed528c9482b5786c3da5e5df06937eed264a02d7d9d472d5a39fa6fcb3b08",
+    "lib/src/widgets/glass_renderer.dart": "a9c99c43e6672a2c757bc6466b0da73204bc22b960f8493a55a85e981335a27d",
+    "lib/src/widgets/glass_tier.dart": "d5bd5568da78c3816715c84232a8d5e262099b017b113d3b02e15c53317baf34",
+    "lib/src/widgets/lens_driver.dart": "b4a3ac191877a617972126acd30798776ed7a35d14cc8da361f6d2932ed3f5c3",
+    "lib/src/widgets/lens_motion.dart": "7e67539269bad6e26c14ef5b1967f64f3809fde30ab3393660fb2c9e12ab5023",
+    "lib/src/widgets/menu.dart": "e5d0317828114fb3a827c3f02f0dfe37dd90563324bda149ec119337e5c3ca31",
+    "lib/src/widgets/menu_content.dart": "760e2f5b8b67d215d8ad709ab77299835971de39484059969ab8948d7cd6516f",
+    "lib/src/widgets/menu_entries.dart": "db7027f0fc4b0e887b0cae6884c57fdffc2927a580288a199cb48b3bcaf5fbf2",
+    "lib/src/widgets/menu_fusion.dart": "0a243ba5adf14cb52d5db454da558172cdf68d90d3a7d9cefc2145524e95691f",
+    "lib/src/widgets/menu_host.dart": "54e5507366523ad8b02e2707bb4553b24da0a5b794ecfbd37e72b2ab5899fe74",
+    "lib/src/widgets/menu_layout.dart": "6dd47d156e5e3055965ba5c84398c59957212f014960f6c4a1943018f6c59aa1",
+    "lib/src/widgets/menu_morph_spec.dart": "0e76844b2b8b80dc422e913a99d190a3e2cfb8f32a92b0698d74211b9d780607",
+    "lib/src/widgets/menu_motion.dart": "46485b586b2531c133fed6821e1ed59536f1f158d8a010c09a6a25aa666aa423",
+    "lib/src/widgets/morph_context_menu.dart": "b8ff95754befcdbb7645eac6b964adf25d8793701a1eeb9694cbce06e17a0d07",
+    "lib/src/widgets/motion_route.dart": "dbe8cdff108304f0f95d8b89ac3edbe422a30d378d9ec3d762d4a83e21294f0e",
+    "lib/src/widgets/navigation_bar.dart": "832805459bb76a9435476418b119df7bce10bb68b107f772818fa076160a129b",
+    "lib/src/widgets/navigation_motion.dart": "dda84f714f43047749dd1f0f3fd4508e898cd22f73863fa9602ed89f969a4acd",
+    "lib/src/widgets/navigation_stack.dart": "8d576b192f80fa2fa2bec8f1e07b882dc03a8e7b13c0c0c26dc98ca770a156f0",
+    "lib/src/widgets/page_control.dart": "039dde7e5439ab1c8b4207641bb4a4706633eb7274dac006c31be3dbb1455f78",
+    "lib/src/widgets/progress.dart": "a766475f9cca21e5f7e44036568df0b9276c4b8b1a7aff61f2afc915d6d43dcd",
+    "lib/src/widgets/push_zoom.dart": "22a00adf8ec6d469516a020ca05e41f4cea33f2f8c8ce593a1604f30bdbf6285",
+    "lib/src/widgets/push_zoom_motion.dart": "844592738f24aa341a5209978798360f3c6c314c3e45095e8c691e53a1c6f644",
+    "lib/src/widgets/scroll_edge_effect.dart": "6c0af82e656892e400102fec4f32f76f5afc332fe272330243213a1ac21f344d",
+    "lib/src/widgets/search_field.dart": "a765926a5076467bbd8131c72dd6cbb82ba777a9253fe8ae816929f71cb593ab",
+    "lib/src/widgets/search_motion.dart": "5f4e8d4614a0a081b0b19275ce628f093ffc095ca50afe13bafd013eb450828e",
+    "lib/src/widgets/search_tab_bar.dart": "e5bf69e759b1fdb704a2106aa07ed50e0e363057c0dbc3cd08e5a3153b883bd1",
+    "lib/src/widgets/segmented_control.dart": "42e9c306145cf96533e46ed36637cb309af95439c7841c861e8b392fd0fffa11",
+    "lib/src/widgets/sheet.dart": "0d57a78b6b5dee49b44849376a5e5cdf22b01052343d5ec1facd3e5e2988ac75",
+    "lib/src/widgets/sheet_motion.dart": "964c3f95beda551d0c8c928f0466ca2e407b36796e3e0118a3223707e5dd85f1",
+    "lib/src/widgets/slider.dart": "fdc66dcbce4cc4f099243fbbcfe72a003511e6ebdade631300b4f2406e6f3a92",
+    "lib/src/widgets/slider_motion.dart": "d3a28f74d2c8846f4ec12514be7e863262288752cfe5b1ac4c918586729d6615",
+    "lib/src/widgets/small_lens.dart": "1eb42373355964b1a3dd9494243b372429b42649cab8696109177bd6e4a33854",
+    "lib/src/widgets/spring_state.dart": "edea38cd792f10dfd7be0defaa1a5058164ee0e1157516b84bc62d056434cad2",
+    "lib/src/widgets/stepper.dart": "6d36d1601e640f9214f2e41b37b9ba386cb5de51c71afd0e47db50d1efaae60b",
+    "lib/src/widgets/switch.dart": "8b41579c64eb07e5519a21916a2b578164dfd588a58f1dbed80e8d95d84b562e",
+    "lib/src/widgets/switch_motion.dart": "1804a063ebd02537c4f48376b8705cdcb966741507586cd9b1eb7917a8cadf72",
+    "lib/src/widgets/tab_bar.dart": "aa8c41f8e30f5cf2da3704127626e4f5744270b8f3f570090ab147ab0894f79f",
+    "lib/src/widgets/timeline.dart": "5f7d006ab2010b86ff905a90d3a8c95fdda1c6cb628adeadedf3ea53870a65ff",
+    "lib/src/widgets/toolbar.dart": "2d1699e4b6c52c90a22891b8ecb8227fc16536e9bbb6e9490cd6bb76c9947c96",
+    "lib/src/widgets/touch_listener.dart": "fa1f8911fc881ecbdfd34ed8a1bb3ea1a47a60a8f6a119b9f645eba0bdbcb6f2",
+    "lib/src/widgets/typography.dart": "f2ccf8ab1c3f1b080c6407fc632d85334f9e9023d4195784718e7ee61b7e84ac",
+    "lib/src/widgets/widgets_theme.dart": "c2d04cf64bfd64a50e16706b8622fc0e0ae994939555f12c90f0e983ba9a5d00",
+    "lib/src/widgets/zoom_motion.dart": "7bfc24f2377944988910a4fe0545408ac47220565bcc6b27dc14365103ad22c2",
+    "lib/src/widgets/zoom_source.dart": "516ba9b0c2f380b07c78427abda66198f83ac612e3206b44c76c66b0330db745",
+    "lib/widgets.dart": "6d53b7f571ecdc64fe4a34316e041b22a01d252ad72577ce3eed87cff3cbe7b7",
+    "example/lib/autodemo.dart": "9a2837cbe83cea8b7abd1c790f67603c2db44da16bd57f622b735b77207351af",
+    "example/lib/gallery/alert_page.dart": "0a5537d508d5bc779344b9ba2f40a61034a7b99ccb0bc238495e1a812d8f3d57",
+    "example/lib/gallery/control_pages.dart": "54e9a4cec850df167512c847bf656793700ab345a8fcc915ea54df84548fd1ea",
+    "example/lib/gallery/date_picker_page.dart": "dc5f22e7830c7902f77ef37ce2c56af6aa934900988f04fb823752459bc72a94",
+    "example/lib/gallery/gallery.dart": "b4a86c7f87a9c6c0cc82384ead1ec50a61a4ca11f66041f01ad2417b7bb669c9",
+    "example/lib/gallery/glass_page.dart": "decf3bc2a3d05189492d6ad74e8bd2bee7aa739577133c863c62353a3b099c91",
+    "example/lib/gallery/glass_settings.dart": "aed06a26396b16b9e4daea0b571dbda57ea4c76e1974a1cf18c364d0860a4c46",
+    "example/lib/gallery/indicator_page.dart": "b8694e4c46e0cb4618ce184bf5946ae8795703a56e0449e966d7e524a585f9a5",
+    "example/lib/gallery/lens_pages.dart": "6699c4d324690c9ec68308a5b9988ff082479acc24ce8969dc55bd3b43338368",
+    "example/lib/gallery/menu_page.dart": "6bf5fe25fd589488f2f9046a5547dfa79eb688c6f6c14c226d546c233074a541",
+    "example/lib/gallery/navigation_page.dart": "4b79c554bb6f7234afc2661b3455ef8d2eab545504bf50a3a4643719ae1ac34d",
+    "example/lib/gallery/search_page.dart": "cec8bdb993738b35e6051b8d3919aa42f83bde6e30f6939de7fc0e5cf952e30a",
+    "example/lib/gallery/sheet_page.dart": "03a2eef96b74c7069a66178bf52f89970d92bfbe02fe13c547a6cd05bdda6749",
+    "example/lib/gallery/spec_inspector.dart": "8781e4fb5f2801d3dfed859942756cef0a3f913a17028247076ea91fdb6a25cd",
+    "example/lib/lab/lab_app.dart": "721fcea7461fcf077ba8c787f8308985d4123efbf9ac74829d91a749cd2ae37a",
+    "example/lib/lab/main.dart": "cab777eaf099594da0d91c272125e51111cf23744371f92b62d3a3f0a6dc48a7",
+    "example/lib/main.dart": "623ff71808e698d49c575370de4aa424e82d1169ba91c7d49ebd9cac32285e8a",
+    "example/lib/perf/release_bench.dart": "da1f7b68e7adc99400e5b2d36f50bc871a7748d3a5eaa46ab2862eaceb6422bb",
+    "hook/build.dart": "7e4facaa53279658fda6d20c09617e90320105823c2b207c1e6092abfa69ca7f",
+    "tool/ios_reference/Sources/App.swift": "92646f658e8ed175edcc9e90b9f856d0400dbeadc74483e2fa41927bc9e4dd38",
+    "tool/ios_reference/Sources/Bars.swift": "0235b5489b0acca43247dd229c75b1b661ebdb05608efd3040fbbda7288560bb",
+    "tool/ios_reference/Sources/Controls.swift": "c7bf87c92d0e9c441d396e700ced43bf8bffcd9530bcfb9da26236b9cd78c892",
+    "tool/ios_reference/Sources/Extras.swift": "7a4c7d25db34992316996cdc53d92fea397b1b0442cb9b76b73f89b71b4dc398",
+    "tool/ios_reference/Sources/Lab.swift": "1d02535ec142db86a6bbf1a30cbeee1bea7ee9cf61873d4397d82e1b797a62d0",
+    "tool/ios_reference/Sources/Menus.swift": "3112dcf0ca5f09419b2d84d0b4ac02a50ab5720db28fdcf7d76697abcd43faae",
+    "tool/ios_reference/Sources/Merge.swift": "5ddf01ac6d8ca861df56a0f2241df40531a7cc30d1c0bc0ef053aa7334118298",
+    "tool/ios_reference/Sources/Recorder.swift": "eb19fe7cea2031ce51abeac18aba7afce6b981f3059325f648f2fa13c5a5bb5a",
+    "tool/ios_reference/Sources/Scenes.swift": "49c89113fb38a072cf7fa85fa9b137ec9153a172bc08718a0eb9dddd5909d0d7",
+    "tool/ios_reference/Sources/Settings.swift": "de95d471ee2f4ce029e9fd638c71616ccb9ef70cc139de875d6682d4a67856ff",
+    "tool/ios_reference/Sources/SheetNav.swift": "d6df22d09ab1247aac6ce5123e85d8ba0d54df8812d2ff3db2f10d51c4eddded",
+    "tool/ios_reference/Sources/States.swift": "2be19f03817fce6a9283961947736f0573571d6b47ce0fd46e8ab64edbce8194",
+    "tool/ios_reference/Sources/Typography.swift": "9f9ef2c28051e05f46eae0aabe6826b14f8baf01d0761abdde5a2e0bd2b1b7fb",
+    "tool/ios_reference/Sources/Widgets2.swift": "511461fbf266349d2db4723d3dd162c34c245cb5492ee863e1685637e679eb74",
+    "tool/ios_reference/UITests/BarsUITests.swift": "f13990ff770912fd2b45f4b13294fc9197299462158392867ac1c3105ac8a181",
+    "tool/ios_reference/UITests/ExtrasUITests.swift": "93b81834aeb5e3359a2b5c8ecc9b0feb54bc46cf9acbf094474c9fc260c2a68a",
+    "tool/ios_reference/UITests/LabUITests.swift": "3a00e14c2a2a1765a04f4f80a0ffe4c5938088acd9c63af6617f8a54fbdeeb20",
+    "tool/ios_reference/UITests/MenuAPIUITests.swift": "7a07ea0410d34f56a60a58004124371ab88054264388fd496d6ae1317698b03b",
+    "tool/ios_reference/UITests/MenuAnchorUITests.swift": "18ce5d8ef252a7205caa39a6321a7045cef76665d4a407d71885370edb97652c",
+    "tool/ios_reference/UITests/ProbeUITests.swift": "3404549163384c5da1c23bcd71b2977bdb9914f3092c5530627a194e7b770db5",
+    "tool/ios_reference/UITests/SheetNavUITests.swift": "dedebbe39d94126e0d278e958c07b24b92b872f0c0af325a4e6b405ff6591bc2",
+    "tool/ios_reference/UITests/StatesUITests.swift": "e3316bad9847200432b686b6f84c05d242be71f457a7b7e90990a2279bd69994",
+    "tool/ios_reference/UITests/Widgets2UITests.swift": "f5887231c4703740829305df885bfe6560b49b78c4c69db73f7419f039df565c",
+    "tool/ios_reference/lab/morph_lab/__init__.py": "27e8febb48ada44153ea2add9969a2c50a9831a74d9755fdd53c549a888b1cc2",
+    "tool/ios_reference/lab/morph_lab/analysis.py": "e518f04c6899185720ce95333d4a3baad4dcc24f3bdd81b264ecd1299f47d97a",
+    "tool/ios_reference/lab/morph_lab/capture.py": "e4542053c2db7fac2c616f59c7390aa136fbd208d96b3a60e6a53d7be972ba29",
+    "tool/ios_reference/lab/morph_lab/cli.py": "8dba4d40526aa3e690c39c83e165a947ee409d11c8acacb8a8f68702ae71bd17",
+    "tool/ios_reference/lab/morph_lab/fitting.py": "c9a69f1f541057e3125cc2c9e80013c5caefefbb740d57d252192412cad4158c",
+    "tool/ios_reference/lab/morph_lab/images.py": "f3ad20805e4b40f1dc323afff398d1c65a474d72a85b10c27b994a4e848e0f56",
+    "tool/ios_reference/lab/morph_lab/report.py": "9219cf9e622ac8cf0b12be49e3363ede57b7e32dc77cde88fc9ba65b57640f33",
+    "tool/ios_reference/lab/morph_lab/scenario.py": "72c5a8879a8e6bd19b97bff29d17eed011046bb5fdcbd35c4929eadfc9e7f90d",
+    "tool/ios_reference/screen_recorder/Info.plist": "458e3a064e49b875e8bfdc61e948bfd6b32ad094bf2eabb345bf950df63054aa",
+    "tool/ios_reference/screen_recorder/build/MorphRecorder.app/Contents/Info.plist": "458e3a064e49b875e8bfdc61e948bfd6b32ad094bf2eabb345bf950df63054aa",
+    "tool/ios_reference/screen_recorder/main.swift": "a4060a633cfc7b1c6d7640a569afdf5ff899114771f3e335c618c643d6fd06b8",
+    "pubspec.yaml": "70cb8c0c4515f45edf08d2fca777fbc32d6def7436dfa04cc139146ca43c27db",
+    "example/pubspec.yaml": "4b8ea0e4c4a76fcd34c3b9016096a6a18c73ce68f6ee375a62db14e69f068799",
+    "example/ios/Runner/Info.plist": "f2024a398a4ac70cc1ae68d1e6616083b83e45a49b484c6181bfb711a992ba23",
+    "example/ios/Runner/AppDelegate.swift": "451c6d9ba0a2b3ff43092ea349c60fa79a91f1158b915eb29dbdd357cb95d7b8"
+  },
+  "captureValidityPassed": true,
+  "fidelityCertified": false,
+  "failures": [],
+  "input": {
+    "nativeCount": 9,
+    "candidateCount": 9,
+    "durationErrorMs": {
+      "count": 9,
+      "rms": 0.3920010683513249,
+      "max": 0.7505416579078883,
+      "p95": 0.6907249975483865
+    },
+    "startDriftMs": {
+      "count": 9,
+      "rms": 424.7625831940742,
+      "max": 573.0904999945778,
+      "p95": 572.1944166638423
+    },
+    "pathErrorPt": {
+      "count": 138,
+      "rms": 0.19245008972988642,
+      "max": 0.33333333333337123,
+      "p95": 0.33333333333337123
+    }
+  },
+  "quality": {
+    "native": {
+      "metadata": {
+        "side": "native",
+        "rm": false,
+        "os": "27.0.1",
+        "k": "lab_start",
+        "h": 874,
+        "maxfps": 120,
+        "id": "menu-return",
+        "sha256": "6bd6ddaa06a730087c442f478da5cba5f9d5b9484858bca3944fa5df9ad6d30c",
+        "t": 204961.33518770838,
+        "scale": 3,
+        "rt": false,
+        "w": 402
+      },
+      "errors": [],
+      "cadence": {
+        "count": 3253,
+        "medianGapMs": 8.33474998944439,
+        "p95GapMs": 8.33475001854822,
+        "maxGapMs": 106.71633333549835,
+        "achievedHz": 119.97960361935966,
+        "gapsOverTwoPeriods": 17
+      },
+      "markerCount": 3253,
+      "semanticAssertions": [
+        {
+          "actual": true,
+          "expected": true,
+          "id": "root-footer",
+          "k": "lab_assert",
+          "t": 204967.37243500006,
+          "source": "XCUITest runner journal"
+        }
+      ],
+      "samplingCostMs": {
+        "median": 0.7483333465643227,
+        "p95": 1.302483334438875,
+        "max": 2.6814166631083935
+      },
+      "touchClockBasis": "delivery",
+      "timingUncertainty": "native marker predicts targetTimestamp; Flutter marker is logged postFrame; physical presentation is not timestamped",
+      "usbSource": {
+        "cadence": {
+          "count": 1830,
+          "medianGapMs": 16.666666662786156,
+          "p95GapMs": 33.349999983329326,
+          "maxGapMs": 550.0833333353512,
+          "achievedHz": 60.00000001396984,
+          "gapsOverTwoPeriods": 9
+        },
+        "delegateDropCount": 22,
+        "encoderDropCount": 0,
+        "movieAcceptedCount": 1800,
+        "firstBuffer": {
+          "attachments": {
+            "CGColorSpace": "<CGColorSpace 0x756160d5c0> (kCGColorSpaceICCBased; kCGColorSpaceModelRGB; QuickTime 'nclc' Video (1,13,1))",
+            "CVImageBufferColorPrimaries": "ITU_R_709_2",
+            "CVImageBufferTransferFunction": "IEC_sRGB",
+            "CVImageBufferYCbCrMatrix": "ITU_R_709_2"
+          },
+          "height": 2622,
+          "host_t": 262499.0524210417,
+          "k": "capture_buffer",
+          "pixelFormat": 846624121,
+          "pts": 262498.92833333334,
+          "recording": false,
+          "width": 1206
+        },
+        "note": "delegate drops do not include upstream USB omissions or movie-output drops",
+        "movieDecodedCount": 1800
+      }
+    },
+    "candidate": {
+      "metadata": {
+        "k": "lab_start",
+        "t": 0.002965,
+        "side": "flutter",
+        "id": "menu-return",
+        "w": 402.0,
+        "h": 874.0,
+        "scale": 3.0,
+        "maxfps": 120.0,
+        "rm": false,
+        "rt": false,
+        "os": "Version 27.0.1 (Build 24A446)",
+        "tier": "liquid",
+        "sha256": "6bd6ddaa06a730087c442f478da5cba5f9d5b9484858bca3944fa5df9ad6d30c",
+        "rtSource": "XCUITest runner UIAccessibility"
+      },
+      "errors": [],
+      "cadence": {
+        "count": 3240,
+        "medianGapMs": 8.34299999999999,
+        "p95GapMs": 9.185499999998825,
+        "maxGapMs": 25.859999999999772,
+        "achievedHz": 119.86096128490966,
+        "gapsOverTwoPeriods": 9
+      },
+      "markerCount": 3293,
+      "semanticAssertions": [
+        {
+          "actual": true,
+          "expected": true,
+          "id": "root-footer",
+          "k": "lab_assert",
+          "t": 205061.16523070837,
+          "source": "XCUITest runner journal"
+        }
+      ],
+      "samplingCostMs": {
+        "median": 0.710999999999018,
+        "p95": 1.2270500000000515,
+        "max": 3.591999999999984
+      },
+      "touchClockBasis": "delivery",
+      "timingUncertainty": "native marker predicts targetTimestamp; Flutter marker is logged postFrame; physical presentation is not timestamped",
+      "usbSource": {
+        "cadence": {
+          "count": 1688,
+          "medianGapMs": 16.666666662786156,
+          "p95GapMs": 33.349999983329326,
+          "maxGapMs": 166.68333334382623,
+          "achievedHz": 60.00000001396984,
+          "gapsOverTwoPeriods": 7
+        },
+        "delegateDropCount": 0,
+        "encoderDropCount": 0,
+        "movieAcceptedCount": 1684,
+        "firstBuffer": {
+          "attachments": {
+            "CGColorSpace": "<CGColorSpace 0x7a136295c0> (kCGColorSpaceICCBased; kCGColorSpaceModelRGB; QuickTime 'nclc' Video (1,13,1))",
+            "CVImageBufferColorPrimaries": "ITU_R_709_2",
+            "CVImageBufferTransferFunction": "IEC_sRGB",
+            "CVImageBufferYCbCrMatrix": "ITU_R_709_2"
+          },
+          "height": 2622,
+          "host_t": 262595.2432982084,
+          "k": "capture_buffer",
+          "movieAccepted": true,
+          "pixelFormat": 846624121,
+          "pts": 262595.10743333335,
+          "recording": true,
+          "width": 1206
+        },
+        "note": "delegate drops do not include upstream USB omissions or movie-output drops",
+        "movieDecodedCount": 1684
+      }
+    }
+  },
+  "film": {
+    "native": {
+      "decodedCount": 1800,
+      "mappedCount": 1279,
+      "duplicateMarkers": 13,
+      "imageMetadata": {
+        "width": 1206,
+        "height": 2622,
+        "mode": "RGB",
+        "iccSha256": null,
+        "gamma": 0.45455
+      },
+      "cadence": {
+        "count": 1800,
+        "medianGapMs": 16.666999999999987,
+        "p95GapMs": 33.333999999999975,
+        "maxGapMs": 549.999999999999,
+        "achievedHz": 59.998800023999564,
+        "gapsOverTwoPeriods": 11
+      },
+      "activeDecodedCount": 1279,
+      "leadTailFrames": 521,
+      "decodedMarkerCoverage": 1.0,
+      "ptsAnomalies": {
+        "duplicate": 0,
+        "backwards": 0
+      },
+      "gestureCoverage": [
+        {
+          "stroke": 0,
+          "start": 0.0,
+          "end": 0.624091125006089,
+          "coverage": 0.8396836680152225,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 1,
+          "start": 3.01754433332826,
+          "end": 3.640818208339624,
+          "coverage": 0.9330732952128605,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 2,
+          "start": 5.951017583342036,
+          "end": 6.574643625004683,
+          "coverage": 0.9598407833686742,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 3,
+          "start": 8.876036416651914,
+          "end": 9.50021520833252,
+          "coverage": 0.9999518033402167,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 4,
+          "start": 11.910398375010118,
+          "end": 12.526440374989761,
+          "coverage": 0.9999592830114021,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 5,
+          "start": 14.951747166662244,
+          "end": 15.576528500008862,
+          "coverage": 0.9738739927310641,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 6,
+          "start": 16.51074145833263,
+          "end": 17.135104291664902,
+          "coverage": 0.9598806995805043,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 7,
+          "start": 19.369330708344933,
+          "end": 19.993672916665673,
+          "coverage": 0.9643625593592319,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 8,
+          "start": 20.919830083323177,
+          "end": 21.54387758334633,
+          "coverage": 0.9999332316059839,
+          "window": "down through release + 500 ms"
+        }
+      ]
+    },
+    "candidate": {
+      "decodedCount": 1684,
+      "mappedCount": 1281,
+      "duplicateMarkers": 4,
+      "imageMetadata": {
+        "width": 1206,
+        "height": 2622,
+        "mode": "RGB",
+        "iccSha256": null,
+        "gamma": 0.45455
+      },
+      "cadence": {
+        "count": 1684,
+        "medianGapMs": 16.666999999999987,
+        "p95GapMs": 33.333999999999975,
+        "maxGapMs": 166.66699999999997,
+        "achievedHz": 59.998800023999564,
+        "gapsOverTwoPeriods": 8
+      },
+      "activeDecodedCount": 1281,
+      "leadTailFrames": 403,
+      "decodedMarkerCoverage": 1.0,
+      "ptsAnomalies": {
+        "duplicate": 0,
+        "backwards": 0
+      },
+      "gestureCoverage": [
+        {
+          "stroke": 0,
+          "start": 0.0,
+          "end": 0.6219740000000007,
+          "coverage": 0.9563197175444597,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 1,
+          "start": 2.8062250000000004,
+          "end": 3.4297390000000005,
+          "coverage": 0.9914837517682046,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 2,
+          "start": 5.7150490000000005,
+          "end": 6.338934,
+          "coverage": 0.999333210447439,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 3,
+          "start": 8.606536,
+          "end": 9.231413,
+          "coverage": 0.9943300841605648,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 4,
+          "start": 11.507032,
+          "end": 12.132296000000002,
+          "coverage": 0.9998464648532416,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 5,
+          "start": 14.383712000000001,
+          "end": 14.998987000000001,
+          "coverage": 0.9969379545731576,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 6,
+          "start": 15.932663,
+          "end": 16.557212999999997,
+          "coverage": 0.9978032183171884,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 7,
+          "start": 18.800317,
+          "end": 19.425055999999998,
+          "coverage": 0.9972900683325194,
+          "window": "down through release + 500 ms"
+        },
+        {
+          "stroke": 8,
+          "start": 20.350763999999998,
+          "end": 20.975246,
+          "coverage": 0.9919309123401191,
+          "window": "down through release + 500 ms"
+        }
+      ]
+    },
+    "failures": [],
+    "toleranceMs": 25.0,
+    "pairedGestureCoverage": [
+      {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.624091125006089,
+        "coverage": 0.8008528001108757,
+        "window": "down through release + 500 ms"
+      },
+      {
+        "stroke": 1,
+        "start": 3.01754433332826,
+        "end": 3.640818208339624,
+        "coverage": 0.933017006396245,
+        "window": "down through release + 500 ms"
+      },
+      {
+        "stroke": 2,
+        "start": 5.951017583342036,
+        "end": 6.574643625004683,
+        "coverage": 0.9598088465170479,
+        "window": "down through release + 500 ms"
+      },
+      {
+        "stroke": 3,
+        "start": 8.876036416651914,
+        "end": 9.50021520833252,
+        "coverage": 0.95987634686251,
+        "window": "down through release + 500 ms"
+      },
+      {
+        "stroke": 4,
+        "start": 11.910398375010118,
+        "end": 12.526440374989761,
+        "coverage": 0.9728921349997,
+        "window": "down through release + 500 ms"
+      },
+      {
+        "stroke": 5,
+        "start": 14.951747166662244,
+        "end": 15.576528500008862,
+        "coverage": 0.8938325221707274,
+        "window": "down through release + 500 ms"
+      },
+      {
+        "stroke": 6,
+        "start": 16.51074145833263,
+        "end": 17.135104291664902,
+        "coverage": 0.8931263791505,
+        "window": "down through release + 500 ms"
+      },
+      {
+        "stroke": 7,
+        "start": 19.369330708344933,
+        "end": 19.993672916665673,
+        "coverage": 0.9509727337236585,
+        "window": "down through release + 500 ms"
+      },
+      {
+        "stroke": 8,
+        "start": 20.919830083323177,
+        "end": 21.54387758334633,
+        "coverage": 0.9465023362903942,
+        "window": "down through release + 500 ms"
+      }
+    ]
+  },
+  "globalPairCount": 851,
+  "eventWindows": [
+    {
+      "stroke": 0,
+      "step": "open",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.874091125006089,
+      "nativeOrigin": 204965.7818051667,
+      "candidateOrigin": 4.481138,
+      "nativeGlobalOffset": 0.0,
+      "candidateGlobalOffset": 0.0,
+      "startDriftMs": 0.0,
+      "releaseDifferenceMs": -2.117125006088294,
+      "pairs": 33,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.624091125006089,
+        "coverage": 0.8008528001108757,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    },
+    {
+      "stroke": 1,
+      "step": "more",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.8735140000000001,
+      "nativeOrigin": 204968.79934950004,
+      "candidateOrigin": 7.287363,
+      "nativeGlobalOffset": 3.01754433332826,
+      "candidateGlobalOffset": 2.8062250000000004,
+      "startDriftMs": -211.3193333282597,
+      "releaseDifferenceMs": 0.24012498863612564,
+      "pairs": 36,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.623273875011364,
+        "coverage": 0.8795671218807278,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    },
+    {
+      "stroke": 2,
+      "step": "deeper",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.8738849999999996,
+      "nativeOrigin": 204971.73282275005,
+      "candidateOrigin": 10.196187,
+      "nativeGlobalOffset": 5.951017583342036,
+      "candidateGlobalOffset": 5.7150490000000005,
+      "startDriftMs": -235.96858334203574,
+      "releaseDifferenceMs": 0.25895833735312124,
+      "pairs": 38,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.6236260416626465,
+        "coverage": 0.9330710010538285,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    },
+    {
+      "stroke": 3,
+      "step": "back-deeper",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.8748769999999997,
+      "nativeOrigin": 204974.65784158336,
+      "candidateOrigin": 13.087674,
+      "nativeGlobalOffset": 8.876036416651914,
+      "candidateGlobalOffset": 8.606536,
+      "startDriftMs": -269.5004166519137,
+      "releaseDifferenceMs": 0.6982083193936006,
+      "pairs": 39,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.6241787916806061,
+        "coverage": 0.9732373689978578,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    },
+    {
+      "stroke": 4,
+      "step": "back",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.8752640000000014,
+      "nativeOrigin": 204977.69220354172,
+      "candidateOrigin": 15.98817,
+      "nativeGlobalOffset": 11.910398375010118,
+      "candidateGlobalOffset": 11.507032,
+      "startDriftMs": -403.3663750101173,
+      "releaseDifferenceMs": 9.222000020358223,
+      "pairs": 43,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.6160419999796432,
+        "coverage": 0.999935069296295,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    },
+    {
+      "stroke": 5,
+      "step": "more-again",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.8747813333466183,
+      "nativeOrigin": 204980.73355233337,
+      "candidateOrigin": 18.86485,
+      "nativeGlobalOffset": 14.951747166662244,
+      "candidateGlobalOffset": 14.383712000000001,
+      "startDriftMs": -568.0351666622432,
+      "releaseDifferenceMs": -9.506333346617879,
+      "pairs": 39,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.6247813333466183,
+        "coverage": 0.9471693162937244,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    },
+    {
+      "stroke": 6,
+      "step": "close-submenu",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.8745499999999993,
+      "nativeOrigin": 204982.29254662505,
+      "candidateOrigin": 20.413801,
+      "nativeGlobalOffset": 16.51074145833263,
+      "candidateGlobalOffset": 15.932663,
+      "startDriftMs": -578.078458332632,
+      "releaseDifferenceMs": 0.18716666772888857,
+      "pairs": 39,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.6243628333322704,
+        "coverage": 0.9198328054538026,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    },
+    {
+      "stroke": 7,
+      "step": "open-again",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.8747389999999982,
+      "nativeOrigin": 204985.15113587506,
+      "candidateOrigin": 23.281455,
+      "nativeGlobalOffset": 19.369330708344933,
+      "candidateGlobalOffset": 18.800317,
+      "startDriftMs": -569.0137083449329,
+      "releaseDifferenceMs": 0.39679167925754655,
+      "pairs": 36,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.6243422083207406,
+        "coverage": 0.8975984257314448,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    },
+    {
+      "stroke": 8,
+      "step": "close-root",
+      "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+      "start": -0.15,
+      "end": 0.8744820000000004,
+      "nativeOrigin": 204986.70163525004,
+      "candidateOrigin": 24.831902,
+      "nativeGlobalOffset": 20.919830083323177,
+      "candidateGlobalOffset": 20.350763999999998,
+      "startDriftMs": -569.0660833231789,
+      "releaseDifferenceMs": 0.43449997684774644,
+      "pairs": 41,
+      "coverage": {
+        "stroke": 0,
+        "start": 0.0,
+        "end": 0.6240475000231527,
+        "coverage": 0.9731992890974863,
+        "window": "down through release + 500 ms"
+      },
+      "complete": true
+    }
+  ],
+  "settled": {
+    "native": {
+      "more": {
+        "source": {
+          "scaleY": 1,
+          "height": 44,
+          "opacity": 1,
+          "radius": 22,
+          "left": 179,
+          "top": 300,
+          "width": 44,
+          "scaleX": 1
+        },
+        "rows/0": {
+          "width": 242.5,
+          "top": 292.6666666666667,
+          "height": 201.76,
+          "left": 79.75
+        },
+        "rows/1": {
+          "width": 250,
+          "left": 76,
+          "height": 208,
+          "top": 371.8466666666667
+        }
+      },
+      "deeper": {
+        "source": {
+          "scaleY": 1,
+          "top": 300,
+          "width": 44,
+          "radius": 22,
+          "scaleX": 1,
+          "opacity": 1,
+          "height": 44,
+          "left": 179
+        },
+        "rows/0": {
+          "top": 292.6666666666667,
+          "height": 195.7072,
+          "left": 83.3875,
+          "width": 235.22500000000002
+        },
+        "rows/1": {
+          "height": 201.76,
+          "width": 242.5,
+          "top": 369.11126666666667,
+          "left": 79.75
+        },
+        "rows/2": {
+          "top": 508.43126666666666,
+          "height": 166.00000000000006,
+          "left": 76,
+          "width": 250
+        }
+      }
+    },
+    "candidate": {
+      "more": {
+        "source": {
+          "left": 179.0,
+          "top": 300.0,
+          "width": 44.0,
+          "height": 44.0,
+          "opacity": 1.0,
+          "scaleX": 1.0,
+          "scaleY": 1.0
+        },
+        "rows/0": {
+          "left": 79.75185296402823,
+          "top": 292.7935981221212,
+          "width": 242.49629407194357,
+          "height": 202.72690184414483
+        },
+        "rows/1": {
+          "left": 75.99999999289125,
+          "top": 371.79283307431774,
+          "width": 250.00000001421748,
+          "height": 208.000000011829
+        }
+      },
+      "deeper": {
+        "source": {
+          "left": 179.0,
+          "top": 300.0,
+          "width": 44.0,
+          "height": 44.0,
+          "opacity": 1.0,
+          "scaleX": 1.0,
+          "scaleY": 1.0
+        },
+        "rows/0": {
+          "left": 83.38878142405717,
+          "top": 292.7935981190861,
+          "width": 235.22243715188563,
+          "height": 196.6459574589764
+        },
+        "rows/1": {
+          "left": 79.75132100119826,
+          "top": 369.4227632244656,
+          "width": 242.49735799760344,
+          "height": 201.75780185400606
+        },
+        "rows/2": {
+          "left": 76.0000000000001,
+          "top": 508.56338424146827,
+          "width": 249.99999999999977,
+          "height": 165.9999999999999
+        }
+      }
+    }
+  },
+  "rawHashes": {
+    "native/trace.jsonl": "b6582c121100ad306057588d458484d5ad27efc39c97e213316ea665e84a2c7e",
+    "native/movie.mov": "0fea0b81924309d1367f8c939e4998ffbcd03203b2778204ca22f5fded57e1f7",
+    "native/runner-events.json": "d1122d65a12a98115102d073f751ff48e1454396a8ac4c5ad5e7fd9c7db3c5da",
+    "native/capture-buffers.jsonl": "2ff9e63fb3cb89d4f1e435ea524bf77c4bd65c73c56c55de6e52f42e02b4b9ca",
+    "flutter/trace.jsonl": "61c6a011a4cc319466133a5b178c92c21e02a5ceb1a2d7b82e3a77fee35e866d",
+    "flutter/movie.mov": "3f66cf743bc82fe47d6d11ab2b9e46a1fe9af89bf8ebeba13d98259ccd33cac5",
+    "flutter/runner-events.json": "8766b9ec55fa7251d7bf7120906433c6eadd110968548f370107301b53db6109",
+    "flutter/capture-buffers.jsonl": "9cc3a889eb2127126fd9ee96fd187176e8f35d04b8982dca80fd8940ea68e483"
+  },
+  "adapterResiduals": {
+    "systemFooter": {
+      "nativeHeight": 62,
+      "candidateHeight": 63,
+      "nativeRootHeight": 208,
+      "candidateRootHeight": 209,
+      "unit": "pt",
+      "reason": "ordinary MorphMenuDivider group gap is 21 pt",
+      "glyph": "Flutter circle placeholder",
+      "semanticAssertionScope": "presence only"
+    }
+  },
+  "viewer": {
+    "path": "out/menu-phone-20261004-06/report-final/view-light.html",
+    "initialBytes": 5411984,
+    "metricsFiles": 1168,
+    "metrics": "full precision, loaded per selected frame; report.json preserved",
+    "checks": [
+      "export/profile roundtrip",
+      "JavaScript syntax"
+    ],
+    "browser": "original controls verified; post-restart slim viewer reopening blocked by browser URL policy"
+  }
+}

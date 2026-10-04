@@ -1,6 +1,7 @@
 import hashlib
 import json
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import numpy as np
@@ -57,6 +58,12 @@ def extract(movie, output):
     return result
 
 
+def observe_marker(arguments):
+    path, rect, scale = arguments
+    with Image.open(path) as image:
+        return decode_marker(image, rect, scale), image_metadata(image)
+
+
 def map_frames(directory, rows, scenario):
     directory = Path(directory)
     data = json.loads((directory / "frames.json").read_text())
@@ -70,20 +77,21 @@ def map_frames(directory, rows, scenario):
     duplicates = 0
     metadata = None
     mapped_indices = []
-    for frame_index, frame in enumerate(data["frames"]):
-        with Image.open(directory / frame["path"]) as image:
-            metadata = metadata or image_metadata(image)
-            sequence = decode_marker(image, scenario.get("marker", [8, 56, 100, 10]), scenario["canvas"]["scale"])
-        options = markers.get(sequence, [])
-        options = [t for t in options if t >= last - 1e-8]
-        if not options:
-            continue
-        chosen = options[0]
-        if abs(chosen - last) < 1e-8:
-            duplicates += 1
-        last = chosen
-        mapped_indices.append(frame_index)
-        mapped.append({**frame, "t": chosen - o, "sequence": sequence, "path": str(directory / frame["path"])})
+    arguments = [(directory / frame["path"], scenario.get("marker", [8, 56, 100, 10]), scenario["canvas"]["scale"])
+                 for frame in data["frames"]]
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        for frame_index, (frame, observed) in enumerate(zip(data["frames"], executor.map(observe_marker, arguments))):
+            sequence, properties = observed
+            metadata = metadata or properties
+            options = [t for t in markers.get(sequence, []) if t >= last - 1e-8]
+            if not options:
+                continue
+            chosen = options[0]
+            if abs(chosen - last) < 1e-8:
+                duplicates += 1
+            last = chosen
+            mapped_indices.append(frame_index)
+            mapped.append({**frame, "t": chosen - o, "sequence": sequence, "path": str(directory / frame["path"])})
     active_count = mapped_indices[-1] - mapped_indices[0] + 1 if mapped_indices else 0
     return {"frames": mapped, "decodedCount": len(data["frames"]), "mappedCount": len(mapped), "duplicateMarkers": duplicates,
             "imageMetadata": metadata, "cadence": data["cadence"], "activeDecodedCount": active_count,
@@ -124,10 +132,11 @@ def region_metrics(native, candidate, rect, scale):
     edges = []
     for axis in (0, 1):
         if ga.shape[axis] > 1:
-            edges.extend((np.diff(gb, axis=axis) - np.diff(ga, axis=axis)).ravel().tolist())
+            edges.append(np.diff(gb, axis=axis) - np.diff(ga, axis=axis))
     return {"mae": float(np.mean(absolute)), "p95": float(np.percentile(absolute, 95)),
             "bias": np.mean(difference, axis=(0, 1)).tolist(), "nativeMean": np.mean(a, axis=(0, 1)).tolist(),
-            "candidateMean": np.mean(b, axis=(0, 1)).tolist(), "edgeRms": float(np.sqrt(np.mean(np.square(edges)))) if edges else 0,
+            "candidateMean": np.mean(b, axis=(0, 1)).tolist(),
+            "edgeRms": float(np.sqrt(sum(np.sum(edge * edge) for edge in edges) / sum(edge.size for edge in edges))) if edges else 0,
             "nativeNearWhiteFraction": float(np.mean(a >= 254)), "candidateNearWhiteFraction": float(np.mean(b >= 254)),
             "profiles": {"horizontal": {"native": np.mean(ga, axis=0).tolist(), "candidate": np.mean(gb, axis=0).tolist()},
                          "vertical": {"native": np.mean(ga, axis=1).tolist(), "candidate": np.mean(gb, axis=1).tolist()}}}
@@ -175,26 +184,54 @@ def compare_transfer(native_black, native_white, candidate_black, candidate_whit
             "regions": regions, "metadata": metadata, "colorProfileMatches": len({m["iccSha256"] for m in metadata}) == 1}
 
 
-def compare_films(native_directory, candidate_directory, native_rows, candidate_rows, scenario):
-    a = map_frames(native_directory, native_rows, scenario)
-    b = map_frames(candidate_directory, candidate_rows, scenario)
+def pair_metrics(arguments):
+    return compare_pair(*arguments)
+
+
+def pair_frames(native, candidate, scenario, start=0, end=float("inf")):
     pairs = []
-    failures = []
     tolerance = scenario.get("filmToleranceMs", 25) / 1000
-    candidates = b["frames"]
+    candidates = [frame for frame in candidate if start <= frame["t"] <= end]
     times = np.array([f["t"] for f in candidates])
     used = set()
-    for frame in a["frames"]:
-        if not candidates or frame["t"] < 0:
+    for frame in native:
+        if not candidates or not start <= frame["t"] <= end:
             continue
         index = int(np.argmin(np.abs(times - frame["t"])))
         other = candidates[index]
         if index in used or abs(other["t"] - frame["t"]) > tolerance:
             continue
         used.add(index)
-        metrics = compare_pair(frame["path"], other["path"], scenario)
         pairs.append({"t": frame["t"], "deltaMs": (other["t"] - frame["t"]) * 1000,
-                      "native": frame["path"], "candidate": other["path"], **metrics})
+                      "native": frame["path"], "candidate": other["path"],
+                      "nativePts": frame["pts"], "candidatePts": other["pts"],
+                      "nativeSequence": frame["sequence"], "candidateSequence": other["sequence"]})
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        results = executor.map(pair_metrics, [(pair["native"], pair["candidate"], scenario) for pair in pairs])
+        for pair, metrics in zip(pairs, results):
+            pair.update(metrics)
+    return pairs
+
+
+def compare_films(native_directory, candidate_directory, native_rows, candidate_rows, scenario, windows=None):
+    a = map_frames(native_directory, native_rows, scenario)
+    b = map_frames(candidate_directory, candidate_rows, scenario)
+    pairs = pair_frames(a["frames"], b["frames"], scenario)
+    failures = []
+    tolerance = scenario.get("filmToleranceMs", 25) / 1000
+    for window in windows or []:
+        frames_a = [{**frame, "t": frame["t"] - window["nativeGlobalOffset"]} for frame in a["frames"]]
+        frames_b = [{**frame, "t": frame["t"] - window["candidateGlobalOffset"]} for frame in b["frames"]]
+        local_pairs = pair_frames(frames_a, frames_b, scenario, window["start"], window["end"])
+        period = (a["cadence"].get("medianGapMs") or 1000 / 60) / 1000
+        stroke = strokes(native_rows)[window["stroke"]]
+        local_rows = [{**point, "delivered_t": point.get("delivered_t", point["t"]) - window["nativeOrigin"]}
+                      for point in stroke["points"]]
+        coverage = gesture_film_coverage(local_pairs, local_rows, period)[0]
+        window["film"] = {"pairs": local_pairs, "pairedGestureCoverage": coverage,
+                          "toleranceMs": tolerance * 1000,
+                          "complete": coverage["coverage"] >= 0.8,
+                          "note": "inspection only; global capture validity and drift are retained"}
     for side, data in (("native", a), ("candidate", b)):
         if data["decodedMarkerCoverage"] < 0.8:
             failures.append(f"{side} film: fewer than 80% frames have a valid marker")

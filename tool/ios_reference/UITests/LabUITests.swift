@@ -47,6 +47,12 @@ final class LabUITests: XCTestCase {
                 attachment.name = "lab-\(id)"
                 attachment.lifetime = .keepAlways
                 add(attachment)
+            case "assert":
+                let anchor = try XCTUnwrap(step["anchor"] as? [String: Any])
+                let expected = try XCTUnwrap(step["exists"] as? Bool)
+                let actual = query(anchor).firstMatch.exists
+                journal.append(["k": "lab_assert", "id": id, "expected": expected, "actual": actual, "t": CACurrentMediaTime()])
+                XCTAssertEqual(actual, expected, id)
             default:
                 XCTFail("unknown action \(action)")
             }
@@ -64,6 +70,13 @@ final class LabUITests: XCTestCase {
     private func mark(_ id: String, _ phase: String, _ action: String) {
         journal.append(["id": id, "phase": phase, "action": action, "t": CACurrentMediaTime()])
         NSLog("LAB \(id) \(phase) \(action)")
+    }
+
+    private func query(_ anchor: [String: Any]) -> XCUIElementQuery {
+        if let id = anchor["identifier"] as? String {
+            return app.descendants(matching: .any).matching(NSPredicate(format: "identifier == %@", id))
+        }
+        return app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", anchor["label"] as! String))
     }
 
     private func synth(_ paths: [[String: Any]], name: String) throws {
@@ -91,12 +104,7 @@ final class LabUITests: XCTestCase {
             let first = try XCTUnwrap(points.first)
             var origin = CGPoint.zero
             if let anchor = path["anchor"] as? [String: Any] {
-                let query: XCUIElementQuery
-                if let id = anchor["identifier"] as? String {
-                    query = app.descendants(matching: .any).matching(NSPredicate(format: "identifier == %@", id))
-                } else {
-                    query = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", anchor["label"] as! String))
-                }
+                let query = query(anchor)
                 XCTAssertTrue(query.firstMatch.waitForExistence(timeout: 5))
                 let elements = query.allElementsBoundByIndex.filter { $0.frame.width > 0 && $0.frame.height > 0 }
                 let element = try XCTUnwrap(anchor["last"] as? Bool == true ? elements.last : elements.first)

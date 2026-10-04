@@ -1,0 +1,70 @@
+{
+  "step": "close-submenu",
+  "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+  "durations": {
+    "native": 0.12436283333227038,
+    "candidate": 0.12454999999999927
+  },
+  "selected": [
+    {
+      "native": "frames/001222-native.png",
+      "candidate": "frames/001794-candidate.png",
+      "t": 0.1829648750135675,
+      "deltaMs": -6.292875013565791,
+      "nativePts": 28.121667,
+      "candidatePts": 25.633333,
+      "nativeSequence": 2468,
+      "candidateSequence": 2466
+    },
+    {
+      "native": "frames/001226-native.png",
+      "candidate": "frames/001189-candidate.png",
+      "t": 0.22463870834326372,
+      "deltaMs": 1.6982916567354067,
+      "nativePts": 28.163333,
+      "candidatePts": 25.683333,
+      "nativeSequence": 2472,
+      "candidateSequence": 2472
+    },
+    {
+      "native": "frames/001228-native.png",
+      "candidate": "frames/001191-candidate.png",
+      "t": 0.2579776250058785,
+      "deltaMs": 1.248374994125001,
+      "nativePts": 28.196667,
+      "candidatePts": 25.716667,
+      "nativeSequence": 2476,
+      "candidateSequence": 2476
+    },
+    {
+      "native": "frames/001232-native.png",
+      "candidate": "frames/001795-candidate.png",
+      "t": 0.3079861250007525,
+      "deltaMs": 1.8268749992511601,
+      "nativePts": 28.246667,
+      "candidatePts": 25.766667,
+      "nativeSequence": 2482,
+      "candidateSequence": 2482
+    },
+    {
+      "native": "frames/001238-native.png",
+      "candidate": "frames/001201-candidate.png",
+      "t": 0.3913337083358783,
+      "deltaMs": 2.1272916641219553,
+      "nativePts": 28.33,
+      "candidatePts": 25.85,
+      "nativeSequence": 2492,
+      "candidateSequence": 2492
+    },
+    {
+      "native": "frames/001244-native.png",
+      "candidate": "frames/001796-candidate.png",
+      "t": 0.4746811249933671,
+      "deltaMs": 1.1448750066360702,
+      "nativePts": 28.413333,
+      "candidatePts": 25.933333,
+      "nativeSequence": 2502,
+      "candidateSequence": 2502
+    }
+  ]
+}

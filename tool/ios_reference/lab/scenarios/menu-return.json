@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "id": "menu-stack",
+  "id": "menu-return",
   "canvas": {
     "width": 402,
     "height": 874,
@@ -90,12 +90,48 @@
   ],
   "regions": [
     {
-      "id": "stack",
+      "id": "menu-and-source",
       "rect": [
         50,
         250,
         302,
         490
+      ]
+    },
+    {
+      "id": "submenu-rim-left",
+      "rect": [
+        73,
+        475,
+        7,
+        65
+      ]
+    },
+    {
+      "id": "submenu-shadow-left",
+      "rect": [
+        57,
+        455,
+        14,
+        105
+      ]
+    },
+    {
+      "id": "submenu-face",
+      "rect": [
+        180,
+        477,
+        40,
+        7
+      ]
+    },
+    {
+      "id": "parent-rim-left",
+      "rect": [
+        77,
+        310,
+        7,
+        35
       ]
     }
   ],
@@ -129,10 +165,6 @@
       "exists": true
     },
     {
-      "id": "opened",
-      "action": "shot"
-    },
-    {
       "id": "more",
       "action": "gesture",
       "points": [
@@ -150,11 +182,10 @@
       }
     },
     {
-      "id": "stacked",
+      "id": "submenu",
       "action": "shot"
     },
     {
-      "id": "deeper",
       "action": "gesture",
       "points": [
         {
@@ -168,14 +199,74 @@
       "anchor": {
         "label": "Deeper",
         "last": true
-      }
+      },
+      "id": "deeper"
     },
     {
       "id": "deep-stacked",
       "action": "shot"
     },
     {
-      "id": "outside",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "Deeper",
+        "last": true
+      },
+      "id": "back-deeper"
+    },
+    {
+      "id": "returned-more",
+      "action": "shot"
+    },
+    {
+      "id": "back",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "More",
+        "last": true
+      }
+    },
+    {
+      "id": "returned",
+      "action": "shot"
+    },
+    {
+      "id": "more-again",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "label": "More",
+        "last": true
+      }
+    },
+    {
+      "id": "close-submenu",
       "action": "gesture",
       "points": [
         {
@@ -188,7 +279,40 @@
       "after": 1.2
     },
     {
-      "id": "closed",
+      "id": "closed-submenu",
+      "action": "shot"
+    },
+    {
+      "id": "open-again",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2,
+      "anchor": {
+        "identifier": "menu"
+      }
+    },
+    {
+      "id": "close-root",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 25,
+          "y": 830
+        }
+      ],
+      "upAt": 0.12,
+      "after": 1.2
+    },
+    {
+      "id": "closed-root",
       "action": "shot"
     }
   ]

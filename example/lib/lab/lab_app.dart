@@ -357,7 +357,17 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
         onChanged: enabled ? (next) => changed(next.toDouble()) : null,
       ),
       'menu' => MorphMenuButton(
-        items: _items(spec['items']! as List<Object?>, emit),
+        items: [
+          ..._items(spec['items']! as List<Object?>, emit),
+          if (spec['systemFooter'] == 'askSiri') ...[
+            const MorphMenuDivider(),
+            MorphMenuItem(
+              title: 'Ask Siri',
+              icon: Icons.circle_outlined,
+              onSelected: () => emit('selected', 'Ask Siri'),
+            ),
+          ],
+        ],
         semanticLabel: id,
       ),
       _ => throw StateError('No lab builder for ${spec['kind']}'),

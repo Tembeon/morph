@@ -485,3 +485,41 @@ MenuAPIUITests); an XCUI query for "More" hits the ellipsis button itself
   cards. Variable capture timestamps leave about one film-frame uncertainty
   in comparing row phases; window-bounds replay remains the quantitative
   carrier check. Glyphs and the header chevron still differ from UIKit.
+
+Shared laboratory audit [device film, 2026-10-04]:
+- `lab/out/menu-phone-20261004-06`, shared `menu-return.json`: nine real
+  gestures cover root/More/Deeper opening, both header returns, More
+  reopening, outside dismissal and root reopening/dismissal. Source rows,
+  films, assertions and hashes are summarized in
+  `references/menu-api/lab/20261004/audit.json`; frame panels, regional
+  profiles, two short films and detailed findings are beside it.
+- The initial lab adapter omitted this phone's automatic 62 pt Ask Siri
+  footer. A declared systemFooter and an accessibility assertion now verify
+  its presence. The ordinary Flutter group gap makes the adapter footer
+  63 pt/root 209 pt versus native 62/208 pt: a recorded 1 pt harness
+  discrepancy, not production physics. The footer glyph is a declared
+  placeholder. Earlier pilot root-height differences must not be fitted
+  as physics. Parent widths confirm the 0.97 and 0.97 squared scales.
+- Final acquisition is EVIDENCE, with no fidelity gates: 851 global film
+  pairs, every paired gesture window above 80% coverage, accepted/decoded
+  counts 1800/1684, zero encoder drops and received-path RMS 0.192450 pt.
+  Global timing retains runner drift; explicitly separate inspection
+  windows align recorded downs without fitting response delay or duration.
+- Matching material remains open. Settled More left-rim MAE is 12.021
+  encoded RGB levels, shadow MAE 8.223 and face MAE 1.849. Native's attached
+  contour is clearer; Flutter exposes the parent's rounded boundary inside
+  the child. These are registered image diagnostics, not isolated optical
+  transfer coefficients. The supplied liquid tier initialized successfully.
+- Repeated opening crosses the diagnostic 100 pt bright-body width between
+  125.531 and 142.200 ms after native up, versus 83.815 to 117.083 ms on
+  Flutter. More's outside close crosses below 100 pt between 200.293 and
+  250.301 ms on native, versus 167.819 to 185.263 ms on Flutter. During
+  close, Flutter rows extend beyond the bright body earlier. These intervals
+  retain film gaps and display/postFrame phase uncertainty; they are not
+  new production delay constants or SDF contour fits.
+- [ ] Match the lab adapter's system-footer height and glyph before using
+  whole-root residuals as calibration evidence.
+- [ ] Calibrate opening phase, closing rows/material ownership, attached
+  contour and shadow against these shared films. Previous body-width fits
+  and passing widget regressions do not certify full pixel/frame fidelity.
+  Row-container bounds and clips must not be promoted as glass contours.

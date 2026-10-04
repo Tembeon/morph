@@ -1,0 +1,70 @@
+{
+  "step": "back",
+  "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+  "durations": {
+    "native": 0.11604199997964315,
+    "candidate": 0.12526400000000137
+  },
+  "selected": [
+    {
+      "native": "frames/000872-native.png",
+      "candidate": "frames/000841-candidate.png",
+      "t": 0.14388429166865535,
+      "deltaMs": 6.3537083313427445,
+      "nativePts": 23.486667,
+      "candidatePts": 21.183333,
+      "nativeSequence": 1926,
+      "candidateSequence": 1932
+    },
+    {
+      "native": "frames/000876-native.png",
+      "candidate": "frames/000843-candidate.png",
+      "t": 0.18252604166627862,
+      "deltaMs": 2.204958333720697,
+      "nativePts": 23.52,
+      "candidatePts": 21.216667,
+      "nativeSequence": 1930,
+      "candidateSequence": 1936
+    },
+    {
+      "native": "frames/000878-native.png",
+      "candidate": "frames/000845-candidate.png",
+      "t": 0.2075302083103452,
+      "deltaMs": 9.957791689654272,
+      "nativePts": 23.553333,
+      "candidatePts": 21.25,
+      "nativeSequence": 1933,
+      "candidateSequence": 1940
+    },
+    {
+      "native": "frames/000882-native.png",
+      "candidate": "frames/000849-candidate.png",
+      "t": 0.28254295833176,
+      "deltaMs": 1.2240416682409716,
+      "nativePts": 23.62,
+      "candidatePts": 21.316667,
+      "nativeSequence": 1942,
+      "candidateSequence": 1948
+    },
+    {
+      "native": "frames/000888-native.png",
+      "candidate": "frames/000855-candidate.png",
+      "t": 0.3492210416588932,
+      "deltaMs": 0.735958341106624,
+      "nativePts": 23.686667,
+      "candidatePts": 21.383333,
+      "nativeSequence": 1950,
+      "candidateSequence": 1956
+    },
+    {
+      "native": "frames/000900-native.png",
+      "candidate": "frames/000867-candidate.png",
+      "t": 0.482576958311256,
+      "deltaMs": 1.3560416887443694,
+      "nativePts": 23.82,
+      "candidatePts": 21.516667,
+      "nativeSequence": 1966,
+      "candidateSequence": 1972
+    }
+  ]
+}

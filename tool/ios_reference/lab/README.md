@@ -29,7 +29,9 @@ python3 -m http.server 8817 --bind 127.0.0.1 --directory out/button-001/report
 Open `http://127.0.0.1:8817/`. The report has received-input plots, event
 counts/timing, numeric value curves, geometry plots, first-response intervals, clip loss, identity
 changes, frame selection, native/Flutter split, overlay, amplified difference,
-region crops, zoom and horizontal/vertical edge profiles. Blue is native;
+region crops, zoom and horizontal/vertical edge profiles. Per-frame region
+metrics and profiles load on demand; the full-precision report.json remains
+unchanged. Blue is native;
 orange is Flutter. Serve over HTTP for canvas difference operations.
 
 `capture` takes the atomic device lock, builds both applications, launches
@@ -53,6 +55,14 @@ fidelity gates it reports `EVIDENCE`, not a fidelity pass. `--no-film` is a
 deliberate geometry/input-only comparison; without it missing films fail.
 Always compare the saved `scenario.json`, not a subsequently edited scenario.
 
+Add `--event-windows` to inspect individual transitions from each actually
+received down. The Timeline selector switches between the unchanged global
+report and those inspection windows. Each window retains start drift, release
+duration difference, original movie PTS, marker sequences and pairing error.
+It ends before the next received gesture and includes up to 750 ms after
+release. No response delay is fitted or removed. Window coverage is reported
+separately; a complete local window never overrides a failed global capture.
+
 ## Scenarios and adapters
 
 `schema: 1` defines a canvas, appearance, diagnostic background, widgets,
@@ -71,7 +81,22 @@ Built-in scene controls: glass button, slider, switch, segmented control and
 nested menu. `button-press-drag.json` covers tap, hold, drag out/back and
 release far outside. `slider-drag-reverse.json` reverses a held thumb.
 `menu-stack.json` opens a submenu by its accessibility label and closes
-outside after two submenu levels. These are input protocols, not measured tuning constants.
+outside after two submenu levels. `menu-return.json` also returns through the
+Deeper and More headers, reopens More, dismisses the first submenu outside and opens/closes
+the root again. These are input protocols, not measured tuning constants.
+
+The owner's iOS adds an automatic 62 pt Ask Siri footer to the root menu.
+Menu scenarios declare `systemFooter: "askSiri"`; the Flutter adapter adds
+the corresponding divider/row, while UIKit supplies its own system row.
+The ordinary MorphMenuDivider gap is 21 pt, making this adapter footer
+63 pt and the root 209 pt, versus native 62/208 pt. This 1 pt harness
+residual is recorded rather than treated as production physics. The
+adapter uses a placeholder circle glyph for Siri; exclude that glyph from
+optical metrics. An `assert` step with an `anchor` and boolean `exists`
+checks actual accessibility content on both sides. Missing/failed assertions
+invalidate comparison. A shared JSON hash alone cannot establish that UIKit
+has not added platform content. Root/content-container metrics and glass
+geometry must still be distinguished during hand-back.
 
 Absolute points are in window pt. A gesture has increasing `points` times,
 `upAt` and an optional `after` wait. `paths` holds simultaneous fingers.
@@ -161,8 +186,10 @@ Geometry uses the first delivered touch as its origin on both sides. Input
 paths use the first source timestamp so dispatcher latency does not change
 their measured duration. Source timestamps, delivery timestamps, Flutter
 source-clock values and frame-clock values are retained separately. A
-source-time recording cannot be equated with a delivery-time recording. There is no
-duration stretch, per-gesture alignment or time warping. Input-path/duration
+source-time recording cannot be equated with a delivery-time recording. The
+global comparison has no duration stretch, per-gesture alignment or time
+warping. Optional stimulus-relative inspection is explicitly separate from
+that comparison and uses recorded down times rather than fitted phase shifts. Input-path/duration
 error and inter-gesture drift remain visible. Geometry interpolation never
 crosses a gap over 50 ms or a render-object identity change. Missing tracks,
 missing corresponding properties, unfinished/cancelled gestures, invalid

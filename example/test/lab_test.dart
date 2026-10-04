@@ -40,8 +40,9 @@ void main() {
         onRow: rows.add,
       ),
     );
+    final rootButton = find.byType(MorphMenuButton);
     for (final target in [
-      find.byType(MorphMenuButton),
+      rootButton,
       find.text('More').last,
       find.text('Deeper').last,
     ]) {
@@ -50,12 +51,20 @@ void main() {
       for (var frame = 0; frame < 100; frame++) {
         await tester.pump(const Duration(milliseconds: 10));
       }
+      if (identical(target, rootButton)) {
+        final root = rows.lastWhere(
+          (row) => row['k'] == 'lab_sample' && row['id'] == 'rows/0',
+        );
+        final values = root['values']! as Map<String, Object?>;
+        expect(values['height'], closeTo(209, 0.01));
+      }
     }
     final cards = rows
         .where((row) => row['k'] == 'lab_sample')
         .map((row) => row['id'])
         .toSet();
     expect(cards, containsAll(['rows/0', 'rows/1', 'rows/2']));
+    expect(find.text('Ask Siri'), findsOneWidget);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
   });

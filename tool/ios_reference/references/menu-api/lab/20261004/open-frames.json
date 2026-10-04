@@ -1,0 +1,70 @@
+{
+  "step": "open",
+  "alignment": "received down; no fitted delay, duration stretch or time warping; inspection only",
+  "durations": {
+    "native": 0.12409112500608899,
+    "candidate": 0.12197400000000069
+  },
+  "selected": [
+    {
+      "native": "frames/000006-native.png",
+      "candidate": "frames/000007-candidate.png",
+      "t": 0.11588858332834207,
+      "deltaMs": 7.555416671658044,
+      "nativePts": 11.543333,
+      "candidatePts": 9.646667,
+      "nativeSequence": 538,
+      "candidateSequence": 550
+    },
+    {
+      "native": "frames/000008-native.png",
+      "candidate": "frames/000009-candidate.png",
+      "t": 0.24924466665834188,
+      "deltaMs": 5.801333341658221,
+      "nativePts": 11.676667,
+      "candidatePts": 9.78,
+      "nativeSequence": 542,
+      "candidateSequence": 564
+    },
+    {
+      "native": "frames/000008-native.png",
+      "candidate": "frames/000009-candidate.png",
+      "t": 0.24924466665834188,
+      "deltaMs": 5.801333341658221,
+      "nativePts": 11.676667,
+      "candidatePts": 9.78,
+      "nativeSequence": 542,
+      "candidateSequence": 564
+    },
+    {
+      "native": "frames/000010-native.png",
+      "candidate": "frames/000011-candidate.png",
+      "t": 0.2825836666743271,
+      "deltaMs": 5.9403333256735635,
+      "nativePts": 11.71,
+      "candidatePts": 9.813333,
+      "nativeSequence": 546,
+      "candidateSequence": 568
+    },
+    {
+      "native": "frames/000014-native.png",
+      "candidate": "frames/000015-candidate.png",
+      "t": 0.3492616666771937,
+      "deltaMs": 6.287333322807065,
+      "nativePts": 11.776667,
+      "candidatePts": 9.88,
+      "nativeSequence": 554,
+      "candidateSequence": 576
+    },
+    {
+      "native": "frames/000024-native.png",
+      "candidate": "frames/000025-candidate.png",
+      "t": 0.4742829166643787,
+      "deltaMs": -2.239916664378505,
+      "nativePts": 11.901667,
+      "candidatePts": 9.996667,
+      "nativeSequence": 569,
+      "candidateSequence": 590
+    }
+  ]
+}

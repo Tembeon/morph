@@ -147,7 +147,9 @@ def capture(scenario, out, device, team, side="both", film=True, flutter="flutte
                     if isinstance(journal, list) and journal and journal[0].get("k") == "lab_environment":
                         (destination / "runner-events.json").write_text(json.dumps(journal, indent=2))
                         with (destination / "trace.jsonl").open("a") as handle:
-                            handle.write(json.dumps(journal[0]) + "\n")
+                            for row in journal:
+                                if row.get("k") in ("lab_environment", "lab_assert"):
+                                    handle.write(json.dumps(row) + "\n")
                 if film:
                     extract(destination / "movie.mov", destination / "frames")
                 side_manifest = {**metadata, "side": current, "status": "captured", "trace": "trace.jsonl", "film": film}

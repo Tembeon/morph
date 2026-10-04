@@ -7,9 +7,10 @@ import unittest
 import numpy as np
 from PIL import Image
 
-from morph_lab.analysis import compare, compare_events, interpolate
+from morph_lab.analysis import compare, compare_events, compare_geometry, compare_windows, interpolate
 from morph_lab.capture import device_lock
-from morph_lab.images import compare_pair, compare_transfer, decode_marker, gesture_film_coverage, map_frames
+from morph_lab.cli import read_capture
+from morph_lab.images import compare_pair, compare_transfer, decode_marker, gesture_film_coverage, map_frames, pair_frames
 from morph_lab.report import write_report
 from morph_lab.scenario import LabError, digest, validate
 from morph_lab.fitting import fit_spring
@@ -68,6 +69,20 @@ class ScenarioTests(unittest.TestCase):
 
     def test_canonical_hash_ignores_dictionary_order(self):
         self.assertEqual(digest(self.scene), digest(dict(reversed(list(self.scene.items())))))
+
+    def test_content_assertions_and_system_footer_validate(self):
+        scene = copy.deepcopy(self.scene)
+        scene["widgets"][0]["kind"] = "menu"
+        scene["widgets"][0]["systemFooter"] = "askSiri"
+        scene["steps"].append({"id": "footer", "action": "assert", "anchor": {"label": "Ask Siri"}, "exists": True})
+        validate(scene)
+        scene["steps"][-1]["exists"] = "true"
+        with self.assertRaises(LabError):
+            validate(scene)
+        scene["steps"][-1]["exists"] = True
+        scene["widgets"][0]["systemFooter"] = "unknown"
+        with self.assertRaises(LabError):
+            validate(scene)
 
 
 class AnalysisTests(unittest.TestCase):
@@ -169,8 +184,105 @@ class AnalysisTests(unittest.TestCase):
             with self.assertRaises(FileExistsError):
                 write_report(result, self.scene, out)
 
+    def test_global_and_window_reports_share_assets_without_losing_provenance(self):
+        result = compare(trace(self.scene), trace(self.scene), self.scene)
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            a, b = root / "native.png", root / "candidate.png"
+            Image.new("RGB", (12, 12), "white").save(a)
+            Image.new("RGB", (12, 12), "gray").save(b)
+            regions = {"rim": {"mae": 12.3456789, "profiles": {"horizontal": {"native": [250, 251], "candidate": [240, 243]}}}}
+            pair = {"native": str(a), "candidate": str(b), "t": 0.02, "nativePts": 100, "candidatePts": 300, "regions": regions}
+            result["film"] = {"pairs": [pair]}
+            result["eventWindows"] = [{"step": "close", "film": {"pairs": [copy.deepcopy(pair)]}}]
+            out = root / "report"
+            write_report(result, self.scene, out)
+            data = json.loads((out / "report.json").read_text())
+            self.assertEqual(len(list((out / "frames").glob("*.png"))), 2)
+            self.assertEqual(data["film"]["pairs"][0]["native"], data["eventWindows"][0]["film"]["pairs"][0]["native"])
+            self.assertEqual(data["eventWindows"][0]["film"]["pairs"][0]["nativePts"], 100)
+            html = (out / "index.html").read_text()
+            browser = json.loads(html.split("const data=", 1)[1].split(";\nconst $", 1)[0])
+            film_pair = browser["film"]["pairs"][0]
+            window_pair = browser["eventWindows"][0]["film"]["pairs"][0]
+            self.assertNotIn("regions", film_pair)
+            self.assertEqual(film_pair["metricsPath"], window_pair["metricsPath"])
+            self.assertEqual(json.loads((out / film_pair["metricsPath"]).read_text()), regions)
+            self.assertEqual(data["film"]["pairs"][0]["regions"], regions)
+            self.assertEqual(len(list((out / "metrics").glob("*.json"))), 1)
+
+    def test_event_windows_remove_scheduling_drift_without_fitting_response(self):
+        def recording(second, delay):
+            rows = [{"k": "touch", "t": t, "delivered_t": t + 0.01, "phase": phase, "pointer": "p"}
+                    for t, phase in ((1, 0), (1.12, 3), (second, 0), (second + 0.12, 3))]
+            rows.extend({"k": "lab_sample", "id": "card", "identity": "card", "t": second + 0.01 + i / 100,
+                         "values": {"left": max(0, (i / 100 - delay) * 10)}} for i in range(-15, 88))
+            return rows
+        scene = {"steps": [{"id": "open", "action": "gesture"}, {"id": "close", "action": "gesture"}]}
+        a, b = recording(3, 0.2), recording(3.4, 0.2)
+        windows = compare_windows(a, b, scene)
+        self.assertAlmostEqual(windows[1]["startDriftMs"], 400)
+        self.assertEqual(windows[1]["step"], "close")
+        self.assertLess(windows[1]["geometry"]["tracks"]["card"]["properties"]["left"]["rms"], 1e-8)
+        self.assertGreater(compare_geometry(a, b)["boundsErrorPt"]["rms"], 1)
+        delayed = compare_windows(a, recording(3.4, 0.25), scene)[1]
+        self.assertGreater(delayed["geometry"]["tracks"]["card"]["properties"]["left"]["rms"], 0.3)
+        self.assertAlmostEqual(delayed["releaseDifferenceMs"], 0)
+
+    def test_windows_stop_at_next_received_gesture(self):
+        rows = [{"k": "touch", "t": t, "phase": phase, "pointer": "p"}
+                for t, phase in ((1, 0), (1.1, 3), (1.4, 0), (1.5, 3))]
+        windows = compare_windows(rows, rows, {"steps": []})
+        self.assertAlmostEqual(windows[0]["end"], 0.4)
+
+    def test_missing_clip_channels_cannot_satisfy_a_clip_gate(self):
+        self.scene["gates"] = {"clipLossPt": 0.5}
+        rows = trace(self.scene)
+        for row in rows:
+            if row.get("k") == "lab_sample":
+                del row["values"]["height"]
+        result = compare(rows, rows, self.scene)
+        self.assertIsNone(result["geometry"]["maxClipLossPt"])
+        self.assertIn("clipLossPt: None exceeds 0.5", result["failures"])
+
+    def test_remounted_card_is_not_a_horizontal_teleport(self):
+        rows = [{"k": "start", "t": 0},
+                {"k": "lab_sample", "id": "card", "t": 0, "identity": "old", "values": {"left": 0}},
+                {"k": "lab_sample", "id": "card", "t": 0.01, "identity": "new", "values": {"left": 90}},
+                {"k": "lab_sample", "id": "card", "t": 0.02, "identity": "new", "values": {"left": 90.1}}]
+        result = compare_geometry(rows, rows)
+        self.assertAlmostEqual(result["maxHorizontalStepPt"], 0.1)
+        self.assertEqual(result["tracks"]["card"]["identityChanges"], 1)
+
+    def test_missing_or_failed_semantic_assertion_requires_review(self):
+        self.scene["steps"].append({"id": "footer", "action": "assert", "anchor": {"label": "Ask Siri"}, "exists": True})
+        a, b = trace(self.scene), trace(self.scene)
+        a.append({"k": "lab_assert", "id": "footer", "t": 1.4, "expected": True, "actual": True})
+        self.assertIn("candidate: invalid capture metadata", compare(a, b, self.scene)["failures"])
+        b.append({"k": "lab_assert", "id": "footer", "t": 1.4, "expected": True, "actual": False})
+        self.assertIn("candidate: invalid capture metadata", compare(a, b, self.scene)["failures"])
+        b[-1]["actual"] = True
+        self.assertTrue(compare(a, b, self.scene)["passed"])
+
 
 class CaptureTests(unittest.TestCase):
+    def test_runner_assertions_are_read_without_modifying_raw_trace(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp)
+            raw = '{"k":"start","t":1}\n'
+            (path / "trace.jsonl").write_text(raw)
+            assertion = {"k": "lab_assert", "id": "footer", "t": 2, "expected": True, "actual": True}
+            (path / "runner-events.json").write_text(json.dumps([assertion]))
+            rows = read_capture(path)
+            self.assertEqual(rows[-1]["actual"], True)
+            self.assertEqual(rows[-1]["source"], "XCUITest runner journal")
+            self.assertEqual((path / "trace.jsonl").read_text(), raw)
+            (path / "trace.jsonl").write_text(raw + json.dumps(assertion) + '\n')
+            self.assertEqual(len(read_capture(path)), 2)
+            (path / "trace.jsonl").write_text(raw)
+            (path / "runner-events.json").write_text(json.dumps([assertion, assertion]))
+            self.assertEqual(len(read_capture(path)), 3)
+
     def test_lock_is_atomic_and_released_after_error(self):
         with tempfile.TemporaryDirectory() as temp:
             lock = Path(temp) / "lock"
@@ -213,6 +325,37 @@ class CaptureTests(unittest.TestCase):
             result = map_frames(path, rows, {"canvas": {"scale": 1}})
             self.assertEqual([r["pts"] for r in result["frames"]], [0.0, 0.021, 0.083])
             self.assertAlmostEqual(result["frames"][2]["t"], 2 / 60)
+
+    def test_frame_pairing_retains_pts_and_observed_phase_error(self):
+        with tempfile.TemporaryDirectory() as temp:
+            path = Path(temp) / "frame.png"
+            Image.new("RGB", (12, 12), (250, 250, 250)).save(path)
+            scene = {"canvas": {"width": 12, "height": 12, "scale": 1}, "regions": [], "filmToleranceMs": 10}
+            native = [{"path": str(path), "t": t, "pts": 200 + t, "sequence": i} for i, t in enumerate((0, 0.02))]
+            candidate = [{"path": str(path), "t": 0.006, "pts": 500.2, "sequence": 30}]
+            pairs = pair_frames(native, candidate, scene, -0.15, 0.8)
+            self.assertEqual(len(pairs), 1)
+            self.assertEqual(pairs[0]["nativePts"], 200)
+            self.assertEqual(pairs[0]["candidatePts"], 500.2)
+            self.assertAlmostEqual(pairs[0]["deltaMs"], 6)
+            self.assertEqual(pairs[0]["candidateSequence"], 30)
+
+    def test_parallel_frame_metrics_keep_pair_order_and_pixel_values(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            native = root / "native.png"
+            Image.new("RGB", (12, 12), (10, 10, 10)).save(native)
+            scene = {"canvas": {"width": 12, "height": 12, "scale": 1},
+                     "regions": [{"id": "face", "rect": [0, 0, 12, 12]}]}
+            a, b = [], []
+            for i in range(4):
+                path = root / f"candidate-{i}.png"
+                Image.new("RGB", (12, 12), (20 + i, 20 + i, 20 + i)).save(path)
+                a.append({"path": str(native), "t": i / 60, "pts": 100 + i / 60, "sequence": i})
+                b.append({"path": str(path), "t": i / 60, "pts": 300 + i / 60, "sequence": i + 10})
+            pairs = pair_frames(a, b, scene)
+            self.assertEqual([p["nativeSequence"] for p in pairs], [0, 1, 2, 3])
+            self.assertEqual([p["regions"]["face"]["mae"] for p in pairs], [10, 11, 12, 13])
 
     def test_region_color_error_and_dimensions(self):
         with tempfile.TemporaryDirectory() as temp:
