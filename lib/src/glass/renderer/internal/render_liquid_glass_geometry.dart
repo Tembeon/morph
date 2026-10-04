@@ -2,7 +2,6 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter/rendering.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/snap_rect_to_pixels.dart';
-import 'package:morph/src/glass/renderer/logging.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 import 'package:meta/meta.dart';
 
@@ -96,9 +95,6 @@ abstract class RenderLiquidGlassGeometry extends RenderProxyBox {
     _devicePixelRatio = devicePixelRatio;
   }
 
-  /// The logger for liquid glass geometry.
-  final Logger logger = Logger(LgrLogNames.geometry);
-
   late LiquidGlassSettings? _settings;
 
   /// The settings used for liquid glass rendering.
@@ -110,7 +106,6 @@ abstract class RenderLiquidGlassGeometry extends RenderProxyBox {
     if (_settings == value) return;
 
     if (value.requiresGeometryRebuild(_settings)) {
-      logger.finer('$hashCode rebuild ');
       markGeometryNeedsUpdate(force: true);
     }
 
@@ -277,7 +272,6 @@ abstract class RenderLiquidGlassGeometry extends RenderProxyBox {
         !anyShapeChangedInLayer &&
         geometry != null &&
         !_matteVisibilityChanged(geometry!.shapes, shapes)) {
-      logger.finer('$hashCode Skipping geometry rebuild.');
       // Paint-only shape metadata (currently grouped shadows) must still
       // refresh even when the SDF inputs are reusable.
       // This keeps interactive shadow controls live without re-encoding the
@@ -293,8 +287,6 @@ abstract class RenderLiquidGlassGeometry extends RenderProxyBox {
       geometryState = LiquidGlassGeometryState.updated;
       return geometry;
     }
-
-    logger.finer('$hashCode Rebuilding geometry');
 
     geometry?.dispose();
     geometry = null;

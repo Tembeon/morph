@@ -19,9 +19,7 @@ import 'package:meta/meta.dart';
 ///
 /// Tint and saturation use one native affine color filter on Impeller and
 /// Skia. Each shape renders tint, contour, bevel, and highlight with one
-/// lightweight analytic-SDF fragment draw on both backends. Fake shapes inside
-/// a [LiquidGlassBlendGroup] remain visually independent; this fallback does
-/// not compute smooth-union geometry.
+/// lightweight analytic-SDF fragment draw on both backends. Shapes remain visually independent; this fallback does not fuse geometry.
 class FakeGlass extends StatelessWidget {
   /// Creates a new [FakeGlass] widget with the given [child], [shape], and
   /// [settings].
@@ -141,10 +139,7 @@ class FakeGlass extends StatelessWidget {
               (useBackdropGroup
                   ? BackdropGroup.of(context)?.backdropKey
                   : null);
-    final glow = _fadeChildren(
-      appearance.visibility,
-      GlassGlowLayer(child: child),
-    );
+    final glow = _fadeChildren(appearance.visibility, child);
     final paintsOwnSurface =
         !(renderScope?.consolidatesFakeSurface ?? false) ||
         !backdropHandledByLayer;
@@ -397,7 +392,7 @@ class RenderFakeGlass extends RenderProxyBox {
       return true;
     }(), 'Track fake surface paints in debug builds.');
     if (!_hasBackdropEffect || backdropHandledByLayer) {
-      // No blur or saturation change — skip the BackdropFilterLayer entirely
+      // No blur or saturation change - skip the BackdropFilterLayer entirely
       // and just paint the specular highlights and child directly.
       this.layer = null;
       _paintRecordedSurface(context.canvas, offset);

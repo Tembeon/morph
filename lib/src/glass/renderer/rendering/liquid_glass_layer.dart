@@ -19,68 +19,16 @@ import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.d
 import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameters.dart';
 import 'package:morph/src/glass/renderer/internal/snap_rect_to_pixels.dart';
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
-import 'package:morph/src/glass/renderer/liquid_glass_capture.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_settings.dart';
-import 'package:morph/src/glass/renderer/logging.dart';
 import 'package:morph/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
-/// Represents a layer of multiple [LiquidGlass] shapes or
-/// [LiquidGlassBlendGroup]s that have shared [LiquidGlassSettings] and will be
-/// rendered together.
+/// Shades independently registered shapes or an owner-supplied fused field.
 ///
-/// If you create a [LiquidGlassLayer] with one or more [LiquidGlass] or
-/// [LiquidGlassBlendGroup] widgets, the liquid glass effect will be rendered
-/// where this layer is.
-///
-/// Make sure not to stack any other widgets between the [LiquidGlassLayer] and
-/// the [LiquidGlass] widgets, otherwise the liquid glass effect will be behind
-/// them.
-///
-/// ## Example
-///
-/// ```dart
-/// Widget build(BuildContext context) {
-///   return LiquidGlassLayer(
-///     child: Column(
-///       children: [
-///         LiquidGlass(
-///           shape: LiquidRoundedSuperellipse(
-///             borderRadius: 10,
-///           ),
-///           child: const SizedBox.square(
-///             dimension: 100,
-///           ),
-///         ),
-///         const SizedBox(height: 100),
-///         LiquidGlassBlendGroup(
-///           blend: 20,
-///           child: Row(
-///             children: [
-///               LiquidGlass.grouped(
-///                 shape: const LiquidOval(),
-///                 child: const SizedBox.square(
-///                   dimension: 100,
-///                 ),
-///               ),
-///               LiquidGlass.grouped(
-///                 shape: const LiquidRoundedSuperellipse(
-///                   borderRadius: 20,
-///                 ),
-///                 child: const SizedBox.square(
-///                   dimension: 100,
-///                 ),
-///               ),
-///             ],
-///           ),
-///         ),
-///       ],
-///     ),
-///   );
-/// }
-/// ```
+/// The owner computes every union before supplying [field]. Shapes provide
+/// the material and shadows; this layer never fuses their geometry.
 class LiquidGlassLayer extends StatefulWidget {
   /// Creates a new [LiquidGlassLayer] with the given [child] and [settings].
   const LiquidGlassLayer({
@@ -136,15 +84,14 @@ class LiquidGlassLayer extends StatefulWidget {
   /// On Impeller, each independent backdrop capture does a full-screen
   /// readback (~115 mW GPU at 120 Hz on a Pixel 10) before blur or glass
   /// work. Sharing one [BackdropGroup] or [BackdropKey] pays that readback
-  /// once: two real layers dropped from 797 mW to 688 mW, two plain σ7 blurs
+  /// once: two real layers dropped from 797 mW to 688 mW, two plain sigma7 blurs
   /// from 426 mW to 312 mW, on the same device.
   ///
   /// Shared members do not see content painted between them. Group only
   /// elements that sit over the same content plane (for example all root
   /// chrome). Do not put a sheet and the FAB above it in one group.
   ///
-  /// This applies consistently to real and fake glass and is independent from
-  /// [LiquidGlassBlendGroup], which only controls geometry blending.
+  /// This applies consistently to real and fake glass.
   /// [backdropKey] takes precedence when both are provided.
   ///
   /// Defaults to false.
@@ -175,8 +122,6 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
 
   late final GeometryRenderLink _link = GeometryRenderLink();
 
-  late final logger = Logger(LgrLogNames.layer);
-
   FlutterGpuGeometryRenderer? _gpuGeometryRenderer;
   final List<FlutterGpuGeometryRenderer> _retiredGpuGeometryRenderers = [];
   bool _triedGpuGeometryRenderer = false;
@@ -190,7 +135,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
   void _logDebugFallback(String message) {
     if (!kDebugMode || _loggedFallback) return;
     _loggedFallback = true;
-    debugPrint('liquid_glass_renderer: $message');
+    debugPrint('morph: $message');
   }
 
   void _tryCreateCachedGpuGeometryRenderer() {
@@ -456,9 +401,9 @@ class _RawShapes extends SingleChildRenderObjectWidget {
 }
 
 /// The real glass layer: renders the shared shape geometry into a GPU matte
-/// and paints the final shader filter over it. All shared machinery — shape
+/// and paints the final shader filter over it. All shared machinery - shape
 /// registration, transform and compositor-translation polling, retained
-/// ancestor clips, shadows, bounds and the frame state — lives in
+/// ancestor clips, shadows, bounds and the frame state - lives in
 /// [LiquidGlassRenderObject]; this class implements only the effect.
 @internal
 class RenderLiquidGlassLayer extends LiquidGlassRenderObject
@@ -712,7 +657,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // MARK: Retained frame hooks
 
   /// Whether the committed shapes exist but none can be drawn by this
-  /// effect — a function of the committed geometry, so it stays correct
+  /// effect - a function of the committed geometry, so it stays correct
   /// when a retained refresh commits new shapes between paints.
   bool get drawableEmpty =>
       shapesWithGeometry.isNotEmpty && !hasDrawableGlass(shapesWithGeometry);
@@ -809,8 +754,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     updateMaterial,
   ) {
     if ((_geometryImage == null && !drawableEmpty) ||
-        frameState == GlassFrameState.idle ||
-        debugPaintLiquidGlassGeometry) {
+        frameState == GlassFrameState.idle) {
       return false;
     }
     final candidate = <(RenderLiquidGlassGeometry, GeometryCache, Matrix4)>[];
@@ -968,9 +912,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         }
 
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {
-          if (debugPaintLiquidGlassGeometry) {
-            _debugPaintGeometry(effectContext, effectOffset);
-          } else if (_geometryImage != null) {
+          if (_geometryImage != null) {
             _bindGeometryShader(_geometryImage!);
             _recordOriginalShadows(effectOffset);
             if (_originalShadows.layer case final shadows?) {
@@ -1113,13 +1055,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (clip == null || blurPassSigma <= 0) return clip;
     final translation = compositorTranslation;
     var captured = clip.shift(translation);
-    final ancestorClips = [
-      retainedClipBounds,
-      localPaintClipAbove(
-        this,
-        stopAt: (ancestor) => ancestor is RenderLiquidGlassCapture,
-      ),
-    ];
+    final ancestorClips = [retainedClipBounds, localPaintClipAbove(this)];
     for (final ancestorClip in ancestorClips) {
       if (ancestorClip != null) captured = captured.intersect(ancestorClip);
     }
@@ -1335,8 +1271,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   void onCompositorTranslationMissed(
     ({bool needsRepaint, Offset? translation}) motion,
   ) {
-    // A pass-origin change — the probe enabling, or a capture's clip moving
-    // with paint-only changes inside it — moves no tracked transform, so the
+    // A pass-origin change - the probe enabling, or a capture's clip moving
+    // with paint-only changes inside it - moves no tracked transform, so the
     // translation poll misses it. Re-sync the coordinate mapping into the
     // retained filter, or repaint when its inputs cannot be reused.
     if (syncCoordinateMapping()) {
@@ -1357,23 +1293,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       return;
     }
     if (motion.needsRepaint) markNeedsPaint();
-  }
-
-  void _debugPaintGeometry(PaintingContext context, Offset offset) {
-    if (_geometryImage case final geometryImage?) {
-      final bounds = _geometryMatteBounds;
-      context.canvas
-        ..save()
-        ..translate(bounds.left, bounds.top)
-        ..scale(1 / devicePixelRatio)
-        ..drawImageRect(
-          geometryImage,
-          Offset.zero & bounds.size * devicePixelRatio,
-          (offset * devicePixelRatio) & bounds.size * devicePixelRatio,
-          Paint()..blendMode = BlendMode.src,
-        )
-        ..restore();
-    }
   }
 
   @override
@@ -1410,7 +1329,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// How far outside the material the composed filter reads the backdrop:
   /// the blur kernel (3 sigma), the peak edge displacement including its
   /// dispersion, and, with [LiquidGlassSettings.backdropShrink], the extra
-  /// content revealed on the face. A `LiquidGlassCapture` must contain this
+  /// content revealed on the face. A backdrop group must contain this
   /// reach or the filter samples its own edge.
   double backdropSamplingReach(Rect material) {
     final blur = blurPassSigma > 0

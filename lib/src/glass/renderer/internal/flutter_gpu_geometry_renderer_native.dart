@@ -61,18 +61,10 @@ class FlutterGpuGeometryRenderer {
   static Future<FlutterGpuGeometryRenderer> fromAsset(String assetKey) async {
     final cachedResources = _resolvedAssetResources[assetKey];
     if (cachedResources != null) {
-      try {
-        return FlutterGpuGeometryRenderer._fromShared(cachedResources);
-      } on Object {
-        // Drop resources that failed to build a renderer so the next layer
-        // reloads the bundle instead of failing the same way.
-        if (identical(_resolvedAssetResources[assetKey], cachedResources)) {
-          _resolvedAssetResources.remove(assetKey);
-        }
-        rethrow;
-      }
+      return FlutterGpuGeometryRenderer._fromShared(cachedResources);
     }
     final resourcesFuture = _assetResources[assetKey] ??= () async {
+      debugShaderBundleLoadCount++;
       final library = await gpu.ShaderLibrary.fromAsset(assetKey);
       final vertexShader = library?['GeometryVertex'];
       final fragmentShader = library?['GeometryFragment'];
@@ -99,40 +91,25 @@ class FlutterGpuGeometryRenderer {
         materialTintGradientFragmentShader: materialTintGradientFragmentShader,
       );
     }();
-    try {
-      final resources = await resourcesFuture;
-      final renderer = FlutterGpuGeometryRenderer._fromShared(resources);
-      _resolvedAssetResources[assetKey] = resources;
-      if (identical(_assetResources[assetKey], resourcesFuture)) {
-        unawaited(_assetResources.remove(assetKey));
-      }
-      return renderer;
-    } on Object {
-      // Forget the failed load so a later layer retries it instead of
-      // awaiting the same failed Future.
-      if (identical(_assetResources[assetKey], resourcesFuture)) {
-        unawaited(_assetResources.remove(assetKey));
-      }
-      rethrow;
-    }
+    final resources = await resourcesFuture;
+    final renderer = FlutterGpuGeometryRenderer._fromShared(resources);
+    _resolvedAssetResources[assetKey] = resources;
+    return renderer;
   }
+
+  /// The number of shader bundle loads attempted in this isolate.
+  @visibleForTesting
+  static int debugShaderBundleLoadCount = 0;
 
   /// Synchronously builds a renderer from already resolved shared resources.
   ///
-  /// Returns null when [fromAsset] has not resolved [assetKey] yet, so callers
-  /// can fall back to the asynchronous path. On failure the poisoned cache
-  /// entry is evicted exactly like [fromAsset] does.
+  /// Returns null until [fromAsset] resolves [assetKey]. Failed asynchronous
+  /// loads remain cached for the lifetime of the isolate.
   static FlutterGpuGeometryRenderer? tryCreateCached(String assetKey) {
-    final cachedResources = _resolvedAssetResources[assetKey];
-    if (cachedResources == null) return null;
-    try {
-      return FlutterGpuGeometryRenderer._fromShared(cachedResources);
-    } on Object {
-      if (identical(_resolvedAssetResources[assetKey], cachedResources)) {
-        _resolvedAssetResources.remove(assetKey);
-      }
-      return null;
-    }
+    final resources = _resolvedAssetResources[assetKey];
+    return resources == null
+        ? null
+        : FlutterGpuGeometryRenderer._fromShared(resources);
   }
 
   /// Completes once the Flutter GPU context exists without blocking.
@@ -284,7 +261,7 @@ class FlutterGpuGeometryRenderer {
   ///
   /// The matte fills the top-left `width` x `height` of the image, which is
   /// `textureWidth` x `textureHeight`. The returned image is a non-owning
-  /// wrapper — do NOT dispose it. Its texture is written again
+  /// wrapper - do NOT dispose it. Its texture is written again
   /// [reuseAfterFrames] frames after a later render replaces it.
   ({ui.Image image, int width, int height, int textureWidth, int textureHeight})
   render({
@@ -439,12 +416,11 @@ class FlutterGpuGeometryRenderer {
       final fieldUniformView = _hostBufferForUniformSize(
         _uniformSize,
       ).emplace(_fieldUniformData);
-      geometryPass
-        ..bindPipeline(_fieldPipeline)
-        ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
-        ..bindUniform(_fieldUniformSlot, fieldUniformView)
-        ..bindTexture(_fieldTextureSlot, fieldTexture)
-        ..bindVertexBuffer(_vertexBufferView);
+      geometryPass.bindPipeline(_fieldPipeline);
+      geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
+      geometryPass.bindUniform(_fieldUniformSlot, fieldUniformView);
+      geometryPass.bindTexture(_fieldTextureSlot, fieldTexture);
+      geometryPass.bindVertexBuffer(_vertexBufferView);
     }
     _restrictTo(geometryPass, _texture!, matteWidth, matteHeight);
     geometryPass.draw(4);
@@ -868,6 +844,7 @@ class FlutterGpuGeometryRenderer {
     if (_disposed) return;
     _disposed = true;
     releaseOutput();
+    _fieldTextures.release();
     assert(() {
       _debugActiveRendererCount--;
       return true;
@@ -1033,34 +1010,23 @@ typedef _FieldUniformOffsets = ({
   int fieldSize,
 });
 
-/// The float textures a renderer uploads fields into.
+/// Exact-sized field textures whose host storage is reused after three frames.
 ///
-/// The host writes a field texture directly, outside the GPU queue's
-/// ordering, so a texture is written again only after it was last bound
-/// [_reuseAfterFrames] frames ago, when no frame in flight still reads it.
-/// Textures only grow (in 1.5x steps), and a field fills the top-left
-/// of its texture.
+/// Flutter GPU's overwrite API requires an entire mip level, so exact field
+/// dimensions avoid uploading unused capacity. At most four textures survive
+/// in the ring; GPU command buffers retain textures still in flight.
 final class _FieldTextures {
   static const int _reuseAfterFrames = 3;
   static const int _maxTextures = 4;
 
   final List<(gpu.Texture, int)> _textures = [];
-  int _width = 0;
-  int _height = 0;
-  ByteData? _staging;
-
-  static int _grow(int capacity, int needed) =>
-      needed <= capacity ? capacity : math.max(needed, (capacity * 3) >> 1);
 
   gpu.Texture upload(GlassField field, int frame) {
-    if (field.cols > _width || field.rows > _height) {
-      _width = _grow(_width, field.cols);
-      _height = _grow(_height, field.rows);
-      _textures.clear();
-      _staging = null;
-    }
     var index = _textures.indexWhere(
-      (entry) => frame - entry.$2 >= _reuseAfterFrames,
+      (entry) =>
+          entry.$1.width == field.cols &&
+          entry.$1.height == field.rows &&
+          frame - entry.$2 >= _reuseAfterFrames,
     );
     final gpu.Texture texture;
     if (index >= 0) {
@@ -1068,8 +1034,8 @@ final class _FieldTextures {
     } else {
       texture = gpu.gpuContext.createTexture(
         gpu.StorageMode.hostVisible,
-        _width,
-        _height,
+        field.cols,
+        field.rows,
         format: gpu.PixelFormat.r32g32b32a32Float,
         enableRenderTargetUsage: false,
       );
@@ -1078,21 +1044,11 @@ final class _FieldTextures {
       index = _textures.length - 1;
     }
     _textures[index] = (texture, frame);
-    final staging = _staging ??= ByteData(_width * _height * 16);
-    final texels = staging.buffer.asFloat32List();
-    final samples = field.samples;
-    final rowFloats = field.cols * 4;
-    for (var j = 0; j < field.rows; j++) {
-      texels.setRange(
-        j * _width * 4,
-        j * _width * 4 + rowFloats,
-        samples,
-        j * rowFloats,
-      );
-    }
-    texture.overwrite(staging);
+    texture.overwrite(ByteData.sublistView(field.samples));
     return texture;
   }
+
+  void release() => _textures.clear();
 }
 
 class _SharedGeometryResources {

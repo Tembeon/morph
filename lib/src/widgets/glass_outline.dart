@@ -1,7 +1,7 @@
 import 'dart:math' as math;
-import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/liquid_field.dart';
 
@@ -56,12 +56,13 @@ const double morphOpticalCornerScale = 1.5;
 /// loops: per box its center, half extents and clamped corner radius.
 @internal
 class MorphOutlineBoxes {
-  /// Lays out [shapes].
+  /// Lays out [shapes], whose corners must share one circular radius.
   MorphOutlineBoxes(List<RRect> shapes)
     : length = shapes.length,
       _data = Float64List(shapes.length * 5) {
     for (var i = 0; i < shapes.length; i++) {
       final shape = shapes[i];
+      _requireUniform(shape);
       final hx = shape.width / 2;
       final hy = shape.height / 2;
       _data[i * 5] = shape.center.dx;
@@ -248,7 +249,10 @@ MorphGlassOutline morphGlassOutlineFromFields({
 ///
 /// A saddle cell is resolved by the mean of its corners. The buffers live
 /// across calls in [_TracerBuffers]: an outline is traced on the UI
-/// thread, one at a time.
+/// thread, one at a time. They retain the largest traced grid until the
+/// isolate exits. This tracer follows the sampled optical field's zero
+/// contour; LiquidField's tracer evaluates an analytic mass field instead.
+/// The B-spline uses the same Chaikin limit without repeated point lists.
 class _OutlineTracer {
   factory _OutlineTracer(int edges) {
     final buffers = _TracerBuffers.claim(edges);
@@ -616,7 +620,7 @@ bool _fuses(List<RRect> group, double spacing) {
   return false;
 }
 
-/// The last outlines [morphGlassContainerOutline] fused, newest last.
+/// The last four outlines retained by the isolate, newest last.
 final List<(List<RRect>, double, MorphGlassOutline)> _recentOutlines = [];
 
 /// The outline a glass container with [spacing] fuses [shapes] into, by
@@ -624,7 +628,8 @@ final List<(List<RRect>, double, MorphGlassOutline)> _recentOutlines = [];
 /// container spacing of UIKit's `UIGlassContainerEffect`).
 ///
 /// The last few outlines are remembered, so a layer that rebuilds without
-/// its shapes moving does not fuse them again.
+/// its shapes moving does not fuse them again. Shapes must have uniform
+/// circular corner radii; non-uniform corners are rejected in debug builds.
 @internal
 MorphGlassOutline morphGlassContainerOutline(
   List<RRect> shapes,
@@ -776,5 +781,34 @@ void morphNormalizeTurn(Float64List turn, int at) {
   }
 }
 
-double _radius(RRect shape) =>
-    math.min(shape.tlRadiusX, shape.outerRect.shortestSide / 2);
+double _radius(RRect shape) {
+  _requireUniform(shape);
+  return math.min(shape.tlRadiusX, shape.outerRect.shortestSide / 2);
+}
+
+void _requireUniform(RRect shape) {
+  assert(
+    shape.tlRadiusX == shape.tlRadiusY &&
+        shape.tlRadius == shape.trRadius &&
+        shape.tlRadius == shape.blRadius &&
+        shape.tlRadius == shape.brRadius,
+    'Glass distance fields require uniform circular corner radii.',
+  );
+}
+
+/// Clips a shaded body to the package's outline path.
+@internal
+class MorphGlassOutlineClip extends CustomClipper<Path> {
+  /// Creates a clip for [path].
+  const MorphGlassOutlineClip(this.path);
+
+  /// The body outline in the layer's coordinates.
+  final Path path;
+
+  @override
+  Path getClip(Size size) => path;
+
+  @override
+  bool shouldReclip(MorphGlassOutlineClip oldClipper) =>
+      oldClipper.path != path;
+}

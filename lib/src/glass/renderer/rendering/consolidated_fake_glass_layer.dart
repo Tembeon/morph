@@ -54,21 +54,21 @@ class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
     BuildContext context,
     RenderConsolidatedFakeGlassLayer renderObject,
   ) {
-    renderObject
-      ..devicePixelRatio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1
-      ..link = link
-      ..settings = settings
-      ..defaultAppearance = defaultAppearance
-      ..backdropKey = backdropKey
-      ..surfaceShader = surfaceShader
-      ..outline = outline;
+    renderObject.devicePixelRatio =
+        MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
+    renderObject.link = link;
+    renderObject.settings = settings;
+    renderObject.defaultAppearance = defaultAppearance;
+    renderObject.backdropKey = backdropKey;
+    renderObject.surfaceShader = surfaceShader;
+    renderObject.outline = outline;
   }
 }
 
 /// The fake glass layer: paints a clipped backdrop blur plus the surface
-/// shader for the shared shape geometry. All shared machinery — shape
+/// shader for the shared shape geometry. All shared machinery - shape
 /// registration, transform and compositor-translation polling, retained
-/// ancestor clips, shadows, bounds and the frame state — lives in
+/// ancestor clips, shadows, bounds and the frame state - lives in
 /// [LiquidGlassRenderObject]; this class implements only the effect.
 @visibleForTesting
 @internal

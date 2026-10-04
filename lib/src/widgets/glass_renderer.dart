@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 
@@ -70,6 +71,18 @@ enum MorphGlassMaterial {
 /// iPhone 16 Pro ([tabBarMagnification], [segmentedShrink] and their
 /// kin). Frost is the dearest part of the liquid tier, so only bars,
 /// menus and lifted lenses frost unless [frostControls] is on.
+///
+/// Enable Flutter GPU with `FLTEnableFlutterGPU` in the Apple app's
+/// Info.plist or `io.flutter.embedding.android.EnableFlutterGPU` in the
+/// Android manifest, and use Impeller. Call [precache] before installing
+/// a fixed renderer; [MorphAdaptiveGlass] follows initialization itself.
+/// Until shaders are ready, or if they fail, liquid draws frosted and
+/// reports [MorphGlassTier.frosted]. A failure logs once in debug builds.
+/// Native builds need Flutter's data asset support enabled to package the GPU
+/// bundle (`flutter config --enable-dart-data-assets` on toolchains with
+/// the feature flag). Toolchains without data assets keep the frosted fallback.
+/// Wrap a fixed renderer's controls in [BackdropGroup] to share backdrop
+/// copies; overlapping glass that samples other glass needs its own group.
 @immutable
 class MorphGlassRenderer extends MorphGlassPainter {
   /// Creates a renderer at [tier] with the liquid tier's settings.
@@ -110,13 +123,13 @@ class MorphGlassRenderer extends MorphGlassPainter {
   /// plain page the frost is rarely visible.
   final bool frostControls;
 
-  /// Whether this build carries the liquid tier.
+  /// Whether the runtime GPU context and liquid shaders are ready.
   ///
   /// False on the web, whose shader compiler cannot build the renderer's
   /// shaders; there [MorphGlassTier.liquid] draws [MorphGlassTier.frosted].
   static bool get liquidAvailable => morphLiquidGlassAvailable;
 
-  /// The best tier this build can draw.
+  /// The best tier currently available on this runtime.
   static MorphGlassTier get bestTier =>
       liquidAvailable ? MorphGlassTier.liquid : MorphGlassTier.frosted;
 
@@ -127,6 +140,8 @@ class MorphGlassRenderer extends MorphGlassPainter {
 
   /// Loads the liquid tier's shaders, so the first glass on screen is
   /// already the real one; completes at once where there is no liquid tier.
+  /// On Android, calling before `runApp` can wait for the engine's GPU
+  /// context initialization; it does not wait for an application frame.
   static Future<void> precache() => morphPrecacheLiquidGlass();
 
   /// The same renderer at [tier], or with any other setting replaced.
@@ -265,8 +280,9 @@ class MorphGlassRenderer extends MorphGlassPainter {
   /// How far a floating surface has turned from its resting platter into
   /// glass, 0 to 1 over the first quarter of its lift; 1 for every other
   /// surface.
-  static double glassness(MorphGlassSurface surface) =>
-      floats(surface.kind) ? (surface.lift / 0.25).clamp(0.0, 1.0) : 1.0;
+  static double glassness(MorphGlassSurface surface) => floats(surface.kind)
+      ? (surface.lift / MorphGlassDefaults.glassLiftSpan).clamp(0.0, 1.0)
+      : 1.0;
 
   @override
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) {
@@ -467,11 +483,13 @@ class MorphGlassLayerParts {
 /// The frosted tier's blur of [surface]'s backdrop, in logical pixels.
 double _frostSigma(MorphGlassSurface surface) =>
     switch (surface.kind) {
-      MorphGlassKind.bar || MorphGlassKind.menu => 14,
-      MorphGlassKind.button => 10,
-      MorphGlassKind.track => 8,
+      MorphGlassKind.bar ||
+      MorphGlassKind.menu => MorphGlassDefaults.chromeFrost,
+      MorphGlassKind.button => MorphGlassDefaults.buttonFrost,
+      MorphGlassKind.track => MorphGlassDefaults.trackFrost,
       MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb =>
-        2 + (surface.optics?.blurRadiusAt(surface.lift) ?? 0),
+        MorphGlassDefaults.floatingFrost +
+            (surface.optics?.blurRadiusAt(surface.lift) ?? 0),
     } *
     surface.opacity.clamp(0.0, 1.0);
 
@@ -497,11 +515,14 @@ class _FrostedSurface extends StatelessWidget {
     final dark = surface.brightness == Brightness.dark;
     final sigma = _frostSigma(surface);
     final opacity = surface.opacity;
-    final highlight = 0.18 + 0.22 * surface.lift;
+    final highlight =
+        MorphGlassDefaults.frostHighlight +
+        MorphGlassDefaults.frostLiftHighlight * surface.lift;
     const white = Color(0xFFFFFFFF);
     return ClipRRect(
       borderRadius: radius,
       child: BackdropFilter(
+        backdropGroupKey: BackdropGroup.of(context)?.backdropKey,
         filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         child: DecoratedBox(
           decoration: BoxDecoration(color: _faded(surface.color, opacity)),
@@ -509,9 +530,13 @@ class _FrostedSurface extends StatelessWidget {
             decoration: BoxDecoration(
               borderRadius: radius,
               border: Border.all(
-                width: 0.5,
+                width: MorphGlassDefaults.frostRimWidth,
                 color: _faded(
-                  white.withValues(alpha: dark ? 0.22 : 0.55),
+                  white.withValues(
+                    alpha: dark
+                        ? MorphGlassDefaults.darkFrostRim
+                        : MorphGlassDefaults.lightFrostRim,
+                  ),
                   opacity,
                 ),
               ),
@@ -544,14 +569,20 @@ class _FrostedBody extends StatelessWidget {
     final sigma = _frostSigma(surface);
     final dark = surface.brightness == Brightness.dark;
     return ClipPath(
-      clipper: _OutlineClip(outline.path),
+      clipper: MorphGlassOutlineClip(outline.path),
       child: BackdropFilter(
+        backdropGroupKey: BackdropGroup.of(context)?.backdropKey,
         filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         child: CustomPaint(
           painter: _RimPainter(
             outline.path,
             _faded(surface.color, surface.opacity),
-            _faded(Color(dark ? 0x38FFFFFF : 0x8CFFFFFF), surface.opacity),
+            _faded(
+              dark
+                  ? MorphGlassDefaults.darkBodyRim
+                  : MorphGlassDefaults.lightBodyRim,
+              surface.opacity,
+            ),
           ),
           child: const SizedBox.expand(),
         ),
@@ -574,7 +605,7 @@ class _RimPainter extends CustomPainter {
     canvas.drawPath(path, fill);
     final stroke = Paint();
     stroke.style = PaintingStyle.stroke;
-    stroke.strokeWidth = 1;
+    stroke.strokeWidth = MorphGlassDefaults.bodyRimWidth;
     stroke.color = rim;
     canvas.drawPath(path, stroke);
   }
@@ -584,16 +615,4 @@ class _RimPainter extends CustomPainter {
       oldDelegate.path != path ||
       oldDelegate.color != color ||
       oldDelegate.rim != rim;
-}
-
-class _OutlineClip extends CustomClipper<Path> {
-  const _OutlineClip(this.path);
-
-  final Path path;
-
-  @override
-  Path getClip(Size size) => path;
-
-  @override
-  bool shouldReclip(_OutlineClip oldClipper) => oldClipper.path != path;
 }

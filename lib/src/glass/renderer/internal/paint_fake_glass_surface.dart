@@ -21,16 +21,16 @@ const _noSuperellipse = <double>[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 /// outside this repo for the Flutter issue): a
 /// shader-filled draw whose quad edge lands on a half-integer device-pixel
 /// boundary renders its alpha ramp quantized to whole pixels near that
-/// edge — the analytic silhouette stair-steps. Integer-aligned quad edges
+/// edge - the analytic silhouette stair-steps. Integer-aligned quad edges
 /// render smoothly.
 ///
-/// The drawn rect only bounds where the shader runs — the shape is placed
+/// The drawn rect only bounds where the shader runs - the shape is placed
 /// by `FlutterFragCoord`, so growing the quad changes nothing visible.
 /// Expanding each edge out to the nearest whole device pixel keeps the
 /// raster phase off the bad half-pixel grid at any position.
 ///
 /// [transform] is the draw's local-to-device transform
-/// (`canvas.getTransform()`); only axis-aligned transforms are snapped —
+/// (`canvas.getTransform()`); only axis-aligned transforms are snapped -
 /// anything else passes through unchanged.
 ///
 /// The snap is computed at paint time. Compositor-only motion (a retained

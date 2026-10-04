@@ -71,16 +71,11 @@ class MultiShaderBuilder extends StatefulWidget {
     if (_MultiShaderBuilderState._shaderCache.containsKey(assetKey)) {
       return Future<void>.value();
     }
-    return ui.FragmentProgram.fromAsset(assetKey).then(
-      (ui.FragmentProgram program) {
-        _MultiShaderBuilderState._shaderCache[assetKey] = program;
-      },
-      onError: (Object error, StackTrace stackTrace) {
-        FlutterError.reportError(
-          FlutterErrorDetails(exception: error, stack: stackTrace),
-        );
-      },
-    );
+    return ui.FragmentProgram.fromAsset(assetKey).then((
+      ui.FragmentProgram program,
+    ) {
+      _MultiShaderBuilderState._shaderCache[assetKey] = program;
+    });
   }
 
   /// Precache multiple [ui.FragmentProgram]s based on their [assetKeys].

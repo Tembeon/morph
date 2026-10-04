@@ -7,7 +7,7 @@ import 'package:flutter/widgets.dart';
 /// No-op in release builds.
 @internal
 void debugRegisterBackdropCapture(Object owner, BackdropKey? key) {
-  if (!kDebugMode) return;
+  if (!kDebugMode || !BackdropCaptureDebug.enabled) return;
   BackdropCaptureDebug._register(owner, key);
 }
 
@@ -18,6 +18,12 @@ void debugRegisterBackdropCapture(Object owner, BackdropKey? key) {
 /// warning: the same count is not printed again until it changes.
 @internal
 abstract final class BackdropCaptureDebug {
+  /// Whether independent capture counts are logged in debug builds.
+  ///
+  /// Off by default: lifted lenses and overlapping chrome intentionally
+  /// capture different content planes and cannot share one backdrop key.
+  static bool enabled = false;
+
   static final Map<Object, BackdropKey?> _captures = {};
   static int? _lastReportedCount;
   static bool _callbackScheduled = false;
@@ -53,11 +59,10 @@ abstract final class BackdropCaptureDebug {
     if (count <= 1 || (_lastReportedCount ?? 0) >= count) return;
     _lastReportedCount = count;
     debugPrint(
-      'liquid_glass_renderer: $count independent backdrop captures in this '
-      'frame. On Impeller each costs a full-screen readback (~115 mW GPU at '
-      '120 Hz on a Pixel 10). Wrap the glass layers that sit over the same '
-      'content in one BackdropGroup and pass useBackdropGroup: true (or share '
-      'a BackdropKey) so they capture once.',
+      'morph: $count independent backdrop captures in this frame. '
+      'Non-overlapping surfaces on the same content plane can share a '
+      'BackdropGroup; lifted lenses and overlapping glass need independent '
+      'captures.',
     );
   }
 

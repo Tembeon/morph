@@ -118,7 +118,7 @@ void main() {
       ),
     );
     expect(find.byType(LiquidGlassLayer), findsOneWidget);
-    expect(find.text('Label'), findsNWidgets(4));
+    expect(find.text('Label'), findsOneWidget);
     expect(_lensShrink(tester, 0), MorphGlassRenderer.segmentedShrink);
     expect(_lensShrinkRim(tester, 0), MorphGlassRenderer.lensShrinkRim);
     final base = tester.getRect(find.text('Label').first);
@@ -127,11 +127,11 @@ void main() {
     expect(seen.center.dy, moreOrLessEquals(base.center.dy, epsilon: 0.01));
     expect(seen.width, moreOrLessEquals(base.width, epsilon: 0.01));
     expect(
-      find.ancestor(
-        of: find.text('Label').last,
+      find.descendant(
+        of: find.byType(MorphGlassContentCopy),
         matching: find.byType(ExcludeSemantics),
       ),
-      findsWidgets,
+      findsOneWidget,
     );
   });
 
@@ -374,7 +374,13 @@ void main() {
             ], spacing: 12),
           ),
         );
-        expect(find.byType(LiquidGlassBlendGroup), findsNothing);
+        expect(
+          find.byWidgetPredicate(
+            (widget) =>
+                widget.runtimeType.toString() == 'LiquidGlassBlendGroup',
+          ),
+          findsNothing,
+        );
         final layers = tester.widgetList<LiquidGlassLayer>(
           find.byType(LiquidGlassLayer),
         );
@@ -555,7 +561,10 @@ void main() {
     Duration at(int frame) => Duration(microseconds: frame * 8333);
 
     test('steps down when a quarter of a window misses the budget', () {
-      final governor = MorphGlassTierGovernor(ceiling: MorphGlassTier.liquid);
+      final governor = MorphGlassTierGovernor(
+        ceiling: MorphGlassTier.liquid,
+        policy: const MorphGlassTierPolicy(warmUp: Duration.zero),
+      );
       var changed = false;
       for (var i = 0; i < 30; i++) {
         changed = governor.addFrame(
@@ -571,7 +580,10 @@ void main() {
     });
 
     test('holds when fewer frames miss', () {
-      final governor = MorphGlassTierGovernor(ceiling: MorphGlassTier.liquid);
+      final governor = MorphGlassTierGovernor(
+        ceiling: MorphGlassTier.liquid,
+        policy: const MorphGlassTierPolicy(warmUp: Duration.zero),
+      );
       for (var i = 0; i < 300; i++) {
         governor.addFrame(
           build: fast,
@@ -585,7 +597,10 @@ void main() {
     });
 
     test('steps back up only after the wait and never under a finger', () {
-      final governor = MorphGlassTierGovernor(ceiling: MorphGlassTier.liquid);
+      final governor = MorphGlassTierGovernor(
+        ceiling: MorphGlassTier.liquid,
+        policy: const MorphGlassTierPolicy(warmUp: Duration.zero),
+      );
       var frame = 0;
       void feed(int frames, Duration raster, {bool gesture = false}) {
         for (var i = 0; i < frames; i++) {
@@ -613,7 +628,10 @@ void main() {
     });
 
     test('never goes above its ceiling or below flat', () {
-      final governor = MorphGlassTierGovernor(ceiling: MorphGlassTier.frosted);
+      final governor = MorphGlassTierGovernor(
+        ceiling: MorphGlassTier.frosted,
+        policy: const MorphGlassTierPolicy(warmUp: Duration.zero),
+      );
       for (var i = 0; i < 300; i++) {
         governor.addFrame(
           build: slow,
@@ -699,24 +717,27 @@ Rect _seenThroughLens(WidgetTester tester, int lens, int? slot, String text) {
       ? Offset(half, 0)
       : Offset(0, half);
   final copy = find.byKey(ValueKey<(String, int)>(('copy', lens)));
-  Finder textIn(Finder scope) => find.descendant(
-    of: slot == null
-        ? scope
-        : find.descendant(of: scope, matching: find.byKey(ValueKey<int>(slot))),
-    matching: find.text(text),
+  final copyWidget = tester.widget<MorphGlassContentCopy>(
+    find.descendant(of: copy, matching: find.byType(MorphGlassContentCopy)),
   );
-  final strips = [
-    for (final strip in ['start', 'band', 'end'])
-      find.descendant(of: copy, matching: find.byKey(ValueKey<String>(strip))),
-  ];
+  final original = tester.getRect(find.text(text));
+  final origin = tester.getTopLeft(
+    find.byKey(const ValueKey<String>('content')),
+  );
+  final local = original.shift(-origin);
+  final itemSlot = slot == null
+      ? Offset.zero & tester.getSize(copy)
+      : copyWidget.slots[slot];
   Rect? rect;
   var along = 0.0;
   if (half == 0) {
-    rect = tester.getRect(textIn(copy));
+    rect = copyWidget.transformedRect(local, itemSlot, 0).shift(origin);
   } else {
     final length = axis.distanceSquared;
-    for (final (i, strip) in strips.indexed) {
-      final candidate = tester.getRect(textIn(strip));
+    for (var i = 0; i < 3; i++) {
+      final candidate = copyWidget
+          .transformedRect(local, itemSlot, i)
+          .shift(origin);
       final t =
           ((candidate.center - center).dx * axis.dx +
               (candidate.center - center).dy * axis.dy) /

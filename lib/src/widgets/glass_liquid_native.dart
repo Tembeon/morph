@@ -1,21 +1,53 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
+import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
+import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
+import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
+import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
-/// Whether this build carries the liquid tier.
-@internal
-const bool morphLiquidGlassAvailable = true;
+final LiquidCapability _capability = LiquidCapability(
+  load: () async {
+    if (!ui.ImageFilter.isShaderFilterSupported) {
+      throw UnsupportedError('Impeller shader filters are unavailable.');
+    }
+    final geometry = await FlutterGpuGeometryRenderer.fromAsset(
+      ShaderKeys.gpuGeometryShaderBundle,
+    );
+    geometry.dispose();
+    await MultiShaderBuilder.precacheShaders([
+      ShaderKeys.liquidGlassRender,
+      ShaderKeys.liquidGlassMaterialRender,
+      ShaderKeys.liquidGlassTintRender,
+    ]);
+  },
+);
 
-/// Loads the liquid tier's shaders.
+/// Whether the GPU context and all liquid shaders are ready.
 @internal
-Future<void> morphPrecacheLiquidGlass() => LiquidGlass.precache();
+bool get morphLiquidGlassAvailable {
+  if (isLocalTest) return true;
+  unawaited(_capability.precache());
+  return _capability.value;
+}
+
+/// Notifies when runtime shader initialization completes successfully.
+@internal
+ValueListenable<bool> get morphLiquidGlassCapability => _capability;
+
+/// Resolves runtime availability without throwing on unsupported devices.
+@internal
+Future<void> morphPrecacheLiquidGlass() => _capability.precache();
 
 LiquidGlassSettings _preset(
   MorphGlassRenderer renderer,
@@ -63,7 +95,10 @@ LiquidGlassSettings morphLiquidSettings(
     dispersion: optics == null
         ? preset.dispersion
         : MorphGlassRenderer.lensDispersion * lift,
-    highlight: preset.highlight * renderer.light * (1 + 0.5 * lift),
+    highlight:
+        preset.highlight *
+        renderer.light *
+        (1 + MorphGlassDefaults.liftedHighlight * lift),
   );
 }
 
@@ -123,14 +158,19 @@ LiquidShape _shape(RRect shape) {
 
 List<BoxShadow> _shadows(MorphGlassSurface surface) => switch (surface.kind) {
   MorphGlassKind.track || MorphGlassKind.bar => const [],
-  MorphGlassKind.button || MorphGlassKind.menu => const [
-    BoxShadow(color: Color(0x14000000), offset: Offset(0, 4), blurRadius: 16),
-  ],
+  MorphGlassKind.button ||
+  MorphGlassKind.menu => const [MorphGlassDefaults.bodyShadow],
   MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb => [
     BoxShadow(
-      color: const Color(0x1A000000),
-      offset: Offset(0, 1.5 + 2 * surface.lift),
-      blurRadius: 3 + 6 * surface.lift,
+      color: MorphGlassDefaults.floatingShadowColor,
+      offset: Offset(
+        0,
+        MorphGlassDefaults.floatingShadowOffset +
+            MorphGlassDefaults.floatingLiftOffset * surface.lift,
+      ),
+      blurRadius:
+          MorphGlassDefaults.floatingShadowBlur +
+          MorphGlassDefaults.floatingLiftBlur * surface.lift,
     ),
   ],
 };
@@ -224,11 +264,14 @@ Widget morphLiquidBody(
     return _layer(renderer, surfaces, shared: !chrome, field: field);
   }
   return ClipPath(
-    clipper: _OutlineClip(outline.path),
+    clipper: MorphGlassOutlineClip(outline.path),
     child: Stack(
       fit: StackFit.expand,
       children: [
-        _Frost(surface: surfaces.first, sigma: renderer.blur * 14),
+        _Frost(
+          surface: surfaces.first,
+          sigma: renderer.blur * MorphGlassDefaults.chromeFrost,
+        ),
         _layer(renderer, surfaces, shared: !chrome),
       ],
     ),
@@ -276,6 +319,14 @@ Widget morphLiquidLayer(
     for (final s in floating)
       if (s.kind == MorphGlassKind.lens && lifted(s)) s.shape,
   ];
+  final snapshot = GlassContentSnapshot();
+  final source = content == null
+      ? null
+      : GlassContentSource(
+          snapshot: snapshot,
+          capture: lenses.isNotEmpty,
+          child: content,
+        );
   return Stack(
     clipBehavior: Clip.none,
     children: [
@@ -287,12 +338,14 @@ Widget morphLiquidLayer(
         ),
       if (parts.separate.isNotEmpty)
         Positioned.fill(
-          key: const ValueKey<String>('body'),
+          key: parts.fused.isEmpty
+              ? const ValueKey<String>('body')
+              : const ValueKey<String>('separate'),
           child: _layer(renderer, parts.separate, shared: !chrome),
         ),
       for (final (i, (surfaces, outline)) in parts.fused.indexed)
         Positioned.fill(
-          key: i == 0 && parts.separate.isEmpty
+          key: i == 0
               ? const ValueKey<String>('body')
               : ValueKey<(String, int)>(('fused', i)),
           child: morphLiquidBody(renderer, context, outline, surfaces),
@@ -318,8 +371,9 @@ Widget morphLiquidLayer(
         Positioned.fill(
           key: const ValueKey<String>('content'),
           child: ClipPath(
+            clipBehavior: lenses.isEmpty ? Clip.none : Clip.antiAlias,
             clipper: _LensClip(lenses, outside: true),
-            child: content,
+            child: source!,
           ),
         ),
       for (final (i, surface) in floating.indexed)
@@ -327,7 +381,7 @@ Widget morphLiquidLayer(
           if (content != null && surface.kind == MorphGlassKind.lens)
             Positioned.fill(
               key: ValueKey<(String, int)>(('copy', i)),
-              child: _Magnified(
+              child: MorphGlassContentCopy(
                 surface: surface,
                 slots: contentSlots,
                 magnification:
@@ -336,7 +390,7 @@ Widget morphLiquidLayer(
                         surface.lift.clamp(0.0, 1.0),
                 grow: morphBackdropScale(surface, shrinkOf(surface)),
                 axis: morphShrinkAxis(surface.bounds, optics(surface).rim),
-                child: content,
+                snapshot: snapshot,
               ),
             ),
           Positioned.fill(
@@ -354,18 +408,6 @@ Widget morphLiquidLayer(
   );
 }
 
-class _OutlineClip extends CustomClipper<Path> {
-  const _OutlineClip(this.path);
-
-  final Path path;
-
-  @override
-  Path getClip(Size size) => path;
-
-  @override
-  bool shouldReclip(_OutlineClip oldClipper) => oldClipper.path != path;
-}
-
 /// Frosted glass over the whole box: the backdrop blurred by [sigma] and
 /// tinted by [surface]'s color.
 class _Frost extends StatelessWidget {
@@ -377,6 +419,7 @@ class _Frost extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(
+      backdropGroupKey: BackdropGroup.of(context)?.backdropKey,
       filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
       child: ColoredBox(
         color: surface.color.withValues(
@@ -430,82 +473,36 @@ class _Platter extends StatelessWidget {
 /// line first - across it beside the line, radially about each end beyond
 /// it, each part exact in its own strip - and through the glass each item
 /// still shows on its slot.
-class _Magnified extends StatelessWidget {
-  const _Magnified({
+@internal
+class MorphGlassContentCopy extends StatelessWidget {
+  /// Replays one source through the slot and rim transforms of a lens.
+  const MorphGlassContentCopy({
     required this.surface,
     required this.slots,
     required this.magnification,
     required this.grow,
     required this.axis,
-    required this.child,
+    required this.snapshot,
+    super.key,
   });
 
+  /// The lifted lens in the control's coordinates.
   final MorphGlassSurface surface;
+
+  /// The item slots whose centers anchor magnification.
   final List<Rect> slots;
+
+  /// The content scale about each slot's center.
   final double magnification;
+
+  /// The compensation for the glass's backdrop shrink.
   final double grow;
+
+  /// Half the center line of the lens's rim warp.
   final Offset axis;
-  final Widget child;
 
-  static Matrix4 _across(Offset center, Offset axis, double scale) {
-    final transform = Matrix4.translationValues(center.dx, center.dy, 0);
-    transform.multiply(
-      Matrix4.diagonal3Values(
-        axis.dx == 0 ? scale : 1,
-        axis.dy == 0 ? scale : 1,
-        1,
-      ),
-    );
-    transform.multiply(Matrix4.translationValues(-center.dx, -center.dy, 0));
-    return transform;
-  }
-
-  Widget _grown(Widget items) {
-    final center = surface.bounds.center;
-    if (axis == Offset.zero) {
-      return Transform(transform: _about(center, grow), child: items);
-    }
-    final start = center - axis;
-    final end = center + axis;
-    final reach = surface.bounds.inflate(surface.bounds.longestSide * grow);
-    final alongX = axis.dy == 0;
-    return Stack(
-      fit: StackFit.expand,
-      clipBehavior: Clip.none,
-      children: [
-        ClipRect(
-          key: const ValueKey<String>('start'),
-          clipper: _Strip(
-            alongX
-                ? Rect.fromLTRB(reach.left, reach.top, start.dx, reach.bottom)
-                : Rect.fromLTRB(reach.left, reach.top, reach.right, start.dy),
-          ),
-          child: Transform(transform: _about(start, grow), child: items),
-        ),
-        ClipRect(
-          key: const ValueKey<String>('band'),
-          clipper: _Strip(
-            alongX
-                ? Rect.fromLTRB(start.dx, reach.top, end.dx, reach.bottom)
-                : Rect.fromLTRB(reach.left, start.dy, reach.right, end.dy),
-          ),
-          child: Transform(
-            transform: _across(center, axis, grow),
-            child: items,
-          ),
-        ),
-        ClipRect(
-          key: const ValueKey<String>('end'),
-          clipper: _Strip(
-            alongX
-                ? Rect.fromLTRB(end.dx, reach.top, reach.right, reach.bottom)
-                : Rect.fromLTRB(reach.left, end.dy, reach.right, reach.bottom),
-          ),
-          child: Transform(transform: _about(end, grow), child: items),
-        ),
-      ],
-    );
-  }
+  /// The single mounted content's current paint.
+  final GlassContentSnapshot snapshot;
 
   static Matrix4 _about(Offset center, double scale) {
     final transform = Matrix4.translationValues(center.dx, center.dy, 0);
@@ -514,72 +511,95 @@ class _Magnified extends StatelessWidget {
     return transform;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Widget items = slots.isEmpty
-        ? LayoutBuilder(
-            builder: (BuildContext context, BoxConstraints constraints) =>
-                _slot(Offset.zero & constraints.biggest),
-          )
-        : Stack(
-            clipBehavior: Clip.none,
-            children: [
-              for (var i = 0; i < slots.length; i++)
-                if (slots[i].overlaps(surface.bounds))
-                  Positioned.fill(
-                    key: ValueKey<int>(i),
-                    child: _slot(slots[i]),
-                  ),
-            ],
-          );
-    if (grow != 1) {
-      items = ClipPath(
-        clipper: _LensClip([surface.shape], outside: false),
-        child: _grown(items),
-      );
-    }
-    return IgnorePointer(child: ExcludeSemantics(child: items));
+  Matrix4 _growth(int strip) {
+    final center = surface.bounds.center;
+    if (axis == Offset.zero) return _about(center, grow);
+    if (strip == 0) return _about(center - axis, grow);
+    if (strip == 2) return _about(center + axis, grow);
+    final transform = Matrix4.translationValues(center.dx, center.dy, 0);
+    transform.multiply(
+      Matrix4.diagonal3Values(
+        axis.dx == 0 ? grow : 1,
+        axis.dy == 0 ? grow : 1,
+        1,
+      ),
+    );
+    transform.multiply(Matrix4.translationValues(-center.dx, -center.dy, 0));
+    return transform;
   }
 
-  Widget _slot(Rect slot) => ClipPath(
-    clipper: _SlotLensClip(surface.shape, slot),
-    child: Transform(
-      transform: _about(slot.center, magnification),
-      child: child,
+  /// The painted transform for an item in [slot] through [strip].
+  Matrix4 transformFor(Rect slot, int strip) {
+    final transform = _growth(strip);
+    transform.multiply(_about(slot.center, magnification));
+    return transform;
+  }
+
+  /// The painted bounds of [rect] in [slot], before the glass's warp.
+  @visibleForTesting
+  Rect transformedRect(Rect rect, Rect slot, int strip) =>
+      MatrixUtils.transformRect(transformFor(slot, strip), rect);
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+    child: ExcludeSemantics(
+      child: CustomPaint(painter: _ContentCopyPainter(this)),
     ),
   );
 }
 
-class _SlotLensClip extends CustomClipper<Path> {
-  const _SlotLensClip(this.lens, this.slot);
+class _ContentCopyPainter extends CustomPainter {
+  const _ContentCopyPainter(this.copy);
 
-  final RRect lens;
-  final Rect slot;
+  final MorphGlassContentCopy copy;
 
   @override
-  Path getClip(Size size) {
-    final path = Path();
-    path.addRRect(lens);
-    final box = Path();
-    box.addRect(slot);
-    return Path.combine(PathOperation.intersect, path, box);
+  void paint(Canvas canvas, Size size) {
+    final bounds = copy.surface.bounds;
+    final center = bounds.center;
+    final axis = copy.axis;
+    final start = center - axis;
+    final end = center + axis;
+    final reach = bounds.inflate(bounds.longestSide * copy.grow);
+    final alongX = axis.dy == 0;
+    final strips = axis == Offset.zero
+        ? [reach]
+        : alongX
+        ? [
+            Rect.fromLTRB(reach.left, reach.top, start.dx, reach.bottom),
+            Rect.fromLTRB(start.dx, reach.top, end.dx, reach.bottom),
+            Rect.fromLTRB(end.dx, reach.top, reach.right, reach.bottom),
+          ]
+        : [
+            Rect.fromLTRB(reach.left, reach.top, reach.right, start.dy),
+            Rect.fromLTRB(reach.left, start.dy, reach.right, end.dy),
+            Rect.fromLTRB(reach.left, end.dy, reach.right, reach.bottom),
+          ];
+    final slots = copy.slots.isEmpty ? [Offset.zero & size] : copy.slots;
+    canvas.save();
+    canvas.clipRRect(copy.surface.shape);
+    for (final (strip, clip) in strips.indexed) {
+      canvas.save();
+      canvas.clipRect(clip);
+      canvas.transform(copy._growth(strip).storage);
+      for (final slot in slots) {
+        if (!slot.overlaps(bounds)) continue;
+        canvas.save();
+        canvas.clipRRect(copy.surface.shape);
+        canvas.clipRect(slot);
+        canvas.transform(
+          MorphGlassContentCopy._about(slot.center, copy.magnification).storage,
+        );
+        copy.snapshot.paint(canvas);
+        canvas.restore();
+      }
+      canvas.restore();
+    }
+    canvas.restore();
   }
 
   @override
-  bool shouldReclip(_SlotLensClip oldClipper) =>
-      oldClipper.lens != lens || oldClipper.slot != slot;
-}
-
-class _Strip extends CustomClipper<Rect> {
-  const _Strip(this.rect);
-
-  final Rect rect;
-
-  @override
-  Rect getClip(Size size) => rect;
-
-  @override
-  bool shouldReclip(_Strip oldClipper) => oldClipper.rect != rect;
+  bool shouldRepaint(_ContentCopyPainter oldDelegate) => true;
 }
 
 /// The box a layer may paint into: its control's box grown by the reach

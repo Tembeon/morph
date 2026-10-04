@@ -5,6 +5,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// How [MorphAdaptiveGlass] steps the glass tier by the frames the device
@@ -25,11 +26,18 @@ class MorphGlassTierPolicy {
   /// Creates a policy.
   const MorphGlassTierPolicy({
     this.window = 30,
+    this.warmUp = const Duration(seconds: 1),
     this.stepDownMissRatio = 0.25,
     this.stepUpHeadroom = 0.6,
     this.stepUpAfter = const Duration(seconds: 5),
     this.maxStepUpAfter = const Duration(seconds: 80),
   });
+
+  /// The startup interval ignored after mounting or changing tiers.
+  ///
+  /// Engineering default, not measured: shader and route warm-up costs
+  /// do not count as sustained rendering failures.
+  final Duration warmUp;
 
   /// The frames judged together.
   final int window;
@@ -52,6 +60,7 @@ class MorphGlassTierPolicy {
   bool operator ==(Object other) =>
       other is MorphGlassTierPolicy &&
       other.window == window &&
+      other.warmUp == warmUp &&
       other.stepDownMissRatio == stepDownMissRatio &&
       other.stepUpHeadroom == stepUpHeadroom &&
       other.stepUpAfter == stepUpAfter &&
@@ -60,6 +69,7 @@ class MorphGlassTierPolicy {
   @override
   int get hashCode => Object.hash(
     window,
+    warmUp,
     stepDownMissRatio,
     stepUpHeadroom,
     stepUpAfter,
@@ -114,6 +124,7 @@ class MorphGlassTierGovernor {
     required bool gesture,
   }) {
     _changedAt ??= now;
+    if (now - _changedAt! < policy.warmUp) return false;
     _costs.add(build > raster ? build : raster);
     if (_costs.length < policy.window) return false;
     final misses = _costs.where((cost) => cost > budget).length;
@@ -151,7 +162,9 @@ class MorphGlassTierGovernor {
 /// control are the same on every tier.
 ///
 /// Read the tier in use with [MorphAdaptiveGlass.tierOf] or follow it
-/// with [onTierChanged].
+/// with [onTierChanged]. An ancestor [BackdropGroup] is reused, otherwise
+/// this widget installs one for its controls. Give overlapping sections
+/// their own groups when their glass must sample earlier glass.
 class MorphAdaptiveGlass extends StatefulWidget {
   /// Installs [renderer] for [child] at [tier], or at the tier the frame
   /// timings allow when [tier] is null.
@@ -205,7 +218,18 @@ class _MorphAdaptiveGlassState extends State<MorphAdaptiveGlass> {
   @override
   void initState() {
     super.initState();
+    morphLiquidGlassCapability.addListener(_capabilityChanged);
     _listen();
+  }
+
+  void _capabilityChanged() {
+    if (!mounted) return;
+    setState(() => _governor = _newGovernor());
+    widget.onTierChanged?.call(
+      widget.renderer
+          .copyWith(tier: widget.tier ?? _governor.tier)
+          .effectiveTier,
+    );
   }
 
   @override
@@ -219,7 +243,8 @@ class _MorphAdaptiveGlassState extends State<MorphAdaptiveGlass> {
   void didUpdateWidget(MorphAdaptiveGlass oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.renderer.effectiveTier != widget.renderer.effectiveTier ||
-        oldWidget.policy != widget.policy) {
+        oldWidget.policy != widget.policy ||
+        oldWidget.tier != widget.tier) {
       _governor = _newGovernor();
     }
     _listen();
@@ -269,6 +294,7 @@ class _MorphAdaptiveGlassState extends State<MorphAdaptiveGlass> {
 
   @override
   void dispose() {
+    morphLiquidGlassCapability.removeListener(_capabilityChanged);
     if (_listening) {
       SchedulerBinding.instance.removeTimingsCallback(_timings);
       GestureBinding.instance.pointerRouter.removeGlobalRoute(_pointer);
@@ -278,9 +304,12 @@ class _MorphAdaptiveGlassState extends State<MorphAdaptiveGlass> {
 
   @override
   Widget build(BuildContext context) {
-    return MorphGlass(
+    final glass = MorphGlass(
       painter: widget.renderer.copyWith(tier: widget.tier ?? _governor.tier),
       child: widget.child,
     );
+    return BackdropGroup.of(context) == null
+        ? BackdropGroup(child: glass)
+        : glass;
   }
 }

@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -7,6 +7,12 @@ import 'package:morph/src/widgets/glass_renderer.dart';
 /// Whether this build carries the liquid tier: not on the web.
 @internal
 const bool morphLiquidGlassAvailable = false;
+
+/// The web's permanently unavailable liquid capability.
+@internal
+ValueListenable<bool> get morphLiquidGlassCapability => _capability;
+
+final ValueNotifier<bool> _capability = ValueNotifier(false);
 
 /// Completes at once: there are no liquid glass shaders to load.
 @internal

@@ -37,7 +37,7 @@ Update history:
   already present at cbbac845; the renderer itself never enlarges its
   backdrop (backdropShrink is clamped to 0..0.75).
 
-Local patches (each its own commit, revertable alone):
+Local patches (some commits include related package changes):
 - 2026-10-03 backdropShrinkRim: LiquidGlassSettings.backdropShrinkRim
   (0 to 1, default 0 = the upstream behaviour, bit for bit: the shader
   branch is skipped). The backdrop shrinks about the nearest point of a
@@ -47,7 +47,7 @@ Local patches (each its own commit, revertable alone):
   lifted lens does. New uniform uBackdropShrinkAxis (vec2, float indices
   63-64, written with the common uniforms and on geometry bind);
   liquid_glass_settings.dart, rendering/liquid_glass_layer.dart,
-  assets/shaders/liquid_glass_final_render_core.glsl.
+  shaders/liquid_glass_final_render_core.glsl.
   backdropSamplingReach still assumes the center (an over-estimate).
 - 2026-10-03 moved into the package: imports rewritten to
   package:morph/src/glass/renderer/, flutter/material swapped for
@@ -74,3 +74,48 @@ Local patches (each its own commit, revertable alone):
   ConsolidatedFakeGlassLayer (`outline`), which then clips its backdrop
   and surfaces to it and tints the part no shape covers (the neck) like
   the first shape; without an outline it is upstream's per-shape union.
+
+- 2026-10-04 WP-I runtime capability: the GPU context, shader bundle and
+  final programs resolve once before morph reports liquid availability.
+  Precaching before runApp does not await an application frame.
+  Failed geometry bundle futures remain cached. Unavailable runtimes draw
+  the frosted tier with one debug log; the adaptive host follows readiness.
+- 2026-10-04 WP-I packaging: the build hook emits only a Dart data asset,
+  under its target-specific outputDirectory rather than the package root.
+  The runtime key is packages/morph/flutter_gpu_shaders/shaderbundles/
+  morph_glass.shaderbundle. No generated pubspec asset directory remains.
+  Web targets (without native asset types) and toolchains without data assets
+  skip compilation; compiler failures
+  leave liquid unavailable. Shader includes and the compiler are tracked.
+- Dependencies imported with the original package move: equatable,
+  flutter_shaders, logging, flutter_gpu_shaders and hooks, plus Flutter GPU
+  from the Flutter SDK. The data-only hook adds data_assets explicitly.
+  The unused logging dependency is now removed.
+- 2026-10-04 WP-I removals: liquid_glass_blend_group.dart (including
+  GlassGroupLink), liquid_glass_capture.dart, internal/capture_pass.dart,
+  stretch.dart, internal/glass_drag_builder.dart, upstream glass_glow.dart
+  (including three controllers per surface), logging.dart, precache.dart
+  (replaced by the capability probe) and the geometry
+  debug painter. LiquidGlass retains only the constructor morph uses;
+  grouped/auto/own-layer constructors and their group/capture wiring are
+  removed. renderer.dart exports only the retained shading API.
+  LICENSE, NOTICE and third_party notices remain.
+- 2026-10-04 WP-I content copies: one mounted consumer subtree records a
+  vector picture for plain/offset-layer content. Other composited content
+  uses one current-frame image, at the view's pixel ratio. Slot clips and
+  the three rim-compensation transforms replay that source before lens
+  glass. Copies have no hit testing or semantics. Resting content has no
+  capture; no per-slot Path.combine remains.
+- 2026-10-04 WP-I field uploads: an exact-sized, bounded four-texture ring
+  replaces capacity uploads and staging copies; disposal releases host
+  references. Flutter GPU requires full-mip overwrite, so each upload is
+  exactly the active field. No field samples or shader optics changed.
+- 2026-10-04 WP-I hygiene: local cascades become statements, source text is
+  ASCII, outline clipping is shared, uniform circular distance-field
+  corners are asserted, and renderer approximations are named engineering
+  defaults. The sampled-field B-spline tracer remains separate from the
+  engine's analytic-field tracer; its scratch buffers retain their high
+  water mark, while the outline memo retains only four entries.
+- 2026-10-04 WP-I diagnostics: backdrop-capture counts are opt-in, with a
+  morph-prefixed message. Intentional independent lens and chrome passes
+  do not produce automatic warnings.

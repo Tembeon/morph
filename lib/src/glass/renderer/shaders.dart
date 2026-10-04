@@ -3,7 +3,7 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:meta/meta.dart';
 
-@visibleForTesting
+@internal
 bool isLocalTest = false;
 
 final String _shadersRoot = !kIsWeb && isLocalTest ? '' : 'packages/morph/';
@@ -25,5 +25,5 @@ abstract class ShaderKeys {
       '${_shadersRoot}lib/src/glass/renderer/shaders/fake_glass_surface.frag';
 
   static final String gpuGeometryShaderBundle =
-      '${_shadersRoot}build/shaderbundles/morph_glass.shaderbundle';
+      'packages/morph/flutter_gpu_shaders/shaderbundles/morph_glass.shaderbundle';
 }

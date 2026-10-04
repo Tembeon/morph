@@ -8,7 +8,7 @@
 //   found in third_party/flutter/LICENSE.
 // rseSuperellipse also derives from Inigo Quilez's superellipse distance
 // (https://iquilezles.org/articles/ellipsedist/), MIT License,
-// Copyright © 2015 Inigo Quilez; see third_party/inigo_quilez/LICENSE.
+// Copyright (c) 2015 Inigo Quilez; see third_party/inigo_quilez/LICENSE.
 
 // Three vec4s per shape: primitive parameters, inverse affine basis, and
 // transformed center/distance/group data. RSE parameters use three vec4s per

@@ -8,6 +8,7 @@ environment:
   flutter: ">=3.47.0"
 
 dependencies:
+  data_assets: ^0.20.0
   equatable: ^2.1.0
   flutter:
     sdk: flutter
@@ -16,7 +17,6 @@ dependencies:
   flutter_gpu_shaders: ^0.5.2
   flutter_shaders: ^0.1.3
   hooks: ^2.0.2
-  logging: ^1.3.0
   material_ui: ^1.1.0
   meta: ^1.16.0
   motor: ^1.1.0
@@ -36,5 +36,3 @@ flutter:
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_material.frag
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint.frag
     - lib/src/glass/renderer/shaders/fake_glass_surface.frag
-  assets:
-    - build/shaderbundles/

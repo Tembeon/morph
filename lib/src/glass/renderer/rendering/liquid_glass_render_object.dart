@@ -14,14 +14,13 @@ import 'package:morph/src/glass/renderer/internal/glass_composition_probe.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/retained_glass_clip.dart';
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
-import 'package:morph/src/glass/renderer/logging.dart';
 
 @internal
 abstract interface class LiquidGlassLayerRenderObject {
   /// Everything this layer paints or samples, in its own coordinates, or
   /// `null` while it has no shapes: the material plus contour, the backdrop
   /// reach of its blur and refraction, and its exterior shadows. A
-  /// `LiquidGlassCapture` sizes itself to the union of these. Reads layout and
+  /// backdrop group sizes itself to the union of these. Reads layout and
   /// cached shape data only; it never polls or rebuilds geometry.
   Rect? get effectBounds;
 }
@@ -37,8 +36,8 @@ enum GlassFrameState {
   empty,
 
   /// Every registered shape is hidden but drawable. The snapshot and the
-  /// retained effect of the last active frame stay encoded — the GPU matte
-  /// in particular — so ancestor motion stays compositor-only until a shape
+  /// retained effect of the last active frame stay encoded - the GPU matte
+  /// in particular - so ancestor motion stays compositor-only until a shape
   /// becomes visible again.
   idle,
 
@@ -165,8 +164,6 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     required this._backdropKey,
     required this._devicePixelRatio,
   });
-
-  static final logger = Logger(LgrLogNames.render);
 
   // MARK: Configuration
 
@@ -332,9 +329,6 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
       debugPaintCount++;
       return true;
     }(), 'Track layer paints in debug builds.');
-    logger.finest(
-      '$hashCode Painting glass with ${link._shapeGeometries.length} shapes.',
-    );
     final candidate = <(RenderLiquidGlassGeometry, GeometryCache, Matrix4)>[];
     final bounds = collectFrameGeometry(candidate);
     commitFrameGeometry(candidate);

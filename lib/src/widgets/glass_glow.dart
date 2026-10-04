@@ -4,6 +4,7 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/widgets/timeline.dart';
 
 /// The glow a finger raises on a pressed glass surface, in one frame.
 ///
@@ -77,30 +78,46 @@ void morphPaintGlassGlow(Canvas canvas, RRect shape, MorphGlassGlow glow) {
     canvas.drawRect(shape.outerRect, wash);
   }
   if (glow.gain > 0 && glow.radius > 0) {
-    const stops = 16;
     final reach = 3 * glow.radius;
-    final colors = <Color>[];
-    final positions = <double>[];
-    for (var i = 0; i <= stops; i++) {
-      final p = i / stops;
-      final dodge = 1 - 1 / glow.factorAt(p * reach);
-      colors.add(Color.from(alpha: 1, red: dodge, green: dodge, blue: dodge));
-      positions.add(p);
-    }
     final spot = Paint();
     spot.blendMode = BlendMode.colorDodge;
-    spot.shader = RadialGradient(
-      colors: colors,
-      stops: positions,
-    ).createShader(Rect.fromCircle(center: glow.center, radius: reach));
+    spot.shader = _spotShader(glow.radius, glow.gain);
+    canvas.save();
+    canvas.translate(glow.center.dx, glow.center.dy);
     canvas.drawRect(
-      shape.outerRect.intersect(
-        Rect.fromCircle(center: glow.center, radius: reach),
-      ),
+      shape.outerRect
+          .shift(-glow.center)
+          .intersect(Rect.fromCircle(center: Offset.zero, radius: reach)),
       spot,
     );
+    canvas.restore();
   }
   canvas.restore();
+}
+
+final Map<(double, double), Shader> _spotShaders = {};
+
+Shader _spotShader(double radius, double gain) {
+  final key = (radius, gain);
+  final cached = _spotShaders[key];
+  if (cached != null) return cached;
+  const stops = 16;
+  final colors = <Color>[];
+  final positions = <double>[];
+  for (var i = 0; i <= stops; i++) {
+    final p = i / stops;
+    final factor = 1 + gain * math.exp(-0.5 * 9 * p * p);
+    final dodge = 1 - 1 / factor;
+    colors.add(Color.from(alpha: 1, red: dodge, green: dodge, blue: dodge));
+    positions.add(p);
+  }
+  final shader = RadialGradient(
+    colors: colors,
+    stops: positions,
+  ).createShader(Rect.fromCircle(center: Offset.zero, radius: 3 * radius));
+  if (_spotShaders.length == 4) _spotShaders.remove(_spotShaders.keys.first);
+  _spotShaders[key] = shader;
+  return shader;
 }
 
 /// Paints a surface's glow in a box placed at the surface's bounds.
@@ -203,35 +220,27 @@ class MorphTouchGlowMotion {
   Offset _center = Offset.zero;
   Offset? _down;
   bool _dragging = false;
-  double _pending = double.negativeInfinity;
-  void Function()? _action;
+  final MorphTimeline _timeline = MorphTimeline();
 
   /// The center of the spot, in the pointer's coordinates.
   Offset get center => _center;
 
-  void _due(double t) {
-    final action = _action;
-    if (action != null && t >= _pending) {
-      _action = null;
-      action();
-    }
-  }
-
-  void _at(double t, void Function() action) {
-    _pending = t;
-    _action = action;
-  }
+  void _due(double t) => _timeline.runDue(t);
 
   /// A finger touched at [position] at time [t].
   void pointerDown(double t, Offset position) {
     _due(t);
+    _timeline.clear();
     _center = position;
     _down = position;
     _dragging = false;
     _scale.snap(t, 1);
     _strength.snap(t, 1);
     final start = t + riseLag;
-    _at(start, () => _progress.retarget(start, 1, spring: riseSpring));
+    _timeline.insert(
+      start,
+      (at) => _progress.retarget(at, 1, spring: riseSpring),
+    );
   }
 
   /// The finger moved to [position] at time [t].
@@ -243,20 +252,10 @@ class MorphTouchGlowMotion {
     if (_dragging || (position - down).distance < dragDistance) return;
     _dragging = true;
     final start = t + riseLag;
-    void drag() {
-      _scale.retarget(start, dragGrowth, spring: fallSpring);
-      _strength.retarget(start, dragStrength, spring: fallSpring);
-    }
-
-    final action = _action;
-    if (action == null) {
-      _at(start, drag);
-    } else {
-      _at(start, () {
-        action();
-        drag();
-      });
-    }
+    _timeline.insert(start, (at) {
+      _scale.retarget(at, dragGrowth, spring: fallSpring);
+      _strength.retarget(at, dragStrength, spring: fallSpring);
+    });
   }
 
   /// The finger lifted, or its touch was cancelled, at time [t].
@@ -264,12 +263,11 @@ class MorphTouchGlowMotion {
     _due(t);
     if (_down == null) return;
     _down = null;
+    _timeline.clear();
     final start = t + releaseLag;
-    final action = _action;
-    _at(start, () {
-      action?.call();
-      _progress.retarget(start, 0, spring: fallSpring);
-      _scale.retarget(start, releaseGrowth, spring: fallSpring);
+    _timeline.insert(start, (at) {
+      _progress.retarget(at, 0, spring: fallSpring);
+      _scale.retarget(at, releaseGrowth, spring: fallSpring);
     });
   }
 
@@ -319,7 +317,7 @@ class MorphTouchGlowMotion {
   bool isSettled(double t) {
     _due(t);
     return _down == null &&
-        _action == null &&
+        _timeline.isEmpty &&
         _progress.isAtRest(t, 0.002) &&
         washOpacity(t) == 0 &&
         spotOpacity(t) == 0;
