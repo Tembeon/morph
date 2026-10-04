@@ -14,6 +14,29 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Presentations from a navigation stack's page cover the stack's bars, as
+  on iOS: `MorphNavigationStack` installs a new `MorphPresentationBoundary`,
+  and `showMorph*`, `MorphAnchor`, `MorphMenuButton`,
+  `MorphContextMenuRegion`, bar menus and `presentMorphSheet` default to
+  the overlay / navigator around the outermost boundary
+  (`morphPresentationOverlayOf`, `morphPresentationNavigatorOf`);
+  `morphAnchorRect` measures in the same overlay. An explicit `overlay:`
+  or `useRootNavigator:` still wins. BREAKING: `presentMorphSheet`'s
+  `useRootNavigator` is nullable (null = the presentation navigator,
+  false = the nearest one).
+- A `MorphBarButton` with a `menu` and no `onPressed` opens the menu on a
+  tap, as a `UIBarButtonItem(menu:)` without a primary action, measured
+  on the iPhone 16 Pro: release-to-open 0.013 s after the inline menu
+  button (`MorphBarMenuTuning.measuredMenu`, the new default `menu`), a
+  0.22 s hold opens under the finger, a slide chooses a row. BREAKING:
+  `MorphBarButton.enabled` is a constructor parameter (UIKit's `isEnabled`); the
+  computed tap acceptance is `interactive`.
+- A finger that opened a menu by holding chooses nothing when released
+  without having left the button; the menu stays open (UIKit, inline and
+  bar, device holds).
+- The navigation bar never draws an inline title that arrives hidden with
+  its screen: a large-title screen faded its inline title out over a
+  second at launch and after every pop back to it.
 - Adds inset grouped lists: `MorphListSection` (header, card, footer)
   and `MorphListRow` (title, subtitle, value detail, leading symbol,
   trailing control, disclosure chevron, custom content, tap highlight,
