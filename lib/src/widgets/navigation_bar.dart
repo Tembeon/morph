@@ -149,6 +149,10 @@ class MorphNavigationBar extends StatefulWidget {
 
   /// Whether changes of [titleVisible] and [scrolledUnder] animate; pass
   /// false for a change no finger caused (UIKit switches at once then).
+  ///
+  /// A [titleVisible] change that comes with a new [title] always
+  /// switches at once: the new screen's title arrives on the title swap,
+  /// and a hidden one (under a large title) is never drawn.
   final bool animate;
 
   /// The scroll edge effect the bar draws under itself while
@@ -265,7 +269,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
       _motion.setTitleVisible(
         clock,
         visible: widget.titleVisible,
-        animated: animated,
+        animated: animated && oldWidget.title == widget.title,
       );
       wake();
     }

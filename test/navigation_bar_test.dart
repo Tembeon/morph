@@ -330,6 +330,35 @@ void main() {
     expect(find.byType(BackdropFilter), findsOneWidget);
   });
 
+  testWidgets('a screen arriving with its inline title hidden never shows '
+      'it', (tester) async {
+    await _setScreen(tester);
+    Widget bar(String? title, {required bool visible}) => _app(
+      Align(
+        alignment: Alignment.topCenter,
+        child: MorphNavigationBar(title: title, titleVisible: visible),
+      ),
+    );
+    await tester.pumpWidget(bar(null, visible: true));
+    await tester.pumpWidget(bar('Widgets', visible: false));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(find.text('Widgets'), findsNothing);
+    }
+    await tester.pumpWidget(bar('Detail', visible: true));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('Detail'), findsOneWidget);
+    await tester.pumpWidget(bar('Widgets', visible: false));
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(find.text('Widgets'), findsNothing);
+    }
+  });
+
   testWidgets('a stack pushes with a back button titled by the previous '
       'screen, and pops by the back button and by an edge swipe', (
     tester,
