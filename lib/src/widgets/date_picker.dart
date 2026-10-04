@@ -357,6 +357,7 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
         part: part,
         label: rect,
         reopening: _closing > 0,
+        glass: MorphGlassCarrier(context),
       ),
     );
     if (mounted) setState(() => _open = null);
@@ -581,9 +582,11 @@ class _DatePickerRoute extends PopupRoute<void> {
     required this.part,
     required this.label,
     required this.reopening,
+    required this.glass,
   });
 
   final _MorphDatePickerState picker;
+  final MorphGlassCarrier glass;
   final _Part part;
   final Rect label;
 
@@ -615,7 +618,7 @@ class _DatePickerRoute extends PopupRoute<void> {
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
-  ) => _OverlayView(route: this);
+  ) => glass.install(context, _OverlayView(route: this));
 
   @override
   bool didPop(void result) {

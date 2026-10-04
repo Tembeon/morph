@@ -3,12 +3,16 @@ import 'dart:math' as math;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/scope.dart';
+import 'package:morph/src/widgets/glass.dart';
 
 /// The source geometry and lifetime of a sheet or page zoom.
 @internal
 class MorphZoomSource {
   /// Tracks [tag] for one presentation.
-  MorphZoomSource(this.tag);
+  MorphZoomSource(this.tag)
+    : _glass = tag != null && tag.mounted
+          ? MorphGlassCarrier(tag.context)
+          : null;
 
   /// Resolves [id] in the scope around [context], tolerating an absent tag.
   factory MorphZoomSource.resolve(BuildContext context, Object? id) =>
@@ -17,6 +21,7 @@ class MorphZoomSource {
   /// The source tag, or null when no source is available.
   final MorphTagState? tag;
 
+  final MorphGlassCarrier? _glass;
   Rect? _rect;
   bool _hidden = false;
   bool _lost = false;
@@ -125,7 +130,7 @@ class MorphZoomSource {
                         size: size,
                         child: MorphSurfaceSpecScope(
                           spec: source.surfaceSpec,
-                          child: source.replica,
+                          child: _glass?.wrap(source.replica) ?? source.replica,
                         ),
                       ),
                     ),

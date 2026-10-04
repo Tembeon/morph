@@ -154,6 +154,11 @@ Cross-cutting policy:
   capsules, menus, popovers, the date picker overlay, alerts, floating
   sheets, the search capsule; a lens/knob/thumb is an opaque platter at
   rest and clear glass only while lifted. Without a painter: flat fills.
+- A surface presented ABOVE its source (menu, alert, sheet, date picker,
+  context menu flight, zoom replica) draws with the painter installed
+  above the SOURCE, carried into the overlay or route
+  (`MorphGlassCarrier`, `MorphMenuHost.menuGlass`); a MorphGlass inside a
+  page is invisible from the navigator's overlay.
 - Fade glass through `MorphGlassSurface.opacity`, never through an
   Opacity above it (it reads an empty backdrop), and never put an
   OpacityLayer between resting glass (it breaks BackdropGroup sharing).

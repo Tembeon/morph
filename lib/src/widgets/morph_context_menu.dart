@@ -10,6 +10,7 @@ import 'package:morph/foundation.dart';
 import 'package:morph/src/frame.dart';
 import 'package:morph/src/measure.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
@@ -716,6 +717,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       );
     }
     final MorphTheme? theme = MorphTheme.maybeOf(context);
+    final MorphGlassCarrier glass = MorphGlassCarrier(context);
     final MorphFlight flight = showMorph(
       context,
       from: _tagId,
@@ -734,7 +736,7 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       overlay: overlay,
       target: _MenuTarget(geometry),
       builder: (BuildContext context, MorphFlight flight) =>
-          _buildMenu(context, flight, geometry),
+          glass.install(context, _buildMenu(context, flight, geometry)),
     );
     if (!identical(flight, _flight)) {
       _flight = flight;

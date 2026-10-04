@@ -203,15 +203,15 @@ Future<MorphAlertAction?> showMorphAlert(
   MorphAlertStyle? style,
   bool useRootNavigator = true,
 }) {
-  return Navigator.of(context, rootNavigator: useRootNavigator).push(
-    MorphAlertRoute(
-      title: title,
-      message: message,
-      actions: actions,
-      textFields: textFields,
-      style: style,
-    ),
+  final route = MorphAlertRoute(
+    title: title,
+    message: message,
+    actions: actions,
+    textFields: textFields,
+    style: style,
   );
+  route._glass = MorphGlassCarrier(context);
+  return Navigator.of(context, rootNavigator: useRootNavigator).push(route);
 }
 
 /// Shows an action sheet the way iOS 27 presents one, and completes with
@@ -251,16 +251,16 @@ Future<MorphAlertAction?> showMorphActionSheet(
       Offset.zero & box.size,
     );
   }
-  return Navigator.of(context, rootNavigator: useRootNavigator).push(
-    MorphAlertRoute(
-      title: title,
-      message: message,
-      actions: actions,
-      style: style,
-      actionSheet: true,
-      source: source,
-    ),
+  final route = MorphAlertRoute(
+    title: title,
+    message: message,
+    actions: actions,
+    style: style,
+    actionSheet: true,
+    source: source,
   );
+  route._glass = MorphGlassCarrier(anchor ?? context);
+  return Navigator.of(context, rootNavigator: useRootNavigator).push(route);
 }
 
 /// The route [showMorphAlert] and [showMorphActionSheet] push: the alert
@@ -304,6 +304,7 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
 
   _AlertViewState? _view;
   MorphAlertAction? _chosen;
+  MorphGlassCarrier? _glass;
 
   /// Whether the route presents as a popover next to [source].
   bool get isPopover => actionSheet && source != null;
@@ -331,7 +332,10 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
-  ) => _AlertView(route: this);
+  ) {
+    final view = _AlertView(route: this);
+    return _glass?.install(context, view) ?? view;
+  }
 
   @override
   MorphAlertAction? motionRouteResult(MorphAlertAction? result) =>

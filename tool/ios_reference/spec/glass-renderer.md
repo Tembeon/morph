@@ -36,10 +36,17 @@ measurements.
   (`buildLayer(spacing:)`, skin merge law, gap < spacing - 0.5, step 2;
   `morphGlassContainerOutline`, memo of 4).
 
-- OVERLAYS: a control whose glass flies into an overlay carries the
-  painter it resolves at its source (menus: `MorphMenuHost.menuGlass`); an
-  overlay above the installing MorphGlass otherwise draws the flat
-  fallback. Alerts and sheets have not been audited for this.
+- OVERLAYS: a control whose glass flies into an overlay or a route
+  carries the painter it resolves at its source; an overlay above the
+  installing MorphGlass otherwise draws the flat fallback. Menus and bar
+  button menus: `MorphMenuHost.menuGlass`; alerts, action sheets, sheets
+  (and their content), the date picker overlay and the context menu
+  flight: `MorphGlassCarrier` from the presenting context; the zoom
+  replica of a sheet or push zoom: the carrier of its source tag
+  (test/glass_carry_test.dart). Engine flights (`showMorph*`) cannot
+  carry it (the engine never imports widgets): a glass control used as a
+  `MorphTag` source draws its ghost replica with the painter above the
+  flight's overlay.
 - Flutter GPU data passes (geometry, field, material) run with blending
   disabled: impeller's ColorAttachmentDescriptor default, unchanged by
   flutter_gpu unless setColorBlendEnable is called (Flutter 3.47.2).

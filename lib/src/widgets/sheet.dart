@@ -124,6 +124,7 @@ Future<T?> presentMorphSheet<T>(
     semanticLabel: semanticLabel,
   );
   route._zoomSource = MorphZoomSource.resolve(context, from);
+  route._glass = MorphGlassCarrier(context);
   return Navigator.of(context, rootNavigator: useRootNavigator).push<T>(route);
 }
 
@@ -155,6 +156,7 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T> {
   final Object? source;
 
   MorphZoomSource? _zoomSource;
+  MorphGlassCarrier? _glass;
 
   /// The measured zoom used when there is a [source].
   final MorphZoomTuning zoom;
@@ -208,7 +210,8 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T> {
     Animation<double> secondaryAnimation,
   ) {
     _zoomSource ??= MorphZoomSource.resolve(context, source);
-    return _SheetView(route: this);
+    final view = _SheetView(route: this);
+    return _glass?.install(context, view) ?? view;
   }
 
   @override

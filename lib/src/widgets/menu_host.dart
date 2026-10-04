@@ -85,7 +85,7 @@ class MorphMenuController implements MorphMenuHost {
   MorphGlassPainter? get menuGlass {
     final context = _disposed ? null : scopeContext();
     if (context != null && context.mounted) {
-      _lastGlass = context.getInheritedWidgetOfExactType<MorphGlass>()?.painter;
+      _lastGlass = morphGlassAbove(context);
     }
     return _lastGlass;
   }

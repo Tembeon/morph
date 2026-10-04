@@ -412,6 +412,52 @@ class MorphGlass extends InheritedWidget {
   bool updateShouldNotify(MorphGlass oldWidget) => oldWidget.painter != painter;
 }
 
+/// The painter installed above [context], read without depending on it.
+@internal
+MorphGlassPainter? morphGlassAbove(BuildContext context) =>
+    context.getInheritedWidgetOfExactType<MorphGlass>()?.painter;
+
+/// The glass painter of a presenting context, carried into an overlay or
+/// a route that may sit above that context's [MorphGlass].
+///
+/// A surface presented from a control is that control's glass: it draws
+/// with the painter installed above its source, not with the one (if any)
+/// above the overlay it lives in.
+@internal
+class MorphGlassCarrier {
+  /// Captures the painter installed above [source].
+  MorphGlassCarrier(BuildContext source)
+    : _source = source,
+      _painter = morphGlassAbove(source);
+
+  final BuildContext _source;
+  MorphGlassPainter? _painter;
+
+  /// The painter above the source, or the last one seen once the source
+  /// is gone; null when the source had none when it was captured.
+  MorphGlassPainter? get painter {
+    final source = _source;
+    if (_painter != null && source.mounted) {
+      _painter = morphGlassAbove(source) ?? _painter;
+    }
+    return _painter;
+  }
+
+  /// Installs [painter] around [child]; [child] alone when there is none.
+  ///
+  /// The shape of the result never changes for one carrier.
+  Widget wrap(Widget child) {
+    final painter = this.painter;
+    return painter == null ? child : MorphGlass(painter: painter, child: child);
+  }
+
+  /// [wrap]s [child], rebuilt when the painter above [context] changes.
+  Widget install(BuildContext context, Widget child) {
+    context.dependOnInheritedWidgetOfExactType<MorphGlass>();
+    return wrap(child);
+  }
+}
+
 /// Builds the surfaces a control hands to [painter] through
 /// [MorphGlassPainter.buildLayer], with [content] over them, rebuilt on
 /// every notification of [frames].
