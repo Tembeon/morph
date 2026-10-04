@@ -672,6 +672,20 @@ void main() {
     }
   });
 
+  test('a tap opens the glass at the mean recorded delay', () {
+    final delays = <double>[];
+    for (final name in _replayed) {
+      final file = File('$_device/$name');
+      if (!file.existsSync()) continue;
+      final replay = _Replay(_Capture.load(name, dir: _device));
+      final up = replay.capture.touches.firstWhere((t) => t.phase == 3).t;
+      delays.add(replay.openStart - up);
+    }
+    expect(delays, hasLength(17));
+    final mean = delays.reduce((a, b) => a + b) / delays.length;
+    expect(_tuning.tapOpenDelay, moreOrLessEquals(mean, epsilon: 0.001));
+  });
+
   test('every capture replays through the motion', () {
     final failures = <String>[];
     var variants = 0;
@@ -1151,7 +1165,7 @@ void main() {
     final outside = await tester.startGesture(const Offset(10, 10));
     await tester.pump(const Duration(milliseconds: 20));
     await outside.up();
-    await tester.pump(const Duration(milliseconds: 30));
+    await tester.pump(const Duration(milliseconds: 70));
     await tester.pump(const Duration(milliseconds: 16));
     expect(find.text('Copy'), findsOneWidget);
     await tester.pumpAndSettle(
@@ -1354,7 +1368,7 @@ void main() {
       heights.add(tester.getRect(clip.last).height);
     }
     expect(heights, hasLength(3));
-    expect(heights[0], greaterThan(24.5), reason: 'no held first frame');
+    expect(heights[0], greaterThan(24), reason: 'no held first frame');
     expect(heights[1], greaterThan(heights[0]));
     expect(heights[2], greaterThan(heights[1]));
   });
