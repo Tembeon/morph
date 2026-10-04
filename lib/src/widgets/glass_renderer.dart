@@ -482,15 +482,16 @@ class MorphGlassLayerParts {
 
 /// The frosted tier's blur of [surface]'s backdrop, in logical pixels.
 double _frostSigma(MorphGlassSurface surface) =>
-    switch (surface.kind) {
-      MorphGlassKind.bar ||
-      MorphGlassKind.menu => MorphGlassDefaults.chromeFrost,
-      MorphGlassKind.button => MorphGlassDefaults.buttonFrost,
-      MorphGlassKind.track => MorphGlassDefaults.trackFrost,
-      MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb =>
-        MorphGlassDefaults.floatingFrost +
-            (surface.optics?.blurRadiusAt(surface.lift) ?? 0),
-    } *
+    (surface.blurRadius ??
+        switch (surface.kind) {
+          MorphGlassKind.bar ||
+          MorphGlassKind.menu => MorphGlassDefaults.chromeFrost,
+          MorphGlassKind.button => MorphGlassDefaults.buttonFrost,
+          MorphGlassKind.track => MorphGlassDefaults.trackFrost,
+          MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb =>
+            MorphGlassDefaults.floatingFrost +
+                (surface.optics?.blurRadiusAt(surface.lift) ?? 0),
+        }) *
     surface.opacity.clamp(0.0, 1.0);
 
 Color _faded(Color color, double opacity) =>

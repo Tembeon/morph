@@ -1,0 +1,96 @@
+{
+  "device": {
+    "model": "iPhone16Pro",
+    "system": "iOS27.0.1",
+    "udid": "00008140-001039D01442801C",
+    "size_pt": [
+      402,
+      874
+    ]
+  },
+  "simulator_used": false,
+  "material": {
+    "source": "Native dark reference plates: root32, first card57, second card68. Neutral-gallery phone film: root32, first card59, second header73. Fit uses the renderer regular dark emission32, transmission0.447 and lift1; second backdrop is inferred from its baseline face, with the first card footprint fraction held fixed. Gamma fit checked by MorphRecorder dark-fit.mov, gamma1.07: root32, first57, second header69 vs native68 at x180-220/y348-355pt. Median phone samples use variable-PTS frames26.746333 and39.948567s; native reference is3x, movie resampled1x.",
+    "emission": 32,
+    "transmission": 0.447,
+    "root": 32,
+    "first_native": 57,
+    "second_native": 68,
+    "first_before": 59,
+    "second_before": 73,
+    "second_backdrop_before": 50.951627658945625,
+    "second_card_coverage": 0.8635869094736547,
+    "fitted_gamma": 1.0701268524907026,
+    "gamma": 1.07,
+    "fit_first": 56.22498681317157,
+    "fit_second": 68.44804654495879,
+    "recorded_gamma": 1.07,
+    "recorded_root": 32,
+    "recorded_first": 57,
+    "recorded_second": 69,
+    "recorded_frames": {
+      "open": {
+        "pts": 26.746333,
+        "root": 32.0,
+        "first": 57.0
+      },
+      "deeper": {
+        "pts": 39.948567,
+        "root": 32.0,
+        "first": 57.0,
+        "second_header": 69.0
+      }
+    }
+  },
+  "close_body_width_alignment": {
+    "native_origin": 22.49,
+    "morph_origin": 30.67238006174984,
+    "offset": -8.182380061749841,
+    "width_alignment_rms_pt": 1.4740737062274807,
+    "sample_count": 10,
+    "method": "Fit visible body width at native22.50..22.72s, interpolating actual variable film PTS; mask min(R,G)>246 at x40..365/y110..490. No geometry or spring fit."
+  },
+  "widget_header_max_horizontal_step_pt": {
+    "header-ltr-root": 0.044834583918316184,
+    "header-ltr-nested": 0.04481545089532801,
+    "header-rtl-nested": 0.044815450899704956,
+    "header-rtl-root": 0.04483458346021507
+  },
+  "whole_close_max_horizontal_center_step_pt": 5.684341886080802e-14,
+  "nested_frame_count": 577,
+  "root_platter_rms_pt": 0.013631892611130242,
+  "carrier_replay_rms_pt": {
+    "carrier-mm-sub-tap": 0.05482231075901158,
+    "carrier-mm-sub-deeper": 0.040659694978453446,
+    "carrier-mm-sub-select": 0.05030547209234462
+  },
+  "opening_replay_rms_pt": {
+    "opening-mm-sub-tap": 0.8371738877277353,
+    "opening-mm-sub-back": 0.5839380753884106,
+    "opening-mm-sub-deeper": 0.6430319717097029
+  },
+  "verification": {
+    "format_files": 246,
+    "format_changed": 0,
+    "analyze_issues": 0,
+    "package_tests": 1049,
+    "example_tests": 11,
+    "documentation_warnings": 0,
+    "documentation_errors": 0,
+    "dump_tests": 33,
+    "regression_before": "The installed-liquid submenu widget test found zero LiquidGlass surfaces; recorded in /tmp/morph-native/card-material/regression-before.log"
+  },
+  "capture_provenance": {
+    "native_motion": "MenuAPIUITests.testMenuFilm, /tmp/morph-native/submenu-fix/native.mov",
+    "morph_light_motion": "/tmp/morph-native/card-material/light-final.mov, gamma1.06; body and carrier unchanged by final dark gamma1.07 calibration",
+    "morph_dark_stills": "/tmp/morph-native/card-material/dark-fit.mov, gamma1.07",
+    "gallery_stills": "/tmp/morph-native/card-material/gallery-blur.mov, untinted root/card renderer,10pt root blur; before final dark gamma calibration",
+    "recorder": "MorphRecorder via open -g -W",
+    "extraction": "ffmpeg -fps_mode passthrough; variable PTS preserved"
+  },
+  "limitations": [
+    "Film PTS comparison has about one captured-frame presentation uncertainty; native window-row replay supplies the carrier geometry check.",
+    "Second dark header differs by1 gray level after calibration.",
+    "Harness glyphs and chevron differ from native symbols."
+  ]
+}

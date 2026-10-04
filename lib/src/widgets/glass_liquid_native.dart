@@ -82,11 +82,13 @@ LiquidGlassSettings morphLiquidSettings(
       renderer.frostControls ||
       surface.kind == MorphGlassKind.bar ||
       surface.kind == MorphGlassKind.menu;
-  final frost = optics != null
-      ? optics.blurRadiusAt(lift)
-      : frosted
-      ? preset.frost
-      : 0.0;
+  final frost =
+      surface.blurRadius ??
+      (optics != null
+          ? optics.blurRadiusAt(lift)
+          : frosted
+          ? preset.frost
+          : 0.0);
   final amount = optics == null
       ? preset.refractionAmount
       : optics.displacementAt(lift) * MorphGlassRenderer.lensRefraction;
@@ -114,19 +116,19 @@ LiquidGlassAppearance morphLiquidAppearance(
   MorphGlassSurface surface,
 ) => MorphGlassRenderer.floats(surface.kind)
     ? const LiquidGlassAppearance()
-    : switch (renderer.material) {
+    : (switch (renderer.material) {
         MorphGlassMaterial.regular => LiquidGlassAppearance.ios27Regular(
           brightness: surface.brightness,
-          tint: surface.color,
+          tint: surface.tint ?? surface.color,
         ),
         MorphGlassMaterial.toolbar => LiquidGlassAppearance.ios27Toolbar(
           brightness: surface.brightness,
-          tint: surface.color,
+          tint: surface.tint ?? surface.color,
         ),
         MorphGlassMaterial.clear => LiquidGlassAppearance.ios27Clear(
-          tint: surface.color,
+          tint: surface.tint ?? surface.color,
         ),
-      };
+      }).copyWith(transmissionGamma: surface.transmissionGamma);
 
 /// Half the center line a lens with [bounds] shrinks the backdrop about
 /// at rim weight [rim], from the lens center along its longer side.
@@ -238,6 +240,9 @@ MorphGlassSurface _local(MorphGlassSurface surface) => MorphGlassSurface(
   scaleX: surface.scaleX,
   scaleY: surface.scaleY,
   optics: surface.optics,
+  blurRadius: surface.blurRadius,
+  tint: surface.tint,
+  transmissionGamma: surface.transmissionGamma,
   enabled: surface.enabled,
   glass: surface.glass,
   opacity: surface.opacity,

@@ -1,0 +1,33 @@
+{
+  "source": "Native dark reference plates: root32, first card57, second card68. Neutral-gallery phone film: root32, first card59, second header73. Fit uses the renderer regular dark emission32, transmission0.447 and lift1; second backdrop is inferred from its baseline face, with the first card footprint fraction held fixed. Gamma fit checked by MorphRecorder dark-fit.mov, gamma1.07: root32, first57, second header69 vs native68 at x180-220/y348-355pt. Median phone samples use variable-PTS frames26.746333 and39.948567s; native reference is3x, movie resampled1x.",
+  "emission": 32,
+  "transmission": 0.447,
+  "root": 32,
+  "first_native": 57,
+  "second_native": 68,
+  "first_before": 59,
+  "second_before": 73,
+  "second_backdrop_before": 50.951627658945625,
+  "second_card_coverage": 0.8635869094736547,
+  "fitted_gamma": 1.0701268524907026,
+  "gamma": 1.07,
+  "fit_first": 56.22498681317157,
+  "fit_second": 68.44804654495879,
+  "recorded_gamma": 1.07,
+  "recorded_root": 32,
+  "recorded_first": 57,
+  "recorded_second": 69,
+  "recorded_frames": {
+    "open": {
+      "pts": 26.746333,
+      "root": 32.0,
+      "first": 57.0
+    },
+    "deeper": {
+      "pts": 39.948567,
+      "root": 32.0,
+      "first": 57.0,
+      "second_header": 69.0
+    }
+  }
+}

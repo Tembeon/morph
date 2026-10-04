@@ -210,6 +210,79 @@ Submenu bounds correction [device film + widget frames, 2026-10-04]:
   extraction preserves variable frame timestamps with `-fps_mode passthrough`.
   New stills and the close comparison are in `references/menu-api/film/`.
 
+
+Submenu material correction [device rows + film, 2026-10-04]:
+- The installed liquid renderer previously received only the root menu and
+  its button. Submenus bypassed it with a manual backdrop blur, a base fill
+  cut out at the parent bounds, and a blurred white tint. The hard cut and
+  blurred parent edge produced a second rounded rectangle inside the card.
+  Every submenu now calls the installed painter's buildSurface with its own
+  SDF shape, an untinted regular material and a fresh BackdropGroup. Its
+  refraction, complete contour and shadow use the same renderer as the root.
+  glassTint defaults to transparent: the regular material supplies
+  the native luminance lift, rather than receiving another opaque menu wash.
+  submenuColor/RimColor/ShadowColor remain the no-renderer fallback.
+  The root and button use the same neutral tint. Their former fallback
+  wash was also supplied as shader tint, giving a dark root level34 rather
+  than native32 and amplifying that error through nested materials. The
+  glass seam now separates fallback color from optional renderer tint.
+  The fused root body previously inherited optics from its first primitive,
+  the unfrosted source button, so its backdrop blur was zero. With the
+  fallback wash removed, the gallery exposed sharp buttons behind that
+  menu. The active menu body now supplies the same measured 10 pt list
+  blur to both primitives; resting buttons keep their own preset. A widget
+  regression checks the shared root body's actual LiquidGlassLayer frost.
+- The measured 10 pt card blur overrides the ordinary 2 pt regular preset
+  through MorphGlassSurface.blurRadius. The local surface copy preserves it;
+  dispersion and lighting remain the preset's. This blurs the parent rows
+  and destructive color instead of transmitting a legible duplicate label.
+- The dark side-edge profile also rejects the regular 60 pt sampling
+  displacement: a median profile at x82-93.667, y310-320 pt over the native
+  root SDF's x79.75 edge gives 5.766 gray-level RMS at 60 pt, versus 2.162
+  with zero displacement and the measured 10 pt blur. A constrained joint
+  fit of displacement and sigma settles at zero displacement (1.354 RMS
+  with sigma12). cardDisplacement therefore uses zero for the unlifted
+  submenu; its SDF material still supplies the contour and glint. The root
+  and button retain their original optics. card-edge-profile.json preserves
+  the samples and fit; the test replays them through the surface settings.
+- The neutral material still transmitted too much light across two dark
+  layers: root 32, first 59, second 73, compared with native 32/57/68. A
+  sequential face-transfer fit gives transmission gamma 1.0701; the rounded
+  production value 1.07 replays both reference face levels within 1.5 gray
+  levels in the transfer model. Phone verification gives 32/57/69; the
+  second header keeps a one-gray-level residual. card-tone.json records
+  the fitted transfer, baseline backdrop inference and actual phone values.
+  The property changes transmitted luminance, retaining the same regular
+  renderer material, emission, glints and contour.
+- Whole-stack close transfers the cards' glass to the common morph field at
+  closeKickDelay, 12 ms after the logical close. Native mm-sub-tap retains
+  root rows at +7.588 ms, then makes their list alpha 0 and hides the original
+  root glass at +15.551 ms. SDF match-bounds/position/radii/mesh animations
+  start at +11.999 to +12.202 ms. The top card's list alpha stays 1 in its
+  independently shrinking carrier. Our previous card material survived as
+  a rectangular border inside the rounded blob, and parent rows blurred
+  outside it. Both now hand off together; top rows keep their measured
+  carrier and fade. Plain closes and submenu header hand-backs keep their
+  existing ownership.
+- card-material-handoff.json preserves these native rows and animations.
+  menu_glass_body_test verifies the native ownership samples, separate
+  backdrop groups at two levels, liquid shapes, 10 pt frost, preserved
+  optical profile/dispersion, measured face transfer, surviving top rows and
+  no independent closing card
+  glass. The old implementation fails the renderer regression.
+- Final phone evidence: submenu-material-open/close.png and .mp4, native
+  above morph. The close silhouette width aligns at 1.474 pt RMS across 10
+  captured native frames, without changing springs or geometry. The
+  recording starts at a different media time, so film alignment is a clock
+  offset fit. Material dark comparisons, gallery stacked-card screenshots,
+  card frame dumps and the check summary accompany them in the film folder.
+  This is a body-width comparison, not a claim of pixel-identical content.
+  Light motion was captured at gamma1.06; the final gamma1.07 dark capture
+  verifies the face calibration. Gamma affects only transmitted luminance,
+  not the geometry, carrier or common closing body. Gallery screenshots
+  record the 10 pt root blur and complete nested surfaces before this final
+  dark-tone adjustment. The report records each capture's provenance.
+
 Live updates [rows + shots]:
 - `keepsMenuPresented`: the handler runs 0.02 s after the lift and the menu
   stays, but UIKit does NOT redraw a checkmark / palette selection / state by
@@ -292,19 +365,16 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
       frame fits). Fixed 2026-10-04 from film and full card window bounds:
       a card row closes after `submenuCloseDelay` 0.015 (was the root's
       0.04); the open card rides the drop outside the content blur, its
-      rows and platter fading linearly to 0 at `cardCloseFadeEnd` 0.2;
+      rows fading to 0 at `cardCloseFadeEnd` 0.2; the glass hands off
+      to the common morph field at the 12 ms close kick;
       the content is centered on the open card (`cardCloseCenter`: fully
       by progress 0.5, continuous at the close start) instead of keeping
       the frame's top on the shape's top.
-- [x] Card look (2026-10-04, film + stills): `MorphMenuStyle.submenuColor`
-      is now a translucent tint (dark 0x1DFFFFFF, light 0x66FFFFFF; was an
-      opaque 57 / 251 fill) over a `BackdropFilter` blur of
-      `MorphMenuTuning.cardBlur` 10 pt, painted over each list under the
-      card (spread by the same blur, each further list at half), plus
-      `submenuRimColor` (top rim) and `submenuShadowColor` (outside only).
-      Overlapping lists are blurred and tinted by the menu itself; exposed
-      parts of each card draw the translucent menu material after that blur.
-      Each card retains its own measured rim and outside shadow.
+- [x] Card look (2026-10-04, film + stills): each card uses the installed
+      glass painter and its own backdrop group, with untinted regular
+      material and the measured 10 pt frost. The complete rim, refraction
+      and shadow come from the renderer; fallback colors apply only without
+      a painter. See the material correction above.
 - [x] Card hand-back (2026-10-04, film): the header rides the source row
       (`MorphMenuCard.contentTop`), the source row is hidden while its card
       shows, the header title crossfades regular / bold
@@ -335,9 +405,7 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
       visible (treated alike), large / automatic element sizes as rows,
       the "selection column without glyphs" title start (52, a guess),
       cell highlight shape (12 pt radius, a guess), the palette platter
-      radius, `highlightStateUpdateHandler` timing, the card's own glass
-      refraction / rim light beyond the measured top rim (film: a
-      translucent blurred platter is all that shows), the device's missing
+      radius, `highlightStateUpdateHandler` timing, the device's missing
       tap highlight on menu rows (morph still highlights under the finger,
       except a card header), the header
       chevron's size (ours is the row chevron turned, a little larger), the
@@ -371,4 +439,7 @@ MenuAPIUITests); an XCUI query for "More" hits the ellipsis button itself
 - Large / automatic element size, `maximumNumberOfTitleLines`,
   `preferredImageVisibility`, `highlightStateUpdateHandler`, menuOrder
   priority vs fixed with an upward menu: API read, not measured.
-- Light motion not recorded (springs are appearance-independent elsewhere).
+- Final submenu material films cover light opening/closing and dark nested
+  cards. Variable capture timestamps leave about one film-frame uncertainty
+  in comparing row phases; window-bounds replay remains the quantitative
+  carrier check. Glyphs and the header chevron still differ from UIKit.

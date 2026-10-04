@@ -42,6 +42,7 @@ class MorphMenuStyle {
     this.disabledColor = const Color(0x4C3C3C43),
     this.separatorColor = const Color(0x14000000),
     this.submenuColor = const Color(0x66FFFFFF),
+    this.glassTint = const Color(0x00000000),
     this.submenuRimColor = const Color(0xFFFFFFFF),
     this.submenuShadowColor = const Color(0x14000000),
     this.paletteSelectionColor = const Color(0x10000000),
@@ -50,7 +51,8 @@ class MorphMenuStyle {
   /// The diameter of the button.
   final double buttonSize;
 
-  /// The fill of the button and of the menu.
+  /// The fallback fill of the button and menu without a glass painter.
+  /// The installed renderer uses [glassTint].
   final Color glassColor;
 
   /// The color of the shadow under the button and the menu.
@@ -96,7 +98,7 @@ class MorphMenuStyle {
   /// the 249 light platter, 50 on the 32 dark one).
   final Color separatorColor;
 
-  /// The tint a submenu card lays over the list under it.
+  /// The fallback tint a submenu card lays over the list under it.
   ///
   /// A card is a translucent platter that blurs what lies under it by
   /// [MorphMenuTuning.cardBlur]: where it covers the list it opened from
@@ -105,12 +107,17 @@ class MorphMenuStyle {
   /// Pro). Each further card under it adds half as much.
   final Color submenuColor;
 
-  /// The highlight along the top edge of a submenu card, fading out over
+  /// The tint of the button and menu cards in the installed renderer.
+  /// Untinted regular glass reads 252 over a 249.5 light list and 57 over
+  /// a 32 dark list on the iPhone 16 Pro; its transfer supplies the lift.
+  final Color glassTint;
+
+  /// The fallback highlight along a submenu card's top edge, fading over
   /// its first points (device: a one-pixel line at 251 - 255 over the 248
   /// light card, 65 - 83 over the 57 dark one).
   final Color submenuRimColor;
 
-  /// The shadow a submenu card casts around itself (device: the light
+  /// The fallback shadow around a submenu card (device: the light
   /// list darkens by 5 levels 4 points above a card's top).
   final Color submenuShadowColor;
 
@@ -170,6 +177,7 @@ class MorphMenuStyle {
     Color? disabledColor,
     Color? separatorColor,
     Color? submenuColor,
+    Color? glassTint,
     Color? submenuRimColor,
     Color? submenuShadowColor,
     Color? paletteSelectionColor,
@@ -189,6 +197,7 @@ class MorphMenuStyle {
     disabledColor: disabledColor ?? this.disabledColor,
     separatorColor: separatorColor ?? this.separatorColor,
     submenuColor: submenuColor ?? this.submenuColor,
+    glassTint: glassTint ?? this.glassTint,
     submenuRimColor: submenuRimColor ?? this.submenuRimColor,
     submenuShadowColor: submenuShadowColor ?? this.submenuShadowColor,
     paletteSelectionColor: paletteSelectionColor ?? this.paletteSelectionColor,
@@ -622,6 +631,7 @@ class _MenuShapes extends StatelessWidget {
     this.look,
     this.content,
     this.outline,
+    this.menuBlur,
   });
 
   final MorphMenuStyle style;
@@ -634,6 +644,7 @@ class _MenuShapes extends StatelessWidget {
   final ({double opacity, double blur})? look;
   final Widget? content;
   final MorphGlassOutline? outline;
+  final double? menuBlur;
 
   @override
   Widget build(BuildContext context) {
@@ -665,6 +676,8 @@ class _MenuShapes extends StatelessWidget {
           kind: MorphGlassKind.button,
           shape: source,
           color: style.glassColor,
+          tint: style.glassTint,
+          blurRadius: menu == null ? null : menuBlur,
           brightness: brightness,
         ),
         if (menu != null)
@@ -672,6 +685,8 @@ class _MenuShapes extends StatelessWidget {
             kind: MorphGlassKind.menu,
             shape: menu,
             color: style.glassColor,
+            tint: style.glassTint,
+            blurRadius: menuBlur,
             brightness: brightness,
           ),
       ], outline: menu == null ? null : outline);
@@ -934,6 +949,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                   sourceRect: source.rect,
                   sourceScale: source.scale,
                   outline: motion.silhouette,
+                  menuBlur: motion.tuning.cardBlur,
                   lookStretch: motion.buttonLookStretch,
                   look: (
                     opacity: motion.buttonLookOpacity,
@@ -961,7 +977,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                                 clipBehavior: .none,
                                 children: [
                                   _Faded(
-                                    opacity: motion.contentOpacity,
+                                    opacity: motion.cardGlassTransferred
+                                        ? 0
+                                        : motion.contentOpacity,
                                     blur: motion.contentBlur / scale,
                                     child: Stack(
                                       clipBehavior: .none,
@@ -1126,6 +1144,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     }
     final blur = motion.tuning.cardBlur * platter;
     final shape = BorderRadius.circular(cardRadius);
+    final glass = MorphGlass.maybeOf(context);
     final surface = MorphGlassSurface(
       kind: MorphGlassKind.menu,
       shape: RRect.fromRectAndRadius(
@@ -1133,6 +1152,12 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         Radius.circular(cardRadius),
       ),
       color: style.glassColor,
+      tint: style.glassTint,
+      transmissionGamma: motion.tuning.cardTransmissionGamma,
+      blurRadius: motion.tuning.cardBlur,
+      optics: MorphGlassOptics(
+        unliftedDisplacement: motion.tuning.cardDisplacement,
+      ),
       brightness: morphBrightnessOf(context),
       opacity: platter,
     );
@@ -1148,53 +1173,64 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         child: Stack(
           clipBehavior: .none,
           children: [
-            Positioned.fill(
-              child: CustomPaint(
-                painter: _CardShadowPainter(
-                  radius: cardRadius,
-                  color: style.submenuShadowColor,
-                  opacity: platter,
+            if (glass != null && !motion.cardGlassTransferred)
+              Positioned.fill(
+                child: BackdropGroup(
+                  child: Builder(
+                    builder: (BuildContext context) =>
+                        glass.buildSurface(context, surface),
+                  ),
                 ),
               ),
-            ),
-            Positioned.fill(
-              child: ClipRRect(
-                borderRadius: shape,
-                child: BackdropFilter(
-                  enabled: blur > MorphMenuTuning.blurThreshold,
-                  filter: ui.ImageFilter.blur(
-                    sigmaX: blur,
-                    sigmaY: blur,
-                    tileMode: TileMode.clamp,
+            if (glass == null && !motion.cardGlassTransferred)
+              Positioned.fill(
+                child: CustomPaint(
+                  painter: _CardShadowPainter(
+                    radius: cardRadius,
+                    color: style.submenuShadowColor,
+                    opacity: platter,
                   ),
-                  child: Stack(
-                    clipBehavior: .none,
-                    children: [
-                      Positioned.fill(
-                        child: ClipPath(
-                          clipper: _CardBackdropClipper(under),
+                ),
+              ),
+            if (glass == null && !motion.cardGlassTransferred)
+              Positioned.fill(
+                child: ClipRRect(
+                  borderRadius: shape,
+                  child: BackdropFilter(
+                    enabled: blur > MorphMenuTuning.blurThreshold,
+                    filter: ui.ImageFilter.blur(
+                      sigmaX: blur,
+                      sigmaY: blur,
+                      tileMode: TileMode.clamp,
+                    ),
+                    child: Stack(
+                      clipBehavior: .none,
+                      children: [
+                        Positioned.fill(
+                          child: ClipPath(
+                            clipper: _CardBackdropClipper(under),
+                            child: CustomPaint(
+                              painter: _CardBasePainter(surface),
+                            ),
+                          ),
+                        ),
+                        Positioned.fill(
                           child: CustomPaint(
-                            painter: _CardBasePainter(surface),
+                            painter: _CardPlatterPainter(
+                              radius: cardRadius,
+                              under: under,
+                              tint: style.submenuColor,
+                              rim: style.submenuRimColor,
+                              blur: motion.tuning.cardBlur,
+                              opacity: platter,
+                            ),
                           ),
                         ),
-                      ),
-                      Positioned.fill(
-                        child: CustomPaint(
-                          painter: _CardPlatterPainter(
-                            radius: cardRadius,
-                            under: under,
-                            tint: style.submenuColor,
-                            rim: style.submenuRimColor,
-                            blur: motion.tuning.cardBlur,
-                            opacity: platter,
-                          ),
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
             Positioned.fill(
               child: ClipRRect(
                 borderRadius: shape,

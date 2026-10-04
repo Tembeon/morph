@@ -118,6 +118,9 @@ class MorphGlassSurface {
     this.scaleX = 1,
     this.scaleY = 1,
     this.optics,
+    this.blurRadius,
+    this.tint,
+    this.transmissionGamma = 1,
     this.enabled = true,
     this.glass = true,
     this.opacity = 1,
@@ -134,6 +137,18 @@ class MorphGlassSurface {
   /// The flat fill the control would paint without a painter; a painter
   /// uses it as the tint of its glass.
   final Color color;
+
+  /// A measured backdrop blur radius overriding the material's preset,
+  /// in logical pixels. Null keeps the preset or lens optics.
+  final double? blurRadius;
+
+  /// The renderer's tint, separate from the fallback fill [color]. Null
+  /// uses [color]; a transparent tint keeps the material's neutral face.
+  final Color? tint;
+
+  /// The display-referred gamma of transmitted backdrop luminance.
+  /// One keeps the material preset; emission is unaffected.
+  final double transmissionGamma;
 
   /// The brightness the control resolved its colors for.
   final Brightness brightness;

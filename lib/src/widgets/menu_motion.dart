@@ -97,6 +97,8 @@ class MorphMenuTuning {
     this.cardContainerDelay = 0.015,
     this.cardContainerEndWidth = 50,
     this.cardBlur = 10,
+    this.cardDisplacement = 0,
+    this.cardTransmissionGamma = 1.07,
     this.cardGone = 0.007,
     this.growSpring = const MorphSpring(0.565, 0.84),
     this.growDelay = 0.045,
@@ -300,6 +302,15 @@ class MorphMenuTuning {
   /// lies under it: the edge of the dimmed list under a card shows
   /// through it spread over about 27 points (device screenshots).
   final double cardBlur;
+
+  /// The unlifted card's backdrop displacement, fitted to the native dark
+  /// side-edge profile. At 10 pt blur the profile fits zero displacement
+  /// at 2.16 gray-level RMS; the regular 60 pt bevel gives 5.77 RMS.
+  final double cardDisplacement;
+
+  /// The unlifted card's transmission gamma, fitted to native dark face
+  /// levels: 57 over the root's 32, and 68 over two overlapping lists.
+  final double cardTransmissionGamma;
 
   /// The progress below which a card on its way back is gone: on the
   /// device film the pill it leaves around its row disappears at once
@@ -1170,6 +1181,15 @@ class MorphMenuMotion {
 
   /// Whether the menu is closing.
   bool get isClosing => _phase == _Phase.closing;
+
+  /// Whether closing cards have handed their glass to the morph field.
+  /// In mm-sub-tap the card's original SDF element leaves its material
+  /// group 12 ms after the logical close, at the morph's kick; the rows
+  /// remain in their independently shrinking context-menu container.
+  bool get cardGlassTransferred =>
+      isClosing &&
+      _cards.isNotEmpty &&
+      _now >= _closeStart + tuning.closeKickDelay;
 
   /// Whether a tap's release has scheduled the opening and the menu is
   /// not on its way yet.

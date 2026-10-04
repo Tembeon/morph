@@ -16,6 +16,9 @@
   "mm-deferred.jsonl": "uncached deferred element answered after 2 s",
   "mm-palette.jsonl": "tap the Green palette cell (keepsMenuPresented), then Plain row",
   "mm-swiftui2.jsonl": "SwiftUI Menu: Count button (menuActionDismissBehavior .disabled) x2, Show hidden toggle",
-  "card-container.json": "window-bounds fits for the independent 0.35/0.85 closing carrier, per-run presentation delays, submenu opening and hand-back start alignment"
+  "card-edge-profile.json": "dark native side-edge profile and fitted unlifted sampling displacement",
+  "card-material-handoff.json": "native parent-row visibility and SDF property matching at the 12 ms closing glass hand-off",
+  "card-container.json": "window-bounds fits for the independent 0.35/0.85 closing carrier, per-run presentation delays, submenu opening and hand-back start alignment",
+  "card-tone.json": "native dark face levels, sequential-material transmission fit and phone verification"
  }
 }

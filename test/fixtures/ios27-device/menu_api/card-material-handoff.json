@@ -1,0 +1,173 @@
+{
+  "source": "rec-mm-sub-tap.jsonl; iPhone 16 Pro iOS 27.0.1; original list and glass disappear when SDF property matching starts, while the top card rows remain in the context menu carrier.",
+  "logical_close_after_outside_lift": 0.04,
+  "handoff_delay": 0.012,
+  "frames": [
+    {
+      "dt": 0.007587916697957553,
+      "root_rows_alpha": 1,
+      "root_glass_hidden": false,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 1
+    },
+    {
+      "dt": 0.01555083335551899,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 1
+    },
+    {
+      "dt": 0.023885500035248697,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.997
+    },
+    {
+      "dt": 0.03222016670042649,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.978
+    },
+    {
+      "dt": 0.04055483336560428,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.943
+    },
+    {
+      "dt": 0.048929250027867965,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.898
+    },
+    {
+      "dt": 0.05726400003186427,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.845
+    },
+    {
+      "dt": 0.06559875002130866,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.787
+    },
+    {
+      "dt": 0.07393350002530497,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.727
+    },
+    {
+      "dt": 0.08226825002930127,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.666
+    },
+    {
+      "dt": 0.09060300003329758,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.605
+    },
+    {
+      "dt": 0.09893775002274197,
+      "root_rows_alpha": 0,
+      "root_glass_hidden": true,
+      "card_rows_alpha": 1,
+      "carrier_alpha": 0.547
+    }
+  ],
+  "animations": [
+    {
+      "dt": 0.011998750022030436,
+      "layer": "CAPortalLayer",
+      "key": "match-opacity"
+    },
+    {
+      "dt": 0.012019250032608397,
+      "layer": "CAPortalLayer",
+      "key": "match-opacity"
+    },
+    {
+      "dt": 0.012035666688461788,
+      "layer": "CASDFElementLayer",
+      "key": "match-bounds"
+    },
+    {
+      "dt": 0.012050291697960347,
+      "layer": "CASDFElementLayer",
+      "key": "match-position"
+    },
+    {
+      "dt": 0.012064291688147932,
+      "layer": "CASDFElementLayer",
+      "key": "match-corner-radius"
+    },
+    {
+      "dt": 0.01207691669696942,
+      "layer": "CASDFElementLayer",
+      "key": "match-corner-radii"
+    },
+    {
+      "dt": 0.012088583360309713,
+      "layer": "CASDFElementLayer",
+      "key": "match-corner-curve"
+    },
+    {
+      "dt": 0.012104416688089259,
+      "layer": "CASDFElementLayer",
+      "key": "match-hidden"
+    },
+    {
+      "dt": 0.012116083365981467,
+      "layer": "CASDFElementLayer",
+      "key": "match-mesh"
+    },
+    {
+      "dt": 0.012129250026191585,
+      "layer": "CASDFElementLayer",
+      "key": "match-bounds"
+    },
+    {
+      "dt": 0.012140875027398579,
+      "layer": "CASDFElementLayer",
+      "key": "match-position"
+    },
+    {
+      "dt": 0.012154375028330833,
+      "layer": "CASDFElementLayer",
+      "key": "match-corner-radius"
+    },
+    {
+      "dt": 0.01216625003144145,
+      "layer": "CASDFElementLayer",
+      "key": "match-corner-radii"
+    },
+    {
+      "dt": 0.01217762503074482,
+      "layer": "CASDFElementLayer",
+      "key": "match-corner-curve"
+    },
+    {
+      "dt": 0.01218887502909638,
+      "layer": "CASDFElementLayer",
+      "key": "match-hidden"
+    },
+    {
+      "dt": 0.012201541700051166,
+      "layer": "CASDFElementLayer",
+      "key": "match-mesh"
+    }
+  ]
+}
