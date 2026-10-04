@@ -93,7 +93,11 @@ void main() {
         isSemantics(label: 'C', isSelected: false),
       );
       tester.semantics.tap(find.semantics.byLabel('C'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(selected, 2);
       expect(
         tester.getSemantics(find.text('C')),
@@ -121,7 +125,11 @@ void main() {
       expect(tab.parent?.getSemanticsData().role, SemanticsRole.tabBar);
       expect(tab, isSemantics(label: 'Two', isSelected: false));
       tester.semantics.tap(find.semantics.byLabel('Two'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(selected, 1);
       handle.dispose();
     });
@@ -147,7 +155,11 @@ void main() {
         isSemantics(label: 'Wi-Fi', isToggled: false, hasTapAction: true),
       );
       tester.semantics.tap(find.semantics.byLabel('Wi-Fi'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(value, isTrue);
       handle.dispose();
     });
@@ -181,7 +193,11 @@ void main() {
         ),
       );
       tester.semantics.increase(find.semantics.byLabel('Volume'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(value, moreOrLessEquals(0.4));
       expect(ended, value);
       handle.dispose();
@@ -241,12 +257,20 @@ void main() {
             ? LogicalKeyboardKey.arrowRight
             : LogicalKeyboardKey.arrowLeft;
         await tester.sendKeyEvent(forward);
-        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 10),
+        );
         expect(selected, 1, reason: '$direction');
         await tester.sendKeyEvent(forward);
         await tester.pump();
         await tester.sendKeyEvent(forward);
-        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 10),
+        );
         expect(selected, 2, reason: 'the selection stops at the end');
         await tester.pumpWidget(const SizedBox());
       }
@@ -268,10 +292,18 @@ void main() {
       Focus.of(tester.element(find.text('One'))).requestFocus();
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(selected, 1);
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(selected, 0);
     });
 
@@ -312,7 +344,11 @@ void main() {
       switchNode.requestFocus();
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.space);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(value, isTrue);
       Focus.of(tester.element(find.text('Go'))).requestFocus();
       await tester.pump();
@@ -355,12 +391,20 @@ void main() {
       ).requestFocus();
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowUp);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(slider, moreOrLessEquals(0.6));
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(slider, moreOrLessEquals(0.4));
 
       Focus.of(
@@ -389,7 +433,11 @@ void main() {
     ) async {
       await tester.pumpWidget(_host(_segmented(null)));
       await tester.tap(find.text('C'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final text = tester.widget<Text>(find.text('A'));
       expect(text.style?.fontWeight, FontWeight.w500, reason: 'A stays');
       expect(_opacityAbove(tester, find.text('A')), 0.5);
@@ -407,7 +455,11 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 100));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final semanticsHandle = tester.ensureSemantics();
       await tester.pump();
       expect(
@@ -462,7 +514,11 @@ void main() {
         greaterThan(tester.getCenter(find.text('C')).dx),
       );
       await tester.tap(find.text('C'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(selected, 2);
     });
 
@@ -492,7 +548,11 @@ void main() {
       }
       await tester.pump(const Duration(milliseconds: 200));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(value, greaterThan(0.4));
     });
 
@@ -611,7 +671,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(tester.getRect(surface.first), rest);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
     });
   });
 
@@ -757,10 +821,18 @@ void main() {
           ),
         );
         await tester.tap(find.byType(MorphSwitch));
-        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 10),
+        );
         expect(on, isTrue);
         await tester.tap(find.text('C'));
-        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 10),
+        );
         expect(segment, 2);
       },
     );
@@ -806,7 +878,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 400));
       expect(recorder.of(MorphGlassKind.lens).last.lift, closeTo(1, 0.02));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(recorder.of(MorphGlassKind.lens).last.lift, closeTo(0, 0.01));
     });
 

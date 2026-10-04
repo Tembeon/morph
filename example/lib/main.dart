@@ -1,8 +1,8 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/widgets.dart';
 
 import 'package:morph_example/autodemo.dart';
 import 'package:morph_example/gallery/gallery.dart';
-import 'package:morph_example/gallery/liquid_glass.dart';
 import 'package:morph_example/perf/release_bench.dart';
 
 /// Autodemo mode: walks every gallery page with synthetic gestures and
@@ -24,7 +24,7 @@ Future<void> main() async {
     runApp(const ReleaseBenchApp());
     return;
   }
-  await precacheLiquidGlass();
+  await MorphGlassRenderer.precache();
   final navigatorKey = GlobalKey<NavigatorState>();
   runApp(GalleryApp(navigatorKey: navigatorKey));
   if (kAutoDemo) {

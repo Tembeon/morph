@@ -658,7 +658,11 @@ void main() {
       await tester.pump();
       expect(changes.last, '');
       expect(find.text('Search'), findsOneWidget);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
     });
 
     testWidgets('asks for the keyboard UIKit gives a search field', (
@@ -678,7 +682,11 @@ void main() {
       final config = tester.testTextInput.setClientArgs!;
       expect(config['textCapitalization'], 'TextCapitalization.sentences');
       expect(config['inputAction'], 'TextInputAction.search');
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
     });
 
     testWidgets('is 48 tall and lifts under a held touch', (tester) async {
@@ -692,7 +700,11 @@ void main() {
       final lifted = tester.getRect(find.byType(CustomPaint).first);
       expect(lifted.width, greaterThan(346));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
     });
 
     testWidgets('a disabled field takes no focus', (tester) async {
@@ -774,10 +786,18 @@ void main() {
       final field = find.byType(MorphSearchField);
       expect(tester.getRect(field), const Rect.fromLTWH(88, 880, 324, 48));
       await tester.tap(find.bySemanticsLabel('Filter'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(filtered, 1);
       await tester.tap(field);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(active, [true]);
       expect(
         tester.getRect(field),
@@ -788,7 +808,11 @@ void main() {
       );
       await tester.enterText(find.byType(EditableText), 'abc');
       await tester.tap(find.bySemanticsLabel('Close'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(active, [true, false]);
       expect(
         tester.getRect(field),
@@ -810,7 +834,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       expect(active, isEmpty);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(active, [true]);
       expect(tester.testTextInput.isVisible, isTrue);
     });
@@ -845,7 +873,11 @@ void main() {
       await tester.tap(field);
       await tester.pump();
       keyboard.value = 336;
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(tester.getRect(field).bottom, closeTo(_h - 336 - 10, 0.2));
       await tester.tap(find.bySemanticsLabel('Close'));
       await tester.pump();
@@ -858,7 +890,11 @@ void main() {
         expect(bottom, greaterThanOrEqualTo(last - 1));
         last = bottom;
       }
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(tester.getRect(field).bottom, closeTo(_h - 28, 0.2));
     });
 
@@ -866,9 +902,17 @@ void main() {
       final active = <bool>[];
       await pump(tester, onActive: active.add);
       await tester.tap(find.byType(MorphSearchField));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(active, [true, false]);
     });
   });
@@ -972,10 +1016,18 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.byType(MorphTabBar), findsOneWidget);
       await tester.tapAt(const Offset(388, 904));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(asked, [true]);
       expect(tester.testTextInput.isVisible, isTrue);
       expect(
@@ -992,7 +1044,11 @@ void main() {
         ),
       );
       await tester.tapAt(const Offset(_w - 8 - 24, _h - 8 - 24));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(
         tester.getRect(find.byType(MorphSearchField)),
         rectMoreOrLessEquals(
@@ -1001,7 +1057,11 @@ void main() {
         ),
       );
       await tester.tapAt(const Offset(52, 904));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(asked, [true, false]);
       expect(find.byType(MorphTabBar), findsOneWidget);
     });
@@ -1055,7 +1115,11 @@ void main() {
       expect((after - before).abs(), lessThan(12));
       await tester.pump(const Duration(milliseconds: 80));
       expect(tester.getRect(find.byKey(search)).left, greaterThan(after));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.byType(MorphTabBar), findsOneWidget);
       expect(tester.testTextInput.isVisible, isFalse);
     });
@@ -1065,17 +1129,33 @@ void main() {
     ) async {
       final asked = await pumpTabs(tester);
       await tester.tapAt(const Offset(388, 904));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.tapAt(const Offset(_w - 8 - 24, _h - 8 - 24));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.tapAt(const Offset(52, 904));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
       await tester.tapAt(const Offset(388, 904));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(asked, [true, false]);
       await tester.tapAt(const Offset(388, 904));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(asked, [true, false, true]);
     });
 
@@ -1119,7 +1199,11 @@ void main() {
       expect(focus.hasFocus, isTrue);
       expect(tester.testTextInput.isVisible, isTrue);
       expect(find.bySemanticsLabel('Search'), findsWidgets);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(focus.hasFocus, isTrue);
     });
   });

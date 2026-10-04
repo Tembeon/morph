@@ -16,7 +16,11 @@ Future<void> _open(WidgetTester tester, String title) async {
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   await tester.pumpWidget(const GalleryApp());
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
   final entry = find.widgetWithText(ListTile, title);
   await tester.scrollUntilVisible(
     entry,
@@ -24,9 +28,17 @@ Future<void> _open(WidgetTester tester, String title) async {
     scrollable: find.byType(Scrollable).first,
   );
   await tester.ensureVisible(entry);
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
   await tester.tap(entry);
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
   expect(find.widgetWithText(AppBar, title), findsOneWidget);
 }
 
@@ -34,19 +46,35 @@ void main() {
   testWidgets('alerts: an alert and an anchored action sheet', (tester) async {
     await _open(tester, 'Alerts');
     await tester.tap(find.text('Three buttons, destructive, cancel last'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Delete this photo?'), findsOneWidget);
     expect(_unstyledTexts(tester), isEmpty);
     await tester.tap(find.text('Delete'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Delete chosen'), findsOneWidget);
     await tester.tap(find.text('Action sheet from this button'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Share photo'), findsOneWidget);
     expect(find.text('Cancel'), findsNothing);
     expect(_unstyledTexts(tester), isEmpty);
     await tester.tapAt(const Offset(200, 20));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Share photo'), findsNothing);
     expect(find.text('Cancel chosen'), findsOneWidget);
   });
@@ -57,16 +85,32 @@ void main() {
     await _open(tester, 'Search');
     expect(find.text('Banana'), findsOneWidget);
     await tester.tap(find.byType(MorphSearchField));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.enterText(find.byType(EditableText), 'ber');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Banana'), findsNothing);
     expect(find.text('Blueberry'), findsOneWidget);
     await tester.tap(find.bySemanticsLabel('Close'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Banana'), findsOneWidget);
     await tester.tap(find.text('Tab bar'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.byType(MorphTabBar), findsOneWidget);
     expect(_unstyledTexts(tester), isEmpty);
   });
@@ -74,14 +118,26 @@ void main() {
   testWidgets('date picker: the calendar opens and picks', (tester) async {
     await _open(tester, 'Date picker');
     await tester.tap(find.text('Oct 3, 2026').first);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('October 2026'), findsOneWidget);
     expect(_unstyledTexts(tester), isEmpty);
     await tester.tap(find.text('20'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.textContaining('2026-10-20'), findsOneWidget);
     await tester.tapAt(const Offset(200, 860));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('October 2026'), findsNothing);
   });
 
@@ -91,11 +147,19 @@ void main() {
     await _open(tester, 'Sheets');
     final button = find.text('Zoom from this button');
     await tester.ensureVisible(button);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tap(button);
     await tester.pump();
     expect(tester.takeException(), isNull);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Zoomed from its button'), findsOneWidget);
     final route = ModalRoute.of(
       tester.element(find.text('Zoomed from its button')),
@@ -104,7 +168,11 @@ void main() {
     expect((route! as MorphSheetRoute<String>).source, isNotNull);
     expect(_unstyledTexts(tester), isEmpty);
     await tester.tap(find.text('Done'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Done in Zoomed from its button'), findsOneWidget);
   });
 
@@ -115,18 +183,34 @@ void main() {
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
     await tester.pumpWidget(const GalleryApp());
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final entry = find.widgetWithText(ListTile, 'Navigation');
     await tester.scrollUntilVisible(
       entry,
       200,
       scrollable: find.byType(Scrollable).first,
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tap(entry);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tap(find.text('Message 1'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final back = find.bySemanticsLabel('Back');
     final gesture = await tester.startGesture(tester.getCenter(back.last));
     for (var i = 0; i < 120; i++) {
@@ -136,7 +220,11 @@ void main() {
     expect(find.text('Inbox'), findsWidgets);
     await gesture.moveBy(const Offset(0, 400));
     await gesture.up();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(tester.takeException(), isNull);
   });
 }

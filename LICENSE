@@ -19,3 +19,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+Third-party glass renderer
+
+lib/src/glass/renderer is derived from liquid_glass_renderer:
+Copyright 2025 Tim Lehmann for whynotmake.it.
+It is licensed under the Apache License, Version 2.0, rather than the
+MIT license above. The full license is in lib/src/glass/renderer/LICENSE;
+attribution is in lib/src/glass/renderer/NOTICE and local changes are
+recorded in lib/src/glass/renderer/VENDORED. Retain the license, NOTICE,
+applicable copyright and attribution notices, and notices of changes
+when redistributing this renderer.
+
+Adapted shader code retains the BSD-style Flutter license and the MIT
+Inigo Quilez license in lib/src/glass/renderer/third_party/flutter/LICENSE
+and lib/src/glass/renderer/third_party/inigo_quilez/LICENSE respectively.

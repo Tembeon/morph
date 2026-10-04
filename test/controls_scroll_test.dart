@@ -170,7 +170,11 @@ Future<void> _scrollHome(WidgetTester tester) async {
       .state<ScrollableState>(find.byType(Scrollable).first)
       .position
       .jumpTo(0);
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
 }
 
 Offset _thumb(WidgetTester tester) {
@@ -212,7 +216,11 @@ void main() {
     await tester.pump();
     expect(tab, 2);
     await gesture.up();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
   });
 
   group('inside a vertical list', () {
@@ -247,7 +255,11 @@ void main() {
         final gesture = await _drag(tester, point(before), const Offset(0, -6));
         expect(tester.getRect(finder).top, lessThan(before.top - 30));
         await gesture.up();
-        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 10),
+        );
         await _scrollHome(tester);
       }
       expect(s.switchOn, isFalse);
@@ -263,13 +275,25 @@ void main() {
     testWidgets('taps still land', (tester) async {
       final s = await _pump(tester);
       await tester.tap(find.byType(MorphSwitch));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.switchOn, isTrue);
       await tester.tap(find.byType(MorphGlassButton));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.taps, 1);
       await tester.tap(find.text('B'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.segment, 1);
     });
 
@@ -280,7 +304,11 @@ void main() {
       final gesture = await _drag(tester, _thumb(tester), const Offset(8, -3));
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.slider, greaterThan(0.7));
       expect(_offset(tester), 0);
     });
@@ -292,7 +320,11 @@ void main() {
       final gesture = await _drag(tester, _thumb(tester), const Offset(1, -8));
       expect(_offset(tester), greaterThan(10));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.slider, 0.5);
     });
 
@@ -312,7 +344,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(tester.getRect(_glassSurface).width, greaterThan(rest.width + 4));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.taps, 0, reason: 'released far outside the button');
       expect(_offset(tester), 0);
       expect(
@@ -327,14 +363,22 @@ void main() {
       await _pump(tester);
       final rest = tester.getRect(_glassSurface);
       final gesture = await _drag(tester, rest.center, const Offset(0, -6));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(_offset(tester), greaterThan(10));
       expect(
         tester.getRect(_glassSurface).width,
         moreOrLessEquals(rest.width, epsilon: 0.5),
       );
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
     });
 
     testWidgets('a switch drag toggles it and the list stays', (tester) async {
@@ -348,7 +392,11 @@ void main() {
       );
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.switchOn, isTrue);
       expect(_offset(tester), 0);
     });
@@ -364,7 +412,11 @@ void main() {
       );
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.segment, 1);
       expect(_offset(tester), 0);
     });
@@ -380,7 +432,11 @@ void main() {
       );
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.tab, 2);
       expect(_offset(tester), 0);
     });
@@ -409,7 +465,11 @@ void main() {
       }
       expect(_offset(tester), greaterThan(10));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes, isEmpty);
       expect(s.tab, 0);
     });
@@ -437,7 +497,11 @@ void main() {
       expect(s.tab, 2);
       expect(tester.getRect(bar).width, greaterThan(rest.width + 1));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.tab, 2);
       expect(_offset(tester), 0);
     });
@@ -452,7 +516,11 @@ void main() {
       await gesture.up();
       await tester.pump();
       expect(s.tab, 1);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.tab, 1);
     });
 
@@ -474,7 +542,11 @@ void main() {
       }
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.stepper, 7);
       expect(_offset(tester), 0);
     });
@@ -500,7 +572,11 @@ void main() {
       await gesture.up();
       await tester.pump(const Duration(milliseconds: 20));
       expect(s.picked, ['Rename']);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(_offset(tester), 0);
     });
 
@@ -519,7 +595,11 @@ void main() {
       }
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('reply'), findsOneWidget);
     });
 
@@ -536,7 +616,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 600));
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.holds, 0);
       expect(find.text('reply'), findsNothing);
     });
@@ -550,7 +634,11 @@ void main() {
       final gesture = await _drag(tester, _thumb(tester), const Offset(-8, 0));
       expect(_offset(tester), greaterThan(10));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.slider, 0.5);
     });
 
@@ -564,7 +652,11 @@ void main() {
       );
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.slider, greaterThan(0.7));
       expect(_offset(tester), 0);
     });
@@ -581,7 +673,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(s.tab, 1);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(s.tab, 1);
     });
 
@@ -598,7 +694,11 @@ void main() {
       );
       expect(_offset(tester), 0);
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(_offset(tester), 0);
     });
   });

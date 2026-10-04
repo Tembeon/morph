@@ -70,7 +70,11 @@ Future<BuildContext> _pumpNested(WidgetTester tester) async {
       builder: (_) => MorphNavigationStack(home: _inbox((c) => inbox = c)),
     ),
   );
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
   expect(find.text('Library'), findsNothing);
   return inbox;
 }
@@ -79,7 +83,11 @@ Future<void> _pushDetail(WidgetTester tester, BuildContext inbox) async {
   Navigator.of(
     inbox,
   ).push(MorphNavigationRoute<void>(builder: (_) => _detail()));
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
   expect(find.text('Message'), findsOneWidget);
 }
 
@@ -90,7 +98,11 @@ Future<void> _edgeSwipe(WidgetTester tester) async {
     await tester.pump(const Duration(milliseconds: 16));
   }
   await gesture.up();
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
 }
 
 Finder _key(String id) => find.byKey(ValueKey<Object>(id));
@@ -131,7 +143,11 @@ void main() {
       final inbox = await _pumpNested(tester);
       await _pushDetail(tester, inbox);
       await tester.tap(find.bySemanticsLabel('Back'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('Message'), findsNothing);
       expect(find.text('Inbox'), findsWidgets);
       expect(find.text('Library'), findsNothing);
@@ -143,12 +159,20 @@ void main() {
       final inbox = await _pumpNested(tester);
       await _pushDetail(tester, inbox);
       await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('Message'), findsNothing);
       expect(find.text('Inbox'), findsWidgets);
       expect(find.text('Library'), findsNothing);
       await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('Library'), findsOneWidget);
     });
 
@@ -158,7 +182,11 @@ void main() {
       final inbox = await _pumpNested(tester);
       await _pushDetail(tester, inbox);
       await Navigator.of(inbox, rootNavigator: true).maybePop();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('Message'), findsNothing);
       expect(find.text('Inbox'), findsWidgets);
       expect(find.text('Library'), findsNothing);
@@ -207,7 +235,11 @@ void main() {
       expect(_opacity(tester, 'add'), inExclusiveRange(0.05, 0.95));
       expect(_opacity(tester, 'up'), inExclusiveRange(0.05, 0.95));
       expect(_opacity(tester, 'filter'), inExclusiveRange(0.05, 0.95));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final done = _item(tester, 'done').dx;
       expect(_key('add'), findsNothing);
       expect(_key('filter'), findsNothing);
@@ -221,7 +253,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 150));
       expect(_opacity(tester, 'add'), inExclusiveRange(0.05, 0.95));
       expect(_opacity(tester, 'filter'), inExclusiveRange(0.05, 0.95));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(_item(tester, 'add').dx, closeTo(add.dx, 0.01));
     });
 
@@ -264,7 +300,11 @@ void main() {
         await tester.pump(const Duration(milliseconds: 16));
         expectLean();
       }
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('Message'), findsOneWidget);
       expect(_item(tester, 'done'), done);
       expect(_item(tester, 'morph.back'), back);
@@ -290,7 +330,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
       expect(_item(tester, 'done').dx, closeTo(leaning, 0.01));
       expect(_item(tester, 'add').dx, closeTo(leaning, 0.01));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('Message'), findsNothing);
       expect(_item(tester, 'add').dx, closeTo(add.dx, 0.01));
     });
@@ -321,7 +365,11 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       return Navigator.of(context);
     }
 
@@ -352,9 +400,17 @@ void main() {
         ),
       );
       set(() => count = 7);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.tap(_key('add'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(pressed, [7]);
     });
 
@@ -365,7 +421,11 @@ void main() {
       navigator.push(
         MorphNavigationRoute<void>(builder: (_) => page('Message')),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final gesture = await tester.startGesture(const Offset(4, 500));
       for (var i = 0; i < 16; i++) {
         await gesture.moveBy(const Offset(14, 0));
@@ -374,7 +434,11 @@ void main() {
       navigator.push(MorphNavigationRoute<void>(builder: (_) => page('Third')));
       await tester.pump();
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('Third'), findsWidgets);
       expect(find.text('Message', skipOffstage: false), findsNothing);
       expect(navigator.userGestureInProgress, isFalse);
@@ -393,7 +457,11 @@ void main() {
           },
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final gesture = await tester.startGesture(const Offset(4, 500));
       for (var i = 0; i < 8; i++) {
         await gesture.moveBy(const Offset(14, 0));
@@ -404,7 +472,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 16));
       await gesture.up();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(navigator.userGestureInProgress, isFalse);
       expect(find.text('Inbox'), findsWidgets);
     });
@@ -422,20 +494,36 @@ void main() {
           },
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       navigator.push(
         MorphNavigationRoute<void>(builder: (_) => page('Message')),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final bar = tester.widget<MorphNavigationBar>(
         find.byType(MorphNavigationBar),
       );
       final row = bar.leading!.buttons.single.menu!.first as MorphMenuItem;
       expect(row.title, 'Inbox');
       navigator.removeRoute(inbox);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       row.onSelected!();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('Message'), findsWidgets);
     });
 
@@ -452,11 +540,19 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       navigator.push(
         MorphNavigationRoute<void>(builder: (_) => page('Message')),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final gesture = await tester.startGesture(
         tester.getCenter(_key('morph.back')),
       );
@@ -473,7 +569,11 @@ void main() {
       }
       expect(find.text('Topics'), findsWidgets);
       await tester.tapAt(const Offset(300, 700));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
     });
 
     testWidgets('a scaffold of a navigator inside a page keeps its own bars', (
@@ -508,7 +608,11 @@ void main() {
           ),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       Navigator.of(
         context,
       ).push(MorphNavigationRoute<void>(builder: (_) => page('Message')));
@@ -522,7 +626,11 @@ void main() {
         find.ancestor(of: message, matching: find.byType(FadeTransition)).first,
       );
       expect(fade.opacity.value, inExclusiveRange(0.05, 0.95));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(tester.getTopLeft(message).dx, 0);
     });
   });

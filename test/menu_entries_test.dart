@@ -21,7 +21,11 @@ Widget _app(
 
 Future<void> _open(WidgetTester tester) async {
   await tester.tap(find.byType(MorphMenuButton));
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
 }
 
 Future<void> _tapRow(WidgetTester tester, String title) async {
@@ -117,7 +121,11 @@ void main() {
     expect(find.text('Cannot be undone'), findsOneWidget);
     expect(find.text('Hidden'), findsNothing);
     await _tapRow(tester, 'Disabled');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, isEmpty);
     expect(find.text('Disabled'), findsOneWidget, reason: 'still open');
   });
@@ -129,11 +137,19 @@ void main() {
     await tester.pumpWidget(_app(MorphMenuButton(items: _entries(log))));
     await _open(tester);
     await _tapRow(tester, 'Date');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['sort Date']);
     expect(find.text('Date'), findsOneWidget);
     await _tapRow(tester, 'Delete');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['sort Date', 'Delete']);
     expect(find.text('Delete'), findsNothing);
   });
@@ -147,7 +163,11 @@ void main() {
     );
     await _open(tester);
     await _tapRow(tester, 'Delete');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['Delete']);
     expect(find.text('Delete'), findsOneWidget);
   });
@@ -161,7 +181,11 @@ void main() {
     expect(find.text('Size'), findsNothing);
     await _tapRow(tester, 'Date');
     await tester.pump();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Size'), findsOneWidget, reason: 'rebuilt in place');
     final after = tester.getRect(find.text('Delete').last).top;
     expect(after - before, moreOrLessEquals(42, epsilon: 0.5));
@@ -175,14 +199,26 @@ void main() {
     await _open(tester);
     expect(find.text('Sub one'), findsNothing);
     await _tapRow(tester, 'More');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Sub one'), findsOneWidget);
     expect(find.text('More'), findsNWidgets(2), reason: 'row and header');
     await _tapRow(tester, 'Deeper');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Deep'), findsOneWidget);
     await _tapRow(tester, 'Deep');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['Deep']);
     expect(find.text('Sub one'), findsNothing);
     expect(find.text('Delete'), findsNothing);
@@ -194,19 +230,39 @@ void main() {
     await tester.pumpWidget(_app(MorphMenuButton(items: _entries([]))));
     await _open(tester);
     await _tapRow(tester, 'More');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tapAt(tester.getCenter(find.text('More').last));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Sub one'), findsNothing);
     expect(find.text('Delete'), findsOneWidget);
     await _tapRow(tester, 'More');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Sub one'), findsNothing);
     expect(find.text('Delete'), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Delete'), findsNothing);
   });
 
@@ -220,12 +276,20 @@ void main() {
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Sub one'), findsOneWidget);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowDown);
     await tester.sendKeyEvent(LogicalKeyboardKey.enter);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['Sub one']);
     expect(find.text('Sub one'), findsNothing);
   });
@@ -248,7 +312,11 @@ void main() {
     await gesture.moveTo(tester.getCenter(find.text('Sub one').last));
     await tester.pump(const Duration(milliseconds: 50));
     await gesture.up();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['Sub one']);
   });
 
@@ -293,7 +361,11 @@ void main() {
         ),
       );
       await _tapRow(tester, 'More');
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(
         tester.getSemantics(find.text('More').last),
         matchesSemantics(
@@ -349,12 +421,20 @@ void main() {
       MorphMenuItem(title: 'Recent', icon: Icons.history),
     ]);
     await tester.pump();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Loading...'), findsNothing);
     expect(find.text('Recent'), findsOneWidget);
     expect(tester.getRect(find.text('Copy').last), before);
     await tester.tapAt(const Offset(5, 590));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await _open(tester);
     expect(find.text('Recent'), findsOneWidget, reason: 'cached');
     expect(loads, 1);
@@ -396,7 +476,11 @@ void main() {
       moreOrLessEquals(42 / 2 + 64 + 21, epsilon: 0.5),
     );
     await tester.tapAt(volume.center);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(value, 1);
     expect(find.text('Volume'), findsOneWidget, reason: 'stays open');
   });
@@ -437,10 +521,18 @@ void main() {
     );
     await _open(tester);
     await tester.tapAt(tester.getCenter(find.byIcon(Icons.circle).last));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['Blue']);
     await _tapRow(tester, 'Bold');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['Blue', 'Bold']);
     expect(find.text('Bold'), findsNothing);
   });
@@ -464,11 +556,19 @@ void main() {
     expect(find.byType(Scrollable), findsWidgets);
     final row = tester.getCenter(find.text('Row 5').last);
     await tester.dragFrom(row, const Offset(0, -200));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, isEmpty);
     expect(find.text('Row 0'), findsOneWidget, reason: 'still open');
     await _tapRow(tester, 'Row 12');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['12']);
   });
 }

@@ -2,7 +2,7 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
-## 0.7.0 - 2026-10-02
+## 0.7.0 - 2026-10-04
 
 The widget layer becomes the measured one. morph always meant to move
 like iOS Liquid Glass; the controls measured from UIKit on iOS 27 -
@@ -192,7 +192,8 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   hand-tuned presets `MorphMotion.slow`, `normal`, `glass` and `fast`;
   `glacial` is now `liquid` with every response times five (a magnifier
   for the eye) and `instant` keeps its reduced-motion contract.
-  `MorphMotion.values` is `[liquid, glacial, instant]`.
+  Removed `MorphMotion.values`, `MorphDirection` and
+  `MorphController.direction`.
   `MorphMotion.springs(open:, close:)` builds a profile from
   `MorphSpring`s and exposes them as `openSpring`/`closeSpring`;
   `openMotion`/`closeMotion` are getters now. The public constructor
@@ -873,7 +874,8 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   merge law's reach ends, so resting groups never touch; a group that
   splits, or capsules passing during an item change, fuse while closer.
   The flat fallback traces the fused outline with the skin's law
-  (cell 2) whenever two same-colored capsules are within the spacing.
+  (cell 2) whenever two capsules are within the spacing, regardless
+  of color.
   The gallery's liquid painter blends a bar's capsules at the spacing
   (it had stopped blending them because its old blend of 18 melted
   groups 12 apart).
@@ -973,7 +975,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   platter while they appear and leave.
 - A flight's scrim can run on springs of its own: `scrimMotion:
   MorphScrimMotion(motion:, openDelay:, closeDelay:)` on `showMorph` and
-  `MorphFlight.launch`. The scrim then follows the flight's open / close
+  `MorphFlight.launch` (internal), `showMorphSheet`, `showMorphDialog`,
+  `showMorphRoute` and `MorphAnchor`, or through `MorphTheme.scrimMotion`.
+  The scrim then follows the flight's open / close
   intent on its own spring after its own delay, retargeting with its
   velocity, and stays up past the handoff latch until it rests (the page
   takes touches again meanwhile; `landed` comes after it).
@@ -1013,7 +1017,7 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   package assets and `hook/build.dart` builds its Flutter GPU bundle.
   BREAKING for consumers: morph now needs Flutter 3.47 (Flutter GPU)
   and depends on equatable, flutter_gpu, flutter_gpu_shaders,
-  flutter_shaders, hooks and logging. The one public entry is
+  flutter_shaders and hooks. The unused logging dependency is removed. The one public entry is
   `MorphGlassRenderer`, a `MorphGlassPainter` with quality tiers
   (`MorphGlassTier.flat`, `frosted`, `liquid`) and the liquid tier's
   settings (`MorphGlassMaterial`, blur, refraction, light, tint,
@@ -1066,6 +1070,94 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   painter fuses through the same groups and outline as every tier. The
   dark date picker's platter is the dark menu's glass, 0xF2222222 (it
   drew 44 gray where UIKit shows 32).
+- Bars and navigation: BREAKING: `MorphNavigationConfig.signature` is
+  removed. Configs, `MorphBarButton` and `MorphBarButtonGroup` compare by
+  value, with callbacks by identity, so fresh closures update the shared
+  bar. Returning ids reverse a fading item or capsule instead of creating
+  duplicate keys; layout ids compare by value (`1` differs from `'1'`).
+  A committed edge swipe removes its own page even if another was pushed;
+  disposal ends the user gesture and bar drift. Back-menu rows for removed
+  screens do nothing, and an open back menu follows entry changes. A
+  scaffold in a nested navigator keeps its own bars.
+- Bars gain `backLabel` on `MorphNavigationStack` and
+  `MorphNavigationScaffold`; `menuStyle` and `menuOverlay` on the stack,
+  `MorphNavigationBar` and `MorphToolbar`; `MorphToolbarMetrics` and
+  `MorphBarMetrics.maxTextScale`, `lineHeight` and `backChevronHeight`.
+  `MorphBarStyle` and `MorphBarMetrics` compare by value. Scaffold
+  backgrounds resolve through `MorphScrollEdgeEffectThemeData`; reduced
+  motion fades navigation pages in place. Bar menus respond to the
+  accessibility long press. Animation ticks retain button contents,
+  fused flat outlines are traced once per change, and label/title widths
+  are cached.
+- Engine lookup hygiene: BREAKING: `MorphScope.of`, `MorphTag.specOf` /
+  `idOf`, `morphAnchorRect` and unknown `from:` ids throw descriptive
+  FlutterErrors in every build mode. `MorphScopeState.tryTagOf` supports
+  optional sources. Duplicate tag and shared-element ids are reported
+  through `FlutterError.reportError`; the first tag keeps its id until
+  it leaves, then the second takes over. Tags re-register when moved
+  between scopes, and scope-less tags/skins degrade without crashing.
+  Anchor rects, shared-element rects and flight necks follow the whole
+  paint transform. Flying shared-element keys are `ValueKey<Object>(id)`.
+- Engine defaults live in `MorphTheme.defaultMaxScrimOpacity`,
+  `defaultScrimColor`, `defaultShadowColor` and `defaultTargetElevation`.
+  `modal` is available on sheet/dialog helpers, routes and `MorphAnchor`;
+  changing an open anchor's `motion` updates its live flight. Route scrims
+  resolve the theme, routes accept explicit overlays and resolve the
+  source page's scope. Removing a route without popping reveals its
+  source and retires the flight; declined dismissals preserve history,
+  and dead overlays clean up their flights. BREAKING: flight geometry is
+  read-only and `MorphFlight.launch` is internal.
+- `MorphFlight.geometryTicks` excludes scrim-only ticks, so the skin
+  does not repaint for them; shuttle subscriptions churn less. A tag
+  without `snapshotGhost` adds no RepaintBoundary or GlobalKey, skin
+  repaints reuse buffers and paints, and duplicate animation status
+  listeners no longer leak proxies. Oversized tracing grids coarsen
+  instead of vanishing; a `cell` below 2 px asserts in debug.
+- Submenu calibration: cards hand their headers back to their source
+  rows, hiding those rows while shown and preventing a blink on close.
+  Their platters blur and brighten the list below, with a top rim and
+  outside shadow. BREAKING: `MorphMenuStyle.submenuColor` is a translucent
+  tint; `submenuRimColor` and `submenuShadowColor` are new. Closing the
+  whole menu shrinks an open card with the drop, centered and unblurred,
+  fading near the end; selecting a card row closes 0.015 s after release.
+  New `MorphMenuTuning` fields: `submenuCloseDelay`, `cardRowsFadeIn`,
+  `cardRowsFadeOut`, `cardPlatterFade`, `cardHeaderBoldStart`,
+  `cardHeaderBoldEnd`, `cardChevronTurn`, `cardChevronBack`,
+  `cardCloseFadeEnd`, `cardCloseCenter`, `cardBlur`, `cardGone`.
+  New `MorphMenuCard` fields: `contentTop`, `rowsOpacity`, `platterOpacity`,
+  `headerBold`, `chevronTurn`, `closeOpacity`, `backing`, `source`.
+- Renderer hygiene: runtime capability detection falls back from liquid
+  to frosted glass with a cached diagnostic, remembering failed bundle
+  loads. Adaptive and frosted surfaces share backdrop captures; the tier
+  governor warms up before judging timings. Lifted-lens copies paint from
+  one mounted subtree, preserving GlobalKeys and focus. The build hook
+  writes the GPU bundle to `build/shaderbundles`, whose asset entry stays
+  in the pubspec (f8b921d corrects an attempted data-asset-only package
+  that fell back on Flutter 3.47.2). Unused upstream code is removed,
+  field uploads and glow shader allocations reduced.
+- Sheets, zoom and alerts: Escape dismisses dismissible sheets, Android
+  back runs alert cancellation once, and overlapping presentations pop
+  their own routes. BREAKING: sheet and navigation zoom routes take source
+  ids; missing sources degrade and removed sources dissolve. RTL zoom
+  radii, popover placement, text-field Return and detent notifications
+  are fixed; motion routes and zoom sources share internal implementations.
+- Other controls: scrolling a date label no longer opens it, rejected
+  controlled values keep their semantics, and invalid page inputs are
+  handled. Style resolution and capsule painting share implementations,
+  glass glow is consolidated, controls accept localization callbacks,
+  and date wheels follow updated bounds. Per-tick layout work is removed.
+- Remaining audit/fidelity work: scroll-edge backdrop grouping (PF9),
+  configurable bar-menu tuning (P5api), the menu-host merge (D5), and
+  lens-family style forwarders (D2). Engine flights still clamp size and
+  shape past progress 1 while their centers overshoot (A8). Submenu dark
+  film dropped frames, so dark styling was judged from stills; the close
+  drop starts from the whole menu instead of the list, row tap highlights
+  differ from the films, chevron turn/bold switching is estimated and the
+  header chevron remains slightly large.
+- Coordinator verification of the combined audit tree before docs cleanup:
+  formatting and analysis clean,
+  966 package and 11 example tests, zero dartdoc warnings, and iOS
+  release, web wasm and macOS builds plus the macOS autodemo passed.
 
 ## 0.6.0 - 2026-09-03
 

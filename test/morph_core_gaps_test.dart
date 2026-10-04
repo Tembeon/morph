@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/rendering.dart';
 import 'package:morph/foundation.dart';
 
 /// Coverage for three core paths that had none: the snapshot ghost, the
@@ -62,20 +63,18 @@ void main() {
     );
     final MorphFlight flight = scope.flightOf('ghost')!;
 
-    // toImage completes on the real event loop, not inside FakeAsync:
-    // give it real time in slices, flushing the fake zone in between.
-    // Small slices under a generous cap: a fast machine exits on the
-    // first pass, a loaded CI worker gets a real 5 s budget - and a
-    // timeout fails loudly instead of reading as a broken capture.
-    for (int i = 0; i < 500 && flight.sourceSnapshot == null; i++) {
-      await tester.runAsync(
-        () => Future<void>.delayed(const Duration(milliseconds: 10)),
-      );
-      await tester.pump();
-    }
-    if (flight.sourceSnapshot == null) {
-      fail('the snapshot capture did not complete within 5 s of real time');
-    }
+    final RenderRepaintBoundary boundary = tester.renderObject(
+      find.descendant(
+        of: find.byType(MorphTag),
+        matching: find.byType(RepaintBoundary),
+      ),
+    );
+    await tester.runAsync(() async {
+      final image = await boundary.toImage();
+      image.dispose();
+    });
+    await tester.pump();
+    expect(flight.sourceSnapshot, isNotNull);
     // The markNeedsBuild from the capture lands after the same pump's
     // build phase: one more frame mounts the ghost.
     await tester.pump();

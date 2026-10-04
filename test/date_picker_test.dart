@@ -440,17 +440,29 @@ void main() {
       await pump(tester, onChanged: picked.add);
       expect(find.text('Oct 3, 2026'), findsOneWidget);
       await tester.tap(find.text('Oct 3, 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsOneWidget);
       final label = tester.widget<Text>(find.text('Oct 3, 2026'));
       expect(label.style?.color, MorphDatePickerStyle.light.accentColor);
       await tester.tap(find.text('15'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(picked.single, DateTime(2026, 10, 15, 9, 41));
       expect(find.text('October 2026'), findsOneWidget);
       expect(find.text('Oct 15, 2026'), findsOneWidget);
       await tester.tapAt(const Offset(220, 900));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsNothing);
     });
 
@@ -459,7 +471,11 @@ void main() {
     ) async {
       await pump(tester, onChanged: (_) {});
       await tester.tap(find.text('Oct 3, 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.tapAt(const Offset(220, 900));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
@@ -468,12 +484,20 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.text('October 2026'), findsNWidgets(2));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsOneWidget);
       final label = tester.widget<Text>(find.text('Oct 3, 2026'));
       expect(label.style?.color, MorphDatePickerStyle.light.accentColor);
       await tester.tapAt(const Offset(220, 900));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsNothing);
     });
 
@@ -483,7 +507,11 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 50));
       await tester.tapAt(const Offset(220, 900));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsNothing);
     });
 
@@ -493,7 +521,11 @@ void main() {
       await pump(tester, onChanged: (_) {});
       final label = tester.getRect(find.byType(MorphDatePicker));
       await tester.tap(find.byType(MorphDatePicker));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final title = tester.getRect(find.text('October 2026'));
       expect(title.top, greaterThan(label.center.dy));
       expect(title.left, closeTo(20 + 20.33, 1));
@@ -510,7 +542,11 @@ void main() {
       );
       final label = tester.getRect(find.byType(MorphDatePicker));
       await tester.tap(find.byType(MorphDatePicker));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final title = tester.getRect(find.text('October 2026'));
       expect(title.right, greaterThan(label.center.dx));
     });
@@ -518,22 +554,42 @@ void main() {
     testWidgets('the chevrons turn the month', (tester) async {
       await pump(tester, onChanged: (_) {});
       await tester.tap(find.byType(MorphDatePicker));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.tap(find.bySemanticsLabel('Next month'));
       await tester.pump(const Duration(milliseconds: 150));
       expect(find.text('November 2026'), findsOneWidget);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.tap(find.bySemanticsLabel('Previous month'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsOneWidget);
     });
 
     testWidgets('Escape closes the overlay', (tester) async {
       await pump(tester, onChanged: (_) {});
       await tester.tap(find.byType(MorphDatePicker));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.sendKeyEvent(LogicalKeyboardKey.escape);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsNothing);
     });
 
@@ -542,7 +598,11 @@ void main() {
       await pump(tester, mode: MorphDatePickerMode.time, onChanged: picked.add);
       expect(find.text('09:41'), findsOneWidget);
       await tester.tap(find.text('09:41'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.byType(ListWheelScrollView), findsNWidgets(2));
       // The probe's drag on an iPhone 16 Pro (rec-vid-time): 64 points up
       // in 0.375 s turns UIKit's wheel by exactly two rows.
@@ -551,7 +611,11 @@ void main() {
         const Offset(0, -64),
         const Duration(milliseconds: 375),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(picked.last.minute, 43);
     });
 
@@ -569,7 +633,11 @@ void main() {
     testWidgets('a disabled picker does not open', (tester) async {
       await pump(tester);
       await tester.tap(find.byType(MorphDatePicker));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsNothing);
     });
 
@@ -590,7 +658,11 @@ void main() {
       final label = tester.widget<Text>(find.text('Oct 3, 2026'));
       expect(label.style?.color, MorphDatePickerStyle.dark.labelColor);
       await tester.tap(find.byType(MorphDatePicker));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(tester.takeException(), isNull);
     });
   });
@@ -631,7 +703,11 @@ void main() {
         start: DateTime(2026, 5, 3, 7, 41),
       );
       await tester.tap(find.text('May 3, 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final title = find.text('May 2026');
       expect(
         tester.renderObject<RenderParagraph>(title).didExceedMaxLines,
@@ -647,9 +723,17 @@ void main() {
     ) async {
       await pump(tester, MorphDatePickerMode.date);
       await tester.tap(find.text('Oct 3, 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.tap(find.text('15'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       BoxDecoration? disc(String day) =>
           tester
                   .widget<Container>(
@@ -705,14 +789,22 @@ void main() {
     ) async {
       await pump(tester, MorphDatePickerMode.dateAndTime);
       await tester.tap(find.text('Oct 3, 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsOneWidget);
       await tester.tap(find.text('07:41').first, warnIfMissed: false);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 150));
       expect(find.text('October 2026'), findsOneWidget);
       expect(find.byType(ListWheelScrollView), findsNWidgets(2));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.text('October 2026'), findsNothing);
       expect(find.byType(ListWheelScrollView), findsNWidgets(2));
       final label = tester.widget<Text>(find.text('07:41').first);
@@ -720,7 +812,11 @@ void main() {
       final date = tester.widget<Text>(find.text('Oct 3, 2026'));
       expect(date.style?.color, MorphDatePickerStyle.light.labelColor);
       await tester.tapAt(const Offset(201, 800));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.byType(ListWheelScrollView), findsNothing);
     });
   });
@@ -743,7 +839,11 @@ void main() {
         ),
       );
       await tester.tap(find.byType(MorphDatePicker));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final center = tester.getRect(find.text('07').last);
       // UIKit's labels on an iPhone 16 Pro (rec-vid-time): neighbours 31.3
       // and 56.7 points from the selected row, 0.905 and 0.647 of its
@@ -792,7 +892,11 @@ void main() {
         ),
       );
       await tester.tap(find.text('7:41 AM'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       return changes;
     }
 
@@ -832,7 +936,11 @@ void main() {
         const Offset(0, -5 * 32.4),
         const Duration(seconds: 1),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2026, 10, 3, 12, 41));
       expect(find.text('12:41 PM'), findsOneWidget);
       await tester.timedDragFrom(
@@ -840,7 +948,11 @@ void main() {
         const Offset(0, 3 * 32.4),
         const Duration(seconds: 1),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2026, 10, 3, 9, 41));
       expect(find.text('9:41 AM'), findsOneWidget);
     });
@@ -852,7 +964,11 @@ void main() {
         const Offset(0, -32.4),
         const Duration(milliseconds: 600),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2026, 10, 3, 19, 41));
     });
   });
@@ -998,7 +1114,11 @@ void main() {
         ),
       );
       await tester.tap(find.byType(MorphDatePicker));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       return changes;
     }
 
@@ -1015,13 +1135,21 @@ void main() {
       expect(find.byType(ListWheelScrollView), findsNWidgets(2));
       final accent = tester.widget<Text>(find.text('October 2026'));
       expect(accent.style?.color, MorphDatePickerStyle.light.accentColor);
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.bySemanticsLabel('Hide year picker'), findsOneWidget);
       expect(find.text('October'), findsWidgets);
       expect(find.text('2026'), findsWidgets);
       // The day grid is hidden and does not take taps.
       await tester.tapAt(tester.getCenter(find.text('15')));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes, isEmpty);
       // The chevron points down.
       final turn = tester
@@ -1038,7 +1166,11 @@ void main() {
         closeTo(math.pi / 2, 1e-6),
       );
       await tester.tap(find.text('October 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.byType(ListWheelScrollView), findsNothing);
       expect(find.bySemanticsLabel('Show year picker'), findsOneWidget);
       final label = tester.widget<Text>(find.text('October 2026'));
@@ -1070,7 +1202,11 @@ void main() {
     testWidgets('the wheels sit where UIKit puts them', (tester) async {
       await open(tester);
       await tester.tap(find.text('October 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       // month-year.json, relative to the platter's top-left (16 points
       // from the side; its top from the title, centered 34.84 down): the
       // rows outside the band start their month 57.95 points in and center
@@ -1096,13 +1232,21 @@ void main() {
     ) async {
       final changes = await open(tester);
       await tester.tap(find.text('October 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.timedDrag(
         find.text('October').last,
         const Offset(0, -50),
         const Duration(milliseconds: 800),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2026, 11, 3, 7, 41));
       expect(title('November 2026'), findsOneWidget);
       await tester.timedDrag(
@@ -1110,10 +1254,18 @@ void main() {
         const Offset(0, 50),
         const Duration(milliseconds: 800),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2025, 11, 3, 7, 41));
       await tester.tap(find.text('November 2025'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.byType(ListWheelScrollView), findsNothing);
       expect(find.text('Nov 3, 2025'), findsOneWidget);
     });
@@ -1121,29 +1273,49 @@ void main() {
     testWidgets('the 31st turned to November is the 30th', (tester) async {
       final changes = await open(tester, start: DateTime(2026, 10, 31, 8, 41));
       await tester.tap(find.text('October 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.timedDrag(
         find.text('October').last,
         const Offset(0, -50),
         const Duration(milliseconds: 800),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2026, 11, 30, 8, 41));
       await tester.timedDrag(
         find.text('November').last,
         const Offset(0, 50),
         const Duration(milliseconds: 800),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2026, 10, 30, 8, 41));
     });
 
     testWidgets('the wheels open on the shown month', (tester) async {
       final changes = await open(tester);
       await tester.tap(find.bySemanticsLabel('Next month'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       await tester.tap(find.text('November 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes, isEmpty);
       final november = tester.getRect(find.text('November').last);
       final band = tester.getRect(find.text('2026').last);
@@ -1153,7 +1325,11 @@ void main() {
         const Offset(0, -50),
         const Duration(milliseconds: 800),
       );
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes, [DateTime(2026, 12, 3, 7, 41)]);
     });
 
@@ -1164,7 +1340,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 150));
       await tester.tap(find.text('October 2026'));
       await tester.pump();
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(find.byType(ListWheelScrollView), findsNothing);
       expect(find.bySemanticsLabel('Show year picker'), findsOneWidget);
     });
@@ -1173,16 +1353,28 @@ void main() {
       final semantics = tester.ensureSemantics();
       final changes = await open(tester);
       await tester.tap(find.text('October 2026'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       final month = find.bySemanticsLabel('Month');
       expect(tester.getSemantics(month).value, 'October');
       tester.semantics.increase(find.semantics.byLabel('Month'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2026, 11, 3, 7, 41));
       final year = find.bySemanticsLabel('Year');
       expect(tester.getSemantics(year).value, '2026');
       tester.semantics.decrease(find.semantics.byLabel('Year'));
-      await tester.pumpAndSettle();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
       expect(changes.last, DateTime(2025, 11, 3, 7, 41));
       semantics.dispose();
     });

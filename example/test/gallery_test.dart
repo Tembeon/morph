@@ -23,7 +23,11 @@ Future<void> _pumpGallery(
   addTearDown(tester.view.reset);
   addTearDown(tester.platformDispatcher.clearPlatformBrightnessTestValue);
   await tester.pumpWidget(const GalleryApp());
-  await tester.pumpAndSettle();
+  await tester.pumpAndSettle(
+    const Duration(milliseconds: 100),
+    EnginePhase.sendSemanticsUpdate,
+    const Duration(seconds: 10),
+  );
 }
 
 /// Leaves a gallery page: through its app bar's back button, or, for a
@@ -57,11 +61,19 @@ void main() {
           scrollable: find.byType(Scrollable).first,
         );
         await tester.tap(find.text(entry.title));
-        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 10),
+        );
         expect(_unstyledTexts(tester), isEmpty, reason: entry.title);
         expect(find.byType(SlowMotionToggle), findsOneWidget);
         await _back(tester);
-        await tester.pumpAndSettle();
+        await tester.pumpAndSettle(
+          const Duration(milliseconds: 100),
+          EnginePhase.sendSemanticsUpdate,
+          const Duration(seconds: 10),
+        );
       }
       expect(_unstyledTexts(tester), isEmpty);
     });
@@ -70,7 +82,11 @@ void main() {
   testWidgets('the open menu has styled rows', (tester) async {
     await _pumpGallery(tester);
     await tester.tap(find.text('Menu'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final center = find
         .byType(MorphMenuButton)
         .evaluate()
@@ -80,7 +96,11 @@ void main() {
       (a, b) => (a - screen).distance < (b - screen).distance ? a : b,
     );
     await tester.tapAt(nearest);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Duplicate'), findsOneWidget);
     expect(_unstyledTexts(tester), isEmpty);
   });
@@ -90,7 +110,11 @@ void main() {
   ) async {
     await _pumpGallery(tester);
     await tester.tap(find.text('Tab bar'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final toggle = tester.getRect(find.byType(SlowMotionToggle));
     final bar = tester.getRect(find.byType(MorphTabBar));
     expect(toggle.overlaps(bar), isFalse);
@@ -115,7 +139,11 @@ void main() {
   ) async {
     await _pumpGallery(tester);
     await tester.tap(find.text('Menu'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final inBar = find.descendant(
       of: find.byType(AppBar),
       matching: find.byType(MorphMenuButton),
@@ -127,9 +155,17 @@ void main() {
     await _pumpGallery(tester);
     expect(find.byType(MorphGlass), findsOneWidget);
     await tester.tap(find.text('Glass renderer'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tap(find.text('Flat'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(
       MorphAdaptiveGlass.tierOf(tester.element(find.text('Flat'))),
       MorphGlassTier.flat,
@@ -140,13 +176,29 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     await tester.drag(find.byType(Scrollable).first, const Offset(0, -300));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tap(find.text('Dark'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.pageBack();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tap(find.text('Controls'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(
       MorphAdaptiveGlass.tierOf(tester.element(find.byType(MorphSwitch).first)),
       MorphGlassTier.flat,

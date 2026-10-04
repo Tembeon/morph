@@ -63,7 +63,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final c = tester.getRect(find.bySemanticsLabel('c'));
     expect(c.right, moreOrLessEquals(402 - 28 - 5, epsilon: 0.01));
     expect(c.bottom, moreOrLessEquals(874 - 28 - 5, epsilon: 0.01));
@@ -87,7 +91,11 @@ void main() {
         MorphBarButtonGroup([_icon('a')], id: 'L'),
       ]),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.pumpWidget(
       bar([
         MorphBarButtonGroup([_icon('b'), _icon('c')], id: 'L'),
@@ -97,7 +105,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 60));
     expect(find.bySemanticsLabel('a'), findsNothing);
     expect(tester.binding.hasScheduledFrame, isTrue);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.bySemanticsLabel('b'), findsOneWidget);
     expect(find.bySemanticsLabel('c'), findsOneWidget);
     expect(tester.binding.hasScheduledFrame, isFalse);
@@ -124,7 +136,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(
       tester.getSemantics(find.bySemanticsLabel('add')),
       matchesSemantics(
@@ -140,10 +156,18 @@ void main() {
       matchesSemantics(label: 'Edit', isButton: true, hasEnabledState: true),
     );
     await tester.tap(find.bySemanticsLabel('add'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(taps, 1);
     await tester.tap(find.bySemanticsLabel('Edit'), warnIfMissed: false);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Inbox'), findsOneWidget);
     handle.dispose();
   });
@@ -168,7 +192,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final back = tester.getRect(find.text('Inbox'));
     final add = tester.getRect(find.bySemanticsLabel('add'));
     expect(back.center.dx, greaterThan(201));
@@ -195,7 +223,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final text = tester.widget<Text>(find.text('Red'));
     expect(text.style?.color, const Color(0xFFFF0000));
     await tester.pumpWidget(
@@ -207,7 +239,11 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(
       tester.widget<Text>(find.text('Dark')).style?.color,
       MorphBarStyle.dark.titleColor,
@@ -232,13 +268,25 @@ void main() {
       ),
     );
     await tester.pumpWidget(bar(1));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final w1 = width(1);
     await tester.pumpWidget(bar(1.25));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final w125 = width(1.25);
     await tester.pumpWidget(bar(2));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final w2 = width(2);
     expect(w125, greaterThan(w1));
     expect(w2, moreOrLessEquals(w125, epsilon: 0.01));
@@ -259,7 +307,11 @@ void main() {
       ),
     );
     await tester.pumpWidget(bar(visible: false));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Inbox'), findsNothing);
     await tester.pumpWidget(bar(visible: true));
     await tester.pump();
@@ -270,7 +322,11 @@ void main() {
           .first,
     );
     expect(opacity.opacity, inExclusiveRange(0.05, 0.95));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.byType(BackdropFilter), findsOneWidget);
   });
 
@@ -300,28 +356,48 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Inbox'), findsOneWidget);
     Navigator.of(
       homeContext,
     ).push(MorphNavigationRoute<void>(builder: (_) => detail()));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.bySemanticsLabel('Back'), findsOneWidget);
     expect(find.text('Detail'), findsOneWidget);
     await tester.tap(find.bySemanticsLabel('Back'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.bySemanticsLabel('Back'), findsNothing);
     Navigator.of(
       homeContext,
     ).push(MorphNavigationRoute<void>(builder: (_) => detail()));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final gesture = await tester.startGesture(const Offset(4, 500));
     for (var i = 0; i < 20; i++) {
       await gesture.moveBy(const Offset(14, 0));
       await tester.pump(const Duration(milliseconds: 16));
     }
     await gesture.up();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.bySemanticsLabel('Back'), findsNothing);
     expect(find.text('Detail'), findsNothing);
   });
@@ -342,14 +418,22 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final gesture = await tester.startGesture(const Offset(200, 500));
     await gesture.moveBy(const Offset(0, -20));
     await tester.pump(const Duration(milliseconds: 500));
     await gesture.moveBy(const Offset(0, -20));
     await tester.pump(const Duration(milliseconds: 500));
     await gesture.up();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final rest = controller.offset;
     expect(rest == 0 || (rest - 52).abs() < 0.5, isTrue, reason: '$rest');
   });
@@ -370,7 +454,11 @@ void main() {
       ),
     );
     await tester.pumpWidget(bar('a'));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.pumpWidget(bar('b'));
     await tester.pump();
     expect(find.bySemanticsLabel('b'), findsOneWidget);

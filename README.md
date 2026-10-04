@@ -60,13 +60,14 @@ Recipes and applied patterns live there, not in this README.
   (`MorphLensMotion`, `MorphSwitchMotion`, `MorphMenuMotion`, ...) are
   pure functions of explicit time and work without the widgets.
 
-The engine never depends on the widget layer. The widget layer copies
-how the platform's surfaces MOVE; how they refract is up to the app.
-The controls draw flat fills by default, and a `MorphGlassPainter`
-installed with `MorphGlass(painter:)` renders every glass surface
-below it instead - track, lens, knob, thumb, button, bar - so it can
-sample the backdrop or run a shader. Looks resolve from each control's
-`style`, then the `MorphWidgetsTheme` extension, then light and dark
+The engine never depends on the widget layer. The package ships
+`MorphGlassRenderer` with flat, frosted and liquid tiers;
+`MorphAdaptiveGlass` installs it and selects a tier from frame timings,
+or uses an explicit tier. Liquid glass needs Impeller and Flutter GPU;
+unsupported builds fall back to frosted glass. Controls draw flat fills
+without a painter. Custom painters still use `MorphGlass(painter:)`.
+Every tier shades the outlines computed by the package. Looks resolve
+from each control's `style`, then the `MorphWidgetsTheme` extension, then light and dark
 tables from the iOS system colors.
 
 ## Install
@@ -76,7 +77,7 @@ dependencies:
   morph:
     git:
       url: https://github.com/Tembeon/morph.git
-      ref: v0.1.0 # a release tag
+      ref: wip/measured-liquid-glass # unreleased; pin a semver tag for releases
 ```
 
 One-time wiring - the scope goes above your app's Navigator:
@@ -169,4 +170,9 @@ as the `use-morph` skill in my
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE), except the vendored glass renderer, derived from
+[liquid_glass_renderer](https://github.com/whynotmake-it/flutter_liquid_glass)
+by Tim Lehmann for whynotmake.it under [Apache-2.0](lib/src/glass/renderer/LICENSE).
+Its [NOTICE](lib/src/glass/renderer/NOTICE) and
+[VENDORED](lib/src/glass/renderer/VENDORED) record attribution and local
+changes; adapted shaders retain Flutter's BSD and Inigo Quilez's MIT notices.

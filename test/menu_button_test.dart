@@ -1023,7 +1023,11 @@ void main() {
     expect(find.text('Copy'), findsNothing);
     await tester.pump(const Duration(milliseconds: 100));
     expect(find.text('Copy'), findsOneWidget);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Share'), findsOneWidget);
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
@@ -1039,7 +1043,11 @@ void main() {
     expect(resting.kind, MorphGlassKind.button);
     expect(resting.bounds.width, resting.bounds.height);
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final menus = [
       for (final s in recorder.seen)
         if (s.kind == MorphGlassKind.menu) s,
@@ -1058,9 +1066,17 @@ void main() {
     final tagOnly = tester.layers.whereType<OpacityLayer>().length;
     expect(tagOnly, lessThanOrEqualTo(1), reason: 'only the tag fades');
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tapAt(const Offset(20, 20));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(tester.layers.whereType<OpacityLayer>(), hasLength(tagOnly));
   });
 
@@ -1070,14 +1086,22 @@ void main() {
     final log = <String>[];
     await tester.pumpWidget(_app(_button(log)));
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tapAt(tester.getCenter(find.text('Share')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 20));
     expect(log, ['Share']);
     await tester.pump(const Duration(milliseconds: 200));
     expect(find.text('Share'), findsOneWidget, reason: 'still closing');
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Share'), findsNothing);
     expect(log, ['Share']);
     expect(tester.binding.hasScheduledFrame, isFalse);
@@ -1089,9 +1113,17 @@ void main() {
     final log = <String>[];
     await tester.pumpWidget(_app(_button(log)));
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tapAt(const Offset(10, 10));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Copy'), findsNothing);
     expect(log, isEmpty);
     expect(tester.binding.hasScheduledFrame, isFalse);
@@ -1111,12 +1143,20 @@ void main() {
     await tester.pump(const Duration(milliseconds: 30));
     await tester.pump(const Duration(milliseconds: 16));
     expect(find.text('Copy'), findsOneWidget);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Copy'), findsNothing);
     expect(log, isEmpty);
     expect(tester.binding.hasScheduledFrame, isFalse);
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Copy'), findsOneWidget);
   });
 
@@ -1131,7 +1171,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
     expect(find.text('Copy'), findsOneWidget);
     await outside.up();
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Copy'), findsNothing);
     expect(log, isEmpty);
   });
@@ -1143,7 +1187,11 @@ void main() {
     await tester.tap(find.byType(MorphMenuButton));
     await tester.pump(const Duration(milliseconds: 10));
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(log, ['Copy']);
     expect(find.text('Copy'), findsNothing);
   });
@@ -1154,11 +1202,19 @@ void main() {
     final log = <String>[];
     await tester.pumpWidget(_app(_button(log)));
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final navigator = tester.state<NavigatorState>(find.byType(Navigator));
     final popped = await navigator.maybePop();
     expect(popped, isTrue);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Copy'), findsNothing);
     expect(find.byType(MorphMenuButton), findsOneWidget);
   });
@@ -1180,7 +1236,11 @@ void main() {
     await gesture.up();
     await tester.pump(const Duration(milliseconds: 20));
     expect(log, ['Rename']);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Rename'), findsNothing);
   });
 
@@ -1190,7 +1250,11 @@ void main() {
     final log = <String>[];
     await tester.pumpWidget(_app(_button(log), alignment: .bottomCenter));
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     final first = tester.getCenter(find.text('Copy'));
     final last = tester.getCenter(find.text('Rename'));
     final button = tester.getRect(find.byType(MorphMenuButton));
@@ -1215,14 +1279,22 @@ void main() {
       ),
     );
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(flights, hasLength(1));
     expect(flights.single.controller.motion.openSpring, _tuning.openSpring);
     expect(flights.single.controller.motion.closeSpring, _tuning.closeSpring);
     expect(flights.single.target.isVessel, isTrue);
     expect(events, [MorphFlightEvent.launched, MorphFlightEvent.settled]);
     await tester.tapAt(const Offset(10, 10));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(events, [
       MorphFlightEvent.launched,
       MorphFlightEvent.settled,
@@ -1292,7 +1364,11 @@ void main() {
     );
     final rest = tester.getCenter(find.byKey(glyph));
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tapAt(const Offset(20, 20));
     Offset visible() {
       final face = find.descendant(
@@ -1326,7 +1402,11 @@ void main() {
       reason: 'the kick outlives the latch',
     );
     expect((last - rest).distance, lessThan(0.05));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
@@ -1343,7 +1423,11 @@ void main() {
       ),
     );
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     await tester.tapAt(const Offset(10, 10));
     for (var i = 0; i < 10; i++) {
       await tester.pump(const Duration(milliseconds: 16));
@@ -1358,7 +1442,11 @@ void main() {
     }
     expect(flights, hasLength(1));
     expect(flight.controller.value, greaterThan(closing));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(flight.isFinished, isFalse);
     expect(flight.controller.value, closeTo(1, 1e-3));
     expect(find.text('Copy'), findsOneWidget);
@@ -1375,7 +1463,11 @@ void main() {
     await tester.tapAt(tester.getCenter(find.byType(MorphMenuButton)));
     await tester.pump(const Duration(milliseconds: 20));
     expect(log, ['Copy']);
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Copy'), findsNothing);
   });
 
@@ -1397,10 +1489,18 @@ void main() {
       ),
     );
     await tester.tap(find.byType(MorphMenuButton));
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Copy'), findsOneWidget);
     show.value = false;
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
     expect(find.text('Copy'), findsNothing);
     expect(tester.takeException(), isNull);
   });

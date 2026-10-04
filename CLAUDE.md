@@ -165,6 +165,10 @@ Cross-cutting policy:
   (skin merge law, the menu's blurred SDF) into a `MorphGlassOutline`;
   the renderer only SHADES the outline it is given and never fuses on its
   own.
+- PACKAGING: the build hook writes `build/shaderbundles/`; its pubspec
+  asset entry must stay. Flutter 3.47.2 does not request data assets
+  from hooks, so a data-asset-only bundle silently lost liquid glass on
+  the device (fixed in f8b921d). Verify packaging on a native device.
 - The web build compiles: the liquid tier is behind a conditional import
   and its final-render shaders compile to stubs under Skia.
 
@@ -176,7 +180,7 @@ Cross-cutting policy:
   (openMotion/closeMotion, getters). `MorphMotion.springs(open:,
   close:)` builds one from MorphSprings and exposes them as
   `openSpring`/`closeSpring`; the public constructor takes ANY Motions
-  (Material tokens, curves, custom springs). Built-ins (`values`):
+  (Material tokens, curves, custom springs). Built-in profiles:
   `liquid` - THE DEFAULT everywhere a motion resolves (controller,
   showMorph*, MorphTheme unset): UIKit's liquid morph progress spring,
   open 0.35/0.75 (overshoots ~3 percent, p peaks 1.028), close
@@ -196,6 +200,9 @@ Cross-cutting policy:
   `morphFlightGeometry` + `morphConcentricRadius` are the one geometry.
 - `scope.dart` - `MorphScope` (tag/flight registry + TickerProvider) and
   `MorphTag` (identity: rect/shape/surfaceColor/elevation/replica/spec).
+  Required lookups throw descriptive FlutterErrors in release as well
+  as debug. `MorphScopeState.tryTagOf` is the optional lookup for callers
+  that can degrade when a source is missing; duplicate ids are reported.
   No landing transform on the tag any more: the landing IS the close
   spring's own undershoot (UIKit adds nothing on top).
 - `flight.dart` - `MorphFlight` + the shuttle (OverlayEntry): retarget
@@ -630,9 +637,7 @@ in the passports.
 
 `example/ios/` (Runner, bundle dev.tembeon.morphExample, team
 83S63575XD) runs the gallery on the owner's iPhone next to the native
-controls. Each Runner config still carries a stale duplicate
-`DEVELOPMENT_TEAM = 5743F3SV5C` line before the 83S63575XD one - remove
-it before committing.
+controls.
 
 Flight-to-skin coupling lives entirely in the core: a consumer uses
 `MorphPiece.morphable` and just calls `showMorph*(from: pieceId)`.
@@ -721,11 +726,12 @@ Hard-won rules still enforced in the core:
 
 ## Structural conventions
 
-- ONE frame stream: `MorphFlight.frameTicks` merges the value spring,
-  the displacement channel, the content-size channel, the scrim channel
-  and a target's `repaint`; the shuttle and the skin subscribe THERE. A
-  new co-driver of the frame joins the merge - never a notifyListeners
-  backdoor on the controller. Widget-layer driven springs never write into it.
+- ONE frame stream: `MorphFlight.geometryTicks` merges the value spring,
+  displacement, content-size channel and target `repaint`; the skin
+  subscribes there. `MorphFlight.frameTicks` adds the scrim channel for
+  the shuttle, so scrim-only ticks never retrace geometry. New co-drivers
+  join the merge, never a controller notifyListeners backdoor.
+  Widget-layer driven springs never write into it.
 - ONE geometry: `morphFlightGeometry` + `morphConcentricRadius` in
   frame.dart are the only implementations of the frame's rect/radius
   math; computeMorphFrame and the skin's mirror blob both call them.
@@ -953,8 +959,8 @@ Every step must be green after each change (analyze from the package
 root also covers example). Motion fidelity is judged by the REPLAY
 tests against the recordings; the human eye judges on glacial / slow-mo
 and, for the widgets, on the iPhone next to the native controls (the
-example has an iOS target). Agent self-verification is the tests (766
-in the package + 10 in example; run them with `nice -n 10 flutter test
+example has an iOS target). Agent self-verification is the tests (966
+in the package + 11 in example; run them with `nice -n 10 flutter test
 -j 2` when the Mac is shared) plus the autodemo with no EXCEPTION in
 the log and `AUTODEMO done` at its end (autodemo: every gallery page in
 turn - push, center tap, horizontal drag, upward scroll, pop home - then

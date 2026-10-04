@@ -2,7 +2,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
-import 'package:morph_example/gallery/liquid_glass.dart';
 
 /// The probe's search and date picker scenes (tool/ios_reference
 /// Extras.swift: `x3search`, `x3date`) rebuilt with morph's widgets in the
@@ -23,7 +22,7 @@ import 'package:morph_example/gallery/liquid_glass.dart';
 /// screen.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await precacheLiquidGlass();
+  await MorphGlassRenderer.precache();
   final navigatorKey = GlobalKey<NavigatorState>();
   runApp(GalleryApp(navigatorKey: navigatorKey));
   WidgetsBinding.instance.addPostFrameCallback((Duration _) {
