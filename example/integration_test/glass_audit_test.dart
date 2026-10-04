@@ -25,7 +25,9 @@ import 'package:morph_example/gallery/gallery.dart';
 /// pull `tmp/glass/` from the app's data container. The glass tier is the
 /// gallery's: `--dart-define=GALLERY_GLASS=liquid` (or frosted, flat)
 /// pins it for the whole run; the report also times the package's outline
-/// fusion (the menu's blurred silhouette and a bar's fused capsules), and
+/// fusion (the menu's blurred silhouette and a bar's fused capsules) and
+/// whether the liquid tier is available at all (`liquid_available`: false
+/// means every liquid shot is the frosted fallback), and
 /// `--dart-define=AUDIT_OUTLINES_ONLY=true` times only that.
 /// `--dart-define=AUDIT_LIGHT=true` runs it in light, for the references
 /// in tool/ios_reference/references/light (on the simulator for colors and
@@ -357,6 +359,7 @@ class _Audit {
         'GALLERY_GLASS',
         defaultValue: 'auto',
       ),
+      'liquid_available': MorphGlassRenderer.liquidAvailable,
       'outline_us': _outlineMicros,
       for (final MapEntry(key: scene, value: (start, end)) in _scenes.entries)
         scene: () {

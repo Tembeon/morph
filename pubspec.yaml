@@ -8,7 +8,6 @@ environment:
   flutter: ">=3.47.0"
 
 dependencies:
-  data_assets: ^0.20.0
   equatable: ^2.1.0
   flutter:
     sdk: flutter
@@ -30,9 +29,12 @@ dev_dependencies:
 flutter:
   # The glass renderer (lib/src/glass/renderer). Every fragment shader
   # compiles for the web too, where it is a stub: the web draws frosted or
-  # flat glass. The Flutter GPU bundle is built by hook/build.dart.
+  # flat glass. The Flutter GPU bundle is written into build/shaderbundles/
+  # by hook/build.dart, which creates the directory on every build.
   shaders:
     - lib/src/glass/renderer/shaders/liquid_glass_final_render.frag
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_material.frag
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint.frag
     - lib/src/glass/renderer/shaders/fake_glass_surface.frag
+  assets:
+    - build/shaderbundles/

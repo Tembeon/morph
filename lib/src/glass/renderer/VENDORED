@@ -80,17 +80,19 @@ Local patches (some commits include related package changes):
   Precaching before runApp does not await an application frame.
   Failed geometry bundle futures remain cached. Unavailable runtimes draw
   the frosted tier with one debug log; the adaptive host follows readiness.
-- 2026-10-04 WP-I packaging: the build hook emits only a Dart data asset,
-  under its target-specific outputDirectory rather than the package root.
-  The runtime key is packages/morph/flutter_gpu_shaders/shaderbundles/
-  morph_glass.shaderbundle. No generated pubspec asset directory remains.
-  Web targets (without native asset types) and toolchains without data assets
-  skip compilation; compiler failures
-  leave liquid unavailable. Shader includes and the compiler are tracked.
+- 2026-10-04 WP-I packaging: the build hook creates build/shaderbundles/
+  under the package root on every run (the pubspec asset entry always
+  resolves) and, for native targets only, compiles
+  morph_glass.shaderbundle into it (flutter_gpu_shaders, legacy mode);
+  web targets skip compilation and compiler failures are logged, both
+  leaving liquid unavailable. The runtime key is
+  packages/morph/build/shaderbundles/morph_glass.shaderbundle. (A
+  data-asset-only variant shipped no bundle on iOS/macOS: Flutter 3.47.2
+  stable does not request data assets from hooks, so the device fell
+  back to frosted - reverted the same day after the device audit.)
 - Dependencies imported with the original package move: equatable,
   flutter_shaders, logging, flutter_gpu_shaders and hooks, plus Flutter GPU
-  from the Flutter SDK. The data-only hook adds data_assets explicitly.
-  The unused logging dependency is now removed.
+  from the Flutter SDK. The unused logging dependency is now removed.
 - 2026-10-04 WP-I removals: liquid_glass_blend_group.dart (including
   GlassGroupLink), liquid_glass_capture.dart, internal/capture_pass.dart,
   stretch.dart, internal/glass_drag_builder.dart, upstream glass_glow.dart

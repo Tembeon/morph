@@ -25,5 +25,5 @@ abstract class ShaderKeys {
       '${_shadersRoot}lib/src/glass/renderer/shaders/fake_glass_surface.frag';
 
   static final String gpuGeometryShaderBundle =
-      'packages/morph/flutter_gpu_shaders/shaderbundles/morph_glass.shaderbundle';
+      '${_shadersRoot}build/shaderbundles/morph_glass.shaderbundle';
 }
