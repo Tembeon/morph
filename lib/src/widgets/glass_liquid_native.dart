@@ -164,24 +164,26 @@ LiquidShape _shape(RRect shape) {
   return LiquidRoundedSuperellipse(borderRadius: radius);
 }
 
-List<BoxShadow> _shadows(MorphGlassSurface surface) => switch (surface.kind) {
-  MorphGlassKind.track || MorphGlassKind.bar => const [],
-  MorphGlassKind.button ||
-  MorphGlassKind.menu => const [MorphGlassDefaults.bodyShadow],
-  MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb => [
-    BoxShadow(
-      color: MorphGlassDefaults.floatingShadowColor,
-      offset: Offset(
-        0,
-        MorphGlassDefaults.floatingShadowOffset +
-            MorphGlassDefaults.floatingLiftOffset * surface.lift,
-      ),
-      blurRadius:
-          MorphGlassDefaults.floatingShadowBlur +
-          MorphGlassDefaults.floatingLiftBlur * surface.lift,
-    ),
-  ],
-};
+List<BoxShadow> _shadows(MorphGlassSurface surface) =>
+    surface.shadows ??
+    switch (surface.kind) {
+      MorphGlassKind.track || MorphGlassKind.bar => const [],
+      MorphGlassKind.button ||
+      MorphGlassKind.menu => const [MorphGlassDefaults.bodyShadow],
+      MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb => [
+        BoxShadow(
+          color: MorphGlassDefaults.floatingShadowColor,
+          offset: Offset(
+            0,
+            MorphGlassDefaults.floatingShadowOffset +
+                MorphGlassDefaults.floatingLiftOffset * surface.lift,
+          ),
+          blurRadius:
+              MorphGlassDefaults.floatingShadowBlur +
+              MorphGlassDefaults.floatingLiftBlur * surface.lift,
+        ),
+      ],
+    };
 
 Widget _glass(
   MorphGlassRenderer renderer,
@@ -251,6 +253,7 @@ MorphGlassSurface _local(MorphGlassSurface surface) => MorphGlassSurface(
   enabled: surface.enabled,
   glass: surface.glass,
   opacity: surface.opacity,
+  shadows: surface.shadows,
 );
 
 /// One glass surface on the liquid tier, sized to its bounds.

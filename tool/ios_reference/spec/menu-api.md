@@ -523,3 +523,57 @@ Shared laboratory audit [device film, 2026-10-04]:
   contour and shadow against these shared films. Previous body-width fits
   and passing widget regressions do not certify full pixel/frame fidelity.
   Row-container bounds and clips must not be promoted as glass contours.
+
+Painter scope and copied card material [macOS diagnostic + phone stills, 2026-10-05]:
+- ROOT CAUSE of the lab's missing rim: the lab adapter installs MorphGlass
+  inside MaterialApp's home, below the Navigator. The menu vessel lives in
+  the navigator's overlay, so MorphGlass.maybeOf returned null there and
+  the menu silently drew the no-renderer fallback: flat platter, no
+  contour or glint, and the fallback card's rounded cutout (the "parent
+  boundary inside the child"). Only the source button was liquid. The
+  Flutter side of lab runs menu-phone-20261004-01..07 and
+  menu-rim-diagnostic-02 therefore measured the FALLBACK, not the
+  renderer; their rim/shadow/face residuals and close panels are void as
+  renderer evidence. Gallery films (GalleryApp installs the painter above
+  the navigator) were not affected.
+- Proof: a macOS profile diagnostic built zero LiquidGlassLayers for the
+  open root and card; isolated surfaces (button, frosted menu, field body,
+  blur 0 and 10) all drew the 0.75 pt dark contour. The data-pass blending
+  hypothesis is disproved: Flutter GPU passes inherit impeller's
+  ColorAttachmentDescriptor, blending_enabled = false by default
+  (engine/src/flutter/impeller/core/formats.h and lib/gpu/render_pass.cc at
+  revision d3b14c8769, Flutter 3.47.2).
+- Fix: MorphMenuHost.menuGlass resolves the painter from the source's
+  context; the menu layer installs it and cards use it. Regression:
+  menu_glass_body_test "a menu in the navigator overlay draws with its
+  button painter" (fails before the fix).
+- Closing cards keep their own liquid body: the native carrier keeps a
+  matched copy of the card material (copied key-fill CASDFLayer 175, local
+  250 x 208, radii 32) whose opacity is (window width - 50) / 200 of the
+  0.35/0.85 carrier; card-material-copy.json (mm-sub-tap, 35 frames,
+  source hash) replays at < 0.015 RMS. This supersedes the 12 ms hand-off
+  to the common morph field described above.
+- Card shadow: encoded-SDR straight side/bottom profiles on #F2F2F7,
+  excluding 3 pt at the contour, fit a Gaussian half-plane alpha 0.1188,
+  sigma 16.546 pt, offset 8.109 pt at 0.273 gray RMS; production 30/255,
+  blur radius 28, offset 8 replays the holdout at 0.288 RMS
+  (card-shadow-profile.json). Light only; the dark shadow keeps its old
+  unmeasured color with the same geometry.
+- Phone stills, lab/out/menu-phone-20261005-09 (--no-film: the recorder
+  found no iPhone screen capture device; stills only, no film, no close
+  phase evidence), settled More, encoded RGB MAE vs run 06: submenu left
+  rim 10.994 (12.021), p95 56.8, edge RMS 25.8 - both sides now have the
+  dark line (native 184/143, ours 196/153, ours 1 device px outward);
+  submenu shadow 2.697 (8.223); face 1.588 (1.849); parent rim 11.128
+  (11.140, ours 2 px outward). The rim MAE is now a sub-pixel placement
+  residual, not a missing contour.
+- [ ] Native shows a bright 1 px line inside the contour on the card's
+  sides (249 - 253 over a 244 face); ours shows none there (glint only
+  along the light axis) and the face is ~2 levels darker.
+- [ ] Root rows and card headers sit 34.7 pt right of native in lab runs
+  since the lab footer gained an icon (b67cb75): the icon reserves a
+  leading image column natively absent.
+- [ ] Close phase: a macOS slow-motion burst shows the root morph blob and
+  the retained card copy as two bodies; native shows two bodies at +0.10 s
+  and one body by +0.13 s. Needs a phone film once the screen capture
+  device is available.

@@ -125,6 +125,7 @@ class MorphGlassSurface {
     this.glass = true,
     this.opacity = 1,
     this.glow,
+    this.shadows,
   });
 
   /// The role of the surface.
@@ -149,6 +150,10 @@ class MorphGlassSurface {
   /// The display-referred gamma of transmitted backdrop luminance.
   /// One keeps the material preset; emission is unaffected.
   final double transmissionGamma;
+
+  /// Explicit exterior shadows for the liquid material.
+  /// Null retains the renderer's role preset.
+  final List<BoxShadow>? shadows;
 
   /// The brightness the control resolved its colors for.
   final Brightness brightness;

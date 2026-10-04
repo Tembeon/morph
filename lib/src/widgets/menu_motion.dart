@@ -287,6 +287,14 @@ class MorphMenuTuning {
   /// card's center. Closing stacks use [cardContainerSpring] instead.
   final double cardCloseCenter;
 
+  /// Exterior shadow fitted from native straight side/bottom profiles:
+  /// sigma 16.546 pt, offset 8.109 pt, alpha 0.1188; 0.273 gray RMS.
+  /// Flutter's radius-to-sigma conversion gives radius 27.792 pt.
+  static const cardShadowRadius = 28.0;
+
+  /// Vertical shadow offset from the same device profile fit.
+  static const cardShadowOffset = 8.0;
+
   /// The closing spring of the submenu lists' container, fitted to
   /// device window bounds at 0.016 pt RMS, independently of the glass.
   final MorphSpring cardContainerSpring;
@@ -1182,14 +1190,20 @@ class MorphMenuMotion {
   /// Whether the menu is closing.
   bool get isClosing => _phase == _Phase.closing;
 
-  /// Whether closing cards have handed their glass to the morph field.
+  /// Whether closing cards use the carrier's matched glass copy.
   /// In mm-sub-tap the card's original SDF element leaves its material
   /// group 12 ms after the logical close, at the morph's kick; the rows
-  /// remain in their independently shrinking context-menu container.
+  /// and the matched glass copy remain in the shrinking carrier.
   bool get cardGlassTransferred =>
       isClosing &&
       _cards.isNotEmpty &&
       _now >= _closeStart + tuning.closeKickDelay;
+
+  /// Visibility of the matched card material during a whole-stack close.
+  /// mm-sub-tap's copied key-fill layer follows the carrier spring, with
+  /// opacity equal to (window width - 50) / 200 at 120 Hz.
+  double get cardMaterialOpacity =>
+      cardGlassTransferred ? _cardContainer.value(_now).clamp(0.0, 1.0) : 1;
 
   /// Whether a tap's release has scheduled the opening and the menu is
   /// not on its way yet.

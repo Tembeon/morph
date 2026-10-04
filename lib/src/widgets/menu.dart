@@ -44,7 +44,7 @@ class MorphMenuStyle {
     this.submenuColor = const Color(0x66FFFFFF),
     this.glassTint = const Color(0x00000000),
     this.submenuRimColor = const Color(0xFFFFFFFF),
-    this.submenuShadowColor = const Color(0x14000000),
+    this.submenuShadowColor = const Color(0x1E000000),
     this.paletteSelectionColor = const Color(0x10000000),
   });
 
@@ -117,8 +117,10 @@ class MorphMenuStyle {
   /// light card, 65 - 83 over the 57 dark one).
   final Color submenuRimColor;
 
-  /// The fallback shadow around a submenu card (device: the light
-  /// list darkens by 5 levels 4 points above a card's top).
+  /// The shadow color around a submenu card, on the liquid tier and in
+  /// the fallback. Light: alpha 0.1188 (30 / 255) from a Gaussian fit of
+  /// native straight side and bottom profiles over 242 gray, 0.273 gray
+  /// RMS; dark is unmeasured.
   final Color submenuShadowColor;
 
   /// The platter under the selected palette cell (sampled: 233 on 249
@@ -1165,7 +1167,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     ];
     final cardRadius = math.min(radius, rect.height / 2);
     final alpha = card.closeOpacity;
-    final platter = card.platterOpacity * alpha;
+    final platter = card.platterOpacity * motion.cardMaterialOpacity;
     final rowsAlpha = card.rowOpacity * alpha;
     MorphMenuPlaced? header;
     for (final element in layout.elements) {
@@ -1189,6 +1191,13 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       ),
       brightness: morphBrightnessOf(context),
       opacity: platter,
+      shadows: [
+        BoxShadow(
+          color: style.submenuShadowColor,
+          offset: const Offset(0, MorphMenuTuning.cardShadowOffset),
+          blurRadius: MorphMenuTuning.cardShadowRadius,
+        ),
+      ],
     );
     return Positioned(
       key: ValueKey<int>(index),
@@ -1202,16 +1211,19 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         child: Stack(
           clipBehavior: .none,
           children: [
-            if (glass != null && !motion.cardGlassTransferred)
+            if (glass != null)
               Positioned.fill(
                 child: BackdropGroup(
                   child: Builder(
-                    builder: (BuildContext context) =>
-                        glass.buildSurface(context, surface),
+                    builder: (BuildContext context) => glass.buildBody(
+                      context,
+                      morphGlassContainerOutline([surface.shape], 0),
+                      [surface],
+                    ),
                   ),
                 ),
               ),
-            if (glass == null && !motion.cardGlassTransferred)
+            if (glass == null)
               Positioned.fill(
                 child: CustomPaint(
                   painter: _CardShadowPainter(
@@ -1221,7 +1233,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                   ),
                 ),
               ),
-            if (glass == null && !motion.cardGlassTransferred)
+            if (glass == null)
               Positioned.fill(
                 child: ClipRRect(
                   borderRadius: shape,

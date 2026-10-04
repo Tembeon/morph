@@ -36,6 +36,14 @@ measurements.
   (`buildLayer(spacing:)`, skin merge law, gap < spacing - 0.5, step 2;
   `morphGlassContainerOutline`, memo of 4).
 
+- OVERLAYS: a control whose glass flies into an overlay carries the
+  painter it resolves at its source (menus: `MorphMenuHost.menuGlass`); an
+  overlay above the installing MorphGlass otherwise draws the flat
+  fallback. Alerts and sheets have not been audited for this.
+- Flutter GPU data passes (geometry, field, material) run with blending
+  disabled: impeller's ColorAttachmentDescriptor default, unchanged by
+  flutter_gpu unless setColorBlendEnable is called (Flutter 3.47.2).
+
 ## Packaging
 
 - whynotmake-it's `liquid_glass_renderer` (Apache-2.0, upstream ab1c2d29)

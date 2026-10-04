@@ -147,6 +147,55 @@ void main() {
     expect(motion.cardGlassTransferred, isFalse);
   });
 
+  test('closing matched card material follows the native carrier', () {
+    final fixture =
+        jsonDecode(
+              File(
+                'test/fixtures/ios27-device/menu_api/card-material-copy.json',
+              ).readAsStringSync(),
+            )
+            as Map<String, Object?>;
+    final content = MorphMenuContent(onChanged: ({required bool animate}) {});
+    content.entries = const [
+      MorphSubmenu(
+        title: 'More',
+        children: [MorphMenuItem(title: 'Last')],
+      ),
+    ];
+    final motion = MorphMenuMotion(
+      button: const Rect.fromLTWH(177, 126, 48, 48),
+      bounds: const Size(402, 874),
+      layout: content.root,
+      tuning: MorphMenuTuning(
+        cardContainerDelay: (fixture['carrier_delay']! as num).toDouble(),
+      ),
+    );
+    morphConnectMenu(motion, content);
+    motion.open(0);
+    motion.advance(1);
+    motion.select(1, 0);
+    motion.advance(2);
+    motion.close(2);
+    var error = 0.0;
+    final frames = fixture['frames']! as List<Object?>;
+    for (final value in frames) {
+      final row = value! as Map<String, Object?>;
+      motion.advance(2 + (row['dt']! as num).toDouble());
+      final expected = ((row['width']! as num).toDouble() - 50) / 200;
+      expect(
+        motion.cardMaterialOpacity,
+        closeTo(expected.clamp(0.0, 1.0), 0.001),
+        reason: '$row',
+      );
+      final residual =
+          motion.cardMaterialOpacity - (row['opacity']! as num).toDouble();
+      error += residual * residual;
+    }
+    expect(math.sqrt(error / frames.length), lessThan(0.015));
+    motion.open(motion.time);
+    expect(motion.cardMaterialOpacity, 1);
+  });
+
   testWidgets('a menu in the navigator overlay draws with its button painter', (
     WidgetTester tester,
   ) async {
@@ -259,6 +308,7 @@ void main() {
           matching: find.byType(LiquidGlassLayer),
         );
         expect(layer, findsOneWidget);
+        expect(tester.widget<LiquidGlassLayer>(layer).field, isNotNull);
         expect(
           tester.widget<LiquidGlassLayer>(layer).settings.frost,
           MorphMenuTuning.standard.cardBlur,
@@ -290,7 +340,7 @@ void main() {
         expect(card, findsOneWidget);
         expect(
           find.descendant(of: card, matching: find.byType(LiquidGlass)),
-          findsNothing,
+          findsOneWidget,
         );
       }
       expect(find.text('Last'), findsOneWidget);
