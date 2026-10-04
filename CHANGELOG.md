@@ -23,6 +23,11 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   visible closing bounds replay at 0.055 pt RMS after clock alignment.
   The button and menu share one distance field and exterior shadow,
   removing the separate circular button rim during open and close.
+  Submenus now use the installed liquid renderer, fresh backdrop groups
+  and measured 10 pt frost; neutral tint and calibrated transmission keep
+  nested edges and face levels consistent with native glass. Closing card
+  material hands off at the native 12 ms SDF match, removing the inner
+  rectangular platter and blurred parent-row ghosts.
 - The measured controls: `MorphSegmentedControl` (+
   `MorphSegmentedStyle`) and `MorphTabBar` (+ `MorphTabItem`,
   `MorphTabBarStyle`) - one liquid selection lens on
