@@ -51,3 +51,33 @@ OWNER DECISION (A8): engine flights clamp size/shape at the target past value 1 
 - New `MorphMenuTuning` fields: submenuCloseDelay, cardRowsFadeIn, cardRowsFadeOut, cardPlatterFade, cardHeaderBoldStart, cardHeaderBoldEnd, cardChevronTurn, cardChevronBack, cardCloseFadeEnd, cardCloseCenter, cardBlur, cardGone. New `MorphMenuCard` fields: contentTop, rowsOpacity, platterOpacity, headerBold, chevronTurn, closeOpacity, backing, source.
 
 Left (passport): dark film unusable (recorder dropped frames; dark judged from stills), close drop starts from the whole menu instead of the list under the card, native shows no row tap highlight in these films (ours highlights), chevron turn/bold switch eyeballed, header chevron slightly large.
+
+## Codex packages (5f4ab8e WP-A, ffc0c1e WP-I, fa0df3c WP-D, d84e125 WP-G)
+
+WP-A engine routes and flights:
+- Fix morph route teardown (a route removed without a pop reveals its source and retires its flight), declined dismissal history, and dead-overlay cleanup.
+- Add themed route scrims (MorphTheme.scrimMotion), non-modal routes, explicit overlays, and source-page scope resolution.
+- BREAKING: flight geometry is read-only and MorphFlight.launch is internal.
+- The skin listens to MorphFlight.geometryTicks, so scrim-only ticks no longer repaint it; less shuttle subscription churn.
+
+WP-I glass renderer:
+- Detect liquid shader support at runtime and fall back to frosted glass with a cached diagnostic; a failed shader bundle load is remembered.
+- Share backdrop captures across adaptive glass and frosted surfaces.
+- The adaptive tier governor has a warm-up period.
+- Lifted-lens content copies paint from one mounted subtree (GlobalKeys and focus preserved).
+- GPU shaders ship as one optional data asset for clean consumer builds (toolchains without Dart data assets get frosted glass).
+- Unused upstream renderer code removed; fewer field uploads and glow shader allocations.
+
+WP-D sheets, zoom, alerts:
+- Fixed: Escape dismisses dismissible sheets; Android back on an alert runs cancel once; routes pop themselves during overlapping presentations.
+- BREAKING: sheet and navigation zoom routes take source ids; missing sources degrade, removed sources dissolve.
+- Fixed RTL zoom radii, popover placement, alert text-field Return and sheet detent notifications; one motion-route mixin and one zoom source.
+
+WP-G other controls:
+- Fixed scrolling gestures (the date label no longer opens from a scroll), rejected control values (controlled semantics) and invalid page inputs.
+- One style resolution and capsule painter; glass glow integration consolidated.
+- Control localization callbacks; date picker wheels and bounds synchronized.
+- No per-tick layout work.
+Left: D2 style forwarders in lens-family files (WP-F).
+
+Verified by the coordinator on the combined tree: format 0, analyze 0, 966 package + 11 example tests, dart doc 0, iOS release and web wasm build.
