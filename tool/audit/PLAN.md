@@ -43,6 +43,13 @@ C1, G1, ... refer to it).
 - Wave 3 landed: WP-H control host (cfce3b1), D5 menu host merge + WP-E rest (793dc9f). Tree: 1014 + 11 tests, analyze 0, doc 0, iOS/web/macOS builds, autodemo clean. The audit is DONE except PF9 (edge effect backdrop grouping, visual change) and P5api (configurable bar-menu tuning).
 - Next: make a liquid->frosted fallback observable in release; owner decision A8 (engine flights clamp size past value 1, UIKit overshoots size), then the performance passport.
 
+## Status 2026-10-04 evening
+
+- A8 (5482cb1) and FB/P5api (be14e67) committed after a full serial check: 1057 + 14 tests, analyze 0, doc 0. Not pushed, not on the phone.
+- Codex built the shared native/Flutter measurement LABORATORY (tool/ios_reference/lab, 740ed11..da224dd) and fixed submenu bounds/material/scrolling (51d0983..6bbd948). Its handoff is tool/ios_reference/lab/HANDOFF-20261004.md - read it before menu work.
+- Still uncommitted: the submenu card material retention + measured light shadow (menu.dart, menu_motion.dart, glass.dart shadows, two fixtures). Tests green, but the missing attached rim on the More card is NOT solved; the leading hypothesis is GPU blending over the renderer's data textures (unproven).
+- lab/out holds ~14 GB of captures (ignored). A Mac reboot happened during a profile build on 2026-10-04; run one heavy job at a time.
+
 ## Order of work (owner's priorities)
 
 1. Menu API leftovers (see above) - small, can ride with WP-E.
