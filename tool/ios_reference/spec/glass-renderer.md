@@ -479,26 +479,28 @@ Build / raster p95 ms, base -> after the channel:
 
 ## First use: pipeline warm-up (2026-10-05, glass_warm_up.dart)
 
-`MorphGlassRenderer.precache()` (morphPrecacheLiquidGlass) draws every
-pipeline the glass will need before the first glass frame, offscreen:
+`MorphGlassRenderer.precache()` (morphPrecacheLiquidGlass), after the
+liquid capability resolved, draws every pipeline the first glass frame
+needs, offscreen:
 
-- Liquid, inside the capability load (liquid reports available only after
-  it): two 8 x 8 geometry renders through the real
-  `FlutterGpuGeometryRenderer.render` - shapes + full material map, then
-  field + tint-only map - which fetch all four Flutter GPU pipelines
-  (geometry, field, material gradient, tint gradient; RGBA8, one sample,
-  the real descriptors). Flutter GPU creates a pipeline at its first draw
-  and waits for it on the UI thread (engine lib/gpu/render_pass.cc).
-  Then one `OffsetLayer.toImage` scene at the view's pixel ratio: a
-  backdrop picture (even-odd cutout clip, mask-blurred rounded rect and
-  superellipse in a bounded saveLayer: the glass shadows), and per final
-  shader (plain, material, tint, samplers bound to the warm-up mattes) a
-  ClipRectLayer > BackdropFilterLayer with the shader alone and composed
-  over a mirror blur at sigma 1 / 2 / 8 / 14 (each downsample class), plus
-  the bare blurs; one row without and one sharing a BackdropKey. A
-  snapshot renders through the same canvas into an MSAA + stencil target
-  like the screen, so the filter subpasses get the variants the screen
-  uses; every clip is non-empty (a clipped-away filter is skipped).
+- Liquid, only when `MorphAdaptiveGlass.tierFor(deviceClass, liquid)` is
+  liquid (not on GLES or pre-A13, which draw flat): two 8 x 8 geometry
+  renders through the real `FlutterGpuGeometryRenderer.render` - shapes +
+  full material map, then field + tint-only map - which fetch all four
+  Flutter GPU pipelines (geometry, field, material gradient, tint
+  gradient; RGBA8, one sample, the real descriptors). Flutter GPU creates
+  a pipeline at its first draw and waits for it on the UI thread (engine
+  lib/gpu/render_pass.cc). Then one `OffsetLayer.toImage` scene at the
+  view's pixel ratio: a backdrop picture (even-odd cutout clip,
+  mask-blurred rounded rect and superellipse in a bounded saveLayer: the
+  glass shadows), and per final shader (plain, material, tint, samplers
+  bound to the warm-up mattes) a ClipRectLayer > BackdropFilterLayer with
+  the shader alone and composed over a mirror blur at sigma 1 / 2 / 8 /
+  14 (each downsample class), plus the bare blurs; one row without and
+  one sharing a BackdropKey. A snapshot renders through the same canvas
+  into an MSAA + stencil target like the screen, so the filter subpasses
+  get the variants the screen uses; every clip is non-empty (a
+  clipped-away filter is skipped).
 - Frosted (Impeller only, `isShaderFilterSupported`; a no-op under Skia,
   the web and flutter_tester): the same two-row scene with blurs at each
   frost inside an antialiased ClipRRect and an outline ClipPath, with the
@@ -507,30 +509,33 @@ pipeline the glass will need before the first glass frame, offscreen:
   paid before; the capability and its reason are unchanged. A scene that
   takes over 2 s stops being awaited.
 
-Pixel 6a (Vulkan, 60 Hz, profile, 3e81b9e, one launch each,
-pixel6a-warmup-cold = pm clear, -warm = second launch; first_use
-home-scroll = runApp to the first timed run, worst UI / raster ms):
+Pixel 6a (Vulkan, 60 Hz, profile, 432e94b vs + bfbc081, one launch each;
+pixel6a-warmup-cold = pm clear, -warm = the next launch; home-scroll
+first use = runApp to the first timed run, which holds the first glass
+frame; worst UI / raster ms):
 
-| build | precache ms | cold UI / raster | warm UI / raster | am start TotalTime ms |
-|-------|------------:|-----------------:|-----------------:|----------------------:|
-| liquid before | 3.8 / 4.3 | 3.9 / 16.0 | 121.8 / 126.2 | 595 / 468 |
-| liquid after | 374 / 387 | 5.5 / 12.9 | 4.8 / 11.8 | 624 / 576 |
-| frosted before | 2.9 / 3.0 | 2.3 / 61.6 | 5.3 / 40.6 | 362 / 413 |
-| frosted after | 506 / 382 | 7.1 / 11.3 | 4.0 / 14.8 | 748 / 585 |
+| build | precache ms cold / warm | cold UI / raster | warm UI / raster | am start TotalTime ms |
+|-------|------------------------:|-----------------:|-----------------:|----------------------:|
+| liquid before | 3.1 / 3.0 | 102.0 / 73.6 | 131.2 / 48.5 | 457 / 505 |
+| liquid after | 367 / 344 | 5.0 / 11.1 | 5.0 / 10.6 | 595 / 540 |
+| frosted before | 3.0 / 3.3 | 2.4 / 64.1 | 2.8 / 73.3 | 341 / 375 |
+| frosted after | 327 / 433 | 4.8 / 18.9 | 6.9 / 24.6 | 610 / 651 |
 
-The first-use worst of one launch scatters (liquid before cold read 3.9
-here, 110.7 at 905517f); the traces are the proof (pixel6a-warmup-trace,
-cold, TraceSystrace builds): before, the first app frame's PAINT took
-267 ms of the UI thread and its raster created pipelines in a saveLayer;
-after, precache holds the UI thread 303 ms (the Flutter GPU pipeline
-waits) and the raster thread 110 + 52 ms (the two snapshots), and from
-the first app frame on no UI slice reaches 8 ms and raster frames run
-6-7 ms in the startup window. Later pipeline creations (17 s, 37 s:
-menu and sheet chrome, 1-3 ms each) are unchanged. The trade: about
-0.4 s more behind the splash, the first glass frame pays nothing. The
-Vulkan pipeline disk cache does not remove the cost (warm before: 122 ms
-UI). iOS is not measured in this pass; Metal compiles runtime
-stages at load, the Flutter GPU and MSAA variants the same way as here.
+Traces (pixel6a-warmup-trace, liquid, cold, TraceSystrace builds):
+before, the first app frame's PAINT held the UI thread 125 ms and its
+raster 106 ms, 83 ms of it one PipelineVK::Create under a saveLayer.
+After, precache holds the UI thread 272 ms (the Flutter GPU pipeline
+waits) and the raster thread 173 + 22 ms (the two snapshots, a 67 ms
+pipeline creation inside the first), and the first app frame creates no
+pipeline (raster 25 ms, 9 of them the first glyph atlas). Later
+creations (17 s on: menu and sheet chrome, 1-3 ms each) are unchanged;
+frosted's first frame keeps 19-25 ms raster against 11 on liquid, a
+residue not traced. The trade: 0.3 - 0.45 s more behind the splash
+(launch to first frame +90 to +270 ms), the first glass frame pays
+nothing. The Vulkan pipeline disk cache does not remove the cost (warm
+before: 131 ms UI). iOS is not measured in this pass; Metal compiles the
+runtime stages at load, the Flutter GPU pipelines and the MSAA variants
+at first draw as here.
 
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 

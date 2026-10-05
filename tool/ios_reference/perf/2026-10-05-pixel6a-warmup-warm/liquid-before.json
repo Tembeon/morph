@@ -1,0 +1,324 @@
+{
+  "tier": "liquid",
+  "liquid_available": true,
+  "liquid_unavailable_reason": null,
+  "platform": "android",
+  "refresh_rate": 60.0,
+  "cadence_ms": 16.668,
+  "budget_ms": 16.668,
+  "precache_ms": 2.995,
+  "device_class": "capable",
+  "drawn_tier": "liquid",
+  "first_use": {
+    "home-scroll": {
+      "n": 82.0,
+      "build_p50": 0.574,
+      "build_p95": 1.003,
+      "build_worst": 131.241,
+      "raster_p50": 4.499,
+      "raster_p95": 6.71,
+      "raster_worst": 48.52,
+      "span_p95": 8.168,
+      "vsync_p95": 0.888,
+      "over_8.3ms": 2.0,
+      "build_p99": 131.241,
+      "raster_p99": 48.52,
+      "over_budget": 2.0
+    },
+    "segmented": {
+      "n": 279.0,
+      "build_p50": 4.115,
+      "build_p95": 8.146,
+      "build_worst": 66.687,
+      "raster_p50": 8.418,
+      "raster_p95": 11.96,
+      "raster_worst": 30.745,
+      "span_p95": 21.73,
+      "vsync_p95": 1.636,
+      "over_8.3ms": 151.0,
+      "build_p99": 11.513,
+      "raster_p99": 17.356,
+      "over_budget": 4.0
+    },
+    "tab-bar": {
+      "n": 468.0,
+      "build_p50": 3.592,
+      "build_p95": 9.04,
+      "build_worst": 43.614,
+      "raster_p50": 8.492,
+      "raster_p95": 17.698,
+      "raster_worst": 34.609,
+      "span_p95": 30.235,
+      "vsync_p95": 1.399,
+      "over_8.3ms": 260.0,
+      "build_p99": 11.111,
+      "raster_p99": 28.612,
+      "over_budget": 30.0
+    },
+    "controls": {
+      "n": 225.0,
+      "build_p50": 5.035,
+      "build_p95": 10.812,
+      "build_worst": 63.582,
+      "raster_p50": 8.952,
+      "raster_p95": 17.559,
+      "raster_worst": 24.878,
+      "span_p95": 28.124,
+      "vsync_p95": 1.339,
+      "over_8.3ms": 155.0,
+      "build_p99": 13.213,
+      "raster_p99": 22.464,
+      "over_budget": 15.0
+    },
+    "menu": {
+      "n": 394.0,
+      "build_p50": 6.254,
+      "build_p95": 16.374,
+      "build_worst": 78.451,
+      "raster_p50": 10.656,
+      "raster_p95": 18.855,
+      "raster_worst": 37.171,
+      "span_p95": 35.212,
+      "vsync_p95": 1.452,
+      "over_8.3ms": 347.0,
+      "build_p99": 40.583,
+      "raster_p99": 27.487,
+      "over_budget": 40.0
+    },
+    "sheet": {
+      "n": 186.0,
+      "build_p50": 4.732,
+      "build_p95": 11.309,
+      "build_worst": 39.654,
+      "raster_p50": 11.066,
+      "raster_p95": 15.266,
+      "raster_worst": 24.791,
+      "span_p95": 27.711,
+      "vsync_p95": 1.653,
+      "over_8.3ms": 162.0,
+      "build_p99": 22.262,
+      "raster_p99": 24.573,
+      "over_budget": 9.0
+    }
+  },
+  "semantics": [
+    false
+  ],
+  "runs": 1,
+  "outline_us": {
+    "menu10-r4-cold": 2920.81,
+    "menu10-r10-cold": 1305.59,
+    "menu10-r20-cold": 880.58,
+    "union-cold": 29.0,
+    "bar-capsules-cold": 326.64,
+    "menu10-r4": 1622.99,
+    "menu10-r10": 1382.94,
+    "menu10-r20": 893.1,
+    "union": 28.08,
+    "bar-capsules": 313.98
+  },
+  "home-scroll": {
+    "median": {
+      "n": 412.0,
+      "build_p50": 2.959,
+      "build_p95": 6.622,
+      "build_worst": 10.746,
+      "raster_p50": 8.396,
+      "raster_p95": 11.126,
+      "raster_worst": 58.047,
+      "span_p95": 18.236,
+      "vsync_p95": 1.497,
+      "over_8.3ms": 215.0,
+      "build_p99": 7.746,
+      "raster_p99": 13.069,
+      "over_budget": 2.0
+    },
+    "runs": [
+      {
+        "n": 412.0,
+        "build_p50": 2.959,
+        "build_p95": 6.622,
+        "build_worst": 10.746,
+        "raster_p50": 8.396,
+        "raster_p95": 11.126,
+        "raster_worst": 58.047,
+        "span_p95": 18.236,
+        "vsync_p95": 1.497,
+        "over_8.3ms": 215.0,
+        "build_p99": 7.746,
+        "raster_p99": 13.069,
+        "over_budget": 2.0
+      }
+    ]
+  },
+  "segmented": {
+    "median": {
+      "n": 432.0,
+      "build_p50": 5.058,
+      "build_p95": 7.868,
+      "build_worst": 11.87,
+      "raster_p50": 8.329,
+      "raster_p95": 10.429,
+      "raster_worst": 14.398,
+      "span_p95": 18.761,
+      "vsync_p95": 1.471,
+      "over_8.3ms": 228.0,
+      "build_p99": 9.731,
+      "raster_p99": 11.661,
+      "over_budget": 0.0
+    },
+    "runs": [
+      {
+        "n": 432.0,
+        "build_p50": 5.058,
+        "build_p95": 7.868,
+        "build_worst": 11.87,
+        "raster_p50": 8.329,
+        "raster_p95": 10.429,
+        "raster_worst": 14.398,
+        "span_p95": 18.761,
+        "vsync_p95": 1.471,
+        "over_8.3ms": 228.0,
+        "build_p99": 9.731,
+        "raster_p99": 11.661,
+        "over_budget": 0.0
+      }
+    ]
+  },
+  "tab-bar": {
+    "median": {
+      "n": 518.0,
+      "build_p50": 5.109,
+      "build_p95": 8.154,
+      "build_worst": 11.746,
+      "raster_p50": 10.446,
+      "raster_p95": 15.643,
+      "raster_worst": 47.678,
+      "span_p95": 25.098,
+      "vsync_p95": 1.306,
+      "over_8.3ms": 459.0,
+      "build_p99": 10.006,
+      "raster_p99": 21.064,
+      "over_budget": 23.0
+    },
+    "runs": [
+      {
+        "n": 518.0,
+        "build_p50": 5.109,
+        "build_p95": 8.154,
+        "build_worst": 11.746,
+        "raster_p50": 10.446,
+        "raster_p95": 15.643,
+        "raster_worst": 47.678,
+        "span_p95": 25.098,
+        "vsync_p95": 1.306,
+        "over_8.3ms": 459.0,
+        "build_p99": 10.006,
+        "raster_p99": 21.064,
+        "over_budget": 23.0
+      }
+    ]
+  },
+  "controls": {
+    "median": {
+      "n": 410.0,
+      "build_p50": 6.071,
+      "build_p95": 13.093,
+      "build_worst": 17.721,
+      "raster_p50": 9.329,
+      "raster_p95": 15.239,
+      "raster_worst": 24.327,
+      "span_p95": 28.514,
+      "vsync_p95": 1.445,
+      "over_8.3ms": 306.0,
+      "build_p99": 16.425,
+      "raster_p99": 19.668,
+      "over_budget": 16.0
+    },
+    "runs": [
+      {
+        "n": 410.0,
+        "build_p50": 6.071,
+        "build_p95": 13.093,
+        "build_worst": 17.721,
+        "raster_p50": 9.329,
+        "raster_p95": 15.239,
+        "raster_worst": 24.327,
+        "span_p95": 28.514,
+        "vsync_p95": 1.445,
+        "over_8.3ms": 306.0,
+        "build_p99": 16.425,
+        "raster_p99": 19.668,
+        "over_budget": 16.0
+      }
+    ]
+  },
+  "menu": {
+    "median": {
+      "n": 248.0,
+      "build_p50": 6.912,
+      "build_p95": 16.097,
+      "build_worst": 57.23,
+      "raster_p50": 10.119,
+      "raster_p95": 18.086,
+      "raster_worst": 37.31,
+      "span_p95": 35.194,
+      "vsync_p95": 1.365,
+      "over_8.3ms": 208.0,
+      "build_p99": 25.679,
+      "raster_p99": 31.169,
+      "over_budget": 19.0
+    },
+    "runs": [
+      {
+        "n": 248.0,
+        "build_p50": 6.912,
+        "build_p95": 16.097,
+        "build_worst": 57.23,
+        "raster_p50": 10.119,
+        "raster_p95": 18.086,
+        "raster_worst": 37.31,
+        "span_p95": 35.194,
+        "vsync_p95": 1.365,
+        "over_8.3ms": 208.0,
+        "build_p99": 25.679,
+        "raster_p99": 31.169,
+        "over_budget": 19.0
+      }
+    ]
+  },
+  "sheet": {
+    "median": {
+      "n": 243.0,
+      "build_p50": 4.229,
+      "build_p95": 8.712,
+      "build_worst": 21.348,
+      "raster_p50": 11.282,
+      "raster_p95": 15.93,
+      "raster_worst": 21.77,
+      "span_p95": 27.237,
+      "vsync_p95": 1.512,
+      "over_8.3ms": 217.0,
+      "build_p99": 14.167,
+      "raster_p99": 20.291,
+      "over_budget": 11.0
+    },
+    "runs": [
+      {
+        "n": 243.0,
+        "build_p50": 4.229,
+        "build_p95": 8.712,
+        "build_worst": 21.348,
+        "raster_p50": 11.282,
+        "raster_p95": 15.93,
+        "raster_worst": 21.77,
+        "span_p95": 27.237,
+        "vsync_p95": 1.512,
+        "over_8.3ms": 217.0,
+        "build_p99": 14.167,
+        "raster_p99": 20.291,
+        "over_budget": 11.0
+      }
+    ]
+  }
+}

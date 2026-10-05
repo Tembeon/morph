@@ -1,0 +1,184 @@
+liquid-before, cold (pm clear), AUDIT_SCENES=segmented,tab-bar,menu, TraceSystrace profile build of 432e94b (after: + bfbc081's warm-up)
+== pipeline creation by thread, 0.5 s buckets
+first raster draw at 0.83 s
+   0.5s 1.raster           PipelineVK::Create       n= 11     84.3 ms
+   0.5s RenderThread       CreateGraphicsPipeline   n=  1      1.9 ms
+   0.5s RenderThread       CreateGraphicsPipeline-CacheLookup n=  1      0.0 ms
+   0.5s RenderThread       CreateGraphicsPipeline-CompileAfterCacheMiss n=  1      1.9 ms
+   0.5s io.worker.1        PipelineVK::Create       n= 19    246.1 ms
+   0.5s io.worker.2        PipelineVK::Create       n=  7    247.8 ms
+   0.5s io.worker.3        PipelineVK::Create       n= 18    246.6 ms
+   0.5s io.worker.4        PipelineVK::Create       n= 18    250.4 ms
+   0.5s n.morph_example    PipelineFull             n=  6      0.1 ms
+   2.5s 1.raster           PipelineVK::Create       n=  5      3.7 ms
+   2.5s n.morph_example    PipelineFull             n=  1      0.0 ms
+  15.5s n.morph_example    PipelineFull             n=  1      0.0 ms
+  17.5s 1.raster           PipelineVK::Create       n=  3      2.1 ms
+  18.0s n.morph_example    PipelineFull             n=  1      0.1 ms
+  20.5s 1.raster           PipelineVK::Create       n=  1      0.5 ms
+  20.5s n.morph_example    PipelineFull             n=  1      0.0 ms
+  22.0s n.morph_example    PipelineFull             n=  1      0.1 ms
+  22.5s n.morph_example    PipelineFull             n=  1      0.0 ms
+  24.0s n.morph_example    PipelineFull             n=  1      0.0 ms
+  27.0s n.morph_example    PipelineFull             n=  1      0.0 ms
+  30.0s n.morph_example    PipelineFull             n=  1      0.0 ms
+  37.5s 1.raster           PipelineVK::Create       n=  2      1.3 ms
+  37.5s io.worker.1        PipelineVK::Create       n=  1     23.7 ms
+  37.5s n.morph_example    PipelineFull             n=  2      0.1 ms
+  38.5s n.morph_example    PipelineFull             n=  1      0.0 ms
+  42.0s n.morph_example    PipelineFull             n=  1      0.0 ms
+  43.0s n.morph_example    PipelineFull             n=  1      0.0 ms
+  43.5s n.morph_example    PipelineFull             n=  1      0.0 ms
+  45.5s n.morph_example    PipelineFull             n=  1      0.0 ms
+  48.5s n.morph_example    PipelineFull             n=  1      0.0 ms
+== slices >= 8 ms, first 3.5 s (app threads)
+  0.304    10.3 n.morph_example  FlutterLoader#ensureInitializationComplete
+  0.304     8.7 flutter-worker-  FlutterLoader initTask
+  0.331     9.2 1.raster         CreateImpellerContext
+  0.339   154.0 n.morph_example  DartExecutor#executeDartEntrypoint
+  0.340    11.9 n.morph_example    DartIsolate::CreateRootIsolate
+  0.340    11.9 n.morph_example      DartIsolate::CreateDartIsolateGroup
+  0.340    11.4 n.morph_example        Dart_CreateIsolateGroup
+  0.340    11.3 n.morph_example          InitializeIsolate
+  0.340    10.2 n.morph_example            ReadProgramSnapshot
+  0.352   140.6 n.morph_example    Engine::SetupDefaultFontManager
+  0.537     9.3 n.morph_example  AsyncWaitForVsync
+  0.555   138.0 n.morph_example  Choreographer#doFrame 4505762
+  0.555   137.6 n.morph_example    Choreographer#doFrame - resynced to 4505764 in 31.3ms
+  0.555   137.5 n.morph_example      traversal
+  0.588    10.2 1.raster         CreateAndroidSwapchain
+  0.590     8.8 1.raster           CreateSwapchainKHR
+  0.693     9.7 n.morph_example  DartIsolate::HandleMessage
+  0.693     9.7 n.morph_example    Dart_HandleMessage
+  0.693     9.7 n.morph_example      HandleMessage
+  0.703   128.1 n.morph_example  VsyncProcessCallback
+  0.703   128.1 n.morph_example    Animator::BeginFrame
+  0.703   128.0 n.morph_example      Dart_InvokeClosure
+  0.705   124.8 n.morph_example        PAINT (root)
+  0.705   124.8 n.morph_example          PAINT
+  0.831   106.1 1.raster         GPURasterizer::Draw
+  0.831   106.1 1.raster           Rasterizer::DoDraw
+  0.831   105.9 1.raster             Rasterizer::DrawToSurfaces
+  0.832   105.4 1.raster               SurfaceFrame::Submit
+  0.832   104.1 1.raster                 SurfaceFrame::Encode
+  0.838    10.4 1.raster                   CreateGlyphAtlas
+  0.850    84.0 1.raster                   Canvas::saveLayer
+  0.851    82.9 1.raster                     PipelineVK::Create
+  0.953    17.1 n.morph_example  Choreographer#doFrame 4505890
+  0.953    17.1 n.morph_example    traversal
+  2.393    20.9 n.morph_example  Dart_InvokeClosure
+  2.393    11.5 1.raster         GPURasterizer::Draw
+  2.393    11.4 1.raster           Rasterizer::DoDraw
+  2.393    11.4 1.raster             Rasterizer::DrawToSurfaces
+  2.394    10.2 1.raster               SurfaceFrame::Submit
+  2.394     9.0 1.raster                 SurfaceFrame::Encode
+  2.399     9.1 n.morph_example    CollectNewGeneration
+  2.400     8.6 n.morph_example      Scavenge
+  2.400     8.1 DartWorker       Scavenge
+  2.422    52.9 n.morph_example  VsyncProcessCallback
+  2.422    52.9 n.morph_example    Animator::BeginFrame
+  2.422    52.6 n.morph_example      Dart_InvokeClosure
+  2.425    41.4 n.morph_example        LAYOUT (root)
+  2.425    41.4 n.morph_example          LAYOUT
+  2.496    26.8 1.raster         GPURasterizer::Draw
+  2.496    26.7 1.raster           Rasterizer::DoDraw
+  2.496    26.7 1.raster             Rasterizer::DrawToSurfaces
+  2.496    25.9 1.raster               SurfaceFrame::Submit
+  2.496    24.7 1.raster                 SurfaceFrame::Encode
+  2.497    17.9 1.raster                   CreateGlyphAtlas
+  2.500    14.6 1.raster                     UpdateAtlasBitmap
+  2.523    17.2 1.raster         GPURasterizer::Draw
+  2.523    17.2 1.raster           Rasterizer::DoDraw
+  2.523    17.1 1.raster             Rasterizer::DrawToSurfaces
+  2.523    16.3 1.raster               SurfaceFrame::Submit
+  2.523    14.8 1.raster                 SurfaceFrame::Encode
+  2.524     9.7 1.raster                   CreateGlyphAtlas
+  2.525     8.1 1.raster                     UpdateAtlasBitmap
+  2.541    15.3 1.raster         GPURasterizer::Draw
+  2.541    15.3 1.raster           Rasterizer::DoDraw
+  2.541    15.2 1.raster             Rasterizer::DrawToSurfaces
+  2.542    14.4 1.raster               SurfaceFrame::Submit
+  2.542    13.0 1.raster                 SurfaceFrame::Encode
+  2.562    21.5 1.raster         GPURasterizer::Draw
+  2.562    21.5 1.raster           Rasterizer::DoDraw
+  2.562    21.4 1.raster             Rasterizer::DrawToSurfaces
+  2.563    20.6 1.raster               SurfaceFrame::Submit
+  2.563    17.5 1.raster                 SurfaceFrame::Encode
+  2.572    10.9 n.morph_example  VsyncProcessCallback
+  2.572    10.8 n.morph_example    Animator::BeginFrame
+  2.573    10.5 n.morph_example      Dart_InvokeClosure
+  2.592     8.9 1.raster         GPURasterizer::Draw
+  2.592     8.9 1.raster           Rasterizer::DoDraw
+  2.592     8.9 1.raster             Rasterizer::DrawToSurfaces
+  2.593     8.4 1.raster               SurfaceFrame::Submit
+  2.610     8.2 1.raster         GPURasterizer::Draw
+  2.610     8.2 1.raster           Rasterizer::DoDraw
+  2.610     8.2 1.raster             Rasterizer::DrawToSurfaces
+  2.644     8.4 1.raster         GPURasterizer::Draw
+  2.644     8.4 1.raster           Rasterizer::DoDraw
+  2.644     8.4 1.raster             Rasterizer::DrawToSurfaces
+  2.676    11.1 1.raster         GPURasterizer::Draw
+  2.676    11.0 1.raster           Rasterizer::DoDraw
+  2.676    11.0 1.raster             Rasterizer::DrawToSurfaces
+  2.677    10.4 1.raster               SurfaceFrame::Submit
+  2.677     9.4 1.raster                 SurfaceFrame::Encode
+  2.709     9.4 1.raster         GPURasterizer::Draw
+  2.709     9.3 1.raster           Rasterizer::DoDraw
+  2.709     9.3 1.raster             Rasterizer::DrawToSurfaces
+  2.710     8.5 1.raster               SurfaceFrame::Submit
+  2.728     8.2 1.raster         GPURasterizer::Draw
+  2.728     8.2 1.raster           Rasterizer::DoDraw
+  2.728     8.2 1.raster             Rasterizer::DrawToSurfaces
+  2.743    11.0 1.raster         GPURasterizer::Draw
+  2.743    10.9 1.raster           Rasterizer::DoDraw
+  2.743    10.9 1.raster             Rasterizer::DrawToSurfaces
+  2.744    10.1 1.raster               SurfaceFrame::Submit
+  2.744     8.9 1.raster                 SurfaceFrame::Encode
+  2.758    10.2 1.raster         GPURasterizer::Draw
+  2.758    10.2 1.raster           Rasterizer::DoDraw
+  2.758    10.2 1.raster             Rasterizer::DrawToSurfaces
+  2.759     9.3 1.raster               SurfaceFrame::Submit
+  2.759     8.1 1.raster                 SurfaceFrame::Encode
+  2.777     9.5 1.raster         GPURasterizer::Draw
+  2.777     9.5 1.raster           Rasterizer::DoDraw
+  2.777     9.5 1.raster             Rasterizer::DrawToSurfaces
+  2.778     8.7 1.raster               SurfaceFrame::Submit
+  2.795     8.6 1.raster         GPURasterizer::Draw
+  2.795     8.6 1.raster           Rasterizer::DoDraw
+  2.795     8.5 1.raster             Rasterizer::DrawToSurfaces
+  2.811     8.8 1.raster         GPURasterizer::Draw
+  2.811     8.8 1.raster           Rasterizer::DoDraw
+  2.811     8.7 1.raster             Rasterizer::DrawToSurfaces
+  2.829     8.2 1.raster         GPURasterizer::Draw
+  2.829     8.1 1.raster           Rasterizer::DoDraw
+  2.829     8.1 1.raster             Rasterizer::DrawToSurfaces
+  2.846     8.2 1.raster         GPURasterizer::Draw
+  2.846     8.2 1.raster           Rasterizer::DoDraw
+  2.846     8.2 1.raster             Rasterizer::DrawToSurfaces
+  2.910     8.5 1.raster         GPURasterizer::Draw
+  2.910     8.4 1.raster           Rasterizer::DoDraw
+  2.910     8.4 1.raster             Rasterizer::DrawToSurfaces
+  3.129     8.3 1.raster         GPURasterizer::Draw
+  3.129     8.2 1.raster           Rasterizer::DoDraw
+  3.129     8.2 1.raster             Rasterizer::DrawToSurfaces
+  3.224     8.7 n.morph_example  Dart_InvokeClosure
+  3.243     8.1 1.raster         GPURasterizer::Draw
+  3.243     8.1 1.raster           Rasterizer::DoDraw
+  3.243     8.0 1.raster             Rasterizer::DrawToSurfaces
+  3.296    21.2 1.raster         GPURasterizer::Draw
+  3.296    21.2 1.raster           Rasterizer::DoDraw
+  3.296    21.1 1.raster             Rasterizer::DrawToSurfaces
+  3.297    20.2 1.raster               SurfaceFrame::Submit
+  3.297    16.0 1.raster                 SurfaceFrame::Encode
+  3.300     8.6 1.raster                   Canvas::saveLayer
+  3.317    20.7 DartWorker       ConcurrentMark
+  3.317    10.5 1.raster         GPURasterizer::Draw
+  3.317    10.4 1.raster           Rasterizer::DoDraw
+  3.317    10.4 1.raster             Rasterizer::DrawToSurfaces
+  3.318    19.9 DartWorker       ConcurrentMark
+  3.318     9.3 1.raster               SurfaceFrame::Submit
+  3.318     8.2 1.raster                 SurfaceFrame::Encode
+  3.411     9.4 1.raster         GPURasterizer::Draw
+  3.411     9.3 1.raster           Rasterizer::DoDraw
+  3.411     9.3 1.raster             Rasterizer::DrawToSurfaces
+  3.412     8.4 1.raster               SurfaceFrame::Submit
