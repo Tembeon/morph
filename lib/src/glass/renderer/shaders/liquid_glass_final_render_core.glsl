@@ -393,6 +393,18 @@ vec3 applySpecularHighlights(
     }
 
     vec2 normalXY = surfaceNormal;
+    float lightFacing = dot(normalXY, -uLightDirection);
+    // Deep inside, past the glint's bleed, the inner border and the bevel
+    // band (with a margin over the band's division), every term below is
+    // exactly zero.
+    if (
+        outlineCoverage <= 0.0 &&
+        glintProfile <= 0.0 &&
+        inwardDistance - max(uBevelShadowOffset, 0.0) * lightFacing >=
+            max(uBevelShadowDepth, 0.001) * 1.0001
+    ) {
+        return baseColor;
+    }
 
     // Both walls along the light axis catch the glint; it fades linearly
     // with the normal's tangential component. highlightWrap = 0.5 is the
@@ -401,7 +413,7 @@ vec3 applySpecularHighlights(
     float wrapExponent = exp2(2.0 - 4.0 * clamp(uSpecularWrap, 0.0, 1.0));
     float axisAlignment = 1.0 - lightAxisTangency(normalXY);
     float lobe = pow(max(axisAlignment, 0.0), wrapExponent);
-    float returnWeight = dot(normalXY, -uLightDirection) >= 0.0
+    float returnWeight = lightFacing >= 0.0
         ? 1.0
         : clamp(uHighlightOppositeStrength, 0.0, 1.0);
     float glint = clamp(
@@ -438,7 +450,6 @@ vec3 applySpecularHighlights(
         // the lit wall it falls inside the face, along the sides it starts
         // at the rim, and below the far wall it is pushed out past the rim.
         // The penumbra is as wide as the displacement.
-        float lightFacing = dot(normalXY, -uLightDirection);
         float shadowShift = max(uBevelShadowOffset, 0.0) * lightFacing;
         float penumbra = 2.0 * shadowShift;
         float bevelLeadingEdge = penumbra > 0.001
