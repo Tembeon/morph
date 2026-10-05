@@ -1399,6 +1399,9 @@ class MorphMenuMotion {
     return _glowFrom + (_glowTarget - _glowFrom) * t;
   }
 
+  bool _glowAtRest(double t) =>
+      _glowFrom == _glowTarget || t - _glowStart >= tuning.glowFade;
+
   /// The opacity of the menu content.
   double get contentOpacity => _contentOpacityAt(_now);
 
@@ -1656,14 +1659,18 @@ class MorphMenuMotion {
   }
 
   /// Whether nothing moves and nothing is pending.
+  ///
+  /// A finger resting on the menu or its button does not keep it awake once
+  /// the glow under it has faded in: its next move or release wakes it. A
+  /// finger scrolling the content does.
   bool get isSettled {
     final t = _now;
-    if (_pointer != null || !_timeline.isEmpty) return false;
+    if ((_pointer?.scrolled ?? false) || !_timeline.isEmpty) return false;
     if (_phase == _Phase.closing) return false;
     if (!_press.isAtRest(t, 1e-3) ||
         !_leanX.isAtRest(t) ||
         !_leanY.isAtRest(t) ||
-        glowOpacity > 0) {
+        !_glowAtRest(t)) {
       return false;
     }
     if (_phase == _Phase.opening) {

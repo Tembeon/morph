@@ -472,6 +472,27 @@ final _scenes = <_Scene>[
       await tester.pump(const Duration(milliseconds: 8));
     }
   }),
+  _Scene('menu-held', () => _page(const MorphMenuButton(items: _menuEntries)), (
+    tester,
+  ) async {
+    await tester.tap(find.byType(MorphMenuButton));
+    for (var i = 0; i < 90; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+    final row = tester.getCenter(find.text('Share').last);
+    final gesture = await tester.startGesture(row);
+    for (var i = 0; i < 120; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+    await gesture.moveTo(row + const Offset(0, 4));
+    for (var i = 0; i < 120; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+    await gesture.up();
+    for (var i = 0; i < 120; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+  }),
   _Scene(
     'nav-scroll',
     () => MorphNavigationStack(
