@@ -26,6 +26,14 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   on the Pixel it flipped flat and liquid six times in one audit. Call
   `MorphGlassRenderer.precache` before `runApp` so the first frame
   already draws the chosen tier.
+- `MorphGlassRenderer.precache` warms the pipelines, so the first glass
+  frame compiles nothing: it draws each Flutter GPU geometry pipeline
+  once and rasterizes an offscreen scene with every glass filter, clip
+  and blur the liquid and frosted tiers use. On a Pixel 6a the first
+  liquid frame drops from 102 - 131 ms of UI thread and 49 - 74 ms of
+  raster to 5 and 11 ms, frosted's first raster from 64 - 73 to 19 -
+  25 ms; precache now takes 0.3 - 0.45 s instead of 3 ms, so call it
+  behind the splash, before `runApp`.
 - Performance, pixels changed below what the eye sees (owner decision):
   an outline fused at spacing 0 - the menu's settle tail once its fusion
   radius is under 1 pt, every submenu card - is the exact union of its
