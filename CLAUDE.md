@@ -1066,7 +1066,7 @@ Three harnesses, one per question:
 - WORK PER FRAME (deterministic, every `flutter test`):
   test/perf_counts_test.dart counts rebuilds, paints, re-recorded
   pictures, backdrop captures, offscreen layers, body-shadow layers,
-  snapshot image fallbacks and idle frames per animated frame of nine
+  snapshot image fallbacks and idle frames per animated frame of eleven
   scenes x three tiers, pinned as CEILINGS in
   test/fixtures/perf/counts.json (`PERF_COUNTS_UPDATE=true` rewrites it
   after a change that lowers a count). flutter_test has no Impeller: the
@@ -1075,30 +1075,42 @@ Three harnesses, one per question:
   macos --release --dart-define=MORPH_BENCH=true`, run the binary, grep
   BENCH.
 
-Device, iPhone 16 Pro, iOS 27.0.1, 120 Hz, profile, 2026-10-05 (after
-the identical-output batch; 2026-10-05-baseline before it is the same
-within noise), ms, median of 5 runs:
+Device, iPhone 16 Pro, iOS 27.0.1, 120 Hz, profile, 2026-10-05, audit
+without the semantics tree (as for a user without VoiceOver; buildDuration
+never included the semantics flush), median of 5 runs, ms; build p95 is
+2026-10-05-p2-base (2fc1dbe) -> 2026-10-05-p2-head2 (phase 2: menu face
+built once, plain-union field from the box distances, container fusion
+grids kept across calls, controls not rebuilt by an unchanged parent):
 
-| tier / scene        | build p50 | build p95 | raster p50 | raster p95 |
-|---------------------|-----------|-----------|------------|------------|
-| liquid segmented    |      1.20 |      1.47 |       1.69 |       2.00 |
-| liquid tab bar      |      1.07 |      1.58 |       2.18 |       2.74 |
-| liquid controls     |      1.29 |      3.25 |       2.26 |       2.88 |
-| liquid menu         |      1.16 |      2.16 |       1.12 |       2.92 |
-| liquid home scroll  |      0.77 |      1.28 |       1.50 |       2.14 |
-| liquid sheet        |      0.81 |      1.36 |       2.57 |       3.21 |
-| frosted controls    |      0.72 |      2.27 |       3.03 |       3.65 |
-| frosted sheet       |      0.43 |      0.90 |       3.19 |       3.92 |
-| flat controls       |      0.40 |      2.52 |       0.66 |       0.80 |
-| flat menu           |      1.28 |      4.15 |       0.53 |       1.63 |
+| tier / scene        | build p50 | build p95     | raster p50 | raster p95 |
+|---------------------|-----------|---------------|------------|------------|
+| liquid segmented    |      1.16 |  1.36 -> 1.41 |       1.69 |       1.94 |
+| liquid tab bar      |      1.02 |  1.54 -> 1.48 |       2.19 |       2.69 |
+| liquid controls     |      1.22 |  3.05 -> 2.34 |       2.27 |       2.94 |
+| liquid menu         |      1.27 |  2.01 -> 2.02 |       1.25 |       3.00 |
+| liquid home scroll  |      0.78 |  1.26 -> 1.26 |       1.52 |       2.20 |
+| liquid sheet        |      0.78 |  1.33 -> 1.34 |       2.53 |       3.19 |
+| frosted controls    |      0.71 |  1.93 -> 1.51 |       3.06 |       3.61 |
+| frosted menu        |      1.45 |  3.95 -> 3.87 |       1.37 |       2.29 |
+| frosted sheet       |      0.40 |  0.83 -> 0.85 |       3.23 |       3.92 |
+| flat controls       |      0.40 |  2.42 -> 1.68 |       0.66 |       0.76 |
+| flat menu           |      1.55 |  4.27 -> 3.85 |       0.61 |       1.60 |
 
-Reading: every scene fits the 8.3 ms budget at p95 on every tier; the
-raster cost is the backdrop captures and blurs (flat raster is a third
-of liquid's), and the identical-output optimizations moved no device
-percentile beyond run-to-run noise (+-0.1 ms p95) - the remaining device
-levers change pixels (tool/audit/perf-research-2026-10-05.md 3.2).
-Outline fusion on the device (100-call mean): menu blur 4 pt 1.13 ms,
-10 pt 0.60, 20 pt 0.37, two bar capsules 0.12.
+Reading: every scene fits the 8.3 ms budget at p95 on every tier. The
+controls scene's p95 frames were the gallery page rebuilding every
+control on each slider move; the flat menu's were the silhouette (a
+blurred trace at small radii, the plain union every frame of the settle
+tail) plus old-generation GC landing mid-frame (10 -> 2 collections per
+three opens after the container grids stopped being reallocated). The
+menu's p50 build AND raster rose ~0.1-0.3 ms with the grid change
+(frosted 1.12 -> 1.45 / 1.25 -> 1.37) although raster work is untouched
+by it - read as the CPU clocking down under a lighter load, not as cost.
+Raster is captures and blurs (flat raster is a third of liquid's); the
+levers left change pixels (tool/audit/perf-research-2026-10-05.md 3.2).
+Outline fusion on the device (100-call mean after a warm-up pass; the
+first case after the scenes pays ~45 ms of one-time work, which read as
+"4 pt 1.13 ms"): menu blur 4 pt 0.67 ms, 10 pt 0.62, 20 pt 0.36, plain
+union of a 260 x 600 menu 0.49 (0.73 before), two bar capsules 0.12.
 
 Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 

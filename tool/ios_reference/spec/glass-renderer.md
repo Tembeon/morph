@@ -175,7 +175,54 @@ NEVER while a pointer is down. Engineering defaults, not measurements.
   one device pixel between launches of the SAME app). Raster cost is
   captures and blurs: liquid raster is ~3x flat on every scene.
   Outline fusion: menu blur 4 pt 1.13 ms (0.71 on 2026-10-03 - not
-  explained yet), 10 pt 0.60, 20 pt 0.37, bar capsules 0.12.
+  explained then: see phase 2), 10 pt 0.60, 20 pt 0.37, bar capsules 0.12.
+- 2026-10-05 phase 2 (audit without the semantics tree; build p95
+  p2-base -> p2-head2, same order as above): liquid 1.36 -> 1.41,
+  1.54 -> 1.48, 3.05 -> 2.34, 2.01 -> 2.02, 1.26 -> 1.26, 1.33 -> 1.34;
+  frosted controls 1.93 -> 1.51, menu 3.95 -> 3.87; flat controls
+  2.42 -> 1.68, menu 4.27 -> 3.85; raster unchanged within noise; every
+  audit shot within the run-to-run noise of the identical batch (resting
+  shots <= 56 max channel at <= 0.003 percent, the timed tall-menu close
+  and held shots move between launches of one app). Findings:
+  - The "4 pt 1.13 ms" was harness order, not code: timed three times in
+    one launch after the scenes the 4 pt case reads 1.147 / 0.666 /
+    0.667 ms; ~45 ms of one-time work lands on the first case. The audit
+    now times a warm-up pass first (kept as '-cold'). Steady: 4 pt 0.67,
+    10 pt 0.62, 20 pt 0.36, plain union (260 x 600 menu over its button,
+    spacing 0, fused every frame of the menu's settle tail) 0.73 -> 0.49
+    (field from the box distances it has, grids kept across calls), bar
+    capsules 0.12. The JIT microbenchmark does not track the device
+    here (7182ca4 sped r4 up and slowed r20 down under JIT; the device
+    moved neither).
+  - Where the flat menu's p95 goes (device timeline, three opens): the
+    silhouette, 2.5-3.8 ms per frame at fusion radii 2-9 pt and 1.5-5 ms
+    per frame of the r < 1 tail on the gallery's rich menu, plus
+    old-generation GC mid-frame (incremental marking 22 ms per three
+    opens, 3.1 ms in one frame); keeping the container grids took GC to
+    2 collections / 1.7 ms. The menu's cards and motion getters cost
+    <= 0.01 ms per frame (M9 has nothing to win). Field-only work (half
+    thickness, optical turn, samples) is 10-16 percent of a fusion: a
+    lazy field for the flat and frosted tiers is not worth its
+    complexity.
+  - Chrome capture sharing (V1a): MorphNavigationStack's bar and toolbar
+    capsules are `button` glass, so on the liquid tier they already read
+    ONE capture - the root BackdropGroup's - and there is nothing to
+    share. Impeller takes a shared key's snapshot at its FIRST filter in
+    paint order (canvas.cc, backdrop_data texture_slot), so on a page
+    whose body holds resting body glass (a glass button) the bars read
+    the backdrop as it was when that glass painted: content painted
+    after it, and the scroll edge effect, are missing under the bars.
+    Unverified on the device; a chrome group of their own would fix it
+    at one more capture per frame on such pages (a fidelity decision).
+  - Opacity at full presence (V2): an OpacityLayer at alpha 255 pushes
+    no save layer in the engine (flow/layers/opacity_layer.cc,
+    LayerStateStack applyOpacity only below 1), so it costs no offscreen
+    pass and breaks no backdrop sharing; it is also the only repaint
+    boundary segmented, switch and slider have. Nothing to remove.
+  - Semantics: testWidgets built the semantics tree in every audit
+    (0.25 ms per frame at the median, up to 1.3 ms on the menu and
+    controls scenes on the timeline) but FrameTiming.buildDuration ends
+    before the semantics flush, so earlier passports were not inflated.
 - glass_audit_test per `--dart-define=GALLERY_GLASS=`, p95 build / raster
   ms, scenes segmented / tab bar / controls / menu:
   liquid 1.75/1.80, 2.91/2.52, 3.87/2.67, 3.03/2.90;
