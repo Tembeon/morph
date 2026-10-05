@@ -353,7 +353,9 @@ vec3 applySpecularHighlights(
     vec3 baseColor,
     vec3 transmittedColor,
     float signedEdgeDistance,
-    vec2 surfaceNormal
+    vec2 surfaceNormal,
+    float innerContourCoverage,
+    float contourDirectionWeight
 ) {
     if (
         uLightIntensity < 0.01 &&
@@ -369,7 +371,7 @@ vec3 applySpecularHighlights(
         0.001
     );
     // In-material share of the border, relative to the material's coverage.
-    float outlineCoverage = contourCoverage(signedEdgeDistance).y /
+    float outlineCoverage = innerContourCoverage /
         max(clamp(signedEdgeDistance + 0.5, 0.0, 1.0), 0.001);
     // The glint is a thin line anchored at the silhouette with a faint
     // inward bleed. Both are linear ramps in logical distance, so the line
@@ -477,7 +479,7 @@ vec3 applySpecularHighlights(
     // The border absorbs the transmitted backdrop only where the material
     // still overlaps it; its exterior part is composited in main().
     float edgeAbsorption = clamp(
-        outlineCoverage * gContourAlpha * contourDirection(normalXY),
+        outlineCoverage * gContourAlpha * contourDirectionWeight,
         0.0,
         1.0
     );
@@ -543,11 +545,12 @@ void main() {
     // rasterizes the silhouette: a pixel-aligned edge stays hard, so the
     // glint's first row is not diluted by a wider feather.
     float materialAlpha = clamp(signedEdgeDistance + 0.5, 0.0, 1.0);
+    vec2 contourCover = contourCoverage(signedEdgeDistance);
     // Rejected before the material map is read: neither test reads it, and
     // the border alpha is still the uniform one here.
     if (
         materialAlpha < 0.01 &&
-        contourCoverage(signedEdgeDistance).x * gContourAlpha < 0.01
+        contourCover.x * gContourAlpha < 0.01
     ) {
         fragColor = vec4(0.0);
         return;
@@ -677,10 +680,11 @@ void main() {
     }
     #endif
 
-    vec2 displacement =
-        decodeDisplacement(geometryData, maxDisplacement) *
-        appearanceVisibility;
     vec2 surfaceNormal = decodeSurfaceNormal(geometryData);
+    vec2 displacement =
+        decodeDisplacement(geometryData, surfaceNormal, maxDisplacement) *
+        appearanceVisibility;
+    float contourDirectionWeight = contourDirection(surfaceNormal);
 
     vec2 invUSize = 1.0 / uSize;
     vec2 backdropScaleOffset = vec2(0.0);
@@ -913,7 +917,9 @@ void main() {
         baseColor,
         transmittedColor,
         signedEdgeDistance,
-        surfaceNormal
+        surfaceNormal,
+        contourCover.y,
+        contourDirectionWeight
     );
     // The lit material (face, tint, saturation, lighting and in-material
     // contour) cross-fades to the refracted backdrop, whose refraction
@@ -928,9 +934,9 @@ void main() {
     float fadeAlpha = mix(1.0, appearanceVisibility, uBlurFade);
     float visibleMaterialAlpha = materialAlpha * fadeAlpha;
     float externalContourAlpha =
-        contourCoverage(signedEdgeDistance).x *
+        contourCover.x *
         gContourAlpha *
-        contourDirection(surfaceNormal) *
+        contourDirectionWeight *
         appearanceVisibility;
     float alpha = visibleMaterialAlpha + externalContourAlpha;
     vec3 premultipliedColor = finalColor * visibleMaterialAlpha +
