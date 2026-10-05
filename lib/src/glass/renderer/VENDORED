@@ -124,3 +124,10 @@ Local patches (some commits include related package changes):
 - 2026-10-04 WP-I diagnostics: backdrop-capture counts are opt-in, with a
   morph-prefixed message. Intentional independent lens and chrome passes
   do not produce automatic warnings.
+- 2026-10-05 glass shadow clip: a GlassShadow with an offset shadow clips
+  its shadows to outside the shape (an even-odd path of the shadow bounds
+  and the shape deflated by half a pixel) instead of drawing them into a
+  saveLayer and cutting the shape out with dstOut: no offscreen pass per
+  shadowed surface, no shadow under the glass; only the antialiasing at
+  the cut differs (flutter_test: <= 1 channel off the edge,
+  test/glass_body_shadow_test.dart).

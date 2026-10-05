@@ -1,7 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/glass_shadow.dart';
 
-/// The exterior shadow of one fused glass body.
+/// The exterior shadow of one fused glass body, clipped to outside its
+/// outline: no offscreen layer, and no shadow under the translucent body.
 @internal
 class MorphGlassBodyShadow extends CustomPainter {
   /// Paints [shadows] outside [outline] at [opacity].
@@ -16,19 +18,27 @@ class MorphGlassBodyShadow extends CustomPainter {
   /// The visibility of the body.
   final double opacity;
 
-  /// The offscreen layers this painter has opened, over all its paints;
-  /// debug builds only.
-  @visibleForTesting
-  static int debugSaveLayerCount = 0;
-
   @override
   void paint(Canvas canvas, Size size) {
     if (opacity <= 0 || shadows.isEmpty) return;
-    assert(() {
-      debugSaveLayerCount++;
-      return true;
-    }());
-    canvas.saveLayer(null, Paint());
+    final body = outline.getBounds();
+    var bounds = body;
+    for (final shadow in shadows) {
+      bounds = bounds.expandToInclude(
+        body
+            .shift(shadow.offset)
+            .inflate(
+              shadow.spreadRadius +
+                  glassShadowBlurSupport(shadow.blurRadius * opacity),
+            ),
+      );
+    }
+    final outside = Path();
+    outside.fillType = PathFillType.evenOdd;
+    outside.addRect(bounds.inflate(1));
+    outside.addPath(outline, Offset.zero);
+    canvas.save();
+    canvas.clipPath(outside);
     for (final shadow in shadows) {
       final paint = shadow
           .copyWith(
@@ -46,9 +56,6 @@ class MorphGlassBodyShadow extends CustomPainter {
         canvas.restore();
       }
     }
-    final cutout = Paint();
-    cutout.blendMode = BlendMode.dstOut;
-    canvas.drawPath(outline, cutout);
     canvas.restore();
   }
 

@@ -6,7 +6,6 @@
     "pictures": 3.0,
     "captures": 0.0,
     "offscreen": 0.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -18,7 +17,6 @@
     "pictures": 2.9,
     "captures": 0.0,
     "offscreen": 0.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -30,7 +28,6 @@
     "pictures": 1.0,
     "captures": 0.0,
     "offscreen": 0.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -42,7 +39,6 @@
     "pictures": 1.0,
     "captures": 0.0,
     "offscreen": 0.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -54,7 +50,6 @@
     "pictures": 3.0,
     "captures": 0.0,
     "offscreen": 0.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -66,7 +61,6 @@
     "pictures": 3.0,
     "captures": 0.0,
     "offscreen": 0.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -78,7 +72,6 @@
     "pictures": 2.6,
     "captures": 0.0,
     "offscreen": 0.7,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
@@ -90,7 +83,6 @@
     "pictures": 2.1,
     "captures": 0.0,
     "offscreen": 0.3,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
@@ -102,7 +94,6 @@
     "pictures": 2.4,
     "captures": 0.9,
     "offscreen": 2.9,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -114,7 +105,6 @@
     "pictures": 3.8,
     "captures": 0.0,
     "offscreen": 0.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -126,7 +116,6 @@
     "pictures": 1.0,
     "captures": 0.0,
     "offscreen": 0.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -138,7 +127,6 @@
     "pictures": 4.9,
     "captures": 1.0,
     "offscreen": 1.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -150,7 +138,6 @@
     "pictures": 4.8,
     "captures": 0.9,
     "offscreen": 0.9,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -162,7 +149,6 @@
     "pictures": 3.7,
     "captures": 2.0,
     "offscreen": 2.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -174,7 +160,6 @@
     "pictures": 2.0,
     "captures": 1.0,
     "offscreen": 1.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -186,7 +171,6 @@
     "pictures": 4.0,
     "captures": 1.0,
     "offscreen": 1.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -198,7 +182,6 @@
     "pictures": 4.0,
     "captures": 2.0,
     "offscreen": 4.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -210,7 +193,6 @@
     "pictures": 2.9,
     "captures": 1.4,
     "offscreen": 2.1,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
@@ -222,7 +204,6 @@
     "pictures": 2.3,
     "captures": 1.0,
     "offscreen": 1.3,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
@@ -234,7 +215,6 @@
     "pictures": 2.4,
     "captures": 1.9,
     "offscreen": 4.9,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -246,7 +226,6 @@
     "pictures": 4.7,
     "captures": 1.0,
     "offscreen": 1.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -258,7 +237,6 @@
     "pictures": 3.0,
     "captures": 1.0,
     "offscreen": 1.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -270,7 +248,6 @@
     "pictures": 6.4,
     "captures": 1.3,
     "offscreen": 1.6,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -282,7 +259,6 @@
     "pictures": 7.8,
     "captures": 2.1,
     "offscreen": 2.7,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -294,7 +270,6 @@
     "pictures": 4.7,
     "captures": 3.3,
     "offscreen": 3.7,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -306,7 +281,6 @@
     "pictures": 3.2,
     "captures": 1.4,
     "offscreen": 2.1,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -318,7 +292,6 @@
     "pictures": 5.5,
     "captures": 1.5,
     "offscreen": 2.1,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -330,7 +303,6 @@
     "pictures": 5.5,
     "captures": 5.5,
     "offscreen": 8.1,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -342,7 +314,6 @@
     "pictures": 7.9,
     "captures": 3.0,
     "offscreen": 3.8,
-    "bodyShadows": 1.3,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
@@ -354,7 +325,6 @@
     "pictures": 6.1,
     "captures": 2.0,
     "offscreen": 2.3,
-    "bodyShadows": 0.9,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
@@ -366,7 +336,6 @@
     "pictures": 0.6,
     "captures": 3.9,
     "offscreen": 6.9,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -378,7 +347,6 @@
     "pictures": 3.8,
     "captures": 2.0,
     "offscreen": 2.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -390,7 +358,6 @@
     "pictures": 2.0,
     "captures": 2.0,
     "offscreen": 2.0,
-    "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0

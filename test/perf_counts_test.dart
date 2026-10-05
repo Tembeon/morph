@@ -8,7 +8,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
-import 'package:morph/src/widgets/glass_body_shadow.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/widgets.dart';
 
@@ -40,7 +39,7 @@ void main() {
     isLocalTest = false;
     const header =
         'scene                 frames builds paints pictures captures '
-        'offscreen bodyShadows snapshotImages traces idle';
+        'offscreen snapshotImages traces idle';
     final lines = <String>[header];
     for (final MapEntry(:key, :value) in results.entries) {
       final r = value! as Map<String, Object?>;
@@ -49,7 +48,6 @@ void main() {
         '${'${r['builds']}'.padLeft(7)}${'${r['paints']}'.padLeft(7)}'
         '${'${r['pictures']}'.padLeft(9)}${'${r['captures']}'.padLeft(9)}'
         '${'${r['offscreen']}'.padLeft(10)}'
-        '${'${r['bodyShadows']}'.padLeft(12)}'
         '${'${r['snapshotImages']}'.padLeft(15)}'
         '${'${r['traces']}'.padLeft(7)}${'${r['idle']}'.padLeft(5)}',
       );
@@ -109,7 +107,6 @@ const _pinnedKeys = [
   'pictures',
   'captures',
   'offscreen',
-  'bodyShadows',
   'snapshotImages',
   'traces',
   'idle',
@@ -147,12 +144,10 @@ class _Counter {
   int _frameBuilds = 0;
   int _framePaints = 0;
   Set<ui.Picture> _seen = {};
-  late final int _shadowStart;
   late final int _imageStart;
   late final int _traceStart;
 
   void start() {
-    _shadowStart = MorphGlassBodyShadow.debugSaveLayerCount;
     _imageStart = GlassContentSnapshot.debugImageFallbackCount;
     _traceStart = morphGlassOutlineDebugTraces;
     debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
@@ -207,9 +202,6 @@ class _Counter {
       'pictures': per(_pictures),
       'captures': per(_captures),
       'offscreen': per(_offscreen),
-      'bodyShadows': per(
-        MorphGlassBodyShadow.debugSaveLayerCount - _shadowStart,
-      ),
       'snapshotImages': per(
         GlassContentSnapshot.debugImageFallbackCount - _imageStart,
       ),
