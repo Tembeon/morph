@@ -5,8 +5,12 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+// The Android screenshot path talks to the plugin's channel directly.
+// ignore: implementation_imports
+import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
@@ -37,6 +41,14 @@ const String _tierName = String.fromEnvironment(
   'GALLERY_GLASS',
   defaultValue: 'liquid',
 );
+
+/// Whether the buttons sit in one [MorphGlassContainer]
+/// (`--dart-define=DENSITY_CONTAINER=true`).
+const bool _container = bool.fromEnvironment('DENSITY_CONTAINER');
+
+/// Whether the run takes a resting and a held screenshot per density
+/// (`--dart-define=AUDIT_SHOTS=true`), outside the timed windows.
+const bool _shots = bool.fromEnvironment('AUDIT_SHOTS');
 
 /// The button counts the audit measures.
 const List<int> densities = [1, 4, 8, 16, 32];
@@ -78,8 +90,12 @@ class DensityPage extends StatelessWidget {
     required this.count,
     required this.tier,
     this.compact = false,
+    this.container = false,
     super.key,
   });
+
+  /// Whether the buttons sit in one [MorphGlassContainer].
+  final bool container;
 
   /// The number of glass buttons.
   final int count;
@@ -136,19 +152,28 @@ class DensityPage extends StatelessWidget {
               ),
             ),
           ),
-          for (var i = 0; i < count; i++)
-            Positioned.fromRect(
-              rect: Rect.fromCenter(
-                center: centerOf(i),
-                width: compact ? 44 : 80,
-                height: compact ? 36 : 44,
-              ),
-              child: MorphGlassButton(onPressed: () {}, child: Text('$i')),
-            ),
+          if (container)
+            Positioned.fill(
+              child: MorphGlassContainer(child: Stack(children: _buttons())),
+            )
+          else
+            ..._buttons(),
         ],
       ),
     ),
   );
+
+  List<Widget> _buttons() => [
+    for (var i = 0; i < count; i++)
+      Positioned.fromRect(
+        rect: Rect.fromCenter(
+          center: centerOf(i),
+          width: compact ? 44 : 80,
+          height: compact ? 36 : 44,
+        ),
+        child: MorphGlassButton(onPressed: () {}, child: Text('$i')),
+      ),
+  ];
 }
 
 class _Density {
@@ -194,11 +219,20 @@ class _Density {
     _clock.start();
     await MorphGlassRenderer.precache();
     for (final n in densities) {
-      runApp(DensityPage(key: ValueKey<int>(n), count: n, tier: tier));
+      runApp(
+        DensityPage(
+          key: ValueKey<int>(n),
+          count: n,
+          tier: tier,
+          container: _container,
+        ),
+      );
       await settle(1500);
+      await shot('n$n-rest');
       _layers['n$n-rest'] = _countLayers();
       await measure('n$n-rest', _scroll);
       await measure('n$n-wave', () => _wave(n, sample: 'n$n-pressed'));
+      await _held(n);
     }
     runApp(
       DensityPage(
@@ -206,6 +240,7 @@ class _Density {
         count: stressCount,
         tier: tier,
         compact: true,
+        container: _container,
       ),
     );
     await settle(1500);
@@ -216,6 +251,47 @@ class _Density {
       at: DensityPage.compactCenter,
       step: 0,
     );
+  }
+
+  /// Holds button 0 for half a second and shoots the held frame.
+  Future<void> _held(int n) async {
+    if (!_shots) return;
+    final gesture = await tester.createGesture(pointer: _pointer++);
+    await gesture.down(DensityPage.buttonCenter(0), timeStamp: _clock.elapsed);
+    await settle(500);
+    await shot('n$n-held');
+    await gesture.up(timeStamp: _clock.elapsed);
+    await settle(900);
+  }
+
+  Future<void> shot(String name) async {
+    if (!_shots) return;
+    await tester.pump();
+    if (Platform.isAndroid) {
+      integrationTestChannel.setMethodCallHandler((MethodCall call) async {
+        if (call.method == 'scheduleFrame') {
+          ui.PlatformDispatcher.instance.scheduleFrame();
+        }
+        return null;
+      });
+      await integrationTestChannel.invokeMethod<void>(
+        'convertFlutterSurfaceToImage',
+      );
+      await tester.pump();
+      final bytes = await integrationTestChannel.invokeMethod<List<int>>(
+        'captureScreenshot',
+        <String, Object?>{'name': name},
+      );
+      await integrationTestChannel.invokeMethod<void>('revertFlutterImage');
+      await tester.pump();
+      if (bytes != null) {
+        File('${outDir.path}/$name.png').writeAsBytesSync(bytes);
+      }
+      return;
+    }
+    final data = await binding.callbackManager.takeScreenshot(name);
+    final bytes = (data['bytes']! as List<Object?>).cast<int>();
+    File('${outDir.path}/$name.png').writeAsBytesSync(bytes);
   }
 
   Future<void> _scroll() async {
@@ -370,6 +446,7 @@ class _Density {
       'liquid_available': MorphGlassRenderer.liquidAvailable,
       'runs': _runs,
       'geometry_failures': geometryFailures,
+      'container': _container,
       'layers': _layers,
       for (final MapEntry(key: scene, value: windows) in _scenes.entries)
         scene: () {

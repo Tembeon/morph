@@ -719,13 +719,16 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     LiquidGlassAppearance at(int index) =>
         index < appearances.length ? appearances[index] : fallback;
     return <double>[
-      for (var i = 0; i < 16; i++) ...<double>[
-        at(i).tint.r,
-        at(i).tint.g,
-        at(i).tint.b,
-        at(i).tint.a,
-      ],
-      for (var i = 0; i < 16; i++) ...<double>[
+      for (
+        var i = 0;
+        i < FlutterGpuGeometryRenderer.maxShapes;
+        i++
+      ) ...<double>[at(i).tint.r, at(i).tint.g, at(i).tint.b, at(i).tint.a],
+      for (
+        var i = 0;
+        i < FlutterGpuGeometryRenderer.maxShapes;
+        i++
+      ) ...<double>[
         at(i).saturation / 4,
         at(i).transmissionGamma / 4,
         at(i).vibrancy / 4,
@@ -1553,7 +1556,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       for (final (_, geometry, geometryToLayer) in geometries) {
         var firstInGroup = true;
         for (final shape in geometry.shapes) {
-          if (numShapes >= 16) break; // MAX_SHAPES limit
+          if (numShapes >= FlutterGpuGeometryRenderer.maxShapes) break;
 
           final shapeToGeometry = shape.shapeToGeometry ?? _identity;
           final basis = _matteShapeBasis(geometryToLayer, shapeToGeometry);

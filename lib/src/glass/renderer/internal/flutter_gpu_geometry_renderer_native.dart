@@ -55,6 +55,10 @@ class FlutterGpuGeometryRenderer {
     }(), 'Track live geometry renderers in debug builds.');
   }
 
+  /// The most shapes one geometry pass encodes, `MAX_SHAPES` of the GPU
+  /// shaders.
+  static const int maxShapes = 32;
+
   // Flutter's centered half-pixel coverage transition.
   static const double _geometryAaHalfWidth = 0.5;
 
@@ -345,7 +349,7 @@ class FlutterGpuGeometryRenderer {
     );
     final materialWidth = writeTintOnly
         ? materialMapWidth
-        : math.max(16, materialMapWidth);
+        : math.max(maxShapes, materialMapWidth);
     final materialHeight = writeTintOnly
         ? materialMapHeight
         : materialMapHeight + 2;
@@ -365,7 +369,7 @@ class FlutterGpuGeometryRenderer {
         width: materialWidth,
         height: materialHeight,
         maxWidth: math.max(
-          16,
+          maxShapes,
           (viewWidth + materialRasterScale - 1) ~/ materialRasterScale,
         ),
         maxHeight:
@@ -777,7 +781,10 @@ class FlutterGpuGeometryRenderer {
     floatData[contourPropsIndex + 3] = materialMapHeight;
 
     final shapeDataStartIndex = _offsetShapeData ~/ 4;
-    final shapeFloats = shapeData.length < 192 ? shapeData.length : 192;
+    const shapeLimit = maxShapes * 12;
+    final shapeFloats = shapeData.length < shapeLimit
+        ? shapeData.length
+        : shapeLimit;
     for (var i = 0; i < shapeFloats; i++) {
       floatData[shapeDataStartIndex + i] = shapeData[i];
     }
@@ -787,7 +794,7 @@ class FlutterGpuGeometryRenderer {
     _writtenShapeFloats = shapeFloats;
 
     final rseDataStartIndex = _offsetRseData ~/ 4;
-    final rseFloats = rseData.length < 192 ? rseData.length : 192;
+    final rseFloats = rseData.length < shapeLimit ? rseData.length : shapeLimit;
     for (var i = 0; i < rseFloats; i++) {
       floatData[rseDataStartIndex + i] = rseData[i];
     }
@@ -796,26 +803,28 @@ class FlutterGpuGeometryRenderer {
     }
     _writtenRseFloats = rseFloats;
 
-    if (appearanceData.isNotEmpty && appearanceData.length != 16 * 2 * 4) {
+    if (appearanceData.isNotEmpty &&
+        appearanceData.length != maxShapes * 2 * 4) {
       throw ArgumentError.value(
         appearanceData.length,
         'appearanceData.length',
-        'must contain two vec4 rows for each of 16 shapes',
+        'must contain two vec4 rows for each of $maxShapes shapes',
       );
     }
     if (appearanceData.isNotEmpty) {
       final shapeTintsStartIndex = _offsetShapeTints ~/ 4;
       final shapeResponsesStartIndex = _offsetShapeResponses ~/ 4;
-      for (var i = 0; i < 16 * 4; i++) {
+      for (var i = 0; i < maxShapes * 4; i++) {
         floatData[shapeTintsStartIndex + i] = appearanceData[i];
-        floatData[shapeResponsesStartIndex + i] = appearanceData[16 * 4 + i];
+        floatData[shapeResponsesStartIndex + i] =
+            appearanceData[maxShapes * 4 + i];
       }
     }
 
     // Shapes without bounds are never culled.
     final boundsStartIndex = _offsetShapeBounds ~/ 4;
-    final boundsFloats = math.min(boundsData.length, 16 * 4);
-    for (var i = 0; i < 16 * 4; i++) {
+    final boundsFloats = math.min(boundsData.length, maxShapes * 4);
+    for (var i = 0; i < maxShapes * 4; i++) {
       floatData[boundsStartIndex + i] = i < boundsFloats
           ? boundsData[i]
           : (i % 4 < 2 ? -1e9 : 1e9);

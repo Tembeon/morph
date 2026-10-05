@@ -641,14 +641,14 @@ void main() {
             );
         }
         int primary = int(clamp(
-            floor(contributors.r * 16.0),
+            floor(contributors.r * 32.0),
             0.0,
-            15.0
+            31.0
         ));
         int secondary = int(clamp(
-            floor(contributors.g * 16.0),
+            floor(contributors.g * 32.0),
             0.0,
-            15.0
+            31.0
         ));
         float secondaryWeight = 1.0 - primaryWeight;
         vec4 primaryTint = shapeLookup(

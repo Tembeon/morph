@@ -36,7 +36,10 @@ Future<void> morphWarmLiquidPipelines(
 ) async {
   final images = <ui.Image>[];
   try {
-    final appearance = List<double>.filled(16 * 2 * 4, 0);
+    final appearance = List<double>.filled(
+      FlutterGpuGeometryRenderer.maxShapes * 2 * 4,
+      0,
+    );
     final shapes = geometry.render(
       width: 8,
       height: 8,

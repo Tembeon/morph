@@ -5,7 +5,7 @@
 // supplies a smooth, approximate tint transition between nearby shapes. It
 // shares the geometry pass's analytic normals.
 
-#define MAX_SHAPES 16
+#define MAX_SHAPES 32
 
 #ifndef MATERIAL_TINT_OUTPUT
 #define MATERIAL_TINT_OUTPUT 0
@@ -52,7 +52,23 @@ vec4 materialShapeTint(int index) {
     if (index == 12) return geometryUniforms.uShapeTints[12];
     if (index == 13) return geometryUniforms.uShapeTints[13];
     if (index == 14) return geometryUniforms.uShapeTints[14];
-    return geometryUniforms.uShapeTints[15];
+    if (index == 15) return geometryUniforms.uShapeTints[15];
+    if (index == 16) return geometryUniforms.uShapeTints[16];
+    if (index == 17) return geometryUniforms.uShapeTints[17];
+    if (index == 18) return geometryUniforms.uShapeTints[18];
+    if (index == 19) return geometryUniforms.uShapeTints[19];
+    if (index == 20) return geometryUniforms.uShapeTints[20];
+    if (index == 21) return geometryUniforms.uShapeTints[21];
+    if (index == 22) return geometryUniforms.uShapeTints[22];
+    if (index == 23) return geometryUniforms.uShapeTints[23];
+    if (index == 24) return geometryUniforms.uShapeTints[24];
+    if (index == 25) return geometryUniforms.uShapeTints[25];
+    if (index == 26) return geometryUniforms.uShapeTints[26];
+    if (index == 27) return geometryUniforms.uShapeTints[27];
+    if (index == 28) return geometryUniforms.uShapeTints[28];
+    if (index == 29) return geometryUniforms.uShapeTints[29];
+    if (index == 30) return geometryUniforms.uShapeTints[30];
+    return geometryUniforms.uShapeTints[31];
 }
 
 void main() {

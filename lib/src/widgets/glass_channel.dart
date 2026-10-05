@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
@@ -452,6 +453,7 @@ class _MorphGlassHostElement extends ComponentElement {
   MorphGlassRenderer? _renderer;
   Widget? _tree;
   Widget? _content;
+  MorphGlassContainerLink? _container;
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -462,7 +464,24 @@ class _MorphGlassHostElement extends ComponentElement {
   @override
   void unmount() {
     _host.frames?.removeListener(markNeedsBuild);
+    _container?.release(this);
     super.unmount();
+  }
+
+  /// The structure of [frame] drawn by [renderer], with whether the
+  /// nearest glass container shades it.
+  Object _structureOf(MorphGlassRenderer renderer, MorphGlassFrame frame) {
+    final container = MorphGlassContainerScope.maybeOf(this);
+    if (!identical(container, _container)) _container?.release(this);
+    _container = container;
+    final joined =
+        _host.mode == MorphGlassMode.layer &&
+        container != null &&
+        container.admit(this, renderer, frame);
+    return (
+      renderer.structureOf(_host.mode, frame, content: _host.content != null),
+      joined,
+    );
   }
 
   @override
@@ -497,14 +516,7 @@ class _MorphGlassHostElement extends ComponentElement {
       return false;
     }
     final frame = _host.frame();
-    if (renderer.structureOf(
-          _host.mode,
-          frame,
-          content: _host.content != null,
-        ) !=
-        _structure) {
-      return false;
-    }
+    if (_structureOf(renderer, frame) != _structure) return false;
     channel.push(frame);
     return true;
   }
@@ -539,6 +551,8 @@ class _MorphGlassHostElement extends ComponentElement {
     final painter = _host.painter;
     if (painter.runtimeType != MorphGlassRenderer ||
         debugMorphGlassRebuildEveryFrame) {
+      _container?.release(this);
+      _container = null;
       _channel = null;
       _renderer = null;
       _structure = null;
@@ -546,11 +560,7 @@ class _MorphGlassHostElement extends ComponentElement {
     }
     final renderer = painter as MorphGlassRenderer;
     final content = _host.content;
-    final structure = renderer.structureOf(
-      _host.mode,
-      frame,
-      content: content != null,
-    );
+    final structure = _structureOf(renderer, frame);
     final channel = _channel;
     if (channel == null || renderer != _renderer || structure != _structure) {
       final source = channel ?? MorphGlassChannel(frame);

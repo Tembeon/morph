@@ -1,0 +1,127 @@
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
+import 'package:morph/widgets.dart';
+
+Offset _center(int i) => Offset(40 + (i % 8) * 50.0, 60 + (i ~/ 8) * 44.0);
+
+Widget _page(
+  int count, {
+  required bool container,
+  MorphGlassTier tier = MorphGlassTier.liquid,
+}) {
+  final buttons = Stack(
+    children: [
+      for (var i = 0; i < count; i++)
+        Positioned.fromRect(
+          rect: Rect.fromCenter(center: _center(i), width: 44, height: 36),
+          child: MorphGlassButton(
+            key: ValueKey<int>(i),
+            onPressed: () {},
+            child: Text('$i'),
+          ),
+        ),
+    ],
+  );
+  return MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
+    home: MorphAdaptiveGlass(
+      tier: tier,
+      child: ColoredBox(
+        color: const Color(0xFF203040),
+        child: container ? MorphGlassContainer(child: buttons) : buttons,
+      ),
+    ),
+  );
+}
+
+int _filters() {
+  var count = 0;
+  void walk(Layer layer) {
+    if (layer.runtimeType == BackdropFilterLayer) count++;
+    if (layer is ContainerLayer) {
+      for (
+        var child = layer.firstChild;
+        child != null;
+        child = child.nextSibling
+      ) {
+        walk(child);
+      }
+    }
+  }
+
+  for (final view in RendererBinding.instance.renderViews) {
+    final root = view.debugLayer;
+    if (root != null) walk(root);
+  }
+  return count;
+}
+
+void main() {
+  setUpAll(() => isLocalTest = true);
+  tearDownAll(() => isLocalTest = false);
+
+  for (final tier in [MorphGlassTier.liquid, MorphGlassTier.fake]) {
+    testWidgets('resting buttons in a container share one layer '
+        '(${tier.name})', (WidgetTester tester) async {
+      await tester.pumpWidget(_page(8, container: true, tier: tier));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(LiquidGlassLayer), findsOneWidget);
+      expect(find.byType(LiquidGlass), findsNWidgets(8));
+      await tester.pumpWidget(_page(8, container: false, tier: tier));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(LiquidGlassLayer), findsNWidgets(8));
+    });
+  }
+
+  testWidgets('a pressed button leaves the container and comes back', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_page(4, container: true));
+    await tester.pump(const Duration(milliseconds: 100));
+    final gesture = await tester.startGesture(_center(1));
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    expect(find.byType(LiquidGlass), findsNWidgets(4));
+  });
+
+  testWidgets('a container shades at most its capacity, the rest draw '
+      'their own layer', (WidgetTester tester) async {
+    await tester.pumpWidget(_page(40, container: true));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(LiquidGlass), findsNWidgets(40));
+    expect(find.byType(LiquidGlassLayer), findsNWidgets(1 + 40 - 32));
+  });
+
+  testWidgets('on the flat tier a container adds nothing', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _page(4, container: true, tier: MorphGlassTier.flat),
+    );
+    expect(find.byType(LiquidGlassLayer), findsNothing);
+  });
+
+  testWidgets('a container paints one backdrop filter for its buttons', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _page(8, container: true, tier: MorphGlassTier.fake),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    final shared = _filters();
+    await tester.pumpWidget(
+      _page(8, container: false, tier: MorphGlassTier.fake),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(shared, lessThan(_filters()));
+  });
+}
