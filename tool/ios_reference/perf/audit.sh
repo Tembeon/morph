@@ -10,6 +10,10 @@
 #   AUDIT_UDID=<udid>             default: the owner's iPhone 16 Pro
 #   AUDIT_SOURCE=<checkout>       the tree to build (a git worktree at a fixed commit keeps
 #                                 other agents' uncommitted edits out of the numbers)
+#   AUDIT_TARGET=<test file>      default integration_test/glass_audit_test.dart; the density
+#                                 audit is integration_test/glass_density_test.dart
+#   AUDIT_REPORT=<tmp dir>        the app's report directory, default tmp/glass (the density
+#                                 audit writes tmp/glass_density)
 #
 # The run step expects the phone lock (spec/README.md) to be held by the caller.
 # Results: tool/ios_reference/perf/<date>-<label>/<tier>.json; summarize.py prints them.
@@ -22,6 +26,8 @@ STEP=${AUDIT_STEP:-all}
 TIERS=${AUDIT_TIERS:-liquid frosted flat}
 RUNS=${AUDIT_RUNS:-5}
 LABEL=${AUDIT_LABEL:-run}
+TARGET=${AUDIT_TARGET:-integration_test/glass_audit_test.dart}
+REPORT=${AUDIT_REPORT:-tmp/glass}
 APPS=${AUDIT_APPS:-/tmp/morph-perf/apps}
 SHOTS=${AUDIT_SHOTS:-/tmp/morph-perf/shots/$LABEL}
 OUT=$ROOT/tool/ios_reference/perf/$(date +%F)-$LABEL
@@ -30,7 +36,7 @@ if [ "$STEP" = build ] || [ "$STEP" = all ]; then
   mkdir -p "$APPS"
   for tier in $TIERS; do
     (cd "$SOURCE/example" && flutter build ios --profile \
-      -t integration_test/glass_audit_test.dart \
+      -t "$TARGET" \
       --dart-define=GALLERY_GLASS="$tier" --dart-define=AUDIT_RUNS="$RUNS" | tail -2)
     rm -rf "$APPS/$tier.app"
     cp -R "$SOURCE/example/build/ios/iphoneos/Runner.app" "$APPS/$tier.app"
@@ -46,7 +52,7 @@ if [ "$STEP" = run ] || [ "$STEP" = all ]; then
     rm -f "$OUT/$tier.json"
     i=0
     until xcrun devicectl device copy from --device "$UDID" --domain-type appDataContainer \
-      --domain-identifier "$BUNDLE" --source tmp/glass/report.json \
+      --domain-identifier "$BUNDLE" --source "$REPORT/report.json" \
       --destination "$OUT/$tier.json" >/dev/null 2>&1; do
       i=$((i + 1))
       if [ $i -gt 120 ]; then echo "no report for $tier"; exit 1; fi
@@ -54,7 +60,7 @@ if [ "$STEP" = run ] || [ "$STEP" = all ]; then
     done
     rm -rf "$SHOTS/$tier"
     xcrun devicectl device copy from --device "$UDID" --domain-type appDataContainer \
-      --domain-identifier "$BUNDLE" --source tmp/glass \
+      --domain-identifier "$BUNDLE" --source "$REPORT" \
       --destination "$SHOTS/$tier" >/dev/null 2>&1 || true
     echo "$tier done"
   done

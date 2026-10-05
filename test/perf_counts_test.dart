@@ -416,6 +416,66 @@ MorphBarButton _barIcon(String id) => MorphBarButton(
   onPressed: () {},
 );
 
+/// The density page: [count] standalone glass buttons on one plane over a
+/// list of coloured rows (example/integration_test/glass_density_test.dart).
+Widget _density(int count) => Scaffold(
+  backgroundColor: const Color(0xFF000000),
+  body: Stack(
+    children: [
+      Positioned.fill(
+        child: ListView.builder(
+          itemCount: 400,
+          itemBuilder: (BuildContext context, int i) => SizedBox(
+            height: 56,
+            child: ColoredBox(
+              color: Color(0xFF000000 | ((i * 0x2A3F1B) & 0xFFFFFF)),
+              child: Text('Row $i'),
+            ),
+          ),
+        ),
+      ),
+      for (var i = 0; i < count; i++)
+        Positioned.fromRect(
+          rect: Rect.fromCenter(
+            center: _densityButton(i),
+            width: 80,
+            height: 44,
+          ),
+          child: MorphGlassButton(onPressed: () {}, child: Text('$i')),
+        ),
+    ],
+  ),
+);
+
+Offset _densityButton(int i) =>
+    Offset(57 + (i % 4) * 96.0, 120 + (i ~/ 4) * 60.0);
+
+/// Presses [count] density buttons in a wave: finger i lands two frames
+/// after finger i - 1 and lifts 25 frames after it landed.
+Future<void> _wave(WidgetTester tester, int count) async {
+  const down = 25;
+  final gestures = <int, TestGesture>{};
+  final last = (count - 1) * 2 + down;
+  for (var frame = 0; frame <= last; frame++) {
+    for (var i = 0; i < count; i++) {
+      if (frame == i * 2) {
+        gestures[i] = await tester.startGesture(
+          _densityButton(i),
+          pointer: 100 + i,
+        );
+      } else if (frame == i * 2 + down) {
+        await gestures.remove(i)!.up();
+      }
+    }
+    await tester.pump(const Duration(milliseconds: 8));
+  }
+  for (var i = 0; i < 90; i++) {
+    await tester.pump(const Duration(milliseconds: 8));
+  }
+}
+
+const _densities = [1, 4, 8, 16, 32];
+
 final _scenes = <_Scene>[
   _Scene(
     'segmented-drag',
@@ -637,4 +697,14 @@ final _scenes = <_Scene>[
       }
     },
   ),
+  for (final n in _densities) ...[
+    _Scene('density-rest-$n', () => _density(n), (tester) async {
+      await _drag(
+        tester,
+        const Offset(201, 800),
+        _line(const Offset(201, 800), const Offset(201, 500), 40),
+      );
+    }),
+    _Scene('density-wave-$n', () => _density(n), (tester) => _wave(tester, n)),
+  ],
 ];
