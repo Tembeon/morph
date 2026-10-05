@@ -43,6 +43,12 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   raster to 5 and 11 ms, frosted's first raster from 64 - 73 to 19 -
   25 ms; precache now takes 0.3 - 0.45 s instead of 3 ms, so call it
   behind the splash, before `runApp`.
+- Fixed: the app could hang at launch, Not Responding (seen on macOS).
+  A frame with about 62 glass layers held that many geometry passes
+  unsubmitted, and Metal's command queue holds 64: the next pass blocked
+  the UI thread forever. Passes are now submitted every 16, a failed one
+  no longer strands the rest, and `MorphGlassRenderer.precache` holds a
+  launch at most 1 s, finishing the warm-up in the background past it.
 - Performance, pixels changed below what the eye sees (owner decision):
   an outline fused at spacing 0 - the menu's settle tail once its fusion
   radius is under 1 pt, every submenu card - is the exact union of its
