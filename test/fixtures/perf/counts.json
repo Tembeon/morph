@@ -147,7 +147,7 @@
     "builds": 7.7,
     "paints": 81.7,
     "pictures": 3.7,
-    "captures": 1.0,
+    "captures": 2.0,
     "offscreen": 2.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
@@ -210,7 +210,7 @@
   },
   "nav-scroll/frosted": {
     "frames": 94,
-    "builds": 2.8,
+    "builds": 2.9,
     "paints": 78.5,
     "pictures": 2.4,
     "captures": 1.9,
@@ -232,7 +232,7 @@
   },
   "sheet/frosted": {
     "frames": 154,
-    "builds": 9.9,
+    "builds": 10.0,
     "paints": 21.2,
     "pictures": 3.0,
     "captures": 1.0,
@@ -331,7 +331,7 @@
   },
   "nav-scroll/liquid": {
     "frames": 94,
-    "builds": 3.0,
+    "builds": 3.1,
     "paints": 60.2,
     "pictures": 0.6,
     "captures": 3.9,

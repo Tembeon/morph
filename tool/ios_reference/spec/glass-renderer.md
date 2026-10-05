@@ -117,8 +117,13 @@ NEVER while a pointer is down. Engineering defaults, not measurements.
 
 - Body surfaces in one layer reading the nearest BackdropGroup's shared
   copy (root group in GalleryApp, own groups for the glass page's scene
-  and card); bars and menus take their own copy. A bar's capsules fuse at
-  the bar's container spacing (12: groups 12 apart stay separate).
+  and card); bar and menu kinds take their own copy on the liquid AND
+  frosted tiers, through buildLayer, buildBody and buildSurface alike.
+  The navigation bar and toolbar (button-kind capsules) share one group
+  of their own per screen (`MorphChromeBackdrop`, keyed by the stack's
+  or scaffold's `MorphChromeBackdropScope`; a bar alone gets its own),
+  as do the search tab bar and a sheet's content. A bar's capsules fuse
+  at the bar's container spacing (12: groups 12 apart stay separate).
 - A resting lens/knob/thumb is an opaque platter; lifted it is clear glass
   in its own INDEPENDENT layer (own backdrop copy) above body + content.
   The lens shows the content once more inside its outline, each item
@@ -158,6 +163,57 @@ NEVER while a pointer is down. Engineering defaults, not measurements.
   that warp (shrink, rim and visibility read from the LiquidGlassLayer /
   LiquidGlass they render with, the text read in the strip holding its
   center).
+
+## Backdrop groups (2026-10-05, Flutter 3.47.2, engine a804b26164)
+
+- ENGINE: a keyed backdrop filter whose key has more than one use in the
+  frame does the readback ONCE (impeller/display_list/canvas.cc
+  SaveLayer: the first use calls FlipBackdrop and keeps the texture in
+  `BackdropData::texture_slot`, every later use filters that slot). On
+  Metal `EntityPassTarget::Flip` returns the CURRENT resolve texture
+  (`supports_read_from_resolve_`), which every later pass resolves into
+  again, so a later member reads the pass texture as it stood at the
+  LAST backdrop flip of any filter before it - not at the first member,
+  not at itself. Glass in one group therefore misses everything painted
+  since the previous backdrop flip.
+- DEVICE REPRO (example/integration_test/backdrop_group_test.dart,
+  liquid, dark): a resting body glass button painted first, red/green
+  stripes after it under the navigation bar and toolbar, the bars over
+  a hard scroll edge effect. Variants: button in the root group, no
+  button, button in its own group. Before the fix the root-group
+  variant's navigation bar capsule showed the stripes RAW - sharp, no
+  edge effect - (max channel diff 58 to the no-button scene inside the
+  capsule; the toolbar matched, its last flip came after the stripes);
+  no button and own group were identical (diff 0). After the fix all
+  three are identical in both bars (diff 0). UIKit's glass always reads
+  what lies under it, so the no-button scene is the reference; no
+  native probe was needed.
+- The same law bit a sheet's content: its glass buttons shared the root
+  group with the page's buttons. Once the sheet surface read its own
+  copy (a flip just before the sheet paints), they showed the page
+  through the sheet; the sheet's content now has its own group.
+- FIX (cheapest correct grouping): bar / menu kinds never take the
+  shared key on either tier (buildSurface used to pass it on liquid,
+  the frosted tier passed it for everything); the navigation bar and
+  toolbar share one chrome key per screen (`MorphChromeBackdropScope`
+  above the stack's or scaffold's bars; a bar alone keys itself), the
+  search tab bar and a sheet's content get a group of their own. Cost:
+  a page whose body holds no glass pays nothing (the root key then has
+  no member); a page with resting body glass pays one capture more for
+  its bars. Counts (test/perf_counts_test.dart, pinned): captures
+  unchanged except tab-bar/frosted 1 -> 2 (the bar copy); builds
+  nav-scroll +0.1 per frame (the group's element), sheet/frosted
+  9.9 -> 10.0. Device audit (5 runs, median, 2026-10-05-bdg-base at
+  aa3105a vs 2026-10-05-bdg-fix, p95 build / raster ms): liquid within
+  noise on every scene (controls 2.46/2.98 -> 2.34/3.01, sheet
+  1.33/3.19 -> 1.34/3.32, menu 2.13/3.08 -> 2.09/3.13); frosted menu
+  raster 2.40 -> 2.79 (the card's own copy), sheet 3.93 -> 2.63,
+  segmented 2.55 -> 2.11, the rest within noise. Shots that changed
+  beyond noise: sheet-medium (both tiers: the floating sheet now reads
+  the page through it, as the UIKit reference does - it used to read a
+  dark copy), frosted tab bar (the bar now tinted by the rows under it,
+  as on liquid), frosted tall menu (the card now blurs the button under
+  it); everything else within the run-to-run noise above.
 
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
@@ -205,15 +261,9 @@ NEVER while a pointer is down. Engineering defaults, not measurements.
     lazy field for the flat and frosted tiers is not worth its
     complexity.
   - Chrome capture sharing (V1a): MorphNavigationStack's bar and toolbar
-    capsules are `button` glass, so on the liquid tier they already read
-    ONE capture - the root BackdropGroup's - and there is nothing to
-    share. Impeller takes a shared key's snapshot at its FIRST filter in
-    paint order (canvas.cc, backdrop_data texture_slot), so on a page
-    whose body holds resting body glass (a glass button) the bars read
-    the backdrop as it was when that glass painted: content painted
-    after it, and the scroll edge effect, are missing under the bars.
-    Unverified on the device; a chrome group of their own would fix it
-    at one more capture per frame on such pages (a fidelity decision).
+    capsules are `button` glass and read ONE capture - the root
+    BackdropGroup's - with the page's body glass. That was a fidelity
+    bug, fixed 2026-10-05 (below).
   - Opacity at full presence (V2): an OpacityLayer at alpha 255 pushes
     no save layer in the engine (flow/layers/opacity_layer.cc,
     LayerStateStack applyOpacity only below 1), so it costs no offscreen
@@ -272,3 +322,7 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
 
 - Dark lifted slider thumb look (slider.md).
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).
+- Backdrop groups: a lifted lens on the FROSTED tier still reads the root
+  copy (it does not see the track under it; kept shared so the fallback
+  tier stays cheap), and glass inside an alert or a context menu's hero
+  replica shares the root group - unverified on the device.

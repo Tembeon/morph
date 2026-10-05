@@ -9,6 +9,7 @@ import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
+import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
@@ -1273,8 +1274,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
         );
       },
     );
-    if (MorphScope.maybeOf(context) != null) return items;
-    return MorphScope(child: items);
+    final grouped = MorphChromeBackdrop(child: items);
+    if (MorphScope.maybeOf(context) != null) return grouped;
+    return MorphScope(child: grouped);
   }
 
   Color _capsuleColor(Object id, MorphBarStyle style) {

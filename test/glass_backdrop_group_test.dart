@@ -85,4 +85,102 @@ void main() {
       isTrue,
     );
   });
+
+  testWidgets('G5 bars share a backdrop group apart from the page glass', (
+    tester,
+  ) async {
+    final root = BackdropKey();
+    await tester.pumpWidget(
+      WidgetsApp(
+        color: const Color(0xFF000000),
+        builder: (BuildContext context, Widget? _) => MediaQuery(
+          data: const MediaQueryData(size: Size(402, 874)),
+          child: BackdropGroup(
+            backdropKey: root,
+            child: MorphGlass(
+              painter: const MorphGlassRenderer(tier: MorphGlassTier.frosted),
+              child: MorphNavigationScaffold(
+                title: 'Page',
+                trailing: [
+                  MorphBarButtonGroup([
+                    MorphBarButton(id: 'top', label: 'Top', onPressed: () {}),
+                  ]),
+                ],
+                toolbarTrailing: [
+                  MorphBarButtonGroup([
+                    MorphBarButton(
+                      id: 'bottom',
+                      label: 'Bottom',
+                      onPressed: () {},
+                    ),
+                  ]),
+                ],
+                slivers: [
+                  SliverToBoxAdapter(
+                    child: MorphGlassButton(
+                      onPressed: () {},
+                      child: const Text('Body'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    List<BackdropKey?> keys(Type type) => [
+      for (final f in tester.widgetList<BackdropFilter>(
+        find.descendant(
+          of: find.byType(type),
+          matching: find.byType(BackdropFilter),
+        ),
+      ))
+        f.backdropGroupKey,
+    ];
+    final body = keys(MorphGlassButton);
+    final top = keys(MorphNavigationBar).nonNulls.toSet();
+    final toolbar = keys(MorphToolbar);
+    expect(body, isNotEmpty);
+    expect(body.every((k) => identical(k, root)), isTrue);
+    expect(top, hasLength(1));
+    expect(top.single, isNot(same(root)));
+    expect(toolbar, isNotEmpty);
+    expect(toolbar.every((k) => identical(k, top.single)), isTrue);
+  });
+
+  testWidgets('G6 frosted chrome surfaces take a backdrop copy of their own', (
+    tester,
+  ) async {
+    final shared = BackdropKey();
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: BackdropGroup(
+          backdropKey: shared,
+          child: SizedBox(
+            width: 300,
+            height: 80,
+            child: Builder(
+              builder: (context) =>
+                  const MorphGlassRenderer(
+                    tier: MorphGlassTier.frosted,
+                  ).buildSurface(
+                    context,
+                    const MorphGlassSurface(
+                      kind: MorphGlassKind.menu,
+                      shape: RRect.fromLTRBXY(0, 0, 300, 80, 20, 20),
+                      color: Color(0xFFFFFFFF),
+                      brightness: Brightness.light,
+                    ),
+                  ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final filter = tester.widget<BackdropFilter>(find.byType(BackdropFilter));
+    expect(filter.backdropGroupKey, isNull);
+  });
 }

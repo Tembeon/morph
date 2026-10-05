@@ -174,6 +174,18 @@ Cross-cutting policy:
 - Fade glass through `MorphGlassSurface.opacity`, never through an
   Opacity above it (it reads an empty backdrop), and never put an
   OpacityLayer between resting glass (it breaks BackdropGroup sharing).
+- BACKDROP GROUPS: a shared group member does NOT read the backdrop at
+  its own place in paint order. On iOS (Metal reads from the resolve
+  texture) every member after the first reads the pass texture as it
+  stood at the LAST backdrop flip before it (any filter's), elsewhere the
+  copy of the first member. So only glass whose backdrop is complete
+  before the group's first glass may share: the page's resting body
+  glass shares the root group; anything floating over the page reads a
+  copy of its own or its own group - bar / menu kinds (both tiers, also
+  through buildSurface), the navigation bar + toolbar (one
+  `MorphChromeBackdrop` key per screen, chrome_group.dart), the search
+  tab bar, a sheet's content, a menu's card, lifted glass.
+  Device evidence: glass-renderer.md.
 - ONE renderer in the package (lib/src/glass/renderer, vendored
   whynotmake-it, Apache-2.0, VENDORED lists local patches; owner decision
   2026-10-03 - the old no-shader rule is cancelled). Public entry
@@ -1111,6 +1123,9 @@ Outline fusion on the device (100-call mean after a warm-up pass; the
 first case after the scenes pays ~45 ms of one-time work, which read as
 "4 pt 1.13 ms"): menu blur 4 pt 0.67 ms, 10 pt 0.62, 20 pt 0.36, plain
 union of a 260 x 600 menu 0.49 (0.73 before), two bar capsules 0.12.
+The backdrop-group fix (2026-10-05-bdg-base -> -bdg-fix, same table's
+scenes) left every liquid percentile within noise; frosted menu raster
+p95 2.40 -> 2.79, frosted sheet 3.93 -> 2.63 (glass-renderer.md).
 
 Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 

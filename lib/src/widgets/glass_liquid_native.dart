@@ -262,7 +262,7 @@ Widget morphLiquidSurface(
   MorphGlassRenderer renderer,
   BuildContext context,
   MorphGlassSurface surface,
-) => _layer(renderer, [_local(surface)]);
+) => _layer(renderer, [_local(surface)], shared: !_chrome(surface));
 
 /// One fused glass body on the liquid tier, filling its layer's box.
 ///
@@ -303,6 +303,7 @@ Widget morphLiquidBody(
         _Frost(
           surface: surfaces.first,
           sigma: renderer.blur * MorphGlassDefaults.chromeFrost,
+          shared: !chrome,
         ),
         _layer(renderer, surfaces, shared: !chrome),
       ],
@@ -443,15 +444,20 @@ Widget morphLiquidLayer(
 /// Frosted glass over the whole box: the backdrop blurred by [sigma] and
 /// tinted by [surface]'s color.
 class _Frost extends StatelessWidget {
-  const _Frost({required this.surface, required this.sigma});
+  const _Frost({
+    required this.surface,
+    required this.sigma,
+    required this.shared,
+  });
 
   final MorphGlassSurface surface;
   final double sigma;
+  final bool shared;
 
   @override
   Widget build(BuildContext context) {
     return BackdropFilter(
-      backdropGroupKey: BackdropGroup.of(context)?.backdropKey,
+      backdropGroupKey: shared ? BackdropGroup.of(context)?.backdropKey : null,
       filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
       child: ColoredBox(
         color: surface.color.withValues(

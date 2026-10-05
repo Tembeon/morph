@@ -324,6 +324,9 @@ class MorphGlassRenderer extends MorphGlassPainter {
     MorphGlassTier.frosted => _FrostedBody(
       outline: outline,
       surface: surfaces.first,
+      shared: surfaces.every(
+        (s) => s.kind != MorphGlassKind.bar && s.kind != MorphGlassKind.menu,
+      ),
     ),
     MorphGlassTier.liquid => morphLiquidBody(this, context, outline, surfaces),
   };
@@ -509,6 +512,14 @@ double _frostSigma(MorphGlassSurface surface) =>
         }) *
     surface.opacity.clamp(0.0, 1.0);
 
+/// The shared backdrop copy [surface] reads, or null for one of its own:
+/// chrome floats over content painted after the group's first glass.
+BackdropKey? _frostKey(BuildContext context, MorphGlassSurface surface) =>
+    switch (surface.kind) {
+      MorphGlassKind.bar || MorphGlassKind.menu => null,
+      _ => BackdropGroup.of(context)?.backdropKey,
+    };
+
 Color _faded(Color color, double opacity) =>
     color.withValues(alpha: color.a * opacity.clamp(0.0, 1.0));
 
@@ -538,7 +549,7 @@ class _FrostedSurface extends StatelessWidget {
     return ClipRRect(
       borderRadius: radius,
       child: BackdropFilter(
-        backdropGroupKey: BackdropGroup.of(context)?.backdropKey,
+        backdropGroupKey: _frostKey(context, surface),
         filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         child: DecoratedBox(
           decoration: BoxDecoration(color: _faded(surface.color, opacity)),
@@ -575,10 +586,15 @@ class _FrostedSurface extends StatelessWidget {
 /// A frosted fused body: the backdrop blurred inside its outline, tinted
 /// by the color of its first surface, with a rim along the outline.
 class _FrostedBody extends StatelessWidget {
-  const _FrostedBody({required this.outline, required this.surface});
+  const _FrostedBody({
+    required this.outline,
+    required this.surface,
+    required this.shared,
+  });
 
   final MorphGlassOutline outline;
   final MorphGlassSurface surface;
+  final bool shared;
 
   @override
   Widget build(BuildContext context) {
@@ -587,7 +603,9 @@ class _FrostedBody extends StatelessWidget {
     return ClipPath(
       clipper: MorphGlassOutlineClip(outline.path),
       child: BackdropFilter(
-        backdropGroupKey: BackdropGroup.of(context)?.backdropKey,
+        backdropGroupKey: shared
+            ? BackdropGroup.of(context)?.backdropKey
+            : null,
         filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
         child: CustomPaint(
           painter: _RimPainter(

@@ -6,6 +6,7 @@ import 'package:flutter/physics.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/navigation_bar.dart';
@@ -290,6 +291,11 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
     _refresh();
   }
 
+  final BackdropKey _barsBackdrop = BackdropKey();
+
+  Widget _bars(Widget bar) =>
+      MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar);
+
   MorphBarButtonGroup? _leadingOf(List<PageRoute<Object?>> pages, int index) {
     final config = _configs[pages[index]];
     final leading = config?.leading;
@@ -353,20 +359,22 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
               left: 0,
               right: 0,
               top: 0,
-              child: MorphNavigationBar(
-                title: config?.title,
-                leading: leading,
-                trailing: config?.trailing ?? const [],
-                titleVisible: config?.titleVisible ?? true,
-                scrolledUnder: config?.scrolledUnder ?? false,
-                animate: config?.animate ?? true,
-                edgeEffect: config?.edgeEffect,
-                titleExitShift: _titleExit,
-                drift: drift,
-                style: widget.style,
-                menuStyle: widget.menuStyle,
-                menuTuning: widget.menuTuning,
-                menuOverlay: widget.menuOverlay,
+              child: _bars(
+                MorphNavigationBar(
+                  title: config?.title,
+                  leading: leading,
+                  trailing: config?.trailing ?? const [],
+                  titleVisible: config?.titleVisible ?? true,
+                  scrolledUnder: config?.scrolledUnder ?? false,
+                  animate: config?.animate ?? true,
+                  edgeEffect: config?.edgeEffect,
+                  titleExitShift: _titleExit,
+                  drift: drift,
+                  style: widget.style,
+                  menuStyle: widget.menuStyle,
+                  menuTuning: widget.menuTuning,
+                  menuOverlay: widget.menuOverlay,
+                ),
               ),
             ),
             if (hasToolbar)
@@ -374,13 +382,15 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                child: MorphToolbar(
-                  leading: config?.toolbarLeading ?? const [],
-                  trailing: config?.toolbarTrailing ?? const [],
-                  style: widget.style,
-                  menuStyle: widget.menuStyle,
-                  menuTuning: widget.menuTuning,
-                  menuOverlay: widget.menuOverlay,
+                child: _bars(
+                  MorphToolbar(
+                    leading: config?.toolbarLeading ?? const [],
+                    trailing: config?.toolbarTrailing ?? const [],
+                    style: widget.style,
+                    menuStyle: widget.menuStyle,
+                    menuTuning: widget.menuTuning,
+                    menuOverlay: widget.menuOverlay,
+                  ),
                 ),
               ),
           ],
@@ -893,6 +903,11 @@ class MorphNavigationScaffold extends StatefulWidget {
 
 class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
   ScrollController? _own;
+  final BackdropKey _barsBackdrop = BackdropKey();
+
+  Widget _bars(Widget bar) =>
+      MorphChromeBackdropScope(backdropKey: _barsBackdrop, child: bar);
+
   ScrollController get _controller =>
       widget.controller ?? (_own ??= ScrollController());
   bool _scrolledUnder = false;
@@ -1028,15 +1043,17 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
           left: 0,
           right: 0,
           top: 0,
-          child: MorphNavigationBar(
-            title: widget.title,
-            leading: leading,
-            trailing: widget.trailing,
-            titleVisible: _titleVisible,
-            scrolledUnder: _scrolledUnder,
-            animate: _animate,
-            edgeEffect: widget.edgeEffect,
-            style: widget.style,
+          child: _bars(
+            MorphNavigationBar(
+              title: widget.title,
+              leading: leading,
+              trailing: widget.trailing,
+              titleVisible: _titleVisible,
+              scrolledUnder: _scrolledUnder,
+              animate: _animate,
+              edgeEffect: widget.edgeEffect,
+              style: widget.style,
+            ),
           ),
         ),
         if (hasToolbar)
@@ -1044,10 +1061,12 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
             left: 0,
             right: 0,
             bottom: 0,
-            child: MorphToolbar(
-              leading: widget.toolbarLeading,
-              trailing: widget.toolbarTrailing,
-              style: widget.style,
+            child: _bars(
+              MorphToolbar(
+                leading: widget.toolbarLeading,
+                trailing: widget.toolbarTrailing,
+                style: widget.style,
+              ),
             ),
           ),
       ],

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
@@ -286,7 +287,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       onSubmitted: widget.onSubmitted,
       style: widget.searchStyle,
     );
-    return CallbackShortcuts(
+    final shortcuts = CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
         const SingleActivator(LogicalKeyboardKey.escape): _close,
       },
@@ -428,6 +429,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
         },
       ),
     );
+    return MorphChromeBackdrop(child: shortcuts);
   }
 }
 

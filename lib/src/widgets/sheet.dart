@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/themes.dart';
+import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/motion_route.dart';
@@ -660,7 +661,10 @@ class _SheetViewState extends State<_SheetView>
               viewPadding: media.viewPadding.copyWith(top: 0),
               viewInsets: EdgeInsets.zero,
             ),
-            child: KeyedSubtree(key: _contentKey, child: content),
+            child: KeyedSubtree(
+              key: _contentKey,
+              child: MorphChromeBackdrop(child: content),
+            ),
           ),
           builder: (BuildContext context, Widget? child) {
             final t = motion.time;
