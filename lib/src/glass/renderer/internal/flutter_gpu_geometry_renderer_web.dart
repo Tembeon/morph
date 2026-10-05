@@ -51,6 +51,9 @@ class FlutterGpuGeometryRenderer {
   /// renderer so uniform math stays identical.
   static const int materialRasterScale = 8;
 
+  /// The most shapes one geometry pass encodes.
+  static const int maxShapes = 32;
+
   int debugRenderCount = 0;
   Object get debugPipelineIdentity => this;
   int get debugUniformBlockLength => 0;

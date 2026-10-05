@@ -23,7 +23,7 @@
 // helpers below read these uniforms directly rather than taking them as
 // parameters, so no shape array is ever passed, and copied, by value.
 #ifndef MAX_SHAPES
-#define MAX_SHAPES 16
+#define MAX_SHAPES 32
 #endif
 
 float sdfRRect( in vec2 p, in vec2 b, in float r ) {

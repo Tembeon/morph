@@ -10,7 +10,7 @@
 // The matte packs 12-bit integer codes; fp16 cannot represent them exactly.
 precision highp float;
 
-#define MAX_SHAPES 16
+#define MAX_SHAPES 32
 
 layout(std140) uniform GeometryUniforms {
     vec2 uOffset;
