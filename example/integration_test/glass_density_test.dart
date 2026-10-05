@@ -91,8 +91,12 @@ class DensityPage extends StatelessWidget {
     required this.tier,
     this.compact = false,
     this.container = false,
+    this.aligned = false,
     super.key,
   });
+
+  /// Whether every button's box lies on whole device pixels.
+  final bool aligned;
 
   /// Whether the buttons sit in one [MorphGlassContainer].
   final bool container;
@@ -163,13 +167,27 @@ class DensityPage extends StatelessWidget {
     ),
   );
 
+  Rect _snap(Rect rect) {
+    if (!aligned) return rect;
+    final ratio = ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
+    double on(double v) => (v * ratio).roundToDouble() / ratio;
+    return Rect.fromLTRB(
+      on(rect.left),
+      on(rect.top),
+      on(rect.right),
+      on(rect.bottom),
+    );
+  }
+
   List<Widget> _buttons() => [
     for (var i = 0; i < count; i++)
       Positioned.fromRect(
-        rect: Rect.fromCenter(
-          center: centerOf(i),
-          width: compact ? 44 : 80,
-          height: compact ? 36 : 44,
+        rect: _snap(
+          Rect.fromCenter(
+            center: centerOf(i),
+            width: compact ? 44 : 80,
+            height: compact ? 36 : 44,
+          ),
         ),
         child: MorphGlassButton(onPressed: () {}, child: Text('$i')),
       ),
@@ -234,6 +252,17 @@ class _Density {
       await measure('n$n-wave', () => _wave(n, sample: 'n$n-pressed'));
       await _held(n);
     }
+    runApp(
+      DensityPage(
+        key: const ValueKey<String>('aligned'),
+        count: 8,
+        tier: tier,
+        container: _container,
+        aligned: true,
+      ),
+    );
+    await settle(1500);
+    await shot('n8-aligned');
     runApp(
       DensityPage(
         key: const ValueKey<String>('stress'),
