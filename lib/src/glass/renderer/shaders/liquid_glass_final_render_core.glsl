@@ -561,26 +561,6 @@ void main() {
         uGeometryTexture,
         geometryUV * uGeometryUVScale
     );
-    float maxDisplacement = max(uDisplacementScale, 0.001);
-    float signedEdgeDistance = decodeSignedEdgeDistance(
-        geometryData,
-        4.0 * max(uThickness, 1.0),
-        contourExtent()
-    );
-    // Box-filtered coverage of one physical pixel, as Core Animation
-    // rasterizes the silhouette: a pixel-aligned edge stays hard, so the
-    // glint's first row is not diluted by a wider feather.
-    float materialAlpha = clamp(signedEdgeDistance + 0.5, 0.0, 1.0);
-    vec2 contourCover = contourCoverage(signedEdgeDistance);
-    // Rejected before the material map is read: neither test reads it, and
-    // the border alpha is still the uniform one here.
-    if (
-        materialAlpha < 0.01 &&
-        contourCover.x * gContourAlpha < 0.01
-    ) {
-        fragColor = vec4(0.0);
-        return;
-    }
     vec4 materialTint = uTint;
     float appearanceVisibility = clamp(uAppearanceConfig.y, 0.0, 1.0);
     // Weight of the material over the refracted backdrop. Frosted glass
@@ -714,6 +694,24 @@ void main() {
     }
     #endif
 
+    float maxDisplacement = max(uDisplacementScale, 0.001);
+    float signedEdgeDistance = decodeSignedEdgeDistance(
+        geometryData,
+        4.0 * max(uThickness, 1.0),
+        contourExtent()
+    );
+    // Box-filtered coverage of one physical pixel, as Core Animation
+    // rasterizes the silhouette: a pixel-aligned edge stays hard, so the
+    // glint's first row is not diluted by a wider feather.
+    float materialAlpha = clamp(signedEdgeDistance + 0.5, 0.0, 1.0);
+    vec2 contourCover = contourCoverage(signedEdgeDistance);
+    if (
+        materialAlpha < 0.01 &&
+        contourCover.x * gContourAlpha < 0.01
+    ) {
+        fragColor = vec4(0.0);
+        return;
+    }
     vec2 displacement =
         decodeDisplacement(geometryData, maxDisplacement) *
         appearanceVisibility;
