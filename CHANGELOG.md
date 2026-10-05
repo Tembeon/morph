@@ -14,6 +14,15 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- The glass tiers are flat, fake and liquid; the frosted tier is gone
+  (owner decision). Fake glass draws the liquid layers without
+  refraction - the liquid face as a backdrop color filter over its frost,
+  the rim, bevel and highlight drawn along each shape, a fused body
+  clipped to its outline with one face per region - and needs no Flutter
+  GPU, so liquid draws it before shaders are ready or when they fail, and
+  the web draws it. It is the closest look to liquid (iPhone 16 Pro audit
+  shots: median mean difference 0.64 against frosted's 1.73 and flat's
+  1.39) but costs about what liquid costs, so `cheapTier` stays flat.
 - The glass tier is chosen once and never switches while the app runs
   (owner decision): `MorphAdaptiveGlass` draws the tier given, else
   picks one at startup from the GPU class Flutter GPU reports
