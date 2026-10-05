@@ -104,6 +104,22 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   `MorphBarTransitionSpec.segmentDelay` and
   `MorphBarTransitionSpec.navigation` (a push starts its frames 0.062 s
   after the call).
+- One law places every bar capsule that comes or goes, as UIKit does (a
+  fix): a group born beside a group of its side that stays grows out of
+  that survivor - its own box fitted inside the survivor's, at a fifth -
+  and a group that goes shrinks into the survivor and vanishes inside it,
+  instead of growing from and dying onto the survivor's facing edge (the
+  gallery's [plus more] no longer sticks to [1x] as a fused nub after a
+  pop). A toolbar shows a group larger than its survivor in place. Groups
+  without an id continue the nearest group of their side. Measured on an
+  iPhone 16 Pro (spec/bars.md, scene navseg set b). Adds
+  `MorphBarCapsuleLayout.anonymous` and
+  `MorphBarTransitionSpec.oversizedInPlace`.
+- The scroll edge effect fades its blur with it (a fix): a fade under an
+  Opacity read an empty backdrop, so the page showed sharp under the
+  navigation bar while the effect faded - after a pop to a scrolled page
+  most visibly. Adds `MorphScrollEdgeEffect.opacity`; a fade rebuilds
+  nothing.
 - Adds inset grouped lists: `MorphListSection` (header, card, footer)
   and `MorphListRow` (title, subtitle, value detail, leading symbol,
   trailing control, disclosure chevron, custom content, tap highlight,
