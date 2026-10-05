@@ -3,10 +3,15 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+// The Android screenshot path talks to the plugin's channel directly.
+// ignore: implementation_imports
+import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
@@ -37,6 +42,23 @@ const String _tierName = String.fromEnvironment(
   'GALLERY_GLASS',
   defaultValue: 'liquid',
 );
+
+/// Whether the buttons sit in one [MorphGlassContainer]
+/// (`--dart-define=DENSITY_CONTAINER=true`).
+const bool _container = bool.fromEnvironment('DENSITY_CONTAINER');
+
+/// Whether the run takes a resting and a held screenshot per density
+/// (`--dart-define=AUDIT_SHOTS=true`), outside the timed windows.
+const bool _shots = bool.fromEnvironment('AUDIT_SHOTS');
+
+/// Whether every timed window also records the framework's BUILD /
+/// LAYOUT / PAINT / COMPOSITING time per composited frame
+/// (`--dart-define=DENSITY_PHASES=true`, profile builds).
+const bool _phases = bool.fromEnvironment('DENSITY_PHASES');
+
+/// The densities to run, comma separated (`--dart-define=DENSITY_NS=1,4`);
+/// empty for all of [densities].
+const String _only = String.fromEnvironment('DENSITY_NS');
 
 /// The button counts the audit measures.
 const List<int> densities = [1, 4, 8, 16, 32];
@@ -78,8 +100,16 @@ class DensityPage extends StatelessWidget {
     required this.count,
     required this.tier,
     this.compact = false,
+    this.container = false,
+    this.aligned = false,
     super.key,
   });
+
+  /// Whether every button's box lies on whole device pixels.
+  final bool aligned;
+
+  /// Whether the buttons sit in one [MorphGlassContainer].
+  final bool container;
 
   /// The number of glass buttons.
   final int count;
@@ -136,19 +166,42 @@ class DensityPage extends StatelessWidget {
               ),
             ),
           ),
-          for (var i = 0; i < count; i++)
-            Positioned.fromRect(
-              rect: Rect.fromCenter(
-                center: centerOf(i),
-                width: compact ? 44 : 80,
-                height: compact ? 36 : 44,
-              ),
-              child: MorphGlassButton(onPressed: () {}, child: Text('$i')),
-            ),
+          if (container)
+            Positioned.fill(
+              child: MorphGlassContainer(child: Stack(children: _buttons())),
+            )
+          else
+            ..._buttons(),
         ],
       ),
     ),
   );
+
+  Rect _snap(Rect rect) {
+    if (!aligned) return rect;
+    final ratio = ui.PlatformDispatcher.instance.views.first.devicePixelRatio;
+    double on(double v) => (v * ratio).roundToDouble() / ratio;
+    return Rect.fromLTRB(
+      on(rect.left),
+      on(rect.top),
+      on(rect.right),
+      on(rect.bottom),
+    );
+  }
+
+  List<Widget> _buttons() => [
+    for (var i = 0; i < count; i++)
+      Positioned.fromRect(
+        rect: _snap(
+          Rect.fromCenter(
+            center: centerOf(i),
+            width: compact ? 44 : 80,
+            height: compact ? 36 : 44,
+          ),
+        ),
+        child: MorphGlassButton(onPressed: () {}, child: Text('$i')),
+      ),
+  ];
 }
 
 class _Density {
@@ -165,6 +218,7 @@ class _Density {
   final List<ui.FrameTiming> timings = [];
   final Map<String, List<(int, int)>> _scenes = {};
   final Map<String, Map<String, int>> _layers = {};
+  final Map<String, List<Map<String, double>>> _phaseRuns = {};
   final Stopwatch _clock = Stopwatch();
   int _pointer = 300;
 
@@ -180,7 +234,26 @@ class _Density {
     for (var run = 0; run < _runs; run++) {
       await settle(300);
       final start = timings.length;
+      if (_phases) FlutterTimeline.debugCollectionEnabled = true;
       await body();
+      if (_phases) {
+        final collected = FlutterTimeline.debugCollect();
+        FlutterTimeline.debugCollectionEnabled = false;
+        final composited = collected.getAggregated('COMPOSITING').count;
+        double per(String phase) {
+          var total = 0.0;
+          for (final block in collected.aggregatedBlocks) {
+            if (block.name.startsWith(phase)) total += block.duration;
+          }
+          return composited == 0 ? 0 : total / composited / 1000;
+        }
+
+        (_phaseRuns[scene] ??= []).add({
+          'frames': composited.toDouble(),
+          for (final phase in ['BUILD', 'LAYOUT', 'PAINT', 'COMPOSITING'])
+            phase: per(phase),
+        });
+      }
       await settle(300);
       await tester.pump();
       await settle(100);
@@ -193,19 +266,43 @@ class _Density {
     outDir.createSync(recursive: true);
     _clock.start();
     await MorphGlassRenderer.precache();
-    for (final n in densities) {
-      runApp(DensityPage(key: ValueKey<int>(n), count: n, tier: tier));
+    for (final n in [
+      for (final n in densities)
+        if (_only.isEmpty || _only.split(',').contains('$n')) n,
+    ]) {
+      runApp(
+        DensityPage(
+          key: ValueKey<int>(n),
+          count: n,
+          tier: tier,
+          container: _container,
+        ),
+      );
       await settle(1500);
+      await shot('n$n-rest');
       _layers['n$n-rest'] = _countLayers();
       await measure('n$n-rest', _scroll);
       await measure('n$n-wave', () => _wave(n, sample: 'n$n-pressed'));
+      await _held(n);
     }
+    runApp(
+      DensityPage(
+        key: const ValueKey<String>('aligned'),
+        count: 8,
+        tier: tier,
+        container: _container,
+        aligned: true,
+      ),
+    );
+    await settle(1500);
+    await shot('n8-aligned');
     runApp(
       DensityPage(
         key: const ValueKey<String>('stress'),
         count: stressCount,
         tier: tier,
         compact: true,
+        container: _container,
       ),
     );
     await settle(1500);
@@ -216,6 +313,47 @@ class _Density {
       at: DensityPage.compactCenter,
       step: 0,
     );
+  }
+
+  /// Holds button 0 for half a second and shoots the held frame.
+  Future<void> _held(int n) async {
+    if (!_shots) return;
+    final gesture = await tester.createGesture(pointer: _pointer++);
+    await gesture.down(DensityPage.buttonCenter(0), timeStamp: _clock.elapsed);
+    await settle(500);
+    await shot('n$n-held');
+    await gesture.up(timeStamp: _clock.elapsed);
+    await settle(900);
+  }
+
+  Future<void> shot(String name) async {
+    if (!_shots) return;
+    await tester.pump();
+    if (Platform.isAndroid) {
+      integrationTestChannel.setMethodCallHandler((MethodCall call) async {
+        if (call.method == 'scheduleFrame') {
+          ui.PlatformDispatcher.instance.scheduleFrame();
+        }
+        return null;
+      });
+      await integrationTestChannel.invokeMethod<void>(
+        'convertFlutterSurfaceToImage',
+      );
+      await tester.pump();
+      final bytes = await integrationTestChannel.invokeMethod<List<int>>(
+        'captureScreenshot',
+        <String, Object?>{'name': name},
+      );
+      await integrationTestChannel.invokeMethod<void>('revertFlutterImage');
+      await tester.pump();
+      if (bytes != null) {
+        File('${outDir.path}/$name.png').writeAsBytesSync(bytes);
+      }
+      return;
+    }
+    final data = await binding.callbackManager.takeScreenshot(name);
+    final bytes = (data['bytes']! as List<Object?>).cast<int>();
+    File('${outDir.path}/$name.png').writeAsBytesSync(bytes);
   }
 
   Future<void> _scroll() async {
@@ -338,6 +476,8 @@ class _Density {
       return sorted[sorted.length ~/ 2];
     }
 
+    final budget =
+        1000 / ui.PlatformDispatcher.instance.views.first.display.refreshRate;
     Map<String, double>? stats(List<ui.FrameTiming> all) {
       final frames = [
         for (final f in all)
@@ -362,6 +502,13 @@ class _Density {
         'raster_p95': pick(raster, 0.95),
         'raster_worst': raster.last,
         'span_p95': pick(span, 0.95),
+        'over_budget': frames
+            .where(
+              (f) =>
+                  ms(f.buildDuration) > budget || ms(f.rasterDuration) > budget,
+            )
+            .length
+            .toDouble(),
       };
     }
 
@@ -370,7 +517,9 @@ class _Density {
       'liquid_available': MorphGlassRenderer.liquidAvailable,
       'runs': _runs,
       'geometry_failures': geometryFailures,
+      'container': _container,
       'layers': _layers,
+      'phases': _phaseRuns,
       for (final MapEntry(key: scene, value: windows) in _scenes.entries)
         scene: () {
           final runs = [

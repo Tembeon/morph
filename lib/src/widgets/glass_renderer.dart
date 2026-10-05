@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -86,7 +87,9 @@ enum MorphGlassMaterial {
 /// build hook in `build/shaderbundles/`.
 /// Wrap a fixed renderer's controls in [BackdropGroup] to share backdrop
 /// copies; a section painted over earlier glass and content needs a group
-/// of its own (see [MorphAdaptiveGlass]).
+/// of its own (see [MorphAdaptiveGlass]). Wrap a row or cluster of glass
+/// buttons in a [MorphGlassContainer] to shade their resting glass in one
+/// layer.
 @immutable
 class MorphGlassRenderer extends MorphGlassPainter {
   /// Creates a renderer at [tier] with the liquid tier's settings.

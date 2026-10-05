@@ -537,6 +537,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
                   enabled: enabled,
                   lift: () => _lift,
                   glow: () => _motion.glowAt(brightness),
+                  still: () => _motion.isSettled,
                   child: content,
                 ),
               ),
@@ -563,8 +564,13 @@ class MorphControlCapsule extends StatelessWidget {
     required this.child,
     this.lift,
     this.glow,
+    this.still,
     super.key,
   });
+
+  /// Whether the capsule and every transform the control applies above it
+  /// are at rest now, or null when the control does not tell.
+  final bool Function()? still;
 
   /// The installed glass painter, or null for the flat appearance.
   final MorphGlassPainter? painter;
@@ -621,6 +627,7 @@ class MorphControlCapsule extends StatelessWidget {
               return MorphGlassLayer(
                 painter: glass,
                 frames: frames,
+                still: still,
                 surfaces: () => [
                   MorphGlassSurface(
                     kind: MorphGlassKind.button,

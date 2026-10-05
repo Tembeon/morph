@@ -16,6 +16,7 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_body_shadow.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
@@ -208,29 +209,47 @@ Widget _layer(
       outlineOf: outlineOf == null ? null : () => outlineOf.value,
       fake: fake ?? renderer.effectiveTier == MorphGlassTier.fake,
       useBackdropGroup: shared,
-      child: MorphLiveStack(
-        live: source.live,
-        children: [
-          for (var i = 0; i < count; i++)
-            MorphLivePositioned(
-              rect: source.pick((f) => select(f)[i].bounds),
-              child: LiquidGlass.live(
-                live: source.pick(
-                  (f) => _shapeFrame(
-                    renderer,
-                    select(f)[i],
-                    shadows: shadows,
-                    exact: exact,
-                  ),
-                ),
-                child: const SizedBox.expand(),
-              ),
-            ),
-        ],
+      child: _shapes(
+        renderer,
+        source,
+        select,
+        count: count,
+        shadows: shadows,
+        exact: exact,
       ),
     ),
   );
 }
+
+/// The shapes of the surfaces [select] picks, registered with the
+/// nearest glass layer above them.
+Widget _shapes(
+  MorphGlassRenderer renderer,
+  MorphGlassSource source,
+  List<MorphGlassSurface> Function(MorphGlassFrame frame) select, {
+  required int count,
+  bool shadows = true,
+  bool exact = false,
+}) => MorphLiveStack(
+  live: source.live,
+  children: [
+    for (var i = 0; i < count; i++)
+      MorphLivePositioned(
+        rect: source.pick((f) => select(f)[i].bounds),
+        child: LiquidGlass.live(
+          live: source.pick(
+            (f) => _shapeFrame(
+              renderer,
+              select(f)[i],
+              shadows: shadows,
+              exact: exact,
+            ),
+          ),
+          child: const SizedBox.expand(),
+        ),
+      ),
+  ],
+);
 
 MorphGlassSurface _local(MorphGlassSurface surface) => MorphGlassSurface(
   kind: surface.kind,
@@ -370,6 +389,8 @@ Widget morphLiquidLayer(
   final body = parts.body;
   final floating = parts.floating;
   final chrome = body.any(_chrome);
+  final joined =
+      MorphGlassContainerScope.maybeOf(context)?.holds(context) ?? false;
   bool lifted(MorphGlassSurface s) => s.lift > MorphGlassRenderer.restingLift;
   final overBar = body.any((s) => s.kind == MorphGlassKind.bar);
   ({double magnification, double shrink, double rim}) optics(
@@ -416,12 +437,19 @@ Widget morphLiquidLayer(
           parts.fused.isEmpty
               ? const ValueKey<String>('body')
               : const ValueKey<String>('separate'),
-          () => _layer(
-            renderer,
-            source,
-            (f) => f.parts.separate,
-            shared: !chrome,
-          ),
+          () => joined
+              ? _shapes(
+                  renderer,
+                  source,
+                  (f) => f.parts.separate,
+                  count: parts.separate.length,
+                )
+              : _layer(
+                  renderer,
+                  source,
+                  (f) => f.parts.separate,
+                  shared: !chrome,
+                ),
         ),
       for (var i = 0; i < parts.fused.length; i++)
         fill(
