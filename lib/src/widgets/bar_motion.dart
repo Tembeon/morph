@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -35,6 +36,7 @@ class MorphBarTransitionSpec {
     this.pulseWidthDownDelay = 0.142,
     this.pulseWidthDownSpring = const MorphSpring(0.416, 0.5),
     this.segmentDelay = 0.030,
+    this.oversizedInPlace = true,
   });
 
   /// The spring a capsule's frame moves on: `transition.springDuration`
@@ -47,8 +49,8 @@ class MorphBarTransitionSpec {
   final double frameDelay;
 
   /// The time from the change to the start of the frame motion of a
-  /// capsule that changes while a neighbour is born, in seconds: the
-  /// survivor waits for the newborn (fitted 0.1 s; the tuning's
+  /// capsule that moves while a capsule of its side grows out of a
+  /// survivor, in seconds: the survivor waits for the newborn (fitted 0.1 s; the tuning's
   /// `transition.minDelay` / `maxDelay` are 0.083 / 0.166).
   final double birthStaggerDelay;
 
@@ -98,8 +100,8 @@ class MorphBarTransitionSpec {
   final MorphSpring pulseWidthDownSpring;
 
   /// The time from the change to the start of a group that appears or
-  /// leaves on a side of the bar that had no group or keeps none, in
-  /// seconds.
+  /// leaves in place, in seconds: on a side of the bar that had no group
+  /// or keeps none, or too large for its survivor (see [oversizedInPlace]).
   ///
   /// Such a group does not grow out of a neighbour: it stands at its own
   /// place, scaled by [pulseScaleFor] its length per axis, blurred by
@@ -110,6 +112,22 @@ class MorphBarTransitionSpec {
   /// 0.020 - 0.044 s from the call, replay optimum 0.026 - 0.030 (iPhone
   /// 16 Pro, iOS 27.0.1).
   final double segmentDelay;
+
+  /// Whether a group too large for the group it would grow out of (or
+  /// shrink into) appears (or leaves) in place instead.
+  ///
+  /// A group born beside a group of its side that stays grows out of that
+  /// survivor: its own box fitted inside the survivor's box before the
+  /// change (the size of each axis at most the survivor's, the place as
+  /// near its own as fits), at [appearScale]; a group that goes shrinks
+  /// into the survivor's box after the change the same way. When the group
+  /// is wider or taller than the survivor, a toolbar shows it in place
+  /// (`setToolbarItems(_:animated:)`: `[reply share folder]` beside `[compose]`
+  /// or `[heart]` in place, `[heart]` out of `[Show Preferences]` and out of
+  /// `[compose]`), while a navigation bar still grows it out of the
+  /// survivor's own box (`[plus more]` out of `[1x]` on a push, back into it on
+  /// a pop; iPhone 16 Pro, iOS 27.0.1, probe scene navseg set b).
+  final bool oversizedInPlace;
 
   /// iOS 27's values for a toolbar whose items are replaced.
   static const standard = MorphBarTransitionSpec();
@@ -123,6 +141,7 @@ class MorphBarTransitionSpec {
   static const navigation = MorphBarTransitionSpec(
     frameDelay: 0.062,
     segmentDelay: 0.058,
+    oversizedInPlace: false,
   );
 
   /// The swell of a capsule [length] long, as a factor.
@@ -148,19 +167,32 @@ class MorphBarItemLayout {
 @immutable
 class MorphBarCapsuleLayout {
   /// Creates a capsule layout.
-  const MorphBarCapsuleLayout(this.id, this.rect, this.items, {this.segment});
+  const MorphBarCapsuleLayout(
+    this.id,
+    this.rect,
+    this.items, {
+    this.segment,
+    this.anonymous = false,
+  });
 
   /// The identity of the capsule across layouts.
   final Object id;
+
+  /// Whether the capsule has no identity of its own, as a group without an
+  /// id: it then continues the capsule without one of its segment whose
+  /// center lies nearest (UIKit's bar groups carry no identity across a
+  /// push: `[plus more]` `[1x]` -> `[Show Preferences]` keeps the inner group's
+  /// glass, the nearer one).
+  final bool anonymous;
 
   /// The side of the bar the capsule belongs to, such as its leading or
   /// trailing groups; null puts every such capsule on one side.
   ///
   /// A capsule changes only into a capsule of its own segment: an [id]
   /// found in another segment is a new capsule, and a newborn grows out of
-  /// a neighbour of its segment only. When a segment had no capsule
-  /// before, its capsules appear in place; when it keeps none, its
-  /// capsules leave in place (see [MorphBarTransitionSpec.segmentDelay]).
+  /// a capsule of its segment that stays only. When a segment keeps no
+  /// capsule through the change, its capsules appear and leave in place
+  /// (see [MorphBarTransitionSpec.segmentDelay]).
   final Object? segment;
 
   /// The capsule's box in the bar's coordinates.
@@ -241,17 +273,37 @@ class MorphBarItemFrame {
   final bool leaving;
 }
 
-class _Capsule {
-  _Capsule(this.id, this.segment, Rect rect, MorphBarTransitionSpec spec)
-    : cx = MorphSpringState(spec.frameSpring, rect.center.dx),
-      cy = MorphSpringState(spec.frameSpring, rect.center.dy),
-      w = MorphSpringState(spec.frameSpring, rect.width),
-      h = MorphSpringState(spec.frameSpring, rect.height),
-      pulseW = MorphSpringState(spec.pulseUpSpring, 1),
-      pulseH = MorphSpringState(spec.pulseUpSpring, 1);
+/// The identity a capsule on its way out takes when a capsule of the new
+/// layout carries the id it had.
+@internal
+class MorphBarDepartedId {
+  /// Wraps the [id] a leaving capsule had.
+  MorphBarDepartedId(this.id);
 
+  /// The id the capsule had.
   final Object id;
+
+  @override
+  String toString() => 'MorphBarDepartedId($id)';
+}
+
+class _Capsule {
+  _Capsule(
+    this.id,
+    this.segment,
+    Rect rect,
+    MorphBarTransitionSpec spec, {
+    required this.anonymous,
+  }) : cx = MorphSpringState(spec.frameSpring, rect.center.dx),
+       cy = MorphSpringState(spec.frameSpring, rect.center.dy),
+       w = MorphSpringState(spec.frameSpring, rect.width),
+       h = MorphSpringState(spec.frameSpring, rect.height),
+       pulseW = MorphSpringState(spec.pulseUpSpring, 1),
+       pulseH = MorphSpringState(spec.pulseUpSpring, 1);
+
+  Object id;
   final Object? segment;
+  final bool anonymous;
   final MorphSpringState cx;
   final MorphSpringState cy;
   final MorphSpringState w;
@@ -286,22 +338,29 @@ class _Item {
 /// Feed it layouts with [setLayout]. A capsule that keeps its identity
 /// moves and resizes to its new box on [MorphBarTransitionSpec.frameSpring]
 /// and, when its items changed, swells by up to 16 points (20 percent at
-/// most) and settles back - the height first, then the width. A new
-/// capsule is born at a fifth of its size on the facing edge of its
-/// nearest neighbour and grows out of it; a capsule that goes shrinks back
-/// into its neighbour. Items that stay travel to their new place; new
-/// items appear at the old center of their capsule, at a fifth of their
-/// size, blurred and transparent, and grow into place; leaving items
-/// shrink, blur and fade into the new center of their capsule. Every
-/// value retargets from its current state, so a change in the middle of
-/// another change is continuous.
+/// most) and settles back - the height first, then the width. Items that
+/// stay travel to their new place; new items appear at the old center of
+/// their capsule, at a fifth of their size, blurred and transparent, and
+/// grow into place; leaving items shrink, blur and fade into the new
+/// center of their capsule. Every value retargets from its current state,
+/// so a change in the middle of another change is continuous.
 ///
 /// Capsules change only within their [MorphBarCapsuleLayout.segment]: the
 /// leading groups of a bar into leading groups, the trailing ones into
-/// trailing ones. A segment that had no capsule shows its new capsules in
-/// place, swollen, blurred and transparent, settling in; a segment left
-/// without capsules lets its capsules swell and fade where they stand
-/// (see [MorphBarTransitionSpec.segmentDelay]). Such capsules are
+/// trailing ones. A capsule with an id continues the capsule of its
+/// segment with that id; an [MorphBarCapsuleLayout.anonymous] one the
+/// nearest anonymous capsule of its segment.
+///
+/// One law places every capsule that comes or goes. A new capsule grows
+/// out of the nearest capsule of its segment that stays: its own box
+/// fitted inside that survivor's box before the change, at a fifth of the
+/// fitted size; a capsule that goes shrinks into the survivor's box after
+/// the change the same way, so it vanishes inside it. The survivor swells
+/// as if its items changed. A capsule with no survivor on its side - and,
+/// with [MorphBarTransitionSpec.oversizedInPlace], one too large for its
+/// survivor - appears in place, swollen, blurred and transparent, settling
+/// in, or swells and fades where it stands (see
+/// [MorphBarTransitionSpec.segmentDelay]). Such capsules are
 /// [MorphBarCapsuleFrame.apart]: they never fuse with the others.
 ///
 /// [setDrift] leans the capsules part of the way toward another layout
@@ -322,7 +381,7 @@ class MorphBarMotion {
   final List<_Item> _items = [];
   double _now = 0;
   bool _hasLayout = false;
-  Map<(Object, Object?), Rect> _driftTo = const {};
+  Map<_Capsule, Rect> _driftTo = const {};
   double _drift = 0;
 
   /// Whether the platform asks for reduced motion: changes then snap.
@@ -390,13 +449,6 @@ class MorphBarMotion {
     return true;
   }
 
-  _Capsule? _capsule(Object id, Object? segment) {
-    for (final c in _capsules) {
-      if (c.id == id && c.segment == segment && !c.leaving) return c;
-    }
-    return null;
-  }
-
   _Item? _item(Object id) {
     for (final i in _items) {
       if (i.id == id && !i.leaving) return i;
@@ -404,19 +456,63 @@ class MorphBarMotion {
     return null;
   }
 
-  /// Brings back the capsules and items of [layout] that are still on
-  /// their way out: an id has one entry, and the one that leaves turns
-  /// around from where it is.
-  void _revive(List<MorphBarCapsuleLayout> layout) {
-    for (final c in layout) {
-      for (final capsule in _capsules) {
-        if (capsule.id == c.id &&
-            capsule.segment == c.segment &&
-            capsule.leaving) {
-          capsule.leaving = false;
-          capsule.generation++;
+  /// Pairs the capsules of [layout] (all but [skip]) with the [candidates]
+  /// that continue into them: a capsule with an id continues the
+  /// candidate of its segment with that id, an anonymous one the anonymous
+  /// candidate of its segment whose place ([from]) lies nearest, nearest
+  /// pairs first.
+  Map<int, _Capsule> _pair(
+    List<MorphBarCapsuleLayout> layout,
+    List<_Capsule> candidates,
+    Rect Function(_Capsule c) from, {
+    Set<int> skip = const {},
+  }) {
+    final out = <int, _Capsule>{};
+    final taken = <_Capsule>{};
+    for (var k = 0; k < layout.length; k++) {
+      final c = layout[k];
+      if (c.anonymous || skip.contains(k)) continue;
+      for (final candidate in candidates) {
+        if (!candidate.anonymous &&
+            candidate.id == c.id &&
+            candidate.segment == c.segment &&
+            !taken.contains(candidate)) {
+          out[k] = candidate;
+          taken.add(candidate);
+          break;
         }
       }
+    }
+    final pairs = <(double, int, int)>[];
+    for (var k = 0; k < layout.length; k++) {
+      final c = layout[k];
+      if (!c.anonymous || skip.contains(k)) continue;
+      for (var n = 0; n < candidates.length; n++) {
+        final candidate = candidates[n];
+        if (!candidate.anonymous || candidate.segment != c.segment) continue;
+        pairs.add(((from(candidate).center - c.rect.center).distance, k, n));
+      }
+    }
+    pairs.sort(
+      (a, b) => switch (a.$1.compareTo(b.$1)) {
+        0 => a.$2 != b.$2 ? a.$2.compareTo(b.$2) : a.$3.compareTo(b.$3),
+        final order => order,
+      },
+    );
+    for (final (_, k, n) in pairs) {
+      final candidate = candidates[n];
+      if (out.containsKey(k) || taken.contains(candidate)) continue;
+      out[k] = candidate;
+      taken.add(candidate);
+    }
+    return out;
+  }
+
+  /// Brings back the items of [layout] that are still on their way out:
+  /// an id has one entry, and the one that leaves turns around from where
+  /// it is.
+  void _reviveItems(List<MorphBarCapsuleLayout> layout) {
+    for (final c in layout) {
       for (final item in c.items) {
         for (final i in _items) {
           if (i.id == item.id && i.leaving) {
@@ -428,14 +524,37 @@ class MorphBarMotion {
     }
   }
 
+  /// The box of [size] at [center] moved and cut to lie inside [into]:
+  /// each axis at most as long as [into]'s, as near [center] as it fits.
+  static Rect _inside(Size size, Offset center, Rect into) {
+    final w = math.min(size.width, into.width);
+    final h = math.min(size.height, into.height);
+    double fit(double v, double lo, double hi) =>
+        math.min(math.max(v, lo), math.max(lo, hi));
+    return Rect.fromCenter(
+      center: Offset(
+        fit(center.dx, into.left + w / 2, into.right - w / 2),
+        fit(center.dy, into.top + h / 2, into.bottom - h / 2),
+      ),
+      width: w,
+      height: h,
+    );
+  }
+
+  /// Whether a capsule of [size] grows out of (or shrinks into) a survivor
+  /// whose box is [into] rather than appearing (or leaving) in place.
+  bool _fits(Size size, Rect into) =>
+      !spec.oversizedInPlace ||
+      (size.width <= into.width + 1e-6 && size.height <= into.height + 1e-6);
+
   Rect _visible(_Capsule c, double t) => Rect.fromCenter(
     center: Offset(c.cx.value(t), c.cy.value(t)),
     width: c.w.value(t),
     height: c.h.value(t),
   );
 
-  /// Leans every capsule that [toward] also has (by id, in the same
-  /// segment) [amount] of the way from where it is toward its box there,
+  /// Leans every capsule that [toward] also has (paired as [setLayout]
+  /// pairs them) [amount] of the way from where it is toward its box there,
   /// its items riding along; null or 0 removes the lean at once.
   ///
   /// The lean is drawn on top of the motion, a pure function of [amount];
@@ -446,7 +565,18 @@ class MorphBarMotion {
       _drift = 0;
       return;
     }
-    _driftTo = {for (final c in toward) (c.id, c.segment): c.rect};
+    final live = [
+      for (final c in _capsules)
+        if (!c.leaving) c,
+    ];
+    _driftTo = {
+      for (final MapEntry(key: k, value: c) in _pair(
+        toward,
+        live,
+        (c) => c.target,
+      ).entries)
+        c: toward[k].rect,
+    };
     _drift = amount;
   }
 
@@ -472,7 +602,7 @@ class MorphBarMotion {
 
     final shift = <_Capsule, Offset>{};
     for (final c in _capsules) {
-      if (c.leaving || !_driftTo.containsKey((c.id, c.segment))) continue;
+      if (c.leaving || !_driftTo.containsKey(c)) continue;
       final base = _visible(c, t);
       final r = _drifted(c, t);
       shift[c] = r.center - base.center;
@@ -493,7 +623,7 @@ class MorphBarMotion {
 
   Rect _drifted(_Capsule c, double t) {
     final base = _visible(c, t);
-    final to = c.leaving || _drift == 0 ? null : _driftTo[(c.id, c.segment)];
+    final to = c.leaving || _drift == 0 ? null : _driftTo[c];
     if (to == null) return base;
     return Rect.lerp(base, to, _drift)!;
   }
@@ -512,46 +642,88 @@ class MorphBarMotion {
       return;
     }
     _keepDrift(t, rest: true);
-    _revive(layout);
+    _reviveItems(layout);
     final spring = spec.frameSpring;
     final content = spec.contentSpring;
-    final live = {
+    final live = [
       for (final c in _capsules)
         if (!c.leaving) c,
-    };
-    final segmentsBefore = {for (final c in live) c.segment};
-    final segmentsAfter = {for (final c in layout) c.segment};
+    ];
     final oldCenters = <_Capsule, Offset>{
       for (final c in live) c: _visible(c, t).center,
     };
-    final oldTargets = <_Capsule, Rect>{for (final c in live) c: c.target};
+    final paired = _pair(layout, live, (c) => c.target);
+    final leaving = [
+      for (final c in _capsules)
+        if (c.leaving) c,
+    ];
+    for (final MapEntry(key: k, value: c) in _pair(
+      layout,
+      leaving,
+      (c) => _visible(c, t),
+      skip: paired.keys.toSet(),
+    ).entries) {
+      c.leaving = false;
+      c.generation++;
+      paired[k] = c;
+    }
+    final survivors = {
+      for (final MapEntry(key: k, value: c) in paired.entries)
+        if (live.contains(c)) k: c,
+    };
+    (_Capsule, Rect)? nearestSurvivor(
+      Object? segment,
+      Offset from, {
+      required bool after,
+    }) {
+      (_Capsule, Rect)? best;
+      var distance = double.infinity;
+      for (final MapEntry(key: k, value: c) in survivors.entries) {
+        if (c.segment != segment) continue;
+        final d = (layout[k].rect.center - from).distance;
+        if (d < distance) {
+          distance = d;
+          best = (c, after ? layout[k].rect : _visible(c, t));
+        }
+      }
+      return best;
+    }
+
     final resolved = <_Capsule>[];
     final births = <_Capsule, Offset>{};
     final inPlace = <_Capsule>{};
+    final hosts = <_Capsule>{};
     final birthSegments = <Object?>{};
-    for (final c in layout) {
-      final existing = _capsule(c.id, c.segment);
+    for (var k = 0; k < layout.length; k++) {
+      final c = layout[k];
+      final existing = paired[k];
       if (existing != null) {
+        if (existing.anonymous) existing.id = c.id;
         resolved.add(existing);
         continue;
       }
+      final (host, source) =
+          nearestSurvivor(c.segment, c.rect.center, after: false) ??
+          (null, Rect.zero);
       final _Capsule born;
-      if (segmentsBefore.contains(c.segment)) {
-        final birth = _birthPoint(c, layout, live);
+      if (host != null && _fits(c.rect.size, source)) {
+        final box = _inside(c.rect.size, c.rect.center, source);
         born = _Capsule(
           c.id,
           c.segment,
           Rect.fromCenter(
-            center: birth,
-            width: c.rect.width * spec.appearScale,
-            height: c.rect.height * spec.appearScale,
+            center: box.center,
+            width: box.width * spec.appearScale,
+            height: box.height * spec.appearScale,
           ),
           spec,
+          anonymous: c.anonymous,
         );
-        births[born] = birth;
+        births[born] = box.center;
+        hosts.add(host);
         birthSegments.add(c.segment);
       } else {
-        born = _Capsule(c.id, c.segment, c.rect, spec);
+        born = _Capsule(c.id, c.segment, c.rect, spec, anonymous: c.anonymous);
         born.presence = MorphSpringState(spring, 0);
         inPlace.add(born);
       }
@@ -561,41 +733,47 @@ class MorphBarMotion {
     final layoutOf = <_Capsule, MorphBarCapsuleLayout>{
       for (var k = 0; k < layout.length; k++) resolved[k]: layout[k],
     };
+    final deaths = <_Capsule, Offset>{};
     for (final c in List.of(_capsules)) {
-      if (c.leaving) continue;
-      final target = layoutOf[c];
-      if (target == null) {
-        c.leaving = true;
-        final generation = ++c.generation;
-        if (!segmentsAfter.contains(c.segment)) {
-          final presence = c.presence ??= MorphSpringState(spring, 1);
-          _timeline.at(t + spec.segmentDelay, (double at) {
-            if (c.generation != generation) return;
-            presence.retarget(at, 0, spring: spring);
-          });
-          for (final i in _items) {
-            if (!i.leaving &&
-                i.capsule == c &&
-                _findItem(layout, i.id) == null) {
-              i.leaving = true;
-              i.generation++;
-            }
-          }
-          continue;
-        }
-        final end = _deathPoint(c, oldTargets);
-        _timeline.at(t + spec.frameDelay, (double at) {
+      if (c.leaving || layoutOf.containsKey(c)) continue;
+      c.leaving = true;
+      final generation = ++c.generation;
+      final here = _visible(c, t).center;
+      final (host, sink) =
+          nearestSurvivor(c.segment, here, after: true) ?? (null, Rect.zero);
+      if (host == null || !_fits(c.target.size, sink)) {
+        final presence = c.presence ??= MorphSpringState(spring, 1);
+        _timeline.at(t + spec.segmentDelay, (double at) {
           if (c.generation != generation) return;
-          c.cx.retarget(at, end.dx, spring: spring);
-          c.cy.retarget(at, end.dy, spring: spring);
-          c.w.retarget(at, c.target.width * spec.appearScale, spring: spring);
-          c.h.retarget(at, c.target.height * spec.appearScale, spring: spring);
+          presence.retarget(at, 0, spring: spring);
         });
         continue;
       }
+      final box = _inside(c.target.size, here, sink);
+      deaths[c] = box.center;
+      hosts.add(host);
+      _timeline.at(t + spec.frameDelay, (double at) {
+        if (c.generation != generation) return;
+        c.cx.retarget(at, box.center.dx, spring: spring);
+        c.cy.retarget(at, box.center.dy, spring: spring);
+        c.w.retarget(at, box.width * spec.appearScale, spring: spring);
+        c.h.retarget(at, box.height * spec.appearScale, spring: spring);
+      });
+    }
+    final liveIds = {
+      for (final c in _capsules)
+        if (!c.leaving) c.id,
+    };
+    for (final c in _capsules) {
+      if (c.leaving && liveIds.contains(c.id)) c.id = MorphBarDepartedId(c.id);
+    }
+    for (final c in resolved) {
+      final target = layoutOf[c]!;
       final born = births.containsKey(c);
       final appearing = inPlace.contains(c);
-      final changed = born || (!appearing && _itemsChanged(c, target.items));
+      final changed =
+          born ||
+          (!appearing && (hosts.contains(c) || _itemsChanged(c, target.items)));
       final moves = c.target != target.rect;
       c.target = target.rect;
       final generation = ++c.generation;
@@ -621,6 +799,7 @@ class MorphBarMotion {
     final newCenters = {
       for (var k = 0; k < layout.length; k++)
         resolved[k]: layout[k].rect.center,
+      ...deaths,
     };
     for (final i in _items) {
       if (i.leaving) continue;
@@ -716,48 +895,6 @@ class MorphBarMotion {
     return null;
   }
 
-  Offset _birthPoint(
-    MorphBarCapsuleLayout born,
-    List<MorphBarCapsuleLayout> layout,
-    Set<_Capsule> live,
-  ) {
-    MorphBarCapsuleLayout? nearest;
-    var best = double.infinity;
-    for (final c in layout) {
-      if (c.id == born.id || c.segment != born.segment) continue;
-      final existing = _capsule(c.id, c.segment);
-      if (existing == null || !live.contains(existing)) continue;
-      final d = (c.rect.center - born.rect.center).distance;
-      if (d < best) {
-        best = d;
-        nearest = c;
-      }
-    }
-    if (nearest == null) return born.rect.center;
-    final x = nearest.rect.center.dx < born.rect.center.dx
-        ? nearest.rect.right
-        : nearest.rect.left;
-    return Offset(x, born.rect.center.dy);
-  }
-
-  Offset _deathPoint(_Capsule leaving, Map<_Capsule, Rect> oldTargets) {
-    final here = leaving.target.center;
-    Rect? nearest;
-    var best = double.infinity;
-    for (final entry in oldTargets.entries) {
-      final c = entry.key;
-      if (c == leaving || c.leaving || c.segment != leaving.segment) continue;
-      final d = (entry.value.center - here).distance;
-      if (d < best) {
-        best = d;
-        nearest = entry.value;
-      }
-    }
-    if (nearest == null) return here;
-    final x = nearest.center.dx < here.dx ? nearest.right : nearest.left;
-    return Offset(x, nearest.center.dy);
-  }
-
   void _snap(double t, List<MorphBarCapsuleLayout> layout) {
     _driftTo = const {};
     _drift = 0;
@@ -765,7 +902,13 @@ class MorphBarMotion {
     _capsules.clear();
     _items.clear();
     for (final c in layout) {
-      final capsule = _Capsule(c.id, c.segment, c.rect, spec);
+      final capsule = _Capsule(
+        c.id,
+        c.segment,
+        c.rect,
+        spec,
+        anonymous: c.anonymous,
+      );
       capsule.target = c.rect;
       _capsules.add(capsule);
       for (final i in c.items) {
@@ -825,7 +968,7 @@ class MorphBarMotion {
     final shift = <_Capsule, Offset>{
       if (isDrifting)
         for (final c in _capsules)
-          if (!c.leaving && _driftTo.containsKey((c.id, c.segment)))
+          if (!c.leaving && _driftTo.containsKey(c))
             c: _drifted(c, _now).center - _visible(c, _now).center,
     };
     return [

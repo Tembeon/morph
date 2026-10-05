@@ -602,7 +602,8 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   MorphBarCapsuleLayout capsule(
     MorphBarButtonGroup group,
     double start,
-    Object id,
+    Object? key,
+    Object place,
     MorphBarSide side,
   ) {
     final widths = [
@@ -629,17 +630,21 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
       );
       x += widths[i] + metrics.buttonGap;
     }
-    return MorphBarCapsuleLayout(id, rect, items, segment: side);
+    return MorphBarCapsuleLayout(
+      key ?? place,
+      rect,
+      items,
+      segment: side,
+      anonymous: key == null,
+    );
   }
 
   var x = leadingInset;
   for (var i = 0; i < leading.length; i++) {
-    final c = capsule(
-      leading[i],
-      x,
-      leading[i].id ?? ('leading', i),
-      MorphBarSide.leading,
-    );
+    final c = capsule(leading[i], x, leading[i].id, (
+      'leading',
+      i,
+    ), MorphBarSide.leading);
     out.add(c);
     x = c.rect.right + metrics.groupGap;
   }
@@ -647,7 +652,7 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   for (var i = 0; i < trailing.length; i++) {
     final g = trailing[trailing.length - 1 - i];
     final c = _shift(
-      capsule(g, 0, g.id ?? ('trailing', i), MorphBarSide.trailing),
+      capsule(g, 0, g.id, ('trailing', i), MorphBarSide.trailing),
       right,
     );
     out.add(c);
@@ -656,18 +661,28 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
   if (!rtl) return out;
   return [
     for (final c in out)
-      MorphBarCapsuleLayout(c.id, _mirror(c.rect, width), [
-        for (final i in c.items)
-          MorphBarItemLayout(i.id, _mirror(i.rect, width)),
-      ], segment: c.segment),
+      MorphBarCapsuleLayout(
+        c.id,
+        _mirror(c.rect, width),
+        [
+          for (final i in c.items)
+            MorphBarItemLayout(i.id, _mirror(i.rect, width)),
+        ],
+        segment: c.segment,
+        anonymous: c.anonymous,
+      ),
   ];
 }
 
 MorphBarCapsuleLayout _shift(MorphBarCapsuleLayout c, double right) {
   final d = Offset(right - c.rect.width, 0);
-  return MorphBarCapsuleLayout(c.id, c.rect.shift(d), [
-    for (final i in c.items) MorphBarItemLayout(i.id, i.rect.shift(d)),
-  ], segment: c.segment);
+  return MorphBarCapsuleLayout(
+    c.id,
+    c.rect.shift(d),
+    [for (final i in c.items) MorphBarItemLayout(i.id, i.rect.shift(d))],
+    segment: c.segment,
+    anonymous: c.anonymous,
+  );
 }
 
 Rect _mirror(Rect r, double width) =>
@@ -992,6 +1007,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
         _buttons[b.id] = b;
       }
     }
+    final prominentBefore = Map.of(_prominent);
+    final disabledBefore = Map.of(_disabled);
     for (final c in layout) {
       _prominent[c.id] = widget.groups.any(
         (g) =>
@@ -1013,6 +1030,13 @@ class _MorphBarItemsState extends State<MorphBarItems>
     _layout = layout;
     _motion.reducedMotion = morphReducedMotionOf(context);
     _motion.setLayout(clock, layout, animated: !first);
+    for (final c in _motion.capsules) {
+      if (c.id case final MorphBarDepartedId departed
+          when !_prominent.containsKey(departed)) {
+        _prominent[departed] = prominentBefore[departed.id] ?? false;
+        _disabled[departed] = disabledBefore[departed.id] ?? false;
+      }
+    }
     _prune = true;
     if (!first) wake();
     widget.onLayout?.call(layout);

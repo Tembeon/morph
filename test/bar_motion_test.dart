@@ -145,14 +145,17 @@ void main() {
       expect(_rms(dh), lessThan(1.5), reason: 'height rms');
     });
 
-    test('a capsule is born at a fifth of its size on its neighbour', () {
+    test('a capsule is born at a fifth of its size inside its survivor', () {
       final motion = MorphBarMotion();
       motion.setLayout(0, _layoutA);
       motion.setLayout(1, _layoutC);
       motion.advance(1.0001);
       final born = motion.capsuleFrame('M')!;
       expect(born.rect.width, moreOrLessEquals(48 * 0.2, epsilon: 0.01));
-      expect(born.rect.center.dx, moreOrLessEquals(76, epsilon: 0.01));
+      expect(
+        born.rect.center.dx,
+        moreOrLessEquals(63.83 + 71.67 / 2 - 24, epsilon: 0.01),
+      );
       motion.advance(3);
       final settled = motion.capsuleFrame('M')!.rect;
       expect(settled.center.dx, moreOrLessEquals(112, epsilon: 0.01));
