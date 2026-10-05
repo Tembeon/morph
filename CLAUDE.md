@@ -1043,44 +1043,70 @@ microbenchmarks (`flutter test benchmark/liquid_benchmark_test.dart`)
 and compare against the previous numbers on the same machine (JIT -
 relative only).
 
-## Performance passport (AOT)
+## Performance passport
 
-The absolute numbers come from the RELEASE bench - the same scenes as
-the microbenchmarks (shared via src/benchmark_scenes.dart, so the two
-harnesses cannot drift) measured inside an AOT build, plus real engine
-FrameTimings during a glacial flight:
+Three harnesses, one per question:
 
-```bash
-cd example && flutter build macos --release --dart-define=MORPH_BENCH=true
-./build/macos/Build/Products/Release/morph_example.app/Contents/MacOS/morph_example
-| grep BENCH
-```
+- DEVICE FRAME COST (the passport): `tool/ios_reference/perf/audit.sh`
+  builds example/integration_test/glass_audit_test.dart as a profile app
+  per glass tier (`AUDIT_SOURCE=` a git worktree at a fixed commit, so
+  other agents' uncommitted edits stay out), runs it on the iPhone 16 Pro
+  under the phone lock with `AUDIT_RUNS=5` timed repeats per scene, and
+  stores `tool/ios_reference/perf/<date>-<label>/<tier>.json`;
+  `summarize.py <dir> [<dir>]` prints the median of the runs'
+  percentiles over ACTIVE frames (build or raster > 0.3 ms) and the
+  delta between two runs; `shotdiff.py` diffs the screenshots.
+- WORK PER FRAME (deterministic, every `flutter test`):
+  test/perf_counts_test.dart counts rebuilds, paints, re-recorded
+  pictures, backdrop captures, offscreen layers, body-shadow layers,
+  snapshot image fallbacks and idle frames per animated frame of nine
+  scenes x three tiers, pinned as CEILINGS in
+  test/fixtures/perf/counts.json (`PERF_COUNTS_UPDATE=true` rewrites it
+  after a change that lowers a count). flutter_test has no Impeller: the
+  liquid tier builds its real tree but paints the fallback.
+- SKIN / FLIGHT (AOT): the release bench, `cd example && flutter build
+  macos --release --dart-define=MORPH_BENCH=true`, run the binary, grep
+  BENCH.
 
-Baseline 2026-07-30, Apple Silicon macBook (tembeon), macOS release.
-NOT re-measured since: the 0.7.0 merge law adds one normal per mass per
-sample and a dot product inside the k band, and glacial is now liquid
-x5 - rerun before quoting these numbers. A spot run on 2026-10-03 (same
-machine, the bench on its own card after the tour removal) printed
-89 / 250 / 182 / 438 / 1978 / 8456 / 165 / 58 us/op in table order and
-frames n=752: build avg 0.27 / p95 0.61 / worst 0.82 ms, raster avg
-0.78 / p95 1.60 / worst 5.47 ms.
+Device, iPhone 16 Pro, iOS 27.0.1, 120 Hz, profile, 2026-10-05 (after
+the identical-output batch; 2026-10-05-baseline before it is the same
+within noise), ms, median of 5 runs:
+
+| tier / scene        | build p50 | build p95 | raster p50 | raster p95 |
+|---------------------|-----------|-----------|------------|------------|
+| liquid segmented    |      1.20 |      1.47 |       1.69 |       2.00 |
+| liquid tab bar      |      1.07 |      1.58 |       2.18 |       2.74 |
+| liquid controls     |      1.29 |      3.25 |       2.26 |       2.88 |
+| liquid menu         |      1.16 |      2.16 |       1.12 |       2.92 |
+| liquid home scroll  |      0.77 |      1.28 |       1.50 |       2.14 |
+| liquid sheet        |      0.81 |      1.36 |       2.57 |       3.21 |
+| frosted controls    |      0.72 |      2.27 |       3.03 |       3.65 |
+| frosted sheet       |      0.43 |      0.90 |       3.19 |       3.92 |
+| flat controls       |      0.40 |      2.52 |       0.66 |       0.80 |
+| flat menu           |      1.28 |      4.15 |       0.53 |       1.63 |
+
+Reading: every scene fits the 8.3 ms budget at p95 on every tier; the
+raster cost is the backdrop captures and blurs (flat raster is a third
+of liquid's), and the identical-output optimizations moved no device
+percentile beyond run-to-run noise (+-0.1 ms p95) - the remaining device
+levers change pixels (tool/audit/perf-research-2026-10-05.md 3.2).
+Outline fusion on the device (100-call mean): menu blur 4 pt 1.13 ms,
+10 pt 0.60, 20 pt 0.37, two bar capsules 0.12.
+
+Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 
 | scene                   | us/op  |
 |-------------------------|--------|
-| fusedPair               |     86 |
-| sandboxSpread           |    231 |
-| flightFar               |    177 |
-| manyPieces              |    437 |
-| megaCluster64 (budget)  |  1 997 |
-| megaCluster64/unbounded |  8 551 |
-| oneMoving/pure          |    158 |
+| fusedPair               |     88 |
+| sandboxSpread           |    239 |
+| flightFar               |    183 |
+| manyPieces              |    436 |
+| megaCluster64 (budget)  |  1 939 |
+| megaCluster64/unbounded |  8 239 |
+| oneMoving/pure          |    161 |
 | oneMoving/cached        |     57 |
 
-Frame timings (glacial open+close, n=1087): build avg 0.22 / p95 0.35
-/ worst 0.60 ms; raster avg 0.79 / p95 1.33 / worst 6.8 ms (the worst
-raster frame is first-use shader work). Reading: the cached animated
-frame costs 57 us - under 1% of a 120 Hz budget; the 64-piece
-worst-case cluster re-traces in 2.0 ms with the eval budget (fits
-120 Hz) vs 8.6 ms unbounded (would blow it) - the budget is what keeps
-the worst frame inside the envelope. AOT runs ~9x faster than the JIT
-test VM across every scene.
+Frame timings (glacial open+close, n=756): build avg 0.21 / p95 0.52
+/ worst 0.83 ms; raster avg 0.71 / p95 1.33 / worst 4.33 ms. The cached
+animated skin frame costs 57 us; the eval budget keeps the 64-piece
+worst case at 1.9 ms (8.2 ms unbounded).

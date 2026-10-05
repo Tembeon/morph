@@ -159,8 +159,23 @@ NEVER while a pointer is down. Engineering defaults, not measurements.
   LiquidGlass they render with, the text read in the strip holding its
   center).
 
-## Device numbers (iPhone 16 Pro, 2026-10-03, profile)
+## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
+- 2026-10-05, tool/ios_reference/perf/audit.sh (5 timed runs per scene,
+  median, active frames only, screenshots outside the timed windows),
+  p95 build / raster ms, scenes segmented / tab bar / controls / menu /
+  home scroll under bars / sheet:
+  liquid 1.47/2.00, 1.58/2.74, 3.25/2.88, 2.16/2.92, 1.28/2.14, 1.36/3.21;
+  frosted 1.20/2.29, 1.00/2.71, 2.27/3.65, 3.77/2.25, 1.35/2.51, 0.90/3.92;
+  flat 0.53/0.78, 1.06/1.47, 2.52/0.80, 4.15/1.63, 1.14/1.83, 0.70/0.95.
+  The identical-output batch (content source boundary, lazy uniforms,
+  field upload reuse, outline translation memo, repaint boundaries) left
+  every percentile within +-0.1 ms of the 2026-10-05-baseline run; its
+  shots are within run-to-run noise (the tall menu's open shot flips by
+  one device pixel between launches of the SAME app). Raster cost is
+  captures and blurs: liquid raster is ~3x flat on every scene.
+  Outline fusion: menu blur 4 pt 1.13 ms (0.71 on 2026-10-03 - not
+  explained yet), 10 pt 0.60, 20 pt 0.37, bar capsules 0.12.
 - glass_audit_test per `--dart-define=GALLERY_GLASS=`, p95 build / raster
   ms, scenes segmented / tab bar / controls / menu:
   liquid 1.75/1.80, 2.91/2.52, 3.87/2.67, 3.03/2.90;
