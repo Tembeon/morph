@@ -701,11 +701,12 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
   final rows = ((area.height / step).ceil() ~/ b) * b + b + 1;
   final fieldCols = (cols - 1) ~/ stride + 1;
   final fieldRows = (rows - 1) ~/ stride + 1;
-  final trace = Float64List(cols * rows);
-  final minimum = Float64List(fieldCols * fieldRows);
-  final distance = Float64List(fieldCols * fieldRows);
-  final halfMinor = Float64List(fieldCols * fieldRows);
-  final turn = Float64List(fieldCols * fieldRows * 2);
+  final nodes = fieldCols * fieldRows;
+  final trace = _ContainerScratch.trace(cols * rows);
+  final minimum = _ContainerScratch.field(0, nodes);
+  final distance = _ContainerScratch.field(1, nodes);
+  final halfMinor = _ContainerScratch.field(2, nodes);
+  final turn = _ContainerScratch.field(3, nodes * 2);
   final fold = Float64List(2);
   final turns = [for (var i = 0; i < boxes.length; i++) boxes.turns(i)];
   for (var fj = 0; fj < fieldRows; fj++) {
@@ -722,6 +723,7 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
         boxes.opticalTurn(0, x, y, turn, at * 2);
       } else {
         turn[at * 2] = 1;
+        turn[at * 2 + 1] = 0;
       }
       for (var i = 1; i < boxes.length; i++) {
         final di = boxes.distance(i, x, y);
@@ -795,6 +797,31 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
     top: area.top,
     step: step,
   );
+}
+
+/// The grids [_fuseContainer] works in, kept across calls (an outline is
+/// fused on the UI thread, one at a time). Every call writes each value it
+/// reads: the field grids at every node, the trace grid at the field nodes
+/// and in the blocks the tracer visits.
+abstract final class _ContainerScratch {
+  static Float64List _trace = Float64List(0);
+  static final List<Float64List> _fields = [
+    for (var i = 0; i < 4; i++) Float64List(0),
+  ];
+
+  /// A trace grid of at least [nodes] nodes.
+  static Float64List trace(int nodes) {
+    if (_trace.length < nodes) _trace = Float64List(nodes + nodes ~/ 2);
+    return _trace;
+  }
+
+  /// Field grid [index] with room for at least [values] values.
+  static Float64List field(int index, int values) {
+    if (_fields[index].length < values) {
+      _fields[index] = Float64List(values + values ~/ 2);
+    }
+    return _fields[index];
+  }
 }
 
 /// The weight the merge so far keeps against a box at distance [di] when
