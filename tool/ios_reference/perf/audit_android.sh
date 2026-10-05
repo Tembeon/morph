@@ -20,6 +20,10 @@
 #                                 the app runs: <tier>.gpufreq.txt, a histogram in device.txt
 #   AUDIT_COOL_C=38               before every launch wait until the skin sensor
 #                                 (VIRTUAL-SKIN) reads below this many degrees C
+#   AUDIT_GPUWORK=1               record the kernel's per-app GPU work periods
+#                                 (power/gpu_work_period, power/gpu_frequency) on the
+#                                 CLOCK_MONOTONIC trace clock while the app runs:
+#                                 <tier>.gpuwork.txt (tool/audit/shader/gpu_work.py)
 #
 # The app writes its report into its external files directory
 # (/sdcard/Android/data/<package>/files/<report>), which adb can read from a
@@ -92,6 +96,15 @@ if [ "$STEP" = run ] || [ "$STEP" = all ]; then
         >"$OUT/$name.gpufreq.txt" 2>/dev/null &
       sampler=$!
     fi
+    tracer=
+    if [ "${AUDIT_GPUWORK:-0}" = 1 ]; then
+      adb shell 'cd /sys/kernel/tracing && echo 0 > tracing_on && echo mono > trace_clock &&
+        echo 8192 > buffer_size_kb && echo > trace &&
+        echo 1 > events/power/gpu_work_period/enable &&
+        echo 1 > events/power/gpu_frequency/enable && echo 1 > tracing_on'
+      adb shell cat /sys/kernel/tracing/trace_pipe >"$OUT/$name.gpuwork.txt" 2>/dev/null &
+      tracer=$!
+    fi
     adb shell am start -W -n "$PKG/.MainActivity" | grep -E 'TotalTime|WaitTime' >>"$info"
     sleep 30
     i=0
@@ -101,6 +114,14 @@ if [ "$STEP" = run ] || [ "$STEP" = all ]; then
       sleep 10
     done
     sleep 2
+    if [ -n "$tracer" ]; then
+      adb shell 'cd /sys/kernel/tracing && echo 0 > tracing_on &&
+        echo 0 > events/power/gpu_work_period/enable &&
+        echo 0 > events/power/gpu_frequency/enable && echo boot > trace_clock &&
+        echo > trace'
+      kill "$tracer" 2>/dev/null || true
+      adb shell pm list packages -U "$PKG" >>"$info"
+    fi
     if [ -n "$sampler" ]; then
       kill "$sampler" 2>/dev/null || true
       echo "gpu cur_freq kHz histogram (samples):" >>"$info"

@@ -12,6 +12,7 @@ library;
 // ignore_for_file: invalid_use_of_internal_member
 
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
@@ -629,11 +630,16 @@ class ShaderHarness {
     return bytes.buffer.asUint8List();
   }
 
+  /// The CLOCK_MONOTONIC window (microseconds) of the last [time], the
+  /// clock of the kernel's GPU work periods on Android.
+  (int, int) lastWindow = (0, 0);
+
   /// Milliseconds per offscreen render of the mounted scene, over
   /// [frames] renders whose last is read back, so the time covers the GPU
   /// work of all of them.
   Future<double> time(int frames) async {
     final elapsed = await tester.runAsync(() async {
+      final start = Timeline.now;
       final watch = Stopwatch();
       watch.start();
       ui.Image? last;
@@ -644,6 +650,7 @@ class ShaderHarness {
       await last!.toByteData(format: ui.ImageByteFormat.rawRgba);
       last.dispose();
       watch.stop();
+      lastWindow = (start, Timeline.now);
       return watch.elapsedMicroseconds;
     });
     return elapsed! / 1000 / frames;
@@ -731,6 +738,7 @@ Future<Map<String, Object>> runShaderBench(
       for (final v in ShaderVariant.values) v: [],
     };
     final gains = <double>[];
+    final windows = <Map<String, Object>>[];
     for (var block = 0; block < blocks; block++) {
       final order = block.isEven
           ? ShaderVariant.values
@@ -742,6 +750,14 @@ Future<Map<String, Object>> runShaderBench(
           await harness.show(glassCase, variant, copies: k);
           await harness.time(4);
           ms[k] = await harness.time(frames);
+          windows.add({
+            'block': block,
+            'variant': variant.name,
+            'copies': k,
+            'frames': frames,
+            'start_us': harness.lastWindow.$1,
+            'end_us': harness.lastWindow.$2,
+          });
         }
         blockLayer[variant] = (ms[copies]! - ms[1]!) / (copies - 1);
         layer[variant]!.add(blockLayer[variant]!);
@@ -766,6 +782,7 @@ Future<Map<String, Object>> runShaderBench(
       'layer_ms_baseline_blocks': layer[ShaderVariant.baseline]!,
       'layer_ms_candidate_blocks': layer[ShaderVariant.candidate]!,
       'gain_percent_blocks': gains,
+      'windows': windows,
       'layer_ms_candidate': candidate,
       'layer_ms_baseline': baseline,
       'layer_gain_percent': gain,

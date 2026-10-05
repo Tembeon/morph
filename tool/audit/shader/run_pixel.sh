@@ -9,7 +9,9 @@
 #   AUDIT_STEP=build|run|all   as in audit_android.sh; only run needs the phone
 #   SHADER_DEFINES="..."  extra --dart-define flags (SHADER_CASES, SHADER_COPIES)
 #
-# GLES is forced the way the passport does it: the worktree's manifest gets
+# A bench run also records the kernel's GPU work periods
+# (audit_android.sh AUDIT_GPUWORK) and prints GPU time and cycles per layer
+# (gpu_work.py). GLES is forced the way the passport does it: the worktree's manifest gets
 # io.flutter.embedding.android.ImpellerBackend=opengles. Results: the report
 # and PNGs in /tmp/morph-perf/shader/<label>-<backend>-<mode>, the report also
 # in tool/ios_reference/perf/<date>-shader-<label>-<backend>-<mode>/;
@@ -43,8 +45,10 @@ fi
 cp -R "$ROOT/example/integration_test/support" "$SRC/example/integration_test/"
 cp "$ROOT/example/integration_test/shader_parity_test.dart" "$SRC/example/integration_test/"
 DEFINES=${SHADER_DEFINES:-}
-if [ "$MODE" = bench ]; then DEFINES="$DEFINES --dart-define=SHADER_BENCH=true"; fi
+GPUWORK=0
+if [ "$MODE" = bench ]; then DEFINES="$DEFINES --dart-define=SHADER_BENCH=true"; GPUWORK=1; fi
 NAME=$LABEL-$BACKEND-$MODE
+AUDIT_GPUWORK=$GPUWORK \
 AUDIT_SOURCE=$SRC \
 AUDIT_TARGET=integration_test/shader_parity_test.dart \
 AUDIT_REPORT=shader \
@@ -58,4 +62,8 @@ AUDIT_SHOTS=/tmp/morph-perf/shader/$NAME \
 SHOT=/tmp/morph-perf/shader/$NAME/liquid-$REV-$BACKEND-$MODE
 if [ -f "$SHOT/report.json" ]; then
   python3 "$ROOT/tool/audit/shader/parity.py" show "$SHOT"
+  TRACE=$ROOT/tool/ios_reference/perf/$(date +%F)-shader-$NAME/liquid-$REV-$BACKEND-$MODE.gpuwork.txt
+  if [ -s "$TRACE" ]; then
+    python3 "$ROOT/tool/audit/shader/gpu_work.py" "$SHOT/report.json" "$TRACE"
+  fi
 fi
