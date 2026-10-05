@@ -7,6 +7,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/clock.dart';
 import 'package:morph_example/lab/lab_clocks.dart';
 
 /// Which clock the engine's frame time stamps, the Dart clocks and the
@@ -59,6 +61,8 @@ void main() {
         'timeline_us': Timeline.now,
         'uptime_us': labUptimeMicros(),
         'monotonic_us': labMonotonicMicros(),
+        // ignore: invalid_use_of_internal_member
+        'package_offset_us': morphPointerClockOffset()?.inMicroseconds,
       });
     });
     ticker.start();

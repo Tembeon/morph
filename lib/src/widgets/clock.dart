@@ -4,6 +4,8 @@ import 'dart:developer' show Timeline;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/widgets/pointer_clock_stub.dart'
+    if (dart.library.ffi) 'package:morph/src/widgets/pointer_clock_io.dart';
 
 /// Receives every pointer stamp: the event and the motion time it got.
 ///
@@ -25,6 +27,15 @@ Duration Function() morphClockNow = _timelineNow;
 
 Duration _timelineNow() => Duration(microseconds: Timeline.now);
 
+/// How far [morphClockNow]'s clock runs ahead of pointer time stamps, or
+/// null when unknown.
+///
+/// On iOS and macOS it is read from the system clocks (the device's sleep
+/// so far, 35 747.791 s on the measured iPhone); elsewhere the two are one
+/// clock. Tests replace it.
+@internal
+Duration? Function() morphPointerClockOffset = pointerClockOffset;
+
 /// Drives a pure measured motion from a ticker.
 ///
 /// The clock is the ticker's elapsed time accumulated across restarts, so
@@ -32,18 +43,21 @@ Duration _timelineNow() => Duration(microseconds: Timeline.now);
 /// between gestures; time spent asleep does not count. The ticker stops
 /// as soon as the motion settles.
 ///
-/// Pointer events are stamped with [stamp] one display frame after their
-/// delivery, read on [morphClockNow]: UIKit sets an animation started
-/// from an event handler to begin a frame after the call, and a frame's
-/// time stamp is the time it is shown at (on iOS the display link's
-/// target). While the ticker runs, or dozes, the stamp is the latest
-/// frame's clock plus the time from that frame's time stamp to one frame
-/// after the delivery. Events that arrive while it sleeps keep their
-/// spacing, measured by their own time stamps and slowed by
-/// [timeDilation], and the first frame after the wake continues from the
-/// latest of them by the time from one frame after its delivery to that
-/// frame's time stamp, so the clock never runs backwards. When the frame
-/// time stamps and [morphClockNow] disagree by more than [maxFrameLead] (a
+/// Pointer events are stamped with [stamp] at their own time stamp, moved
+/// onto the frame clock by [morphPointerClockOffset]: the measured
+/// delays of UIKit were fitted from the touch's time stamp, and its
+/// animations begin that long after it. A frame is stamped with the time
+/// it is shown at (on iOS the display link's target), so while the ticker
+/// runs, or dozes, the stamp is the latest frame's clock plus the time
+/// from that frame's time stamp to the event's, usually a frame or two in
+/// the past: delivery lags the touch by 10 - 25 ms. Events that arrive
+/// while it sleeps keep their spacing, measured by their own time stamps
+/// and slowed by [timeDilation], and the first frame after the wake
+/// continues from the latest of them by the time from its time stamp to
+/// that frame's, so the clock never runs backwards. An event whose time
+/// stamp does not land within [maxEventAge] before [morphClockNow] is
+/// taken as happening one frame after its delivery. When the frame time
+/// stamps and [morphClockNow] disagree by more than [maxFrameLead] (a
 /// test's fake frame clock), an event gets the latest frame's clock while
 /// the ticker runs, and the first frame after a wake continues from the
 /// latest stamp itself.
@@ -76,6 +90,20 @@ mixin MorphClock<T extends StatefulWidget>
   /// The largest distance, in seconds, between a frame's time stamp and
   /// [morphClockNow] at its callback for which the two count as one clock.
   static const double maxFrameLead = 0.05;
+
+  /// The oldest an event's time stamp may be at its delivery, in seconds,
+  /// for [stamp] to trust it.
+  static const double maxEventAge = 0.25;
+
+  Duration _occurred(PointerEvent event, Duration now) {
+    final offset = morphPointerClockOffset();
+    if (offset != null) {
+      final at = event.timeStamp + offset;
+      final age = (now - at).inMicroseconds / 1e6;
+      if (age >= 0 && age < maxEventAge) return at;
+    }
+    return now + Duration(microseconds: (1e6 / _frameRate).round());
+  }
 
   /// Notifies on every frame of the motion; use it as a painter's repaint.
   Listenable get frames => _frames;
@@ -110,11 +138,11 @@ mixin MorphClock<T extends StatefulWidget>
     if (_ticking) {
       final tick = _tickStamp;
       if (!_stampsAgree || tick == null) return _clock;
-      final since = (now - tick).inMicroseconds / 1e6 + 1 / _frameRate;
-      if (since < -maxFrameLead) return _clock;
+      final since = (_occurred(event, now) - tick).inMicroseconds / 1e6;
+      if (since < -maxEventAge) return _clock;
       return _clock + since / timeDilation;
     }
-    _wakeFrom = now;
+    _wakeFrom = _occurred(event, now);
     final from = _stampFrom;
     if (from == null) {
       _stampFrom = event.timeStamp;
@@ -139,7 +167,7 @@ mixin MorphClock<T extends StatefulWidget>
     _tickStamp = stamp;
     if (_wakeFrom case final from?) {
       _wakeFrom = null;
-      final lag = (stamp - from).inMicroseconds / 1e6 - 1 / _frameRate;
+      final lag = (stamp - from).inMicroseconds / 1e6;
       if (_stampsAgree && lag > 0 && lag < 1) {
         final woken = _wakeClock + lag / timeDilation;
         if (_base + seconds < woken) _base = woken - seconds;
