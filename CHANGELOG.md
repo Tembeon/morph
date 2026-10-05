@@ -14,6 +14,18 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Performance, same pixels and same motion: animating controls (tab bar,
+  glass button, stepper, page control, progress view, spinner) paint
+  inside their own repaint boundary; a liquid layer's content repaints
+  only while a lifted lens copies it; the spinner's ticker dozes between
+  its 20 Hz images (frames per second while one spins ~120 -> ~22); the
+  search capsule no longer rebuilds its glass per press frame; springs
+  answer a repeated time from memory; fused outlines moved by one offset
+  are reused; the liquid renderer writes uniforms only to its bound
+  shader and does not re-upload a field it holds; the menu's plain-union
+  field no longer carries NaN at spacing 0 (a fix). New harnesses:
+  test/perf_counts_test.dart pins per-frame work counts as ceilings,
+  tool/ios_reference/perf/ runs and diffs the device audit.
 - Presentations from a navigation stack's page cover the stack's bars, as
   on iOS: `MorphNavigationStack` installs a new `MorphPresentationBoundary`,
   and `showMorph*`, `MorphAnchor`, `MorphMenuButton`,
