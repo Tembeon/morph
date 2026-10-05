@@ -24,6 +24,7 @@ class MorphSpringState {
   double _y0;
   double _v0 = 0;
   double _target;
+  bool _moved = false;
   double _memoT = double.nan;
   double _memoY = 0;
   double _memoV = 0;
@@ -33,11 +34,17 @@ class MorphSpringState {
 
   /// Sends the spring toward [target] from its state at time [t],
   /// switching to [spring] from then on when one is given.
+  ///
+  /// A change never reaches back before the previous one: a [t] earlier
+  /// than the last retarget, [snap] or [setState] takes effect at that
+  /// change's time instead: a pointer event handled before its frame's
+  /// callback can be stamped before changes that frame already made.
   void retarget(double t, double target, {MorphSpring? spring}) {
-    final (y, v) = _state(t);
+    final at = _since(t);
+    final (y, v) = _state(at);
     if (spring != null) _spring = spring;
     _memoT = double.nan;
-    _origin = t;
+    _origin = at;
     _y0 = y;
     _v0 = v;
     _target = target;
@@ -46,7 +53,7 @@ class MorphSpringState {
   /// Puts the spring at rest on [value] at time [t].
   void snap(double t, double value) {
     _memoT = double.nan;
-    _origin = t;
+    _origin = _since(t);
     _y0 = value;
     _v0 = 0;
     _target = value;
@@ -62,7 +69,7 @@ class MorphSpringState {
   /// target.
   void setState(double t, double value, double velocity) {
     _memoT = double.nan;
-    _origin = t;
+    _origin = _since(t);
     _y0 = value;
     _v0 = velocity;
   }
@@ -72,6 +79,12 @@ class MorphSpringState {
   bool isAtRest(double t, [double tolerance = 0.01]) {
     final (y, v) = _state(t);
     return (y - _target).abs() < tolerance && v.abs() < tolerance * 10;
+  }
+
+  double _since(double t) {
+    if (_moved && t < _origin) return _origin;
+    _moved = true;
+    return t;
   }
 
   (double, double) _state(double t) {
