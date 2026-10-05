@@ -400,24 +400,24 @@ class FlutterGpuGeometryRenderer {
 
     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
     gpu.Texture? fieldTexture;
+    gpu.BufferView? fieldUniformView;
     try {
       fieldTexture = field == null
           ? null
           : _uploadField(field, geometryCommandBuffer);
+      if (field != null && fieldTexture != null) {
+        _packFieldUniformData(
+          field: field,
+          fieldScale: fieldScale,
+          texture: fieldTexture,
+        );
+        fieldUniformView = _hostBufferForUniformSize(
+          _uniformSize,
+        ).emplace(_fieldUniformData);
+      }
     } on Object {
       geometryCommandBuffer.submit();
       rethrow;
-    }
-    gpu.BufferView? fieldUniformView;
-    if (field != null && fieldTexture != null) {
-      _packFieldUniformData(
-        field: field,
-        fieldScale: fieldScale,
-        texture: fieldTexture,
-      );
-      fieldUniformView = _hostBufferForUniformSize(
-        _uniformSize,
-      ).emplace(_fieldUniformData);
     }
     final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!);
     if (fieldTexture == null || fieldUniformView == null) {
