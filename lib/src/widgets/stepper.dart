@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/timeline.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
@@ -345,16 +346,19 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
                         if (!(style.pressedReplacesFill && _pressed == h.half))
                           Positioned.fromRect(
                             rect: h.shape.outerRect,
-                            child: glass.buildFill(
-                              context,
-                              MorphGlassSurface(
-                                kind: MorphGlassKind.track,
-                                shape: h.shape,
-                                color: background,
-                                brightness: brightness,
-                                enabled: enabled,
-                                glass: false,
-                              ),
+                            child: MorphGlassHost(
+                              painter: glass,
+                              mode: MorphGlassMode.fill,
+                              frame: () => MorphGlassFrame([
+                                MorphGlassSurface(
+                                  kind: MorphGlassKind.track,
+                                  shape: h.shape,
+                                  color: background,
+                                  brightness: brightness,
+                                  enabled: enabled,
+                                  glass: false,
+                                ),
+                              ]),
                             ),
                           ),
                     Positioned.fill(child: CustomPaint(painter: painter)),

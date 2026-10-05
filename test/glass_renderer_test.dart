@@ -41,7 +41,7 @@ void main() {
     );
     final painted = [
       for (final box in tester.widgetList<DecoratedBox>(
-        find.byType(DecoratedBox),
+        find.bySubtype<DecoratedBox>(),
       ))
         if (box.decoration case final BoxDecoration d
             when d.color == surface.color && d.gradient == null)
@@ -268,7 +268,7 @@ void main() {
       find
           .ancestor(
             of: find.byKey(const ValueKey<(String, int)>(('glass', 0))),
-            matching: find.byType(Stack),
+            matching: find.bySubtype<Stack>(),
           )
           .first,
     );
@@ -384,7 +384,7 @@ void main() {
         final layers = tester.widgetList<LiquidGlassLayer>(
           find.byType(LiquidGlassLayer),
         );
-        final blurs = find.byType(BackdropFilter).evaluate().length;
+        final blurs = find.bySubtype<BackdropFilter>().evaluate().length;
         switch (tier) {
           case MorphGlassTier.flat:
             expect(layers, isEmpty);

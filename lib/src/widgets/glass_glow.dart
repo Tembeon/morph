@@ -1,7 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -123,22 +124,34 @@ Shader _spotShader(double radius, double gain) {
 /// Paints a surface's glow in a box placed at the surface's bounds.
 @internal
 class MorphGlassGlowPainter extends CustomPainter {
-  /// Paints [glow] inside [shape], both relative to the painted box.
-  const MorphGlassGlowPainter(this.shape, this.glow);
+  /// Paints the glow of [data] inside its outline, both relative to the
+  /// painted box, repainting when a live [data] changes.
+  MorphGlassGlowPainter(this.data)
+    : super(
+        repaint: data is GlassFixed<(RRect, MorphGlassGlow)>
+            ? null
+            : GlassChanges<Object?>(data, () => data.value),
+      );
+
+  /// The outline and the glow, relative to the painted box.
+  final ValueListenable<(RRect, MorphGlassGlow)> data;
 
   /// The outline that clips the glow.
-  final RRect shape;
+  RRect get shape => data.value.$1;
 
   /// The glow to paint.
-  final MorphGlassGlow glow;
+  MorphGlassGlow get glow => data.value.$2;
 
   @override
-  void paint(Canvas canvas, Size size) =>
-      morphPaintGlassGlow(canvas, shape, glow);
+  void paint(Canvas canvas, Size size) {
+    final (shape, glow) = data.value;
+    morphPaintGlassGlow(canvas, shape, glow);
+  }
 
   @override
   bool shouldRepaint(MorphGlassGlowPainter oldDelegate) =>
-      oldDelegate.shape != shape || oldDelegate.glow != glow;
+      data is! GlassFixed<(RRect, MorphGlassGlow)> ||
+      oldDelegate.data.value != data.value;
 }
 
 /// The touch glow of a pressed glass bar as a function of time: UIKit's

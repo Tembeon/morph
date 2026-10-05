@@ -12,6 +12,7 @@ import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
@@ -1317,9 +1318,21 @@ class _MorphBarItemsState extends State<MorphBarItems>
                       ], style),
                       child: content,
                     )
-                  : glass.buildLayer(
-                      context,
-                      joined,
+                  : MorphGlassHost(
+                      painter: glass,
+                      mode: MorphGlassMode.layer,
+                      frame: () => MorphGlassFrame(
+                        joined,
+                        spacing: spacing,
+                        contentSlots: [
+                          for (final f in items)
+                            Rect.fromCenter(
+                              center: f.center,
+                              width: f.size.width,
+                              height: f.size.height,
+                            ),
+                        ],
+                      ),
                       content: apart.isEmpty
                           ? content
                           : Stack(
@@ -1327,25 +1340,19 @@ class _MorphBarItemsState extends State<MorphBarItems>
                               children: [
                                 Positioned.fill(
                                   child: IgnorePointer(
-                                    child: glass.buildLayer(
-                                      context,
-                                      apart,
-                                      spacing: spacing,
+                                    child: MorphGlassHost(
+                                      painter: glass,
+                                      mode: MorphGlassMode.layer,
+                                      frame: () => MorphGlassFrame(
+                                        apart,
+                                        spacing: spacing,
+                                      ),
                                     ),
                                   ),
                                 ),
                                 Positioned.fill(child: content),
                               ],
                             ),
-                      spacing: spacing,
-                      contentSlots: [
-                        for (final f in items)
-                          Rect.fromCenter(
-                            center: f.center,
-                            width: f.size.width,
-                            height: f.size.height,
-                          ),
-                      ],
                     ),
             );
             return bar;

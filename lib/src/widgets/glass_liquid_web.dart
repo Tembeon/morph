@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
@@ -38,7 +39,8 @@ Future<void> morphPrecacheLiquidGlass() => _capability.precache();
 Widget morphLiquidSurface(
   MorphGlassRenderer renderer,
   BuildContext context,
-  MorphGlassSurface surface,
+  MorphGlassSource source,
+  MorphGlassSurface Function(MorphGlassFrame frame) select,
 ) => throw UnsupportedError('The web has no liquid glass tier.');
 
 /// Never called on the web, where [MorphGlassRenderer.effectiveTier] is at
@@ -47,8 +49,9 @@ Widget morphLiquidSurface(
 Widget morphLiquidBody(
   MorphGlassRenderer renderer,
   BuildContext context,
-  MorphGlassOutline outline,
-  List<MorphGlassSurface> surfaces,
+  MorphGlassSource source,
+  (List<MorphGlassSurface>, MorphGlassOutline) Function(MorphGlassFrame f)
+  select,
 ) => throw UnsupportedError('The web has no liquid glass tier.');
 
 /// Never called on the web, where [MorphGlassRenderer.effectiveTier] is at
@@ -57,7 +60,6 @@ Widget morphLiquidBody(
 Widget morphLiquidLayer(
   MorphGlassRenderer renderer,
   BuildContext context,
-  MorphGlassLayerParts parts, {
+  MorphGlassSource source, {
   Widget? content,
-  List<Rect> contentSlots = const [],
 }) => throw UnsupportedError('The web has no liquid glass tier.');

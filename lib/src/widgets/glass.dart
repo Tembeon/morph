@@ -1,9 +1,12 @@
 import 'dart:ui' show lerpDouble;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// The role a surface plays in a control.
 ///
@@ -231,14 +234,7 @@ abstract class MorphGlassPainter {
   /// The default fills [MorphGlassSurface.localShape] with
   /// [MorphGlassSurface.color], as the control does without a painter.
   Widget buildFill(BuildContext context, MorphGlassSurface surface) =>
-      CustomPaint(
-        painter: _FillPainter(
-          surface.localShape,
-          surface.color.withValues(
-            alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
-          ),
-        ),
-      );
+      CustomPaint(painter: _FillPainter(GlassFixed(_fillOf(surface))));
 
   /// Builds the widget that draws one glass body: the [surfaces] a control
   /// fused into one silhouette, filling the box of their layer, with
@@ -252,14 +248,8 @@ abstract class MorphGlassPainter {
     MorphGlassOutline outline,
     List<MorphGlassSurface> surfaces,
   ) {
-    final surface = surfaces.first;
     return CustomPaint(
-      painter: _BodyPainter(
-        outline.path,
-        surface.color.withValues(
-          alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
-        ),
-      ),
+      painter: _BodyPainter(GlassFixed(_bodyOf(outline, surfaces))),
     );
   }
 
@@ -270,18 +260,9 @@ abstract class MorphGlassPainter {
   /// painted, inside [MorphGlassSurface.localShape]. A painter that
   /// renders [buildLayer] itself places this over each lit surface.
   Widget buildGlow(BuildContext context, MorphGlassSurface surface) {
-    final glow = surface.glow;
-    if (glow == null) return const SizedBox.expand();
+    if (surface.glow == null) return const SizedBox.expand();
     return CustomPaint(
-      painter: MorphGlassGlowPainter(
-        surface.localShape,
-        MorphGlassGlow(
-          wash: glow.wash,
-          center: glow.center - surface.bounds.topLeft,
-          radius: glow.radius,
-          gain: glow.gain,
-        ),
-      ),
+      painter: MorphGlassGlowPainter(GlassFixed(_glowOf(surface))),
     );
   }
 
@@ -364,14 +345,82 @@ abstract class MorphGlassPainter {
   }
 }
 
-class _FillPainter extends CustomPainter {
-  const _FillPainter(this.shape, this.color);
+(RRect, Color) _fillOf(MorphGlassSurface surface) => (
+  surface.localShape,
+  surface.color.withValues(
+    alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
+  ),
+);
 
-  final RRect shape;
-  final Color color;
+(RRect, MorphGlassGlow) _glowOf(MorphGlassSurface surface) {
+  final glow = surface.glow!;
+  return (
+    surface.localShape,
+    MorphGlassGlow(
+      wash: glow.wash,
+      center: glow.center - surface.bounds.topLeft,
+      radius: glow.radius,
+      gain: glow.gain,
+    ),
+  );
+}
+
+(Path, Color) _bodyOf(
+  MorphGlassOutline outline,
+  List<MorphGlassSurface> surfaces,
+) {
+  final surface = surfaces.first;
+  return (
+    outline.path,
+    surface.color.withValues(
+      alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
+    ),
+  );
+}
+
+/// The flat fill of the surface [select] picks from [source], as
+/// [MorphGlassPainter.buildFill] draws it, following the source.
+@internal
+Widget morphGlassLiveFill(
+  MorphGlassSource source,
+  MorphGlassSurface Function(MorphGlassFrame frame) select,
+) => CustomPaint(painter: _FillPainter(source.pick((f) => _fillOf(select(f)))));
+
+/// The flat body [select] picks from [source], as the default
+/// [MorphGlassPainter.buildBody] draws it, following the source.
+@internal
+Widget morphGlassLiveBody(
+  MorphGlassSource source,
+  (List<MorphGlassSurface>, MorphGlassOutline) Function(MorphGlassFrame frame)
+  select,
+) => CustomPaint(
+  painter: _BodyPainter(
+    source.pick((f) {
+      final (surfaces, outline) = select(f);
+      return _bodyOf(outline, surfaces);
+    }),
+  ),
+);
+
+/// The glow of the surface [select] picks from [source], as
+/// [MorphGlassPainter.buildGlow] draws it, following the source; the
+/// surface must keep a glow while the structure holds.
+@internal
+Widget morphGlassLiveGlow(
+  MorphGlassSource source,
+  MorphGlassSurface Function(MorphGlassFrame frame) select,
+) => CustomPaint(
+  painter: MorphGlassGlowPainter(source.pick((f) => _glowOf(select(f)))),
+);
+
+class _FillPainter extends CustomPainter {
+  _FillPainter(this.data) : super(repaint: morphRepaintOn(data));
+
+  final ValueListenable<(RRect, Color)> data;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final (shape, color) = data.value;
     final paint = Paint();
     paint.color = color;
     canvas.drawRRect(shape, paint);
@@ -379,17 +428,18 @@ class _FillPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FillPainter oldDelegate) =>
-      oldDelegate.shape != shape || oldDelegate.color != color;
+      data is! GlassFixed<(RRect, Color)> ||
+      oldDelegate.data.value != data.value;
 }
 
 class _BodyPainter extends CustomPainter {
-  const _BodyPainter(this.outline, this.color);
+  _BodyPainter(this.data) : super(repaint: morphRepaintOn(data));
 
-  final Path outline;
-  final Color color;
+  final ValueListenable<(Path, Color)> data;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final (outline, color) = data.value;
     final paint = Paint();
     paint.color = color;
     canvas.drawPath(outline, paint);
@@ -397,7 +447,8 @@ class _BodyPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BodyPainter oldDelegate) =>
-      oldDelegate.outline != outline || oldDelegate.color != color;
+      data is! GlassFixed<(Path, Color)> ||
+      oldDelegate.data.value != data.value;
 }
 
 /// Installs a [MorphGlassPainter] for the measured controls below it.
@@ -430,8 +481,13 @@ MorphGlassPainter? morphGlassAbove(BuildContext context) =>
     context.getInheritedWidgetOfExactType<MorphGlass>()?.painter;
 
 /// Builds the surfaces a control hands to [painter] through
-/// [MorphGlassPainter.buildLayer], with [content] over them, rebuilt on
-/// every notification of [frames].
+/// [MorphGlassPainter.buildLayer], with [content] over them, for every
+/// notification of [frames].
+///
+/// With the package's own [MorphGlassRenderer] a frame that keeps the
+/// layer's structure is pushed into the render objects the layer built
+/// before: no widget below the layer rebuilds per frame (see
+/// [MorphGlassHost]). Any other painter builds the layer every frame.
 ///
 /// The layer takes hits across its whole box, as the flat fills do,
 /// whatever the painter builds.
@@ -445,14 +501,16 @@ class MorphGlassLayer extends StatelessWidget {
     this.content,
     this.contentSlots = const [],
     this.spacing = 0,
+    this.outline,
     super.key,
   });
 
   /// The painter that builds each surface.
   final MorphGlassPainter painter;
 
-  /// Notifies when the surfaces change.
-  final Listenable frames;
+  /// Notifies when the surfaces change; null for a layer its parent
+  /// rebuilds with every frame.
+  final Listenable? frames;
 
   /// Returns the surfaces of the current frame, back to front.
   final List<MorphGlassSurface> Function() surfaces;
@@ -467,20 +525,25 @@ class MorphGlassLayer extends StatelessWidget {
   /// The glass container spacing handed to [MorphGlassPainter.buildLayer].
   final double spacing;
 
+  /// Returns the silhouette of the current frame handed to
+  /// [MorphGlassPainter.buildLayer], or null.
+  final MorphGlassOutline? Function()? outline;
+
   @override
   Widget build(BuildContext context) {
     return MetaData(
       behavior: HitTestBehavior.opaque,
-      child: ListenableBuilder(
-        listenable: frames,
-        builder: (BuildContext context, Widget? child) => painter.buildLayer(
-          context,
+      child: MorphGlassHost(
+        painter: painter,
+        mode: MorphGlassMode.layer,
+        frames: frames,
+        frame: () => MorphGlassFrame(
           surfaces(),
-          content: child,
+          outline: outline?.call(),
           contentSlots: contentSlots,
           spacing: spacing,
         ),
-        child: content,
+        content: content,
       ),
     );
   }

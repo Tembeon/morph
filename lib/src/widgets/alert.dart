@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -1119,35 +1120,38 @@ class _AlertCard extends StatelessWidget {
         children: [
           Positioned.fill(
             child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints box) =>
-                  ListenableBuilder(
+              builder: (BuildContext context, BoxConstraints box) {
+                final shape = RRect.fromRectAndRadius(
+                  Offset.zero & box.biggest,
+                  Radius.circular(radius),
+                );
+                if (glass == null) {
+                  return ListenableBuilder(
                     listenable: frames,
-                    builder: (BuildContext context, Widget? _) {
-                      final shape = RRect.fromRectAndRadius(
-                        Offset.zero & box.biggest,
-                        Radius.circular(radius),
-                      );
-                      if (glass == null) {
-                        return CustomPaint(
-                          painter: _PlatterPainter(
-                            style: style,
-                            shape: shape,
-                            opacity: opacity(),
-                          ),
-                        );
-                      }
-                      return glass.buildSurface(
-                        context,
-                        MorphGlassSurface(
-                          kind: MorphGlassKind.menu,
-                          shape: shape,
-                          color: style.platterColor,
-                          brightness: brightness,
-                          opacity: opacity(),
-                        ),
-                      );
-                    },
-                  ),
+                    builder: (BuildContext context, Widget? _) => CustomPaint(
+                      painter: _PlatterPainter(
+                        style: style,
+                        shape: shape,
+                        opacity: opacity(),
+                      ),
+                    ),
+                  );
+                }
+                return MorphGlassHost(
+                  painter: glass,
+                  mode: MorphGlassMode.surface,
+                  frames: frames,
+                  frame: () => MorphGlassFrame([
+                    MorphGlassSurface(
+                      kind: MorphGlassKind.menu,
+                      shape: shape,
+                      color: style.platterColor,
+                      brightness: brightness,
+                      opacity: opacity(),
+                    ),
+                  ]),
+                );
+              },
             ),
           ),
           clipped,

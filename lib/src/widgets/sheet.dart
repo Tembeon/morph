@@ -8,6 +8,7 @@ import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -921,14 +922,17 @@ class _SheetBody extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (painter != null && dock < 1)
-            painter.buildSurface(
-              context,
-              MorphGlassSurface(
-                kind: MorphGlassKind.menu,
-                shape: shape,
-                color: style.floatingColor,
-                brightness: brightness,
-              ),
+            MorphGlassHost(
+              painter: painter,
+              mode: MorphGlassMode.surface,
+              frame: () => MorphGlassFrame([
+                MorphGlassSurface(
+                  kind: MorphGlassKind.menu,
+                  shape: shape,
+                  color: style.floatingColor,
+                  brightness: brightness,
+                ),
+              ]),
             )
           else if (dock < 1)
             ColoredBox(color: style.floatingColor),

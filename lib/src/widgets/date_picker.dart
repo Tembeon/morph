@@ -8,6 +8,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/date_picker_motion.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
@@ -1064,15 +1065,18 @@ class _OverlayViewState extends State<_OverlayView>
                   fit: StackFit.expand,
                   children: [
                     if (glass != null)
-                      glass.buildSurface(
-                        context,
-                        MorphGlassSurface(
-                          kind: MorphGlassKind.menu,
-                          shape: shape,
-                          color: style.platterColor,
-                          brightness: brightness,
-                          opacity: opacity,
-                        ),
+                      MorphGlassHost(
+                        painter: glass,
+                        mode: MorphGlassMode.surface,
+                        frame: () => MorphGlassFrame([
+                          MorphGlassSurface(
+                            kind: MorphGlassKind.menu,
+                            shape: shape,
+                            color: style.platterColor,
+                            brightness: brightness,
+                            opacity: opacity,
+                          ),
+                        ]),
                       )
                     else
                       CustomPaint(

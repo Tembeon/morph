@@ -6,13 +6,16 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
 import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_body_shadow.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
@@ -187,14 +190,14 @@ List<BoxShadow> _shadows(MorphGlassSurface surface) =>
       ],
     };
 
-Widget _glass(
+LiquidGlassShapeFrame _shapeFrame(
   MorphGlassRenderer renderer,
   MorphGlassSurface surface, {
-  bool shadows = true,
-  bool exact = false,
+  required bool shadows,
+  required bool exact,
 }) {
   final base = morphLiquidAppearance(renderer, surface);
-  return LiquidGlass(
+  return LiquidGlassShapeFrame(
     shape: _shape(surface.localShape, exact: exact),
     appearance: base.copyWith(
       visibility:
@@ -203,39 +206,59 @@ Widget _glass(
           surface.opacity.clamp(0.0, 1.0),
     ),
     shadows: shadows ? _shadows(surface) : const [],
-    child: const SizedBox.expand(),
   );
 }
 
-/// One glass layer of [surfaces], each its own shape, or one body shaded
-/// from [field] when it is given; [exact] shapes are the surfaces' own
-/// circular rounded boxes instead of continuous corners.
+/// One glass layer of the surfaces [select] picks, each its own shape, or
+/// one body shaded from [field] when it is given; [exact] shapes are the
+/// surfaces' own circular rounded boxes instead of continuous corners. A
+/// lifted lens's layer shrinks its backdrop by [shrink] about a center
+/// line of [rim] weight.
 Widget _layer(
   MorphGlassRenderer renderer,
-  List<MorphGlassSurface> surfaces, {
+  MorphGlassSource source,
+  List<MorphGlassSurface> Function(MorphGlassFrame frame) select, {
   bool shared = true,
-  double shrink = 0,
+  double Function(MorphGlassSurface surface)? shrink,
   double rim = 0,
-  GlassField? field,
+  GlassField? Function(MorphGlassFrame frame)? field,
   bool shadows = true,
   bool exact = false,
 }) {
-  final settings = morphLiquidSettings(renderer, surfaces.first);
+  final count = select(source.frame).length;
+  final settings = source.pick((f) {
+    final surface = select(f).first;
+    final settings = morphLiquidSettings(renderer, surface);
+    final amount = shrink?.call(surface) ?? 0;
+    return amount == 0
+        ? settings
+        : settings.copyWith(backdropShrink: amount, backdropShrinkRim: rim);
+  });
+  final fieldOf = field == null ? null : source.pick(field);
   return ClipRect(
     clipper: const _Reach(),
-    child: LiquidGlassLayer(
-      settings: shrink == 0
-          ? settings
-          : settings.copyWith(backdropShrink: shrink, backdropShrinkRim: rim),
+    child: LiquidGlassLayer.live(
+      live: source.live,
+      settingsOf: () => settings.value,
+      fieldOf: fieldOf == null ? null : () => fieldOf.value,
       useBackdropGroup: shared,
-      field: field,
-      child: Stack(
-        clipBehavior: Clip.none,
+      child: MorphLiveStack(
+        live: source.live,
         children: [
-          for (final surface in surfaces)
-            Positioned.fromRect(
-              rect: surface.bounds,
-              child: _glass(renderer, surface, shadows: shadows, exact: exact),
+          for (var i = 0; i < count; i++)
+            MorphLivePositioned(
+              rect: source.pick((f) => select(f)[i].bounds),
+              child: LiquidGlass.live(
+                live: source.pick(
+                  (f) => _shapeFrame(
+                    renderer,
+                    select(f)[i],
+                    shadows: shadows,
+                    exact: exact,
+                  ),
+                ),
+                child: const SizedBox.expand(),
+              ),
             ),
         ],
       ),
@@ -261,15 +284,23 @@ MorphGlassSurface _local(MorphGlassSurface surface) => MorphGlassSurface(
   shadows: surface.shadows,
 );
 
-/// One glass surface on the liquid tier, sized to its bounds.
+/// One glass surface on the liquid tier, the one [select] picks from
+/// [source], sized to its bounds.
 @internal
 Widget morphLiquidSurface(
   MorphGlassRenderer renderer,
   BuildContext context,
-  MorphGlassSurface surface,
-) => _layer(renderer, [_local(surface)], shared: !_chrome(surface));
+  MorphGlassSource source,
+  MorphGlassSurface Function(MorphGlassFrame frame) select,
+) => _layer(
+  renderer,
+  source,
+  (f) => [_local(select(f))],
+  shared: !_chrome(select(source.frame)),
+);
 
-/// One fused glass body on the liquid tier, filling its layer's box.
+/// One fused glass body on the liquid tier, the one [select] picks from
+/// [source], filling its layer's box.
 ///
 /// A body the package fused carries its distance field and is shaded from
 /// it, neck included. A plain union is shaded from its surfaces' own
@@ -281,40 +312,54 @@ Widget morphLiquidSurface(
 Widget morphLiquidBody(
   MorphGlassRenderer renderer,
   BuildContext context,
-  MorphGlassOutline outline,
-  List<MorphGlassSurface> surfaces,
+  MorphGlassSource source,
+  (List<MorphGlassSurface>, MorphGlassOutline) Function(MorphGlassFrame f)
+  select,
 ) {
+  final (surfaces, outline) = select(source.frame);
   final chrome = surfaces.any(_chrome);
   final field = morphGlassOutlineField(outline);
   final exact = morphGlassOutlineShapes(outline) != null;
+  List<MorphGlassSurface> members(MorphGlassFrame f) => select(f).$1;
   if (field != null || exact) {
     return CustomPaint(
-      painter: MorphGlassBodyShadow(
-        outline.path,
-        _shadows(surfaces.first),
-        surfaces.first.opacity.clamp(0.0, 1.0),
+      painter: MorphGlassBodyShadow.live(
+        source.pick((f) {
+          final (surfaces, outline) = select(f);
+          return (
+            outline.path,
+            _shadows(surfaces.first),
+            surfaces.first.opacity.clamp(0.0, 1.0),
+          );
+        }),
       ),
       child: _layer(
         renderer,
-        surfaces,
+        source,
+        members,
         shared: !chrome,
-        field: field,
+        field: (f) => morphGlassOutlineField(select(f).$2),
         shadows: false,
         exact: exact,
       ),
     );
   }
   return ClipPath(
-    clipper: MorphGlassOutlineClip(outline.path),
+    clipper: morphGlassOutlineClip(source, (f) => select(f).$2.path),
     child: Stack(
       fit: StackFit.expand,
       children: [
         _Frost(
-          surface: surfaces.first,
+          color: source.pick((f) {
+            final surface = select(f).$1.first;
+            return surface.color.withValues(
+              alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
+            );
+          }),
           sigma: renderer.blur * MorphGlassDefaults.chromeFrost,
           shared: !chrome,
         ),
-        _layer(renderer, surfaces, shared: !chrome),
+        _layer(renderer, source, members, shared: !chrome),
       ],
     ),
   );
@@ -323,30 +368,47 @@ Widget morphLiquidBody(
 bool _chrome(MorphGlassSurface s) =>
     s.kind == MorphGlassKind.bar || s.kind == MorphGlassKind.menu;
 
-/// One layer of a control on the liquid tier.
+class _LensRects {
+  const _LensRects(this.lenses);
+
+  final List<RRect> lenses;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _LensRects && _LensClip._same(other.lenses, lenses);
+
+  @override
+  int get hashCode => Object.hashAll(lenses);
+}
+
+/// One layer of a control on the liquid tier, built from [source].
 ///
 /// A control's glass body surfaces share a layer: the ones drawn as their
 /// own shapes one layer, each fused body a layer of its own shaded from
 /// its outline. A body that fuses and comes apart again (a menu and its
-/// button) keeps one layer throughout, so its glass never restarts. Every backdrop copy is a full-screen readback, so body
-/// glass reads the one copy of the nearest [BackdropGroup] and only lifted
-/// glass, which must refract the glass and content under it, and chrome
-/// that floats over content (a bar, a menu) pay for their own. Glass in
-/// one group does not see what paints between its members: give a section
-/// painted over the page (a card) a group of its own.
+/// button) keeps one layer throughout, so its glass never restarts. Every
+/// backdrop copy is a full-screen readback, so body glass reads the one
+/// copy of the nearest [BackdropGroup] and only lifted glass, which must
+/// refract the glass and content under it, and chrome that floats over
+/// content (a bar, a menu) pay for their own. Glass in one group does not
+/// see what paints between its members: give a section painted over the
+/// page (a card) a group of its own.
 ///
 /// A lifted lens shows the content once more inside its outline, each
 /// item grown about its own slot by the lens's magnification and against
 /// the backdrop shrink, below the lens glass, which then bends it and the
 /// rim of what it floats over at its bevel as UIKit's lens does.
+///
+/// Every part but the content is kept for the source's structure, so a
+/// rebuild around new content leaves the glass widgets untouched.
 @internal
 Widget morphLiquidLayer(
   MorphGlassRenderer renderer,
   BuildContext context,
-  MorphGlassLayerParts parts, {
+  MorphGlassSource source, {
   Widget? content,
-  List<Rect> contentSlots = const [],
 }) {
+  final parts = source.frame.parts;
   final body = parts.body;
   final floating = parts.floating;
   final chrome = body.any(_chrome);
@@ -357,91 +419,134 @@ Widget morphLiquidLayer(
   ) => MorphGlassRenderer.liftedOptics(s.kind, overBar: overBar);
   double shrinkOf(MorphGlassSurface s) =>
       optics(s).shrink * s.lift.clamp(0.0, 1.0);
-  final lenses = [
-    for (final s in floating)
-      if (s.kind == MorphGlassKind.lens && lifted(s)) s.shape,
+  final lensed = [
+    for (final (i, s) in floating.indexed)
+      if (s.kind == MorphGlassKind.lens && lifted(s)) i,
   ];
-  final snapshot = GlassContentSnapshot();
-  final source = content == null
-      ? null
-      : GlassContentSource(
-          snapshot: snapshot,
-          capture: lenses.isNotEmpty,
-          child: content,
-        );
-  return Stack(
-    clipBehavior: Clip.none,
+  List<RRect> lenses(MorphGlassFrame f) => [
+    for (final i in lensed) f.parts.floating[i].shape,
+  ];
+  final snapshot = source.keep('snapshot', GlassContentSnapshot.new);
+  Widget at(
+    (String, int) slot,
+    Rect Function(MorphGlassFrame f) rect,
+    Widget Function() child,
+  ) => source.keep(
+    slot,
+    () => MorphLivePositioned(
+      key: ValueKey<(String, int)>(slot),
+      rect: source.pick(rect),
+      child: child(),
+    ),
+  );
+  Widget fill(Object slot, Key key, Widget Function() child) =>
+      source.keep(slot, () => Positioned.fill(key: key, child: child()));
+  final live = source.live;
+  return MorphLiveStack(
+    live: live,
     children: [
-      for (final (i, surface) in parts.fills.indexed)
-        Positioned.fromRect(
-          key: ValueKey<(String, int)>(('fill', i)),
-          rect: surface.bounds,
-          child: renderer.buildFill(context, surface),
+      for (var i = 0; i < parts.fills.length; i++)
+        at(
+          ('fill', i),
+          (f) => f.parts.fills[i].bounds,
+          () => renderer.liveFill(context, source, (f) => f.parts.fills[i]),
         ),
       if (parts.separate.isNotEmpty)
-        Positioned.fill(
-          key: parts.fused.isEmpty
+        fill(
+          'separate',
+          parts.fused.isEmpty
               ? const ValueKey<String>('body')
               : const ValueKey<String>('separate'),
-          child: _layer(renderer, parts.separate, shared: !chrome),
+          () => _layer(
+            renderer,
+            source,
+            (f) => f.parts.separate,
+            shared: !chrome,
+          ),
         ),
-      for (final (i, (surfaces, outline)) in parts.fused.indexed)
-        Positioned.fill(
-          key: i == 0
+      for (var i = 0; i < parts.fused.length; i++)
+        fill(
+          ('fused', i),
+          i == 0
               ? const ValueKey<String>('body')
               : ValueKey<(String, int)>(('fused', i)),
-          child: morphLiquidBody(renderer, context, outline, surfaces),
+          () => morphLiquidBody(
+            renderer,
+            context,
+            source,
+            (f) => f.parts.fused[i],
+          ),
         ),
       for (final (i, surface) in body.indexed)
         if (surface.glow != null)
-          Positioned.fromRect(
-            key: ValueKey<(String, int)>(('glow', i)),
-            rect: surface.bounds,
-            child: renderer.buildGlow(context, surface),
+          at(
+            ('glow', i),
+            (f) => f.parts.body[i].bounds,
+            () => renderer.liveGlow(context, source, (f) => f.parts.body[i]),
           ),
       for (final (i, surface) in floating.indexed)
         if (MorphGlassRenderer.glassness(surface) < 1)
-          Positioned.fromRect(
-            key: ValueKey<(String, int)>(('platter', i)),
-            rect: surface.bounds,
-            child: _Platter(
-              surface: surface,
-              opacity: 1 - MorphGlassRenderer.glassness(surface),
-            ),
+          at(
+            ('platter', i),
+            (f) => f.parts.floating[i].bounds,
+            () => _Platter(source: source, select: (f) => f.parts.floating[i]),
           ),
       if (content != null)
         Positioned.fill(
           key: const ValueKey<String>('content'),
           child: ClipPath(
-            clipBehavior: lenses.isEmpty ? Clip.none : Clip.antiAlias,
-            clipper: _LensClip(lenses, outside: true),
-            child: source!,
+            clipBehavior: lensed.isEmpty ? Clip.none : Clip.antiAlias,
+            clipper: live == null
+                ? _LensClip(lenses(source.frame), outside: true)
+                : source.keep('lens clip', () {
+                    final picked = source.pick(lenses);
+                    return GlassLiveClipper<Path>(
+                      live: live,
+                      keyOf: () => _LensRects(picked.value),
+                      clipOf: (Size size) =>
+                          _LensClip(picked.value, outside: true).getClip(size),
+                    );
+                  }),
+            child: GlassContentSource(
+              snapshot: snapshot,
+              capture: lensed.isNotEmpty,
+              live: live,
+              child: content,
+            ),
           ),
         ),
       for (final (i, surface) in floating.indexed)
         if (lifted(surface)) ...[
           if (content != null && surface.kind == MorphGlassKind.lens)
-            Positioned.fill(
-              key: ValueKey<(String, int)>(('copy', i)),
-              child: MorphGlassContentCopy(
-                surface: surface,
-                slots: contentSlots,
-                magnification:
-                    1 +
-                    optics(surface).magnification *
-                        surface.lift.clamp(0.0, 1.0),
-                grow: morphBackdropScale(surface, shrinkOf(surface)),
-                axis: morphShrinkAxis(surface.bounds, optics(surface).rim),
+            fill(
+              ('copy', i),
+              ValueKey<(String, int)>(('copy', i)),
+              () => MorphGlassContentCopy(
+                frame: source.pick((f) {
+                  final lens = f.parts.floating[i];
+                  final lensOptics = optics(lens);
+                  return MorphGlassCopyFrame(
+                    surface: lens,
+                    slots: f.contentSlots,
+                    magnification:
+                        1 +
+                        lensOptics.magnification * lens.lift.clamp(0.0, 1.0),
+                    grow: morphBackdropScale(lens, shrinkOf(lens)),
+                    axis: morphShrinkAxis(lens.bounds, lensOptics.rim),
+                  );
+                }),
                 snapshot: snapshot,
               ),
             ),
-          Positioned.fill(
-            key: ValueKey<(String, int)>(('glass', i)),
-            child: _layer(
+          fill(
+            ('glass', i),
+            ValueKey<(String, int)>(('glass', i)),
+            () => _layer(
               renderer,
-              [surface],
+              source,
+              (f) => [f.parts.floating[i]],
               shared: false,
-              shrink: shrinkOf(surface),
+              shrink: shrinkOf,
               rim: optics(surface).rim,
             ),
           ),
@@ -451,15 +556,15 @@ Widget morphLiquidLayer(
 }
 
 /// Frosted glass over the whole box: the backdrop blurred by [sigma] and
-/// tinted by [surface]'s color.
+/// tinted by [color].
 class _Frost extends StatelessWidget {
   const _Frost({
-    required this.surface,
+    required this.color,
     required this.sigma,
     required this.shared,
   });
 
-  final MorphGlassSurface surface;
+  final ValueListenable<Color> color;
   final double sigma;
   final bool shared;
 
@@ -468,11 +573,7 @@ class _Frost extends StatelessWidget {
     return BackdropFilter(
       backdropGroupKey: shared ? BackdropGroup.of(context)?.backdropKey : null,
       filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-      child: ColoredBox(
-        color: surface.color.withValues(
-          alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
-        ),
-      ),
+      child: MorphLiveColoredBox(color: color),
     );
   }
 }
@@ -480,30 +581,64 @@ class _Frost extends StatelessWidget {
 /// A resting lens, knob or thumb: an opaque platter, as UIKit draws one
 /// until the finger lifts it into glass.
 class _Platter extends StatelessWidget {
-  const _Platter({required this.surface, required this.opacity});
+  const _Platter({required this.source, required this.select});
 
-  final MorphGlassSurface surface;
-  final double opacity;
+  final MorphGlassSource source;
+  final MorphGlassSurface Function(MorphGlassFrame frame) select;
 
   @override
   Widget build(BuildContext context) {
-    final shape = surface.localShape;
-    return Opacity(
-      opacity: opacity,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: surface.color,
-          borderRadius: BorderRadius.only(
-            topLeft: shape.tlRadius,
-            topRight: shape.trRadius,
-            bottomLeft: shape.blRadius,
-            bottomRight: shape.brRadius,
-          ),
-          boxShadow: _shadows(surface),
-        ),
+    final surface = source.pick(select);
+    return GlassLiveOpacity(
+      live: source.live,
+      opacityOf: () => 1 - MorphGlassRenderer.glassness(surface.value),
+      child: MorphLiveDecoratedBox(
+        live: source.pick((f) {
+          final surface = select(f);
+          final shape = surface.localShape;
+          return BoxDecoration(
+            color: surface.color,
+            borderRadius: BorderRadius.only(
+              topLeft: shape.tlRadius,
+              topRight: shape.trRadius,
+              bottomLeft: shape.blRadius,
+              bottomRight: shape.brRadius,
+            ),
+            boxShadow: _shadows(surface),
+          );
+        }),
       ),
     );
   }
+}
+
+/// What a lens's content copy shows in one frame.
+@internal
+@immutable
+class MorphGlassCopyFrame {
+  /// Describes one frame of a lens copy.
+  const MorphGlassCopyFrame({
+    required this.surface,
+    required this.slots,
+    required this.magnification,
+    required this.grow,
+    required this.axis,
+  });
+
+  /// The lifted lens in the control's coordinates.
+  final MorphGlassSurface surface;
+
+  /// The item slots whose centers anchor magnification.
+  final List<Rect> slots;
+
+  /// The content scale about each slot's center.
+  final double magnification;
+
+  /// The compensation for the glass's backdrop shrink.
+  final double grow;
+
+  /// Half the center line of the lens's rim warp.
+  final Offset axis;
 }
 
 /// The content seen through a lens: each item scaled by [magnification]
@@ -522,31 +657,31 @@ class _Platter extends StatelessWidget {
 /// still shows on its slot.
 @internal
 class MorphGlassContentCopy extends StatelessWidget {
-  /// Replays one source through the slot and rim transforms of a lens.
+  /// Replays one source through the slot and rim transforms of a lens,
+  /// repainting on every frame of [frame].
   const MorphGlassContentCopy({
-    required this.surface,
-    required this.slots,
-    required this.magnification,
-    required this.grow,
-    required this.axis,
+    required this.frame,
     required this.snapshot,
     super.key,
   });
 
+  /// The lens and its transforms now.
+  final ValueListenable<MorphGlassCopyFrame> frame;
+
   /// The lifted lens in the control's coordinates.
-  final MorphGlassSurface surface;
+  MorphGlassSurface get surface => frame.value.surface;
 
   /// The item slots whose centers anchor magnification.
-  final List<Rect> slots;
+  List<Rect> get slots => frame.value.slots;
 
   /// The content scale about each slot's center.
-  final double magnification;
+  double get magnification => frame.value.magnification;
 
   /// The compensation for the glass's backdrop shrink.
-  final double grow;
+  double get grow => frame.value.grow;
 
   /// Half the center line of the lens's rim warp.
-  final Offset axis;
+  Offset get axis => frame.value.axis;
 
   /// The single mounted content's current paint.
   final GlassContentSnapshot snapshot;
@@ -596,7 +731,12 @@ class MorphGlassContentCopy extends StatelessWidget {
 }
 
 class _ContentCopyPainter extends CustomPainter {
-  const _ContentCopyPainter(this.copy);
+  _ContentCopyPainter(this.copy)
+    : super(
+        repaint: copy.frame is GlassFixed<MorphGlassCopyFrame>
+            ? null
+            : copy.frame,
+      );
 
   final MorphGlassContentCopy copy;
 

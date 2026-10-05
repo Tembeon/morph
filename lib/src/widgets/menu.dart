@@ -14,6 +14,7 @@ import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/activity_indicator.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
@@ -711,25 +712,29 @@ class _MenuShapes extends StatelessWidget {
       );
     } else {
       final brightness = morphBrightnessOf(context);
-      surfaces = glass.buildLayer(context, [
-        MorphGlassSurface(
-          kind: MorphGlassKind.button,
-          shape: source,
-          color: style.glassColor,
-          tint: style.glassTint,
-          blurRadius: menu == null ? null : menuBlur,
-          brightness: brightness,
-        ),
-        if (menu != null)
+      surfaces = MorphGlassHost(
+        painter: glass,
+        mode: MorphGlassMode.layer,
+        frame: () => MorphGlassFrame([
           MorphGlassSurface(
-            kind: MorphGlassKind.menu,
-            shape: menu,
+            kind: MorphGlassKind.button,
+            shape: source,
             color: style.glassColor,
             tint: style.glassTint,
-            blurRadius: menuBlur,
+            blurRadius: menu == null ? null : menuBlur,
             brightness: brightness,
           ),
-      ], outline: menu == null ? null : outline);
+          if (menu != null)
+            MorphGlassSurface(
+              kind: MorphGlassKind.menu,
+              shape: menu,
+              color: style.glassColor,
+              tint: style.glassTint,
+              blurRadius: menuBlur,
+              brightness: brightness,
+            ),
+        ], outline: menu == null ? null : outline),
+      );
     }
     return Stack(
       clipBehavior: .none,
@@ -1245,12 +1250,12 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             if (glass != null)
               Positioned.fill(
                 child: BackdropGroup(
-                  child: Builder(
-                    builder: (BuildContext context) => glass.buildBody(
-                      context,
-                      morphGlassContainerOutline([surface.shape], 0),
-                      [surface],
-                    ),
+                  child: MorphGlassHost(
+                    painter: glass,
+                    mode: MorphGlassMode.body,
+                    frame: () => MorphGlassFrame([
+                      surface,
+                    ], outline: morphGlassContainerOutline([surface.shape], 0)),
                   ),
                 ),
               ),

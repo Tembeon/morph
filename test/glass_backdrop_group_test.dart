@@ -77,7 +77,7 @@ void main() {
       ),
     );
     final filters = tester.widgetList<BackdropFilter>(
-      find.byType(BackdropFilter),
+      find.bySubtype<BackdropFilter>(),
     );
     expect(filters, hasLength(2));
     expect(
@@ -134,7 +134,7 @@ void main() {
       for (final f in tester.widgetList<BackdropFilter>(
         find.descendant(
           of: find.byType(type),
-          matching: find.byType(BackdropFilter),
+          matching: find.bySubtype<BackdropFilter>(),
         ),
       ))
         f.backdropGroupKey,
@@ -180,7 +180,9 @@ void main() {
         ),
       ),
     );
-    final filter = tester.widget<BackdropFilter>(find.byType(BackdropFilter));
+    final filter = tester.widget<BackdropFilter>(
+      find.bySubtype<BackdropFilter>(),
+    );
     expect(filter.backdropGroupKey, isNull);
   });
 }

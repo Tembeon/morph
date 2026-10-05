@@ -221,7 +221,7 @@ class _Density {
 
   /// The independent backdrop captures (a null key is its own capture, a
   /// shared key one for all its members), the backdrop filters and the
-  /// offscreen layers of the current layer tree.
+  /// offscreen layers the current layer tree adds to the scene.
   Map<String, int> _countLayers() {
     // The profile build keeps no debug layer; the root layer is the view's.
     // ignore: invalid_use_of_protected_member
@@ -232,7 +232,11 @@ class _Density {
     final keys = <BackdropKey>{};
     void walk(Layer layer) {
       switch (layer) {
-        case BackdropFilterLayer(:final backdropKey):
+        // A glass layer's seed pass for an enclosing fractional opacity
+        // leaves the scene unless it seeds (no engine layer).
+        // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+        case BackdropFilterLayer(:final backdropKey)
+            when layer.engineLayer != null:
           filters++;
           offscreen++;
           if (backdropKey == null) {

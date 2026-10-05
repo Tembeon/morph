@@ -5,6 +5,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/search_field.dart';
 import 'package:morph/src/widgets/search_motion.dart';
@@ -501,14 +502,17 @@ class _MorphingTabs extends StatelessWidget {
                         shadow: style.shadowColor,
                       ),
                     )
-                  : glass!.buildSurface(
-                      context,
-                      MorphGlassSurface(
-                        kind: MorphGlassKind.bar,
-                        shape: shape,
-                        color: style.barColor,
-                        brightness: brightness,
-                      ),
+                  : MorphGlassHost(
+                      painter: glass!,
+                      mode: MorphGlassMode.surface,
+                      frame: () => MorphGlassFrame([
+                        MorphGlassSurface(
+                          kind: MorphGlassKind.bar,
+                          shape: shape,
+                          color: style.barColor,
+                          brightness: brightness,
+                        ),
+                      ]),
                     ),
             ),
             Positioned.fill(
@@ -665,18 +669,21 @@ class _SearchCircle extends StatelessWidget {
                         shadow: style.shadowColor,
                       ),
                     )
-                  : glass!.buildSurface(
-                      context,
-                      MorphGlassSurface(
-                        kind: MorphGlassKind.button,
-                        shape: shape,
-                        color: Color.lerp(
-                          tabStyle.barColor,
-                          style.capsuleColor,
-                          q,
-                        )!,
-                        brightness: brightness,
-                      ),
+                  : MorphGlassHost(
+                      painter: glass!,
+                      mode: MorphGlassMode.surface,
+                      frame: () => MorphGlassFrame([
+                        MorphGlassSurface(
+                          kind: MorphGlassKind.button,
+                          shape: shape,
+                          color: Color.lerp(
+                            tabStyle.barColor,
+                            style.capsuleColor,
+                            q,
+                          )!,
+                          brightness: brightness,
+                        ),
+                      ]),
                     ),
             ),
             Positioned(

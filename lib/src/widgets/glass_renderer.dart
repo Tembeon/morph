@@ -1,8 +1,10 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -300,37 +302,26 @@ class MorphGlassRenderer extends MorphGlassPainter {
       ? (surface.lift / MorphGlassDefaults.glassLiftSpan).clamp(0.0, 1.0)
       : 1.0;
 
+  bool get _exact => runtimeType == MorphGlassRenderer;
+
   @override
-  Widget buildSurface(BuildContext context, MorphGlassSurface surface) {
-    if (!_visible(surface)) return const SizedBox.expand();
-    if (!surface.glass) return buildFill(context, surface);
-    return switch (effectiveTier) {
-      MorphGlassTier.flat => buildFill(context, surface),
-      MorphGlassTier.frosted when glassness(surface) == 0 => buildFill(
+  Widget buildSurface(BuildContext context, MorphGlassSurface surface) =>
+      _surface(
         context,
-        surface,
-      ),
-      MorphGlassTier.frosted => _FrostedSurface(surface: surface),
-      MorphGlassTier.liquid => morphLiquidSurface(this, context, surface),
-    };
-  }
+        MorphGlassFixedSource(MorphGlassFrame([surface])),
+        (f) => f.surfaces.single,
+      );
 
   @override
   Widget buildBody(
     BuildContext context,
     MorphGlassOutline outline,
     List<MorphGlassSurface> surfaces,
-  ) => switch (effectiveTier) {
-    MorphGlassTier.flat => super.buildBody(context, outline, surfaces),
-    MorphGlassTier.frosted => _FrostedBody(
-      outline: outline,
-      surface: surfaces.first,
-      shared: surfaces.every(
-        (s) => s.kind != MorphGlassKind.bar && s.kind != MorphGlassKind.menu,
-      ),
-    ),
-    MorphGlassTier.liquid => morphLiquidBody(this, context, outline, surfaces),
-  };
+  ) => _body(
+    context,
+    MorphGlassFixedSource(MorphGlassFrame(surfaces, outline: outline)),
+    (f) => (f.surfaces, f.outline!),
+  );
 
   @override
   Widget buildLayer(
@@ -340,53 +331,235 @@ class MorphGlassRenderer extends MorphGlassPainter {
     List<Rect> contentSlots = const [],
     double spacing = 0,
     MorphGlassOutline? outline,
+  }) => _layer(
+    context,
+    MorphGlassFixedSource(
+      MorphGlassFrame(
+        surfaces,
+        outline: outline,
+        contentSlots: contentSlots,
+        spacing: spacing,
+      ),
+    ),
+    content: content,
+  );
+
+  /// What decides the widget tree of [mode] for [frame]: two frames with
+  /// equal structures draw through the same render objects, so the second
+  /// is pushed into the tree the first built.
+  @internal
+  Object structureOf(
+    MorphGlassMode mode,
+    MorphGlassFrame frame, {
+    required bool content,
   }) {
-    final parts = MorphGlassLayerParts.of(
-      surfaces,
-      spacing: spacing,
-      outline: outline,
-    );
-    if (effectiveTier == MorphGlassTier.liquid) {
-      return morphLiquidLayer(
+    final tier = effectiveTier;
+    return MorphListKey<Object?>(switch (mode) {
+      MorphGlassMode.layer => [
+        tier,
+        content,
+        ..._layerStructure(tier, frame.parts),
+      ],
+      MorphGlassMode.surface => [
+        tier,
+        ..._surfaceStructure(tier, frame.surfaces.single),
+      ],
+      MorphGlassMode.fill => const [],
+      MorphGlassMode.body => [
+        tier,
+        ..._bodyStructure(tier, frame.surfaces, frame.outline!),
+      ],
+    });
+  }
+
+  /// Builds the tree of [mode] whose render objects follow [source].
+  @internal
+  Widget buildFrom(
+    BuildContext context,
+    MorphGlassMode mode,
+    MorphGlassSource source, {
+    Widget? content,
+  }) => switch (mode) {
+    MorphGlassMode.layer => _layer(context, source, content: content),
+    MorphGlassMode.surface => _surface(
+      context,
+      source,
+      (f) => f.surfaces.single,
+    ),
+    MorphGlassMode.fill => liveFill(context, source, (f) => f.surfaces.single),
+    MorphGlassMode.body => _body(
+      context,
+      source,
+      (f) => (f.surfaces, f.outline!),
+    ),
+  };
+
+  static List<Object?> _surfaceStructure(
+    MorphGlassTier tier,
+    MorphGlassSurface surface,
+  ) => [
+    surface.kind,
+    _visible(surface),
+    surface.glass,
+    glassness(surface) == 0,
+  ];
+
+  static List<Object?> _bodyStructure(
+    MorphGlassTier tier,
+    List<MorphGlassSurface> surfaces,
+    MorphGlassOutline outline,
+  ) => [
+    surfaces.length,
+    for (final s in surfaces) s.kind,
+    morphGlassOutlineField(outline) != null,
+    morphGlassOutlineShapes(outline) != null,
+  ];
+
+  static List<Object?> _layerStructure(
+    MorphGlassTier tier,
+    MorphGlassLayerParts parts,
+  ) => [
+    parts.fills.length,
+    parts.separate.length,
+    for (final s in parts.separate) ..._surfaceStructure(tier, s),
+    parts.fused.length,
+    for (final (surfaces, outline) in parts.fused)
+      ..._bodyStructure(tier, surfaces, outline),
+    for (final s in parts.body) s.glow != null,
+    parts.floating.length,
+    for (final s in parts.floating) ...[
+      ..._surfaceStructure(tier, s),
+      glassness(s) < 1,
+      s.lift > restingLift,
+    ],
+  ];
+
+  /// The flat fill of the surface [select] picks, following [source]; the
+  /// installed painter's own [buildFill] for a subclass.
+  @internal
+  Widget liveFill(
+    BuildContext context,
+    MorphGlassSource source,
+    MorphGlassSurface Function(MorphGlassFrame frame) select,
+  ) => _exact
+      ? morphGlassLiveFill(source, select)
+      : buildFill(context, select(source.frame));
+
+  /// The glow of the surface [select] picks, following [source]; the
+  /// installed painter's own [buildGlow] for a subclass.
+  @internal
+  Widget liveGlow(
+    BuildContext context,
+    MorphGlassSource source,
+    MorphGlassSurface Function(MorphGlassFrame frame) select,
+  ) => _exact
+      ? morphGlassLiveGlow(source, select)
+      : buildGlow(context, select(source.frame));
+
+  Widget _surface(
+    BuildContext context,
+    MorphGlassSource source,
+    MorphGlassSurface Function(MorphGlassFrame frame) select,
+  ) {
+    final surface = select(source.frame);
+    if (!_visible(surface)) return const SizedBox.expand();
+    if (!surface.glass) return liveFill(context, source, select);
+    return switch (effectiveTier) {
+      MorphGlassTier.flat => liveFill(context, source, select),
+      MorphGlassTier.frosted when glassness(surface) == 0 => liveFill(
+        context,
+        source,
+        select,
+      ),
+      MorphGlassTier.frosted => _FrostedSurface(source: source, select: select),
+      MorphGlassTier.liquid => morphLiquidSurface(
         this,
         context,
-        parts,
-        content: content,
-        contentSlots: contentSlots,
-      );
+        source,
+        select,
+      ),
+    };
+  }
+
+  Widget _body(
+    BuildContext context,
+    MorphGlassSource source,
+    (List<MorphGlassSurface>, MorphGlassOutline) Function(MorphGlassFrame f)
+    select,
+  ) => switch (effectiveTier) {
+    MorphGlassTier.flat => morphGlassLiveBody(source, select),
+    MorphGlassTier.frosted => _FrostedBody(
+      source: source,
+      select: select,
+      shared: select(source.frame).$1.every(
+        (s) => s.kind != MorphGlassKind.bar && s.kind != MorphGlassKind.menu,
+      ),
+    ),
+    MorphGlassTier.liquid => morphLiquidBody(this, context, source, select),
+  };
+
+  Widget _layer(
+    BuildContext context,
+    MorphGlassSource source, {
+    Widget? content,
+  }) {
+    if (effectiveTier == MorphGlassTier.liquid) {
+      return morphLiquidLayer(this, context, source, content: content);
     }
-    return Stack(
-      clipBehavior: Clip.none,
+    final parts = source.frame.parts;
+    Widget at(
+      (String, int) slot,
+      Rect Function(MorphGlassFrame f) rect,
+      Widget Function() child,
+    ) => source.keep(
+      slot,
+      () => MorphLivePositioned(
+        key: ValueKey<(String, int)>(slot),
+        rect: source.pick(rect),
+        child: child(),
+      ),
+    );
+    return MorphLiveStack(
+      live: source.live,
       children: [
-        for (final (i, surface) in parts.fills.indexed)
-          Positioned.fromRect(
-            key: ValueKey<(String, int)>(('fill', i)),
-            rect: surface.bounds,
-            child: buildFill(context, surface),
+        for (var i = 0; i < parts.fills.length; i++)
+          at(
+            ('fill', i),
+            (f) => f.parts.fills[i].bounds,
+            () => liveFill(context, source, (f) => f.parts.fills[i]),
           ),
-        for (final (i, surface) in parts.separate.indexed)
-          Positioned.fromRect(
-            key: ValueKey<(String, int)>(('surface', i)),
-            rect: surface.bounds,
-            child: buildSurface(context, surface),
+        for (var i = 0; i < parts.separate.length; i++)
+          at(
+            ('surface', i),
+            (f) => f.parts.separate[i].bounds,
+            () => _exact
+                ? _surface(context, source, (f) => f.parts.separate[i])
+                : buildSurface(context, parts.separate[i]),
           ),
-        for (final (i, (bodySurfaces, bodyOutline)) in parts.fused.indexed)
-          Positioned.fill(
-            key: ValueKey<(String, int)>(('body', i)),
-            child: buildBody(context, bodyOutline, bodySurfaces),
+        for (var i = 0; i < parts.fused.length; i++)
+          source.keep(
+            ('body', i),
+            () => Positioned.fill(
+              key: ValueKey<(String, int)>(('body', i)),
+              child: _exact
+                  ? _body(context, source, (f) => f.parts.fused[i])
+                  : buildBody(context, parts.fused[i].$2, parts.fused[i].$1),
+            ),
           ),
         for (final (i, surface) in parts.body.indexed)
           if (surface.glow != null)
-            Positioned.fromRect(
-              key: ValueKey<(String, int)>(('glow', i)),
-              rect: surface.bounds,
-              child: buildGlow(context, surface),
+            at(
+              ('glow', i),
+              (f) => f.parts.body[i].bounds,
+              () => liveGlow(context, source, (f) => f.parts.body[i]),
             ),
-        for (final (i, surface) in parts.floating.indexed)
-          Positioned.fromRect(
-            key: ValueKey<(String, int)>(('floating', i)),
-            rect: surface.bounds,
-            child: buildSurface(context, surface),
+        for (var i = 0; i < parts.floating.length; i++)
+          at(
+            ('floating', i),
+            (f) => f.parts.floating[i].bounds,
+            () => _exact
+                ? _surface(context, source, (f) => f.parts.floating[i])
+                : buildSurface(context, parts.floating[i]),
           ),
         if (content != null)
           Positioned.fill(
@@ -533,56 +706,70 @@ Color _faded(Color color, double opacity) =>
 /// One frosted surface: the backdrop blurred inside its shape, tinted by
 /// its color, with a rim and a highlight that grows with its lift.
 class _FrostedSurface extends StatelessWidget {
-  const _FrostedSurface({required this.surface});
+  const _FrostedSurface({required this.source, required this.select});
 
-  final MorphGlassSurface surface;
+  final MorphGlassSource source;
+  final MorphGlassSurface Function(MorphGlassFrame frame) select;
 
-  @override
-  Widget build(BuildContext context) {
-    final shape = surface.localShape;
-    final radius = BorderRadius.only(
-      topLeft: shape.tlRadius,
-      topRight: shape.trRadius,
-      bottomLeft: shape.blRadius,
-      bottomRight: shape.brRadius,
-    );
+  static BorderRadius _radius(RRect shape) => BorderRadius.only(
+    topLeft: shape.tlRadius,
+    topRight: shape.trRadius,
+    bottomLeft: shape.blRadius,
+    bottomRight: shape.brRadius,
+  );
+
+  static Decoration _rim(MorphGlassSurface surface) {
     final dark = surface.brightness == Brightness.dark;
-    final sigma = _frostSigma(surface);
     final opacity = surface.opacity;
     final highlight =
         MorphGlassDefaults.frostHighlight +
         MorphGlassDefaults.frostLiftHighlight * surface.lift;
     const white = Color(0xFFFFFFFF);
-    return ClipRRect(
-      borderRadius: radius,
-      child: BackdropFilter(
-        backdropGroupKey: _frostKey(context, surface),
-        filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-        child: DecoratedBox(
-          decoration: BoxDecoration(color: _faded(surface.color, opacity)),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: radius,
-              border: Border.all(
-                width: MorphGlassDefaults.frostRimWidth,
-                color: _faded(
-                  white.withValues(
-                    alpha: dark
-                        ? MorphGlassDefaults.darkFrostRim
-                        : MorphGlassDefaults.lightFrostRim,
-                  ),
-                  opacity,
-                ),
-              ),
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  _faded(white.withValues(alpha: highlight), opacity),
-                  white.withValues(alpha: 0),
-                ],
-              ),
-            ),
+    return BoxDecoration(
+      borderRadius: _radius(surface.localShape),
+      border: Border.all(
+        width: MorphGlassDefaults.frostRimWidth,
+        color: _faded(
+          white.withValues(
+            alpha: dark
+                ? MorphGlassDefaults.darkFrostRim
+                : MorphGlassDefaults.lightFrostRim,
+          ),
+          opacity,
+        ),
+      ),
+      gradient: LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [
+          _faded(white.withValues(alpha: highlight), opacity),
+          white.withValues(alpha: 0),
+        ],
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final live = source.live;
+    final surface = source.pick(select);
+    return GlassLiveClipRRect(
+      live: live,
+      borderRadiusOf: () => _radius(surface.value.localShape),
+      child: GlassLiveBackdropFilter(
+        live: live,
+        backdropGroupKey: _frostKey(context, select(source.frame)),
+        filterOf: () {
+          final sigma = _frostSigma(surface.value);
+          return ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma);
+        },
+        child: MorphLiveDecoratedBox(
+          live: source.pick((f) {
+            final s = select(f);
+            return BoxDecoration(color: _faded(s.color, s.opacity));
+          }),
+          child: MorphLiveDecoratedBox(
+            live: source.pick((f) => _rim(select(f))),
           ),
         ),
       ),
@@ -594,36 +781,50 @@ class _FrostedSurface extends StatelessWidget {
 /// by the color of its first surface, with a rim along the outline.
 class _FrostedBody extends StatelessWidget {
   const _FrostedBody({
-    required this.outline,
-    required this.surface,
+    required this.source,
+    required this.select,
     required this.shared,
   });
 
-  final MorphGlassOutline outline;
-  final MorphGlassSurface surface;
+  final MorphGlassSource source;
+  final (List<MorphGlassSurface>, MorphGlassOutline) Function(
+    MorphGlassFrame frame,
+  )
+  select;
   final bool shared;
 
   @override
   Widget build(BuildContext context) {
-    final sigma = _frostSigma(surface);
-    final dark = surface.brightness == Brightness.dark;
+    final live = source.live;
+    final body = source.pick(select);
     return ClipPath(
-      clipper: MorphGlassOutlineClip(outline.path),
-      child: BackdropFilter(
+      clipper: morphGlassOutlineClip(source, (f) => select(f).$2.path),
+      child: GlassLiveBackdropFilter(
+        live: live,
         backdropGroupKey: shared
             ? BackdropGroup.of(context)?.backdropKey
             : null,
-        filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+        filterOf: () {
+          final sigma = _frostSigma(body.value.$1.first);
+          return ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma);
+        },
         child: CustomPaint(
           painter: _RimPainter(
-            outline.path,
-            _faded(surface.color, surface.opacity),
-            _faded(
-              dark
-                  ? MorphGlassDefaults.darkBodyRim
-                  : MorphGlassDefaults.lightBodyRim,
-              surface.opacity,
-            ),
+            source.pick((f) {
+              final (surfaces, outline) = select(f);
+              final surface = surfaces.first;
+              final dark = surface.brightness == Brightness.dark;
+              return (
+                outline.path,
+                _faded(surface.color, surface.opacity),
+                _faded(
+                  dark
+                      ? MorphGlassDefaults.darkBodyRim
+                      : MorphGlassDefaults.lightBodyRim,
+                  surface.opacity,
+                ),
+              );
+            }),
           ),
           child: const SizedBox.expand(),
         ),
@@ -632,15 +833,32 @@ class _FrostedBody extends StatelessWidget {
   }
 }
 
-class _RimPainter extends CustomPainter {
-  const _RimPainter(this.path, this.color, this.rim);
+/// The clipper of a body outline [path] picks from [source]: the package's
+/// [MorphGlassOutlineClip] for a fixed frame, reclipped on every new path
+/// of a live one.
+@internal
+CustomClipper<Path> morphGlassOutlineClip(
+  MorphGlassSource source,
+  Path Function(MorphGlassFrame frame) path,
+) {
+  final live = source.live;
+  if (live == null) return MorphGlassOutlineClip(path(source.frame));
+  final picked = source.pick(path);
+  return GlassLiveClipper<Path>(
+    live: live,
+    keyOf: () => picked.value,
+    clipOf: (Size size) => picked.value,
+  );
+}
 
-  final Path path;
-  final Color color;
-  final Color rim;
+class _RimPainter extends CustomPainter {
+  _RimPainter(this.data) : super(repaint: morphRepaintOn(data));
+
+  final ValueListenable<(Path, Color, Color)> data;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final (path, color, rim) = data.value;
     final fill = Paint();
     fill.color = color;
     canvas.drawPath(path, fill);
@@ -653,7 +871,6 @@ class _RimPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_RimPainter oldDelegate) =>
-      oldDelegate.path != path ||
-      oldDelegate.color != color ||
-      oldDelegate.rim != rim;
+      data is! GlassFixed<(Path, Color, Color)> ||
+      oldDelegate.data.value != data.value;
 }
