@@ -14,6 +14,12 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Weak devices spend less of the UI thread on glass, with identical
+  pixels (Pixel 6a): a menu's fused outline takes half the time (menu
+  build p95 flat 14.0 -> 11.6 ms, liquid 19.0 -> 14.8 ms), a morphing
+  body's field is copied by its own geometry pass into reused textures
+  instead of a submission per frame, and resting glass layers are
+  retained in the scene (16 resting buttons: compositing 2.5 -> 1.2 ms).
 - The glass tiers are flat, fake and liquid; the frosted tier is gone
   (owner decision). Fake glass draws the liquid layers without
   refraction - the liquid face as a backdrop color filter over its frost,
