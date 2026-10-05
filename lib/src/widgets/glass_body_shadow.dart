@@ -16,9 +16,18 @@ class MorphGlassBodyShadow extends CustomPainter {
   /// The visibility of the body.
   final double opacity;
 
+  /// The offscreen layers this painter has opened, over all its paints;
+  /// debug builds only.
+  @visibleForTesting
+  static int debugSaveLayerCount = 0;
+
   @override
   void paint(Canvas canvas, Size size) {
     if (opacity <= 0 || shadows.isEmpty) return;
+    assert(() {
+      debugSaveLayerCount++;
+      return true;
+    }());
     canvas.saveLayer(null, Paint());
     for (final shadow in shadows) {
       final paint = shadow

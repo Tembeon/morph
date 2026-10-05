@@ -1,0 +1,242 @@
+{
+  "segmented-drag/flat": {
+    "frames": 201,
+    "builds": 4.0,
+    "paints": 50.6,
+    "pictures": 3.0,
+    "captures": 0.0,
+    "offscreen": 0.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "lens-held/flat": {
+    "frames": 103,
+    "builds": 4.0,
+    "paints": 49.5,
+    "pictures": 2.9,
+    "captures": 0.0,
+    "offscreen": 0.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "tab-bar/flat": {
+    "frames": 221,
+    "builds": 5.8,
+    "paints": 97.8,
+    "pictures": 1.0,
+    "captures": 0.0,
+    "offscreen": 0.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "switch/flat": {
+    "frames": 151,
+    "builds": 3.1,
+    "paints": 10.9,
+    "pictures": 1.0,
+    "captures": 0.0,
+    "offscreen": 0.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "slider/flat": {
+    "frames": 181,
+    "builds": 10.1,
+    "paints": 40.0,
+    "pictures": 3.0,
+    "captures": 0.0,
+    "offscreen": 0.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "menu-card/flat": {
+    "frames": 289,
+    "builds": 26.1,
+    "paints": 45.3,
+    "pictures": 2.6,
+    "captures": 0.0,
+    "offscreen": 0.7,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "nav-scroll/flat": {
+    "frames": 94,
+    "builds": 2.8,
+    "paints": 73.0,
+    "pictures": 2.4,
+    "captures": 0.9,
+    "offscreen": 2.9,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "sheet/flat": {
+    "frames": 154,
+    "builds": 9.0,
+    "paints": 18.2,
+    "pictures": 1.0,
+    "captures": 0.0,
+    "offscreen": 0.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "segmented-drag/frosted": {
+    "frames": 201,
+    "builds": 5.0,
+    "paints": 53.5,
+    "pictures": 4.9,
+    "captures": 1.0,
+    "offscreen": 1.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "lens-held/frosted": {
+    "frames": 103,
+    "builds": 4.9,
+    "paints": 52.3,
+    "pictures": 4.8,
+    "captures": 0.9,
+    "offscreen": 0.9,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "tab-bar/frosted": {
+    "frames": 221,
+    "builds": 7.7,
+    "paints": 103.7,
+    "pictures": 5.7,
+    "captures": 1.0,
+    "offscreen": 2.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "switch/frosted": {
+    "frames": 151,
+    "builds": 4.1,
+    "paints": 13.9,
+    "pictures": 2.0,
+    "captures": 1.0,
+    "offscreen": 1.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "slider/frosted": {
+    "frames": 181,
+    "builds": 11.1,
+    "paints": 43.0,
+    "pictures": 4.0,
+    "captures": 1.0,
+    "offscreen": 1.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "menu-card/frosted": {
+    "frames": 289,
+    "builds": 28.2,
+    "paints": 49.5,
+    "pictures": 2.9,
+    "captures": 1.4,
+    "offscreen": 2.1,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "nav-scroll/frosted": {
+    "frames": 94,
+    "builds": 2.8,
+    "paints": 78.5,
+    "pictures": 2.4,
+    "captures": 1.9,
+    "offscreen": 4.9,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "sheet/frosted": {
+    "frames": 154,
+    "builds": 9.9,
+    "paints": 21.2,
+    "pictures": 3.0,
+    "captures": 1.0,
+    "offscreen": 1.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "segmented-drag/liquid": {
+    "frames": 201,
+    "builds": 11.6,
+    "paints": 60.0,
+    "pictures": 6.8,
+    "captures": 1.3,
+    "offscreen": 1.6,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "lens-held/liquid": {
+    "frames": 103,
+    "builds": 15.7,
+    "paints": 63.7,
+    "pictures": 8.0,
+    "captures": 2.1,
+    "offscreen": 2.7,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "tab-bar/liquid": {
+    "frames": 221,
+    "builds": 23.7,
+    "paints": 108.0,
+    "pictures": 6.7,
+    "captures": 3.3,
+    "offscreen": 3.7,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "switch/liquid": {
+    "frames": 151,
+    "builds": 9.8,
+    "paints": 14.3,
+    "pictures": 3.2,
+    "captures": 1.4,
+    "offscreen": 2.1,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "slider/liquid": {
+    "frames": 181,
+    "builds": 17.4,
+    "paints": 46.0,
+    "pictures": 5.5,
+    "captures": 1.5,
+    "offscreen": 2.1,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "menu-card/liquid": {
+    "frames": 289,
+    "builds": 52.4,
+    "paints": 62.5,
+    "pictures": 7.9,
+    "captures": 3.0,
+    "offscreen": 3.8,
+    "bodyShadows": 1.4,
+    "idle": 0
+  },
+  "nav-scroll/liquid": {
+    "frames": 94,
+    "builds": 3.0,
+    "paints": 78.5,
+    "pictures": 0.6,
+    "captures": 3.9,
+    "offscreen": 6.9,
+    "bodyShadows": 0.0,
+    "idle": 0
+  },
+  "sheet/liquid": {
+    "frames": 154,
+    "builds": 18.9,
+    "paints": 19.3,
+    "pictures": 2.0,
+    "captures": 2.0,
+    "offscreen": 2.0,
+    "bodyShadows": 0.0,
+    "idle": 0
+  }
+}
