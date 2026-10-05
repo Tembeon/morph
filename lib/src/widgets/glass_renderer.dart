@@ -152,8 +152,13 @@ class MorphGlassRenderer extends MorphGlassPainter {
   MorphGlassTier get effectiveTier =>
       tier == MorphGlassTier.liquid ? bestTier : tier;
 
-  /// Loads the liquid tier's shaders, so the first glass on screen is
-  /// already the real one.
+  /// Loads the liquid tier's shaders and draws every glass pipeline once
+  /// offscreen, so the first glass on screen is already the real one and
+  /// compiles nothing.
+  ///
+  /// Await it before `runApp`: the warm-up takes about 0.35 to 0.45 s on a
+  /// Pixel 6a (Vulkan) and moves that cost from the first glass frame to
+  /// the launch.
   ///
   /// Unsupported runtimes and shader loading failures complete normally,
   /// report once through [FlutterError.reportError], and expose the cause
