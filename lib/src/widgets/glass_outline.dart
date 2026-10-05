@@ -10,7 +10,7 @@ import 'package:morph/src/liquid_field.dart';
 /// A control hands one to `MorphGlassPainter.buildLayer` when its glass
 /// surfaces are one body whose edge is not their own shapes - a menu
 /// joined to its button by a neck. The package computes it once, by the
-/// same law on every quality tier, so a flat fill, frosted glass and
+/// same law on every quality tier, so a flat fill, fake glass and
 /// liquid glass all draw the same shape.
 ///
 /// [path] is the edge in the layer's local coordinates. An outline the

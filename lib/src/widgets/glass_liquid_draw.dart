@@ -4,7 +4,6 @@
 library;
 
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -187,6 +186,7 @@ Widget _layer(
   Path? Function(MorphGlassFrame frame)? outline,
   bool shadows = true,
   bool exact = false,
+  bool? fake,
 }) {
   final count = select(source.frame).length;
   final settings = source.pick((f) {
@@ -206,6 +206,7 @@ Widget _layer(
       settingsOf: () => settings.value,
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
       outlineOf: outlineOf == null ? null : () => outlineOf.value,
+      fake: fake ?? renderer.effectiveTier == MorphGlassTier.fake,
       useBackdropGroup: shared,
       child: MorphLiveStack(
         live: source.live,
@@ -249,8 +250,8 @@ MorphGlassSurface _local(MorphGlassSurface surface) => MorphGlassSurface(
   shadows: surface.shadows,
 );
 
-/// One glass surface on the liquid tier, the one [select] picks from
-/// [source], sized to its bounds.
+/// One glass surface on the liquid or the fake tier, the one [select]
+/// picks from [source], sized to its bounds.
 @internal
 Widget morphLiquidSurface(
   MorphGlassRenderer renderer,
@@ -264,15 +265,16 @@ Widget morphLiquidSurface(
   shared: !_chrome(select(source.frame)),
 );
 
-/// One fused glass body on the liquid tier, the one [select] picks from
-/// [source], filling its layer's box.
+/// One fused glass body on the liquid or the fake tier, the one [select]
+/// picks from [source], filling its layer's box.
 ///
 /// A body the package fused carries its distance field and is shaded from
 /// it, neck included. A plain union is shaded from its surfaces' own
 /// rounded boxes, the nearest one at every point, exactly the field it
-/// would sample. An outline built from a path alone has no field: its
-/// surfaces are shaded as their own shapes, clipped to the outline, and
-/// frost fills the rest of it.
+/// would sample. Fake glass clips to the outline and draws each region the
+/// face of its largest surface, the neck tinted like the first. An outline
+/// built from a path alone has no field to shade, so it is fake glass on
+/// both tiers.
 @internal
 Widget morphLiquidBody(
   MorphGlassRenderer renderer,
@@ -310,24 +312,13 @@ Widget morphLiquidBody(
       ),
     );
   }
-  return ClipPath(
-    clipper: morphGlassOutlineClip(source, (f) => select(f).$2.path),
-    child: Stack(
-      fit: StackFit.expand,
-      children: [
-        _Frost(
-          color: source.pick((f) {
-            final surface = select(f).$1.first;
-            return surface.color.withValues(
-              alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
-            );
-          }),
-          sigma: renderer.blur * MorphGlassDefaults.chromeFrost,
-          shared: !chrome,
-        ),
-        _layer(renderer, source, members, shared: !chrome),
-      ],
-    ),
+  return _layer(
+    renderer,
+    source,
+    members,
+    shared: !chrome,
+    outline: (f) => select(f).$2.path,
+    fake: true,
   );
 }
 
@@ -347,7 +338,8 @@ class _LensRects {
   int get hashCode => Object.hashAll(lenses);
 }
 
-/// One layer of a control on the liquid tier, built from [source].
+/// One layer of a control on the liquid or the fake tier, built from
+/// [source].
 ///
 /// A control's glass body surfaces share a layer: the ones drawn as their
 /// own shapes one layer, each fused body a layer of its own shaded from
@@ -392,6 +384,7 @@ Widget morphLiquidLayer(
   List<RRect> lenses(MorphGlassFrame f) => [
     for (final i in lensed) f.parts.floating[i].shape,
   ];
+  final refracts = renderer.effectiveTier == MorphGlassTier.liquid;
   final snapshot = source.keep('snapshot', GlassContentSnapshot.new);
   Widget at(
     (String, int) slot,
@@ -497,8 +490,12 @@ Widget morphLiquidLayer(
                     magnification:
                         1 +
                         lensOptics.magnification * lens.lift.clamp(0.0, 1.0),
-                    grow: morphBackdropScale(lens, shrinkOf(lens)),
-                    axis: morphShrinkAxis(lens.bounds, lensOptics.rim),
+                    grow: refracts
+                        ? morphBackdropScale(lens, shrinkOf(lens))
+                        : 1,
+                    axis: refracts
+                        ? morphShrinkAxis(lens.bounds, lensOptics.rim)
+                        : Offset.zero,
                   );
                 }),
                 snapshot: snapshot,
@@ -519,29 +516,6 @@ Widget morphLiquidLayer(
         ],
     ],
   );
-}
-
-/// Frosted glass over the whole box: the backdrop blurred by [sigma] and
-/// tinted by [color].
-class _Frost extends StatelessWidget {
-  const _Frost({
-    required this.color,
-    required this.sigma,
-    required this.shared,
-  });
-
-  final ValueListenable<Color> color;
-  final double sigma;
-  final bool shared;
-
-  @override
-  Widget build(BuildContext context) {
-    return BackdropFilter(
-      backdropGroupKey: shared ? BackdropGroup.of(context)?.backdropKey : null,
-      filter: ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
-      child: MorphLiveColoredBox(color: color),
-    );
-  }
 }
 
 /// A resting lens, knob or thumb: an opaque platter, as UIKit draws one

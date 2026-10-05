@@ -1,8 +1,5 @@
-import 'dart:ui' as ui;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
@@ -22,16 +19,19 @@ enum MorphGlassTier {
   /// sampling: the cheapest tier, for weak devices.
   flat,
 
-  /// Frosted glass: the backdrop blurred inside each outline and tinted by
-  /// the surface's color, with a thin rim; a resting lens, knob or thumb
-  /// stays its opaque platter. No shader, so it runs wherever Flutter
-  /// runs, the web included.
-  frosted,
+  /// Fake glass: the liquid material without refraction. The backdrop is
+  /// frosted and color-filtered as the liquid tier's face transfer does,
+  /// and each surface's rim, bevel and highlight are drawn analytically
+  /// along its shape; a fused body is clipped to its outline, each region
+  /// faced by its largest surface. No lens optics (magnification and
+  /// backdrop shrink), no Flutter GPU, so it runs wherever Flutter runs,
+  /// the web included.
+  fake,
 
   /// Liquid glass: refraction at the rim, magnification and the measured
   /// lens optics, frost and rim light, rendered on the GPU by the package's
   /// glass renderer. Needs Impeller with Flutter GPU (iOS, macOS,
-  /// Android); elsewhere the renderer draws [frosted] in its place.
+  /// Android); elsewhere the renderer draws [fake] in its place.
   liquid,
 }
 
@@ -78,8 +78,8 @@ enum MorphGlassMaterial {
 /// Info.plist or `io.flutter.embedding.android.EnableFlutterGPU` in the
 /// Android manifest, and use Impeller. Call [precache] before installing
 /// a fixed renderer; [MorphAdaptiveGlass] follows initialization itself.
-/// Until shaders are ready, or if they fail, liquid draws frosted and
-/// reports [MorphGlassTier.frosted]. An initialization failure is reported
+/// Until shaders are ready, or if they fail, liquid draws fake glass and
+/// reports [MorphGlassTier.fake]. An initialization failure is reported
 /// once per isolate through [FlutterError.reportError] in every build mode,
 /// with library `morph glass`; [liquidUnavailableReason] exposes its reason.
 /// Native builds must package the GPU shader bundle from the package's
@@ -130,7 +130,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
   /// Whether the runtime GPU context and liquid shaders are ready.
   ///
   /// False on the web, whose shader compiler cannot build the renderer's
-  /// shaders; there [MorphGlassTier.liquid] draws [MorphGlassTier.frosted].
+  /// shaders; there [MorphGlassTier.liquid] draws [MorphGlassTier.fake].
   static bool get liquidAvailable => morphLiquidGlassAvailable;
 
   /// The reason liquid glass initialization failed on this runtime.
@@ -145,7 +145,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
 
   /// The best tier currently available on this runtime.
   static MorphGlassTier get bestTier =>
-      liquidAvailable ? MorphGlassTier.liquid : MorphGlassTier.frosted;
+      liquidAvailable ? MorphGlassTier.liquid : MorphGlassTier.fake;
 
   /// The tier this renderer draws: [tier], or [bestTier] when the build
   /// cannot draw [tier].
@@ -471,13 +471,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
     if (!surface.glass) return liveFill(context, source, select);
     return switch (effectiveTier) {
       MorphGlassTier.flat => liveFill(context, source, select),
-      MorphGlassTier.frosted when glassness(surface) == 0 => liveFill(
-        context,
-        source,
-        select,
-      ),
-      MorphGlassTier.frosted => _FrostedSurface(source: source, select: select),
-      MorphGlassTier.liquid => morphLiquidSurface(
+      MorphGlassTier.fake || MorphGlassTier.liquid => morphLiquidSurface(
         this,
         context,
         source,
@@ -493,13 +487,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
     select,
   ) => switch (effectiveTier) {
     MorphGlassTier.flat => morphGlassLiveBody(source, select),
-    MorphGlassTier.frosted => _FrostedBody(
-      source: source,
-      select: select,
-      shared: select(source.frame).$1.every(
-        (s) => s.kind != MorphGlassKind.bar && s.kind != MorphGlassKind.menu,
-      ),
-    ),
+    MorphGlassTier.fake ||
     MorphGlassTier.liquid => morphLiquidBody(this, context, source, select),
   };
 
@@ -508,7 +496,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
     MorphGlassSource source, {
     Widget? content,
   }) {
-    if (effectiveTier == MorphGlassTier.liquid) {
+    if (effectiveTier != MorphGlassTier.flat) {
       return morphLiquidLayer(this, context, source, content: content);
     }
     final parts = source.frame.parts;
@@ -675,207 +663,4 @@ class MorphGlassLayerParts {
     ...separate,
     for (final (surfaces, _) in fused) ...surfaces,
   ];
-}
-
-/// The frosted tier's blur of [surface]'s backdrop, in logical pixels.
-double _frostSigma(MorphGlassSurface surface) =>
-    (surface.blurRadius ??
-        switch (surface.kind) {
-          MorphGlassKind.bar ||
-          MorphGlassKind.menu => MorphGlassDefaults.chromeFrost,
-          MorphGlassKind.button => MorphGlassDefaults.buttonFrost,
-          MorphGlassKind.track => MorphGlassDefaults.trackFrost,
-          MorphGlassKind.lens || MorphGlassKind.knob || MorphGlassKind.thumb =>
-            MorphGlassDefaults.floatingFrost +
-                (surface.optics?.blurRadiusAt(surface.lift) ?? 0),
-        }) *
-    surface.opacity.clamp(0.0, 1.0);
-
-/// The shared backdrop copy [surface] reads, or null for one of its own:
-/// chrome floats over content painted after the group's first glass, and
-/// a lens, knob or thumb over its own track.
-BackdropKey? _frostKey(BuildContext context, MorphGlassSurface surface) =>
-    switch (surface.kind) {
-      MorphGlassKind.bar ||
-      MorphGlassKind.menu ||
-      MorphGlassKind.lens ||
-      MorphGlassKind.knob ||
-      MorphGlassKind.thumb => null,
-      MorphGlassKind.button ||
-      MorphGlassKind.track => BackdropGroup.of(context)?.backdropKey,
-    };
-
-Color _faded(Color color, double opacity) =>
-    color.withValues(alpha: color.a * opacity.clamp(0.0, 1.0));
-
-/// One frosted surface: the backdrop blurred inside its shape, tinted by
-/// its color, with a rim and a highlight that grows with its lift.
-class _FrostedSurface extends StatelessWidget {
-  const _FrostedSurface({required this.source, required this.select});
-
-  final MorphGlassSource source;
-  final MorphGlassSurface Function(MorphGlassFrame frame) select;
-
-  static BorderRadius _radius(RRect shape) => BorderRadius.only(
-    topLeft: shape.tlRadius,
-    topRight: shape.trRadius,
-    bottomLeft: shape.blRadius,
-    bottomRight: shape.brRadius,
-  );
-
-  static Decoration _rim(MorphGlassSurface surface) {
-    final dark = surface.brightness == Brightness.dark;
-    final opacity = surface.opacity;
-    final highlight =
-        MorphGlassDefaults.frostHighlight +
-        MorphGlassDefaults.frostLiftHighlight * surface.lift;
-    const white = Color(0xFFFFFFFF);
-    return BoxDecoration(
-      borderRadius: _radius(surface.localShape),
-      border: Border.all(
-        width: MorphGlassDefaults.frostRimWidth,
-        color: _faded(
-          white.withValues(
-            alpha: dark
-                ? MorphGlassDefaults.darkFrostRim
-                : MorphGlassDefaults.lightFrostRim,
-          ),
-          opacity,
-        ),
-      ),
-      gradient: LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [
-          _faded(white.withValues(alpha: highlight), opacity),
-          white.withValues(alpha: 0),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final live = source.live;
-    final surface = source.pick(select);
-    return GlassLiveClipRRect(
-      live: live,
-      borderRadiusOf: () => _radius(surface.value.localShape),
-      child: GlassLiveBackdropFilter(
-        live: live,
-        backdropGroupKey: _frostKey(context, select(source.frame)),
-        filterOf: () {
-          final sigma = _frostSigma(surface.value);
-          return ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma);
-        },
-        child: MorphLiveDecoratedBox(
-          live: source.pick((f) {
-            final s = select(f);
-            return BoxDecoration(color: _faded(s.color, s.opacity));
-          }),
-          child: MorphLiveDecoratedBox(
-            live: source.pick((f) => _rim(select(f))),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// A frosted fused body: the backdrop blurred inside its outline, tinted
-/// by the color of its first surface, with a rim along the outline.
-class _FrostedBody extends StatelessWidget {
-  const _FrostedBody({
-    required this.source,
-    required this.select,
-    required this.shared,
-  });
-
-  final MorphGlassSource source;
-  final (List<MorphGlassSurface>, MorphGlassOutline) Function(
-    MorphGlassFrame frame,
-  )
-  select;
-  final bool shared;
-
-  @override
-  Widget build(BuildContext context) {
-    final live = source.live;
-    final body = source.pick(select);
-    return ClipPath(
-      clipper: morphGlassOutlineClip(source, (f) => select(f).$2.path),
-      child: GlassLiveBackdropFilter(
-        live: live,
-        backdropGroupKey: shared
-            ? BackdropGroup.of(context)?.backdropKey
-            : null,
-        filterOf: () {
-          final sigma = _frostSigma(body.value.$1.first);
-          return ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma);
-        },
-        child: CustomPaint(
-          painter: _RimPainter(
-            source.pick((f) {
-              final (surfaces, outline) = select(f);
-              final surface = surfaces.first;
-              final dark = surface.brightness == Brightness.dark;
-              return (
-                outline.path,
-                _faded(surface.color, surface.opacity),
-                _faded(
-                  dark
-                      ? MorphGlassDefaults.darkBodyRim
-                      : MorphGlassDefaults.lightBodyRim,
-                  surface.opacity,
-                ),
-              );
-            }),
-          ),
-          child: const SizedBox.expand(),
-        ),
-      ),
-    );
-  }
-}
-
-/// The clipper of a body outline [path] picks from [source]: the package's
-/// [MorphGlassOutlineClip] for a fixed frame, reclipped on every new path
-/// of a live one.
-@internal
-CustomClipper<Path> morphGlassOutlineClip(
-  MorphGlassSource source,
-  Path Function(MorphGlassFrame frame) path,
-) {
-  final live = source.live;
-  if (live == null) return MorphGlassOutlineClip(path(source.frame));
-  final picked = source.pick(path);
-  return GlassLiveClipper<Path>(
-    live: live,
-    keyOf: () => picked.value,
-    clipOf: (Size size) => picked.value,
-  );
-}
-
-class _RimPainter extends CustomPainter {
-  _RimPainter(this.data) : super(repaint: morphRepaintOn(data));
-
-  final ValueListenable<(Path, Color, Color)> data;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final (path, color, rim) = data.value;
-    final fill = Paint();
-    fill.color = color;
-    canvas.drawPath(path, fill);
-    final stroke = Paint();
-    stroke.style = PaintingStyle.stroke;
-    stroke.strokeWidth = MorphGlassDefaults.bodyRimWidth;
-    stroke.color = rim;
-    canvas.drawPath(path, stroke);
-  }
-
-  @override
-  bool shouldRepaint(_RimPainter oldDelegate) =>
-      data is! GlassFixed<(Path, Color, Color)> ||
-      oldDelegate.data.value != data.value;
 }

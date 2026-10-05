@@ -27,7 +27,7 @@ class _GlassPageState extends State<GlassPage> {
   double _count = 3;
   int _page = 1;
 
-  static const _tiers = ['Auto', 'Liquid', 'Frosted', 'Flat'];
+  static const _tiers = ['Auto', 'Liquid', 'Fake', 'Flat'];
   static const _materials = ['Regular', 'Toolbar', 'Clear'];
 
   /// The iOS Settings > Display & Brightness > Liquid Glass choice; the
@@ -160,12 +160,12 @@ class _GlassPageState extends State<GlassPage> {
                   selected: switch (settings.tier) {
                     null => 0,
                     MorphGlassTier.liquid => 1,
-                    MorphGlassTier.frosted => 2,
+                    MorphGlassTier.fake => 2,
                     MorphGlassTier.flat => 3,
                   },
                   onChanged: (int i) => settings.tier = switch (i) {
                     1 => MorphGlassTier.liquid,
-                    2 => MorphGlassTier.frosted,
+                    2 => MorphGlassTier.fake,
                     3 => MorphGlassTier.flat,
                     _ => null,
                   },

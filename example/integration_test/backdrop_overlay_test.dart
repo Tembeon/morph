@@ -16,7 +16,7 @@ import 'package:morph/widgets.dart';
 /// `hero` (a glass button as a context menu hero, menu open),
 /// `lens` (a slider's lifted thumb, finger down), `dialog` (a glass
 /// button inside a morph dialog's content) and `alert` (an alert
-/// over the page), each over bright stripes, on the liquid and frosted
+/// over the page), each over bright stripes, on the liquid and fake
 /// tiers. Variants: `shared` (a resting glass button in the page's root
 /// group painted first), `none` (no such button) and `own` (the scene's
 /// glass wrapped in a group of its own). Build a profile app (`flutter
@@ -44,7 +44,7 @@ void main() {
       'liquid_available': MorphGlassRenderer.liquidAvailable,
       'dpr': tester.view.devicePixelRatio,
     };
-    for (final tier in [MorphGlassTier.liquid, MorphGlassTier.frosted]) {
+    for (final tier in [MorphGlassTier.liquid, MorphGlassTier.fake]) {
       for (final scene in ['body', 'hero', 'lens', 'dialog', 'alert']) {
         for (final variant in ['shared', 'none', 'own']) {
           setup.value = _Setup(tier, scene, variant);

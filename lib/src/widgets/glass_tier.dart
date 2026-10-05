@@ -19,7 +19,7 @@ enum MorphGlassDeviceClass {
   /// On a Pixel 6a forced to GLES (2026-10-05, profile, glass audit
   /// medians at 60 Hz) liquid missed the frame budget on 11 - 69 frames
   /// per scene where Vulkan missed 0 - 22, its raster p95 3 - 6 ms higher,
-  /// and frosted missed even more (17 - 132), so the device gets
+  /// and fake glass about as many (7 - 112), so the device gets
   /// [MorphAdaptiveGlass.cheapTier].
   gles,
 
@@ -49,7 +49,7 @@ MorphGlassDeviceClass Function() morphGlassDeviceClassProbe =
 /// [renderer]'s own tier when it is lower or the build has no liquid tier.
 /// The device class is known once the liquid tier is initialized; call
 /// [MorphGlassRenderer.precache] before `runApp` so the first frame
-/// already draws the chosen tier instead of the frosted fallback. The
+/// already draws the chosen tier instead of the fake fallback. The
 /// shapes, motion and fusion of every control are the same on every
 /// tier.
 ///
@@ -91,9 +91,13 @@ class MorphAdaptiveGlass extends StatefulWidget {
 
   /// The tier a device that cannot hold liquid glass draws.
   ///
-  /// Flat: on the GLES fallback of a Pixel 6a frosted costs more raster
-  /// than liquid (see [MorphGlassDeviceClass.gles]), so flat is the one
-  /// tier there that is cheaper.
+  /// Flat: on the GLES fallback of a Pixel 6a every tier that samples the
+  /// backdrop misses the frame budget. Glass audit, 5 runs, medians,
+  /// frames over 16.7 ms per scene (controls / home scroll / menu /
+  /// segmented / sheet / tab bar, 2026-10-05): fake 112 / 20 / 84 / 7 / 76
+  /// / 56, liquid 83 / 14 / 75 / 6 / 54 / 73, flat 0 / 5 / 20 / 0 / 1 / 3.
+  /// Fake glass is the closest to liquid of the cheaper looks, but not
+  /// cheaper there: its cost is the backdrop read itself.
   static const MorphGlassTier cheapTier = MorphGlassTier.flat;
 
   /// The device class, or [MorphGlassDeviceClass.unknown] until the

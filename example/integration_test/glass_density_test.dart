@@ -20,7 +20,7 @@ import 'package:morph/widgets.dart';
 /// with `AUDIT_TARGET=integration_test/glass_density_test.dart
 /// AUDIT_REPORT=tmp/glass_density`; on Android audit_android.sh with
 /// `AUDIT_REPORT=glass_density`, which passes `AUDIT_OUT`). The tier is
-/// `--dart-define=GALLERY_GLASS=<liquid|frosted|flat>` (liquid by
+/// `--dart-define=GALLERY_GLASS=<liquid|fake|flat>` (liquid by
 /// default), `--dart-define=AUDIT_RUNS=5` repeats every timed window. The
 /// report keeps every run and the median of the runs' percentiles over
 /// ACTIVE frames (build or raster above 0.3 ms), as the glass audit does,

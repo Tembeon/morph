@@ -16,7 +16,7 @@
 /// the package's glass renderer; the engine never depends on this layer.
 /// The controls draw flat fills by default; [MorphGlassRenderer]
 /// installed with [MorphGlass] (or [MorphAdaptiveGlass], which picks its
-/// quality tier once by the device's GPU) draws them as liquid, frosted or
+/// quality tier once by the device's GPU) draws them as liquid, fake or
 /// flat glass, and any other [MorphGlassPainter] can take its place. The
 /// package computes every shape once - fused silhouettes included - so
 /// each tier and each painter shades the same outlines. Their looks

@@ -33,7 +33,7 @@ void main() {
     final report = reports.single;
     expect(report.library, 'morph glass');
     expect(report.exception, isA<FlutterError>());
-    expect(report.exception.toString(), contains('using frosted glass'));
+    expect(report.exception.toString(), contains('using fake glass'));
     expect(report.exception.toString(), contains(failure.toString()));
     expect(report.stack, isNotNull);
   });
@@ -56,26 +56,23 @@ void main() {
     expect(reports, hasLength(2));
   });
 
-  test(
-    'flat and frosted tiers do not initialize unused liquid shaders',
-    () async {
-      final reports = <FlutterErrorDetails>[];
-      final previous = FlutterError.onError;
-      FlutterError.onError = reports.add;
-      addTearDown(() => FlutterError.onError = previous);
-      expect(
-        const MorphGlassRenderer(tier: MorphGlassTier.flat).effectiveTier,
-        MorphGlassTier.flat,
-      );
-      expect(
-        const MorphGlassRenderer(tier: MorphGlassTier.frosted).effectiveTier,
-        MorphGlassTier.frosted,
-      );
-      await Future<void>.value();
-      expect(MorphGlassRenderer.liquidUnavailableReason, isNull);
-      expect(reports, isEmpty);
-    },
-  );
+  test('flat and fake tiers do not initialize unused liquid shaders', () async {
+    final reports = <FlutterErrorDetails>[];
+    final previous = FlutterError.onError;
+    FlutterError.onError = reports.add;
+    addTearDown(() => FlutterError.onError = previous);
+    expect(
+      const MorphGlassRenderer(tier: MorphGlassTier.flat).effectiveTier,
+      MorphGlassTier.flat,
+    );
+    expect(
+      const MorphGlassRenderer(tier: MorphGlassTier.fake).effectiveTier,
+      MorphGlassTier.fake,
+    );
+    await Future<void>.value();
+    expect(MorphGlassRenderer.liquidUnavailableReason, isNull);
+    expect(reports, isEmpty);
+  });
 
   test('public reason resolves with the runtime fallback', () async {
     final reports = <FlutterErrorDetails>[];
@@ -84,7 +81,7 @@ void main() {
     addTearDown(() => FlutterError.onError = previous);
     await MorphGlassRenderer.precache();
     expect(MorphGlassRenderer.liquidAvailable, isFalse);
-    expect(const MorphGlassRenderer().effectiveTier, MorphGlassTier.frosted);
+    expect(const MorphGlassRenderer().effectiveTier, MorphGlassTier.fake);
     final reason = MorphGlassRenderer.liquidUnavailableReason;
     expect(reason, isNotEmpty);
     expect(reports.single.library, 'morph glass');

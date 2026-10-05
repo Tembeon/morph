@@ -14,7 +14,7 @@ import 'package:morph/widgets.dart';
 /// The page is red / green / white / black stripes; the navigation bar
 /// (hard edge effect, two trailing buttons) and the toolbar (one button)
 /// float over it, scrolled past the large title. One screenshot per tier
-/// (liquid, frosted) at rest and one mid-scroll. Build a profile app
+/// (liquid, fake) at rest and one mid-scroll. Build a profile app
 /// (`flutter build ios --profile -t
 /// integration_test/edge_effect_group_test.dart`), launch it with
 /// devicectl and pull `tmp/edge-effect/` from the app's data container:
@@ -38,7 +38,7 @@ void main() {
       'liquid_available': MorphGlassRenderer.liquidAvailable,
       'dpr': tester.view.devicePixelRatio,
     };
-    for (final value in [MorphGlassTier.liquid, MorphGlassTier.frosted]) {
+    for (final value in [MorphGlassTier.liquid, MorphGlassTier.fake]) {
       tier.value = value;
       controller.jumpTo(0);
       await tester.pump(const Duration(milliseconds: 500));

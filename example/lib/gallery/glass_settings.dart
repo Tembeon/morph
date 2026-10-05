@@ -8,8 +8,8 @@ import 'package:morph/widgets.dart';
 ///
 /// The glass tier starts as `--dart-define=GALLERY_GLASS=<name>` says:
 /// auto (the default: [MorphAdaptiveGlass] picks it by the device's
-/// GPU), liquid, frosted or flat. A build without the liquid tier
-/// (the web) draws frosted glass in its place.
+/// GPU), liquid, fake or flat. A build without the liquid tier
+/// (the web) draws fake glass in its place.
 class GalleryGlassSettings extends ChangeNotifier {
   MorphGlassTier? _tier = switch (const String.fromEnvironment(
     'GALLERY_GLASS',

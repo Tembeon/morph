@@ -4,11 +4,14 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
 /// The backdrop keys of every filter painted on screen (null for a
-/// filter that takes a copy of its own).
+/// filter that takes a copy of its own). The glass's opacity seed layer, a
+/// subclass that adds a pass only inside a fractional opacity, is not one.
 Set<BackdropKey?> _keys() {
   final out = <BackdropKey?>{};
   void walk(Layer layer) {
-    if (layer is BackdropFilterLayer) out.add(layer.backdropKey);
+    if (layer.runtimeType == BackdropFilterLayer) {
+      out.add((layer as BackdropFilterLayer).backdropKey);
+    }
     if (layer is ContainerLayer) {
       for (
         var child = layer.firstChild;
@@ -44,7 +47,7 @@ void main() {
         MaterialApp(
           debugShowCheckedModeBanner: false,
           home: MorphAdaptiveGlass(
-            tier: MorphGlassTier.frosted,
+            tier: MorphGlassTier.fake,
             child: BackdropGroup(
               backdropKey: page,
               child: Center(

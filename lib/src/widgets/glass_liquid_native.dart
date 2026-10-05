@@ -34,7 +34,7 @@ final LiquidCapability _capability = LiquidCapability(
 Future<void>? _warmUp;
 
 /// Warms the liquid pipelines when the automatic choice draws liquid on
-/// this device, then the frosted ones.
+/// this device, then the fake glass ones.
 Future<void> _warmPipelines() async {
   final liquid =
       _capability.value &&
@@ -55,7 +55,7 @@ Future<void> _warmPipelines() async {
       geometry.dispose();
     }
   }
-  await morphWarmFrostedPipelines();
+  await morphWarmFakePipelines();
 }
 
 /// Whether the GPU context and all liquid shaders are ready.

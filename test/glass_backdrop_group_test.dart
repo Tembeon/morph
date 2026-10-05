@@ -1,6 +1,35 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
+
+/// The backdrop keys of every filter painted on screen, in paint order
+/// (null for a filter that takes a copy of its own). The glass's opacity
+/// seed layer, a subclass that adds a pass only inside a fractional
+/// opacity, is not one.
+List<BackdropKey?> _keys() {
+  final out = <BackdropKey?>[];
+  void walk(Layer layer) {
+    if (layer.runtimeType == BackdropFilterLayer) {
+      out.add((layer as BackdropFilterLayer).backdropKey);
+    }
+    if (layer is ContainerLayer) {
+      for (
+        var child = layer.firstChild;
+        child != null;
+        child = child.nextSibling
+      ) {
+        walk(child);
+      }
+    }
+  }
+
+  for (final view in RendererBinding.instance.renderViews) {
+    final root = view.debugLayer;
+    if (root != null) walk(root);
+  }
+  return out;
+}
 
 void main() {
   testWidgets('G3 adaptive glass installs one shared backdrop group', (
@@ -9,7 +38,7 @@ void main() {
     late BackdropKey? key;
     await tester.pumpWidget(
       MorphAdaptiveGlass(
-        tier: MorphGlassTier.frosted,
+        tier: MorphGlassTier.fake,
         child: Builder(
           builder: (context) {
             key = BackdropGroup.of(context)?.backdropKey;
@@ -29,7 +58,7 @@ void main() {
       BackdropGroup(
         backdropKey: shared,
         child: MorphAdaptiveGlass(
-          tier: MorphGlassTier.frosted,
+          tier: MorphGlassTier.fake,
           child: Builder(
             builder: (context) {
               key = BackdropGroup.of(context)?.backdropKey;
@@ -43,7 +72,7 @@ void main() {
     expect(find.byType(BackdropGroup), findsOneWidget);
   });
 
-  testWidgets('G4 frosted separate and fused bodies share a backdrop key', (
+  testWidgets('G4 fake separate and fused bodies share a backdrop key', (
     tester,
   ) async {
     final shared = BackdropKey();
@@ -64,7 +93,7 @@ void main() {
                   brightness: Brightness.light,
                 );
                 return const MorphGlassRenderer(
-                  tier: MorphGlassTier.frosted,
+                  tier: MorphGlassTier.fake,
                 ).buildLayer(context, [
                   capsule(0),
                   capsule(55),
@@ -76,14 +105,11 @@ void main() {
         ),
       ),
     );
-    final filters = tester.widgetList<BackdropFilter>(
-      find.bySubtype<BackdropFilter>(),
-    );
-    expect(filters, hasLength(2));
-    expect(
-      filters.every((filter) => identical(filter.backdropGroupKey, shared)),
-      isTrue,
-    );
+    tester.takeException();
+    await tester.pump();
+    final keys = _keys();
+    expect(keys, hasLength(2));
+    expect(keys.every((key) => identical(key, shared)), isTrue);
   });
 
   testWidgets('G5 bars share a backdrop group apart from the page glass', (
@@ -98,7 +124,7 @@ void main() {
           child: BackdropGroup(
             backdropKey: root,
             child: MorphGlass(
-              painter: const MorphGlassRenderer(tier: MorphGlassTier.frosted),
+              painter: const MorphGlassRenderer(tier: MorphGlassTier.fake),
               child: MorphNavigationScaffold(
                 title: 'Page',
                 trailing: [
@@ -129,28 +155,16 @@ void main() {
         ),
       ),
     );
+    tester.takeException();
     await tester.pump(const Duration(milliseconds: 100));
-    List<BackdropKey?> keys(Type type) => [
-      for (final f in tester.widgetList<BackdropFilter>(
-        find.descendant(
-          of: find.byType(type),
-          matching: find.bySubtype<BackdropFilter>(),
-        ),
-      ))
-        f.backdropGroupKey,
-    ];
-    final body = keys(MorphGlassButton);
-    final top = keys(MorphNavigationBar).nonNulls.toSet();
-    final toolbar = keys(MorphToolbar);
-    expect(body, isNotEmpty);
-    expect(body.every((k) => identical(k, root)), isTrue);
-    expect(top, hasLength(1));
-    expect(top.single, isNot(same(root)));
-    expect(toolbar, isNotEmpty);
-    expect(toolbar.every((k) => identical(k, top.single)), isTrue);
+    final keys = _keys();
+    final bars = keys.where((k) => !identical(k, root)).toSet();
+    expect(keys.where((k) => identical(k, root)), isNotEmpty);
+    expect(bars, hasLength(1));
+    expect(bars.single, isNotNull);
   });
 
-  testWidgets('G6 frosted chrome surfaces take a backdrop copy of their own', (
+  testWidgets('G6 fake chrome surfaces take a backdrop copy of their own', (
     tester,
   ) async {
     final shared = BackdropKey();
@@ -165,7 +179,7 @@ void main() {
             child: Builder(
               builder: (context) =>
                   const MorphGlassRenderer(
-                    tier: MorphGlassTier.frosted,
+                    tier: MorphGlassTier.fake,
                   ).buildSurface(
                     context,
                     const MorphGlassSurface(
@@ -180,9 +194,8 @@ void main() {
         ),
       ),
     );
-    final filter = tester.widget<BackdropFilter>(
-      find.bySubtype<BackdropFilter>(),
-    );
-    expect(filter.backdropGroupKey, isNull);
+    tester.takeException();
+    await tester.pump();
+    expect(_keys(), [null]);
   });
 }

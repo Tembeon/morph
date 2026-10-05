@@ -15,40 +15,38 @@ import 'package:morph/widgets.dart';
 void main() {
   setUpAll(() => isLocalTest = true);
 
-  testWidgets('the frosted tier keeps the surface color as its tint', (
+  testWidgets('the fake tier draws the liquid layers as fake glass', (
     tester,
   ) async {
     const surface = MorphGlassSurface(
-      kind: MorphGlassKind.track,
+      kind: MorphGlassKind.button,
       shape: RRect.fromLTRBXY(0, 0, 60, 30, 15, 15),
       color: Color(0xFF34C759),
       brightness: Brightness.light,
     );
-    await tester.pumpWidget(
-      Directionality(
-        textDirection: TextDirection.ltr,
-        child: Center(
-          child: SizedBox(
-            width: 60,
-            height: 30,
-            child: Builder(
-              builder: (BuildContext context) => const MorphGlassRenderer(
-                tier: MorphGlassTier.frosted,
-              ).buildSurface(context, surface),
+    for (final tier in [MorphGlassTier.fake, MorphGlassTier.liquid]) {
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Center(
+            child: SizedBox(
+              width: 60,
+              height: 30,
+              child: Builder(
+                builder: (BuildContext context) => MorphGlassRenderer(
+                  tier: tier,
+                ).buildSurface(context, surface),
+              ),
             ),
           ),
         ),
-      ),
-    );
-    final painted = [
-      for (final box in tester.widgetList<DecoratedBox>(
-        find.bySubtype<DecoratedBox>(),
-      ))
-        if (box.decoration case final BoxDecoration d
-            when d.color == surface.color && d.gradient == null)
-          d,
-    ];
-    expect(painted, isNotEmpty);
+      );
+      tester.takeException();
+      final layer = tester.widget<LiquidGlassLayer>(
+        find.byType(LiquidGlassLayer),
+      );
+      expect(layer.fake, tier == MorphGlassTier.fake);
+    }
   });
 
   test('the liquid tier bends a lens by its lift like UIKit', () {
@@ -390,12 +388,10 @@ void main() {
           case MorphGlassTier.flat:
             expect(layers, isEmpty);
             expect(blurs, 0);
-          case MorphGlassTier.frosted:
-            expect(layers, isEmpty);
-            expect(blurs, 1);
-          case MorphGlassTier.liquid:
+          case MorphGlassTier.fake || MorphGlassTier.liquid:
             expect(layers, hasLength(1));
             expect(layers.single.field, isNotNull);
+            expect(layers.single.fake, tier == MorphGlassTier.fake);
         }
       });
     }
@@ -585,8 +581,8 @@ void main() {
     test('never goes above the tier the renderer can draw', () {
       for (final deviceClass in MorphGlassDeviceClass.values) {
         expect(
-          MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.frosted),
-          MorphGlassTier.frosted,
+          MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.fake),
+          MorphGlassTier.fake,
         );
         expect(
           MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.flat),
@@ -640,8 +636,8 @@ void main() {
       );
       morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.capable;
       expect(
-        await drawn(tester, tier: MorphGlassTier.frosted),
-        MorphGlassTier.frosted,
+        await drawn(tester, tier: MorphGlassTier.fake),
+        MorphGlassTier.fake,
       );
     });
   });

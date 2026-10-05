@@ -1,12 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
-import 'package:morph/src/widgets/glass.dart';
-import 'package:morph/src/widgets/glass_channel.dart';
-import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/src/widgets/glass_renderer.dart';
+
+export 'package:morph/src/widgets/glass_liquid_draw.dart';
 
 /// Whether this build carries the liquid tier: not on the web.
 @internal
@@ -32,34 +29,3 @@ final LiquidCapability _capability = LiquidCapability(
 /// Reports the unavailable web tier once and caches its reason.
 @internal
 Future<void> morphPrecacheLiquidGlass() => _capability.precache();
-
-/// Never called on the web, where [MorphGlassRenderer.effectiveTier] is at
-/// most frosted.
-@internal
-Widget morphLiquidSurface(
-  MorphGlassRenderer renderer,
-  BuildContext context,
-  MorphGlassSource source,
-  MorphGlassSurface Function(MorphGlassFrame frame) select,
-) => throw UnsupportedError('The web has no liquid glass tier.');
-
-/// Never called on the web, where [MorphGlassRenderer.effectiveTier] is at
-/// most frosted.
-@internal
-Widget morphLiquidBody(
-  MorphGlassRenderer renderer,
-  BuildContext context,
-  MorphGlassSource source,
-  (List<MorphGlassSurface>, MorphGlassOutline) Function(MorphGlassFrame f)
-  select,
-) => throw UnsupportedError('The web has no liquid glass tier.');
-
-/// Never called on the web, where [MorphGlassRenderer.effectiveTier] is at
-/// most frosted.
-@internal
-Widget morphLiquidLayer(
-  MorphGlassRenderer renderer,
-  BuildContext context,
-  MorphGlassSource source, {
-  Widget? content,
-}) => throw UnsupportedError('The web has no liquid glass tier.');

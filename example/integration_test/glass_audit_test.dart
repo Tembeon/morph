@@ -28,11 +28,11 @@ import 'package:morph_example/gallery/gallery.dart';
 /// Build it as a profile app (`flutter build ios --profile -t
 /// integration_test/glass_audit_test.dart`), launch it with devicectl and
 /// pull `tmp/glass/` from the app's data container. The glass tier is the
-/// gallery's: `--dart-define=GALLERY_GLASS=liquid` (or frosted, flat)
+/// gallery's: `--dart-define=GALLERY_GLASS=liquid` (or fake, flat)
 /// pins it for the whole run; the report also times the package's outline
 /// fusion (the menu's blurred silhouette and a bar's fused capsules) and
 /// whether the liquid tier is available at all (`liquid_available`: false
-/// means every liquid shot is the frosted fallback), and
+/// means every liquid shot is the fake glass fallback), and
 /// `--dart-define=AUDIT_OUTLINES_ONLY=true` times only that.
 /// `--dart-define=AUDIT_RUNS=5` repeats every timed gesture five times
 /// (screenshots are taken once, never inside a timed window); the report
