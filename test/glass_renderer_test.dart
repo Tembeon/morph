@@ -576,7 +576,49 @@ void main() {
         );
       }
       expect(changed, isTrue);
-      expect(governor.tier, MorphGlassTier.frosted);
+      expect(governor.tier, MorphGlassTier.flat);
+    });
+
+    test('skips frosted unless the policy lists it', () {
+      MorphGlassTier stepDown(MorphGlassTierPolicy policy) {
+        final governor = MorphGlassTierGovernor(
+          ceiling: MorphGlassTier.liquid,
+          policy: policy,
+        );
+        for (var i = 0; i < 30; i++) {
+          governor.addFrame(
+            build: fast,
+            raster: slow,
+            budget: budget,
+            now: at(i),
+            gesture: false,
+          );
+        }
+        return governor.tier;
+      }
+
+      expect(
+        stepDown(const MorphGlassTierPolicy(warmUp: Duration.zero)),
+        MorphGlassTier.flat,
+      );
+      expect(
+        stepDown(
+          const MorphGlassTierPolicy(
+            warmUp: Duration.zero,
+            tiers: {MorphGlassTier.flat, MorphGlassTier.frosted},
+          ),
+        ),
+        MorphGlassTier.frosted,
+      );
+      expect(
+        stepDown(
+          const MorphGlassTierPolicy(
+            warmUp: Duration.zero,
+            tiers: {MorphGlassTier.liquid},
+          ),
+        ),
+        MorphGlassTier.liquid,
+      );
     });
 
     test('holds when fewer frames miss', () {
@@ -615,15 +657,15 @@ void main() {
       }
 
       feed(30, slow);
-      expect(governor.tier, MorphGlassTier.frosted);
+      expect(governor.tier, MorphGlassTier.flat);
       feed(300, fast);
-      expect(governor.tier, MorphGlassTier.frosted);
+      expect(governor.tier, MorphGlassTier.flat);
       feed(600, fast, gesture: true);
-      expect(governor.tier, MorphGlassTier.frosted);
+      expect(governor.tier, MorphGlassTier.flat);
       feed(30, fast);
       expect(governor.tier, MorphGlassTier.liquid);
       feed(30, slow);
-      expect(governor.tier, MorphGlassTier.frosted);
+      expect(governor.tier, MorphGlassTier.flat);
       expect(governor.stepUpWait, const Duration(seconds: 10));
     });
 

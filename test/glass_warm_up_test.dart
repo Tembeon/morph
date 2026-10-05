@@ -22,12 +22,12 @@ void main() {
       for (var i = 1000; i < 1240; i += 8) {
         frame(i);
       }
-      expect(governor.tier, MorphGlassTier.frosted);
+      expect(governor.tier, MorphGlassTier.flat);
       expect(governor.stepUpWait, const Duration(seconds: 5));
       for (var i = 1240; i < 2200; i += 8) {
         frame(i);
       }
-      expect(governor.tier, MorphGlassTier.frosted);
+      expect(governor.tier, MorphGlassTier.flat);
     },
   );
 }

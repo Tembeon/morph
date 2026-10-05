@@ -1,5 +1,6 @@
 import 'dart:ui' show FramePhase, FrameTiming;
 
+import 'package:flutter/foundation.dart' show setEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -19,12 +20,14 @@ import 'package:morph/src/widgets/glass_renderer.dart';
 /// of the budget steps it up again, but never while a finger is down and
 /// only [stepUpAfter] after the last change; every time a tier fails again
 /// that wait doubles, up to [maxStepUpAfter], so a device that cannot hold
-/// a tier stops trying it. The values are engineering defaults, not
+/// a tier stops trying it. A step goes to the next of [tiers], skipping
+/// the tiers left out of it. The values are engineering defaults, not
 /// measurements of UIKit, which has no such tiers.
 @immutable
 class MorphGlassTierPolicy {
   /// Creates a policy.
   const MorphGlassTierPolicy({
+    this.tiers = const {MorphGlassTier.flat, MorphGlassTier.liquid},
     this.window = 30,
     this.warmUp = const Duration(seconds: 1),
     this.stepDownMissRatio = 0.25,
@@ -32,6 +35,21 @@ class MorphGlassTierPolicy {
     this.stepUpAfter = const Duration(seconds: 5),
     this.maxStepUpAfter = const Duration(seconds: 80),
   });
+
+  /// The tiers the automatic choice steps between, besides the ceiling,
+  /// which it always may use.
+  ///
+  /// The default leaves out [MorphGlassTier.frosted]: on the iPhone 16
+  /// Pro (profile, 2026-10-05, p95 raster ms over the glass audit's
+  /// scenes) frosted costs more than liquid on segmented 2.29 vs 2.00,
+  /// controls 3.65 vs 2.88, home scroll 2.51 vs 2.14 and sheet 3.92 vs
+  /// 3.21, about the same on the tab bar 2.71 vs 2.74, and less only on
+  /// the menu 2.25 vs 2.92, where its build p95 is higher, 3.77 vs 2.16:
+  /// it blurs every glass surface where liquid frosts only bars, menus
+  /// and lifted lenses, so a device that cannot hold liquid steps to
+  /// flat. Without liquid (no Flutter GPU) the ceiling is frosted and
+  /// stays in use.
+  final Set<MorphGlassTier> tiers;
 
   /// The startup interval ignored after mounting or changing tiers.
   ///
@@ -59,6 +77,7 @@ class MorphGlassTierPolicy {
   @override
   bool operator ==(Object other) =>
       other is MorphGlassTierPolicy &&
+      setEquals(other.tiers, tiers) &&
       other.window == window &&
       other.warmUp == warmUp &&
       other.stepDownMissRatio == stepDownMissRatio &&
@@ -68,6 +87,7 @@ class MorphGlassTierPolicy {
 
   @override
   int get hashCode => Object.hash(
+    Object.hashAllUnordered(tiers),
     window,
     warmUp,
     stepDownMissRatio,
@@ -85,7 +105,13 @@ class MorphGlassTierGovernor {
   MorphGlassTierGovernor({
     required this.ceiling,
     this.policy = const MorphGlassTierPolicy(),
-  }) : _tier = ceiling;
+  }) : _tier = ceiling,
+       _ladder = [
+         for (final tier in MorphGlassTier.values)
+           if (tier == ceiling ||
+               (tier.index < ceiling.index && policy.tiers.contains(tier)))
+             tier,
+       ];
 
   /// The best tier the governor may pick.
   final MorphGlassTier ceiling;
@@ -94,6 +120,7 @@ class MorphGlassTierGovernor {
   final MorphGlassTierPolicy policy;
 
   MorphGlassTier _tier;
+  final List<MorphGlassTier> _ladder;
   final List<Duration> _costs = [];
   Duration? _changedAt;
   final Map<MorphGlassTier, int> _failures = {};
@@ -103,8 +130,9 @@ class MorphGlassTierGovernor {
 
   /// The wait before stepping up to the tier above the current one.
   Duration get stepUpWait {
-    if (_tier.index >= ceiling.index) return Duration.zero;
-    final above = MorphGlassTier.values[_tier.index + 1];
+    final step = _ladder.indexOf(_tier);
+    if (step < 0 || step + 1 >= _ladder.length) return Duration.zero;
+    final above = _ladder[step + 1];
     final failures = _failures[above] ?? 0;
     var wait = policy.stepUpAfter;
     for (var i = 1; i < failures && wait < policy.maxStepUpAfter; i++) {
@@ -132,18 +160,18 @@ class MorphGlassTierGovernor {
     sorted.sort();
     final p90 = sorted[((sorted.length - 1) * 0.9).round()];
     _costs.clear();
-    if (misses >= policy.stepDownMissRatio * policy.window &&
-        _tier != MorphGlassTier.flat) {
+    final step = _ladder.indexOf(_tier);
+    if (misses >= policy.stepDownMissRatio * policy.window && step > 0) {
       _failures[_tier] = (_failures[_tier] ?? 0) + 1;
-      _tier = MorphGlassTier.values[_tier.index - 1];
+      _tier = _ladder[step - 1];
       _changedAt = now;
       return true;
     }
     if (!gesture &&
-        _tier.index < ceiling.index &&
+        step + 1 < _ladder.length &&
         p90 <= budget * policy.stepUpHeadroom &&
         now - _changedAt! >= stepUpWait) {
-      _tier = MorphGlassTier.values[_tier.index + 1];
+      _tier = _ladder[step + 1];
       _changedAt = now;
       return true;
     }

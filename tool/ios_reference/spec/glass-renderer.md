@@ -112,6 +112,17 @@ windows of 30 frames vs 1 / refresh rate; >= 25 percent of a window over
 budget steps down at once; a window whose p90 is under 0.6 budget steps up
 after 5 s quiet, doubling per repeated failure of that tier up to 80 s,
 NEVER while a pointer is down. Engineering defaults, not measurements.
+A step goes to the next tier of `MorphGlassTierPolicy.tiers` (the
+ceiling is always one of them); the default is flat + liquid, so a
+device that cannot hold liquid steps to FLAT, not frosted (2026-10-05):
+frosted's raster p95 is higher than liquid's on four of the six audit
+scenes (controls 3.65 vs 2.88, sheet 3.92 vs 3.21, segmented 2.29 vs
+2.00, home scroll 2.51 vs 2.14; tab bar 2.71 vs 2.74) and on the menu,
+the one scene where its raster is lower (2.25 vs 2.92), its build p95
+is higher (3.77 vs 2.16), so a step to frosted would raise the cost the
+governor judges (max of build and raster). Without Flutter GPU the
+ceiling is frosted and the ladder is flat + frosted. Pure, pinned in
+test/glass_renderer_test.dart ('the adaptive tier').
 
 ## Liquid tier layering (the former gallery painter, optics unchanged)
 
