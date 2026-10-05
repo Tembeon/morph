@@ -1,0 +1,153 @@
+/sdcard/Android/data/dev.tembeon.morph_example/files/glass/report.json: 1 file pulled, 0 skipped. 0.9 MB/s (2165 bytes in 0.002s)
+== 1.raster (tid 6653), window 20983 ms
+   incl ms    self ms   count  incl/cnt  name
+   10182.1       26.9    1067     9.543  GPURasterizer::Draw
+   10155.2       28.6    1067     9.518  Rasterizer::DoDraw
+   10126.6      210.9    1067     9.491  Rasterizer::DrawToSurfaces
+    9165.6       60.8    1067     8.590  SurfaceFrame::Submit
+    8019.3     3070.7    1067     7.516  SurfaceFrame::Encode
+    2808.9     2808.9    2119     1.326  QueueSubmit
+    1733.3     1658.2   17452     0.099  Canvas::saveLayer
+     990.4      263.7    1067     0.928  CreateGlyphAtlas
+     837.5      105.0    2134     0.392  queueBuffer
+     649.9      649.9     316     2.057  UpdateAtlasBitmap
+     643.1      171.4    1067     0.603  QueuePresentKHR
+     491.1       14.1    1067     0.460  CompositorContext::ScopedFrame::Raster
+     308.0      243.0    1067     0.289  LayerTree::Paint
+     259.1       42.5    1067     0.243  AcquireNextSurface
+     224.0       19.8     795     0.282  onFrameAvailable - 5e37d65 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+     216.6       38.8    1067     0.203  AcquireNextDrawable
+     177.7       64.3    1067     0.167  AcquireNextImageKHR
+     168.9      168.9    1067     0.158  LayerTree::Preroll
+     124.8        8.7       2    62.407  DoMakeRasterSnapshot
+     104.8       18.3    1071     0.098  dequeueBuffer
+      80.7       61.2      44     1.834  waitForBufferRelease
+      74.0       74.0    6728     0.011  AllocateCommandBuffers
+      60.1       60.1     316     0.190  AppendToExistingAtlas
+      48.9       45.8     984     0.050  acquireBuffer
+      41.0        3.7     147     0.279  onFrameAvailable - 5e37d65 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+      28.7       28.7      25     1.149  PipelineVK::Create
+      27.7       27.7    1067     0.026  addAndGetFrameTimestamps
+      20.8        0.8       1    20.751  CreateImpellerContext
+      20.0        1.7       1    19.997  ContextVK::Setup
+      19.4        0.4      41     0.474  releaseBufferCallback - 5e37d65 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+
+== n.morph_example (tid 6442), window 21174 ms
+   incl ms    self ms   count  incl/cnt  name
+    6699.1     1199.3    2515     2.664  Dart_InvokeClosure
+    5997.1       53.8    1085     5.527  VsyncProcessCallback
+    5943.3       86.3    1085     5.478  Animator::BeginFrame
+    2172.5     1542.7    1070     2.030  COMPOSITING
+    1537.3       17.8    1070     1.437  PAINT (root)
+    1519.4     1310.9    1070     1.420  PAINT
+    1485.5     1473.3    1496     0.993  BUILD
+    1460.6       19.0    1070     1.365  LAYOUT (root)
+    1441.6      186.1    1070     1.347  LAYOUT
+     770.7      770.7    1236     0.624  QueueSubmit
+     176.4        0.8       1   176.366  DartExecutor#executeDartEntrypoint
+     161.8      161.8       1   161.786  Engine::SetupDefaultFontManager
+     134.9       10.4    1041     0.130  Dart_NotifyIdle
+     129.3      129.3    1086     0.119  AsyncWaitForVsync
+     128.8       25.4      44     2.926  CollectNewGeneration
+     124.4       15.4    1041     0.120  NotifyIdle
+     113.0      104.0       2    56.496  traversal
+     110.6       11.3    1086     0.102  CALLBACK_ANIMATION
+     107.4        0.5       1   107.423  Choreographer#doFrame 5402537
+     106.9        0.1       1   106.939  Choreographer#doFrame - resynced to 5402677 in 27.7ms
+     102.8       56.9      44     2.336  Scavenge
+      99.2       27.0    1086     0.091  AChoreographer_frameCallback64
+      72.3       22.5    1086     0.067  PlatformVsync
+      56.9        2.5     114     0.499  DartIsolate::HandleMessage
+      54.5        1.4     114     0.478  Dart_HandleMessage
+      49.8       49.8    1086     0.046  VsyncFireCallback
+      43.5       19.3     100     0.435  HandleMessage
+      30.9       30.8    1070     0.029  FINALIZE TREE
+      27.2        0.1       1    27.196  SEMANTICS (root)
+      27.0       27.0     900     0.030  Dart_Invoke
+
+== surfaceflinger (tid 550), window 21271 ms
+   incl ms    self ms   count  incl/cnt  name
+    2333.3       98.4    1103     2.115  present
+    1622.8       24.2    1103     1.471  prepareFrame
+    1595.0       16.3    1103     1.446  chooseCompositionStrategy for Common Panel (4619827677550801152)
+    1578.8       10.2    1103     1.431  getDeviceCompositionChanges
+    1559.6       25.4    1094     1.426  NextFrameInterval 60_Hz
+    1543.0     1543.0    1103     1.399  HwcPresentOrValidateDisplay
+     856.6       77.8    1107     0.774  updateLayerSnapshots
+     555.5       36.4    2206     0.252  postComposition
+     509.8      356.6    1107     0.461  DisplayCallbackAndStatsUpdates
+     446.8      210.2    1103     0.405  onCompositionPresented
+     220.8        9.3    1103     0.200  planComposition
+     211.4      133.5    1103     0.192  plan
+     171.9       13.2    1107     0.155  chooseRefreshRateForContent
+     170.7       75.0    1103     0.155  presentFrameAndReleaseLayers for Common Panel (4619827677550801152)
+     151.9       16.1    1107     0.137  summarize
+     139.5       90.3    1107     0.126  LayerSnapshotBuilder:update
+     129.3      115.1    1107     0.117  TransactionHandler:flushTransactions
+      94.2       12.3    1103     0.085  addPresentFence 4619827677550801152
+      93.6       83.6    3135     0.030  nextAnticipatedVSyncTimeFrom
+      87.6       87.6    1107     0.079  partitionLayers
+      78.0       40.9    1103     0.071  addPresentFence
+      78.0       45.0    1103     0.071  flattenLayers
+      76.4       62.0    1067     0.072  setBuffer 5e37d65 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity](BLAST)#4080 - hasBuffer=true
+      73.8       73.8    1103     0.067  writeCompositionState
+      67.5       67.5    1103     0.061  reportActualWorkDuration
+      66.7       33.6    1103     0.060  finishFrame
+      60.9       60.9    2214     0.027  expectedSignaledPresentFence
+      54.6       54.6    6710     0.008  merge
+      48.4        8.3     819     0.059  scheduleFrame
+      45.7       25.7    1073     0.043  5e37d65 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity](BLAST)#4080
+
+== GPU completion (tid 6694), window 20585 ms
+   incl ms    self ms   count  incl/cnt  name
+    4472.0     4472.0    1062     4.211  waitForever
+      10.9        0.0       1    10.854  waiting for GPU completion 785
+      10.5        0.0       1    10.515  waiting for GPU completion 162
+      10.5        0.0       1    10.498  waiting for GPU completion 523
+      10.4        0.0       1    10.434  waiting for GPU completion 641
+      10.4        0.0       1    10.396  waiting for GPU completion 525
+      10.4        0.0       1    10.370  waiting for GPU completion 163
+      10.2        0.0       1    10.210  waiting for GPU completion 640
+      10.1        0.0       1    10.146  waiting for GPU completion 528
+      10.0        0.0       1     9.973  waiting for GPU completion 250
+       9.9        0.0       1     9.858  waiting for GPU completion 661
+       9.8        0.0       1     9.825  waiting for GPU completion 380
+       9.8        0.0       1     9.818  waiting for GPU completion 891
+       9.8        0.0       1     9.780  waiting for GPU completion 658
+       9.7        0.0       1     9.746  waiting for GPU completion 784
+       9.7        0.0       1     9.745  waiting for GPU completion 652
+       9.7        0.0       1     9.730  waiting for GPU completion 375
+       9.7        0.0       1     9.726  waiting for GPU completion 526
+       9.7        0.0       1     9.719  waiting for GPU completion 653
+       9.7        0.0       1     9.650  waiting for GPU completion 267
+       9.6        0.0       1     9.609  waiting for GPU completion 793
+       9.6        0.0       1     9.592  waiting for GPU completion 659
+       9.6        0.0       1     9.591  waiting for GPU completion 660
+       9.6        0.0       1     9.555  waiting for GPU completion 655
+       9.6        0.0       1     9.554  waiting for GPU completion 656
+       9.5        0.0       1     9.537  waiting for GPU completion 373
+       9.4        0.0       1     9.437  waiting for GPU completion 779
+       9.4        0.0       1     9.430  waiting for GPU completion 654
+       9.4        0.0       1     9.403  waiting for GPU completion 791
+       9.3        0.0       1     9.307  waiting for GPU completion 377
+
+== RegionSampling (tid 847), window 21212 ms
+   incl ms    self ms   count  incl/cnt  name
+     778.7      103.0     202     3.855  captureSample
+     649.2        2.7     201     3.230  captureScreenshot
+     646.5       20.2     201     3.216  renderScreenImpl
+     626.2       12.7     201     3.116  present
+     583.2        3.9     201     2.902  finishFrame
+     579.3      559.0     201     2.882  composeSurfaces
+      14.3       14.3     201     0.071  waitForever
+      13.8        1.5     201     0.069  prepare
+      12.5       12.5     201     0.062  drawLayers
+      12.3       12.3     201     0.061  rebuildLayerStacks
+       8.2        8.2     201     0.041  lock
+       7.8        4.5     403     0.019  prepareClientCompositionInternal
+       6.4        4.8     201     0.032  presentFrameAndReleaseLayers for RegionSampling, Common Panel (4619827677550801152)
+       4.0        4.0     201     0.020  unlock
+       4.0        4.0     201     0.020  updateCompositionState
+       3.3        3.3     403     0.008  prepareBufferStateClientComposition
+Exception ignored while flushing sys.stdout:
+BrokenPipeError: [Errno 32] Broken pipe

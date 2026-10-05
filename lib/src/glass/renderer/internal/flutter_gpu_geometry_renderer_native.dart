@@ -398,9 +398,16 @@ class FlutterGpuGeometryRenderer {
       _uniformSize,
     ).emplace(_uniformData);
 
-    final fieldTexture = field == null
-        ? null
-        : _fieldTextures.upload(field, _completedFrames);
+    final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
+    gpu.Texture? fieldTexture;
+    try {
+      fieldTexture = field == null
+          ? null
+          : _uploadField(field, geometryCommandBuffer);
+    } on Object {
+      geometryCommandBuffer.submit();
+      rethrow;
+    }
     gpu.BufferView? fieldUniformView;
     if (field != null && fieldTexture != null) {
       _packFieldUniformData(
@@ -412,7 +419,6 @@ class FlutterGpuGeometryRenderer {
         _uniformSize,
       ).emplace(_fieldUniformData);
     }
-    final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
     final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!);
     if (fieldTexture == null || fieldUniformView == null) {
       geometryPass
@@ -459,6 +465,26 @@ class FlutterGpuGeometryRenderer {
       textureWidth: _texture!.width,
       textureHeight: _texture!.height,
     );
+  }
+
+  /// The texture holding [field], its copy recorded on [geometry] where a
+  /// copy may precede the geometry pass on one command buffer, else on a
+  /// command buffer of its own submitted ahead of it.
+  gpu.Texture _uploadField(GlassField field, gpu.CommandBuffer geometry) {
+    final held = _fieldTextures.held(field, _completedFrames);
+    if (held != null) return held;
+    if (_uploadsShareCommandBuffer) {
+      return _fieldTextures.upload(field, _completedFrames, geometry);
+    }
+    final upload = gpu.gpuContext.createCommandBuffer();
+    try {
+      final texture = _fieldTextures.upload(field, _completedFrames, upload);
+      _submitOrDefer(upload);
+      return texture;
+    } on Object {
+      if (!upload.submitted) upload.submit();
+      rethrow;
+    }
   }
 
   /// Limits [pass] to the top-left [width] x [height] of [texture].
@@ -508,6 +534,15 @@ class FlutterGpuGeometryRenderer {
   //
   // Share a command buffer across passes only once the engine ends a pass
   // before the next begins.
+  // A copy recorded before a render pass on the same command buffer is
+  // encoded ahead of it on Vulkan and GLES, which saves the copy a queue
+  // submission of its own. Metal opens a blit encoder when the copy is
+  // recorded and closes it only on submit, so the render pass's encoder
+  // would nest: there the copy gets its own command buffer, submitted
+  // first.
+  static final bool _uploadsShareCommandBuffer =
+      !(Platform.isIOS || Platform.isMacOS);
+
   static final MorphDeferredSubmissions<gpu.CommandBuffer> _pending =
       MorphDeferredSubmissions((commandBuffer) {
         commandBuffer.submit();
@@ -1012,56 +1047,104 @@ typedef _FieldUniformOffsets = ({
   int fieldSize,
 });
 
-/// Exact-sized field textures whose host storage is reused after three frames.
+/// Field textures in GPU memory, each with the host buffer its samples are
+/// staged in, reused after three frames.
 ///
-/// Flutter GPU's overwrite API requires an entire mip level, so exact field
-/// dimensions avoid uploading unused capacity. At most four textures survive
-/// in the ring; GPU command buffers retain textures still in flight.
+/// Sizes are rounded up to [_bucket] nodes, so a field that changes size
+/// every frame - a menu opening - reuses its textures instead of creating
+/// one per frame. A field fills the top-left of its texture; the field
+/// pass reads only that region, at the same texel centers whatever the
+/// texture's size. The samples are copied into the texture by a command
+/// recorded on the caller's command buffer, not by a submission of their
+/// own. At most four textures survive; command buffers in flight retain
+/// theirs.
 final class _FieldTextures {
   static const int _reuseAfterFrames = 3;
   static const int _maxTextures = 4;
+  static const int _bucket = 16;
+  static const int _bytesPerNode = 16;
 
-  final List<(gpu.Texture, int, Float32List)> _textures = [];
+  final List<_FieldTexture> _textures = [];
 
-  gpu.Texture upload(GlassField field, int frame) {
-    final held = _textures.indexWhere(
-      (entry) =>
-          identical(entry.$3, field.samples) &&
-          entry.$1.width == field.cols &&
-          entry.$1.height == field.rows,
-    );
-    if (held >= 0) {
-      final texture = _textures[held].$1;
-      _textures[held] = (texture, frame, field.samples);
-      return texture;
+  static int _capacity(int nodes) => (nodes + _bucket - 1) ~/ _bucket * _bucket;
+
+  /// The texture already holding [field], or null.
+  gpu.Texture? held(GlassField field, int frame) {
+    for (final entry in _textures) {
+      if (identical(entry.samples, field.samples) &&
+          entry.cols == field.cols &&
+          entry.rows == field.rows) {
+        entry.frame = frame;
+        return entry.texture;
+      }
     }
-    var index = _textures.indexWhere(
-      (entry) =>
-          entry.$1.width == field.cols &&
-          entry.$1.height == field.rows &&
-          frame - entry.$2 >= _reuseAfterFrames,
-    );
-    final gpu.Texture texture;
-    if (index >= 0) {
-      texture = _textures[index].$1;
-    } else {
-      texture = gpu.gpuContext.createTexture(
-        gpu.StorageMode.hostVisible,
-        field.cols,
-        field.rows,
-        format: gpu.PixelFormat.r32g32b32a32Float,
-        enableRenderTargetUsage: false,
+    return null;
+  }
+
+  /// A texture holding [field], its samples copied into it by a command
+  /// recorded on [commands].
+  gpu.Texture upload(GlassField field, int frame, gpu.CommandBuffer commands) {
+    final held = this.held(field, frame);
+    if (held != null) return held;
+    _FieldTexture? slot;
+    for (final entry in _textures) {
+      if (entry.texture.width >= field.cols &&
+          entry.texture.height >= field.rows &&
+          frame - entry.frame >= _reuseAfterFrames) {
+        slot = entry;
+        break;
+      }
+    }
+    if (slot == null) {
+      final width = _capacity(field.cols);
+      final height = _capacity(field.rows);
+      slot = _FieldTexture(
+        gpu.gpuContext.createTexture(
+          gpu.StorageMode.devicePrivate,
+          width,
+          height,
+          format: gpu.PixelFormat.r32g32b32a32Float,
+          enableRenderTargetUsage: false,
+        ),
+        gpu.gpuContext.createDeviceBuffer(
+          gpu.StorageMode.hostVisible,
+          width * height * _bytesPerNode,
+        ),
       );
       if (_textures.length >= _maxTextures) _textures.removeAt(0);
-      _textures.add((texture, frame, field.samples));
-      index = _textures.length - 1;
+      _textures.add(slot);
     }
-    _textures[index] = (texture, frame, field.samples);
-    texture.overwrite(ByteData.sublistView(field.samples));
-    return texture;
+    final bytes = ByteData.sublistView(field.samples);
+    slot.buffer.overwrite(bytes);
+    commands.copyBufferToTexture(
+      gpu.BufferView(
+        slot.buffer,
+        offsetInBytes: 0,
+        lengthInBytes: bytes.lengthInBytes,
+      ),
+      gpu.TextureRegion(slot.texture, width: field.cols, height: field.rows),
+    );
+    slot.samples = field.samples;
+    slot.cols = field.cols;
+    slot.rows = field.rows;
+    slot.frame = frame;
+    return slot.texture;
   }
 
   void release() => _textures.clear();
+}
+
+/// A field texture, the host buffer its samples are staged in, and the
+/// field it holds.
+final class _FieldTexture {
+  _FieldTexture(this.texture, this.buffer);
+
+  final gpu.Texture texture;
+  final gpu.DeviceBuffer buffer;
+  Float32List? samples;
+  int cols = 0;
+  int rows = 0;
+  int frame = -_FieldTextures._reuseAfterFrames;
 }
 
 class _SharedGeometryResources {
