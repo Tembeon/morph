@@ -99,6 +99,13 @@ UIKit never does: each side of a bar changes only with itself.
   rms center, 0.84 width, 0.58 height; in-place group scale 0.004, opacity
   0.021 rms; toolbar sides 0.0 / 0.13 / 0.13 pt, scale 0.020, opacity 0.099
   (one delay cannot follow the device's 24 ms call-to-start spread).
+  Device check 2026-10-05: example/integration_test/navseg_video_test.dart
+  (the same five pages, liquid tier) filmed next to the native run;
+  recordings/device-navseg-20261005/sheet_0..7.png (native over morph,
+  bar crops -0.05 .. 0.7 s from each page start): every group appears and
+  leaves in place on its own side in both, morph about one film frame
+  later; the inline title of a push arrives at once in morph and a few
+  frames later natively (title timing, not part of this change).
   Regression: test/navigation_segments_test.dart (no glass layer ever
   fuses a leading capsule with a trailing one, the back button never
   crosses the middle - push, back tap, edge swipe).
