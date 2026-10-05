@@ -12,6 +12,12 @@ import 'package:morph/widgets.dart';
 /// group, 3 with a back button only, 4 with a large title, a back button
 /// and two trailing groups. Four pushes, then four pops, 1.6 s apart.
 ///
+/// With `--dart-define=NAVSEG_SET=b` it runs the probe's set b instead
+/// (`PROBE_SET=b`, groups born and dying within a side): 0 with a large
+/// title and [1x], scrolled 200 points like `PROBE_ROOTSCROLL=200`; 1 with
+/// [plus more] [1x]; 2 with [Show Preferences]; 3 with [heart] [Show
+/// Preferences]; 4 with [heart bookmark] [share] [more].
+///
 /// Build it as a profile app (`flutter build ios --profile -t
 /// integration_test/navseg_video_test.dart`), launch it with devicectl and
 /// record the screen while it runs; it waits [_lead] before the first
@@ -37,6 +43,13 @@ void main() {
         ),
       ),
     );
+    if (_setB) {
+      await tester.pump();
+      tester
+          .state<ScrollableState>(find.byType(Scrollable).first)
+          .position
+          .jumpTo(200);
+    }
     await tester.pump(_lead);
     for (var page = 1; page <= 4; page++) {
       unawaited(
@@ -55,6 +68,7 @@ void main() {
 }
 
 const Duration _lead = Duration(seconds: 4);
+const bool _setB = String.fromEnvironment('NAVSEG_SET') == 'b';
 const Duration _gap = Duration(milliseconds: 1600);
 
 MorphBarButton _icon(String id, IconData icon) => MorphBarButton(
@@ -94,6 +108,7 @@ class _Page extends StatelessWidget {
         ),
       ),
     ];
+    if (_setB) return _pageB(slivers);
     return switch (page) {
       0 => MorphNavigationScaffold(
         title: 'Root',
@@ -143,6 +158,62 @@ class _Page extends StatelessWidget {
           MorphBarButtonGroup([
             MorphBarButton(id: 'done', label: 'Done', onPressed: () {}),
           ], prominent: true),
+        ],
+        slivers: slivers,
+      ),
+    };
+  }
+
+  Widget _pageB(List<Widget> slivers) {
+    MorphBarButton text(String id, String label) =>
+        MorphBarButton(id: id, label: label, onPressed: () {});
+    final prefs = MorphBarButtonGroup([text('prefs$page', 'Show Preferences')]);
+    return switch (page) {
+      0 => MorphNavigationScaffold(
+        title: 'One',
+        largeTitle: true,
+        backTitle: '',
+        trailing: [
+          MorphBarButtonGroup([text('x0', '1x')]),
+        ],
+        slivers: slivers,
+      ),
+      1 => MorphNavigationScaffold(
+        title: 'Two',
+        backTitle: '',
+        trailing: [
+          MorphBarButtonGroup([
+            _icon('plus', Icons.add),
+            _icon('more', Icons.more_horiz),
+          ]),
+          MorphBarButtonGroup([text('x1', '1x')]),
+        ],
+        slivers: slivers,
+      ),
+      2 => MorphNavigationScaffold(
+        title: 'Three',
+        backTitle: '',
+        trailing: [prefs],
+        slivers: slivers,
+      ),
+      3 => MorphNavigationScaffold(
+        title: 'Four',
+        backTitle: '',
+        trailing: [
+          MorphBarButtonGroup([_icon('heart3', Icons.favorite_border)]),
+          prefs,
+        ],
+        slivers: slivers,
+      ),
+      _ => MorphNavigationScaffold(
+        title: 'Five',
+        trailing: [
+          MorphBarButtonGroup([
+            _icon('heart4', Icons.favorite_border),
+            _icon('bookmark4', Icons.bookmark_border),
+          ]),
+          MorphBarButtonGroup([_icon('share4', Icons.ios_share)]),
+          MorphBarButtonGroup([_icon('more4', Icons.more_horiz)]),
         ],
         slivers: slivers,
       ),
