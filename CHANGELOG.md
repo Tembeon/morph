@@ -26,6 +26,16 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   field no longer carries NaN at spacing 0 (a fix). New harnesses:
   test/perf_counts_test.dart pins per-frame work counts as ceilings,
   tool/ios_reference/perf/ runs and diffs the device audit.
+- Performance, same pixels: a control rebuilt by its parent with an
+  unchanged configuration rebuilds nothing below it (switch, slider,
+  stepper, glass button, segmented control; device build p95 of a page
+  of controls 2.4 -> 1.7 ms flat, 3.1 -> 2.3 ms liquid); a menu sleeps
+  under a resting finger once its glow has faded in (within the rest
+  tolerances every settled motion already uses); the menu button's
+  hidden resting face is not rebuilt during its flight; the menu's
+  plain-union silhouette takes its field from the box distances it
+  already has and container fusion keeps its grids across calls (union
+  0.73 -> 0.49 ms, old-generation GC during menu opens 10 -> 2).
 - Presentations from a navigation stack's page cover the stack's bars, as
   on iOS: `MorphNavigationStack` installs a new `MorphPresentationBoundary`,
   and `showMorph*`, `MorphAnchor`, `MorphMenuButton`,
