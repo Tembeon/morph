@@ -14,6 +14,13 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Large liquid glass costs the GPU less, same pixels: a sheet- or
+  menu-sized face skips its rim lighting where none can reach, and the
+  final pass shares work it did twice. A 340 x 600 pt sheet layer draws
+  with 8 percent fewer GPU cycles on a Pixel 6a and 9 percent less time
+  on an iPhone 16 Pro; at most 1 channel step moves on a few pixels.
+  Fake glass on Android Vulkan no longer places its edge in half
+  precision (up to 157 steps off on large shapes on a Pixel 6a).
 - `MorphGlassContainer` shades the resting glass of the buttons below it
   in one layer - one geometry pass and one backdrop filter instead of one
   per button, as UIKit's glass container does. Wrap a row or cluster of
