@@ -165,6 +165,11 @@ class _Audit {
   /// Times the fused outlines the package computes per frame while a
   /// menu morphs or bar capsules pass close: the mean of 100 calls each,
   /// on shapes that move a little every call so nothing is reused.
+  ///
+  /// Every case runs twice. The first pass (`-cold`) pays one-time work
+  /// that lands on whichever case comes first - after the timed scenes
+  /// ~45 ms on the device, the 4 pt menu read 1.13 instead of 0.67 ms -
+  /// so the steady numbers are the second pass.
   void _outlines() {
     double time(void Function(int i) body) {
       final watch = Stopwatch();
@@ -175,23 +180,25 @@ class _Audit {
       return watch.elapsedMicroseconds / 100;
     }
 
-    for (final radius in [4.0, 10.0, 20.0]) {
-      _outlineMicros['menu10-r${radius.round()}'] = time(
+    for (final pass in ['-cold', '']) {
+      for (final radius in [4.0, 10.0, 20.0]) {
+        _outlineMicros['menu10-r${radius.round()}$pass'] = time(
+          // ignore: invalid_use_of_internal_member
+          (i) => morphMenuSilhouette(
+            RRect.fromLTRBXY(70, 200 + i * 0.01, 330, 640, 32, 32),
+            const RRect.fromLTRBXY(177, 652, 225, 700, 24, 24),
+            radius,
+          ),
+        );
+      }
+      _outlineMicros['bar-capsules$pass'] = time(
         // ignore: invalid_use_of_internal_member
-        (i) => morphMenuSilhouette(
-          RRect.fromLTRBXY(70, 200 + i * 0.01, 330, 640, 32, 32),
-          const RRect.fromLTRBXY(177, 652, 225, 700, 24, 24),
-          radius,
-        ),
+        (i) => morphGlassContainerOutline([
+          RRect.fromLTRBXY(16 + i * 0.01, 60, 160, 104, 22, 22),
+          const RRect.fromLTRBXY(166, 60, 210, 104, 22, 22),
+        ], 12),
       );
     }
-    _outlineMicros['bar-capsules'] = time(
-      // ignore: invalid_use_of_internal_member
-      (i) => morphGlassContainerOutline([
-        RRect.fromLTRBXY(16 + i * 0.01, 60, 160, 104, 22, 22),
-        const RRect.fromLTRBXY(166, 60, 210, 104, 22, 22),
-      ], 12),
-    );
   }
 
   Future<void> _segmented() async {
