@@ -14,6 +14,18 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Performance, pixels changed below what the eye sees (owner decision):
+  an outline fused at spacing 0 - the menu's settle tail once its fusion
+  radius is under 1 pt, every submenu card - is the exact union of its
+  rounded boxes instead of a traced and uploaded field (menu build p95
+  liquid 2.3 -> 1.9 ms, frosted 3.4 -> 1.9 ms on an iPhone 16 Pro); glass
+  shadows clip to outside the glass instead of an offscreen layer per
+  shadowed surface (liquid raster p95 0.2 - 0.5 ms lower; only the cut's
+  antialiasing differs). `MorphAdaptiveGlass` steps from liquid straight
+  to flat: frosted measured more raster than liquid on the device's
+  control scenes; `MorphGlassTierPolicy.tiers` puts it back on the
+  ladder. Measured and not adopted: the scroll edge effect in the bars'
+  backdrop group (the capsules would lose its fade).
 - Touches land on the motion clock where the measured delays expect them
   (a fix): a pointer event is stamped at its own time stamp, moved onto
   the frame clock (on iOS and macOS the two clocks differ by the device's
