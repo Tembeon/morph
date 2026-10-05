@@ -1191,6 +1191,15 @@ The backdrop-group fix (2026-10-05-bdg-base -> -bdg-fix, same table's
 scenes) left every liquid percentile within noise; frosted menu raster
 p95 2.40 -> 2.79, frosted sheet 3.93 -> 2.63 (glass-renderer.md).
 
+FIRST USE (pipeline warm-up in `MorphGlassRenderer.precache`,
+glass-renderer.md "First use"): the first glass frame's worst UI / raster
+ms before -> after, cold install. Pixel 6a (Vulkan): liquid 102 / 74 ->
+5 / 11, frosted 2 / 64 -> 5 / 19; precache 3 ms -> 0.33 - 0.43 s, launch
+to first frame +90 to +270 ms; second launches the same (the Vulkan disk
+cache does not help). iPhone 16 Pro (Metal): liquid 69 / 362 -> 2 / 42,
+frosted 2 / 60 -> 2 / 10; precache 0.3 - 0.5 s -> 0.85 s on a fresh
+install, 1 -> 17 - 21 ms on later launches.
+
 Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 
 | scene                   | us/op  |

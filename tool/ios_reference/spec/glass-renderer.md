@@ -533,9 +533,27 @@ frosted's first frame keeps 19-25 ms raster against 11 on liquid, a
 residue not traced. The trade: 0.3 - 0.45 s more behind the splash
 (launch to first frame +90 to +270 ms), the first glass frame pays
 nothing. The Vulkan pipeline disk cache does not remove the cost (warm
-before: 131 ms UI). iOS is not measured in this pass; Metal compiles the
-runtime stages at load, the Flutter GPU pipelines and the MSAA variants
-at first draw as here.
+before: 131 ms UI).
+
+iPhone 16 Pro (Metal, iOS 27, profile, the same two commits, one launch
+each; iphone-warmup-cold = uninstall + install, -warm = the launch after
+a full run of the same build; worst UI / raster ms of the first glass
+frame as above):
+
+| build | precache ms cold / warm | cold UI / raster | warm UI / raster |
+|-------|------------------------:|-----------------:|-----------------:|
+| liquid before | 470 / 0.9 | 68.9 / 362.0 | 0.3 / 19.6 |
+| liquid after | 851 / 20.6 | 2.0 / 41.8 | 0.5 / 13.3 |
+| frosted before | 312 / 0.8 | 1.6 / 60.1 | 0.4 / 21.3 |
+| frosted after | 856 / 16.9 | 1.7 / 9.7 | 0.4 / 11.1 |
+
+On Metal the cost is a first-launch cost: a fresh install pays 0.3 -
+0.5 s of precache already (runtime stages compile at load) and the
+warm-up adds 0.4 - 0.55 s to it, while a later launch reuses the
+driver's cache and the warm-up costs 17 - 21 ms. The cold liquid frame
+keeps a 42 ms raster residue (not traced; 362 before); every other
+first frame is at steady-state worst. Launch to first frame is not
+recorded on iOS (devicectl reports no launch time).
 
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
