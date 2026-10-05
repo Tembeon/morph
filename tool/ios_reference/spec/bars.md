@@ -48,12 +48,60 @@ soft / hard, `hidden`); `UIScrollEdgeElementContainerInteraction`.
 
 frame 0.416/0.75 after 0.05 s; pulse up 0.292/0.5 to min(1.2, 1 + 16/len)
 after 0.065 s; height back 0.416/0.584 +0.113; width 0.416/0.5 +0.142;
-appearance scale 0.2 + blur 10. Births on the neighbour's facing edge
-where one exists; a survivor next to a newborn waits 0.1 s. Same transition
-drives nav bar buttons on push/pop. Replay: capsules 1.0 pt rms center,
+appearance scale 0.2 + blur 10. Births on the facing edge of a neighbour
+OF THE SAME SIDE (segment, below); a survivor next to a newborn of its side
+waits 0.1 s. Same transition drives nav bar buttons on push/pop (with the
+navigation timing below). Replay: capsules 1.0 pt rms center,
 1.6 width, 0.8 height. Groups without id are keyed by place from the bar's
 EDGE (device morphs the outermost trailing capsule into the outermost one);
 the back button morphs out of the leading capsule.
+
+## Spec - per-segment transitions [device, 2026-10-05, scene navseg]
+
+Owner report: morph fused the leading group into the trailing one on a
+push / pop (a back button pushed onto a page without leading items was
+born on the trailing capsule's facing edge and flew across the bar).
+UIKit never does: each side of a bar changes only with itself.
+
+- Leading groups change only into leading groups, trailing into trailing
+  (by place from the edge, as before). No capsule, element or glass ever
+  crosses the bar; the title is not glass and rides its page (exit shift
+  -0.3 W on a push, +1 W on a pop, unchanged).
+- A side that had no group (root page -> pushed page's back button; 0 -> 2
+  trailing groups; a toolbar side filling) shows its groups IN PLACE: the
+  group container (glass + items) stands at its final rect, scaled per axis
+  by `pulseScaleFor(len)` = min(1.2, 1 + 16/len) (44 -> 52.8, 73.7 ->
+  88.4, 103.7 x 44 -> 119.9 x 52.8), opacity 0, content blur 10, and
+  settles to 1 / 1 / 0 on ONE progress p: the transition spring 0.416 /
+  0.75 (free fits 0.394 - 0.410 / 0.75 - 0.77 over 16 groups, scale,
+  opacity and blur identical). No 0.2 birth, no travel.
+- A side left without groups (back button on a pop to the root, trailing
+  group 1 -> 0, a toolbar side emptying) swells and fades IN PLACE: the
+  same progress back to 0 (scale -> pulseScaleFor, opacity -> 0, blur
+  -> 10).
+- Such groups live in a SECOND SwiftUI SDF layer during the transition
+  (`host` 1 in the fixture; a group leaving while another appears may stay
+  in the first); at ~0.83 s UIKit folds every element back into one
+  layer. morph: `MorphBarCapsuleFrame.apart`, drawn in a glass container
+  of its own over the bar's (never fused with it), joined back when the
+  progress rests.
+- Delays from the call: navigation push / pop 0.058 s for in-place groups
+  (0.050 - 0.063, 8 groups), 0.062 s for the frames of the capsules that
+  morph (replay optimum 0.060 - 0.062; the toolbar's 0.05 leaves 0.45 pt
+  center / 1.6 pt width rms) = `MorphBarTransitionSpec.navigation`.
+  `setToolbarItems` filling / emptying a side: 0.020 - 0.044 s, replay
+  optimum 0.026 - 0.030 -> `segmentDelay` 0.030 in `.standard`.
+- Interactive pop (edge swipe): nothing in the bar moves while the finger
+  drags (the back capsule has no counterpart; it does not drift or fade);
+  on a commit the back group leaves in place 0.027 s after the lift's
+  time stamp (one capture), on a cancel nothing happens.
+- Replays (test/bar_segment_test.dart): nav push / pop capsules 0.21 pt
+  rms center, 0.84 width, 0.58 height; in-place group scale 0.004, opacity
+  0.021 rms; toolbar sides 0.0 / 0.13 / 0.13 pt, scale 0.020, opacity 0.099
+  (one delay cannot follow the device's 24 ms call-to-start spread).
+  Regression: test/navigation_segments_test.dart (no glass layer ever
+  fuses a leading capsule with a trailing one, the back button never
+  crosses the middle - push, back tap, edge swipe).
 
 ## Spec - container spacing [layout, device + sim]
 
@@ -122,14 +170,30 @@ action".
 
 ## Fixtures
 
-Device `ios27-device/bars/`: toolbar-swap, push-pop, scroll-edge.json,
+Device `ios27-device/bars/`: navseg-push-pop, navseg-toolbar, navseg-edge
+(per-segment transitions; rows `B` cls SDFElement with `bar` nav / tool and
+`host` 0 / 1 = which SwiftUI SDF layer, cls group = the in-place group
+container: sx, sy, a, blur; `evt` push / pop with from / to page,
+setToolbarItems with set; touches in navseg-edge), toolbar-swap, push-pop,
+scroll-edge.json,
 title-drag-{collapse,partial20..45}, title-fling, item-hold,
 pop-edge-{commit,cancel,slow25/30/35,flick-v400/v450,flickback,flickback3,
 drift-*}, tuning.txt. Simulator `ios27/bars/`.
 
 ## Recapture
 
-Scene `nav` (Bars.swift): `PROBE_EDGE`, `PROBE_AUTO=scroll|toolbar|push|
+Scene `navseg` (Bars.swift, `NavSegPages`): five pages (0 Root large title,
+no leading, [plus]; 1 Alpha back + [share]; 2 no title, Cancel instead of
+back, [heart share]; 3 Gamma back only; 4 Delta large title, back, [Done]
+[heart]); `PROBE_SEQ` (default push x4, pop x4; `tbA/tbB/tbC` set the root
+toolbar; `none` for touches), `PROBE_GAP`. Launched with devicectl
+(`-e '{"PROBE_SCENE":"navseg","PROBE_REC":...}'`, terminate the app before
+pulling Documents - an open file pulls empty); touches:
+BarsUITests.testNavSeg (tap pushes, edge swipes, back taps - the probe
+crashed in CASDFGradientEffect dealloc on the first back tap on page 4,
+a QuartzCore over-release under BarsRecorder; the auto run covers pops).
+Raw: recordings/device-navseg-20261005 (films navseg-auto.mov,
+navseg-touch.mov). Scene `nav` (Bars.swift): `PROBE_EDGE`, `PROBE_AUTO=scroll|toolbar|push|
 pushpop|all`, `PROBE_LARGE=0`, `PROBE_ROWS`, `PROBE_DARK`. Device:
 `PROBE_PLAN=bars` (BarsUITests.testBars). Scenes `snbars` (SDF sampler,
 `PROBE_SPLIT`) and `snback` (`PROBE_STACK`), SheetNavUITests.testSNBack.
@@ -144,6 +208,19 @@ toolbar.dart (`MorphToolbar`), navigation_bar.dart (`MorphNavigationBar`,
 scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 
 ## Not reproduced / open
+
+- Births and deaths WITHIN a side on a push (device push-pop.jsonl, list ->
+  detail: the inner trailing group is born at the surviving trailing
+  capsule's OLD center at 0.2 of THAT capsule's size and dies into its new
+  center the same way) do not match the toolbar's facing-edge law morph
+  uses (that replay leaves ~10 pt center rms); a split law fitted to it
+  broke the toolbar replays (3.8 pt). Needs a capture that separates the
+  two (navseg covers only sides that fill or empty).
+- The edge-swipe commit's bar transition starts 0.027 s after the lift's
+  time stamp on the device; morph starts it from the stack's setLayout at
+  the commit with the navigation delays (not replayed).
+- The stack's toolbar on a push uses the toolbar timing (`.standard`);
+  a toolbar changing with a push is not measured.
 
 - Large title's tall-bar inset bookkeeping (ours scrolls as content).
 - Toolbar drift during an edge swipe (not measured).
@@ -215,6 +292,15 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
   The open back menu follows entry changes (a renamed screen below).
 - Reduced motion (not recorded on UIKit yet): pages fade in place on the
   push spring instead of sliding.
+- SEGMENTS: `morphLayoutBarGroups` tags every capsule with its side
+  (`MorphBarCapsuleLayout.segment`); `MorphBarMotion` keys capsules by (id,
+  segment), finds birth / death neighbours inside the segment only and
+  turns a side that fills or empties into in-place groups
+  (`MorphBarCapsuleFrame.apart`, opacity, per-axis swell; their items ride
+  the group's scale, opacity and blur). MorphBarItems draws apart capsules
+  through a second `buildLayer` placed under the content, so they never
+  fuse with the bar's container; the default painter keys its content so
+  a changing surface count never remounts the items.
 - PRESENTATIONS ABOVE THE BARS: UIKit shows menus, context menus, alerts
   and sheets presented from a page above the navigation bar and toolbar.
   The stack installs a `MorphPresentationBoundary` around itself; every

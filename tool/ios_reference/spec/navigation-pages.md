@@ -39,6 +39,13 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
   (from rest, on 0.45/0.81 and 0.33/0.98), else returns on 0.278/0.927.
   Replay: 5 transitions + 10 drags, outcomes exact.
 
+## Spec - the bars during a push / pop
+
+Each side of the navigation bar (and of the toolbar) changes only with
+itself: a group with a counterpart on its side morphs, a side that had no
+group shows its groups in place, a side left empty lets them swell and fade
+in place - see bars.md "Per-segment transitions" (scene navseg).
+
 ## Fixtures
 
 Device `ios27-device/bars/push-pop.jsonl`, `pop-edge-*.jsonl`;
