@@ -24,6 +24,9 @@ class MorphSpringState {
   double _y0;
   double _v0 = 0;
   double _target;
+  double _memoT = double.nan;
+  double _memoY = 0;
+  double _memoV = 0;
 
   /// The value the spring is heading to.
   double get target => _target;
@@ -33,6 +36,7 @@ class MorphSpringState {
   void retarget(double t, double target, {MorphSpring? spring}) {
     final (y, v) = _state(t);
     if (spring != null) _spring = spring;
+    _memoT = double.nan;
     _origin = t;
     _y0 = y;
     _v0 = v;
@@ -41,6 +45,7 @@ class MorphSpringState {
 
   /// Puts the spring at rest on [value] at time [t].
   void snap(double t, double value) {
+    _memoT = double.nan;
     _origin = t;
     _y0 = value;
     _v0 = 0;
@@ -56,6 +61,7 @@ class MorphSpringState {
   /// Sets the spring's value and velocity at time [t] without moving the
   /// target.
   void setState(double t, double value, double velocity) {
+    _memoT = double.nan;
     _origin = t;
     _y0 = value;
     _v0 = velocity;
@@ -69,6 +75,15 @@ class MorphSpringState {
   }
 
   (double, double) _state(double t) {
+    if (t == _memoT) return (_memoY, _memoV);
+    final (y, v) = _evaluate(t);
+    _memoT = t;
+    _memoY = y;
+    _memoV = v;
+    return (y, v);
+  }
+
+  (double, double) _evaluate(double t) {
     final dt = t - _origin;
     if (dt <= 0) return (_y0, _v0);
     final k = _spring.stiffness;
