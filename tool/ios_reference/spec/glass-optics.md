@@ -80,7 +80,7 @@ glass.dart (seam: `MorphGlass`, `MorphGlassPainter` buildSurface / buildFill
 `MorphGlassSurface`, `MorphGlassKind`, `MorphGlassOptics`), glass_outline.dart
 (`MorphGlassOutline`), glass_renderer.dart (`MorphGlassRenderer`,
 `liftedOptics`, `MorphGlassTier`, `MorphGlassMaterial`), glass_tier.dart
-(`MorphAdaptiveGlass`, `MorphGlassTierPolicy`), glass_liquid*.dart,
+(`MorphAdaptiveGlass`, `MorphGlassDeviceClass`), glass_liquid*.dart,
 lib/src/glass/renderer (vendored whynotmake-it renderer, VENDORED + NOTICE).
 Tests: glass_renderer_test, lifted_lens_look_test.
 

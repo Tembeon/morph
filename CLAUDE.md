@@ -242,11 +242,14 @@ Cross-cutting policy:
   whynotmake-it, Apache-2.0, VENDORED lists local patches; owner decision
   2026-10-03 - the old no-shader rule is cancelled). Public entry
   `MorphGlassRenderer` with `MorphGlassTier` flat / frosted / liquid;
-  `MorphAdaptiveGlass` picks the tier (explicit tier wins, else the pure
-  `MorphGlassTierGovernor` over FrameTimings - its numbers are
-  engineering defaults, not measurements; it steps between
-  `MorphGlassTierPolicy.tiers`, flat + liquid by default, because frosted
-  measured MORE raster than liquid on the device's control scenes).
+  `MorphAdaptiveGlass` picks the tier ONCE per session, never at runtime
+  (owner decision 2026-10-05: no tier switching from frame timings - the
+  old governor flapped flat/liquid on the Pixel 6a): explicit tier wins,
+  else `MorphAdaptiveGlass.tierFor(deviceClass, best)` - liquid on
+  Vulkan/Metal, the single `MorphAdaptiveGlass.cheapTier` (flat today;
+  fake glass may replace it) on the GLES fallback and Apple GPUs before
+  the A13, probed from Flutter GPU (glass_device_native.dart) once the
+  liquid capability resolved.
 - OUTLINE IS TRUTH: the package computes every shape once and fuses
   (skin merge law, the menu's blurred SDF) into a `MorphGlassOutline`;
   the renderer only SHADES the outline it is given and never fuses on its

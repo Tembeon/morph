@@ -153,23 +153,50 @@ measurements.
 
 ## Adaptive policy (`MorphAdaptiveGlass`, glass_tier.dart)
 
-Installs the renderer and picks the tier: an explicit `tier` wins, else the
-pure `MorphGlassTierGovernor` over FrameTimings (`MorphGlassTierPolicy`):
-windows of 30 frames vs 1 / refresh rate; >= 25 percent of a window over
-budget steps down at once; a window whose p90 is under 0.6 budget steps up
-after 5 s quiet, doubling per repeated failure of that tier up to 80 s,
-NEVER while a pointer is down. Engineering defaults, not measurements.
-A step goes to the next tier of `MorphGlassTierPolicy.tiers` (the
-ceiling is always one of them); the default is flat + liquid, so a
-device that cannot hold liquid steps to FLAT, not frosted (2026-10-05):
-frosted's raster p95 is higher than liquid's on four of the six audit
-scenes (controls 3.65 vs 2.88, sheet 3.92 vs 3.21, segmented 2.29 vs
-2.00, home scroll 2.51 vs 2.14; tab bar 2.71 vs 2.74) and on the menu,
-the one scene where its raster is lower (2.25 vs 2.92), its build p95
-is higher (3.77 vs 2.16), so a step to frosted would raise the cost the
-governor judges (max of build and raster). Without Flutter GPU the
-ceiling is frosted and the ladder is flat + frosted. Pure, pinned in
-test/glass_renderer_test.dart ('the adaptive tier').
+Installs the renderer at ONE tier for the session (owner decision
+2026-10-05: the glass never switches tier while the app runs). An
+explicit `tier` wins; else `MorphAdaptiveGlass.tierFor(deviceClass,
+best)`, a pure function, decides once the liquid capability resolves
+(`MorphGlassRenderer.precache` before `runApp` makes that the first
+frame; without it the first frames draw the frosted fallback):
+
+- `best` below liquid (no Flutter GPU, the web, a renderer pinned lower)
+  -> `best`.
+- `MorphGlassDeviceClass.capable` (Vulkan / Metal, Apple A13+) and
+  `unknown` -> liquid.
+- `gles` (Flutter GPU `doesSupportFramebufferRenderMipmap` false - only
+  the GLES backend lacks it) and `appleBeforeA13` (iOS and
+  `supportsTextureCompression(astcHdr)` false - Metal reports HDR ASTC
+  from GPU family Apple 6 = A13 on) -> `MorphAdaptiveGlass.cheapTier`,
+  ONE constant, flat today (fake glass may replace it).
+
+Why flat and not frosted as the cheap tier: Pixel 6a forced to GLES
+(pixel6a-gles, 60 Hz, medians of 5 runs, frames over the 16.7 ms budget
+per scene home / segmented / tab bar / controls / menu / sheet): liquid
+11 / 11 / 82 / 64 / 69 / 47, frosted 23 / 17 / 96 / 132 / 59 / 56, flat
+6 / 0 / 2 / 0 / 20 / 0; on Vulkan liquid is 1 / 0 / 13 / 13 / 22 / 5.
+Frosted blurs every glass surface and costs MORE than liquid on GLES and
+on four of six scenes on the iPhone 16 Pro (controls 3.65 vs 2.88,
+sheet 3.92 vs 3.21, segmented 2.29 vs 2.00, home scroll 2.51 vs 2.14
+raster p95 ms). The pre-A13 branch is unmeasured (no such device).
+
+The probe (glass_device_native.dart) reads `gpu.gpuContext` only after
+the liquid capability is true (reading it earlier blocks the UI thread
+on Android). `supportsTextureFormat` is useless as a probe (true for
+every uncompressed format). Removed with this decision: the frame-timing
+governor (`MorphGlassTierGovernor`, `MorphGlassTierPolicy`,
+`onTierChanged`); on the Pixel 6a (Vulkan, auto) it flipped flat /
+liquid six times in one audit (pixel6a-base, pixel6a-head
+`tier_changes`) on the menu's bursts, which miss the budget on flat too
+(10 frames). Pinned in test/glass_renderer_test.dart ('the adaptive
+tier'). Device check
+(pixel6a-devclass, 2026-10-05, GALLERY_GLASS=auto, one run): Vulkan ->
+`capable`, liquid for the whole audit; the same APK forced to GLES
+(manifest `ImpellerBackend=opengles`) -> `gles`, flat from the first
+glass frame. The measured cadence (10th percentile of vsync-start
+intervals) read 16.66 / 16.64 ms, matching the 60 Hz the display
+reports, so the Pixel gives no evidence against `MorphClock`'s
+refresh-rate-based sub-clock rate; it stays as is.
 
 ## Liquid tier layering (the former gallery painter, optics unchanged)
 
@@ -449,6 +476,61 @@ Build / raster p95 ms, base -> after the channel:
   flat grows as expected - some liquid buttons probably stop animating
   at 32 layers on the device (no shots were taken in that window); look
   before trusting the N=32 wave column.
+
+## First use: pipeline warm-up (2026-10-05, glass_warm_up.dart)
+
+`MorphGlassRenderer.precache()` (morphPrecacheLiquidGlass) draws every
+pipeline the glass will need before the first glass frame, offscreen:
+
+- Liquid, inside the capability load (liquid reports available only after
+  it): two 8 x 8 geometry renders through the real
+  `FlutterGpuGeometryRenderer.render` - shapes + full material map, then
+  field + tint-only map - which fetch all four Flutter GPU pipelines
+  (geometry, field, material gradient, tint gradient; RGBA8, one sample,
+  the real descriptors). Flutter GPU creates a pipeline at its first draw
+  and waits for it on the UI thread (engine lib/gpu/render_pass.cc).
+  Then one `OffsetLayer.toImage` scene at the view's pixel ratio: a
+  backdrop picture (even-odd cutout clip, mask-blurred rounded rect and
+  superellipse in a bounded saveLayer: the glass shadows), and per final
+  shader (plain, material, tint, samplers bound to the warm-up mattes) a
+  ClipRectLayer > BackdropFilterLayer with the shader alone and composed
+  over a mirror blur at sigma 1 / 2 / 8 / 14 (each downsample class), plus
+  the bare blurs; one row without and one sharing a BackdropKey. A
+  snapshot renders through the same canvas into an MSAA + stencil target
+  like the screen, so the filter subpasses get the variants the screen
+  uses; every clip is non-empty (a clipped-away filter is skipped).
+- Frosted (Impeller only, `isShaderFilterSupported`; a no-op under Skia,
+  the web and flutter_tester): the same two-row scene with blurs at each
+  frost inside an antialiased ClipRRect and an outline ClipPath, with the
+  tint fill, highlight gradient and rim stroke over them.
+- Failures are swallowed (debug print): the real frame then pays what it
+  paid before; the capability and its reason are unchanged. A scene that
+  takes over 2 s stops being awaited.
+
+Pixel 6a (Vulkan, 60 Hz, profile, 3e81b9e, one launch each,
+pixel6a-warmup-cold = pm clear, -warm = second launch; first_use
+home-scroll = runApp to the first timed run, worst UI / raster ms):
+
+| build | precache ms | cold UI / raster | warm UI / raster | am start TotalTime ms |
+|-------|------------:|-----------------:|-----------------:|----------------------:|
+| liquid before | 3.8 / 4.3 | 3.9 / 16.0 | 121.8 / 126.2 | 595 / 468 |
+| liquid after | 374 / 387 | 5.5 / 12.9 | 4.8 / 11.8 | 624 / 576 |
+| frosted before | 2.9 / 3.0 | 2.3 / 61.6 | 5.3 / 40.6 | 362 / 413 |
+| frosted after | 506 / 382 | 7.1 / 11.3 | 4.0 / 14.8 | 748 / 585 |
+
+The first-use worst of one launch scatters (liquid before cold read 3.9
+here, 110.7 at 905517f); the traces are the proof (pixel6a-warmup-trace,
+cold, TraceSystrace builds): before, the first app frame's PAINT took
+267 ms of the UI thread and its raster created pipelines in a saveLayer;
+after, precache holds the UI thread 303 ms (the Flutter GPU pipeline
+waits) and the raster thread 110 + 52 ms (the two snapshots), and from
+the first app frame on no UI slice reaches 8 ms and raster frames run
+6-7 ms in the startup window. Later pipeline creations (17 s, 37 s:
+menu and sheet chrome, 1-3 ms each) are unchanged. The trade: about
+0.4 s more behind the splash, the first glass frame pays nothing. The
+Vulkan pipeline disk cache does not remove the cost (warm before: 122 ms
+UI). iOS is not measured in this pass; Metal compiles runtime
+stages at load, the Flutter GPU and MSAA variants the same way as here.
 
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
