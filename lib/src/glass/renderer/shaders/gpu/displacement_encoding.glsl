@@ -94,17 +94,15 @@ vec2 decodeSurfaceNormal(vec4 encoded) {
     return normalize(d);
 }
 
-// Reconstruct optical displacement from the magnitude and the normal
-// decodeSurfaceNormal returned for the same texel.
-vec2 decodeDisplacement(
-    vec4 encoded,
-    vec2 surfaceNormal,
-    float maxDisplacement
-) {
+// Reconstruct optical displacement from the shared normal and magnitude.
+// The normal is decoded here again rather than passed in: on the Mali-G78
+// (Vulkan and GLES) passing the caller's normal in moved some displacements
+// by an ulp, 1 channel step on a few rim pixels.
+vec2 decodeDisplacement(vec4 encoded, float maxDisplacement) {
     vec2 codes = floor(encoded.ga * 255.0 + 0.5);
     float magnitudeCode = mod(codes.x, 16.0) * 256.0 + codes.y;
     float magnitude = -(magnitudeCode / 4095.0) * maxDisplacement;
-    return surfaceNormal * magnitude;
+    return decodeSurfaceNormal(encoded) * magnitude;
 }
 
 // Decode signed inward edge distance from B. Positive values are inside the

@@ -714,10 +714,10 @@ void main() {
     }
     #endif
 
-    vec2 surfaceNormal = decodeSurfaceNormal(geometryData);
     vec2 displacement =
-        decodeDisplacement(geometryData, surfaceNormal, maxDisplacement) *
+        decodeDisplacement(geometryData, maxDisplacement) *
         appearanceVisibility;
+    vec2 surfaceNormal = decodeSurfaceNormal(geometryData);
     float contourDirectionWeight = contourDirection(surfaceNormal);
 
     vec2 invUSize = 1.0 / uSize;
