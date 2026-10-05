@@ -61,6 +61,19 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   plain-union silhouette takes its field from the box distances it
   already has and container fusion keeps its grids across calls (union
   0.73 -> 0.49 ms, old-generation GC during menu opens 10 -> 2).
+- Performance, same pixels: a moving glass surface rebuilds no widget.
+  Every control hands its surfaces to the painter through a glass host
+  that builds its tree once per structure and pushes each later frame
+  straight into the render objects (positions, clips, filters, paints,
+  the liquid renderer's shapes and layers); a custom `MorphGlassPainter`
+  is still asked every frame. Component builds per animated frame drop
+  (liquid segmented control 11.6 -> 1.3, tab bar 23.7 -> 2.6, 16 glass
+  buttons pressed in a wave 199 -> 31); on an iPhone 16 Pro the liquid
+  build p50 of a moving control falls 0.05 - 0.1 ms, since the liquid
+  tier's UI time is mostly the renderer's paint. New harnesses: the
+  glass density audit (N glass buttons over a scrolling page), the
+  per-phase UI timings on the device, and a frame-by-frame pixel
+  comparison of the channel against a rebuild of every glass layer.
 - Glass that floats over the page reads what lies under it (a fix): the
   navigation bar and toolbar share a backdrop group of their own per
   screen, the search tab bar and a sheet's content get their own, and bar
