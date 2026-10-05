@@ -545,6 +545,87 @@ Build / raster p95 ms, base -> after the channel:
   at 32 layers on the device (no shots were taken in that window); look
   before trusting the N=32 wave column.
 
+## Glass container (2026-10-05, glass_container.dart)
+
+`MorphGlassContainer` is UIKit's `UIGlassContainerEffect` for glass that
+does not fuse (fable alternative B, astra step 1): one `LiquidGlassLayer`
+at the container's place in paint order, and every glass host below it
+whose glass would look the same registers its shapes with that layer
+instead of building a layer of its own - one geometry pass and one
+backdrop filter for the lot. Opt-in; the package groups nothing on its
+own (the BACKDROP GROUPS decision stands). Contract: everything inside the
+container is content above its glass.
+
+- A host joins (`MorphGlassContainerLink.admit`, decided in the host's
+  structure, so a change rebuilds its tree once) only when: the painter is
+  `MorphGlassRenderer` itself on liquid or fake; the control declares
+  itself still (`MorphGlassLayer.still`, the glass button's
+  `MorphGlassButtonMotion.isSettled`: no lift, lean, glow or scale in
+  motion); its glass is separate body glass (no fused body, no floating
+  lens, no bar or menu kind) with `lift` 0, the container's resting-button
+  settings and the tint of the glass already in the container (one
+  appearance: no material map, the same final shader); nothing between
+  the container and the host fades, clips, filters or scrolls
+  (`morphGlassContainerReaches`: Opacity, AnimatedOpacity, Offstage,
+  Visibility, any Clip*, ShaderMask, BackdropFilter, ImageFiltered,
+  ColorFiltered, a viewport, a follower layer - so a MorphTag source,
+  whose Opacity hides it during a flight, never joins); and the layer
+  holds at most 32 shapes. A pressed button leaves (its rim lights up, a
+  per-layer setting) and comes back when it has settled.
+- Why "still": a member that moves relative to the container makes the
+  container re-encode its matte every frame, while its own layer would
+  ride the transform. Taking members back at lift 0 (the scale spring's
+  undershoot clamps lift to 0 while the button still moves) cost
+  COMPOSITING 0.66 -> 1.22 ms per frame on the n1 wave; with `still` the
+  phases match the status quo (BUILD / LAYOUT / PAINT / COMPOSITING n4
+  wave 0.65/1.16/3.70/1.08 -> 0.69/1.27/3.58/1.11 ms).
+- MAX_SHAPES 16 -> 32 in the renderer (VENDORED). Shots of the status quo
+  with and without the change are identical (Pixel 6a, 0 difference).
+- Device (Pixel 6a, Vulkan, 60 Hz, profile, glass_density_test.dart with
+  `DENSITY_CONTAINER`, 5 runs each, median of the runs' percentiles over
+  active frames; two interleaved pairs status quo / container after
+  cooling to 36 C, GPU clock median 251 MHz in all four,
+  perf/2026-10-05-pixel6a-container-final; raster p50 / p95 ms, the
+  pairs' mean):
+
+| scene | status quo | container | raster p50 | over budget |
+|---|---|---|---|---|
+| n1 rest | 5.96 / 7.42 | 5.77 / 7.32 | -3% | 0 -> 0 |
+| n4 rest | 7.83 / 9.43 | 6.42 / 7.91 | -18% (-1.41 ms), p95 -16% | 0 -> 0 |
+| n8 rest | 9.05 / 11.63 | 7.08 / 8.64 | -22% (-1.97 ms), p95 -26% | 0 -> 0 |
+| n16 rest | 10.43 / 13.53 | 8.07 / 9.96 | -23%, p95 -26% | 1 -> 0 |
+| n32 rest | 11.48 / 14.85 | 9.17 / 11.62 | -20%, p95 -22% | 6 -> 0 |
+| n1 / n4 / n8 wave | 7.06 / 8.85 / 10.67 | 6.86 / 8.94 / 10.75 | within pair spread | 0 -> 0 |
+
+  Build p50 at rest drops too (n32 2.27 -> 1.54 ms: one layer to poll).
+  Waves: build and raster p50 / p95 move by -0.29 to +0.25 ms on N = 1 -
+  8, inside the spread between the two status quo runs (up to 0.45 ms);
+  all pressed buttons are out of the container, so the wave is the status
+  quo by construction. Scene layers: N resting buttons are 1 backdrop
+  filter instead of N; 96 stress buttons are 65 (32 joined).
+- Gallery (glass_audit_test.dart, the controls page's button row, the
+  glass page's buttons and the sheets page's button column in containers,
+  one run of 5 each, perf/2026-10-05-pixel6a-container gamain / gaexp2):
+  raster p50 controls 9.46 -> 9.15, sheet 11.13 -> 10.47 (-3 and -6
+  percent: five resting buttons are a small part of those frames), every
+  other scene within its run noise.
+- Pixels: on whole device pixels the container draws what each button's
+  own layer draws (n8-aligned, max channel 1). Off the pixel grid a
+  standalone layer's matte is rendered in its own fractionally offset
+  space and resampled, the container's in exact positions: resting shots
+  differ by up to 45 - 53 on rim pixels (0.01 - 0.36 percent of the
+  screen over 15, the more buttons the more), invisible side by side; the
+  audit's controls-resting and sheet-medium shots 76 / 70 at 0.11 / 0.23
+  percent, only inside the buttons. flutter_test: hidden, half faded and
+  clipped buttons in a container render exactly as without it
+  (test/glass_container_test.dart).
+- Kill criteria (task gates): raster >= 15 percent and >= 0.3 ms on two
+  intended workloads - resting button clusters over moving content, n4
+  and n8 - met; no regression > 0.2 ms on N = 1 - 8 beyond run noise; the
+  gallery scenes gain less than 15 percent. Fable K2 (>= 30 percent GPU
+  time at N = 16) is not met by raster (-23 / -26 percent); GPU time was
+  not recorded.
+
 ## First use: pipeline warm-up (2026-10-05, glass_warm_up.dart)
 
 `MorphGlassRenderer.precache()` (morphPrecacheLiquidGlass), after the

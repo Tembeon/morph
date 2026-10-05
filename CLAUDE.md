@@ -238,6 +238,17 @@ Cross-cutting policy:
   glass-renderer.md). The scroll edge effect keeps its
   own copy: in the bars' group the capsules would miss its fade
   (measured, glass-renderer.md).
+- GLASS CONTAINER (glass_container.dart, 2026-10-05): the opt-in
+  `MorphGlassContainer` shades the resting glass of the controls below it
+  in ONE layer (one geometry pass, one filter); everything inside it is
+  content above its glass. A host joins only when its glass would look
+  the same: still (`MorphGlassLayer.still`; only the glass button tells),
+  separate resting body glass with the container's settings and one tint,
+  no fade / clip / filter / viewport between (a MorphTag source never
+  joins), at most 32 shapes (MAX_SHAPES). The decision is part of the
+  host's structure. A moving member would re-encode the container's matte
+  every frame - that is why only still glass joins. Numbers and gates in
+  glass-renderer.md "Glass container".
 - ONE renderer in the package (lib/src/glass/renderer, vendored
   whynotmake-it, Apache-2.0, VENDORED lists local patches; owner decision
   2026-10-03 - the old no-shader rule is cancelled). Public entry
