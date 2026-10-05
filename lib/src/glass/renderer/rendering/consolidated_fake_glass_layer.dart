@@ -336,54 +336,100 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
   ) {
     final shader = surfaceShader;
     final outline = _outline;
-    if (outline != null) {
-      canvas.save();
-      canvas.translate(offset.dx, offset.dy);
-      canvas.clipPath(outline);
-      _paintNeck(canvas, outline, geometries);
-      canvas.translate(-offset.dx, -offset.dy);
+    if (outline == null) {
+      if (shader != null) {
+        _paintShapeSurfaces(canvas, offset, shader, geometries);
+      }
+      return;
     }
+    final shapes = _bodyShapes(geometries);
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    canvas.clipPath(outline);
+    _paintNeck(canvas, outline, shapes);
     if (shader != null) {
-      _paintShapeSurfaces(canvas, offset, shader, geometries);
+      for (final (i, shape) in shapes.indexed) {
+        canvas.save();
+        for (final (j, other) in shapes.indexed) {
+          if (_covers(other, j, shape, i)) {
+            canvas.clipPath(_outside(other.path, outline.getBounds()));
+          }
+        }
+        canvas.transform(shape.toLayer.storage);
+        paintFakeGlassSurface(
+          canvas,
+          shader: shader,
+          size: shape.shape.renderObject.size,
+          shape: shape.shape.shape,
+          settings: settings,
+          appearance: shape.shape.appearance,
+          devicePixelRatio: devicePixelRatio,
+        );
+        canvas.restore();
+      }
     }
-    if (outline != null) canvas.restore();
+    canvas.restore();
+  }
+
+  /// The shapes of the fused body, each with its outline in the layer's
+  /// coordinates and its area.
+  List<_BodyShape> _bodyShapes(
+    List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
+  ) => [
+    for (final (_, geometry, geometryToLayer) in geometries)
+      for (final shape in geometry.shapes)
+        () {
+          final toLayer = shape.shapeToGeometry == null
+              ? geometryToLayer
+              : geometryToLayer.multiplied(shape.shapeToGeometry!);
+          final local = Offset.zero & shape.renderObject.size;
+          final bounds = MatrixUtils.transformRect(toLayer, local);
+          return _BodyShape(
+            shape: shape,
+            toLayer: toLayer,
+            path: shape.shape.getOuterPath(local).transform(toLayer.storage),
+            area: bounds.width * bounds.height,
+          );
+        }(),
+  ];
+
+  /// Whether [other] (index [j]) wins the part of the body it shares with
+  /// [shape] (index [i]): the larger shape, the later one on a tie. Its
+  /// face and rim are drawn there, so a shape lying under another - a
+  /// menu's button under the menu - draws no rim inside the body.
+  static bool _covers(_BodyShape other, int j, _BodyShape shape, int i) =>
+      j != i &&
+      (other.area > shape.area || (other.area == shape.area && j > i));
+
+  static Path _outside(Path path, Rect bounds) {
+    final outside = Path();
+    outside.fillType = PathFillType.evenOdd;
+    outside.addRect(bounds.inflate(bounds.longestSide + 64));
+    outside.addPath(path, Offset.zero);
+    return outside;
   }
 
   /// Tints the part of the fused body no shape covers - the neck - like
   /// the first shape.
   ///
-  /// The neck is the outline with the shapes cut out by the even-odd rule,
-  /// under the outline clip: no path boolean, which Skia's path ops refuse
-  /// for an outline that runs along its shapes' edges.
-  void _paintNeck(
-    Canvas canvas,
-    Path outline,
-    List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
-  ) {
-    final neck = Path();
-    neck.fillType = PathFillType.evenOdd;
-    neck.addPath(outline, Offset.zero);
-    LiquidGlassAppearance? first;
-    for (final (_, geometry, geometryToLayer) in geometries) {
-      for (final shape in geometry.shapes) {
-        first ??= shape.appearance;
-        final toLayer = shape.shapeToGeometry == null
-            ? geometryToLayer
-            : geometryToLayer.multiplied(shape.shapeToGeometry!);
-        neck.addPath(
-          shape.shape.getOuterPath(Offset.zero & shape.renderObject.size),
-          Offset.zero,
-          matrix4: toLayer.storage,
-        );
-      }
-    }
-    if (first == null) return;
+  /// The neck is the outline clipped to the outside of every shape in
+  /// turn: no path boolean, which Skia's path ops refuse for an outline
+  /// that runs along its shapes' edges, and no even-odd union, which would
+  /// tint the overlap of two shapes a second time.
+  void _paintNeck(Canvas canvas, Path outline, List<_BodyShape> shapes) {
+    if (shapes.isEmpty) return;
+    final first = shapes.first.shape.appearance;
     final tint = first.colorModel.approximateSurfaceTint(first.tint);
     final paint = Paint();
     paint.color = tint.withValues(
       alpha: tint.a * first.visibility.clamp(0.0, 1.0),
     );
-    canvas.drawPath(neck, paint);
+    canvas.save();
+    for (final shape in shapes) {
+      canvas.clipPath(_outside(shape.path, outline.getBounds()));
+    }
+    canvas.drawPath(outline, paint);
+    canvas.restore();
   }
 
   void _paintShapeSurfaces(
@@ -560,6 +606,21 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     _releaseLayers();
     super.dispose();
   }
+}
+
+/// One shape of a fused body in the layer's coordinates.
+class _BodyShape {
+  const _BodyShape({
+    required this.shape,
+    required this.toLayer,
+    required this.path,
+    required this.area,
+  });
+
+  final ShapeGeometry shape;
+  final Matrix4 toLayer;
+  final Path path;
+  final double area;
 }
 
 /// Retained layer handles for one fading shape's clipped backdrop pass.
