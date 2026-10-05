@@ -1206,6 +1206,31 @@ The backdrop-group fix (2026-10-05-bdg-base -> -bdg-fix, same table's
 scenes) left every liquid percentile within noise; frosted menu raster
 p95 2.40 -> 2.79, frosted sheet 3.93 -> 2.63 (glass-renderer.md).
 
+The 2026-10-05 batch checked on the same iPhone (perf/2026-10-05-apple-
+verify, glass-renderer.md "Apple check"): HEAD f3b812d against 268a8c2
+(fake against ae40643, its first commit), 5 runs, median, ms, base -> head:
+
+| tier / scene      | build p50    | build p95    | raster p50   | raster p95   |
+|-------------------|--------------|--------------|--------------|--------------|
+| liquid segmented  | 1.31 -> 1.12 | 1.56 -> 1.32 | 1.54 -> 1.35 | 1.85 -> 1.68 |
+| liquid tab bar    | 0.93 -> 0.96 | 1.63 -> 1.56 | 2.04 -> 2.06 | 2.72 -> 2.82 |
+| liquid controls   | 1.42 -> 1.12 | 2.74 -> 2.56 | 2.06 -> 1.55 | 2.68 -> 2.25 |
+| liquid menu       | 1.41 -> 1.25 | 2.28 -> 2.12 | 1.96 -> 2.03 | 3.10 -> 3.05 |
+| liquid home scroll| 0.64 -> 0.70 | 1.33 -> 1.39 | 1.56 -> 1.51 | 2.43 -> 2.32 |
+| liquid sheet      | 0.95 -> 0.72 | 1.46 -> 1.33 | 2.30 -> 2.10 | 3.00 -> 2.76 |
+| fake controls     | 1.04 -> 0.87 | 2.20 -> 2.20 | 2.52 -> 1.95 | 3.64 -> 3.93 |
+| fake menu         | 0.88 -> 0.83 | 1.80 -> 1.68 | 2.23 -> 2.18 | 3.69 -> 3.37 |
+| fake sheet        | 0.73 -> 0.60 | 1.36 -> 1.23 | 2.55 -> 2.36 | 3.26 -> 3.08 |
+| flat menu         | 0.81 -> 0.84 | 3.75 -> 2.57 | 0.63 -> 0.68 | 2.45 -> 1.76 |
+
+Every other cell moves by <= 0.1. Over budget 0 on liquid and flat; fake
+controls and menu 0 - 4 frames per run on both sides (launch spread, ABBA
+checked). Shots: identical within run-to-run noise. Density (liquid, raster
+p50): 16 resting buttons 2.50 ms, 1.19 in a MorphGlassContainer; 32: 3.53
+-> 1.46; the 96-button stress phase draws every render (geometry_failures
+0). macOS: 20 gallery launches and 72 / 200 liquid buttons without a hang;
+the autodemo is clean.
+
 FIRST USE (pipeline warm-up in `MorphGlassRenderer.precache`,
 glass-renderer.md "First use"): the first glass frame's worst UI / raster
 ms before -> after, cold install. Pixel 6a (Vulkan): liquid 102 / 74 ->

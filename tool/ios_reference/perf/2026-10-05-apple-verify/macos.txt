@@ -1,0 +1,61 @@
+macOS release (M3, Flutter 3.47.2), hang probe = example/integration_test/launch_probe.dart (committed with this run; PROBE_BUTTONS=N, the HANG_N of the logs): precache, runApp, first FrameTiming; hang = no first frame in 15 s
+== gallery20
+run1.log: PROBE precache 26 ms PROBE first_frame 44 ms PROBE done frames 2 errors 0  exceptions=0
+run10.log: PROBE precache 31 ms PROBE first_frame 51 ms PROBE done frames 2 errors 0  exceptions=0
+run11.log: PROBE precache 33 ms PROBE first_frame 52 ms PROBE done frames 2 errors 0  exceptions=0
+run12.log: PROBE precache 33 ms PROBE first_frame 53 ms PROBE done frames 2 errors 0  exceptions=0
+run13.log: PROBE precache 30 ms PROBE first_frame 49 ms PROBE done frames 2 errors 0  exceptions=0
+run14.log: PROBE precache 28 ms PROBE first_frame 45 ms PROBE done frames 2 errors 0  exceptions=0
+run15.log: PROBE precache 34 ms PROBE first_frame 53 ms PROBE done frames 2 errors 0  exceptions=0
+run16.log: PROBE precache 35 ms PROBE first_frame 53 ms PROBE done frames 2 errors 0  exceptions=0
+run17.log: PROBE precache 26 ms PROBE first_frame 45 ms PROBE done frames 2 errors 0  exceptions=0
+run18.log: PROBE precache 31 ms PROBE first_frame 50 ms PROBE done frames 2 errors 0  exceptions=0
+run19.log: PROBE precache 26 ms PROBE first_frame 44 ms PROBE done frames 2 errors 0  exceptions=0
+run2.log: PROBE precache 49 ms PROBE first_frame 70 ms PROBE done frames 2 errors 0  exceptions=0
+run20.log: PROBE precache 28 ms PROBE first_frame 46 ms PROBE done frames 2 errors 0  exceptions=0
+run3.log: PROBE precache 28 ms PROBE first_frame 48 ms PROBE done frames 2 errors 0  exceptions=0
+run4.log: PROBE precache 32 ms PROBE first_frame 52 ms PROBE done frames 2 errors 0  exceptions=0
+run5.log: PROBE precache 28 ms PROBE first_frame 46 ms PROBE done frames 2 errors 0  exceptions=0
+run6.log: PROBE precache 32 ms PROBE first_frame 51 ms PROBE done frames 2 errors 0  exceptions=0
+run7.log: PROBE precache 29 ms PROBE first_frame 46 ms PROBE done frames 2 errors 0  exceptions=0
+run8.log: PROBE precache 27 ms PROBE first_frame 47 ms PROBE done frames 2 errors 0  exceptions=0
+run9.log: PROBE precache 30 ms PROBE first_frame 49 ms PROBE done frames 2 errors 0  exceptions=0
+== dens72
+run1.log: PROBE precache 34 ms PROBE first_frame 63 ms PROBE done frames 2 errors 0  exceptions=0
+run2.log: PROBE precache 27 ms PROBE first_frame 53 ms PROBE done frames 2 errors 0  exceptions=0
+run3.log: PROBE precache 32 ms PROBE first_frame 59 ms PROBE done frames 2 errors 0  exceptions=0
+run4.log: PROBE precache 33 ms PROBE first_frame 60 ms PROBE done frames 2 errors 0  exceptions=0
+run5.log: PROBE precache 28 ms PROBE first_frame 52 ms PROBE done frames 2 errors 0  exceptions=0
+== dens200
+run1.log: PROBE precache 31 ms PROBE first_frame 72 ms PROBE done frames 2 errors 0  exceptions=0
+run2.log: PROBE precache 29 ms PROBE first_frame 76 ms PROBE done frames 2 errors 0  exceptions=0
+run3.log: PROBE precache 34 ms PROBE first_frame 79 ms PROBE done frames 2 errors 0  exceptions=0
+run4.log: PROBE precache 33 ms PROBE first_frame 78 ms PROBE done frames 2 errors 0  exceptions=0
+run5.log: PROBE precache 30 ms PROBE first_frame 75 ms PROBE done frames 2 errors 0  exceptions=0
+== pre72
+run1.log: PROBE precache 86 ms PROBE first_frame 112 ms PROBE done frames 2 errors 1  exceptions=1
+run2.log: PROBE precache 30 ms PROBE first_frame 56 ms PROBE done frames 2 errors 1  exceptions=1
+== pre200
+run1.log: PROBE precache 76 ms PROBE first_frame 123 ms PROBE done frames 2 errors 1  exceptions=1
+run2.log: PROBE precache 50 ms PROBE first_frame 94 ms PROBE done frames 2 errors 1  exceptions=1
+== pre48
+run1.log: PROBE precache 41 ms PROBE first_frame 65 ms PROBE done frames 2 errors 1  exceptions=1
+== pregal
+run1.log: PROBE precache 34 ms PROBE first_frame 53 ms PROBE done frames 2 errors 0  exceptions=0
+run2.log: PROBE precache 33 ms PROBE first_frame 52 ms PROBE done frames 2 errors 0  exceptions=0
+run3.log: PROBE precache 32 ms PROBE first_frame 50 ms PROBE done frames 2 errors 0  exceptions=0
+== nobound72
+run1.log: PROBE precache 42 ms  exceptions=0
+== nobound200
+run1.log: PROBE precache 611 ms  exceptions=0
+== pre72 exception
+PROBE EXCEPTION Bad state: Flutter GPU geometry render failed: Exception: Failed to write range (offset=79616, length=2352) to HostBuffer-managed DeviceBuffer (frame=1, buffer=0, offset=81968).
+== nobound200 main thread (sample 5 s)
+4299 InternalFlutterGpu_CommandBuffer_Initialize  (in FlutterMacOS) + 80  [0x102cef270]  command_buffer.cc:202
+4299 -[AGXG15XFamilyCommandQueue commandBuffer]  (in AGXMetalG15X_M1) + 44  [0x22aadda60]
+4299 _dispatch_semaphore_wait_slow  (in libdispatch.dylib) + 132  [0x198ba6b28]
+4299 semaphore_wait_trap  (in libsystem_kernel.dylib) + 8  [0x198d20b9c]
+== autodemo
+12
+flutter: AUTODEMO done
+EXCEPTION lines: 0

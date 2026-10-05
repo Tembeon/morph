@@ -913,6 +913,75 @@ after).
   lenses frost unless "Frost controls" is on; an OpacityLayer between
   resting glass broke BackdropGroup sharing (menu-button.md).
 
+## Apple check of the 2026-10-05 batch (iPhone 16 Pro, macOS)
+
+The day's performance changes landed while the iPhone and the Mac GUI were
+out of reach; this is their check on Metal. Results in
+perf/2026-10-05-apple-verify (macos.txt, the audit and density JSONs, the
+shotdiff texts).
+
+- iPhone audit, HEAD f3b812d against 268a8c2 (the commit before 9678703;
+  it covers menu fusion, field uploads, retained layers, the Vulkan decode,
+  the uniform arena, MAX_SHAPES, the shader audit batch and the gallery's
+  glass containers). The fake tier has no 268a8c2 build (it came with
+  ae40643), so its base is ae40643, which misses only 9678703. audit.sh,
+  5 runs, median, build p50 / p95, raster p50 / p95 ms, base -> head:
+  liquid segmented 1.31/1.56/1.54/1.85 -> 1.12/1.32/1.35/1.68, tab bar
+  0.93/1.63/2.04/2.72 -> 0.96/1.56/2.06/2.82, controls 1.42/2.74/2.06/2.68
+  -> 1.12/2.56/1.55/2.25, menu 1.41/2.28/1.96/3.10 -> 1.25/2.12/2.03/3.05,
+  home scroll 0.64/1.33/1.56/2.43 -> 0.70/1.39/1.51/2.32, sheet
+  0.95/1.46/2.30/3.00 -> 0.72/1.33/2.10/2.76; flat menu build p95 3.75 ->
+  2.57, raster p95 2.45 -> 1.76 (menu fusion), every other flat cell within
+  +-0.05; fake controls raster p50 2.52 -> 1.95 (the gallery's button
+  container), sheet build p50 0.73 -> 0.60, the rest within +-0.1. A second
+  head launch (head2) moves every liquid percentile by <= 0.2 ms except menu
+  raster p95 (+0.5). Frames over budget: 0 everywhere on liquid and flat.
+  Fake controls and menu have 0 - 4 over-budget frames per run on BOTH
+  sides (worst raster 7 - 10 ms); an ABBA of the two scenes alone (ae40643,
+  7864ada, HEAD, two launches each, cm-*) counts 12 / 3 / 16 over ten runs
+  on controls with the head's second launch at the base's level: launch
+  spread, not a regression.
+- Shots (shotdiff, base -> head): every resting and held shot within the
+  run-to-run noise (liquid <= 110 max channel at <= 0.008 percent over 15,
+  fake <= 80 at <= 0.004, flat <= 54 at <= 0.003; the flat segmented shot's
+  53 is the gallery's description text, which changed). The timed tall-menu
+  shots move as before: the menu one device pixel down as a whole, text
+  included, 212 - 223 at 0.15 - 1.1 percent - and 223 at 0.43 percent
+  between two launches of the SAME head app. So menu fusion (9678703),
+  field uploads (07bb27d), retained layers (e2f9c4e), the decode fix
+  (754bdbd), the uniform arena (b3754f9) and MAX_SHAPES (7864ada) draw the
+  same pixels on Metal; the controls page's container row is pixel-equal at
+  this phone's 3x (max channel 10 on controls-resting).
+- Density, liquid, 1 run of 5 each, build p50 / raster p50 ms, 268a8c2 ->
+  head -> head with DENSITY_CONTAINER: n4 rest 0.51/1.17 -> 0.46/1.15 ->
+  0.41/0.90, n8 rest 0.67/1.66 -> 0.59/1.71 -> 0.47/0.99, n16 rest
+  1.17/2.37 -> 0.80/2.50 -> 0.56/1.19, n32 rest 1.10/3.16 -> 0.84/3.53 ->
+  0.99/1.46; n1 and every wave base -> head within +-0.1 on build and
+  raster p50, and with the container the waves move by -0.55 to +0.05
+  (n32 wave raster p95 2.53 -> 3.61 with the container, one run, the
+  column "Glass density" already flags). Fake with the container: n8 rest raster
+  p50 1.89 -> 1.15, n16 2.60 -> 1.45, n32 3.75 -> 2.27. On Metal the
+  container halves resting raster from 16 buttons on (-52 / -59 percent at
+  n16 / n32 liquid, against -23 / -20 on the Pixel). Over budget 0 in every
+  cell. Stress phase (96 buttons pressed at once): geometry_failures 0 on
+  liquid and fake, with and without the container; layers 96 filters, 65
+  in the container (32 joined) - Metal's 256-byte alignment, where
+  HostBuffer failed at the 32nd render, no longer drops a render.
+- liquid_exterior_test on the iPhone (profile, through a wrapper that
+  writes the binding's results to the app's tmp, since `flutter test -d`
+  needs Rosetta's iproxy on this Mac): success.
+- macOS (release, M3, launch_probe.dart): 20 gallery launches, first frame
+  in 44 - 70 ms, no hang; 72 and 200 liquid buttons, 5 launches each, first
+  frame 52 - 79 ms, no hang, no exception. Counter-check: the same HEAD with
+  `MorphDeferredSubmissions.defaultLimit` raised to 100000 hangs at 72 and
+  at 200 buttons, main thread in `InternalFlutterGpu_CommandBuffer_Initialize`
+  -> `-[AGXG15XFamilyCommandQueue commandBuffer]` -> `semaphore_wait_trap`
+  (the stack of "Startup and queue bounds"). At 07bb27d (before both fixes)
+  72 and 200 buttons do NOT hang: HostBuffer's write failure ends the
+  frame's renders near 31, so too few passes are held; once the arena let
+  every render through, the 16-pass bound is what keeps the launch alive.
+  The autodemo (release): AUTODEMO done, 0 EXCEPTION.
+
 ## UI thread on a weak device (Pixel 6a, 2026-10-05)
 
 Method: Dart CPU samples from the profile build over the VM service,
