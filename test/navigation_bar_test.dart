@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/bar_items.dart' show MorphBackChevronPainter;
@@ -313,6 +314,7 @@ void main() {
       const Duration(seconds: 10),
     );
     expect(find.text('Inbox'), findsNothing);
+    expect(_blurLayers(), 0);
     await tester.pumpWidget(bar(visible: true));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
@@ -327,7 +329,7 @@ void main() {
       EnginePhase.sendSemanticsUpdate,
       const Duration(seconds: 10),
     );
-    expect(find.byType(BackdropFilter), findsOneWidget);
+    expect(_blurLayers(), 1);
   });
 
   testWidgets('a screen arriving with its inline title hidden never shows '
@@ -497,3 +499,26 @@ void main() {
 }
 
 void _noop() {}
+
+/// The backdrop filter layers on screen.
+int _blurLayers() {
+  var count = 0;
+  void walk(Layer layer) {
+    if (layer is BackdropFilterLayer) count++;
+    if (layer is ContainerLayer) {
+      for (
+        var child = layer.firstChild;
+        child != null;
+        child = child.nextSibling
+      ) {
+        walk(child);
+      }
+    }
+  }
+
+  for (final view in RendererBinding.instance.renderViews) {
+    final root = view.debugLayer;
+    if (root != null) walk(root);
+  }
+  return count;
+}

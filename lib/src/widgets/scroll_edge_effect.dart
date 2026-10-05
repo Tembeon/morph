@@ -1,6 +1,8 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// How a [MorphScrollEdgeEffect] separates the content under a bar.
@@ -159,8 +161,25 @@ class MorphScrollEdgeEffect extends StatelessWidget {
     this.style = MorphScrollEdgeEffectStyle.soft,
     this.active = true,
     this.theme,
+    double opacity = 1,
     super.key,
-  });
+  }) : _opacity = null,
+       _fixedOpacity = opacity,
+       _repaint = null;
+
+  /// Creates the effect whose presence [opacity] reports at paint time,
+  /// repainted whenever [repaint] notifies: a fade that rebuilds nothing.
+  @internal
+  const MorphScrollEdgeEffect.driven({
+    required this.extent,
+    required double Function() this._opacity,
+    required Listenable this._repaint,
+    this.edge = AxisDirection.up,
+    this.style = MorphScrollEdgeEffectStyle.soft,
+    this.active = true,
+    this.theme,
+    super.key,
+  }) : _fixedOpacity = 1;
 
   /// The distance from the screen edge to the bar's far edge.
   final double extent;
@@ -178,6 +197,18 @@ class MorphScrollEdgeEffect extends StatelessWidget {
   /// The look; null resolves it from the theme.
   final MorphScrollEdgeEffectThemeData? theme;
 
+  final double Function()? _opacity;
+  final double _fixedOpacity;
+  final Listenable? _repaint;
+
+  /// How present the effect is, 0 to 1, as UIKit fades the effect's view.
+  ///
+  /// The blurred backdrop fades with the rest of the effect. Fade the
+  /// effect here rather than through an [Opacity] above it: inside an
+  /// opacity layer the blur reads an empty backdrop, so the content under
+  /// the bar would show sharp until the fade ends.
+  double get opacity => (_opacity?.call() ?? _fixedOpacity).clamp(0.0, 1.0);
+
   /// The height of the band the effect covers for [style] under a bar
   /// reaching [extent].
   static double bandExtent(
@@ -191,65 +222,286 @@ class MorphScrollEdgeEffect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!active || extent <= 0) return const SizedBox.shrink();
+    if (!active || extent <= 0 || (_opacity == null && _fixedOpacity <= 0)) {
+      return const SizedBox.shrink();
+    }
     final look = MorphScrollEdgeEffectThemeData.resolve(context, theme);
     final band = bandExtent(style, extent, look);
     final top = edge == AxisDirection.up;
-    final ui.ImageFilter filter = switch (style) {
-      MorphScrollEdgeEffectStyle.soft => ui.ImageFilter.blur(
-        sigmaX: look.softBlurRadius,
-        sigmaY: look.softBlurRadius,
-      ),
-      MorphScrollEdgeEffectStyle.hard => ui.ImageFilter.compose(
-        outer: ui.ColorFilter.matrix(look.hardColorMatrix),
-        inner: ui.ImageFilter.blur(
-          sigmaX: look.hardBlurRadius,
-          sigmaY: look.hardBlurRadius,
-        ),
-      ),
-    };
-    final fade = look.backgroundColor.withValues(
-      alpha: look.backgroundColor.a * look.fadeOpacity,
-    );
-    final Decoration overlay = switch (style) {
-      MorphScrollEdgeEffectStyle.soft => BoxDecoration(
-        gradient: LinearGradient(
-          begin: top ? Alignment.topCenter : Alignment.bottomCenter,
-          end: top ? Alignment.bottomCenter : Alignment.topCenter,
-          colors: [fade, fade, fade.withValues(alpha: 0)],
-          stops: [0, look.softFadeStart, 1],
-        ),
-      ),
-      MorphScrollEdgeEffectStyle.hard => BoxDecoration(color: fade),
-    };
-    return IgnorePointer(
-      child: Align(
-        alignment: top ? Alignment.topCenter : Alignment.bottomCenter,
-        child: SizedBox(
-          height: band,
-          width: double.infinity,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              ClipRect(
-                child: BackdropFilter(
-                  filter: filter,
-                  child: DecoratedBox(decoration: overlay),
-                ),
-              ),
-              if (style == MorphScrollEdgeEffectStyle.hard)
-                Align(
-                  alignment: top ? Alignment.bottomCenter : Alignment.topCenter,
-                  child: Container(
-                    height:
-                        1 / (MediaQuery.maybeDevicePixelRatioOf(context) ?? 1),
-                    color: look.separatorColor,
-                  ),
-                ),
-            ],
+    return RepaintBoundary(
+      child: IgnorePointer(
+        child: Align(
+          alignment: top ? Alignment.topCenter : Alignment.bottomCenter,
+          child: SizedBox(
+            height: band,
+            width: double.infinity,
+            child: _EdgePaint(
+              style: style,
+              top: top,
+              look: look,
+              opacity: _opacity ?? () => _fixedOpacity,
+              repaint: _repaint,
+              hairline: 1 / (MediaQuery.maybeDevicePixelRatioOf(context) ?? 1),
+            ),
           ),
         ),
       ),
     );
+  }
+}
+
+class _EdgePaint extends LeafRenderObjectWidget {
+  const _EdgePaint({
+    required this.style,
+    required this.top,
+    required this.look,
+    required this.opacity,
+    required this.repaint,
+    required this.hairline,
+  });
+
+  final MorphScrollEdgeEffectStyle style;
+  final bool top;
+  final MorphScrollEdgeEffectThemeData look;
+  final double Function() opacity;
+  final Listenable? repaint;
+  final double hairline;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) => _RenderEdge(
+    style: style,
+    top: top,
+    look: look,
+    opacity: opacity,
+    repaint: repaint,
+    hairline: hairline,
+  );
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderEdge renderObject) {
+    renderObject
+      ..style = style
+      ..top = top
+      ..look = look
+      ..opacity = opacity
+      ..repaint = repaint
+      ..hairline = hairline;
+  }
+}
+
+/// The blur, the fade toward the background and the hairline of the
+/// effect, faded as one by the alpha of the blurred backdrop and of the
+/// paint over it, with no opacity layer above the blur.
+class _RenderEdge extends RenderBox {
+  _RenderEdge({
+    required this._style,
+    required this._top,
+    required this._look,
+    required this._opacity,
+    required this._repaint,
+    required this._hairline,
+  });
+
+  final LayerHandle<ClipRectLayer> _clip = LayerHandle<ClipRectLayer>();
+  final LayerHandle<BackdropFilterLayer> _blur =
+      LayerHandle<BackdropFilterLayer>();
+  final LayerHandle<OpacityLayer> _fade = LayerHandle<OpacityLayer>();
+
+  MorphScrollEdgeEffectStyle _style;
+  MorphScrollEdgeEffectStyle get style => _style;
+  set style(MorphScrollEdgeEffectStyle value) {
+    if (value == _style) return;
+    _style = value;
+    markNeedsPaint();
+  }
+
+  bool _top;
+  bool get top => _top;
+  set top(bool value) {
+    if (value == _top) return;
+    _top = value;
+    markNeedsPaint();
+  }
+
+  MorphScrollEdgeEffectThemeData _look;
+  MorphScrollEdgeEffectThemeData get look => _look;
+  set look(MorphScrollEdgeEffectThemeData value) {
+    if (value == _look) return;
+    _look = value;
+    markNeedsPaint();
+  }
+
+  double Function() _opacity;
+  double Function() get opacity => _opacity;
+  set opacity(double Function() value) {
+    _opacity = value;
+    _tick();
+  }
+
+  Listenable? _repaint;
+  Listenable? get repaint => _repaint;
+  set repaint(Listenable? value) {
+    if (value == _repaint) return;
+    if (attached) _repaint?.removeListener(_tick);
+    _repaint = value;
+    if (attached) _repaint?.addListener(_tick);
+    markNeedsPaint();
+  }
+
+  double _hairline;
+  double get hairline => _hairline;
+  set hairline(double value) {
+    if (value == _hairline) return;
+    _hairline = value;
+    markNeedsPaint();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _repaint?.addListener(_tick);
+  }
+
+  double? _painted;
+
+  void _tick() {
+    final presence = _opacity().clamp(0.0, 1.0);
+    final painted = _painted;
+    if (presence == painted) return;
+    final blur = _blur.layer;
+    final fade = _fade.layer;
+    if (painted == null ||
+        painted <= 0.001 ||
+        presence <= 0.001 ||
+        blur == null ||
+        fade == null) {
+      markNeedsPaint();
+      return;
+    }
+    _painted = presence;
+    blur.filter = _filter(presence);
+    fade.alpha = Color.getAlphaFromOpacity(presence);
+    markNeedsCompositedLayerUpdate();
+  }
+
+  @override
+  void detach() {
+    _repaint?.removeListener(_tick);
+    super.detach();
+  }
+
+  @override
+  void dispose() {
+    _clip.layer = null;
+    _blur.layer = null;
+    _fade.layer = null;
+    super.dispose();
+  }
+
+  @override
+  bool get sizedByParent => true;
+
+  @override
+  bool get alwaysNeedsCompositing => true;
+
+  @override
+  bool get isRepaintBoundary => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) => constraints.biggest;
+
+  @override
+  bool hitTestSelf(Offset position) => false;
+
+  ui.ImageFilter _filter(double presence) {
+    final ui.ImageFilter blur = switch (_style) {
+      MorphScrollEdgeEffectStyle.soft => ui.ImageFilter.blur(
+        sigmaX: _look.softBlurRadius,
+        sigmaY: _look.softBlurRadius,
+      ),
+      MorphScrollEdgeEffectStyle.hard => ui.ImageFilter.compose(
+        outer: ui.ColorFilter.matrix(_look.hardColorMatrix),
+        inner: ui.ImageFilter.blur(
+          sigmaX: _look.hardBlurRadius,
+          sigmaY: _look.hardBlurRadius,
+        ),
+      ),
+    };
+    if (presence == 1) return blur;
+    return ui.ImageFilter.compose(
+      outer: ui.ColorFilter.matrix(<double>[
+        1, 0, 0, 0, 0, //
+        0, 1, 0, 0, 0, //
+        0, 0, 1, 0, 0, //
+        0, 0, 0, presence, 0,
+      ]),
+      inner: blur,
+    );
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final presence = _opacity().clamp(0.0, 1.0);
+    _painted = presence;
+    if (presence <= 0.001) {
+      _clip.layer = null;
+      _blur.layer = null;
+      _fade.layer = null;
+      return;
+    }
+    final box = offset & size;
+    _clip.layer = context.pushClipRect(true, offset, Offset.zero & size, (
+      PaintingContext context,
+      Offset offset,
+    ) {
+      final blur = _blur.layer ??= BackdropFilterLayer();
+      blur.filter = _filter(presence);
+      context.pushLayer(blur, (PaintingContext context, Offset offset) {
+        _fade.layer = context.pushOpacity(
+          offset,
+          Color.getAlphaFromOpacity(presence),
+          (PaintingContext context, Offset _) =>
+              _paintFade(context.canvas, box),
+          oldLayer: _fade.layer,
+        );
+      }, offset);
+    }, oldLayer: _clip.layer);
+  }
+
+  void _paintFade(Canvas canvas, Rect box) {
+    final fade = _look.backgroundColor.withValues(
+      alpha: _look.backgroundColor.a * _look.fadeOpacity,
+    );
+    final paint = Paint();
+    switch (_style) {
+      case MorphScrollEdgeEffectStyle.soft:
+        paint.shader = LinearGradient(
+          begin: _top ? Alignment.topCenter : Alignment.bottomCenter,
+          end: _top ? Alignment.bottomCenter : Alignment.topCenter,
+          colors: [fade, fade, fade.withValues(alpha: 0)],
+          stops: [0, _look.softFadeStart, 1],
+        ).createShader(box);
+        canvas.drawRect(box, paint);
+      case MorphScrollEdgeEffectStyle.hard:
+        paint.color = fade;
+        canvas.drawRect(box, paint);
+        final separator = _look.separatorColor;
+        canvas.drawRect(
+          _top
+              ? Rect.fromLTRB(
+                  box.left,
+                  box.bottom - _hairline,
+                  box.right,
+                  box.bottom,
+                )
+              : Rect.fromLTRB(
+                  box.left,
+                  box.top,
+                  box.right,
+                  box.top + _hairline,
+                ),
+          Paint()..color = separator,
+        );
+    }
   }
 }

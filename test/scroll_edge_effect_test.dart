@@ -99,7 +99,14 @@ void main() {
             ),
           ),
         );
-        final band = tester.getSize(find.byType(BackdropFilter));
+        final band = tester.getSize(
+          find
+              .descendant(
+                of: find.byType(MorphScrollEdgeEffect),
+                matching: find.byType(SizedBox),
+              )
+              .first,
+        );
         expect(
           band.height,
           style == MorphScrollEdgeEffectStyle.soft ? 156 : 116,

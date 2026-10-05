@@ -392,18 +392,12 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
               widget.edgeEffectTheme,
             ),
           ),
-          child: ListenableBuilder(
-            listenable: frames,
-            builder: (BuildContext context, Widget? child) {
-              final opacity = _motion.edgeOpacity;
-              if (opacity <= 0.001) return const SizedBox.shrink();
-              return Opacity(opacity: opacity, child: child);
-            },
-            child: MorphScrollEdgeEffect(
-              extent: extent,
-              style: edge,
-              theme: widget.edgeEffectTheme,
-            ),
+          child: MorphScrollEdgeEffect.driven(
+            extent: extent,
+            style: edge,
+            theme: widget.edgeEffectTheme,
+            opacity: () => _motion.edgeOpacity,
+            repaint: frames,
           ),
         ),
         bar,
