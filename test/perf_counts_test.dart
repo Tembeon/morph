@@ -333,6 +333,70 @@ class _ControlledState extends State<_Controlled> {
       widget.builder(_value, (Object? value) => setState(() => _value = value));
 }
 
+/// A page of controls under one parent state, as an app holds them: a
+/// change of any control rebuilds all of them.
+class _ControlsPage extends StatefulWidget {
+  const _ControlsPage();
+
+  @override
+  State<_ControlsPage> createState() => _ControlsPageState();
+}
+
+class _ControlsPageState extends State<_ControlsPage> {
+  bool _on = false;
+  double _wide = 0.5;
+  double _ticked = 0.25;
+  double _steps = 2;
+  int _segment = 0;
+  int _taps = 0;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Text('${(_wide * 100).round()} $_taps'),
+      SizedBox(
+        width: 340,
+        child: MorphSlider(
+          value: _wide,
+          onChanged: (double v) => setState(() => _wide = v),
+        ),
+      ),
+      SizedBox(
+        width: 200,
+        child: MorphSlider(
+          value: _ticked,
+          ticks: 5,
+          onChanged: (double v) => setState(() => _ticked = v),
+        ),
+      ),
+      MorphSwitch(value: _on, onChanged: (bool v) => setState(() => _on = v)),
+      MorphStepper(
+        value: _steps,
+        max: 10,
+        onChanged: (double v) => setState(() => _steps = v),
+      ),
+      SizedBox(
+        width: 300,
+        child: MorphSegmentedControl(
+          segments: const ['A', 'B', 'C'],
+          selected: _segment,
+          onChanged: (int v) => setState(() => _segment = v),
+        ),
+      ),
+      for (var i = 0; i < 3; i++)
+        SizedBox(
+          width: 100,
+          height: 44,
+          child: MorphGlassButton(
+            onPressed: () => setState(() => _taps++),
+            child: const SizedBox.square(dimension: 20),
+          ),
+        ),
+    ],
+  );
+}
+
 const _menuEntries = <MorphMenuEntry>[
   MorphMenuItem(title: 'Copy'),
   MorphMenuItem(title: 'Share'),
@@ -456,6 +520,13 @@ final _scenes = <_Scene>[
       ], step: const Duration(milliseconds: 16));
     },
   ),
+  _Scene('controls-page', () => _page(const _ControlsPage()), (tester) async {
+    final w = tester.getRect(find.byType(MorphSlider).first);
+    await _drag(tester, w.center, [
+      ..._line(w.center, w.centerLeft, 30),
+      ..._line(w.centerLeft, w.center, 30),
+    ], step: const Duration(milliseconds: 16));
+  }),
   _Scene('menu-card', () => _page(const MorphMenuButton(items: _menuEntries)), (
     tester,
   ) async {

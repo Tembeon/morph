@@ -805,7 +805,14 @@ Hard-won rules still enforced in the core:
   `MorphSpringState` closed-form springs, `MorphTimeline` for every
   delay, `MorphSubClock` for every per-frame filter. A widget host owns
   only the MorphClock, the Listener, focus/semantics and painting. A
-  control's ticker sleeps when its motion settles.
+  control's ticker sleeps when its motion settles. `MorphControlHost`
+  hosts build in `buildControl`; `build` hands back the last result
+  while `buildsLike(oldWidget)` holds (every field the build reads equal,
+  callbacks only by nullness - so a build must never capture a widget
+  callback, it calls `widget.onX` at event time), no dependency changed,
+  no setState ran and `buildInputs` (state the build reads, e.g. the
+  segmented control's selection) is unchanged: a parent rebuilding a page
+  of unchanged controls rebuilds none of them.
 - Example spring recipes ride motor's `SingleMotionController`
   (retarget with velocity carry-over built in); hand-rolling remains
   ONLY where a controller cannot go - the chips wave evaluates sims at

@@ -496,7 +496,7 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildControl(BuildContext context) {
     final style = MorphPageControlStyle.resolve(context, widget.style);
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     final count = _count;

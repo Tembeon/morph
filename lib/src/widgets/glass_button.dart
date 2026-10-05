@@ -442,7 +442,18 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  bool buildsLike(MorphGlassButton oldWidget) =>
+      identical(oldWidget.child, widget.child) &&
+      (oldWidget.onPressed == null) == (widget.onPressed == null) &&
+      oldWidget.tint == widget.tint &&
+      oldWidget.padding == widget.padding &&
+      oldWidget.minSize == widget.minSize &&
+      oldWidget.style == widget.style;
+
+  void _press() => widget.onPressed?.call();
+
+  @override
+  Widget buildControl(BuildContext context) {
     final style = MorphGlassButtonStyle.resolve(context, widget.style);
     final brightness = morphBrightnessOf(context);
     final glass = MorphGlass.maybeOf(context);
@@ -484,11 +495,11 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
       child: MorphControlFocus(
         enabled: _enabled,
         onHighlight: highlightControlFocus,
-        onActivate: widget.onPressed,
+        onActivate: _enabled ? _press : null,
         child: Semantics(
           button: true,
           enabled: _enabled,
-          onTap: widget.onPressed,
+          onTap: _enabled ? _press : null,
           child: MorphTouchListener(
             enabled: _enabled,
             behavior: HitTestBehavior.opaque,

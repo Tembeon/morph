@@ -233,7 +233,16 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  bool buildsLike(MorphSwitch oldWidget) =>
+      oldWidget.value == widget.value &&
+      (oldWidget.onChanged == null) == (widget.onChanged == null) &&
+      oldWidget.activeColor == widget.activeColor &&
+      oldWidget.trackColor == widget.trackColor &&
+      oldWidget.style == widget.style &&
+      oldWidget.semanticLabel == widget.semanticLabel;
+
+  @override
+  Widget buildControl(BuildContext context) {
     _style = MorphSwitchStyle.resolve(context, widget.style);
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;

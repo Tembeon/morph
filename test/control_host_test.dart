@@ -69,7 +69,7 @@ class _ProbeState extends MorphControlHost<_Probe> {
   }
 
   @override
-  Widget build(BuildContext context) => MorphControlFocus(
+  Widget buildControl(BuildContext context) => MorphControlFocus(
     enabled: controlEnabled,
     onHighlight: highlightControlFocus,
     onActivate: () => activations++,

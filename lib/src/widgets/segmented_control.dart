@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -329,7 +330,18 @@ class _MorphSegmentedControlState
   bool get controlEnabled => _enabled;
 
   @override
-  Widget build(BuildContext context) {
+  bool buildsLike(MorphSegmentedControl oldWidget) =>
+      listEquals(oldWidget.segments, widget.segments) &&
+      oldWidget.selected == widget.selected &&
+      (oldWidget.onChanged == null) == (widget.onChanged == null) &&
+      oldWidget.sizeByContent == widget.sizeByContent &&
+      oldWidget.style == widget.style;
+
+  @override
+  Object? get buildInputs => _motion?.selected;
+
+  @override
+  Widget buildControl(BuildContext context) {
     _style = MorphSegmentedStyle.resolve(context, widget.style);
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;

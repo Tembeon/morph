@@ -260,7 +260,21 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  bool buildsLike(MorphStepper oldWidget) =>
+      oldWidget.value == widget.value &&
+      oldWidget.min == widget.min &&
+      oldWidget.max == widget.max &&
+      oldWidget.step == widget.step &&
+      (oldWidget.onChanged == null) == (widget.onChanged == null) &&
+      oldWidget.backgroundColor == widget.backgroundColor &&
+      oldWidget.foregroundColor == widget.foregroundColor &&
+      oldWidget.style == widget.style &&
+      oldWidget.decrementLabel == widget.decrementLabel &&
+      oldWidget.incrementLabel == widget.incrementLabel &&
+      oldWidget.semanticValueFormatter == widget.semanticValueFormatter;
+
+  @override
+  Widget buildControl(BuildContext context) {
     final enabled = widget.onChanged != null;
     final style = MorphStepperStyle.resolve(context, widget.style);
     final background = widget.backgroundColor ?? style.backgroundColor;

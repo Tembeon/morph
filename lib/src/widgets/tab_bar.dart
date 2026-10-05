@@ -428,7 +428,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget buildControl(BuildContext context) {
     _style = MorphTabBarStyle.resolve(context, widget.style);
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;

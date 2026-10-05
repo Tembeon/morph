@@ -101,9 +101,62 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   double _eventTime(PointerEvent event) =>
       stampPointerUpdates ? stamp(event) : clock;
 
+  Widget? _built;
+  bool _stale = true;
+  Object? _builtFrom;
+
+  /// Whether the control built from [oldWidget] is the one the current
+  /// widget builds: every field the build reads compares equal, and
+  /// callbacks count only by whether they are set, since the control calls
+  /// the current widget's. False by default: every update builds again.
+  @protected
+  bool buildsLike(T oldWidget) => false;
+
+  /// The state the build reads besides the widget, the dependencies and
+  /// what changes through [setState]; the last build is reused only while
+  /// it compares equal.
+  @protected
+  Object? get buildInputs => null;
+
+  /// Builds the control. [build] hands back the last result while the
+  /// widget builds alike, no dependency changed, [setState] was not called
+  /// and [buildInputs] compare equal: the parent rebuilding the control
+  /// unchanged then costs nothing below it.
+  @protected
+  Widget buildControl(BuildContext context);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _stale = true;
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    _stale = true;
+    super.setState(fn);
+  }
+
+  @override
+  void reassemble() {
+    _stale = true;
+    super.reassemble();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final built = _built;
+    final inputs = buildInputs;
+    if (built != null && !_stale && inputs == _builtFrom) return built;
+    _stale = false;
+    _builtFrom = inputs;
+    return _built = buildControl(context);
+  }
+
   @override
   void didUpdateWidget(T oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!buildsLike(oldWidget)) _stale = true;
     if (!controlEnabled && _pointer != null) {
       releaseControlPointer();
       onControlCancel(clock);
