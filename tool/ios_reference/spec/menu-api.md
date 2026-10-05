@@ -680,3 +680,64 @@ Opening timing, close residual and root rows [device fits + films, 2026-10-05]:
   s: native copy layers are backdrop 171 + key-fill 175 fading with the
   carrier while its CASDFOutputEffect layer 172 stays alpha 1; which of
   them draws the native dark contour is not established.
+
+Run 15: touch stamps and frame-target labels [device film + telemetry, 2026-10-05]:
+- Run lab/out/menu-phone-20261005-15 (45863f8, clean tree: c120e87 touch
+  stamps, de82e39 frame-target labels). Both passes and the gallery
+  restore completed; compare exits 2 (REVIEW): film coverage below 80%
+  on strokes 0, 1, 7 (paired 0.681, 0.707, 0.77; native film 60 Hz with
+  194 gaps over two periods, max 300 ms). The other six windows are
+  0.822 - 0.922; both outside closes 0.822 / 0.853. The open-phase film
+  numbers below are therefore weak; the close numbers are not.
+  (menu-phone-20261005-16 failed: a concurrent uncommitted bar_motion.dart
+  edit broke both Flutter builds; no evidence.)
+- lab_stamp rows (18) confirm the stamps: each touch lands on its own
+  time stamp plus the measured clock offset (35 747.791 s, constant to
+  1 us); delivery latency 10.4 - 17.7 ms, the latest frame stamp 9.6 -
+  16.4 ms after the touch. Down-to-up motion spacing equals the time stamp
+  spacing (125.00 ms) when the ticker runs through the press; when the
+  menu settles between down and up (back-deeper, back, close-submenu,
+  close-root) the up lands 70 - 78 ms after the down instead: time asleep
+  does not count, reactions anchored on the up are unaffected. Flutter
+  touch latency is now 10.5 - 15.7 ms like native (runs 11 / 12: -4.8 -
+  2.5, the old shifted labels). The Flutter root rows first appear 91 /
+  93 ms after release (tapOpenDelay 0.089 + one frame); run 12: 99.9 /
+  83.1 (delivery anchor).
+- Contour-width residual, film, 0 - 0.30 s after release (Flutter -
+  native; runs 11 / 12 recomputed with the same script): More 0.8 (0.4 /
+  0.6), Deeper 1.1 (1.0 / 0.9), back-deeper 0.8 (1.0 / 0.6), back 0.8
+  (1.0 / 0.7), More again 0.4 (0.8 / 0.8) pt RMS; close with More open
+  17.4 RMS, mean -15.0 (10.8 / 7.7); plain root close 7.8, mean -5.4
+  (13.6 / 7.4). Film pairs are 60 Hz with a 25 ms pairing tolerance, so
+  one film frame at peak close speed is ~25 pt: the film close residual
+  is dominated by sampling, not shape.
+- LATE CLOSE, attributed: the telemetry (rows/0, the root list frame,
+  120 Hz on both sides, labels now on one reference) shows the same close
+  curve on both sides, shifted. Native close starts, solved by matching
+  the Flutter close-submenu curve (known start 0.059 after the release
+  time stamp; fit residual 0.1 - 0.8 percent of the travel), runs 10 /
+  11 / 12 / 15: with More open 69.5 / 63.5 / 70.0 / 77.0 ms, plain root
+  66.0 / 72.0 / 62.0 / 52.0 ms: mean 66.5, SD 7.6, range 52 - 77.
+  Ours is 59 by construction. In run 15 the More close lands at the late
+  end (77) and the root close at the early end (52): that spread, not a
+  silhouette or clock error, is the 15-20 pt late-close gap. The glass
+  element fits (glass-close.json, 13 records) give mean 0.0605; the lab's
+  rows mean is 6 ms later. Not changed: the lab has no native glass
+  element track, so a rows-behind-glass lag of that size cannot be told
+  from a later start. Next: add a native CASDFElementLayer track (and its
+  Flutter outline counterpart) to menu-return.json and solve the glass
+  start in the lab directly.
+- Opening, film (weak, coverage < 80%): native 0.138 (first open) /
+  0.0655 (reopen), ours 0.0935 / 0.077 (configured 0.089; estimator
+  noise ~ +-12 ms). Native first opens are later than reopens in every
+  run (0.140 / 0.114 / 0.1155 / 0.138 vs 0.0735 / 0.084 / 0.0745 /
+  0.0655): a first-presentation cost of UIKit, not modelled.
+- Settled More stills, encoded RGB MAE (run 12 in parentheses): submenu
+  left rim 11.005, p95 57.8 (5.078), shadow 2.652 (2.904), face 1.972
+  (1.900), parent rim 10.820 (7.201). The Flutter stills are pixel-identical
+  to run 12; the native rim sits 1 device px further right this run
+  (submenu line at px 29/30 of the profile vs 28/29, parent 29/30 vs ours
+  27/28), so the rim MAE swing is native sub-pixel placement between
+  runs. Face 244 - 246 native vs 240 - 243 ours, and the native 249 -
+  251 inner line on the card's side is still missing on ours (open item
+  above).
