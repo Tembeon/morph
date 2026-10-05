@@ -29,12 +29,19 @@ import 'package:morph_example/gallery/gallery.dart';
 /// whether the liquid tier is available at all (`liquid_available`: false
 /// means every liquid shot is the frosted fallback), and
 /// `--dart-define=AUDIT_OUTLINES_ONLY=true` times only that.
+/// `--dart-define=AUDIT_RUNS=5` repeats every timed gesture five times
+/// (screenshots are taken once, never inside a timed window); the report
+/// keeps each run and the median of the runs' percentiles. Percentiles
+/// are over ACTIVE frames (build or raster above 0.3 ms), so idle frames
+/// pumped while a scene settles do not dilute them.
 /// `--dart-define=AUDIT_LIGHT=true` runs it in light, for the references
 /// in tool/ios_reference/references/light (on the simulator for colors and
 /// layout: `flutter test integration_test/glass_audit_test.dart -d <sim>`,
 /// with `--dart-define=AUDIT_OUT=<absolute host path>`, since the simulator
 /// app and its tmp are removed after the run).
 const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
+
+const int _runs = int.fromEnvironment('AUDIT_RUNS', defaultValue: 1);
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -66,7 +73,7 @@ class _Audit {
   final IntegrationTestWidgetsFlutterBinding binding;
   final WidgetTester tester;
   final List<ui.FrameTiming> timings = [];
-  final Map<String, (int, int)> _scenes = {};
+  final Map<String, List<(int, int)>> _scenes = {};
   final Stopwatch _clock = Stopwatch();
   int _pointer = 300;
 
@@ -81,11 +88,15 @@ class _Audit {
   }
 
   Future<void> measure(String scene, Future<void> Function() body) async {
-    await settle(300);
-    final start = timings.length;
-    await body();
-    await settle(300);
-    _scenes[scene] = (start, timings.length);
+    for (var run = 0; run < _runs; run++) {
+      await settle(300);
+      final start = timings.length;
+      await body();
+      await settle(300);
+      await tester.pump();
+      await settle(100);
+      (_scenes[scene] ??= []).add((start, timings.length));
+    }
   }
 
   Future<void> finger(
@@ -136,10 +147,12 @@ class _Audit {
     await MorphGlassRenderer.precache();
     runApp(const GalleryApp());
     await settle(1500);
+    await _homeScroll();
     await _segmented();
     await _tabBar();
     await _controls();
     await _menu();
+    await _sheet();
     _outlines();
   }
 
@@ -338,12 +351,54 @@ class _Audit {
     timeDilation = 1;
     await settle(1500);
     final button = find.byType(MorphMenuButton).at(1);
+    await tap(tester.getCenter(button));
+    await settle(900);
+    await shot('menu-open');
+    await tap(const Offset(20, 300));
+    await settle(1500);
     await measure('menu', () async {
       for (var i = 0; i < 2; i++) {
         await tap(tester.getCenter(button));
         await settle(900);
-        if (i == 0) await shot('menu-open');
         await tap(const Offset(20, 300));
+        await settle(900);
+      }
+    });
+    await back();
+  }
+
+  Future<void> _homeScroll() async {
+    final list = find.byType(CustomScrollView).last;
+    final center = tester.getCenter(list);
+    await measure('home-scroll', () async {
+      for (var i = 0; i < 2; i++) {
+        await finger(center, line(center, center - const Offset(0, 300), 40));
+        await settle(900);
+        await finger(
+          center - const Offset(0, 200),
+          line(
+            center - const Offset(0, 200),
+            center + const Offset(0, 200),
+            40,
+          ),
+        );
+        await settle(900);
+      }
+    });
+  }
+
+  Future<void> _sheet() async {
+    await open('Sheets');
+    await tap(tester.getCenter(find.text('Medium and large')));
+    await settle(900);
+    await shot('sheet-medium');
+    await tap(const Offset(200, 80));
+    await settle(1200);
+    await measure('sheet', () async {
+      for (var i = 0; i < 2; i++) {
+        await tap(tester.getCenter(find.text('Medium and large')));
+        await settle(900);
+        await tap(const Offset(200, 80));
         await settle(900);
       }
     });
@@ -354,32 +409,66 @@ class _Audit {
     double ms(Duration d) => d.inMicroseconds / 1000;
     double pick(List<double> v, double q) =>
         v[math.min(v.length - 1, (v.length * q).floor())];
+    double median(List<double> v) {
+      final sorted = [...v];
+      sorted.sort();
+      return sorted[sorted.length ~/ 2];
+    }
+
+    Map<String, double>? stats(List<ui.FrameTiming> all) {
+      final frames = [
+        for (final f in all)
+          if (ms(f.buildDuration) > 0.3 || ms(f.rasterDuration) > 0.3) f,
+      ];
+      if (frames.isEmpty) return null;
+      List<double> sorted(double Function(ui.FrameTiming f) of) {
+        final values = [for (final f in frames) of(f)];
+        values.sort();
+        return values;
+      }
+
+      final build = sorted((f) => ms(f.buildDuration));
+      final raster = sorted((f) => ms(f.rasterDuration));
+      final span = sorted((f) => ms(f.totalSpan));
+      final vsync = sorted((f) => ms(f.vsyncOverhead));
+      return {
+        'n': frames.length.toDouble(),
+        'build_p50': pick(build, 0.5),
+        'build_p95': pick(build, 0.95),
+        'build_worst': build.last,
+        'raster_p50': pick(raster, 0.5),
+        'raster_p95': pick(raster, 0.95),
+        'raster_worst': raster.last,
+        'span_p95': pick(span, 0.95),
+        'vsync_p95': pick(vsync, 0.95),
+        'over_8.3ms': [
+          for (final f in frames)
+            if (ms(f.buildDuration) > 8.3 || ms(f.rasterDuration) > 8.3) f,
+        ].length.toDouble(),
+      };
+    }
+
     return {
       'tier': const String.fromEnvironment(
         'GALLERY_GLASS',
         defaultValue: 'auto',
       ),
       'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'runs': _runs,
       'outline_us': _outlineMicros,
-      for (final MapEntry(key: scene, value: (start, end)) in _scenes.entries)
+      for (final MapEntry(key: scene, value: windows) in _scenes.entries)
         scene: () {
-          final frames = timings.sublist(start, end);
-          if (frames.isEmpty) return 'no frames';
-          final build = [for (final f in frames) ms(f.buildDuration)];
-          build.sort();
-          final raster = [for (final f in frames) ms(f.rasterDuration)];
-          raster.sort();
+          final runs = [
+            for (final (start, end) in windows)
+              ?stats(timings.sublist(start, end)),
+          ];
+          if (runs.isEmpty) return 'no frames';
           return {
-            'n': frames.length,
-            'build_p50': pick(build, 0.5),
-            'build_p95': pick(build, 0.95),
-            'raster_p50': pick(raster, 0.5),
-            'raster_p95': pick(raster, 0.95),
-            'raster_worst': raster.last,
-            'over_8.3ms': [
-              for (final f in frames)
-                if (ms(f.buildDuration) > 8.3 || ms(f.rasterDuration) > 8.3) f,
-            ].length,
+            'median': {
+              for (final key in runs.first.keys)
+                key: median([for (final r in runs) r[key]!]),
+            },
+            'runs': runs,
           };
         }(),
     };
