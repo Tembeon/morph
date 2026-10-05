@@ -1,0 +1,9 @@
+liquid True dpr 3.0
+liquid body shared-none max 72 n>12 42735 box (139, 420, 262, 463) | own-none max 0 n>12 0 box None | shared-own max 72 n>12 42735 box (139, 420, 262, 463)
+liquid hero shared-none max 41 n>12 55168 box (131, 416, 270, 467) | own-none max 41 n>12 55167 box (131, 416, 270, 467) | shared-own max 7 n>12 0 box None
+liquid lens shared-none max 0 n>12 0 box None | own-none max 0 n>12 0 box None | shared-own max 0 n>12 0 box None
+liquid alert shared-none max 0 n>12 0 box None | own-none max 60 n>12 41 box (61, 377, 340, 377) | shared-own max 60 n>12 41 box (61, 377, 340, 377)
+frosted body shared-none max 43 n>12 42509 box (139, 420, 262, 463) | own-none max 0 n>12 0 box None | shared-own max 43 n>12 42509 box (139, 420, 262, 463)
+frosted hero shared-none max 27 n>12 21878 box (131, 416, 270, 467) | own-none max 27 n>12 21878 box (131, 416, 270, 467) | shared-own max 0 n>12 0 box None
+frosted lens shared-none max 226 n>12 16658 box (172, 418, 229, 455) | own-none max 0 n>12 0 box None | shared-own max 226 n>12 16658 box (172, 418, 229, 455)
+frosted alert shared-none max 10 n>12 0 box None | own-none max 0 n>12 0 box None | shared-own max 10 n>12 0 box None

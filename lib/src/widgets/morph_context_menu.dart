@@ -9,6 +9,7 @@ import 'package:motor/motor.dart';
 import 'package:morph/foundation.dart';
 import 'package:morph/src/frame.dart';
 import 'package:morph/src/measure.dart';
+import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/menu.dart';
@@ -803,9 +804,13 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     final MorphSatellite? below = widget.below;
     // Built once per menu build; the geometry's ticks move only the
     // slots around them.
-    final Widget? aboveContent = above?.builder(context, flight);
-    final Widget? belowContent = below?.builder(context, flight);
-    final Widget hero = _flightHero();
+    final Widget? aboveContent = above == null
+        ? null
+        : MorphChromeBackdrop(child: above.builder(context, flight));
+    final Widget? belowContent = below == null
+        ? null
+        : MorphChromeBackdrop(child: below.builder(context, flight));
+    final Widget hero = MorphChromeBackdrop(child: _flightHero());
     return ListenableBuilder(
       listenable: geometry,
       builder: (BuildContext context, Widget? _) {

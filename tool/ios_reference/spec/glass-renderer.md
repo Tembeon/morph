@@ -215,6 +215,39 @@ NEVER while a pointer is down. Engineering defaults, not measurements.
   as on liquid), frosted tall menu (the card now blurs the button under
   it); everything else within the run-to-run noise above.
 
+- OVERLAYS AND LENSES (2026-10-05, example/integration_test/
+  backdrop_overlay_test.dart, liquid and frosted, dark): a resting glass
+  button in the root group painted first, red/green stripes, then the
+  scene; variants shared / none (no first button) / own (the scene in a
+  group of its own); max channel difference to `none` inside the scene,
+  runs tool/ios_reference/perf/2026-10-05-overlay-groups/before3 and
+  after (screenshots not committed, diff.py there):
+  - context menu hero (glass button as hero, menu open): shared 72
+    (liquid) / 46 (frosted) - the lifted hero showed the stale dark copy
+    instead of the dimmed stripes; wrapping the SOURCE in a group did not
+    help (the open hero is a copy in the overlay). Fixed: the hero copy
+    and both satellites each sit in a `MorphChromeBackdrop`; after: 0 / 0.
+  - lifted slider thumb: liquid 0 (lenses read their own copy); frosted
+    226 - the lens showed no stripes and no track. Fixed: on the frosted
+    tier lens / knob / thumb never take the shared key; after: 0.
+    Cost: perf_counts controls-page/frosted captures 1 -> 2. Device
+    audit (tool/ios_reference/perf/2026-10-05-ovg-base, -base2 at 8c15be5
+    vs -ovg-fix, -fix2; 5 timed runs each, p95 build / raster ms): frosted
+    controls 1.70/3.83, 1.72/3.80 -> 1.76/3.26, 1.79/2.96; frosted menu
+    3.27/2.75, 3.35/2.80 -> 3.56/3.62, 3.26/3.26 (+0.5 - 0.9 raster);
+    every other frosted scene and every liquid scene within +-0.2.
+  - alert: 0 - 10 (a one-pixel rim row that flips between runs, timing):
+    its platter is menu kind and reads its own copy; alerts host no
+    other glass. No change.
+  - glass button inside a morph dialog's content: liquid 7, frosted 18
+    on 99 px (no stale backdrop visible; dialogs paint an opaque
+    surface). No change.
+  - STILL WRONG, not changed (it is the root group's design, owner
+    decision): a SECOND resting body glass over content painted after
+    the first one (`body` scene) - 72 liquid / 43 frosted, the button
+    shows the dark page instead of the stripes under it. Correct
+    grouping costs a capture per body glass control.
+
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
 - 2026-10-05, tool/ios_reference/perf/audit.sh (5 timed runs per scene,
@@ -322,7 +355,7 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
 
 - Dark lifted slider thumb look (slider.md).
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).
-- Backdrop groups: a lifted lens on the FROSTED tier still reads the root
-  copy (it does not see the track under it; kept shared so the fallback
-  tier stays cheap), and glass inside an alert or a context menu's hero
-  replica shares the root group - unverified on the device.
+- Backdrop groups: two resting body glass surfaces with content painted
+  between them - the later one reads the root copy without that content
+  (device evidence above; fix = a group per body glass control, a
+  capture each; owner decision).

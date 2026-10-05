@@ -513,11 +513,17 @@ double _frostSigma(MorphGlassSurface surface) =>
     surface.opacity.clamp(0.0, 1.0);
 
 /// The shared backdrop copy [surface] reads, or null for one of its own:
-/// chrome floats over content painted after the group's first glass.
+/// chrome floats over content painted after the group's first glass, and
+/// a lens, knob or thumb over its own track.
 BackdropKey? _frostKey(BuildContext context, MorphGlassSurface surface) =>
     switch (surface.kind) {
-      MorphGlassKind.bar || MorphGlassKind.menu => null,
-      _ => BackdropGroup.of(context)?.backdropKey,
+      MorphGlassKind.bar ||
+      MorphGlassKind.menu ||
+      MorphGlassKind.lens ||
+      MorphGlassKind.knob ||
+      MorphGlassKind.thumb => null,
+      MorphGlassKind.button ||
+      MorphGlassKind.track => BackdropGroup.of(context)?.backdropKey,
     };
 
 Color _faded(Color color, double opacity) =>
