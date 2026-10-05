@@ -162,7 +162,7 @@ class LiquidGlassLayer extends StatefulWidget {
 
 class _LiquidGlassLayerState extends State<LiquidGlassLayer>
     with SingleTickerProviderStateMixin {
-  static final List<String> _fakeSurfaceShaderAssets = [
+  static List<String> get _fakeSurfaceShaderAssets => [
     ShaderKeys.fakeGlassSurface,
   ];
 

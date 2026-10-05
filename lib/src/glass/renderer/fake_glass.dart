@@ -98,9 +98,7 @@ class FakeGlass extends StatelessWidget {
   final LiquidShape Function()? _shapeOf;
   final LiquidGlassAppearance Function()? _appearanceOf;
 
-  static final List<String> _surfaceShaderAssets = [
-    ShaderKeys.fakeGlassSurface,
-  ];
+  static List<String> get _surfaceShaderAssets => [ShaderKeys.fakeGlassSurface];
 
   /// {@macro liquid_glass_renderer.LiquidGlass.shape}
   final LiquidShape shape;

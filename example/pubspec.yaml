@@ -23,3 +23,11 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  # The shader parity harness (integration_test/shader_parity_test.dart)
+  # renders these frozen copies of the package's runtime shaders next to
+  # the live ones in the same app.
+  shaders:
+    - shader_audit/baseline/liquid_glass_final_render.frag
+    - shader_audit/baseline/liquid_glass_final_render_material.frag
+    - shader_audit/baseline/liquid_glass_final_render_tint.frag
+    - shader_audit/baseline/fake_glass_surface.frag

@@ -14,6 +14,7 @@
 #                                 audit is integration_test/glass_density_test.dart
 #   AUDIT_REPORT=<tmp dir>        the app's report directory, default tmp/glass (the density
 #                                 audit writes tmp/glass_density)
+#   AUDIT_DEFINES="..."           extra --dart-define flags for the build
 #
 # The run step expects the phone lock (spec/README.md) to be held by the caller.
 # Results: tool/ios_reference/perf/<date>-<label>/<tier>.json; summarize.py prints them.
@@ -28,6 +29,7 @@ RUNS=${AUDIT_RUNS:-5}
 LABEL=${AUDIT_LABEL:-run}
 TARGET=${AUDIT_TARGET:-integration_test/glass_audit_test.dart}
 REPORT=${AUDIT_REPORT:-tmp/glass}
+DEFINES=${AUDIT_DEFINES:-}
 APPS=${AUDIT_APPS:-/tmp/morph-perf/apps}
 SHOTS=${AUDIT_SHOTS:-/tmp/morph-perf/shots/$LABEL}
 OUT=$ROOT/tool/ios_reference/perf/$(date +%F)-$LABEL
@@ -35,9 +37,10 @@ OUT=$ROOT/tool/ios_reference/perf/$(date +%F)-$LABEL
 if [ "$STEP" = build ] || [ "$STEP" = all ]; then
   mkdir -p "$APPS"
   for tier in $TIERS; do
+    # shellcheck disable=SC2086
     (cd "$SOURCE/example" && flutter build ios --profile \
       -t "$TARGET" \
-      --dart-define=GALLERY_GLASS="$tier" --dart-define=AUDIT_RUNS="$RUNS" | tail -2)
+      --dart-define=GALLERY_GLASS="$tier" --dart-define=AUDIT_RUNS="$RUNS" $DEFINES | tail -2)
     rm -rf "$APPS/$tier.app"
     cp -R "$SOURCE/example/build/ios/iphoneos/Runner.app" "$APPS/$tier.app"
   done
