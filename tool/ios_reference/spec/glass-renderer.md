@@ -664,6 +664,16 @@ Bounds since 50a4491:
   warm-up finish in the background and glass drawn meanwhile is fake.
   A synchronous engine wait (reading `gpu.gpuContext` on Android before
   the engine created the context) is not bounded by it.
+- GLES (Pixel 6a forced with `ImpellerBackend=opengles`, profile; the
+  manifest key is ignored in release): before 58735ef every launch
+  crashed before the first frame - the fake warm-up's
+  `OffsetLayer.toImage` snapshot hit a null dereference on the raster
+  thread (`BlitCopyBufferToTextureCommandGLES::Encode` <-
+  `ReactorGLES::FlushOps` <- `SnapshotControllerImpeller::
+  MakeImpellerSnapshot` <- `Picture::DoRasterizeToImage`). The warm-up
+  now runs only on the `capable` class; GLES precache 3 ms, first frame
+  13 ms, 6/6 launches; Vulkan precache 0.52 - 0.58 s as before. A
+  Motorola on GLES matches this crash better than a hang; unconfirmed.
 - Not a hang, found on the way: Flutter GPU's HostBuffer throws
   `Failed to write range (offset=79616, length=2352)` when an emplace
   straddles the end of a block (its check ignores the write's length);
