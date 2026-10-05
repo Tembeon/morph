@@ -26,8 +26,8 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// Only glass that would look the same either way joins: resting body
 /// glass (glass buttons, search capsules) of the installed
 /// [MorphGlassRenderer] on the liquid or fake tier, with the material the
-/// container's own resting button has, up to the most shapes one geometry
-/// pass encodes. A pressed button, whose rim lights up, a lens, a bar, a
+/// container's own resting button has and the tint of the glass already
+/// in the container, up to the most shapes one geometry pass encodes. A pressed button, whose rim lights up, a lens, a bar, a
 /// menu and every other surface keep their own layer, as without the
 /// container. On the flat tier, under another painter or with no painter
 /// installed the container does nothing.
@@ -122,6 +122,7 @@ class MorphGlassContainerScope extends InheritedWidget {
 class MorphGlassContainerLink {
   MorphGlassRenderer? _renderer;
   LiquidGlassSettings? _settings;
+  LiquidGlassAppearance? _appearance;
   final Map<Object, int> _members = {};
   int _shapes = 0;
 
@@ -158,6 +159,7 @@ class MorphGlassContainerLink {
   void release(Object host) {
     final held = _members.remove(host);
     if (held != null) _shapes -= held;
+    if (_members.isEmpty) _appearance = null;
   }
 
   int _joinable(MorphGlassRenderer renderer, MorphGlassFrame frame) {
@@ -173,13 +175,19 @@ class MorphGlassContainerLink {
         parts.floating.isNotEmpty) {
       return 0;
     }
+    var appearance = _appearance;
     for (final surface in parts.separate) {
-      if (surface.kind == MorphGlassKind.bar ||
+      final own = morphLiquidAppearance(renderer, surface);
+      appearance ??= own;
+      if (surface.lift != 0 ||
+          surface.kind == MorphGlassKind.bar ||
           surface.kind == MorphGlassKind.menu ||
+          own != appearance ||
           morphLiquidSettings(renderer, surface) != settings) {
         return 0;
       }
     }
+    _appearance = appearance;
     return parts.separate.length;
   }
 }

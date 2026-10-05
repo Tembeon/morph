@@ -414,6 +414,8 @@ class _Density {
       return sorted[sorted.length ~/ 2];
     }
 
+    final budget =
+        1000 / ui.PlatformDispatcher.instance.views.first.display.refreshRate;
     Map<String, double>? stats(List<ui.FrameTiming> all) {
       final frames = [
         for (final f in all)
@@ -438,6 +440,13 @@ class _Density {
         'raster_p95': pick(raster, 0.95),
         'raster_worst': raster.last,
         'span_p95': pick(span, 0.95),
+        'over_budget': frames
+            .where(
+              (f) =>
+                  ms(f.buildDuration) > budget || ms(f.rasterDuration) > budget,
+            )
+            .length
+            .toDouble(),
       };
     }
 
