@@ -507,6 +507,16 @@ final _scenes = <_Scene>[
     },
   ),
   _Scene(
+    'search-press',
+    () => _page(const SizedBox(width: 360, child: MorphSearchField())),
+    (tester) async {
+      final field = tester.getCenter(find.byType(MorphSearchField));
+      await _drag(tester, field, [
+        for (var i = 0; i < 30; i++) field,
+      ], hold: const Duration(milliseconds: 8));
+    },
+  ),
+  _Scene(
     'sheet',
     () => _page(
       Builder(

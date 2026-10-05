@@ -76,6 +76,17 @@
     "snapshotImages": 0.0,
     "idle": 0
   },
+  "search-press/flat": {
+    "frames": 109,
+    "builds": 1.2,
+    "paints": 53.3,
+    "pictures": 3.8,
+    "captures": 0.0,
+    "offscreen": 0.0,
+    "bodyShadows": 0.0,
+    "snapshotImages": 0.0,
+    "idle": 0
+  },
   "sheet/flat": {
     "frames": 154,
     "builds": 9.0,
@@ -164,6 +175,17 @@
     "snapshotImages": 0.0,
     "idle": 0
   },
+  "search-press/frosted": {
+    "frames": 109,
+    "builds": 1.2,
+    "paints": 56.1,
+    "pictures": 4.7,
+    "captures": 1.0,
+    "offscreen": 1.0,
+    "bodyShadows": 0.0,
+    "snapshotImages": 0.0,
+    "idle": 0
+  },
   "sheet/frosted": {
     "frames": 154,
     "builds": 9.9,
@@ -248,6 +270,17 @@
     "pictures": 0.6,
     "captures": 3.9,
     "offscreen": 6.9,
+    "bodyShadows": 0.0,
+    "snapshotImages": 0.0,
+    "idle": 0
+  },
+  "search-press/liquid": {
+    "frames": 109,
+    "builds": 1.2,
+    "paints": 54.3,
+    "pictures": 3.8,
+    "captures": 2.0,
+    "offscreen": 2.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
     "idle": 0

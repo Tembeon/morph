@@ -182,6 +182,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
         MorphClock<MorphSearchField>
     implements TextSelectionGestureDetectorBuilderDelegate {
   final MorphSearchMotion _motion = MorphSearchMotion();
+  static final Listenable _still = Listenable.merge(const []);
   TextEditingController? _ownController;
   FocusNode? _ownFocus;
   late final TextSelectionGestureDetectorBuilder _gestures =
@@ -397,7 +398,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
               child: widget.enabled
                   ? MorphControlCapsule(
                       painter: glass,
-                      frames: frames,
+                      frames: _still,
                       color: style.capsuleColor,
                       rim: style.rimColor,
                       shadow: style.shadowColor,
