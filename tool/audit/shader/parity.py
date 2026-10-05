@@ -25,10 +25,11 @@ def show(path):
     cases = report['cases']
     first = next(iter(cases.values()))
     if 'layer_ms_candidate' in first:
-        print(f'{"case":26} {"base ms/layer":>14} {"cand ms/layer":>14} {"gain %":>8}')
+        print(f'{"case":26} {"base ms/layer":>14} {"cand ms/layer":>14} {"gain %":>8}  block gains %')
         for name, row in cases.items():
+            blocks = ' '.join(f'{g:.0f}' for g in row.get('gain_percent_blocks', []))
             print(f'{name:26} {row["layer_ms_baseline"]:14.3f} {row["layer_ms_candidate"]:14.3f} '
-                  f'{row["layer_gain_percent"]:8.1f}')
+                  f'{row["layer_gain_percent"]:8.1f}  {blocks}')
         return 0
     print(f'{"case":26} {"max":>4} {"pixels":>8} {"repeat":>6} {"remount":>7}  channels  histogram')
     for name, row in cases.items():

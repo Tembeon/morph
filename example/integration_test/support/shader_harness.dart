@@ -706,57 +706,69 @@ Future<Map<String, Object>> runShaderParity(
 }
 
 /// Times [cases] on both variants with 1 and [copies] stacked layers, in
-/// alternating blocks (ABBA), [frames] offscreen renders per sample: the
-/// difference of the two layer counts divided by the extra layers is one
-/// layer's cost with the fixed costs (backdrop, readback) cancelled.
+/// alternating blocks (ABBA), [frames] offscreen renders per sample. Each
+/// block's layer cost is the difference of its two layer counts divided by
+/// the extra layers, so the fixed costs (backdrop, readback) cancel; the
+/// report keeps every block and the medians of the layer costs and of the
+/// blocks' paired gains.
 Future<Map<String, Object>> runShaderBench(
   ShaderHarness harness, {
   required List<HarnessCase> cases,
-  int copies = 8,
-  int blocks = 4,
-  int frames = 20,
+  int copies = 6,
+  int blocks = 8,
+  int frames = 40,
 }) async {
+  double median(List<double> v) {
+    final sorted = [...v];
+    sorted.sort();
+    final n = sorted.length;
+    return n.isOdd ? sorted[n ~/ 2] : (sorted[n ~/ 2 - 1] + sorted[n ~/ 2]) / 2;
+  }
+
   final results = <String, Object>{};
   for (final glassCase in cases) {
-    final samples = <String, List<double>>{};
+    final layer = <ShaderVariant, List<double>>{
+      for (final v in ShaderVariant.values) v: [],
+    };
+    final gains = <double>[];
     for (var block = 0; block < blocks; block++) {
       final order = block.isEven
           ? ShaderVariant.values
           : ShaderVariant.values.reversed;
+      final blockLayer = <ShaderVariant, double>{};
       for (final variant in order) {
+        final ms = <int, double>{};
         for (final k in [1, copies]) {
           await harness.show(glassCase, variant, copies: k);
           await harness.time(4);
-          final ms = await harness.time(frames);
-          (samples['${variant.name}-$k'] ??= []).add(ms);
+          ms[k] = await harness.time(frames);
         }
+        blockLayer[variant] = (ms[copies]! - ms[1]!) / (copies - 1);
+        layer[variant]!.add(blockLayer[variant]!);
       }
+      final base = blockLayer[ShaderVariant.baseline]!;
+      gains.add(
+        base == 0
+            ? 0
+            : (base - blockLayer[ShaderVariant.candidate]!) / base * 100,
+      );
     }
-    double median(List<double> v) {
-      final sorted = [...v];
-      sorted.sort();
-      return sorted[sorted.length ~/ 2];
-    }
-
-    double perLayer(ShaderVariant v) =>
-        (median(samples['${v.name}-$copies']!) -
-            median(samples['${v.name}-1']!)) /
-        (copies - 1);
-    final candidate = perLayer(ShaderVariant.candidate);
-    final baseline = perLayer(ShaderVariant.baseline);
+    final candidate = median(layer[ShaderVariant.candidate]!);
+    final baseline = median(layer[ShaderVariant.baseline]!);
+    final gain = median(gains);
     // The bench's progress in the device log.
     // ignore: avoid_print
     print(
       'SHADER_BENCH ${glassCase.name} baseline $baseline '
-      'candidate $candidate',
+      'candidate $candidate gain $gain',
     );
     results[glassCase.name] = {
-      'samples_ms': samples,
+      'layer_ms_baseline_blocks': layer[ShaderVariant.baseline]!,
+      'layer_ms_candidate_blocks': layer[ShaderVariant.candidate]!,
+      'gain_percent_blocks': gains,
       'layer_ms_candidate': candidate,
       'layer_ms_baseline': baseline,
-      'layer_gain_percent': baseline == 0
-          ? 0
-          : (baseline - candidate) / baseline * 100,
+      'layer_gain_percent': gain,
     };
   }
   useShaderVariant(ShaderVariant.candidate);

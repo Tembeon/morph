@@ -18,7 +18,7 @@ import 'support/shader_harness.dart';
 /// land in `AUDIT_OUT`. `--dart-define=SHADER_CASES=a,b` runs only the
 /// named cases; `--dart-define=SHADER_MAX_DIFF=n` is the largest channel
 /// difference from the baseline the run accepts (default 0);
-/// `SHADER_COPIES` (6) and `SHADER_FRAMES` (12) size the bench.
+/// `SHADER_COPIES` (6) and `SHADER_FRAMES` (40) size the bench.
 const bool _bench = bool.fromEnvironment('SHADER_BENCH');
 
 const String _only = String.fromEnvironment('SHADER_CASES');
@@ -27,7 +27,7 @@ const int _maxDiff = int.fromEnvironment('SHADER_MAX_DIFF');
 
 const int _copies = int.fromEnvironment('SHADER_COPIES', defaultValue: 6);
 
-const int _frames = int.fromEnvironment('SHADER_FRAMES', defaultValue: 12);
+const int _frames = int.fromEnvironment('SHADER_FRAMES', defaultValue: 40);
 
 /// The bench's cases when SHADER_CASES names none: a control row, a large
 /// face, a frosted menu, the material variant, a lifted lens, fake glass.
