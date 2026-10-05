@@ -715,7 +715,9 @@ branch bit for bit): Metal and GLES output is unchanged
 (test/glass_frames_test.dart hashes identical before and after; it runs
 the fallback there, the identity on Metal is by that arithmetic). On
 the Pixel the probe scene's Vulkan frame is pixel-identical to GLES
-after the fix (0 differing pixels over the scene). Regression:
+after the fix (0 differing pixels over the scene).
+perf/2026-10-05-pixel6a-attrib/vulkan-boxes-fix-vk-before-after-gles.png:
+the probe scene on Vulkan before, Vulkan after, GLES after. Regression:
 example/integration_test/liquid_exterior_test.dart (on device; fails
 before the fix with 1646 lit exterior pixels, max channel 21, passes
 after).
