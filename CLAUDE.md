@@ -228,7 +228,7 @@ Cross-cutting policy:
   through buildSurface), the navigation bar + toolbar (one
   `MorphChromeBackdrop` key per screen, chrome_group.dart), the search
   tab bar, a sheet's content, a menu's card, a context menu's hero and
-  satellites, lifted glass and a frosted lens / knob / thumb. Two
+  satellites, lifted glass and a lifted lens / knob / thumb. Two
   resting body glass surfaces with content painted between them: the
   later one misses that content (it cannot be detected per frame -
   pictures carry no drawn bounds). OWNER DECISION 2026-10-05, option C:
@@ -241,13 +241,17 @@ Cross-cutting policy:
 - ONE renderer in the package (lib/src/glass/renderer, vendored
   whynotmake-it, Apache-2.0, VENDORED lists local patches; owner decision
   2026-10-03 - the old no-shader rule is cancelled). Public entry
-  `MorphGlassRenderer` with `MorphGlassTier` flat / frosted / liquid;
+  `MorphGlassRenderer` with `MorphGlassTier` flat / fake / liquid (fake =
+  the liquid layers through the renderer's FakeGlass: no refraction, no
+  Flutter GPU - the pre-capability fallback and the web's tier; frosted
+  removed 2026-10-05, owner decision);
   `MorphAdaptiveGlass` picks the tier ONCE per session, never at runtime
   (owner decision 2026-10-05: no tier switching from frame timings - the
   old governor flapped flat/liquid on the Pixel 6a): explicit tier wins,
   else `MorphAdaptiveGlass.tierFor(deviceClass, best)` - liquid on
-  Vulkan/Metal, the single `MorphAdaptiveGlass.cheapTier` (flat today;
-  fake glass may replace it) on the GLES fallback and Apple GPUs before
+  Vulkan/Metal, the single `MorphAdaptiveGlass.cheapTier` (flat: fake
+  glass costs about what liquid costs on the GLES Pixel, measured in
+  glass-renderer.md) on the GLES fallback and Apple GPUs before
   the A13, probed from Flutter GPU (glass_device_native.dart) once the
   liquid capability resolved.
 - OUTLINE IS TRUTH: the package computes every shape once and fuses

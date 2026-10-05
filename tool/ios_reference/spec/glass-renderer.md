@@ -65,12 +65,14 @@ measurements.
   GPU bundle (morph_glass.shaderbundle.json -> build/shaderbundles/, an
   asset dir analysis ignores until the hook writes it).
 - ONE public entry: `MorphGlassRenderer` (glass_renderer.dart), a
-  MorphGlassPainter with `tier` (`MorphGlassTier` flat / frosted / liquid)
+  MorphGlassPainter with `tier` (`MorphGlassTier` flat / fake / liquid)
   and the liquid settings (`MorphGlassMaterial`, blur, refraction, light,
   tint, frostControls); `liftedOptics` per control; `precache()`.
-- WEB: the liquid tier sits behind a conditional import (glass_liquid.dart
-  -> _native / _web; the web stub never imports the renderer,
-  `liquidAvailable` false, liquid draws frosted); the three final-render
+- WEB: the liquid capability sits behind a conditional import
+  (glass_liquid.dart -> _native / _web; the web stub never touches
+  Flutter GPU, `liquidAvailable` false, liquid draws fake glass); the
+  layers themselves live in glass_liquid_draw.dart, shared by both, and
+  LiquidGlassLayer takes its fake path there; the three final-render
   .frag files compile to an empty stub under SKIA_GRAPHICS_BACKEND ("Only
   simple shader sampling is supported"), so the web builds with nothing
   removed.
@@ -79,8 +81,15 @@ measurements.
 ## Tiers
 
 - Tier 0 (flat) fills the outline.
-- Tier 1 (frosted) blurs + tints inside it; resting platters stay flat
-  fills.
+- Tier 1 (fake) is the liquid layers through the renderer's FakeGlass
+  (`LiquidGlassLayer(fake: true)`, the consolidated layer): the face
+  transfer as one backdrop color matrix over the frost, rim / bevel /
+  highlight from an analytic SDF per shape, no refraction, no lens
+  magnification or backdrop shrink (the lens content copy is not grown to
+  compensate); resting platters stay opaque fills. Needs no Flutter GPU:
+  liquid draws it before the capability resolves and when it fails, and
+  the web draws it. Replaced the frosted tier on 2026-10-05 (owner
+  decision; frosted's history stays in the sections below).
 - Tier 2 (liquid) shades it from the field: LiquidGlassLayer(field:)
   switches the geometry pass to shaders/gpu/geometry_field_fragment.glsl
   (same matte encoding; distance / gradient / half thickness interpolated
@@ -145,11 +154,24 @@ measurements.
   tab bar) max 10 channel steps, no pixel over 15; the held slider
   thumb's rim moves by up to 236 between launches of the SAME build, so
   its 174 is noise.
-- FAKE GLASS (no Flutter GPU: tests, the first frames, devices without
-  it) draws the fused outline too: `GlassField.outline` reaches
-  ConsolidatedFakeGlassLayer, which clips its backdrop and surfaces to it
-  and tints the neck (outline minus shapes, even-odd - Skia's path ops
-  refused an outline running along its capsules).
+- FAKE GLASS (the fake tier; also tests, the first frames, devices
+  without Flutter GPU) draws the fused outline too: `GlassField.outline`
+  - or, for a plain union without a field, the outline itself
+  (`LiquidGlassLayer.outlineOf`) - reaches ConsolidatedFakeGlassLayer,
+  which clips its backdrop and surfaces to it. Each region of the body
+  draws the face of its LARGEST shape only (the others are clipped to
+  outside it, a tie to the later one), so a menu's shrunken button
+  leaves no rim inside the menu; the neck is the outline clipped outside
+  every shape in turn (no path boolean - Skia's path ops refused an
+  outline running along its capsules - and no even-odd union, which
+  tinted shape overlaps twice). An outline built from a path alone
+  (public `MorphGlassOutline(path)`) has no field for liquid to shade, so
+  it is fake glass on both tiers.
+- FAKE FACE: the face transfer `Y + lift * Y * (1 - Y)` becomes a line in
+  the color matrix; it is exact at black and least-squares over (0, 1]
+  (white stays exact through the clamp). The unanchored least-squares
+  line lifted black by lift / 6 and made dark fake glass 15 - 24 channel
+  steps brighter than liquid over the gallery's black page.
 
 ## Adaptive policy (`MorphAdaptiveGlass`, glass_tier.dart)
 
@@ -158,7 +180,7 @@ Installs the renderer at ONE tier for the session (owner decision
 explicit `tier` wins; else `MorphAdaptiveGlass.tierFor(deviceClass,
 best)`, a pure function, decides once the liquid capability resolves
 (`MorphGlassRenderer.precache` before `runApp` makes that the first
-frame; without it the first frames draw the frosted fallback):
+frame; without it the first frames draw the fake glass fallback):
 
 - `best` below liquid (no Flutter GPU, the web, a renderer pinned lower)
   -> `best`.
@@ -168,7 +190,7 @@ frame; without it the first frames draw the frosted fallback):
   the GLES backend lacks it) and `appleBeforeA13` (iOS and
   `supportsTextureCompression(astcHdr)` false - Metal reports HDR ASTC
   from GPU family Apple 6 = A13 on) -> `MorphAdaptiveGlass.cheapTier`,
-  ONE constant, flat today (fake glass may replace it).
+  ONE constant, flat (fake glass measured and rejected for it, below).
 
 Why flat and not frosted as the cheap tier: Pixel 6a forced to GLES
 (pixel6a-gles, 60 Hz, medians of 5 runs, frames over the 16.7 ms budget
@@ -179,6 +201,8 @@ Frosted blurs every glass surface and costs MORE than liquid on GLES and
 on four of six scenes on the iPhone 16 Pro (controls 3.65 vs 2.88,
 sheet 3.92 vs 3.21, segmented 2.29 vs 2.00, home scroll 2.51 vs 2.14
 raster p95 ms). The pre-A13 branch is unmeasured (no such device).
+Fake glass is no cheaper there either (next section): its cost on GLES
+is the backdrop read itself, so flat stays the cheap tier.
 
 The probe (glass_device_native.dart) reads `gpu.gpuContext` only after
 the liquid capability is true (reading it earlier blocks the UI thread
@@ -198,12 +222,56 @@ intervals) read 16.66 / 16.64 ms, matching the 60 Hz the display
 reports, so the Pixel gives no evidence against `MorphClock`'s
 refresh-rate-based sub-clock rate; it stays as is.
 
+## Fake tier vs liquid, frosted, flat (2026-10-05, perf/2026-10-05-fake-*)
+
+Glass audit, 5 timed runs per scene, medians, profile, dark. Builds:
+exp/fake-tier 36aab65 (`fake3` in the result files: the fake tier with
+the face line and the fused-body fixes; `fake` = 99e266b before them,
+iPhone only) - liquid / frosted / flat from the same commit. Pixel 6a
+(60 Hz) on Vulkan and forced to GLES (manifest
+`ImpellerBackend=opengles`, not committed), iPhone 16 Pro (120 Hz).
+Scenes controls / home scroll / menu / segmented / sheet / tab bar.
+
+Raster p95 ms and frames over budget:
+
+| device | fake | liquid | frosted | flat |
+|---|---|---|---|---|
+| Pixel GLES p95 | 20.6 / 16.3 / 33.1 / 15.2 / 27.9 / 19.3 | 22.4 / 15.9 / 28.8 / 14.5 / 21.4 / 20.0 | 20.4 / 17.5 / 25.6 / 16.4 / 22.8 / 19.2 | 9.0 / 14.7 / 20.2 / 9.6 / 10.7 / 13.9 |
+| Pixel GLES missed | 112 / 20 / 84 / 7 / 76 / 56 | 83 / 14 / 75 / 6 / 54 / 73 | 154 / 29 / 74 / 17 / 83 / 115 | 0 / 5 / 20 / 0 / 1 / 3 |
+| Pixel Vulkan p95 | 15.3 / 11.8 / 19.6 / 12.2 / 16.9 / 14.6 | 16.1 / 11.2 / 18.6 / 10.6 / 16.2 / 14.4 | 13.8 / 11.5 / 17.4 / 11.4 / 13.1 / 16.1 | 6.6 / 10.3 / 13.1 / 6.7 / 7.9 / 10.1 |
+| Pixel Vulkan missed | 9 / 2 / 22 / 0 / 15 / 7 | 19 / 2 / 26 / 0 / 12 / 17 | 1 / 2 / 20 / 1 / 1 / 15 | 0 / 1 / 14 / 0 / 1 / 0 |
+| iPhone p95 | 3.71 / 2.40 / 3.69 / 2.03 / 3.25 / 3.22 | 2.58 / 2.25 / 3.17 / 1.61 / 2.92 / 2.75 | 3.05 / 2.61 / 3.38 / 2.13 / 2.72 / 2.70 | 0.79 / 2.04 / 1.76 / 0.80 / 1.00 / 1.64 |
+
+Build p95 (UI thread) of fake is liquid's minus the field work (iPhone
+2.27 / 1.41 / 1.84 / 1.25 / 1.35 / 1.34 vs liquid 2.51 / 1.41 / 2.05 /
+1.36 / 1.50 / 1.58). Reading: fake glass costs about what liquid costs
+on every device - more raster on the iPhone, as much on the Pixel - so
+it is NOT a cheap tier; on GLES only flat holds the budget.
+
+Distance to liquid (shotdiff.py, 18 audit shots, median over shots of
+the mean channel difference / percent of pixels over 15):
+
+| device | fake | frosted | flat |
+|---|---|---|---|
+| iPhone 16 Pro | 0.64 / 0.44 | 1.73 / 4.40 | 1.39 / 1.94 |
+| Pixel GLES | 0.67 / 0.86 | 1.73 / 4.14 | 1.28 / 1.88 |
+| Pixel Vulkan | 2.78 / 9.22 | 3.81 / 12.86 | 3.48 / 9.44 |
+
+Fake is the closest look on every shot but the sheet's mean (7.44 vs
+flat 5.57 on the iPhone; its over-15 share 0.49 vs 5.79 percent).
+Before the face line and fused-body fixes it was the farthest on the
+menus (iPhone menu-open mean 9.25, 38.9 percent over 15). The Vulkan
+row is inflated for every tier by the liquid tier's clip-sized gray box
+on that backend (pixel6a-attrib), so the GLES row is the Pixel's
+reference. Contact sheets (liquid | fake | frosted | flat):
+`2026-10-05-fake-*/contact/<shot>.jpg`; `contact.py` makes them.
+
 ## Liquid tier layering (the former gallery painter, optics unchanged)
 
 - Body surfaces in one layer reading the nearest BackdropGroup's shared
   copy (root group in GalleryApp, own groups for the glass page's scene
-  and card); bar and menu kinds take their own copy on the liquid AND
-  frosted tiers, through buildLayer, buildBody and buildSurface alike.
+  and card); bar and menu kinds take their own copy on the liquid and
+  fake tiers, through buildLayer, buildBody and buildSurface alike.
   The navigation bar and toolbar (button-kind capsules) share one group
   of their own per screen (`MorphChromeBackdrop`, keyed by the stack's
   or scaffold's `MorphChromeBackdropScope`; a bar alone gets its own),
@@ -651,6 +719,8 @@ audit.sh with `AUDIT_TARGET` / `AUDIT_REPORT`. In flutter_test:
 test/perf_counts_test.dart (work counts, ceilings) and
 test/glass_frames_test.dart (channel vs rebuild, pixel for pixel; with
 `GLASS_FRAMES_OUT=<file>` it writes the frame hashes to compare commits).
+perf/shotdiff.py compares two runs' shots (mean, max, percent over 15);
+perf/contact.py lays several tiers' shots side by side.
 Gallery: the root installs `MorphAdaptiveGlass` with the session's
 `MorphGlassRenderer` (GalleryGlassSettings / GalleryGlassScope,
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass

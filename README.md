@@ -21,7 +21,7 @@ sheets, alerts, navigation bars, search and the date picker, each
 checked against recordings of the real UIKit controls, with a slow-motion
 toggle and a glass page that switches the renderer, appearance and
 direction for the whole app. Live build:
-<https://tembeon.github.io/morph/> (wasm, frosted glass - the liquid
+<https://tembeon.github.io/morph/> (wasm, fake glass - the liquid
 glass renderer needs Impeller and Flutter GPU, so a native build shows
 the real one). API docs live next to it:
 <https://tembeon.github.io/morph/docs/>.
@@ -61,10 +61,11 @@ Recipes and applied patterns live there, not in this README.
   pure functions of explicit time and work without the widgets.
 
 The engine never depends on the widget layer. The package ships
-`MorphGlassRenderer` with flat, frosted and liquid tiers;
+`MorphGlassRenderer` with flat, fake and liquid tiers;
 `MorphAdaptiveGlass` installs it at one tier per session, chosen by the
 device's GPU class, or uses an explicit tier. Liquid glass needs Impeller and Flutter GPU;
-unsupported builds fall back to frosted glass. Controls draw flat fills
+unsupported builds fall back to fake glass (the same layers without
+refraction). Controls draw flat fills
 without a painter. Custom painters still use `MorphGlass(painter:)`.
 Every tier shades the outlines computed by the package. Looks resolve
 from each control's `style`, then the `MorphWidgetsTheme` extension, then light and dark

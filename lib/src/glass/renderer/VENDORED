@@ -155,3 +155,14 @@ Local patches (some commits include related package changes):
   decorations and shadows, so the first glass frame creates no pipeline.
   Called from morphPrecacheLiquidGlass; failures are swallowed. No
   renderer source changed.
+- 2026-10-05 fake glass as morph's fake tier (the frosted tier removed):
+  internal/fake_glass_color.dart fits the face transfer's luminance line
+  exact at black (least squares over (0, 1]) instead of over [0, 1],
+  which lifted black by lift / 6; ConsolidatedFakeGlassLayer draws a
+  fused body's regions with the face of their largest shape only (the
+  others clipped outside it) and its neck as the outline clipped outside
+  every shape (no even-odd double tint); LiquidGlassLayer.live takes an
+  `outlineOf` for a body fused without a field (a plain union), which
+  only the fake path reads. The warm-up's frosted scene became the fake
+  glass scene: the face matrix alone and over each frost, both clips, the
+  fake surface shader.
