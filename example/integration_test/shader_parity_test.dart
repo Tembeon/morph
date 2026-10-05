@@ -45,6 +45,8 @@ void main() {
           : const String.fromEnvironment('AUDIT_OUT'),
     );
     out.createSync(recursive: true);
+    final stale = File('${out.path}/report.json');
+    if (stale.existsSync()) stale.deleteSync();
     await tester.runAsync(MorphGlassRenderer.precache);
     final harness = ShaderHarness(tester);
     final cases = harnessCasesNamed(
