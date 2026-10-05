@@ -14,6 +14,15 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- `MorphGlassContainer` shades the resting glass of the buttons below it
+  in one layer - one geometry pass and one backdrop filter instead of one
+  per button, as UIKit's glass container does. Wrap a row or cluster of
+  glass buttons over moving content in it: on a Pixel 6a 4 resting
+  buttons over a scrolling page draw 18 percent faster (raster 7.8 ->
+  6.4 ms), 8 buttons 22 percent. Everything inside the container is
+  content above its glass; a pressed, moving, faded or clipped button
+  keeps its own layer, so it looks as before. A glass layer now takes 32
+  shapes instead of 16.
 - Fixed: past about 31 glass layers re-rendering in one frame, the rest
   were not drawn ("geometry render failed"). Flutter GPU's HostBuffer let
   a uniform write cross the end of its block; the renderer now allocates
