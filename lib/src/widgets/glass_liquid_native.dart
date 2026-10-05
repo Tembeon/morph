@@ -7,7 +7,6 @@ import 'package:morph/src/glass/renderer/internal/glass_warm_up.dart';
 import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
-import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 
 export 'package:morph/src/widgets/glass_liquid_draw.dart';
@@ -33,16 +32,20 @@ final LiquidCapability _capability = LiquidCapability(
 
 Future<void>? _warmUp;
 
-/// Warms the liquid pipelines when the automatic choice draws liquid on
-/// this device, then the fake glass ones.
+/// Warms the liquid pipelines, then the fake glass ones, on a GPU the
+/// automatic choice draws liquid on.
+///
+/// Nothing is warmed on any other device class: the cheap tier draws no
+/// backdrop pipelines, and on Impeller's OpenGL ES backend an offscreen
+/// snapshot before the first frame crashes the raster thread (Flutter
+/// 3.47.2, Pixel 6a forced to GLES: a null dereference in
+/// `BlitCopyBufferToTextureCommandGLES::Encode` under
+/// `Rasterizer::MakeImpellerSnapshot`).
 Future<void> _warmPipelines() async {
-  final liquid =
-      _capability.value &&
-      MorphAdaptiveGlass.tierFor(
-            MorphAdaptiveGlass.deviceClass,
-            MorphGlassTier.liquid,
-          ) ==
-          MorphGlassTier.liquid;
+  if (MorphAdaptiveGlass.deviceClass != MorphGlassDeviceClass.capable) {
+    return;
+  }
+  final liquid = _capability.value;
   final geometry = liquid
       ? FlutterGpuGeometryRenderer.tryCreateCached(
           ShaderKeys.gpuGeometryShaderBundle,
