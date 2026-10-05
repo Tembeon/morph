@@ -30,7 +30,8 @@ class GlassField {
     this.outline,
   });
 
-  /// Four values per node, row-major.
+  /// Four values per node, row-major; never written after the field is
+  /// created (renderers keep an upload while the same list comes back).
   final Float32List samples;
 
   /// The nodes along x.

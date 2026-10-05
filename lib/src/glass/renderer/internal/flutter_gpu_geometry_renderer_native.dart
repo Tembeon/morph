@@ -1019,9 +1019,20 @@ final class _FieldTextures {
   static const int _reuseAfterFrames = 3;
   static const int _maxTextures = 4;
 
-  final List<(gpu.Texture, int)> _textures = [];
+  final List<(gpu.Texture, int, Float32List)> _textures = [];
 
   gpu.Texture upload(GlassField field, int frame) {
+    final held = _textures.indexWhere(
+      (entry) =>
+          identical(entry.$3, field.samples) &&
+          entry.$1.width == field.cols &&
+          entry.$1.height == field.rows,
+    );
+    if (held >= 0) {
+      final texture = _textures[held].$1;
+      _textures[held] = (texture, frame, field.samples);
+      return texture;
+    }
     var index = _textures.indexWhere(
       (entry) =>
           entry.$1.width == field.cols &&
@@ -1040,10 +1051,10 @@ final class _FieldTextures {
         enableRenderTargetUsage: false,
       );
       if (_textures.length >= _maxTextures) _textures.removeAt(0);
-      _textures.add((texture, frame));
+      _textures.add((texture, frame, field.samples));
       index = _textures.length - 1;
     }
-    _textures[index] = (texture, frame);
+    _textures[index] = (texture, frame, field.samples);
     texture.overwrite(ByteData.sublistView(field.samples));
     return texture;
   }

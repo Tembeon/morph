@@ -449,6 +449,21 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   String? get _semanticLabel => widget.semanticLabel;
   MorphMenuContent get _content => _host.menuContent;
   MorphMenuMotion? get _motion => _host.menuMotion;
+
+  MorphGlassOutline? _silhouette;
+  Offset _silhouetteOrigin = Offset.zero;
+  MorphGlassOutline? _shiftedSilhouette;
+
+  MorphGlassOutline? _silhouetteAt(MorphGlassOutline? outline, Offset origin) {
+    if (outline == null) return null;
+    if (!identical(outline, _silhouette) || origin != _silhouetteOrigin) {
+      _silhouette = outline;
+      _silhouetteOrigin = origin;
+      _shiftedSilhouette = outline.shift(origin);
+    }
+    return _shiftedSilhouette;
+  }
+
   MorphFlight? get _flight => _host.flight;
 
   @override
@@ -551,7 +566,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
       source: source.rrect.shift(origin),
       sourceRect: source.rect.shift(origin),
       sourceScale: source.scale,
-      outline: motion.silhouette?.shift(origin),
+      outline: _silhouetteAt(motion.silhouette, origin),
     );
   }
 
