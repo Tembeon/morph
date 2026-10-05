@@ -103,7 +103,7 @@ float decodeSignedEdgeDistance(
 ) {
     float centeredDistance = (encoded.b - 0.5) * 2.0;
     float normalizedMagnitude = centeredDistance * centeredDistance;
-    return centeredDistance >= 0.0
-        ? normalizedMagnitude * inwardRange
-        : -normalizedMagnitude * exteriorRange;
+    float inward = step(0.0, centeredDistance);
+    return normalizedMagnitude *
+        (inward * inwardRange - (1.0 - inward) * exteriorRange);
 }

@@ -166,3 +166,10 @@ Local patches (some commits include related package changes):
   only the fake path reads. The warm-up's frosted scene became the fake
   glass scene: the face matrix alone and over each frost, both clips, the
   fake surface shader.
+- 2026-10-05 exterior decode: decodeSignedEdgeDistance
+  (shaders/gpu/displacement_encoding.glsl) selects inward or exterior
+  range with step() arithmetic instead of a ternary; the Vulkan pipeline
+  on Mali-G78 evaluated the ternary's exterior branch as 0 inside the
+  full final shader and drew half the glass over the whole filter clip.
+  Bit-identical result elsewhere (glass-renderer.md, Vulkan exterior
+  boxes).
