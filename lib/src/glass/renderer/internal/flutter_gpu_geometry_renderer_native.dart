@@ -134,16 +134,16 @@ class FlutterGpuGeometryRenderer {
   static final Map<String, _SharedGeometryResources> _resolvedAssetResources =
       {};
 
-  /// One bump allocator for every geometry pass in the current frame.
+  /// One bump allocator for the uniforms of every geometry pass in the
+  /// current frame.
   ///
-  /// A HostBuffer retains four device-buffer blocks, so one per renderer
-  /// would cost four blocks per layer. A single scratch sized for a frame of
-  /// layers keeps that off the native heap.
-  static gpu.HostBuffer? _sharedHostBuffer;
-  static int _sharedHostBufferBlockLength = 0;
-  static Duration? _sharedHostBufferFrame;
+  /// One per renderer would keep a block per frame slot for every layer; a
+  /// single arena keeps a frame's worth of blocks for all of them, and a
+  /// frame with more passes than one block holds takes further blocks.
+  static MorphUniformArena<gpu.DeviceBuffer>? _uniforms;
+  static Duration? _uniformsFrame;
 
-  static const int _hostBufferSlotsPerFrame = 32;
+  static const int _uniformSlotsPerBlock = 32;
 
   // These ownership counters exclude clones held by callers and native
   // references retained by submitted scenes; they are not GPU memory metrics.
@@ -167,27 +167,39 @@ class FlutterGpuGeometryRenderer {
   static int get debugActiveMaterialTextureCount =>
       _debugActiveMaterialTextureCount;
 
-  static gpu.HostBuffer _hostBufferForUniformSize(int uniformSize) {
+  static gpu.BufferView _emplaceUniforms(ByteData bytes, int uniformSize) {
     final alignment = gpu.gpuContext.minimumUniformByteAlignment;
     final alignedSize =
         ((uniformSize + alignment - 1) ~/ alignment) * alignment;
-    final blockLength = alignedSize * _hostBufferSlotsPerFrame;
-    if (_sharedHostBuffer == null ||
-        _sharedHostBufferBlockLength < blockLength) {
-      _sharedHostBuffer = gpu.gpuContext.createHostBuffer(
-        blockLengthInBytes: blockLength,
+    final blockLength = alignedSize * _uniformSlotsPerBlock;
+    var arena = _uniforms;
+    if (arena == null || arena.blockLength < blockLength) {
+      arena = MorphUniformArena<gpu.DeviceBuffer>(
+        blockLength: blockLength,
+        alignment: alignment,
+        allocate: (int length) => gpu.gpuContext.createDeviceBuffer(
+          gpu.StorageMode.hostVisible,
+          length,
+        ),
+        write: (gpu.DeviceBuffer buffer, ByteData data, int offset) =>
+            buffer.overwrite(data, destinationOffsetInBytes: offset),
       );
-      _sharedHostBufferBlockLength = blockLength;
+      _uniforms = arena;
     }
     // This is also defined for direct renderer callers outside
     // handleDrawFrame while still advancing once per engine frame in
     // production.
     final timestamp = SchedulerBinding.instance.currentSystemFrameTimeStamp;
-    if (_sharedHostBufferFrame != timestamp) {
-      _sharedHostBuffer!.reset();
-      _sharedHostBufferFrame = timestamp;
+    if (_uniformsFrame != timestamp) {
+      arena.nextFrame();
+      _uniformsFrame = timestamp;
     }
-    return _sharedHostBuffer!;
+    final (:buffer, :offset) = arena.emplace(bytes);
+    return gpu.BufferView(
+      buffer,
+      offsetInBytes: offset,
+      lengthInBytes: bytes.lengthInBytes,
+    );
   }
 
   late final gpu.RenderPipeline _pipeline;
@@ -204,10 +216,10 @@ class FlutterGpuGeometryRenderer {
   Object get debugPipelineIdentity => _pipeline;
 
   @visibleForTesting
-  int get debugHostBufferBlockLength => _sharedHostBufferBlockLength;
+  int get debugUniformBlockLength => _uniforms?.blockLength ?? 0;
 
   @visibleForTesting
-  Object? get debugHostBufferIdentity => _sharedHostBuffer;
+  Object? get debugUniformArenaIdentity => _uniforms;
 
   /// Number of geometry command buffers submitted by this renderer.
   @visibleForTesting
@@ -394,9 +406,7 @@ class FlutterGpuGeometryRenderer {
       boundsData: boundsData,
     );
 
-    final uniformView = _hostBufferForUniformSize(
-      _uniformSize,
-    ).emplace(_uniformData);
+    final uniformView = _emplaceUniforms(_uniformData, _uniformSize);
 
     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
     gpu.Texture? fieldTexture;
@@ -411,9 +421,7 @@ class FlutterGpuGeometryRenderer {
           fieldScale: fieldScale,
           texture: fieldTexture,
         );
-        fieldUniformView = _hostBufferForUniformSize(
-          _uniformSize,
-        ).emplace(_fieldUniformData);
+        fieldUniformView = _emplaceUniforms(_fieldUniformData, _uniformSize);
       }
     } on Object {
       geometryCommandBuffer.submit();
@@ -1297,6 +1305,100 @@ final class MorphDeferredSubmissions<T> {
           ),
         );
       }
+    }
+  }
+}
+
+/// A bump allocator of uniform data over blocks of [blockLength] bytes,
+/// cycling through [frameCount] frames of blocks.
+///
+/// Every emplacement starts at a multiple of [alignment] and lies wholly
+/// inside one block: one that would cross the end of the current block
+/// starts the next block of the frame, reused from an earlier cycle or
+/// allocated, so a frame takes any number of emplacements and a frame
+/// slot keeps the most blocks one frame ever needed. Data longer than a
+/// block gets a block of its own for that use. A frame's blocks are
+/// written again [frameCount] frames later, after the GPU has read them.
+@internal
+final class MorphUniformArena<B extends Object> {
+  /// Creates an arena that takes blocks from [allocate] and copies data
+  /// into them with [write].
+  MorphUniformArena({
+    required this.blockLength,
+    required this.alignment,
+    required this.allocate,
+    required this.write,
+    this.frameCount = 4,
+  }) : _frames = List<List<B>>.generate(frameCount, (_) => <B>[]);
+
+  /// The length of every block in bytes.
+  final int blockLength;
+
+  /// The byte alignment of every emplacement.
+  final int alignment;
+
+  /// The number of frames whose blocks are kept before a block is reused.
+  final int frameCount;
+
+  /// Allocates a block of the given length in bytes.
+  final B Function(int length) allocate;
+
+  /// Copies data into a block at an offset; false when the write failed.
+  final bool Function(B block, ByteData data, int offset) write;
+
+  final List<List<B>> _frames;
+  int _frame = 0;
+  int _block = 0;
+  int _offset = 0;
+
+  /// The number of blocks held across every frame.
+  int get blockCount {
+    var count = 0;
+    for (final frame in _frames) {
+      count += frame.length;
+    }
+    return count;
+  }
+
+  /// Moves to the next frame's blocks, starting at the first one.
+  void nextFrame() {
+    _frame = (_frame + 1) % frameCount;
+    _block = 0;
+    _offset = 0;
+  }
+
+  /// Copies [data] into the current frame's blocks and returns where it
+  /// lies.
+  ({B buffer, int offset}) emplace(ByteData data) {
+    final length = data.lengthInBytes;
+    if (length > blockLength) {
+      final own = allocate(length);
+      _write(own, data, 0);
+      return (buffer: own, offset: 0);
+    }
+    final blocks = _frames[_frame];
+    var start = (_offset + alignment - 1) ~/ alignment * alignment;
+    if (blocks.isEmpty) {
+      blocks.add(allocate(blockLength));
+      _block = 0;
+      start = 0;
+    } else if (start + length > blockLength) {
+      _block++;
+      if (_block == blocks.length) blocks.add(allocate(blockLength));
+      start = 0;
+    }
+    final block = blocks[_block];
+    _write(block, data, start);
+    _offset = start + length;
+    return (buffer: block, offset: start);
+  }
+
+  void _write(B block, ByteData data, int offset) {
+    if (!write(block, data, offset)) {
+      throw StateError(
+        'Failed to write ${data.lengthInBytes} uniform bytes at $offset '
+        'into a $blockLength-byte block.',
+      );
     }
   }
 }

@@ -678,7 +678,32 @@ Bounds since 50a4491:
   `Failed to write range (offset=79616, length=2352)` when an emplace
   straddles the end of a block (its check ignores the write's length);
   the 32-slot block fits about 31 geometry renders a frame, the rest
-  fall back with "geometry render failed".
+  fall back with "geometry render failed". FIXED (2026-10-05): the
+  renderer no longer uses HostBuffer; `MorphUniformArena` (same file)
+  bump-allocates the uniforms over blocks of 32 slots, starts the next
+  block of the frame when a write would cross the end (reused from an
+  earlier cycle, else allocated), cycles four frames like HostBuffer, and
+  throws instead of returning a view it failed to write. HostBuffer also
+  allocated a fresh block on every later overflow and never reused it,
+  so the old path grew without bound once it overflowed. Where it bit:
+  the block is 32 x the geometry uniforms (2352 bytes) rounded up to the
+  uniform alignment. With 256-byte alignment (the Mac's Metal) the 32nd
+  render of a frame crosses the end; with 16 (Pixel 6a, Vulkan:
+  geometry uniforms 2352, field uniforms 80, alignment 16) plain renders
+  fit exactly and only a frame mixing field bodies crosses it. Pixel
+  probe (a scratch profile app, not committed: 100
+  renders in one frame, every other one with a field): HostBuffer fails
+  at render 31 (`offset=74192, length=2352`), the arena takes all 100 in
+  4 blocks; plain renders 100 / 100 on both. Regression:
+  test/glass_uniform_arena_test.dart (200 emplaces in one frame, every
+  one inside its block and aligned; 40 frames of 100 reuse at most 4
+  blocks per frame slot; an oversized write gets its own block; a failed
+  write throws) and glass_density_test.dart's stress phase (96 buttons
+  on one screen pressed in the same frame, `geometry_failures` in the
+  report must be 0; on the Pixel 0 before and after, as the probe
+  predicts for plain buttons). Density timings before / after on the
+  Pixel (one run each, perf/2026-10-05-pixel6a-hostbuffer) within run
+  noise.
 
 ## Vulkan exterior boxes (Pixel 6a, 2026-10-05, Flutter 3.47.2)
 

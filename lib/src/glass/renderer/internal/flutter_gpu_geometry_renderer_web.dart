@@ -53,8 +53,8 @@ class FlutterGpuGeometryRenderer {
 
   int debugRenderCount = 0;
   Object get debugPipelineIdentity => this;
-  int get debugHostBufferBlockLength => 0;
-  Object? get debugHostBufferIdentity => null;
+  int get debugUniformBlockLength => 0;
+  Object? get debugUniformArenaIdentity => null;
   bool get debugDisposed => true;
   ui.Image? get materialImage => null;
 

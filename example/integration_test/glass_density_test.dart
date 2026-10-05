@@ -26,6 +26,11 @@ import 'package:morph/widgets.dart';
 /// ACTIVE frames (build or raster above 0.3 ms), as the glass audit does,
 /// plus the backdrop captures and offscreen layers of one resting and one
 /// pressed frame per density (the layer tree of the profile build).
+///
+/// A last untimed phase mounts [stressCount] smaller buttons on one
+/// screen, presses all of them and fails the test when any glass layer's
+/// geometry render failed over the whole run (`geometry_failures` in the
+/// report): every layer must draw however many render in one frame.
 const int _runs = int.fromEnvironment('AUDIT_RUNS', defaultValue: 1);
 
 const String _tierName = String.fromEnvironment(
@@ -36,6 +41,10 @@ const String _tierName = String.fromEnvironment(
 /// The button counts the audit measures.
 const List<int> densities = [1, 4, 8, 16, 32];
 
+/// The button count of the stress phase, more geometry renders in one
+/// frame than a uniform block holds.
+const int stressCount = 96;
+
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -44,11 +53,20 @@ void main() {
     final audit = _Density(binding, tester);
     binding.platformDispatcher.platformBrightnessTestValue = .dark;
     SchedulerBinding.instance.addTimingsCallback(audit.timings.addAll);
+    final reportError = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      if ('${details.exception}'.contains('geometry render failed')) {
+        audit.geometryFailures++;
+      }
+      reportError?.call(details);
+    };
     await audit.run();
+    FlutterError.onError = reportError;
     File('${_Density.outDir.path}/report.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(audit.report()),
     );
     binding.platformDispatcher.clearPlatformBrightnessTestValue();
+    expect(audit.geometryFailures, 0);
   });
 }
 
@@ -56,10 +74,19 @@ void main() {
 /// over a list of coloured rows.
 class DensityPage extends StatelessWidget {
   /// Creates the page with [count] buttons at [tier].
-  const DensityPage({required this.count, required this.tier, super.key});
+  const DensityPage({
+    required this.count,
+    required this.tier,
+    this.compact = false,
+    super.key,
+  });
 
   /// The number of glass buttons.
   final int count;
+
+  /// Whether the buttons are the stress phase's smaller ones, 8 to a row,
+  /// so that [stressCount] fit on one screen.
+  final bool compact;
 
   /// The glass tier the page is drawn at.
   final MorphGlassTier tier;
@@ -67,6 +94,13 @@ class DensityPage extends StatelessWidget {
   /// The center of button [i] on a 402 pt wide screen.
   static Offset buttonCenter(int i) =>
       Offset(57 + (i % 4) * 96.0, 120 + (i ~/ 4) * 60.0);
+
+  /// The center of compact button [i].
+  static Offset compactCenter(int i) =>
+      Offset(28 + (i % 8) * 50.0, 80 + (i ~/ 8) * 44.0);
+
+  /// The center of button [i] on this page.
+  Offset centerOf(int i) => compact ? compactCenter(i) : buttonCenter(i);
 
   @override
   Widget build(BuildContext context) => MaterialApp(
@@ -105,9 +139,9 @@ class DensityPage extends StatelessWidget {
           for (var i = 0; i < count; i++)
             Positioned.fromRect(
               rect: Rect.fromCenter(
-                center: buttonCenter(i),
-                width: 80,
-                height: 44,
+                center: centerOf(i),
+                width: compact ? 44 : 80,
+                height: compact ? 36 : 44,
               ),
               child: MorphGlassButton(onPressed: () {}, child: Text('$i')),
             ),
@@ -133,6 +167,9 @@ class _Density {
   final Map<String, Map<String, int>> _layers = {};
   final Stopwatch _clock = Stopwatch();
   int _pointer = 300;
+
+  /// Geometry renders that failed over the run.
+  int geometryFailures = 0;
 
   MorphGlassTier get tier => MorphGlassTier.values.byName(_tierName);
 
@@ -163,6 +200,22 @@ class _Density {
       await measure('n$n-rest', _scroll);
       await measure('n$n-wave', () => _wave(n, sample: 'n$n-pressed'));
     }
+    runApp(
+      DensityPage(
+        key: const ValueKey<String>('stress'),
+        count: stressCount,
+        tier: tier,
+        compact: true,
+      ),
+    );
+    await settle(1500);
+    _layers['stress-rest'] = _countLayers();
+    await _wave(
+      stressCount,
+      sample: 'stress-pressed',
+      at: DensityPage.compactCenter,
+      step: 0,
+    );
   }
 
   Future<void> _scroll() async {
@@ -178,27 +231,29 @@ class _Density {
     }
   }
 
-  /// Presses every button in a wave: finger i lands two frames after
+  /// Presses every button in a wave: finger i lands [step] frames after
   /// finger i - 1 and lifts 25 frames after it landed.
-  Future<void> _wave(int n, {required String sample}) async {
+  Future<void> _wave(
+    int n, {
+    required String sample,
+    Offset Function(int i) at = DensityPage.buttonCenter,
+    int step = 2,
+  }) async {
     const down = 25;
     final gestures = <int, TestGesture>{};
-    final last = (n - 1) * 2 + down;
+    final last = (n - 1) * step + down;
     for (var frame = 0; frame <= last; frame++) {
       for (var i = 0; i < n; i++) {
-        if (frame == i * 2) {
+        if (frame == i * step) {
           final gesture = await tester.createGesture(pointer: _pointer++);
-          await gesture.down(
-            DensityPage.buttonCenter(i),
-            timeStamp: _clock.elapsed,
-          );
+          await gesture.down(at(i), timeStamp: _clock.elapsed);
           gestures[i] = gesture;
-        } else if (frame == i * 2 + down) {
+        } else if (frame == i * step + down) {
           await gestures.remove(i)!.up(timeStamp: _clock.elapsed);
         }
       }
       await tester.pump(const Duration(milliseconds: 8));
-      if (frame == math.min(last, (n - 1) * 2 + 4) &&
+      if (frame == math.min(last, (n - 1) * step + 4) &&
           !_layers.containsKey(sample)) {
         _layers[sample] = _countLayers();
       }
@@ -314,6 +369,7 @@ class _Density {
       'tier': _tierName,
       'liquid_available': MorphGlassRenderer.liquidAvailable,
       'runs': _runs,
+      'geometry_failures': geometryFailures,
       'layers': _layers,
       for (final MapEntry(key: scene, value: windows) in _scenes.entries)
         scene: () {

@@ -173,3 +173,11 @@ Local patches (some commits include related package changes):
   full final shader and drew half the glass over the whole filter clip.
   Bit-identical result elsewhere (glass-renderer.md, Vulkan exterior
   boxes).
+- 2026-10-05 uniform arena: internal/flutter_gpu_geometry_renderer_native
+  .dart replaces the shared Flutter GPU HostBuffer with MorphUniformArena,
+  a bump allocator over hostVisible DeviceBuffers that never lets an
+  emplacement cross a block end (HostBuffer checks only the start, so the
+  ~32nd uniform write of a frame failed and its layer was not drawn) and
+  reuses a frame slot's extra blocks. debugHostBufferBlockLength /
+  debugHostBufferIdentity became debugUniformBlockLength /
+  debugUniformArenaIdentity (also in the web stub).
