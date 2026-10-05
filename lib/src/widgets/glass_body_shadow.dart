@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:meta/meta.dart';
 
 /// The exterior shadow of one fused glass body.
 @internal
@@ -37,7 +37,14 @@ class MorphGlassBodyShadow extends CustomPainter {
             blurStyle: BlurStyle.normal,
           )
           .toPaint();
-      canvas.drawPath(outline.shift(shadow.offset), paint);
+      if (shadow.offset == Offset.zero) {
+        canvas.drawPath(outline, paint);
+      } else {
+        canvas.save();
+        canvas.translate(shadow.offset.dx, shadow.offset.dy);
+        canvas.drawPath(outline, paint);
+        canvas.restore();
+      }
     }
     final cutout = Paint();
     cutout.blendMode = BlendMode.dstOut;
@@ -48,6 +55,6 @@ class MorphGlassBodyShadow extends CustomPainter {
   @override
   bool shouldRepaint(MorphGlassBodyShadow oldDelegate) =>
       oldDelegate.outline != outline ||
-      oldDelegate.shadows != shadows ||
+      !listEquals(oldDelegate.shadows, shadows) ||
       oldDelegate.opacity != opacity;
 }

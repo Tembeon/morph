@@ -212,11 +212,11 @@
   "menu-card/liquid": {
     "frames": 289,
     "builds": 52.4,
-    "paints": 62.5,
+    "paints": 62.4,
     "pictures": 7.9,
     "captures": 3.0,
     "offscreen": 3.8,
-    "bodyShadows": 1.4,
+    "bodyShadows": 1.3,
     "idle": 0
   },
   "nav-scroll/liquid": {
