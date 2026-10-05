@@ -680,6 +680,46 @@ Bounds since 50a4491:
   the 32-slot block fits about 31 geometry renders a frame, the rest
   fall back with "geometry render failed".
 
+## Vulkan exterior boxes (Pixel 6a, 2026-10-05, Flutter 3.47.2)
+
+Symptom: on the Pixel 6a (Mali-G78, Impeller Vulkan) every liquid
+surface sat in a box the size of its filter clip, half its own interior
+color (20,20,21 around a dark button over black, dark blue around a
+prominent one; perf/2026-10-05-pixel6a-attrib). Not on GLES on the same
+GPU, not on Metal, not on the flat or frosted tiers.
+
+Root cause: the final pass's `decodeSignedEdgeDistance`
+(shaders/gpu/displacement_encoding.glsl) chose its branch with a ternary
+on the sign of the centered distance. Compiled into the whole final
+render shader, the Vulkan pipeline returned 0 for every exterior texel
+(b < 0.5, including the empty matte, b = 0) instead of
+-(magnitude x exterior range), so each exterior pixel read as lying on
+the silhouette: material alpha 0.5, glass color at half weight, over the
+whole matte inside the clip. The layer chain is innocent. Bisected with
+probe builds of a minimal scene (raw LiquidGlassLayer + LiquidGlass and
+MorphGlassButton over black): removing the opacity probe, the retained
+effect OffsetLayer, the filter ClipRect or the shadow picture changed
+nothing; writing the decoded values out of the full shader showed sd = 0
+and material alpha 0.5 on exterior texels with b = 0, while the same
+decode written out of a shader whose later code was dead (so the
+compiler dropped it) gave the correct -3 px; the geometry texture,
+uniforms (contour extent 2.98 px) and the sampled b were right in every
+build. The SPIR-V path is the only one that differs from GLES on the
+same GPU, so this is a shader-compiler fault (Mali Vulkan driver or the
+Vulkan SPIR-V impellerc emits), not engine compositing.
+
+Fix: the decode selects with `step(0, centered)` and arithmetic instead
+of the ternary. Exact for every input (step is exactly 0 or 1, so the
+products and the subtraction are exact and the result equals the old
+branch bit for bit): Metal and GLES output is unchanged
+(test/glass_frames_test.dart hashes identical before and after; it runs
+the fallback there, the identity on Metal is by that arithmetic). On
+the Pixel the probe scene's Vulkan frame is pixel-identical to GLES
+after the fix (0 differing pixels over the scene). Regression:
+example/integration_test/liquid_exterior_test.dart (on device; fails
+before the fix with 1646 lit exterior pixels, max channel 21, passes
+after).
+
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
 - 2026-10-05, tool/ios_reference/perf/audit.sh (5 timed runs per scene,
