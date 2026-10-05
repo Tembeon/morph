@@ -185,6 +185,15 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
   bool get motionSettled => !widget.animating;
 
   @override
+  double? get motionWakeTime {
+    const period =
+        MorphActivityIndicatorFrames.loopDuration /
+        MorphActivityIndicatorFrames.frameCount;
+    final shown = clock - _startedAt;
+    return _startedAt + ((shown / period).floor() + 1) * period;
+  }
+
+  @override
   void didUpdateWidget(MorphActivityIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.animating != oldWidget.animating) {

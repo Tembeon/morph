@@ -100,6 +100,33 @@ void main() {
     await tester.pumpWidget(const SizedBox());
   });
 
+  testWidgets('the spinner dozes between images and shows them on time', (
+    tester,
+  ) async {
+    var painted = false;
+    debugOnProfilePaint = (RenderObject object) {
+      if (object is RenderCustomPaint) painted = true;
+    };
+    await tester.pumpWidget(_scene(const MorphActivityIndicator()));
+    final paints = <int>[];
+    var frames = 0;
+    for (var n = 1; n <= 250; n++) {
+      if (tester.binding.hasScheduledFrame) frames++;
+      painted = false;
+      await tester.pump(const Duration(milliseconds: 8));
+      if (painted) paints.add(n);
+    }
+    debugOnProfilePaint = null;
+    expect(paints, [
+      for (var n = 1; n <= 250; n++)
+        if (MorphActivityIndicatorFrames.frameAt(n * 8000 / 1e6) !=
+            MorphActivityIndicatorFrames.frameAt((n - 1) * 8000 / 1e6))
+          n,
+    ]);
+    expect(frames, lessThan(paints.length * 2 + 2));
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('A6 D7 button gives the shared glass layer its measured glow', (
     tester,
   ) async {

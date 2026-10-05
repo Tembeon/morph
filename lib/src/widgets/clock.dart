@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -15,6 +17,13 @@ import 'package:meta/meta.dart';
 /// frame after it wakes keep their spacing, measured by their own
 /// timestamps and slowed by [timeDilation], and that frame continues
 /// from the latest stamp, so the clock never runs backwards.
+///
+/// A motion that shows nothing new until a later time names it in
+/// [motionWakeTime]; the ticker then dozes until that time instead of
+/// producing frames that draw the same picture. Unlike a settled sleep, a
+/// doze counts: the frame that ends it reads the clock from the frame
+/// time stamps, exactly as an uninterrupted ticker would, and the doze ends
+/// half a frame early so the frame that shows the change is never missed.
 @internal
 mixin MorphClock<T extends StatefulWidget>
     on State<T>, SingleTickerProviderStateMixin<T> {
@@ -26,6 +35,9 @@ mixin MorphClock<T extends StatefulWidget>
   double _stampClock = 0;
   double _frameRate = 120;
   final ValueNotifier<int> _frames = ValueNotifier<int>(0);
+  Timer? _doze;
+  Duration? _dozeStamp;
+  double _dozeClock = 0;
 
   /// Notifies on every frame of the motion; use it as a painter's repaint.
   Listenable get frames => _frames;
@@ -42,6 +54,10 @@ mixin MorphClock<T extends StatefulWidget>
 
   /// Whether the motion has nothing left to animate.
   bool get motionSettled;
+
+  /// The motion time before which the motion draws nothing new, or null
+  /// when it changes every frame.
+  double? get motionWakeTime => null;
 
   /// The motion time of [event], waking the ticker.
   double stamp(PointerEvent event) {
@@ -63,6 +79,12 @@ mixin MorphClock<T extends StatefulWidget>
 
   void _onTick(Duration elapsed) {
     final seconds = elapsed.inMicroseconds / 1e6;
+    if (_dozeStamp case final dozed?) {
+      final now = SchedulerBinding.instance.currentFrameTimeStamp;
+      final micros = (_dozeClock * 1e6).round() + (now - dozed).inMicroseconds;
+      _base = micros / 1e6 - seconds;
+      _dozeStamp = null;
+    }
     if (_base + seconds < _clock) _base = _clock - seconds;
     _clock = _base + seconds;
     _ticking = true;
@@ -73,11 +95,33 @@ mixin MorphClock<T extends StatefulWidget>
       _base = _clock;
       _ticking = false;
       _ticker.stop();
+      return;
     }
+    final until = motionWakeTime;
+    if (until != null && until - _clock > 2 / _frameRate) {
+      _dozeStamp = SchedulerBinding.instance.currentFrameTimeStamp;
+      _dozeClock = _clock;
+      _ticker.stop();
+      _doze = Timer(
+        Duration(
+          microseconds:
+              ((until - _clock - 0.5 / _frameRate) * timeDilation * 1e6)
+                  .floor(),
+        ),
+        _endDoze,
+      );
+    }
+  }
+
+  void _endDoze() {
+    _doze = null;
+    if (!_ticker.isActive) _ticker.start();
   }
 
   /// Makes sure the ticker runs so a pending motion gets frames.
   void wake() {
+    _doze?.cancel();
+    _doze = null;
     if (!_ticker.isActive) _ticker.start();
   }
 
@@ -90,6 +134,7 @@ mixin MorphClock<T extends StatefulWidget>
 
   @override
   void dispose() {
+    _doze?.cancel();
     _ticker.dispose();
     _frames.dispose();
     super.dispose();
