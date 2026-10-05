@@ -1,40 +1,85 @@
 import 'dart:ui';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/glass_shadow.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/optimized_clip.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
-import 'package:meta/meta.dart';
+
+/// The shape, material and shadows of one [LiquidGlass] in one frame.
+@immutable
+class LiquidGlassShapeFrame {
+  /// Describes a shape.
+  const LiquidGlassShapeFrame({
+    required this.shape,
+    this.appearance,
+    this.shadows = const [],
+  });
+
+  /// The geometry shaded by the containing layer.
+  final LiquidShape shape;
+
+  /// The material and visibility override.
+  final LiquidGlassAppearance? appearance;
+
+  /// Shadows around the shape.
+  final List<BoxShadow> shadows;
+}
 
 /// One independently shaded shape in a [LiquidGlassLayer].
 class LiquidGlass extends StatefulWidget {
   /// Creates a shape registered with the nearest layer.
   const LiquidGlass({
     required this.child,
-    required this.shape,
+    required LiquidShape this._shape,
     this.clipBehavior = Clip.hardEdge,
-    this.shadows = const [],
-    this.appearance,
+    this._shadows = const [],
+    this._appearance,
     super.key,
-  });
+  }) : live = null;
+
+  /// Creates a shape whose geometry, material and shadows follow [live].
+  ///
+  /// Every notification of [live] writes the new frame straight into the
+  /// shape's render objects; the widget rebuilds only when the kind of
+  /// shape changes or its shadows appear or vanish.
+  const LiquidGlass.live({
+    required this.child,
+    required ValueListenable<LiquidGlassShapeFrame> this.live,
+    this.clipBehavior = Clip.hardEdge,
+    super.key,
+  }) : _shape = null,
+       _shadows = const [],
+       _appearance = null;
 
   /// Content painted above the shape.
   final Widget child;
 
+  /// The frames of a live shape, or null for a fixed one.
+  final ValueListenable<LiquidGlassShapeFrame>? live;
+
+  final LiquidShape? _shape;
+
+  final List<BoxShadow> _shadows;
+
+  final LiquidGlassAppearance? _appearance;
+
   /// The geometry shaded by the containing layer.
-  final LiquidShape shape;
+  LiquidShape get shape => live?.value.shape ?? _shape!;
 
   /// The clipping of the content to the shape.
   final Clip clipBehavior;
 
   /// Shadows around the shape.
-  final List<BoxShadow> shadows;
+  List<BoxShadow> get shadows => live?.value.shadows ?? _shadows;
 
   /// The material and visibility override.
-  final LiquidGlassAppearance? appearance;
+  LiquidGlassAppearance? get appearance =>
+      live == null ? _appearance : live!.value.appearance;
 
   @override
   State<LiquidGlass> createState() => _LiquidGlassState();
@@ -43,56 +88,130 @@ class LiquidGlass extends StatefulWidget {
 class _LiquidGlassState extends State<LiquidGlass> {
   final _childKey = GlobalKey(debugLabel: 'LiquidGlass.child');
 
+  (Type, bool)? _form;
+  bool _rebuildsOnFrame = false;
+
+  LiquidGlassShapeFrame? _resolvedFrame;
+  LiquidGlassAppearance? _resolvedBase;
+  double _resolvedFactor = 1;
+  LiquidGlassAppearance? _resolved;
+
+  (Type, bool) _formOf() => (widget.shape.runtimeType, widget.shadows.isEmpty);
+
+  @override
+  void initState() {
+    super.initState();
+    widget.live?.addListener(_frameChanged);
+  }
+
+  @override
+  void didUpdateWidget(LiquidGlass oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.live, widget.live)) {
+      oldWidget.live?.removeListener(_frameChanged);
+      widget.live?.addListener(_frameChanged);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.live?.removeListener(_frameChanged);
+    super.dispose();
+  }
+
+  void _frameChanged() {
+    if (_rebuildsOnFrame || _formOf() != _form) setState(() {});
+  }
+
+  LiquidGlassAppearance _appearanceOf(
+    LiquidGlassAppearance fallback,
+    double factor,
+  ) {
+    final live = widget.live;
+    final frame = live?.value;
+    if (frame != null &&
+        identical(frame, _resolvedFrame) &&
+        identical(fallback, _resolvedBase) &&
+        factor == _resolvedFactor) {
+      return _resolved!;
+    }
+    final base = widget.appearance ?? fallback;
+    final appearance = base.copyWith(visibility: base.visibility * factor);
+    _resolvedFrame = frame;
+    _resolvedBase = fallback;
+    _resolvedFactor = factor;
+    _resolved = appearance;
+    return appearance;
+  }
+
   @override
   Widget build(BuildContext context) {
+    _form = _formOf();
     final scope = LiquidGlassRenderScope.of(context);
-    final base = widget.appearance ?? scope.defaultAppearance;
-    final appearance = base.copyWith(
-      visibility: base.visibility * LiquidGlassVisibility.of(context),
-    );
+    final factor = LiquidGlassVisibility.of(context);
+    final fallback = scope.defaultAppearance;
+    LiquidGlassAppearance appearance() => _appearanceOf(fallback, factor);
+    final frame = widget.live;
+    final settingsLive = scope.settingsLive;
+    final Listenable? live = frame == null && settingsLive == null
+        ? null
+        : Listenable.merge([?frame, ?settingsLive]);
+    LiquidShape shape() => widget.shape;
+    LiquidGlassSettings settings() => scope.currentSettings;
     final child = KeyedSubtree(key: _childKey, child: widget.child);
+    _rebuildsOnFrame = false;
     if (scope.useFake ||
         (!ImageFilter.isShaderFilterSupported &&
             !scope.consolidatesFakeBackdrop)) {
+      _rebuildsOnFrame = frame != null;
       return FakeGlass.inLayerResolved(
         shape: widget.shape,
-        appearance: appearance,
+        appearance: appearance(),
         shadows: widget.shadows,
         child: child,
       );
     }
-    final registered = scope.consolidatesFakeBackdrop
-        ? FakeGlass.inLayerResolved(
-            shape: widget.shape,
-            appearance: appearance,
-            backdropHandledByLayer: true,
-            child: child,
-          )
-        : OptimizedClip(
-            shape: widget.shape,
-            clipBehavior: widget.clipBehavior,
-            child: Opacity(
-              opacity: appearance.visibility.clamp(0.0, 1.0),
-              child: child,
-            ),
-          );
+    final Widget registered;
+    if (scope.consolidatesFakeBackdrop) {
+      registered = FakeGlass.inLayerLive(
+        live: live,
+        shapeOf: shape,
+        appearanceOf: appearance,
+        child: child,
+      );
+    } else {
+      registered = GlassLiveShapeClip(
+        live: live,
+        shapeOf: shape,
+        clipBehavior: widget.clipBehavior,
+        child: GlassLiveOpacity(
+          live: live,
+          opacityOf: () => appearance().visibility.clamp(0.0, 1.0),
+          child: child,
+        ),
+      );
+    }
     final content = _RawLiquidGlass(
       renderLink: InheritedGeometryRenderLink.of(context),
-      settings: scope.settings,
-      appearance: appearance,
+      live: live,
+      settingsOf: settings,
+      appearanceOf: appearance,
       devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
-      shape: widget.shape,
-      layerShadows: scope.consolidatesFakeBackdrop ? widget.shadows : const [],
+      shapeOf: shape,
+      layerShadowsOf: scope.consolidatesFakeBackdrop
+          ? () => widget.shadows
+          : () => const [],
       child: registered,
     );
     if (widget.shadows.isEmpty || scope.consolidatesFakeBackdrop) {
       return content;
     }
-    return GlassShadow(
-      settings: scope.settings,
-      appearanceVisibility: appearance.visibility,
-      shape: widget.shape,
-      shadows: widget.shadows,
+    return GlassShadow.live(
+      live: live,
+      shapeOf: shape,
+      shadowsOf: () => widget.shadows,
+      visibilityOf: () => appearance().visibility,
+      settings: scope.currentSettings,
       child: content,
     );
   }
@@ -101,40 +220,50 @@ class _LiquidGlassState extends State<LiquidGlass> {
 class _RawLiquidGlass extends SingleChildRenderObjectWidget {
   const _RawLiquidGlass({
     required super.child,
-    required this.shape,
-    required this.layerShadows,
+    required this.live,
+    required this.shapeOf,
+    required this.layerShadowsOf,
     required this.renderLink,
-    required this.settings,
-    required this.appearance,
+    required this.settingsOf,
+    required this.appearanceOf,
     required this.devicePixelRatio,
   });
 
-  final LiquidShape shape;
-  final List<BoxShadow> layerShadows;
+  final Listenable? live;
+  final LiquidShape Function() shapeOf;
+  final List<BoxShadow> Function() layerShadowsOf;
   final GeometryRenderLink? renderLink;
-  final LiquidGlassSettings settings;
-  final LiquidGlassAppearance appearance;
+  final LiquidGlassSettings Function() settingsOf;
+  final LiquidGlassAppearance Function() appearanceOf;
   final double devicePixelRatio;
 
+  void _apply(RenderLiquidGlass renderObject) {
+    renderObject.shape = shapeOf();
+    renderObject.layerShadows = layerShadowsOf();
+    renderObject.settings = settingsOf();
+    renderObject.appearance = appearanceOf();
+  }
+
   @override
-  RenderObject createRenderObject(BuildContext context) => RenderLiquidGlass(
-    shape: shape,
-    layerShadows: layerShadows,
-    renderLink: renderLink,
-    settings: settings,
-    appearance: appearance,
-    devicePixelRatio: devicePixelRatio,
-  );
+  RenderObject createRenderObject(BuildContext context) {
+    final glass = RenderLiquidGlass(
+      shape: shapeOf(),
+      layerShadows: layerShadowsOf(),
+      renderLink: renderLink,
+      settings: settingsOf(),
+      appearance: appearanceOf(),
+      devicePixelRatio: devicePixelRatio,
+    );
+    glass.bindLive(live, () => _apply(glass));
+    return glass;
+  }
 
   @override
   void updateRenderObject(
     BuildContext context,
     RenderLiquidGlass renderObject,
   ) {
-    renderObject.shape = shape;
-    renderObject.layerShadows = layerShadows;
-    renderObject.settings = settings;
-    renderObject.appearance = appearance;
+    renderObject.bindLive(live, () => _apply(renderObject));
     renderObject.devicePixelRatio = devicePixelRatio;
     renderObject.renderLink = renderLink;
   }
@@ -143,7 +272,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
 /// Geometry of one independently registered shape.
 @internal
 class RenderLiquidGlass extends RenderLiquidGlassGeometry
-    with LiquidGlassShapeRenderObject {
+    with LiquidGlassShapeRenderObject, GlassLiveBinding {
   /// Creates the geometry and material registration for a shape.
   RenderLiquidGlass({
     required this._shape,

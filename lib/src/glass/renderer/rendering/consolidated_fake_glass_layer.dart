@@ -8,6 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/internal/fake_glass_color.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/paint_fake_glass_surface.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
@@ -19,35 +20,50 @@ enum _FakeGlassPaintStage { shadows, backdrop, surfaces, contents }
 class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
   const ConsolidatedFakeGlassLayer({
     required this.link,
-    required this.settings,
+    required this.settingsOf,
     required this.defaultAppearance,
     required this.backdropKey,
     required this.surfaceShader,
     required super.child,
-    this.outline,
+    this.live,
+    this.outlineOf,
     super.key,
   });
 
+  /// The source of live settings and outline, or null for fixed ones.
+  final Listenable? live;
+
   /// The outline of the one body the layer's shapes fused into, in the
   /// layer's coordinates, which the backdrop and surfaces are clipped to.
-  final Path? outline;
+  final Path? Function()? outlineOf;
 
   final GeometryRenderLink link;
-  final LiquidGlassSettings settings;
+
+  /// The settings now.
+  final LiquidGlassSettings Function() settingsOf;
   final LiquidGlassAppearance defaultAppearance;
   final BackdropKey? backdropKey;
   final FragmentShader? surfaceShader;
+
+  void _apply(RenderConsolidatedFakeGlassLayer layer) {
+    layer.settings = settingsOf();
+    layer.outline = outlineOf?.call();
+  }
+
   @override
-  RenderObject createRenderObject(BuildContext context) =>
-      RenderConsolidatedFakeGlassLayer(
-        devicePixelRatio: MediaQuery.maybeDevicePixelRatioOf(context) ?? 1,
-        link: link,
-        settings: settings,
-        defaultAppearance: defaultAppearance,
-        backdropKey: backdropKey,
-        surfaceShader: surfaceShader,
-        outline: outline,
-      );
+  RenderObject createRenderObject(BuildContext context) {
+    final layer = RenderConsolidatedFakeGlassLayer(
+      devicePixelRatio: MediaQuery.maybeDevicePixelRatioOf(context) ?? 1,
+      link: link,
+      settings: settingsOf(),
+      defaultAppearance: defaultAppearance,
+      backdropKey: backdropKey,
+      surfaceShader: surfaceShader,
+      outline: outlineOf?.call(),
+    );
+    layer.bindLive(live, () => _apply(layer));
+    return layer;
+  }
 
   @override
   void updateRenderObject(
@@ -57,11 +73,10 @@ class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
     renderObject.devicePixelRatio =
         MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
     renderObject.link = link;
-    renderObject.settings = settings;
     renderObject.defaultAppearance = defaultAppearance;
     renderObject.backdropKey = backdropKey;
     renderObject.surfaceShader = surfaceShader;
-    renderObject.outline = outline;
+    renderObject.bindLive(live, () => _apply(renderObject));
   }
 }
 
@@ -73,7 +88,7 @@ class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
 @visibleForTesting
 @internal
 class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
-    with TransformTrackingRenderObjectMixin
+    with TransformTrackingRenderObjectMixin, GlassLiveBinding
     implements LiquidGlassLayerRenderObject {
   RenderConsolidatedFakeGlassLayer({
     required super.devicePixelRatio,

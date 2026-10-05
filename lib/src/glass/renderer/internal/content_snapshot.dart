@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 
 /// A painted content source shared by the lens copies in one control.
 @internal
@@ -100,8 +101,14 @@ class GlassContentSource extends SingleChildRenderObjectWidget {
     required this.snapshot,
     required this.capture,
     required super.child,
+    this.live,
     super.key,
   });
+
+  /// Notifies once per frame of a live lens: while [capture] is on, every
+  /// notification records the content again, as a rebuild with [capture]
+  /// does.
+  final Listenable? live;
 
   /// The replay source of the lifted lenses.
   final GlassContentSnapshot snapshot;
@@ -110,11 +117,15 @@ class GlassContentSource extends SingleChildRenderObjectWidget {
   final bool capture;
 
   @override
-  RenderObject createRenderObject(BuildContext context) => _RenderContentSource(
-    snapshot,
-    MediaQuery.devicePixelRatioOf(context),
-    capture: capture,
-  );
+  RenderObject createRenderObject(BuildContext context) {
+    final source = _RenderContentSource(
+      snapshot,
+      MediaQuery.devicePixelRatioOf(context),
+      capture: capture,
+    );
+    source.bindLive(live, source._frame);
+    return source;
+  }
 
   @override
   void updateRenderObject(
@@ -135,11 +146,16 @@ class GlassContentSource extends SingleChildRenderObjectWidget {
       source.capture = capture;
       source.markNeedsPaint();
     }
+    source.bindLive(live, source._frame);
   }
 }
 
-class _RenderContentSource extends RenderProxyBox {
+class _RenderContentSource extends RenderProxyBox with GlassLiveBinding {
   _RenderContentSource(this.snapshot, this.pixelRatio, {required this.capture});
+
+  void _frame() {
+    if (capture) markNeedsPaint();
+  }
 
   GlassContentSnapshot snapshot;
   double pixelRatio;

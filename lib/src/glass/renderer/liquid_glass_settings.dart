@@ -183,7 +183,7 @@ class LiquidGlassSettings with Equatable {
 
   /// Returns the material settings supplied by the nearest glass layer.
   static LiquidGlassSettings of(BuildContext context) {
-    return LiquidGlassRenderScope.of(context).settings;
+    return LiquidGlassRenderScope.of(context).currentSettings;
   }
 
   /// Width of the refracting bevel in logical pixels, measured inward from

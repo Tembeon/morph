@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/liquid_shape.dart';
 
 /// Clips its child using the given [shape].
@@ -87,4 +88,62 @@ class _OutsetShapeBorderClipper extends CustomClipper<Path> {
   @override
   bool shouldReclip(covariant _OutsetShapeBorderClipper oldClipper) =>
       oldClipper.shape != shape || oldClipper.outset != outset;
+}
+
+/// An [OptimizedClip] for a liquid shape that follows a live source: the
+/// same clip widget the current shape picks, its radius read again on
+/// every notification of [live].
+///
+/// The kind of shape (oval, rounded rectangle, rounded superellipse) is
+/// read once per build; an owner whose shape changes kind rebuilds it.
+@internal
+class GlassLiveShapeClip extends StatelessWidget {
+  /// Clips [child] to [shapeOf].
+  const GlassLiveShapeClip({
+    required this.live,
+    required this.shapeOf,
+    required this.child,
+    this.clipBehavior = Clip.antiAlias,
+    super.key,
+  });
+
+  /// The source of the shape.
+  final Listenable? live;
+
+  /// The shape now.
+  final LiquidShape Function() shapeOf;
+
+  /// How the clip is antialiased; [Clip.none] does not clip.
+  final Clip clipBehavior;
+
+  /// The clipped subtree.
+  final Widget child;
+
+  BorderRadiusGeometry _radius() => switch (shapeOf()) {
+    LiquidRoundedSuperellipse(:final borderRadius) ||
+    LiquidRoundedRectangle(
+      :final borderRadius,
+    ) => BorderRadius.circular(borderRadius),
+    LiquidOval() => BorderRadius.zero,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    if (clipBehavior == Clip.none) return child;
+    return switch (shapeOf()) {
+      LiquidRoundedSuperellipse() => GlassLiveClipRSuperellipse(
+        live: live,
+        borderRadiusOf: _radius,
+        clipBehavior: clipBehavior,
+        child: child,
+      ),
+      LiquidRoundedRectangle() => GlassLiveClipRRect(
+        live: live,
+        borderRadiusOf: _radius,
+        clipBehavior: clipBehavior,
+        child: child,
+      ),
+      LiquidOval() => ClipOval(clipBehavior: clipBehavior, child: child),
+    };
+  }
 }

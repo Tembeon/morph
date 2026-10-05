@@ -8,6 +8,7 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/glass_shadow.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/internal/fake_glass_color.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/internal/optimized_clip.dart';
 import 'package:morph/src/glass/renderer/internal/paint_fake_glass_surface.dart';
@@ -33,7 +34,10 @@ class FakeGlass extends StatelessWidget {
     this.useBackdropGroup = false,
     this.backdropHandledByLayer = false,
     super.key,
-  }) : inheritVisibility = true;
+  }) : inheritVisibility = true,
+       _live = null,
+       _shapeOf = null,
+       _appearanceOf = null;
 
   /// Creates a new [FakeGlass] widget that takes settings from the nearest
   /// ancestor [LiquidGlassLayer].
@@ -47,7 +51,10 @@ class FakeGlass extends StatelessWidget {
   }) : settings = null,
        backdropKey = null,
        useBackdropGroup = false,
-       inheritVisibility = true;
+       inheritVisibility = true,
+       _live = null,
+       _shapeOf = null,
+       _appearanceOf = null;
 
   /// Creates an in-layer fallback whose appearance is already resolved.
   @internal
@@ -61,7 +68,35 @@ class FakeGlass extends StatelessWidget {
   }) : settings = null,
        backdropKey = null,
        useBackdropGroup = false,
-       inheritVisibility = false;
+       inheritVisibility = false,
+       _live = null,
+       _shapeOf = null,
+       _appearanceOf = null;
+
+  /// Creates an in-layer fallback whose shape and resolved appearance
+  /// follow [live], with the layer's backdrop: every notification writes
+  /// them, and the layer's live settings, into the render objects without
+  /// a rebuild.
+  @internal
+  FakeGlass.inLayerLive({
+    required this._live,
+    required LiquidShape Function() shapeOf,
+    required LiquidGlassAppearance Function() this._appearanceOf,
+    required this.child,
+    super.key,
+  }) : shape = shapeOf(),
+       appearance = null,
+       shadows = const [],
+       backdropHandledByLayer = true,
+       settings = null,
+       backdropKey = null,
+       useBackdropGroup = false,
+       inheritVisibility = false,
+       _shapeOf = shapeOf;
+
+  final Listenable? _live;
+  final LiquidShape Function()? _shapeOf;
+  final LiquidGlassAppearance Function()? _appearanceOf;
 
   static final List<String> _surfaceShaderAssets = [
     ShaderKeys.fakeGlassSurface,
@@ -116,8 +151,53 @@ class FakeGlass extends StatelessWidget {
   /// The child widget that will be displayed inside the glass.
   final Widget child;
 
+  Widget _buildLive(
+    BuildContext context,
+    LiquidShape Function() shapeOf,
+    LiquidGlassAppearance Function() appearanceOf,
+  ) {
+    final renderScope = LiquidGlassRenderScope.of(context);
+    final paintsOwnSurface =
+        !renderScope.consolidatesFakeSurface || !backdropHandledByLayer;
+    final allowsSurfaceOutset =
+        renderScope.consolidatesFakeSurface && !backdropHandledByLayer;
+    final paintsExteriorBorder = paintsOwnSurface && !allowsSurfaceOutset;
+    if (paintsOwnSurface || allowsSurfaceOutset || paintsExteriorBorder) {
+      return GlassRebuildOn(
+        live: _live,
+        builder: (BuildContext context) => FakeGlass.inLayerResolved(
+          shape: shapeOf(),
+          appearance: appearanceOf(),
+          backdropHandledByLayer: backdropHandledByLayer,
+          child: child,
+        ),
+      );
+    }
+    return GlassLiveShapeClip(
+      live: _live,
+      shapeOf: shapeOf,
+      child: RawFakeGlass.live(
+        live: _live,
+        shapeOf: shapeOf,
+        settingsOf: () => renderScope.currentSettings,
+        appearanceOf: appearanceOf,
+        backdropKey: renderScope.backdropKey,
+        backdropHandledByLayer: backdropHandledByLayer,
+        paintSurface: paintsOwnSurface,
+        child: GlassLiveOpacity(
+          live: _live,
+          opacityOf: () => appearanceOf().visibility.clamp(0.0, 1.0),
+          child: child,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    if ((_shapeOf, _appearanceOf) case (final shapeOf?, final appearanceOf?)) {
+      return _buildLive(context, shapeOf, appearanceOf);
+    }
     final settings = this.settings ?? LiquidGlassSettings.of(context);
     final renderScope = this.settings == null
         ? LiquidGlassRenderScope.of(context)
@@ -204,7 +284,47 @@ class RawFakeGlass extends SingleChildRenderObjectWidget {
     this.settings = const LiquidGlassSettings(),
     this.appearance = const LiquidGlassAppearance(),
     super.key,
-  });
+  }) : live = null,
+       shapeOf = null,
+       settingsOf = null,
+       appearanceOf = null;
+
+  /// Creates fake glass whose shape, settings and appearance follow
+  /// [live]: every notification writes them into the render object.
+  RawFakeGlass.live({
+    required this.live,
+    required LiquidShape Function() this.shapeOf,
+    required LiquidGlassSettings Function() this.settingsOf,
+    required LiquidGlassAppearance Function() this.appearanceOf,
+    required super.child,
+    this.backdropKey,
+    this.backdropHandledByLayer = false,
+    this.paintSurface = true,
+    super.key,
+  }) : shape = shapeOf(),
+       settings = settingsOf(),
+       appearance = appearanceOf(),
+       surfaceShader = null,
+       allowSurfaceOutset = false,
+       paintExteriorBorder = false;
+
+  /// The source of a live shape, or null for fixed values.
+  final Listenable? live;
+
+  /// The shape now, for a live shape.
+  final LiquidShape Function()? shapeOf;
+
+  /// The settings now, for a live shape.
+  final LiquidGlassSettings Function()? settingsOf;
+
+  /// The appearance now, for a live shape.
+  final LiquidGlassAppearance Function()? appearanceOf;
+
+  void _applyLive(RenderFakeGlass glass) {
+    glass.shape = shapeOf!();
+    glass.settings = settingsOf!();
+    glass.appearance = appearanceOf!();
+  }
 
   final LiquidShape shape;
 
@@ -228,7 +348,7 @@ class RawFakeGlass extends SingleChildRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RenderFakeGlass(
+    final glass = RenderFakeGlass(
       devicePixelRatio: MediaQuery.maybeDevicePixelRatioOf(context) ?? 1,
       shape: shape,
       settings: settings,
@@ -240,6 +360,8 @@ class RawFakeGlass extends SingleChildRenderObjectWidget {
       allowSurfaceOutset: allowSurfaceOutset,
       paintExteriorBorder: paintExteriorBorder,
     );
+    if (shapeOf != null) glass.bindLive(live, () => _applyLive(glass));
+    return glass;
   }
 
   @override
@@ -247,7 +369,17 @@ class RawFakeGlass extends SingleChildRenderObjectWidget {
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    if (renderObject is RenderFakeGlass) {
+    if (renderObject is RenderFakeGlass && shapeOf != null) {
+      renderObject.devicePixelRatio =
+          MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
+      renderObject.bindLive(live, () => _applyLive(renderObject));
+      renderObject.backdropKey = backdropKey;
+      renderObject.backdropHandledByLayer = backdropHandledByLayer;
+      renderObject.surfaceShader = surfaceShader;
+      renderObject.paintSurface = paintSurface;
+      renderObject.allowSurfaceOutset = allowSurfaceOutset;
+      renderObject.paintExteriorBorder = paintExteriorBorder;
+    } else if (renderObject is RenderFakeGlass) {
       renderObject
         ..devicePixelRatio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1
         ..shape = shape
@@ -265,7 +397,7 @@ class RawFakeGlass extends SingleChildRenderObjectWidget {
 
 @visibleForTesting
 @internal
-class RenderFakeGlass extends RenderProxyBox {
+class RenderFakeGlass extends RenderProxyBox with GlassLiveBinding {
   RenderFakeGlass({
     required this._devicePixelRatio,
     required this._shape,

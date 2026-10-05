@@ -14,6 +14,7 @@ import 'package:morph/src/glass/renderer/internal/ancestor_clip.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/internal/filter_pass_transform.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameters.dart';
@@ -33,14 +34,48 @@ class LiquidGlassLayer extends StatefulWidget {
   /// Creates a new [LiquidGlassLayer] with the given [child] and [settings].
   const LiquidGlassLayer({
     required this.child,
-    this.settings = const LiquidGlassSettings(),
+    this._settings = const LiquidGlassSettings(),
     this.defaultAppearance,
     this.fake = false,
     this.useBackdropGroup = false,
     this.backdropKey,
-    this.field,
+    this._field,
     super.key,
-  });
+  }) : live = null,
+       settingsOf = null,
+       fieldOf = null;
+
+  /// Creates a layer whose settings and field follow [live].
+  ///
+  /// Every notification of [live] writes [settingsOf] and [fieldOf] into
+  /// the layer's render object and into its shapes without rebuilding
+  /// them.
+  const LiquidGlassLayer.live({
+    required this.child,
+    required this.live,
+    required LiquidGlassSettings Function() this.settingsOf,
+    this.fieldOf,
+    this.defaultAppearance,
+    this.fake = false,
+    this.useBackdropGroup = false,
+    this.backdropKey,
+    super.key,
+  }) : _settings = const LiquidGlassSettings(),
+       _field = null;
+
+  /// The source of a live layer's settings and field, or null for fixed
+  /// ones.
+  final Listenable? live;
+
+  /// The settings now, for a live layer.
+  final LiquidGlassSettings Function()? settingsOf;
+
+  /// The field now, for a live layer; null for a layer without a field.
+  final GlassField? Function()? fieldOf;
+
+  final LiquidGlassSettings _settings;
+
+  final GlassField? _field;
 
   /// The distance field of the one body the layer's shapes form, when its
   /// owner has fused them already.
@@ -50,7 +85,7 @@ class LiquidGlassLayer extends StatefulWidget {
   /// supply the appearance, the shadows and the bounds of the matte, which
   /// must contain the body. Fake glass, which shades no field, clips its
   /// backdrop and surfaces to the field's [GlassField.outline] instead.
-  final GlassField? field;
+  GlassField? get field => fieldOf != null ? fieldOf!() : _field;
 
   /// The subtree in which you should include at least one [LiquidGlass] widget.
   ///
@@ -59,7 +94,7 @@ class LiquidGlassLayer extends StatefulWidget {
   final Widget child;
 
   /// The settings for the liquid glass effect for all shapes in this layer.
-  final LiquidGlassSettings settings;
+  LiquidGlassSettings get settings => settingsOf?.call() ?? _settings;
 
   /// Appearance inherited by shapes that do not provide an override.
   ///
@@ -121,6 +156,8 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
   ];
 
   late final GeometryRenderLink _link = GeometryRenderLink();
+
+  late final _LayerSettings _settingsLive = _LayerSettings(this);
 
   FlutterGpuGeometryRenderer? _gpuGeometryRenderer;
   final List<FlutterGpuGeometryRenderer> _retiredGpuGeometryRenderers = [];
@@ -189,6 +226,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
   @override
   void didUpdateWidget(covariant LiquidGlassLayer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.live, widget.live)) _settingsLive.follow();
     if (oldWidget.fake && !widget.fake) {
       _tryCreateCachedGpuGeometryRenderer();
     }
@@ -218,6 +256,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
     }
     _retiredGpuGeometryRenderers.clear();
     _link.dispose();
+    _settingsLive.dispose();
     super.dispose();
   }
 
@@ -268,9 +307,11 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
       );
     }
 
+    final live = widget.live;
     return RepaintBoundary(
       child: LiquidGlassRenderScope(
         settings: widget.settings,
+        settingsLive: live == null ? null : _settingsLive,
         defaultAppearance: defaultAppearance,
         backdropKey: backdropKey,
         child: InheritedGeometryRenderLink(
@@ -287,11 +328,12 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
                 materialRenderShader: shaders[1],
                 tintRenderShader: shaders[2],
                 backdropKey: backdropKey,
-                settings: widget.settings,
+                live: live,
+                settingsOf: () => widget.settings,
                 defaultAppearance: defaultAppearance,
                 link: _link,
                 gpuGeometryRenderer: gpuRenderer,
-                field: widget.field,
+                fieldOf: () => widget.field,
                 child: child!,
               );
             },
@@ -312,10 +354,12 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
     // several contour-following canvas bands; without this boundary an
     // ancestor/compositor transform can make every band record again even
     // though neither the shape nor material changed.
+    final live = widget.live;
     Widget buildFakeSurfaceLayer(FragmentShader? surfaceShader) {
       return RepaintBoundary(
         child: LiquidGlassRenderScope(
           settings: settings,
+          settingsLive: live == null ? null : _settingsLive,
           defaultAppearance: defaultAppearance,
           consolidatesFakeBackdrop: true,
           consolidatesFakeSurface: true,
@@ -324,11 +368,12 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
             link: _link,
             child: ConsolidatedFakeGlassLayer(
               link: _link,
-              settings: settings,
+              live: live,
+              settingsOf: () => widget.settings,
               defaultAppearance: defaultAppearance,
               backdropKey: backdropKey,
               surfaceShader: surfaceShader,
-              outline: widget.field?.outline,
+              outlineOf: () => widget.field?.outline,
               child: child,
             ),
           ),
@@ -350,38 +395,47 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.materialRenderShader,
     required this.tintRenderShader,
     required this.backdropKey,
-    required this.settings,
+    required this.live,
+    required this.settingsOf,
     required this.defaultAppearance,
     required Widget super.child,
     required this.link,
+    required this.fieldOf,
     this.gpuGeometryRenderer,
-    this.field,
   });
 
   final FragmentShader defaultRenderShader;
   final FragmentShader materialRenderShader;
   final FragmentShader tintRenderShader;
   final BackdropKey? backdropKey;
-  final LiquidGlassSettings settings;
+  final Listenable? live;
+  final LiquidGlassSettings Function() settingsOf;
   final LiquidGlassAppearance defaultAppearance;
   final GeometryRenderLink link;
   final FlutterGpuGeometryRenderer? gpuGeometryRenderer;
-  final GlassField? field;
+  final GlassField? Function() fieldOf;
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return RenderLiquidGlassLayer(
-      field: field,
+    final layer = RenderLiquidGlassLayer(
+      field: fieldOf(),
       devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
       defaultRenderShader: defaultRenderShader,
       materialRenderShader: materialRenderShader,
       tintRenderShader: tintRenderShader,
       backdropKey: backdropKey,
-      settings: settings,
+      settings: settingsOf(),
       defaultAppearance: defaultAppearance,
       link: link,
       gpuGeometryRenderer: gpuGeometryRenderer,
     );
+    layer.bindLive(live, () => _apply(layer));
+    return layer;
+  }
+
+  void _apply(RenderLiquidGlassLayer layer) {
+    layer.settings = settingsOf();
+    layer.field = fieldOf();
   }
 
   @override
@@ -389,14 +443,42 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     BuildContext context,
     RenderLiquidGlassLayer renderObject,
   ) {
-    renderObject
-      ..link = link
-      ..devicePixelRatio = MediaQuery.devicePixelRatioOf(context)
-      ..settings = settings
-      ..defaultAppearance = defaultAppearance
-      ..backdropKey = backdropKey
-      ..gpuGeometryRenderer = gpuGeometryRenderer
-      ..field = field;
+    renderObject.link = link;
+    renderObject.devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    renderObject.defaultAppearance = defaultAppearance;
+    renderObject.backdropKey = backdropKey;
+    renderObject.gpuGeometryRenderer = gpuGeometryRenderer;
+    renderObject.bindLive(live, () => _apply(renderObject));
+  }
+}
+
+/// The settings of a live layer as one listenable whose identity outlives
+/// the layer's widgets: the shapes below follow it.
+class _LayerSettings extends ChangeNotifier
+    implements ValueListenable<LiquidGlassSettings> {
+  _LayerSettings(this._state) {
+    follow();
+  }
+
+  final _LiquidGlassLayerState _state;
+  Listenable? _source;
+
+  /// Listens to the current widget's source.
+  void follow() {
+    final source = _state.widget.live;
+    if (identical(source, _source)) return;
+    _source?.removeListener(notifyListeners);
+    _source = source;
+    source?.addListener(notifyListeners);
+  }
+
+  @override
+  LiquidGlassSettings get value => _state.widget.settings;
+
+  @override
+  void dispose() {
+    _source?.removeListener(notifyListeners);
+    super.dispose();
   }
 }
 
@@ -407,7 +489,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
 /// [LiquidGlassRenderObject]; this class implements only the effect.
 @internal
 class RenderLiquidGlassLayer extends LiquidGlassRenderObject
-    with TransformTrackingRenderObjectMixin
+    with TransformTrackingRenderObjectMixin, GlassLiveBinding
     implements LiquidGlassLayerRenderObject {
   RenderLiquidGlassLayer({
     required this.defaultRenderShader,

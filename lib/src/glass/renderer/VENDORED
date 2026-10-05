@@ -131,3 +131,19 @@ Local patches (some commits include related package changes):
   shadowed surface, no shadow under the glass; only the antialiasing at
   the cut differs (flutter_test: <= 1 channel off the edge,
   test/glass_body_shadow_test.dart).
+- 2026-10-05 live shapes and layers: LiquidGlass.live (a ValueListenable
+  of LiquidGlassShapeFrame: shape, appearance, shadows) and
+  LiquidGlassLayer.live (a Listenable with settingsOf / fieldOf) write each
+  new frame straight into their render objects (RenderLiquidGlass, the
+  glass shadow, the shape clip and visibility opacity, RenderFakeGlass,
+  RenderLiquidGlassLayer, RenderConsolidatedFakeGlassLayer) through the
+  GlassLiveBinding mixin (internal/glass_live.dart): the setters decide
+  what changed, no widget rebuilds. The layer's scope carries the live
+  settings (LiquidGlassRenderScope.settingsLive / currentSettings) for the
+  shapes below it. A live shape rebuilds only when its kind of shape
+  changes or its shadows appear or vanish; configurations no render
+  object can follow (a standalone fake shape) rebuild per frame
+  (GlassRebuildOn). GlassContentSource takes the same notifications to
+  record its content again while a lens captures. The fixed constructors
+  are unchanged and the same render objects are built either way, so the
+  pixels are the same (test/glass_frames_test.dart).

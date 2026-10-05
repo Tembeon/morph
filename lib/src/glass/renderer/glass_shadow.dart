@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:meta/meta.dart';
 
@@ -31,7 +32,42 @@ class GlassShadow extends SingleChildRenderObjectWidget {
     this.appearanceVisibility = 1,
     super.child,
     super.key,
-  });
+  }) : live = null,
+       shapeOf = null,
+       shadowsOf = null,
+       visibilityOf = null;
+
+  /// Creates shadows whose shape, list and visibility follow [live]: every
+  /// notification writes them into the render object.
+  GlassShadow.live({
+    required this.live,
+    required LiquidShape Function() this.shapeOf,
+    required List<BoxShadow> Function() this.shadowsOf,
+    required double Function() this.visibilityOf,
+    required this.settings,
+    super.child,
+    super.key,
+  }) : shape = shapeOf(),
+       shadows = shadowsOf(),
+       appearanceVisibility = visibilityOf();
+
+  /// The source of live shadows, or null for fixed ones.
+  final Listenable? live;
+
+  /// The shape now, for live shadows.
+  final LiquidShape Function()? shapeOf;
+
+  /// The shadows now, for live shadows.
+  final List<BoxShadow> Function()? shadowsOf;
+
+  /// The visibility now, for live shadows.
+  final double Function()? visibilityOf;
+
+  void _applyLive(_RenderGlassShadow shadow) {
+    shadow.shape = shapeOf!();
+    shadow.shadows = shadowsOf!();
+    shadow.visibility = visibilityOf!();
+  }
 
   /// The shape to paint shadows for.
   final LiquidShape shape;
@@ -51,11 +87,13 @@ class GlassShadow extends SingleChildRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) {
-    return _RenderGlassShadow(
+    final shadow = _RenderGlassShadow(
       shape: shape,
       shadows: shadows,
       visibility: appearanceVisibility,
     );
+    if (shapeOf != null) shadow.bindLive(live, () => _applyLive(shadow));
+    return shadow;
   }
 
   @override
@@ -64,6 +102,10 @@ class GlassShadow extends SingleChildRenderObjectWidget {
     // ignore: library_private_types_in_public_api
     _RenderGlassShadow renderObject,
   ) {
+    if (shapeOf != null) {
+      renderObject.bindLive(live, () => _applyLive(renderObject));
+      return;
+    }
     renderObject
       ..shape = shape
       ..shadows = shadows
@@ -71,7 +113,7 @@ class GlassShadow extends SingleChildRenderObjectWidget {
   }
 }
 
-class _RenderGlassShadow extends RenderProxyBox {
+class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
   _RenderGlassShadow({
     required this._shape,
     required this._shadows,

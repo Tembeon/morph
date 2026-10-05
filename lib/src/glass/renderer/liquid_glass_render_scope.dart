@@ -1,6 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:meta/meta.dart';
 
 @internal
 class LiquidGlassRenderScope extends InheritedWidget {
@@ -13,10 +13,18 @@ class LiquidGlassRenderScope extends InheritedWidget {
     this.consolidatesFakeBackdrop = false,
     this.consolidatesFakeSurface = false,
     this.backdropKey,
+    this.settingsLive,
     super.key,
   });
 
   final LiquidGlassSettings settings;
+
+  /// The settings of a live layer, which change without rebuilding the
+  /// scope; null when [settings] is all there is.
+  final ValueListenable<LiquidGlassSettings>? settingsLive;
+
+  /// The settings now.
+  LiquidGlassSettings get currentSettings => settingsLive?.value ?? settings;
 
   final LiquidGlassAppearance defaultAppearance;
 
@@ -61,6 +69,7 @@ class LiquidGlassRenderScope extends InheritedWidget {
   bool updateShouldNotify(covariant InheritedWidget oldWidget) {
     return oldWidget is! LiquidGlassRenderScope ||
         oldWidget.settings != settings ||
+        !identical(oldWidget.settingsLive, settingsLive) ||
         oldWidget.defaultAppearance != defaultAppearance ||
         oldWidget.useFake != useFake ||
         oldWidget.consolidatesFakeBackdrop != consolidatesFakeBackdrop ||
