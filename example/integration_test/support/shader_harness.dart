@@ -744,6 +744,12 @@ Future<Map<String, Object>> runShaderBench(
         (copies - 1);
     final candidate = perLayer(ShaderVariant.candidate);
     final baseline = perLayer(ShaderVariant.baseline);
+    // The bench's progress in the device log.
+    // ignore: avoid_print
+    print(
+      'SHADER_BENCH ${glassCase.name} baseline $baseline '
+      'candidate $candidate',
+    );
     results[glassCase.name] = {
       'samples_ms': samples,
       'layer_ms_candidate': candidate,

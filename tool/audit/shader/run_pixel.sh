@@ -37,6 +37,11 @@ open(path, 'w').write(text.replace(anchor, extra + anchor, 1))
 PY
   fi
 fi
+# The harness itself (cases, runner, bench) always comes from the main tree,
+# so an older commit is measured by today's harness; its frozen baseline
+# stays the commit's own.
+cp -R "$ROOT/example/integration_test/support" "$SRC/example/integration_test/"
+cp "$ROOT/example/integration_test/shader_parity_test.dart" "$SRC/example/integration_test/"
 DEFINES=${SHADER_DEFINES:-}
 if [ "$MODE" = bench ]; then DEFINES="$DEFINES --dart-define=SHADER_BENCH=true"; fi
 NAME=$LABEL-$BACKEND-$MODE
