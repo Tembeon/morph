@@ -49,6 +49,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   the UI thread forever. Passes are now submitted every 16, a failed one
   no longer strands the rest, and `MorphGlassRenderer.precache` holds a
   launch at most 1 s, finishing the warm-up in the background past it.
+- Fixed: on Impeller's OpenGL ES backend the launch crashed before the
+  first frame (the warm-up's offscreen snapshot); pipelines are now
+  warmed only on GPUs that draw liquid.
 - Performance, pixels changed below what the eye sees (owner decision):
   an outline fused at spacing 0 - the menu's settle tail once its fusion
   radius is under 1 pt, every submenu card - is the exact union of its
