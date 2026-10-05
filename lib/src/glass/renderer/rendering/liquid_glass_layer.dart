@@ -43,7 +43,8 @@ class LiquidGlassLayer extends StatefulWidget {
     super.key,
   }) : live = null,
        settingsOf = null,
-       fieldOf = null;
+       fieldOf = null,
+       outlineOf = null;
 
   /// Creates a layer whose settings and field follow [live].
   ///
@@ -55,6 +56,7 @@ class LiquidGlassLayer extends StatefulWidget {
     required this.live,
     required LiquidGlassSettings Function() this.settingsOf,
     this.fieldOf,
+    this.outlineOf,
     this.defaultAppearance,
     this.fake = false,
     this.useBackdropGroup = false,
@@ -72,6 +74,15 @@ class LiquidGlassLayer extends StatefulWidget {
 
   /// The field now, for a live layer; null for a layer without a field.
   final GlassField? Function()? fieldOf;
+
+  /// The outline of the one body the layer's shapes form when its owner
+  /// fused them without a field (a plain union of the shapes), for a live
+  /// layer.
+  ///
+  /// The liquid geometry pass shades such a body from the shapes
+  /// themselves; fake glass clips its backdrop and surfaces to it as it
+  /// does to a field's [GlassField.outline].
+  final Path? Function()? outlineOf;
 
   final LiquidGlassSettings _settings;
 
@@ -373,7 +384,8 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
               defaultAppearance: defaultAppearance,
               backdropKey: backdropKey,
               surfaceShader: surfaceShader,
-              outlineOf: () => widget.field?.outline,
+              outlineOf: () =>
+                  widget.field?.outline ?? widget.outlineOf?.call(),
               child: child,
             ),
           ),

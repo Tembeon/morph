@@ -68,9 +68,15 @@ List<double> fakeGlassColorMatrix({
   return result..addAll([0, 0, 0, filterOpacity, 0]);
 }
 
-/// Least-squares line `slope * Y + offset` through the iOS 27 luminance
-/// transfer `(Y + lift * Y * (1 - Y)) ^ transmissionGamma` over `[0, 1]`.
-/// At unit gamma it is exactly `Y + lift / 6`.
+/// The line `slope * Y + offset` through the iOS 27 luminance transfer
+/// `(Y + lift * Y * (1 - Y)) ^ transmissionGamma`, exact at black and
+/// least-squares over `(0, 1]`.
+///
+/// Exact at black because the face over a dark page is what dark glass
+/// shows most: an unanchored fit lifts black by `lift / 6`, which made dark
+/// fake glass 15 - 24 channel steps brighter than the liquid tier over the
+/// gallery's black page (iPhone 16 Pro, 2026-10-05). Above the line's
+/// crossing of 1 the final clamp keeps white exact as well.
 (double slope, double offset) _faceLuminanceLine(
   double lift,
   double transmissionGamma,
@@ -79,22 +85,15 @@ List<double> fakeGlassColorMatrix({
   double transfer(double y) =>
       math.pow((y + lift * y * (1 - y)).clamp(0.0, 1.0), gamma).toDouble();
   const samples = 17;
-  var meanY = 0.0;
-  var meanT = 0.0;
-  for (var i = 0; i < samples; i++) {
-    final y = i / (samples - 1);
-    meanY += y / samples;
-    meanT += transfer(y) / samples;
-  }
+  final black = transfer(0);
   var covariance = 0.0;
   var variance = 0.0;
-  for (var i = 0; i < samples; i++) {
+  for (var i = 1; i < samples; i++) {
     final y = i / (samples - 1);
-    covariance += (y - meanY) * (transfer(y) - meanT);
-    variance += (y - meanY) * (y - meanY);
+    covariance += y * (transfer(y) - black);
+    variance += y * y;
   }
-  final slope = covariance / variance;
-  return (slope, meanT - slope * meanY);
+  return (covariance / variance, black);
 }
 
 /// The complete untinted iOS 27 face as a 4x5 color matrix:

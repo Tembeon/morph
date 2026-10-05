@@ -258,6 +258,7 @@ Widget _layer(
   double Function(MorphGlassSurface surface)? shrink,
   double rim = 0,
   GlassField? Function(MorphGlassFrame frame)? field,
+  Path? Function(MorphGlassFrame frame)? outline,
   bool shadows = true,
   bool exact = false,
 }) {
@@ -271,12 +272,14 @@ Widget _layer(
         : settings.copyWith(backdropShrink: amount, backdropShrinkRim: rim);
   });
   final fieldOf = field == null ? null : source.pick(field);
+  final outlineOf = outline == null ? null : source.pick(outline);
   return ClipRect(
     clipper: const _Reach(),
     child: LiquidGlassLayer.live(
       live: source.live,
       settingsOf: () => settings.value,
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
+      outlineOf: outlineOf == null ? null : () => outlineOf.value,
       useBackdropGroup: shared,
       child: MorphLiveStack(
         live: source.live,
@@ -375,6 +378,7 @@ Widget morphLiquidBody(
         members,
         shared: !chrome,
         field: (f) => morphGlassOutlineField(select(f).$2),
+        outline: (f) => select(f).$2.path,
         shadows: false,
         exact: exact,
       ),
