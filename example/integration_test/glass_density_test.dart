@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -49,6 +50,15 @@ const bool _container = bool.fromEnvironment('DENSITY_CONTAINER');
 /// Whether the run takes a resting and a held screenshot per density
 /// (`--dart-define=AUDIT_SHOTS=true`), outside the timed windows.
 const bool _shots = bool.fromEnvironment('AUDIT_SHOTS');
+
+/// Whether every timed window also records the framework's BUILD /
+/// LAYOUT / PAINT / COMPOSITING time per composited frame
+/// (`--dart-define=DENSITY_PHASES=true`, profile builds).
+const bool _phases = bool.fromEnvironment('DENSITY_PHASES');
+
+/// The densities to run, comma separated (`--dart-define=DENSITY_NS=1,4`);
+/// empty for all of [densities].
+const String _only = String.fromEnvironment('DENSITY_NS');
 
 /// The button counts the audit measures.
 const List<int> densities = [1, 4, 8, 16, 32];
@@ -208,6 +218,7 @@ class _Density {
   final List<ui.FrameTiming> timings = [];
   final Map<String, List<(int, int)>> _scenes = {};
   final Map<String, Map<String, int>> _layers = {};
+  final Map<String, List<Map<String, double>>> _phaseRuns = {};
   final Stopwatch _clock = Stopwatch();
   int _pointer = 300;
 
@@ -223,7 +234,26 @@ class _Density {
     for (var run = 0; run < _runs; run++) {
       await settle(300);
       final start = timings.length;
+      if (_phases) FlutterTimeline.debugCollectionEnabled = true;
       await body();
+      if (_phases) {
+        final collected = FlutterTimeline.debugCollect();
+        FlutterTimeline.debugCollectionEnabled = false;
+        final composited = collected.getAggregated('COMPOSITING').count;
+        double per(String phase) {
+          var total = 0.0;
+          for (final block in collected.aggregatedBlocks) {
+            if (block.name.startsWith(phase)) total += block.duration;
+          }
+          return composited == 0 ? 0 : total / composited / 1000;
+        }
+
+        (_phaseRuns[scene] ??= []).add({
+          'frames': composited.toDouble(),
+          for (final phase in ['BUILD', 'LAYOUT', 'PAINT', 'COMPOSITING'])
+            phase: per(phase),
+        });
+      }
       await settle(300);
       await tester.pump();
       await settle(100);
@@ -236,7 +266,10 @@ class _Density {
     outDir.createSync(recursive: true);
     _clock.start();
     await MorphGlassRenderer.precache();
-    for (final n in densities) {
+    for (final n in [
+      for (final n in densities)
+        if (_only.isEmpty || _only.split(',').contains('$n')) n,
+    ]) {
       runApp(
         DensityPage(
           key: ValueKey<int>(n),
@@ -486,6 +519,7 @@ class _Density {
       'geometry_failures': geometryFailures,
       'container': _container,
       'layers': _layers,
+      'phases': _phaseRuns,
       for (final MapEntry(key: scene, value: windows) in _scenes.entries)
         scene: () {
           final runs = [
