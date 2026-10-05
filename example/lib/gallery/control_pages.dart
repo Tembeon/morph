@@ -102,39 +102,41 @@ class _ControlsPageState extends State<ControlsPage> {
                 ),
               ),
               GalleryCaption('Glass buttons, tapped $_taps times'),
-              Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                crossAxisAlignment: .center,
-                children: [
-                  for (final (label, size, icon) in _buttons)
-                    SizedBox.fromSize(
-                      size: size,
+              MorphGlassContainer(
+                child: Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  crossAxisAlignment: .center,
+                  children: [
+                    for (final (label, size, icon) in _buttons)
+                      SizedBox.fromSize(
+                        size: size,
+                        child: MorphGlassButton(
+                          padding: .zero,
+                          onPressed: GalleryGlassScope.enabled(
+                            context,
+                            () => setState(() => _taps++),
+                          ),
+                          child: icon
+                              ? const Icon(Icons.favorite_border)
+                              : Text(label),
+                        ),
+                      ),
+                    SizedBox(
+                      width: 120,
+                      height: 44,
                       child: MorphGlassButton(
                         padding: .zero,
+                        tint: const Color(0xFF007AFF),
                         onPressed: GalleryGlassScope.enabled(
                           context,
                           () => setState(() => _taps++),
                         ),
-                        child: icon
-                            ? const Icon(Icons.favorite_border)
-                            : Text(label),
+                        child: const Text('Prominent'),
                       ),
                     ),
-                  SizedBox(
-                    width: 120,
-                    height: 44,
-                    child: MorphGlassButton(
-                      padding: .zero,
-                      tint: const Color(0xFF007AFF),
-                      onPressed: GalleryGlassScope.enabled(
-                        context,
-                        () => setState(() => _taps++),
-                      ),
-                      child: const Text('Prominent'),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               GalleryCaption('Stepper: ${_stepper.toInt()}'),
               Align(

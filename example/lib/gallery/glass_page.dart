@@ -71,25 +71,27 @@ class _GlassPageState extends State<GlassPage> {
             onChanged: on((double v) => setState(() => _value = v)),
           ),
           const SizedBox(height: 28),
-          Wrap(
-            alignment: .center,
-            spacing: 16,
-            runSpacing: 12,
-            children: [
-              MorphGlassButton(
-                onPressed: on(() {}),
-                child: const Text('Glass'),
-              ),
-              MorphGlassButton(
-                onPressed: on(() {}),
-                tint: const Color(0xFF0088FF),
-                child: const Text('Prominent'),
-              ),
-              MorphGlassButton(
-                onPressed: on(() {}),
-                child: const Icon(Icons.favorite_border),
-              ),
-            ],
+          MorphGlassContainer(
+            child: Wrap(
+              alignment: .center,
+              spacing: 16,
+              runSpacing: 12,
+              children: [
+                MorphGlassButton(
+                  onPressed: on(() {}),
+                  child: const Text('Glass'),
+                ),
+                MorphGlassButton(
+                  onPressed: on(() {}),
+                  tint: const Color(0xFF0088FF),
+                  child: const Text('Prominent'),
+                ),
+                MorphGlassButton(
+                  onPressed: on(() {}),
+                  child: const Icon(Icons.favorite_border),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 20),
           Row(
