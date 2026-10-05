@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -39,15 +40,24 @@ import 'package:morph_example/gallery/gallery.dart';
 /// layout: `flutter test integration_test/glass_audit_test.dart -d <sim>`,
 /// with `--dart-define=AUDIT_OUT=<absolute host path>`, since the simulator
 /// app and its tmp are removed after the run).
+///
+/// The app runs without the semantics tree, as for a user without
+/// VoiceOver (a test binding builds it by default, which cost up to 1.3 ms
+/// of the UI thread per frame on the menu and controls scenes);
+/// `--dart-define=AUDIT_SEMANTICS=true` measures with it.
 const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
 
 const int _runs = int.fromEnvironment('AUDIT_RUNS', defaultValue: 1);
+
+const bool _semantics = bool.fromEnvironment('AUDIT_SEMANTICS');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
-  testWidgets('glass audit', (WidgetTester tester) async {
+  testWidgets('glass audit', semanticsEnabled: _semantics, (
+    WidgetTester tester,
+  ) async {
     final audit = _Audit(binding, tester);
     binding.platformDispatcher.platformBrightnessTestValue = _light
         ? .light
@@ -87,8 +97,11 @@ class _Audit {
     File('${outDir.path}/$name.png').writeAsBytesSync(bytes);
   }
 
+  final Set<bool> _semanticsWhileTimed = {};
+
   Future<void> measure(String scene, Future<void> Function() body) async {
     for (var run = 0; run < _runs; run++) {
+      _semanticsWhileTimed.add(SemanticsBinding.instance.semanticsEnabled);
       await settle(300);
       final start = timings.length;
       await body();
@@ -132,7 +145,10 @@ class _Audit {
   }
 
   Future<void> back() async {
+    final semantics = _semantics ? null : tester.ensureSemantics();
+    await tester.pump();
     await tester.tap(find.bySemanticsLabel('Back').last);
+    semantics?.dispose();
     await settle(800);
   }
 
@@ -163,7 +179,8 @@ class _Audit {
   static const bool _outlinesOnly = bool.fromEnvironment('AUDIT_OUTLINES_ONLY');
 
   /// Times the fused outlines the package computes per frame while a
-  /// menu morphs or bar capsules pass close: the mean of 100 calls each,
+  /// menu morphs (blurred, and its plain union below a 1 pt fusion
+  /// radius) or bar capsules pass close: the mean of 100 calls each,
   /// on shapes that move a little every call so nothing is reused.
   ///
   /// Every case runs twice. The first pass (`-cold`) pays one-time work
@@ -191,6 +208,13 @@ class _Audit {
           ),
         );
       }
+      _outlineMicros['union$pass'] = time(
+        // ignore: invalid_use_of_internal_member
+        (i) => morphGlassContainerOutline([
+          RRect.fromLTRBXY(70, 100 + i * 0.01, 330, 700, 26, 26),
+          const RRect.fromLTRBXY(177, 100, 225, 148, 24, 24),
+        ], 0),
+      );
       _outlineMicros['bar-capsules$pass'] = time(
         // ignore: invalid_use_of_internal_member
         (i) => morphGlassContainerOutline([
@@ -461,6 +485,7 @@ class _Audit {
         defaultValue: 'auto',
       ),
       'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'semantics': [..._semanticsWhileTimed],
       'runs': _runs,
       'outline_us': _outlineMicros,
       for (final MapEntry(key: scene, value: windows) in _scenes.entries)
