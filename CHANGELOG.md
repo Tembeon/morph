@@ -36,6 +36,13 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   plain-union silhouette takes its field from the box distances it
   already has and container fusion keeps its grids across calls (union
   0.73 -> 0.49 ms, old-generation GC during menu opens 10 -> 2).
+- Glass that floats over the page reads what lies under it (a fix): the
+  navigation bar and toolbar share a backdrop group of their own per
+  screen, the search tab bar and a sheet's content get their own, and bar
+  and menu glass never shares the page's group on the liquid or frosted
+  tier. Impeller reads a shared group's backdrop once, so the bars on a
+  page with a resting glass button missed the scroll edge effect under
+  them, and a floating sheet read a stale dark copy instead of the page.
 - Presentations from a navigation stack's page cover the stack's bars, as
   on iOS: `MorphNavigationStack` installs a new `MorphPresentationBoundary`,
   and `showMorph*`, `MorphAnchor`, `MorphMenuButton`,
