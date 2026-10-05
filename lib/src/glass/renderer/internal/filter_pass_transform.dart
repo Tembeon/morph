@@ -14,6 +14,7 @@ Matrix4 filterPassTransform(
   required bool seeding,
   required double devicePixelRatio,
   Offset translation = Offset.zero,
+  Matrix4? screen,
 }) {
   final Matrix4 transform;
   if (seeding) {
@@ -21,10 +22,10 @@ Matrix4 filterPassTransform(
       owner,
       devicePixelRatio,
     );
-    transform = owner.getTransformTo(null);
+    transform = screen ?? owner.getTransformTo(null);
     transform.leftTranslateByDouble(-origin.dx, -origin.dy, 0, 1);
   } else {
-    transform = owner.getTransformTo(null);
+    transform = screen ?? owner.getTransformTo(null);
   }
   if (translation != Offset.zero) {
     transform.multiply(

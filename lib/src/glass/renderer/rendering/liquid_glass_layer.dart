@@ -1132,8 +1132,20 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   // MARK: Coordinate mapping
 
+  // The screen transform the compositing hook tracked this frame, reused by
+  // the hook's own coordinate mapping instead of walking the tree twice.
+  Matrix4? _compositingScreen;
+
+  @override
+  Matrix4 trackedTransform() {
+    final transform = getTransformTo(null);
+    _compositingScreen = transform.clone();
+    return transform;
+  }
+
   Matrix4 get shaderCoordinateTransform => filterPassTransform(
     this,
+    screen: _compositingScreen?.clone(),
     seeding: compositionProbeSeeding,
     devicePixelRatio: devicePixelRatio,
     translation: compositorTranslation,
@@ -1348,8 +1360,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @override
   void onCompositing() {
-    if (!attached) return;
+    if (!attached) {
+      _compositingScreen = null;
+      return;
+    }
     runCompositorPoll();
+    _compositingScreen = null;
   }
 
   @override

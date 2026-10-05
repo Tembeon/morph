@@ -134,9 +134,6 @@ class GeometryTransformTrackingLayer extends OffsetLayer {
   }
 
   @override
-  bool get alwaysNeedsAddToScene => true;
-
-  @override
   void updateSubtreeNeedsAddToScene() {
     // Resolve retained transforms after layout and paint, but before Flutter
     // propagates retained-rendering dirtiness and submits any engine layers.
@@ -157,8 +154,10 @@ class GeometryTransformTrackingLayer extends OffsetLayer {
 
   @override
   void addToScene(ui.SceneBuilder builder) {
-    // Every scene containing glass is built through this layer, before the
-    // effect that samples its matte and before the scene is rendered.
+    // A glass layer that rendered a matte this frame changed its effect
+    // layers, so its subtree is added again and passes through here before
+    // the effect that samples the matte; an unchanged subtree is retained
+    // and has nothing pending.
     FlutterGpuGeometryRenderer.flushPendingSubmissions();
   }
 }
