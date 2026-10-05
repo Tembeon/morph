@@ -79,6 +79,19 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 - The navigation bar never draws an inline title that arrives hidden with
   its screen: a large-title screen faded its inline title out over a
   second at launch and after every pop back to it.
+- The bars change side by side on a push or a pop, as UIKit does (a fix):
+  a back button pushed onto a page without leading items no longer grows
+  out of the trailing group and flies across the bar fused with it, nor
+  flies back on the pop. Leading groups change only into leading ones,
+  trailing into trailing; a side that had no group shows its groups in
+  place (swollen, transparent, blurred, settling on the transition
+  spring) and a side left empty lets them swell and fade where they
+  stand, in a glass container of their own - measured on an iPhone 16
+  Pro (spec/bars.md, scene navseg). Adds `MorphBarCapsuleLayout.segment`,
+  `MorphBarCapsuleFrame.segment` / `opacity` / `apart`,
+  `MorphBarTransitionSpec.segmentDelay` and
+  `MorphBarTransitionSpec.navigation` (a push starts its frames 0.062 s
+  after the call).
 - Adds inset grouped lists: `MorphListSection` (header, card, footer)
   and `MorphListRow` (title, subtitle, value detail, leading symbol,
   trailing control, disclosure chevron, custom content, tap highlight,
