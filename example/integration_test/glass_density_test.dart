@@ -18,7 +18,8 @@ import 'package:morph/widgets.dart';
 ///
 /// Build and run it like the glass audit (tool/ios_reference/perf/audit.sh
 /// with `AUDIT_TARGET=integration_test/glass_density_test.dart
-/// AUDIT_REPORT=tmp/glass_density`). The tier is
+/// AUDIT_REPORT=tmp/glass_density`; on Android audit_android.sh with
+/// `AUDIT_REPORT=glass_density`, which passes `AUDIT_OUT`). The tier is
 /// `--dart-define=GALLERY_GLASS=<liquid|frosted|flat>` (liquid by
 /// default), `--dart-define=AUDIT_RUNS=5` repeats every timed window. The
 /// report keeps every run and the median of the runs' percentiles over
@@ -120,7 +121,9 @@ class _Density {
   _Density(this.binding, this.tester);
 
   static final Directory outDir = Directory(
-    '${Directory.systemTemp.path}/glass_density',
+    const String.fromEnvironment('AUDIT_OUT').isEmpty
+        ? '${Directory.systemTemp.path}/glass_density'
+        : const String.fromEnvironment('AUDIT_OUT'),
   );
 
   final IntegrationTestWidgetsFlutterBinding binding;

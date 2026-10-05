@@ -1,0 +1,418 @@
+== 1.raster (tid 13523), window 51203 ms
+   incl ms    self ms   count  incl/cnt  name
+   20220.9      103.9    2825     7.158  GPURasterizer::Draw
+   20117.0       79.0    2825     7.121  Rasterizer::DoDraw
+   20038.0      528.1    2825     7.093  Rasterizer::DrawToSurfaces
+   17057.5      198.9    2825     6.038  SurfaceFrame::Submit
+   12036.3     6145.5    2825     4.261  SurfaceFrame::Encode
+    5473.0     5473.0    4510     1.214  QueueSubmit
+    2808.2      371.3    5650     0.497  queueBuffer
+    2083.1      488.8    2825     0.737  QueuePresentKHR
+    2069.2      686.1    2825     0.732  CreateGlyphAtlas
+    1593.7      158.3    2825     0.564  AcquireNextSurface
+    1435.5      156.2    2825     0.508  AcquireNextDrawable
+    1275.2      236.9    2825     0.451  AcquireNextImageKHR
+    1241.9     1241.9     487     2.550  UpdateAtlasBitmap
+    1060.9     1055.5    2996     0.354  Canvas::saveLayer
+    1004.9       64.8    2829     0.355  dequeueBuffer
+     920.2      795.4     234     3.932  waitForBufferRelease
+     858.7       55.7    2825     0.304  CompositorContext::ScopedFrame::Raster
+     771.9       71.0    2109     0.366  onFrameAvailable - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+     501.6      477.6    2825     0.178  LayerTree::Paint
+     301.4      301.4    2825     0.107  LayerTree::Preroll
+     170.9      158.5    2601     0.066  acquireBuffer
+     124.6        3.1     226     0.551  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+     121.6       11.9     233     0.522  releaseBufferCallbackLocked
+      99.0        8.9     265     0.374  onFrameAvailable - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+      96.1       96.1     487     0.197  AppendToExistingAtlas
+      93.8       93.8    2825     0.033  addAndGetFrameTimestamps
+      56.6       56.6    2825     0.020  applyGrallocMetadataLocked
+      54.4       54.4    2825     0.019  waitForever
+      45.1       45.1       3    15.019  BulkUpdateAtlasBitmap
+      27.6       27.6    2825     0.010  SurfaceFrame::BuildDisplayList
+
+== n.morph_example (tid 13457), window 51366 ms
+   incl ms    self ms   count  incl/cnt  name
+   10347.8     2994.4    7259     1.426  Dart_InvokeClosure
+    9014.4      205.2    2835     3.180  VsyncProcessCallback
+    8809.2      294.6    2835     3.107  Animator::BeginFrame
+    3041.6     2977.2    3202     0.950  BUILD
+    3004.4       64.4    2827     1.063  LAYOUT (root)
+    2940.0      401.2    2827     1.040  LAYOUT
+    2060.1       66.2    2827     0.729  PAINT (root)
+    1994.0     1994.0    2827     0.705  PAINT
+    1491.1     1457.9    2827     0.527  COMPOSITING
+     448.5      448.5    2836     0.158  AsyncWaitForVsync
+     381.3       40.3    2835     0.134  CALLBACK_ANIMATION
+     341.0       96.7    2835     0.120  AChoreographer_frameCallback64
+     331.4       39.8    2775     0.119  Dart_NotifyIdle
+     291.6       54.0    2775     0.105  NotifyIdle
+     287.4       30.3     789     0.364  DartIsolate::HandleMessage
+     278.6       48.4     134     2.079  CollectNewGeneration
+     257.1       16.9     789     0.326  Dart_HandleMessage
+     244.3       73.9    2835     0.086  PlatformVsync
+     238.6      205.1     773     0.309  HandleMessage
+     226.1      121.9     134     1.687  Scavenge
+     170.3      170.3    2835     0.060  VsyncFireCallback
+     117.8        1.1       1   117.770  DartExecutor#executeDartEntrypoint
+     104.2      104.2       1   104.167  Engine::SetupDefaultFontManager
+     101.1       90.8       2    50.550  traversal
+      92.9        0.5       1    92.925  Choreographer#doFrame 3257427
+      92.4        0.1       1    92.395  Choreographer#doFrame - resynced to 3257586 in 28.9ms
+      89.1       59.3    2827     0.032  UPDATING COMPOSITING BITS (root)
+      85.3       80.7    8118     0.011  Dart_NewInteger
+      83.7       83.7    2827     0.030  FINALIZE TREE
+      77.1       77.1     134     0.575  IterateIsolateRoots
+
+== GPU completion (tid 13574), window 50811 ms
+   incl ms    self ms   count  incl/cnt  name
+   11787.6    11787.6    2678     4.402  waitForever
+      12.5        0.0       1    12.534  waiting for GPU completion 2565
+      10.7        0.0       1    10.658  waiting for GPU completion 427
+      10.6        0.0       1    10.558  waiting for GPU completion 654
+      10.3        0.0       1    10.257  waiting for GPU completion 1414
+      10.2        0.0       1    10.165  waiting for GPU completion 1316
+      10.1        0.0       1    10.145  waiting for GPU completion 815
+      10.1        0.0       1    10.110  waiting for GPU completion 1441
+      10.0        0.0       1     9.979  waiting for GPU completion 1235
+      10.0        0.0       1     9.958  waiting for GPU completion 898
+       9.9        0.0       1     9.890  waiting for GPU completion 454
+       9.9        0.0       1     9.879  waiting for GPU completion 1208
+       9.8        0.0       1     9.838  waiting for GPU completion 1454
+       9.8        0.0       1     9.832  waiting for GPU completion 1204
+       9.8        0.0       1     9.811  waiting for GPU completion 1212
+       9.8        0.0       1     9.784  waiting for GPU completion 839
+       9.8        0.0       1     9.783  waiting for GPU completion 1186
+       9.8        0.0       1     9.783  waiting for GPU completion 1206
+       9.8        0.0       1     9.763  waiting for GPU completion 513
+       9.8        0.0       1     9.758  waiting for GPU completion 643
+       9.8        0.0       1     9.752  waiting for GPU completion 1210
+       9.7        0.0       1     9.744  waiting for GPU completion 644
+       9.7        0.0       1     9.741  waiting for GPU completion 657
+       9.7        0.0       1     9.740  waiting for GPU completion 501
+       9.7        0.0       1     9.729  waiting for GPU completion 1044
+       9.7        0.0       1     9.713  waiting for GPU completion 1343
+       9.7        0.0       1     9.708  waiting for GPU completion 1416
+       9.7        0.0       1     9.707  waiting for GPU completion 1453
+       9.7        0.0       1     9.682  waiting for GPU completion 1205
+       9.7        0.0       1     9.680  waiting for GPU completion 1096
+
+== HWC release (tid 13571), window 4444 ms
+   incl ms    self ms   count  incl/cnt  name
+     745.2      745.2     239     3.118  waitForever
+       8.0        0.0       1     8.034  waiting for HWC release 1651
+       7.4        0.0       1     7.386  waiting for HWC release 1420
+       7.2        0.0       1     7.169  waiting for HWC release 1648
+       7.0        0.0       1     7.029  waiting for HWC release 1602
+       6.9        0.0       1     6.893  waiting for HWC release 1650
+       6.7        0.0       1     6.713  waiting for HWC release 1580
+       6.6        0.0       1     6.555  waiting for HWC release 1529
+       6.3        0.0       1     6.348  waiting for HWC release 1576
+       6.3        0.0       1     6.262  waiting for HWC release 1683
+       6.2        0.0       1     6.229  waiting for HWC release 1649
+       6.2        0.0       1     6.167  waiting for HWC release 1614
+       6.1        0.0       1     6.091  waiting for HWC release 1653
+       6.0        0.0       1     6.039  waiting for HWC release 1603
+       6.0        0.0       1     5.987  waiting for HWC release 1457
+       6.0        0.0       1     5.959  waiting for HWC release 1421
+       6.0        0.0       1     5.954  waiting for HWC release 1652
+       5.9        0.0       1     5.939  waiting for HWC release 1612
+       5.9        0.0       1     5.910  waiting for HWC release 1499
+       5.9        0.0       1     5.869  waiting for HWC release 1418
+       5.7        0.0       1     5.711  waiting for HWC release 1498
+       5.6        0.0       1     5.627  waiting for HWC release 1531
+       5.6        0.0       1     5.612  waiting for HWC release 1681
+       5.6        0.0       1     5.604  waiting for HWC release 1453
+       5.5        0.0       1     5.531  waiting for HWC release 1658
+       5.5        0.0       1     5.466  waiting for HWC release 1527
+       5.4        0.0       1     5.444  waiting for HWC release 1422
+       5.4        0.0       1     5.378  waiting for HWC release 1521
+       5.4        0.0       1     5.373  waiting for HWC release 1664
+       5.3        0.0       1     5.345  waiting for HWC release 1668
+
+== binder:13457_1 (tid 13469), window 49624 ms
+   incl ms    self ms   count  incl/cnt  name
+     250.1       65.8    2613     0.096  releaseBufferCallbackLocked
+     202.4       17.7    1289     0.157  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+      93.6       86.7    1197     0.078  releaseBuffer
+      83.1       62.1    1423     0.058  drainBufferReleaseConsumerLocked
+      32.8        0.8      68     0.483  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+      24.7       24.7    2394     0.010  wait
+      23.2       18.0    1061     0.022  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+      13.3        1.1      66     0.202  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+       7.6        7.6    1423     0.005  setTransformHint
+       7.1        5.3     297     0.024  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+       2.9        2.7      68     0.043  acquireBuffer
+       1.9        1.2      65     0.029  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+       1.8        1.8     311     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 3
+       1.8        1.8     320     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 1
+       1.8        1.8     317     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 2
+       1.7        1.7     317     0.005  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 0
+       0.9        0.1       1     0.901  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1368
+       0.7        0.4       1     0.716  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1396
+       0.7        0.7      21     0.032  merge
+       0.6        0.6       1     0.646  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1623
+       0.6        0.6       1     0.608  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=13
+       0.5        0.5       1     0.550  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2475
+       0.5        0.5       1     0.536  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2445
+       0.5        0.1       1     0.520  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=2745
+       0.5        0.3       1     0.511  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2449
+       0.5        0.5       1     0.495  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1497
+       0.5        0.1       1     0.493  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=684
+       0.5        0.2       1     0.465  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1335
+       0.4        0.4       1     0.450  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2484
+       0.4        0.4       1     0.444  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2491
+
+== binder:13457_2 (tid 13470), window 47378 ms
+   incl ms    self ms   count  incl/cnt  name
+     231.3       53.3    1884     0.123  releaseBufferCallbackLocked
+     145.5       11.5     742     0.196  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+      80.9       75.4     942     0.086  releaseBuffer
+      67.1       48.5     942     0.071  drainBufferReleaseConsumerLocked
+      62.0        1.4     100     0.620  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+      20.8       20.8    1884     0.011  wait
+      19.8        1.7     100     0.198  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+      17.6       13.3     741     0.024  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+       6.2        5.7     100     0.062  acquireBuffer
+       5.4        5.4     942     0.006  setTransformHint
+       2.5        2.0     100     0.025  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+       2.3        1.7     101     0.023  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+       1.6        1.6     259     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 2
+       1.5        1.5     264     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 3
+       1.5        1.5     265     0.005  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 0
+       1.5        1.5     254     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 1
+       0.9        0.9      31     0.031  merge
+       0.8        0.8       1     0.771  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=343
+       0.6        0.6       1     0.644  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2105
+       0.6        0.6       1     0.624  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2621
+       0.6        0.6       1     0.624  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2368
+       0.6        0.1       1     0.600  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=200
+       0.6        0.6       1     0.582  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=351
+       0.5        0.5       1     0.539  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2107
+       0.5        0.5       1     0.519  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2070
+       0.5        0.5       1     0.516  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2085
+       0.5        0.5       1     0.512  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=409
+       0.5        0.5       1     0.507  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=2629
+       0.5        0.1       1     0.478  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=202
+       0.5        0.1       1     0.459  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=263
+
+== IplrVkResMgr (tid 13552), window 50908 ms
+   incl ms    self ms   count  incl/cnt  name
+     602.3      419.8    3613     0.167  ReclaimResources
+     182.5      182.5    2282     0.080  DestroyImage
+       0.1        0.1       3     0.022  DestroyBuffer
+
+== io.worker.2 (tid 13536), window 4571 ms
+   incl ms    self ms   count  incl/cnt  name
+     289.9        3.5      23    12.606  ConcurrentWorkerWake
+     286.2      286.2      22    13.009  PipelineVK::Create
+       0.3        0.3       1     0.283  fml::OpenFile
+
+== io.worker.1 (tid 13535), window 2868 ms
+   incl ms    self ms   count  incl/cnt  name
+     283.1        3.4      15    18.876  ConcurrentWorkerWake
+     279.4      279.4      14    19.956  PipelineVK::Create
+       0.4        0.4       1     0.381  fml::OpenFile
+
+== io.worker.3 (tid 13537), window 30339 ms
+   incl ms    self ms   count  incl/cnt  name
+     280.2        5.2      17    16.483  ConcurrentWorkerWake
+     274.4      274.4      15    18.296  PipelineVK::Create
+       0.6        0.6       2     0.295  fml::OpenFile
+
+== io.worker.4 (tid 13538), window 7128 ms
+   incl ms    self ms   count  incl/cnt  name
+     276.5        5.2      15    18.436  ConcurrentWorkerWake
+     270.7      270.7      12    22.554  PipelineVK::Create
+       0.7        0.7       2     0.333  fml::OpenFile
+
+== binder:13457_3 (tid 13472), window 50151 ms
+   incl ms    self ms   count  incl/cnt  name
+     114.3       25.7     916     0.125  releaseBufferCallbackLocked
+      58.8        4.5     304     0.194  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+      39.3       36.7     458     0.086  releaseBuffer
+      33.8        0.9      56     0.604  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+      31.6       22.5     458     0.069  drainBufferReleaseConsumerLocked
+      19.3        1.5      98     0.197  releaseBufferCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+      15.3       15.3     917     0.017  wait
+       7.5        5.8     304     0.025  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+       3.2        2.9      56     0.058  acquireBuffer
+       2.5        2.5     460     0.006  setTransformHint
+       2.3        1.8      99     0.024  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+       1.3        1.0      56     0.023  transactionCallback - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+       1.1        0.0       1     1.085  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1816
+       0.8        0.8       1     0.811  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1955
+       0.7        0.7     128     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 1
+       0.7        0.7     127     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 0
+       0.7        0.7     132     0.006  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 2
+       0.7        0.7     127     0.005  b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 3
+       0.6        0.6       1     0.603  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1941
+       0.6        0.6       1     0.572  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1971
+       0.6        0.6       1     0.565  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1954
+       0.6        0.6       1     0.561  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1970
+       0.5        0.5       1     0.502  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1933
+       0.4        0.4       1     0.430  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1981
+       0.4        0.4       1     0.421  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1967
+       0.4        0.4       1     0.416  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1852
+       0.4        0.4       1     0.412  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1950
+       0.4        0.4       1     0.406  acquireNextBufferLocked - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1818
+       0.4        0.1       1     0.402  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1970
+       0.4        0.2       1     0.402  releaseBuffer - b8346eb SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1785
+
+== DartWorker (tid 13581), window 46072 ms
+   incl ms    self ms   count  incl/cnt  name
+     177.9      177.9       9    19.768  ConcurrentMark
+     140.8       95.6      62     2.271  Scavenge
+      23.9       23.9      62     0.385  IterateStoreBuffers
+      22.3        0.1       5     4.462  ConcurrentSweep
+      21.2       21.2       5     4.233  Sweep
+      20.3       20.3      33     0.615  MournWeakHandles
+       4.1        3.8       3     1.356  ParallelMark
+       1.1        1.1       5     0.213  SweepLarge
+       0.9        0.9       3     0.287  SweepNew
+       0.6        0.6      28     0.021  MournWeakTables
+       0.4        0.4      62     0.007  IterateRememberedCards
+       0.2        0.2       1     0.246  MarkEvacuationCandidates
+       0.2        0.2       1     0.209  PruneFreeLists
+       0.1        0.1       6     0.022  ProcessDeferredMarking
+       0.1        0.1       3     0.019  ProcessRememberedSet
+       0.0        0.0       3     0.010  ProcessWeakTables
+       0.0        0.0       3     0.003  SweepExecutable
+
+== DartWorker (tid 13615), window 13763 ms
+   incl ms    self ms   count  incl/cnt  name
+     109.4      109.4       6    18.235  ConcurrentMark
+      62.5       44.2      20     3.127  Scavenge
+      17.8        0.1       3     5.920  ConcurrentSweep
+      16.9       16.9       3     5.646  Sweep
+      15.0       15.0      20     0.751  IterateStoreBuffers
+       3.7        3.1       4     0.935  ParallelMark
+       2.8        2.8       9     0.315  MournWeakHandles
+       1.2        1.2       2     0.588  SweepNew
+       1.0        1.0       2     0.481  ForwardStoreBuffer
+       0.8        0.8       3     0.257  SweepLarge
+       0.7        0.7       2     0.368  ForwardNewSpace
+       0.4        0.4       3     0.128  ProcessRememberedSet
+       0.3        0.3       2     0.134  Evacuate
+       0.3        0.3      11     0.024  MournWeakTables
+       0.2        0.2      20     0.009  IterateRememberedCards
+       0.2        0.2       8     0.021  ProcessDeferredMarking
+       0.1        0.1       3     0.028  ProcessWeakTables
+       0.0        0.0       1     0.038  PruneFreeLists
+       0.0        0.0       2     0.016  WeakPersistentHandles
+       0.0        0.0       2     0.012  SuspendStates
+       0.0        0.0       2     0.006  ForwardRememberedCards
+       0.0        0.0       3     0.004  SweepExecutable
+       0.0        0.0       2     0.005  WeakTables
+       0.0        0.0       2     0.004  Views
+       0.0        0.0       1     0.006  MarkEvacuationCandidates
+
+== IplrVkFenceWait (tid 13551), window 48545 ms
+   incl ms    self ms   count  incl/cnt  name
+     105.7      105.7    1685     0.063  ClearSignaledFences
+      22.8       22.8    1685     0.014  CheckFenceStatus
+
+== DartWorker (tid 13534), window 2652 ms
+   incl ms    self ms   count  incl/cnt  name
+      25.0       25.0       1    24.983  ConcurrentMark
+      11.0        9.6       3     3.681  Scavenge
+       2.8        0.1       1     2.839  ServiceIsolateStartup
+       2.7        0.0       1     2.708  DartIsolate::DartIsolateGroupCreateCallback
+       2.7        0.0       1     2.651  DartIsolate::CreateRootIsolate
+       2.6        0.0       1     2.641  DartIsolate::CreateDartIsolateGroup
+       2.3        0.1       1     2.346  Dart_CreateIsolateGroup
+       2.2        0.2       1     2.196  InitializeIsolate
+       2.0        0.2       1     2.000  ReadProgramSnapshot
+       1.4        1.4       3     0.463  IterateStoreBuffers
+       1.2        1.2       1     1.232  ReadFill
+       1.0        0.9       1     0.959  ParallelMark
+       0.5        0.5       1     0.462  ReadAlloc
+       0.3        0.0       1     0.285  DartIsolate::InitializeIsolate
+       0.2        0.1       1     0.247  DartIsolate::LoadLibraries
+       0.1        0.1       1     0.105  PostLoad
+       0.1        0.1       9     0.010  Dart_Invoke
+       0.0        0.0       2     0.024  ProcessDeferredMarking
+       0.0        0.0       3     0.016  MournWeakTables
+       0.0        0.0      14     0.003  Dart_SetField
+       0.0        0.0       1     0.035  DartIsolate::Initialize
+       0.0        0.0      30     0.001  Dart_NewStringFromCString
+       0.0        0.0       3     0.008  IterateRememberedCards
+       0.0        0.0      13     0.001  Dart_NewStringFromUTF8
+       0.0        0.0       1     0.012  ProcessRememberedSet
+       0.0        0.0       1     0.012  ProcessWeakTables
+       0.0        0.0       1     0.005  SweepExecutable
+       0.0        0.0       1     0.004  CopyMutableObjectGraph
+       0.0        0.0       1     0.003  SweepNew
+       0.0        0.0       1     0.003  UpdateGrowthLimit
+
+== RenderThread (tid 13486), window 374 ms
+   incl ms    self ms   count  incl/cnt  name
+       5.8        0.1       1     5.821  CreateInstance
+       5.7        5.7       1     5.667  driver.CreateInstance
+       3.8        0.4       1     3.814  DrawFrames 3257605
+       3.6        0.2       1     3.615  CreateDevice
+       3.2        3.2       1     3.215  driver.CreateDevice
+       1.7        0.1       1     1.683  Drawing  0.00  0.00 1080.00 2400.00
+       1.5        0.0       1     1.469  dequeueBuffer
+       1.4        1.4       1     1.444  allocateHelper
+       0.9        0.0       1     0.907  flush commands
+       0.9        0.0       1     0.905  Vulkan finish frame
+       0.8        0.5       1     0.788  initShaderDiskCache
+       0.6        0.0       2     0.282  queueBuffer
+       0.5        0.4       6     0.083  EnumerateDeviceExtensionProperties
+       0.4        0.1       1     0.400  auto skgpu::ganesh::OpsTask::onExecute(GrOpFlushState *)::(anonymous class)::operator()() const
+       0.3        0.2       2     0.166  FillRectOp
+       0.3        0.3       1     0.299  QueueSubmit
+       0.3        0.3       1     0.296  FileBlobCache
+       0.3        0.3       1     0.283  frameCommit success=1
+       0.2        0.0       1     0.245  onFrameAvailable - VRI[MainActivity]#0(f:0,a:0)
+       0.2        0.0       3     0.079  EnumerateInstanceVersion
+       0.2        0.2       1     0.232  acquireNextBufferLocked - VRI[MainActivity]#0(f:0,a:0)frame=1
+       0.2        0.0       1     0.219  DiscoverLayers
+       0.2        0.2       2     0.105  DiscoverLayersInPathList
+       0.2        0.0       1     0.198  syncFrameState
+       0.2        0.0       1     0.190  prepareTree
+       0.2        0.2       1     0.169  Update SurfaceView position
+       0.1        0.0       1     0.134  setSurface
+       0.1        0.0       1     0.099  CreateGraphicsPipeline
+       0.1        0.1       1     0.097  CreateGraphicsPipeline-CacheLookup
+       0.1        0.1       6     0.015  EnumerateInstanceExtensionProperties
+
+== hwuiTask0 (tid 13568), window 26 ms
+   incl ms    self ms   count  incl/cnt  name
+      24.7       24.7       1    24.734  preInitBufferAllocator:GraphicBufferAllocator
+
+== 1.io (tid 13524), window 10 ms
+   incl ms    self ms   count  incl/cnt  name
+       9.9        9.9       1     9.868  ShellSetupIOSubsystem
+
+== flutter-worker- (tid 13504), window 8 ms
+   incl ms    self ms   count  incl/cnt  name
+       7.9        7.9       1     7.928  FlutterLoader initTask
+
+== DartWorker (tid 13539), window 17 ms
+   incl ms    self ms   count  incl/cnt  name
+       2.0        2.0       3     0.674  HandleMessage
+       0.0        0.0      12     0.003  Dart_StringToCString
+       0.0        0.0       3     0.003  Dart_StringToUTF8
+       0.0        0.0       2     0.003  Dart_SendPortGetId
+       0.0        0.0       1     0.004  Dart_NewStringFromUTF8
+       0.0        0.0       1     0.003  Dart_NewInteger
+
+== pool-3-thread-1 (tid 13577), window 2 ms
+   incl ms    self ms   count  incl/cnt  name
+       1.3        1.3       1     1.283  WindowManager#registerDisplayEngagementModeCallback
+       0.5        0.5       1     0.504  WindowManager#getDisplayEngagementMode
+
+== n.morph_example (tid 13488), window 0 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.2        0.2       2     0.084  sendGpuStatsLocked
+
+== io.worker.1 (tid 13526), window 1 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       2     0.009  ConcurrentWorkerWake
+
+== io.worker.2 (tid 13527), window 1 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       2     0.005  ConcurrentWorkerWake
+

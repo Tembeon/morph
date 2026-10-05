@@ -5,8 +5,12 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+// The Android screenshot path talks to the plugin's channel directly.
+// ignore: implementation_imports
+import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 // The audit times the package's outline fusion on the device.
 // ignore: implementation_imports
@@ -45,11 +49,26 @@ import 'package:morph_example/gallery/gallery.dart';
 /// VoiceOver (a test binding builds it by default, which cost up to 1.3 ms
 /// of the UI thread per frame on the menu and controls scenes);
 /// `--dart-define=AUDIT_SEMANTICS=true` measures with it.
+///
+/// On Android (tool/ios_reference/perf/audit_android.sh) it is a profile
+/// APK with `AUDIT_OUT` in the app's external files directory; each
+/// screenshot goes through the integration_test plugin's image view.
+/// `--dart-define=AUDIT_SHOTS=false` skips the screenshots and
+/// `--dart-define=AUDIT_SCENES=menu,controls` runs only the named scenes.
+/// The report also carries the display's frame budget and the frames over
+/// it (`over_budget`), p99s, why the liquid tier is unavailable, the tiers
+/// the adaptive governor chose (`GALLERY_GLASS=auto`), the precache time,
+/// and `first_use`: each scene's frames from entering its page to its
+/// first timed run (home-scroll's start at runApp, the first glass frame).
 const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
 
 const int _runs = int.fromEnvironment('AUDIT_RUNS', defaultValue: 1);
 
 const bool _semantics = bool.fromEnvironment('AUDIT_SEMANTICS');
+
+const bool _shots = bool.fromEnvironment('AUDIT_SHOTS', defaultValue: true);
+
+const String _scenesOnly = String.fromEnvironment('AUDIT_SCENES');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -91,11 +110,40 @@ class _Audit {
       tester.pump(Duration(milliseconds: ms));
 
   Future<void> shot(String name) async {
+    if (!_shots) return;
     await tester.pump();
+    if (Platform.isAndroid) {
+      await _androidShot(name);
+      return;
+    }
     final data = await binding.callbackManager.takeScreenshot(name);
     final bytes = (data['bytes']! as List<Object?>).cast<int>();
     File('${outDir.path}/$name.png').writeAsBytesSync(bytes);
   }
+
+  Future<void> _androidShot(String name) async {
+    integrationTestChannel.setMethodCallHandler((MethodCall call) async {
+      if (call.method == 'scheduleFrame') {
+        ui.PlatformDispatcher.instance.scheduleFrame();
+      }
+      return null;
+    });
+    await integrationTestChannel.invokeMethod<void>(
+      'convertFlutterSurfaceToImage',
+    );
+    await tester.pump();
+    final bytes = await integrationTestChannel.invokeMethod<List<int>>(
+      'captureScreenshot',
+      <String, Object?>{'name': name},
+    );
+    await integrationTestChannel.invokeMethod<void>('revertFlutterImage');
+    await tester.pump();
+    if (bytes != null) File('${outDir.path}/$name.png').writeAsBytesSync(bytes);
+  }
+
+  final Map<String, (int, int)> _firstUse = {};
+  int _enteredAt = 0;
+  double _precacheMs = 0;
 
   final Set<bool> _semanticsWhileTimed = {};
 
@@ -104,6 +152,7 @@ class _Audit {
       _semanticsWhileTimed.add(SemanticsBinding.instance.semanticsEnabled);
       await settle(300);
       final start = timings.length;
+      if (run == 0) _firstUse[scene] = (_enteredAt, start);
       await body();
       await settle(300);
       await tester.pump();
@@ -140,6 +189,8 @@ class _Audit {
   );
 
   Future<void> open(String title) async {
+    await settle(300);
+    _enteredAt = timings.length;
     await tester.tap(find.text(title));
     await settle(800);
   }
@@ -160,15 +211,29 @@ class _Audit {
       _outlines();
       return;
     }
+    final precache = Stopwatch();
+    precache.start();
     await MorphGlassRenderer.precache();
-    runApp(const GalleryApp());
+    _precacheMs = precache.elapsedMicroseconds / 1000;
+    _enteredAt = timings.length;
+    runApp(
+      GalleryApp(
+        onTierChanged: (MorphGlassTier tier) => _tierChanges.add(tier.name),
+      ),
+    );
     await settle(1500);
-    await _homeScroll();
-    await _segmented();
-    await _tabBar();
-    await _controls();
-    await _menu();
-    await _sheet();
+    for (final (name, scene) in [
+      ('home-scroll', _homeScroll),
+      ('segmented', _segmented),
+      ('tab-bar', _tabBar),
+      ('controls', _controls),
+      ('menu', _menu),
+      ('sheet', _sheet),
+    ]) {
+      if (_scenesOnly.isEmpty || _scenesOnly.split(',').contains(name)) {
+        await scene();
+      }
+    }
     _outlines();
   }
 
@@ -436,7 +501,12 @@ class _Audit {
     await back();
   }
 
+  final List<String> _tierChanges = [];
+
   Map<String, Object?> report() {
+    final display = ui.PlatformDispatcher.instance.views.first.display;
+    final rate = display.refreshRate > 0 ? display.refreshRate : 60.0;
+    final budget = 1000 / rate;
     double ms(Duration d) => d.inMicroseconds / 1000;
     double pick(List<double> v, double q) =>
         v[math.min(v.length - 1, (v.length * q).floor())];
@@ -476,6 +546,13 @@ class _Audit {
           for (final f in frames)
             if (ms(f.buildDuration) > 8.3 || ms(f.rasterDuration) > 8.3) f,
         ].length.toDouble(),
+        'build_p99': pick(build, 0.99),
+        'raster_p99': pick(raster, 0.99),
+        'over_budget': [
+          for (final f in frames)
+            if (ms(f.buildDuration) > budget || ms(f.rasterDuration) > budget)
+              f,
+        ].length.toDouble(),
       };
     }
 
@@ -485,6 +562,17 @@ class _Audit {
         defaultValue: 'auto',
       ),
       'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'liquid_unavailable_reason': MorphGlassRenderer.liquidUnavailableReason,
+      'platform': Platform.operatingSystem,
+      'refresh_rate': rate,
+      'budget_ms': budget,
+      'precache_ms': _precacheMs,
+      'tier_changes': _tierChanges,
+      'first_use': {
+        for (final MapEntry(key: scene, value: (start, end))
+            in _firstUse.entries)
+          scene: stats(timings.sublist(start, end)),
+      },
       'semantics': [..._semanticsWhileTimed],
       'runs': _runs,
       'outline_us': _outlineMicros,

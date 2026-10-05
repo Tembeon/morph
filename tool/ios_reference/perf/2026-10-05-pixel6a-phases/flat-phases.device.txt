@@ -1,0 +1,27 @@
+apk: flat-phases.apk  commit: 905517f  date: Mon Oct  5 13:59:56 CEST 2026
+thermal before:
+Thermal Status: 1
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=41.0724, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ Temperature{mValue=38.0, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=38.85085, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 363
+WaitTime: 377
+gpu cur_freq kHz histogram (samples):
+ 115 251000
+thermal after:
+Thermal Status: 1
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=41.0724, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ Temperature{mValue=38.0, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=38.75175, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-05 13:59:56.161 28114 28159 I flutter : The Dart VM service is listening on http://127.0.0.1:38345/RdpRqWZXsRQ=/
+10-05 13:59:56.165 28114 28149 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 13:59:56.218 28114 28114 I flutter : 00:00 +0: glass phases
+10-05 14:00:56.092 28114 28114 I flutter : 00:59 +1: (tearDownAll)
+10-05 14:00:56.096 28114 28114 I flutter : 00:59 +2: All tests passed!

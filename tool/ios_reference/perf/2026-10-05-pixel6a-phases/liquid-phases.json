@@ -1,0 +1,284 @@
+{
+  "tier": "liquid",
+  "liquid_available": true,
+  "segmented": {
+    "median": {
+      "frames": 125.0,
+      "BUILD": 0.0,
+      "LAYOUT": 0.042144,
+      "UPDATING COMPOSITING BITS": 0.040984,
+      "PAINT": 0.098008,
+      "COMPOSITING": 0.321368,
+      "FINALIZE TREE": 0.012343999999999999,
+      "build_p50": 0.471,
+      "build_p95": 1.063
+    },
+    "runs": [
+      {
+        "frames": 125.0,
+        "BUILD": 0.0,
+        "LAYOUT": 0.042144,
+        "UPDATING COMPOSITING BITS": 0.034008000000000004,
+        "PAINT": 0.09344799999999999,
+        "COMPOSITING": 0.281528,
+        "FINALIZE TREE": 0.011112,
+        "build_p50": 0.48,
+        "build_p95": 0.684
+      },
+      {
+        "frames": 125.0,
+        "BUILD": 0.0,
+        "LAYOUT": 0.052503999999999995,
+        "UPDATING COMPOSITING BITS": 0.042311999999999995,
+        "PAINT": 0.118848,
+        "COMPOSITING": 0.37224,
+        "FINALIZE TREE": 0.017704,
+        "build_p50": 0.471,
+        "build_p95": 1.091
+      },
+      {
+        "frames": 125.0,
+        "BUILD": 0.0,
+        "LAYOUT": 0.039944,
+        "UPDATING COMPOSITING BITS": 0.047304,
+        "PAINT": 0.093936,
+        "COMPOSITING": 0.320064,
+        "FINALIZE TREE": 0.011032,
+        "build_p50": 0.39,
+        "build_p95": 0.96
+      },
+      {
+        "frames": 125.0,
+        "BUILD": 0.0,
+        "LAYOUT": 0.040735999999999994,
+        "UPDATING COMPOSITING BITS": 0.029648,
+        "PAINT": 0.098008,
+        "COMPOSITING": 0.321368,
+        "FINALIZE TREE": 0.012343999999999999,
+        "build_p50": 0.422,
+        "build_p95": 1.121
+      },
+      {
+        "frames": 125.0,
+        "BUILD": 0.0,
+        "LAYOUT": 0.046064,
+        "UPDATING COMPOSITING BITS": 0.040984,
+        "PAINT": 0.105256,
+        "COMPOSITING": 0.37844,
+        "FINALIZE TREE": 0.014312,
+        "build_p50": 0.483,
+        "build_p95": 1.063
+      }
+    ]
+  },
+  "tab-bar": {
+    "median": {
+      "frames": 205.0,
+      "BUILD": 0.3856538461538461,
+      "LAYOUT": 0.11332211538461538,
+      "UPDATING COMPOSITING BITS": 0.031402843601895734,
+      "PAINT": 4.97275,
+      "COMPOSITING": 1.541398104265403,
+      "FINALIZE TREE": 0.016227544910179643,
+      "build_p50": 4.762,
+      "build_p95": 6.845
+    },
+    "runs": [
+      {
+        "frames": 211.0,
+        "BUILD": 0.3771137440758294,
+        "LAYOUT": 0.11326540284360188,
+        "UPDATING COMPOSITING BITS": 0.031402843601895734,
+        "PAINT": 4.970734597156398,
+        "COMPOSITING": 1.541398104265403,
+        "FINALIZE TREE": 0.014848341232227488,
+        "build_p50": 4.762,
+        "build_p95": 6.638
+      },
+      {
+        "frames": 167.0,
+        "BUILD": 0.3026047904191617,
+        "LAYOUT": 0.08682035928143712,
+        "UPDATING COMPOSITING BITS": 0.02162874251497006,
+        "PAINT": 3.844245508982036,
+        "COMPOSITING": 1.3910718562874251,
+        "FINALIZE TREE": 0.016227544910179643,
+        "build_p50": 3.244,
+        "build_p95": 6.65
+      },
+      {
+        "frames": 208.0,
+        "BUILD": 0.3856538461538461,
+        "LAYOUT": 0.11332211538461538,
+        "UPDATING COMPOSITING BITS": 0.0335625,
+        "PAINT": 5.079370192307692,
+        "COMPOSITING": 1.6143173076923076,
+        "FINALIZE TREE": 0.015086538461538462,
+        "build_p50": 4.965,
+        "build_p95": 6.845
+      },
+      {
+        "frames": 204.0,
+        "BUILD": 0.39770098039215684,
+        "LAYOUT": 0.11594607843137256,
+        "UPDATING COMPOSITING BITS": 0.030029411764705884,
+        "PAINT": 4.97275,
+        "COMPOSITING": 1.5368186274509803,
+        "FINALIZE TREE": 0.020980392156862746,
+        "build_p50": 4.683,
+        "build_p95": 6.891
+      },
+      {
+        "frames": 205.0,
+        "BUILD": 0.40296585365853654,
+        "LAYOUT": 0.12268780487804878,
+        "UPDATING COMPOSITING BITS": 0.03335121951219512,
+        "PAINT": 5.084990243902439,
+        "COMPOSITING": 1.5834926829268292,
+        "FINALIZE TREE": 0.022541463414634148,
+        "build_p50": 4.835,
+        "build_p95": 7.156
+      }
+    ]
+  },
+  "density16-wave": {
+    "median": {
+      "frames": 116.0,
+      "BUILD": 0.9725666666666667,
+      "LAYOUT": 1.822575,
+      "UPDATING COMPOSITING BITS": 0.01952212389380531,
+      "PAINT": 5.31745,
+      "COMPOSITING": 1.7248879310344827,
+      "FINALIZE TREE": 0.009224137931034482,
+      "build_p50": 5.437,
+      "build_p95": 8.304
+    },
+    "runs": [
+      {
+        "frames": 128.0,
+        "BUILD": 1.02521875,
+        "LAYOUT": 1.9141484375,
+        "UPDATING COMPOSITING BITS": 0.035734375,
+        "PAINT": 5.905609375,
+        "COMPOSITING": 1.888953125,
+        "FINALIZE TREE": 0.009625,
+        "build_p50": 6.253,
+        "build_p95": 9.449
+      },
+      {
+        "frames": 120.0,
+        "BUILD": 0.9725666666666667,
+        "LAYOUT": 1.822575,
+        "UPDATING COMPOSITING BITS": 0.017358333333333333,
+        "PAINT": 5.31745,
+        "COMPOSITING": 1.7966916666666666,
+        "FINALIZE TREE": 0.007266666666666667,
+        "build_p50": 5.437,
+        "build_p95": 8.304
+      },
+      {
+        "frames": 113.0,
+        "BUILD": 0.9361150442477877,
+        "LAYOUT": 1.7415221238938052,
+        "UPDATING COMPOSITING BITS": 0.01952212389380531,
+        "PAINT": 5.140929203539823,
+        "COMPOSITING": 1.668787610619469,
+        "FINALIZE TREE": 0.010123893805309734,
+        "build_p50": 5.225,
+        "build_p95": 7.729
+      },
+      {
+        "frames": 116.0,
+        "BUILD": 1.009698275862069,
+        "LAYOUT": 1.8872241379310344,
+        "UPDATING COMPOSITING BITS": 0.01971551724137931,
+        "PAINT": 5.3742586206896545,
+        "COMPOSITING": 1.7248879310344827,
+        "FINALIZE TREE": 0.009224137931034482,
+        "build_p50": 5.652,
+        "build_p95": 8.329
+      },
+      {
+        "frames": 115.0,
+        "BUILD": 0.9324869565217391,
+        "LAYOUT": 1.7156521739130435,
+        "UPDATING COMPOSITING BITS": 0.017721739130434785,
+        "PAINT": 4.9047913043478255,
+        "COMPOSITING": 1.5638869565217393,
+        "FINALIZE TREE": 0.007356521739130435,
+        "build_p50": 4.961,
+        "build_p95": 7.362
+      }
+    ]
+  },
+  "density16-rest": {
+    "median": {
+      "frames": 91.0,
+      "BUILD": 0.015833333333333335,
+      "LAYOUT": 0.28188541666666667,
+      "UPDATING COMPOSITING BITS": 0.02398901098901099,
+      "PAINT": 0.17912359550561796,
+      "COMPOSITING": 2.1387252747252745,
+      "FINALIZE TREE": 0.015846153846153847,
+      "build_p50": 2.147,
+      "build_p95": 4.33
+    },
+    "runs": [
+      {
+        "frames": 96.0,
+        "BUILD": 0.015833333333333335,
+        "LAYOUT": 0.28188541666666667,
+        "UPDATING COMPOSITING BITS": 0.025729166666666668,
+        "PAINT": 0.1955625,
+        "COMPOSITING": 2.4803125,
+        "FINALIZE TREE": 0.010375,
+        "build_p50": 2.537,
+        "build_p95": 4.799
+      },
+      {
+        "frames": 91.0,
+        "BUILD": 0.022912087912087913,
+        "LAYOUT": 0.2957912087912088,
+        "UPDATING COMPOSITING BITS": 0.02398901098901099,
+        "PAINT": 0.15756043956043955,
+        "COMPOSITING": 2.1387252747252745,
+        "FINALIZE TREE": 0.015846153846153847,
+        "build_p50": 2.106,
+        "build_p95": 4.33
+      },
+      {
+        "frames": 97.0,
+        "BUILD": 0.019979381443298968,
+        "LAYOUT": 0.3078556701030928,
+        "UPDATING COMPOSITING BITS": 0.02715463917525773,
+        "PAINT": 0.24551546391752577,
+        "COMPOSITING": 2.478020618556701,
+        "FINALIZE TREE": 0.015927835051546393,
+        "build_p50": 2.406,
+        "build_p95": 6.04
+      },
+      {
+        "frames": 90.0,
+        "BUILD": 0.015133333333333334,
+        "LAYOUT": 0.22976666666666667,
+        "UPDATING COMPOSITING BITS": 0.021844444444444444,
+        "PAINT": 0.16432222222222223,
+        "COMPOSITING": 1.9639666666666666,
+        "FINALIZE TREE": 0.014911111111111111,
+        "build_p50": 2.057,
+        "build_p95": 4.057
+      },
+      {
+        "frames": 89.0,
+        "BUILD": 0.0150561797752809,
+        "LAYOUT": 0.2532022471910112,
+        "UPDATING COMPOSITING BITS": 0.022382022471910113,
+        "PAINT": 0.17912359550561796,
+        "COMPOSITING": 2.0097865168539326,
+        "FINALIZE TREE": 0.01655056179775281,
+        "build_p50": 2.147,
+        "build_p95": 4.247
+      }
+    ]
+  }
+}

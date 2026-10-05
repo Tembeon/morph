@@ -42,7 +42,11 @@ void main() {
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
   testWidgets('glass phases', (WidgetTester tester) async {
-    final dir = Directory('${Directory.systemTemp.path}/glass_phases');
+    final dir = Directory(
+      const String.fromEnvironment('AUDIT_OUT').isEmpty
+          ? '${Directory.systemTemp.path}/glass_phases'
+          : const String.fromEnvironment('AUDIT_OUT'),
+    );
     if (dir.existsSync()) dir.deleteSync(recursive: true);
     binding.platformDispatcher.platformBrightnessTestValue = .dark;
     final timings = <ui.FrameTiming>[];

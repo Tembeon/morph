@@ -1,0 +1,30 @@
+apk: frosted-gles.apk  commit: 905517f  date: Mon Oct  5 14:32:35 CEST 2026
+thermal before:
+Thermal Status: 1
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=41.0724, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ Temperature{mValue=38.800003, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=38.977802, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 373
+WaitTime: 375
+gpu cur_freq kHz histogram (samples):
+ 339 251000
+ 106 302000
+   8 351000
+   1 400000
+thermal after:
+Thermal Status: 1
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=41.0724, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ Temperature{mValue=38.600002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=40.347355, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-05 14:32:35.379  4514  4599 I flutter : The Dart VM service is listening on http://127.0.0.1:36747/CoLF6VVMgkg=/
+10-05 14:32:35.390  4514  4514 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-05 14:32:35.448  4514  4514 I flutter : 00:00 +0: glass audit
+10-05 14:36:32.338  4514  4514 I flutter : 03:56 +1: (tearDownAll)
+10-05 14:36:32.340  4514  4514 I flutter : 03:56 +2: All tests passed!

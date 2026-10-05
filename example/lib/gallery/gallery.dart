@@ -24,11 +24,15 @@ import 'package:morph_example/gallery/spec_inspector.dart';
 /// select, or the one [MorphAdaptiveGlass] picks from the frame timings.
 class GalleryApp extends StatefulWidget {
   /// Creates the app.
-  const GalleryApp({this.navigatorKey, super.key});
+  const GalleryApp({this.navigatorKey, this.onTierChanged, super.key});
 
   /// The key of the gallery's page navigator (the navigation stack's),
   /// for a driver that walks the pages.
   final GlobalKey<NavigatorState>? navigatorKey;
+
+  /// Called when the automatic glass tier changes, for a harness that
+  /// reports which tier the device holds.
+  final ValueChanged<MorphGlassTier>? onTierChanged;
 
   @override
   State<GalleryApp> createState() => _GalleryAppState();
@@ -85,6 +89,7 @@ class _GalleryAppState extends State<GalleryApp> {
             final app = MorphAdaptiveGlass(
               renderer: renderer,
               tier: tier,
+              onTierChanged: widget.onTierChanged,
               child: BackdropGroup(child: MorphScope(child: child!)),
             );
             return GalleryGlassScope(

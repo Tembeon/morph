@@ -8,7 +8,7 @@ import json
 import os
 import sys
 
-KEYS = ['build_p50', 'build_p95', 'raster_p50', 'raster_p95', 'raster_worst', 'span_p95']
+KEYS = ['build_p50', 'build_p95', 'raster_p50', 'raster_p95', 'raster_p99', 'raster_worst', 'span_p95', 'over_budget']
 
 
 def load(path):
