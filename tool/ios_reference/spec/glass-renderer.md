@@ -623,6 +623,53 @@ keeps a 42 ms raster residue (not traced; 362 before); every other
 first frame is at steady-state worst. Launch to first frame is not
 recorded on iOS (devicectl reports no launch time).
 
+## Startup and queue bounds (2026-10-05, the macOS hang)
+
+Symptom: the example hung at launch on macOS, Not Responding, not on
+every launch (one spindump, morph_example 2026-10-05 16:41, main thread
+blocked 1.6 s after launch for the remaining 471 s). Every thread idle
+except the main (= UI) thread:
+
+    InternalFlutterGpu_CommandBuffer_Initialize   (command_buffer.cc:202)
+    impeller::ContextMTL::CreateCommandBufferInQueue
+    -[AGXG15XFamilyCommandQueue commandBuffer(WithDescriptor:)]
+    -[_MTLCommandBuffer initWithQueue:retainedReferences:...]
+    _dispatch_semaphore_wait_slow / semaphore_wait_trap
+
+Cause: Impeller's Metal queue is `newCommandQueue`, 64 uncompleted
+command buffers; one more blocks until a buffer completes. Geometry
+passes recorded during paint were held unsubmitted until the scene build
+with no bound, so a frame with about 62 passes waited on slots only its
+own unsubmitted passes could free - forever. Reproduced in a release
+build on the Mac (M3, Flutter 3.47.2): 72 standalone glass buttons
+(glass_density_test's page) hang on the first frame with 62 passes held,
+the stack above; 62 raw `gpuContext.createCommandBuffer()` without a
+submit block on the 63rd; 48 buttons pass (47 held). The gallery home
+holds at most 1 pass and the autodemo at most 11, and 40+ launches of
+the gallery (release, profile, debug, `open -n`) did not hang on this
+Mac, so the owner's launches crossed the bound some other way than the
+home page alone; the mechanism and the stack are the ones above.
+
+Bounds since 50a4491:
+- `MorphDeferredSubmissions` submits the held passes every 16 (2 per
+  layer at most, the raster thread keeps the rest of the 64); 72 and 200
+  buttons draw their first frame. A failed submission is reported and no
+  longer strands the batch (before, a throwing `submit()` left the list
+  uncleared and every later flush threw on it again while the list
+  grew). A render that throws before its pass is recorded (a field
+  upload or uniform write) no longer leaks an uncommitted buffer, which
+  would hold a slot until the GC.
+- `precache()` holds the launch at most `morphPrecacheBudget` (1 s,
+  above the 0.35 - 0.86 s measured cold); past it the capability and
+  warm-up finish in the background and glass drawn meanwhile is fake.
+  A synchronous engine wait (reading `gpu.gpuContext` on Android before
+  the engine created the context) is not bounded by it.
+- Not a hang, found on the way: Flutter GPU's HostBuffer throws
+  `Failed to write range (offset=79616, length=2352)` when an emplace
+  straddles the end of a block (its check ignores the write's length);
+  the 32-slot block fits about 31 geometry renders a frame, the rest
+  fall back with "geometry render failed".
+
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
 - 2026-10-05, tool/ios_reference/perf/audit.sh (5 timed runs per scene,
