@@ -491,73 +491,75 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
         ),
       ],
     );
-    return MorphControlFocus(
-      enabled: _enabled,
-      onHighlight: highlightControlFocus,
-      onStep: _step,
-      child: MorphTouchListener(
-        enabled: widget.items.isNotEmpty,
-        dragAxis: .horizontal,
-        delaysInScrollable: true,
-        onPointerDown: handleDown,
-        onPointerMove: handleMove,
-        onPointerUp: handleUp,
-        onPointerCancel: handleCancel,
-        child: AnimatedBuilder(
-          animation: frames,
-          builder: (BuildContext context, Widget? child) {
-            final grow =
-                (geometry.width + motion.chromeGrowth) / geometry.width;
-            return Transform.scale(scale: grow, child: child);
-          },
-          child: MorphFocusRing(
-            visible: controlFocused,
-            child: SizedBox(
-              width: geometry.width,
-              height: _barHeight,
-              child: Stack(
-                children: glass == null
-                    ? [
-                        Positioned.fill(child: _Glass(style: style)),
-                        Positioned.fill(
-                          child: CustomPaint(painter: _GlowPainter(this)),
-                        ),
-                        Positioned.fill(
-                          child: CustomPaint(painter: _LensPainter(this)),
-                        ),
-                        Positioned.fill(
-                          left: MorphTabBarMetrics.sideInset,
-                          right: MorphTabBarMetrics.sideInset,
-                          child: tabs,
-                        ),
-                      ]
-                    : [
-                        Positioned.fill(
-                          child: MorphGlassLayer(
-                            painter: glass,
-                            frames: frames,
-                            surfaces: _surfaces,
-                            content: Padding(
-                              padding: const .symmetric(
-                                horizontal: MorphTabBarMetrics.sideInset,
-                              ),
-                              child: tabs,
-                            ),
-                            contentSlots: [
-                              for (var i = 0; i < widget.items.length; i++)
-                                Rect.fromCenter(
-                                  center: Offset(
-                                    MorphTabBarMetrics.sideInset +
-                                        geometry.pitch * (i + 0.5),
-                                    _barHeight / 2,
-                                  ),
-                                  width: geometry.pitch,
-                                  height: _barHeight,
-                                ),
-                            ],
+    return RepaintBoundary(
+      child: MorphControlFocus(
+        enabled: _enabled,
+        onHighlight: highlightControlFocus,
+        onStep: _step,
+        child: MorphTouchListener(
+          enabled: widget.items.isNotEmpty,
+          dragAxis: .horizontal,
+          delaysInScrollable: true,
+          onPointerDown: handleDown,
+          onPointerMove: handleMove,
+          onPointerUp: handleUp,
+          onPointerCancel: handleCancel,
+          child: AnimatedBuilder(
+            animation: frames,
+            builder: (BuildContext context, Widget? child) {
+              final grow =
+                  (geometry.width + motion.chromeGrowth) / geometry.width;
+              return Transform.scale(scale: grow, child: child);
+            },
+            child: MorphFocusRing(
+              visible: controlFocused,
+              child: SizedBox(
+                width: geometry.width,
+                height: _barHeight,
+                child: Stack(
+                  children: glass == null
+                      ? [
+                          Positioned.fill(child: _Glass(style: style)),
+                          Positioned.fill(
+                            child: CustomPaint(painter: _GlowPainter(this)),
                           ),
-                        ),
-                      ],
+                          Positioned.fill(
+                            child: CustomPaint(painter: _LensPainter(this)),
+                          ),
+                          Positioned.fill(
+                            left: MorphTabBarMetrics.sideInset,
+                            right: MorphTabBarMetrics.sideInset,
+                            child: tabs,
+                          ),
+                        ]
+                      : [
+                          Positioned.fill(
+                            child: MorphGlassLayer(
+                              painter: glass,
+                              frames: frames,
+                              surfaces: _surfaces,
+                              content: Padding(
+                                padding: const .symmetric(
+                                  horizontal: MorphTabBarMetrics.sideInset,
+                                ),
+                                child: tabs,
+                              ),
+                              contentSlots: [
+                                for (var i = 0; i < widget.items.length; i++)
+                                  Rect.fromCenter(
+                                    center: Offset(
+                                      MorphTabBarMetrics.sideInset +
+                                          geometry.pitch * (i + 0.5),
+                                      _barHeight / 2,
+                                    ),
+                                    width: geometry.pitch,
+                                    height: _barHeight,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
+                ),
               ),
             ),
           ),

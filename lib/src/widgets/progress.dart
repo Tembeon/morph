@@ -258,14 +258,16 @@ class _MorphProgressViewState extends State<MorphProgressView>
       child: SizedBox(
         height: height,
         width: double.infinity,
-        child: CustomPaint(
-          painter: _ProgressPainter(
-            state: this,
-            track: widget.viewStyle == MorphProgressViewStyle.standard
-                ? widget.trackColor ?? style.trackColor
-                : null,
-            fill: widget.progressColor ?? style.progressColor,
-            rtl: rtl,
+        child: RepaintBoundary(
+          child: CustomPaint(
+            painter: _ProgressPainter(
+              state: this,
+              track: widget.viewStyle == MorphProgressViewStyle.standard
+                  ? widget.trackColor ?? style.trackColor
+                  : null,
+              fill: widget.progressColor ?? style.progressColor,
+              rtl: rtl,
+            ),
           ),
         ),
       ),

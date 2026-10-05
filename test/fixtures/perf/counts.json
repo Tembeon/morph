@@ -22,7 +22,7 @@
   "tab-bar/flat": {
     "frames": 221,
     "builds": 5.8,
-    "paints": 97.8,
+    "paints": 75.8,
     "pictures": 1.0,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -102,8 +102,8 @@
   "tab-bar/frosted": {
     "frames": 221,
     "builds": 7.7,
-    "paints": 103.7,
-    "pictures": 5.7,
+    "paints": 81.7,
+    "pictures": 3.7,
     "captures": 1.0,
     "offscreen": 2.0,
     "bodyShadows": 0.0,
@@ -182,8 +182,8 @@
   "tab-bar/liquid": {
     "frames": 221,
     "builds": 23.7,
-    "paints": 108.0,
-    "pictures": 6.7,
+    "paints": 86.0,
+    "pictures": 4.7,
     "captures": 3.3,
     "offscreen": 3.7,
     "bodyShadows": 0.0,

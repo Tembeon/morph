@@ -480,48 +480,54 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
         ),
       ),
     );
-    return MorphControlFocus(
-      enabled: _enabled,
-      onHighlight: highlightControlFocus,
-      onActivate: widget.onPressed,
-      child: Semantics(
-        button: true,
+    return RepaintBoundary(
+      child: MorphControlFocus(
         enabled: _enabled,
-        onTap: widget.onPressed,
-        child: MorphTouchListener(
+        onHighlight: highlightControlFocus,
+        onActivate: widget.onPressed,
+        child: Semantics(
+          button: true,
           enabled: _enabled,
-          behavior: HitTestBehavior.opaque,
-          onPointerDown: handleDown,
-          onPointerMove: handleMove,
-          onPointerUp: handleUp,
-          onPointerCancel: handleCancel,
-          child: ListenableBuilder(
-            listenable: frames,
-            builder: (BuildContext context, Widget? child) {
-              final lean = _motion.lean;
-              final transform = Matrix4.translationValues(lean.dx, lean.dy, 0);
-              transform.multiply(
-                Matrix4.diagonal3Values(_motion.scaleX, _motion.scaleY, 1),
-              );
-              return Transform(
-                transform: transform,
-                alignment: Alignment.center,
-                child: child,
-              );
-            },
-            child: MorphFocusRing(
-              visible: controlFocused,
-              child: MorphControlCapsule(
-                painter: glass,
-                frames: frames,
-                color: tint ?? style.fillColor,
-                rim: tint == null ? style.rimColor : style.tintedRimColor,
-                shadow: style.shadowColor,
-                brightness: brightness,
-                enabled: enabled,
-                lift: () => _lift,
-                glow: () => _motion.glowAt(brightness),
-                child: content,
+          onTap: widget.onPressed,
+          child: MorphTouchListener(
+            enabled: _enabled,
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: handleDown,
+            onPointerMove: handleMove,
+            onPointerUp: handleUp,
+            onPointerCancel: handleCancel,
+            child: ListenableBuilder(
+              listenable: frames,
+              builder: (BuildContext context, Widget? child) {
+                final lean = _motion.lean;
+                final transform = Matrix4.translationValues(
+                  lean.dx,
+                  lean.dy,
+                  0,
+                );
+                transform.multiply(
+                  Matrix4.diagonal3Values(_motion.scaleX, _motion.scaleY, 1),
+                );
+                return Transform(
+                  transform: transform,
+                  alignment: Alignment.center,
+                  child: child,
+                );
+              },
+              child: MorphFocusRing(
+                visible: controlFocused,
+                child: MorphControlCapsule(
+                  painter: glass,
+                  frames: frames,
+                  color: tint ?? style.fillColor,
+                  rim: tint == null ? style.rimColor : style.tintedRimColor,
+                  shadow: style.shadowColor,
+                  brightness: brightness,
+                  enabled: enabled,
+                  lift: () => _lift,
+                  glow: () => _motion.glowAt(brightness),
+                  child: content,
+                ),
               ),
             ),
           ),

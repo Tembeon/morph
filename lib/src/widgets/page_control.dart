@@ -504,41 +504,43 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
     String value(int page) =>
         widget.semanticValueFormatter?.call(page, count) ??
         'page $page of $count';
-    return MorphControlFocus(
-      enabled: _enabled,
-      onHighlight: highlightControlFocus,
-      onStep: (int delta) => _step(rtl ? -delta : delta),
-      child: MorphFocusRing(
-        visible: controlFocused,
-        child: Semantics(
-          container: true,
-          enabled: _enabled,
-          label: widget.semanticLabel,
-          value: count == 0 ? null : value(page + 1),
-          increasedValue: page + 1 < count ? value(page + 2) : null,
-          decreasedValue: page > 0 ? value(page) : null,
-          onIncrease: _enabled && page + 1 < count ? () => _step(1) : null,
-          onDecrease: _enabled && page > 0 ? () => _step(-1) : null,
-          child: MorphTouchListener(
+    return RepaintBoundary(
+      child: MorphControlFocus(
+        enabled: _enabled,
+        onHighlight: highlightControlFocus,
+        onStep: (int delta) => _step(rtl ? -delta : delta),
+        child: MorphFocusRing(
+          visible: controlFocused,
+          child: Semantics(
+            container: true,
             enabled: _enabled,
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: handleDown,
-            onPointerMove: handleMove,
-            onPointerUp: handleUp,
-            onPointerCancel: handleCancel,
-            child: CustomPaint(
-              size: _size,
-              painter: _PageControlPainter(
-                frames: frames,
-                motion: _motion,
-                style: style,
-                rtl: rtl,
-                platter: switch (widget.background) {
-                  MorphPageControlBackground.prominent => true,
-                  MorphPageControlBackground.minimal => false,
-                  MorphPageControlBackground.automatic => null,
-                },
-                progress: widget.progress,
+            label: widget.semanticLabel,
+            value: count == 0 ? null : value(page + 1),
+            increasedValue: page + 1 < count ? value(page + 2) : null,
+            decreasedValue: page > 0 ? value(page) : null,
+            onIncrease: _enabled && page + 1 < count ? () => _step(1) : null,
+            onDecrease: _enabled && page > 0 ? () => _step(-1) : null,
+            child: MorphTouchListener(
+              enabled: _enabled,
+              behavior: HitTestBehavior.opaque,
+              onPointerDown: handleDown,
+              onPointerMove: handleMove,
+              onPointerUp: handleUp,
+              onPointerCancel: handleCancel,
+              child: CustomPaint(
+                size: _size,
+                painter: _PageControlPainter(
+                  frames: frames,
+                  motion: _motion,
+                  style: style,
+                  rtl: rtl,
+                  platter: switch (widget.background) {
+                    MorphPageControlBackground.prominent => true,
+                    MorphPageControlBackground.minimal => false,
+                    MorphPageControlBackground.automatic => null,
+                  },
+                  progress: widget.progress,
+                ),
               ),
             ),
           ),

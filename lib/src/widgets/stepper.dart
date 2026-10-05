@@ -303,71 +303,73 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
         ),
       ),
     ];
-    return MorphControlFocus(
-      enabled: enabled,
-      onHighlight: highlightControlFocus,
-      onActivate: () => _key(_Half.plus),
-      onStep: (int delta) => _key(delta > 0 ? _Half.plus : _Half.minus),
-      verticalSteps: true,
-      child: MorphFocusRing(
-        visible: controlFocused,
-        child: Semantics(
-          container: true,
-          explicitChildNodes: true,
-          child: MorphTouchListener(
-            enabled: enabled,
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: handleDown,
-            onPointerMove: handleMove,
-            onPointerUp: handleUp,
-            onPointerCancel: handleCancel,
-            child: SizedBox.fromSize(
-              size: size,
-              child: Stack(
-                children: [
-                  if (glass != null)
-                    for (final h in halves)
-                      if (!(style.pressedReplacesFill && _pressed == h.half))
-                        Positioned.fromRect(
-                          rect: h.shape.outerRect,
-                          child: glass.buildFill(
-                            context,
-                            MorphGlassSurface(
-                              kind: MorphGlassKind.track,
-                              shape: h.shape,
-                              color: background,
-                              brightness: brightness,
-                              enabled: enabled,
-                              glass: false,
+    return RepaintBoundary(
+      child: MorphControlFocus(
+        enabled: enabled,
+        onHighlight: highlightControlFocus,
+        onActivate: () => _key(_Half.plus),
+        onStep: (int delta) => _key(delta > 0 ? _Half.plus : _Half.minus),
+        verticalSteps: true,
+        child: MorphFocusRing(
+          visible: controlFocused,
+          child: Semantics(
+            container: true,
+            explicitChildNodes: true,
+            child: MorphTouchListener(
+              enabled: enabled,
+              behavior: HitTestBehavior.opaque,
+              onPointerDown: handleDown,
+              onPointerMove: handleMove,
+              onPointerUp: handleUp,
+              onPointerCancel: handleCancel,
+              child: SizedBox.fromSize(
+                size: size,
+                child: Stack(
+                  children: [
+                    if (glass != null)
+                      for (final h in halves)
+                        if (!(style.pressedReplacesFill && _pressed == h.half))
+                          Positioned.fromRect(
+                            rect: h.shape.outerRect,
+                            child: glass.buildFill(
+                              context,
+                              MorphGlassSurface(
+                                kind: MorphGlassKind.track,
+                                shape: h.shape,
+                                color: background,
+                                brightness: brightness,
+                                enabled: enabled,
+                                glass: false,
+                              ),
                             ),
                           ),
-                        ),
-                  Positioned.fill(child: CustomPaint(painter: painter)),
-                  Positioned(
-                    left: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: size.width / 2,
-                    child: _HalfSemantics(
-                      label: widget.decrementLabel,
-                      value: value,
-                      enabled: enabled && _canStep(_Half.minus),
-                      onTap: () => _key(_Half.minus),
+                    Positioned.fill(child: CustomPaint(painter: painter)),
+                    Positioned(
+                      left: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: size.width / 2,
+                      child: _HalfSemantics(
+                        label: widget.decrementLabel,
+                        value: value,
+                        enabled: enabled && _canStep(_Half.minus),
+                        onTap: () => _key(_Half.minus),
+                      ),
                     ),
-                  ),
-                  Positioned(
-                    right: 0,
-                    top: 0,
-                    bottom: 0,
-                    width: size.width / 2,
-                    child: _HalfSemantics(
-                      label: widget.incrementLabel,
-                      value: value,
-                      enabled: enabled && _canStep(_Half.plus),
-                      onTap: () => _key(_Half.plus),
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      bottom: 0,
+                      width: size.width / 2,
+                      child: _HalfSemantics(
+                        label: widget.incrementLabel,
+                        value: value,
+                        enabled: enabled && _canStep(_Half.plus),
+                        onTap: () => _key(_Half.plus),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

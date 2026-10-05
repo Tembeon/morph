@@ -69,25 +69,34 @@ void main() {
   testWidgets('PF5 spinner paints only a changed measured image', (
     tester,
   ) async {
-    var paints = 0;
+    var outside = 0;
+    var spinner = 0;
+    debugOnProfilePaint = (RenderObject object) {
+      if (object is RenderCustomPaint) spinner++;
+    };
     await tester.pumpWidget(
       _scene(
         RepaintBoundary(
           child: _PaintCounter(
-            onPaint: () => paints++,
+            onPaint: () => outside++,
             child: const MorphActivityIndicator(),
           ),
         ),
       ),
     );
     await tester.pump();
-    final initial = paints;
+    final initial = spinner;
+    final around = outside;
     for (var i = 0; i < 3; i++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
-    expect(paints, initial);
+    final still = spinner;
     await tester.pump(const Duration(milliseconds: 16));
-    expect(paints, initial + 1);
+    final changed = spinner;
+    debugOnProfilePaint = null;
+    expect(still, initial);
+    expect(changed, initial + 1);
+    expect(outside, around);
     await tester.pumpWidget(const SizedBox());
   });
 

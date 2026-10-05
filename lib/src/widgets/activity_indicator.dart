@@ -208,11 +208,13 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
         dimension: m.box,
         child: hidden
             ? null
-            : CustomPaint(
-                painter: _SpinnerPainter(
-                  state: this,
-                  color: widget.color ?? style.color,
-                  size: widget.size,
+            : RepaintBoundary(
+                child: CustomPaint(
+                  painter: _SpinnerPainter(
+                    state: this,
+                    color: widget.color ?? style.color,
+                    size: widget.size,
+                  ),
                 ),
               ),
       ),
