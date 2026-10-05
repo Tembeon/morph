@@ -50,6 +50,15 @@ C1, G1, ... refer to it).
 - Still uncommitted: the submenu card material retention + measured light shadow (menu.dart, menu_motion.dart, glass.dart shadows, two fixtures). Tests green, but the missing attached rim on the More card is NOT solved; the leading hypothesis is GPU blending over the renderer's data textures (unproven).
 - lab/out holds ~14 GB of captures (ignored). A Mac reboot happened during a profile build on 2026-10-04; run one heavy job at a time.
 
+## Status 2026-10-05 morning (owner asleep overnight, agents autonomous)
+
+- Menu: the lab's missing rim was a painter-scope bug (MorphGlass below the Navigator), not the renderer (db97e2c); card material + measured shadow (7529798); close and open timing fitted to device data (c4d14a7, e57255f). Residuals in spec/menu-api.md: late-close 7-8 pt width gap (suspected touch-vs-frame clock offset, needs measuring), root rows dimming under the card, kept-card outline.
+- Glass carried into overlays: widget surfaces (5517a41) and engine flights via inherited themes (43fe4d6). Owner decision: the engine may depend on widgets; widget quality first.
+- Gallery runs on MorphNavigationStack + new MorphListSection/MorphListRow (spec/lists.md) (5cca0fd..dab5376); presentation boundary so menus/sheets open above stack bars, bar button tap-to-open menu measured (97ef356..ca0268a).
+- Performance: research tool/audit/perf-research-2026-10-05.md + perf-opinion-fable.md; phase 1 (c3cd90f..94d7f12) and phase 2 (2fc1dbe..7b94960). Device harness tool/ios_reference/perf/audit.sh, counters test/perf_counts_test.dart. Identical-output fixes cut UI work; controls build p95 down ~0.7 ms; raster unchanged (liquid ~3x flat: captures + blurs).
+- OWNER DECISIONS PENDING (pixel-changing perf levers): menu silhouette analytic union / single-box card (menu p95 2.5-3.8 ms per frame), edge effects in the bars' capture, glass shadows without per-surface saveLayer, governor stepping liquid->frosted makes controls MORE expensive (frosted raster p95 3.65 vs liquid 2.88).
+- Being checked: a possible shared-backdrop staleness bug (Impeller snapshots the shared group at the first filter in paint order).
+
 ## Order of work (owner's priorities)
 
 1. Menu API leftovers (see above) - small, can ride with WP-E.
