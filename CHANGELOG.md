@@ -14,14 +14,14 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
-- Touches land on the motion clock the way UIKit times them (a fix): a
-  pointer event is stamped one display frame after its delivery (UIKit
-  begins an animation started in a handler 8.1 - 8.3 ms after the call;
-  an iOS frame is stamped with its display time), measured on the
-  device's own clocks. While a control dozes between frames an event no
+- Touches land on the motion clock where the measured delays expect them
+  (a fix): a pointer event is stamped at its own time stamp, moved onto
+  the frame clock (on iOS and macOS the two clocks differ by the device's
+  sleep, read from the system clocks). Every measured delay runs from
+  the touch's time stamp, so stamping at delivery started each reaction
+  10 - 25 ms late. While a control dozes between frames an event no
   longer takes the clock of the frame before the doze, and after a sleep
-  the first frame counts from the touch instead of starting the reaction
-  a frame late.
+  the first frame counts from the touch.
 - A context menu's lifted hero and its satellites, and a lifted lens,
   knob or thumb on the frosted tier, read what lies under them (a fix):
   with resting glass painted earlier on the page they showed a stale
