@@ -603,6 +603,7 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
     MorphBarButtonGroup group,
     double start,
     Object id,
+    MorphBarSide side,
   ) {
     final widths = [
       for (final b in group.buttons)
@@ -628,19 +629,27 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
       );
       x += widths[i] + metrics.buttonGap;
     }
-    return MorphBarCapsuleLayout(id, rect, items);
+    return MorphBarCapsuleLayout(id, rect, items, segment: side);
   }
 
   var x = leadingInset;
   for (var i = 0; i < leading.length; i++) {
-    final c = capsule(leading[i], x, leading[i].id ?? ('leading', i));
+    final c = capsule(
+      leading[i],
+      x,
+      leading[i].id ?? ('leading', i),
+      MorphBarSide.leading,
+    );
     out.add(c);
     x = c.rect.right + metrics.groupGap;
   }
   var right = width - trailingInset;
   for (var i = 0; i < trailing.length; i++) {
     final g = trailing[trailing.length - 1 - i];
-    final c = _shift(capsule(g, 0, g.id ?? ('trailing', i)), right);
+    final c = _shift(
+      capsule(g, 0, g.id ?? ('trailing', i), MorphBarSide.trailing),
+      right,
+    );
     out.add(c);
     right = c.rect.left - metrics.groupGap;
   }
@@ -650,7 +659,7 @@ List<MorphBarCapsuleLayout> morphLayoutBarGroups({
       MorphBarCapsuleLayout(c.id, _mirror(c.rect, width), [
         for (final i in c.items)
           MorphBarItemLayout(i.id, _mirror(i.rect, width)),
-      ]),
+      ], segment: c.segment),
   ];
 }
 
@@ -658,7 +667,7 @@ MorphBarCapsuleLayout _shift(MorphBarCapsuleLayout c, double right) {
   final d = Offset(right - c.rect.width, 0);
   return MorphBarCapsuleLayout(c.id, c.rect.shift(d), [
     for (final i in c.items) MorphBarItemLayout(i.id, i.rect.shift(d)),
-  ]);
+  ], segment: c.segment);
 }
 
 Rect _mirror(Rect r, double width) =>
@@ -686,6 +695,7 @@ class MorphBarItems extends StatefulWidget {
     this.driftGroups,
     this.driftProgress,
     this.driftFactor = 1,
+    this.transition = MorphBarTransitionSpec.standard,
     super.key,
   });
 
@@ -731,6 +741,11 @@ class MorphBarItems extends StatefulWidget {
   /// The share of [driftProgress] the capsules lean by.
   final double driftFactor;
 
+  /// The timing of the row's item transitions: a toolbar's
+  /// ([MorphBarTransitionSpec.standard]) or a navigation bar's
+  /// ([MorphBarTransitionSpec.navigation]).
+  final MorphBarTransitionSpec transition;
+
   @override
   State<MorphBarItems> createState() => _MorphBarItemsState();
 }
@@ -739,7 +754,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     with
         SingleTickerProviderStateMixin<MorphBarItems>,
         MorphClock<MorphBarItems> {
-  final MorphBarMotion _motion = MorphBarMotion();
+  late final MorphBarMotion _motion = MorphBarMotion(spec: widget.transition);
   final Map<Object, MorphGlassButtonMotion> _presses = {};
   final Map<Object, MorphBarButton> _buttons = {};
   final Map<Object, bool> _prominent = {};
@@ -759,6 +774,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
   (TextScaler, TextDirection, MorphBarMetrics)? _widthsFor;
   bool _prune = false;
   final _FlatBodies _flat = _FlatBodies();
+  final _FlatBodies _flatApart = _FlatBodies();
+  final GlobalKey _contentKey = GlobalKey();
   final Map<Object, (Object, Widget)> _contents = {};
   Object? _pressedCapsule;
   Object? _pressedButton;
@@ -931,7 +948,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
     for (var k = 0; k < layout.length; k++) {
       final a = layout[k];
       final b = _layout[k];
-      if (a.id != b.id || a.rect != b.rect) return false;
+      if (a.id != b.id || a.rect != b.rect || a.segment != b.segment) {
+        return false;
+      }
       if (a.items.length != b.items.length) return false;
       for (var n = 0; n < a.items.length; n++) {
         if (a.items[n].id != b.items[n].id ||
@@ -1182,9 +1201,27 @@ class _MorphBarItemsState extends State<MorphBarItems>
               );
             }
 
-            final surfaces = [
+            final apart = [
               for (final c in capsules)
-                if (_landingOn(c.id) case final landing?) ...[
+                if (c.apart)
+                  MorphGlassSurface(
+                    kind: MorphGlassKind.button,
+                    shape: RRect.fromRectAndRadius(
+                      c.rect,
+                      Radius.circular(
+                        math.min(c.rect.width, c.rect.height) / 2,
+                      ),
+                    ),
+                    color: _capsuleColor(c.id, style),
+                    brightness: brightness,
+                    opacity: c.opacity,
+                  ),
+            ];
+            final joined = [
+              for (final c in capsules)
+                if (c.apart)
+                  ...const <MorphGlassSurface>[]
+                else if (_landingOn(c.id) case final landing?) ...[
                   MorphGlassSurface(
                     kind: MorphGlassKind.button,
                     shape: landing.motion.buttonBlob.rrect.shift(
@@ -1214,6 +1251,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
             ];
             final menuCapsule = _menuCapsule();
             final content = Stack(
+              key: _contentKey,
               clipBehavior: Clip.none,
               children: [
                 Positioned.fromRect(
@@ -1243,22 +1281,39 @@ class _MorphBarItemsState extends State<MorphBarItems>
                       ),
               ],
             );
+            final spacing = widget.metrics.containerSpacing;
             final bar = SizedBox(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
               child: glass == null
                   ? CustomPaint(
-                      painter: _CapsulePainter(
-                        _flat.of(surfaces, widget.metrics.containerSpacing),
-                        style,
-                      ),
+                      painter: _CapsulePainter([
+                        ..._flat.of(joined, spacing),
+                        ..._flatApart.of(apart, spacing),
+                      ], style),
                       child: content,
                     )
                   : glass.buildLayer(
                       context,
-                      surfaces,
-                      content: content,
-                      spacing: widget.metrics.containerSpacing,
+                      joined,
+                      content: apart.isEmpty
+                          ? content
+                          : Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Positioned.fill(
+                                  child: IgnorePointer(
+                                    child: glass.buildLayer(
+                                      context,
+                                      apart,
+                                      spacing: spacing,
+                                    ),
+                                  ),
+                                ),
+                                Positioned.fill(child: content),
+                              ],
+                            ),
+                      spacing: spacing,
                       contentSlots: [
                         for (final f in items)
                           Rect.fromCenter(
@@ -1570,28 +1625,35 @@ class MorphBackChevronPainter extends CustomPainter {
 /// capsules group by geometry alone - the container fuses any two within
 /// its spacing, whatever their colors - and a fused body takes the color
 /// of its first capsule in drawing order, as the renderer's bodies take
-/// the tint of their first surface. Capsules under half a point either way
-/// are not drawn.
+/// the tint of their first surface, faded by its opacity. Capsules under
+/// half a point either way are not drawn.
 class _FlatBodies {
   List<RRect> _shapes = const [];
   List<Color> _colors = const [];
+  List<double> _opacities = const [];
   double _spacing = double.nan;
-  List<(Color, Object)> _bodies = const [];
+  List<(Color, Object, double)> _bodies = const [];
 
-  List<(Color, Object)> of(List<MorphGlassSurface> surfaces, double spacing) {
+  List<(Color, Object, double)> of(
+    List<MorphGlassSurface> surfaces,
+    double spacing,
+  ) {
     final visible = [
       for (final s in surfaces)
         if (s.bounds.width >= 0.5 && s.bounds.height >= 0.5) s,
     ];
     final shapes = [for (final s in visible) s.shape];
     final colors = [for (final s in visible) s.color];
+    final opacities = [for (final s in visible) s.opacity.clamp(0.0, 1.0)];
     if (spacing == _spacing &&
         listEquals(shapes, _shapes) &&
-        listEquals(colors, _colors)) {
+        listEquals(colors, _colors) &&
+        listEquals(opacities, _opacities)) {
       return _bodies;
     }
     _shapes = shapes;
     _colors = colors;
+    _opacities = opacities;
     _spacing = spacing;
     _bodies = [
       for (final group in morphGlassContainerGroups(shapes, spacing))
@@ -1602,6 +1664,7 @@ class _FlatBodies {
               : morphGlassContainerOutline([
                   for (final i in group) shapes[i],
                 ], spacing).path,
+          opacities[group.first],
         ),
     ];
     return _bodies;
@@ -1625,16 +1688,19 @@ class _CapsulePainter extends CustomPainter {
   /// The width of a flat capsule's rim (not measured).
   static const double rimWidth = 0.5;
 
-  final List<(Color, Object)> bodies;
+  final List<(Color, Object, double)> bodies;
   final MorphBarStyle style;
+
+  static Color _faded(Color color, double opacity) =>
+      color.withValues(alpha: color.a * opacity);
 
   @override
   void paint(Canvas canvas, Size size) {
     final shadow = Paint();
-    shadow.color = style.shadowColor;
     shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, shadowBlur);
     const down = Offset(0, shadowOffset);
-    for (final (_, body) in bodies) {
+    for (final (_, body, opacity) in bodies) {
+      shadow.color = _faded(style.shadowColor, opacity);
       switch (body) {
         case final RRect shape:
           canvas.drawRRect(shape.shift(down), shadow);
@@ -1646,9 +1712,9 @@ class _CapsulePainter extends CustomPainter {
     final rim = Paint();
     rim.style = PaintingStyle.stroke;
     rim.strokeWidth = rimWidth;
-    rim.color = style.rimColor;
-    for (final (color, body) in bodies) {
-      fill.color = color;
+    for (final (color, body, opacity) in bodies) {
+      fill.color = _faded(color, opacity);
+      rim.color = _faded(style.rimColor, opacity);
       switch (body) {
         case final RRect shape:
           canvas.drawRRect(shape, fill);
@@ -1662,5 +1728,5 @@ class _CapsulePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CapsulePainter oldDelegate) =>
-      !identical(oldDelegate.bodies, bodies) || oldDelegate.style != style;
+      !listEquals(oldDelegate.bodies, bodies) || oldDelegate.style != style;
 }

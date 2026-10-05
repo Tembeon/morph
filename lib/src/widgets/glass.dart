@@ -354,7 +354,11 @@ abstract class MorphGlassPainter {
               child: buildGlow(context, surface),
             ),
         ],
-        if (content != null) Positioned.fill(child: content),
+        if (content != null)
+          Positioned.fill(
+            key: const ValueKey<String>('content'),
+            child: content,
+          ),
       ],
     );
   }

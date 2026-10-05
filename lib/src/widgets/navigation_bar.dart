@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
@@ -336,6 +337,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                           : _placed(drift.leading, drift.trailing),
                       driftProgress: drift?.progress,
                       driftFactor: MorphNavigationTransition.barDrift,
+                      transition: MorphBarTransitionSpec.navigation,
                     ),
                   ),
                   if (_outgoing case final outgoing?)

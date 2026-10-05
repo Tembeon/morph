@@ -34,6 +34,7 @@ class MorphBarTransitionSpec {
     this.pulseHeightDownSpring = const MorphSpring(0.416, 0.584),
     this.pulseWidthDownDelay = 0.142,
     this.pulseWidthDownSpring = const MorphSpring(0.416, 0.5),
+    this.segmentDelay = 0.030,
   });
 
   /// The spring a capsule's frame moves on: `transition.springDuration`
@@ -96,8 +97,33 @@ class MorphBarTransitionSpec {
   /// The spring the width returns on: 0.416 s, bounce 0.5.
   final MorphSpring pulseWidthDownSpring;
 
-  /// iOS 27's values.
+  /// The time from the change to the start of a group that appears or
+  /// leaves on a side of the bar that had no group or keeps none, in
+  /// seconds.
+  ///
+  /// Such a group does not grow out of a neighbour: it stands at its own
+  /// place, scaled by [pulseScaleFor] its length per axis, blurred by
+  /// [appearBlur] and transparent, and comes in (or goes) on
+  /// [frameSpring], scale, opacity and blur on one progress (free fits
+  /// 0.39 - 0.41 s / 0.75 - 0.77 over 16 groups). Fitted to
+  /// `setToolbarItems(_:animated:)` filling and emptying a toolbar side:
+  /// 0.020 - 0.044 s from the call, replay optimum 0.026 - 0.030 (iPhone
+  /// 16 Pro, iOS 27.0.1).
+  final double segmentDelay;
+
+  /// iOS 27's values for a toolbar whose items are replaced.
   static const standard = MorphBarTransitionSpec();
+
+  /// iOS 27's values for a navigation bar on a push or a pop, which starts
+  /// later than a toolbar's item replacement: the capsules' frames after
+  /// 0.062 s (center replay optimum 0.060 - 0.062 over four pushes and
+  /// four pops), groups coming or going in place after 0.058 s (0.050 -
+  /// 0.063 over eight groups, replay optimum 0.058), measured from the
+  /// `pushViewController` / `popViewController` call.
+  static const navigation = MorphBarTransitionSpec(
+    frameDelay: 0.062,
+    segmentDelay: 0.058,
+  );
 
   /// The swell of a capsule [length] long, as a factor.
   double pulseScaleFor(double length) =>
@@ -122,10 +148,20 @@ class MorphBarItemLayout {
 @immutable
 class MorphBarCapsuleLayout {
   /// Creates a capsule layout.
-  const MorphBarCapsuleLayout(this.id, this.rect, this.items);
+  const MorphBarCapsuleLayout(this.id, this.rect, this.items, {this.segment});
 
   /// The identity of the capsule across layouts.
   final Object id;
+
+  /// The side of the bar the capsule belongs to, such as its leading or
+  /// trailing groups; null puts every such capsule on one side.
+  ///
+  /// A capsule changes only into a capsule of its own segment: an [id]
+  /// found in another segment is a new capsule, and a newborn grows out of
+  /// a neighbour of its segment only. When a segment had no capsule
+  /// before, its capsules appear in place; when it keeps none, its
+  /// capsules leave in place (see [MorphBarTransitionSpec.segmentDelay]).
+  final Object? segment;
 
   /// The capsule's box in the bar's coordinates.
   final Rect rect;
@@ -138,7 +174,14 @@ class MorphBarCapsuleLayout {
 @immutable
 class MorphBarCapsuleFrame {
   /// Creates a frame.
-  const MorphBarCapsuleFrame(this.id, this.rect, {required this.leaving});
+  const MorphBarCapsuleFrame(
+    this.id,
+    this.rect, {
+    required this.leaving,
+    this.segment,
+    this.opacity = 1,
+    this.apart = false,
+  });
 
   /// The identity of the capsule.
   final Object id;
@@ -148,6 +191,17 @@ class MorphBarCapsuleFrame {
 
   /// Whether the capsule is on its way out.
   final bool leaving;
+
+  /// The segment of the capsule's layout.
+  final Object? segment;
+
+  /// How present the capsule's glass is, 0 to 1.
+  final double opacity;
+
+  /// Whether the capsule appears or leaves in place: UIKit draws it in a
+  /// glass container of its own, so it never fuses with the other
+  /// capsules of the bar.
+  final bool apart;
 }
 
 /// An item of a bar in one frame.
@@ -188,7 +242,7 @@ class MorphBarItemFrame {
 }
 
 class _Capsule {
-  _Capsule(this.id, Rect rect, MorphBarTransitionSpec spec)
+  _Capsule(this.id, this.segment, Rect rect, MorphBarTransitionSpec spec)
     : cx = MorphSpringState(spec.frameSpring, rect.center.dx),
       cy = MorphSpringState(spec.frameSpring, rect.center.dy),
       w = MorphSpringState(spec.frameSpring, rect.width),
@@ -197,12 +251,14 @@ class _Capsule {
       pulseH = MorphSpringState(spec.pulseUpSpring, 1);
 
   final Object id;
+  final Object? segment;
   final MorphSpringState cx;
   final MorphSpringState cy;
   final MorphSpringState w;
   final MorphSpringState h;
   final MorphSpringState pulseW;
   final MorphSpringState pulseH;
+  MorphSpringState? presence;
   bool leaving = false;
   int generation = 0;
   Rect target = Rect.zero;
@@ -215,7 +271,7 @@ class _Item {
       presence = MorphSpringState(spring, 1);
 
   final Object id;
-  Object capsule;
+  _Capsule capsule;
   Size size;
   final MorphSpringState cx;
   final MorphSpringState cy;
@@ -240,6 +296,14 @@ class _Item {
 /// value retargets from its current state, so a change in the middle of
 /// another change is continuous.
 ///
+/// Capsules change only within their [MorphBarCapsuleLayout.segment]: the
+/// leading groups of a bar into leading groups, the trailing ones into
+/// trailing ones. A segment that had no capsule shows its new capsules in
+/// place, swollen, blurred and transparent, settling in; a segment left
+/// without capsules lets its capsules swell and fade where they stand
+/// (see [MorphBarTransitionSpec.segmentDelay]). Such capsules are
+/// [MorphBarCapsuleFrame.apart]: they never fuse with the others.
+///
 /// [setDrift] leans the capsules part of the way toward another layout
 /// without changing the layout itself, as a navigation bar does during an
 /// interactive pop; the next [setLayout] starts from where the drift put
@@ -258,7 +322,7 @@ class MorphBarMotion {
   final List<_Item> _items = [];
   double _now = 0;
   bool _hasLayout = false;
-  Map<Object, Rect> _driftTo = const {};
+  Map<(Object, Object?), Rect> _driftTo = const {};
   double _drift = 0;
 
   /// Whether the platform asks for reduced motion: changes then snap.
@@ -271,26 +335,40 @@ class MorphBarMotion {
   void advance(double t) {
     _timeline.runDue(t);
     if (t > _now) _now = t;
-    _capsules.removeWhere(
-      (c) =>
-          c.leaving &&
-          c.w.target <= c.target.width * spec.appearScale + 1e-9 &&
-          c.w.isAtRest(_now, 0.05) &&
-          c.h.isAtRest(_now, 0.05),
-    );
+    _capsules.removeWhere((c) => c.leaving && _gone(c));
+    for (final c in _capsules) {
+      final presence = c.presence;
+      if (presence != null &&
+          !c.leaving &&
+          presence.target == 1 &&
+          presence.isAtRest(_now, 0.002)) {
+        c.presence = null;
+      }
+    }
     _items.removeWhere(
       (i) =>
-          i.leaving &&
-          i.presence.target == 0 &&
-          i.presence.isAtRest(_now, 0.002),
+          (i.capsule.presence != null && !_capsules.contains(i.capsule)) ||
+          (i.leaving &&
+              i.presence.target == 0 &&
+              i.presence.isAtRest(_now, 0.002)),
     );
+  }
+
+  bool _gone(_Capsule c) {
+    final presence = c.presence;
+    if (presence != null) {
+      return presence.target == 0 && presence.isAtRest(_now, 0.002);
+    }
+    return c.w.target <= c.target.width * spec.appearScale + 1e-9 &&
+        c.w.isAtRest(_now, 0.05) &&
+        c.h.isAtRest(_now, 0.05);
   }
 
   /// Whether nothing is moving.
   bool get isSettled {
     if (!_timeline.isEmpty) return false;
     for (final c in _capsules) {
-      if (c.leaving) return false;
+      if (c.leaving || c.presence != null) return false;
       if (!c.cx.isAtRest(_now, 0.01) ||
           !c.cy.isAtRest(_now, 0.01) ||
           !c.w.isAtRest(_now, 0.01) ||
@@ -312,9 +390,9 @@ class MorphBarMotion {
     return true;
   }
 
-  _Capsule? _capsule(Object id) {
+  _Capsule? _capsule(Object id, Object? segment) {
     for (final c in _capsules) {
-      if (c.id == id && !c.leaving) return c;
+      if (c.id == id && c.segment == segment && !c.leaving) return c;
     }
     return null;
   }
@@ -332,7 +410,9 @@ class MorphBarMotion {
   void _revive(List<MorphBarCapsuleLayout> layout) {
     for (final c in layout) {
       for (final capsule in _capsules) {
-        if (capsule.id == c.id && capsule.leaving) {
+        if (capsule.id == c.id &&
+            capsule.segment == c.segment &&
+            capsule.leaving) {
           capsule.leaving = false;
           capsule.generation++;
         }
@@ -354,9 +434,9 @@ class MorphBarMotion {
     height: c.h.value(t),
   );
 
-  /// Leans every capsule that [toward] also has (by id) [amount] of the
-  /// way from where it is toward its box there, its items riding along;
-  /// null or 0 removes the lean at once.
+  /// Leans every capsule that [toward] also has (by id, in the same
+  /// segment) [amount] of the way from where it is toward its box there,
+  /// its items riding along; null or 0 removes the lean at once.
   ///
   /// The lean is drawn on top of the motion, a pure function of [amount];
   /// a [setLayout] while leaning starts from the leaning capsules.
@@ -366,7 +446,7 @@ class MorphBarMotion {
       _drift = 0;
       return;
     }
-    _driftTo = {for (final c in toward) c.id: c.rect};
+    _driftTo = {for (final c in toward) (c.id, c.segment): c.rect};
     _drift = amount;
   }
 
@@ -390,12 +470,12 @@ class MorphBarMotion {
       }
     }
 
-    final shift = <Object, Offset>{};
+    final shift = <_Capsule, Offset>{};
     for (final c in _capsules) {
-      if (c.leaving || !_driftTo.containsKey(c.id)) continue;
+      if (c.leaving || !_driftTo.containsKey((c.id, c.segment))) continue;
       final base = _visible(c, t);
       final r = _drifted(c, t);
-      shift[c.id] = r.center - base.center;
+      shift[c] = r.center - base.center;
       put(c.cx, r.center.dx);
       put(c.cy, r.center.dy);
       put(c.w, r.width);
@@ -413,7 +493,7 @@ class MorphBarMotion {
 
   Rect _drifted(_Capsule c, double t) {
     final base = _visible(c, t);
-    final to = c.leaving || _drift == 0 ? null : _driftTo[c.id];
+    final to = c.leaving || _drift == 0 ? null : _driftTo[(c.id, c.segment)];
     if (to == null) return base;
     return Rect.lerp(base, to, _drift)!;
   }
@@ -435,39 +515,75 @@ class MorphBarMotion {
     _revive(layout);
     final spring = spec.frameSpring;
     final content = spec.contentSpring;
-    final targets = {for (final c in layout) c.id: c};
-    final oldCenters = <Object, Offset>{
+    final live = {
       for (final c in _capsules)
-        if (!c.leaving) c.id: _visible(c, t).center,
+        if (!c.leaving) c,
     };
-    final oldTargets = <Object, Rect>{
-      for (final c in _capsules)
-        if (!c.leaving) c.id: c.target,
+    final segmentsBefore = {for (final c in live) c.segment};
+    final segmentsAfter = {for (final c in layout) c.segment};
+    final oldCenters = <_Capsule, Offset>{
+      for (final c in live) c: _visible(c, t).center,
     };
-    final births = <Object, Offset>{};
+    final oldTargets = <_Capsule, Rect>{for (final c in live) c: c.target};
+    final resolved = <_Capsule>[];
+    final births = <_Capsule, Offset>{};
+    final inPlace = <_Capsule>{};
+    final birthSegments = <Object?>{};
     for (final c in layout) {
-      final existing = _capsule(c.id);
-      if (existing != null) continue;
-      final birth = _birthPoint(c, layout);
-      births[c.id] = birth;
-      final born = _Capsule(
-        c.id,
-        Rect.fromCenter(
-          center: birth,
-          width: c.rect.width * spec.appearScale,
-          height: c.rect.height * spec.appearScale,
-        ),
-        spec,
-      );
+      final existing = _capsule(c.id, c.segment);
+      if (existing != null) {
+        resolved.add(existing);
+        continue;
+      }
+      final _Capsule born;
+      if (segmentsBefore.contains(c.segment)) {
+        final birth = _birthPoint(c, layout, live);
+        born = _Capsule(
+          c.id,
+          c.segment,
+          Rect.fromCenter(
+            center: birth,
+            width: c.rect.width * spec.appearScale,
+            height: c.rect.height * spec.appearScale,
+          ),
+          spec,
+        );
+        births[born] = birth;
+        birthSegments.add(c.segment);
+      } else {
+        born = _Capsule(c.id, c.segment, c.rect, spec);
+        born.presence = MorphSpringState(spring, 0);
+        inPlace.add(born);
+      }
       _capsules.add(born);
+      resolved.add(born);
     }
-    for (final c in _capsules) {
+    final layoutOf = <_Capsule, MorphBarCapsuleLayout>{
+      for (var k = 0; k < layout.length; k++) resolved[k]: layout[k],
+    };
+    for (final c in List.of(_capsules)) {
       if (c.leaving) continue;
-      final target = targets[c.id];
+      final target = layoutOf[c];
       if (target == null) {
         c.leaving = true;
-        final end = _deathPoint(c, oldTargets);
         final generation = ++c.generation;
+        if (!segmentsAfter.contains(c.segment)) {
+          final presence = c.presence ??= MorphSpringState(spring, 1);
+          _timeline.at(t + spec.segmentDelay, (double at) {
+            if (c.generation != generation) return;
+            presence.retarget(at, 0, spring: spring);
+          });
+          for (final i in _items) {
+            if (!i.leaving &&
+                i.capsule == c &&
+                _findItem(layout, i.id) == null) {
+              i.leaving = true;
+              i.generation++;
+            }
+          }
+          continue;
+        }
+        final end = _deathPoint(c, oldTargets);
         _timeline.at(t + spec.frameDelay, (double at) {
           if (c.generation != generation) return;
           c.cx.retarget(at, end.dx, spring: spring);
@@ -477,12 +593,13 @@ class MorphBarMotion {
         });
         continue;
       }
-      final born = births.containsKey(c.id);
-      final changed = born || _itemsChanged(c.id, target.items);
+      final born = births.containsKey(c);
+      final appearing = inPlace.contains(c);
+      final changed = born || (!appearing && _itemsChanged(c, target.items));
       final moves = c.target != target.rect;
       c.target = target.rect;
       final generation = ++c.generation;
-      final delay = !born && births.isNotEmpty && moves
+      final delay = !born && birthSegments.contains(c.segment) && moves
           ? spec.birthStaggerDelay
           : spec.frameDelay;
       _timeline.at(t + delay, (double at) {
@@ -492,9 +609,19 @@ class MorphBarMotion {
         c.w.retarget(at, target.rect.width, spring: spring);
         c.h.retarget(at, target.rect.height, spring: spring);
       });
+      final presence = c.presence;
+      if (presence != null) {
+        _timeline.at(t + spec.segmentDelay, (double at) {
+          if (c.generation != generation) return;
+          presence.retarget(at, 1, spring: spring);
+        });
+      }
       if (changed) _schedulePulse(c, t, generation, target.rect.size);
     }
-    final newCenters = {for (final c in layout) c.id: c.rect.center};
+    final newCenters = {
+      for (var k = 0; k < layout.length; k++)
+        resolved[k]: layout[k].rect.center,
+    };
     for (final i in _items) {
       if (i.leaving) continue;
       if (_findItem(layout, i.id) != null) continue;
@@ -508,11 +635,13 @@ class MorphBarMotion {
         i.presence.retarget(at, 0, spring: content);
       });
     }
-    for (final c in layout) {
+    for (var k = 0; k < layout.length; k++) {
+      final c = layout[k];
+      final capsule = resolved[k];
       for (final item in c.items) {
         final existing = _item(item.id);
         if (existing != null) {
-          existing.capsule = c.id;
+          existing.capsule = capsule;
           existing.size = item.rect.size;
           _timeline.at(t + spec.contentDelay, (double at) {
             existing.cx.retarget(at, item.rect.center.dx, spring: content);
@@ -521,8 +650,15 @@ class MorphBarMotion {
           });
           continue;
         }
-        final start = oldCenters[c.id] ?? births[c.id] ?? item.rect.center;
-        final born = _Item(item.id, c.id, start, item.rect.size, content);
+        if (inPlace.contains(capsule)) {
+          _items.add(
+            _Item(item.id, capsule, item.rect.center, item.rect.size, content),
+          );
+          continue;
+        }
+        final start =
+            oldCenters[capsule] ?? births[capsule] ?? item.rect.center;
+        final born = _Item(item.id, capsule, start, item.rect.size, content);
         born.presence.snap(t, 0);
         _items.add(born);
         _timeline.at(t + spec.contentDelay, (double at) {
@@ -559,7 +695,7 @@ class MorphBarMotion {
     });
   }
 
-  bool _itemsChanged(Object capsule, List<MorphBarItemLayout> items) {
+  bool _itemsChanged(_Capsule capsule, List<MorphBarItemLayout> items) {
     final before = [
       for (final i in _items)
         if (!i.leaving && i.capsule == capsule) i.id,
@@ -583,11 +719,14 @@ class MorphBarMotion {
   Offset _birthPoint(
     MorphBarCapsuleLayout born,
     List<MorphBarCapsuleLayout> layout,
+    Set<_Capsule> live,
   ) {
     MorphBarCapsuleLayout? nearest;
     var best = double.infinity;
     for (final c in layout) {
-      if (c.id == born.id || _capsule(c.id) == null) continue;
+      if (c.id == born.id || c.segment != born.segment) continue;
+      final existing = _capsule(c.id, c.segment);
+      if (existing == null || !live.contains(existing)) continue;
       final d = (c.rect.center - born.rect.center).distance;
       if (d < best) {
         best = d;
@@ -601,12 +740,13 @@ class MorphBarMotion {
     return Offset(x, born.rect.center.dy);
   }
 
-  Offset _deathPoint(_Capsule leaving, Map<Object, Rect> oldTargets) {
+  Offset _deathPoint(_Capsule leaving, Map<_Capsule, Rect> oldTargets) {
     final here = leaving.target.center;
     Rect? nearest;
     var best = double.infinity;
     for (final entry in oldTargets.entries) {
-      if (entry.key == leaving.id || _capsule(entry.key) == null) continue;
+      final c = entry.key;
+      if (c == leaving || c.leaving || c.segment != leaving.segment) continue;
       final d = (entry.value.center - here).distance;
       if (d < best) {
         best = d;
@@ -625,12 +765,12 @@ class MorphBarMotion {
     _capsules.clear();
     _items.clear();
     for (final c in layout) {
-      final capsule = _Capsule(c.id, c.rect, spec);
+      final capsule = _Capsule(c.id, c.segment, c.rect, spec);
       capsule.target = c.rect;
       _capsules.add(capsule);
       for (final i in c.items) {
         _items.add(
-          _Item(i.id, c.id, i.rect.center, i.rect.size, spec.contentSpring),
+          _Item(i.id, capsule, i.rect.center, i.rect.size, spec.contentSpring),
         );
       }
     }
@@ -639,20 +779,39 @@ class MorphBarMotion {
   /// The capsules at the current time, leaving ones included.
   List<MorphBarCapsuleFrame> get capsules => [
     for (final c in _capsules)
-      MorphBarCapsuleFrame(c.id, _pulsed(c), leaving: c.leaving),
+      MorphBarCapsuleFrame(
+        c.id,
+        _pulsed(c),
+        leaving: c.leaving,
+        segment: c.segment,
+        opacity: (c.presence?.value(_now) ?? 1).clamp(0.0, 1.0),
+        apart: c.presence != null,
+      ),
   ];
+
+  /// The swell of a capsule that appears or leaves in place, per axis.
+  Offset _apartScale(_Capsule c) {
+    final presence = c.presence;
+    if (presence == null) return const Offset(1, 1);
+    final rest = 1 - presence.value(_now);
+    return Offset(
+      1 + (spec.pulseScaleFor(c.target.width) - 1) * rest,
+      1 + (spec.pulseScaleFor(c.target.height) - 1) * rest,
+    );
+  }
 
   Rect _pulsed(_Capsule c) {
     final base = _drifted(c, _now);
+    final apart = _apartScale(c);
     return Rect.fromCenter(
       center: base.center,
       width: math.max(
         0,
-        base.width + (c.pulseW.value(_now) - 1) * c.target.width,
+        (base.width + (c.pulseW.value(_now) - 1) * c.target.width) * apart.dx,
       ),
       height: math.max(
         0,
-        base.height + (c.pulseH.value(_now) - 1) * c.target.height,
+        (base.height + (c.pulseH.value(_now) - 1) * c.target.height) * apart.dy,
       ),
     );
   }
@@ -661,28 +820,48 @@ class MorphBarMotion {
   List<MorphBarItemFrame> get items {
     final pulse = {
       for (final c in _capsules)
-        if (!c.leaving) c.id: c.pulseH.value(_now),
+        if (!c.leaving) c: c.pulseH.value(_now),
     };
-    final shift = <Object, Offset>{
+    final shift = <_Capsule, Offset>{
       if (isDrifting)
         for (final c in _capsules)
-          if (!c.leaving && _driftTo.containsKey(c.id))
-            c.id: _drifted(c, _now).center - _visible(c, _now).center,
+          if (!c.leaving && _driftTo.containsKey((c.id, c.segment)))
+            c: _drifted(c, _now).center - _visible(c, _now).center,
     };
     return [
       for (final i in _items)
         () {
           final p = i.presence.value(_now);
           final s = lerpDouble(spec.appearScale, 1, p)!;
+          var center =
+              Offset(i.cx.value(_now), i.cy.value(_now)) +
+              (i.leaving ? Offset.zero : shift[i.capsule] ?? Offset.zero);
+          var scale = s * (pulse[i.capsule] ?? 1);
+          var presence = p.clamp(0.0, 1.0);
+          var blur = math.max(0.0, spec.appearBlur * (1 - p));
+          final capsule = i.capsule;
+          final apart = capsule.presence;
+          if (apart != null) {
+            final q = apart.value(_now);
+            final f = _apartScale(capsule);
+            final origin = _drifted(capsule, _now).center;
+            center =
+                origin +
+                Offset(
+                  (center.dx - origin.dx) * f.dx,
+                  (center.dy - origin.dy) * f.dy,
+                );
+            scale *= f.dy;
+            presence *= q.clamp(0.0, 1.0);
+            blur = math.max(blur, spec.appearBlur * (1 - q));
+          }
           return MorphBarItemFrame(
             i.id,
-            center:
-                Offset(i.cx.value(_now), i.cy.value(_now)) +
-                (i.leaving ? Offset.zero : shift[i.capsule] ?? Offset.zero),
+            center: center,
             size: i.size,
-            scale: math.max(0, s * (pulse[i.capsule] ?? 1)),
-            presence: p.clamp(0.0, 1.0),
-            blur: math.max(0, spec.appearBlur * (1 - p)),
+            scale: math.max(0, scale),
+            presence: presence,
+            blur: blur,
             leaving: i.leaving,
           );
         }(),
