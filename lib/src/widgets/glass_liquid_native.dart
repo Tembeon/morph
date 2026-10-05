@@ -8,6 +8,7 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
+import 'package:morph/src/glass/renderer/internal/glass_warm_up.dart';
 import 'package:morph/src/glass/renderer/internal/liquid_capability.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
@@ -19,6 +20,13 @@ import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
+
+final List<String> _finalShaders = [
+  ShaderKeys.liquidGlassRender,
+  ShaderKeys.liquidGlassMaterialRender,
+  ShaderKeys.liquidGlassTintRender,
+];
 
 final LiquidCapability _capability = LiquidCapability(
   load: () async {
@@ -29,13 +37,36 @@ final LiquidCapability _capability = LiquidCapability(
       ShaderKeys.gpuGeometryShaderBundle,
     );
     geometry.dispose();
-    await MultiShaderBuilder.precacheShaders([
-      ShaderKeys.liquidGlassRender,
-      ShaderKeys.liquidGlassMaterialRender,
-      ShaderKeys.liquidGlassTintRender,
-    ]);
+    await MultiShaderBuilder.precacheShaders(_finalShaders);
   },
 );
+
+Future<void>? _warmUp;
+
+/// Warms the liquid pipelines when the automatic choice draws liquid on
+/// this device, then the frosted ones.
+Future<void> _warmPipelines() async {
+  final liquid =
+      _capability.value &&
+      MorphAdaptiveGlass.tierFor(
+            MorphAdaptiveGlass.deviceClass,
+            MorphGlassTier.liquid,
+          ) ==
+          MorphGlassTier.liquid;
+  final geometry = liquid
+      ? FlutterGpuGeometryRenderer.tryCreateCached(
+          ShaderKeys.gpuGeometryShaderBundle,
+        )
+      : null;
+  if (geometry != null) {
+    try {
+      await morphWarmLiquidPipelines(geometry, _finalShaders);
+    } finally {
+      geometry.dispose();
+    }
+  }
+  await morphWarmFrostedPipelines();
+}
 
 /// Whether the GPU context and all liquid shaders are ready.
 @internal
@@ -54,9 +85,14 @@ String? get morphLiquidGlassUnavailableReason =>
 @internal
 ValueListenable<bool> get morphLiquidGlassCapability => _capability;
 
-/// Resolves runtime availability without throwing on unsupported devices.
+/// Resolves runtime availability without throwing on unsupported devices,
+/// and warms the pipelines the first glass frame needs.
 @internal
-Future<void> morphPrecacheLiquidGlass() => _capability.precache();
+Future<void> morphPrecacheLiquidGlass() async {
+  await _capability.precache();
+  if (isLocalTest) return;
+  await (_warmUp ??= _warmPipelines());
+}
 
 LiquidGlassSettings _preset(
   MorphGlassRenderer renderer,

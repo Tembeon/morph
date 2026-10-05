@@ -147,3 +147,11 @@ Local patches (some commits include related package changes):
   record its content again while a lens captures. The fixed constructors
   are unchanged and the same render objects are built either way, so the
   pixels are the same (test/glass_frames_test.dart).
+- 2026-10-05 pipeline warm-up: internal/glass_warm_up.dart (new) draws
+  every Flutter GPU pipeline of the geometry passes once (two 8 x 8
+  renders through FlutterGpuGeometryRenderer.render) and rasterizes an
+  offscreen layer scene with each final shader's backdrop filter (alone
+  and composed over a mirror blur) and the frosted tier's blurs, clips,
+  decorations and shadows, so the first glass frame creates no pipeline.
+  Called from morphPrecacheLiquidGlass; failures are swallowed. No
+  renderer source changed.
