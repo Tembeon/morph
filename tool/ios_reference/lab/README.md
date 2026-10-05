@@ -209,8 +209,16 @@ Film pairs must be within the declared `filmToleranceMs` (default 25 ms).
 This is a pairing tolerance, not a claim of 25 ms physical accuracy.
 
 Native markers predict display-link targetTimestamp; native layer samples
-use timestamp. Flutter markers and geometry are logged postFrame, before
-guaranteed physical presentation. Physical presentation is not timestamped;
+use timestamp. Flutter markers and geometry are labelled with the frame's
+own time stamp, the display target its motion was evaluated at, converted
+to the trace clock through the Dart timeline clock (the engine's frame
+clock); `post_t` keeps the postFrame time. Runs before 2026-10-05
+labelled them with postFrame, ~6 ms before the target. Flutter touch `t`
+is the touch's own time stamp, converted exactly through the uptime clock
+(lab_clocks.dart); runs before 2026-10-05 shifted every touch by the first
+touch's delivery latency. Touch, marker and stamp rows also carry the raw
+uptime / monotonic / timeline clocks, and `lab_stamp` rows the motion time
+MorphClock gave each event (../spec/README.md "Clocks"). Physical presentation is not timestamped;
 latency comparisons retain display/embedding uncertainty. Movie cadence,
 raw USB-buffer cadence and application cadence are reported separately.
 Delegate drop callbacks do not include omissions upstream or in movie output.

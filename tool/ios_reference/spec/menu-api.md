@@ -646,6 +646,21 @@ Opening timing, close residual and root rows [device fits + films, 2026-10-05]:
   frame's clock (up to one frame early). Not changed: pointer and frame
   timestamps are in different timebases on iOS (35.7 s apart in the lab
   trace), so a correction needs its own measurement.
+- Clock measurement (2026-10-05, spec/README.md "Clocks"): the suspicion
+  is rejected and the "early" film fits are the lab's labels. The bases
+  differ by the device's total sleep (35 747.791 s, not 35.7 s); an iOS
+  frame is stamped with its display target, so the ticking stamp was
+  ~7 ms AFTER the delivery, within ~1 ms of UIKit's begin (one frame
+  after the call). The lab labelled Flutter frames ~6 ms before that
+  target and shifted Flutter touches by the first touch's delivery
+  latency, which made our close look early. In-app geometry of runs
+  10..12 puts the closing root list ~4 - 5 ms LATE in evaluation time:
+  the outside release reaches the menu asleep, and the first frame after
+  a wake counted from the stamp itself. MorphClock now stamps one frame
+  after delivery and counts the wake (also fixing stale stamps during a
+  doze); expected: that close ~5 - 8 ms earlier. Lab labels fixed in
+  lab_app.dart. The late-close film residual is NOT re-measured: the
+  XCUITest runner timed out enabling automation mode on the phone.
 - Run lab/out/menu-phone-20261005-12 (5cca0fd: open delay and close
   timing; coverage 0.87-1.0, EVIDENCE): contour-width residual close with
   More open RMS 7.8 pt (run 11: 10.8), plain root close 7.4 (13.6);

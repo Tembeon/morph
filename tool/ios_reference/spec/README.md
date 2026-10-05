@@ -226,6 +226,64 @@ not copied); the inline-button menu OPEN is frame-locked at 1/60 steps (not
 copied); the nav-bar menu and every close run in continuous time. morph's
 sub-clock runs at the device refresh rate (lens-and-flex.md).
 
+## Clocks (device findings, 2026-10-05)
+
+iPhone 16 Pro, iOS 27.0.1, 120 Hz, Flutter 3.47.2 profile
+(example/integration_test/clock_base_test.dart, lab/out/clock-20261005-base;
+lab runs menu-phone-20261005-10..12; recordings/device-navbar-20261005).
+
+- Bases. UITouch.timestamp and Flutter's PointerEvent.timeStamp count
+  CLOCK_UPTIME_RAW (= CACurrentMediaTime, stops while the device sleeps).
+  The engine frame stamps (currentSystemFrameTimeStamp, FrameTiming) and
+  Dart's Timeline.now count CLOCK_MONOTONIC_RAW (counts sleep): identical
+  to 1 us. The two differ by the device's total sleep (35 747.791 s on
+  the night of 2026-10-05), so a touch time stamp is never comparable to
+  a frame stamp without that offset.
+- An iOS frame is stamped with the display link's TARGET: the frame
+  callback runs 8.0 ms (median, 475 frames; 6.1 - 8.3) before
+  currentSystemFrameTimeStamp. Flutter therefore evaluates a frame at the
+  time it is shown, like Core Animation's render server.
+- Touch delivery. UIKit delivers touches at the frame boundary: native
+  sendEvent 0 - 2.2 ms after a display-link timestamp (or within the last
+  0.5 ms before the next one), 10.2 - 24.8 ms after the touch's own time
+  stamp (median ~15). Flutter's Dart handler runs within ~1 ms of a frame
+  callback as well (36 touches, lab runs 10..12).
+- UIKit sets an animation started from code to BEGIN one frame after the
+  call: `UIView.animate` from a timer at random frame phases gets
+  beginTime = call + 8.12 - 8.25 ms (6 rounds, Probe scene `clockprobe`,
+  lab/out/clock-20261005-probe), and a presentation layer read in a
+  display-link callback shows the state at the callback's own time (the
+  callback runs 0.9 ms BEFORE link.timestamp; linear 1 s animation, 648
+  ticks, residual 0.02 ms). From touches: the flex glow begins 13.5 -
+  18.5 ms after delivery (31.6 - 43.2 ms after the touch time stamp: the
+  delivery anchor has half the spread), the nav-bar back menu's morph
+  44.0 - 45.3 ms after delivery.
+- MorphClock (2026-10-05) stamps an event one frame after its delivery,
+  read on the Timeline clock - UIKit's begin, on a clock whose frames are
+  stamped with their display target. Before, while the ticker ran it gave
+  the latest frame's clock (that frame's target, ~7 ms after the
+  delivery: within ~1 ms of the new stamp, so the old hypothesis "a touch
+  is stamped up to a frame early" is rejected); during a doze it gave the
+  clock of the frame before the doze (early by the doze so far); after a
+  sleep the first frame counted from the stamp itself (~one frame late).
+- Lab runs 10..12 (old code) put the menu's close-submenu root list
+  (rows/0 width, in-app geometry) about 4 - 5 ms LATE against native in
+  evaluation time, delivery-relative (Flutter state at its frame target
+  = native state at its callback; 0.15 pt rms at the best shift). The
+  outside tap's release reaches the menu asleep, so the new wake rule
+  starts that close ~5 - 8 ms earlier. Not yet re-captured: XCUITest
+  could not enable automation mode on 2026-10-05 ("Timed out while
+  enabling automation mode", twice) - needs the owner at the phone.
+- Replays feed recorded touch time stamps (HID); delays fitted that way
+  include UIKit's delivery latency (~15 ms) and its one-frame begin, so a
+  live host anchored on delivery + one frame matches them only on
+  average; not re-fitted.
+- The lab labelled Flutter frames with their postFrame time (~6 ms before
+  the frame's target) and Flutter touches with a time stamp shifted by
+  the FIRST touch's delivery latency; both are fixed in lab_app.dart
+  (labels = frame target, touches = exact time stamp via the uptime
+  clock) for runs after 2026-10-05.
+
 ## Known UIKit artifacts, deliberately not reproduced
 
 Tab bar bar-local glitch (tab-bar.md), the menu's second kick variant and

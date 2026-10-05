@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' show Timeline;
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' show FramePhase;
@@ -7,7 +8,10 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph_example/lab/lab_clocks.dart';
 
 /// Builds a custom scenario control and emits its observable events.
 typedef LabWidgetBuilder =
@@ -75,7 +79,6 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
   IOSink? _sink;
   int _sequence = 0;
   final ValueNotifier<int> _marker = ValueNotifier<int>(0);
-  double? _pointerOrigin;
   double _flushed = 0;
   bool _started = false;
   void Function(FlutterErrorDetails)? _previousErrorHandler;
@@ -95,6 +98,26 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
     SchedulerBinding.instance.addTimingsCallback(_timings);
     _ticker = createTicker(_tick);
     _ticker!.start();
+    // ignore: invalid_use_of_internal_member
+    morphClockStampObserver = _stamped;
+  }
+
+  Map<String, Object?> _clocks() => {
+    'uptime_us': labUptimeMicros(),
+    'monotonic_us': labMonotonicMicros(),
+    'timeline_us': Timeline.now,
+  };
+
+  void _stamped(PointerEvent event, double time) {
+    _log({
+      'k': 'lab_stamp',
+      't': _now,
+      'raw_timestamp_us': event.timeStamp.inMicroseconds,
+      'motion_t': time,
+      'last_frame_source_us':
+          SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds,
+      ..._clocks(),
+    });
   }
 
   void _log(Map<String, Object?> row) {
@@ -120,13 +143,13 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
       _ => null,
     };
     if (phase == null) return;
-    _pointerOrigin ??= _now - event.timeStamp.inMicroseconds / 1e6;
+    final delivered = _now;
+    final age = labUptimeMicros() - event.timeStamp.inMicroseconds;
     _log({
       'k': 'touch',
-      't': event.timeStamp.inMicroseconds / 1e6 + _pointerOrigin!,
-      'delivered_t': _now,
+      't': delivered - age / 1e6,
+      'delivered_t': delivered,
       'raw_timestamp_us': event.timeStamp.inMicroseconds,
-      'clock_origin': _pointerOrigin,
       'phase': phase,
       'pointer': event.pointer.toString(),
       'x': event.position.dx,
@@ -134,6 +157,10 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
       'pressure': event.pressure,
       'radius': event.radiusMajor,
       'kind': event.kind.name,
+      'last_frame_source_us':
+          SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds,
+      'scheduler_phase': SchedulerBinding.instance.schedulerPhase.name,
+      ..._clocks(),
     });
   }
 
@@ -145,11 +172,29 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
         'build_ms': timing.buildDuration.inMicroseconds / 1000,
         'raster_ms': timing.rasterDuration.inMicroseconds / 1000,
         'vsync_us': timing.timestampInMicroseconds(FramePhase.vsyncStart),
+        'build_start_us': timing.timestampInMicroseconds(FramePhase.buildStart),
+        'build_finish_us': timing.timestampInMicroseconds(
+          FramePhase.buildFinish,
+        ),
+        'raster_start_us': timing.timestampInMicroseconds(
+          FramePhase.rasterStart,
+        ),
+        'raster_finish_us': timing.timestampInMicroseconds(
+          FramePhase.rasterFinish,
+        ),
+        'frame_number': timing.frameNumber,
       });
     }
   }
 
   void _tick(Duration elapsed) {
+    _log({
+      'k': 'lab_begin',
+      't': _now,
+      'frame_source_us':
+          SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds,
+      ..._clocks(),
+    });
     _sequence = (_sequence + 1) & 65535;
     _marker.value = _sequence;
     WidgetsBinding.instance.addPostFrameCallback((_) => _sample());
@@ -158,6 +203,11 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
   void _sample() {
     if (!mounted) return;
     final began = _now;
+    final shown =
+        began +
+        (SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds -
+                Timeline.now) /
+            1e6;
     if (!_started) {
       _started = true;
       final view = View.of(context);
@@ -186,11 +236,13 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
     }
     _log({
       'k': 'lab_marker',
-      't': began,
+      't': shown,
+      'post_t': began,
       'sequence': _sequence,
       'phase': 'postFrame',
       'frame_source_us':
           SchedulerBinding.instance.currentSystemFrameTimeStamp.inMicroseconds,
+      ..._clocks(),
     });
     final elements = <Element>[];
     void walk(Element element) {
@@ -211,7 +263,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
           ? List<int>.generate(list.length, (index) => index)
           : [selector['index'] as int? ?? 0];
       if (list.isEmpty || indices.any((index) => index >= list.length)) {
-        _log({'k': 'lab_missing', 'id': track['id'], 't': began});
+        _log({'k': 'lab_missing', 'id': track['id'], 't': shown});
       }
       for (final index in indices.where((index) => index < list.length)) {
         final element = list[index];
@@ -275,7 +327,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
         }
         _log({
           'k': 'lab_sample',
-          't': began,
+          't': shown,
           'id': selector['all'] == true ? '${track['id']}/$index' : track['id'],
           'identity': identityHashCode(object).toString(),
           'values': values,
@@ -286,7 +338,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
     for (final entry in widget.observables.entries) {
       _log({
         'k': 'lab_sample',
-        't': began,
+        't': shown,
         'id': entry.key,
         'identity': entry.key,
         'values': entry.value(),
@@ -514,6 +566,11 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
   void dispose() {
     GestureBinding.instance.pointerRouter.removeGlobalRoute(_pointer);
     SchedulerBinding.instance.removeTimingsCallback(_timings);
+    // ignore: invalid_use_of_internal_member
+    if (morphClockStampObserver == _stamped) {
+      // ignore: invalid_use_of_internal_member
+      morphClockStampObserver = null;
+    }
     _ticker?.dispose();
     _marker.dispose();
     _sink?.close();
