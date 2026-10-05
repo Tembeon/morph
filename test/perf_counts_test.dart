@@ -9,13 +9,15 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_body_shadow.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/widgets.dart';
 
 /// Deterministic per-frame work counters of representative scenes, the
 /// cheap proxy for the device's frame cost (tool/audit/perf-research
 /// section 4.2): widget rebuilds, render object paints, re-recorded
-/// pictures, backdrop captures and offscreen layers per animated frame,
-/// and frames scheduled after the scene settled.
+/// pictures, backdrop captures, offscreen layers and outlines traced from
+/// sampled fields per animated frame, and frames scheduled after the scene
+/// settled.
 ///
 /// The counts are pinned in test/fixtures/perf/counts.json as ceilings:
 /// an optimization may lower them, nothing may raise them. Rewrite the
@@ -38,7 +40,7 @@ void main() {
     isLocalTest = false;
     const header =
         'scene                 frames builds paints pictures captures '
-        'offscreen bodyShadows snapshotImages idle';
+        'offscreen bodyShadows snapshotImages traces idle';
     final lines = <String>[header];
     for (final MapEntry(:key, :value) in results.entries) {
       final r = value! as Map<String, Object?>;
@@ -48,7 +50,8 @@ void main() {
         '${'${r['pictures']}'.padLeft(9)}${'${r['captures']}'.padLeft(9)}'
         '${'${r['offscreen']}'.padLeft(10)}'
         '${'${r['bodyShadows']}'.padLeft(12)}'
-        '${'${r['snapshotImages']}'.padLeft(15)}${'${r['idle']}'.padLeft(5)}',
+        '${'${r['snapshotImages']}'.padLeft(15)}'
+        '${'${r['traces']}'.padLeft(7)}${'${r['idle']}'.padLeft(5)}',
       );
     }
     debugPrint(lines.join('\n'));
@@ -108,6 +111,7 @@ const _pinnedKeys = [
   'offscreen',
   'bodyShadows',
   'snapshotImages',
+  'traces',
   'idle',
 ];
 
@@ -145,10 +149,12 @@ class _Counter {
   Set<ui.Picture> _seen = {};
   late final int _shadowStart;
   late final int _imageStart;
+  late final int _traceStart;
 
   void start() {
     _shadowStart = MorphGlassBodyShadow.debugSaveLayerCount;
     _imageStart = GlassContentSnapshot.debugImageFallbackCount;
+    _traceStart = morphGlassOutlineDebugTraces;
     debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
       _frameBuilds++;
     };
@@ -207,6 +213,7 @@ class _Counter {
       'snapshotImages': per(
         GlassContentSnapshot.debugImageFallbackCount - _imageStart,
       ),
+      'traces': per(morphGlassOutlineDebugTraces - _traceStart),
       'idle': idle,
     };
   }

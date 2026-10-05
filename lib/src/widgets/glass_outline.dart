@@ -15,34 +15,54 @@ import 'package:morph/src/liquid_field.dart';
 ///
 /// [path] is the edge in the layer's local coordinates. An outline the
 /// package fused also carries the body's signed distance field, from which
-/// the package's own renderer shades the body as liquid glass; an outline
-/// created from a path alone is clipped instead.
+/// the package's own renderer shades the body as liquid glass; the plain
+/// union of rounded boxes carries the boxes, which the renderer shades as
+/// their own exact shapes; an outline created from a path alone is clipped
+/// instead.
 @immutable
 class MorphGlassOutline {
   /// Creates an outline from its edge alone.
-  const MorphGlassOutline(this.path) : _field = null;
+  const MorphGlassOutline(this.path) : _field = null, _shapes = null;
 
-  const MorphGlassOutline._(this.path, this._field);
+  const MorphGlassOutline._(this.path, this._field) : _shapes = null;
+
+  const MorphGlassOutline._union(this.path, List<RRect> shapes)
+    : _field = null,
+      _shapes = shapes;
 
   /// The edge of the body, in the layer's local coordinates.
   final Path path;
 
   final GlassField? _field;
 
+  final List<RRect>? _shapes;
+
   /// The box the body occupies.
   Rect get bounds => path.getBounds();
 
   /// The same outline moved by [offset].
   MorphGlassOutline shift(Offset offset) {
+    final shapes = _shapes;
+    if (shapes != null) {
+      return MorphGlassOutline._union(path.shift(offset), [
+        for (final shape in shapes) shape.shift(offset),
+      ]);
+    }
     final field = _field?.shift(offset);
     return MorphGlassOutline._(field?.outline ?? path.shift(offset), field);
   }
 }
 
 /// The sampled distance field of [outline], or null for an outline built
-/// from a path alone.
+/// from a path alone or from a plain union.
 @internal
 GlassField? morphGlassOutlineField(MorphGlassOutline outline) => outline._field;
+
+/// The rounded boxes whose plain union [outline] is, or null for an
+/// outline the package fused by a merge law or built from a path alone.
+@internal
+List<RRect>? morphGlassOutlineShapes(MorphGlassOutline outline) =>
+    outline._shapes;
 
 /// How much larger a corner radius the glass's optical normals turn on
 /// than the shape's own: the factor the renderer's analytic shapes use
@@ -94,17 +114,6 @@ class MorphOutlineBoxes {
     final qx = (x - _data[i * 5]).abs() - _data[i * 5 + 2] + r;
     final qy = (y - _data[i * 5 + 1]).abs() - _data[i * 5 + 3] + r;
     return morphBoxDistance(qx, qy, r);
-  }
-
-  /// The signed distance from (x, y) to the plain union of the boxes: the
-  /// value [LiquidField] gives them at blend 0, bit for bit.
-  double union(double x, double y) {
-    var d = distance(0, x, y);
-    for (var i = 1; i < length; i++) {
-      final di = distance(i, x, y);
-      if (di < d) d = di;
-    }
-    return d;
   }
 
   /// Whether (x, y) lies where box [i]'s optical normals can differ from
@@ -178,6 +187,11 @@ double morphBoxDistance(double qx, double qy, double r) {
   return outside + (inner < 0 ? inner : 0) - r;
 }
 
+/// The outlines traced from sampled fields over the isolate's life; debug
+/// builds only.
+@visibleForTesting
+int morphGlassOutlineDebugTraces = 0;
+
 /// The outline traced from a trace grid and shaded from a field grid.
 ///
 /// [trace] holds [cols] x [rows] nodes, node (i, j) at ([left] + i [step],
@@ -204,6 +218,10 @@ MorphGlassOutline morphGlassOutlineFromFields({
   required double top,
   required double step,
 }) {
+  assert(() {
+    morphGlassOutlineDebugTraces++;
+    return true;
+  }());
   final fieldCols = (cols - 1) ~/ stride + 1;
   final fieldRows = (rows - 1) ~/ stride + 1;
   final fieldStep = step * stride;
@@ -634,9 +652,16 @@ bool _fuses(List<RRect> group, double spacing) {
 /// The last four outlines retained by the isolate, newest last.
 final List<(List<RRect>, double, MorphGlassOutline)> _recentOutlines = [];
 
+/// The last four plain unions retained by the isolate, newest last.
+final List<(List<RRect>, MorphGlassOutline)> _recentUnions = [];
+
 /// The outline a glass container with [spacing] fuses [shapes] into, by
 /// the skin's merge law ([LiquidField] with blend [spacing], 1:1 the
 /// container spacing of UIKit's `UIGlassContainerEffect`).
+///
+/// At spacing 0 the outline is the plain union of the shapes, exact: its
+/// edge is the boxes' own and the renderer shades each box as its own
+/// shape, nearest box wins, with no field sampled or traced.
 ///
 /// The last few outlines are remembered, so a layer that rebuilds without
 /// its shapes moving, or with all of them moved by one offset, does not
@@ -647,6 +672,7 @@ MorphGlassOutline morphGlassContainerOutline(
   List<RRect> shapes,
   double spacing,
 ) {
+  if (spacing <= 0) return _plainUnion(shapes);
   for (final (recent, recentSpacing, outline) in _recentOutlines) {
     if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
   }
@@ -663,6 +689,68 @@ MorphGlassOutline morphGlassContainerOutline(
   _recentOutlines.add((List.of(shapes), spacing, outline));
   if (_recentOutlines.length > 4) _recentOutlines.removeAt(0);
   return outline;
+}
+
+MorphGlassOutline _plainUnion(List<RRect> shapes) {
+  for (final (recent, outline) in _recentUnions) {
+    if (listEquals(recent, shapes)) return outline;
+  }
+  final kept = List<RRect>.unmodifiable(shapes);
+  final outline = MorphGlassOutline._union(_unionPath(kept), kept);
+  _recentUnions.add((kept, outline));
+  if (_recentUnions.length > 4) _recentUnions.removeAt(0);
+  return outline;
+}
+
+/// The edge of the plain union of [shapes]: one closed contour per
+/// connected part, a box inside another adding nothing.
+Path _unionPath(List<RRect> shapes) {
+  for (final shape in shapes) {
+    _requireUniform(shape);
+  }
+  final kept = [
+    for (final (i, shape) in shapes.indexed)
+      if (!shapes.indexed.any(
+        ((int, RRect) other) =>
+            other.$1 != i &&
+            _encloses(other.$2, shape) &&
+            (!_encloses(shape, other.$2) || other.$1 < i),
+      ))
+        shape,
+  ];
+  var union = _rrectPath(kept.first);
+  for (final shape in kept.skip(1)) {
+    union = Path.combine(PathOperation.union, union, _rrectPath(shape));
+  }
+  return union;
+}
+
+Path _rrectPath(RRect shape) {
+  final path = Path();
+  path.addRRect(shape);
+  return path;
+}
+
+/// Whether rounded box [outer] covers rounded box [inner]: every corner
+/// circle of [inner] lies inside it, and with them, [outer] being convex,
+/// all of [inner].
+bool _encloses(RRect outer, RRect inner) {
+  final r = _radius(inner);
+  final hx = inner.width / 2 - r;
+  final hy = inner.height / 2 - r;
+  final center = inner.center;
+  final boxes = MorphOutlineBoxes([outer]);
+  for (final (sx, sy) in const [
+    (-1.0, -1.0),
+    (1.0, -1.0),
+    (-1.0, 1.0),
+    (1.0, 1.0),
+  ]) {
+    if (boxes.distance(0, center.dx + sx * hx, center.dy + sy * hy) > -r) {
+      return false;
+    }
+  }
+  return true;
 }
 
 /// The offset that moves every shape of [from] onto [to], or null when
@@ -716,7 +804,6 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
       final at = fj * fieldCols + fi;
       var d = boxes.distance(0, x, y);
       var m = d;
-      var plain = d;
       var half = boxes.halfMinor(0);
       var turned = turns[0] && boxes.inOpticalCorner(0, x, y);
       if (turned) {
@@ -743,10 +830,9 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
         final e = math.max(spacing - (d - di).abs(), 0.0);
         d = e > 0 ? math.min(d, di) - e * e / (4 * spacing) : math.min(d, di);
         m = math.min(m, di);
-        if (di < plain) plain = di;
       }
       if (turned) morphNormalizeTurn(turn, at * 2);
-      final value = spacing == 0 ? plain : sample(x, y);
+      final value = sample(x, y);
       distance[at] = value;
       minimum[at] = m;
       halfMinor[at] = half;
@@ -774,9 +860,7 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
           final y = area.top + j * step;
           for (var i = bi * b; i <= bi * b + b; i++) {
             if (i % stride == 0 && j % stride == 0) continue;
-            trace[j * cols + i] = spacing == 0
-                ? boxes.union(area.left + i * step, y)
-                : sample(area.left + i * step, y);
+            trace[j * cols + i] = sample(area.left + i * step, y);
           }
         }
       }
@@ -826,15 +910,8 @@ abstract final class _ContainerScratch {
 
 /// The weight the merge so far keeps against a box at distance [di] when
 /// the merge is at distance [d]: the polynomial smooth minimum's mix over
-/// [spacing], the plain minimum's choice at spacing 0.
+/// [spacing].
 double _share(double d, double di, double spacing) {
-  if (spacing <= 0) {
-    return di > d
-        ? 1.0
-        : di < d
-        ? 0.0
-        : 0.5;
-  }
   final share = 0.5 + (di - d) / (2 * spacing);
   return share < 0
       ? 0.0

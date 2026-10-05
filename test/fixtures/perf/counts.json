@@ -8,6 +8,7 @@
     "offscreen": 0.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "lens-held/flat": {
@@ -19,6 +20,7 @@
     "offscreen": 0.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "tab-bar/flat": {
@@ -30,6 +32,7 @@
     "offscreen": 0.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "switch/flat": {
@@ -41,6 +44,7 @@
     "offscreen": 0.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "slider/flat": {
@@ -52,6 +56,7 @@
     "offscreen": 0.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "controls-page/flat": {
@@ -63,6 +68,7 @@
     "offscreen": 0.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "menu-card/flat": {
@@ -74,6 +80,7 @@
     "offscreen": 0.7,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.4,
     "idle": 0
   },
   "menu-held/flat": {
@@ -85,6 +92,7 @@
     "offscreen": 0.3,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.4,
     "idle": 0
   },
   "nav-scroll/flat": {
@@ -96,6 +104,7 @@
     "offscreen": 2.9,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "search-press/flat": {
@@ -107,6 +116,7 @@
     "offscreen": 0.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "sheet/flat": {
@@ -118,6 +128,7 @@
     "offscreen": 0.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "segmented-drag/frosted": {
@@ -129,6 +140,7 @@
     "offscreen": 1.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "lens-held/frosted": {
@@ -140,6 +152,7 @@
     "offscreen": 0.9,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "tab-bar/frosted": {
@@ -151,6 +164,7 @@
     "offscreen": 2.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "switch/frosted": {
@@ -162,6 +176,7 @@
     "offscreen": 1.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "slider/frosted": {
@@ -173,6 +188,7 @@
     "offscreen": 1.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "controls-page/frosted": {
@@ -184,17 +200,19 @@
     "offscreen": 4.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "menu-card/frosted": {
     "frames": 289,
     "builds": 24.4,
-    "paints": 49.5,
+    "paints": 49.4,
     "pictures": 2.9,
     "captures": 1.4,
     "offscreen": 2.1,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.4,
     "idle": 0
   },
   "menu-held/frosted": {
@@ -206,6 +224,7 @@
     "offscreen": 1.3,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.4,
     "idle": 0
   },
   "nav-scroll/frosted": {
@@ -217,6 +236,7 @@
     "offscreen": 4.9,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "search-press/frosted": {
@@ -228,6 +248,7 @@
     "offscreen": 1.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "sheet/frosted": {
@@ -239,6 +260,7 @@
     "offscreen": 1.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "segmented-drag/liquid": {
@@ -250,6 +272,7 @@
     "offscreen": 1.6,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "lens-held/liquid": {
@@ -261,6 +284,7 @@
     "offscreen": 2.7,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "tab-bar/liquid": {
@@ -272,6 +296,7 @@
     "offscreen": 3.7,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "switch/liquid": {
@@ -283,6 +308,7 @@
     "offscreen": 2.1,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "slider/liquid": {
@@ -294,6 +320,7 @@
     "offscreen": 2.1,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "controls-page/liquid": {
@@ -305,6 +332,7 @@
     "offscreen": 8.1,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "menu-card/liquid": {
@@ -316,6 +344,7 @@
     "offscreen": 3.8,
     "bodyShadows": 1.3,
     "snapshotImages": 0.0,
+    "traces": 0.4,
     "idle": 0
   },
   "menu-held/liquid": {
@@ -327,6 +356,7 @@
     "offscreen": 2.3,
     "bodyShadows": 0.9,
     "snapshotImages": 0.0,
+    "traces": 0.4,
     "idle": 0
   },
   "nav-scroll/liquid": {
@@ -338,6 +368,7 @@
     "offscreen": 6.9,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "search-press/liquid": {
@@ -349,6 +380,7 @@
     "offscreen": 2.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   },
   "sheet/liquid": {
@@ -360,6 +392,7 @@
     "offscreen": 2.0,
     "bodyShadows": 0.0,
     "snapshotImages": 0.0,
+    "traces": 0.0,
     "idle": 0
   }
 }

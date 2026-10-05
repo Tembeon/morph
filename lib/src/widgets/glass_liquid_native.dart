@@ -155,13 +155,15 @@ double morphBackdropScale(MorphGlassSurface surface, double shrink) =>
         MorphGlassRenderer.glassness(surface) *
         surface.opacity.clamp(0.0, 1.0);
 
-LiquidShape _shape(RRect shape) {
+LiquidShape _shape(RRect shape, {bool exact = false}) {
   final side = math.min(shape.width, shape.height);
   final radius = math.min(shape.tlRadiusX, side / 2);
   if (shape.width == shape.height && radius >= side / 2) {
     return const LiquidOval();
   }
-  return LiquidRoundedSuperellipse(borderRadius: radius);
+  return exact
+      ? LiquidRoundedRectangle(borderRadius: radius)
+      : LiquidRoundedSuperellipse(borderRadius: radius);
 }
 
 List<BoxShadow> _shadows(MorphGlassSurface surface) =>
@@ -189,10 +191,11 @@ Widget _glass(
   MorphGlassRenderer renderer,
   MorphGlassSurface surface, {
   bool shadows = true,
+  bool exact = false,
 }) {
   final base = morphLiquidAppearance(renderer, surface);
   return LiquidGlass(
-    shape: _shape(surface.localShape),
+    shape: _shape(surface.localShape, exact: exact),
     appearance: base.copyWith(
       visibility:
           base.visibility *
@@ -205,7 +208,8 @@ Widget _glass(
 }
 
 /// One glass layer of [surfaces], each its own shape, or one body shaded
-/// from [field] when it is given.
+/// from [field] when it is given; [exact] shapes are the surfaces' own
+/// circular rounded boxes instead of continuous corners.
 Widget _layer(
   MorphGlassRenderer renderer,
   List<MorphGlassSurface> surfaces, {
@@ -214,6 +218,7 @@ Widget _layer(
   double rim = 0,
   GlassField? field,
   bool shadows = true,
+  bool exact = false,
 }) {
   final settings = morphLiquidSettings(renderer, surfaces.first);
   return ClipRect(
@@ -230,7 +235,7 @@ Widget _layer(
           for (final surface in surfaces)
             Positioned.fromRect(
               rect: surface.bounds,
-              child: _glass(renderer, surface, shadows: shadows),
+              child: _glass(renderer, surface, shadows: shadows, exact: exact),
             ),
         ],
       ),
@@ -267,7 +272,9 @@ Widget morphLiquidSurface(
 /// One fused glass body on the liquid tier, filling its layer's box.
 ///
 /// A body the package fused carries its distance field and is shaded from
-/// it, neck included. An outline built from a path alone has no field: its
+/// it, neck included. A plain union is shaded from its surfaces' own
+/// rounded boxes, the nearest one at every point, exactly the field it
+/// would sample. An outline built from a path alone has no field: its
 /// surfaces are shaded as their own shapes, clipped to the outline, and
 /// frost fills the rest of it.
 @internal
@@ -279,7 +286,8 @@ Widget morphLiquidBody(
 ) {
   final chrome = surfaces.any(_chrome);
   final field = morphGlassOutlineField(outline);
-  if (field != null) {
+  final exact = morphGlassOutlineShapes(outline) != null;
+  if (field != null || exact) {
     return CustomPaint(
       painter: MorphGlassBodyShadow(
         outline.path,
@@ -292,6 +300,7 @@ Widget morphLiquidBody(
         shared: !chrome,
         field: field,
         shadows: false,
+        exact: exact,
       ),
     );
   }

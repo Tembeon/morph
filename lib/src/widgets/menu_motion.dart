@@ -1552,8 +1552,8 @@ class MorphMenuMotion {
   double get fusionRadius => _fusionAt(_now);
 
   /// The silhouette of [rootBlob] and [buttonBlob] fused at
-  /// [fusionRadius], in the motion's coordinates. Below 1 pixel it
-  /// carries the plain union's field; null only while idle.
+  /// [fusionRadius], in the motion's coordinates. Below 1 pixel it is
+  /// the exact plain union of the two; null only while idle.
   MorphGlassOutline? get silhouette {
     if (_phase == _Phase.idle) return null;
     final radius = fusionRadius;

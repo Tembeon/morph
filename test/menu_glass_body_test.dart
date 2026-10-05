@@ -308,7 +308,8 @@ void main() {
           matching: find.byType(LiquidGlassLayer),
         );
         expect(layer, findsOneWidget);
-        expect(tester.widget<LiquidGlassLayer>(layer).field, isNotNull);
+        expect(tester.widget<LiquidGlassLayer>(layer).field, isNull);
+        expect(shape.shape, isA<LiquidRoundedRectangle>());
         expect(
           tester.widget<LiquidGlassLayer>(layer).settings.frost,
           MorphMenuTuning.standard.cardBlur,
@@ -417,7 +418,7 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  test('zero blur keeps the menu and button in one distance field', () {
+  test('zero blur keeps the menu and button one exact union', () {
     final motion = MorphMenuMotion(
       button: const Rect.fromLTWH(177, 126, 48, 48),
       itemCount: 4,
@@ -428,7 +429,10 @@ void main() {
     motion.advance(2);
     expect(motion.fusionRadius, 0);
     final outline = motion.silhouette!;
-    expect(morphGlassOutlineField(outline), isNotNull);
+    expect(morphGlassOutlineShapes(outline), [
+      motion.rootBlob.rrect,
+      motion.buttonBlob.rrect,
+    ]);
     expect(outline.path.computeMetrics().length, 1);
     expect(outline.path.contains(motion.buttonBlob.rect.center), isTrue);
     motion.close(2);
@@ -436,7 +440,12 @@ void main() {
       motion.advance(2 + frame / 120);
       if (!motion.isPresented) break;
       expect(motion.cardGlassTransferred, isFalse);
-      expect(morphGlassOutlineField(motion.silhouette!), isNotNull);
+      final silhouette = motion.silhouette!;
+      expect(
+        morphGlassOutlineField(silhouette) != null ||
+            morphGlassOutlineShapes(silhouette) != null,
+        isTrue,
+      );
     }
   });
 }

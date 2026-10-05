@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -61,23 +63,73 @@ void main() {
     expect(body.evaluate().single, same(element));
   });
 
-  test('a plain union at spacing 0 carries a finite field', () {
-    for (final shapes in [
-      [
-        const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
-        const RRect.fromLTRBXY(40, 0, 100, 40, 12, 12),
-      ],
-      [
-        const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
-        const RRect.fromLTRBXY(70, 0, 130, 40, 12, 12),
-        const RRect.fromLTRBXY(0, 50, 130, 90, 20, 20),
-      ],
+  test('a plain union at spacing 0 is the exact union of its boxes', () {
+    for (final (shapes, parts) in [
+      (
+        [
+          const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
+          const RRect.fromLTRBXY(40, 0, 100, 40, 12, 12),
+        ],
+        1,
+      ),
+      (
+        [
+          const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
+          const RRect.fromLTRBXY(70, 0, 130, 40, 12, 12),
+          const RRect.fromLTRBXY(0, 50, 130, 90, 20, 20),
+        ],
+        3,
+      ),
+      (
+        [
+          const RRect.fromLTRBXY(0, 0, 260, 440, 34, 34),
+          const RRect.fromLTRBXY(20, 20, 44, 44, 12, 12),
+        ],
+        1,
+      ),
+      (
+        [
+          const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
+          const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
+        ],
+        1,
+      ),
+      (
+        [
+          const RRect.fromLTRBXY(0, 0, 60, 40, 20, 20),
+          const RRect.fromLTRBXY(40, 0, 100, 40, 20, 20),
+        ],
+        1,
+      ),
     ]) {
-      final field = morphGlassOutlineField(
-        morphGlassContainerOutline(shapes, 0),
-      )!;
-      expect(field.samples.where((value) => value.isNaN), isEmpty);
+      final outline = morphGlassContainerOutline(shapes, 0);
+      expect(morphGlassOutlineField(outline), isNull);
+      expect(morphGlassOutlineShapes(outline), shapes);
+      expect(identical(morphGlassContainerOutline(shapes, 0), outline), isTrue);
+      final boxes = MorphOutlineBoxes(shapes);
+      final area = outline.bounds.inflate(3);
+      for (var y = area.top; y <= area.bottom; y += 0.75) {
+        for (var x = area.left; x <= area.right; x += 0.75) {
+          var d = boxes.distance(0, x, y);
+          for (var i = 1; i < shapes.length; i++) {
+            d = math.min(d, boxes.distance(i, x, y));
+          }
+          if (d.abs() < 0.05) continue;
+          expect(outline.path.contains(Offset(x, y)), d < 0, reason: '$x $y');
+        }
+      }
+      final rim = [
+        for (final metric in outline.path.computeMetrics()) metric.length,
+      ];
+      expect(rim, hasLength(parts));
     }
+    final moved = morphGlassContainerOutline([
+      const RRect.fromLTRBXY(0, 0, 60, 40, 12, 12),
+    ], 0).shift(const Offset(5, 7));
+    expect(morphGlassOutlineShapes(moved), [
+      const RRect.fromLTRBXY(5, 7, 65, 47, 12, 12),
+    ]);
+    expect(moved.bounds, const Rect.fromLTRB(5, 7, 65, 47));
   });
 
   test('shapes moved together reuse their fused outline, moved', () {
