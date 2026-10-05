@@ -14,9 +14,9 @@ import 'package:morph/src/widgets/glass_outline.dart';
 /// Every tier draws the same shapes: the package computes each surface's
 /// outline, the fused silhouettes of a menu and its button or of a bar's
 /// capsules, the lens deformation and the content placement once, and a
-/// tier only decides how the outline is shaded. A device that cannot keep
-/// up steps down a tier ([MorphAdaptiveGlass]) and the controls keep their
-/// geometry, their motion and their fusion.
+/// tier only decides how the outline is shaded. A device whose GPU cannot
+/// hold liquid glass draws a cheaper tier ([MorphAdaptiveGlass]) and the
+/// controls keep their geometry, their motion and their fusion.
 enum MorphGlassTier {
   /// A flat fill of each outline in the surface's color, no backdrop
   /// sampling: the cheapest tier, for weak devices.
@@ -51,8 +51,8 @@ enum MorphGlassMaterial {
 /// control at a quality [tier].
 ///
 /// Install it with [MorphGlass], or with [MorphAdaptiveGlass], which picks
-/// the tier from the frame timings the device achieves. Only surfaces that
-/// are glass in iOS 27 become glass: a plain surface
+/// the tier once by the device's GPU. Only surfaces that are glass in iOS
+/// 27 become glass: a plain surface
 /// ([MorphGlassSurface.glass] false - the segmented, switch and slider
 /// tracks, the stepper) is a flat fill on every tier.
 ///

@@ -55,9 +55,12 @@ import 'package:morph_example/gallery/gallery.dart';
 /// screenshot goes through the integration_test plugin's image view.
 /// `--dart-define=AUDIT_SHOTS=false` skips the screenshots and
 /// `--dart-define=AUDIT_SCENES=menu,controls` runs only the named scenes.
-/// The report also carries the display's frame budget and the frames over
-/// it (`over_budget`), p99s, why the liquid tier is unavailable, the tiers
-/// the adaptive governor chose (`GALLERY_GLASS=auto`), the precache time,
+/// The report also carries the frame budget - the measured cadence, the
+/// 10th percentile of the intervals between frames' vsync starts, not the
+/// refresh rate the display reports - and the frames over it
+/// (`over_budget`), p99s, why the liquid tier is unavailable, the device
+/// class and the tier drawn at the end (`GALLERY_GLASS=auto` picks it by
+/// the device class), the precache time,
 /// and `first_use`: each scene's frames from entering its page to its
 /// first timed run (home-scroll's start at runApp, the first glass frame).
 const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
@@ -216,11 +219,7 @@ class _Audit {
     await MorphGlassRenderer.precache();
     _precacheMs = precache.elapsedMicroseconds / 1000;
     _enteredAt = timings.length;
-    runApp(
-      GalleryApp(
-        onTierChanged: (MorphGlassTier tier) => _tierChanges.add(tier.name),
-      ),
-    );
+    runApp(const GalleryApp());
     await settle(1500);
     for (final (name, scene) in [
       ('home-scroll', _homeScroll),
@@ -501,15 +500,27 @@ class _Audit {
     await back();
   }
 
-  final List<String> _tierChanges = [];
-
   Map<String, Object?> report() {
     final display = ui.PlatformDispatcher.instance.views.first.display;
     final rate = display.refreshRate > 0 ? display.refreshRate : 60.0;
-    final budget = 1000 / rate;
     double ms(Duration d) => d.inMicroseconds / 1000;
     double pick(List<double> v, double q) =>
         v[math.min(v.length - 1, (v.length * q).floor())];
+    final intervals = [
+      for (var i = 1; i < timings.length; i++)
+        (timings[i].timestampInMicroseconds(ui.FramePhase.vsyncStart) -
+                timings[i - 1].timestampInMicroseconds(
+                  ui.FramePhase.vsyncStart,
+                )) /
+            1000,
+    ].where((double v) => v >= 4 && v <= 50).toList();
+    intervals.sort();
+    final cadence = intervals.length < 8 ? 1000 / rate : pick(intervals, 0.1);
+    final budget = cadence;
+    final glass = find.byType(MorphScope);
+    final drawn = glass.evaluate().isEmpty
+        ? null
+        : MorphAdaptiveGlass.tierOf(tester.element(glass.first));
     double median(List<double> v) {
       final sorted = [...v];
       sorted.sort();
@@ -565,9 +576,11 @@ class _Audit {
       'liquid_unavailable_reason': MorphGlassRenderer.liquidUnavailableReason,
       'platform': Platform.operatingSystem,
       'refresh_rate': rate,
+      'cadence_ms': cadence,
       'budget_ms': budget,
       'precache_ms': _precacheMs,
-      'tier_changes': _tierChanges,
+      'device_class': MorphAdaptiveGlass.deviceClass.name,
+      'drawn_tier': drawn?.name,
       'first_use': {
         for (final MapEntry(key: scene, value: (start, end))
             in _firstUse.entries)

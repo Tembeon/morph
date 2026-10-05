@@ -7,6 +7,7 @@ import 'package:morph/src/glass/renderer/rendering/consolidated_fake_glass_layer
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_liquid_native.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
+import 'package:morph/src/widgets/glass_device_native.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
@@ -555,154 +556,53 @@ void main() {
   });
 
   group('the adaptive tier', () {
-    const budget = Duration(microseconds: 8333);
-    const slow = Duration(milliseconds: 12);
-    const fast = Duration(milliseconds: 2);
-    Duration at(int frame) => Duration(microseconds: frame * 8333);
+    tearDown(() => morphGlassDeviceClassProbe = morphProbeGlassDeviceClass);
 
-    test('steps down when a quarter of a window misses the budget', () {
-      final governor = MorphGlassTierGovernor(
-        ceiling: MorphGlassTier.liquid,
-        policy: const MorphGlassTierPolicy(warmUp: Duration.zero),
-      );
-      var changed = false;
-      for (var i = 0; i < 30; i++) {
-        changed = governor.addFrame(
-          build: fast,
-          raster: i < 8 ? slow : fast,
-          budget: budget,
-          now: at(i),
-          gesture: true,
-        );
-      }
-      expect(changed, isTrue);
-      expect(governor.tier, MorphGlassTier.flat);
-    });
-
-    test('skips frosted unless the policy lists it', () {
-      MorphGlassTier stepDown(MorphGlassTierPolicy policy) {
-        final governor = MorphGlassTierGovernor(
-          ceiling: MorphGlassTier.liquid,
-          policy: policy,
-        );
-        for (var i = 0; i < 30; i++) {
-          governor.addFrame(
-            build: fast,
-            raster: slow,
-            budget: budget,
-            now: at(i),
-            gesture: false,
-          );
-        }
-        return governor.tier;
-      }
-
+    test('liquid on a capable GPU, the cheap tier on GLES and old Apple', () {
+      const liquid = MorphGlassTier.liquid;
       expect(
-        stepDown(const MorphGlassTierPolicy(warmUp: Duration.zero)),
-        MorphGlassTier.flat,
+        MorphAdaptiveGlass.tierFor(MorphGlassDeviceClass.capable, liquid),
+        liquid,
       );
       expect(
-        stepDown(
-          const MorphGlassTierPolicy(
-            warmUp: Duration.zero,
-            tiers: {MorphGlassTier.flat, MorphGlassTier.frosted},
-          ),
+        MorphAdaptiveGlass.tierFor(MorphGlassDeviceClass.unknown, liquid),
+        liquid,
+      );
+      expect(
+        MorphAdaptiveGlass.tierFor(MorphGlassDeviceClass.gles, liquid),
+        MorphAdaptiveGlass.cheapTier,
+      );
+      expect(
+        MorphAdaptiveGlass.tierFor(
+          MorphGlassDeviceClass.appleBeforeA13,
+          liquid,
         ),
-        MorphGlassTier.frosted,
+        MorphAdaptiveGlass.cheapTier,
       );
-      expect(
-        stepDown(
-          const MorphGlassTierPolicy(
-            warmUp: Duration.zero,
-            tiers: {MorphGlassTier.liquid},
-          ),
-        ),
-        MorphGlassTier.liquid,
-      );
+      expect(MorphAdaptiveGlass.cheapTier, MorphGlassTier.flat);
     });
 
-    test('holds when fewer frames miss', () {
-      final governor = MorphGlassTierGovernor(
-        ceiling: MorphGlassTier.liquid,
-        policy: const MorphGlassTierPolicy(warmUp: Duration.zero),
-      );
-      for (var i = 0; i < 300; i++) {
-        governor.addFrame(
-          build: fast,
-          raster: i % 30 < 7 ? slow : fast,
-          budget: budget,
-          now: at(i),
-          gesture: false,
+    test('never goes above the tier the renderer can draw', () {
+      for (final deviceClass in MorphGlassDeviceClass.values) {
+        expect(
+          MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.frosted),
+          MorphGlassTier.frosted,
+        );
+        expect(
+          MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.flat),
+          MorphGlassTier.flat,
         );
       }
-      expect(governor.tier, MorphGlassTier.liquid);
     });
 
-    test('steps back up only after the wait and never under a finger', () {
-      final governor = MorphGlassTierGovernor(
-        ceiling: MorphGlassTier.liquid,
-        policy: const MorphGlassTierPolicy(warmUp: Duration.zero),
-      );
-      var frame = 0;
-      void feed(int frames, Duration raster, {bool gesture = false}) {
-        for (var i = 0; i < frames; i++) {
-          governor.addFrame(
-            build: fast,
-            raster: raster,
-            budget: budget,
-            now: at(frame++),
-            gesture: gesture,
-          );
-        }
-      }
-
-      feed(30, slow);
-      expect(governor.tier, MorphGlassTier.flat);
-      feed(300, fast);
-      expect(governor.tier, MorphGlassTier.flat);
-      feed(600, fast, gesture: true);
-      expect(governor.tier, MorphGlassTier.flat);
-      feed(30, fast);
-      expect(governor.tier, MorphGlassTier.liquid);
-      feed(30, slow);
-      expect(governor.tier, MorphGlassTier.flat);
-      expect(governor.stepUpWait, const Duration(seconds: 10));
-    });
-
-    test('never goes above its ceiling or below flat', () {
-      final governor = MorphGlassTierGovernor(
-        ceiling: MorphGlassTier.frosted,
-        policy: const MorphGlassTierPolicy(warmUp: Duration.zero),
-      );
-      for (var i = 0; i < 300; i++) {
-        governor.addFrame(
-          build: slow,
-          raster: slow,
-          budget: budget,
-          now: at(i),
-          gesture: false,
-        );
-      }
-      expect(governor.tier, MorphGlassTier.flat);
-      for (var i = 300; i < 6000; i++) {
-        governor.addFrame(
-          build: fast,
-          raster: fast,
-          budget: budget,
-          now: at(i),
-          gesture: false,
-        );
-      }
-      expect(governor.tier, MorphGlassTier.frosted);
-    });
-
-    testWidgets('an explicit tier wins and the renderer reports it', (
-      tester,
-    ) async {
+    Future<MorphGlassTier?> drawn(
+      WidgetTester tester, {
+      MorphGlassTier? tier,
+    }) async {
       late BuildContext inside;
       await tester.pumpWidget(
         MorphAdaptiveGlass(
-          tier: MorphGlassTier.frosted,
+          tier: tier,
           child: Builder(
             builder: (BuildContext context) {
               inside = context;
@@ -711,7 +611,38 @@ void main() {
           ),
         ),
       );
-      expect(MorphAdaptiveGlass.tierOf(inside), MorphGlassTier.frosted);
+      return MorphAdaptiveGlass.tierOf(inside);
+    }
+
+    testWidgets('a GLES device starts and stays on the cheap tier', (
+      tester,
+    ) async {
+      morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.gles;
+      expect(await drawn(tester), MorphAdaptiveGlass.cheapTier);
+      for (var i = 0; i < 120; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(await drawn(tester), MorphAdaptiveGlass.cheapTier);
+    });
+
+    testWidgets('a capable device draws liquid', (tester) async {
+      morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.capable;
+      expect(await drawn(tester), MorphGlassTier.liquid);
+    });
+
+    testWidgets('an explicit tier wins and the renderer reports it', (
+      tester,
+    ) async {
+      morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.gles;
+      expect(
+        await drawn(tester, tier: MorphGlassTier.liquid),
+        MorphGlassTier.liquid,
+      );
+      morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.capable;
+      expect(
+        await drawn(tester, tier: MorphGlassTier.frosted),
+        MorphGlassTier.frosted,
+      );
     });
   });
 }

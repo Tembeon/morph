@@ -16,7 +16,7 @@
 /// the package's glass renderer; the engine never depends on this layer.
 /// The controls draw flat fills by default; [MorphGlassRenderer]
 /// installed with [MorphGlass] (or [MorphAdaptiveGlass], which picks its
-/// quality tier from the frame timings) draws them as liquid, frosted or
+/// quality tier once by the device's GPU) draws them as liquid, frosted or
 /// flat glass, and any other [MorphGlassPainter] can take its place. The
 /// package computes every shape once - fused silhouettes included - so
 /// each tier and each painter shades the same outlines. Their looks
@@ -85,7 +85,7 @@ export 'src/widgets/glass_outline.dart' show MorphGlassOutline;
 export 'src/widgets/glass_renderer.dart'
     show MorphGlassMaterial, MorphGlassRenderer, MorphGlassTier;
 export 'src/widgets/glass_tier.dart'
-    show MorphAdaptiveGlass, MorphGlassTierPolicy;
+    show MorphAdaptiveGlass, MorphGlassDeviceClass;
 export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonMotion, MorphGlassButtonStyle;
 export 'src/widgets/lens_motion.dart'

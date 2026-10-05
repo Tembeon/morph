@@ -62,8 +62,8 @@ Recipes and applied patterns live there, not in this README.
 
 The engine never depends on the widget layer. The package ships
 `MorphGlassRenderer` with flat, frosted and liquid tiers;
-`MorphAdaptiveGlass` installs it and selects a tier from frame timings,
-or uses an explicit tier. Liquid glass needs Impeller and Flutter GPU;
+`MorphAdaptiveGlass` installs it at one tier per session, chosen by the
+device's GPU class, or uses an explicit tier. Liquid glass needs Impeller and Flutter GPU;
 unsupported builds fall back to frosted glass. Controls draw flat fills
 without a painter. Custom painters still use `MorphGlass(painter:)`.
 Every tier shades the outlines computed by the package. Looks resolve

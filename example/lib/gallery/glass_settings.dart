@@ -7,8 +7,8 @@ import 'package:morph/widgets.dart';
 /// The values live as long as the app does; nothing is written to disk.
 ///
 /// The glass tier starts as `--dart-define=GALLERY_GLASS=<name>` says:
-/// auto (the default: [MorphAdaptiveGlass] picks it from the frame
-/// timings), liquid, frosted or flat. A build without the liquid tier
+/// auto (the default: [MorphAdaptiveGlass] picks it by the device's
+/// GPU), liquid, frosted or flat. A build without the liquid tier
 /// (the web) draws frosted glass in its place.
 class GalleryGlassSettings extends ChangeNotifier {
   MorphGlassTier? _tier = switch (const String.fromEnvironment(
@@ -34,7 +34,7 @@ class GalleryGlassSettings extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// The glass tier, or null to let the frame timings pick it.
+  /// The glass tier, or null to let the device's GPU pick it.
   MorphGlassTier? get tier => _tier;
   set tier(MorphGlassTier? value) => _set(_tier, value, () => _tier = value);
 
