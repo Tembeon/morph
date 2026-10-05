@@ -158,7 +158,9 @@ class MorphGlassRenderer extends MorphGlassPainter {
   ///
   /// Await it before `runApp`: the warm-up takes about 0.35 to 0.45 s on a
   /// Pixel 6a (Vulkan) and moves that cost from the first glass frame to
-  /// the launch.
+  /// the launch. It holds the launch for at most one second; a GPU that is
+  /// slower to start finishes the warm-up in the background, and glass
+  /// drawn before the liquid tier is ready is fake glass.
   ///
   /// Unsupported runtimes and shader loading failures complete normally,
   /// report once through [FlutterError.reportError], and expose the cause

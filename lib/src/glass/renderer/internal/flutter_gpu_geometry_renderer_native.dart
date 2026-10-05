@@ -398,24 +398,29 @@ class FlutterGpuGeometryRenderer {
       _uniformSize,
     ).emplace(_uniformData);
 
+    final fieldTexture = field == null
+        ? null
+        : _fieldTextures.upload(field, _completedFrames);
+    gpu.BufferView? fieldUniformView;
+    if (field != null && fieldTexture != null) {
+      _packFieldUniformData(
+        field: field,
+        fieldScale: fieldScale,
+        texture: fieldTexture,
+      );
+      fieldUniformView = _hostBufferForUniformSize(
+        _uniformSize,
+      ).emplace(_fieldUniformData);
+    }
     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
     final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!);
-    if (field == null) {
+    if (fieldTexture == null || fieldUniformView == null) {
       geometryPass
         ..bindPipeline(_pipeline)
         ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
         ..bindUniform(_uniformSlot, uniformView)
         ..bindVertexBuffer(_vertexBufferView);
     } else {
-      final fieldTexture = _fieldTextures.upload(field, _completedFrames);
-      _packFieldUniformData(
-        field: field,
-        fieldScale: fieldScale,
-        texture: fieldTexture,
-      );
-      final fieldUniformView = _hostBufferForUniformSize(
-        _uniformSize,
-      ).emplace(_fieldUniformData);
       geometryPass.bindPipeline(_fieldPipeline);
       geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
       geometryPass.bindUniform(_fieldUniformSlot, fieldUniformView);
@@ -503,7 +508,14 @@ class FlutterGpuGeometryRenderer {
   //
   // Share a command buffer across passes only once the engine ends a pass
   // before the next begins.
-  static final List<gpu.CommandBuffer> _pendingCommandBuffers = [];
+  static final MorphDeferredSubmissions<gpu.CommandBuffer> _pending =
+      MorphDeferredSubmissions((commandBuffer) {
+        commandBuffer.submit();
+        assert(() {
+          debugBatchedSubmitCount++;
+          return true;
+        }(), 'Count batched submissions in debug builds.');
+      });
   static bool _postFrameFlushScheduled = false;
 
   /// Command buffers submitted by [flushPendingSubmissions].
@@ -534,13 +546,13 @@ class FlutterGpuGeometryRenderer {
       debugDeferredPassCount++;
       return true;
     }(), 'Count deferred geometry passes in debug builds.');
-    _pendingCommandBuffers.add(commandBuffer);
+    _pending.add(commandBuffer);
     if (_postFrameFlushScheduled) return;
     _postFrameFlushScheduled = true;
     // Covers passes whose layer was painted but not composited.
     SchedulerBinding.instance.addPostFrameCallback((_) {
       _postFrameFlushScheduled = false;
-      if (_pendingCommandBuffers.isEmpty) return;
+      if (_pending.isEmpty) return;
       assert(() {
         debugPostFrameFlushCount++;
         return true;
@@ -555,17 +567,7 @@ class FlutterGpuGeometryRenderer {
   /// scene is handed to the raster thread, so every matte a scene samples has
   /// been submitted ahead of it on the GPU queue. A post-frame callback
   /// flushes passes of layers that were painted but not composited.
-  static void flushPendingSubmissions() {
-    if (_pendingCommandBuffers.isEmpty) return;
-    for (final commandBuffer in _pendingCommandBuffers) {
-      commandBuffer.submit();
-      assert(() {
-        debugBatchedSubmitCount++;
-        return true;
-      }(), 'Count batched submissions in debug builds.');
-    }
-    _pendingCommandBuffers.clear();
-  }
+  static void flushPendingSubmissions() => _pending.flush();
 
   /// Frames after its replacement before a texture may be rendered into
   /// again.
@@ -1151,4 +1153,67 @@ class _SharedGeometryResources {
   late final int offsetShapeBounds;
   late final gpu.DeviceBuffer vertexBuffer;
   late final gpu.BufferView vertexBufferView;
+}
+
+/// Command buffers recorded during a frame and submitted together, at most
+/// [limit] at a time.
+///
+/// A Metal command queue holds 64 uncompleted command buffers and the
+/// raster thread draws from the same queue; creating one more while every
+/// slot is taken blocks the UI thread until a buffer completes, and a
+/// buffer that is recorded but not submitted never completes. Deferring
+/// more than [limit] passes would therefore freeze the app on a frame with
+/// many glass layers, so [add] submits the batch as soon as it is full.
+@internal
+final class MorphDeferredSubmissions<T> {
+  /// Creates an empty batch that hands each entry to [submit].
+  MorphDeferredSubmissions(this.submit, {this.limit = defaultLimit});
+
+  /// The most entries a frame holds before they are submitted.
+  static const int defaultLimit = 16;
+
+  /// Submits one entry.
+  final void Function(T entry) submit;
+
+  /// The most entries held before [add] submits them.
+  final int limit;
+
+  final List<T> _entries = [];
+
+  /// Whether nothing waits for submission.
+  bool get isEmpty => _entries.isEmpty;
+
+  /// The number of entries waiting for submission.
+  int get length => _entries.length;
+
+  /// Holds [entry], submitting the batch once it reaches [limit].
+  void add(T entry) {
+    _entries.add(entry);
+    if (_entries.length >= limit) flush();
+  }
+
+  /// Submits every held entry in recording order.
+  ///
+  /// The batch is empty afterwards even when an entry fails: a failure is
+  /// reported and the remaining entries are still submitted, so one bad
+  /// pass never holds the others back.
+  void flush() {
+    if (_entries.isEmpty) return;
+    final entries = List<T>.of(_entries);
+    _entries.clear();
+    for (final entry in entries) {
+      try {
+        submit(entry);
+      } on Object catch (error, stack) {
+        FlutterError.reportError(
+          FlutterErrorDetails(
+            exception: error,
+            stack: stack,
+            library: 'morph glass',
+            context: ErrorDescription('while submitting a glass geometry pass'),
+          ),
+        );
+      }
+    }
+  }
 }

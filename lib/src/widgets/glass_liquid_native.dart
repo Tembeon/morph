@@ -75,11 +75,23 @@ String? get morphLiquidGlassUnavailableReason =>
 @internal
 ValueListenable<bool> get morphLiquidGlassCapability => _capability;
 
-/// Resolves runtime availability without throwing on unsupported devices,
-/// and warms the pipelines the first glass frame needs.
+/// The longest [morphPrecacheLiquidGlass] holds a launch.
+///
+/// The warm-up measured 0.35 to 0.45 s on a Pixel 6a; past this budget the
+/// launch goes on and the warm-up finishes in the background.
 @internal
-Future<void> morphPrecacheLiquidGlass() async {
+const Duration morphPrecacheBudget = Duration(seconds: 1);
+
+/// Resolves runtime availability without throwing on unsupported devices,
+/// and warms the pipelines the first glass frame needs, waiting at most
+/// [morphPrecacheBudget].
+@internal
+Future<void> morphPrecacheLiquidGlass() {
+  if (isLocalTest) return _capability.precache();
+  return morphWithinBudget(_precacheAndWarm(), morphPrecacheBudget);
+}
+
+Future<void> _precacheAndWarm() async {
   await _capability.precache();
-  if (isLocalTest) return;
   await (_warmUp ??= _warmPipelines());
 }
