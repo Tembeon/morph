@@ -74,6 +74,19 @@ C1, G1, ... refer to it).
   content painted between them still read a stale root copy (72 / 43 max
   diff); a group per body glass control fixes it at a capture each.
 
+## Status 2026-10-05 (perf levers agent, owner decisions of the day)
+
+- Governor (6f8a325): steps liquid -> flat; frosted only via
+  `MorphGlassTierPolicy.tiers`. Plain unions exact (f9293cd): the menu's
+  r < 1 tail and submenu cards no longer trace a field (menu build p95
+  liquid 2.34 -> 1.87, frosted 3.41 -> 1.91). Glass shadows clipped, no
+  saveLayer (b0f79b1): liquid raster p95 -0.2 .. -0.5 on every scene
+  with shadowed glass. Numbers and shots in spec/glass-renderer.md.
+- Edge effects in the bars' group: measured, visible (capsules lose the
+  edge effect's fade), NOT adopted.
+- Second resting body glass: not detectable per frame; options A - D with
+  device costs in glass-renderer.md - OWNER DECISION still open.
+
 ## Order of work (owner's priorities)
 
 1. Menu API leftovers (see above) - small, can ride with WP-E.

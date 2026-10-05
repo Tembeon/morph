@@ -207,8 +207,9 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   grid of step clamp(s/3, 2, 6), separable blur evaluated only within
   1.26 s + 1.5 step of the edge (a blur moves an SDF by at most
   s sqrt(pi/2)), traced by `liquidGridContours` (the skin's marching
-  squares + stitch + Chaikin); under 1 pt the silhouette is the plain union
-  (null outline). The motion exposes `fusionRadius` and `silhouette`; the
+  squares + stitch + Chaikin); under 1 pt the silhouette is the exact
+  plain union of the two boxes (no field: path union, each box shaded as
+  its own rounded rectangle; glass-renderer.md). The motion exposes `fusionRadius` and `silhouette`; the
   vessel AND the button after the latch hand it to the flat painter and to
   `buildLayer(outline:)`. Shading depth: see glass-renderer.md
   (`MorphMenuFusion.shadedDepth`).

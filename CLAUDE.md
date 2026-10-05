@@ -201,19 +201,30 @@ Cross-cutting policy:
   tab bar, a sheet's content, a menu's card, a context menu's hero and
   satellites, lifted glass and a frosted lens / knob / thumb. KNOWN
   WRONG (owner decision pending): two resting body glass surfaces with
-  content painted between them - the later one misses that content.
-  Device evidence: glass-renderer.md.
+  content painted between them - the later one misses that content; it
+  cannot be detected per frame (pictures carry no drawn bounds), options
+  and device costs in glass-renderer.md. The scroll edge effect keeps its
+  own copy: in the bars' group the capsules would miss its fade
+  (measured, glass-renderer.md).
 - ONE renderer in the package (lib/src/glass/renderer, vendored
   whynotmake-it, Apache-2.0, VENDORED lists local patches; owner decision
   2026-10-03 - the old no-shader rule is cancelled). Public entry
   `MorphGlassRenderer` with `MorphGlassTier` flat / frosted / liquid;
   `MorphAdaptiveGlass` picks the tier (explicit tier wins, else the pure
   `MorphGlassTierGovernor` over FrameTimings - its numbers are
-  engineering defaults, not measurements).
+  engineering defaults, not measurements; it steps between
+  `MorphGlassTierPolicy.tiers`, flat + liquid by default, because frosted
+  measured MORE raster than liquid on the device's control scenes).
 - OUTLINE IS TRUTH: the package computes every shape once and fuses
   (skin merge law, the menu's blurred SDF) into a `MorphGlassOutline`;
   the renderer only SHADES the outline it is given and never fuses on its
-  own.
+  own. A plain union (spacing 0: the menu's tail under 1 pt, submenu
+  cards) carries its boxes instead of a field - path union for the edge,
+  each box shaded as its own circular rounded rectangle - exact, and no
+  per-frame trace or upload.
+- Glass shadows clip to outside the glass (an even-odd path), never a
+  saveLayer + dstOut per surface: no offscreen pass, no shadow under the
+  translucent body (GlassShadow, MorphGlassBodyShadow).
 - PACKAGING: the build hook writes `build/shaderbundles/`; its pubspec
   asset entry must stay. Flutter 3.47.2 does not request data assets
   from hooks, so a data-asset-only bundle silently lost liquid glass on
@@ -1094,7 +1105,8 @@ Three harnesses, one per question:
   delta between two runs; `shotdiff.py` diffs the screenshots.
 - WORK PER FRAME (deterministic, every `flutter test`):
   test/perf_counts_test.dart counts rebuilds, paints, re-recorded
-  pictures, backdrop captures, offscreen layers, body-shadow layers,
+  pictures, backdrop captures, offscreen layers, outlines traced from
+  sampled fields,
   snapshot image fallbacks and idle frames per animated frame of eleven
   scenes x three tiers, pinned as CEILINGS in
   test/fixtures/perf/counts.json (`PERF_COUNTS_UPDATE=true` rewrites it

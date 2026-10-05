@@ -98,6 +98,51 @@ measurements.
   shape's exact and optical normal (blended across shapes like the half
   thickness; `morphOpticalCornerScale`), and a fused corner lights where
   the same shape alone does (glass_renderer_test pins the angle).
+- PLAIN UNIONS ARE EXACT (2026-10-05, owner decision: invisible pixel
+  changes that save work are allowed): an outline at container spacing 0
+  (`morphGlassContainerOutline(shapes, 0)`: the menu's silhouette once
+  the fusion radius is under 1 pt - the settle tail, every resize - and
+  every submenu card) is no longer a sampled field. Its edge is the path
+  union of the boxes (Path.combine; a box inside another adds nothing),
+  and the liquid tier shades each box as its own circular rounded
+  rectangle (`LiquidRoundedRectangle`, not the continuous corner of a
+  plain glass surface), nearest box wins - the law the sampled field
+  approximated on a 2 pt trace grid and a 4 pt field grid, with the same
+  layer, one body shadow outside the union and no primitive shadows. The
+  blurred neck (radius >= 1 pt) and container fusion at a spacing keep
+  their fields. Work: perf_counts 'traces' (outlines traced from sampled
+  fields per animated frame) menu-card 1.4 -> 0.4, menu-held 0.9 -> 0.4
+  on every tier. Device (tool/ios_reference/perf/2026-10-05-q-base ->
+  -q-i1, 5 runs, median, p95 build ms): menu liquid 2.34 -> 1.87,
+  frosted 3.41 -> 1.91, flat 4.03 -> 4.03 (its p95 frames are the
+  blurred trace at radii >= 1 pt); raster and every other scene within
+  noise. Shots: the resting open menu differs only on the antialiased
+  rim - mean 11 (liquid) / 21 (frosted) channel steps on the rim pixels
+  that changed at all, a sub-pixel edge move - plus single-pixel maxima
+  87 / 107 / 54 (liquid / frosted / flat) at 0.0018 / 0.0034 / 0.0002
+  percent of pixels over 15 - within the noise of this shot, which moved
+  by 205 at 0.053 percent between two launches of the SAME app (q-i1 vs
+  q-i1r); every other resting shot within the run-to-run noise; the
+  timed tall-menu close and open shots move between launches, as before.
+- GLASS SHADOWS WITHOUT A LAYER (2026-10-05): a glass surface's offset
+  shadow (`GlassShadow`, every button / menu / lifted lens on the liquid
+  tier) and a fused body's (`MorphGlassBodyShadow`) used a saveLayer
+  each, the glass cut out with dstOut - an offscreen pass per shadowed
+  surface per frame. Both now clip to an even-odd path of the shadow's
+  3-sigma bounds and the shape (deflated half a pixel for a surface, as
+  the cut was; the outline itself for a body): no offscreen pass and
+  still no shadow under the translucent glass; only the cut's
+  antialiasing differs (flutter_test raster vs the layered painters:
+  <= 1 channel off the edge, <= 9 on it; test/glass_body_shadow_test.
+  dart). Device (2026-10-05-q-i1 -> -q-i2 and the repeat -q-i1r ->
+  -q-i2r, liquid, p95 raster ms): controls 3.05 -> 2.57 / 3.02 -> 2.57,
+  segmented 2.06 -> 1.66 / 2.07 -> 1.65, sheet 3.35 -> 2.97 / 3.45 ->
+  3.00, menu 3.30 -> 3.05 / 3.38 -> 3.00, tab bar 2.80 -> 2.79 / 2.92 ->
+  2.73, home scroll ~ -0.1; frosted and flat (no glass shadow) within
+  noise. Shots: resting glass with shadows (controls, menu, segmented,
+  tab bar) max 10 channel steps, no pixel over 15; the held slider
+  thumb's rim moves by up to 236 between launches of the SAME build, so
+  its 174 is noise.
 - FAKE GLASS (no Flutter GPU: tests, the first frames, devices without
   it) draws the fused outline too: `GlassField.outline` reaches
   ConsolidatedFakeGlassLayer, which clips its backdrop and surfaces to it
@@ -259,6 +304,51 @@ test/glass_renderer_test.dart ('the adaptive tier').
     shows the dark page instead of the stripes under it. Correct
     grouping costs a capture per body glass control.
 
+- SECOND RESTING BODY GLASS (the `body` scene above) - OPTIONS, NOT
+  CHANGED (2026-10-05). Wanted: a body glass surface gets a group of its
+  own only when content is painted between it and the previous member of
+  the root group, so ordinary screens pay nothing. Not reliably
+  detectable: the member's key is fixed when its layer is painted, and
+  what lies between two members in paint order is only known as
+  PictureLayers whose bounds are the whole repaint boundary's (a ui.Picture
+  carries no drawn bounds), so any label between two controls on a page
+  reads as "content under the later one". Options and costs:
+  (A) a group per resting body glass control (always correct): +1
+  full-screen readback per such control while anything animates;
+  perf_counts captures per frame controls-page liquid 5.5 -> 7.5, frosted
+  2.0 -> 4.0, nav-scroll +1.0; device (prototype at ce95277 vs
+  2026-10-05-q-i2, 5 runs, p95 raster ms) liquid controls 2.57 -> 3.49,
+  frosted controls 3.47 -> 3.97, frosted sheet 2.80 -> 4.37, frosted
+  segmented / tab bar +0.4, the other liquid scenes within noise
+  (raster p95 moves up to +-0.5 between runs of unchanged code).
+  (B) composite-time detection (a root layer re-keying a member after
+  any picture painted since the previous one): no spatial test is
+  possible, so it fires on nearly every page (cost close to A) plus a
+  layer walk and retained-layer churn per frame, and still misses
+  content painted inside an earlier member's own subtree.
+  (C) opt-in: the app wraps a section painted over earlier glass in its
+  own `BackdropGroup` (MorphAdaptiveGlass's doc already says so) - free
+  by default, correct where the app asks. (D) status quo (72 / 43 max
+  channel in the repro). Recommendation: C, or A if fidelity on every
+  page outweighs ~1 ms raster p95 on control-heavy pages.
+- SCROLL EDGE EFFECT IN THE BARS' GROUP - MEASURED, REJECTED (2026-10-05,
+  audit PF9 / research G14b): the navigation bar's edge effect taking the
+  stack's chrome key (`MorphChromeBackdropScope`) would save its own
+  full-screen readback, but as the group's first member it takes the copy
+  BEFORE it draws, so the bar capsules above it read the page without the
+  edge effect's blur and fade. Device (example/integration_test/
+  edge_effect_group_test.dart: a MorphNavigationStack over red / green /
+  white / black stripes scrolled under the bars, dark, two shots per
+  tier; build at b0f79b1 vs the same plus the key): the navigation bar
+  capsules change - the unfaded stripes and a sharp band edge show
+  through the glass - max channel difference 33 (liquid, rest) / 49
+  (liquid, mid-scroll) / 39 / 35 (frosted), 1.05 / 0.51 / 1.05 / 0.57
+  percent of the screen over 15, all inside the navigation bar's
+  capsules (frosted: also up to 48 toolbar rim pixels at <= 21, the
+  toolbar now reading the edge effect's flip). Native glass samples the blurred band, so
+  this is a visible fidelity loss: not adopted, the edge effect keeps its
+  own copy.
+
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
 - 2026-10-05, tool/ios_reference/perf/audit.sh (5 timed runs per scene,
@@ -368,5 +458,5 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).
 - Backdrop groups: two resting body glass surfaces with content painted
   between them - the later one reads the root copy without that content
-  (device evidence above; fix = a group per body glass control, a
-  capture each; owner decision).
+  (device evidence above; options A - D with costs under "Second resting
+  body glass"; owner decision).

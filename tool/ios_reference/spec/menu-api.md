@@ -189,8 +189,9 @@ Submenu bounds correction [device film + widget frames, 2026-10-04]:
   exterior shadow above it. The source circle's shadow formed an interior
   rim, including a halo outside the blurred silhouette. Fused bodies now
   paint one shadow outside that silhouette and disable primitive shadows.
-  The menu keeps the plain union's distance field when Gaussian radius
-  returns to zero, rather than reverting to independent glass surfaces.
+  The menu keeps one fused body when the Gaussian radius returns to
+  zero (since 2026-10-05 the exact plain union of its boxes, no sampled
+  field), rather than reverting to independent glass surfaces.
   `test/menu_glass_body_test.dart` fails twice before these corrections;
   it verifies a single silhouette shadow and continuous field ownership.
   The phone close film confirms the internal button circle is gone.
