@@ -1,7 +1,10 @@
 // Copyright 2025, Tim Lehmann for whynotmake.it
 
 #version 460 core
-precision mediump float;
+// The silhouette is placed by fragment coordinates and distances up to the
+// size of a sheet; on Vulkan mediump marks them RelaxedPrecision, which a
+// Mali driver may run in fp16 (a device pixel step above 1024).
+precision highp float;
 
 #include <flutter/runtime_effect.glsl>
 
