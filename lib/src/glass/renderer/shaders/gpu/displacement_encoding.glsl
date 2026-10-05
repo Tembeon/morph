@@ -79,9 +79,17 @@ vec4 encodeDisplacementData(
 vec2 decodeSurfaceNormal(vec4 encoded) {
     vec2 codes = floor(encoded.rg * 255.0 + 0.5);
     float diamond = (codes.x * 16.0 + floor(codes.y / 16.0)) / 1024.0;
+    // Each side of the diamond picked by a 0 or 1 weight rather than a
+    // select on the decoded value (see decodeSignedEdgeDistance); the
+    // weighted sum returns the picked side exactly.
+    float pastTwo = step(2.0, diamond);
+    float pastOne = step(1.0, diamond);
+    float pastThree = step(3.0, diamond);
+    float lowerY = (2.0 - diamond) * (1.0 - pastThree) +
+        (diamond - 4.0) * pastThree;
     vec2 d = vec2(
-        diamond < 2.0 ? 1.0 - diamond : diamond - 3.0,
-        diamond < 1.0 ? diamond : (diamond < 3.0 ? 2.0 - diamond : diamond - 4.0)
+        (1.0 - diamond) * (1.0 - pastTwo) + (diamond - 3.0) * pastTwo,
+        diamond * (1.0 - pastOne) + lowerY * pastOne
     );
     return normalize(d);
 }

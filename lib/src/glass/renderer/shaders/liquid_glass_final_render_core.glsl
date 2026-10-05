@@ -250,10 +250,17 @@ vec3 ios27TintTone(vec3 tint, float backdropLuminance, float darkWeight) {
 // dark.
 vec3 colorModelSharesOf(float code) {
     return vec3(
-        code < 0.5 ? 1.0 : 0.0,
-        abs(code - 2.0) < 0.5 ? 1.0 : 0.0,
-        code > 2.5 ? 1.0 : 0.0
+        1.0 - step(0.5, code),
+        1.0 - step(0.5, abs(code - 2.0)),
+        1.0 - step(code, 2.5)
     );
+}
+
+// a where pick is 0, b where it is 1, exactly: no select on a decoded
+// value (the Mali Vulkan compiler once miscompiled one, see
+// decodeSignedEdgeDistance) and no mix, whose b - a rounds.
+float pickExact(float a, float b, float pick) {
+    return a * (1.0 - pick) + b * pick;
 }
 
 float contourExtent() {
@@ -413,9 +420,11 @@ vec3 applySpecularHighlights(
     float wrapExponent = exp2(2.0 - 4.0 * clamp(uSpecularWrap, 0.0, 1.0));
     float axisAlignment = 1.0 - lightAxisTangency(normalXY);
     float lobe = pow(max(axisAlignment, 0.0), wrapExponent);
-    float returnWeight = lightFacing >= 0.0
-        ? 1.0
-        : clamp(uHighlightOppositeStrength, 0.0, 1.0);
+    float returnWeight = pickExact(
+        clamp(uHighlightOppositeStrength, 0.0, 1.0),
+        1.0,
+        step(0.0, lightFacing)
+    );
     float glint = clamp(
         max(uLightIntensity, 0.0) * kGlintPeak * lobe * returnWeight *
             glintProfile,
@@ -619,9 +628,11 @@ void main() {
             ) < kIdTolerance
         ) {
             float lowerWeight = clamp(filtered.a, 0.0, 1.0);
-            primaryWeight = contributors.r <= contributors.g
-                ? lowerWeight
-                : 1.0 - lowerWeight;
+            primaryWeight = pickExact(
+                1.0 - lowerWeight,
+                lowerWeight,
+                step(contributors.r, contributors.g)
+            );
         }
         int primary = int(clamp(
             floor(contributors.r * 16.0),
