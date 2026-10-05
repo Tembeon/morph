@@ -628,7 +628,8 @@ final List<(List<RRect>, double, MorphGlassOutline)> _recentOutlines = [];
 /// container spacing of UIKit's `UIGlassContainerEffect`).
 ///
 /// The last few outlines are remembered, so a layer that rebuilds without
-/// its shapes moving does not fuse them again. Shapes must have uniform
+/// its shapes moving, or with all of them moved by one offset, does not
+/// fuse them again. Shapes must have uniform
 /// circular corner radii; non-uniform corners are rejected in debug builds.
 @internal
 MorphGlassOutline morphGlassContainerOutline(
@@ -638,10 +639,30 @@ MorphGlassOutline morphGlassContainerOutline(
   for (final (recent, recentSpacing, outline) in _recentOutlines) {
     if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
   }
+  for (final (recent, recentSpacing, outline) in _recentOutlines) {
+    if (recentSpacing != spacing) continue;
+    final offset = _translation(recent, shapes);
+    if (offset == null) continue;
+    final moved = outline.shift(offset);
+    _recentOutlines.add((List.of(shapes), spacing, moved));
+    if (_recentOutlines.length > 4) _recentOutlines.removeAt(0);
+    return moved;
+  }
   final outline = _fuseContainer(shapes, spacing);
   _recentOutlines.add((List.of(shapes), spacing, outline));
   if (_recentOutlines.length > 4) _recentOutlines.removeAt(0);
   return outline;
+}
+
+/// The offset that moves every shape of [from] onto [to], or null when
+/// the two differ by more than one common translation.
+Offset? _translation(List<RRect> from, List<RRect> to) {
+  if (from.length != to.length || from.isEmpty) return null;
+  final offset = Offset(to[0].left - from[0].left, to[0].top - from[0].top);
+  for (var i = 0; i < from.length; i++) {
+    if (from[i].shift(offset) != to[i]) return null;
+  }
+  return offset;
 }
 
 /// Samples the merge law only where the edge can be: the plain minimum of

@@ -79,4 +79,48 @@ void main() {
       expect(field.samples.where((value) => value.isNaN), isEmpty);
     }
   });
+
+  test('shapes moved together reuse their fused outline, moved', () {
+    const shapes = [
+      RRect.fromLTRBXY(16, 60, 160, 104, 22, 22),
+      RRect.fromLTRBXY(166, 60, 210, 104, 22, 22),
+    ];
+    const offset = Offset(0.75, -37.5);
+    final first = morphGlassContainerOutline(shapes, 12);
+    final moved = morphGlassContainerOutline([
+      for (final shape in shapes) shape.shift(offset),
+    ], 12);
+    for (var i = 0.0; i < 4; i++) {
+      morphGlassContainerOutline([
+        RRect.fromLTRBXY(0, 0, 40 + i, 40, 20, 20),
+        RRect.fromLTRBXY(44 + i, 0, 84 + i, 40, 20, 20),
+      ], 9);
+    }
+    final fresh = morphGlassContainerOutline([
+      for (final shape in shapes) shape.shift(offset),
+    ], 12);
+    expect(fresh, isNot(same(moved)));
+    final a = morphGlassOutlineField(moved)!;
+    final b = morphGlassOutlineField(fresh)!;
+    expect(a.cols, b.cols);
+    expect(a.rows, b.rows);
+    expect(a.origin.dx, closeTo(b.origin.dx, 1e-9));
+    expect(a.origin.dy, closeTo(b.origin.dy, 1e-9));
+    expect(
+      identical(a.samples, morphGlassOutlineField(first)!.samples),
+      isTrue,
+    );
+    var worst = 0.0;
+    for (var i = 0; i < a.samples.length; i++) {
+      final d = (a.samples[i] - b.samples[i]).abs();
+      if (d > worst) worst = d;
+    }
+    expect(worst, lessThan(1e-4));
+    final pa = moved.path.getBounds();
+    final pb = fresh.path.getBounds();
+    expect(pa.left, closeTo(pb.left, 1e-4));
+    expect(pa.top, closeTo(pb.top, 1e-4));
+    expect(pa.right, closeTo(pb.right, 1e-4));
+    expect(pa.bottom, closeTo(pb.bottom, 1e-4));
+  });
 }
