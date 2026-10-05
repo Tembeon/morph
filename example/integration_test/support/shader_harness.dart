@@ -3,7 +3,8 @@
 /// copy of them (example/shader_audit/baseline), compared pixel by pixel in
 /// the same app on the same device, and timed against each other.
 ///
-/// The frozen copy is the shader tree of commit a64140c; replace it
+/// The frozen copy is the shader tree of commit a64140c with the 32-shape
+/// contributor decode of 7864ada; replace it
 /// (example/shader_audit/baseline) to compare against another revision.
 library;
 
