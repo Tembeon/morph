@@ -1204,6 +1204,25 @@ cache does not help). iPhone 16 Pro (Metal): liquid 69 / 362 -> 2 / 42,
 frosted 2 / 60 -> 2 / 10; precache 0.3 - 0.5 s -> 0.85 s on a fresh
 install, 1 -> 17 - 21 ms on later launches.
 
+PIXEL 6A (Vulkan, Mali-G78, 60 Hz = 16.67 ms budget), UI-thread work,
+2026-10-05, profile, 5 runs median (audit_android.sh / glass_phases;
+dirs pixel6a-cpu-*, -gpu-*, -retain-*; glass-renderer.md "UI thread on a
+weak device"). Every change pixel-identical (glass_frames_test hashes,
+recorded fusion inputs and field renders hashed on device):
+
+| change | measure | before | after |
+|---|---|---|---|
+| menu fusion (9678703) | menu build p95 flat / liquid | 14.02 / 18.96 | 11.58 / 14.80 |
+| menu fusion | menu frames over budget flat / liquid | 15 / 27 | 12 / 23 |
+| menu fusion | one outline, recorded inputs, AOT macOS | 383 us | 198 us |
+| field uploads (07bb27d) | menu UI QueueSubmit calls / PAINT per frame | 1236 / 1.42 ms | 880 / 1.16 ms |
+| retained glass layers (e2f9c4e) | 16 resting liquid buttons, COMPOSITING | 2.53 ms | 1.24 ms (flat 0.49) |
+| retained glass layers | same scene, build p50 / p95 | 2.41 / 5.46 | 1.48 / 3.28 |
+
+Liquid menu raster p95 (~20 ms) is unchanged: the saveLayers per frame
+(10 vs flat 1) are one BackdropFilterLayer per glass layer and are the
+effect itself.
+
 Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 
 | scene                   | us/op  |

@@ -765,6 +765,46 @@ Bounds since 50a4491:
   lenses frost unless "Frost controls" is on; an OpacityLayer between
   resting glass broke BackdropGroup sharing (menu-button.md).
 
+## UI thread on a weak device (Pixel 6a, 2026-10-05)
+
+Method: Dart CPU samples from the profile build over the VM service,
+split by frame (Animator::BeginFrame), atrace slices, glass_phases
+blocks; macOS AOT for the fusion micro-timings; device hashes for
+identity. All three changes leave every pixel identical.
+
+- Menu: `morphMenuSilhouette` was ~45 percent of the samples in frames
+  over 8 ms on BOTH tiers - the menu's build cost is its fusion, not
+  rows or text. `morphBoxDistance` added a num `0` to a double, so AOT
+  boxed it and called `Double.+` per box distance (visible in the
+  optimized flow graph); fixed, plus deduplicated near-block edges, row /
+  column split of the optical-corner test and `vm:unsafe:no-bounds-checks`
+  on the grid loops: 383 -> 198 us per outline (macOS AOT), menu build
+  p95 flat 14.02 -> 11.58, liquid 18.96 -> 14.80 ms. FUSION_HASH over 57
+  recorded gallery inputs unchanged on macOS and the Pixel.
+- Field uploads: `Texture.overwrite` is a staging buffer plus its own
+  command buffer and queue submit per call (engine lib/gpu/texture.cc).
+  Fields now copy from a kept staging buffer with `copyBufferToTexture`
+  recorded on the geometry pass's command buffer (Vulkan, GLES; Metal
+  keeps a separate buffer because its blit encoder opens at record time)
+  into device-private textures bucketed to 16 nodes. Menu trace: UI
+  QueueSubmit 1236 -> 880, PAINT 1.42 -> 1.16 ms per frame.
+- Resting glass: `GeometryTransformTrackingLayer.alwaysNeedsAddToScene`
+  forced every ancestor to rebuild its engine layer each frame; dropped
+  (the hook already dirties the layer on any change), and the hook's
+  second walk to the root for the filter mapping reuses the tracked
+  transform. 16 resting buttons over a scrolling list: COMPOSITING
+  2.53 -> 1.24 ms (flat 0.49). Moving glass (tab bar) is unchanged: it
+  re-renders its matte and filter every frame by design.
+- saveLayers (10.4 per liquid frame vs 1.1 flat): one per glass
+  layer's BackdropFilterLayer (layer census: 8.8 filters / 8.85 glass
+  layers in the menu scene); the opacity seed adds no engine layer while
+  unseeded and shadows are clipped, not layered (b0f79b1). None is
+  removable with identical output; the lever left is fewer glass layers
+  (backdrop sharing), which changes pixels.
+- Tried and dropped: a per-frame memo of screen transforms and opacity
+  shared by all glass layers (`Map` upkeep cost as much as the walks it
+  saved on the device); pairwise row blur passes (slower).
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
