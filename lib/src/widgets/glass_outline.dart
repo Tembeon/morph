@@ -96,6 +96,17 @@ class MorphOutlineBoxes {
     return morphBoxDistance(qx, qy, r);
   }
 
+  /// The signed distance from (x, y) to the plain union of the boxes: the
+  /// value [LiquidField] gives them at blend 0, bit for bit.
+  double union(double x, double y) {
+    var d = distance(0, x, y);
+    for (var i = 1; i < length; i++) {
+      final di = distance(i, x, y);
+      if (di < d) d = di;
+    }
+    return d;
+  }
+
   /// Whether (x, y) lies where box [i]'s optical normals can differ from
   /// its exact ones: in the square of a corner of the optical radius.
   bool inOpticalCorner(int i, double x, double y) {
@@ -704,6 +715,7 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
       final at = fj * fieldCols + fi;
       var d = boxes.distance(0, x, y);
       var m = d;
+      var plain = d;
       var half = boxes.halfMinor(0);
       var turned = turns[0] && boxes.inOpticalCorner(0, x, y);
       if (turned) {
@@ -729,9 +741,10 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
         final e = math.max(spacing - (d - di).abs(), 0.0);
         d = e > 0 ? math.min(d, di) - e * e / (4 * spacing) : math.min(d, di);
         m = math.min(m, di);
+        if (di < plain) plain = di;
       }
       if (turned) morphNormalizeTurn(turn, at * 2);
-      final value = sample(x, y);
+      final value = spacing == 0 ? plain : sample(x, y);
       distance[at] = value;
       minimum[at] = m;
       halfMinor[at] = half;
@@ -759,7 +772,9 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
           final y = area.top + j * step;
           for (var i = bi * b; i <= bi * b + b; i++) {
             if (i % stride == 0 && j % stride == 0) continue;
-            trace[j * cols + i] = sample(area.left + i * step, y);
+            trace[j * cols + i] = spacing == 0
+                ? boxes.union(area.left + i * step, y)
+                : sample(area.left + i * step, y);
           }
         }
       }
