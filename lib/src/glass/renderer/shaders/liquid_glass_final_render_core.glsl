@@ -650,21 +650,27 @@ void main() {
             materialTextureSize,
             materialSize.y + 0.5
         );
-        vec4 secondaryTint = shapeLookup(
-            secondary,
-            materialTextureSize,
-            materialSize.y + 0.5
-        );
         vec4 primaryResponse = shapeLookup(
             primary,
             materialTextureSize,
             materialSize.y + 1.5
         );
-        vec4 secondaryResponse = shapeLookup(
-            secondary,
-            materialTextureSize,
-            materialSize.y + 1.5
-        );
+        // Away from other shapes both contributors are the same shape, whose
+        // palette entries the primary fetches already hold.
+        vec4 secondaryTint = primaryTint;
+        vec4 secondaryResponse = primaryResponse;
+        if (secondary != primary) {
+            secondaryTint = shapeLookup(
+                secondary,
+                materialTextureSize,
+                materialSize.y + 0.5
+            );
+            secondaryResponse = shapeLookup(
+                secondary,
+                materialTextureSize,
+                materialSize.y + 1.5
+            );
+        }
         primaryResponse.xyz *= 4.0;
         secondaryResponse.xyz *= 4.0;
         float primaryPackedResponse = primaryResponse.w * 7.0;
