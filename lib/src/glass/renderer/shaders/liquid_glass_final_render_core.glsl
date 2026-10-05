@@ -417,9 +417,15 @@ vec3 applySpecularHighlights(
     // with the normal's tangential component. highlightWrap = 0.5 is the
     // linear falloff measured on iOS 27; lower values narrow the lobes and
     // higher values carry them further around corners.
-    float wrapExponent = exp2(2.0 - 4.0 * clamp(uSpecularWrap, 0.0, 1.0));
     float axisAlignment = 1.0 - lightAxisTangency(normalXY);
-    float lobe = pow(max(axisAlignment, 0.0), wrapExponent);
+    // The measured wrap 0.5 is an exponent of exactly 1: no pow.
+    float lobe = max(axisAlignment, 0.0);
+    if (uSpecularWrap != 0.5) {
+        lobe = pow(
+            lobe,
+            exp2(2.0 - 4.0 * clamp(uSpecularWrap, 0.0, 1.0))
+        );
+    }
     float returnWeight = pickExact(
         clamp(uHighlightOppositeStrength, 0.0, 1.0),
         1.0,
@@ -828,10 +834,13 @@ void main() {
     vec3 baseColor = vec3(0.0);
     float directShare = colorModelShares.x;
     if (directShare > 0.0) {
-        transmittedColor = pow(
-            max(refractColor.rgb, vec3(0.0)),
-            vec3(max(uTransmissionGamma, 0.01))
-        );
+        transmittedColor = max(refractColor.rgb, vec3(0.0));
+        if (uTransmissionGamma != 1.0) {
+            transmittedColor = pow(
+                transmittedColor,
+                vec3(max(uTransmissionGamma, 0.01))
+            );
+        }
         vec3 materialColor = materialTint.rgb * materialTint.a;
         transmittedColor *= 1.0 - materialTint.a;
         baseColor = materialColor + transmittedColor;
@@ -895,15 +904,18 @@ void main() {
             gGlintVibrancy = mix(gGlintVibrancy, 0.78, colorModelShares.z);
         }
         float backdropLuminance = dot(refractColor.rgb, LUMA_WEIGHTS);
-        float transmittedLuminance = pow(
-            clamp(
-                backdropLuminance *
-                    (1.0 + faceTransfer.x * (1.0 - backdropLuminance)),
-                0.0,
-                1.0
-            ),
-            max(uTransmissionGamma, 0.01)
+        float transmittedLuminance = clamp(
+            backdropLuminance *
+                (1.0 + faceTransfer.x * (1.0 - backdropLuminance)),
+            0.0,
+            1.0
         );
+        if (uTransmissionGamma != 1.0) {
+            transmittedLuminance = pow(
+                transmittedLuminance,
+                max(uTransmissionGamma, 0.01)
+            );
+        }
         vec3 neutralTransmission =
             vec3(transmittedLuminance * (1.0 - neutralTint.a)) +
             (refractColor.rgb - vec3(backdropLuminance)) *

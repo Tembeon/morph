@@ -169,8 +169,10 @@ void main() {
   float glintProfile =
       clamp(1.0 - inward / glintWidth, 0.0, 1.0) +
       0.21 * clamp(1.0 - inward / (glintWidth * 4.0), 0.0, 1.0);
-  float wrapExponent = exp2(2.0 - 4.0 * clamp(uHighlightWrap, 0.0, 1.0));
-  float lobe = pow(max(1.0 - tangency, 0.0), wrapExponent);
+  float lobe = max(1.0 - tangency, 0.0);
+  if (uHighlightWrap != 0.5) {
+    lobe = pow(lobe, exp2(2.0 - 4.0 * clamp(uHighlightWrap, 0.0, 1.0)));
+  }
   float returnWeight = facing >= 0.0
       ? 1.0
       : clamp(uOppositeHighlight, 0.0, 1.0);
