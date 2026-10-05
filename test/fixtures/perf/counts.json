@@ -1,7 +1,7 @@
 {
   "segmented-drag/flat": {
     "frames": 201,
-    "builds": 4.0,
+    "builds": 1.1,
     "paints": 50.6,
     "pictures": 3.0,
     "captures": 0.0,
@@ -12,7 +12,7 @@
   },
   "lens-held/flat": {
     "frames": 103,
-    "builds": 4.0,
+    "builds": 1.1,
     "paints": 49.5,
     "pictures": 2.9,
     "captures": 0.0,
@@ -23,7 +23,7 @@
   },
   "tab-bar/flat": {
     "frames": 221,
-    "builds": 5.8,
+    "builds": 2.1,
     "paints": 75.8,
     "pictures": 1.0,
     "captures": 0.0,
@@ -34,7 +34,7 @@
   },
   "switch/flat": {
     "frames": 151,
-    "builds": 3.1,
+    "builds": 1.2,
     "paints": 10.9,
     "pictures": 1.0,
     "captures": 0.0,
@@ -45,7 +45,7 @@
   },
   "slider/flat": {
     "frames": 181,
-    "builds": 10.1,
+    "builds": 8.1,
     "paints": 40.0,
     "pictures": 3.0,
     "captures": 0.0,
@@ -56,7 +56,7 @@
   },
   "controls-page/flat": {
     "frames": 181,
-    "builds": 12.8,
+    "builds": 10.8,
     "paints": 56.0,
     "pictures": 3.0,
     "captures": 0.0,
@@ -67,7 +67,7 @@
   },
   "menu-card/flat": {
     "frames": 289,
-    "builds": 23.0,
+    "builds": 21.6,
     "paints": 45.3,
     "pictures": 2.6,
     "captures": 0.0,
@@ -78,7 +78,7 @@
   },
   "menu-held/flat": {
     "frames": 262,
-    "builds": 17.3,
+    "builds": 16.3,
     "paints": 38.3,
     "pictures": 2.1,
     "captures": 0.0,
@@ -133,7 +133,7 @@
   },
   "density-wave-1/flat": {
     "frames": 116,
-    "builds": 4.0,
+    "builds": 2.0,
     "paints": 17.0,
     "pictures": 1.0,
     "captures": 0.0,
@@ -155,7 +155,7 @@
   },
   "density-wave-4/flat": {
     "frames": 122,
-    "builds": 15.5,
+    "builds": 7.9,
     "paints": 66.2,
     "pictures": 3.9,
     "captures": 0.0,
@@ -177,7 +177,7 @@
   },
   "density-wave-8/flat": {
     "frames": 130,
-    "builds": 29.8,
+    "builds": 15.3,
     "paints": 128.2,
     "pictures": 7.6,
     "captures": 0.0,
@@ -199,7 +199,7 @@
   },
   "density-wave-16/flat": {
     "frames": 146,
-    "builds": 55.7,
+    "builds": 29.0,
     "paints": 242.3,
     "pictures": 14.4,
     "captures": 0.0,
@@ -221,7 +221,7 @@
   },
   "density-wave-32/flat": {
     "frames": 178,
-    "builds": 100.0,
+    "builds": 53.4,
     "paints": 443.5,
     "pictures": 26.4,
     "captures": 0.0,
@@ -232,7 +232,7 @@
   },
   "segmented-drag/frosted": {
     "frames": 201,
-    "builds": 5.0,
+    "builds": 1.1,
     "paints": 53.5,
     "pictures": 4.9,
     "captures": 1.0,
@@ -243,7 +243,7 @@
   },
   "lens-held/frosted": {
     "frames": 103,
-    "builds": 4.9,
+    "builds": 1.2,
     "paints": 52.3,
     "pictures": 4.8,
     "captures": 0.9,
@@ -254,7 +254,7 @@
   },
   "tab-bar/frosted": {
     "frames": 221,
-    "builds": 7.7,
+    "builds": 2.2,
     "paints": 81.7,
     "pictures": 3.7,
     "captures": 2.0,
@@ -265,7 +265,7 @@
   },
   "switch/frosted": {
     "frames": 151,
-    "builds": 4.1,
+    "builds": 1.2,
     "paints": 13.9,
     "pictures": 2.0,
     "captures": 1.0,
@@ -276,7 +276,7 @@
   },
   "slider/frosted": {
     "frames": 181,
-    "builds": 11.1,
+    "builds": 8.1,
     "paints": 43.0,
     "pictures": 4.0,
     "captures": 1.0,
@@ -287,7 +287,7 @@
   },
   "controls-page/frosted": {
     "frames": 181,
-    "builds": 13.8,
+    "builds": 10.8,
     "paints": 59.0,
     "pictures": 4.0,
     "captures": 2.0,
@@ -298,7 +298,7 @@
   },
   "menu-card/frosted": {
     "frames": 289,
-    "builds": 24.4,
+    "builds": 21.7,
     "paints": 49.4,
     "pictures": 2.9,
     "captures": 1.4,
@@ -309,7 +309,7 @@
   },
   "menu-held/frosted": {
     "frames": 262,
-    "builds": 18.2,
+    "builds": 16.4,
     "paints": 41.1,
     "pictures": 2.3,
     "captures": 1.0,
@@ -342,7 +342,7 @@
   },
   "sheet/frosted": {
     "frames": 154,
-    "builds": 10.0,
+    "builds": 9.0,
     "paints": 21.2,
     "pictures": 3.0,
     "captures": 1.0,
@@ -364,7 +364,7 @@
   },
   "density-wave-1/frosted": {
     "frames": 116,
-    "builds": 5.0,
+    "builds": 2.0,
     "paints": 20.0,
     "pictures": 2.0,
     "captures": 1.0,
@@ -386,7 +386,7 @@
   },
   "density-wave-4/frosted": {
     "frames": 122,
-    "builds": 19.4,
+    "builds": 8.0,
     "paints": 77.9,
     "pictures": 7.8,
     "captures": 1.0,
@@ -408,7 +408,7 @@
   },
   "density-wave-8/frosted": {
     "frames": 130,
-    "builds": 37.4,
+    "builds": 15.4,
     "paints": 150.9,
     "pictures": 15.1,
     "captures": 1.0,
@@ -430,7 +430,7 @@
   },
   "density-wave-16/frosted": {
     "frames": 146,
-    "builds": 70.0,
+    "builds": 29.2,
     "paints": 285.4,
     "pictures": 28.7,
     "captures": 1.0,
@@ -452,7 +452,7 @@
   },
   "density-wave-32/frosted": {
     "frames": 178,
-    "builds": 126.4,
+    "builds": 53.7,
     "paints": 522.8,
     "pictures": 52.9,
     "captures": 1.0,
@@ -463,7 +463,7 @@
   },
   "segmented-drag/liquid": {
     "frames": 201,
-    "builds": 11.6,
+    "builds": 1.3,
     "paints": 53.0,
     "pictures": 6.4,
     "captures": 1.3,
@@ -474,7 +474,7 @@
   },
   "lens-held/liquid": {
     "frames": 103,
-    "builds": 15.7,
+    "builds": 1.5,
     "paints": 61.9,
     "pictures": 7.8,
     "captures": 2.1,
@@ -485,7 +485,7 @@
   },
   "tab-bar/liquid": {
     "frames": 221,
-    "builds": 23.7,
+    "builds": 2.6,
     "paints": 85.8,
     "pictures": 4.7,
     "captures": 3.3,
@@ -496,7 +496,7 @@
   },
   "switch/liquid": {
     "frames": 151,
-    "builds": 9.8,
+    "builds": 1.4,
     "paints": 14.3,
     "pictures": 3.2,
     "captures": 1.4,
@@ -507,7 +507,7 @@
   },
   "slider/liquid": {
     "frames": 181,
-    "builds": 17.4,
+    "builds": 8.2,
     "paints": 46.0,
     "pictures": 5.5,
     "captures": 1.5,
@@ -518,7 +518,7 @@
   },
   "controls-page/liquid": {
     "frames": 181,
-    "builds": 20.1,
+    "builds": 10.9,
     "paints": 62.0,
     "pictures": 5.5,
     "captures": 5.5,
@@ -529,7 +529,7 @@
   },
   "menu-card/liquid": {
     "frames": 289,
-    "builds": 41.6,
+    "builds": 23.7,
     "paints": 62.4,
     "pictures": 7.9,
     "captures": 3.0,
@@ -540,7 +540,7 @@
   },
   "menu-held/liquid": {
     "frames": 262,
-    "builds": 31.5,
+    "builds": 18.2,
     "paints": 51.5,
     "pictures": 6.1,
     "captures": 2.0,
@@ -551,7 +551,7 @@
   },
   "nav-scroll/liquid": {
     "frames": 94,
-    "builds": 2.1,
+    "builds": 1.9,
     "paints": 60.1,
     "pictures": 0.5,
     "captures": 3.9,
@@ -573,7 +573,7 @@
   },
   "sheet/liquid": {
     "frames": 154,
-    "builds": 18.9,
+    "builds": 9.1,
     "paints": 19.3,
     "pictures": 2.0,
     "captures": 2.0,
@@ -595,7 +595,7 @@
   },
   "density-wave-1/liquid": {
     "frames": 116,
-    "builds": 14.0,
+    "builds": 2.1,
     "paints": 21.0,
     "pictures": 2.5,
     "captures": 2.0,
@@ -617,7 +617,7 @@
   },
   "density-wave-4/liquid": {
     "frames": 122,
-    "builds": 54.5,
+    "builds": 8.5,
     "paints": 81.5,
     "pictures": 9.6,
     "captures": 5.0,
@@ -639,7 +639,7 @@
   },
   "density-wave-8/liquid": {
     "frames": 130,
-    "builds": 105.5,
+    "builds": 16.5,
     "paints": 158.1,
     "pictures": 18.7,
     "captures": 9.0,
@@ -661,7 +661,7 @@
   },
   "density-wave-16/liquid": {
     "frames": 146,
-    "builds": 199.2,
+    "builds": 31.2,
     "paints": 301.2,
     "pictures": 36.6,
     "captures": 17.0,
@@ -683,7 +683,7 @@
   },
   "density-wave-32/liquid": {
     "frames": 178,
-    "builds": 364.2,
+    "builds": 56.9,
     "paints": 552.9,
     "pictures": 67.9,
     "captures": 33.0,

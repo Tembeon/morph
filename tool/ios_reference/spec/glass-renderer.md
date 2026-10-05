@@ -9,14 +9,16 @@ measurements.
 ## Contract (the seam)
 
 - `MorphGlass(painter:)` installs a `MorphGlassPainter`; every control
-  builds its glass surfaces (`MorphGlassKind`: track, lens, knob, thumb,
+  describes its glass surfaces (`MorphGlassKind`: track, lens, knob, thumb,
   button, bar, menu) every frame behind its content. Multi-surface
-  controls call `buildLayer(surfaces, content:)` (`MorphGlassLayer`,
-  rebuilt on the clock's `frames`; segmented labels and the tab row ride in
-  as `content`, the menu hands button + platter in one call; options
-  `spacing:`, `contentSlots:`, `outline:`); single surfaces call
-  `buildSurface` (glass button) or `buildFill` (stepper), placed at
-  `MorphGlassSurface.bounds`; `buildGlow` draws touch glows (tab-bar.md).
+  controls hand them to `buildLayer(surfaces, content:)` (segmented labels
+  and the tab row ride in as `content`, the menu hands button + platter
+  in one call; options `spacing:`, `contentSlots:`, `outline:`); single
+  surfaces to `buildSurface` (alert, date picker, sheet, search bodies) or
+  `buildFill` (stepper), placed at `MorphGlassSurface.bounds`; `buildGlow`
+  draws touch glows (tab-bar.md). Every call goes through a
+  `MorphGlassHost` (`MorphGlassLayer` for the frames-driven layers): see
+  "The surfaces channel" below.
 - `MorphGlassSurface.glass` is false for plain fills (segmented, switch and
   slider tracks, stepper); every painter draws those flat through
   `buildFill`. The default `buildLayer` routes glass to `buildSurface` and
@@ -357,6 +359,97 @@ test/glass_renderer_test.dart ('the adaptive tier').
   this is a visible fidelity loss: not adopted, the edge effect keeps its
   own copy.
 
+## The surfaces channel (2026-10-05, glass_channel.dart)
+
+- Every painter call of a control goes through a `MorphGlassHost`
+  (layer / surface / fill / body). With `MorphGlassRenderer` itself the
+  host builds its tree once per STRUCTURE (`structureOf`: tier, surface
+  roles and counts, visible, glows, platters, lifted lenses, fused
+  outline kind) over a `MorphGlassChannel`; every frame that keeps the
+  structure is pushed and its render objects follow through their own
+  setters (`GlassLiveBinding`): `MorphLiveStack` / `MorphLivePositioned`
+  (the `Positioned.fromRect` boxes), live ClipRRect / ClipRSuperellipse
+  radii, live clippers keyed on what they clip, live BackdropFilter
+  filters, DecoratedBox decorations, ColoredBox colors, Opacity, painters
+  repainting on a key of what they read, and in the renderer
+  `LiquidGlass.live` / `LiquidGlassLayer.live` (RenderLiquidGlass, the
+  glass shadow, the shape clip, RenderFakeGlass, the layers; VENDORED).
+  A host its parent rebuilds (menu face and cards, bar capsules, alert,
+  date picker, sheet, search bodies, stepper) pushes from `update` without
+  building; a frames-driven host (segmented, tab bar, switch, slider,
+  glass button) builds once per frame and returns the same tree. Other
+  painters are called every frame as before.
+- SAME PIXELS: test/glass_frames_test.dart records every perf-counts
+  scene on every tier (63 scene/tiers, every third frame) with the
+  channel and with `debugMorphGlassRebuildEveryFrame`, and compares them
+  bit for bit; the 2874 frame hashes of the channel are also identical to
+  the parent commit's (flutter_test draws the liquid tier through the fake
+  layer). Device audit shots (Impeller, the real liquid path) against the
+  parent commit: every resting and held shot within the run-to-run noise
+  (<= 90 max channel at <= 0.02 percent over 15); the tall menu's open and
+  close-0/1 shots moved one device pixel down as a whole (text included,
+  flat tier too) - the documented launch-to-launch flip of that shot.
+- Work per animated frame, perf_counts (component builds; paints and
+  pictures unchanged in every scene): liquid segmented 11.6 -> 1.3, lens
+  held 15.7 -> 1.5, tab bar 23.7 -> 2.6, switch 9.8 -> 1.4, slider 17.4 ->
+  8.2, controls page 20.1 -> 10.9, menu card 41.6 -> 23.7, sheet 18.9 ->
+  9.1, density wave 16 199 -> 31; frosted segmented 5.0 -> 1.1, tab bar
+  7.7 -> 2.2; flat segmented 4.0 -> 1.1, tab bar 5.8 -> 2.1. What builds
+  now is the control's own content and the hosts.
+- Device (iPhone 16 Pro, audit.sh, 5 runs, median; base = 7f46071, after
+  = 2689305, base2 = the base app again for noise): liquid build p50
+  segmented 1.18 -> 1.13, tab bar 1.20 -> 1.12, controls 1.45 -> 1.37,
+  menu 1.34 -> 1.36, sheet 1.00 -> 1.00 (base2 within +-0.05 of base);
+  build p95 within +-0.08 except liquid menu 2.28 -> 2.66 (its five runs
+  spread 1.88-2.85 before and 1.97-2.75 after); raster unchanged; frosted
+  and flat within noise. Where the UI thread goes
+  (example/integration_test/glass_phases_test.dart, FlutterTimeline
+  blocks per composited frame, liquid, base -> after): segmented BUILD
+  0.185 -> 0.120, LAYOUT 0.455 -> 0.329, PAINT 1.117 -> 1.064; tab bar
+  BUILD 0.251 -> 0.179, PAINT 1.237 -> 1.271; flat segmented BUILD 0.081
+  -> 0.046, PAINT 0.32. The liquid tier's UI cost per moving control is
+  PAINT (the renderer's paint-time work: geometry matte encoding,
+  filter rebuilds, composition polls, about 1.1 ms for one segmented
+  control), not widget builds: the channel took a third of BUILD and a
+  quarter of LAYOUT, 0.1 - 0.2 ms per moving control on this phone. The
+  next UI-thread lever on liquid is the layer's paint.
+
+## Glass density (2026-10-05, glass_density_test.dart)
+
+N standalone `MorphGlassButton`s (80 x 44, one plane, a 4-column grid)
+over a scrolling list of coloured rows, dark, 5 runs, median of the runs'
+percentiles over active frames. `-rest`: the buttons rest while the page
+scrolls under them; `-wave`: finger i lands 2 frames after finger i - 1
+and lifts 25 frames later (at most ~13 pressed at once), the page rests.
+Build / raster p95 ms, base -> after the channel:
+
+| tier | variant | N=1 | N=4 | N=8 | N=16 | N=32 |
+|---|---|---|---|---|---|---|
+| liquid | rest | 0.52/1.04 -> 0.53/0.99 | 0.62/1.30 -> 0.60/1.32 | 0.76/1.89 -> 0.79/1.86 | 1.20/2.96 -> 1.24/2.92 | 1.63/4.05 -> 1.58/3.95 |
+| liquid | wave | 0.68/1.24 -> 0.63/1.31 | 1.28/2.23 -> 1.20/2.22 | 2.24/3.43 -> 2.12/3.18 | 2.86/3.81 -> 2.72/3.81 | 1.10/2.04 -> 1.07/1.99 |
+| frosted | rest | 0.45/1.21 -> 0.44/1.19 | 0.49/1.30 -> 0.47/1.25 | 0.49/1.46 -> 0.49/1.42 | 0.52/1.83 -> 0.52/1.71 | 0.57/2.42 -> 0.57/2.31 |
+| frosted | wave | 0.57/1.69 -> 0.52/1.57 | 0.96/1.92 -> 0.94/2.27 | 1.48/2.60 -> 1.50/2.39 | 2.73/3.24 -> 2.61/3.36 | 3.07/3.56 -> 3.26/3.71 |
+| flat | rest | 0.44/0.63 -> 0.42/0.65 | 0.44/0.69 -> 0.44/0.68 | 0.45/0.70 -> 0.45/0.71 | 0.45/0.79 -> 0.46/0.79 | 0.50/0.91 -> 0.50/0.93 |
+| flat | wave | 0.45/0.87 -> 0.44/0.87 | 0.66/1.24 -> 0.66/1.43 | 0.99/1.70 -> 1.00/1.73 | 1.50/2.64 -> 1.51/2.60 | 2.44/3.51 -> 2.52/3.45 |
+
+- Scene layers (the profile build's layer tree, counting only backdrop
+  filters the scene holds - a glass layer's opacity probe leaves it
+  unless an ancestor fades): liquid N buttons = 1 backdrop capture (the
+  root group) and N filter passes, resting or pressed; frosted the same;
+  flat none.
+- Kill criterion K1 (tool/audit/unified-canvas-fable.md section 8): at
+  rest while the page scrolls, liquid raster p95 N=16 is 1.6 ms above
+  N=4 (2.92 vs 1.32; ~0.13 ms per resting button, all of it filter
+  passes - the capture is shared): K1 does NOT fire, the per-control
+  passes are a real cost on liquid, so the container prototype (design
+  B) is worth measuring. Frosted (+0.46) and flat (+0.11) stay within
+  1 ms. GPU frame time (Metal System Trace) was not recorded.
+- Open: liquid N=32 wave measures cheaper than N=8 and N=16 on both
+  builds (build p50 0.8 vs 1.6 / 1.9 ms), frosted N=32 barely above N=16,
+  flat grows as expected - some liquid buttons probably stop animating
+  at 32 layers on the device (no shots were taken in that window); look
+  before trusting the N=32 wave column.
+
 ## Device numbers (iPhone 16 Pro, 2026-10-03 and 2026-10-05, profile)
 
 - 2026-10-05, tool/ios_reference/perf/audit.sh (5 timed runs per scene,
@@ -446,6 +539,13 @@ test/glass_renderer_test.dart ('the adaptive tier').
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
 the reference states and per-scene FrameTimings in `<app tmp>/glass/`).
+glass_density_test.dart (N glass buttons, `<app tmp>/glass_density/`) and
+glass_phases_test.dart (FlutterTimeline BUILD / LAYOUT / PAINT /
+COMPOSITING per frame, `<app tmp>/glass_phases/`) run through the same
+audit.sh with `AUDIT_TARGET` / `AUDIT_REPORT`. In flutter_test:
+test/perf_counts_test.dart (work counts, ceilings) and
+test/glass_frames_test.dart (channel vs rebuild, pixel for pixel; with
+`GLASS_FRAMES_OUT=<file>` it writes the frame hashes to compare commits).
 Gallery: the root installs `MorphAdaptiveGlass` with the session's
 `MorphGlassRenderer` (GalleryGlassSettings / GalleryGlassScope,
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass

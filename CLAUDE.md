@@ -175,6 +175,31 @@ Cross-cutting policy:
   capsules, menus, popovers, the date picker overlay, alerts, floating
   sheets, the search capsule; a lens/knob/thumb is an opaque platter at
   rest and clear glass only while lifted. Without a painter: flat fills.
+- THE SURFACES CHANNEL (glass_channel.dart, 2026-10-05): controls never
+  call the painter themselves; they mount a `MorphGlassHost` per painter
+  entry (layer / surface / fill / body; `MorphGlassLayer` is the layer
+  host plus its MetaData) with a frame closure (`MorphGlassFrame`:
+  surfaces, outline, contentSlots, spacing). With `MorphGlassRenderer`
+  itself the host builds its tree ONCE per STRUCTURE
+  (`MorphGlassRenderer.structureOf`: tier, roles and counts, glows,
+  lifted lenses, platters, outline kind) over a `MorphGlassChannel`, and
+  every later frame is PUSHED: render objects bound by
+  `GlassLiveBinding` (renderer internal/glass_live.dart) write the new
+  values through their own setters - `MorphLiveStack` /
+  `MorphLivePositioned` boxes, live clips, backdrop filters, decorations,
+  painters repainting on a key of what they read, `LiquidGlass.live` /
+  `LiquidGlassLayer.live`. A host its parent rebuilds pushes from
+  `update` without building (a custom element); a frames-driven host
+  builds once per frame (the ListenableBuilder it replaced) and returns
+  the same tree; `keep` hands back the same glass widgets when only the
+  content changed. Other painters are asked every frame as before.
+  MorphGlassRenderer's buildLayer / buildSurface / buildBody build the
+  same trees from a fixed source: ONE implementation. Rules: whatever a
+  tree BRANCHES on belongs in structureOf (a missing one shows stale
+  pixels; test/glass_frames_test.dart compares every perf-counts scene on
+  every tier against `debugMorphGlassRebuildEveryFrame`); a live widget
+  that replaces a stock one subclasses it (tests find them with
+  `find.bySubtype`).
 - A surface presented ABOVE its source draws with the painter installed
   above the SOURCE; a MorphGlass inside a page is invisible from the
   navigator's overlay. `MorphGlass` is an InheritedTheme, and every
