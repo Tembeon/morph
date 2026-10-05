@@ -14,6 +14,18 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- The glass tier is chosen once and never switches while the app runs
+  (owner decision): `MorphAdaptiveGlass` draws the tier given, else
+  picks one at startup from the GPU class Flutter GPU reports
+  (`MorphGlassDeviceClass`, `MorphAdaptiveGlass.deviceClass`): liquid on
+  Vulkan or Metal, `MorphAdaptiveGlass.cheapTier` (flat) on Impeller's
+  OpenGL ES fallback (no framebuffer mipmaps) and on Apple GPUs before
+  the A13 (no HDR ASTC). On a Pixel 6a forced to GLES liquid put 3 - 9x
+  as many frames over the 60 Hz budget as on Vulkan, frosted more
+  still, so flat is the cheap tier. The frame-timing governor is gone:
+  on the Pixel it flipped flat and liquid six times in one audit. Call
+  `MorphGlassRenderer.precache` before `runApp` so the first frame
+  already draws the chosen tier.
 - Performance, pixels changed below what the eye sees (owner decision):
   an outline fused at spacing 0 - the menu's settle tail once its fusion
   radius is under 1 pt, every submenu card - is the exact union of its
@@ -21,10 +33,7 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   liquid 2.3 -> 1.9 ms, frosted 3.4 -> 1.9 ms on an iPhone 16 Pro); glass
   shadows clip to outside the glass instead of an offscreen layer per
   shadowed surface (liquid raster p95 0.2 - 0.5 ms lower; only the cut's
-  antialiasing differs). `MorphAdaptiveGlass` steps from liquid straight
-  to flat: frosted measured more raster than liquid on the device's
-  control scenes; `MorphGlassTierPolicy.tiers` puts it back on the
-  ladder. Measured and not adopted: the scroll edge effect in the bars'
+  antialiasing differs). Measured and not adopted: the scroll edge effect in the bars'
   backdrop group (the capsules would lose its fade).
 - Touches land on the motion clock where the measured delays expect them
   (a fix): a pointer event is stamped at its own time stamp, moved onto
@@ -1215,11 +1224,8 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   (`MorphGlassTier.flat`, `frosted`, `liquid`) and the liquid tier's
   settings (`MorphGlassMaterial`, blur, refraction, light, tint,
   frostControls) plus the measured lens optics as constants;
-  `MorphAdaptiveGlass` installs it and picks the tier from the frame
-  timings the device achieves (`MorphGlassTierPolicy`: a window with a
-  quarter of its frames over budget steps down at once, a calm window
-  steps back up after a wait that doubles with every repeated failure,
-  never while a finger is down), or pins the tier given. The package
+  `MorphAdaptiveGlass` installs it at one tier for the session: the
+  tier given, else the one the device's GPU class allows. The package
   computes every shape once and every tier shades the same outlines:
   the menu's blurred silhouette and the capsules a glass container
   fuses (`spacing`, by the skin's merge law) arrive as a
@@ -1321,8 +1327,7 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   `headerBold`, `chevronTurn`, `closeOpacity`, `backing`, `source`.
 - Renderer hygiene: runtime capability detection falls back from liquid
   to frosted glass with a cached diagnostic, remembering failed bundle
-  loads. Adaptive and frosted surfaces share backdrop captures; the tier
-  governor warms up before judging timings. Lifted-lens copies paint from
+  loads. Adaptive and frosted surfaces share backdrop captures. Lifted-lens copies paint from
   one mounted subtree, preserving GlobalKeys and focus. The build hook
   writes the GPU bundle to `build/shaderbundles`, whose asset entry stays
   in the pubspec (f8b921d corrects an attempted data-asset-only package
