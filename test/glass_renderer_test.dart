@@ -392,7 +392,7 @@ void main() {
           case MorphGlassTier.frosted:
             expect(layers, isEmpty);
             expect(blurs, 1);
-          case MorphGlassTier.liquid:
+          case MorphGlassTier.fake || MorphGlassTier.liquid:
             expect(layers, hasLength(1));
             expect(layers.single.field, isNotNull);
         }

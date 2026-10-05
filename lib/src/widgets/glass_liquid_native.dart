@@ -241,6 +241,7 @@ Widget _layer(
       live: source.live,
       settingsOf: () => settings.value,
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
+      fake: renderer.effectiveTier == MorphGlassTier.fake,
       useBackdropGroup: shared,
       child: MorphLiveStack(
         live: source.live,
@@ -426,6 +427,7 @@ Widget morphLiquidLayer(
   List<RRect> lenses(MorphGlassFrame f) => [
     for (final i in lensed) f.parts.floating[i].shape,
   ];
+  final refracts = renderer.effectiveTier == MorphGlassTier.liquid;
   final snapshot = source.keep('snapshot', GlassContentSnapshot.new);
   Widget at(
     (String, int) slot,
@@ -531,8 +533,12 @@ Widget morphLiquidLayer(
                     magnification:
                         1 +
                         lensOptics.magnification * lens.lift.clamp(0.0, 1.0),
-                    grow: morphBackdropScale(lens, shrinkOf(lens)),
-                    axis: morphShrinkAxis(lens.bounds, lensOptics.rim),
+                    grow: refracts
+                        ? morphBackdropScale(lens, shrinkOf(lens))
+                        : 1,
+                    axis: refracts
+                        ? morphShrinkAxis(lens.bounds, lensOptics.rim)
+                        : Offset.zero,
                   );
                 }),
                 snapshot: snapshot,

@@ -28,6 +28,11 @@ enum MorphGlassTier {
   /// runs, the web included.
   frosted,
 
+  /// Fake glass: the liquid material without refraction - the backdrop
+  /// frosted and color-filtered as the liquid tier does, and its rim,
+  /// bevel and highlight drawn analytically along each shape.
+  fake,
+
   /// Liquid glass: refraction at the rim, magnification and the measured
   /// lens optics, frost and rim light, rendered on the GPU by the package's
   /// glass renderer. Needs Impeller with Flutter GPU (iOS, macOS,
@@ -149,8 +154,12 @@ class MorphGlassRenderer extends MorphGlassPainter {
 
   /// The tier this renderer draws: [tier], or [bestTier] when the build
   /// cannot draw [tier].
-  MorphGlassTier get effectiveTier =>
-      tier == MorphGlassTier.liquid ? bestTier : tier;
+  MorphGlassTier get effectiveTier => switch (tier) {
+    MorphGlassTier.liquid => bestTier,
+    MorphGlassTier.fake when !kIsWeb => MorphGlassTier.fake,
+    MorphGlassTier.fake => MorphGlassTier.frosted,
+    MorphGlassTier.flat || MorphGlassTier.frosted => tier,
+  };
 
   /// Loads the liquid tier's shaders, so the first glass on screen is
   /// already the real one.
@@ -472,7 +481,12 @@ class MorphGlassRenderer extends MorphGlassPainter {
         select,
       ),
       MorphGlassTier.frosted => _FrostedSurface(source: source, select: select),
-      MorphGlassTier.liquid => morphLiquidSurface(
+      MorphGlassTier.fake when glassness(surface) == 0 => liveFill(
+        context,
+        source,
+        select,
+      ),
+      MorphGlassTier.fake || MorphGlassTier.liquid => morphLiquidSurface(
         this,
         context,
         source,
@@ -495,6 +509,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
         (s) => s.kind != MorphGlassKind.bar && s.kind != MorphGlassKind.menu,
       ),
     ),
+    MorphGlassTier.fake ||
     MorphGlassTier.liquid => morphLiquidBody(this, context, source, select),
   };
 
@@ -503,7 +518,8 @@ class MorphGlassRenderer extends MorphGlassPainter {
     MorphGlassSource source, {
     Widget? content,
   }) {
-    if (effectiveTier == MorphGlassTier.liquid) {
+    if (effectiveTier == MorphGlassTier.liquid ||
+        effectiveTier == MorphGlassTier.fake) {
       return morphLiquidLayer(this, context, source, content: content);
     }
     final parts = source.frame.parts;
