@@ -44,7 +44,9 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
 Each side of the navigation bar (and of the toolbar) changes only with
 itself: a group with a counterpart on its side morphs, a side that had no
 group shows its groups in place, a side left empty lets them swell and fade
-in place - see bars.md "Per-segment transitions" (scene navseg).
+in place - see bars.md "Per-segment transitions" and "the birth and death
+law" (scene navseg). UIKit's scroll edge effect belongs to each page and
+slides with it; morph fades the bar's one effect (bars.md, open).
 
 ## Fixtures
 

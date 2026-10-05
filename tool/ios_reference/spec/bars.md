@@ -48,13 +48,13 @@ soft / hard, `hidden`); `UIScrollEdgeElementContainerInteraction`.
 
 frame 0.416/0.75 after 0.05 s; pulse up 0.292/0.5 to min(1.2, 1 + 16/len)
 after 0.065 s; height back 0.416/0.584 +0.113; width 0.416/0.5 +0.142;
-appearance scale 0.2 + blur 10. Births on the facing edge of a neighbour
-OF THE SAME SIDE (segment, below); a survivor next to a newborn of its side
-waits 0.1 s. Same transition drives nav bar buttons on push/pop (with the
-navigation timing below). Replay: capsules 1.0 pt rms center,
-1.6 width, 0.8 height. Groups without id are keyed by place from the bar's
-EDGE (device morphs the outermost trailing capsule into the outermost one);
-the back button morphs out of the leading capsule.
+appearance scale 0.2 + blur 10. Births and deaths follow ONE law (section
+"the birth and death law"); a survivor that moves while a group of its side
+grows out of a survivor waits 0.1 s. Same transition drives nav bar buttons
+on push/pop (with the navigation timing below). Replay: capsules 0.96 pt
+rms center, 1.6 width, 0.8 height. Groups without id continue the NEAREST
+group without id of their side (`MorphBarCapsuleLayout.anonymous`); the
+back button morphs out of the leading capsule.
 
 ## Spec - per-segment transitions [device, 2026-10-05, scene navseg]
 
@@ -63,8 +63,7 @@ push / pop (a back button pushed onto a page without leading items was
 born on the trailing capsule's facing edge and flew across the bar).
 UIKit never does: each side of a bar changes only with itself.
 
-- Leading groups change only into leading groups, trailing into trailing
-  (by place from the edge, as before). No capsule, element or glass ever
+- Leading groups change only into leading groups, trailing into trailing. No capsule, element or glass ever
   crosses the bar; the title is not glass and rides its page (exit shift
   -0.3 W on a push, +1 W on a pop, unchanged).
 - A side that had no group (root page -> pushed page's back button; 0 -> 2
@@ -110,13 +109,70 @@ UIKit never does: each side of a bar changes only with itself.
   fuses a leading capsule with a trailing one, the back button never
   crosses the middle - push, back tap, edge swipe).
 
+## Spec - the birth and death law [device, 2026-10-05, navseg set b]
+
+Owner report: on a pop from the gallery's Navigation page ([plus more]
+[1x] -> [1x]) the [plus more] capsule slid to the facing edge of [1x] and
+stayed there as a fused nub until it settled - not what UIKit does, and
+not what morph's toolbar did. Measured (scene navseg, `PROBE_SET=b`, pages
+[1x]; [plus more] [1x]; [Show Preferences]; [heart] [Show Preferences];
+toolbar sets D..J; fixtures navsegb-push-pop / -toolbar / -toolbar2,
+CASDFElementLayer identities):
+
+- WHO SURVIVES: a group continues the group of its side whose center lies
+  nearest (no identity crosses a push): [plus more] [1x] -> [Show
+  Preferences] keeps the INNER group's element (262.33 -> 299.17) and lets
+  [1x] die; [1x] -> [plus more] [1x] keeps [1x]. Explicit ids still win in
+  morph; groups without id pair by nearest center.
+- BIRTH: a group with no counterpart grows out of the nearest survivor of
+  its side - its own box FITTED INSIDE the survivor's box BEFORE the
+  change (each axis at most the survivor's, placed as near its own place
+  as fits), at 0.2. [heart] out of [Show Preferences]: flush to the
+  facing end (234.33, 8.8 x 8.8; toolbar 224.33, 9.6); [reply share
+  folder] out of [Show Preferences]: 284.17, 33.53 x 9.6; [heart] out of
+  [compose]: 350, 9.6; toolbar-swap's [folder] out of [Filter]: 75.67, 9.6
+  (the old facing-edge rule said 76).
+- DEATH: the same into the survivor's box AFTER the change, so it vanishes
+  inside it: [plus more] into [1x] -> 355, 12.4 x 8.8; [1x] inside [Show
+  Preferences] -> its own center, 12.4 x 8.8; [heart] -> 234.33, 8.8.
+- TOO LARGE: a group wider than its survivor. The navigation bar still
+  grows it out of the survivor's box ([plus more] out of [1x]: 355, 12.4 x
+  8.8; the nav scene's inner group out of [add more]: 336.33, 19.87 x
+  8.8); the toolbar shows it IN PLACE in its second SDF layer ([reply share
+  folder] beside [compose] or [heart], sets E / J, swollen 183.67 x 57.6,
+  host 1) and lets it leave in place. The two bars differ, one law with
+  the discriminator as data: `MorphBarTransitionSpec.oversizedInPlace`
+  (toolbar true, navigation false).
+- NO SURVIVOR on the side: in place (per-segment section).
+- The host survivor swells as if its items changed (toolbar [compose] ->
+  [heart] [compose]: 56.93 wide); a survivor nothing grew out of does not
+  ([compose] beside an in-place group: no change at all).
+- Replay (test/bar_survivor_test.dart): every birth and death box of the
+  four fixtures (navsegb nav 3 + 3, toolbar 3 + 3 and 4 in place, nav scene
+  1 + 1, toolbar-swap 1 + 1) within 0.1 pt of the device (test bound 0.6);
+  the pages with the overflow group (page 4) are left out. Old replays
+  unchanged except toolbar-swap center 0.947 -> 0.959 (device), 1.021 ->
+  1.009 (sim).
+- NOT REPRODUCED (timing): when the survivor keeps its box, UIKit holds
+  the newborn small inside it and first swings the survivor toward it (up
+  to 24 pt sideways and 4.5 pt away from the screen edge, both elements
+  together) - the newborn starts growing 0.146 - 0.268 s after the call
+  (free fits over five births) where morph starts it at the frame delay;
+  where the survivor's box changes it grows at once (toolbar-swap 0.03 s).
+  No law found yet - measure before tuning.
+- Device check: recordings/device-navsegb-20261005 (native navsegb-auto2
+  next to morph navsegb-flutter = example/integration_test/
+  navseg_video_test.dart with NAVSEG_SET=b), sheets navsegb_<k>_*.png;
+  the gallery scenario before / after: gallery_pop1/pop2/push1.png
+  (example/integration_test/gallery_navigation_video_test.dart).
+
 ## Spec - container spacing [layout, device + sim]
 
 Every capsule of a nav bar (and of a toolbar) is an element of ONE SDF
 layer, smoothness 12, constant through setItems, splits and merges.
 Resting groups (12 apart) sit at the merge law's reach (never touch); a
-split (UIKit keeps the trailing item's element, births the other at its own
-center at 0.2 scale - morph keys by place, NOT changed) fuses while closer.
+split (the nearer group keeps its element, the other is born inside its
+box at 0.2 - the birth law) fuses while closer.
 `MorphBarMetrics.containerSpacing` 12.
 
 ## Spec - edge-swipe drift [device fit, 4 swipes]
@@ -177,7 +233,9 @@ action".
 
 ## Fixtures
 
-Device `ios27-device/bars/`: navseg-push-pop, navseg-toolbar, navseg-edge
+Device `ios27-device/bars/`: navsegb-push-pop, navsegb-toolbar,
+navsegb-toolbar2 (set b, the birth law; same rows), navseg-push-pop,
+navseg-toolbar, navseg-edge
 (per-segment transitions; rows `B` cls SDFElement with `bar` nav / tool and
 `host` 0 / 1 = which SwiftUI SDF layer, cls group = the in-place group
 container: sx, sy, a, blur; `evt` push / pop with from / to page,
@@ -192,8 +250,12 @@ drift-*}, tuning.txt. Simulator `ios27/bars/`.
 Scene `navseg` (Bars.swift, `NavSegPages`): five pages (0 Root large title,
 no leading, [plus]; 1 Alpha back + [share]; 2 no title, Cancel instead of
 back, [heart share]; 3 Gamma back only; 4 Delta large title, back, [Done]
-[heart]); `PROBE_SEQ` (default push x4, pop x4; `tbA/tbB/tbC` set the root
-toolbar; `none` for touches), `PROBE_GAP`. Launched with devicectl
+[heart]); `PROBE_SET=b` swaps in NavSegPages.configureB (the birth law
+pages), `PROBE_ROOTSCROLL=<pt>` scrolls the root once; `PROBE_SEQ`
+(default push x4, pop x4; `tbA` .. `tbJ` set the root toolbar; `none` for
+touches), `PROBE_GAP`. Set b runs 2026-10-05: `{"PROBE_SCENE":"navseg",
+"PROBE_SET":"b","PROBE_ROOTSCROLL":"200"}` and `PROBE_SEQ=tbE,tbD,tbF,tbG,
+tbF,tbD` / `tbH,tbD,tbF,tbI,tbF,tbD,tbJ,tbD`. Launched with devicectl
 (`-e '{"PROBE_SCENE":"navseg","PROBE_REC":...}'`, terminate the app before
 pulling Documents - an open file pulls empty); touches:
 BarsUITests.testNavSeg (tap pushes, edge swipes, back taps - the probe
@@ -216,13 +278,18 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 
 ## Not reproduced / open
 
-- Births and deaths WITHIN a side on a push (device push-pop.jsonl, list ->
-  detail: the inner trailing group is born at the surviving trailing
-  capsule's OLD center at 0.2 of THAT capsule's size and dies into its new
-  center the same way) do not match the toolbar's facing-edge law morph
-  uses (that replay leaves ~10 pt center rms); a split law fitted to it
-  broke the toolbar replays (3.8 pt). Needs a capture that separates the
-  two (navseg covers only sides that fill or empty).
+- The newborn's late start and the survivor's swing (birth law section).
+- Overflow: a page whose items do not fit (navseg set b page 4) moves an
+  item into an overflow group born in place; morph has no overflow.
+- SCROLL EDGE EFFECT ON A PUSH / POP: UIKit's effect belongs to each
+  page's scroll view and slides with its page (navsegb-auto2 rows: the
+  root's band 188.6 -> 80.3 on a push = the page's 0.3 parallax, back on a
+  pop); morph keeps one effect in the bar and fades it between the pages'
+  states (crit 0.35). The fade now crossfades the blur itself
+  (`MorphScrollEdgeEffect.opacity`); until 2026-10-05 an Opacity above the
+  BackdropFilter made the blur read an empty backdrop, so the page showed
+  sharp under the bar for the whole fade - the owner's "transparency under
+  the back button" after a pop (edge_effect_fade_test).
 - The edge-swipe commit's bar transition starts 0.027 s after the lift's
   time stamp on the device; morph starts it from the stack's setLayout at
   the commit with the navigation delays (not replayed).
@@ -231,7 +298,6 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 
 - Large title's tall-bar inset bookkeeping (ours scrolls as content).
 - Toolbar drift during an edge swipe (not measured).
-- Split births keyed by place, not by UIKit's element identity.
 
 ## API gaps
 
@@ -300,14 +366,17 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 - Reduced motion (not recorded on UIKit yet): pages fade in place on the
   push spring instead of sliding.
 - SEGMENTS: `morphLayoutBarGroups` tags every capsule with its side
-  (`MorphBarCapsuleLayout.segment`); `MorphBarMotion` keys capsules by (id,
-  segment), finds birth / death neighbours inside the segment only and
-  turns a side that fills or empties into in-place groups
+  (`MorphBarCapsuleLayout.segment`) and marks groups without id
+  `anonymous`; `MorphBarMotion` pairs capsules within the segment (ids,
+  else nearest center), places births and deaths by the one law and
+  turns a side without a survivor into in-place groups
   (`MorphBarCapsuleFrame.apart`, opacity, per-axis swell; their items ride
   the group's scale, opacity and blur). MorphBarItems draws apart capsules
   through a second `buildLayer` placed under the content, so they never
   fuse with the bar's container; the default painter keys its content so
-  a changing surface count never remounts the items.
+  a changing surface count never remounts the items. A leaving capsule
+  whose id a survivor took is renamed `MorphBarDepartedId` (MorphBarItems
+  keeps its old tint for it).
 - PRESENTATIONS ABOVE THE BARS: UIKit shows menus, context menus, alerts
   and sheets presented from a page above the navigation bar and toolbar.
   The stack installs a `MorphPresentationBoundary` around itself; every

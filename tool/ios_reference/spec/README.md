@@ -343,7 +343,7 @@ M = measured (D device, S simulator only), P = ported + replayed, G = known gaps
 | [glass-button](glass-button.md) | D | P | clear glass, sizes, corner styles, subtitle, menus |
 | [menu-button](menu-button.md) | D + film | P | submenus, palettes, inline sections, selection state, "Ask Siri" row |
 | [context-menu](context-menu.md) | D | P | preview-vc, commit/pop preview, badges, rich/compact appearance |
-| [bars](bars.md) | D (incl. per-segment push / pop) | P | title menu, subtitles, search integration, badges, toolbar drift, nav births within a side |
+| [bars](bars.md) | D (incl. per-segment push / pop, birth law) | P | title menu, subtitles, search integration, badges, toolbar drift, newborn start timing, per-page edge effect |
 | [navigation-pages](navigation-pages.md) | D | P (incl. push zoom) | zoom alignment rect, interactive dismiss filter |
 | [sheets](sheets.md) | D + film (zoom) | P | 8 pt present drift, 2 percent stretch, keyboard avoid motion, edge-attached, placement |
 | [alerts](alerts.md) | D+S | P | source tint dim, severity, popover arrow in glass |
