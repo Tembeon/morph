@@ -588,7 +588,9 @@ final class BarsRecorder: NSObject {
 /// - 4 "Delta": large title, back button, trailing [Done (prominent)] and [heart] (two groups).
 /// PROBE_SEQ (default "push,push,push,push,pop,pop,pop,pop") runs from 1.5 s, PROBE_GAP
 /// seconds apart (default 1.6); `push` pushes the next page, `pop` pops one, `root` pops to the
-/// root, `tbA` / `tbB` / `tbC` set the root's toolbar (NavSegPages.toolbar). Every transition logs an `evt` row (e push / pop / root, from / to page). BarsRecorder
+/// root, `tbA` .. `tbG` set the root's toolbar (NavSegPages.toolbar). PROBE_SET=b swaps in the pages of
+/// NavSegPages.configureB (groups born and dying within a side); PROBE_ROOTSCROLL=<pt> scrolls the
+/// root that far once, so the scroll edge effect is on under its bar. Every transition logs an `evt` row (e push / pop / root, from / to page). BarsRecorder
 /// logs every layer under the bar (cls CASDFElementLayer = one glass capsule; lid = the layer's
 /// identity, so a capsule that becomes another keeps its lid). PROBE_LARGE=0 drops the large
 /// titles; PROBE_SEQ=none leaves the scene for touches: a tap on a page pushes the next one
@@ -598,7 +600,53 @@ enum NavSegPages {
         BarsListScene.tagged(UIBarButtonItem(image: UIImage(systemName: name), style: .plain, target: nil, action: nil), id)
     }
 
+    static func text(_ title: String, _ id: String) -> UIBarButtonItem {
+        BarsListScene.tagged(UIBarButtonItem(title: title, style: .plain, target: nil, action: nil), id)
+    }
+
+    /// PROBE_SET=b: trailing sides that keep a group while gaining or losing another, to tell
+    /// where a group is born or dies within a side:
+    /// - 0 "One": large title, no leading item, trailing [1x] (the gallery home's bar);
+    /// - 1 "Two": back, trailing [plus more] [1x] (two items in one group; the gallery's
+    ///   Navigation page);
+    /// - 2 "Three": back, trailing [Show Preferences] (a group wider than [plus more]);
+    /// - 3 "Four": back, trailing [heart] [Show Preferences] (a group narrower than its
+    ///   survivor);
+    /// - 4 "Five": back, trailing [heart bookmark] [share] [Show Preferences] (a third group
+    ///   born beside the inner survivor).
+    /// The root's toolbar starts with set D (NavSegPages.toolbar).
+    static func configureB(_ vc: UIViewController, page: Int) {
+        let n = vc.navigationItem
+        n.largeTitleDisplayMode = .never
+        switch page {
+        case 0:
+            vc.title = "One"
+            n.largeTitleDisplayMode = BarsEnv.large ? .always : .never
+            n.rightBarButtonItems = [text("1x", "segOneX")]
+            vc.toolbarItems = toolbar("D")
+        case 1:
+            vc.title = "Two"
+            n.rightBarButtonItems = [text("1x", "segOneX1"), .fixedSpace(), item("ellipsis", "segMore"), item("plus", "segPlus1")]
+        case 2:
+            vc.title = "Three"
+            n.rightBarButtonItems = [text("Show Preferences", "segPrefs2")]
+        case 3:
+            vc.title = "Four"
+            n.rightBarButtonItems = [text("Show Preferences", "segPrefs3"), .fixedSpace(), item("heart", "segHeart3")]
+        default:
+            vc.title = "Five"
+            n.rightBarButtonItems = [
+                text("Show Preferences", "segPrefs4"), .fixedSpace(), item("square.and.arrow.up", "segShare4"),
+                .fixedSpace(), item("bookmark", "segBookmark4"), item("heart", "segHeart4b"),
+            ]
+        }
+    }
+
     static func configure(_ vc: UIViewController, page: Int) {
+        if BarsEnv.env["PROBE_SET"] == "b" {
+            configureB(vc, page: page)
+            return
+        }
         let n = vc.navigationItem
         switch page {
         case 0:
@@ -632,13 +680,31 @@ enum NavSegPages {
 
 extension NavSegPages {
     /// Toolbar sets of the root page: A = [flex, compose], B = [trash, flex, compose],
-    /// C = [trash, flex] (a side empties or fills while the other keeps its group).
+    /// C = [trash, flex] (a side empties or fills while the other keeps its group);
+    /// D = [flex, compose], E = [flex, reply share folder, fixed, compose] (a wide group born
+    /// beside a narrow survivor), F = [flex, Show Preferences], G = [flex, heart, fixed,
+    /// Show Preferences] (a narrow group born beside a wide survivor), H = [flex, heart, fixed,
+    /// compose], I = [flex, reply share folder, fixed, Show Preferences], J = [flex, reply share
+    /// folder, fixed, heart] (the survivor's item changes).
     static func toolbar(_ set: String) -> [UIBarButtonItem] {
         let trash = item("trash", "segTbTrash")
         let compose = item("square.and.pencil", "segTbCompose")
         switch set {
         case "B": return [trash, .flexibleSpace(), compose]
         case "C": return [trash, .flexibleSpace()]
+        case "D": return [.flexibleSpace(), compose]
+        case "E":
+            return [.flexibleSpace(), item("arrowshape.turn.up.left", "segTbReply"), item("square.and.arrow.up", "segTbShare"),
+                    item("folder", "segTbFolder"), .fixedSpace(), compose]
+        case "F": return [.flexibleSpace(), text("Show Preferences", "segTbPrefs")]
+        case "G": return [.flexibleSpace(), item("heart", "segTbHeart"), .fixedSpace(), text("Show Preferences", "segTbPrefs")]
+        case "H": return [.flexibleSpace(), item("heart", "segTbHeart"), .fixedSpace(), compose]
+        case "I":
+            return [.flexibleSpace(), item("arrowshape.turn.up.left", "segTbReply"), item("square.and.arrow.up", "segTbShare"),
+                    item("folder", "segTbFolder"), .fixedSpace(), text("Show Preferences", "segTbPrefs")]
+        case "J":
+            return [.flexibleSpace(), item("arrowshape.turn.up.left", "segTbReply"), item("square.and.arrow.up", "segTbShare"),
+                    item("folder", "segTbFolder"), .fixedSpace(), item("heart", "segTbHeart")]
         default: return [.flexibleSpace(), compose]
         }
     }
@@ -695,9 +761,15 @@ final class NavSegPage: UIViewController {
         navigationController?.pushViewController(NavSegPage(page: page + 1), animated: true)
     }
 
+    private var scrolledOnce = false
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         BarsRecorder.shared.scroll = scroll
+        if page == 0, !scrolledOnce, let by = Double(BarsEnv.env["PROBE_ROOTSCROLL"] ?? "") {
+            scrolledOnce = true
+            scroll.setContentOffset(CGPoint(x: 0, y: scroll.contentOffset.y + by), animated: false)
+        }
         if page == 0 { NavSegScript.shared.startOnce(nav: navigationController) }
     }
 }
@@ -722,7 +794,7 @@ final class NavSegScript {
                     let next = NavSegPage(page: min(4, from + 1))
                     Recorder.shared.log(["k": "evt", "e": "push", "from": from, "to": next.page, "t": CACurrentMediaTime()])
                     nav.pushViewController(next, animated: true)
-                case "tbA", "tbB", "tbC":
+                case _ where step.hasPrefix("tb"):
                     let set = String(step.dropFirst(2))
                     Recorder.shared.log(["k": "evt", "e": "setToolbarItems", "set": set, "t": CACurrentMediaTime()])
                     nav.topViewController?.setToolbarItems(NavSegPages.toolbar(set), animated: true)
