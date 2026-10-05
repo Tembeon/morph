@@ -1,0 +1,19 @@
+controls-resting.png                     mean   1.80  max  255  over15 5.3705%
+menu-open.png                            mean   1.66  max  216  over15 3.9998%
+menu-resting.png                         mean   1.03  max  108  over15 3.2710%
+menu-tall-close-0.png                    mean   1.60  max  223  over15 4.1226%
+menu-tall-close-1.png                    mean   2.87  max  170  over15 6.7998%
+menu-tall-close-2.png                    mean   1.85  max  108  over15 5.1826%
+menu-tall-close-3.png                    mean   1.33  max  134  over15 4.0197%
+menu-tall-open.png                       mean   1.60  max  223  over15 4.1224%
+segmented-held-middle.png                mean   1.54  max  200  over15 2.2641%
+segmented-held-selected.png              mean   1.56  max  155  over15 2.2664%
+segmented-resting.png                    mean   0.23  max  108  over15 0.6986%
+sheet-medium.png                         mean  10.03  max  112  over15 28.6218%
+slider-thumb-held.png                    mean   2.09  max  255  over15 5.8208%
+switch-knob-held.png                     mean   2.23  max  255  over15 5.8766%
+tabbar3-held-other.png                   mean   2.03  max  197  over15 4.2633%
+tabbar3-held-over-content.png            mean   5.80  max  211  over15 6.5799%
+tabbar3-held-selected.png                mean   2.04  max  196  over15 4.1651%
+tabbar3-resting.png                      mean   0.89  max  108  over15 2.3405%
+worst 255
