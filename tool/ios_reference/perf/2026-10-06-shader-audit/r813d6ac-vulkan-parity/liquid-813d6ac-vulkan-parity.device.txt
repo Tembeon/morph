@@ -1,0 +1,46 @@
+apk: liquid-813d6ac-vulkan-parity.apk  commit: 813d6ac  date: Mon Oct  5 22:45:00 CEST 2026
+thermal before:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=36.816105, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=32.600002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=33.960552, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 682
+WaitTime: 685
+thermal after:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=36.816105, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=32.7, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=34.097, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-05 22:45:00.788 20910 20981 I flutter : The Dart VM service is listening on http://127.0.0.1:33149/eugfiO64Y-I=/
+10-05 22:45:00.792 20910 20971 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 22:45:00.845 20910 20910 I flutter : 00:00 +0: shader parity
+10-05 22:45:41.475 20910 20910 I flutter : Expected: a value less than or equal to <0>
+10-05 22:45:41.475 20910 20910 I flutter :   Actual: <1>
+10-05 22:45:41.475 20910 20910 I flutter :    Which: is not a value less than or equal to <0>
+10-05 22:45:41.475 20910 20910 I flutter : regular-dark: {max: 1, channels: [1, 1, 1, 0], pixels: 29389, worst: [172, 210], histogram: {1: 29389}}
+10-05 22:45:41.475 20910 20910 I flutter : 
+10-05 22:45:41.476 20910 20910 I flutter : #0      fail (package:matcher/src/expect/expect.dart:187)
+10-05 22:45:41.476 20910 20910 I flutter : #1      _expect (package:matcher/src/expect/expect.dart:182)
+10-05 22:45:41.476 20910 20910 I flutter : #2      expect (package:matcher/src/expect/expect.dart:65)
+10-05 22:45:41.476 20910 20910 I flutter : #3      expect (package:flutter_test/src/widget_tester.dart:473)
+10-05 22:45:41.476 20910 20910 I flutter : #4      main.<anonymous closure> (file:///private/tmp/morph-perf/src/813d6ac-vulkan/example/integration_test/shader_parity_test.dart:57)
+10-05 22:45:41.476 20910 20910 I flutter : <asynchronous suspension>
+10-05 22:45:41.476 20910 20910 I flutter : #5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192)
+10-05 22:45:41.476 20910 20910 I flutter : <asynchronous suspension>
+10-05 22:45:41.476 20910 20910 I flutter : #6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953)
+10-05 22:45:41.476 20910 20910 I flutter : <asynchronous suspension>
+10-05 22:45:41.476 20910 20910 I flutter : #7      TestWidgetsFlutterBinding._createTestCompletionHandler.<anonymous closure> (package:flutter_test/src/binding.dart:1707)
+10-05 22:45:41.476 20910 20910 I flutter : <asynchronous suspension>
+10-05 22:45:41.476 20910 20910 I flutter : 00:40 +0: shader parity [E]
+10-05 22:45:41.476 20910 20910 I flutter :   Test failed. See exception logs above.
+10-05 22:45:41.476 20910 20910 I flutter :   The test description was: shader parity
+10-05 22:45:41.476 20910 20910 I flutter :   
+10-05 22:45:41.476 20910 20910 I flutter : 00:40 +0 -1: (tearDownAll)
+10-05 22:45:41.477 20910 20910 I flutter : 00:40 +1 -1: Some tests failed.

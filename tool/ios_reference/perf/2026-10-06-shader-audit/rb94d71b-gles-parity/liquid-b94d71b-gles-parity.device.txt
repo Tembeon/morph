@@ -1,0 +1,46 @@
+apk: liquid-b94d71b-gles-parity.apk  commit: b94d71b  date: Mon Oct  5 22:39:08 CEST 2026
+thermal before:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=36.816105, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=32.100002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=33.4594, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 384
+WaitTime: 386
+thermal after:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=36.816105, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=32.2, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=33.60395, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-05 22:39:08.508 19180 19226 I flutter : The Dart VM service is listening on http://127.0.0.1:44177/q8STSnbX4II=/
+10-05 22:39:08.513 19180 19180 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_gl_impeller.cc(104)] Using the Impeller rendering backend (OpenGLES).
+10-05 22:39:08.565 19180 19180 I flutter : 00:00 +0: shader parity
+10-05 22:39:50.559 19180 19180 I flutter : Expected: a value less than or equal to <0>
+10-05 22:39:50.559 19180 19180 I flutter :   Actual: <1>
+10-05 22:39:50.559 19180 19180 I flutter :    Which: is not a value less than or equal to <0>
+10-05 22:39:50.559 19180 19180 I flutter : regular-dark: {max: 1, channels: [1, 1, 1, 0], pixels: 5, worst: [651, 312], histogram: {1: 5}}
+10-05 22:39:50.559 19180 19180 I flutter : 
+10-05 22:39:50.560 19180 19180 I flutter : #0      fail (package:matcher/src/expect/expect.dart:187)
+10-05 22:39:50.560 19180 19180 I flutter : #1      _expect (package:matcher/src/expect/expect.dart:182)
+10-05 22:39:50.560 19180 19180 I flutter : #2      expect (package:matcher/src/expect/expect.dart:65)
+10-05 22:39:50.560 19180 19180 I flutter : #3      expect (package:flutter_test/src/widget_tester.dart:473)
+10-05 22:39:50.560 19180 19180 I flutter : #4      main.<anonymous closure> (file:///private/tmp/morph-perf/src/b94d71b-gles/example/integration_test/shader_parity_test.dart:57)
+10-05 22:39:50.560 19180 19180 I flutter : <asynchronous suspension>
+10-05 22:39:50.560 19180 19180 I flutter : #5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192)
+10-05 22:39:50.560 19180 19180 I flutter : <asynchronous suspension>
+10-05 22:39:50.560 19180 19180 I flutter : #6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1953)
+10-05 22:39:50.560 19180 19180 I flutter : <asynchronous suspension>
+10-05 22:39:50.560 19180 19180 I flutter : #7      TestWidgetsFlutterBinding._createTestCompletionHandler.<anonymous closure> (package:flutter_test/src/binding.dart:1707)
+10-05 22:39:50.560 19180 19180 I flutter : <asynchronous suspension>
+10-05 22:39:50.560 19180 19180 I flutter : 00:41 +0: shader parity [E]
+10-05 22:39:50.560 19180 19180 I flutter :   Test failed. See exception logs above.
+10-05 22:39:50.560 19180 19180 I flutter :   The test description was: shader parity
+10-05 22:39:50.560 19180 19180 I flutter :   
+10-05 22:39:50.560 19180 19180 I flutter : 00:41 +0 -1: (tearDownAll)
+10-05 22:39:50.562 19180 19180 I flutter : 00:41 +1 -1: Some tests failed.

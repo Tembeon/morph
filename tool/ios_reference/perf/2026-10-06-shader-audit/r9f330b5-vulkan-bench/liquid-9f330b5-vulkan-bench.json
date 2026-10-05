@@ -1,0 +1,1768 @@
+{
+  "device_pixel_ratio": 2.625,
+  "copies": 6,
+  "frames": 40,
+  "blocks": 8,
+  "cases": {
+    "regular-dark": {
+      "layer_ms_baseline_blocks": [
+        0.4903449999999999,
+        0.676365,
+        0.47420000000000007,
+        0.4001800000000001,
+        0.3110850000000001,
+        0.6416050000000002,
+        0.6138799999999999,
+        0.7555400000000002
+      ],
+      "layer_ms_candidate_blocks": [
+        0.5425949999999999,
+        0.4473649999999999,
+        0.5631350000000002,
+        0.2658949999999999,
+        0.3411199999999999,
+        0.605545,
+        0.85411,
+        0.4770999999999999
+      ],
+      "gain_percent_blocks": [
+        -10.655762779267663,
+        33.85745862071516,
+        -18.754744833403645,
+        33.55614973262037,
+        -9.654917466287285,
+        5.620280390583021,
+        -39.133055320258066,
+        36.85311168171113
+      ],
+      "windows": [
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46075901053,
+          "end_us": 46076009709
+        },
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46076493653,
+          "end_us": 46076710828
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46077147922,
+          "end_us": 46077284190
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46077749950,
+          "end_us": 46077984287
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46078437005,
+          "end_us": 46078568443
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46079038412,
+          "end_us": 46079305126
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46079773609,
+          "end_us": 46079928838
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46080427597,
+          "end_us": 46080672296
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46081140471,
+          "end_us": 46081316914
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46081825779,
+          "end_us": 46082114849
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46082603412,
+          "end_us": 46082768828
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46083255934,
+          "end_us": 46083516189
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46083986804,
+          "end_us": 46084165929
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46084690909,
+          "end_us": 46084950070
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46085339360,
+          "end_us": 46085507675
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46085990733,
+          "end_us": 46086212225
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46086652841,
+          "end_us": 46086805571
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46087310738,
+          "end_us": 46087531691
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46088009841,
+          "end_us": 46088170057
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46088668745,
+          "end_us": 46088891175
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46089370478,
+          "end_us": 46089509392
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46090026504,
+          "end_us": 46090293742
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46090780817,
+          "end_us": 46090946584
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46091443131,
+          "end_us": 46091730001
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46092209952,
+          "end_us": 46092349339
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46092854276,
+          "end_us": 46093164482
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46093637936,
+          "end_us": 46093715769
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46094104141,
+          "end_us": 46094304751
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46094759498,
+          "end_us": 46094889036
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46095356129,
+          "end_us": 46095636778
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46096118393,
+          "end_us": 46096286280
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46096777365,
+          "end_us": 46097040669
+        }
+      ],
+      "layer_ms_candidate": 0.5098474999999999,
+      "layer_ms_baseline": 0.5521124999999999,
+      "layer_gain_percent": -2.017318537852132
+    },
+    "lens-lifted": {
+      "layer_ms_baseline_blocks": [
+        0.6521549999999999,
+        0.19075500000000006,
+        0.3885150000000001,
+        0.6514500000000002,
+        0.5934200000000001,
+        0.6485899999999999,
+        0.4203849999999999,
+        0.39672999999999997
+      ],
+      "layer_ms_candidate_blocks": [
+        0.6445450000000001,
+        0.5326500000000001,
+        0.21530499999999986,
+        0.44214000000000003,
+        0.359735,
+        0.43455500000000014,
+        0.5000899999999998,
+        0.6189
+      ],
+      "gain_percent_blocks": [
+        1.1669005067813303,
+        -179.23252339388213,
+        44.582577249269704,
+        32.12986414920563,
+        39.379360318155776,
+        33.00004625418212,
+        -18.96000095150872,
+        -56.00030247271446
+      ],
+      "windows": [
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46097526010,
+          "end_us": 46097685649
+        },
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46098198637,
+          "end_us": 46098487184
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46098959802,
+          "end_us": 46099100345
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46099626585,
+          "end_us": 46099897558
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46100373576,
+          "end_us": 46100557039
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46101049518,
+          "end_us": 46101271128
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46101748608,
+          "end_us": 46101885700
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46102385524,
+          "end_us": 46102629147
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46103120259,
+          "end_us": 46103288614
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46103765238,
+          "end_us": 46103976651
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46104470971,
+          "end_us": 46104648197
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46105138749,
+          "end_us": 46105393679
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46105858277,
+          "end_us": 46105989900
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46106485675,
+          "end_us": 46106747591
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46107220575,
+          "end_us": 46107381799
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46107916813,
+          "end_us": 46108166464
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46108643665,
+          "end_us": 46108811343
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46109299486,
+          "end_us": 46109539109
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46110004581,
+          "end_us": 46110121891
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46110612342,
+          "end_us": 46110848337
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46111318315,
+          "end_us": 46111451674
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46111961904,
+          "end_us": 46112224981
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46112714101,
+          "end_us": 46112923818
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46113450441,
+          "end_us": 46113747067
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46114227993,
+          "end_us": 46114420584
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46114930203,
+          "end_us": 46115222813
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46115684967,
+          "end_us": 46115860678
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46116364480,
+          "end_us": 46116624267
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46117113149,
+          "end_us": 46117283887
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46117765484,
+          "end_us": 46118015566
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46118484228,
+          "end_us": 46118613678
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46119110169,
+          "end_us": 46119363399
+        }
+      ],
+      "layer_ms_candidate": 0.47111499999999995,
+      "layer_ms_baseline": 0.5069025,
+      "layer_gain_percent": 16.64838232799348
+    },
+    "mixed-models": {
+      "layer_ms_baseline_blocks": [
+        0.6457500000000002,
+        0.77232,
+        0.3966149999999999,
+        0.809525,
+        0.6805900000000001,
+        0.6125549999999998,
+        0.609995,
+        0.924785
+      ],
+      "layer_ms_candidate_blocks": [
+        0.5574650000000001,
+        0.42416,
+        0.5765250000000001,
+        0.62027,
+        0.39430999999999994,
+        0.5861850000000002,
+        0.42042,
+        0.6258049999999997
+      ],
+      "gain_percent_blocks": [
+        13.671699574138604,
+        45.07975968510462,
+        -45.36137059869149,
+        23.378524443346414,
+        42.06350372470947,
+        4.304919558243697,
+        31.078123591176972,
+        32.32967662754048
+      ],
+      "windows": [
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46119846919,
+          "end_us": 46120000900
+        },
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46120520225,
+          "end_us": 46120785699
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46121281029,
+          "end_us": 46121444136
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46121965246,
+          "end_us": 46122257502
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46122738506,
+          "end_us": 46122903643
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46123420539,
+          "end_us": 46123740138
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46124218770,
+          "end_us": 46124385821
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46124897098,
+          "end_us": 46125148978
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46125632710,
+          "end_us": 46125784372
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46126316981,
+          "end_us": 46126583948
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46127086978,
+          "end_us": 46127271280
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46127794645,
+          "end_us": 46128058267
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46128567328,
+          "end_us": 46128734055
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46129253014,
+          "end_us": 46129581646
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46130064484,
+          "end_us": 46130259459
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46130779013,
+          "end_us": 46131098042
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46131578246,
+          "end_us": 46131770662
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46132286921,
+          "end_us": 46132558197
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46133046884,
+          "end_us": 46133224494
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46133748566,
+          "end_us": 46134062292
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46134543168,
+          "end_us": 46134710543
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46135211140,
+          "end_us": 46135501023
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46136000435,
+          "end_us": 46136122384
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46136601089,
+          "end_us": 46136840277
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46137304786,
+          "end_us": 46137466736
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46137971810,
+          "end_us": 46138217844
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46138726394,
+          "end_us": 46138896918
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46139418676,
+          "end_us": 46139711196
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46140192752,
+          "end_us": 46140317886
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46140843080,
+          "end_us": 46141153170
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46141647740,
+          "end_us": 46141840596
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46142353706,
+          "end_us": 46142671719
+        }
+      ],
+      "layer_ms_candidate": 0.5669950000000001,
+      "layer_ms_baseline": 0.6631700000000001,
+      "layer_gain_percent": 27.22832401726169
+    },
+    "big-sheet": {
+      "layer_ms_baseline_blocks": [
+        0.5814300000000001,
+        0.9333699999999997,
+        0.9788399999999999,
+        0.9166500000000003,
+        1.1315199999999999,
+        1.066455,
+        0.9704,
+        0.9367699999999999
+      ],
+      "layer_ms_candidate_blocks": [
+        0.86822,
+        0.8409899999999999,
+        0.951765,
+        0.9242300000000002,
+        0.80663,
+        0.7348050000000004,
+        0.7813399999999999,
+        0.9434650000000001
+      ],
+      "gain_percent_blocks": [
+        -49.324940233562046,
+        9.897468313744799,
+        2.7660291773936456,
+        -0.826924125893189,
+        28.712705033936647,
+        31.098358580530782,
+        19.482687551525153,
+        -0.7146898384875935
+      ],
+      "windows": [
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46143161402,
+          "end_us": 46143358746
+        },
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46143895655,
+          "end_us": 46144266641
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46144770472,
+          "end_us": 46145008427
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46145522738,
+          "end_us": 46145876976
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46146366564,
+          "end_us": 46146531964
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46147051010,
+          "end_us": 46147403084
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46147925557,
+          "end_us": 46148111756
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46148649332,
+          "end_us": 46149003724
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46149520140,
+          "end_us": 46149680682
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46150207690,
+          "end_us": 46150558585
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46151067036,
+          "end_us": 46151229355
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46151752439,
+          "end_us": 46152110524
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46152626970,
+          "end_us": 46152799244
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46153303679,
+          "end_us": 46153659283
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46154159530,
+          "end_us": 46154326769
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46154853144,
+          "end_us": 46155205228
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46155722374,
+          "end_us": 46155888329
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46156417450,
+          "end_us": 46156744729
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46157234651,
+          "end_us": 46157361774
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46157880752,
+          "end_us": 46158234180
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46158738636,
+          "end_us": 46158899731
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46159414518,
+          "end_us": 46159788903
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46160287612,
+          "end_us": 46160464141
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46160984101,
+          "end_us": 46161307589
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46161813777,
+          "end_us": 46161987436
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46162518931,
+          "end_us": 46162848855
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46163364199,
+          "end_us": 46163537295
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46164070188,
+          "end_us": 46164437362
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46164928921,
+          "end_us": 46165090695
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46165601281,
+          "end_us": 46165950410
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46166472725,
+          "end_us": 46166628634
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46167131676,
+          "end_us": 46167476277
+        }
+      ],
+      "layer_ms_candidate": 0.854605,
+      "layer_ms_baseline": 0.9535849999999999,
+      "layer_gain_percent": 6.3317487455692225
+    },
+    "menu-frosted": {
+      "layer_ms_baseline_blocks": [
+        2.2186650000000006,
+        2.0818700000000003,
+        2.20511,
+        2.3506800000000005,
+        2.109855,
+        2.4067449999999995,
+        1.8254549999999998,
+        2.064514999999999
+      ],
+      "layer_ms_candidate_blocks": [
+        1.965015,
+        2.410685,
+        2.31103,
+        2.0293,
+        2.09861,
+        2.1213,
+        1.806715,
+        1.8862700000000001
+      ],
+      "gain_percent_blocks": [
+        11.432550655461753,
+        -15.794213855812304,
+        -4.803388493091059,
+        13.671788588833886,
+        0.5329750148706983,
+        11.86020953611618,
+        1.0265933698721557,
+        8.633746909080301
+      ],
+      "windows": [
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46167964248,
+          "end_us": 46168187483
+        },
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46168747581,
+          "end_us": 46169363815
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46169897451,
+          "end_us": 46170136170
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46170776580,
+          "end_us": 46171459030
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46172003523,
+          "end_us": 46172208539
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46172816552,
+          "end_us": 46173437944
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46173948445,
+          "end_us": 46174119485
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46174765744,
+          "end_us": 46175418922
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46175935871,
+          "end_us": 46176119285
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46176763366,
+          "end_us": 46177408987
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46177937991,
+          "end_us": 46178147410
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46178783562,
+          "end_us": 46179434000
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46179934865,
+          "end_us": 46180125311
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46180777219,
+          "end_us": 46181437803
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46181957675,
+          "end_us": 46182217126
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46182856795,
+          "end_us": 46183522103
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46184042824,
+          "end_us": 46184262355
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46184916356,
+          "end_us": 46185555609
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46186101209,
+          "end_us": 46186306232
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46186915698,
+          "end_us": 46187542691
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46188074267,
+          "end_us": 46188273626
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46188897148,
+          "end_us": 46189577854
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46190105706,
+          "end_us": 46190341419
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46190981947,
+          "end_us": 46191641914
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46192184489,
+          "end_us": 46192428368
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46193047195,
+          "end_us": 46193652416
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46194162472,
+          "end_us": 46194425683
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46195036271,
+          "end_us": 46195664573
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46196192366,
+          "end_us": 46196444425
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46197077978,
+          "end_us": 46197742940
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46198249439,
+          "end_us": 46198481053
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46199138628,
+          "end_us": 46199747497
+        }
+      ],
+      "layer_ms_candidate": 2.063955,
+      "layer_ms_baseline": 2.1574825,
+      "layer_gain_percent": 4.830170139476229
+    },
+    "fake-big-sheet": {
+      "layer_ms_baseline_blocks": [
+        1.1962549999999998,
+        1.253845,
+        1.1344999999999998,
+        1.097165,
+        0.9972250000000003,
+        1.331795,
+        1.10976,
+        0.9668100000000003
+      ],
+      "layer_ms_candidate_blocks": [
+        0.9291400000000003,
+        0.9883000000000001,
+        1.0874099999999998,
+        1.24058,
+        1.2003199999999998,
+        1.0574849999999998,
+        1.2979399999999999,
+        1.3166350000000002
+      ],
+      "gain_percent_blocks": [
+        22.32926926115248,
+        21.17845507219792,
+        4.150727192595864,
+        -13.071415876372294,
+        -20.366015693549553,
+        20.597013804677168,
+        -16.956819492502863,
+        -36.18342797447273
+      ],
+      "windows": [
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46200249463,
+          "end_us": 46200461734
+        },
+        {
+          "block": 0,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46200993171,
+          "end_us": 46201391266
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46201905732,
+          "end_us": 46202107671
+        },
+        {
+          "block": 0,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46202664125,
+          "end_us": 46203105315
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46203605154,
+          "end_us": 46203795470
+        },
+        {
+          "block": 1,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46204347333,
+          "end_us": 46204788418
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46205318369,
+          "end_us": 46205521511
+        },
+        {
+          "block": 1,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46206040894,
+          "end_us": 46206441698
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46206963096,
+          "end_us": 46207139143
+        },
+        {
+          "block": 2,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46207667946,
+          "end_us": 46208061475
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46208595176,
+          "end_us": 46208783510
+        },
+        {
+          "block": 2,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46209324440,
+          "end_us": 46209739673
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46210243357,
+          "end_us": 46210423550
+        },
+        {
+          "block": 3,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46210958876,
+          "end_us": 46211358501
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46211857156,
+          "end_us": 46212023838
+        },
+        {
+          "block": 3,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46212561330,
+          "end_us": 46212976128
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46213475745,
+          "end_us": 46213648741
+        },
+        {
+          "block": 4,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46214176913,
+          "end_us": 46214589974
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46215103926,
+          "end_us": 46215304875
+        },
+        {
+          "block": 4,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46215849649,
+          "end_us": 46216250043
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46216753855,
+          "end_us": 46216887575
+        },
+        {
+          "block": 5,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46217392983,
+          "end_us": 46217793062
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46218307532,
+          "end_us": 46218494189
+        },
+        {
+          "block": 5,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46219059195,
+          "end_us": 46219457349
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46219975845,
+          "end_us": 46220181475
+        },
+        {
+          "block": 6,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46220735996,
+          "end_us": 46221201214
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46221715758,
+          "end_us": 46221928570
+        },
+        {
+          "block": 6,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46222458011,
+          "end_us": 46222892769
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46223398245,
+          "end_us": 46223582817
+        },
+        {
+          "block": 7,
+          "variant": "baseline",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46224122946,
+          "end_us": 46224500880
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 1,
+          "frames": 40,
+          "start_us": 46225031124,
+          "end_us": 46225209669
+        },
+        {
+          "block": 7,
+          "variant": "candidate",
+          "copies": 6,
+          "frames": 40,
+          "start_us": 46225747272,
+          "end_us": 46226189138
+        }
+      ],
+      "layer_ms_candidate": 1.143865,
+      "layer_ms_baseline": 1.1221299999999998,
+      "layer_gain_percent": -4.460344341888215
+    }
+  },
+  "liquid_available": true,
+  "platform": "CP3A.260905.009"
+}

@@ -1022,6 +1022,109 @@ identity. All three changes leave every pixel identical.
   shared by all glass layers (`Map` upkeep cost as much as the walks it
   saved on the device); pairwise row blur passes (slower).
 
+## Shader harness and the shader audit batch (2026-10-05/06)
+
+The audits (tool/audit/shader-audit-fable.md F1-F15, shader-audit-astra.md
+ranks 1-12) proposed cheaper final and fake shaders with the same image.
+Every change was judged by a synthetic harness on the devices, never by eye.
+
+Harness (example/integration_test/shader_parity_test.dart,
+support/shader_harness.dart): 19 deterministic cases (regular light/dark,
+toolbar with blur, slider 0.7, clear, lifted lens with dispersion and
+shrink, prominent tints, direct model with gamma 1.4, tint and material
+variants, a fused field, a 340 x 600 sheet, a frosted menu, visibility 0.5
+unfrosted and frosted, three fake-tier cases) over a seeded three-band
+backdrop (stripes, gradient, noise) drawn at device pixel 0 with
+FilterQuality.none in a 360 x 640 region. Each case renders offscreen
+(RepaintBoundary.toImage) through the package's runtime shaders and through
+a FROZEN copy (example/shader_audit/baseline, a64140c plus the 32-shape
+decode; `ShaderKeys.debugRuntimeRoot` picks it) in the same app: the
+candidate twice (repeat) and remounted (remount), both must be 0 - the
+noise floor, 0 on every device - and the per-channel difference from the
+baseline. Bench: the same scene with 1 and 6 stacked layers, ABBA blocks,
+40 renders per sample; per block one layer's cost is the difference over
+5 layers, so backdrop and readback cancel. On the Pixel the bench reads the
+kernel's per-app GPU work periods (power/gpu_work_period and gpu_frequency
+on the CLOCK_MONOTONIC trace clock, audit_android.sh `AUDIT_GPUWORK=1`,
+tool/audit/shader/gpu_work.py): GPU cycles per layer, DVFS-proof. An A/A
+run (candidate == baseline) reads within 1.3 percent on the sheet, menu,
+material and fake cases and +-5 on the small control cases. Wall time per
+render is +-25 percent there (DVFS) and is not used on the Pixel; on the
+iPhone it is steady (blocks within a few percent) and is the Metal number.
+Host oracle: `flutter test --enable-impeller --enable-flutter-gpu
+test/shader_parity_host_test.dart` in example/ (Impeller on SwiftShader;
+it ignores RelaxedPrecision and does not show the Mali contraction effects
+below; delete build/unit_test_assets after editing a .glsl include).
+Offline: tool/audit/shader/offline.py (impellerc Vulkan / Metal / GLES 3
+stages, SPIR-V counts with the NDK's spirv-dis). malioc (Arm Mobile
+Studio) is not installed; downloading it needs the owner's approval, so
+F7 / F8 (decided by Mali cycle counts) were not attempted. Runners:
+tool/audit/shader/run_pixel.sh (Vulkan, or GLES forced in the worktree's
+manifest), run_iphone.sh; parity.py reads and cross-compares the reports.
+Results: perf/2026-10-06-shader-audit/ (traces in /tmp/morph-perf/gpuwork,
+430 MB, not committed).
+
+Findings (max channel step vs the frozen baseline over 19 cases, pixels of
+1.59 M per case; GPU gain = median paired cycles on the Pixel, wall on the
+iPhone; cumulative where marked):
+
+| finding | bound | Pixel Vulkan | Pixel GLES | iPhone Metal | status |
+|---|---|---|---|---|---|
+| F14 / astra 1 reject before material reads | 0 | 0 | 0 | 2 (33 px, mixed-models) | reverted (c60deca) |
+| F4 / astra 2 coverage, contour direction once | 0 | 0 | 0 | 0 | kept |
+| F5 normal decoded once | 0 | 1 (53 px) | 1 (53 px) | 0 | reverted (cd33195) |
+| F2 deep-interior early return | 0 | 0 | 0 | 0 | kept |
+| F12 step picks: shares, return weight, pair repair | 0 | 0 | 0 | 0 | kept |
+| F12 step-weighted normal decode | 0 | 1 (~50 px) | 1 (with F5) | - | reverted (9f330b5) |
+| astra 3 one palette fetch per row | 0 | 0 | 0 | 0 | kept |
+| F10 fake highp | fidelity fix | changed to = GLES | 0 | 0 | kept |
+| astra 5 fake exterior-only return | 0 | 0 | 0 | 0 | kept |
+| F11 fake cap by cosine | 1 | 0 | 0 | 1 (1 px) | kept |
+| F3 no pow at exponent 1 | 1 | 1 (<= 3 px) | 1 (<= 3 px) | 1 (<= 7 px) | kept |
+| F6 Vulkan mediump colour | 3 | 2 (6-98 k px) | n/a | n/a | rejected: no gain |
+
+F10, measured: before it the fake tier's Vulkan output differed from GLES
+on the same Pixel by up to 157 steps (fake-big-sheet, 28 k px; 20-23 on the
+capsules) - the Mali driver took the RelaxedPrecision and placed the
+silhouette in fp16; after it Vulkan equals GLES on every case. The liquid
+cases were already Vulkan == GLES, pixel for pixel, before and after.
+
+GPU per layer, the final batch (c60deca) against the frozen baseline: Pixel
+Vulkan cycles big-sheet +8.1 percent (blocks 2..13), menu-frosted +1.2,
+mixed-models +2.0, lifted lens +4.2, control capsules +2.3 (within that
+case's +-5 noise), fake 0. Pixel GLES (9f330b5, F14 still in) big-sheet
++5.5, menu +2.5, mixed +14.4. iPhone Metal wall big-sheet +9.4, menu +7.3,
+control capsules +10.2, lens +2.8, mixed +1.9, fake -2.4 (fake A/B with and
+without F11: both within +-2). Where it comes from: F2 (ad6bad1 big-sheet
++8.2, -2..-1 before it); astra 3 and F14 gave the material case +5..+14 while
+F14 was in. F3, F12, F10/F11/astra 5 and F6 do not move the bench beyond
+its noise. A sheet-sized face is where the final pass costs; a 44 pt
+capsule's layer is ~0.5 ms of mostly fixed cost.
+
+End to end (glass_audit, liquid, 5 runs per launch, two ABAB pairs, before
+= HEAD 9f330b5 with the frozen runtime shaders, after = 9f330b5; c60deca
+only drops F14): no raster change on either phone. Pixel raster p50 +0.05
+.. +0.46 ms (the two before runs differ by up to 0.4 among themselves),
+p95 -0.4 .. +1.4, frames over budget unchanged within one or two; iPhone
+within +-0.05 ms p50. Raster time ends at submit, so a GPU saving shows
+there only where the GPU is the bottleneck; these scenes are CPU raster
+bound (passport above). Audit shots: before vs after within the run-to-run
+shot noise on both phones (resting states max 10-15, moving states as
+noisy as two runs of the same build).
+
+Lessons: a source-level identity (CSE, reordering, a 0/1 select) is not a
+pixel identity - Mali and Metal contract and schedule differently per
+layout, so the harness on each device is the gate, not reasoning; the host
+oracle (SwiftShader) passed all three changes the phones rejected.
+
+Not done: F1 / F8 uniform folds (they change the final shader's uniform
+ABI in liquid_glass_layer.dart, which also breaks the same-binary A/B, and
+without malioc there is no evidence the drivers do not hoist them
+already); F7 specialization (malioc); F9 / astra 11 RGBA16F field and
+astra 6 / F15 output buckets (renderer_native and the layer, the
+container agent's files that day; astra notes the bucket shrink is
+VISIBLE unless the sampling domain is kept); F13 / astra 7 geometry pass.
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
@@ -1034,6 +1137,7 @@ test/perf_counts_test.dart (work counts, ceilings) and
 test/glass_frames_test.dart (channel vs rebuild, pixel for pixel; with
 `GLASS_FRAMES_OUT=<file>` it writes the frame hashes to compare commits).
 perf/shotdiff.py compares two runs' shots (mean, max, percent over 15);
+the shader harness and its tools are under "Shader harness" above;
 perf/contact.py lays several tiers' shots side by side.
 Gallery: the root installs `MorphAdaptiveGlass` with the session's
 `MorphGlassRenderer` (GalleryGlassSettings / GalleryGlassScope,

@@ -1,0 +1,34 @@
+apk: liquid-e2e-after.apk  commit: 9f330b5  date: Tue Oct  6 00:06:26 CEST 2026
+thermal before:
+Thermal Status: 1
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=41.0398, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ Temperature{mValue=38.100002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=37.923553, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 693
+WaitTime: 696
+gpu cur_freq kHz histogram (samples):
+ 317 251000
+  32 302000
+  10 351000
+  23 400000
+  73 471000
+  22 510000
+   7 572000
+   1 701000
+thermal after:
+Thermal Status: 1
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=41.0398, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ Temperature{mValue=38.5, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=39.865803, mType=3, mName=VIRTUAL-SKIN, mStatus=1}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-06 00:06:26.583   870  1071 I flutter : The Dart VM service is listening on http://127.0.0.1:37363/irZ53bQalCc=/
+10-06 00:06:26.588   870  1055 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-06 00:06:26.699   870   870 I flutter : 00:00 +0: glass audit
+10-06 00:10:39.017   870   870 I flutter : 04:12 +1: (tearDownAll)
+10-06 00:10:39.018   870   870 I flutter : 04:12 +2: All tests passed!

@@ -1,0 +1,577 @@
+{
+  "device_pixel_ratio": 2.625,
+  "region": [
+    360.0,
+    640.0
+  ],
+  "cases": {
+    "regular-dark": {
+      "candidate": "30dd2f55ee962e57",
+      "baseline": "-7dde0330e25f0380",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 1,
+        "channels": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "pixels": 3,
+        "worst": [
+          425,
+          650
+        ],
+        "histogram": {
+          "1": 3
+        }
+      }
+    },
+    "regular-light": {
+      "candidate": "575424a3aa0fb990",
+      "baseline": "5a249748d87df4e1",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 1,
+        "channels": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "pixels": 1,
+        "worst": [
+          316,
+          970
+        ],
+        "histogram": {
+          "1": 1
+        }
+      }
+    },
+    "toolbar-dark-blur": {
+      "candidate": "4ae7501152067b4f",
+      "baseline": "-7476ecdb004727e4",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 1,
+        "channels": [
+          1,
+          0,
+          0,
+          0
+        ],
+        "pixels": 3,
+        "worst": [
+          425,
+          651
+        ],
+        "histogram": {
+          "1": 3
+        }
+      }
+    },
+    "toolbar-light-slider": {
+      "candidate": "-5fae6fd25defe6eb",
+      "baseline": "-5fae6fd25defe6eb",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "clear-rest": {
+      "candidate": "1f4320bcd358105d",
+      "baseline": "1f4320bcd358105d",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "lens-lifted": {
+      "candidate": "4464613a5bcd1dae",
+      "baseline": "4464613a5bcd1dae",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "prominent-dark": {
+      "candidate": "3a1e7912e9904b4b",
+      "baseline": "3a1e7912e9904b4b",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "prominent-light": {
+      "candidate": "571b8eb95a0343fa",
+      "baseline": "571b8eb95a0343fa",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "direct-gamma": {
+      "candidate": "-4ecd2eccf5a45d80",
+      "baseline": "-4ecd2eccf5a45d80",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "tint-pair": {
+      "candidate": "-3560ee9b4e0289a4",
+      "baseline": "-3560ee9b4e0289a4",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "mixed-models": {
+      "candidate": "-5056217f599df1ed",
+      "baseline": "-5056217f599df1ed",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "fused-field": {
+      "candidate": "-256e2760de7d13fa",
+      "baseline": "-256e2760de7d13fa",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "big-sheet": {
+      "candidate": "331834459d41af62",
+      "baseline": "331834459d41af62",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "menu-frosted": {
+      "candidate": "-185779a8471f3336",
+      "baseline": "-185779a8471f3336",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "visibility-half": {
+      "candidate": "-63973cd364301e83",
+      "baseline": "-63973cd364301e83",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "visibility-half-frosted": {
+      "candidate": "-3784c1f670ed6441",
+      "baseline": "-3784c1f670ed6441",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 0,
+        "channels": [
+          0,
+          0,
+          0,
+          0
+        ],
+        "pixels": 0,
+        "worst": [
+          -1,
+          -1
+        ],
+        "histogram": {}
+      }
+    },
+    "fake-regular-dark": {
+      "candidate": "2be0a70853c4a403",
+      "baseline": "377da591390cd3fa",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 20,
+        "channels": [
+          20,
+          18,
+          18,
+          0
+        ],
+        "pixels": 20645,
+        "worst": [
+          285,
+          969
+        ],
+        "histogram": {
+          "1": 12651,
+          "2": 2435,
+          "10": 58,
+          "11": 24,
+          "9": 47,
+          "8": 63,
+          "7": 130,
+          "6": 1059,
+          "5": 1201,
+          "3": 2031,
+          "4": 871,
+          "16": 10,
+          "18": 4,
+          "19": 7,
+          "13": 16,
+          "15": 6,
+          "14": 6,
+          "12": 20,
+          "17": 5,
+          "20": 1
+        }
+      }
+    },
+    "fake-clear": {
+      "candidate": "79ac73c7235d6c7d",
+      "baseline": "-5ff43fd142cb9d3f",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 23,
+        "channels": [
+          23,
+          22,
+          21,
+          0
+        ],
+        "pixels": 15899,
+        "worst": [
+          283,
+          969
+        ],
+        "histogram": {
+          "1": 8413,
+          "12": 28,
+          "10": 48,
+          "11": 30,
+          "3": 1540,
+          "9": 55,
+          "8": 152,
+          "7": 674,
+          "6": 995,
+          "5": 788,
+          "4": 1364,
+          "2": 1730,
+          "13": 15,
+          "20": 5,
+          "21": 3,
+          "18": 7,
+          "22": 4,
+          "19": 8,
+          "17": 6,
+          "16": 11,
+          "15": 9,
+          "14": 11,
+          "23": 3
+        }
+      }
+    },
+    "fake-big-sheet": {
+      "candidate": "096d532c6e9f3922",
+      "baseline": "721c6fac73bfae44",
+      "repeat": 0,
+      "remount": 0,
+      "diff": {
+        "max": 157,
+        "channels": [
+          104,
+          86,
+          157,
+          0
+        ],
+        "pixels": 28279,
+        "worst": [
+          908,
+          1579
+        ],
+        "histogram": {
+          "1": 15588,
+          "2": 865,
+          "3": 623,
+          "4": 934,
+          "5": 762,
+          "10": 596,
+          "20": 26,
+          "31": 76,
+          "63": 7,
+          "68": 5,
+          "80": 2,
+          "70": 5,
+          "79": 5,
+          "71": 7,
+          "77": 6,
+          "49": 178,
+          "48": 42,
+          "47": 37,
+          "78": 7,
+          "72": 5,
+          "60": 6,
+          "46": 36,
+          "19": 37,
+          "14": 581,
+          "9": 454,
+          "21": 818,
+          "15": 58,
+          "12": 158,
+          "11": 1299,
+          "17": 33,
+          "27": 61,
+          "34": 137,
+          "40": 130,
+          "23": 41,
+          "28": 73,
+          "76": 5,
+          "55": 252,
+          "54": 38,
+          "65": 2,
+          "36": 128,
+          "30": 85,
+          "6": 446,
+          "8": 295,
+          "7": 413,
+          "16": 35,
+          "13": 1073,
+          "38": 159,
+          "58": 7,
+          "33": 85,
+          "50": 57,
+          "69": 1,
+          "51": 59,
+          "74": 3,
+          "25": 59,
+          "24": 53,
+          "53": 38,
+          "26": 54,
+          "57": 9,
+          "59": 11,
+          "45": 28,
+          "29": 88,
+          "96": 5,
+          "56": 27,
+          "88": 2,
+          "93": 3,
+          "103": 2,
+          "52": 134,
+          "41": 101,
+          "100": 2,
+          "39": 114,
+          "61": 7,
+          "97": 1,
+          "73": 7,
+          "94": 3,
+          "18": 32,
+          "32": 105,
+          "44": 38,
+          "22": 72,
+          "66": 5,
+          "64": 5,
+          "95": 2,
+          "102": 1,
+          "86": 3,
+          "120": 1,
+          "35": 113,
+          "108": 1,
+          "98": 1,
+          "101": 3,
+          "83": 1,
+          "37": 155,
+          "62": 3,
+          "109": 1,
+          "122": 2,
+          "75": 3,
+          "43": 50,
+          "42": 68,
+          "82": 3,
+          "89": 2,
+          "116": 2,
+          "155": 1,
+          "112": 1,
+          "143": 1,
+          "157": 1,
+          "127": 1,
+          "138": 1,
+          "67": 2,
+          "104": 1,
+          "129": 1,
+          "111": 1,
+          "87": 2,
+          "91": 1,
+          "137": 1,
+          "90": 1,
+          "149": 1,
+          "136": 1
+        }
+      }
+    }
+  },
+  "liquid_available": true,
+  "platform": "CP3A.260905.009"
+}

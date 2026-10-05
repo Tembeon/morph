@@ -190,3 +190,20 @@ Local patches (some commits include related package changes):
   appearance data). The geometry uniforms grow from 2352 bytes; a layer of
   16 shapes or fewer draws the same pixels (Pixel 6a density shots, 0
   difference).
+- 2026-10-05 shader audit batch (tool/audit/shader-audit-*.md; numbers in
+  glass-renderer.md, Shader harness): liquid_glass_final_render_core.glsl
+  computes the border coverage and its light direction once, returns the
+  face unlit past the glint, the inner border and the bevel band, picks the
+  color model shares, the glint's return weight and the contributor pair
+  repair with 0/1 step weights, fetches each palette row once when both
+  contributors are one shape, and skips pow for an exponent of exactly 1
+  (wrap 0.5, gamma 1); fake_glass_surface.frag runs in highp (on Vulkan its
+  mediump put the silhouette in fp16 on Mali), returns the border ring
+  outside the clip without the material, and skips the same pow;
+  fake_glass_shape.glsl tests the cap span by cosine instead of atan. Tried
+  and reverted because a device moved pixels the proposal called identical:
+  sharing the decoded matte normal with decodeDisplacement and a
+  step-weighted normal decode (Mali, an ulp in the displacement), the
+  exterior reject ahead of the material map (Metal, material variant).
+  ShaderKeys.debugRuntimeRoot lets the harness load a frozen copy of the
+  runtime shaders (example/shader_audit/baseline).

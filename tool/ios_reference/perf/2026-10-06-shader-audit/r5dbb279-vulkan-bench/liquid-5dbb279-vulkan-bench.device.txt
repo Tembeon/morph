@@ -1,0 +1,32 @@
+apk: liquid-5dbb279-vulkan-bench.apk  commit: 5dbb279  date: Mon Oct  5 23:19:18 CEST 2026
+thermal before:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=36.816105, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=32.800003, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=33.64865, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 575
+WaitTime: 581
+package:dev.tembeon.morph_example uid:10378
+thermal after:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=36.816105, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=33.2, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=37.2872, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-05 23:19:18.942 24689 24776 I flutter : The Dart VM service is listening on http://127.0.0.1:33799/ODjmrVt_GDI=/
+10-05 23:19:18.946 24689 24765 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-05 23:19:19.010 24689 24689 I flutter : 00:00 +0: shader parity
+10-05 23:19:41.014 24689 24689 I flutter : SHADER_BENCH regular-dark baseline 0.46452000000000004 candidate 0.5830525 gain -36.30407939995192
+10-05 23:20:03.444 24689 24689 I flutter : SHADER_BENCH lens-lifted baseline 0.50927 candidate 0.5944550000000002 gain -22.448603071718075
+10-05 23:20:26.575 24689 24689 I flutter : SHADER_BENCH mixed-models baseline 0.6121924999999999 candidate 0.6591625000000001 gain -7.838417739991927
+10-05 23:20:51.322 24689 24689 I flutter : SHADER_BENCH big-sheet baseline 0.9799100000000001 candidate 1.03326 gain -1.8527688531606739
+10-05 23:21:23.942 24689 24689 I flutter : SHADER_BENCH menu-frosted baseline 2.2779825 candidate 2.0931975 gain 10.401338526417824
+10-05 23:21:50.188 24689 24689 I flutter : SHADER_BENCH fake-big-sheet baseline 1.0989425000000002 candidate 1.00983 gain 6.452173422082054
+10-05 23:21:50.231 24689 24689 I flutter : 02:31 +1: (tearDownAll)
+10-05 23:21:50.234 24689 24689 I flutter : 02:31 +2: All tests passed!
