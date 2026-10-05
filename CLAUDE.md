@@ -92,9 +92,21 @@ Internal machinery (all `@internal`):
   keep insert order; `now` reads the running action's time.
 - `clock.dart` - `MorphClock` mixin: the ticker's elapsed time
   ACCUMULATED across restarts (time asleep does not count; the ticker
-  stops when the motion settles). `stamp(event)`: while ticking, the
-  latest frame's clock; while asleep, events keep their own timestamp
-  spacing divided by `timeDilation`, and the clock never runs backwards.
+  stops when the motion settles). `stamp(event)` stamps ONE FRAME AFTER
+  THE DELIVERY (UIKit sets an animation started in an event handler to
+  begin 8.1 - 8.3 ms after the call at 120 Hz; an iOS frame is stamped
+  with its display TARGET): while ticking or dozing, the latest frame's
+  clock + (now - that frame's stamp + 1 / motionFrameRate), now read on
+  `morphClockNow` (Dart's Timeline clock = the engine frame clock,
+  CLOCK_MONOTONIC_RAW on iOS; PointerEvent.timeStamp is
+  UITouch.timestamp, CLOCK_UPTIME_RAW, offset by the device's total
+  sleep). While asleep, events keep their own timestamp spacing divided
+  by `timeDilation`, and the first frame after the wake counts from one
+  frame after the delivery. Frame stamps and now disagreeing by > 50 ms
+  (a test's fake clock) fall back to the latest frame's clock (the old
+  rule, which left a doze's events at the pre-doze clock).
+  `MorphSpringState` never retargets before its last change. Evidence:
+  spec/README.md "Clocks".
   `motionFrameRate` = 60 when the display reports 60 Hz, 120 otherwise.
   `frames` is the painter's repaint Listenable.
 - `flex_integrator.dart` - `MorphFlexIntegrator` (UIKit's
@@ -184,7 +196,10 @@ Cross-cutting policy:
   copy of its own or its own group - bar / menu kinds (both tiers, also
   through buildSurface), the navigation bar + toolbar (one
   `MorphChromeBackdrop` key per screen, chrome_group.dart), the search
-  tab bar, a sheet's content, a menu's card, lifted glass.
+  tab bar, a sheet's content, a menu's card, a context menu's hero and
+  satellites, lifted glass and a frosted lens / knob / thumb. KNOWN
+  WRONG (owner decision pending): two resting body glass surfaces with
+  content painted between them - the later one misses that content.
   Device evidence: glass-renderer.md.
 - ONE renderer in the package (lib/src/glass/renderer, vendored
   whynotmake-it, Apache-2.0, VENDORED lists local patches; owner decision

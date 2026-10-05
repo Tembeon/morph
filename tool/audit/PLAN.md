@@ -59,6 +59,20 @@ C1, G1, ... refer to it).
 - OWNER DECISIONS PENDING (pixel-changing perf levers): menu silhouette analytic union / single-box card (menu p95 2.5-3.8 ms per frame), edge effects in the bars' capture, glass shadows without per-surface saveLayer, governor stepping liquid->frosted makes controls MORE expensive (frosted raster p95 3.65 vs liquid 2.88).
 - Being checked: a possible shared-backdrop staleness bug (Impeller snapshots the shared group at the first filter in paint order).
 
+## Status 2026-10-05 early (clock + overlay backdrop agent)
+
+- Clock (493f012, de82e39; spec/README.md "Clocks"): touch vs frame clock
+  bases measured, the "stamped a frame early" suspicion rejected;
+  MorphClock now stamps one frame after delivery (UIKit's begin), counts
+  dozes and wakes. The menu late-close residual is NOT re-measured: the
+  XCUITest runner timed out enabling automation mode on the phone (needs
+  the owner at the phone: unlock, check Settings > Developer > Enable UI
+  Automation, then rerun lab.py capture menu-return.json with film).
+- Backdrop groups (8acf447): context menu hero/satellites and frosted
+  lenses fixed on device. OWNER DECISION: two resting body glass with
+  content painted between them still read a stale root copy (72 / 43 max
+  diff); a group per body glass control fixes it at a capture each.
+
 ## Order of work (owner's priorities)
 
 1. Menu API leftovers (see above) - small, can ride with WP-E.
