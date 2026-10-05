@@ -170,7 +170,8 @@ class MorphGlassContainerLink {
       return 0;
     }
     final parts = frame.parts;
-    if (parts.separate.isEmpty ||
+    if (!frame.still ||
+        parts.separate.isEmpty ||
         parts.fused.isNotEmpty ||
         parts.floating.isNotEmpty) {
       return 0;

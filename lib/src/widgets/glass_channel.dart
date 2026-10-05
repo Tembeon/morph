@@ -16,7 +16,12 @@ class MorphGlassFrame {
     this.outline,
     this.contentSlots = const [],
     this.spacing = 0,
+    this.still = false,
   });
+
+  /// Whether nothing of the control moves in this frame: no surface and
+  /// no transform between the surfaces and an enclosing glass container.
+  final bool still;
 
   /// The surfaces, back to front.
   final List<MorphGlassSurface> surfaces;

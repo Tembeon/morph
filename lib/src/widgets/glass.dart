@@ -502,8 +502,14 @@ class MorphGlassLayer extends StatelessWidget {
     this.contentSlots = const [],
     this.spacing = 0,
     this.outline,
+    this.still,
     super.key,
   });
+
+  /// Returns whether the control is at rest in the current frame: no
+  /// surface moves and no transform above them changes. Null for a control
+  /// that does not tell, which a glass container never takes.
+  final bool Function()? still;
 
   /// The painter that builds each surface.
   final MorphGlassPainter painter;
@@ -542,6 +548,7 @@ class MorphGlassLayer extends StatelessWidget {
           outline: outline?.call(),
           contentSlots: contentSlots,
           spacing: spacing,
+          still: still?.call() ?? false,
         ),
         content: content,
       ),
