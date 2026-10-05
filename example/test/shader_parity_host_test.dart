@@ -14,6 +14,10 @@ import '../integration_test/support/shader_harness.dart';
 ///     flutter test --enable-impeller --enable-flutter-gpu \
 ///       test/shader_parity_host_test.dart
 ///
+/// flutter test keeps compiled shaders in build/unit_test_assets and does
+/// not see an edit to an included .glsl: delete that folder after editing
+/// a shader include.
+///
 /// Without Impeller (a plain `flutter test`) there is no liquid tier and
 /// the test does nothing. `--dart-define=AUDIT_OUT=<dir>` keeps the report
 /// and the PNGs; `SHADER_CASES` and `SHADER_MAX_DIFF` as on the device.
