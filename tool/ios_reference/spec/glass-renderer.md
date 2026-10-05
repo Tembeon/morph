@@ -327,10 +327,18 @@ test/glass_renderer_test.dart ('the adaptive tier').
   layer walk and retained-layer churn per frame, and still misses
   content painted inside an earlier member's own subtree.
   (C) opt-in: the app wraps a section painted over earlier glass in its
-  own `BackdropGroup` (MorphAdaptiveGlass's doc already says so) - free
-  by default, correct where the app asks. (D) status quo (72 / 43 max
-  channel in the repro). Recommendation: C, or A if fidelity on every
-  page outweighs ~1 ms raster p95 on control-heavy pages.
+  own `BackdropGroup` - free by default, correct where the app asks.
+  (D) status quo (72 / 43 max channel in the repro).
+  DECIDED (owner, 2026-10-05): C. The package groups nothing on its own;
+  the recipe lives in MorphAdaptiveGlass's dartdoc (pointed to from
+  MorphGlassRenderer's): a section whose glass paints after other content
+  (a card over a list, a second control row over content painted after
+  the first) goes in `BackdropGroup(child: section)`, which gives it a
+  copy taken where it paints, for one more full-screen readback per
+  frame while anything in it moves. A plain BackdropGroup (a fresh key)
+  is the whole API - a helper would only rename it.
+  test/backdrop_section_test.dart pins it: the second button of a page
+  reads the page's key, wrapped it reads its own.
 - SCROLL EDGE EFFECT IN THE BARS' GROUP - MEASURED, REJECTED (2026-10-05,
   audit PF9 / research G14b): the navigation bar's edge effect taking the
   stack's chrome key (`MorphChromeBackdropScope`) would save its own
@@ -458,5 +466,6 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).
 - Backdrop groups: two resting body glass surfaces with content painted
   between them - the later one reads the root copy without that content
-  (device evidence above; options A - D with costs under "Second resting
-  body glass"; owner decision).
+  unless the app gives the later section its own BackdropGroup (option
+  C, decided 2026-10-05; device evidence and costs under "Second resting
+  body glass").

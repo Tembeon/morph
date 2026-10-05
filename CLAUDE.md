@@ -188,6 +188,10 @@ Cross-cutting policy:
 - Fade glass through `MorphGlassSurface.opacity`, never through an
   Opacity above it (it reads an empty backdrop), and never put an
   OpacityLayer between resting glass (it breaks BackdropGroup sharing).
+  The same holds for every BackdropFilter: the scroll edge effect fades
+  through `MorphScrollEdgeEffect.opacity` (an alpha matrix composed onto
+  its blur); under an Opacity it showed the page sharp under the bar for
+  the whole fade (edge_effect_fade_test).
 - BACKDROP GROUPS: a shared group member does NOT read the backdrop at
   its own place in paint order. On iOS (Metal reads from the resolve
   texture) every member after the first reads the pass texture as it
@@ -199,11 +203,14 @@ Cross-cutting policy:
   through buildSurface), the navigation bar + toolbar (one
   `MorphChromeBackdrop` key per screen, chrome_group.dart), the search
   tab bar, a sheet's content, a menu's card, a context menu's hero and
-  satellites, lifted glass and a frosted lens / knob / thumb. KNOWN
-  WRONG (owner decision pending): two resting body glass surfaces with
-  content painted between them - the later one misses that content; it
-  cannot be detected per frame (pictures carry no drawn bounds), options
-  and device costs in glass-renderer.md. The scroll edge effect keeps its
+  satellites, lifted glass and a frosted lens / knob / thumb. Two
+  resting body glass surfaces with content painted between them: the
+  later one misses that content (it cannot be detected per frame -
+  pictures carry no drawn bounds). OWNER DECISION 2026-10-05, option C:
+  no automatic grouping; the app wraps a section painted over earlier
+  glass in its own `BackdropGroup(child: section)` (MorphAdaptiveGlass
+  dartdoc, backdrop_section_test; options and device costs in
+  glass-renderer.md). The scroll edge effect keeps its
   own copy: in the bars' group the capsules would miss its fade
   (measured, glass-renderer.md).
 - ONE renderer in the package (lib/src/glass/renderer, vendored

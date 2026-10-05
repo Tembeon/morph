@@ -83,7 +83,8 @@ enum MorphGlassMaterial {
 /// Native builds must package the GPU shader bundle from the package's
 /// build hook in `build/shaderbundles/`.
 /// Wrap a fixed renderer's controls in [BackdropGroup] to share backdrop
-/// copies; overlapping glass that samples other glass needs its own group.
+/// copies; a section painted over earlier glass and content needs a group
+/// of its own (see [MorphAdaptiveGlass]).
 @immutable
 class MorphGlassRenderer extends MorphGlassPainter {
   /// Creates a renderer at [tier] with the liquid tier's settings.

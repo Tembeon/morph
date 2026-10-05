@@ -191,8 +191,21 @@ class MorphGlassTierGovernor {
 ///
 /// Read the tier in use with [MorphAdaptiveGlass.tierOf] or follow it
 /// with [onTierChanged]. An ancestor [BackdropGroup] is reused, otherwise
-/// this widget installs one for its controls. Give overlapping sections
-/// their own groups when their glass must sample earlier glass.
+/// this widget installs one for its controls.
+///
+/// Resting glass in one [BackdropGroup] shares one copy of the screen,
+/// taken where the group's first glass paints, so glass painted after
+/// other content misses that content - a button on a card drawn over a
+/// list whose own glass painted first shows the list as it stood before
+/// the card. Give such a section a group of its own:
+///
+/// ```dart
+/// BackdropGroup(child: card)
+/// ```
+///
+/// Its glass then reads a copy taken where the section paints, at the
+/// price of one more full-screen copy per frame while anything in it
+/// moves. Bars, menus, sheets and lifted glass already take their own.
 class MorphAdaptiveGlass extends StatefulWidget {
   /// Installs [renderer] for [child] at [tier], or at the tier the frame
   /// timings allow when [tier] is null.
