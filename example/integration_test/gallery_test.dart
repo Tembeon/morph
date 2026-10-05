@@ -297,7 +297,7 @@ class _Qa {
     await settle();
     check('scrub past the end lands on Radio', ok: _tabOf(bar) == 2);
 
-    final list = find.byType(ListView);
+    final list = find.byType(CustomScrollView).last;
     await tester.fling(list, const Offset(0, -500), 1500);
     await settle(1200);
     await shot('tabbar3-over-scrolled-content');
@@ -588,8 +588,11 @@ class _Qa {
   }
 
   String _menuLast() {
+    final color = gallerySecondaryColor(
+      tester.element(find.byType(MorphMenuButton).first),
+    );
     final last = find.byWidgetPredicate(
-      (Widget w) => w is Text && w.style?.color == const Color(0xFF8E8E93),
+      (Widget w) => w is Text && w.style?.color == color,
     );
     return tester.widget<Text>(last.first).data ?? '?';
   }
@@ -641,7 +644,7 @@ class _Qa {
     );
     await settle();
     for (final material in ['Toolbar', 'Clear', 'Regular']) {
-      await _setting(find.text(material));
+      await _setting(find.text(material).first);
       await _sceneTop();
       await shot('glass-${material.toLowerCase()}');
     }
@@ -684,10 +687,6 @@ class _Qa {
     await _sceneTop();
     await shot('glass-light-disabled');
     await _setting(_switchNamed('Disabled'));
-    await _setting(_switchNamed('Fallback glass'));
-    await _sceneTop();
-    await shot('glass-fallback');
-    await _setting(_switchNamed('Fallback glass'));
     await _setting(find.text('Frosted'));
     await _sceneTop();
     await shot('glass-frosted');
@@ -698,7 +697,7 @@ class _Qa {
     await open('Controls');
     check(
       'the flat renderer reaches other pages',
-      ok: find.byType(MorphGlass).evaluate().isEmpty,
+      ok: _tier() == MorphGlassTier.flat,
     );
     await back();
     await open('Glass renderer');
@@ -708,7 +707,7 @@ class _Qa {
     await open('Controls');
     check(
       'the liquid renderer reaches other pages',
-      ok: find.byType(MorphGlass).evaluate().isNotEmpty,
+      ok: _tier() == MorphGlassTier.liquid,
     );
     await back();
   }
@@ -734,9 +733,12 @@ class _Qa {
     await back();
   }
 
+  MorphGlassTier? _tier() =>
+      tester.widget<MorphAdaptiveGlass>(find.byType(MorphAdaptiveGlass)).tier;
+
   Future<void> _slowMotion() async {
     _enter('slow-motion');
-    await tester.tap(find.text('Slow-mo off').last);
+    await tester.tap(find.bySemanticsLabel('Slow motion 1x').last);
     await settle(300);
     check('5x on', ok: timeDilation == 5);
     await open('Segmented control');
@@ -747,9 +749,9 @@ class _Qa {
     await settle(4000);
     await back();
     await settle(3000);
-    await tester.tap(find.text('Slow-mo 5x').last);
-    await tester.pump();
-    await tester.tap(find.text('Slow-mo 10x').last);
+    await tester.tap(find.bySemanticsLabel('Slow motion 5x').last);
+    await settle(300);
+    await tester.tap(find.bySemanticsLabel('Slow motion 10x').last);
     await settle(300);
     check('slow-mo back off', ok: timeDilation == 1);
     await shot('home-end');

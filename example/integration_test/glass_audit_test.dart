@@ -235,7 +235,7 @@ class _Audit {
       whileHeld: () => shot('tabbar3-held-selected'),
     );
     await settle();
-    final list = find.byType(ListView);
+    final list = find.byType(CustomScrollView).last;
     await tester.fling(list, const Offset(0, -500), 1500);
     await settle(1200);
     await finger(
