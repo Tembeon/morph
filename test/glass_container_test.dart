@@ -1,3 +1,6 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -124,4 +127,70 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
     expect(shared, lessThan(_filters()));
   });
+
+  for (final (name, wrap) in <(String, Widget Function(Widget child))>[
+    ('hidden', (child) => Opacity(opacity: 0, child: child)),
+    ('half faded', (child) => Opacity(opacity: 0.5, child: child)),
+    ('clipped', (child) => ClipRect(child: child)),
+  ]) {
+    testWidgets('a $name button keeps its own layer and its own pixels', (
+      WidgetTester tester,
+    ) async {
+      final key = GlobalKey();
+      Future<Uint8List> shot({required bool container}) async {
+        final buttons = Stack(
+          children: [
+            Positioned(
+              left: 20,
+              top: 20,
+              width: 80,
+              height: 44,
+              child: wrap(
+                MorphGlassButton(onPressed: () {}, child: const Text('a')),
+              ),
+            ),
+            Positioned(
+              left: 120,
+              top: 20,
+              width: 80,
+              height: 44,
+              child: MorphGlassButton(onPressed: () {}, child: const Text('b')),
+            ),
+          ],
+        );
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
+            home: MorphAdaptiveGlass(
+              tier: MorphGlassTier.fake,
+              child: RepaintBoundary(
+                key: key,
+                child: ColoredBox(
+                  color: const Color(0xFF406080),
+                  child: container
+                      ? MorphGlassContainer(child: buttons)
+                      : buttons,
+                ),
+              ),
+            ),
+          ),
+        );
+        await tester.pump(const Duration(milliseconds: 100));
+        await tester.pump(const Duration(milliseconds: 100));
+        final boundary =
+            key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+        final image = await tester.runAsync(boundary.toImage);
+        final data = await tester.runAsync(
+          () => image!.toByteData(format: ui.ImageByteFormat.rawRgba),
+        );
+        image!.dispose();
+        return data!.buffer.asUint8List();
+      }
+
+      final own = await shot(container: false);
+      final shared = await shot(container: true);
+      expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+      expect(shared, own);
+    });
+  }
 }

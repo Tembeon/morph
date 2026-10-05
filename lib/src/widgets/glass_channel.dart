@@ -459,6 +459,7 @@ class _MorphGlassHostElement extends ComponentElement {
   Widget? _tree;
   Widget? _content;
   MorphGlassContainerLink? _container;
+  bool? _clearPath;
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -473,16 +474,28 @@ class _MorphGlassHostElement extends ComponentElement {
     super.unmount();
   }
 
+  @override
+  void activate() {
+    super.activate();
+    _clearPath = null;
+    _structure = null;
+  }
+
   /// The structure of [frame] drawn by [renderer], with whether the
   /// nearest glass container shades it.
   Object _structureOf(MorphGlassRenderer renderer, MorphGlassFrame frame) {
     final container = MorphGlassContainerScope.maybeOf(this);
-    if (!identical(container, _container)) _container?.release(this);
+    if (!identical(container, _container)) {
+      _container?.release(this);
+      _clearPath = null;
+    }
     _container = container;
     final joined =
         _host.mode == MorphGlassMode.layer &&
         container != null &&
+        (_clearPath ??= morphGlassContainerReaches(this)) &&
         container.admit(this, renderer, frame);
+    if (!joined) container?.release(this);
     return (
       renderer.structureOf(_host.mode, frame, content: _host.content != null),
       joined,

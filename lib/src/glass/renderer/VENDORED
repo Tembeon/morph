@@ -181,3 +181,12 @@ Local patches (some commits include related package changes):
   reuses a frame slot's extra blocks. debugHostBufferBlockLength /
   debugHostBufferIdentity became debugUniformBlockLength /
   debugUniformArenaIdentity (also in the web stub).
+- 2026-10-05 32 shapes per layer: MAX_SHAPES 16 -> 32 in
+  shaders/gpu/geometry_fragment.glsl, sdf.glsl and
+  material_gradient_fragment.glsl (materialShapeTint's chain to 31), the
+  final shader's contributor decode (x 32, clamp 31), and on the Dart side
+  FlutterGpuGeometryRenderer.maxShapes (uniform packing, appearance rows,
+  the material map's minimum width, the layer's shape cap, the warm-up's
+  appearance data). The geometry uniforms grow from 2352 bytes; a layer of
+  16 shapes or fewer draws the same pixels (Pixel 6a density shots, 0
+  difference).

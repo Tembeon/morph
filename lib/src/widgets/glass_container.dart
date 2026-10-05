@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -18,7 +19,10 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// lays out, hits, moves and paints its content as before.
 ///
 /// The container's glass is painted where the container paints, under
-/// everything inside it. So everything in [child] is content above the
+/// everything inside it, and it is drawn whatever lies between the
+/// container and a control: a control under an opacity, a clip, a filter
+/// or a scrolling viewport inside the container (a list of buttons, a
+/// fading or hidden button, a morph source) keeps its own layer. So everything in [child] is content above the
 /// glass: a card, a row background or an image placed inside the container
 /// would cover the glass of the buttons over it. Put what the glass must
 /// show through outside the container, under it.
@@ -82,6 +86,43 @@ class _MorphGlassContainerState extends State<MorphGlassContainer> {
       child: widget.child,
     );
   }
+}
+
+/// Whether the glass of [host] would look the same shaded by the nearest
+/// glass container: nothing between them fades, clips, filters or hides
+/// what is painted, since the container's layer shades every shape it
+/// holds whatever lies between.
+@internal
+bool morphGlassContainerReaches(Element host) {
+  final scope = host
+      .getElementForInheritedWidgetOfExactType<MorphGlassContainerScope>();
+  if (scope == null) return false;
+  var clear = true;
+  host.visitAncestorElements((Element element) {
+    if (identical(element, scope)) return false;
+    final render = element is RenderObjectElement ? element.renderObject : null;
+    if (render is RenderOpacity ||
+        render is RenderAnimatedOpacityMixin ||
+        render is RenderSliverOpacity ||
+        render is RenderOffstage ||
+        render is RenderClipRect ||
+        render is RenderClipRRect ||
+        render is RenderClipRSuperellipse ||
+        render is RenderClipOval ||
+        render is RenderClipPath ||
+        render is RenderShaderMask ||
+        render is RenderBackdropFilter ||
+        render is RenderViewportBase ||
+        render is RenderFollowerLayer ||
+        element.widget is ImageFiltered ||
+        element.widget is ColorFiltered ||
+        element.widget is Visibility) {
+      clear = false;
+      return false;
+    }
+    return true;
+  });
+  return clear;
 }
 
 /// The glass container above a control, read by its glass hosts.
