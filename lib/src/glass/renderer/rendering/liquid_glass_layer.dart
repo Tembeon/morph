@@ -438,12 +438,26 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   final FragmentShader defaultRenderShader;
   final FragmentShader materialRenderShader;
   final FragmentShader tintRenderShader;
-  FragmentShader get renderShader =>
-      switch ((_usesShapeAppearances, _usesTintOnlyAppearance)) {
-        (false, _) => defaultRenderShader,
-        (true, true) => tintRenderShader,
-        (true, false) => materialRenderShader,
-      };
+  FragmentShader get renderShader {
+    final shader = switch ((_usesShapeAppearances, _usesTintOnlyAppearance)) {
+      (false, _) => defaultRenderShader,
+      (true, true) => tintRenderShader,
+      (true, false) => materialRenderShader,
+    };
+    _writeStaleShaderSettings(shader);
+    return shader;
+  }
+
+  final Set<FragmentShader> _staleShaders = {};
+
+  void _writeStaleShaderSettings(FragmentShader shader) {
+    if (!_staleShaders.remove(shader)) return;
+    _writeCommonShaderUniforms(
+      shader,
+      _uniformAppearance ?? defaultAppearance,
+      _materialCenterInMatte,
+    );
+  }
 
   FlutterGpuGeometryRenderer? _gpuGeometryRenderer;
   FlutterGpuGeometryRenderer? get gpuGeometryRenderer => _gpuGeometryRenderer;
@@ -495,22 +509,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   void _updateShaderSettings() {
     _shaderInputsChanged = true;
-    final appearance = _uniformAppearance ?? defaultAppearance;
-    _writeCommonShaderUniforms(
-      defaultRenderShader,
-      appearance,
-      _materialCenterInMatte,
-    );
-    _writeCommonShaderUniforms(
-      materialRenderShader,
-      appearance,
-      _materialCenterInMatte,
-    );
-    _writeCommonShaderUniforms(
-      tintRenderShader,
-      appearance,
-      _materialCenterInMatte,
-    );
+    _staleShaders.add(defaultRenderShader);
+    _staleShaders.add(materialRenderShader);
+    _staleShaders.add(tintRenderShader);
+    _writeStaleShaderSettings(renderShader);
   }
 
   void _writeCommonShaderUniforms(
