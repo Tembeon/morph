@@ -7,6 +7,11 @@ import 'package:meta/meta.dart';
 /// A painted content source shared by the lens copies in one control.
 @internal
 class GlassContentSnapshot {
+  /// The captures that fell back to a GPU snapshot because the content
+  /// holds a layer the replay cannot copy; debug builds only.
+  @visibleForTesting
+  static int debugImageFallbackCount = 0;
+
   ui.Picture? _picture;
   ui.Image? _image;
   Size _size = Size.zero;
@@ -57,11 +62,26 @@ class GlassContentSnapshot {
       _picture = picture;
     } else {
       picture.dispose();
+      assert(() {
+        debugImageFallbackCount++;
+        return true;
+      }());
       final offset = layer.offset;
       layer.offset = Offset.zero;
       _image = layer.toImageSync(Offset.zero & size, pixelRatio: pixelRatio);
       layer.offset = offset;
     }
+  }
+
+  /// Takes over [other]'s recording, which stays valid until the source's
+  /// content repaints.
+  void _adopt(GlassContentSnapshot other) {
+    _dispose();
+    _picture = other._picture;
+    _image = other._image;
+    _size = other._size;
+    other._picture = null;
+    other._image = null;
   }
 
   void _dispose() {
@@ -103,15 +123,18 @@ class GlassContentSource extends SingleChildRenderObjectWidget {
   ) {
     final source = renderObject as _RenderContentSource;
     if (!identical(source.snapshot, snapshot)) {
-      source.snapshot._dispose();
+      snapshot._adopt(source.snapshot);
       source.snapshot = snapshot;
     }
-    source.pixelRatio = MediaQuery.devicePixelRatioOf(context);
-    if (source.capture != capture) {
-      source.capture = capture;
-      source.markNeedsCompositingBitsUpdate();
+    final pixelRatio = MediaQuery.devicePixelRatioOf(context);
+    if (source.pixelRatio != pixelRatio) {
+      source.pixelRatio = pixelRatio;
+      source.markNeedsPaint();
     }
-    source.markNeedsPaint();
+    if (source.capture != capture || capture) {
+      source.capture = capture;
+      source.markNeedsPaint();
+    }
   }
 }
 
@@ -124,7 +147,7 @@ class _RenderContentSource extends RenderProxyBox {
   final LayerHandle<OffsetLayer> _capture = LayerHandle<OffsetLayer>();
 
   @override
-  bool get alwaysNeedsCompositing => capture;
+  bool get isRepaintBoundary => true;
 
   @override
   void paint(PaintingContext context, Offset offset) {

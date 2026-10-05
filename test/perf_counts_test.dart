@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_body_shadow.dart';
 import 'package:morph/widgets.dart';
@@ -37,7 +38,7 @@ void main() {
     isLocalTest = false;
     const header =
         'scene                 frames builds paints pictures captures '
-        'offscreen bodyShadows idle';
+        'offscreen bodyShadows snapshotImages idle';
     final lines = <String>[header];
     for (final MapEntry(:key, :value) in results.entries) {
       final r = value! as Map<String, Object?>;
@@ -46,7 +47,8 @@ void main() {
         '${'${r['builds']}'.padLeft(7)}${'${r['paints']}'.padLeft(7)}'
         '${'${r['pictures']}'.padLeft(9)}${'${r['captures']}'.padLeft(9)}'
         '${'${r['offscreen']}'.padLeft(10)}'
-        '${'${r['bodyShadows']}'.padLeft(12)}${'${r['idle']}'.padLeft(5)}',
+        '${'${r['bodyShadows']}'.padLeft(12)}'
+        '${'${r['snapshotImages']}'.padLeft(15)}${'${r['idle']}'.padLeft(5)}',
       );
     }
     debugPrint(lines.join('\n'));
@@ -105,6 +107,7 @@ const _pinnedKeys = [
   'captures',
   'offscreen',
   'bodyShadows',
+  'snapshotImages',
   'idle',
 ];
 
@@ -141,9 +144,11 @@ class _Counter {
   int _framePaints = 0;
   Set<ui.Picture> _seen = {};
   late final int _shadowStart;
+  late final int _imageStart;
 
   void start() {
     _shadowStart = MorphGlassBodyShadow.debugSaveLayerCount;
+    _imageStart = GlassContentSnapshot.debugImageFallbackCount;
     debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
       _frameBuilds++;
     };
@@ -198,6 +203,9 @@ class _Counter {
       'offscreen': per(_offscreen),
       'bodyShadows': per(
         MorphGlassBodyShadow.debugSaveLayerCount - _shadowStart,
+      ),
+      'snapshotImages': per(
+        GlassContentSnapshot.debugImageFallbackCount - _imageStart,
       ),
       'idle': idle,
     };
