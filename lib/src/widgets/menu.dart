@@ -546,16 +546,26 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
 
   bool get _landing => _host.isLanding;
 
+  ({MorphMenuStyle style, Widget glyph, Widget face})? _resting;
+
   Widget _face(BuildContext context, MorphMenuStyle style, Widget glyph) {
     final motion = _motion;
     if (motion == null || !_landing) {
+      final resting = _resting;
+      if (resting != null &&
+          identical(resting.style, style) &&
+          identical(resting.glyph, glyph)) {
+        return resting.face;
+      }
       final box = Offset.zero & Size.square(style.buttonSize);
-      return _MenuShapes(
+      final face = _MenuShapes(
         style: style,
         glyph: glyph,
         source: RRect.fromRectAndRadius(box, Radius.circular(box.width / 2)),
         sourceRect: box,
       );
+      _resting = (style: style, glyph: glyph, face: face);
+      return face;
     }
     final origin = -motion.button.topLeft;
     final source = motion.buttonBlob;
