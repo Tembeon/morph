@@ -92,21 +92,23 @@ Internal machinery (all `@internal`):
   keep insert order; `now` reads the running action's time.
 - `clock.dart` - `MorphClock` mixin: the ticker's elapsed time
   ACCUMULATED across restarts (time asleep does not count; the ticker
-  stops when the motion settles). `stamp(event)` stamps ONE FRAME AFTER
-  THE DELIVERY (UIKit sets an animation started in an event handler to
-  begin 8.1 - 8.3 ms after the call at 120 Hz; an iOS frame is stamped
-  with its display TARGET): while ticking or dozing, the latest frame's
-  clock + (now - that frame's stamp + 1 / motionFrameRate), now read on
-  `morphClockNow` (Dart's Timeline clock = the engine frame clock,
-  CLOCK_MONOTONIC_RAW on iOS; PointerEvent.timeStamp is
-  UITouch.timestamp, CLOCK_UPTIME_RAW, offset by the device's total
-  sleep). While asleep, events keep their own timestamp spacing divided
-  by `timeDilation`, and the first frame after the wake counts from one
-  frame after the delivery. Frame stamps and now disagreeing by > 50 ms
-  (a test's fake clock) fall back to the latest frame's clock (the old
-  rule, which left a doze's events at the pre-doze clock).
-  `MorphSpringState` never retargets before its last change. Evidence:
-  spec/README.md "Clocks".
+  stops when the motion settles). `stamp(event)` stamps the event's OWN
+  TIME STAMP on the motion clock - the reference every device-fitted
+  delay and every replay uses (UITouch.timestamp to native start, which
+  includes UIKit's 10 - 25 ms delivery latency). PointerEvent.timeStamp
+  counts CLOCK_UPTIME_RAW on iOS / macOS, frames and `morphClockNow`
+  (Dart's Timeline clock) CLOCK_MONOTONIC_RAW; `morphPointerClockOffset`
+  reads the difference (the device's sleep) through FFI
+  (pointer_clock_io.dart; zero elsewhere, stub on web). While ticking or
+  dozing: the latest frame's clock + (event time - that frame's stamp),
+  1 - 3 frames in the past (an iOS frame is stamped with its display
+  TARGET); while asleep, events keep their own spacing divided by
+  `timeDilation` and the first frame after the wake counts from the
+  event's time stamp. A time stamp outside 0 - 250 ms before now falls
+  back to delivery + one frame (UIKit begins a frame after a handler);
+  frame stamps and now disagreeing by > 50 ms (a test's fake clock) fall
+  back to the latest frame's clock. `MorphSpringState` never retargets
+  before its last change. Evidence: spec/README.md "Clocks".
   `motionFrameRate` = 60 when the display reports 60 Hz, 120 otherwise.
   `frames` is the painter's repaint Listenable.
 - `flex_integrator.dart` - `MorphFlexIntegrator` (UIKit's

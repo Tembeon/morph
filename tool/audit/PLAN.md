@@ -61,13 +61,14 @@ C1, G1, ... refer to it).
 
 ## Status 2026-10-05 early (clock + overlay backdrop agent)
 
-- Clock (493f012, de82e39; spec/README.md "Clocks"): touch vs frame clock
-  bases measured, the "stamped a frame early" suspicion rejected;
-  MorphClock now stamps one frame after delivery (UIKit's begin), counts
-  dozes and wakes. The menu late-close residual is NOT re-measured: the
-  XCUITest runner timed out enabling automation mode on the phone (needs
-  the owner at the phone: unlock, check Settings > Developer > Enable UI
-  Automation, then rerun lab.py capture menu-return.json with film).
+- Clock (493f012, c120e87, de82e39; spec/README.md "Clocks"): touch vs
+  frame clock bases measured; MorphClock now stamps the event's own
+  touch time stamp (the reference of every fitted delay and replay; the
+  old delivery anchor started reactions ~15 - 25 ms late). The menu
+  late-close residual is NOT re-measured: the XCUITest runner timed out
+  enabling automation mode on the phone (needs the owner at the phone:
+  unlock, check Settings > Developer > Enable UI Automation, then rerun
+  lab.py capture menu-return.json with film; the lab now logs lab_stamp).
 - Backdrop groups (8acf447): context menu hero/satellites and frosted
   lenses fixed on device. OWNER DECISION: two resting body glass with
   content painted between them still read a stale root copy (72 / 43 max

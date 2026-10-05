@@ -656,9 +656,13 @@ Opening timing, close residual and root rows [device fits + films, 2026-10-05]:
   latency, which made our close look early. In-app geometry of runs
   10..12 puts the closing root list ~4 - 5 ms LATE in evaluation time:
   the outside release reaches the menu asleep, and the first frame after
-  a wake counted from the stamp itself. MorphClock now stamps one frame
-  after delivery and counts the wake (also fixing stale stamps during a
-  doze); expected: that close ~5 - 8 ms earlier. Lab labels fixed in
+  a wake counted from the stamp itself. The delays here (tapOpenDelay,
+  dismissDelay, submenuCloseDelay, cardContainerDelay) are fitted from
+  the touch's time stamp, so a host anchored on delivery started every
+  reaction ~15 - 25 ms late (the nav-bar back menu begins 59.7 - 62.0 ms
+  after the time stamp, 44.0 - 45.3 ms after delivery). MorphClock now
+  stamps the event's own time stamp (spec/README.md "Clocks"), the
+  replays' reference. Lab labels fixed in
   lab_app.dart. The late-close film residual is NOT re-measured: the
   XCUITest runner timed out enabling automation mode on the phone.
 - Run lab/out/menu-phone-20261005-12 (5cca0fd: open delay and close

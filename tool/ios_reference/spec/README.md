@@ -258,26 +258,32 @@ lab runs menu-phone-20261005-10..12; recordings/device-navbar-20261005).
   18.5 ms after delivery (31.6 - 43.2 ms after the touch time stamp: the
   delivery anchor has half the spread), the nav-bar back menu's morph
   44.0 - 45.3 ms after delivery.
-- MorphClock (2026-10-05) stamps an event one frame after its delivery,
-  read on the Timeline clock - UIKit's begin, on a clock whose frames are
-  stamped with their display target. Before, while the ticker ran it gave
-  the latest frame's clock (that frame's target, ~7 ms after the
-  delivery: within ~1 ms of the new stamp, so the old hypothesis "a touch
-  is stamped up to a frame early" is rejected); during a doze it gave the
-  clock of the frame before the doze (early by the doze so far); after a
-  sleep the first frame counted from the stamp itself (~one frame late).
-- Lab runs 10..12 (old code) put the menu's close-submenu root list
-  (rows/0 width, in-app geometry) about 4 - 5 ms LATE against native in
-  evaluation time, delivery-relative (Flutter state at its frame target
-  = native state at its callback; 0.15 pt rms at the best shift). The
-  outside tap's release reaches the menu asleep, so the new wake rule
-  starts that close ~5 - 8 ms earlier. Not yet re-captured: XCUITest
-  could not enable automation mode on 2026-10-05 ("Timed out while
-  enabling automation mode", twice) - needs the owner at the phone.
-- Replays feed recorded touch time stamps (HID); delays fitted that way
-  include UIKit's delivery latency (~15 ms) and its one-frame begin, so a
-  live host anchored on delivery + one frame matches them only on
-  average; not re-fitted.
+- REFERENCE: every device-fitted delay is measured from the touch's own
+  time stamp (Recorder rows `t` = UITouch.timestamp) to the native start,
+  so it contains UIKit's delivery latency and its one-frame begin. The
+  nav-bar back menu's morph begins 59.7 - 62.0 ms after the release's
+  time stamp but 44.0 - 45.3 ms after its delivery (latency 14.9 -
+  17.3 ms); `dismissDelay` 0.059 is the former. A host anchored on
+  delivery therefore applies the latency twice.
+- MorphClock (2026-10-05, after 493f012) stamps an event at its own time
+  stamp moved onto the frame clock: on iOS / macOS the offset is read
+  from CLOCK_MONOTONIC_RAW - CLOCK_UPTIME_RAW (FFI; matches the measured
+  offset to 1 us in a profile build, lab/out/clock-20261005-base2),
+  elsewhere the two are one clock; a time stamp that does not land 0 -
+  250 ms before now falls back to delivery + one frame. Replays and the
+  app now share one reference: the touch time stamp. Stamps lie 1 - 3
+  frames behind the motion's clock (latency 10 - 25 ms + the ~8 ms frame
+  lead); delayed reactions land exactly, immediate ones catch up on the
+  next frame, and springs never retarget before their last change.
+  Before: the latest frame's clock while ticking (~7 ms after delivery,
+  so ~15 - 25 ms LATE against the fitted delays), the pre-doze clock
+  during a doze, and the stamp itself for the first frame after a sleep;
+  493f012 (delivery + one frame) kept the double-counted latency.
+- Lab runs 10..12 (old code) put the closing root list (rows/0, the
+  list view's frame, downstream of the glass morph) only ~4 - 5 ms late
+  in evaluation time; the direct begin times above are the stronger
+  evidence. No lab_stamp rows exist yet: XCUITest could not enable
+  automation mode on 2026-10-05.
 - The lab labelled Flutter frames with their postFrame time (~6 ms before
   the frame's target) and Flutter touches with a time stamp shifted by
   the FIRST touch's delivery latency; both are fixed in lab_app.dart
