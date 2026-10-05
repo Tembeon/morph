@@ -14,6 +14,10 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Fixed: past about 31 glass layers re-rendering in one frame, the rest
+  were not drawn ("geometry render failed"). Flutter GPU's HostBuffer let
+  a uniform write cross the end of its block; the renderer now allocates
+  its own uniform blocks and takes any number of layers per frame.
 - Liquid glass on Android Vulkan no longer sits in a gray box: on Mali
   GPUs (Pixel 6a) the final pass read every pixel outside a glass shape
   as lying on its edge and drew half the glass over the surface's whole
