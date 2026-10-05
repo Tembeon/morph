@@ -577,3 +577,168 @@ final class BarsRecorder: NSObject {
         Recorder.shared.log(["k": "evt", "e": "dump", "tag": tag, "t": CACurrentMediaTime()])
     }
 }
+
+/// Scene `navseg`: which glass capsule of a navigation bar becomes which on a push or a pop
+/// when the pages' leading and trailing groups differ. Five pages over colored stripes:
+/// - 0 "Root": large title, no leading item, trailing [plus];
+/// - 1 "Alpha": inline title, back button, trailing [share];
+/// - 2 no title: a "Cancel" leading item instead of the back button, trailing [heart share]
+///   (one group);
+/// - 3 "Gamma": back button, no trailing item;
+/// - 4 "Delta": large title, back button, trailing [Done (prominent)] and [heart] (two groups).
+/// PROBE_SEQ (default "push,push,push,push,pop,pop,pop,pop") runs from 1.5 s, PROBE_GAP
+/// seconds apart (default 1.6); `push` pushes the next page, `pop` pops one, `root` pops to the
+/// root, `tbA` / `tbB` / `tbC` set the root's toolbar (NavSegPages.toolbar). Every transition logs an `evt` row (e push / pop / root, from / to page). BarsRecorder
+/// logs every layer under the bar (cls CASDFElementLayer = one glass capsule; lid = the layer's
+/// identity, so a capsule that becomes another keeps its lid). PROBE_LARGE=0 drops the large
+/// titles; PROBE_SEQ=none leaves the scene for touches: a tap on a page pushes the next one
+/// (BarsUITests.testNavSeg: taps, edge swipes, back button taps).
+enum NavSegPages {
+    static func item(_ name: String, _ id: String) -> UIBarButtonItem {
+        BarsListScene.tagged(UIBarButtonItem(image: UIImage(systemName: name), style: .plain, target: nil, action: nil), id)
+    }
+
+    static func configure(_ vc: UIViewController, page: Int) {
+        let n = vc.navigationItem
+        switch page {
+        case 0:
+            vc.title = "Root"
+            n.largeTitleDisplayMode = BarsEnv.large ? .always : .never
+            n.rightBarButtonItems = [item("plus", "segPlus")]
+            vc.toolbarItems = toolbar("A")
+        case 1:
+            vc.title = "Alpha"
+            n.largeTitleDisplayMode = .never
+            n.rightBarButtonItems = [item("square.and.arrow.up", "segShare")]
+        case 2:
+            vc.title = nil
+            n.largeTitleDisplayMode = .never
+            n.leftBarButtonItem = BarsListScene.tagged(UIBarButtonItem(title: "Cancel", primaryAction: UIAction { [weak vc] _ in
+                Recorder.shared.log(["k": "evt", "e": "pop", "from": 2, "to": 1, "cancel": true, "t": CACurrentMediaTime()])
+                vc?.navigationController?.popViewController(animated: true)
+            }), "segCancel")
+            n.rightBarButtonItems = [item("heart", "segHeart"), item("square.and.arrow.up", "segShare2")]
+        case 3:
+            vc.title = "Gamma"
+            n.largeTitleDisplayMode = .never
+        default:
+            vc.title = "Delta"
+            n.largeTitleDisplayMode = BarsEnv.large ? .always : .never
+            let done = BarsListScene.tagged(UIBarButtonItem(title: "Done", style: .prominent, target: nil, action: nil), "segDone")
+            n.rightBarButtonItems = [done, .fixedSpace(), item("heart", "segHeart4")]
+        }
+    }
+}
+
+extension NavSegPages {
+    /// Toolbar sets of the root page: A = [flex, compose], B = [trash, flex, compose],
+    /// C = [trash, flex] (a side empties or fills while the other keeps its group).
+    static func toolbar(_ set: String) -> [UIBarButtonItem] {
+        let trash = item("trash", "segTbTrash")
+        let compose = item("square.and.pencil", "segTbCompose")
+        switch set {
+        case "B": return [trash, .flexibleSpace(), compose]
+        case "C": return [trash, .flexibleSpace()]
+        default: return [.flexibleSpace(), compose]
+        }
+    }
+}
+
+final class NavSegPage: UIViewController {
+    let page: Int
+    let scroll = UIScrollView()
+
+    init(page: Int) {
+        self.page = page
+        super.init(nibName: nil, bundle: nil)
+        NavSegPages.configure(self, page: page)
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        scroll.translatesAutoresizingMaskIntoConstraints = false
+        scroll.accessibilityIdentifier = "segScroll\(page)"
+        view.addSubview(scroll)
+        NSLayoutConstraint.activate([
+            scroll.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            scroll.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            scroll.topAnchor.constraint(equalTo: view.topAnchor),
+            scroll.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+        ])
+        let stack = UIStackView()
+        stack.axis = .vertical
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        scroll.addSubview(stack)
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: scroll.contentLayoutGuide.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor),
+            stack.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor),
+        ])
+        let tap = UITapGestureRecognizer(target: self, action: #selector(tapped))
+        scroll.addGestureRecognizer(tap)
+        for i in 0..<30 {
+            let v = UIView()
+            v.backgroundColor = BarsListScene.palette[(i + page * 2) % BarsListScene.palette.count].withAlphaComponent(0.85)
+            v.heightAnchor.constraint(equalToConstant: 44).isActive = true
+            stack.addArrangedSubview(v)
+        }
+    }
+
+    @objc private func tapped() {
+        guard page < 4 else { return }
+        Recorder.shared.log(["k": "evt", "e": "push", "from": page, "to": page + 1, "tap": true, "t": CACurrentMediaTime()])
+        navigationController?.pushViewController(NavSegPage(page: page + 1), animated: true)
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        BarsRecorder.shared.scroll = scroll
+        if page == 0 { NavSegScript.shared.startOnce(nav: navigationController) }
+    }
+}
+
+final class NavSegScript {
+    static let shared = NavSegScript()
+    private var started = false
+
+    func startOnce(nav: UINavigationController?) {
+        guard !started, let nav else { return }
+        started = true
+        let env = BarsEnv.env
+        let seq = (env["PROBE_SEQ"] ?? "push,push,push,push,pop,pop,pop,pop").split(separator: ",").map(String.init)
+        if seq == ["none"] { return }
+        let gap = Double(env["PROBE_GAP"] ?? "") ?? 1.6
+        var t = 1.5
+        for step in seq {
+            DispatchQueue.main.asyncAfter(deadline: .now() + t) {
+                let from = (nav.topViewController as? NavSegPage)?.page ?? -1
+                switch step {
+                case "push":
+                    let next = NavSegPage(page: min(4, from + 1))
+                    Recorder.shared.log(["k": "evt", "e": "push", "from": from, "to": next.page, "t": CACurrentMediaTime()])
+                    nav.pushViewController(next, animated: true)
+                case "tbA", "tbB", "tbC":
+                    let set = String(step.dropFirst(2))
+                    Recorder.shared.log(["k": "evt", "e": "setToolbarItems", "set": set, "t": CACurrentMediaTime()])
+                    nav.topViewController?.setToolbarItems(NavSegPages.toolbar(set), animated: true)
+                case "root":
+                    Recorder.shared.log(["k": "evt", "e": "root", "from": from, "to": 0, "t": CACurrentMediaTime()])
+                    nav.popToRootViewController(animated: true)
+                default:
+                    Recorder.shared.log(["k": "evt", "e": "pop", "from": from, "to": max(0, from - 1), "t": CACurrentMediaTime()])
+                    nav.popViewController(animated: true)
+                }
+            }
+            t += gap
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + t) {
+            Recorder.shared.log(["k": "evt", "e": "scriptEnd", "t": CACurrentMediaTime()])
+            Recorder.shared.flush()
+        }
+    }
+}

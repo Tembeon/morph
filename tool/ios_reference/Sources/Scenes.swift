@@ -43,6 +43,9 @@ enum Scenes {
         case "nav":
             BarsRecorder.shared.start()
             return BarsNavController(rootViewController: BarsListScene())
+        case "navseg":
+            BarsRecorder.shared.start()
+            return BarsNavController(rootViewController: NavSegPage(page: 0))
         case "controls":
             return ControlsScene()
         default:

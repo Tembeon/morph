@@ -117,6 +117,34 @@ final class BarsUITests: XCTestCase {
         tap(p, hold: 0.06)
     }
 
+    /// Scene navseg driven by touches: a tap pushes the next page, edge swipes and back
+    /// button taps pop (bars.md "Per-segment transitions").
+    func testNavSeg() {
+        capture("navseg-touch", extra: ["PROBE_SCENE": "navseg", "PROBE_SEQ": "none"]) {
+            let y = size.height * 0.5
+            let mid = CGPoint(x: size.width / 2, y: size.height * 0.6)
+            let back = CGPoint(x: 40, y: 84)
+            tap(mid)
+            pause(1.6)
+            synth([path(start: CGPoint(x: 3, y: y), pressFor: 0.05, legs: [(CGPoint(x: 280, y: y), 0.9, 0.2)])], name: "edge")
+            pause(1.8)
+            tap(mid)
+            pause(1.6)
+            synth([path(start: CGPoint(x: 3, y: y), pressFor: 0.05, legs: [(CGPoint(x: 140, y: y), 0.6, 0.3), (CGPoint(x: 40, y: y), 0.4, 0.3)])], name: "edgecancel")
+            pause(1.8)
+            synth([path(start: CGPoint(x: 3, y: y), pressFor: 0.05, legs: [(CGPoint(x: 280, y: y), 0.9, 0.2)])], name: "edge2")
+            pause(1.8)
+            for _ in 0..<4 {
+                tap(mid)
+                pause(1.6)
+            }
+            for _ in 0..<4 {
+                tap(back)
+                pause(1.6)
+            }
+        }
+    }
+
     func testBars() {
         capture("bars-scroll-auto", extra: ["PROBE_AUTO": "scrollquick"]) { pause(6.5) }
         for style in ["soft", "hard"] {
