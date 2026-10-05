@@ -129,6 +129,30 @@ class MorphOutlineBoxes {
         (y - _data[i * 5 + 1]).abs() > hy - optical;
   }
 
+  /// Whether [x] lies in the columns of box [i]'s optical corners: the
+  /// horizontal half of [inOpticalCorner].
+  bool inOpticalCornerColumns(int i, double x) {
+    final hx = _data[i * 5 + 2];
+    final hy = _data[i * 5 + 3];
+    final optical = math.min(
+      _data[i * 5 + 4] * morphOpticalCornerScale,
+      math.min(hx, hy),
+    );
+    return (x - _data[i * 5]).abs() > hx - optical;
+  }
+
+  /// Whether [y] lies in the rows of box [i]'s optical corners: the
+  /// vertical half of [inOpticalCorner].
+  bool inOpticalCornerRows(int i, double y) {
+    final hx = _data[i * 5 + 2];
+    final hy = _data[i * 5 + 3];
+    final optical = math.min(
+      _data[i * 5 + 4] * morphOpticalCornerScale,
+      math.min(hx, hy),
+    );
+    return (y - _data[i * 5 + 1]).abs() > hy - optical;
+  }
+
   /// The rotation from box [i]'s exact normal at (x, y) to its optical
   /// normal, the one a corner [morphOpticalCornerScale] times rounder
   /// gives, as (cos, sin) written into [out] at [at].
@@ -184,7 +208,7 @@ double morphBoxDistance(double qx, double qy, double r) {
     outside = qy > 0 ? qy : 0;
   }
   final inner = qx > qy ? qx : qy;
-  return outside + (inner < 0 ? inner : 0) - r;
+  return outside + (inner < 0 ? inner : 0.0) - r;
 }
 
 /// The outlines traced from sampled fields over the isolate's life; debug
@@ -203,6 +227,7 @@ int morphGlassOutlineDebugTraces = 0;
 /// + 1` x `(rows - 1) ~/ stride + 1` nodes; its gradient is the central
 /// difference of [distance], turned by [turn].
 @internal
+@pragma('vm:unsafe:no-bounds-checks')
 MorphGlassOutline morphGlassOutlineFromFields({
   required Float64List trace,
   required int cols,

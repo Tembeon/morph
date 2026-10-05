@@ -75,6 +75,7 @@ class MorphMenuFusion {
 /// shape takes its unblurred distance: the kernel is symmetric, so it
 /// leaves a linear field unchanged.
 @internal
+@pragma('vm:unsafe:no-bounds-checks')
 MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
   final double step = (radius / 3).clamp(2.0, 6.0);
   final int stride = step < 4 ? 2 : 1;
@@ -116,12 +117,23 @@ MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
   sourceTurn[0] = 1;
   final bool menuTurns = boxes.turns(0);
   final bool sourceTurns = boxes.turns(1);
+  final Uint8List cornerColumns = _Scratch.columns(fieldCols);
+  for (var fi = 0; fi < fieldCols; fi++) {
+    final double x = area.left + fi * stride * step;
+    cornerColumns[fi] =
+        (menuTurns && boxes.inOpticalCornerColumns(0, x) ? 1 : 0) |
+        (sourceTurns && boxes.inOpticalCornerColumns(1, x) ? 2 : 0);
+  }
   for (var fj = 0; fj < fieldRows; fj++) {
     final int j = fj * stride;
     final double y = area.top + j * step;
+    final int cornerRow =
+        (menuTurns && boxes.inOpticalCornerRows(0, y) ? 1 : 0) |
+        (sourceTurns && boxes.inOpticalCornerRows(1, y) ? 2 : 0);
     for (var fi = 0; fi < fieldCols; fi++) {
       final int i = fi * stride;
       final double x = area.left + i * step;
+      final int corner = cornerRow & cornerColumns[fi];
       final int at = fj * fieldCols + fi;
       final double dg = f.menuDistance(i, j);
       final double ds = f.sourceDistance(i, j);
@@ -139,8 +151,8 @@ MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
           ? 1
           : share;
       halfMinor[at] = halfSource + (halfMenu - halfSource) * towardMenu;
-      final bool menuCorner = menuTurns && boxes.inOpticalCorner(0, x, y);
-      final bool sourceCorner = sourceTurns && boxes.inOpticalCorner(1, x, y);
+      final bool menuCorner = corner & 1 != 0;
+      final bool sourceCorner = corner & 2 != 0;
       if (menuCorner) {
         boxes.opticalTurn(0, x, y, turn, at * 2);
       } else {
@@ -179,9 +191,13 @@ MorphGlassOutline morphMenuSilhouette(RRect menu, RRect source, double radius) {
       );
       if (nearest <= reachOfEdge) {
         near[bj * blockCols + bi] = 1;
+        if (stride == 1) continue;
+        final bool topDone = bj > 0 && near[(bj - 1) * blockCols + bi] != 0;
+        final bool leftDone = bi > 0 && near[bj * blockCols + bi - 1] != 0;
         for (var j = bj * b; j <= bj * b + b; j++) {
+          if (topDone && j == bj * b) continue;
           for (var i = bi * b; i <= bi * b + b; i++) {
-            if (stride == 1 || ((i | j) & 1) == 0) continue;
+            if (((i | j) & 1) == 0 || (leftDone && i == bi * b)) continue;
             final double dg = f.menuDistance(i, j);
             final double ds = f.sourceDistance(i, j);
             final double raw = math.min(dg, ds);
@@ -347,6 +363,7 @@ class _BlurredUnion {
   }
 
   /// The blurred union at trace node (i, j).
+  @pragma('vm:unsafe:no-bounds-checks')
   double blurred(int i, int j) {
     final Float64List kernel = this.kernel;
     final int taps = kernel.length;
@@ -535,6 +552,14 @@ abstract final class _Scratch {
       _fields[index] = Float64List(values + values ~/ 2);
     }
     return _fields[index];
+  }
+
+  static Uint8List _columns = Uint8List(0);
+
+  /// A byte per field column, overwritten by every call.
+  static Uint8List columns(int count) {
+    if (_columns.length < count) _columns = Uint8List(count + count ~/ 2);
+    return _columns;
   }
 
   /// A trace grid of at least [nodes] nodes; only the nodes a caller
