@@ -14,6 +14,16 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- A lifted lens, knob or thumb blurs a copy of its own surroundings while
+  its frost animates (`LiquidGlassLayer.blursOwnBackdrop`): a blur composed
+  under the glass shader read and resized the whole pass on every frame of
+  a lift. Pixel 6a controls raster p95 14.3 -> 11.8 ms, frames over budget
+  10 -> 0.5, the same measured frost within 1 - 3 channel steps; the
+  iPhone 16 Pro is unchanged. The resting platter fades by alpha instead of
+  an opacity layer (at most 6 steps under its own faded fill, while it
+  turns into glass). The rest of the segmented scene's cost is attributed
+  (the lens copy and the platter) and the frame's second queue submit is
+  Impeller's (glass-renderer.md).
 - Glass whose matte grid falls on the pixel centers (an origin on an exact
   half device pixel, common at 3x) no longer depends on how the GPU rounds:
   the layer moves its grid off the tie, so a glass container member draws
