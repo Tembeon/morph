@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
+import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
@@ -159,7 +160,9 @@ Widget _containerLayer(
 /// what is painted, since the container's layer shades every shape it
 /// holds whatever lies between, and no backdrop group between them gives
 /// the host a backdrop copy other than the container's (a bar floating in
-/// its own group stays out).
+/// its own group stays out). A [MorphTag]'s own opacity is seen through
+/// while the tag shows its child; the host depends on the tag, so a tag
+/// hiding for its flight sends it back into a layer of its own.
 @internal
 bool morphGlassContainerReaches(Element host) {
   final scope = host
@@ -168,15 +171,31 @@ bool morphGlassContainerReaches(Element host) {
   final group = scope.getElementForInheritedWidgetOfExactType<BackdropGroup>();
   final shared = (group?.widget as BackdropGroup?)?.backdropKey;
   var clear = true;
+  Element? below;
   host.visitAncestorElements((Element element) {
     if (identical(element, scope)) return false;
     final widget = element.widget;
+    final child = below;
+    below = element;
     if (widget is BackdropGroup && widget.backdropKey != shared) {
       clear = false;
       return false;
     }
+    if (widget is MorphTagVisibility) {
+      host.dependOnInheritedElement(element as InheritedElement);
+      if (widget.hidden) {
+        clear = false;
+        return false;
+      }
+      return true;
+    }
     final render = element is RenderObjectElement ? element.renderObject : null;
     if (render is _RenderStageFade) return true;
+    if (render is RenderOpacity &&
+        child?.widget is MorphTagVisibility &&
+        render.opacity == 1) {
+      return true;
+    }
     if (render is RenderOpacity ||
         render is RenderAnimatedOpacityMixin ||
         render is RenderSliverOpacity ||

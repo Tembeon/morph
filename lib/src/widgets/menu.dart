@@ -548,15 +548,23 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
 
   bool get _landing => _host.isLanding;
 
-  ({MorphMenuStyle style, Widget glyph, Widget face})? _resting;
+  bool _still() {
+    final motion = _motion;
+    return motion == null ||
+        (!motion.isPresented && !_landing && motion.isSettled);
+  }
+
+  ({MorphMenuStyle style, Widget glyph, bool still, Widget face})? _resting;
 
   Widget _face(BuildContext context, MorphMenuStyle style, Widget glyph) {
     final motion = _motion;
     if (motion == null || !_landing) {
       final resting = _resting;
+      final still = _still();
       if (resting != null &&
           identical(resting.style, style) &&
-          identical(resting.glyph, glyph)) {
+          identical(resting.glyph, glyph) &&
+          resting.still == still) {
         return resting.face;
       }
       final box = Offset.zero & Size.square(style.buttonSize);
@@ -565,8 +573,9 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         glyph: glyph,
         source: RRect.fromRectAndRadius(box, Radius.circular(box.width / 2)),
         sourceRect: box,
+        still: still,
       );
-      _resting = (style: style, glyph: glyph, face: face);
+      _resting = (style: style, glyph: glyph, still: still, face: face);
       return face;
     }
     final origin = -motion.button.topLeft;
@@ -674,6 +683,7 @@ class _MenuShapes extends StatelessWidget {
     this.content,
     this.outline,
     this.menuBlur,
+    this.still = false,
   });
 
   final MorphMenuStyle style;
@@ -687,6 +697,7 @@ class _MenuShapes extends StatelessWidget {
   final Widget? content;
   final MorphGlassOutline? outline;
   final double? menuBlur;
+  final bool still;
 
   @override
   Widget build(BuildContext context) {
@@ -716,25 +727,29 @@ class _MenuShapes extends StatelessWidget {
       surfaces = MorphGlassHost(
         painter: glass,
         mode: MorphGlassMode.layer,
-        frame: () => MorphGlassFrame([
-          MorphGlassSurface(
-            kind: MorphGlassKind.button,
-            shape: source,
-            color: style.glassColor,
-            tint: style.glassTint,
-            blurRadius: menu == null ? null : menuBlur,
-            brightness: brightness,
-          ),
-          if (menu != null)
+        frame: () => MorphGlassFrame(
+          [
             MorphGlassSurface(
-              kind: MorphGlassKind.menu,
-              shape: menu,
+              kind: MorphGlassKind.button,
+              shape: source,
               color: style.glassColor,
               tint: style.glassTint,
-              blurRadius: menuBlur,
+              blurRadius: menu == null ? null : menuBlur,
               brightness: brightness,
             ),
-        ], outline: menu == null ? null : outline),
+            if (menu != null)
+              MorphGlassSurface(
+                kind: MorphGlassKind.menu,
+                shape: menu,
+                color: style.glassColor,
+                tint: style.glassTint,
+                blurRadius: menuBlur,
+                brightness: brightness,
+              ),
+          ],
+          outline: menu == null ? null : outline,
+          still: still,
+        ),
       );
     }
     return Stack(

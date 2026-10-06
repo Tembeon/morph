@@ -118,7 +118,12 @@ bool debugCheckOpacityBetweenShapesAndLayer(
       ancestor != null && !identical(ancestor, layer);
       ancestor = ancestor.parent
     ) {
-      if (ancestor is RenderOpacity || ancestor is RenderAnimatedOpacity) {
+      final faded = switch (ancestor) {
+        RenderOpacity(:final opacity) => opacity < 1,
+        RenderAnimatedOpacity(:final opacity) => opacity.value < 1,
+        _ => false,
+      };
+      if (faded) {
         _debugWarnedOpacityBetweenShapeAndLayer = true;
         debugPrint(
           'liquid_glass_renderer: an Opacity or FadeTransition between '

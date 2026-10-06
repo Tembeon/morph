@@ -215,3 +215,8 @@ Local patches (some commits include related package changes):
   setFloat, compares shape appearances in place, and keeps the frost blur
   per sigma. The same uniforms and filters as before (glass_frames on the
   host's Impeller).
+- 2026-10-06 filter census: the painters that keep a backdrop filter in a
+  private handle (the layer's shader, the fake layer's, the opacity seed)
+  note it with `GlassLayerOwners` when a census asks (null otherwise); the
+  debug warning about an Opacity between a shape and its layer fires only
+  for one below 1 (a MorphTag's opacity is exactly 1 while it shows).

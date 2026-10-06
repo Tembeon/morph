@@ -518,6 +518,7 @@ class _MorphGlassHostElement extends ComponentElement {
   void didChangeDependencies() {
     super.didChangeDependencies();
     _structure = null;
+    _clearPath = null;
   }
 
   /// Pushes the frame into the tree built before when its structure still

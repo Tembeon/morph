@@ -662,13 +662,39 @@ class MorphTagState extends State<MorphTag> {
       ignoring: _hidden,
       child: Opacity(
         opacity: _hidden ? 0 : 1,
-        child: _MorphTagIdScope(
-          id: widget.id,
-          child: MorphSurfaceSpecScope(spec: _effectiveSpec, child: child),
+        child: MorphTagVisibility(
+          hidden: _hidden,
+          child: _MorphTagIdScope(
+            id: widget.id,
+            child: MorphSurfaceSpecScope(spec: _effectiveSpec, child: child),
+          ),
         ),
       ),
     );
   }
+}
+
+/// Whether the [MorphTag] right above hides its child, as the direct child
+/// of the tag's own opacity: it is 0 while hidden and exactly 1 otherwise.
+///
+/// Glass that paints for its own subtree through an ancestor's layer reads
+/// this to know the tag's opacity changes nothing while [hidden] is false,
+/// and depends on it to hear when it turns true.
+@internal
+class MorphTagVisibility extends InheritedWidget {
+  /// Publishes whether the tag hides [child].
+  const MorphTagVisibility({
+    required this.hidden,
+    required super.child,
+    super.key,
+  });
+
+  /// Whether the tag's opacity hides its child now.
+  final bool hidden;
+
+  @override
+  bool updateShouldNotify(MorphTagVisibility oldWidget) =>
+      hidden != oldWidget.hidden;
 }
 
 /// The identity transport behind [MorphTag.idOf]: installed by the tag
