@@ -126,6 +126,7 @@ class LayerCensus {
     'MorphSurfaceSpecScope',
     'MorphWidgetsTheme',
     'MorphGlassContainerScope',
+    'MorphGlassContainerBarrier',
     'MorphFocusRing',
     'MorphTouchListener',
     'MorphControlCapsule',

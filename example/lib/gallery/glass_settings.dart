@@ -27,6 +27,7 @@ class GalleryGlassSettings extends ChangeNotifier {
   ThemeMode _appearance = ThemeMode.system;
   bool _rtl = false;
   bool _disabled = false;
+  bool _inspector = false;
 
   void _set<T>(T current, T next, void Function() write) {
     if (current == next) return;
@@ -80,6 +81,12 @@ class GalleryGlassSettings extends ChangeNotifier {
   /// Whether the demo controls of every page are disabled.
   bool get disabled => _disabled;
   set disabled(bool value) => _set(_disabled, value, () => _disabled = value);
+
+  /// Whether the glass inspector counts the glass layers of every frame
+  /// over the gallery (debug and profile builds).
+  bool get inspector => _inspector;
+  set inspector(bool value) =>
+      _set(_inspector, value, () => _inspector = value);
 
   /// The renderer these settings describe, at the best tier the build
   /// has; [tier] picks the one drawn.

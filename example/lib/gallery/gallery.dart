@@ -9,6 +9,7 @@ import 'package:morph_example/gallery/glass_page.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/indicator_page.dart';
 import 'package:morph_example/gallery/lens_pages.dart';
+import 'package:morph_example/gallery/list_page.dart';
 import 'package:morph_example/gallery/menu_page.dart';
 import 'package:morph_example/gallery/navigation_page.dart';
 import 'package:morph_example/gallery/search_page.dart';
@@ -91,7 +92,10 @@ class _GalleryAppState extends State<GalleryApp> {
               settings: _settings,
               child: Directionality(
                 textDirection: _settings.rtl ? .rtl : .ltr,
-                child: app,
+                child: MorphGlassInspector(
+                  enabled: _settings.inspector,
+                  child: app,
+                ),
               ),
             );
           },
@@ -316,6 +320,11 @@ final List<GalleryEntry> galleryEntries = [
     'Date picker',
     'Compact date and time labels opening their calendar',
     (_) => const DatePickerPage(),
+  ),
+  GalleryEntry(
+    'Lists',
+    'Inset grouped sections with glass buttons in their rows',
+    (_) => const ListPage(),
   ),
 ];
 

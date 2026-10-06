@@ -1,5 +1,7 @@
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
@@ -234,7 +236,11 @@ class _GlassPageState extends State<GlassPage> {
           child: BackdropGroup(
             child: MorphListSection(
               header: 'Gallery',
-              footer: 'These settings apply to every page of the gallery.',
+              footer:
+                  'These settings apply to every page of the gallery. The '
+                  'glass inspector counts the glass layers of each frame '
+                  'and names neighbouring resting glass that one '
+                  'MorphGlassContainer could shade together.',
               children: [
                 _Choice(
                   label: 'Appearance',
@@ -253,6 +259,12 @@ class _GlassPageState extends State<GlassPage> {
                   value: settings.disabled,
                   onChanged: (bool v) => settings.disabled = v,
                 ),
+                if (!kReleaseMode)
+                  _Toggle(
+                    label: 'Glass inspector',
+                    value: settings.inspector,
+                    onChanged: (bool v) => settings.inspector = v,
+                  ),
               ],
             ),
           ),
