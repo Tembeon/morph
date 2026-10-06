@@ -1062,6 +1062,7 @@ class MorphMenuMotion {
 
   double? _peekTime;
   final Float64List _silhouetteTimes = Float64List(8);
+  final Float64List _silhouetteSteps = Float64List(7);
   int _silhouetteFrames = 0;
 
   /// The time the motion was last advanced to.
@@ -1582,10 +1583,13 @@ class MorphMenuMotion {
   /// the frame after it.
   ///
   /// The coming frames' times continue the least-squares line through the
-  /// last eight frames' times: frame times jitter around the display's
-  /// period, and the line predicts them about two and a half times closer
-  /// than the last step repeated. A step longer than
-  /// [MorphMenuFusion.prefetchStepLimit] starts the line over.
+  /// last frames whose steps are within a quarter of the median step (of
+  /// up to the last eight frames): frame times jitter around the
+  /// display's period, and the line predicts them about two and a half
+  /// times closer than the last step repeated, while a dropped frame or a
+  /// silhouette read at an event's time does not bend it. Fewer than
+  /// three such frames step on by the median. A step longer than
+  /// [MorphMenuFusion.prefetchStepLimit] starts over.
   void _prefetchSilhouette() {
     final t = _timeline.now;
     if (!MorphMenuFusion.prefetches) return;
@@ -1601,24 +1605,42 @@ class MorphMenuMotion {
     times[_silhouetteFrames % times.length] = t;
     _silhouetteFrames++;
     final count = math.min(_silhouetteFrames, times.length);
-    if (count < 3) return;
+    if (count < 2) return;
     final first = _silhouetteFrames - count;
+    double at(int k) => times[(first + k) % times.length] - t;
+    final steps = _silhouetteSteps;
+    for (var k = 1; k < count; k++) {
+      steps[k - 1] = at(k) - at(k - 1);
+    }
+    final sorted = Float64List.sublistView(steps, 0, count - 1);
+    sorted.sort();
+    final period = sorted[(count - 2) ~/ 2];
+    var start = count - 1;
+    while (start > 0 &&
+        (at(start) - at(start - 1) - period).abs() <= 0.25 * period) {
+      start--;
+    }
+    final points = count - start;
     var meanI = 0.0;
     var meanT = 0.0;
-    for (var k = 0; k < count; k++) {
-      meanI += k;
-      meanT += times[(first + k) % times.length] - t;
+    var slope = period;
+    if (points >= 3) {
+      for (var k = start; k < count; k++) {
+        meanI += k;
+        meanT += at(k);
+      }
+      meanI /= points;
+      meanT /= points;
+      var cross = 0.0;
+      var spread = 0.0;
+      for (var k = start; k < count; k++) {
+        cross += (k - meanI) * (at(k) - meanT);
+        spread += (k - meanI) * (k - meanI);
+      }
+      slope = cross / spread;
+    } else {
+      meanI = count - 1.0;
     }
-    meanI /= count;
-    meanT /= count;
-    var cross = 0.0;
-    var spread = 0.0;
-    for (var k = 0; k < count; k++) {
-      final di = k - meanI;
-      cross += di * (times[(first + k) % times.length] - t - meanT);
-      spread += di * di;
-    }
-    final slope = cross / spread;
     for (var frame = 1; frame <= MorphMenuFusion.prefetchFrames; frame++) {
       final ahead = t + meanT + slope * (count - 1 + frame - meanI);
       if (ahead > t) _prefetchAt(ahead);

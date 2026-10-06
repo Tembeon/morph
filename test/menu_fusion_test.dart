@@ -445,6 +445,39 @@ void main() {
       );
     });
 
+    test('a motion at a steady frame rate is served ahead, a dropped frame '
+        'too', () async {
+      final motion = MorphMenuMotion(
+        button: Rect.fromCenter(
+          center: const Offset(201, 120),
+          width: 48,
+          height: 48,
+        ),
+        itemCount: 10,
+        bounds: const Size(402, 874),
+        padding: const EdgeInsets.only(top: 62, bottom: 34),
+      );
+      var served = 0;
+      var fused = 0;
+      final before = MorphMenuFusion.debugServedAhead;
+      final beforeHere = MorphMenuFusion.debugFusedHere;
+      motion.open(0, sourceScale: 1);
+      for (var frame = 1; frame < 48; frame++) {
+        if (frame == 30) continue;
+        motion.advance(frame / 60);
+        expect(motion.silhouette, isNotNull);
+        await Future<void>.delayed(const Duration(milliseconds: 40));
+      }
+      served = MorphMenuFusion.debugServedAhead - before;
+      fused = MorphMenuFusion.debugFusedHere - beforeHere;
+      expect(served, greaterThan(20), reason: '$served served, $fused fused');
+      expect(
+        fused,
+        lessThanOrEqualTo(3),
+        reason: '$served served, $fused fused',
+      );
+    });
+
     test('serves a frame within the tolerance and no other', () async {
       final fusion = MorphMenuFusion();
       fusion.prefetch(menu, button, 6.5);
