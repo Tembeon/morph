@@ -14,6 +14,15 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- `MorphGlassInspector` shows over the app, in debug and profile builds,
+  how many glass layers (backdrop filters) each frame draws, which widgets
+  draw them, and where neighbouring resting glass could share one
+  `MorphGlassContainer` - or what keeps glass out of the container it sits
+  in (a clip, a fade, a scroll view). Each separate layer costs about 0.3 -
+  0.75 ms of raster a frame on a Pixel 6a; group neighbouring glass, as
+  Apple advises. `MorphGlassInspector.census()` returns the same counts
+  for tests (`MorphGlassCensus`, `MorphGlassHint`); a release build drops
+  the inspector entirely.
 - A `MorphListSection` shades the resting glass in its rows - glass
   buttons in a row's trailing or leading slot - in one glass layer, as a
   `MorphGlassContainer` would; a row whose highlight shows draws its glass
