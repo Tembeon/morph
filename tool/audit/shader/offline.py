@@ -1,18 +1,35 @@
 #!/usr/bin/env python3
-"""Offline gate for the runtime-effect shaders: no device, no GPU.
+"""Offline gate for the glass shaders: no device, no GPU.
 
 Compiles every runtime .frag of the package (and the frozen baseline in
 example/shader_audit/baseline) with the SDK's impellerc for the three
 runtime stages the engine loads - Vulkan (SPIR-V), Metal (MSL) and GLES 3
-(GLSL ES) - and counts what each backend's driver receives: SPIR-V
-instructions (spirv-dis from the Android NDK), RelaxedPrecision
-decorations, transcendental and divide instructions, texture samples, and
-the MSL / GLSL lines and calls. Static counts are a proxy, not cycles:
-Arm's malioc (Mobile Studio) gives Mali-G78 cycles and registers when it is
-installed (`MALIOC=<path>`), and is run on the GLES source and the SPIR-V.
+(GLSL ES) - and the Flutter GPU bundle fragments (geometry, field, material)
+for Vulkan and GLES 3.00 as the build hook does, then reports:
 
-    tool/audit/shader/offline.py              # live vs baseline table
-    tool/audit/shader/offline.py --json out.json
+- static counts of what each backend's driver receives: SPIR-V instructions
+  (spirv-dis from the Android NDK), RelaxedPrecision decorations, divides,
+  texture samples, extended instructions, MSL / GLSL lines;
+- Arm's malioc for the Mali-G78 (the Pixel 6a's GPU), on the GLES source
+  and on the SPIR-V: arithmetic / load-store / texture cycles per fragment
+  on the longest and shortest path and in total, work and uniform
+  registers, thread occupancy, stack spilling and whether the shader holds
+  uniform-only computation (the driver runs that once per draw, so it costs
+  uniform registers, not per-fragment cycles).
+
+    tool/audit/shader/offline.py                  # every tree, every shader
+    tool/audit/shader/offline.py --json out.json  # the full report
+    tool/audit/shader/offline.py --tree before=<dir> --tree after=<dir>
+                                                  # any shader trees instead
+                                                  # (copies of lib/src/glass/
+                                                  # renderer/shaders)
+    tool/audit/shader/offline.py --only final     # names containing 'final'
+    tool/audit/shader/offline.py --define NAME=V  # extra define (repeatable)
+
+malioc comes from PATH or MALIOC=<path>; without it only the static counts
+print. Cycle counts are a model of the Mali-G78 r1p1 with driver r51p0, not
+a measurement: a change that does not move them is not worth a device run,
+a change that does still needs the device bench.
 """
 import json
 import os
@@ -32,14 +49,23 @@ TREES = {
     'live': os.path.join(ROOT, 'lib/src/glass/renderer/shaders'),
     'baseline': os.path.join(ROOT, 'example/shader_audit/baseline'),
 }
-ENTRIES = [
+RUNTIME = [
     'liquid_glass_final_render.frag',
+    'liquid_glass_final_render_ios27.frag',
     'liquid_glass_final_render_tint.frag',
+    'liquid_glass_final_render_tint_ios27.frag',
     'liquid_glass_final_render_material.frag',
     'fake_glass_surface.frag',
 ]
+BUNDLE = [
+    'gpu/geometry_fragment.glsl',
+    'gpu/geometry_field_fragment.glsl',
+    'gpu/material_gradient_fragment.glsl',
+    'gpu/material_tint_gradient_fragment.glsl',
+]
 EXT = ['Pow', 'Exp2', 'Log2', 'Exp', 'Log', 'Sin', 'Cos', 'Atan2', 'Atan',
        'Sqrt', 'InverseSqrt', 'Normalize', 'Length', 'SmoothStep', 'FMix']
+PIPES = {'arith_total': 'A', 'load_store': 'LS', 'texture': 'T'}
 
 
 def spirv_dis():
@@ -50,13 +76,33 @@ def spirv_dis():
     return shutil.which('spirv-dis')
 
 
-def compile_stage(tree, entry, stage, out):
-    sl = os.path.join(out, f'{entry}.{stage}.iplr')
-    spv = os.path.join(out, f'{entry}.{stage}.spv')
-    subprocess.run([IMPELLERC, f'--runtime-stage-{stage}', f'--input={os.path.join(tree, entry)}',
-                    f'--sl={sl}', f'--spirv={spv}', f'--include={SHADER_LIB}', f'--include={tree}'],
+def malioc_tool():
+    return os.environ.get('MALIOC') or shutil.which('malioc')
+
+
+def impellerc(args, tree):
+    subprocess.run([IMPELLERC] + args + [f'--include={SHADER_LIB}', f'--include={tree}',
+                                         f'--include={os.path.join(tree, "gpu")}'],
                    check=True, capture_output=True)
-    return open(sl, 'rb').read()
+
+
+def compile_runtime(tree, entry, stage, out, defines):
+    base = os.path.join(out, f'{os.path.basename(entry)}.{stage}')
+    impellerc([f'--runtime-stage-{stage}', f'--input={os.path.join(tree, entry)}',
+               f'--sl={base}.iplr', f'--spirv={base}.spv'] + defines, tree)
+    return open(f'{base}.iplr', 'rb').read()
+
+
+def compile_bundle(tree, entry, platform, out, defines):
+    base = os.path.join(out, f'{os.path.basename(entry)}.{platform}')
+    args = ['--input-type=frag', f'--input={os.path.join(tree, entry)}', f'--sl={base}.sl',
+            f'--spirv={base}.spv']
+    if platform == 'gles':
+        args = ['--opengl-es', '--gles-language-version=300'] + args
+    else:
+        args = ['--vulkan'] + args
+    impellerc(args + defines, tree)
+    return base
 
 
 def embedded_spirv(blob):
@@ -112,59 +158,160 @@ def text_counts(text):
     return {'lines': len(code), 'divides': joined.count(' / '), 'calls': calls}
 
 
-def malioc(path, kind):
-    tool = os.environ.get('MALIOC') or shutil.which('malioc')
+def malioc(path, api):
+    """Mali-G78 figures of one fragment shader, or None without malioc."""
+    tool = malioc_tool()
     if not tool:
         return None
-    args = [tool, '--core', 'Mali-G78', '--fragment']
-    if kind == 'spirv':
-        args += ['--vulkan']
-    result = subprocess.run(args + [path], capture_output=True, text=True)
-    return result.stdout
+    result = subprocess.run([tool, '--core', 'Mali-G78', '--fragment', f'--{api}',
+                             '--format', 'json', path], capture_output=True, text=True)
+    try:
+        shader = json.loads(result.stdout)['shaders'][0]
+    except (ValueError, KeyError, IndexError):
+        return {'error': (result.stdout + result.stderr).strip()[-400:]}
+    variant = shader['variants'][0]
+    perf = variant['performance']
+    props = {p['name']: p['value'] for p in variant['properties']}
+
+    def cycles(kind):
+        counts = perf[kind]['cycle_count']
+        return {short: (None if counts[perf['pipelines'].index(name)] is None
+                        else round(counts[perf['pipelines'].index(name)], 3))
+                for name, short in PIPES.items()} | {
+                    'bound': '+'.join(PIPES.get(b, b) for b in perf[kind]['bound_pipelines'] if b)}
+
+    return {
+        'work_registers': props.get('work_registers_used'),
+        'uniform_registers': props.get('uniform_registers_used'),
+        'occupancy': props.get('thread_occupancy'),
+        'spilling': props.get('has_stack_spilling'),
+        'spill_bytes': props.get('stack_spill_bytes'),
+        'fp16': props.get('fp16_arithmetic'),
+        'uniform_computation': {p['name']: p['value'] for p in shader['properties']}.get(
+            'has_uniform_computation'),
+        'longest': cycles('longest_path_cycles'),
+        'shortest': cycles('shortest_path_cycles'),
+        'total': cycles('total_cycles'),
+    }
 
 
-def main():
-    dis = spirv_dis()
-    report = {}
-    with tempfile.TemporaryDirectory() as out:
-        for tree_name, tree in TREES.items():
-            if not os.path.isdir(tree):
-                continue
-            for entry in ENTRIES:
-                key = f'{tree_name}/{entry}'
-                row = {}
-                vk = compile_stage(tree, entry, 'vulkan', out)
-                spirv = embedded_spirv(vk)
-                if dis:
-                    row['vulkan'] = spirv_counts(spirv, dis)
-                row['metal'] = text_counts(embedded_text(compile_stage(tree, entry, 'metal', out)))
-                gles_text = embedded_text(compile_stage(tree, entry, 'gles3', out))
-                row['gles3'] = text_counts(gles_text)
-                gles_path = os.path.join(out, f'{tree_name}-{entry}.frag')
-                open(gles_path, 'w').write(gles_text)
-                spv_path = os.path.join(out, f'{tree_name}-{entry}.spv')
-                open(spv_path, 'wb').write(spirv)
-                mali = malioc(gles_path, 'gles')
-                if mali is not None:
-                    row['malioc_gles'] = mali
-                    row['malioc_vulkan'] = malioc(spv_path, 'spirv')
-                report[key] = row
-    if '--json' in sys.argv:
-        json.dump(report, open(sys.argv[sys.argv.index('--json') + 1], 'w'), indent=2)
+def analyze_runtime(tree, entry, out, defines, dis):
+    row = {}
+    spirv = embedded_spirv(compile_runtime(tree, entry, 'vulkan', out, defines))
+    if dis:
+        row['vulkan'] = spirv_counts(spirv, dis)
+    row['metal'] = text_counts(embedded_text(compile_runtime(tree, entry, 'metal', out, defines)))
+    gles_text = embedded_text(compile_runtime(tree, entry, 'gles3', out, defines))
+    row['gles3'] = text_counts(gles_text)
+    gles_path = os.path.join(out, 'runtime.frag')
+    open(gles_path, 'w').write(gles_text)
+    spv_path = os.path.join(out, 'runtime.spv')
+    open(spv_path, 'wb').write(spirv)
+    row['malioc_gles'] = malioc(gles_path, 'opengles')
+    row['malioc_vulkan'] = malioc(spv_path, 'vulkan')
+    return row
+
+
+def analyze_bundle(tree, entry, out, defines, dis):
+    row = {}
+    vk = compile_bundle(tree, entry, 'vulkan', out, defines)
+    if dis:
+        row['vulkan'] = spirv_counts(open(f'{vk}.spv', 'rb').read(), dis)
+    gles = compile_bundle(tree, entry, 'gles', out, defines)
+    row['gles3'] = text_counts(open(f'{gles}.sl').read())
+    gles_path = f'{gles}.frag'
+    shutil.copy(f'{gles}.sl', gles_path)
+    row['malioc_gles'] = malioc(gles_path, 'opengles')
+    row['malioc_vulkan'] = malioc(f'{vk}.spv', 'vulkan')
+    return row
+
+
+def fmt(value):
+    if value is None:
+        return '-'
+    if isinstance(value, float):
+        return f'{value:g}'
+    return str(value)
+
+
+def print_tables(report):
     print(f'{"shader":58} {"vk ops":>7} {"relax":>5} {"fdiv":>4} {"tex":>3} '
           f'{"ext":>4} {"msl":>5} {"gles":>5}')
     for key, row in report.items():
         vk = row.get('vulkan', {})
-        print(f'{key:58} {vk.get("instructions", "-"):>7} {vk.get("relaxed", "-"):>5} '
-              f'{vk.get("fdiv", "-"):>4} {vk.get("samples", "-"):>3} '
-              f'{sum(vk.get("ext", {}).values()):>4} {row["metal"]["lines"]:>5} '
-              f'{row["gles3"]["lines"]:>5}')
-        for kind in ('malioc_gles', 'malioc_vulkan'):
-            if row.get(kind):
-                print(row[kind])
-    if not (os.environ.get('MALIOC') or shutil.which('malioc')):
-        print('malioc not installed: no Mali-G78 cycle counts (Arm Mobile Studio, MALIOC=<path>)')
+        msl = row['metal']['lines'] if 'metal' in row else '-'
+        print(f'{key:58} {fmt(vk.get("instructions")):>7} {fmt(vk.get("relaxed")):>5} '
+              f'{fmt(vk.get("fdiv")):>4} {fmt(vk.get("samples")):>3} '
+              f'{sum(vk.get("ext", {}).values()):>4} {msl:>5} {row["gles3"]["lines"]:>5}')
+    if not malioc_tool():
+        print('malioc not installed: no Mali-G78 figures (Arm Mobile Studio, MALIOC=<path>)')
+        return
+    print()
+    print('Mali-G78 (malioc): cycles per fragment A / LS / T, work and uniform registers, '
+          'occupancy %, spill bytes, uniform computation')
+    print(f'{"shader":58} {"api":4} {"longest A/LS/T":>19} {"shortest A/LS/T":>17} '
+          f'{"total A":>7} {"wr":>3} {"ur":>3} {"occ":>3} {"spill":>5} {"uc":>2}')
+    for key, row in report.items():
+        for api in ('gles', 'vulkan'):
+            m = row.get(f'malioc_{api}')
+            if not m:
+                continue
+            if 'error' in m:
+                print(f'{key:58} {api[:4]:4} {m["error"][:60]}')
+                continue
+            lp, sp, tp = m['longest'], m['shortest'], m['total']
+            longest = f'{fmt(lp["A"])}/{fmt(lp["LS"])}/{fmt(lp["T"])}'
+            shortest = f'{fmt(sp["A"])}/{fmt(sp["LS"])}/{fmt(sp["T"])}'
+            print(f'{key:58} {api[:4]:4} {longest:>19} {shortest:>17} {fmt(tp["A"]):>7} '
+                  f'{fmt(m["work_registers"]):>3} {fmt(m["uniform_registers"]):>3} '
+                  f'{fmt(m["occupancy"]):>3} {fmt(m["spill_bytes"]):>5} '
+                  f'{"y" if m["uniform_computation"] else "n":>2}')
+
+
+def main():
+    argv = sys.argv[1:]
+    trees = {}
+    defines = []
+    only = None
+    json_out = None
+    i = 0
+    while i < len(argv):
+        arg = argv[i]
+        if arg == '--tree':
+            name, path = argv[i + 1].split('=', 1)
+            trees[name] = os.path.abspath(path)
+            i += 2
+        elif arg == '--define':
+            defines.append(f'--define={argv[i + 1]}')
+            i += 2
+        elif arg == '--only':
+            only = argv[i + 1]
+            i += 2
+        elif arg == '--json':
+            json_out = argv[i + 1]
+            i += 2
+        else:
+            print(__doc__)
+            return 2
+    trees = trees or TREES
+    dis = spirv_dis()
+    report = {}
+    with tempfile.TemporaryDirectory() as out:
+        for tree_name, tree in trees.items():
+            if not os.path.isdir(tree):
+                continue
+            for entry in RUNTIME + BUNDLE:
+                if only and only not in entry:
+                    continue
+                if not os.path.exists(os.path.join(tree, entry)):
+                    continue
+                analyze = analyze_bundle if entry in BUNDLE else analyze_runtime
+                report[f'{tree_name}/{entry}'] = analyze(tree, entry, out, defines, dis)
+    if json_out:
+        json.dump(report, open(json_out, 'w'), indent=2)
+    print_tables(report)
+    return 0
 
 
 if __name__ == '__main__':
-    main()
+    sys.exit(main())
