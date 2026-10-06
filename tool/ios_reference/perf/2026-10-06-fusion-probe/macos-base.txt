@@ -1,0 +1,13 @@
+[IMPORTANT:flutter/shell/platform/embedder/embedder_surface_metal_impeller.mm(53)] Using the Impeller rendering backend (MetalSDF).
+flutter: The Dart VM service is listening on http://127.0.0.1:52923/n2pHLPui4EQ=/
+FUSION spun
+FUSION hash pixel6a equal 108/108 new 322819120 old 322819120
+FUSION hash iphone16pro equal 218/218 new 131745317 old 131745317
+FUSION tight new mean 190 p50 169 p95 400 max 461 us
+FUSION tight old mean 188 p50 165 p95 400 max 446 us
+FUSION paced new wall mean 205 p50 179 p95 434 max 490 us thread mean 205 p50 179 p95 435 max 491 us by cpu {-1: 324x179}
+FUSION paced old wall mean 202 p50 171 p95 430 max 471 us thread mean 203 p50 172 p95 430 max 472 us by cpu {-1: 324x171}
+FUSION paced new-evicted wall mean 207 p50 178 p95 429 max 500 us thread mean 208 p50 179 p95 430 max 501 us by cpu {-1: 324x178}
+FUSION paced old-evicted wall mean 204 p50 176 p95 432 max 522 us thread mean 205 p50 177 p95 433 max 523 us by cpu {-1: 324x176}
+FUSION report /Users/tembeon/Library/Containers/dev.tembeon.morphExample/Data/tmp/fusion_probe.json
+FUSION done

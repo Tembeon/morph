@@ -1,0 +1,63 @@
+tier flat platform ios rate 120.0 budget 8.33 detail False
+
+== run 0: 511 active, 0 over
+-- #  612 build   4.1 raster   1.3 | build 2.2 layout 2.1 paint 0.7 comp 0.2 | gc 0.0  | open up +91 ms | 
+-- #  714 build   3.2 raster   1.0 | build 1.6 layout 2.3 paint 0.6 comp 0.1 | gc 0.0  | close down +24 ms | 
+-- #  727 build   3.7 raster   2.0 | build 3.0 layout 2.9 paint 0.2 comp 0.1 | gc 0.0  | close up +66 ms | 
+-- #  729 build   3.1 raster   1.7 | build 1.9 layout 1.9 paint 0.7 comp 0.1 | gc 0.0  | flight MorphFlightEvent.closing +17 ms | 
+-- #  848 build   4.2 raster   1.6 | build 2.4 layout 2.1 paint 0.8 comp 0.2 | gc 0.0  | open up +91 ms | Animator::BeginFrame 4.4
+-- #  963 build   3.1 raster   2.4 | build 2.5 layout 2.4 paint 0.2 | gc 0.0  | close up +66 ms | Animator::BeginFrame 3.2
+
+== run 1: 512 active, 0 over
+-- # 1125 build   4.9 raster   1.6 | build 2.7 layout 2.4 paint 1.0 comp 0.2 | gc 0.0  | open up +91 ms | 
+-- # 1169 build   2.9 raster   0.6 | build 2.5 layout 2.5 paint 0.2 | gc 0.0  | flight MorphFlightEvent.launched +366 ms | 
+-- # 1226 build   3.5 raster   1.1 | build 1.8 layout 2.5 paint 0.7 comp 0.1 | gc 0.0  | close down +16 ms | 
+-- # 1240 build   3.9 raster   1.3 | build 3.2 layout 3.1 paint 0.2 comp 0.1 | gc 0.0  | close up +66 ms | 
+-- # 1361 build   4.3 raster   1.1 | build 2.4 layout 2.1 paint 1.0 comp 0.1 | gc 0.0  | open up +91 ms | Animator::BeginFrame 4.4
+-- # 1476 build   3.9 raster   1.3 | build 3.2 layout 3.1 paint 0.2 comp 0.1 | gc 0.0  | close up +66 ms | Animator::BeginFrame 3.9
+
+== run 2: 512 active, 0 over
+-- # 1638 build   4.7 raster   1.5 | build 2.6 layout 2.4 paint 0.9 comp 0.1 | gc 0.0  | open up +91 ms | 
+-- # 1739 build   3.6 raster   1.1 | build 1.7 layout 2.6 paint 0.7 comp 0.1 | gc 0.0  | close down +16 ms | 
+-- # 1753 build   3.4 raster   1.2 | build 2.8 layout 2.6 paint 0.2 | gc 0.0  | close up +66 ms | 
+-- # 1755 build   3.2 raster   1.7 | build 2.0 layout 2.0 paint 0.7 comp 0.1 | gc 0.0  | flight MorphFlightEvent.closing +17 ms | 
+-- # 1874 build   4.3 raster   1.2 | build 2.4 layout 2.2 paint 0.8 comp 0.2 | gc 0.0  | open up +91 ms | Animator::BeginFrame 4.4
+-- # 1989 build   3.9 raster   1.3 | build 3.3 layout 3.1 paint 0.2 comp 0.1 | gc 0.0  | close up +66 ms | Animator::BeginFrame 3.9
+
+== run 3: 511 active, 0 over
+-- # 2151 build   4.2 raster   1.4 | build 2.3 layout 2.2 paint 0.8 comp 0.2 | gc 0.0  | open up +91 ms | 
+-- # 2252 build   3.1 raster   0.9 | build 1.6 layout 2.3 paint 0.6 comp 0.1 | gc 0.0  | close down +16 ms | 
+-- # 2266 build   3.5 raster   1.3 | build 2.9 layout 2.8 paint 0.2 | gc 0.0  | close up +66 ms | 
+-- # 2268 build   3.0 raster   1.7 | build 1.7 layout 1.8 paint 0.7 comp 0.1 | gc 0.0  | flight MorphFlightEvent.closing +17 ms | 
+-- # 2387 build   4.3 raster   1.1 | build 2.4 layout 2.1 paint 0.9 comp 0.2 | gc 0.0  | open up +91 ms | Animator::BeginFrame 4.4
+-- # 2502 build   3.9 raster   1.5 | build 3.2 layout 3.1 paint 0.3 comp 0.1 | gc 0.0  | close up +66 ms | Animator::BeginFrame 3.9
+
+== run 4: 511 active, 0 over
+-- # 2664 build   4.3 raster   1.1 | build 2.3 layout 2.1 paint 0.8 comp 0.2 | gc 0.0  | open up +91 ms | 
+-- # 2766 build   3.4 raster   1.2 | build 1.8 layout 2.4 paint 0.6 comp 0.1 | gc 0.0  | close down +24 ms | 
+-- # 2779 build   3.4 raster   4.5 | build 2.7 layout 2.6 paint 0.2 comp 0.1 | gc 0.0  | close up +67 ms | 
+-- # 2900 build   4.6 raster   1.1 | build 2.7 layout 2.4 paint 0.9 comp 0.1 | gc 0.0  | open up +91 ms | Animator::BeginFrame 4.7
+-- # 3015 build   3.1 raster   1.2 | build 2.5 layout 2.4 paint 0.2 comp 0.1 | gc 0.0  | close up +66 ms | Animator::BeginFrame 3.2
+-- # 3017 build   3.1 raster   1.6 | build 1.8 layout 1.8 paint 0.7 comp 0.2 | gc 0.0  | flight MorphFlightEvent.closing +17 ms | Animator::BeginFrame 3.1
+
+run: active build p50 p95 worst | raster p50 p95 | over (build, raster)
+0: 511 0.7 2.4 4.2 | 0.7 1.8 | 0 (0, 0)
+1: 512 0.7 2.5 4.9 | 0.6 1.4 | 0 (0, 0)
+2: 512 0.7 2.5 4.7 | 0.7 1.4 | 0 (0, 0)
+3: 511 0.7 2.5 4.3 | 0.6 1.4 | 0 (0, 0)
+4: 511 0.8 2.4 4.6 | 0.6 1.5 | 0 (0, 0)
+median: 511 build 0.7 2.5 4.6 | raster 0.6 1.4 | over 0 (0, 0)
+
+active frames by scene phase (all runs): build and raster p50 / p95 / max
+flight MorphFlightEvent.launched          879  build   1.3   2.6   3.0  raster   0.7   1.8   7.6
+flight MorphFlightEvent.latched           570  build   0.5   0.7   0.9  raster   0.5   0.6   0.8
+flight MorphFlightEvent.closing           390  build   1.3   2.1   3.2  raster   1.1   1.7   5.9
+flight MorphFlightEvent.landed            250  build   0.2   0.5   0.6  raster   0.5   0.7   0.7
+open up                                   110  build   0.4   4.3   4.9  raster   0.6   1.3   1.6
+flight MorphFlightEvent.settled           110  build   0.7   0.8   0.9  raster   0.7   0.8   1.1
+open down                                  84  build   1.0   1.7   1.7  raster   0.6   1.2   1.4
+close up                                   80  build   0.7   3.9   3.9  raster   0.7   1.5   4.5
+close down                                 79  build   0.7   3.2   3.6  raster   0.7   1.0   1.2
+before                                      5  build   0.2   0.2   0.2  raster   0.9   1.0   1.0
+
+over-budget frames by scene phase (all runs): count, build-over, raster-over, gc-in-build

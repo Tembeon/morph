@@ -120,6 +120,20 @@ Internal machinery (all `@internal`):
 - `lens_driver.dart`, `lens_spec.dart`, `control_focus.dart`
   (`MorphControlFocus`, `MorphFocusRing` systemBlue, `MorphDisabled`),
   touch_listener.dart (`delaysInScrollable`).
+- `menu_fusion_worker*.dart` - `MorphFusionWorker`, THE ONE BACKGROUND
+  ISOLATE POOL in the package (2026-10-06): the menu motion peeks its
+  silhouette inputs at the next three predicted frame times (a pure peek:
+  time and kicks restored) and up to four isolates fuse them while
+  frames render;
+  `MorphMenuFusion.outline` serves an arrived fusion only within
+  `prefetchTolerance` (0.02 pt per input) and the same grid/kernel, else
+  fuses in the frame as before - so a served outline is the exact law at
+  a time a fraction of a millisecond from the frame's. Profile/release
+  with isolates only (`prefetches`); debug, every test and the web never
+  start it. Workers send plain parts (`MorphGlassOutlineParts`: samples
+  + contour loops) because dart:ui's Path exists only on the root
+  isolate. Why: the fusion's device cost is core placement and DVFS of a
+  light UI thread (glass-renderer.md "Menu fusion: the device gap").
 
 Public controls (one passport each): MorphSegmentedControl, MorphTabBar,
 MorphSearchTabBar, MorphSwitch, MorphSlider, MorphStepper,
@@ -1282,6 +1296,16 @@ Pixel liquid tab bar 6.57 -> 2.33, 17.99 -> 17.32 (update ms per run 113
 29 -> 20); flat menu 9.60 -> 5.14, 13.45 -> 9.70 (p99 27.93 -> 13.15).
 iPhone liquid tab bar 5.80 -> 1.15, menu 8.43 -> 4.93; flat menu 12.18 ->
 2.75 (p99 4.26 -> 1.99).
+
+MENU FUSION AHEAD (2026-10-06, glass-renderer.md "Menu fusion: the
+device gap and the fusion ahead"; perf/2026-10-06-fusion-probe and
+-fusion-ab): the fusion's 4 - 12x device-over-loop gap is core placement
+and DVFS (Pixel paced 5.3 ms against 0.43 ms in a loop, the paced calls
+on the A55 / A76 cores; a pinned A55 3.4 ms, X1 0.39 ms). Fused ahead on
+background isolates and served within 0.02 pt per input: menu build p95
+(5 runs, median of two launches) iPhone flat 2.44 -> 1.55, liquid 2.67 ->
+2.30; Pixel flat 12.2 -> 11.1, liquid 14.5 -> 13.4 ms; a served frame's
+UI cost 0.04 ms (iPhone) / 0.19 ms (Pixel) against 0.85 / 7.5 ms paced.
 
 Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 

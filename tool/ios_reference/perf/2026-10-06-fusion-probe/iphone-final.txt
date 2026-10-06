@@ -1,0 +1,20 @@
+FUSION hash pixel6a equal 105/108 new 309923918 old 195781162
+FUSION hash iphone16pro equal 212/218 new 23839083 old 98882187
+FUSION tight new mean 206 p50 187 p95 432 max 480 us
+FUSION tight old mean 221 p50 200 p95 456 max 520 us
+FUSION paced new wall mean 888 p50 737 p95 2083 max 2997 us thread mean 884 p50 737 p95 2036 max 2986 us by cpu {-1: 324x737}
+FUSION paced old wall mean 940 p50 750 p95 2131 max 2696 us thread mean 936 p50 752 p95 2126 max 2622 us by cpu {-1: 324x750}
+FUSION paced new-evicted wall mean 719 p50 634 p95 1515 max 1753 us thread mean 719 p50 637 p95 1518 max 1758 us by cpu {-1: 324x634}
+FUSION paced old-evicted wall mean 724 p50 638 p95 1489 max 1877 us thread mean 725 p50 632 p95 1492 max 1881 us by cpu {-1: 324x638}
+FUSION paced new-spun wall mean 646 p50 548 p95 1336 max 1508 us thread mean 647 p50 549 p95 1328 max 1509 us by cpu {-1: 324x548}
+FUSION paced old-spun wall mean 641 p50 558 p95 1323 max 1552 us thread mean 641 p50 560 p95 1326 max 1517 us by cpu {-1: 324x558}
+FUSION worker round 0 hits 107/108 ui mean 43 p50 41 p95 63 max 181 us hit mean 42 p50 40 p95 63 max 67 us miss mean 181 p50 181 p95 181 max 181 us
+FUSION worker round 1 hits 107/108 ui mean 44 p50 40 p95 64 max 259 us hit mean 42 p50 40 p95 62 max 69 us miss mean 259 p50 259 p95 259 max 259 us
+FUSION worker round 2 hits 106/108 ui mean 45 p50 39 p95 65 max 270 us hit mean 41 p50 39 p95 65 max 91 us miss mean 220 p50 270 p95 270 max 270 us
+FUSION cpu new 1932 samples: _BlurredUnion.blurred 25.8%, morphMenuSilhouetteParts 22.6%, morphBoxDistance 10.7%, _OutlineTracer.trace 7.5%, _OpticalCorners.turn 5.0%, _OutlineTracer._link 4.5%, _BlurredUnion.smoothed 4.3%, morphGlassOutlinePartsFromFields 4.2%, _Double.abs 2.4%, _BlurredUnion.remember 2.1%, _OpticalCorners.row 1.8%, _BlurredUnion._BlurredUnion 1.3%
+FUSION cpu old 1820 samples: baselineMenuSilhouette 26.8%, _BlurredUnion.blurred 26.2%, morphBoxDistance 10.4%, _OutlineTracer.trace 6.3%, morphGlassOutlinePartsFromFields 5.0%, MorphOutlineBoxes.opticalTurn 4.9%, _Double.abs 4.0%, _OutlineTracer._link 3.5%, _BlurredUnion.smoothed 3.4%, _BlurredUnion.remember 1.4%, _BlurredUnion._BlurredUnion 1.0%, _OutlineTracer._crossing 0.9%
+FUSION report /private/var/mobile/Containers/Data/Application/CEB24074-DF72-4269-968C-420D2B5143C1/tmp/fusion_probe.json
+FUSION done
+Launched application with dev.tembeon.morphExample bundle identifier.
+Waiting for the application to terminate...
+The app terminated with the exit code 0.

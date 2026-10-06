@@ -1626,6 +1626,129 @@ sheet 9.55 / 14.43 -> 9.69 / 14.12: within the launch spread (cand4,
 built from the same tree plus Q4, reads 8.12 / 10.20 segmented and 8.96 /
 15.88 menu). iPhone 16 Pro within 0.1 ms everywhere.
 
+## Menu fusion: the device gap and the fusion ahead (2026-10-06)
+
+The menu fusion field (`morphMenuSilhouette`) cost the Pixel 6a's menu
+p50 2.8 / p95 9 / max 16 ms a fusing frame (liquid; flat p50 3.7, max
+30), 4 - 10x its tight-loop time. Evidence: perf/2026-10-06-fusion-probe
+(integration_test/fusion_probe.dart over the 108 + 218 fusions the
+gallery's rich menu makes per two opens, recorded at the Pixel's and the
+iPhone's logical sizes and rates; support/fusion_inputs.dart) and
+perf/2026-10-06-fusion-ab (the menu frames A/B below).
+
+WHY THE DEVICE IS 4 - 12x THE BENCHMARK (us per fusion, mean over the
+recorded inputs, profile AOT):
+
+| where / how | macOS M-series | iPhone 16 Pro | Pixel 6a |
+|---|---|---|---|
+| tight loop (warm, back to back) | 187 | 201 | 433 |
+| pinned: X1 / A76 / A55 | - | - | 384 - 403 / 700 - 707 / 3390 - 3441 |
+| paced: one per frame, app idle | 200 - 1029 | 850 - 888 | 5311 |
+| paced, 16 MB of caches evicted first | 205 - 1060 | 719 - 725 | 2293 |
+| paced, 4 ms of busy work first | - | 646 | 3194 |
+
+- Core placement and clock (DVFS), nothing else. A paced call's thread
+  CPU time equals its wall time (no preemption) and it runs 4 - 12x
+  slower than the same call in a loop; on the Pixel `sched_getcpu` puts
+  the paced calls mostly on the A55 / A76 cores (by cpu: 5 105x 3.9 ms,
+  0 72x 6.1 ms, 4 71x 2.8 ms; the X1 cores 6 / 7 429 / 919 us), and a
+  pinned A55 is 8.9x a pinned X1. Work right before the call (a busy
+  spin, or the cache eviction loop itself) raises the clock and moves
+  the thread up: evicting 16 MB of cache makes the call FASTER (5.3 ->
+  2.3 ms), so cache misses are not the gap. Even the Mac shows it once the
+  app is in the background (paced 200 -> 1029 us between two launches).
+- Not the grid: the grid is in logical pixels, the same at DPR 2.6 and 3.
+  Not JIT: every number is a profile AOT build. Not GC: the per-frame
+  dumps put no GC in the p95 builds (menu-button.md).
+- The benchmark's shapes are cheaper than the menu's: the recorded
+  fusions cost 27 - 480 us on the Mac; the dearest are the open's tail
+  (radius 1 - 7 pt at the full 256 x 540 menu, the step clamped at 2 pt:
+  9k field nodes, 5 - 7k trace nodes, little blur), 2.3x
+  `outline_us menu10-r4`.
+- Where a fusion's time goes (macOS AOT, address samples): the separable
+  blur ~30 percent, the field loop ~30, the near-block loop ~20, the
+  trace ~13 (half of it the path's FFI calls), the samples ~6.
+
+THE FUSION AHEAD (`MorphFusionWorker`, menu_fusion_worker_io.dart;
+profile and release builds with isolates; debug, tests and the web keep
+the frame's own fusion). The motion is a function of time, so each frame
+the menu predicts the next three frames' times
+(`MorphMenuFusion.prefetchFrames`: the least-squares line through the
+trailing frames whose steps are within a quarter of the median step -
+frame times jitter around the period, and a dropped frame or a read at
+an event's time must not bend the line), peeks its shapes, kicks and
+fusion radius there (time and kicks restored), and posts the fusions to
+a pool of up to four background isolates. A worker computes the
+outline's parts - field samples (sent without a copy) and the contour
+loops; dart:ui's Path cannot be built off the root isolate - and the
+frame builds the Path from the loops. The frame serves the newest
+arrived fusion whose eleven inputs are each within
+`MorphMenuFusion.prefetchTolerance` (0.02 pt) of its own and whose radius
+samples the same grid with the same kernel (`sameGrid`); otherwise it
+fuses its own, exactly as before.
+- NEAR, bounded by construction: a served outline is the exact fused
+  outline of the motion at the predicted time, a fraction of a
+  millisecond from the frame's. Every served frame of one final launch
+  per device re-fused on the host from the harness's pairs (menu_frames
+  `fusion_calls`, test-only hook `MorphMenuFusion.debugOnFuse`): outline
+  distance p50 0.018 / p95 0.023 - 0.024 / max 0.031 - 0.060 pt on the
+  iPhone (liquid and flat, 670 + 772 frames; at most 0.18 device px) and
+  p50 0.018 / p95 0.023 / max 0.028 - 0.054 pt on the Pixel (372 + 319;
+  0.14 device px). An earlier one-ahead run met one 0.28 pt case:
+  a neck forming (radius 8.8, the button 20 pt over the menu's top),
+  where the exact law itself moves that far between two inputs ~10 us of
+  motion apart.
+- UI cost of a served frame: the Path from the loops (one quad per
+  crossing off the straight runs). Probe, paced (one fusion a frame, the
+  next one requested the frame before): iPhone 38 - 45 us against 850 -
+  888 us fused in the frame; Pixel 183 - 196 us against 7.5 - 8.4 ms;
+  99 - 107 of 108 served.
+- Gallery menu (menu_frames: the rich menu opened and closed twice per
+  run, 5 runs per launch, two launches each, median per launch; off =
+  the same build with `--dart-define=FUSION_PREFETCH=false`), build ms
+  p50 / p95, served share:
+
+| device / tier | off | on | served |
+|---|---|---|---|
+| iPhone 16 Pro flat | 0.74 / 2.45, 0.74 / 2.42 | 0.76 / 1.57, 0.76 / 1.52 | 64 - 66 % |
+| iPhone 16 Pro liquid | 1.34 / 2.67, 1.36 / 2.67 | 1.34 / 2.32, 1.31 / 2.28 | 56 - 60 % |
+| Pixel 6a flat | 2.51 / 12.03, 2.67 / 12.37 | 2.61 / 11.22, 2.46 / 10.90 | 55 - 56 % |
+| Pixel 6a liquid | 5.50 / 13.97, 6.04 / 15.06 | 5.75 / 13.25, 5.97 / 13.62 | 65 - 69 % |
+
+  Raster and frames over budget move within the launch spread. The
+  misses: on the iPhone the fast part of an open, where 0.05 - 0.1 ms of
+  timing error is more than 0.02 pt of motion; on the Pixel the first
+  frames of an open or close, whose fusions come back late while the
+  workers wake on slow cores. The Pixel's build p95 frames are mostly
+  other work (the opening frames, the rows), so its p95 moves ~1 ms; its
+  fusing frames that are served drop from the paced cost above to ~0.2
+  ms. Steps that did not help on the Pixel: one prediction a frame (41 -
+  55 % served), an adaptive one- or two-frame horizon (45 - 48 %), two
+  or three predictions a frame on the plain least-squares line (45 - 55
+  %: the line through an open's irregular first frames pointed tens of
+  points ahead).
+- KERNEL REACH: `reachOf` subtracts 1e-9 before the ceiling. Where the
+  step is a third of the radius, 3r / step lands a rounding error either
+  side of 9 and the kernel flipped between 19 and 21 taps frame to frame
+  (9 of the 326 recorded fusions); the outline moved by up to 0.035 pt on
+  those frames (0.23 pt at a neck in the served pairs above). Now 19.
+- Resting frames never fuse (radius 0) and are untouched; the timed
+  menu shots of the audit already move between launches of one app, so
+  the device proof is the re-fused pairs above, not shots.
+- Same-pixel changes in the same commit: a straight run of crossings is
+  one line instead of collinear quadratics (156 path verbs instead of
+  ~745 on the tall menu; same point set), and the optical turn's per-axis
+  terms are computed once per column and row (bit-identical fields, 326
+  of 326 recorded inputs before the reach fix).
+- Tried and dropped: deferring the blur into batched, four-way
+  interleaved passes (bit-identical, no faster: 69 against ~65 us a
+  fusion, the memo bookkeeping is the work); tracing on the field grid at
+  stride 2 (0.1 - 1 pt off at a 4 - 8 pt step); raising the plain-union
+  cutoff (0.11 pt at radius 2: over a quarter device pixel); a Flutter
+  GPU field pass (the outline path is needed on the CPU the same frame -
+  the body shadow, fake and flat glass clip to it - so the field would
+  still need a CPU trace or a readback).
+
 ## The lifted lens's frost, the segmented remainder, the second submit (2026-10-06)
 
 Three questions left by "Raster ties" Q1. Evidence:

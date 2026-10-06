@@ -1,0 +1,33 @@
+FUSION hash pixel6a equal 105/108 new 63989598 old 151917082
+FUSION hash iphone16pro equal 212/218 new 174762874 old 331477215
+FUSION tight new mean 433 p50 392 p95 862 max 1192 us
+FUSION tight old mean 434 p50 393 p95 897 max 1036 us
+FUSION core 0 new mean 3441 p50 3062 p95 7143 max 8525 us on 0
+FUSION core 0 old mean 3497 p50 3050 p95 7601 max 10471 us on 0
+FUSION core 1 new mean 3407 p50 3025 p95 6937 max 8304 us on 1
+FUSION core 1 old mean 3448 p50 3001 p95 7406 max 10999 us on 1
+FUSION core 2 new mean 3396 p50 3003 p95 7686 max 9099 us on 2
+FUSION core 2 old mean 3455 p50 3051 p95 7005 max 8406 us on 2
+FUSION core 3 new mean 3390 p50 2991 p95 6906 max 9177 us on 3
+FUSION core 3 old mean 3453 p50 3033 p95 7582 max 8614 us on 3
+FUSION core 4 new mean 707 p50 616 p95 1456 max 1712 us on 4
+FUSION core 4 old mean 747 p50 620 p95 1627 max 2012 us on 4
+FUSION core 5 new mean 700 p50 598 p95 1626 max 1945 us on 5
+FUSION core 5 old mean 709 p50 593 p95 1527 max 2002 us on 5
+FUSION core 6 new mean 384 p50 351 p95 752 max 910 us on 6
+FUSION core 6 old mean 412 p50 361 p95 913 max 1391 us on 6
+FUSION core 7 new mean 403 p50 363 p95 829 max 1155 us on 7
+FUSION core 7 old mean 418 p50 377 p95 850 max 974 us on 7
+FUSION paced new wall mean 5311 p50 4345 p95 13213 max 21811 us thread mean 5103 p50 4185 p95 12294 max 20056 us by cpu {6: 5x429, 7: 11x919, 5: 105x3886, 1: 19x3407, 3: 19x10365, 0: 72x6053, 4: 71x2846, 2: 22x9279}
+FUSION paced old wall mean 4713 p50 4238 p95 12472 max 18797 us thread mean 4557 p50 4052 p95 12278 max 18275 us by cpu {4: 83x3861, 3: 23x4931, 0: 48x4796, 5: 94x3470, 1: 25x5472, 6: 17x2564, 2: 24x6001, 7: 10x3054}
+FUSION paced new-evicted wall mean 2293 p50 1903 p95 4731 max 6597 us thread mean 2251 p50 1872 p95 4657 max 6443 us by cpu {7: 31x1933, 5: 170x2421, 4: 73x1618, 6: 36x2002, 1: 3x2820, 2: 6x1023, 3: 3x977, 0: 2x2425}
+FUSION paced old-evicted wall mean 2367 p50 2097 p95 4704 max 6085 us thread mean 2325 p50 2056 p95 4587 max 5550 us by cpu {4: 107x2154, 1: 11x1907, 5: 146x1885, 7: 15x1120, 6: 42x3750, 0: 2x1953, 3: 1x884}
+FUSION paced new-spun wall mean 3194 p50 2957 p95 6719 max 11684 us thread mean 3134 p50 2878 p95 6568 max 11435 us by cpu {4: 103x2769, 3: 18x3381, 2: 9x3135, 7: 1x1118, 5: 135x3089, 0: 28x2969, 1: 14x2882, 6: 16x3020}
+FUSION paced old-spun wall mean 3159 p50 2918 p95 6976 max 13714 us thread mean 3109 p50 2871 p95 6887 max 13066 us by cpu {4: 106x3529, 3: 10x2081, 5: 144x2262, 7: 14x1510, 2: 14x2984, 1: 14x7103, 0: 14x3027, 6: 8x3025}
+FUSION worker round 0 hits 100/108 ui mean 795 p50 157 p95 6451 max 13189 us hit mean 192 p50 141 p95 443 max 631 us miss mean 8336 p50 9155 p95 13189 max 13189 us
+FUSION worker round 1 hits 99/108 ui mean 879 p50 168 p95 4642 max 22276 us hit mean 196 p50 161 p95 426 max 629 us miss mean 8390 p50 4968 p95 22276 max 22276 us
+FUSION worker round 2 hits 102/108 ui mean 588 p50 159 p95 1315 max 9998 us hit mean 183 p50 154 p95 329 max 695 us miss mean 7473 p50 8032 p95 9998 max 9998 us
+FUSION cpu new 2676 samples: _BlurredUnion.blurred 24.9%, morphMenuSilhouetteParts 24.9%, morphBoxDistance 11.6%, _Double.abs 6.4%, _OutlineTracer.trace 5.1%, morphGlassOutlinePartsFromFields 4.6%, _OpticalCorners.turn 4.4%, _OutlineTracer._link 2.7%, _BlurredUnion._BlurredUnion 2.2%, _BlurredUnion.smoothed 2.1%, _BlurredUnion.remember 1.9%, _NativePath.quadraticBezierTo 1.6%
+FUSION cpu old 2560 samples: baselineMenuSilhouette 26.5%, _BlurredUnion.blurred 24.5%, _Double.abs 8.2%, morphBoxDistance 7.5%, morphGlassOutlinePartsFromFields 5.1%, _OutlineTracer.trace 4.9%, MorphOutlineBoxes.opticalTurn 4.8%, _BlurredUnion.smoothed 3.6%, _BlurredUnion._BlurredUnion 2.4%, _OutlineTracer._link 2.1%, _NativePath.quadraticBezierTo 2.0%, _BlurredUnion.remember 1.6%
+FUSION report /data/user/0/dev.tembeon.morph_example/code_cache/fusion_probe.json
+FUSION done

@@ -477,7 +477,10 @@ The root card's rows are built during the press that opens the menu and
 move into the menu at the opening (menu-button.md, "Built ahead of the
 opening"); deferred-group loading rows and `MorphMenuWidget` rows still
 build at the opening, and a deferred answer rebuilds the card it lands in.
-The menu's frame cost on a weak device is the fusion field, not content.
+The menu's frame cost on a weak device was the fusion field, not content;
+the fusion is now computed ahead on background isolates and served to
+55 - 69 percent of the fusing frames on a Pixel 6a (glass-renderer.md
+"Menu fusion: the device gap and the fusion ahead").
 
 ## Open
 

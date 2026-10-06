@@ -299,6 +299,18 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   identical) or a cheaper exact fusion. Tool:
   example/integration_test/menu_frames_test.dart + perf/menu_frames.py
   (perf/2026-10-06-pixel6a-menu-frames).
+- The fusion is computed ahead (2026-10-06, glass-renderer.md "Menu
+  fusion: the device gap and the fusion ahead"): its device cost was core
+  placement and DVFS of a light UI thread (paced 4 - 12x the tight loop;
+  a pinned A55 8.9x a pinned X1). The motion predicts the next three
+  frame times, peeks its silhouette inputs there and a pool of background
+  isolates fuses them; a frame within 0.02 pt per input is served that
+  outline (the exact law at the predicted time, served pairs <= 0.06 pt
+  off), else fuses its own. Served 55 - 69 percent of fusing frames
+  (Pixel 6a), 56 - 66 (iPhone 16 Pro); menu build p95 iPhone flat 2.4 ->
+  1.5, liquid 2.7 -> 2.3, Pixel flat 12.0 / 12.4 -> 11.2 / 10.9, liquid
+  14.0 / 15.1 -> 13.3 / 13.6 ms. The kernel reach no longer flips to ten
+  taps a side on a rounding error (`MorphMenuFusion.reachOf`).
 - Device trace tool: example/integration_test/menu_trace_test.dart
   (profile build, `--dart-define=TRACE_SCENE=center|gallery`,
   `TRACE_RUN=<id>`, writes `<app tmp>/menu_trace_<id>.json`: FrameTimings,
