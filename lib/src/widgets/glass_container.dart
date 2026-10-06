@@ -50,57 +50,123 @@ class _MorphGlassContainerState extends State<MorphGlassContainer> {
   final MorphGlassContainerLink _link = MorphGlassContainerLink();
 
   @override
-  Widget build(BuildContext context) {
-    final painter = MorphGlass.maybeOf(context);
-    if (painter is! MorphGlassRenderer ||
-        painter.runtimeType != MorphGlassRenderer) {
-      return widget.child;
-    }
-    return ValueListenableBuilder<bool>(
-      valueListenable: morphLiquidGlassCapability,
-      builder: (BuildContext context, bool _, Widget? child) {
-        final tier = painter.effectiveTier;
-        if (tier == MorphGlassTier.flat) return child!;
-        final settings = morphLiquidSettings(
-          painter,
-          MorphGlassSurface(
-            kind: MorphGlassKind.button,
-            shape: RRect.zero,
-            color: const Color(0x00000000),
-            brightness: morphBrightnessOf(context),
-          ),
-        );
-        _link.configure(painter, settings);
-        return LiquidGlassLayer(
-          settings: settings,
-          fake: tier == MorphGlassTier.fake,
-          useBackdropGroup: true,
-          child: MorphGlassContainerScope(
-            link: _link,
-            renderer: painter,
-            settings: settings,
-            child: child!,
-          ),
-        );
-      },
-      child: widget.child,
-    );
+  Widget build(BuildContext context) =>
+      _containerLayer(context, _link, open: true, child: widget.child);
+}
+
+/// A glass container a package widget owns: [open] while nothing it does
+/// to its members - a fade, a scale, a blur - changes how their glass
+/// would look in layers of their own.
+///
+/// The stage's own fades go through [MorphGlassStageFade], which a member
+/// sees through; whenever such a fade is not opaque, or anything else the
+/// stage draws between its members moves, the stage closes and every
+/// member draws its own layer, in the same frame.
+@internal
+class MorphGlassStage extends StatefulWidget {
+  /// Shades the resting glass in [child] together while [open].
+  const MorphGlassStage({required this.open, required this.child, super.key});
+
+  /// Whether the members are shaded together now.
+  final bool open;
+
+  /// The members.
+  final Widget child;
+
+  @override
+  State<MorphGlassStage> createState() => _MorphGlassStageState();
+}
+
+class _MorphGlassStageState extends State<MorphGlassStage> {
+  final MorphGlassContainerLink _link = MorphGlassContainerLink();
+
+  @override
+  Widget build(BuildContext context) =>
+      _containerLayer(context, _link, open: widget.open, child: widget.child);
+}
+
+/// An [Opacity] of a [MorphGlassStage] that its members see through: the
+/// stage closes whenever [opacity] is below 1.
+@internal
+class MorphGlassStageFade extends Opacity {
+  /// Fades [child] by [opacity].
+  const MorphGlassStageFade({required super.opacity, super.child, super.key});
+
+  @override
+  RenderOpacity createRenderObject(BuildContext context) =>
+      _RenderStageFade(opacity: opacity);
+}
+
+class _RenderStageFade extends RenderOpacity {
+  _RenderStageFade({super.opacity});
+}
+
+Widget _containerLayer(
+  BuildContext context,
+  MorphGlassContainerLink link, {
+  required bool open,
+  required Widget child,
+}) {
+  final painter = MorphGlass.maybeOf(context);
+  if (painter is! MorphGlassRenderer ||
+      painter.runtimeType != MorphGlassRenderer) {
+    return child;
   }
+  return ValueListenableBuilder<bool>(
+    valueListenable: morphLiquidGlassCapability,
+    builder: (BuildContext context, bool _, Widget? child) {
+      final tier = painter.effectiveTier;
+      if (tier == MorphGlassTier.flat) return child!;
+      final settings = morphLiquidSettings(
+        painter,
+        MorphGlassSurface(
+          kind: MorphGlassKind.button,
+          shape: RRect.zero,
+          color: const Color(0x00000000),
+          brightness: morphBrightnessOf(context),
+        ),
+      );
+      link.configure(painter, settings);
+      return LiquidGlassLayer(
+        settings: settings,
+        fake: tier == MorphGlassTier.fake,
+        useBackdropGroup: true,
+        child: MorphGlassContainerScope(
+          link: link,
+          renderer: painter,
+          settings: settings,
+          open: open,
+          child: child!,
+        ),
+      );
+    },
+    child: child,
+  );
 }
 
 /// Whether the glass of [host] would look the same shaded by the nearest
 /// glass container: nothing between them fades, clips, filters or hides
 /// what is painted, since the container's layer shades every shape it
-/// holds whatever lies between.
+/// holds whatever lies between, and no backdrop group between them gives
+/// the host a backdrop copy other than the container's (a bar floating in
+/// its own group stays out).
 @internal
 bool morphGlassContainerReaches(Element host) {
   final scope = host
       .getElementForInheritedWidgetOfExactType<MorphGlassContainerScope>();
   if (scope == null) return false;
+  final group = scope.getElementForInheritedWidgetOfExactType<BackdropGroup>();
+  final shared = (group?.widget as BackdropGroup?)?.backdropKey;
   var clear = true;
   host.visitAncestorElements((Element element) {
     if (identical(element, scope)) return false;
+    final widget = element.widget;
+    if (widget is BackdropGroup && widget.backdropKey != shared) {
+      clear = false;
+      return false;
+    }
     final render = element is RenderObjectElement ? element.renderObject : null;
+    if (render is _RenderStageFade) return true;
     if (render is RenderOpacity ||
         render is RenderAnimatedOpacityMixin ||
         render is RenderSliverOpacity ||
@@ -134,8 +200,13 @@ class MorphGlassContainerScope extends InheritedWidget {
     required this.renderer,
     required this.settings,
     required super.child,
+    this.open = true,
     super.key,
   });
+
+  /// Whether the container takes members now; a closed one is no
+  /// container to them.
+  final bool open;
 
   /// The container's admission record.
   final MorphGlassContainerLink link;
@@ -147,12 +218,15 @@ class MorphGlassContainerScope extends InheritedWidget {
   final LiquidGlassSettings settings;
 
   /// The nearest container above [context], or null.
-  static MorphGlassContainerLink? maybeOf(BuildContext context) => context
-      .dependOnInheritedWidgetOfExactType<MorphGlassContainerScope>()
-      ?.link;
+  static MorphGlassContainerLink? maybeOf(BuildContext context) {
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<MorphGlassContainerScope>();
+    return scope != null && scope.open ? scope.link : null;
+  }
 
   @override
   bool updateShouldNotify(MorphGlassContainerScope oldWidget) =>
+      oldWidget.open != open ||
       oldWidget.link != link ||
       oldWidget.renderer != renderer ||
       oldWidget.settings != settings;

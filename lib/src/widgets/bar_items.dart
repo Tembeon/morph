@@ -1324,6 +1324,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
                       frame: () => MorphGlassFrame(
                         joined,
                         spacing: spacing,
+                        still: progress == null && motionSettled,
                         contentSlots: [
                           for (final f in items)
                             Rect.fromCenter(

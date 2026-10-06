@@ -96,6 +96,150 @@ void main() {
     expect(find.byType(LiquidGlass), findsNWidgets(4));
   });
 
+  testWidgets('a resting search field joins the container, a pressed one '
+      'leaves it', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
+        home: MorphAdaptiveGlass(
+          tier: MorphGlassTier.liquid,
+          child: ColoredBox(
+            color: const Color(0xFF203040),
+            child: MorphGlassContainer(
+              child: Column(
+                children: [
+                  const SizedBox(height: 100),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: MorphSearchField(),
+                  ),
+                  SizedBox(
+                    width: 80,
+                    height: 44,
+                    child: MorphGlassButton(
+                      onPressed: () {},
+                      child: const Text('B'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(MorphSearchField)),
+    );
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+    await gesture.cancel();
+    await tester.pumpAndSettle();
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+  });
+
+  testWidgets('a resting search toolbar shades its field and buttons in '
+      'one layer, a searching one in their own', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
+        home: MorphAdaptiveGlass(
+          tier: MorphGlassTier.liquid,
+          child: ColoredBox(
+            color: const Color(0xFF203040),
+            child: MorphSearchToolbar(
+              leading: [
+                MorphBarButton(
+                  id: 'a',
+                  icon: const SizedBox.square(dimension: 20),
+                  semanticLabel: 'A',
+                  onPressed: () {},
+                ),
+              ],
+              trailing: [
+                MorphBarButton(
+                  id: 'b',
+                  icon: const SizedBox.square(dimension: 20),
+                  semanticLabel: 'B',
+                  onPressed: () {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(LiquidGlass), findsNWidgets(3));
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+    await tester.tap(find.byType(MorphSearchField));
+    var most = 0;
+    for (var i = 0; i < 90; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      final layers = find.byType(LiquidGlassLayer).evaluate().length;
+      if (layers > most) most = layers;
+    }
+    expect(most, greaterThanOrEqualTo(3));
+  });
+
+  testWidgets('a toolbar in a container keeps its own layer: it floats '
+      'in a backdrop group of its own', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
+        home: MorphAdaptiveGlass(
+          tier: MorphGlassTier.liquid,
+          child: ColoredBox(
+            color: const Color(0xFF203040),
+            child: MorphGlassContainer(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: MorphToolbar(
+                      leading: [
+                        MorphBarButtonGroup([
+                          MorphBarButton(id: 'a', label: 'A', onPressed: () {}),
+                        ], id: 'a'),
+                      ],
+                      trailing: [
+                        MorphBarButtonGroup([
+                          MorphBarButton(id: 'b', label: 'B', onPressed: () {}),
+                        ], id: 'b'),
+                      ],
+                    ),
+                  ),
+                  Positioned(
+                    left: 20,
+                    top: 100,
+                    width: 80,
+                    height: 44,
+                    child: MorphGlassButton(
+                      onPressed: () {},
+                      child: const Text('B'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(LiquidGlass), findsNWidgets(3));
+    expect(find.byType(LiquidGlassLayer), findsNWidgets(2));
+  });
+
   testWidgets('a container shades at most its capacity, the rest draw '
       'their own layer', (WidgetTester tester) async {
     await tester.pumpWidget(_page(40, container: true));

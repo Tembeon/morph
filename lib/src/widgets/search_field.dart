@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
@@ -182,7 +183,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
         MorphClock<MorphSearchField>
     implements TextSelectionGestureDetectorBuilderDelegate {
   final MorphSearchMotion _motion = MorphSearchMotion();
-  static final Listenable _still = Listenable.merge(const []);
+  final ValueNotifier<bool> _settled = ValueNotifier<bool>(true);
   TextEditingController? _ownController;
   FocusNode? _ownFocus;
   late final TextSelectionGestureDetectorBuilder _gestures =
@@ -207,7 +208,10 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   bool get selectionEnabled => widget.enabled && _focus.hasFocus;
 
   @override
-  void advanceMotion(double t) => _motion.advance(t);
+  void advanceMotion(double t) {
+    _motion.advance(t);
+    _settled.value = _motion.isSettled;
+  }
 
   @override
   bool get motionSettled => _motion.isSettled;
@@ -225,6 +229,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
 
   @override
   void dispose() {
+    _settled.dispose();
     _ownController?.dispose();
     _ownFocus?.dispose();
     super.dispose();
@@ -398,7 +403,8 @@ class _MorphSearchFieldState extends State<MorphSearchField>
               child: widget.enabled
                   ? MorphControlCapsule(
                       painter: glass,
-                      frames: _still,
+                      frames: _settled,
+                      still: () => _settled.value,
                       color: style.capsuleColor,
                       rim: style.rimColor,
                       shadow: style.shadowColor,
@@ -841,16 +847,19 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
                     interactive: focusing,
                   ),
               ];
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fromRect(
-                    key: const ValueKey<String>('field'),
-                    rect: fieldRect,
-                    child: field,
-                  ),
-                  ...items,
-                ],
+              return MorphGlassStage(
+                open: p <= 0 && !focusing,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Positioned.fromRect(
+                      key: const ValueKey<String>('field'),
+                      rect: fieldRect,
+                      child: field,
+                    ),
+                    ...items,
+                  ],
+                ),
               );
             },
           );
@@ -882,7 +891,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
         child: out,
       );
     }
-    out = Opacity(opacity: p, child: out);
+    out = MorphGlassStageFade(opacity: p, child: out);
     if (!interactive || p < 0.01) {
       out = IgnorePointer(child: ExcludeSemantics(child: out));
     }

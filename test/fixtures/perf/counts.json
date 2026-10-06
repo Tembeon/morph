@@ -101,7 +101,7 @@
   "search-press/flat": {
     "frames": 109,
     "builds": 1.2,
-    "paints": 53.3,
+    "paints": 53.9,
     "pictures": 3.8,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -332,7 +332,7 @@
   "search-press/fake": {
     "frames": 109,
     "builds": 1.2,
-    "paints": 54.3,
+    "paints": 54.8,
     "pictures": 3.8,
     "captures": 2.0,
     "offscreen": 2.0,
@@ -563,7 +563,7 @@
   "search-press/liquid": {
     "frames": 109,
     "builds": 1.2,
-    "paints": 54.3,
+    "paints": 54.8,
     "pictures": 3.8,
     "captures": 2.0,
     "offscreen": 2.0,
