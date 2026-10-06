@@ -568,8 +568,9 @@ container is content above its glass.
   the container and the host fades, clips, filters or scrolls
   (`morphGlassContainerReaches`: Opacity, AnimatedOpacity, Offstage,
   Visibility, any Clip*, ShaderMask, BackdropFilter, ImageFiltered,
-  ColorFiltered, a viewport, a follower layer - so a MorphTag source,
-  whose Opacity hides it during a flight, never joins); and the layer
+  ColorFiltered, a viewport, a follower layer; a MorphTag's own opacity is
+  seen through while the tag shows, and a tag hiding for its flight sends
+  the source back into its own layer - see "Backdrop filter attribution"); and the layer
   holds at most 32 shapes. A pressed button leaves (its rim lights up, a
   per-layer setting) and comes back when it has settled.
 - Why "still": a member that moves relative to the container makes the
@@ -1371,6 +1372,116 @@ saveLayers and a submit share each - and the UI thread's liquid PAINT and
 COMPOSITING are not allocation-bound; the remaining levers are fewer
 filters (R3, the container) and cheaper filters, not bookkeeping.
 
+## Backdrop filter attribution and consolidation (2026-10-06)
+
+Every backdrop filter of the audit scenes named by its owner
+(`AUDIT_CENSUS=true AUDIT_CENSUS_OWNERS=true`: the census labels a filter
+by the Morph widgets above the render object that paints it, the host
+role key and the painter type; painters that keep the filter in a private
+handle note it with `GlassLayerOwners`, null and free unless a census
+sets it). Pixel 6a, liquid, filters per frame, base (9e2b532) -> after
+(perf/2026-10-06-pixel6a-filters-census, -census3):
+
+| scene | owner (why its own filter) | base | after |
+|---|---|---|---|
+| home-scroll | navigation bar capsules (chrome group, floats over content) | 1.00 | 1.00 |
+| | scroll edge effect blur (own copy; in the bars' group REJECTED 2026-10-05) | 0.72 | 0.73 |
+| segmented | navigation bar | 1.00 | 1.00 |
+| | lifted lens `(glass, 0)` (must refract the body and labels under it) | 0.64 | 0.63 |
+| tab-bar | tab bar body (bar kind, own group) | 1.00 | 1.00 |
+| | lifted lens (refracts the bar glass) | 0.87 | 0.87 |
+| | navigation bar + edge effect (list scrolled under it) | 2.00 | 2.00 |
+| controls | button row container (5 buttons) | 1.00 | 1.00 |
+| | prominent button (other tint: one appearance per container) | 1.00 | 1.00 |
+| | navigation bar | 1.00 | 1.00 |
+| | lifted slider thumb / switch knob | 0.89 | 0.89 |
+| menu | 8 resting menu buttons, one layer each (MorphTag opacity and no still signal kept them out of any container) | 7.43 | 0 |
+| | menu page container (the 8 buttons) | 0 | 1.00 |
+| | pressed / landing menu button (out of the container) | 0 | 0.32 |
+| | open menu face (MorphMenuLayer, menu kind) | 0.57 | 0.57 |
+| | navigation bar | 1.00 | 1.00 |
+| sheet | page container (5 buttons) + its pressed button | 1.39 | 1.37 |
+| | zoom button (MorphTag) and "Tap me" button, own layers | 2.00 | 0 (in the page container) |
+| | sheet surface (menu kind) | 0.76 | 0.70 |
+| | the sheet's 3 buttons (own layers, sheet content group) | 2.27 | 2.09 |
+| | navigation bar | 1.00 | 1.00 |
+| total | home 1.72 -> 1.74, segmented 1.64 -> 1.66, tab bar 3.87, controls 3.89, menu 9.00 -> 2.89, sheet 7.42 -> 5.15 | | |
+
+No filter in any scene is invisible: an empty or fully faded layer already
+drops its filter (`drawableEmpty`), a resting edge effect drops its blur
+(presence <= 0.001), an unseeded opacity seed adds no pass, and no scene
+holds one under an opacity of 0 or fully covered by opaque content (every
+cover is glass). The lens, the bars, the edge effect and the menu face
+need their own copy (they read glass or blur painted below them).
+
+Consolidations (landed):
+- A glass container sees through a showing MorphTag: the tag publishes
+  `MorphTagVisibility` right under its opacity (exactly 1 or 0), the reach
+  check passes the opacity while the tag shows and depends on the tag, so
+  a tag hiding for its flight sends its glass into its own layer in the
+  same frame (test/glass_container_tag_test.dart). The resting menu button
+  tells when it is still (no menu presented, not landing, motion settled).
+- Gallery: the menu page's buttons and the sheet page's whole list in one
+  container each.
+- A settled glass button and a still menu button draw through an exact
+  identity transform: the residual press scale (within 1e-4 of 1) made a
+  member read as scaled, and the container then skipped its raster shift
+  (a 30-step rim ring on the Pixel's once-pressed menu button). A layer
+  that shifts anchored shapes repaints once its compositor motion has
+  stopped for a frame if the pass phase moved under it (the documented
+  "until the next paint" gap after a push or a scroll).
+- Built and REVERTED: the plain sheet's three buttons in a container. The
+  floating sheet draws its content scaled to its inset width, and a scaled
+  member gets no raster shift: their rims landed up to 171 steps (0.29
+  percent of the screen) off their own layers. Scaled containers need the
+  raster phase to handle scale first.
+- Not changed: the prominent button joining the row needs per-shape
+  appearances (the material map shader) in the container - a different
+  final shader for every member, unmeasured, not IDENTICAL.
+
+Pixels. flutter_test: the 56 deterministic glass_frames scenes hash-equal
+on the host's Impeller, the 7 noisy liquid scenes within their run-to-run
+spread, Skia glass_frames identical; tagged and plain buttons in a
+container equal to their own layers on the fake tier, resting menu
+buttons within 4 steps (the fake tier's round shapes in one layer, the
+same as for a circular glass button; 0 on the host's Impeller). Device
+shots (shotdiff, base -> after vs base -> base): Pixel 6a menu-resting,
+menu-open, controls, segmented within noise; sheet-medium differs only in
+the pressed "Medium and large" label (it settles at an exact identity
+now), tabbar3-held-over-content by a 1 px scroll offset of the flung list
+(both after builds alike, rows only, no glass). iPhone 16 Pro: every shot
+within base-to-base noise except menu-resting: the 0.7 menu button's
+glass sits one device pixel higher (max 123, 0.02 percent, rim only) - its
+origin falls on an exact half device pixel at 3x, the tie of
+`glassRasterPhase`, which a container and an own layer break differently.
+
+Timings (median of 5 runs per launch, mean over launches; Pixel 6a, 60 Hz,
+cooled to 37 - 39 C, base 9 launches across pairs a - i, after 2 launches
+ABBA, flat 1; iPhone 16 Pro base 4, after 2; ms):
+
+| scene | Pixel raster p50 | Pixel raster p95 (flat) | Pixel over budget | iPhone raster p50 | iPhone raster p95 | round2 target (Pixel p95) |
+|---|---|---|---|---|---|---|
+| home-scroll | 8.16 -> 8.24 | 11.00 -> 11.34 (10.31) | 1.7 -> 2.0 | 1.51 -> 1.52 | 2.29 -> 2.32 | flat + 1.0: +1.03 |
+| segmented | 8.40 -> 8.67 | 10.41 -> 10.64 (6.78) | 0 -> 0 | 1.37 -> 1.38 | 1.70 -> 1.69 | flat + 1.5: +3.9, not met |
+| tab-bar | 10.86 -> 11.00 | 13.96 -> 13.96 (10.21) | 5.2 -> 5.0 | 2.05 -> 2.05 | 2.53 -> 2.58 | flat + 3.0: +3.8, not met |
+| controls | 8.93 -> 9.21 | 15.24 -> 15.56 (6.64) | 14.3 -> 16.0 | 1.56 -> 1.56 | 2.23 -> 2.14 | flat + 4.0: +8.9, not met |
+| menu | 10.79 -> 9.15 | 17.46 -> 15.49 (10.44) | 20.4 -> 14.5 | 2.05 -> 1.55 | 2.78 -> 2.48 | <= 15: 15.49, not met (-2.0) |
+| sheet | 10.55 -> 9.71 | 15.22 -> 14.11 (7.78) | 7.6 -> 6.0 | 2.09 -> 1.97 | 2.77 -> 2.65 | flat + 4.5: +6.3, not met (-1.1) |
+
+Reading: only the menu and the sheet held filters that could share one
+without changing pixels, and they gain what the census predicts (~0.3 ms
+raster per removed filter: menu -6.1 filters, p95 -2.0 ms, p50 -1.6; sheet
+-2.3, p95 -1.1). The other scenes' filters are each a separate plane; the
+Pixel's +0.2 - 0.3 ms on segmented and controls (identical layer trees,
+the after launches' home scene up too) is launch-to-launch spread, the
+iPhone shows none. What remains of the targets is the cost of the
+unavoidable filters (the lifted lens, the bars, the edge effect).
+Evidence: perf/2026-10-06-pixel6a-filters-{a..i} (b holds the flat
+floor; after = the reverted in-sheet container, after2 = the identity
+snap, after3 = the landed state), -filters-census{,3},
+perf/2026-10-06-iphone-filters-{base-a..d, after-a/b, after2-a/b,
+after3-a/b}; shots in /tmp (not committed).
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
@@ -1386,7 +1497,8 @@ test/glass_frames_test.dart (channel vs rebuild, pixel for pixel; with
 the engine timeline (`atlas` in the report).
 Scene windows: the audit's `scene:<name>:<run>:begin/end` slices,
 `perf/atrace_slices.py <trace> --scenes` (trace_android.sh prints it),
-and `AUDIT_CENSUS=true` for the layer census per scene in the report.
+and `AUDIT_CENSUS=true` for the layer census per scene in the report
+(`AUDIT_CENSUS_OWNERS=true` names each backdrop filter's owner).
 perf/shotdiff.py compares two runs' shots (mean, max, percent over 15);
 the shader harness and its tools are under "Shader harness" above;
 perf/contact.py lays several tiers' shots side by side.
@@ -1405,6 +1517,12 @@ with the WRONG exponent (sin(theta/2) chord vs Apple's sin^2 - necks too
 fat by +0.5..+8 pt as spacing grows); its fusion is not used.
 
 ## Open
+
+- Raster phase: a container member whose origin falls on an exact half
+  device pixel (the iPhone's 0.7 menu button) lands one device pixel off
+  its own layer (the tie of `glassRasterPhase`); a container drawn scaled
+  (a floating sheet's content) skips the shift entirely, which is why the
+  sheet's buttons keep their own layers.
 
 - Dark lifted slider thumb look (slider.md).
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).

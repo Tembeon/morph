@@ -23,7 +23,8 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// everything inside it, and it is drawn whatever lies between the
 /// container and a control: a control under an opacity, a clip, a filter
 /// or a scrolling viewport inside the container (a list of buttons, a
-/// fading or hidden button, a morph source) keeps its own layer. So everything in [child] is content above the
+/// fading or hidden button, a morph source while it flies) keeps its own
+/// layer. So everything in [child] is content above the
 /// glass: a card, a row background or an image placed inside the container
 /// would cover the glass of the buttons over it. Put what the glass must
 /// show through outside the container, under it.
