@@ -1,0 +1,154 @@
+tier liquid platform android rate 60.0 budget 16.67 detail False
+
+== run 0: 258 active, 17 over
+B- #  307 build  20.4 raster  16.5 | build 5.7 layout 12.7 bits 0.1 paint 3.8 comp 2.4 | gc 0.0  | open up +99 ms | 
+-R #  308 build  11.1 raster  17.1 | build 2.9 layout 2.8 paint 4.5 comp 3.1 | gc 0.0  | flight MorphFlightEvent.launched +33 ms | 
+-R #  318 build   8.6 raster  21.4 | build 2.4 layout 2.5 paint 2.6 comp 3.2 | gc 0.0  | flight MorphFlightEvent.launched +199 ms | 
+-R #  319 build   9.5 raster  17.1 | build 4.1 layout 4.3 paint 2.7 comp 2.3 | gc 0.0  | flight MorphFlightEvent.launched +216 ms | Animator::BeginFrame 9.7
+-R #  362 build   4.1 raster  16.9 | build 0.9 layout 1.0 paint 1.2 comp 1.6 | gc 0.0  | close up +10 ms | Animator::BeginFrame 4.4
+-R #  366 build   8.2 raster  30.9 | build 4.6 layout 4.5 paint 1.7 comp 1.4 | gc 0.0  | close up +76 ms | Animator::BeginFrame 8.5
+-- #  367 build  15.2 raster  12.6 | build 7.5 layout 7.7 paint 3.9 comp 3.1 | gc 0.0  | flight MorphFlightEvent.closing +17 ms | Animator::BeginFrame 15.3
+-R #  374 build   6.1 raster  18.2 | build 2.1 layout 2.1 paint 1.3 comp 2.4 | gc 0.0  | flight MorphFlightEvent.closing +133 ms | Animator::BeginFrame 6.2
+BR #  428 build  46.1 raster  17.9 | build 16.7 layout 30.2 bits 0.4 paint 7.8 comp 4.1 | gc 0.0  | open up +99 ms | Animator::BeginFrame 46.5
+-R #  429 build   8.8 raster  16.9 | build 1.9 layout 1.9 paint 3.3 comp 3.0 | gc 0.0  | flight MorphFlightEvent.launched +47 ms | Animator::BeginFrame 8.9
+-R #  437 build  12.8 raster  19.2 | build 7.8 layout 8.0 paint 2.3 comp 2.2 | gc 0.0  | flight MorphFlightEvent.launched +181 ms | Animator::BeginFrame 13.1
+-R #  439 build   4.6 raster  20.0 | build 2.0 layout 2.1 paint 1.5 comp 0.9 | gc 0.0  | flight MorphFlightEvent.launched +214 ms | Animator::BeginFrame 4.8
+-R #  462 build   4.2 raster  16.7 | build 0.9 layout 1.0 paint 1.2 comp 1.6 | gc 0.0  | flight MorphFlightEvent.launched +598 ms | Animator::BeginFrame 4.4
+-R #  463 build   4.4 raster  19.6 | build 1.2 layout 1.4 paint 1.3 comp 1.2 | gc 0.0  | flight MorphFlightEvent.launched +615 ms | Animator::BeginFrame 4.6
+-R #  478 build   3.7 raster  16.8 | build 0.8 layout 0.9 paint 1.1 comp 1.4 | gc 0.0  | close down +25 ms | Animator::BeginFrame 3.8
+-R #  486 build   6.7 raster  30.3 | build 3.6 layout 3.5 paint 1.2 comp 1.2 | gc 0.0  | close up +73 ms | Animator::BeginFrame 6.8
+BR #  489 build  16.8 raster  18.3 | build 7.9 layout 8.3 paint 4.2 comp 3.7 | gc 0.0  | flight MorphFlightEvent.closing +50 ms | Animator::BeginFrame 17.2
+-R #  493 build  12.9 raster  17.1 | build 6.3 layout 6.1 paint 2.7 comp 2.5 | gc 0.0  | flight MorphFlightEvent.closing +134 ms | Animator::BeginFrame 13.3
+
+== run 1: 253 active, 11 over
+BR #  569 build  24.2 raster  22.2 | build 7.8 layout 14.7 bits 0.1 paint 5.1 comp 2.7 | gc 0.0  | open up +99 ms | 
+-R #  570 build   8.6 raster  19.1 | build 2.6 layout 2.6 paint 4.1 comp 1.4 | gc 0.0  | flight MorphFlightEvent.launched +33 ms | 
+-R #  576 build  12.0 raster  17.4 | build 6.6 layout 6.8 paint 2.4 comp 2.2 | gc 0.0  | flight MorphFlightEvent.launched +132 ms | 
+BR #  579 build  19.1 raster  27.5 | build 9.5 layout 9.8 paint 6.2 comp 2.7 | gc 0.0  | flight MorphFlightEvent.launched +183 ms | Animator::BeginFrame 19.3
+BR #  626 build  23.6 raster  21.0 | build 15.7 layout 15.6 paint 3.4 comp 3.1 | gc 0.0  | close up +63 ms | Animator::BeginFrame 23.8
+B- #  627 build  17.2 raster  15.1 | build 10.2 layout 10.5 paint 4.6 comp 1.5 | gc 0.0  | flight MorphFlightEvent.closing +33 ms | Animator::BeginFrame 17.4
+-R #  628 build   5.8 raster  17.0 | build 2.6 layout 2.7 paint 1.4 comp 1.4 | gc 0.0  | flight MorphFlightEvent.closing +66 ms | Animator::BeginFrame 6.0
+BR #  686 build  35.5 raster  21.1 | build 15.4 layout 23.7 bits 0.2 paint 5.8 comp 2.7 | gc 0.0  | open up +97 ms | Animator::BeginFrame 35.8
+-R #  697 build   5.9 raster  25.8 | build 3.1 layout 3.2 paint 1.2 comp 1.3 | gc 0.0  | flight MorphFlightEvent.launched +215 ms | Animator::BeginFrame 6.1
+-R #  744 build  11.8 raster  39.1 | build 6.7 layout 6.7 paint 2.5 comp 1.8 | gc 0.0  | close up +74 ms | Animator::BeginFrame 11.9
+-R #  751 build  11.8 raster  16.9 | build 4.8 layout 4.8 paint 4.1 comp 2.7 | gc 0.0  | flight MorphFlightEvent.closing +133 ms | Animator::BeginFrame 12.2
+
+== run 2: 248 active, 29 over
+-R #  816 build   1.4 raster  17.7 |  | gc 0.0  | before +0 ms | 
+BR #  826 build  21.4 raster  27.7 | build 5.7 layout 12.5 bits 0.1 paint 4.3 comp 3.2 | gc 0.0  | open up +99 ms | 
+B- #  836 build  19.2 raster  13.5 | build 11.1 layout 11.4 paint 4.4 comp 3.1 | gc 0.0  | flight MorphFlightEvent.launched +183 ms | Animator::BeginFrame 19.5
+-R #  838 build  13.1 raster  19.9 | build 8.3 layout 8.4 paint 1.9 comp 2.4 | gc 0.0  | flight MorphFlightEvent.launched +233 ms | Animator::BeginFrame 13.3
+-R #  848 build   6.6 raster  17.7 | build 3.8 layout 3.9 paint 1.3 comp 1.0 | gc 0.0  | flight MorphFlightEvent.launched +400 ms | Animator::BeginFrame 6.7
+-R #  857 build   3.7 raster  17.0 | build 0.7 layout 0.8 paint 1.2 comp 1.5 | gc 0.0  | flight MorphFlightEvent.launched +550 ms | Animator::BeginFrame 4.0
+B- #  875 build  18.5 raster   9.6 | build 6.7 layout 9.6 paint 5.6 comp 2.6 | gc 0.0  | close down +9 ms | Animator::BeginFrame 19.3
+BR #  883 build  18.1 raster  39.9 | build 10.9 layout 10.8 paint 2.4 comp 3.7 | gc 0.0  | close up +77 ms | Animator::BeginFrame 18.3
+B- #  884 build  16.8 raster  10.5 | build 8.5 layout 8.7 paint 4.9 comp 2.7 | gc 0.0  | flight MorphFlightEvent.closing +33 ms | Animator::BeginFrame 17.1
+-R #  907 build   2.9 raster  18.2 | build 0.5 paint 1.0 comp 1.2 | gc 0.0  | flight MorphFlightEvent.latched +100 ms | Animator::BeginFrame 3.1
+-R #  910 build   2.8 raster  17.3 | build 0.4 paint 0.9 comp 1.3 | gc 0.0  | flight MorphFlightEvent.latched +150 ms | Animator::BeginFrame 3.0
+-R #  919 build   3.0 raster  18.5 | build 0.5 paint 1.1 comp 1.2 | gc 0.0  | flight MorphFlightEvent.latched +300 ms | Animator::BeginFrame 3.2
+B- #  942 build  35.5 raster   9.4 | build 14.9 layout 25.0 bits 0.2 paint 4.7 comp 3.2 | gc 0.0  | open up +97 ms | Animator::BeginFrame 35.7
+-R #  952 build  14.8 raster  18.7 | build 8.2 layout 8.4 paint 4.1 comp 2.0 | gc 0.0  | flight MorphFlightEvent.launched +199 ms | Animator::BeginFrame 15.1
+B- #  958 build  16.8 raster  15.6 | build 12.2 layout 12.3 paint 1.9 comp 2.1 | gc 0.0  | flight MorphFlightEvent.launched +350 ms | Animator::BeginFrame 17.0
+B- #  959 build  16.9 raster  14.2 | build 11.2 layout 11.4 paint 2.3 comp 2.8 | gc 0.0  | flight MorphFlightEvent.launched +383 ms | Animator::BeginFrame 17.1
+-R #  964 build   6.9 raster  20.2 | build 4.0 layout 4.1 paint 1.4 comp 1.1 | gc 0.0  | flight MorphFlightEvent.launched +483 ms | Animator::BeginFrame 7.0
+BR #  995 build  24.8 raster  31.8 | build 16.3 layout 15.7 paint 3.5 comp 3.1 | gc 0.0  | close up +75 ms | Animator::BeginFrame 25.1
+BR #  996 build  17.3 raster  17.2 | build 8.6 layout 8.8 paint 4.8 comp 2.9 | gc 0.0  | flight MorphFlightEvent.closing +32 ms | Animator::BeginFrame 17.4
+-R #  997 build  11.9 raster  18.6 | build 5.5 layout 5.7 paint 2.1 comp 3.7 | gc 0.0  | flight MorphFlightEvent.closing +65 ms | Animator::BeginFrame 12.2
+-R # 1040 build   3.2 raster  18.2 | build 0.5 paint 1.1 comp 1.3 | gc 0.0  | flight MorphFlightEvent.latched +450 ms | Animator::BeginFrame 3.3
+-R # 1042 build   5.8 raster  19.3 | build 0.8 paint 2.1 comp 2.4 | gc 0.0  | flight MorphFlightEvent.landed +16 ms | Animator::BeginFrame 6.0
+-R # 1045 build   4.5 raster  18.4 | build 0.9 paint 1.7 comp 1.2 | gc 0.0  | flight MorphFlightEvent.landed +66 ms | Animator::BeginFrame 4.9
+-R # 1051 build   0.9 raster  21.2 | comp 1.0 | gc 0.0  | flight MorphFlightEvent.landed +166 ms | Animator::BeginFrame 1.4
+-R # 1053 build   0.8 raster  17.7 | comp 0.8 | gc 0.0  | flight MorphFlightEvent.landed +199 ms | Animator::BeginFrame 1.1
+-R # 1055 build   1.8 raster  17.5 | comp 1.6 | gc 0.0  | flight MorphFlightEvent.landed +233 ms | Animator::BeginFrame 2.4
+-R # 1058 build   1.7 raster  16.8 | comp 1.4 | gc 0.0  | flight MorphFlightEvent.landed +284 ms | Animator::BeginFrame 2.0
+-R # 1061 build   1.4 raster  16.9 | comp 1.2 | gc 0.0  | flight MorphFlightEvent.landed +333 ms | Animator::BeginFrame 2.0
+-R # 1063 build   1.5 raster  18.6 | comp 1.3 | gc 0.0  | flight MorphFlightEvent.landed +366 ms | Animator::BeginFrame 1.8
+
+== run 3: 243 active, 23 over
+BR # 1076 build  29.5 raster  28.8 | build 9.7 layout 17.9 bits 0.2 paint 5.5 comp 4.1 | gc 0.0  | open up +100 ms | Animator::BeginFrame 29.7
+B- # 1085 build  17.5 raster  15.1 | build 11.8 layout 12.1 paint 2.7 comp 2.2 | gc 0.0  | flight MorphFlightEvent.launched +166 ms | Animator::BeginFrame 17.7
+BR # 1086 build  23.3 raster  20.1 | build 11.5 layout 11.9 paint 7.4 comp 3.2 | gc 0.0  | flight MorphFlightEvent.launched +200 ms | Animator::BeginFrame 23.7
+BR # 1088 build  25.0 raster  17.0 | build 16.0 layout 16.2 paint 4.5 comp 3.5 | gc 0.0  | flight MorphFlightEvent.launched +266 ms | Animator::BeginFrame 25.4
+B- # 1091 build  17.7 raster  13.3 | build 11.2 layout 11.5 paint 3.1 comp 2.6 | gc 0.0  | flight MorphFlightEvent.launched +349 ms | Animator::BeginFrame 17.9
+B- # 1092 build  17.7 raster  16.2 | build 11.0 layout 11.2 paint 2.7 comp 3.2 | gc 0.0  | flight MorphFlightEvent.launched +383 ms | Animator::BeginFrame 18.0
+BR # 1127 build  23.8 raster  26.9 | build 14.8 layout 14.8 paint 3.1 comp 4.2 | gc 0.0  | close up +77 ms | Animator::BeginFrame 24.1
+-R # 1130 build   9.1 raster  17.0 | build 4.7 layout 4.9 paint 2.0 comp 1.6 | gc 0.0  | flight MorphFlightEvent.closing +66 ms | Animator::BeginFrame 9.3
+BR # 1188 build  43.1 raster  23.9 | build 16.3 layout 29.4 bits 0.3 paint 7.3 comp 3.6 | gc 0.0  | open up +98 ms | Animator::BeginFrame 43.4
+B- # 1189 build  18.8 raster  11.9 | build 4.4 layout 4.3 paint 5.6 comp 8.0 | gc 0.0  | flight MorphFlightEvent.launched +49 ms | Animator::BeginFrame 19.0
+-R # 1193 build   8.4 raster  17.5 | build 3.7 layout 4.0 paint 1.6 comp 2.3 | gc 0.0  | flight MorphFlightEvent.launched +132 ms | Animator::BeginFrame 8.5
+BR # 1196 build  25.1 raster  18.3 | build 13.5 layout 13.8 paint 7.0 comp 3.8 | gc 0.0  | flight MorphFlightEvent.launched +199 ms | Animator::BeginFrame 25.6
+-R # 1197 build  16.5 raster  17.2 | build 10.6 layout 10.8 paint 2.3 comp 2.5 | gc 0.0  | flight MorphFlightEvent.launched +233 ms | Animator::BeginFrame 16.7
+-R # 1203 build  12.2 raster  19.9 | build 7.5 layout 7.6 paint 1.4 comp 2.9 | gc 0.0  | flight MorphFlightEvent.launched +366 ms | Animator::BeginFrame 12.4
+BR # 1241 build  22.9 raster  24.6 | build 12.8 layout 12.9 paint 4.0 comp 4.7 | gc 0.0  | close up +75 ms | Animator::BeginFrame 23.3
+BR # 1242 build  19.7 raster  17.3 | build 10.4 layout 10.7 paint 5.5 comp 2.9 | gc 0.0  | flight MorphFlightEvent.closing +32 ms | Animator::BeginFrame 20.0
+-R # 1243 build  13.3 raster  17.5 | build 7.3 layout 7.3 paint 2.1 comp 2.8 | gc 0.0  | flight MorphFlightEvent.closing +66 ms | Animator::BeginFrame 13.5
+-R # 1295 build   0.8 raster  19.4 | comp 0.7 | gc 0.0  | flight MorphFlightEvent.landed +133 ms | Animator::BeginFrame 1.0
+-R # 1297 build   1.0 raster  18.0 | comp 0.8 | gc 0.0  | flight MorphFlightEvent.landed +166 ms | Animator::BeginFrame 1.3
+-R # 1298 build   1.0 raster  17.8 | comp 0.8 | gc 0.0  | flight MorphFlightEvent.landed +183 ms | Animator::BeginFrame 1.2
+-R # 1305 build   1.4 raster  18.6 | comp 1.2 | gc 0.0  | flight MorphFlightEvent.landed +300 ms | Animator::BeginFrame 1.7
+-R # 1308 build   1.6 raster  16.9 | comp 1.4 | gc 0.0  | flight MorphFlightEvent.landed +350 ms | Animator::BeginFrame 1.9
+-R # 1309 build   1.7 raster  19.3 | comp 1.5 | gc 0.0  | flight MorphFlightEvent.landed +367 ms | Animator::BeginFrame 2.2
+
+== run 4: 245 active, 31 over
+-R # 1312 build   1.4 raster  16.8 |  | gc 0.0  | before +0 ms | 
+BR # 1322 build  21.9 raster  23.6 | build 5.8 layout 12.8 bits 0.1 paint 4.4 comp 3.1 | gc 0.0  | open up +100 ms | Animator::BeginFrame 22.1
+-R # 1330 build  13.7 raster  17.7 | build 7.3 layout 7.6 paint 3.0 comp 2.6 | gc 0.0  | flight MorphFlightEvent.launched +149 ms | Animator::BeginFrame 14.0
+-R # 1333 build  15.6 raster  18.8 | build 9.5 layout 9.8 paint 2.5 comp 2.7 | gc 0.0  | flight MorphFlightEvent.launched +199 ms | Animator::BeginFrame 15.8
+B- # 1334 build  17.7 raster   7.7 | build 10.1 layout 10.3 paint 2.2 comp 4.9 | gc 0.0  | flight MorphFlightEvent.launched +216 ms | Animator::BeginFrame 17.9
+BR # 1335 build  17.8 raster  17.0 | build 9.7 layout 9.9 paint 3.1 comp 4.1 | gc 0.0  | flight MorphFlightEvent.launched +249 ms | Animator::BeginFrame 18.1
+B- # 1338 build  17.7 raster  15.4 | build 11.5 layout 11.7 paint 2.2 comp 3.2 | gc 0.0  | flight MorphFlightEvent.launched +333 ms | Animator::BeginFrame 17.8
+B- # 1339 build  18.9 raster  16.5 | build 12.8 layout 12.9 paint 2.8 comp 2.3 | gc 0.0  | flight MorphFlightEvent.launched +366 ms | Animator::BeginFrame 19.0
+-R # 1340 build  11.3 raster  16.8 | build 6.0 layout 6.1 paint 2.0 comp 2.5 | gc 0.0  | flight MorphFlightEvent.launched +400 ms | Animator::BeginFrame 11.4
+BR # 1376 build  18.8 raster  31.9 | build 11.2 layout 11.3 paint 2.8 comp 3.5 | gc 0.0  | flight MorphFlightEvent.closing +15 ms | Animator::BeginFrame 19.0
+B- # 1377 build  18.5 raster  13.5 | build 7.8 layout 8.0 paint 4.4 comp 5.4 | gc 0.0  | flight MorphFlightEvent.closing +49 ms | Animator::BeginFrame 18.7
+-R # 1404 build   3.0 raster  19.6 | build 0.5 paint 1.0 comp 1.1 | gc 0.0  | flight MorphFlightEvent.latched +183 ms | Animator::BeginFrame 3.1
+-R # 1415 build   5.8 raster  17.4 | build 1.0 paint 1.9 comp 2.3 | gc 0.0  | flight MorphFlightEvent.latched +367 ms | Animator::BeginFrame 6.1
+-R # 1417 build   6.2 raster  17.4 | build 1.4 paint 2.0 comp 2.2 | gc 0.0  | flight MorphFlightEvent.latched +400 ms | Animator::BeginFrame 6.5
+-R # 1422 build   2.4 raster  17.9 | build 0.4 paint 0.9 comp 0.9 | gc 0.0  | flight MorphFlightEvent.landed +15 ms | Animator::BeginFrame 2.5
+-R # 1428 build   2.0 raster  21.1 | paint 0.4 comp 1.1 | gc 0.0  | open down +41 ms | Animator::BeginFrame 2.2
+-R # 1430 build   1.5 raster  17.1 | paint 0.3 comp 1.0 | gc 0.0  | open down +74 ms | Animator::BeginFrame 1.7
+B- # 1436 build  16.9 raster  12.0 | build 4.6 layout 10.3 paint 3.0 comp 2.3 | gc 0.0  | open up +98 ms | Animator::BeginFrame 17.0
+-R # 1437 build   8.0 raster  17.0 | build 1.4 layout 1.4 paint 4.1 comp 2.1 | gc 0.0  | flight MorphFlightEvent.launched +33 ms | Animator::BeginFrame 8.2
+-R # 1442 build  15.8 raster  16.7 | build 8.0 layout 8.0 paint 3.3 comp 3.8 | gc 0.0  | flight MorphFlightEvent.launched +116 ms | Animator::BeginFrame 15.9
+B- # 1445 build  16.9 raster  16.3 | build 11.0 layout 11.2 paint 2.2 comp 2.8 | gc 0.0  | flight MorphFlightEvent.launched +166 ms | Animator::BeginFrame 17.1
+-R # 1446 build  10.3 raster  17.8 | build 4.2 layout 4.3 paint 3.3 comp 2.3 | gc 0.0  | flight MorphFlightEvent.launched +200 ms | Animator::BeginFrame 10.5
+B- # 1450 build  18.9 raster  14.2 | build 11.5 layout 11.8 paint 3.6 comp 2.9 | gc 0.0  | flight MorphFlightEvent.launched +283 ms | Animator::BeginFrame 19.1
+BR # 1451 build  19.7 raster  17.7 | build 12.5 layout 12.7 paint 3.3 comp 2.7 | gc 0.0  | flight MorphFlightEvent.launched +317 ms | Animator::BeginFrame 19.9
+-R # 1452 build  11.3 raster  19.9 | build 7.5 layout 7.6 paint 1.8 comp 1.5 | gc 0.0  | flight MorphFlightEvent.launched +350 ms | Animator::BeginFrame 11.5
+B- # 1453 build  17.6 raster  11.6 | build 14.4 layout 14.7 paint 1.2 comp 1.2 | gc 0.0  | flight MorphFlightEvent.launched +367 ms | Animator::BeginFrame 17.7
+-R # 1458 build   8.1 raster  21.2 | build 4.9 layout 5.0 paint 1.5 comp 1.3 | gc 0.0  | flight MorphFlightEvent.launched +467 ms | Animator::BeginFrame 8.3
+BR # 1489 build  32.5 raster  17.1 | build 22.7 layout 22.4 paint 4.5 comp 3.9 | gc 0.0  | close up +63 ms | Animator::BeginFrame 32.8
+B- # 1490 build  18.6 raster  14.8 | build 8.2 layout 8.6 paint 6.0 comp 3.2 | gc 0.0  | flight MorphFlightEvent.closing +50 ms | Animator::BeginFrame 18.8
+-R # 1491 build  10.3 raster  19.9 | build 5.5 layout 5.6 paint 1.7 comp 2.4 | gc 0.0  | flight MorphFlightEvent.closing +83 ms | Animator::BeginFrame 10.5
+B- # 1507 build  18.2 raster  10.8 | build 15.1 paint 1.1 comp 1.7 | gc 30.1 ProcessIsolateGroupRoots 1.1 ProcessWeakHandles 0.3 ParallelMark 2.3 Evacuate 1.4 ForwardStoreBuffer 1.2 ForwardNewSpace 0.5 Roots 0.3 FinishIncrementalCompact 10.2 CollectOldGeneration 12.8 | flight MorphFlightEvent.latched +16 ms | Animator::BeginFrame 18.4
+
+run: active build p50 p95 worst | raster p50 p95 | over (build, raster)
+0: 258 5.2 12.9 46.1 | 10.9 16.9 | 17 (3, 16)
+1: 253 5.4 12.2 35.5 | 10.3 15.3 | 11 (5, 10)
+2: 248 6.3 16.2 35.5 | 11.4 18.2 | 29 (10, 23)
+3: 243 5.6 16.6 43.1 | 12.0 17.5 | 23 (12, 19)
+4: 245 6.0 17.6 32.5 | 11.3 17.4 | 31 (15, 21)
+median: 248 build 5.6 16.2 35.5 | raster 11.3 17.4 | over 23 (10, 19)
+
+active frames by scene phase (all runs): build and raster p50 / p95 / max
+flight MorphFlightEvent.launched          391  build   6.8  16.6  25.1  raster  11.9  17.7  27.5
+flight MorphFlightEvent.latched           279  build   4.9   8.2  18.2  raster   9.9  15.5  19.6
+flight MorphFlightEvent.closing           179  build   9.4  15.2  19.7  raster  12.2  17.1  31.9
+flight MorphFlightEvent.landed            133  build   1.6   7.4   8.9  raster  10.2  18.4  21.2
+open up                                    60  build   1.9  35.5  46.1  raster  10.2  23.9  28.8
+flight MorphFlightEvent.settled            60  build   6.4  10.2  12.8  raster  11.0  15.7  15.8
+close down                                 48  build   7.1  11.5  18.5  raster  11.3  14.1  16.8
+close up                                   47  build   7.5  23.8  32.5  raster  11.6  31.8  39.9
+open down                                  45  build   1.8   7.0  11.8  raster   8.5  14.3  21.1
+before                                      5  build   1.4   4.7   4.7  raster  16.5  17.7  17.7
+
+over-budget frames by scene phase (all runs): count, build-over, raster-over, gc-in-build
+flight MorphFlightEvent.launched           46   19   33    0
+flight MorphFlightEvent.closing            16    8   12    0
+flight MorphFlightEvent.landed             15    0   15    0
+open up                                    10   10    7    0
+close up                                   10    6   10    0
+flight MorphFlightEvent.latched             8    1    7    1
+close down                                  2    1    1    0
+before                                      2    0    2    0
+open down                                   2    0    2    0

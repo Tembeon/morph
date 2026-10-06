@@ -261,6 +261,44 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   alpha 255) between resting glass broke the BackdropGroup - device raster
   p50 11.8 ms vs 2.3, the Menu page dropped to 60 Hz; a test pins the
   layer count.
+- Built ahead of the opening (2026-10-06, Pixel 6a frame dumps): the
+  open frame was the worst frame of every menu run (build 28 - 50 ms on
+  the Pixel, 6.3 on the iPhone 16 Pro) - inflating and laying out every
+  row of the root card. A press now builds those rows out of sight while
+  a touch may still open the menu (`MorphMenuMotion.isArming`: finger
+  down on the button, or a tap's opening pending - the measured
+  `tapOpenDelay` gives ~90 ms of frames), 6 elements per motion advance,
+  in an overlay entry under `MorphMenuHost.menuRowsKey`; the opening
+  moves them into the vessel (one GlobalKey move, state and layout kept).
+  Loading rows and `MorphMenuWidget` rows are left to the opening: their
+  state has to start with the menu. The prebuilt rows never rasterize
+  their glyphs offscreen (`menuRowsRaster` is false until the vessel sets
+  it): an early offscreen raster moved icon and check-mark edges by a few
+  device pixels on the iPhone, so the picture is recorded at the opening
+  as before. The root card's list below its moving frame is one
+  remembered widget while nothing it shows changes, and a card's element
+  widgets are made once per layout. Open frame: Pixel worst build 35.5 ->
+  23 - 26 ms, iPhone 6.3 -> 5.0 ms; perf_counts builds -0.9 .. -1.3 per
+  frame; identical frames (menu_prebuild_test, glass_frames, device
+  shots at the run-to-run floor). Not removed: the vessel's own first
+  build and every Text/Icon rebuild that the GlobalKey move triggers
+  (activate re-runs didChangeDependencies), ~2.4 ms of the iPhone's 5.
+- The menu's UI p95 on the Pixel is the fusion, not the open frame:
+  timed per frame (an instrumented build), `morphMenuSilhouette` costs
+  p50 2.8 / p95 9 / max 16 ms in the ~40 percent of frames that fuse
+  (liquid; flat p50 3.7 / max 30), 4 - 10x its tight-loop time
+  (outline_us menu10-r4 0.76) - and the build p95 without it is 9.2 ms
+  (liquid) / 5.0 (flat), inside the round-two targets. Dart CPU samples
+  of builds over 5.6 ms: fusion 20 percent, glass paint 15 (UI-side
+  geometry pass and its submit), compositing 24. GC is in no over-budget
+  build (3 of ~95 frames), so the `DartPerformanceMode.latency` window
+  was not added. Lever F (next frame's silhouette on an isolate) cannot
+  be IDENTICAL here: frame timestamps jitter by microseconds (vsync
+  deltas 16.670 - 16.695 ms), so a predicted frame's inputs never equal
+  the real ones bit for bit; a speedup needs either a tolerance (not
+  identical) or a cheaper exact fusion. Tool:
+  example/integration_test/menu_frames_test.dart + perf/menu_frames.py
+  (perf/2026-10-06-pixel6a-menu-frames).
 - Device trace tool: example/integration_test/menu_trace_test.dart
   (profile build, `--dart-define=TRACE_SCENE=center|gallery`,
   `TRACE_RUN=<id>`, writes `<app tmp>/menu_trace_<id>.json`: FrameTimings,

@@ -1,0 +1,30 @@
+liquid-f2-pre-fz.json: active 1260, with fusion 485; fusion ms p50 2.84 p95 9.06 max 16.16; build p95 14.6, build minus fusion p95 9.2
+flat-f2-pre-fz.json: active 1287, with fusion 520; fusion ms p50 3.70 p95 10.77 max 30.37; build p95 12.6, build minus fusion p95 5.0
+liquid-f2-base-cpu.json: 9510 samples (250 us) inside builds over 5.6 ms
+  incl  20.2%  morphMenuSilhouette
+  incl  26.5%  PipelineOwner.flushPaint
+  incl  14.7%  LiquidGlassRenderObject.paint
+  incl  23.3%  RenderView.compositeFrame
+  incl  14.6%  Element.updateChild
+  incl  10.9%  StatelessElement.update
+  incl   0.0%  Element.inflateWidget
+  self   7.3%  CommandBuffer.__submit$Method$FfiNative
+  self   7.0%  _BlurredUnion.blurred
+  self   3.8%  morphMenuSilhouette
+  self   2.0%  morphBoxDistance
+  self   2.0%  _NativeSceneBuilder.__pushOffset$Method$FfiNative
+  self   1.9%  _NativeParagraph.__paint$Method$FfiNative
+liquid-f2-pre-cpu.json: 8741 samples (250 us) inside builds over 5.6 ms
+  incl  20.4%  morphMenuSilhouette
+  incl  27.6%  PipelineOwner.flushPaint
+  incl  14.8%  LiquidGlassRenderObject.paint
+  incl  25.4%  RenderView.compositeFrame
+  incl   7.9%  Element.updateChild
+  incl   0.0%  StatelessElement.update
+  incl   0.0%  Element.inflateWidget
+  self   9.0%  CommandBuffer.__submit$Method$FfiNative
+  self   6.6%  _BlurredUnion.blurred
+  self   4.2%  morphMenuSilhouette
+  self   2.4%  _NativeParagraph.__paint$Method$FfiNative
+  self   1.9%  RenderPass.__draw$Method$FfiNative
+  self   1.8%  morphBoxDistance

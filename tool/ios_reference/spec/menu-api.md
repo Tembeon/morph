@@ -471,6 +471,14 @@ Geometry of the rows in the gestures comes from the dumps (row centers in
 MenuAPIUITests); an XCUI query for "More" hits the ellipsis button itself
 (its accessibility label), not the row.
 
+## Frame cost (morph side, 2026-10-06)
+
+The root card's rows are built during the press that opens the menu and
+move into the menu at the opening (menu-button.md, "Built ahead of the
+opening"); deferred-group loading rows and `MorphMenuWidget` rows still
+build at the opening, and a deferred answer rebuilds the card it lands in.
+The menu's frame cost on a weak device is the fusion field, not content.
+
 ## Open
 
 - Dark film: the screen recorder dropped most frames of the dark passes

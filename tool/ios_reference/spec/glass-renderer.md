@@ -1102,6 +1102,14 @@ identity. All three changes leave every pixel identical.
   shared by all glass layers (`Map` upkeep cost as much as the walks it
   saved on the device); pairwise row blur passes (slower).
 
+- Round two, the menu (2026-10-06, M3 per-frame dumps; menu-button.md
+  "Built ahead of the opening"): the open frame was the worst build of
+  each run (28 - 50 ms) and is now built ahead during the press (worst
+  46 -> 28 ms liquid, 38 -> 27 fake, 44 -> 28 flat in the audit), but the
+  p95 is the menu fusion field: build p95 with it 13 - 14.3 ms (liquid),
+  without it 9.2. GC is not in the p95 frames. Over-budget frames stay
+  raster-bound (12 - 19 of 15 - 23 per run on liquid).
+
 ## Shader harness and the shader audit batch (2026-10-05/06)
 
 The audits (tool/audit/shader-audit-fable.md F1-F15, shader-audit-astra.md
