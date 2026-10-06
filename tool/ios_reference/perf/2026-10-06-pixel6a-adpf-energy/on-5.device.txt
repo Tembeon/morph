@@ -1,0 +1,20 @@
+run: on-5  apk: on.apk  date: Tue Oct  6 12:35:12 CEST 2026
+before:
+skin: 36.8273
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 372
+  Capacity level: 5
+TotalTime: 703
+after:
+skin: 38.406803
+Thermal Status: 1
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 368
+  Capacity level: 4

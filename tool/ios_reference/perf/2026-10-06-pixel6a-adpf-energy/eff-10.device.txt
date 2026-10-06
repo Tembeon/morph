@@ -1,0 +1,20 @@
+run: eff-10  apk: eff.apk  date: Tue Oct  6 13:13:06 CEST 2026
+before:
+skin: 35.870003
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 338
+  Capacity level: 5
+TotalTime: 774
+after:
+skin: 36.15845
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 340
+  Capacity level: 5

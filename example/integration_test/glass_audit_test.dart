@@ -20,6 +20,7 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph_example/perf/adpf.dart';
 
 import 'support/layer_census.dart';
 
@@ -86,6 +87,10 @@ import 'support/layer_census.dart';
 /// phone's power rails by these windows. `--dart-define=FUSION_PREFETCH=false`
 /// (or true) overrides whether the menu fuses ahead on its workers; the
 /// report counts the outlines served ahead and fused in the frame.
+/// `--dart-define=ADPF=true` opens Android Performance Hint sessions for
+/// the UI and raster threads (lib/perf/adpf.dart; `ADPF_EFFICIENT=true`
+/// also prefers power efficiency) and the report keeps their `adpf`
+/// stats.
 /// The audit holds the app in portrait: a phone lying
 /// on its side with auto-rotate on would otherwise lay the gallery out in
 /// landscape, where the later rows are off screen.
@@ -107,6 +112,10 @@ const bool _atlas = bool.fromEnvironment('AUDIT_ATLAS');
 
 const int _idleSeconds = int.fromEnvironment('AUDIT_IDLE_S');
 
+const bool _adpf = bool.fromEnvironment('ADPF');
+
+const bool _adpfEfficient = bool.fromEnvironment('ADPF_EFFICIENT');
+
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -123,6 +132,11 @@ void main() {
       // ignore: invalid_use_of_internal_member
       MorphMenuFusion.debugPrefetch = const bool.fromEnvironment(
         'FUSION_PREFETCH',
+      );
+    }
+    if (_adpf) {
+      audit.hints = GalleryPerformanceHints.start(
+        powerEfficient: _adpfEfficient,
       );
     }
     await audit.run();
@@ -150,6 +164,8 @@ class _Audit {
   int _pointer = 300;
 
   final Map<String, int> _idleFrames = {};
+
+  GalleryPerformanceHints? hints;
 
   Future<void> settle([int ms = 900]) =>
       tester.pump(Duration(milliseconds: ms));
@@ -780,6 +796,7 @@ class _Audit {
       'outline_us': _outlineMicros,
       'windows_us': _windowsUs,
       if (_idleSeconds > 0) 'idle_frames': _idleFrames,
+      if (_adpf) 'adpf': hints?.stats() ?? 'unsupported',
       // ignore: invalid_use_of_internal_member
       'fusion_served_ahead': MorphMenuFusion.debugServedAhead,
       // ignore: invalid_use_of_internal_member
