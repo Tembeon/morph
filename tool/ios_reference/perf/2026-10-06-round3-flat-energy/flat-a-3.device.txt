@@ -1,0 +1,20 @@
+run: flat-a-3  apk: flat-a.apk  date: Tue Oct  6 21:33:55 CEST 2026
+before:
+skin: 32.51335
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 311
+  Capacity level: 5
+TotalTime: 894
+after:
+skin: 32.386753
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 314
+  Capacity level: 5

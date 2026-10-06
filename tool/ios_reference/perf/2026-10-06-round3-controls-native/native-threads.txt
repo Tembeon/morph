@@ -1,0 +1,1327 @@
+== 1.raster (tid 13961), window 26520 ms
+   incl ms    self ms   count  incl/cnt  name
+   10368.7       48.4    1507     6.880  GPURasterizer::Draw
+   10320.3       45.1    1507     6.848  Rasterizer::DoDraw
+   10275.2      252.7    1507     6.818  Rasterizer::DrawToSurfaces
+    9099.4      105.9    1507     6.038  SurfaceFrame::Submit
+    6822.7     3366.5    1507     4.527  SurfaceFrame::Encode
+    3026.2     3026.2    2737     1.106  QueueSubmit
+    1500.2      181.2    3014     0.498  queueBuffer
+    1461.6     1425.4    7120     0.205  Canvas::saveLayer
+    1128.8      290.5    1507     0.749  QueuePresentKHR
+     604.0       27.5    1507     0.401  CompositorContext::ScopedFrame::Raster
+     440.6       40.7    1326     0.332  onFrameAvailable - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+     360.6      322.8    1507     0.239  LayerTree::Paint
+     319.2       76.5    1507     0.212  AcquireNextSurface
+     242.9        8.0       2   121.443  DoMakeRasterSnapshot
+     242.7       73.5    1507     0.161  AcquireNextDrawable
+     241.9      181.8    1507     0.160  CreateGlyphAtlas
+     215.8      215.8    1507     0.143  LayerTree::Preroll
+     169.0      117.3    1507     0.112  AcquireNextImageKHR
+      91.7       84.8    1488     0.062  acquireBuffer
+      62.1        5.5     161     0.385  onFrameAvailable - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+      53.5       53.5      25     2.141  PipelineVK::Create
+      53.3       53.3      50     1.067  UpdateAtlasBitmap
+      45.5       45.5    1507     0.030  addAndGetFrameTimestamps
+      39.8       31.1    1511     0.026  dequeueBuffer
+      27.3       27.3    1507     0.018  applyGrallocMetadataLocked
+      19.2       19.2    1507     0.013  waitForever
+      13.3       13.3    1507     0.009  SurfaceFrame::BuildDisplayList
+      12.2        0.4       1    12.246  CreateImpellerContext
+      11.8        1.9       1    11.823  ContextVK::Setup
+       8.3        8.3    1527     0.005  query
+
+== surfaceflinger (tid 563), window 26743 ms
+   incl ms    self ms   count  incl/cnt  name
+    3857.0      174.1    1545     2.496  present
+    2668.9       43.6    1545     1.727  prepareFrame
+    2617.5       29.8    1545     1.694  chooseCompositionStrategy for Common Panel (4619827677550801152)
+    2587.8       20.7    1545     1.675  getDeviceCompositionChanges
+    2566.0       44.5    1543     1.663  NextFrameInterval 60_Hz
+    2522.5     2522.5    1545     1.633  HwcPresentOrValidateDisplay
+    1236.8      116.1    1546     0.800  updateLayerSnapshots
+    1010.9       62.5    3090     0.327  postComposition
+     818.7      363.1    1545     0.530  onCompositionPresented
+     744.2      481.5    1546     0.481  DisplayCallbackAndStatsUpdates
+     365.6       16.3    1545     0.237  planComposition
+     349.3      212.3    1545     0.226  plan
+     288.9      140.8    1545     0.187  presentFrameAndReleaseLayers for Common Panel (4619827677550801152)
+     260.9       26.3    1546     0.169  chooseRefreshRateForContent
+     221.4       29.2    1546     0.143  summarize
+     198.1      174.2    1546     0.128  TransactionHandler:flushTransactions
+     182.2       22.7    1545     0.118  addPresentFence 4619827677550801152
+     178.4      112.0    1546     0.115  LayerSnapshotBuilder:update
+     175.1      155.6    4261     0.041  nextAnticipatedVSyncTimeFrom
+     151.4       78.0    1545     0.098  addPresentFence
+     137.0       78.8    1545     0.089  flattenLayers
+     133.0      108.0    1506     0.088  setBuffer c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity](BLAST)#3578 - hasBuffer=true
+     125.2      125.2    1545     0.081  reportActualWorkDuration
+     112.5      112.5    1545     0.073  writeCompositionState
+     108.4      108.4    3092     0.035  expectedSignaledPresentFence
+     108.1       54.7    1545     0.070  finishFrame
+     107.6      107.6    1546     0.070  partitionLayers
+     100.0      100.0    9370     0.011  merge
+      82.6       45.0    1520     0.054  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity](BLAST)#3578
+      79.7       79.2    1545     0.052  setSfPresent
+
+== n.morph_example (tid 13888), window 26664 ms
+   incl ms    self ms   count  incl/cnt  name
+    7501.0     1908.4    3659     2.050  Dart_InvokeClosure
+    6644.2      100.6    1521     4.368  VsyncProcessCallback
+    6543.6      148.3    1521     4.302  Animator::BeginFrame
+    2429.4     1493.5    1509     1.610  COMPOSITING
+    1758.9       34.2    1509     1.166  PAINT (root)
+    1724.7     1660.7    1509     1.143  PAINT
+     949.5      944.2    2669     0.356  BUILD
+     918.9      918.9     895     1.027  QueueSubmit
+     632.0       33.4    1509     0.419  LAYOUT (root)
+     598.7      291.3    1509     0.397  LAYOUT
+     216.3      216.3    1522     0.142  AsyncWaitForVsync
+     195.3       21.0    1521     0.128  CALLBACK_ANIMATION
+     178.8       19.9    1494     0.120  Dart_NotifyIdle
+     174.2       47.3    1521     0.115  AChoreographer_frameCallback64
+     158.9       27.3    1494     0.106  NotifyIdle
+     153.6       10.5     364     0.422  DartIsolate::HandleMessage
+     143.1        6.8     364     0.393  Dart_HandleMessage
+     140.7       28.9      45     3.127  CollectNewGeneration
+     132.8       97.7     356     0.373  HandleMessage
+     126.9       38.7    1521     0.083  PlatformVsync
+     110.8       50.7      45     2.462  Scavenge
+      88.3       88.3    1521     0.058  VsyncFireCallback
+      68.4       58.0       3    22.796  traversal
+      64.0        0.5       1    63.964  Choreographer#doFrame 10821676
+      63.5        0.1       1    63.454  Choreographer#doFrame - resynced to 10821786 in 27.9ms
+      45.2       30.8    1509     0.030  UPDATING COMPOSITING BITS (root)
+      39.0       39.0    4267     0.009  Dart_NewInteger
+      38.1        0.3       1    38.141  DartExecutor#executeDartEntrypoint
+      36.6       36.6     921     0.040  Dart_Invoke
+      36.5       36.5    1509     0.024  POST_FRAME
+
+== GPU completion (tid 14005), window 25916 ms
+   incl ms    self ms   count  incl/cnt  name
+    3925.9     3925.9    1281     3.065  waitForever
+       5.6        0.0       1     5.574  waiting for GPU completion 140
+       5.5        0.0       1     5.462  waiting for GPU completion 963
+       5.4        0.0       1     5.360  waiting for GPU completion 1181
+       5.0        0.0       1     4.988  waiting for GPU completion 134
+       5.0        0.0       1     4.985  waiting for GPU completion 114
+       4.9        0.0       1     4.882  waiting for GPU completion 816
+       4.9        0.0       1     4.882  waiting for GPU completion 130
+       4.8        0.0       1     4.846  waiting for GPU completion 126
+       4.8        0.0       1     4.814  waiting for GPU completion 1182
+       4.8        0.0       1     4.785  waiting for GPU completion 962
+       4.8        0.0       1     4.773  waiting for GPU completion 125
+       4.8        0.0       1     4.773  waiting for GPU completion 128
+       4.8        0.0       1     4.771  waiting for GPU completion 123
+       4.8        0.0       1     4.762  waiting for GPU completion 122
+       4.8        0.0       1     4.761  waiting for GPU completion 913
+       4.7        0.0       1     4.745  waiting for GPU completion 439
+       4.7        0.0       1     4.720  waiting for GPU completion 145
+       4.6        0.0       1     4.649  waiting for GPU completion 144
+       4.5        0.0       1     4.544  waiting for GPU completion 190
+       4.5        0.0       1     4.541  waiting for GPU completion 124
+       4.5        0.0       1     4.533  waiting for GPU completion 1183
+       4.5        0.0       1     4.521  waiting for GPU completion 1142
+       4.5        0.0       1     4.521  waiting for GPU completion 121
+       4.5        0.0       1     4.503  waiting for GPU completion 142
+       4.5        0.0       1     4.474  waiting for GPU completion 1184
+       4.5        0.0       1     4.468  waiting for GPU completion 138
+       4.4        0.0       1     4.435  waiting for GPU completion 412
+       4.4        0.0       1     4.427  waiting for GPU completion 841
+       4.4        0.0       1     4.415  waiting for GPU completion 914
+
+== RegionSampling (tid 673), window 26667 ms
+   incl ms    self ms   count  incl/cnt  name
+    1265.3      164.2     260     4.867  captureSample
+    1066.4        4.0     259     4.118  captureScreenshot
+    1062.5       30.9     259     4.102  renderScreenImpl
+    1031.6       18.1     259     3.983  present
+     967.0        5.3     259     3.733  finishFrame
+     961.6      926.2     259     3.713  composeSurfaces
+      22.4       22.4     259     0.086  drawLayers
+      21.9        2.5     259     0.085  prepare
+      19.4       19.4     259     0.075  rebuildLayerStacks
+      15.9       15.9     259     0.062  waitForever
+      13.1        7.7     522     0.025  prepareClientCompositionInternal
+      12.2       12.2     259     0.047  lock
+       9.7        7.0     259     0.037  presentFrameAndReleaseLayers for RegionSampling, Common Panel (4619827677550801152)
+       6.5        6.5     259     0.025  unlock
+       5.8        5.8     259     0.022  updateCompositionState
+       5.4        5.4     522     0.010  prepareBufferStateClientComposition
+       2.7        2.7     522     0.005  merge
+       2.1        2.1     259     0.008  prepareFrame
+       1.8        1.8     259     0.007  postComposition
+       1.7        1.7     259     0.007  writeCompositionState
+       1.2        1.2     259     0.005  preComposition
+       1.2        1.2     259     0.005  Waiting on HWC
+       1.1        1.1     259     0.004  present for RegionSampling, Common Panel (4619827677550801152)
+
+== HwBinder:565_3 (tid 669), window 26740 ms
+   incl ms    self ms   count  incl/cnt  name
+    1529.9      330.6    1601     0.956  presentDisplay for PrimaryDisplay(0)
+    1041.7      437.5    1545     0.674  deliverWinConfigData
+     418.7      418.7    1545     0.271  drmModeAtomicCommit
+     102.8       75.0    3555     0.029  setupCommitFromDisplayConfig
+      75.5       75.5    1541     0.049  signalNonIdle
+      29.0       29.0    1545     0.019  Update
+      27.9       27.9    3555     0.008  getBuffer
+      25.4       17.0    1545     0.016  HistogramAtomicCommit
+      23.8       23.8    1545     0.015  waitLastRetireFence
+      23.5       23.5    1545     0.015  UpdatePresent
+      22.9       15.5    1545     0.015  postAtomicCommit
+      20.1       20.1    1545     0.013  startPostProcessing
+      15.8       15.8    3090     0.005  mHistogramMutex
+      10.6       10.6    1545     0.007  prepareFrameCommit
+      10.5       10.5    1545     0.007  checkAtcHdrMode
+      10.3        1.8      56     0.185  validateDisplay for PrimaryDisplay(0)
+       8.3        7.5      56     0.148  assignResource
+       0.2        0.2      10     0.018  freeBuffer
+       0.0        0.0      15     0.003  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0x5)
+       0.0        0.0      19     0.002  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0x1)
+       0.0        0.0       3     0.005  cleanup
+       0.0        0.0      13     0.001  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0xd)
+       0.0        0.0       3     0.003  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0x200c)
+       0.0        0.0       1     0.003  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0x11262f)
+       0.0        0.0       2     0.001  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0x200021)
+       0.0        0.0       1     0.001  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0x2008)
+       0.0        0.0       1     0.001  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0x200020)
+       0.0        0.0       1     0.001  Display[0] can't skip validate (3), renderingState(3), geometryChanged(0x11062f)
+
+== RenderEngine (tid 613), window 26673 ms
+   incl ms    self ms   count  incl/cnt  name
+     865.5        8.2     265     3.266  REThreaded::drawLayers
+     850.1       80.8     259     3.282  drawLayersInternal for RegionSampling, Common Panel (4619827677550801152)
+     330.4      330.4     265     1.247  flushGL
+     215.3       28.4     265     0.813  flush context
+     172.2       29.2     265     0.650  auto skgpu::ganesh::OpsTask::onExecute(GrOpFlushState *)::(anonymous class)::operator()() const
+     151.6      151.6    1604     0.095  FillRectOp
+     126.9       16.4     543     0.234  DrawImage
+     112.5       19.1     254     0.443  DrawLayer: c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity](BLAST)#3578
+     107.3      101.7     543     0.198  makeImage
+      49.0       11.3     255     0.192  DrawLayer: VRI-dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity#3573
+      41.0       31.5     259     0.158  DrawLayer: ScreenCaptureFillLayer
+      14.7        6.1     265     0.056  auto skgpu::ganesh::OpsTask::onPrepare(GrOpFlushState *)::(anonymous class)::operator()() const
+       9.1        9.1     802     0.011  OutsetRendering
+       7.1        5.4     259     0.027  DrawColor
+       6.4        4.0     265     0.024  REThreaded::cleanupPostRender
+       4.8        4.8     802     0.006  createRuntimeEffectShader
+       4.7        0.1       8     0.585  REThreaded::mapExternalTextureBuffer
+       4.6        0.1       8     0.579  mapExternalTextureBuffer
+       4.5        4.5       8     0.567  GaneshBackendTexture
+       4.3        4.3     265     0.016  Submit(sync=false)
+       4.1        0.3       3     1.370  drawLayersInternal for <unknown>
+       3.9        3.9     265     0.015  tryCapture
+       3.0        0.4       3     1.006  drawLayersInternal for Common Panel (4619827677550801152)
+       2.4        2.4     265     0.009  cleanupPostRender
+       2.0        2.0     265     0.007  getOrCreateSurface
+       1.3        0.0       6     0.222  REThreaded::unmapExternalTextureBuffer
+       1.3        1.3       6     0.215  unmapExternalTextureBuffer
+       0.7        0.1       4     0.186  DrawLayer: Wallpaper BBQ wrapper#68
+       0.7        0.1       8     0.092  DrawLayer: VRI-Splash Screen dev.tembeon.morph_example#3567
+       0.7        0.0       4     0.179  ~GraphicBuffer
+
+== TimerDispatch (tid 671), window 26727 ms
+   incl ms    self ms   count  incl/cnt  name
+     359.4       94.4    1564     0.230  timerCallback
+     144.0       23.8    1546     0.093  timerCallback: sf
+     120.2      109.9    1546     0.078  vsyncCallback
+      80.3       80.3    1556     0.052  timerCallback: app
+      40.7       20.1    1564     0.026  rearmTimerSkippingUpdateFor
+      20.2       20.2    1559     0.013  cancel timer
+      10.3       10.3    1546     0.007  generateTokenForPredictions
+       0.5        0.0       7     0.066  VSyncDispatchTimerQueueEntry::update
+       0.4        0.1       7     0.058  VSyncDispatchTimerQueueEntry::getArmedInfo
+       0.3        0.3       7     0.048  nextAnticipatedVSyncTimeFrom
+       0.2        0.2       1     0.186  TimerIteration #1449
+       0.2        0.2       1     0.176  TimerIteration #831
+       0.2        0.2       1     0.157  TimerIteration #427
+       0.1        0.1       1     0.147  TimerIteration #887
+       0.1        0.1       1     0.107  TimerIteration #888
+       0.1        0.1       1     0.107  TimerIteration #444
+       0.1        0.1       1     0.105  TimerIteration #1319
+       0.1        0.1       1     0.105  TimerIteration #843
+       0.1        0.1       1     0.076  TimerIteration #882
+       0.1        0.1       1     0.062  TimerIteration #1330
+       0.1        0.1       1     0.057  TimerIteration #513
+       0.1        0.1       1     0.056  TimerIteration #569
+       0.0        0.0       1     0.037  TimerIteration #1494
+       0.0        0.0       1     0.031  TimerIteration #978
+       0.0        0.0       1     0.031  TimerIteration #1534
+       0.0        0.0       1     0.028  TimerIteration #153
+       0.0        0.0       1     0.028  TimerIteration #1523
+       0.0        0.0       1     0.028  TimerIteration #1389
+       0.0        0.0       1     0.026  TimerIteration #264
+       0.0        0.0       1     0.026  TimerIteration #1524
+
+== binder:13888_4 (tid 14010), window 25046 ms
+   incl ms    self ms   count  incl/cnt  name
+     193.0       51.0    2204     0.088  releaseBufferCallbackLocked
+     165.1       12.8    1008     0.164  releaseBufferCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+      79.9       74.2    1102     0.072  releaseBuffer
+      68.7       49.7    1102     0.062  drainBufferReleaseConsumerLocked
+      21.6       21.6    2204     0.010  wait
+      20.3       15.4    1008     0.020  transactionCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+      16.3        1.3      77     0.211  releaseBufferCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+       6.9        0.1      17     0.408  releaseBufferCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+       5.4        5.4    1102     0.005  setTransformHint
+       2.0        1.5      77     0.026  transactionCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+       1.6        1.6     282     0.006  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 3
+       1.4        1.4     279     0.005  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 0
+       1.4        1.4     280     0.005  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 2
+       1.3        1.3     278     0.005  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 1
+       1.0        0.3       1     0.960  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1416
+       0.8        0.0       1     0.759  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1036
+       0.6        0.0       1     0.638  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1047
+       0.6        0.5      17     0.033  acquireBuffer
+       0.5        0.2       1     0.526  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=801
+       0.5        0.2       1     0.484  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=965
+       0.4        0.1       1     0.427  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1429
+       0.4        0.1       1     0.410  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=315
+       0.4        0.1       1     0.407  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1405
+       0.4        0.4       1     0.405  acquireNextBufferLocked - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1156
+       0.4        0.4       1     0.398  acquireNextBufferLocked - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=326
+       0.4        0.1       1     0.396  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1255
+       0.4        0.4       1     0.367  acquireNextBufferLocked - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=153
+       0.4        0.1       1     0.359  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=186
+       0.4        0.0       1     0.351  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=174
+       0.3        0.1       1     0.342  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1398
+
+== io.worker.3 (tid 13969), window 3103 ms
+   incl ms    self ms   count  incl/cnt  name
+     344.1        4.1      20    17.203  ConcurrentWorkerWake
+     339.7      339.7      19    17.878  PipelineVK::Create
+       0.3        0.3       1     0.282  fml::OpenFile
+
+== io.worker.2 (tid 13968), window 580 ms
+   incl ms    self ms   count  incl/cnt  name
+     323.9        0.4      24    13.495  ConcurrentWorkerWake
+     323.4      323.4      24    13.477  PipelineVK::Create
+
+== io.worker.4 (tid 13970), window 644 ms
+   incl ms    self ms   count  incl/cnt  name
+     318.4        0.3      18    17.686  ConcurrentWorkerWake
+     318.0      318.0      18    17.669  PipelineVK::Create
+
+== io.worker.1 (tid 13967), window 1398 ms
+   incl ms    self ms   count  incl/cnt  name
+     319.3        2.7      11    29.030  ConcurrentWorkerWake
+     316.3      316.3      10    31.628  PipelineVK::Create
+       0.4        0.4       1     0.372  fml::OpenFile
+
+== IplrVkResMgr (tid 13994), window 26362 ms
+   incl ms    self ms   count  incl/cnt  name
+     418.6      322.0    2828     0.148  ReclaimResources
+      96.5       96.5    1837     0.053  DestroyImage
+       0.0        0.0       2     0.013  DestroyBuffer
+
+== app (tid 672), window 26731 ms
+   incl ms    self ms   count  incl/cnt  name
+     150.9       35.5    1589     0.095  VSyncDispatchTimerQueueEntry::schedule
+     115.4      107.1    1589     0.073  nextAnticipatedVSyncTimeFrom
+      63.4       63.4    9879     0.006  generateTokenForPredictions
+      38.9       38.9    1547     0.025  rearmTimerSkippingUpdateFor
+       8.3        8.3    1589     0.005  renderRate 60.00 Hz
+
+== BckgrndExec HP (tid 700), window 26698 ms
+   incl ms    self ms   count  incl/cnt  name
+     310.0      310.0    1535     0.202  TransactionCallbackInvoker::sendCallbacks
+
+== binder:563_1 (tid 608), window 26718 ms
+   incl ms    self ms   count  incl/cnt  name
+     132.2       86.9     801     0.165  setTransactionState
+      44.8        7.5     369     0.121  scheduleFrame
+      37.2       10.2     370     0.100  VSyncDispatchTimerQueueEntry::schedule
+      27.1       24.4     372     0.073  nextAnticipatedVSyncTimeFrom
+      10.6       10.6     809     0.013  requestNextVsync
+       2.6        2.6     373     0.007  renderRate 60.00 Hz
+       0.4        0.4       4     0.091  importBuffer
+       0.2        0.0       1     0.231  resyncAllToHardwareVsync
+       0.1        0.1       2     0.060  sendHintSessionHint
+       0.1        0.1       1     0.104  startPeriodTransitionInternal 4619827677550801152
+       0.1        0.0       1     0.101  enableHardwareVsyncLocked
+       0.1        0.0       1     0.082  VSyncDispatchTimerQueueEntry::getArmedInfo
+       0.1        0.1       2     0.039  rearmTimerSkippingUpdateFor
+       0.1        0.1       4     0.019  mapExternalTextureBuffer
+       0.0        0.0       1     0.045  resetModel
+       0.0        0.0       1     0.042  onHardwareVsyncRequest 4619827677550801152 true
+       0.0        0.0       1     0.036  clearTimestamps: clearTimelines=1
+       0.0        0.0       1     0.029  addVsyncTimestamp
+       0.0        0.0       2     0.007  unmapExternalTextureBuffer
+       0.0        0.0       1     0.014  setDuration
+       0.0        0.0       1     0.004  validate
+       0.0        0.0       1     0.004  VsyncPredictionError: error= 0.0109, actualNs= 34625814244364, predictedNs= 34625814233437, VsyncTimeSource= PresentFence, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.03, hwVsyncStabStd= 0.02
+
+== RenderThread (tid 3180), window 1095 ms
+   incl ms    self ms   count  incl/cnt  name
+      42.7        4.4      24     1.780  Drawing  0.00  0.00 1080.00 2400.00
+      27.7        0.1      25     1.107  flush commands
+      27.5        2.6      25     1.102  Vulkan finish frame
+      20.2       20.2      26     0.776  QueueSubmit
+      18.4        3.0      50     0.368  queueBuffer
+       6.0        0.4       1     5.986  DrawFrames -1
+       4.7        2.7      36     0.129  auto skgpu::ganesh::OpsTask::onExecute(GrOpFlushState *)::(anonymous class)::operator()() const
+       4.2        0.3      16     0.263  onFrameAvailable - VRI[morph_example]#153(f:0,a:1)
+       3.9        0.5      25     0.157  dequeueBuffer
+       3.7        0.8       1     3.678  DrawFrames 10821915
+       3.4        0.9       1     3.353  DrawFrames 10821890
+       3.2        0.2       1     3.161  DrawFrames 10822018
+       2.9        0.2       1     2.946  DrawFrames 10822122
+       2.9        2.9       1     2.870  allocateHelper
+       2.8        0.4       1     2.788  DrawFrames 10822044
+       2.6        0.2       1     2.630  DrawFrames 10822155
+       2.6        0.2       1     2.610  Drawing  0.00  0.00 420.00 420.00
+       2.6        0.1       1     2.594  DrawFrames 10822083
+       2.6        0.2       1     2.551  DrawFrames 10822194
+       2.5        0.6      25     0.101  syncFrameState
+       2.5        0.2       1     2.509  DrawFrames 10822135
+       2.3        0.2       1     2.255  DrawFrames 10822031
+       2.2        0.2       1     2.215  DrawFrames 10822096
+       2.1        0.1       1     2.107  DrawFrames 10821947
+       2.1        0.2       1     2.062  DrawFrames 10822181
+       2.1        0.2       1     2.054  DrawFrames 10821992
+       1.9        0.1       1     1.932  DrawFrames 10822005
+       1.9        0.1       1     1.925  DrawFrames 10821979
+       1.9        1.9      96     0.020  FillRectOp
+       1.9        0.2       1     1.897  DrawFrames 10822070
+
+== binder:13888_1 (tid 13915), window 26342 ms
+   incl ms    self ms   count  incl/cnt  name
+      49.8       13.5     494     0.101  releaseBufferCallbackLocked
+      36.5        2.9     198     0.185  releaseBufferCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+      20.7       19.3     247     0.084  releaseBuffer
+      17.6       12.8     247     0.071  drainBufferReleaseConsumerLocked
+      12.3       12.3     495     0.025  wait
+      11.2        0.8      47     0.238  releaseBufferCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+       4.8        3.6     199     0.024  transactionCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+       1.6        1.3      47     0.033  transactionCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+       1.5        1.5     249     0.006  setTransformHint
+       1.0        0.0       2     0.504  releaseBufferCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+       0.6        0.3       1     0.641  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1464
+       0.5        0.1       1     0.456  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1487
+       0.4        0.1       1     0.429  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1330
+       0.4        0.0       1     0.427  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=230
+       0.4        0.0       1     0.407  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1488
+       0.4        0.1       1     0.393  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=497
+       0.4        0.4      65     0.006  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 0
+       0.4        0.4      62     0.006  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 3
+       0.3        0.1       1     0.347  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=293
+       0.3        0.3      61     0.006  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 2
+       0.3        0.3      61     0.005  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 1
+       0.3        0.1       1     0.321  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1321
+       0.3        0.1       1     0.313  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1483
+       0.3        0.1       1     0.300  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1344
+       0.3        0.0       1     0.277  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=268
+       0.3        0.0       1     0.274  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1472
+       0.3        0.3       1     0.273  acquireNextBufferLocked - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=237
+       0.2        0.1       1     0.244  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=232
+       0.2        0.0       1     0.244  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1346
+       0.2        0.1       1     0.238  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1470
+
+== IplrVkFenceWait (tid 13993), window 21763 ms
+   incl ms    self ms   count  incl/cnt  name
+     155.2      155.2    2122     0.073  ClearSignaledFences
+      24.1       24.1    2122     0.011  CheckFenceStatus
+
+== DartWorker (tid 13966), window 14668 ms
+   incl ms    self ms   count  incl/cnt  name
+      66.0       38.4      24     2.750  Scavenge
+      41.4       41.4       2    20.702  ConcurrentMark
+      15.7       15.7      24     0.655  IterateStoreBuffers
+      11.3       11.3      10     1.128  MournWeakHandles
+       2.9        0.1       1     2.916  ServiceIsolateStartup
+       2.8        0.0       1     2.800  DartIsolate::DartIsolateGroupCreateCallback
+       2.8        0.0       1     2.761  ConcurrentSweep
+       2.7        0.0       1     2.742  DartIsolate::CreateRootIsolate
+       2.7        0.0       1     2.732  DartIsolate::CreateDartIsolateGroup
+       2.6        2.6       1     2.600  Sweep
+       2.4        0.1       1     2.425  Dart_CreateIsolateGroup
+       2.3        0.2       1     2.297  InitializeIsolate
+       2.1        0.2       1     2.137  ReadProgramSnapshot
+       1.5        1.5       1     1.546  ParallelMark
+       1.3        1.3       1     1.286  ReadFill
+       0.5        0.5       1     0.500  ReadAlloc
+       0.4        0.4      14     0.027  MournWeakTables
+       0.3        0.0       1     0.297  DartIsolate::InitializeIsolate
+       0.3        0.1       1     0.251  DartIsolate::LoadLibraries
+       0.2        0.2      24     0.007  IterateRememberedCards
+       0.2        0.2       1     0.152  SweepLarge
+       0.1        0.1       1     0.099  PostLoad
+       0.1        0.1       9     0.009  Dart_Invoke
+       0.0        0.0       1     0.044  DartIsolate::Initialize
+       0.0        0.0       2     0.021  ProcessDeferredMarking
+       0.0        0.0      14     0.002  Dart_SetField
+       0.0        0.0      30     0.001  Dart_NewStringFromCString
+       0.0        0.0       1     0.013  ProcessRememberedSet
+       0.0        0.0      13     0.001  Dart_NewStringFromUTF8
+       0.0        0.0       1     0.008  ProcessWeakTables
+
+== binder:563_4 (tid 2635), window 21074 ms
+   incl ms    self ms   count  incl/cnt  name
+      96.3       79.1     769     0.125  setTransactionState
+      17.0        3.2     175     0.097  scheduleFrame
+      13.6        3.8     175     0.078  VSyncDispatchTimerQueueEntry::schedule
+      10.8       10.8     775     0.014  requestNextVsync
+       9.8        8.9     176     0.056  nextAnticipatedVSyncTimeFrom
+       0.9        0.9     177     0.005  renderRate 60.00 Hz
+       0.2        0.2       3     0.051  sendHintSessionHint
+       0.1        0.1       5     0.029  rearmTimerSkippingUpdateFor
+       0.1        0.1       3     0.041  importBuffer
+       0.1        0.0       1     0.071  resyncAllToHardwareVsync
+       0.1        0.1       3     0.017  mapExternalTextureBuffer
+       0.0        0.0       1     0.037  enableHardwareVsyncLocked
+       0.0        0.0       2     0.017  unmapExternalTextureBuffer
+       0.0        0.0       1     0.028  getLatestVsyncEventData
+       0.0        0.0       1     0.025  startPeriodTransitionInternal 4619827677550801152
+       0.0        0.0       1     0.024  onHardwareVsyncRequest 4619827677550801152 true
+       0.0        0.0       1     0.010  resetModel
+       0.0        0.0       1     0.008  addVsyncTimestamp
+       0.0        0.0       1     0.007  clearTimestamps: clearTimelines=1
+       0.0        0.0       7     0.001  generateTokenForPredictions
+       0.0        0.0       1     0.001  validate
+       0.0        0.0       1     0.001  VsyncPredictionError: error= 0.0083, actualNs= 34604531404550, predictedNs= 34604531396295, VsyncTimeSource= PresentFence, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01, hwVsyncStabStd= 0.02
+
+== DartWorker (tid 14040), window 7254 ms
+   incl ms    self ms   count  incl/cnt  name
+      61.1       60.0       4    15.263  ConcurrentMark
+      34.3       18.3      18     1.904  Scavenge
+       9.3        9.3      18     0.515  IterateStoreBuffers
+       7.6        0.0       2     3.799  ConcurrentSweep
+       7.6        7.6       2     3.779  Sweep
+       6.5        6.5       9     0.721  MournWeakHandles
+       1.1        1.1       1     1.097  Pause
+       0.8        0.6       2     0.393  ParallelMark
+       0.2        0.2       9     0.018  MournWeakTables
+       0.1        0.1       2     0.051  ProcessRememberedSet
+       0.1        0.1      18     0.006  IterateRememberedCards
+       0.1        0.1       1     0.062  ForwardNewSpace
+       0.0        0.0       4     0.012  ProcessDeferredMarking
+       0.0        0.0       1     0.035  PruneFreeLists
+       0.0        0.0       1     0.030  SweepNew
+       0.0        0.0       2     0.012  ProcessWeakTables
+       0.0        0.0       1     0.019  WeakPersistentHandles
+       0.0        0.0       2     0.006  SweepLarge
+       0.0        0.0       1     0.010  Evacuate
+       0.0        0.0       1     0.007  WeakTables
+       0.0        0.0       1     0.006  MarkEvacuationCandidates
+       0.0        0.0       1     0.004  ForwardRememberedCards
+       0.0        0.0       1     0.004  Views
+       0.0        0.0       1     0.004  ForwardStoreBuffer
+       0.0        0.0       1     0.003  SuspendStates
+       0.0        0.0       1     0.002  SweepExecutable
+
+== binder:13888_2 (tid 13916), window 8485 ms
+   incl ms    self ms   count  incl/cnt  name
+      32.6        9.3     312     0.105  releaseBufferCallbackLocked
+      23.5        1.8     120     0.196  releaseBufferCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:3)
+      13.4       12.4     156     0.086  releaseBuffer
+      12.4        8.8     156     0.079  drainBufferReleaseConsumerLocked
+       8.0        0.6      36     0.223  releaseBufferCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+       3.6        3.6     312     0.012  wait
+       2.8        2.1     120     0.023  transactionCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+       0.9        0.7      36     0.026  transactionCallback - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+       0.9        0.9     156     0.006  setTransformHint
+       0.6        0.3       1     0.563  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1110
+       0.5        0.2       1     0.516  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1264
+       0.4        0.1       1     0.420  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1112
+       0.4        0.1       1     0.401  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1105
+       0.4        0.1       1     0.390  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1280
+       0.4        0.1       1     0.385  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1250
+       0.4        0.1       1     0.352  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1283
+       0.3        0.1       1     0.333  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1296
+       0.3        0.1       1     0.316  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1349
+       0.3        0.2       1     0.313  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1106
+       0.3        0.2       1     0.307  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1097
+       0.3        0.1       1     0.289  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1089
+       0.3        0.1       1     0.271  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1130
+       0.3        0.1       1     0.264  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1261
+       0.3        0.3      39     0.006  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 3
+       0.2        0.2      40     0.006  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 0
+       0.2        0.2      39     0.006  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 1
+       0.2        0.2      38     0.006  c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1: 2
+       0.2        0.0       1     0.222  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1360
+       0.2        0.1       1     0.216  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)frame=1367
+       0.2        0.0       1     0.212  releaseBuffer - c73b80 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)frame=1259
+
+== RE Completion (tid 682), window 26671 ms
+   incl ms    self ms   count  incl/cnt  name
+      45.4       45.4     198     0.229  waitForever
+       3.9        0.0       1     3.869  waiting for RE Completion 247210
+       1.6        0.0       1     1.597  waiting for RE Completion 247474
+       1.4        0.0       1     1.429  waiting for RE Completion 247472
+       1.4        0.0       1     1.420  waiting for RE Completion 247450
+       1.0        0.0       1     0.978  waiting for RE Completion 247378
+       0.9        0.0       1     0.937  waiting for RE Completion 247259
+       0.9        0.0       1     0.922  waiting for RE Completion 247286
+       0.9        0.0       1     0.879  waiting for RE Completion 247405
+       0.9        0.0       1     0.850  waiting for RE Completion 247219
+       0.8        0.0       1     0.809  waiting for RE Completion 247279
+       0.8        0.0       1     0.806  waiting for RE Completion 247395
+       0.8        0.0       1     0.794  waiting for RE Completion 247446
+       0.8        0.0       1     0.780  waiting for RE Completion 247283
+       0.7        0.0       1     0.716  waiting for RE Completion 247365
+       0.7        0.0       1     0.695  waiting for RE Completion 247356
+       0.7        0.0       1     0.688  waiting for RE Completion 247256
+       0.7        0.0       1     0.676  waiting for RE Completion 247276
+       0.7        0.0       1     0.670  waiting for RE Completion 247314
+       0.7        0.0       1     0.665  waiting for RE Completion 247377
+       0.7        0.0       1     0.651  waiting for RE Completion 247251
+       0.6        0.0       1     0.619  waiting for RE Completion 247287
+       0.6        0.0       1     0.590  waiting for RE Completion 247412
+       0.6        0.0       1     0.590  waiting for RE Completion 247281
+       0.6        0.0       1     0.588  waiting for RE Completion 247275
+       0.6        0.0       1     0.569  waiting for RE Completion 247352
+       0.6        0.0       1     0.564  waiting for RE Completion 247313
+       0.5        0.0       1     0.544  waiting for RE Completion 247295
+       0.5        0.0       1     0.526  waiting for RE Completion 247269
+       0.5        0.0       1     0.510  waiting for RE Completion 247337
+
+== ll.splashscreen (tid 2735), window 2112 ms
+   incl ms    self ms   count  incl/cnt  name
+      21.5        5.3      25     0.861  traversal
+       9.5        0.8      24     0.395  draw-VRI[morph_example]
+       8.5        6.2      27     0.313  animation
+       6.2        6.2      24     0.259  postAndWait
+       5.9        0.1       1     5.933  Choreographer#doFrame 10822207
+       5.0        0.0       1     5.003  Choreographer#doFrame 10821448
+       4.2        4.0       1     4.216  VRI[morph_example]-relayoutWindow#first=false/resize=false/vis=true/params=false/force=false/seqId=1
+       2.4        2.4      24     0.102  Record View#draw()
+       2.4        2.1       1     2.357  VRI[morph_example]-relayoutWindow#first=true/resize=true/vis=false/params=true/force=false/seqId=1
+       2.0        2.0      28     0.072  Choreographer#scheduleVsyncLocked
+       1.4        0.1       1     1.377  Choreographer#doFrame 10822044
+       1.2        0.1       1     1.178  Choreographer#doFrame 10822031
+       1.1        0.1       1     1.108  Choreographer#doFrame 10822083
+       1.1        1.1       1     1.058  MSG_DIE
+       1.0        0.0       1     1.029  Choreographer#doFrame 10822135
+       1.0        0.1       1     1.023  Choreographer#doFrame 10822122
+       1.0        0.1       1     1.018  Choreographer#doFrame 10821992
+       1.0        0.1       1     0.995  Choreographer#doFrame 10822155
+       1.0        0.1       1     0.965  Choreographer#doFrame 10822057
+       1.0        0.0       1     0.961  Choreographer#doFrame 10822070
+       0.9        0.0       1     0.922  Choreographer#doFrame 10822018
+       0.9        0.0       1     0.918  Choreographer#doFrame 10822005
+       0.9        0.1       1     0.896  Choreographer#doFrame 10821979
+       0.9        0.1       1     0.872  Choreographer#doFrame 10822142
+       0.8        0.1       1     0.844  Choreographer#doFrame 10821947
+       0.8        0.1       1     0.838  Choreographer#doFrame 10822109
+       0.8        0.0       1     0.815  Choreographer#doFrame 10821966
+       0.8        0.0       1     0.756  Choreographer#doFrame 10821915
+       0.7        0.0       1     0.686  Choreographer#doFrame 10822194
+       0.6        0.0       1     0.604  Choreographer#doFrame 10822096
+
+== GrallocUploadTh (tid 11490), window 37 ms
+   incl ms    self ms   count  incl/cnt  name
+      37.4        4.1       1    37.356  operator()
+      13.9       13.9       1    13.930  Texture upload(115) 540x1200
+      10.6        0.2       1    10.556  CreateInstance
+      10.1       10.1       1    10.083  driver.CreateInstance
+       6.5        0.5       1     6.451  CreateDevice
+       5.4        5.4       1     5.368  driver.CreateDevice
+       2.2        1.8       6     0.373  EnumerateDeviceExtensionProperties
+       0.5        0.3       6     0.081  EnumerateInstanceExtensionProperties
+       0.3        0.3      38     0.009  driver.EnumerateDeviceExtensionProperties
+       0.2        0.2       1     0.172  BindImageMemory2
+       0.2        0.2       1     0.166  QueueSubmit
+       0.2        0.2      12     0.013  driver.EnumerateInstanceExtensionProperties
+       0.1        0.1      12     0.010  QueryPresentationProperties
+       0.1        0.0       1     0.059  GetPhysicalDeviceFeatures2
+       0.0        0.0       2     0.025  AllocateCommandBuffers
+       0.0        0.0       1     0.038  PopulateLoaderImplementedFeatures
+       0.0        0.0      12     0.003  GetPhysicalDeviceExternalFenceProperties
+       0.0        0.0       5     0.004  setTargetStatsArray
+       0.0        0.0       3     0.005  EnumerateInstanceVersion
+       0.0        0.0       1     0.013  setVulkanDeviceExtensions
+       0.0        0.0       1     0.010  setVulkanInstanceExtensions
+       0.0        0.0       2     0.003  GetDeviceQueue
+       0.0        0.0       2     0.003  EnumeratePhysicalDevices
+       0.0        0.0       2     0.003  GetPhysicalDeviceQueueFamilyProperties2
+       0.0        0.0       1     0.004  GetPhysicalDeviceMemoryProperties2
+       0.0        0.0       1     0.004  AllocateDeviceData
+       0.0        0.0       1     0.004  addVulkanEngineName
+       0.0        0.0       1     0.003  pfn_enumerate_instance_version
+       0.0        0.0       1     0.003  driver.GetPhysicalDeviceProperties
+
+== binder:1867_D (tid 2879), window 51 ms
+   incl ms    self ms   count  incl/cnt  name
+      39.9        0.0       1    39.907  allocateHardwareBitmap
+      39.4       39.4       1    39.353  uploadHardwareBitmap
+       5.9        5.9       1     5.877  decodeFileDescriptor
+       0.5        0.5       1     0.504  allocateHelper
+       0.0        0.0       1     0.040  ~GraphicBuffer
+       0.0        0.0       1     0.037  free
+       0.0        0.0       1     0.025  freeBuffer
+       0.0        0.0       1     0.011  computePalette
+
+== RenderThread (tid 3076), window 696 ms
+   incl ms    self ms   count  incl/cnt  name
+      13.2        4.3       7     1.884  Drawing 63.00 727.00 1031.00 2281.00
+       7.8        0.0       8     0.972  flush commands
+       7.7        0.9       8     0.969  Vulkan finish frame
+       3.4        0.8       8     0.430  auto skgpu::ganesh::OpsTask::onExecute(GrOpFlushState *)::(anonymous class)::operator()() const
+       3.2        0.7      16     0.197  queueBuffer
+       2.6        0.1       1     2.582  DrawFrames 10821556
+       2.4        0.2       1     2.443  DrawFrames 10821468
+       2.2        0.1       1     2.241  DrawFrames 10821600
+       2.2        0.1       1     2.203  DrawFrames 10821575
+       2.2        0.1       1     2.174  DrawFrames 10821537
+       1.9        0.1       1     1.852  DrawFrames 10821493
+       1.8        0.0       1     1.785  DrawFrames 10821722
+       1.7        1.7       8     0.209  QueueSubmit
+       1.7        0.4       8     0.207  auto skgpu::ganesh::OpsTask::onPrepare(GrOpFlushState *)::(anonymous class)::operator()() const
+       1.6        0.5       1     1.586  Drawing  0.00  0.00 1080.00 2400.00
+       1.6        0.0       1     1.551  DrawFrames 10821518
+       1.5        1.5     362     0.004  FillRectOp
+       1.2        0.1       8     0.156  syncFrameState
+       1.1        1.1       8     0.142  prepareTree
+       0.7        0.1       6     0.118  onFrameAvailable - VRI[NexusLauncherActivity]#99(f:0,a:2)
+       0.5        0.5      16     0.034  AAFlatteningConvexPathOp
+       0.5        0.5     130     0.004  TextureOp
+       0.5        0.3       1     0.454  setSurface
+       0.4        0.4      50     0.008  CircularRRectOp
+       0.4        0.4     114     0.003  FillRRectOp
+       0.3        0.3      34     0.008  AtlasTextOp
+       0.2        0.0       2     0.107  onFrameAvailable - VRI[NexusLauncherActivity]#99(f:0,a:1)
+       0.2        0.0       2     0.098  disconnect
+       0.2        0.2      16     0.012  addAndGetFrameTimestamps
+       0.2        0.2      50     0.003  CircleOp
+
+== android.anim (tid 1925), window 1317 ms
+   incl ms    self ms   count  incl/cnt  name
+      15.5       14.7      13     1.192  animation
+       2.9        0.0       1     2.944  Choreographer#doFrame 10821812
+       2.9        0.0       1     2.859  Choreographer#doFrame 10821481
+       2.2        0.7       1     2.250  Choreographer#doFrame 10821884
+       1.7        0.0       1     1.684  Choreographer#doFrame 10822374
+       1.4        0.0       1     1.351  Choreographer#doFrame 10821831
+       1.3        1.3      20     0.063  Choreographer#scheduleVsyncLocked
+       1.2        0.0       1     1.233  Choreographer#doFrame 10821941
+       1.1        0.1       1     1.072  Choreographer#doFrame 10822393
+       0.8        0.1       1     0.840  Choreographer#doFrame 10821851
+       0.5        0.0       1     0.544  Choreographer#doFrame 10821767
+       0.5        0.0       1     0.501  Choreographer#doFrame 10821442
+       0.5        0.0       1     0.500  Choreographer#doFrame 10821844
+       0.5        0.0       1     0.487  Choreographer#doFrame 10822220
+       0.4        0.0       1     0.392  Choreographer#doFrame 10821462
+       0.0        0.0       1     0.047  Choreographer#doFrame 10822406
+       0.0        0.0       1     0.033  Choreographer#doFrame 10821870
+       0.0        0.0       1     0.032  Choreographer#onVsync 10822406
+       0.0        0.0       1     0.029  Choreographer#onVsync 10821812
+       0.0        0.0       1     0.027  Choreographer#onVsync 10822393
+       0.0        0.0       1     0.026  Choreographer#doFrame 10821793
+       0.0        0.0       1     0.025  Choreographer#doFrame 10822245
+       0.0        0.0       1     0.025  Choreographer#doFrame 10821960
+       0.0        0.0       1     0.025  Choreographer#onVsync 10821851
+       0.0        0.0       1     0.024  Choreographer#onVsync 10821870
+       0.0        0.0       1     0.022  Choreographer#doFrame 10821909
+       0.0        0.0       1     0.021  Choreographer#onVsync 10821941
+       0.0        0.0       1     0.020  Choreographer#onVsync 10821960
+       0.0        0.0       1     0.018  Choreographer#onVsync 10821793
+       0.0        0.0       1     0.017  Choreographer#onVsync 10822245
+
+== <...> (tid 14020), window 27 ms
+   incl ms    self ms   count  incl/cnt  name
+      25.2       25.2       1    25.250  ConcurrentMark
+       1.4        1.3       1     1.353  ParallelMark
+       0.1        0.1       2     0.028  ProcessDeferredMarking
+       0.0        0.0       1     0.021  ProcessRememberedSet
+       0.0        0.0       1     0.019  ProcessWeakTables
+       0.0        0.0       1     0.005  SweepExecutable
+       0.0        0.0       1     0.004  SweepNew
+
+== RenderThread (tid 13941), window 519 ms
+   incl ms    self ms   count  incl/cnt  name
+       4.3        0.1       1     4.322  CreateInstance
+       4.0        4.0       1     4.025  driver.CreateInstance
+       2.6        0.3       1     2.554  DrawFrames 10821857
+       2.5        0.2       1     2.504  CreateDevice
+       2.1        2.1       1     2.111  driver.CreateDevice
+       1.4        0.1       1     1.377  Drawing  0.00  0.00 1080.00 2400.00
+       0.8        0.7       6     0.127  EnumerateDeviceExtensionProperties
+       0.8        0.0       1     0.755  flush commands
+       0.8        0.0       1     0.753  Vulkan finish frame
+       0.7        0.0       1     0.652  dequeueBuffer
+       0.6        0.6       1     0.633  allocateHelper
+       0.4        0.0       2     0.181  queueBuffer
+       0.3        0.1       1     0.333  auto skgpu::ganesh::OpsTask::onExecute(GrOpFlushState *)::(anonymous class)::operator()() const
+       0.3        0.2       2     0.137  FillRectOp
+       0.2        0.2       1     0.246  frameCommit success=1
+       0.2        0.2       1     0.221  QueueSubmit
+       0.2        0.2       5     0.043  setTargetStatsArray
+       0.2        0.0       3     0.071  EnumerateInstanceVersion
+       0.2        0.0       1     0.196  DiscoverLayers
+       0.2        0.1       1     0.194  initShaderDiskCache
+       0.2        0.2       2     0.093  DiscoverLayersInPathList
+       0.2        0.0       1     0.166  setSurface
+       0.2        0.0       1     0.157  syncFrameState
+       0.2        0.0       1     0.151  prepareTree
+       0.2        0.0       1     0.151  onFrameAvailable - VRI[MainActivity]#0(f:0,a:0)
+       0.1        0.1       1     0.139  acquireNextBufferLocked - VRI[MainActivity]#0(f:0,a:0)frame=1
+       0.1        0.1       1     0.128  Update SurfaceView position
+       0.1        0.1       1     0.122  FileBlobCache
+       0.1        0.0       1     0.105  CreateGraphicsPipeline
+       0.1        0.1       1     0.104  CreateGraphicsPipeline-CacheLookup
+
+== s.nexuslauncher (tid 2992), window 1333 ms
+   incl ms    self ms   count  incl/cnt  name
+       5.9        2.4      10     0.585  traversal
+       3.0        0.2       8     0.370  draw-VRI[NexusLauncherActivity]
+       1.9        0.0       1     1.878  Choreographer#doFrame 10821837
+       1.8        1.8       8     0.228  postAndWait
+       1.0        0.9       8     0.122  Record View#draw()
+       0.7        0.5       7     0.103  animation
+       0.7        0.0       1     0.655  Choreographer#doFrame 10821493
+       0.6        0.0       1     0.611  Choreographer#doFrame 10821722
+       0.6        0.0       1     0.610  Choreographer#doFrame 10821575
+       0.6        0.0       1     0.590  Choreographer#doFrame 10821600
+       0.6        0.6      12     0.049  Choreographer#scheduleVsyncLocked
+       0.6        0.0       1     0.584  Choreographer#doFrame 10821468
+       0.6        0.0       1     0.560  Choreographer#doFrame 10821556
+       0.5        0.0       1     0.540  Choreographer#doFrame 10821518
+       0.5        0.0       1     0.538  Choreographer#doFrame 10821537
+       0.5        0.5       1     0.520  MSG_WINDOW_FOCUS_CHANGED
+       0.5        0.4       1     0.472  VRI[NexusLauncherActivity]-relayoutWindow#first=false/resize=false/vis=true/params=false/force=false/seqId=13
+       0.2        0.0       1     0.159  Choreographer#doFrame 10821896
+       0.1        0.1       1     0.116  MSG_DISPATCH_APP_VISIBILITY
+       0.1        0.1       2     0.036  MSG_CHECK_INVALIDATION_IDLE
+       0.1        0.0       1     0.062  ~GraphicBuffer
+       0.0        0.0       1     0.046  Choreographer#doFrame 10822426
+       0.0        0.0       1     0.036  free
+       0.0        0.0       1     0.033  measure
+       0.0        0.0       1     0.029  layout
+       0.0        0.0       7     0.004  computePalette
+       0.0        0.0       1     0.023  MSG_SYSTEM_GESTURE_EXCLUSION_CHANGED
+       0.0        0.0       1     0.019  Choreographer#onVsync 10821537
+       0.0        0.0       1     0.017  Choreographer#onVsync 10822426
+       0.0        0.0       1     0.016  freeBuffer
+
+== DartWorker (tid 14059), window 434 ms
+   incl ms    self ms   count  incl/cnt  name
+      12.1       12.1       1    12.071  ConcurrentMark
+       3.0        0.0       1     2.994  ConcurrentSweep
+       2.9        2.9       1     2.885  Sweep
+       0.5        0.1       1     0.500  Scavenge
+       0.4        0.4       1     0.391  IterateStoreBuffers
+       0.2        0.2       1     0.234  SweepNew
+       0.1        0.1       1     0.103  SweepLarge
+       0.0        0.0       1     0.013  PruneNewMarkingStack
+       0.0        0.0       1     0.005  MournWeakTables
+       0.0        0.0       3     0.001  PruneWeak
+       0.0        0.0       1     0.002  SweepExecutable
+       0.0        0.0       1     0.002  PruneDeferredMarkingStack
+       0.0        0.0       1     0.001  IterateRememberedCards
+
+== android.anim.lf (tid 1926), window 180 ms
+   incl ms    self ms   count  incl/cnt  name
+       5.0        5.0      10     0.496  traversal
+       3.0        1.9      10     0.301  animation
+       1.2        0.1       1     1.212  Choreographer#doFrame 10822348
+       1.2        0.1       1     1.164  Choreographer#doFrame 10822335
+       1.0        1.0      11     0.095  Choreographer#scheduleVsyncLocked
+       1.0        0.1       1     1.031  Choreographer#doFrame 10822361
+       0.9        0.1       1     0.863  Choreographer#doFrame 10822322
+       0.9        0.1       1     0.858  Choreographer#doFrame 10822296
+       0.8        0.1       1     0.844  Choreographer#doFrame 10822226
+       0.8        0.1       1     0.750  Choreographer#doFrame 10822270
+       0.7        0.1       1     0.746  Choreographer#doFrame 10822251
+       0.7        0.1       1     0.726  Choreographer#doFrame 10822283
+       0.4        0.0       1     0.393  Choreographer#doFrame 10822309
+       0.1        0.1       1     0.088  notifyAnimEnd-SurfaceAnimationRunner$SfValueAnimator
+       0.1        0.1       1     0.087  Choreographer#doFrame 10822380
+       0.0        0.0       1     0.040  Choreographer#onVsync 10822335
+       0.0        0.0       1     0.039  Choreographer#onVsync 10822322
+       0.0        0.0       1     0.035  Choreographer#onVsync 10822361
+       0.0        0.0       1     0.033  Choreographer#onVsync 10822296
+       0.0        0.0       1     0.030  Choreographer#onVsync 10822348
+       0.0        0.0       1     0.030  Choreographer#onVsync 10822270
+       0.0        0.0       1     0.030  Choreographer#onVsync 10822283
+       0.0        0.0       1     0.026  Choreographer#onVsync 10822251
+       0.0        0.0       1     0.023  Choreographer#onVsync 10822380
+       0.0        0.0       1     0.016  Choreographer#onVsync 10822309
+       0.0        0.0       1     0.013  Choreographer#onVsync 10822226
+
+== wmshell.anim (tid 2708), window 312 ms
+   incl ms    self ms   count  incl/cnt  name
+       4.6        4.6      18     0.255  traversal
+       2.5        1.7      19     0.131  animation
+       0.8        0.0       1     0.840  Choreographer#doFrame 10821505
+       0.8        0.8      19     0.040  Choreographer#scheduleVsyncLocked
+       0.6        0.1       1     0.586  Choreographer#doFrame 10821747
+       0.6        0.0       1     0.577  Choreographer#doFrame 10821631
+       0.6        0.0       1     0.559  Choreographer#doFrame 10821760
+       0.5        0.0       1     0.458  Choreographer#doFrame 10821530
+       0.4        0.0       1     0.429  Choreographer#doFrame 10821612
+       0.4        0.0       1     0.414  Choreographer#doFrame 10821549
+       0.4        0.0       1     0.381  Choreographer#doFrame 10821568
+       0.4        0.0       1     0.361  Choreographer#doFrame 10821689
+       0.4        0.0       1     0.360  Choreographer#doFrame 10821587
+       0.4        0.0       1     0.358  Choreographer#doFrame 10821702
+       0.3        0.0       1     0.335  Choreographer#doFrame 10821644
+       0.3        0.0       1     0.334  Choreographer#doFrame 10821734
+       0.3        0.0       1     0.327  Choreographer#doFrame 10821657
+       0.3        0.0       1     0.314  Choreographer#doFrame 10821670
+       0.3        0.0       1     0.308  Choreographer#doFrame 10821715
+       0.3        0.0       1     0.298  Choreographer#doFrame 10821799
+       0.2        0.0       1     0.211  Choreographer#doFrame 10821779
+       0.2        0.0       1     0.171  Choreographer#doFrame 10821818
+       0.1        0.1       2     0.039  postNotifyAnimEnd-ValueAnimator
+       0.0        0.0       1     0.020  Choreographer#onVsync 10821818
+       0.0        0.0       1     0.013  Choreographer#onVsync 10821530
+       0.0        0.0       1     0.012  Choreographer#onVsync 10821631
+       0.0        0.0       1     0.012  Choreographer#onVsync 10821799
+       0.0        0.0       1     0.012  Choreographer#onVsync 10821779
+       0.0        0.0       1     0.012  Choreographer#onVsync 10821747
+       0.0        0.0       1     0.011  Choreographer#onVsync 10821689
+
+== launcher-loader (tid 3085), window 18 ms
+   incl ms    self ms   count  incl/cnt  name
+       4.4        0.2       3     1.480  allocateHardwareBitmap
+       4.0        0.7       2     2.021  decodeBitmap
+       3.1        3.1       3     1.050  uploadHardwareBitmap
+       1.1        1.1       3     0.364  allocateHelper
+       0.5        0.0       1     0.488  ImageDecoder_nDecodeBitmap
+       0.5        0.2       1     0.465  Decoding 192x192 bitmap
+       0.2        0.2       1     0.247  getAndroidPixels
+       0.0        0.0       3     0.005  computePalette
+       0.0        0.0       1     0.004  extractGainmap
+       0.0        0.0       1     0.001  getGainmapAndroidCodec
+
+== 1.io (tid 13962), window 12 ms
+   incl ms    self ms   count  incl/cnt  name
+      12.3       12.3       1    12.264  ShellSetupIOSubsystem
+
+== GPU completion (tid 13878), window 1047 ms
+   incl ms    self ms   count  incl/cnt  name
+       5.8        5.8      16     0.365  waitForever
+       1.1        0.0       1     1.094  waiting for GPU completion 0
+       0.6        0.0       1     0.560  waiting for GPU completion 13
+       0.5        0.0       1     0.533  waiting for GPU completion 17
+       0.5        0.0       1     0.488  waiting for GPU completion 12
+       0.5        0.0       1     0.484  waiting for GPU completion 20
+       0.4        0.0       1     0.378  waiting for GPU completion 22
+       0.3        0.0       1     0.342  waiting for GPU completion 18
+       0.3        0.0       1     0.337  waiting for GPU completion 23
+       0.3        0.0       1     0.336  waiting for GPU completion 9
+       0.3        0.0       1     0.313  waiting for GPU completion 8
+       0.3        0.0       1     0.278  waiting for GPU completion 11
+       0.3        0.0       1     0.266  waiting for GPU completion 16
+       0.2        0.0       1     0.248  waiting for GPU completion 10
+       0.2        0.0       1     0.153  waiting for GPU completion 14
+       0.1        0.0       1     0.122  waiting for GPU completion 2
+       0.0        0.0       1     0.014  waiting for GPU completion 6
+
+== BckgrndExec WL (tid 2380), window 1302 ms
+   incl ms    self ms   count  incl/cnt  name
+      11.7       11.7      59     0.199  BackgroundExecutor::updateInputFlinger
+
+== binder:564_4 (tid 29932), window 337 ms
+   incl ms    self ms   count  incl/cnt  name
+       3.4        1.3       8     0.426  allocate
+       1.8        0.0       8     0.230  mali_gralloc_ion_allocate
+       1.4        0.0       3     0.468  mali_gralloc_buffer_allocate(f=0x1, u=0xb00, w=1080, h=2400)
+       1.4        0.0      16     0.087  alloc_from_dmabuf_heap
+       0.9        0.9       3     0.305  heap: system-uncached, bytes: 10608896
+       0.5        0.0       8     0.064  AFBC init block
+       0.3        0.3       4     0.065  mmap
+       0.2        0.0       1     0.156  mali_gralloc_buffer_allocate(f=0x38, u=0x100, w=155, h=155)
+       0.1        0.1       1     0.141  heap: system-uncached, bytes: 30976
+       0.1        0.0       4     0.035  data init
+       0.1        0.1       4     0.033  init_afbc
+       0.1        0.0       1     0.130  mali_gralloc_buffer_allocate(f=0x1, u=0xb00, w=420, h=420)
+       0.1        0.1       8     0.014  Update dump details
+       0.1        0.0       1     0.110  mali_gralloc_buffer_allocate(f=0x1, u=0x100, w=540, h=1200)
+       0.1        0.0       2     0.054  mali_gralloc_buffer_allocate(f=0x1, u=0x100, w=155, h=155)
+       0.1        0.1       4     0.024  munmap
+       0.1        0.0       8     0.012  mali_gralloc_ion_allocate_attr
+       0.1        0.1       1     0.093  heap: system-uncached, bytes: 2611456
+       0.1        0.1       2     0.038  heap: system-uncached, bytes: 102656
+       0.1        0.1       8     0.009  heap: system, bytes: 4496
+       0.1        0.1      11     0.006  mali_gralloc_derive_format_and_size
+       0.1        0.1       1     0.061  heap: system-uncached, bytes: 759040
+
+== binder:564_1 (tid 577), window 356 ms
+   incl ms    self ms   count  incl/cnt  name
+       2.2        0.1       5     0.442  allocate
+       2.0        0.0       5     0.406  mali_gralloc_buffer_allocate(f=0x1, u=0xb00, w=1080, h=2400)
+       2.0        0.0       5     0.399  mali_gralloc_ion_allocate
+       1.3        0.0      10     0.126  alloc_from_dmabuf_heap
+       1.2        1.2       5     0.241  heap: system-uncached, bytes: 10608896
+       0.8        0.0       5     0.153  AFBC init block
+       0.4        0.4       5     0.080  mmap
+       0.2        0.0       5     0.044  data init
+       0.2        0.2       5     0.043  init_afbc
+       0.1        0.1       5     0.027  munmap
+       0.1        0.1      14     0.008  mali_gralloc_derive_format_and_size
+       0.0        0.0       5     0.009  mali_gralloc_ion_allocate_attr
+       0.0        0.0       5     0.006  heap: system, bytes: 4496
+       0.0        0.0       5     0.003  Update dump details
+
+== <...> (tid 3534), window 10 ms
+   incl ms    self ms   count  incl/cnt  name
+       9.5        9.5       1     9.522  wait
+       0.0        0.0       1     0.013  transactionCallback - VRI[morph_example]#153(f:0,a:1)
+       0.0        0.0       1     0.001  setTransformHint
+
+== binder:2647_5 (tid 3257), window 193 ms
+   incl ms    self ms   count  incl/cnt  name
+       1.7        0.4      26     0.066  releaseBufferCallbackLocked
+       1.4        0.1      10     0.139  releaseBufferCallback - VRI[morph_example]#153(f:0,a:2)
+       1.0        0.9      13     0.075  releaseBuffer
+       0.6        0.4      13     0.046  drainBufferReleaseConsumerLocked
+       0.2        0.0       3     0.080  releaseBufferCallback - VRI[morph_example]#153(f:0,a:3)
+       0.2        0.0       1     0.210  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=1
+       0.2        0.0       1     0.208  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=8
+       0.2        0.2       9     0.020  transactionCallback - VRI[morph_example]#153(f:0,a:1)
+       0.2        0.0       1     0.179  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=10
+       0.1        0.1      26     0.005  wait
+       0.1        0.0       1     0.114  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=11
+       0.1        0.0       1     0.089  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=7
+       0.1        0.0       1     0.087  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=6
+       0.1        0.0       1     0.083  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=9
+       0.1        0.0       1     0.077  releaseBuffer - VRI[morph_example]#153(f:0,a:2)frame=5
+       0.1        0.0       1     0.075  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=3
+       0.1        0.0       1     0.071  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=13
+       0.1        0.0       1     0.070  releaseBuffer - VRI[morph_example]#153(f:0,a:2)frame=4
+       0.1        0.0       4     0.014  transactionCallback - VRI[morph_example]#153(f:0,a:2)
+       0.0        0.0       1     0.039  releaseBuffer - VRI[morph_example]#153(f:0,a:2)frame=2
+       0.0        0.0      13     0.003  setTransformHint
+       0.0        0.0       1     0.030  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=12
+       0.0        0.0       4     0.003  VRI[morph_example]#153(BLAST Consumer)153: 2
+       0.0        0.0       5     0.002  VRI[morph_example]#153(BLAST Consumer)153: 0
+       0.0        0.0       4     0.002  VRI[morph_example]#153(BLAST Consumer)153: 1
+
+== flutter-worker- (tid 13959), window 7 ms
+   incl ms    self ms   count  incl/cnt  name
+       6.7        6.7       1     6.655  FlutterLoader initTask
+
+== GPU completion (tid 13887), window 233 ms
+   incl ms    self ms   count  incl/cnt  name
+       3.2        3.2       8     0.403  waitForever
+       0.7        0.0       1     0.701  waiting for GPU completion 1
+       0.6        0.0       1     0.593  waiting for GPU completion 7
+       0.5        0.0       1     0.549  waiting for GPU completion 2
+       0.5        0.0       1     0.498  waiting for GPU completion 5
+       0.5        0.0       1     0.466  waiting for GPU completion 3
+       0.4        0.0       1     0.439  waiting for GPU completion 6
+       0.0        0.0       1     0.009  waiting for GPU completion 4
+       0.0        0.0       1     0.007  waiting for GPU completion 0
+
+== binder:2647_A (tid 3532), window 151 ms
+   incl ms    self ms   count  incl/cnt  name
+       1.2        0.3      20     0.060  releaseBufferCallbackLocked
+       0.8        0.0       6     0.137  releaseBufferCallback - VRI[morph_example]#153(f:0,a:2)
+       0.5        0.4       9     0.051  releaseBuffer
+       0.4        0.3      10     0.036  drainBufferReleaseConsumerLocked
+       0.3        0.0       4     0.084  releaseBufferCallback - VRI[morph_example]#153(f:0,a:3)
+       0.2        0.0       1     0.188  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=23
+       0.2        0.1       1     0.153  ~GraphicBuffer
+       0.1        0.0       1     0.141  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=21
+       0.1        0.1      18     0.007  wait
+       0.1        0.0       1     0.125  releaseBuffer - VRI[morph_example]#153(f:0,a:2)frame=20
+       0.1        0.1       6     0.018  transactionCallback - VRI[morph_example]#153(f:0,a:1)
+       0.1        0.0       1     0.090  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=22
+       0.1        0.0       1     0.088  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=19
+       0.1        0.0       1     0.083  releaseBuffer - VRI[morph_example]#153(f:0,a:2)frame=18
+       0.1        0.0       1     0.078  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=17
+       0.1        0.0       1     0.076  releaseBuffer - VRI[morph_example]#153(f:0,a:1)frame=16
+       0.1        0.0       1     0.064  free
+       0.0        0.0       4     0.012  transactionCallback - VRI[morph_example]#153(f:0,a:2)
+       0.0        0.0       1     0.040  freeBuffer
+       0.0        0.0       1     0.034  releaseBuffer - VRI[morph_example]#153(f:0,a:2)frame=14
+       0.0        0.0      10     0.003  setTransformHint
+       0.0        0.0       1     0.029  releaseBuffer - VRI[morph_example]#153(f:0,a:2)frame=15
+       0.0        0.0       3     0.003  VRI[morph_example]#153(BLAST Consumer)153: 0
+       0.0        0.0       3     0.003  VRI[morph_example]#153(BLAST Consumer)153: 1
+       0.0        0.0       3     0.002  VRI[morph_example]#153(BLAST Consumer)153: 2
+
+== TASKBAR_UI_THRE (tid 3082), window 301 ms
+   incl ms    self ms   count  incl/cnt  name
+       1.4        0.5      19     0.074  animation
+       1.0        1.0      19     0.053  Choreographer#scheduleVsyncLocked
+       0.3        0.3       1     0.313  Choreographer#onVsync 10821474
+       0.1        0.0       1     0.150  Choreographer#doFrame 10821474
+       0.1        0.0       1     0.130  Choreographer#doFrame 10821581
+       0.1        0.0       1     0.115  Choreographer#doFrame 10821524
+       0.1        0.0       1     0.114  Choreographer#doFrame 10821543
+       0.1        0.0       1     0.107  Choreographer#doFrame 10821562
+       0.1        0.0       1     0.099  Choreographer#doFrame 10821606
+       0.1        0.0       1     0.096  Choreographer#doFrame 10821709
+       0.1        0.0       1     0.087  Choreographer#doFrame 10821625
+       0.1        0.0       1     0.079  Choreographer#doFrame 10821638
+       0.1        0.0       1     0.078  Choreographer#doFrame 10821741
+       0.1        0.0       1     0.076  Choreographer#doFrame 10821683
+       0.1        0.0       1     0.075  Choreographer#doFrame 10821651
+       0.1        0.0       1     0.074  Choreographer#doFrame 10821696
+       0.1        0.0       1     0.073  Choreographer#doFrame 10821728
+       0.1        0.0       1     0.071  Choreographer#doFrame 10821754
+       0.1        0.0       1     0.071  Choreographer#doFrame 10821664
+       0.1        0.0       1     0.069  Choreographer#doFrame 10821499
+       0.0        0.0       1     0.050  Choreographer#doFrame 10821773
+       0.0        0.0       1     0.047  Choreographer#doFrame 10821454
+       0.0        0.0       1     0.013  Choreographer#onVsync 10821696
+       0.0        0.0       1     0.011  Choreographer#onVsync 10821606
+       0.0        0.0       1     0.011  Choreographer#onVsync 10821773
+       0.0        0.0       1     0.011  Choreographer#onVsync 10821741
+       0.0        0.0       1     0.010  Choreographer#onVsync 10821524
+       0.0        0.0       1     0.010  Choreographer#onVsync 10821683
+       0.0        0.0       1     0.010  Choreographer#onVsync 10821499
+       0.0        0.0       1     0.010  Choreographer#onVsync 10821638
+
+== hwuiTask1 (tid 14000), window 7 ms
+   incl ms    self ms   count  incl/cnt  name
+       4.2        4.2       1     4.162  preInitBufferAllocator:GraphicBufferAllocator
+
+== allocateBuffers (tid 13882), window 2 ms
+   incl ms    self ms   count  incl/cnt  name
+       1.9        0.1       1     1.918  allocateBuffers
+       1.9        1.9       3     0.620  allocateHelper
+       0.0        0.0       4     0.001  waitWhileAllocatingLocked
+
+== HwBinder:563_1 (tid 668), window 22200 ms
+   incl ms    self ms   count  incl/cnt  name
+       1.7        0.5      18     0.094  onComposerHalVsync 0 16666667ns
+       0.8        0.5      15     0.056  VSR 4619827677550801152: adding sample
+       0.3        0.3      18     0.017  addVsyncTimestamp
+       0.2        0.1       3     0.071  VSR 4619827677550801152: period confirmed
+       0.1        0.0       3     0.023  disableHardwareVsync
+       0.1        0.1      18     0.003  validate
+       0.0        0.0       3     0.016  onHardwareVsyncRequest 4619827677550801152 false
+       0.0        0.0       3     0.012  setDisplayModePtr {id=0, hwcId=36, resolution=1080x2400, vsyncRate=60.00 Hz, dpi=428.62x429.30, group=0, vrrConfig=N/A, hdrOutputType=INVALID}
+       0.0        0.0      15     0.002  enableHardwareVsyncLocked
+       0.0        0.0       3     0.003  clearTimestamps: clearTimelines=1
+       0.0        0.0       3     0.002  endPeriodTransition 4619827677550801152
+       0.0        0.0       1     0.005  VsyncPredictionError: error= 0.0793, actualNs= 34626314575000, predictedNs= 34626314495668, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.04, hwVsyncStabStd= 0.08
+       0.0        0.0       1     0.004  VsyncPredictionError: error= 0.0433, actualNs= 34626264539000, predictedNs= 34626264495667, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.04
+       0.0        0.0       1     0.004  VsyncPredictionError: error= 0.1537, actualNs= 34626281316000, predictedNs= 34626281162334, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.01, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.11
+       0.0        0.0       1     0.004  VsyncPredictionError: error= 0.0917, actualNs= 34626331254000, predictedNs= 34626331162335, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01, hwVsyncStabStd= 0.07
+       0.0        0.0       1     0.004  VsyncPredictionError: error= 0.0463, actualNs= 34604898283000, predictedNs= 34604898236668, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01, hwVsyncStabStd= 0.00
+       0.0        0.0       1     0.003  VsyncPredictionError: error= 0.0627, actualNs= 34604214437000, predictedNs= 34604214374335, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01, hwVsyncStabStd= 0.03
+       0.0        0.0       1     0.003  VsyncPredictionError: error= 0.0613, actualNs= 34604147769000, predictedNs= 34604147707667, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.06
+       0.0        0.0       1     0.003  VsyncPredictionError: error= 0.0577, actualNs= 34604914961000, predictedNs= 34604914903335, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01, hwVsyncStabStd= 0.00
+       0.0        0.0       1     0.003  VsyncPredictionError: error= 0.0430, actualNs= 34604181084000, predictedNs= 34604181041001, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01, hwVsyncStabStd= 0.04
+       0.0        0.0       1     0.003  VsyncPredictionError: error= 0.0420, actualNs= 34626297871000, predictedNs= 34626297829001, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 0.99, modeChangeInProgress= 0, accepted= 1, hwVsyncError= -0.11, hwVsyncStabStd= 0.09
+       0.0        0.0       1     0.003  VsyncPredictionError: error= 0.0533, actualNs= 34604197761000, predictedNs= 34604197707668, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01, hwVsyncStabStd= 0.03
+       0.0        0.0       1     0.003  VsyncPredictionError: error= 0.0370, actualNs= 34604881607000, predictedNs= 34604881570001, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01, hwVsyncStabStd= 0.00
+       0.0        0.0       1     0.002  VsyncPredictionError: error= 0.1654, actualNs= 34604831570000, predictedNs= 34604831404556, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 18.01, modeChangeInProgress= 0, accepted= 1
+       0.0        0.0       1     0.002  VsyncPredictionError: error= 0.2607, actualNs= 34604131041000, predictedNs= 34604130780342, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 26.02, modeChangeInProgress= 0, accepted= 1
+       0.0        0.0       1     0.001  VsyncPredictionError: error= 0.2513, actualNs= 34626247829000, predictedNs= 34626247577706, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 26.02, modeChangeInProgress= 0, accepted= 1
+       0.0        0.0       1     0.001  VsyncPredictionError: error= 0.0287, actualNs= 34604164403000, predictedNs= 34604164374334, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= -0.03
+       0.0        0.0       1     0.001  VsyncPredictionError: error= 0.0247, actualNs= 34604864928000, predictedNs= 34604864903334, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01
+       0.0        0.0       1     0.001  VsyncPredictionError: error= 0.0123, actualNs= 34604848249000, predictedNs= 34604848236667, VsyncTimeSource= HwVsyncCallback, VsyncPeriod= 16.67, VsyncPeriodsElapsed= 1.00, modeChangeInProgress= 0, accepted= 1, hwVsyncError= 0.01
+
+== GrallocUploadTh (tid 5281), window 5 ms
+   incl ms    self ms   count  incl/cnt  name
+       2.0        1.5       3     0.670  operator()
+       0.1        0.1       3     0.049  QueueSubmit
+       0.1        0.1       3     0.041  BindImageMemory2
+       0.1        0.1       1     0.116  Texture upload(10747) 155x155
+       0.0        0.0       1     0.043  Texture upload(10750) 155x155
+       0.0        0.0       1     0.023  Texture upload(10752) 155x155
+       0.0        0.0       2     0.008  AllocateCommandBuffers
+       0.0        0.0       3     0.002  GetPhysicalDeviceMemoryProperties2
+       0.0        0.0       2     0.001  EnumerateInstanceVersion
+
+== ll.splashworker (tid 2763), window 17 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.8        0.8       1     0.811  postAndWait
+       0.4        0.0       1     0.371  ImageDecoder_nDecodeBitmap
+       0.3        0.1       1     0.349  Decoding 192x192 bitmap
+       0.3        0.3       1     0.346  setMaxAcquiredBufferCount(2)
+       0.2        0.2       1     0.209  getAndroidPixels
+       0.1        0.0       1     0.132  inflate
+       0.0        0.0       1     0.045  android.window.SplashScreenView
+       0.0        0.0       1     0.027  ImageView
+       0.0        0.0       1     0.014  View
+       0.0        0.0       2     0.004  merge
+       0.0        0.0       1     0.006  acquireBuffer
+       0.0        0.0       1     0.004  extractGainmap
+       0.0        0.0       1     0.004  releaseBuffer
+       0.0        0.0       2     0.002  wait
+       0.0        0.0       1     0.003  disconnect
+       0.0        0.0       1     0.003  waitForever
+       0.0        0.0       1     0.002  waitWhileAllocatingLocked
+       0.0        0.0       2     0.001  setConsumerName
+       0.0        0.0       1     0.002  getGainmapAndroidCodec
+       0.0        0.0       1     0.002  connect
+       0.0        0.0       2     0.001  ImageReader-420x420f1u2816m2-2647-115: 0
+       0.0        0.0       1     0.001  setDefaultBufferSize
+       0.0        0.0       1     0.001  setConsumerUsageBits
+       0.0        0.0       2     0.001  query
+       0.0        0.0       1     0.001  allowUnlimitedSlots
+       0.0        0.0       1     0.001  setDefaultBufferFormat
+       0.0        0.0       1     0.001  setDefaultBufferDataSpace
+       0.0        0.0       1     0.000  getConfigForSurface
+
+== ndroid.systemui (tid 2647), window 21616 ms
+   incl ms    self ms   count  incl/cnt  name
+       1.5        1.5      11     0.137  Choreographer#scheduleVsyncLocked
+       0.1        0.1       1     0.069  Choreographer#doFrame 10824598
+       0.1        0.1       1     0.066  Choreographer#doFrame 10829589
+       0.1        0.1       1     0.050  Choreographer#doFrame 10829602
+       0.1        0.1       1     0.050  Choreographer#doFrame 10828967
+       0.0        0.0       1     0.046  Choreographer#doFrame 10824611
+       0.0        0.0       1     0.038  Choreographer#doFrame 10826984
+       0.0        0.0       1     0.030  Choreographer#doFrame 10822746
+       0.0        0.0       1     0.029  Choreographer#onVsync 10829602
+       0.0        0.0       1     0.026  Choreographer#onVsync 10824598
+       0.0        0.0       1     0.023  Choreographer#onVsync 10829589
+       0.0        0.0       1     0.022  Choreographer#onVsync 10828967
+       0.0        0.0       1     0.019  Choreographer#doFrame 10821594
+       0.0        0.0       1     0.018  Choreographer#doFrame 10822759
+       0.0        0.0       1     0.018  Choreographer#doFrame 10821487
+       0.0        0.0       1     0.017  Choreographer#onVsync 10826984
+       0.0        0.0       1     0.016  Choreographer#onVsync 10824611
+       0.0        0.0       1     0.016  Choreographer#doFrame 10830917
+       0.0        0.0       1     0.012  Choreographer#onVsync 10821594
+       0.0        0.0       1     0.011  Choreographer#onVsync 10822759
+       0.0        0.0       1     0.010  Choreographer#onVsync 10821487
+       0.0        0.0       1     0.009  Choreographer#onVsync 10822746
+       0.0        0.0       1     0.006  Choreographer#onVsync 10830917
+
+== lightweight-exe (tid 13996), window 6 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.7        0.0       1     0.695  ImageDecoder_nDecodeBitmap
+       0.7        0.2       1     0.676  Decoding 126x126 bitmap
+       0.2        0.2       1     0.224  Handling scale/origin/crop
+       0.2        0.2       1     0.206  getAndroidPixels
+       0.0        0.0       1     0.004  extractGainmap
+       0.0        0.0       1     0.002  getGainmapAndroidCodec
+
+== binder:563_5 (tid 3126), window 320 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.9        0.6      28     0.031  setTransactionState
+       0.2        0.0      15     0.015  scheduleFrame
+       0.2        0.2      39     0.005  requestNextVsync
+       0.2        0.0      15     0.012  VSyncDispatchTimerQueueEntry::schedule
+       0.2        0.1      16     0.010  nextAnticipatedVSyncTimeFrom
+       0.0        0.0       1     0.036  getLatestVsyncEventData
+       0.0        0.0      16     0.001  renderRate 60.00 Hz
+       0.0        0.0       7     0.000  generateTokenForPredictions
+
+== binder:563_2 (tid 609), window 1111 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.6        0.4      17     0.035  setTransactionState
+       0.1        0.1      22     0.006  requestNextVsync
+       0.1        0.0      10     0.013  VSyncDispatchTimerQueueEntry::schedule
+       0.1        0.0       7     0.018  scheduleFrame
+       0.1        0.1      14     0.008  nextAnticipatedVSyncTimeFrom
+       0.1        0.0       3     0.023  rearmTimerSkippingUpdateFor
+       0.1        0.0       2     0.026  setDuration
+       0.0        0.0       1     0.043  resyncAllToHardwareVsync
+       0.0        0.0       1     0.033  enableHardwareVsyncLocked
+       0.0        0.0       4     0.007  VSyncDispatchTimerQueueEntry::getArmedInfo
+       0.0        0.0       3     0.009  VSyncDispatchTimerQueueEntry::update
+       0.0        0.0       1     0.019  importBuffer
+       0.0        0.0       1     0.015  resetModel
+       0.0        0.0       1     0.014  onHardwareVsyncRequest 4619827677550801152 true
+       0.0        0.0       1     0.012  clearTimestamps: clearTimelines=1
+       0.0        0.0       1     0.012  sendHintSessionHint
+       0.0        0.0      15     0.001  renderRate 60.00 Hz
+       0.0        0.0       1     0.009  mapExternalTextureBuffer
+       0.0        0.0       1     0.001  startPeriodTransitionInternal 4619827677550801152
+
+== DartWorker (tid 13971), window 13 ms
+   incl ms    self ms   count  incl/cnt  name
+       1.4        1.3       3     0.451  HandleMessage
+       0.0        0.0      12     0.002  Dart_StringToCString
+       0.0        0.0       1     0.004  Dart_NewStringFromUTF8
+       0.0        0.0       3     0.001  Dart_StringToUTF8
+       0.0        0.0       2     0.001  Dart_SendPortGetId
+       0.0        0.0       1     0.001  Dart_NewInteger
+
+== pool-3-thread-1 (tid 14006), window 1 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.6        0.6       1     0.624  WindowManager#getDisplayEngagementMode
+       0.3        0.3       1     0.349  WindowManager#registerDisplayEngagementModeCallback
+
+== binder:2992_6 (tid 3989), window 163 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.2        0.0       8     0.023  releaseBufferCallbackLocked
+       0.1        0.1       4     0.025  releaseBuffer
+       0.1        0.0       2     0.047  releaseBufferCallback - VRI[NexusLauncherActivity]#99(f:0,a:3)
+       0.1        0.0       2     0.045  releaseBufferCallback - VRI[NexusLauncherActivity]#99(f:0,a:2)
+       0.1        0.1       4     0.020  drainBufferReleaseConsumerLocked
+       0.0        0.0       1     0.039  releaseBuffer - VRI[NexusLauncherActivity]#99(f:0,a:2)frame=44
+       0.0        0.0       1     0.039  releaseBuffer - VRI[NexusLauncherActivity]#99(f:0,a:1)frame=46
+       0.0        0.0       1     0.037  releaseBuffer - VRI[NexusLauncherActivity]#99(f:0,a:2)frame=45
+       0.0        0.0       1     0.034  releaseBuffer - VRI[NexusLauncherActivity]#99(f:0,a:1)frame=47
+       0.0        0.0       8     0.003  wait
+       0.0        0.0       2     0.005  transactionCallback - VRI[NexusLauncherActivity]#99(f:0,a:1)
+       0.0        0.0       2     0.005  transactionCallback - VRI[NexusLauncherActivity]#99(f:0,a:2)
+       0.0        0.0       4     0.001  setTransformHint
+       0.0        0.0       2     0.001  VRI[NexusLauncherActivity]#99(BLAST Consumer)99: 2
+       0.0        0.0       1     0.001  VRI[NexusLauncherActivity]#99(BLAST Consumer)99: 1
+       0.0        0.0       1     0.000  VRI[NexusLauncherActivity]#99(BLAST Consumer)99: 0
+
+== binder:2992_9 (tid 21228), window 51 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.2        0.0       4     0.046  releaseBufferCallback - VRI[NexusLauncherActivity]#99(f:0,a:3)
+       0.2        0.0       8     0.023  releaseBufferCallbackLocked
+       0.1        0.1       4     0.024  releaseBuffer
+       0.1        0.0       4     0.013  drainBufferReleaseConsumerLocked
+       0.0        0.0       1     0.040  releaseBuffer - VRI[NexusLauncherActivity]#99(f:0,a:2)frame=43
+       0.0        0.0       1     0.039  releaseBuffer - VRI[NexusLauncherActivity]#99(f:0,a:2)frame=40
+       0.0        0.0       1     0.037  releaseBuffer - VRI[NexusLauncherActivity]#99(f:0,a:2)frame=42
+       0.0        0.0       1     0.032  releaseBuffer - VRI[NexusLauncherActivity]#99(f:0,a:2)frame=41
+       0.0        0.0       4     0.006  transactionCallback - VRI[NexusLauncherActivity]#99(f:0,a:2)
+       0.0        0.0       8     0.002  wait
+       0.0        0.0       4     0.001  setTransformHint
+       0.0        0.0       2     0.001  VRI[NexusLauncherActivity]#99(BLAST Consumer)99: 0
+       0.0        0.0       1     0.001  VRI[NexusLauncherActivity]#99(BLAST Consumer)99: 1
+       0.0        0.0       1     0.000  VRI[NexusLauncherActivity]#99(BLAST Consumer)99: 2
+
+== GPU completion (tid 13919), window 16 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.3        0.3       2     0.127  waitForever
+       0.2        0.0       1     0.169  waiting for GPU completion 2
+       0.1        0.0       1     0.098  waiting for GPU completion 1
+
+== RemoveFBsThread (tid 600), window 935 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.5        0.5       3     0.173  cleanup framebuffers
+
+== TouchTimer (tid 675), window 200 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.1        0.0       2     0.071  applyPolicy
+       0.1        0.0       2     0.040  chooseDisplayModes
+       0.0        0.0       2     0.025  getRankedFrameRatesLocked
+       0.0        0.0       2     0.008  getFrameRateOverrides
+
+== ImageWallpaper (tid 3269), window 2 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.1        0.1       1     0.116  Choreographer#doFrame 10822432
+       0.1        0.1       1     0.068  Choreographer#scheduleVsyncLocked
+       0.0        0.0       1     0.025  animation
+       0.0        0.0       1     0.025  Choreographer#onVsync 10822432
+
+== vsync (tid 601), window 22200 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.1        0.1      18     0.005  No pending desired VSync period
+
+== BackgroundExecu (tid 3081), window 0 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       1     0.040  importBuffer
+
+== binder:1490_5 (tid 20694), window 41 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       6     0.005  insertTargetStatsArray
+       0.0        0.0       2     0.002  addVulkanEngineName
+
+== n.morph_example (tid 13945), window 0 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       2     0.015  sendGpuStatsLocked
+
+== binder:1490_4 (tid 3101), window 163 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       2     0.006  insertDriverStats
+       0.0        0.0       2     0.004  insertTargetStatsArray
+
+== io.worker.2 (tid 13964), window 1 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       2     0.009  ConcurrentWorkerWake
+
+== io.worker.1 (tid 13963), window 1 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       2     0.007  ConcurrentWorkerWake
+
+== binder:1490_3 (tid 3080), window 0 ms
+   incl ms    self ms   count  incl/cnt  name
+       0.0        0.0       3     0.002  insertTargetStatsArray

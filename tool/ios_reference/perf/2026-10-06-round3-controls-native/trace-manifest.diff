@@ -1,0 +1,10 @@
+--- example/android/app/src/main/AndroidManifest.xml	2026-10-03 12:56:59
++++ /tmp/morph-round3/base/example/android/app/src/main/AndroidManifest.xml	2026-10-06 21:37:27
+@@ -25,6 +25,7 @@
+                 <category android:name="android.intent.category.LAUNCHER"/>
+             </intent-filter>
+         </activity>
++        <meta-data android:name="io.flutter.embedding.android.TraceSystrace" android:value="true" />
+         <meta-data
+             android:name="io.flutter.embedding.android.EnableImpeller"
+             android:value="true" />

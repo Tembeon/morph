@@ -2261,6 +2261,73 @@ Gallery: the root installs `MorphAdaptiveGlass` with the session's
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass
 renderer page edits them and shows the tier being drawn.
 
+## Round 3: flat edge effects and liquid controls (2026-10-06)
+
+Scope: owner-approved flat fade/hairline only, and controls UI profiling.
+The installed renderer's effective flat tier skips both the seed copy
+and the edge backdrop filter; fake/liquid retain their ordinary blur.
+Driven opacity and changes of tier update/release the retained layers.
+Pixel 6a census maximum backdrop filters is 0 in all seven audit scenes.
+Deterministic hashes change only for nav-scroll/flat, as approved.
+
+Energy A/B/B/A, two launches per variant, five runs per scene, cooled
+starts below 37 C VIRTUAL-SKIN, AC at 100 percent, thermal status 0.
+Medians of launch medians, base 84997e1 -> flat fade only:
+
+| Scene | power mW | raster p95 ms | GPU rail mJ |
+|---|---:|---:|---:|
+| home-scroll | 590 -> 465 | 10.88 -> 9.19 | 3653 -> 1231 |
+| tab-bar | 661 -> 519 | 10.93 -> 8.47 | 5385 -> 1893 |
+| list | 553 -> 447 | 10.98 -> 8.45 | 3977 -> 1369 |
+
+Other scenes have no repeatable power change. Evidence:
+perf/2026-10-06-round3-flat-energy (rail/scheduler reductions, reports,
+thermal metadata and hashes). Removing the flat blur changes its
+appearance; no NEAR bound is claimed for this approved change.
+Separate A/B kernel GPU-work launches, five runs per scene, weighted
+ms/frame at 434 MHz: home 4.110 -> 2.009, tab bar 5.113 -> 2.413,
+list 4.525 -> 2.159 (-51 to -53 percent). Other scenes differ by less
+than 0.01 ms. Evidence: perf/2026-10-06-round3-flat-gpu.
+One-binary randomized scroll bench, five repeats: Material / morph flat /
+flat without edge GPU 0.743 / 0.957 / 0.871 ms/frame (0.322 / 0.415 /
+0.378 Mcycles); raster p95 5.85 / 6.40 / 6.01 ms, zero over-budget frames
+at the median run. The remaining fade costs about 0.086 ms GPU; flat is
+still 29 percent above Material in cycles and 8-9 percent in raster.
+Evidence: perf/2026-10-06-round3-flat-bench.
+
+Controls anatomy: menu_frames_test also accepts FRAMES_SCENE=controls
+and replays the audit's switch/slider gestures. Three profiler runs per
+tier, no per-widget tracing, CPU samples at 250 us. Flat/liquid mean
+BUILD 1.027/1.067 ms, LAYOUT 0.531/0.564, PAINT 0.558/1.937,
+COMPOSITING 0.710/2.411. Heavy-frame self CPU samples put native
+CommandBuffer.submit at 9.2-9.8 percent, RenderPass draw/begin plus
+Texture.asImage at 5.4-5.8 percent, getTransformTo at 2.0-2.2 percent.
+These sample shares are not durations. Evidence:
+perf/2026-10-06-round3-controls-profile (complete frame/VM/CPU data).
+Separate native baseline atrace, two ordinary repeats, 800 UI / 801
+raster frames: UI QueueSubmit 0.887 calls and 0.915 ms/frame, PAINT self
+1.615, COMPOSITING self 1.284, BeginFrame inclusive 6.013 ms/frame.
+Raster QueueSubmit 1.998 calls and 2.155 ms/frame, saveLayer 6.206 calls
+and 1.153 self ms/frame; Draw inclusive 8.037 ms/frame. Means over all
+frames in the scene windows, not p95; nested inclusive values are not
+additive. Evidence: perf/2026-10-06-round3-controls-native.
+
+A coordinate-uniform/translation-inverse trial is REJECTED. Ordinary
+audit A/B/B/A, two launches each, five runs per launch: build p50
+4.96 -> 4.84 ms (within baseline spread), p95 12.32 -> 12.27, raster
+p95 11.64 -> 12.49, power 666 -> 645 mW. Separate GPU-work launches:
+5.014 -> 4.993 ms/frame, 2.176 -> 2.167 Mcycles/frame (noise). Real
+Impeller host before/after maximum channel difference 0 in five cases,
+both shader variants; device resting controls max 0, held captures are
+not synchronized (slider max 233). The original renderer remains.
+Evidence: perf/2026-10-06-round3-controls-{energy,gpu}; rejected patch
+and host pixel comparison in the profile evidence. The remaining UI
+premium is paint/composition and GPU matte encode/submit, not widget
+BUILD. Future exact-input matte reuse must preserve paint dependencies;
+native Flutter GPU encode/submit is a separate engine lever.
+
+Full protocol, limitations and verification: tool/audit/codex-round3-report.md.
+
 ## Provenance
 
 whynotmake-it/flutter_liquid_glass `liquid_glass_renderer`

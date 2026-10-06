@@ -1,0 +1,163 @@
+{
+  "tier": "liquid",
+  "liquid_available": true,
+  "liquid_unavailable_reason": null,
+  "platform": "android",
+  "refresh_rate": 60.0,
+  "cadence_ms": 16.665,
+  "budget_ms": 16.665,
+  "precache_ms": 575.475,
+  "device_class": "capable",
+  "drawn_tier": "liquid",
+  "first_use": {
+    "controls": {
+      "n": 245.0,
+      "build_p50": 4.137,
+      "build_p95": 10.712,
+      "build_worst": 35.33,
+      "raster_p50": 7.671,
+      "raster_p95": 12.379,
+      "raster_worst": 20.427,
+      "span_p95": 23.726,
+      "vsync_p95": 1.476,
+      "over_8.3ms": 116.0,
+      "build_p99": 13.291,
+      "raster_p99": 16.934,
+      "over_budget": 4.0
+    }
+  },
+  "semantics": [
+    false
+  ],
+  "runs": 2,
+  "outline_us": {
+    "menu10-r4-cold": 1246.44,
+    "menu10-r10-cold": 544.47,
+    "menu10-r20-cold": 469.79,
+    "union-cold": 28.79,
+    "bar-capsules-cold": 285.29,
+    "menu10-r4": 738.78,
+    "menu10-r10": 541.43,
+    "menu10-r20": 448.67,
+    "union": 27.01,
+    "bar-capsules": 281.48
+  },
+  "windows_us": {
+    "controls": [
+      [
+        34611080201,
+        34617868213
+      ],
+      [
+        34618184077,
+        34624939190
+      ]
+    ]
+  },
+  "fusion_served_ahead": 0,
+  "fusion_fused_here": 0,
+  "census": {
+    "controls": {
+      "frames": 800,
+      "mean": {
+        "backdrop": 3.105,
+        "opacity": 0.1425,
+        "image_filter": 0.0,
+        "color_filter": 0.0,
+        "shader_mask": 0.0,
+        "clip_save_layer": 0.0,
+        "offscreen": 3.2475,
+        "pictures": 36.1425,
+        "glass_shadow_pictures": 0.0,
+        "layers": 119.82,
+        "captures": 3.105
+      },
+      "max": {
+        "backdrop": 4,
+        "opacity": 1,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 5,
+        "pictures": 37,
+        "glass_shadow_pictures": 0,
+        "layers": 124,
+        "captures": 4
+      },
+      "first": {
+        "backdrop": 4,
+        "opacity": 1,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 5,
+        "pictures": 37,
+        "glass_shadow_pictures": 0,
+        "layers": 124,
+        "captures": 4
+      },
+      "owners": {
+        "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": 1.0,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+        "MorphNavigationScaffold > MorphSlider > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": 0.6075,
+        "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": 0.4975
+      },
+      "owners_first": {
+        "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer @20,178 63x28": 2,
+        "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer @20,524 371x220": 1,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer @0,50 411x54": 1
+      }
+    }
+  },
+  "controls": {
+    "median": {
+      "n": 401.0,
+      "build_p50": 5.067,
+      "build_p95": 12.088,
+      "build_worst": 16.732,
+      "raster_p50": 8.135,
+      "raster_p95": 11.655,
+      "raster_worst": 17.59,
+      "span_p95": 23.526,
+      "vsync_p95": 1.718,
+      "over_8.3ms": 222.0,
+      "build_p99": 13.007,
+      "raster_p99": 13.757,
+      "over_budget": 1.0
+    },
+    "runs": [
+      {
+        "n": 401.0,
+        "build_p50": 4.52,
+        "build_p95": 10.306,
+        "build_worst": 16.732,
+        "raster_p50": 7.534,
+        "raster_p95": 10.796,
+        "raster_worst": 16.644,
+        "span_p95": 20.398,
+        "vsync_p95": 1.547,
+        "over_8.3ms": 164.0,
+        "build_p99": 12.096,
+        "raster_p99": 13.31,
+        "over_budget": 1.0
+      },
+      {
+        "n": 397.0,
+        "build_p50": 5.067,
+        "build_p95": 12.088,
+        "build_worst": 13.688,
+        "raster_p50": 8.135,
+        "raster_p95": 11.655,
+        "raster_worst": 17.59,
+        "span_p95": 23.526,
+        "vsync_p95": 1.718,
+        "over_8.3ms": 222.0,
+        "build_p99": 13.007,
+        "raster_p99": 13.757,
+        "over_budget": 1.0
+      }
+    ]
+  }
+}

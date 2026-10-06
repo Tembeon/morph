@@ -1,0 +1,20 @@
+run: controls-b-2  apk: controls-b.apk  date: Tue Oct  6 21:40:29 CEST 2026
+before:
+skin: 32.852905
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 313
+  Capacity level: 5
+TotalTime: 659
+after:
+skin: 32.976353
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 314
+  Capacity level: 5

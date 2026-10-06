@@ -1,0 +1,2 @@
+Flat audit APKs have AUDIT_SHOTS=false. No device PNG comparison was made.
+Only nav-scroll/flat deterministic hashes change; the appearance change is approved.

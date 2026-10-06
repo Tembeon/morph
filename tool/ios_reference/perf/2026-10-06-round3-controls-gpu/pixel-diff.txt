@@ -1,0 +1,4 @@
+controls-resting.png                     mean   0.00  max    0  over15 0.0000%
+slider-thumb-held.png                    mean   0.02  max  233  over15 0.0343%
+switch-knob-held.png                     mean   0.00  max   15  over15 0.0000%
+worst 233

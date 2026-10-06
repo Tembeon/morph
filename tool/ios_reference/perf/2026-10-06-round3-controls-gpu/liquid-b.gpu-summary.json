@@ -1,0 +1,46 @@
+{
+  "trace_sha256": "e30bd9455b6698b8d4c6e56f0d74c293b40cdc7b52a184e6048476c54f007d8c",
+  "gpu_work_periods": 31516,
+  "gpu_frequency_samples": 10685,
+  "scenes": {
+    "controls": {
+      "runs": [
+        {
+          "gpu_ms_per_frame": 5.005461630170316,
+          "Mcycles_per_frame": 2.1723703474939176,
+          "busy_percent": 29.77847895959974
+        },
+        {
+          "gpu_ms_per_frame": 4.982368452554745,
+          "Mcycles_per_frame": 2.1623479084087642,
+          "busy_percent": 29.863688717560343
+        },
+        {
+          "gpu_ms_per_frame": 5.053353651629073,
+          "Mcycles_per_frame": 2.1931554848070216,
+          "busy_percent": 29.831468989914082
+        },
+        {
+          "gpu_ms_per_frame": 4.9557214756097565,
+          "Mcycles_per_frame": 2.150783120414641,
+          "busy_percent": 29.917341256729703
+        },
+        {
+          "gpu_ms_per_frame": 4.967803002463054,
+          "Mcycles_per_frame": 2.156026503068967,
+          "busy_percent": 29.71170105338147
+        }
+      ],
+      "weighted": {
+        "gpu_ms_per_frame": 4.992665731467845,
+        "Mcycles_per_frame": 2.166816927457048,
+        "busy_percent": 29.82047416795431
+      },
+      "median": {
+        "gpu_ms_per_frame": 4.982368452554745,
+        "Mcycles_per_frame": 2.1623479084087642,
+        "busy_percent": 29.831468989914082
+      }
+    }
+  }
+}

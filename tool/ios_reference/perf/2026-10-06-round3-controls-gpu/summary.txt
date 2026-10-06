@@ -1,0 +1,2 @@
+liquid-a.json controls gpu_ms_per_frame=5.014 Mcycles_per_frame=2.176 busy_percent=29.888
+liquid-b.json controls gpu_ms_per_frame=4.993 Mcycles_per_frame=2.167 busy_percent=29.820

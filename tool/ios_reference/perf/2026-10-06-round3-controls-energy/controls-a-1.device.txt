@@ -1,0 +1,20 @@
+run: controls-a-1  apk: controls-a.apk  date: Tue Oct  6 21:39:18 CEST 2026
+before:
+skin: 32.465252
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 314
+  Capacity level: 5
+TotalTime: 873
+after:
+skin: 32.79715
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 313
+  Capacity level: 5

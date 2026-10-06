@@ -1,0 +1,4 @@
+scene.variant                      n   build_p50   build_p95  raster_p50  raster_p95 raster_mean over_budget   gpu_ms/f     Mcyc/f  gpu_busy%    r50/mat    r95/mat    cyc/mat     caps/f
+scroll.material               391.00        1.34        3.82        4.79        5.85        4.80        0.00      0.743      0.322      4.199       1.00       1.00       1.00
+scroll.morphFlat              409.00        1.25        3.18        5.15        6.40        5.04        0.00      0.957      0.415      5.660       1.08       1.09       1.29
+scroll.morphFlatNoEdge        409.00        1.23        3.02        4.92        6.01        4.81        0.00      0.871      0.378      5.150       1.03       1.03       1.17

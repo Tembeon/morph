@@ -1,0 +1,45 @@
+{
+  "format": {
+    "tail": [
+      "Formatted 306 files (0 changed) in 4.90 seconds."
+    ],
+    "sha256": "2576c0f857d8d68b6dd48e2013f41846ee9aa5ca0b54b1c04c8bc054cf36e77e"
+  },
+  "analyze": {
+    "tail": [
+      "Got dependencies in `./example`.",
+      "Analyzing morph...                                              ",
+      "No issues found! (ran in 14.1s)"
+    ],
+    "sha256": "53dd982b4ea31c8a328fa5498bd4d253afa659ede7a28a37f78f9deafda33d43"
+  },
+  "package-tests": {
+    "tail": [
+      "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550",
+      "12:25 +1397: /Users/tembeon/IdeaProjects/morph/test/glass_backdrop_group_test.dart: G6 fake chrome surfaces take a backdrop copy of their own",
+      "12:25 +1398: All tests passed!"
+    ],
+    "sha256": "7c83a9f90fbf62a0a2389d9dfae20a99bc5d09d712be2574af15acd8b85e6344"
+  },
+  "example-tests": {
+    "tail": [
+      "00:21 +16: /Users/tembeon/IdeaProjects/morph/example/test/lab_test.dart: lab records cancellation without activating the button",
+      "00:21 +17: /Users/tembeon/IdeaProjects/morph/example/test/lab_test.dart: lab captures semantic activation from a measured tap",
+      "00:21 +18: All tests passed!"
+    ],
+    "sha256": "9518a24ae03a2e8324aa1beb367afd475cc0077ae1ca1d6b71bc56b8a598158c"
+  },
+  "dartdoc": {
+    "tail": [
+      "Found 0 warnings and 0 errors."
+    ],
+    "sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770"
+  },
+  "release_gallery": {
+    "build": "flutter build apk --release --target-platform android-arm64",
+    "sha256": "46067271b0547de0bc092c52052f1986b1391d36412c350fc1e6c63ede3bd3c3",
+    "adb_install": "Success",
+    "activity": "dev.tembeon.morph_example/.MainActivity",
+    "orientation": 0
+  }
+}

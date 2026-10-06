@@ -1,0 +1,63 @@
+rails: ['rails.aoc.logic', 'rails.aoc.memory', 'rails.cpu.big', 'rails.cpu.little', 'rails.cpu.mid', 'rails.ddr.a', 'rails.ddr.b', 'rails.ddr.c', 'rails.display', 'rails.gps', 'rails.gpu', 'rails.memory.interface', 'rails.system.fabric', 'rails.tpu'] threads: {'ui': 7623, 'raster': 7686, 'workers': 22}
+
+== flat-a
+home-scroll  n=2 s=35.6 total 21019 mJ (590 mW) | rails.aoc.logic=541 rails.aoc.memory=131 rails.cpu.big=1317 rails.cpu.little=2524 rails.cpu.mid=1479 rails.ddr.a=268 rails.ddr.b=512 rails.ddr.c=2166 rails.display=4818 rails.gps=32 rails.gpu=3653 rails.memory.interface=2008 rails.system.fabric=1132 rails.tpu=437
+    flat-a-1          21134 mJ   35.8s  freq L/M/B 585/550/558  busy 0.22/0.38/0.07  ui ms 5154/3937/428  raster ms 0/90/112  b95 5.73 r95 10.49 over 2  skin 30.1>31.0
+    flat-a-3          20905 mJ   35.5s  freq L/M/B 580/546/528  busy 0.22/0.39/0.07  ui ms 4946/4161/514  raster ms 0/94/120  b95 5.39 r95 11.28 over 2  skin 32.5>32.4
+segmented    n=2 s=32.4 total 13740 mJ (425 mW) | rails.aoc.logic=490 rails.aoc.memory=114 rails.cpu.big=640 rails.cpu.little=1536 rails.cpu.mid=951 rails.ddr.a=190 rails.ddr.b=463 rails.ddr.c=1637 rails.display=4133 rails.gps=29 rails.gpu=875 rails.memory.interface=1351 rails.system.fabric=932 rails.tpu=397
+    flat-a-1          13524 mJ   32.3s  freq L/M/B 432/428/507  busy 0.20/0.33/0.05  ui ms 3295/3797/247  raster ms 0/110/104  b95 3.25 r95 6.73 over 0  skin 30.1>31.0
+    flat-a-3          13955 mJ   32.4s  freq L/M/B 468/461/503  busy 0.20/0.35/0.05  ui ms 3280/3859/243  raster ms 0/109/104  b95 3.24 r95 7.33 over 0  skin 32.5>32.4
+tab-bar      n=2 s=38.0 total 25097 mJ (661 mW) | rails.aoc.logic=577 rails.aoc.memory=138 rails.cpu.big=916 rails.cpu.little=2825 rails.cpu.mid=1406 rails.ddr.a=289 rails.ddr.b=553 rails.ddr.c=2382 rails.display=6731 rails.gps=37 rails.gpu=5385 rails.memory.interface=2151 rails.system.fabric=1238 rails.tpu=466
+    flat-a-1          25727 mJ   38.0s  freq L/M/B 645/507/515  busy 0.26/0.41/0.07  ui ms 4942/4172/461  raster ms 0/82/171  b95 3.61 r95 10.46 over 0  skin 30.1>31.0
+    flat-a-3          24466 mJ   38.0s  freq L/M/B 577/506/503  busy 0.23/0.41/0.06  ui ms 4869/4430/426  raster ms 0/86/160  b95 3.50 r95 11.40 over 1  skin 32.5>32.4
+controls     n=2 s=32.9 total 13770 mJ (419 mW) | rails.aoc.logic=499 rails.aoc.memory=116 rails.cpu.big=653 rails.cpu.little=1548 rails.cpu.mid=961 rails.ddr.a=192 rails.ddr.b=471 rails.ddr.c=1647 rails.display=4224 rails.gps=29 rails.gpu=778 rails.memory.interface=1317 rails.system.fabric=932 rails.tpu=403
+    flat-a-1          13695 mJ   32.9s  freq L/M/B 463/445/502  busy 0.19/0.34/0.04  ui ms 3813/4542/262  raster ms 0/114/100  b95 7.81 r95 6.71 over 0  skin 30.1>31.0
+    flat-a-3          13846 mJ   32.8s  freq L/M/B 456/443/510  busy 0.19/0.36/0.05  ui ms 3354/4882/252  raster ms 0/109/110  b95 7.27 r95 7.44 over 0  skin 32.5>32.4
+menu         n=2 s=22.4 total 10795 mJ (481 mW) | rails.aoc.logic=340 rails.aoc.memory=80 rails.cpu.big=637 rails.cpu.little=1535 rails.cpu.mid=755 rails.ddr.a=151 rails.ddr.b=315 rails.ddr.c=1250 rails.display=2844 rails.gps=20 rails.gpu=773 rails.memory.interface=1146 rails.system.fabric=675 rails.tpu=276
+    flat-a-1          10917 mJ   22.5s  freq L/M/B 584/490/512  busy 0.26/0.35/0.09  ui ms 3911/2507/357  raster ms 0/66/63  b95 11.81 r95 9.41 over 5  skin 30.1>31.0
+    flat-a-3          10674 mJ   22.4s  freq L/M/B 586/472/508  busy 0.25/0.36/0.10  ui ms 3632/2755/377  raster ms 0/65/65  b95 10.88 r95 10.76 over 6  skin 32.5>32.4
+sheet        n=2 s=22.5 total 9577 mJ (426 mW) | rails.aoc.logic=341 rails.aoc.memory=79 rails.cpu.big=394 rails.cpu.little=969 rails.cpu.mid=616 rails.ddr.a=121 rails.ddr.b=321 rails.ddr.c=1075 rails.display=2928 rails.gps=19 rails.gpu=936 rails.memory.interface=871 rails.system.fabric=633 rails.tpu=276
+    flat-a-1           9523 mJ   22.5s  freq L/M/B 420/439/505  busy 0.18/0.30/0.04  ui ms 1879/2053/119  raster ms 0/72/65  b95 4.41 r95 7.86 over 0  skin 30.1>31.0
+    flat-a-3           9630 mJ   22.5s  freq L/M/B 428/443/505  busy 0.18/0.32/0.04  ui ms 1604/2250/145  raster ms 0/63/71  b95 3.70 r95 8.48 over 0  skin 32.5>32.4
+list         n=2 s=36.3 total 20067 mJ (553 mW) | rails.aoc.logic=550 rails.aoc.memory=129 rails.cpu.big=815 rails.cpu.little=2142 rails.cpu.mid=1290 rails.ddr.a=254 rails.ddr.b=515 rails.ddr.c=2082 rails.display=4833 rails.gps=31 rails.gpu=3977 rails.memory.interface=1880 rails.system.fabric=1123 rails.tpu=445
+    flat-a-1          19953 mJ   36.3s  freq L/M/B 544/500/503  busy 0.20/0.38/0.06  ui ms 5073/4510/569  raster ms 0/87/123  b95 6.74 r95 10.70 over 2  skin 30.1>31.0
+    flat-a-3          20182 mJ   36.2s  freq L/M/B 568/532/508  busy 0.20/0.39/0.07  ui ms 4765/5013/528  raster ms 0/86/105  b95 6.36 r95 11.27 over 2  skin 32.5>32.4
+
+== flat-b
+home-scroll  n=2 s=35.6 total 16548 mJ (465 mW) | rails.aoc.logic=543 rails.aoc.memory=133 rails.cpu.big=711 rails.cpu.little=2075 rails.cpu.mid=1199 rails.ddr.a=233 rails.ddr.b=520 rails.ddr.c=1955 rails.display=4778 rails.gps=32 rails.gpu=1231 rails.memory.interface=1626 rails.system.fabric=1076 rails.tpu=436
+    flat-b-1          16527 mJ   35.5s  freq L/M/B 522/459/504  busy 0.22/0.37/0.05  ui ms 4487/4615/282  raster ms 0/108/122  b95 5.15 r95 9.27 over 0  skin 32.9>31.8
+    flat-b-2          16569 mJ   35.6s  freq L/M/B 528/479/504  busy 0.21/0.38/0.05  ui ms 4733/4625/292  raster ms 0/114/118  b95 5.30 r95 9.10 over 0  skin 32.2>32.2
+segmented    n=2 s=32.4 total 13585 mJ (420 mW) | rails.aoc.logic=492 rails.aoc.memory=116 rails.cpu.big=584 rails.cpu.little=1509 rails.cpu.mid=906 rails.ddr.a=188 rails.ddr.b=465 rails.ddr.c=1635 rails.display=4132 rails.gps=29 rails.gpu=911 rails.memory.interface=1293 rails.system.fabric=928 rails.tpu=397
+    flat-b-1          13538 mJ   32.3s  freq L/M/B 454/431/502  busy 0.20/0.33/0.04  ui ms 3370/3800/219  raster ms 0/109/101  b95 3.30 r95 6.77 over 0  skin 32.9>31.8
+    flat-b-2          13632 mJ   32.4s  freq L/M/B 449/425/503  busy 0.20/0.33/0.04  ui ms 3359/3912/213  raster ms 0/114/100  b95 3.43 r95 6.69 over 0  skin 32.2>32.2
+tab-bar      n=2 s=37.9 total 19679 mJ (519 mW) | rails.aoc.logic=577 rails.aoc.memory=136 rails.cpu.big=751 rails.cpu.little=2103 rails.cpu.mid=1424 rails.ddr.a=243 rails.ddr.b=549 rails.ddr.c=2007 rails.display=6651 rails.gps=35 rails.gpu=1893 rails.memory.interface=1729 rails.system.fabric=1116 rails.tpu=466
+    flat-b-1          19298 mJ   37.9s  freq L/M/B 471/460/504  busy 0.20/0.36/0.05  ui ms 4328/4778/310  raster ms 0/115/139  b95 3.57 r95 8.39 over 0  skin 32.9>31.8
+    flat-b-2          20059 mJ   38.0s  freq L/M/B 522/487/502  busy 0.21/0.36/0.05  ui ms 4473/4606/327  raster ms 0/113/137  b95 3.63 r95 8.54 over 0  skin 32.2>32.2
+controls     n=2 s=32.9 total 13850 mJ (421 mW) | rails.aoc.logic=502 rails.aoc.memory=117 rails.cpu.big=606 rails.cpu.little=1571 rails.cpu.mid=992 rails.ddr.a=188 rails.ddr.b=472 rails.ddr.c=1657 rails.display=4231 rails.gps=28 rails.gpu=831 rails.memory.interface=1321 rails.system.fabric=930 rails.tpu=404
+    flat-b-1          13652 mJ   32.9s  freq L/M/B 448/431/501  busy 0.19/0.34/0.04  ui ms 3764/4518/302  raster ms 0/111/105  b95 7.91 r95 6.85 over 0  skin 32.9>31.8
+    flat-b-2          14048 mJ   32.9s  freq L/M/B 472/457/502  busy 0.20/0.34/0.05  ui ms 4040/4518/261  raster ms 0/111/101  b95 8.37 r95 6.79 over 0  skin 32.2>32.2
+menu         n=2 s=22.5 total 10941 mJ (487 mW) | rails.aoc.logic=342 rails.aoc.memory=80 rails.cpu.big=656 rails.cpu.little=1594 rails.cpu.mid=798 rails.ddr.a=155 rails.ddr.b=316 rails.ddr.c=1275 rails.display=2844 rails.gps=20 rails.gpu=742 rails.memory.interface=1172 rails.system.fabric=673 rails.tpu=276
+    flat-b-1          10802 mJ   22.5s  freq L/M/B 572/478/517  busy 0.25/0.36/0.09  ui ms 3943/2543/299  raster ms 0/63/65  b95 10.25 r95 10.46 over 8  skin 32.9>31.8
+    flat-b-2          11081 mJ   22.5s  freq L/M/B 616/507/519  busy 0.26/0.36/0.10  ui ms 3955/2469/370  raster ms 0/65/62  b95 10.59 r95 9.95 over 3  skin 32.2>32.2
+sheet        n=2 s=22.4 total 9656 mJ (431 mW) | rails.aoc.logic=341 rails.aoc.memory=79 rails.cpu.big=396 rails.cpu.little=1018 rails.cpu.mid=615 rails.ddr.a=124 rails.ddr.b=323 rails.ddr.c=1088 rails.display=2916 rails.gps=19 rails.gpu=966 rails.memory.interface=861 rails.system.fabric=636 rails.tpu=275
+    flat-b-1           9642 mJ   22.4s  freq L/M/B 424/433/504  busy 0.19/0.30/0.04  ui ms 1889/2036/124  raster ms 0/72/63  b95 3.67 r95 7.78 over 1  skin 32.9>31.8
+    flat-b-2           9670 mJ   22.4s  freq L/M/B 452/433/508  busy 0.19/0.31/0.04  ui ms 1791/2123/110  raster ms 0/68/64  b95 4.14 r95 7.76 over 0  skin 32.2>32.2
+list         n=2 s=36.1 total 16107 mJ (447 mW) | rails.aoc.logic=547 rails.aoc.memory=128 rails.cpu.big=646 rails.cpu.little=1850 rails.cpu.mid=1160 rails.ddr.a=217 rails.ddr.b=521 rails.ddr.c=1845 rails.display=4786 rails.gps=30 rails.gpu=1369 rails.memory.interface=1515 rails.system.fabric=1050 rails.tpu=443
+    flat-b-1          16200 mJ   36.0s  freq L/M/B 498/464/507  busy 0.18/0.37/0.04  ui ms 4293/5545/299  raster ms 0/108/115  b95 5.87 r95 8.32 over 0  skin 32.9>31.8
+    flat-b-2          16014 mJ   36.1s  freq L/M/B 500/454/507  busy 0.19/0.37/0.04  ui ms 4272/5688/303  raster ms 0/108/117  b95 6.21 r95 8.58 over 0  skin 32.2>32.2
+
+median per variant and scene: total mJ (mW) | cpu big/mid/little | gpu | mem | display | build p95 / raster p95 / over budget (median of launches) | n
+home-scroll  flat-a   21019 (  590) | 1317/1479/2524 |   3653 |  6087 |  4818 | 5.56 / 10.88 / 2 | 2
+home-scroll  flat-b   16548 (  465) | 711/1199/2075 |   1231 |  5410 |  4778 | 5.23 / 9.19 / 0 | 2
+segmented    flat-a   13740 (  425) | 640/951/1536 |    875 |  4574 |  4133 | 3.24 / 7.03 / 0 | 2
+segmented    flat-b   13585 (  420) | 584/906/1509 |    911 |  4509 |  4132 | 3.36 / 6.73 / 0 | 2
+tab-bar      flat-a   25097 (  661) | 916/1406/2825 |   5385 |  6614 |  6731 | 3.56 / 10.93 / 0 | 2
+tab-bar      flat-b   19679 (  519) | 751/1424/2103 |   1893 |  5644 |  6651 | 3.60 / 8.47 / 0 | 2
+controls     flat-a   13770 (  419) | 653/961/1548 |    778 |  4559 |  4224 | 7.54 / 7.08 / 0 | 2
+controls     flat-b   13850 (  421) | 606/992/1571 |    831 |  4567 |  4231 | 8.14 / 6.82 / 0 | 2
+menu         flat-a   10795 (  481) | 637/755/1535 |    773 |  3536 |  2844 | 11.34 / 10.09 / 6 | 2
+menu         flat-b   10941 (  487) | 656/798/1594 |    742 |  3590 |  2844 | 10.42 / 10.20 / 6 | 2
+sheet        flat-a    9577 (  426) | 394/616/969 |    936 |  3020 |  2928 | 4.05 / 8.17 / 0 | 2
+sheet        flat-b    9656 (  431) | 396/615/1018 |    966 |  3032 |  2916 | 3.91 / 7.77 / 0 | 2
+list         flat-a   20067 (  553) | 815/1290/2142 |   3977 |  5855 |  4833 | 6.55 / 10.98 / 2 | 2
+list         flat-b   16107 (  447) | 646/1160/1850 |   1369 |  5148 |  4786 | 6.04 / 8.45 / 0 | 2

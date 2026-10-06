@@ -1,0 +1,7 @@
+flat-a.json home-scroll gpu_ms_per_frame=4.110 Mcycles_per_frame=1.784 busy_percent=24.076
+flat-a.json segmented gpu_ms_per_frame=1.017 Mcycles_per_frame=0.441 busy_percent=6.101
+flat-a.json tab-bar gpu_ms_per_frame=5.113 Mcycles_per_frame=2.219 busy_percent=30.585
+flat-a.json controls gpu_ms_per_frame=0.963 Mcycles_per_frame=0.418 busy_percent=5.746
+flat-a.json menu gpu_ms_per_frame=1.535 Mcycles_per_frame=0.666 busy_percent=8.818
+flat-a.json sheet gpu_ms_per_frame=2.211 Mcycles_per_frame=0.960 busy_percent=12.028
+flat-a.json list gpu_ms_per_frame=4.525 Mcycles_per_frame=1.964 busy_percent=25.576

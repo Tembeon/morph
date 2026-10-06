@@ -231,6 +231,12 @@ Cross-cutting policy:
   through `MorphScrollEdgeEffect.opacity` (an alpha matrix composed onto
   its blur); under an Opacity it showed the page sharp under the bar for
   the whole fade (edge_effect_fade_test).
+- FLAT EDGE EFFECTS (2026-10-06): `MorphScrollEdgeEffect` reads the
+  installed renderer's effective tier. Flat draws its fade/hairline only,
+  no blur, color-matrix backdrop filter or seed copy; fake/liquid and
+  custom painters retain the edge effect. The flat audit census is zero
+  backdrop filters in all seven scenes (home-scroll, segmented, tab-bar,
+  controls, menu, sheet, list).
 - BACKDROP GROUPS: a shared group member does NOT read the backdrop at
   its own place in paint order. On iOS (Metal reads from the resolve
   texture) every member after the first reads the pass texture as it
@@ -1185,6 +1191,32 @@ and compare against the previous numbers on the same machine (JIT -
 relative only).
 
 ## Performance passport
+
+ROUND 3 (Pixel 6a, 2026-10-06; tool/audit/codex-round3-report.md):
+flat scroll edges now keep only the fade/hairline. Census maximum
+backdrop filters is 0 in all seven audit scenes. Energy A/B/B/A,
+five runs per scene per launch, two launches per variant: home-scroll
+590 -> 465 mW, tab bar 661 -> 519, list 553 -> 447; GPU-rail energy
+-65 to -66 percent in those scenes. Raster p95 10.88 -> 9.19,
+10.93 -> 8.47, 10.98 -> 8.45 ms respectively. Scenes without an edge
+have no repeatable energy change. Fake/liquid deterministic frame
+hashes are identical; only nav-scroll/flat changes (approved).
+Separate GPU-work launches, same three scenes: 4.110 -> 2.009,
+5.113 -> 2.413, 4.525 -> 2.159 ms/frame at 434 MHz (-51 to -53 percent).
+One-binary interleaved scroll bench, 5 repeats: Material / morph flat /
+flat without edge GPU 0.743 / 0.957 / 0.871 ms/frame, raster p95
+5.85 / 6.40 / 6.01 ms. The fade adds 0.086 ms GPU; a small content/
+chrome premium remains. Native baseline controls trace (2 runs): UI
+QueueSubmit 0.887/frame, 0.915 ms/frame; raster 1.998 submits/frame,
+2.155 ms/frame. Native self PAINT 1.615, COMPOSITING 1.284 ms/frame.
+Liquid controls profiling (FRAMES_SCENE=controls, 3 runs, 250 us CPU
+samples): flat/liquid BUILD mean 1.027/1.067 ms, PAINT 0.558/1.937,
+COMPOSITING 0.710/2.411. Extra UI work is paint/composition and native
+GPU encode/submit. A coordinate-uniform/translation-inverse trial was
+REJECTED: build p95 12.32 -> 12.27 ms, raster p95 11.64 -> 12.49,
+power 666 -> 645 mW; GPU 5.014 -> 4.993 ms/frame (within noise).
+The original renderer remains. Full evidence lives under
+tool/ios_reference/perf/2026-10-06-round3-*.
 
 Three harnesses, one per question:
 

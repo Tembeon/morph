@@ -1,0 +1,15 @@
+rails: ['rails.aoc.logic', 'rails.aoc.memory', 'rails.cpu.big', 'rails.cpu.little', 'rails.cpu.mid', 'rails.ddr.a', 'rails.ddr.b', 'rails.ddr.c', 'rails.display', 'rails.gps', 'rails.gpu', 'rails.memory.interface', 'rails.system.fabric', 'rails.tpu'] threads: {'ui': 7891, 'raster': 7951, 'workers': 6}
+
+== controls-a
+controls     n=2 s=33.9 total 22553 mJ (666 mW) | rails.aoc.logic=517 rails.aoc.memory=132 rails.cpu.big=1363 rails.cpu.little=2896 rails.cpu.mid=1455 rails.ddr.a=281 rails.ddr.b=474 rails.ddr.c=2178 rails.display=4439 rails.gps=30 rails.gpu=5106 rails.memory.interface=2139 rails.system.fabric=1126 rails.tpu=416
+    controls-a-1      22359 mJ   33.8s  freq L/M/B 662/532/542  busy 0.26/0.39/0.08  ui ms 9326/3988/749  raster ms 0/86/95  b95 12.54 r95 11.46 over 2  skin 32.5>32.8
+    controls-a-4      22747 mJ   33.9s  freq L/M/B 663/561/528  busy 0.26/0.40/0.09  ui ms 8789/4242/882  raster ms 0/85/99  b95 12.11 r95 11.81 over 1  skin 33.2>33.3
+
+== controls-b
+controls     n=2 s=33.5 total 21604 mJ (645 mW) | rails.aoc.logic=512 rails.aoc.memory=130 rails.cpu.big=928 rails.cpu.little=2676 rails.cpu.mid=1263 rails.ddr.a=262 rails.ddr.b=466 rails.ddr.c=2140 rails.display=4391 rails.gps=29 rails.gpu=5220 rails.memory.interface=2049 rails.system.fabric=1126 rails.tpu=411
+    controls-b-2      21280 mJ   33.6s  freq L/M/B 637/519/502  busy 0.26/0.40/0.08  ui ms 8872/4064/729  raster ms 0/82/101  b95 12.01 r95 12.73 over 1  skin 32.9>33.0
+    controls-b-3      21928 mJ   33.4s  freq L/M/B 677/521/507  busy 0.27/0.40/0.08  ui ms 8923/3825/766  raster ms 0/90/92  b95 12.54 r95 12.25 over 1  skin 33.1>33.2
+
+median per variant and scene: total mJ (mW) | cpu big/mid/little | gpu | mem | display | build p95 / raster p95 / over budget (median of launches) | n
+controls     controls-a   22553 (  666) | 1363/1455/2896 |   5106 |  6198 |  4439 | 12.32 / 11.64 / 2 | 2
+controls     controls-b   21604 (  645) | 928/1263/2676 |   5220 |  6044 |  4391 | 12.27 / 12.49 / 1 | 2

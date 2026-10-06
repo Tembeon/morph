@@ -1,0 +1,21 @@
+                                 controls
+runs                                    2
+seconds                            13.543
+raster frames                         801
+ui frames                             800
+saveLayer/frame                     6.206
+saveLayer self ms/frame             1.153
+raster submits/frame                1.998
+raster submit ms/frame              2.155
+Draw incl ms/frame                  8.037
+Encode self ms/frame                2.837
+ui submits/frame                    0.887
+ui submit ms/frame                  0.915
+BeginFrame incl ms/frame            6.013
+BUILD self ms/frame                 0.892
+LAYOUT self ms/frame                0.285
+PAINT self ms/frame                 1.615
+COMPOSITING self ms/frame           1.284
+scavenges                              26
+frames/scavenge                    30.769
+scavenge ms                        98.056

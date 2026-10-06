@@ -1,0 +1,14 @@
+flat-a.json home-scroll gpu_ms_per_frame=4.110 Mcycles_per_frame=1.784 busy_percent=24.076
+flat-a.json segmented gpu_ms_per_frame=1.017 Mcycles_per_frame=0.441 busy_percent=6.101
+flat-a.json tab-bar gpu_ms_per_frame=5.113 Mcycles_per_frame=2.219 busy_percent=30.585
+flat-a.json controls gpu_ms_per_frame=0.963 Mcycles_per_frame=0.418 busy_percent=5.746
+flat-a.json menu gpu_ms_per_frame=1.535 Mcycles_per_frame=0.666 busy_percent=8.818
+flat-a.json sheet gpu_ms_per_frame=2.211 Mcycles_per_frame=0.960 busy_percent=12.028
+flat-a.json list gpu_ms_per_frame=4.525 Mcycles_per_frame=1.964 busy_percent=25.576
+flat-b.json home-scroll gpu_ms_per_frame=2.009 Mcycles_per_frame=0.872 busy_percent=11.879
+flat-b.json segmented gpu_ms_per_frame=1.012 Mcycles_per_frame=0.439 busy_percent=6.058
+flat-b.json tab-bar gpu_ms_per_frame=2.413 Mcycles_per_frame=1.047 busy_percent=14.421
+flat-b.json controls gpu_ms_per_frame=0.958 Mcycles_per_frame=0.416 busy_percent=5.755
+flat-b.json menu gpu_ms_per_frame=1.533 Mcycles_per_frame=0.665 busy_percent=8.799
+flat-b.json sheet gpu_ms_per_frame=2.205 Mcycles_per_frame=0.957 busy_percent=11.977
+flat-b.json list gpu_ms_per_frame=2.159 Mcycles_per_frame=0.937 busy_percent=12.207

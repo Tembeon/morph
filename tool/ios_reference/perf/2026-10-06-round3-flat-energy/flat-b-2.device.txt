@@ -1,0 +1,20 @@
+run: flat-b-2  apk: flat-b.apk  date: Tue Oct  6 21:28:48 CEST 2026
+before:
+skin: 32.1715
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 310
+  Capacity level: 5
+TotalTime: 618
+after:
+skin: 32.202602
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 311
+  Capacity level: 5

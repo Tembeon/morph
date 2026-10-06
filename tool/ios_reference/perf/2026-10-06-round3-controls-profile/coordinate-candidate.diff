@@ -1,0 +1,18 @@
+--- a/lib/src/glass/renderer/rendering/liquid_glass_layer.dart
++++ b/lib/src/glass/renderer/rendering/liquid_glass_layer.dart
+@@ -1264,0 +1265 @@
++  FragmentShader? _coordinateShader;
+@@ -1297 +1298,5 @@
+-    _writeCoordinateMapping(renderShader, mapping, backdropBounds);
++    final shader = renderShader;
++    if (changed || !identical(shader, _coordinateShader)) {
++      _writeCoordinateMapping(shader, mapping, backdropBounds);
++      _coordinateShader = shader;
++    }
+@@ -1304 +1309,5 @@
+-    if (globalToMatte.copyInverse(layerToPass) == 0.0) {
++    final translation = MatrixUtils.getAsTranslation(layerToPass);
++    if (translation != null) {
++      globalToMatte.setIdentity();
++      globalToMatte.setTranslationRaw(-translation.dx, -translation.dy, 0);
++    } else if (globalToMatte.copyInverse(layerToPass) == 0.0) {
