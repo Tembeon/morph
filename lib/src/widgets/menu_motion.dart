@@ -1575,11 +1575,13 @@ class MorphMenuMotion {
     return outline;
   }
 
-  /// Hands the next frame's fusion to [MorphMenuFusion.prefetch]: the
-  /// shapes and radius at the next frame's time as the motion stands, the
-  /// kicks integrated up to it.
+  /// Hands the coming frames' fusions to [MorphMenuFusion.prefetch]: the
+  /// shapes and radius at the next [MorphMenuFusion.prefetchFrames]
+  /// frames' times as the motion stands, the kicks integrated up to each.
+  /// A fusion that comes back after the next frame started still serves
+  /// the frame after it.
   ///
-  /// The next frame's time continues the least-squares line through the
+  /// The coming frames' times continue the least-squares line through the
   /// last eight frames' times: frame times jitter around the display's
   /// period, and the line predicts them about two and a half times closer
   /// than the last step repeated. A step longer than
@@ -1616,8 +1618,14 @@ class MorphMenuMotion {
       cross += di * (times[(first + k) % times.length] - t - meanT);
       spread += di * di;
     }
-    final ahead = t + meanT + cross / spread * (count - meanI);
-    if (!(ahead > t)) return;
+    final slope = cross / spread;
+    for (var frame = 1; frame <= MorphMenuFusion.prefetchFrames; frame++) {
+      final ahead = t + meanT + slope * (count - 1 + frame - meanI);
+      if (ahead > t) _prefetchAt(ahead);
+    }
+  }
+
+  void _prefetchAt(double ahead) {
     final menuKick = _menuKick.value;
     final menuKickVelocity = _menuKick.velocity;
     final buttonKick = _buttonKick.value;

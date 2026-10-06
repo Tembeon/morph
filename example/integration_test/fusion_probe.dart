@@ -40,9 +40,7 @@ Future<void> main() async {
   runApp(const _Ticker());
   await Future<void>.delayed(const Duration(seconds: 2));
   final report = <String, Object?>{'platform': Platform.operatingSystem};
-  void line(String text) {
-    stdout.writeln('FUSION $text');
-  }
+  void line(String text) => _line(text);
 
   final sets = {
     'pixel6a': _inputs(fusionInputsPixel6a),
@@ -314,8 +312,8 @@ Future<Object?> _profile(List<(RRect, RRect, double)> inputs) async {
           for (final e in top.take(25)) [e.key, e.value],
         ],
       };
-      stdout.writeln(
-        'FUSION cpu $name $total samples: ${[for (final e in top.take(12)) '${e.key} ${(100 * e.value / total).toStringAsFixed(1)}%'].join(', ')}',
+      _line(
+        'cpu $name $total samples: ${[for (final e in top.take(12)) '${e.key} ${(100 * e.value / total).toStringAsFixed(1)}%'].join(', ')}',
       );
     }
     await service.dispose();
@@ -366,8 +364,8 @@ Future<Map<String, Object?>> _workerPhase(
       SchedulerBinding.instance.scheduleFrame();
       await done.future;
     }
-    stdout.writeln(
-      'FUSION worker round $round hits $hits/${inputs.length} ui ${_format(ui)} '
+    _line(
+      'worker round $round hits $hits/${inputs.length} ui ${_format(ui)} '
       'hit ${uiHit.isEmpty ? '-' : _format(uiHit)} miss ${uiMiss.isEmpty ? '-' : _format(uiMiss)}',
     );
     result['$round'] = {'hits': hits, 'ui': _stats(ui)};
@@ -376,6 +374,17 @@ Future<Map<String, Object?>> _workerPhase(
   }
   MorphMenuFusion.debugPrefetch = null;
   return result;
+}
+
+/// Prints a `FUSION` line: on stdout, and through print, which Android
+/// routes to logcat.
+void _line(String text) {
+  if (Platform.isAndroid) {
+    // ignore: avoid_print
+    print('FUSION $text');
+  } else {
+    stdout.writeln('FUSION $text');
+  }
 }
 
 double _median(List<double> values) {

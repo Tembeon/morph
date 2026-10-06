@@ -66,6 +66,10 @@ class MorphMenuFusion {
       debugPrefetch ??
       (MorphFusionWorker.supported && (kReleaseMode || kProfileMode));
 
+  /// How many coming frames a motion fuses ahead ([prefetch]) each frame:
+  /// the next, and the one after it for a fusion that comes back late.
+  static const int prefetchFrames = 3;
+
   /// Overrides [prefetches]; null keeps the build's default.
   @visibleForTesting
   static bool? debugPrefetch;
@@ -104,7 +108,7 @@ class MorphMenuFusion {
     }
     debugOnFuse?.call(
       Float64List.fromList(frame),
-      ready,
+      ahead != null ? MorphFusionWorker.debugTakenInputs : ready,
       served: ahead != null,
     );
     return _outline = morphGlassOutlineFromParts(
@@ -118,8 +122,8 @@ class MorphMenuFusion {
   static int debugServedAhead = 0;
 
   /// Called with the inputs of every fusion [outline] makes, the inputs
-  /// of the fusion computed ahead that was waiting (null when none was),
-  /// and whether that one served.
+  /// of the fusion computed ahead that served it or else of the newest
+  /// one waiting (null when none was), and whether one served.
   @visibleForTesting
   static void Function(
     Float64List frame,

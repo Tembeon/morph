@@ -21,6 +21,10 @@ abstract final class MorphFusionWorker {
   @internal
   static Float64List? get debugReadyInputs => null;
 
+  /// Always null.
+  @internal
+  static Float64List? get debugTakenInputs => null;
+
   /// Always false.
   @visibleForTesting
   static bool get debugHasReady => false;
