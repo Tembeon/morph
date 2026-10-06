@@ -61,6 +61,12 @@ const bool _phases = bool.fromEnvironment('DENSITY_PHASES');
 /// instead of the densities (`--dart-define=DENSITY_SEARCH=true`).
 const bool _search = bool.fromEnvironment('DENSITY_SEARCH');
 
+/// A sub-pixel offset of every button in logical points
+/// (`--dart-define=DENSITY_SHIFT=0.17`), to place the buttons off the
+/// device pixel grid on any screen.
+final double _shift =
+    double.tryParse(const String.fromEnvironment('DENSITY_SHIFT')) ?? 0;
+
 /// Whether the package's glass stages stay closed, every member in its own
 /// layer (`--dart-define=DENSITY_STAGES_OFF=true`).
 const bool _stagesOff = bool.fromEnvironment('DENSITY_STAGES_OFF');
@@ -228,7 +234,7 @@ class DensityPage extends StatelessWidget {
       Positioned.fromRect(
         rect: _snap(
           Rect.fromCenter(
-            center: centerOf(i),
+            center: centerOf(i) + Offset(_shift, _shift),
             width: compact ? 44 : 80,
             height: compact ? 36 : 44,
           ),
