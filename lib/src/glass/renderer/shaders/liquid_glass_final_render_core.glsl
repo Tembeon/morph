@@ -53,6 +53,17 @@ uniform vec2 uMaterialTextureSize;
 // Half the line backdropShrink is about, matte device px from the material
 // center. Zero shrinks about the center itself.
 uniform vec2 uBackdropShrinkAxis;
+#if !SHAPE_APPEARANCE
+// The face of the layer's one color model, resolved on the CPU
+// (LiquidGlassColorModel.faceTransfer and contourScale): the untinted wash's
+// premultiplied emission and opacity; its luminance lift, chroma gain and
+// the border gain the slider adds; the glint target's luminance, face gain
+// and vibrancy. The material variant blends color models per pixel and
+// derives them there.
+uniform vec4 uFaceWash;
+uniform vec3 uFaceTransfer;
+uniform vec3 uGlintTarget;
+#endif
 
 float uDisplacementScale = uOpticalProps.x;
 float uDispersion = uOpticalProps.y;
@@ -87,7 +98,11 @@ float uHighlightOppositeStrength = uLightingShapeConfig.w;
 // red-to-blue spread (an eighth pixel on either side of green).
 const float kDispersionSubpixelThreshold = 0.25;
 // Border strength; the dark iOS 27 face raises it with the slider.
+#if SHAPE_APPEARANCE || !IOS27_MODELS
 float gContourAlpha = uContourColor.a;
+#else
+float gContourAlpha = uContourColor.a * uFaceTransfer.z;
+#endif
 // iOS 27 glint recolor, measured on the pinned solid-palette probes in both
 // appearances: the glint mixes the lit face toward a bright target whose
 // luminance sits above SDR white and whose chroma is the face chroma
@@ -103,9 +118,15 @@ const float kGlintBleedReach = 4.0;
 // The glint target is Lh + faceGain * face + vibrancy * face chroma. Regular
 // glass pulls toward a fixed bright target; clear glass instead brightens
 // its own face. Set per color model in main().
+#if SHAPE_APPEARANCE || !IOS27_MODELS
 float gGlintLuminance = kGlintLuminance;
 float gGlintFaceGain = 0.0;
 float gGlintVibrancy = kGlintVibrancy;
+#else
+float gGlintLuminance = uGlintTarget.x;
+float gGlintFaceGain = uGlintTarget.y;
+float gGlintVibrancy = uGlintTarget.z;
+#endif
 // The contour is reconstructed from a sampled SDF. Test a wider coverage
 // transition independently from the encoded exterior range so distance
 // decoding and geometry placement remain bit-for-bit unchanged.
@@ -861,6 +882,7 @@ void main() {
         // material. The untinted material itself treats luminance and
         // chroma separately (see ios27FaceTransfer). Saturation and gamma
         // stay available as relative adjustments where 1 is Apple's face.
+        #if SHAPE_APPEARANCE
         float ios27Share = 1.0 - directShare;
         float darkWeight = clamp(colorModelShares.y / ios27Share, 0.0, 1.0);
         float clearWeight = clamp(colorModelShares.z / ios27Share, 0.0, 1.0);
@@ -904,6 +926,14 @@ void main() {
             gGlintFaceGain = mix(gGlintFaceGain, 3.58, colorModelShares.z);
             gGlintVibrancy = mix(gGlintVibrancy, 0.78, colorModelShares.z);
         }
+        vec3 neutralEmission = neutralTint.rgb * neutralTint.a;
+        float neutralOpacity = neutralTint.a;
+        #else
+        float darkWeight = colorModelShares.y;
+        vec3 neutralEmission = uFaceWash.rgb;
+        float neutralOpacity = uFaceWash.a;
+        vec2 faceTransfer = uFaceTransfer.xy;
+        #endif
         float backdropLuminance = dot(refractColor.rgb, LUMA_WEIGHTS);
         float transmittedLuminance = clamp(
             backdropLuminance *
@@ -918,11 +948,11 @@ void main() {
             );
         }
         vec3 neutralTransmission =
-            vec3(transmittedLuminance * (1.0 - neutralTint.a)) +
+            vec3(transmittedLuminance * (1.0 - neutralOpacity)) +
             (refractColor.rgb - vec3(backdropLuminance)) *
                 (faceTransfer.y * uSaturation);
         vec3 neutralBase = clamp(
-            neutralTint.rgb * neutralTint.a + neutralTransmission,
+            neutralEmission + neutralTransmission,
             0.0,
             1.0
         );

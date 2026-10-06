@@ -595,6 +595,22 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   final Set<FragmentShader> _staleShaders = {};
 
+  static final Expando<bool> _faceDeclared = Expando();
+
+  static bool _declaresFace(FragmentShader shader) =>
+      _faceDeclared[shader] ??= _hasUniform(shader, 'uFaceWash');
+
+  static bool _hasUniform(FragmentShader shader, String name) {
+    try {
+      shader.getUniformVec4(name);
+      return true;
+      // dart:ui reports a missing uniform name only by this error.
+      // ignore: avoid_catching_errors
+    } on ArgumentError {
+      return false;
+    }
+  }
+
   void _writeStaleShaderSettings(FragmentShader shader) {
     if (!_staleShaders.remove(shader)) return;
     _writeCommonShaderUniforms(
@@ -733,6 +749,32 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       ..setFloat(53, blurPassSigma > 0 ? 1 : 0)
       ..setFloat(54, softensInShader ? 1 : 0);
     _writeBackdropShrinkAxis(shader);
+    _writeFace(shader, appearance.colorModel);
+  }
+
+  /// Writes the face of [model] that the one-appearance and tint-only
+  /// variants read as uniforms (float indices 65 to 74): the untinted
+  /// wash's premultiplied emission and opacity, its luminance lift, chroma
+  /// gain and border gain, and the glint target's luminance, face gain and
+  /// vibrancy. Programs without these uniforms (the material variant)
+  /// derive the face per pixel.
+  void _writeFace(FragmentShader shader, LiquidGlassColorModel model) {
+    if (!_declaresFace(shader)) return;
+    final tintAmount = settings.effectiveTintAmount;
+    final face = model.faceTransfer(_materialShortSide, tintAmount: tintAmount);
+    final clear = model == const LiquidGlassColorModel.ios27Clear();
+    shader.setFloatUniforms(initialIndex: 65, (value) {
+      value.setFloats([
+        face?.emission.r ?? 0,
+        face?.emission.g ?? 0,
+        face?.emission.b ?? 0,
+        face == null ? 0 : 1 - face.transmittance,
+        face?.lift ?? 0,
+        face?.chromaGain ?? 0,
+        model.contourScale(_materialShortSide, tintAmount),
+        if (clear) ...[2.34, 3.58, 0.78] else ...[1.6, 0, 2.85],
+      ]);
+    });
   }
 
   /// Writes uBackdropShrinkAxis (float indices 63 and 64): half the line the
