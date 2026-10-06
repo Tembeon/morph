@@ -13,6 +13,7 @@ import 'package:integration_test/integration_test.dart';
 // ignore: implementation_imports
 import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/widgets.dart';
 
 /// The glass density audit on a device: N standalone [MorphGlassButton]s
@@ -55,6 +56,14 @@ const bool _shots = bool.fromEnvironment('AUDIT_SHOTS');
 /// LAYOUT / PAINT / COMPOSITING time per composited frame
 /// (`--dart-define=DENSITY_PHASES=true`, profile builds).
 const bool _phases = bool.fromEnvironment('DENSITY_PHASES');
+
+/// Whether the run measures a resting [MorphSearchToolbar] over the rows
+/// instead of the densities (`--dart-define=DENSITY_SEARCH=true`).
+const bool _search = bool.fromEnvironment('DENSITY_SEARCH');
+
+/// Whether the package's glass stages stay closed, every member in its own
+/// layer (`--dart-define=DENSITY_STAGES_OFF=true`).
+const bool _stagesOff = bool.fromEnvironment('DENSITY_STAGES_OFF');
 
 /// The densities to run, comma separated (`--dart-define=DENSITY_NS=1,4`);
 /// empty for all of [densities].
@@ -102,8 +111,12 @@ class DensityPage extends StatelessWidget {
     this.compact = false,
     this.container = false,
     this.aligned = false,
+    this.search = false,
     super.key,
   });
+
+  /// Whether the page shows a resting search toolbar instead of buttons.
+  final bool search;
 
   /// Whether every button's box lies on whole device pixels.
   final bool aligned;
@@ -166,7 +179,28 @@ class DensityPage extends StatelessWidget {
               ),
             ),
           ),
-          if (container)
+          if (search)
+            Positioned.fill(
+              child: MorphSearchToolbar(
+                leading: [
+                  MorphBarButton(
+                    id: 'filter',
+                    icon: const Icon(Icons.filter_list),
+                    semanticLabel: 'Filter',
+                    onPressed: () {},
+                  ),
+                ],
+                trailing: [
+                  MorphBarButton(
+                    id: 'add',
+                    icon: const Icon(Icons.add),
+                    semanticLabel: 'Add',
+                    onPressed: () {},
+                  ),
+                ],
+              ),
+            )
+          else if (container)
             Positioned.fill(
               child: MorphGlassContainer(child: Stack(children: _buttons())),
             )
@@ -266,6 +300,23 @@ class _Density {
     outDir.createSync(recursive: true);
     _clock.start();
     await MorphGlassRenderer.precache();
+    // ignore: invalid_use_of_internal_member
+    if (_stagesOff) debugMorphGlassStagesOpen = false;
+    if (_search) {
+      runApp(
+        DensityPage(
+          key: const ValueKey<String>('search'),
+          count: 0,
+          tier: tier,
+          search: true,
+        ),
+      );
+      await settle(1500);
+      await shot('search-rest');
+      _layers['search-rest'] = _countLayers();
+      await measure('search-rest', () => _scroll(from: const Offset(201, 620)));
+      return;
+    }
     for (final n in [
       for (final n in densities)
         if (_only.isEmpty || _only.split(',').contains('$n')) n,
@@ -356,8 +407,7 @@ class _Density {
     File('${outDir.path}/$name.png').writeAsBytesSync(bytes);
   }
 
-  Future<void> _scroll() async {
-    const from = Offset(201, 800);
+  Future<void> _scroll({Offset from = const Offset(201, 800)}) async {
     for (var i = 0; i < 2; i++) {
       await _finger(from, _line(from, from - const Offset(0, 300), 40));
       await settle(700);

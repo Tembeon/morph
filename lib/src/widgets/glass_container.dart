@@ -81,9 +81,19 @@ class _MorphGlassStageState extends State<MorphGlassStage> {
   final MorphGlassContainerLink _link = MorphGlassContainerLink();
 
   @override
-  Widget build(BuildContext context) =>
-      _containerLayer(context, _link, open: widget.open, child: widget.child);
+  Widget build(BuildContext context) => _containerLayer(
+    context,
+    _link,
+    open: widget.open && debugMorphGlassStagesOpen,
+    child: widget.child,
+  );
 }
+
+/// Whether package stages shade their members together; false keeps every
+/// member in its own layer, the reference a stage is measured against.
+@visibleForTesting
+@internal
+bool debugMorphGlassStagesOpen = true;
 
 /// An [Opacity] of a [MorphGlassStage] that its members see through: the
 /// stage closes whenever [opacity] is below 1.
