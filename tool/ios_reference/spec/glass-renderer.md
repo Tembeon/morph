@@ -1600,7 +1600,7 @@ filter. Other package transforms (push zoom, flights, context-menu
 previews) scale only while they move: a container in them is off by up to
 a device pixel during the motion and lands back on its grid.
 
-### Q4: the prominent button in the row container (not landed)
+### Q4: the prominent button in the row container (landed 2026-10-06)
 
 The layer already has a tint-only variant (per-shape tint in the material
 map, SHAPE_TINT). Letting a member join when its appearance differs only in
@@ -1610,11 +1610,13 @@ tint takes the controls row's prominent button into the container: 3.89
 the material pass costs what the filter did), iPhone 16 Pro controls 1.56
 / 2.29 -> 1.46 / 2.11. Not exact: host Impeller max 1 on 300 - 900 channels
 of every member (the tint read from an 8-bit map instead of a uniform),
-iPhone max 7 on ~100 rim pixels of the prominent button (none over 15). By
-the container's rule (only glass that would look the same joins) it stays
-out; the change is one line in `MorphGlassContainerLink._joinable`
-(`own.copyWith(tint: appearance.tint) != appearance`) if a few-step rim
-difference is ever accepted.
+iPhone max 7 on ~100 rim pixels of the prominent button (none over 15). Landed by
+the coordinator under the owner's rule for the optimization night (a
+practically invisible difference that saves work is accepted): a member
+whose appearance differs only in tint joins
+(`own.copyWith(tint: appearance.tint) != appearance` in
+`MorphGlassContainerLink._joinable`); test/glass_container_test.dart pins
+the tinted member in the shared layer.
 
 Timings of the landed state (Pixel 6a, 2 launches each ABBA, raster p50 /
 p95 ms, base -> cand): home-scroll 8.24 / 11.18 -> 8.30 / 11.15, segmented

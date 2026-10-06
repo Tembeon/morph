@@ -272,6 +272,52 @@ void main() {
     expect(shared, lessThan(_filters()));
   });
 
+  testWidgets('a tinted button joins the container of plain ones', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
+        home: MorphAdaptiveGlass(
+          tier: MorphGlassTier.fake,
+          child: ColoredBox(
+            color: const Color(0xFF406080),
+            child: MorphGlassContainer(
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 20,
+                    top: 20,
+                    width: 80,
+                    height: 44,
+                    child: MorphGlassButton(
+                      onPressed: () {},
+                      child: const Text('a'),
+                    ),
+                  ),
+                  Positioned(
+                    left: 120,
+                    top: 20,
+                    width: 80,
+                    height: 44,
+                    child: MorphGlassButton(
+                      onPressed: () {},
+                      tint: const Color(0xFF0A84FF),
+                      child: const Text('b'),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byType(LiquidGlassLayer), findsOneWidget);
+  });
+
   for (final (name, wrap) in <(String, Widget Function(Widget child))>[
     ('hidden', (child) => Opacity(opacity: 0, child: child)),
     ('half faded', (child) => Opacity(opacity: 0.5, child: child)),

@@ -29,11 +29,14 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// would cover the glass of the buttons over it. Put what the glass must
 /// show through outside the container, under it.
 ///
-/// Only glass that would look the same either way joins: resting body
-/// glass (glass buttons, search capsules) of the installed
-/// [MorphGlassRenderer] on the liquid or fake tier, with the material the
-/// container's own resting button has and the tint of the glass already
-/// in the container, up to the most shapes one geometry pass encodes. A pressed button, whose rim lights up, a lens, a bar, a
+/// Only glass that looks the same, or within a few channel steps, either
+/// way joins: resting body glass (glass buttons, search capsules) of the
+/// installed [MorphGlassRenderer] on the liquid or fake tier, with the
+/// material the container's own resting button has, up to the most shapes
+/// one geometry pass encodes. A member whose glass differs only in tint (a
+/// prominent button) joins too and reads its tint from the layer's material
+/// map: at most 7 channel steps on about 100 rim pixels on the iPhone 16
+/// Pro. A pressed button, whose rim lights up, a lens, a bar, a
 /// menu and every other surface keep their own layer, as without the
 /// container. On the flat tier, under another painter or with no painter
 /// installed the container does nothing.
@@ -371,7 +374,7 @@ class MorphGlassContainerLink {
       if (surface.lift != 0 ||
           surface.kind == MorphGlassKind.bar ||
           surface.kind == MorphGlassKind.menu ||
-          own != appearance ||
+          own.copyWith(tint: appearance.tint) != appearance ||
           morphLiquidSettings(renderer, surface) != settings) {
         return 0;
       }
