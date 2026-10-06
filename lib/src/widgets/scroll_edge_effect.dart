@@ -3,6 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// How a [MorphScrollEdgeEffect] separates the content under a bar.
@@ -455,6 +456,7 @@ class _RenderEdge extends RenderBox {
       Offset offset,
     ) {
       final blur = _blur.layer ??= BackdropFilterLayer();
+      GlassLayerOwners.note(blur, this);
       blur.filter = _filter(presence);
       context.pushLayer(blur, (PaintingContext context, Offset offset) {
         _fade.layer = context.pushOpacity(

@@ -1363,6 +1363,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
         ..filter = _updateShaderFilter()
         ..backdropKey = backdropKey;
+      GlassLayerOwners.note(shader, this);
       if (_clipRectLayerHandle.layer case final clip?) {
         if (!identical(shader.parent, clip)) {
           shader.remove();

@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
@@ -73,5 +74,24 @@ abstract final class BackdropCaptureDebug {
     _captures.clear();
     _lastReportedCount = null;
     _callbackScheduled = false;
+  }
+}
+
+/// The render objects that own the backdrop filter layers they paint, for a
+/// layer census that names every filter in a frame.
+///
+/// Off (null) by default, in every build mode: a profile-build census sets
+/// it before the first glass frame. Each painter that keeps a
+/// [BackdropFilterLayer] in a private handle notes it here; a render
+/// object whose own `layer` is the filter needs no note.
+@internal
+abstract final class GlassLayerOwners {
+  /// The owner of each noted layer, or null while nobody counts.
+  static Expando<RenderObject>? owners;
+
+  /// Notes that [owner] paints [layer].
+  static void note(Layer layer, RenderObject owner) {
+    final map = owners;
+    if (map != null) map[layer] = owner;
   }
 }

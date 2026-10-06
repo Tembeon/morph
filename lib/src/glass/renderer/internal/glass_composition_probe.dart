@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:morph/src/glass/renderer/internal/ancestor_clip.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
 import 'package:meta/meta.dart';
 
@@ -33,6 +34,7 @@ class GlassCompositionProbe {
     required RenderObject owner,
   }) {
     final layer = _layer.layer ??= _OpacitySeedLayer()..filter = _identity;
+    GlassLayerOwners.note(layer, owner);
     syncOpacity(owner);
     context.pushLayer(layer, painter, offset);
   }

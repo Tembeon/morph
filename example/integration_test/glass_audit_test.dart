@@ -73,7 +73,8 @@ import 'support/layer_census.dart';
 /// scene (`atrace_slices.py <trace> --scenes`).
 /// `--dart-define=AUDIT_CENSUS=true` also counts the engine layers of
 /// every frame inside those windows (support/layer_census.dart) into the
-/// report's `census`. The audit holds the app in portrait: a phone lying
+/// report's `census`; `AUDIT_CENSUS_OWNERS=true` names the owner of every
+/// backdrop filter there too. The audit holds the app in portrait: a phone lying
 /// on its side with auto-rotate on would otherwise lay the gallery out in
 /// landscape, where the later rows are off screen.
 const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
@@ -87,6 +88,8 @@ const bool _shots = bool.fromEnvironment('AUDIT_SHOTS', defaultValue: true);
 const String _scenesOnly = String.fromEnvironment('AUDIT_SCENES');
 
 const bool _census = bool.fromEnvironment('AUDIT_CENSUS');
+
+const bool _censusOwners = bool.fromEnvironment('AUDIT_CENSUS_OWNERS');
 
 const bool _atlas = bool.fromEnvironment('AUDIT_ATLAS');
 
@@ -167,7 +170,9 @@ class _Audit {
 
   final Set<bool> _semanticsWhileTimed = {};
 
-  final LayerCensus? _layerCensus = _census ? LayerCensus() : null;
+  final LayerCensus? _layerCensus = _census
+      ? LayerCensus(owners: _censusOwners)
+      : null;
 
   void _sceneMark(String scene, int run, String edge) {
     developer.Timeline.startSync('scene:$scene:$run:$edge');

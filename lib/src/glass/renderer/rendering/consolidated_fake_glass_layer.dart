@@ -298,6 +298,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
           ..filter = _cachedFilter ??= _buildBackdropFilter()
           ..blendMode = BlendMode.srcOver
           ..backdropKey = backdropKey;
+        GlassLayerOwners.note(backdropLayer, this);
         assert(() {
           debugRegisterBackdropCapture(this, backdropKey);
           return true;
@@ -492,6 +493,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
           ..filter = filter
           ..blendMode = BlendMode.srcOver
           ..backdropKey = backdropKey;
+        GlassLayerOwners.note(backdropLayer, this);
         assert(() {
           debugRegisterBackdropCapture(this, backdropKey);
           return true;
