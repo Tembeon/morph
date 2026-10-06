@@ -407,6 +407,14 @@ abstract interface class MorphMenuHost {
   /// Notifies when the motion has advanced.
   Listenable get menuRepaint;
 
+  /// The key of the root card's rows, which move into the open menu from
+  /// wherever they were built ahead of it.
+  GlobalKey get menuRowsKey;
+
+  /// Whether the root card's rows draw their glyphs from one raster, while
+  /// the content is blurred.
+  ValueNotifier<bool> get menuRowsRaster;
+
   /// The motion, or null before the menu first opens.
   MorphMenuMotion? get menuMotion;
 
@@ -840,7 +848,6 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   Expando<Widget> _rows = Expando<Widget>();
   final Expando<ValueNotifier<int?>> _hidden = Expando<ValueNotifier<int?>>();
   MorphMenuStyle? _rowsStyle;
-  final ValueNotifier<bool> _rootRaster = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -851,7 +858,6 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   @override
   void dispose() {
     _scroll.dispose();
-    _rootRaster.dispose();
     super.dispose();
   }
 
@@ -885,23 +891,14 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       _rows = Expando<Widget>();
       _rowsStyle = style;
     }
-    return _rows[layout] ??= () {
-      final Widget rows = DefaultTextStyle(
-        style: MorphTypography.resolve(style.textStyle),
-        child: _MenuRows(
-          layout: layout,
-          style: style,
-          hidden: _hiddenOf(layout),
-          content: widget.host.menuContent,
-          onSelect: (int target) => _select(layout, target),
-        ),
-      );
-      return RepaintBoundary(
-        child: raster == null
-            ? rows
-            : MorphGlyphRaster(active: raster, child: rows),
-      );
-    }();
+    return _rows[layout] ??= _menuRows(
+      layout: layout,
+      style: style,
+      hidden: _hiddenOf(layout),
+      content: widget.host.menuContent,
+      onSelect: (int target) => _select(layout, target),
+      raster: raster,
+    );
   }
 
   ValueNotifier<int?> _hiddenOf(MorphMenuLayout layout) =>
@@ -1010,7 +1007,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             final size = motion.menuRect.size;
             final scale = motion.contentScale;
             final at = motion.contentRect.topLeft - menu.rect.topLeft;
-            _rootRaster.value = motion.contentBlur >= MorphGlyphRaster.minBlur;
+            host.menuRowsRaster.value =
+                motion.contentBlur >= MorphGlyphRaster.minBlur;
             final layer = IgnorePointer(
               ignoring: !motion.isOpen,
               child: Listener(
@@ -1136,6 +1134,93 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     rect.height * k,
   );
 
+  _RootKey? _rootKey;
+  Widget? _rootWidget;
+
+  Widget? _rootFor(_RootKey key) {
+    final last = _rootKey;
+    if (last != null &&
+        identical(last.layout, key.layout) &&
+        identical(last.style, key.style) &&
+        identical(last.tuning, key.tuning) &&
+        last.locked == key.locked &&
+        last.scrolls == key.scrolls &&
+        last.width == key.width &&
+        last.radius == key.radius &&
+        last.highlighted == key.highlighted &&
+        last.highlightedCard == key.highlightedCard &&
+        last.sliding == key.sliding) {
+      return _rootWidget;
+    }
+    _rootKey = key;
+    return _rootWidget = null;
+  }
+
+  Widget _remember(Widget root) => _rootWidget = root;
+
+  /// The root card's list below its moving frame: the same widget while
+  /// nothing it shows changes, so a frame of the motion rebuilds none of
+  /// it.
+  Widget _root(
+    MorphMenuMotion motion,
+    MorphMenuStyle style,
+    MorphMenuLayout layout, {
+    required bool locked,
+    required bool scrolls,
+    required double width,
+    required double radius,
+  }) {
+    final content = SizedBox(
+      width: width,
+      height: layout.height,
+      child: Stack(
+        clipBehavior: .none,
+        children: [
+          ?_highlight(motion, style, layout, 0),
+          KeyedSubtree(
+            key: widget.host.menuRowsKey,
+            child: _rowsOf(layout, style, raster: widget.host.menuRowsRaster),
+          ),
+        ],
+      ),
+    );
+    final Widget body = scrolls
+        ? NotificationListener<ScrollNotification>(
+            onNotification: _scrollStarted,
+            child: RawScrollbar(
+              controller: _scroll,
+              thumbColor: style.secondaryColor,
+              thickness: MorphMenuTuning.scrollThickness,
+              radius: const Radius.circular(
+                MorphMenuTuning.scrollThickness / 2,
+              ),
+              mainAxisMargin: radius / 2,
+              crossAxisMargin: MorphMenuTuning.scrollInset,
+              child: CustomScrollView(
+                controller: _scroll,
+                physics: locked ? const NeverScrollableScrollPhysics() : null,
+                slivers: [SliverToBoxAdapter(child: content)],
+              ),
+            ),
+          )
+        : OverflowBox(
+            alignment: .topLeft,
+            minHeight: layout.height,
+            maxHeight: layout.height,
+            child: content,
+          );
+    return ClipRRect(
+      borderRadius: .circular(locked ? radius : 0),
+      child: GestureDetector(
+        behavior: .opaque,
+        onPanUpdate: locked
+            ? (DragUpdateDetails details) => _scrollGesture()
+            : null,
+        child: IgnorePointer(ignoring: locked, child: body),
+      ),
+    );
+  }
+
   Widget _card(
     MorphMenuMotion motion,
     MorphMenuStyle style,
@@ -1156,44 +1241,33 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         (_scroll.position as ScrollPositionWithSingleContext).goIdle();
       }
       _parentScrollLocked = locked;
-      final content = SizedBox(
-        width: width,
-        height: layout.height,
-        child: Stack(
-          clipBehavior: .none,
-          children: [
-            ?_highlight(motion, style, layout, index),
-            _rowsOf(layout, style, raster: _rootRaster),
-          ],
-        ),
-      );
       final visible = motion.visibleRootHeight;
       final scrolls = layout.height > visible + 0.5;
-      final Widget body = scrolls
-          ? NotificationListener<ScrollNotification>(
-              onNotification: _scrollStarted,
-              child: RawScrollbar(
-                controller: _scroll,
-                thumbColor: style.secondaryColor,
-                thickness: MorphMenuTuning.scrollThickness,
-                radius: const Radius.circular(
-                  MorphMenuTuning.scrollThickness / 2,
-                ),
-                mainAxisMargin: radius / 2,
-                crossAxisMargin: MorphMenuTuning.scrollInset,
-                child: CustomScrollView(
-                  controller: _scroll,
-                  physics: locked ? const NeverScrollableScrollPhysics() : null,
-                  slivers: [SliverToBoxAdapter(child: content)],
-                ),
-              ),
-            )
-          : OverflowBox(
-              alignment: .topLeft,
-              minHeight: layout.height,
-              maxHeight: layout.height,
-              child: content,
-            );
+      final rootKey = (
+        layout: layout,
+        style: style,
+        tuning: motion.tuning,
+        locked: locked,
+        scrolls: scrolls,
+        width: width,
+        radius: radius,
+        highlighted: motion.highlighted,
+        highlightedCard: motion.highlightedCard,
+        sliding: motion.isSliding,
+      );
+      final root =
+          _rootFor(rootKey) ??
+          _remember(
+            _root(
+              motion,
+              style,
+              layout,
+              locked: locked,
+              scrolls: scrolls,
+              width: width,
+              radius: radius,
+            ),
+          );
       return Positioned(
         key: const ValueKey<int>(0),
         left: width / 2 * (1 - s),
@@ -1203,19 +1277,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
         child: Transform.scale(
           scale: s,
           alignment: .topLeft,
-          child: Opacity(
-            opacity: card.rowOpacity,
-            child: ClipRRect(
-              borderRadius: .circular(locked ? radius : 0),
-              child: GestureDetector(
-                behavior: .opaque,
-                onPanUpdate: locked
-                    ? (DragUpdateDetails details) => _scrollGesture()
-                    : null,
-                child: IgnorePointer(ignoring: locked, child: body),
-              ),
-            ),
-          ),
+          child: Opacity(opacity: card.rowOpacity, child: root),
         ),
       );
     }
@@ -1508,6 +1570,19 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   }
 }
 
+typedef _RootKey = ({
+  MorphMenuLayout layout,
+  MorphMenuStyle style,
+  MorphMenuTuning tuning,
+  bool locked,
+  bool scrolls,
+  double width,
+  double radius,
+  int? highlighted,
+  int highlightedCard,
+  bool sliding,
+});
+
 extension on Rect {
   Rect inflateHorizontal(double delta) =>
       Rect.fromLTRB(left - delta, top, right + delta, bottom);
@@ -1520,14 +1595,101 @@ Offset _contentLocal(MorphMenuMotion motion, Offset position) {
   return (position - frame.topLeft) / motion.contentScale;
 }
 
+/// The rows of one card: [layout]'s elements in [style], drawn through
+/// their own layer. With a [limit] only the first [limit] elements are
+/// built, leaving out loading rows and free-form widgets.
+Widget _menuRows({
+  required MorphMenuLayout layout,
+  required MorphMenuStyle style,
+  required ValueListenable<int?> hidden,
+  required MorphMenuContent content,
+  required ValueChanged<int> onSelect,
+  ValueListenable<bool>? raster,
+  int? limit,
+}) {
+  final Widget rows = DefaultTextStyle(
+    style: MorphTypography.resolve(style.textStyle),
+    child: _MenuRows(
+      layout: layout,
+      style: style,
+      hidden: hidden,
+      content: content,
+      onSelect: onSelect,
+      limit: limit,
+    ),
+  );
+  return RepaintBoundary(
+    child: raster == null
+        ? rows
+        : MorphGlyphRaster(active: raster, child: rows),
+  );
+}
+
+/// The root rows of [host]'s menu built ahead of its opening, out of
+/// sight: the first [count] elements of the root card, under the key the
+/// open menu draws them with, so the opening moves them into the menu
+/// instead of building them in its first frame.
+@internal
+Widget morphMenuPrebuiltRows(MorphMenuController host, int count) {
+  final motion = host.menuMotion!;
+  final layout = motion.layout;
+  return ExcludeFocus(
+    child: Offstage(
+      child: Align(
+        alignment: .topLeft,
+        child: SizedBox(
+          width: motion.tuning.menuWidth,
+          height: layout.height,
+          child: Stack(
+            clipBehavior: .none,
+            children: [
+              KeyedSubtree(
+                key: host.menuRowsKey,
+                child: _menuRows(
+                  layout: layout,
+                  style: host.menuStyle,
+                  hidden: host.prebuildHidden,
+                  content: host.menuContent,
+                  onSelect: _ignoreSelect,
+                  raster: host.menuRowsRaster,
+                  limit: count,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
+void _ignoreSelect(int target) {}
+
+/// The identity of the element at [index] of a card's layout.
+class _RowKey extends LocalKey {
+  const _RowKey(this.index);
+
+  final int index;
+
+  @override
+  bool operator ==(Object other) => other is _RowKey && other.index == index;
+
+  @override
+  int get hashCode => index.hashCode;
+}
+
 /// The elements of one card, each at its frame in the card's content.
-class _MenuRows extends StatelessWidget {
+///
+/// The element widgets are made once per layout and style, so building
+/// the rows again with the same layout rebuilds none of them.
+class _MenuRows extends StatefulWidget {
   const _MenuRows({
     required this.layout,
     required this.style,
     required this.hidden,
     required this.content,
     required this.onSelect,
+    this.limit,
   });
 
   final MorphMenuLayout layout;
@@ -1535,39 +1697,106 @@ class _MenuRows extends StatelessWidget {
   final MorphMenuStyle style;
   final MorphMenuContent content;
   final ValueChanged<int> onSelect;
+  final int? limit;
+
+  @override
+  State<_MenuRows> createState() => _MenuRowsState();
+}
+
+class _MenuRowsState extends State<_MenuRows> {
+  final ValueNotifier<int?> _hidden = ValueNotifier<int?>(null);
+  List<Widget>? _children;
+  List<bool> _late = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    widget.hidden.addListener(_hiddenChanged);
+    _hidden.value = widget.hidden.value;
+  }
+
+  @override
+  void didUpdateWidget(_MenuRows oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.hidden, widget.hidden)) {
+      oldWidget.hidden.removeListener(_hiddenChanged);
+      widget.hidden.addListener(_hiddenChanged);
+      _hidden.value = widget.hidden.value;
+    }
+    if (!identical(oldWidget.layout, widget.layout) ||
+        !identical(oldWidget.style, widget.style) ||
+        !identical(oldWidget.content, widget.content)) {
+      _children = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.hidden.removeListener(_hiddenChanged);
+    _hidden.dispose();
+    super.dispose();
+  }
+
+  void _hiddenChanged() => _hidden.value = widget.hidden.value;
+
+  void _select(int target) => widget.onSelect(target);
+
+  List<Widget> _build() {
+    final layout = widget.layout;
+    final children = <Widget>[];
+    final late = <bool>[];
+    for (var i = 0; i < layout.elements.length; i++) {
+      final element = layout.elements[i];
+      if (element.kind == MorphMenuPlacedKind.cardHeader) continue;
+      late.add(
+        element.kind == MorphMenuPlacedKind.loading ||
+            element.kind == MorphMenuPlacedKind.widget,
+      );
+      children.add(
+        element.entry is MorphSubmenu && element.kind == MorphMenuPlacedKind.row
+            ? ValueListenableBuilder<int?>(
+                key: _RowKey(i),
+                valueListenable: _hidden,
+                builder: (BuildContext context, int? hidden, Widget? _) =>
+                    _MenuElement(
+                      element: element,
+                      style: widget.style,
+                      width: layout.width,
+                      content: widget.content,
+                      onSelect: _select,
+                      hidden: hidden == element.target,
+                    ),
+              )
+            : _MenuElement(
+                key: _RowKey(i),
+                element: element,
+                style: widget.style,
+                width: layout.width,
+                content: widget.content,
+                onSelect: _select,
+              ),
+      );
+    }
+    _late = late;
+    return children;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final layout = widget.layout;
+    final all = _children ??= _build();
+    final limit = widget.limit;
     return SizedBox(
       width: layout.width,
       height: layout.height,
       child: Stack(
         clipBehavior: .none,
-        children: [
-          for (final element in layout.elements)
-            if (element.entry is MorphSubmenu &&
-                element.kind == MorphMenuPlacedKind.row)
-              ValueListenableBuilder<int?>(
-                valueListenable: hidden,
-                builder: (BuildContext context, int? hidden, Widget? _) =>
-                    _MenuElement(
-                      element: element,
-                      style: style,
-                      width: layout.width,
-                      content: content,
-                      onSelect: onSelect,
-                      hidden: hidden == element.target,
-                    ),
-              )
-            else if (element.kind != MorphMenuPlacedKind.cardHeader)
-              _MenuElement(
-                element: element,
-                style: style,
-                width: layout.width,
-                content: content,
-                onSelect: onSelect,
-              ),
-        ],
+        children: limit == null
+            ? all
+            : [
+                for (var i = 0; i < all.length && i < limit; i++)
+                  if (!_late[i]) all[i],
+              ],
       ),
     );
   }
@@ -1584,6 +1813,7 @@ class _MenuElement extends StatelessWidget {
     this.chevronTurn = 1,
     this.separatorOpacity = 1,
     this.hidden = false,
+    super.key,
   });
 
   final bool hidden;

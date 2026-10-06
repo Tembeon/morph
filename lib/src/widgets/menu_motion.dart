@@ -1225,6 +1225,12 @@ class MorphMenuMotion {
   /// [MorphMenuTuning.earlyCloseDelay] after the opening.
   bool get isOpenPending => _openPending;
 
+  /// Whether the menu is not shown yet but a touch may open it: a finger
+  /// held on the button, or a tap's opening pending.
+  bool get isArming =>
+      _phase == _Phase.idle &&
+      (_openPending || (_pointer?.fromButton ?? false));
+
   /// The frame of the open menu at the time the motion was last advanced
   /// to; its height follows resizes and submenu cards.
   Rect get menuRect => _frameAt(_now);

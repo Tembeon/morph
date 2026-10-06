@@ -98,6 +98,60 @@ class MorphMenuController implements MorphMenuHost {
   Listenable get menuRepaint => _repaint;
 
   @override
+  final GlobalKey menuRowsKey = GlobalKey(debugLabel: 'menu rows');
+
+  /// How many root elements are built ahead of the opening; zero when
+  /// nothing is.
+  ///
+  /// While a touch may open the menu and no flight carries it, each
+  /// advance of the motion adds [prebuildStep] elements, so the rows the
+  /// first frame of the menu would build are built over the frames of the
+  /// press and the tap's opening delay instead, out of sight.
+  int get prebuildCount => _prebuildCount;
+  int _prebuildCount = 0;
+
+  /// The elements built ahead of the opening per advance of the motion.
+  static const int prebuildStep = 6;
+
+  /// Whether menus build their rows ahead of the opening; tests turn it
+  /// off to compare the frames drawn both ways.
+  @visibleForTesting
+  static bool debugPrebuild = true;
+
+  OverlayEntry? _prebuildEntry;
+
+  void _syncPrebuild() {
+    final entry = _prebuildEntry;
+    if (_prebuildCount == 0) {
+      if (entry == null) return;
+      _prebuildEntry = null;
+      entry.remove();
+      entry.dispose();
+      return;
+    }
+    final overlay = _overlay;
+    if (entry != null || overlay == null || !overlay.mounted) return;
+    menuRowsRaster.value = false;
+    final created = OverlayEntry(
+      builder: (BuildContext context) => ListenableBuilder(
+        listenable: _repaint,
+        builder: (BuildContext context, Widget? _) =>
+            _prebuildCount == 0 || _motion == null
+            ? const SizedBox.shrink()
+            : morphMenuPrebuiltRows(this, _prebuildCount),
+      ),
+    );
+    _prebuildEntry = created;
+    overlay.insert(created);
+  }
+
+  /// What rows built ahead of the opening hide: nothing.
+  final ValueNotifier<int?> prebuildHidden = ValueNotifier<int?>(null);
+
+  @override
+  final ValueNotifier<bool> menuRowsRaster = ValueNotifier<bool>(false);
+
+  @override
   MorphMenuMotion? get menuMotion => _motion;
 
   @override
@@ -240,6 +294,10 @@ class MorphMenuController implements MorphMenuHost {
     if (motion == null || _repaintDisposed) return;
     motion.advance(t);
     if (_early == null && !motion.isOpenPending) _unroute();
+    _prebuildCount = debugPrebuild && _flight == null && motion.isArming
+        ? _prebuildCount + prebuildStep
+        : 0;
+    _syncPrebuild();
     _repaint.value++;
   }
 
@@ -323,6 +381,8 @@ class MorphMenuController implements MorphMenuHost {
     if (_disposed) return;
     _detachedTime = clock();
     _disposed = true;
+    _prebuildCount = 0;
+    _syncPrebuild();
     _unroute();
     menuContent.dispose();
     _motion?.onActivate = null;
@@ -353,5 +413,7 @@ class MorphMenuController implements MorphMenuHost {
     if (_repaintDisposed) return;
     _repaintDisposed = true;
     _repaint.dispose();
+    prebuildHidden.dispose();
+    menuRowsRaster.dispose();
   }
 }
