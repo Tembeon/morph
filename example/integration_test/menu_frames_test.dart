@@ -43,6 +43,13 @@ import 'package:vm_service/vm_service_io.dart';
 /// thread inside each frame's build window: per run the functions of the
 /// heaviest builds, and the functions of every frame whose build is over
 /// a third of the budget, by inclusive and by self samples.
+/// `--dart-define=FRAMES_SCENE=controls` profiles the glass audit's switch
+/// and slider gestures with the same phase and CPU collection.
+const String _scene = String.fromEnvironment(
+  'FRAMES_SCENE',
+  defaultValue: 'menu',
+);
+
 const int _runs = int.fromEnvironment('AUDIT_RUNS', defaultValue: 1);
 
 const bool _detail = bool.fromEnvironment('FRAMES_DETAIL');
@@ -68,7 +75,7 @@ void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
-  testWidgets('menu frames', semanticsEnabled: false, (
+  testWidgets('$_scene frames', semanticsEnabled: false, (
     WidgetTester tester,
   ) async {
     MorphMenuFusion.debugOnFuse = (frame, ready, {required served}) =>
@@ -141,15 +148,29 @@ class _Frames {
     runApp(const GalleryApp());
     await settle(1500);
     await settle(300);
-    await tester.tap(find.text('Menu'));
+    await tester.tap(find.text(_scene == 'controls' ? 'Controls' : 'Menu'));
     await settle(800);
-    _listen();
-    final button = find.byType(MorphMenuButton).at(1);
-    final at = tester.getCenter(button);
-    await tap(at, 'open');
-    await settle(900);
-    await tap(const Offset(20, 300), 'close');
-    await settle(1500);
+    Future<void> Function() gesture;
+    if (_scene == 'controls') {
+      gesture = _controls;
+      await gesture();
+      await settle(1500);
+    } else {
+      _listen();
+      final at = tester.getCenter(find.byType(MorphMenuButton).at(1));
+      gesture = () async {
+        for (var i = 0; i < 2; i++) {
+          await tap(at, 'open');
+          await settle(900);
+          await tap(const Offset(20, 300), 'close');
+          await settle(900);
+        }
+      };
+      await tap(at, 'open');
+      await settle(900);
+      await tap(const Offset(20, 300), 'close');
+      await settle(1500);
+    }
     if (_detail) {
       debugProfileBuildsEnabled = true;
       debugProfileLayoutsEnabled = true;
@@ -163,12 +184,7 @@ class _Frames {
       final from = developer.Timeline.now;
       var end = start;
       Future<void> body() async {
-        for (var i = 0; i < 2; i++) {
-          await tap(at, 'open');
-          await settle(900);
-          await tap(const Offset(20, 300), 'close');
-          await settle(900);
-        }
+        await gesture();
         await settle(300);
         await tester.pump();
         await settle(100);
@@ -231,6 +247,58 @@ class _Frames {
     for (final s in _subscriptions) {
       await s.cancel();
     }
+  }
+
+  Future<void> _finger(
+    Offset from,
+    List<Offset> path,
+    String label, {
+    int step = 8,
+  }) async {
+    final gesture = await tester.createGesture(pointer: _pointer++);
+    _mark('$label down');
+    await gesture.down(from);
+    await settle(120);
+    _mark('$label move');
+    for (final point in path) {
+      await gesture.moveTo(point);
+      await settle(step);
+    }
+    _mark('$label up');
+    await gesture.up();
+    await tester.pump();
+  }
+
+  List<Offset> _line(Offset a, Offset b, int n) => [
+    for (var i = 1; i <= n; i++) Offset.lerp(a, b, i / n)!,
+  ];
+
+  Future<void> _controls() async {
+    final off = find.byType(MorphSwitch).at(0);
+    final s = tester.getRect(off);
+    for (var i = 0; i < 2; i++) {
+      await _finger(s.center, [
+        ..._line(s.center, s.centerLeft, 10),
+        ..._line(s.centerLeft, s.centerRight, 20),
+      ], 'switch');
+      await settle(500);
+    }
+    final wide = find.byType(MorphSlider).at(0);
+    final w = tester.getRect(wide);
+    final t = Offset(
+      w.left + 18.5 + tester.widget<MorphSlider>(wide).value * (w.width - 37),
+      w.center.dy,
+    );
+    await _finger(
+      t,
+      [
+        ..._line(t, w.centerLeft, 30),
+        ..._line(w.centerLeft, w.centerRight, 60),
+      ],
+      'slider',
+      step: 16,
+    );
+    await settle(600);
   }
 
   vm.VmService? _service;
@@ -377,6 +445,7 @@ class _Frames {
   }
 
   Map<String, Object?> report() => {
+    'scene': _scene,
     'tier': const String.fromEnvironment('GALLERY_GLASS', defaultValue: 'auto'),
     'liquid_available': MorphGlassRenderer.liquidAvailable,
     'platform': Platform.operatingSystem,
