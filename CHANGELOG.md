@@ -25,8 +25,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   tab bar scenes is attributed (glass-renderer.md): about 0.75 ms per
   backdrop filter on the raster thread and the small lens's frost pass, no
   pixel-identical cut left in the package. A prominent button in a row of
-  glass buttons stays out of the container (one filter less, but a few
-  steps off on its rim).
+  glass buttons joins the row's container: its tint comes from the layer's
+  material map (one filter less, Pixel 6a controls raster about 0.5 ms
+  lower; at most 7 channel steps on about 100 rim pixels).
 - Resting menu buttons, and glass buttons inside a showing `MorphTag`,
   join a `MorphGlassContainer` (a tag hiding for its flight sends its glass
   back to its own layer in the same frame); a settled glass or menu button
