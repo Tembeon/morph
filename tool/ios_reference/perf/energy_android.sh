@@ -27,6 +27,15 @@ REPORT=${ENERGY_REPORT:-glass}
 DEVICE_DIR=/sdcard/Android/data/$PKG/files/$REPORT
 CFG=$(dirname "$0")/energy_android.cfg
 mkdir -p "$OUT"
+pid=
+
+stop_recorder() {
+  case "$pid" in ''|*[!0-9]*) return ;; esac
+  if [ "$pid" -gt 1 ]; then adb shell kill -TERM "$pid" 2>/dev/null || true; fi
+}
+trap stop_recorder EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 skin() {
   adb shell dumpsys thermalservice | grep 'Temperature{.*mName=VIRTUAL-SKIN' | tail -1 | sed -E 's/.*mValue=([0-9.]+).*/\1/'
@@ -68,6 +77,7 @@ for name in $ORDER; do
   sleep 2
   adb shell kill -TERM "$pid" || true
   while adb shell kill -0 "$pid" 2>/dev/null; do sleep 1; done
+  pid=
   {
     echo "after:"
     notes
