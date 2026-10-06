@@ -651,7 +651,12 @@ container is content above its glass.
   2). Held shots (button 0 pressed, out of the container) 21 - 53 on <= 9
   pixels at neighbouring rims, before and after alike: the pressed button
   takes its own copy, a backdrop-order effect, not the raster phase.
-  Shots in /tmp (not committed), shotdiff.py.
+  Shots in /tmp (not committed), shotdiff.py. Gallery audit on the Pixel
+  (the controls row, glass page and sheet buttons in their containers
+  against a build whose MorphGlassContainer adds nothing): controls-resting
+  max 54 before, 1 after; sheet-medium 6 both
+  (perf/2026-10-06-pixel6a-batch-gallery; one uncooled run each, its
+  timings are not a measurement).
 
 ### Package stages (2026-10-06, `MorphGlassStage`)
 
