@@ -984,8 +984,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         _releaseCompositorFilter();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {});
       case GlassFrameState.active:
-        if (_encodedPassPhase case final phase?
-            when _passPhase(shaderCoordinateTransform) != phase) {
+        if (_geometryImage != null &&
+            _rasterGridStale(shaderCoordinateTransform)) {
           needsGeometryUpdate = true;
         }
         if (needsGeometryUpdate || _geometryImage == null || link.isDirty) {
@@ -1571,9 +1571,21 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     return (axisX: axisX, axisY: axisY, determinant: determinant);
   }
 
-  // The pass phase the matte was encoded at when it shifts anchored shapes
-  // onto their own raster grids; null when it shifts none.
+  // The pass phase the matte was encoded at when it shifts shapes onto
+  // their own raster grids or moves its grid off a tie; null when it does
+  // neither.
   Offset? _encodedPassPhase;
+
+  // Whether a matte encoded for another pass phase would be encoded
+  // differently now: its shifts moved, or a matte encoded on the layer's own
+  // grid now falls within the tie band.
+  bool _rasterGridStale(Matrix4 layerToPass) {
+    if (_encodedPassPhase case final phase?) {
+      return _passPhase(layerToPass) != phase;
+    }
+    if (_field != null) return false;
+    return glassRasterGrid(layerToPass, devicePixelRatio)?.biased ?? false;
+  }
 
   Duration? _movedAt;
   bool _phaseWatched = false;
@@ -1583,7 +1595,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // once the motion has stopped for a frame, so the motion itself stays on
   // the compositor.
   void _watchRasterPhase() {
-    if (_encodedPassPhase == null) return;
+    if (_geometryImage == null) return;
     final scheduler = SchedulerBinding.instance;
     _movedAt = scheduler.currentSystemFrameTimeStamp;
     if (_phaseWatched) return;
@@ -1593,8 +1605,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   void _checkRasterPhase(Duration _) {
     _phaseWatched = false;
-    final phase = _encodedPassPhase;
-    if (!attached || phase == null) return;
+    if (!attached || _geometryImage == null) return;
     final scheduler = SchedulerBinding.instance;
     if (_movedAt == scheduler.currentSystemFrameTimeStamp) {
       _phaseWatched = true;
@@ -1602,7 +1613,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       scheduler.scheduleFrame();
       return;
     }
-    if (_passPhase(shaderCoordinateTransform) != phase) markNeedsPaint();
+    if (_rasterGridStale(shaderCoordinateTransform)) markNeedsPaint();
   }
 
   Offset _passPhase(Matrix4 layerToPass) {
@@ -1631,20 +1642,31 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // texture so the positive side of the fade is not clipped at the matte
       // edge.
       final layerToPass = shaderCoordinateTransform;
+      final grid = glassRasterGrid(
+        layerToPass,
+        devicePixelRatio,
+        movable: _field == null,
+      );
       final shifts = [
         for (final (owner, _, _) in geometries)
-          glassRasterPhaseShift(this, owner, layerToPass, devicePixelRatio),
+          grid == null
+              ? Offset.zero
+              : glassRasterPhaseShift(this, owner, grid, devicePixelRatio),
       ];
+      final biased = grid?.biased ?? false;
       final anchored = shifts.any((Offset shift) => shift != Offset.zero);
-      _encodedPassPhase = anchored ? _passPhase(layerToPass) : null;
+      _encodedPassPhase = anchored || biased ? _passPhase(layerToPass) : null;
       final aaPadding = max(0.5 / devicePixelRatio, _contourOutset);
       final shiftPadding = anchored ? 0.5 / devicePixelRatio : 0.0;
       // The matte is in this layer's local coordinates. Ancestor transforms
       // are applied once by the compositor; baking them in would apply scale
       // and rotation twice.
-      final boundsInMatteSpace = bounds
+      final snapped = bounds
           .inflate(aaPadding + shiftPadding)
           .snapToPixels(devicePixelRatio);
+      final boundsInMatteSpace = biased
+          ? snapped.shift(grid!.bias / devicePixelRatio)
+          : snapped;
       final materialCenter = bounds.center;
 
       final textureWidth = (boundsInMatteSpace.width * devicePixelRatio).ceil();
