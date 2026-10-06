@@ -19,6 +19,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   filters on flat. Pixel 6a power while scrolling falls by 19-21 percent:
   home 590 -> 465 mW, tab bar 661 -> 519, list 553 -> 447. Other glass
   tiers keep their edge blur.
+- The frame profiling harness also replays the controls page's switch
+  and slider gestures (`FRAMES_SCENE=controls`), collecting UI phases
+  and per-frame CPU samples for the liquid renderer.
 - The scroll edge effect and the 2 pt glass frost cost about half the
   GPU. The edge effect blurs a copy of the backdrop around its band
   instead of the screen behind it (Impeller blurred the whole screen, at
