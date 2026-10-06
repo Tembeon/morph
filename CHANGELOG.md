@@ -14,6 +14,11 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Flat glass scroll edges draw their fade and hairline without reading
+  the backdrop. All seven gallery audit scenes have zero backdrop
+  filters on flat. Pixel 6a power while scrolling falls by 19-21 percent:
+  home 590 -> 465 mW, tab bar 661 -> 519, list 553 -> 447. Other glass
+  tiers keep their edge blur.
 - The scroll edge effect and the 2 pt glass frost cost about half the
   GPU. The edge effect blurs a copy of the backdrop around its band
   instead of the screen behind it (Impeller blurred the whole screen, at
