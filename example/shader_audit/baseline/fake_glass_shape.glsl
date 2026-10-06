@@ -76,11 +76,13 @@ float sdRoundedSuperellipse(
         circleCenter = circleCenters.zw;
         circleRadius = semiAxisAndRadii.w;
     }
+    // Inside the circular cap's angular span around the 45-degree diagonal:
+    // the angle to the diagonal below |span| is its cosine above cos(span),
+    // the geometry pass's test without atan.
     vec2 relative = octant - circleCenter;
-    float deltaTheta = atan(relative.y, relative.x) - 0.78539816;
-    deltaTheta = mod(deltaTheta + 3.14159265, 6.28318531) - 3.14159265;
-    if (abs(deltaTheta) < abs(span)) {
-        return length(relative) - circleRadius;
+    float relativeLength = length(relative);
+    if (dot(relative, vec2(0.70710678)) > relativeLength * cos(abs(span))) {
+        return relativeLength - circleRadius;
     }
     if (degree < 2.0) {
         return max(abs(octant).x - axis, abs(octant).y - axis);

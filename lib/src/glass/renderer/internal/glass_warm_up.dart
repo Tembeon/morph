@@ -84,16 +84,20 @@ Future<void> morphWarmLiquidPipelines(
       finalShaderKeys.map(ui.FragmentProgram.fromAsset),
     );
     final filters = <ui.ImageFilter>[];
+    final tintKeys = {
+      ShaderKeys.liquidGlassTintRender,
+      ShaderKeys.liquidGlassTintIos27Render,
+    };
     for (final (index, program) in programs.indexed) {
+      final key = finalShaderKeys[index];
       final shader = program.fragmentShader();
       shader.setImageSampler(0, matte, filterQuality: FilterQuality.low);
       shader.setImageSampler(1, matte);
-      switch (index) {
-        case 1:
-          shader.setImageSampler(2, material);
-          shader.setImageSampler(3, material, filterQuality: FilterQuality.low);
-        case 2:
-          shader.setImageSampler(2, tint, filterQuality: FilterQuality.low);
+      if (key == ShaderKeys.liquidGlassMaterialRender) {
+        shader.setImageSampler(2, material);
+        shader.setImageSampler(3, material, filterQuality: FilterQuality.low);
+      } else if (tintKeys.contains(key)) {
+        shader.setImageSampler(2, tint, filterQuality: FilterQuality.low);
       }
       final filter = ui.ImageFilter.shader(shader);
       filters.add(filter);

@@ -342,30 +342,28 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
         backdropKey: backdropKey,
         child: InheritedGeometryRenderLink(
           link: _link,
-          child: MultiShaderBuilder(
-            assetKeys: [
-              ShaderKeys.liquidGlassRender,
-              ShaderKeys.liquidGlassMaterialRender,
-              ShaderKeys.liquidGlassTintRender,
-            ],
-            (context, shaders, child) {
-              return _RawShapes(
-                defaultRenderShader: shaders[0],
-                materialRenderShader: shaders[1],
-                tintRenderShader: shaders[2],
-                backdropKey: backdropKey,
-                blursOwnBackdrop: widget.blursOwnBackdrop,
-                live: live,
-                settingsOf: () => widget.settings,
-                defaultAppearance: defaultAppearance,
-                link: _link,
-                gpuGeometryRenderer: gpuRenderer,
-                fieldOf: () => widget.field,
-                child: child!,
-              );
-            },
-            child: KeyedSubtree(key: _childKey, child: widget.child),
-          ),
+          child: MultiShaderBuilder(assetKeys: ShaderKeys.liquidGlassRenders, (
+            context,
+            shaders,
+            child,
+          ) {
+            return _RawShapes(
+              defaultRenderShader: shaders[0],
+              ios27RenderShader: shaders[1],
+              materialRenderShader: shaders[2],
+              tintRenderShader: shaders[3],
+              tintIos27RenderShader: shaders[4],
+              backdropKey: backdropKey,
+              blursOwnBackdrop: widget.blursOwnBackdrop,
+              live: live,
+              settingsOf: () => widget.settings,
+              defaultAppearance: defaultAppearance,
+              link: _link,
+              gpuGeometryRenderer: gpuRenderer,
+              fieldOf: () => widget.field,
+              child: child!,
+            );
+          }, child: KeyedSubtree(key: _childKey, child: widget.child)),
         ),
       ),
     );
@@ -420,8 +418,10 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
 class _RawShapes extends SingleChildRenderObjectWidget {
   const _RawShapes({
     required this.defaultRenderShader,
+    required this.ios27RenderShader,
     required this.materialRenderShader,
     required this.tintRenderShader,
+    required this.tintIos27RenderShader,
     required this.backdropKey,
     required this.blursOwnBackdrop,
     required this.live,
@@ -434,8 +434,10 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   });
 
   final FragmentShader defaultRenderShader;
+  final FragmentShader ios27RenderShader;
   final FragmentShader materialRenderShader;
   final FragmentShader tintRenderShader;
+  final FragmentShader tintIos27RenderShader;
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
   final Listenable? live;
@@ -451,8 +453,10 @@ class _RawShapes extends SingleChildRenderObjectWidget {
       field: fieldOf(),
       devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
       defaultRenderShader: defaultRenderShader,
+      ios27RenderShader: ios27RenderShader,
       materialRenderShader: materialRenderShader,
       tintRenderShader: tintRenderShader,
+      tintIos27RenderShader: tintIos27RenderShader,
       backdropKey: backdropKey,
       settings: settingsOf(),
       defaultAppearance: defaultAppearance,
@@ -525,8 +529,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     implements LiquidGlassLayerRenderObject {
   RenderLiquidGlassLayer({
     required this.defaultRenderShader,
+    required this.ios27RenderShader,
     required this.materialRenderShader,
     required this.tintRenderShader,
+    required this.tintIos27RenderShader,
     required super.backdropKey,
     required super.devicePixelRatio,
     required super.settings,
@@ -549,14 +555,39 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     markNeedsPaint();
   }
 
+  /// One appearance for the layer, the direct color model.
   final FragmentShader defaultRenderShader;
+
+  /// One appearance for the layer, an iOS 27 color model.
+  final FragmentShader ios27RenderShader;
+
+  /// Shapes with their own appearances, any color models.
   final FragmentShader materialRenderShader;
+
+  /// Shapes that differ only by tint, the direct color model.
   final FragmentShader tintRenderShader;
+
+  /// Shapes that differ only by tint, an iOS 27 color model.
+  final FragmentShader tintIos27RenderShader;
+
+  /// The final shader the current appearances draw with: each variant
+  /// compiles only the color models it can meet, which keeps the
+  /// one-appearance and tint-only variants inside the register budget of
+  /// full thread occupancy on a Mali-G78.
   FragmentShader get renderShader {
-    final shader = switch ((_usesShapeAppearances, _usesTintOnlyAppearance)) {
-      (false, _) => defaultRenderShader,
-      (true, true) => tintRenderShader,
-      (true, false) => materialRenderShader,
+    final ios27 =
+        (_uniformAppearance ?? defaultAppearance).colorModel
+            is! DirectLiquidGlassColorModel;
+    final shader = switch ((
+      _usesShapeAppearances,
+      _usesTintOnlyAppearance,
+      ios27,
+    )) {
+      (false, _, false) => defaultRenderShader,
+      (false, _, true) => ios27RenderShader,
+      (true, true, false) => tintRenderShader,
+      (true, true, true) => tintIos27RenderShader,
+      (true, false, _) => materialRenderShader,
     };
     _writeStaleShaderSettings(shader);
     return shader;
@@ -624,8 +655,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   void _updateShaderSettings() {
     _shaderInputsChanged = true;
     _staleShaders.add(defaultRenderShader);
+    _staleShaders.add(ios27RenderShader);
     _staleShaders.add(materialRenderShader);
     _staleShaders.add(tintRenderShader);
+    _staleShaders.add(tintIos27RenderShader);
     _writeStaleShaderSettings(renderShader);
   }
 
@@ -1144,7 +1177,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
     if (!identical(geometryImage, _boundGeometryImage) ||
         !identical(_materialImage, _boundMaterialImage) ||
+        !identical(activeRenderShader, _boundShader) ||
         _geometryMatteBounds != _boundMatteBounds) {
+      _boundShader = activeRenderShader;
       _boundGeometryImage = geometryImage;
       _boundMaterialImage = _materialImage;
       _boundMatteBounds = _geometryMatteBounds;
@@ -1152,6 +1187,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
   }
 
+  FragmentShader? _boundShader;
   ui.Image? _boundGeometryImage;
   ui.Image? _boundMaterialImage;
   Rect? _boundMatteBounds;

@@ -31,4 +31,6 @@ flutter:
     - shader_audit/baseline/liquid_glass_final_render.frag
     - shader_audit/baseline/liquid_glass_final_render_material.frag
     - shader_audit/baseline/liquid_glass_final_render_tint.frag
+    - shader_audit/baseline/liquid_glass_final_render_ios27.frag
+    - shader_audit/baseline/liquid_glass_final_render_tint_ios27.frag
     - shader_audit/baseline/fake_glass_surface.frag

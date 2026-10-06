@@ -1,7 +1,10 @@
 // Copyright 2025, Tim Lehmann for whynotmake.it
 
 #version 460 core
-precision mediump float;
+// The silhouette is placed by fragment coordinates and distances up to the
+// size of a sheet; on Vulkan mediump marks them RelaxedPrecision, which a
+// Mali driver may run in fp16 (a device pixel step above 1024).
+precision highp float;
 
 #include <flutter/runtime_effect.glsl>
 
@@ -110,6 +113,13 @@ void main() {
   }
   float contourStrength = clamp(uContourStrength, 0.0, 1.0) *
       mix(1.0, tangency, clamp(uContourDirectionality, 0.0, 1.0));
+  float exteriorContourAlpha = clamp(contourBand.x * contourStrength, 0.0, 1.0);
+  // The border ring outside the clip draws no material: what follows would
+  // only be multiplied by a zero coverage.
+  if (uExteriorOnly > 0.5) {
+    fragColor = vec4(vec3(0.0), clamp(exteriorContourAlpha, 0.0, 1.0));
+    return;
+  }
   float silhouetteCoverage = clamp(0.5 - outwardPixels, 0.0, 1.0);
   // In-material share of the border, relative to the material's coverage.
   float contourAbsorption = clamp(
@@ -159,8 +169,10 @@ void main() {
   float glintProfile =
       clamp(1.0 - inward / glintWidth, 0.0, 1.0) +
       0.21 * clamp(1.0 - inward / (glintWidth * 4.0), 0.0, 1.0);
-  float wrapExponent = exp2(2.0 - 4.0 * clamp(uHighlightWrap, 0.0, 1.0));
-  float lobe = pow(max(1.0 - tangency, 0.0), wrapExponent);
+  float lobe = max(1.0 - tangency, 0.0);
+  if (uHighlightWrap != 0.5) {
+    lobe = pow(lobe, exp2(2.0 - 4.0 * clamp(uHighlightWrap, 0.0, 1.0)));
+  }
   float returnWeight = facing >= 0.0
       ? 1.0
       : clamp(uOppositeHighlight, 0.0, 1.0);
@@ -175,14 +187,11 @@ void main() {
   // backdrop access FakeGlass pulls toward it with source-over of an
   // emissive target; only RealGlass also amplifies the face chroma under the
   // glint and keeps the headroom above white.
-  float materialCoverage = uExteriorOnly > 0.5
-      ? 0.0
-      : clamp(0.5 - distance / uPixelSize, 0.0, 1.0);
+  float materialCoverage = clamp(0.5 - distance / uPixelSize, 0.0, 1.0);
   float backdropAbsorption = 1.0 -
       (1.0 - backdropContourAbsorption) * (1.0 - bevelShadow);
   float materialAlpha = 1.0 - (1.0 - tintAlpha) *
       (1.0 - backdropAbsorption);
-  float exteriorContourAlpha = clamp(contourBand.x * contourStrength, 0.0, 1.0);
   // The inner shadow absorbs the filtered face, which includes the face's
   // own emission; adding that share back leaves only the transmitted light
   // shaded, as in RealGlass.

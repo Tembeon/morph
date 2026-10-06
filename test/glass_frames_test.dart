@@ -30,9 +30,7 @@ void main() {
     isLocalTest = true;
     await MultiShaderBuilder.precacheShaders([
       ShaderKeys.fakeGlassSurface,
-      ShaderKeys.liquidGlassRender,
-      ShaderKeys.liquidGlassMaterialRender,
-      ShaderKeys.liquidGlassTintRender,
+      ...ShaderKeys.liquidGlassRenders,
     ]);
   });
   tearDownAll(() {

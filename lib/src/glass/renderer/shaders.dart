@@ -30,6 +30,24 @@ abstract class ShaderKeys {
   static String get liquidGlassTintRender =>
       '${_runtimeRoot}liquid_glass_final_render_tint.frag';
 
+  static String get liquidGlassIos27Render =>
+      '${_runtimeRoot}liquid_glass_final_render_ios27.frag';
+
+  static String get liquidGlassTintIos27Render =>
+      '${_runtimeRoot}liquid_glass_final_render_tint_ios27.frag';
+
+  /// The final liquid glass shaders in the order a layer binds them: one
+  /// appearance with the direct and with an iOS 27 color model, shapes with
+  /// their own appearances, shapes that differ only by tint with the direct
+  /// and with an iOS 27 color model.
+  static List<String> get liquidGlassRenders => [
+    liquidGlassRender,
+    liquidGlassIos27Render,
+    liquidGlassMaterialRender,
+    liquidGlassTintRender,
+    liquidGlassTintIos27Render,
+  ];
+
   static String get fakeGlassSurface =>
       '${_runtimeRoot}fake_glass_surface.frag';
 

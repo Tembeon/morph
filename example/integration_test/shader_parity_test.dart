@@ -30,9 +30,10 @@ const int _copies = int.fromEnvironment('SHADER_COPIES', defaultValue: 6);
 const int _frames = int.fromEnvironment('SHADER_FRAMES', defaultValue: 40);
 
 /// The bench's cases when SHADER_CASES names none: a control row, a large
-/// face, a frosted menu, the material variant, a lifted lens, fake glass.
+/// face, a frosted menu, the material variant, the tint variant, a lifted
+/// lens, fake glass.
 const String _benchCases =
-    'regular-dark,big-sheet,menu-frosted,mixed-models,lens-lifted,'
+    'regular-dark,big-sheet,menu-frosted,mixed-models,tint-pair,lens-lifted,'
     'fake-big-sheet';
 
 void main() {

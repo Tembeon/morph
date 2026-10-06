@@ -2,10 +2,12 @@
 
 #version 460 core
 
-// The shared core snapshots coordinate mappings and output opacity.
+// Shapes that differ only by tint, the direct color model.
 
 #define SHAPE_APPEARANCE 0
 #define SHAPE_TINT 1
+#define DIRECT_MODEL 1
+#define IOS27_MODELS 0
 
 // The web (SkSL) cannot compile the core's texture sampling; the web never
 // draws liquid glass, so there the shader is an empty stub.

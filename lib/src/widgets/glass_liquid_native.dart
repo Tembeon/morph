@@ -11,11 +11,7 @@ import 'package:morph/src/widgets/glass_tier.dart';
 
 export 'package:morph/src/widgets/glass_liquid_draw.dart';
 
-final List<String> _finalShaders = [
-  ShaderKeys.liquidGlassRender,
-  ShaderKeys.liquidGlassMaterialRender,
-  ShaderKeys.liquidGlassTintRender,
-];
+final List<String> _finalShaders = ShaderKeys.liquidGlassRenders;
 
 final LiquidCapability _capability = LiquidCapability(
   load: () async {

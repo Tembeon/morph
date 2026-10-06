@@ -250,10 +250,17 @@ vec3 ios27TintTone(vec3 tint, float backdropLuminance, float darkWeight) {
 // dark.
 vec3 colorModelSharesOf(float code) {
     return vec3(
-        code < 0.5 ? 1.0 : 0.0,
-        abs(code - 2.0) < 0.5 ? 1.0 : 0.0,
-        code > 2.5 ? 1.0 : 0.0
+        1.0 - step(0.5, code),
+        1.0 - step(0.5, abs(code - 2.0)),
+        1.0 - step(code, 2.5)
     );
+}
+
+// a where pick is 0, b where it is 1, exactly: no select on a decoded
+// value (the Mali Vulkan compiler once miscompiled one, see
+// decodeSignedEdgeDistance) and no mix, whose b - a rounds.
+float pickExact(float a, float b, float pick) {
+    return a * (1.0 - pick) + b * pick;
 }
 
 float contourExtent() {
@@ -353,7 +360,9 @@ vec3 applySpecularHighlights(
     vec3 baseColor,
     vec3 transmittedColor,
     float signedEdgeDistance,
-    vec2 surfaceNormal
+    vec2 surfaceNormal,
+    float innerContourCoverage,
+    float contourDirectionWeight
 ) {
     if (
         uLightIntensity < 0.01 &&
@@ -369,7 +378,7 @@ vec3 applySpecularHighlights(
         0.001
     );
     // In-material share of the border, relative to the material's coverage.
-    float outlineCoverage = contourCoverage(signedEdgeDistance).y /
+    float outlineCoverage = innerContourCoverage /
         max(clamp(signedEdgeDistance + 0.5, 0.0, 1.0), 0.001);
     // The glint is a thin line anchored at the silhouette with a faint
     // inward bleed. Both are linear ramps in logical distance, so the line
@@ -391,17 +400,37 @@ vec3 applySpecularHighlights(
     }
 
     vec2 normalXY = surfaceNormal;
+    float lightFacing = dot(normalXY, -uLightDirection);
+    // Deep inside, past the glint's bleed, the inner border and the bevel
+    // band (with a margin over the band's division), every term below is
+    // exactly zero.
+    if (
+        outlineCoverage <= 0.0 &&
+        glintProfile <= 0.0 &&
+        inwardDistance - max(uBevelShadowOffset, 0.0) * lightFacing >=
+            max(uBevelShadowDepth, 0.001) * 1.0001
+    ) {
+        return baseColor;
+    }
 
     // Both walls along the light axis catch the glint; it fades linearly
     // with the normal's tangential component. highlightWrap = 0.5 is the
     // linear falloff measured on iOS 27; lower values narrow the lobes and
     // higher values carry them further around corners.
-    float wrapExponent = exp2(2.0 - 4.0 * clamp(uSpecularWrap, 0.0, 1.0));
     float axisAlignment = 1.0 - lightAxisTangency(normalXY);
-    float lobe = pow(max(axisAlignment, 0.0), wrapExponent);
-    float returnWeight = dot(normalXY, -uLightDirection) >= 0.0
-        ? 1.0
-        : clamp(uHighlightOppositeStrength, 0.0, 1.0);
+    // The measured wrap 0.5 is an exponent of exactly 1: no pow.
+    float lobe = max(axisAlignment, 0.0);
+    if (uSpecularWrap != 0.5) {
+        lobe = pow(
+            lobe,
+            exp2(2.0 - 4.0 * clamp(uSpecularWrap, 0.0, 1.0))
+        );
+    }
+    float returnWeight = pickExact(
+        clamp(uHighlightOppositeStrength, 0.0, 1.0),
+        1.0,
+        step(0.0, lightFacing)
+    );
     float glint = clamp(
         max(uLightIntensity, 0.0) * kGlintPeak * lobe * returnWeight *
             glintProfile,
@@ -436,7 +465,6 @@ vec3 applySpecularHighlights(
         // the lit wall it falls inside the face, along the sides it starts
         // at the rim, and below the far wall it is pushed out past the rim.
         // The penumbra is as wide as the displacement.
-        float lightFacing = dot(normalXY, -uLightDirection);
         float shadowShift = max(uBevelShadowOffset, 0.0) * lightFacing;
         float penumbra = 2.0 * shadowShift;
         float bevelLeadingEdge = penumbra > 0.001
@@ -477,7 +505,7 @@ vec3 applySpecularHighlights(
     // The border absorbs the transmitted backdrop only where the material
     // still overlaps it; its exterior part is composited in main().
     float edgeAbsorption = clamp(
-        outlineCoverage * gContourAlpha * contourDirection(normalXY),
+        outlineCoverage * gContourAlpha * contourDirectionWeight,
         0.0,
         1.0
     );
@@ -586,9 +614,11 @@ void main() {
             ) < kIdTolerance
         ) {
             float lowerWeight = clamp(filtered.a, 0.0, 1.0);
-            primaryWeight = contributors.r <= contributors.g
-                ? lowerWeight
-                : 1.0 - lowerWeight;
+            primaryWeight = pickExact(
+                1.0 - lowerWeight,
+                lowerWeight,
+                step(contributors.r, contributors.g)
+            );
         }
         int primary = int(clamp(
             floor(contributors.r * 32.0),
@@ -606,21 +636,27 @@ void main() {
             materialTextureSize,
             materialSize.y + 0.5
         );
-        vec4 secondaryTint = shapeLookup(
-            secondary,
-            materialTextureSize,
-            materialSize.y + 0.5
-        );
         vec4 primaryResponse = shapeLookup(
             primary,
             materialTextureSize,
             materialSize.y + 1.5
         );
-        vec4 secondaryResponse = shapeLookup(
-            secondary,
-            materialTextureSize,
-            materialSize.y + 1.5
-        );
+        // Away from other shapes both contributors are the same shape, whose
+        // palette entries the primary fetches already hold.
+        vec4 secondaryTint = primaryTint;
+        vec4 secondaryResponse = primaryResponse;
+        if (secondary != primary) {
+            secondaryTint = shapeLookup(
+                secondary,
+                materialTextureSize,
+                materialSize.y + 0.5
+            );
+            secondaryResponse = shapeLookup(
+                secondary,
+                materialTextureSize,
+                materialSize.y + 1.5
+            );
+        }
         primaryResponse.xyz *= 4.0;
         secondaryResponse.xyz *= 4.0;
         float primaryPackedResponse = primaryResponse.w * 7.0;
@@ -668,9 +704,10 @@ void main() {
     // rasterizes the silhouette: a pixel-aligned edge stays hard, so the
     // glint's first row is not diluted by a wider feather.
     float materialAlpha = clamp(signedEdgeDistance + 0.5, 0.0, 1.0);
+    vec2 contourCover = contourCoverage(signedEdgeDistance);
     if (
         materialAlpha < 0.01 &&
-        contourCoverage(signedEdgeDistance).x * gContourAlpha < 0.01
+        contourCover.x * gContourAlpha < 0.01
     ) {
         fragColor = vec4(0.0);
         return;
@@ -679,6 +716,7 @@ void main() {
         decodeDisplacement(geometryData, maxDisplacement) *
         appearanceVisibility;
     vec2 surfaceNormal = decodeSurfaceNormal(geometryData);
+    float contourDirectionWeight = contourDirection(surfaceNormal);
 
     vec2 invUSize = 1.0 / uSize;
     vec2 backdropScaleOffset = vec2(0.0);
@@ -794,10 +832,13 @@ void main() {
     vec3 baseColor = vec3(0.0);
     float directShare = colorModelShares.x;
     if (directShare > 0.0) {
-        transmittedColor = pow(
-            max(refractColor.rgb, vec3(0.0)),
-            vec3(max(uTransmissionGamma, 0.01))
-        );
+        transmittedColor = max(refractColor.rgb, vec3(0.0));
+        if (uTransmissionGamma != 1.0) {
+            transmittedColor = pow(
+                transmittedColor,
+                vec3(max(uTransmissionGamma, 0.01))
+            );
+        }
         vec3 materialColor = materialTint.rgb * materialTint.a;
         transmittedColor *= 1.0 - materialTint.a;
         baseColor = materialColor + transmittedColor;
@@ -861,15 +902,18 @@ void main() {
             gGlintVibrancy = mix(gGlintVibrancy, 0.78, colorModelShares.z);
         }
         float backdropLuminance = dot(refractColor.rgb, LUMA_WEIGHTS);
-        float transmittedLuminance = pow(
-            clamp(
-                backdropLuminance *
-                    (1.0 + faceTransfer.x * (1.0 - backdropLuminance)),
-                0.0,
-                1.0
-            ),
-            max(uTransmissionGamma, 0.01)
+        float transmittedLuminance = clamp(
+            backdropLuminance *
+                (1.0 + faceTransfer.x * (1.0 - backdropLuminance)),
+            0.0,
+            1.0
         );
+        if (uTransmissionGamma != 1.0) {
+            transmittedLuminance = pow(
+                transmittedLuminance,
+                max(uTransmissionGamma, 0.01)
+            );
+        }
         vec3 neutralTransmission =
             vec3(transmittedLuminance * (1.0 - neutralTint.a)) +
             (refractColor.rgb - vec3(backdropLuminance)) *
@@ -911,7 +955,9 @@ void main() {
         baseColor,
         transmittedColor,
         signedEdgeDistance,
-        surfaceNormal
+        surfaceNormal,
+        contourCover.y,
+        contourDirectionWeight
     );
     // The lit material (face, tint, saturation, lighting and in-material
     // contour) cross-fades to the refracted backdrop, whose refraction
@@ -926,9 +972,9 @@ void main() {
     float fadeAlpha = mix(1.0, appearanceVisibility, uBlurFade);
     float visibleMaterialAlpha = materialAlpha * fadeAlpha;
     float externalContourAlpha =
-        contourCoverage(signedEdgeDistance).x *
+        contourCover.x *
         gContourAlpha *
-        contourDirection(surfaceNormal) *
+        contourDirectionWeight *
         appearanceVisibility;
     float alpha = visibleMaterialAlpha + externalContourAlpha;
     vec3 premultipliedColor = finalColor * visibleMaterialAlpha +

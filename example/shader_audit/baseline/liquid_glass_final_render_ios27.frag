@@ -2,12 +2,10 @@
 
 #version 460 core
 
-// One appearance for the layer, the direct color model (a lifted lens).
+// The shared core snapshots coordinate mappings and output opacity.
 
 #define SHAPE_APPEARANCE 0
 #define SHAPE_TINT 0
-#define DIRECT_MODEL 1
-#define IOS27_MODELS 0
 
 // The web (SkSL) cannot compile the core's texture sampling; the web never
 // draws liquid glass, so there the shader is an empty stub.

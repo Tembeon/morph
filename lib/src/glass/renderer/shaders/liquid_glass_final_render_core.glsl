@@ -831,6 +831,7 @@ void main() {
     vec3 transmittedColor = vec3(0.0);
     vec3 baseColor = vec3(0.0);
     float directShare = colorModelShares.x;
+    #if DIRECT_MODEL
     if (directShare > 0.0) {
         transmittedColor = max(refractColor.rgb, vec3(0.0));
         if (uTransmissionGamma != 1.0) {
@@ -851,6 +852,8 @@ void main() {
             1.0
         );
     }
+    #endif
+    #if IOS27_MODELS
     if (directShare < 1.0) {
         // Apple's public tint is not a flat source-over wash. Its documented
         // "range of tones" is selected from backdrop brightness, while tint
@@ -947,6 +950,7 @@ void main() {
             directShare
         );
     }
+    #endif
 
     // Reconstruct the original material silhouette from the signed SDF. The
     // geometry alpha is only an expanded support mask, allowing the attached

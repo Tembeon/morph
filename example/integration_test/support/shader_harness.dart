@@ -3,8 +3,10 @@
 /// copy of them (example/shader_audit/baseline), compared pixel by pixel in
 /// the same app on the same device, and timed against each other.
 ///
-/// The frozen copy is the shader tree of commit a64140c with the 32-shape
-/// contributor decode of 7864ada; replace it
+/// The frozen copy is the shader tree of commit e953244, the final shaders
+/// before they were specialized per color model family; its `_ios27`
+/// entries are copies of its one-appearance and tint entries, the programs
+/// the specialized variants replace. Replace it
 /// (example/shader_audit/baseline) to compare against another revision.
 library;
 
