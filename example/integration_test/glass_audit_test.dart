@@ -77,7 +77,16 @@ import 'support/layer_census.dart';
 /// `--dart-define=AUDIT_CENSUS=true` also counts the engine layers of
 /// every frame inside those windows (support/layer_census.dart) into the
 /// report's `census`; `AUDIT_CENSUS_OWNERS=true` names the owner of every
-/// backdrop filter there too. The audit holds the app in portrait: a phone lying
+/// backdrop filter there too.
+/// `--dart-define=AUDIT_IDLE_S=60` holds the gallery home still for that
+/// many seconds after launch with no frames scheduled (the `idle` window
+/// of `windows_us`), then for half as long under the live binding, which
+/// schedules a frame after every frame (`idle-frames`), and counts the
+/// frames of both in `idle_frames`; perf/energy_android.sh splits the
+/// phone's power rails by these windows. `--dart-define=FUSION_PREFETCH=false`
+/// (or true) overrides whether the menu fuses ahead on its workers; the
+/// report counts the outlines served ahead and fused in the frame.
+/// The audit holds the app in portrait: a phone lying
 /// on its side with auto-rotate on would otherwise lay the gallery out in
 /// landscape, where the later rows are off screen.
 const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
@@ -96,6 +105,8 @@ const bool _censusOwners = bool.fromEnvironment('AUDIT_CENSUS_OWNERS');
 
 const bool _atlas = bool.fromEnvironment('AUDIT_ATLAS');
 
+const int _idleSeconds = int.fromEnvironment('AUDIT_IDLE_S');
+
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -108,6 +119,12 @@ void main() {
         ? .light
         : .dark;
     SchedulerBinding.instance.addTimingsCallback(audit.timings.addAll);
+    if (const bool.hasEnvironment('FUSION_PREFETCH')) {
+      // ignore: invalid_use_of_internal_member
+      MorphMenuFusion.debugPrefetch = const bool.fromEnvironment(
+        'FUSION_PREFETCH',
+      );
+    }
     await audit.run();
     File('${_Audit.outDir.path}/report.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(audit.report()),
@@ -131,6 +148,8 @@ class _Audit {
   final Map<String, List<(int, int)>> _scenes = {};
   final Stopwatch _clock = Stopwatch();
   int _pointer = 300;
+
+  final Map<String, int> _idleFrames = {};
 
   Future<void> settle([int ms = 900]) =>
       tester.pump(Duration(milliseconds: ms));
@@ -371,6 +390,26 @@ class _Audit {
     _enteredAt = timings.length;
     runApp(const GalleryApp());
     await settle(1500);
+    if (_idleSeconds > 0) {
+      await settle(300);
+      final policy = binding.framePolicy;
+      binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.benchmark;
+      await Future<void>.delayed(const Duration(seconds: 2));
+      var before = timings.length;
+      _sceneMark('idle', 0, 'begin');
+      // ignore: use_named_constants
+      await Future<void>.delayed(const Duration(seconds: _idleSeconds));
+      _sceneMark('idle', 0, 'end');
+      binding.framePolicy = policy;
+      await tester.pump();
+      await settle(300);
+      _idleFrames['idle'] = timings.length - before;
+      before = timings.length;
+      _sceneMark('idle-frames', 0, 'begin');
+      await settle(_idleSeconds * 500);
+      _sceneMark('idle-frames', 0, 'end');
+      _idleFrames['idle-frames'] = timings.length - before;
+    }
     for (final (name, scene) in [
       ('home-scroll', _homeScroll),
       ('segmented', _segmented),
@@ -740,6 +779,11 @@ class _Audit {
       'runs': _runs,
       'outline_us': _outlineMicros,
       'windows_us': _windowsUs,
+      if (_idleSeconds > 0) 'idle_frames': _idleFrames,
+      // ignore: invalid_use_of_internal_member
+      'fusion_served_ahead': MorphMenuFusion.debugServedAhead,
+      // ignore: invalid_use_of_internal_member
+      'fusion_fused_here': MorphMenuFusion.debugFusedHere,
       if (_layerCensus case final census?) 'census': census.report(),
       if (_atlas)
         'atlas': {

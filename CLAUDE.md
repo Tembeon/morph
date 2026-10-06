@@ -1307,6 +1307,19 @@ background isolates and served within 0.02 pt per input: menu build p95
 2.30; Pixel flat 12.2 -> 11.1, liquid 14.5 -> 13.4 ms; a served frame's
 UI cost 0.04 ms (iPhone) / 0.19 ms (Pixel) against 0.85 / 7.5 ms paced.
 
+ENERGY (2026-10-06, glass-renderer.md "Energy: ADPF and the fusion
+workers"; perf/2026-10-06-pixel6a-energy, exp/adpf): Pixel 6a ODPM power
+rails per audit scene (perf/energy_android.sh + energy.py, ABBA, cooled
+starts). At rest the gallery home draws no frames: 286 mW for the whole
+phone (display 133). ADPF (hint sessions for the UI and raster threads,
+FrameTiming durations) cut menu frames over budget 16 -> 4 but cost +9
+percent energy on the menu, +3 on the sheet (the UI thread moves to the
+A76 / X1 cores): rejected, kept on branch exp/adpf; the engine has none.
+The menu fusion workers cost 4.5 - 6 percent of the menu scene's energy
+(~45 mJ a transition, the three speculative fusions a frame) for 3 - 5
+fewer frames over budget in 40 transitions; one frame ahead costs
+nothing and gains nothing.
+
 Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 
 | scene                   | us/op  |

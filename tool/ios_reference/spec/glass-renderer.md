@@ -1862,6 +1862,116 @@ geometry passes' Flutter GPU submits are on the UI thread, already at most
 one a frame (0.76 a frame in segmented, about 1 ms there), and never
 reach the raster thread's batch. Merging them is engine work.
 
+## Energy: ADPF and the fusion workers (Pixel 6a, 2026-10-06)
+
+The owner's criterion: beautiful AND no extra heat or battery drain for
+an app using the package; energy is the primary metric, frames second.
+Evidence: perf/2026-10-06-pixel6a-energy (fusion workers, this branch)
+and perf/2026-10-06-pixel6a-adpf-energy on branch exp/adpf (ADPF, with
+its experimental client example/lib/perf/adpf.dart).
+
+METHOD (perf/energy_android.sh, energy_android.cfg, energy.py): every
+launch of a profile audit APK under a Perfetto trace of the ODPM power
+rails (14 rails polled every 100 ms: CPU big / mid / little, GPU, DDR,
+memory interface, fabric, display, ...), cpufreq, cpuidle and sched;
+energy.py splits the cumulative rails by the report's scene windows
+(`windows_us`, CLOCK_MONOTONIC mapped through the trace's clock
+snapshots), and from the same windows the time-weighted cluster clocks
+and where the UI (main) and raster threads ran. Variants interleaved
+(ABBA), each launch from a skin below 37 C (it ends at 38 - 39), liquid
+tier, AUDIT_RUNS=5, no shots. The phone sat on AC with the battery full
+and not charging (status 4, level 100); the rails measure the PMIC
+outputs either way. Launch spread per scene and variant 1 - 6 percent of
+the total (idle up to 26: no app work, background noise).
+
+THE HARNESS IS NOT IDLE: the integration test's live binding
+(`LiveTestWidgetsFlutterBinding.handleDrawFrame`) schedules a frame after
+every frame, so every audit scene carries ~60 fps of empty frames
+between its gestures (1 799 frames in 30 s on a still home page); the
+energies below are scene + that floor, on both sides of every A/B.
+`AUDIT_IDLE_S=60` measures the real rest: the binding's benchmark policy
+for 60 s (no frames scheduled: 14 - 15 frames, the app's threads 3 ms of
+CPU) and then 30 s of the live loop. Home at rest 286 mW for the whole
+phone (display 133, CPU 50), under the live loop 464 mW: the package
+draws nothing at rest.
+
+ENGINE (Flutter 3.47.2, engine a804b26164): no ADPF anywhere (no
+APerformanceHint / PerformanceHintManager in the engine or the
+embedding). The UI thread is the platform thread (merged since 3.29) with
+no affinity request; the raster thread asks for the non-efficiency cores
+and setpriority -5 (android_shell_holder.cc). Android 17's HWUI opens its
+own hint session (tag 2) on the main thread with its RenderThread, but
+reports only HWUI's frames, not Flutter's.
+
+ADPF EXPERIMENT (rejected): two sessions from Dart FFI into libandroid
+(the UI thread, `1.raster`), target the measured cadence (16.67 ms), the
+build and raster durations of every FrameTiming reported as they arrive
+(every 100 ms in profile, every second in release); ~16 500 reports a
+launch, 0 errors. `eff` adds setPreferPowerEfficiency. Medians of 4
+launches, total mJ / frames over budget / build p95 / raster p95:
+
+| scene | off | on | on vs off | eff |
+|---|---|---|---|---|
+| idle 60 s (no frames) | 17143 | 18658 | noise (+9 %, spread 26 %) | 17623 |
+| idle-frames 30 s | 13932 | 13800 | -1 % | 14715 |
+| home-scroll | 29477 / 2 / 6.41 / 11.37 | 29416 / 2 / 6.32 / 10.93 | 0 % | 31665 / 2 |
+| segmented | 20855 / 0 / 7.87 / 10.21 | 20483 / 0 / 7.74 / 10.28 | -2 % | 23067 / 1 |
+| tab-bar | 84880 / 8 / 9.21 / 14.07 | 82127 / 4 / 9.01 / 13.63 | -3 % | 82001 / 2 |
+| controls | 21739 / 2 / 13.29 / 12.11 | 21876 / 1 / 9.87 / 11.80 | +1 % | 24935 / 2 |
+| menu | 17465 / 16 / 15.72 / 16.01 | 19068 / 4 / 7.74 / 11.88 | +9 % | 22540 / 4 |
+| sheet | 25930 / 6 / 7.52 / 14.48 | 26726 / 2 / 2.66 / 11.94 | +3 % | 29559 / 2 |
+
+- What ADPF does here: it moves the UI thread off the A55s. Menu UI thread
+  CPU ms little / mid / big 7490 / 2246 / 668 -> 1817 / 2227 / 2257,
+  sheet 4655 / 1478 / 312 -> 0 / 1912 / 1090; the mid and big clusters
+  run 540 -> 730 MHz. Fewer CPU seconds on dearer cores: the menu's CPU
+  rails 4.1 -> 5.2 J. The frames gain (menu over budget 16 -> 4, build
+  p95 halved; sheet 6 -> 2) and the energy rises where the gain is: menu
+  +9 percent (the launches do not overlap: 17.3 - 17.8 J against 18.8 -
+  19.4), sheet +3 percent. The tab bar's -3 percent is a shorter window
+  (fewer late frames, 50.5 -> 48 s) at the same power.
+- `eff` (prefer power efficiency) is worse: the work stays on the small
+  cores at higher clocks (tab bar little cluster 656 -> 1057 MHz, CPU
+  rails 8.8 -> 15.9 J), +6 to +29 percent in every scene but the tab bar
+  (-3 percent, its window 50.5 -> 43 s).
+- GATE (frames down AND energy equal or lower): fails on the menu and
+  the sheet. ADPF stays out of the package; the client and the evidence
+  live on exp/adpf. What would have to change for a retry: a report path
+  without the second-long release batching (an engine-side session, or
+  the UI build timed in-process), and a session that boosts only the
+  frames that miss, not the whole menu.
+
+THE FUSION WORKERS (kept, owner's call; perf/2026-10-06-pixel6a-energy):
+they run only while the menu fuses (an open or close; resting frames
+never fuse). The menu scene alone, 40 transitions a launch, 4 + 3
+launches per variant:
+
+| variant | total mJ | worker CPU s | build p95 | over budget | served |
+|---|---|---|---|---|---|
+| off | 34063, 34241 | 1.3 | 17.23, 16.14 | 20, 18 | 0 |
+| on: 3 frames ahead (shipping) | 36098, 35789 | 13.4 | 14.66, 15.17 | 15, 15 | 59 % |
+| 1 frame ahead (local build) | 33957 | 5.4 | 17.52 | 18 | 45 % |
+
+- The shipping pool costs 4.5 - 6.0 percent of the menu scene's energy,
+  ~40 - 50 mJ a transition, mostly CPU (+0.8 - 1.3 J) and memory (+0.3 -
+  0.5 J): the workers burn ~12 s of CPU a launch, about 3.7 ms a
+  speculative fusion on the small cores, three fusions a fusing frame of
+  which at most one serves; the UI thread's CPU time does not fall
+  measurably (20.5 -> 20.4 s). For that: 3 - 5 fewer frames over budget a
+  launch (one per 8 - 13 transitions) and build p95 -1 to -2.5 ms.
+- One frame ahead costs nothing (-0.8 percent, inside the spread) and buys
+  nothing (over budget 18 = off, build p95 not better). The energy is
+  the speculation, so the lever if the pool must cost less is the number
+  of predictions, not when the pool runs. Left as is: owner's decision.
+- Reading for the earlier frame-only A/B ("Menu fusion: the device gap"):
+  its build p95 gain holds; it is not free.
+
+PERFETTO TRAP: after a run that wrote tracefs directly (audit_android.sh
+`AUDIT_GPUWORK=1`) Perfetto's ftrace data source recorded nothing (no
+sched, no cpufreq; the rails still came) until the phone was rebooted.
+Check a short `perfetto -t 5s sched freq` trace has sched rows before an
+energy run.
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
@@ -1885,6 +1995,9 @@ and `AUDIT_CENSUS=true` for the layer census per scene in the report
 perf/shotdiff.py compares two runs' shots (mean, max, percent over 15);
 the shader harness and its tools are under "Shader harness" above;
 perf/contact.py lays several tiers' shots side by side.
+Energy: perf/energy_android.sh runs audit APKs under a Perfetto power
+trace, perf/energy.py splits the rails by scene (see "Energy: ADPF and
+the fusion workers"); `AUDIT_IDLE_S` and `FUSION_PREFETCH` on the audit.
 Gallery: the root installs `MorphAdaptiveGlass` with the session's
 `MorphGlassRenderer` (GalleryGlassSettings / GalleryGlassScope,
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass

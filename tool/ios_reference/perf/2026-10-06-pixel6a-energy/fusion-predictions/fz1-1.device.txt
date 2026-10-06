@@ -1,0 +1,20 @@
+run: fz1-1  apk: fz1.apk  date: Tue Oct  6 13:44:44 CEST 2026
+before:
+skin: 34.368652
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 344
+  Capacity level: 5
+TotalTime: 640
+after:
+skin: 34.980854
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 341
+  Capacity level: 5

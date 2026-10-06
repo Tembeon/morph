@@ -1,0 +1,20 @@
+run: fzoff-4  apk: fzoff.apk  date: Tue Oct  6 13:35:55 CEST 2026
+before:
+skin: 35.796604
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 344
+  Capacity level: 5
+TotalTime: 678
+after:
+skin: 35.595104
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 344
+  Capacity level: 5

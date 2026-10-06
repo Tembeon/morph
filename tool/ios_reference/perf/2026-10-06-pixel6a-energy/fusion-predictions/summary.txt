@@ -1,0 +1,24 @@
+rails: ['rails.aoc.logic', 'rails.aoc.memory', 'rails.cpu.big', 'rails.cpu.little', 'rails.cpu.mid', 'rails.ddr.a', 'rails.ddr.b', 'rails.ddr.c', 'rails.display', 'rails.gps', 'rails.gpu', 'rails.memory.interface', 'rails.system.fabric', 'rails.tpu'] threads: {'ui': 8363, 'raster': 8422, 'workers': 11}
+
+== fz1
+menu         n=3 s=45.1 total 33957 mJ (751 mW) | rails.aoc.logic=222 rails.aoc.memory=103 rails.cpu.big=1635 rails.cpu.little=4033 rails.cpu.mid=1972 rails.ddr.a=418 rails.ddr.b=660 rails.ddr.c=3307 rails.display=5921 rails.gps=37 rails.gpu=10354 rails.memory.interface=3133 rails.system.fabric=1641 rails.tpu=554
+    fz1-1             33795 mJ   45.1s  freq L/M/B 675/533/519  busy 0.30/0.39/0.13  ui ms 14576/4688/1377  raster ms 0/104/121  b95 16.41 r95 15.58 over 15  skin 34.4>35.0
+    fz1-6             33961 mJ   45.1s  freq L/M/B 688/570/521  busy 0.30/0.39/0.12  ui ms 14828/4616/1243  raster ms 0/100/121  b95 17.53 r95 16.68 over 21  skin 35.4>35.4
+    fz1-7             33957 mJ   45.2s  freq L/M/B 664/556/525  busy 0.29/0.39/0.11  ui ms 14590/4394/1369  raster ms 0/106/117  b95 17.52 r95 15.82 over 18  skin 35.4>35.3
+
+== fzoff
+menu         n=3 s=45.1 total 34241 mJ (757 mW) | rails.aoc.logic=229 rails.aoc.memory=103 rails.cpu.big=1589 rails.cpu.little=4178 rails.cpu.mid=2033 rails.ddr.a=423 rails.ddr.b=664 rails.ddr.c=3271 rails.display=5931 rails.gps=36 rails.gpu=10230 rails.memory.interface=3196 rails.system.fabric=1638 rails.tpu=554
+    fzoff-3           34241 mJ   45.2s  freq L/M/B 678/574/520  busy 0.28/0.40/0.11  ui ms 13457/5495/1949  raster ms 0/103/122  b95 16.06 r95 16.22 over 17  skin 35.2>35.2
+    fzoff-4           33670 mJ   45.1s  freq L/M/B 671/554/521  busy 0.28/0.40/0.10  ui ms 13060/5718/1945  raster ms 0/97/127  b95 16.14 r95 15.90 over 18  skin 35.3>35.2
+    fzoff-9           34441 mJ   45.0s  freq L/M/B 678/577/531  busy 0.28/0.39/0.11  ui ms 13459/5280/1868  raster ms 0/99/117  b95 16.82 r95 16.82 over 19  skin 35.4>35.4
+
+== fzon
+menu         n=3 s=45.1 total 35789 mJ (794 mW) | rails.aoc.logic=226 rails.aoc.memory=103 rails.cpu.big=1990 rails.cpu.little=4669 rails.cpu.mid=2048 rails.ddr.a=439 rails.ddr.b=658 rails.ddr.c=3439 rails.display=5944 rails.gps=36 rails.gpu=10555 rails.memory.interface=3317 rails.system.fabric=1666 rails.tpu=554
+    fzon-2            35789 mJ   45.1s  freq L/M/B 717/555/534  busy 0.33/0.40/0.15  ui ms 14260/4787/1375  raster ms 0/99/122  b95 15.67 r95 15.12 over 15  skin 35.0>35.1
+    fzon-5            35324 mJ   45.2s  freq L/M/B 714/551/526  busy 0.33/0.39/0.15  ui ms 14689/4514/1482  raster ms 0/103/119  b95 14.69 r95 15.95 over 16  skin 35.3>35.3
+    fzon-8            36081 mJ   45.1s  freq L/M/B 717/572/539  busy 0.33/0.40/0.15  ui ms 14432/4623/1330  raster ms 0/98/124  b95 15.17 r95 15.25 over 13  skin 35.4>35.4
+
+median per variant and scene: total mJ (mW) | cpu big/mid/little | gpu | mem | display | build p95 / raster p95 / over budget (median of launches) | n
+menu         fz1      33957 (  751) | 1635/1972/4033 |  10354 |  9163 |  5921 | 17.52 / 15.82 / 18 | 3
+menu         fzoff    34241 (  757) | 1589/2033/4178 |  10230 |  9231 |  5931 | 16.14 / 16.22 / 18 | 3
+menu         fzon     35789 (  794) | 1990/2048/4669 |  10555 |  9516 |  5944 | 15.17 / 15.25 / 15 | 3

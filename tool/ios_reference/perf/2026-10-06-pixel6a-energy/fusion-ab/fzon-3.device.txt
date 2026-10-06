@@ -1,0 +1,20 @@
+run: fzon-3  apk: fzon.apk  date: Tue Oct  6 13:34:35 CEST 2026
+before:
+skin: 35.897102
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 342
+  Capacity level: 5
+TotalTime: 593
+after:
+skin: 35.751003
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 344
+  Capacity level: 5

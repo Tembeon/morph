@@ -1,0 +1,19 @@
+rails: ['rails.aoc.logic', 'rails.aoc.memory', 'rails.cpu.big', 'rails.cpu.little', 'rails.cpu.mid', 'rails.ddr.a', 'rails.ddr.b', 'rails.ddr.c', 'rails.display', 'rails.gps', 'rails.gpu', 'rails.memory.interface', 'rails.system.fabric', 'rails.tpu'] threads: {'ui': 8358, 'raster': 8419, 'workers': 11}
+
+== fzoff
+menu         n=4 s=45.1 total 34063 mJ (755 mW) | rails.aoc.logic=225 rails.aoc.memory=104 rails.cpu.big=1605 rails.cpu.little=4083 rails.cpu.mid=2061 rails.ddr.a=417 rails.ddr.b=663 rails.ddr.c=3264 rails.display=5928 rails.gps=36 rails.gpu=10305 rails.memory.interface=3138 rails.system.fabric=1638 rails.tpu=553
+    fzoff-1           34320 mJ   45.1s  freq L/M/B 687/590/524  busy 0.28/0.40/0.11  ui ms 13449/4981/1965  raster ms 0/96/121  b95 17.84 r95 16.70 over 22  skin 35.2>35.5
+    fzoff-4           34063 mJ   45.2s  freq L/M/B 669/560/519  busy 0.28/0.39/0.11  ui ms 13783/5220/1683  raster ms 0/101/123  b95 17.27 r95 15.76 over 19  skin 35.8>35.6
+    fzoff-5           34062 mJ   45.0s  freq L/M/B 682/570/519  busy 0.28/0.39/0.11  ui ms 13577/5582/1701  raster ms 0/101/119  b95 16.80 r95 15.97 over 20  skin 35.7>35.6
+    fzoff-8           33931 mJ   45.1s  freq L/M/B 670/571/526  busy 0.28/0.39/0.10  ui ms 13341/5059/1870  raster ms 0/98/125  b95 17.18 r95 17.05 over 20  skin 35.8>35.6
+
+== fzon
+menu         n=4 s=45.1 total 36098 mJ (801 mW) | rails.aoc.logic=229 rails.aoc.memory=106 rails.cpu.big=2235 rails.cpu.little=4720 rails.cpu.mid=2086 rails.ddr.a=445 rails.ddr.b=658 rails.ddr.c=3445 rails.display=5931 rails.gps=36 rails.gpu=10574 rails.memory.interface=3372 rails.system.fabric=1682 rails.tpu=554
+    fzon-2            36119 mJ   45.1s  freq L/M/B 716/576/545  busy 0.33/0.39/0.15  ui ms 14673/4273/1462  raster ms 0/98/121  b95 15.82 r95 14.95 over 16  skin 35.6>35.9
+    fzon-3            36077 mJ   45.0s  freq L/M/B 727/563/544  busy 0.34/0.39/0.16  ui ms 14725/4328/1400  raster ms 0/102/115  b95 14.82 r95 15.68 over 15  skin 35.9>35.8
+    fzon-6            35855 mJ   45.2s  freq L/M/B 716/579/548  busy 0.32/0.39/0.15  ui ms 14597/4342/1390  raster ms 0/103/119  b95 13.35 r95 15.26 over 13  skin 35.6>35.6
+    fzon-7            36502 mJ   45.2s  freq L/M/B 716/579/547  busy 0.33/0.39/0.15  ui ms 14168/4522/1574  raster ms 0/102/119  b95 14.50 r95 14.84 over 15  skin 35.7>35.7
+
+median per variant and scene: total mJ (mW) | cpu big/mid/little | gpu | mem | display | build p95 / raster p95 / over budget (median of launches) | n
+menu         fzoff    34063 (  755) | 1605/2061/4083 |  10305 |  9110 |  5928 | 17.23 / 16.34 / 20 | 4
+menu         fzon     36098 (  801) | 2235/2086/4720 |  10574 |  9600 |  5931 | 14.66 / 15.10 / 15 | 4
