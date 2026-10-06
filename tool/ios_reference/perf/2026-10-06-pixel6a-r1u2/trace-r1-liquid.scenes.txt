@@ -1,0 +1,21 @@
+                              home-scroll    segmented      tab-bar     controls         menu        sheet
+runs                                    2            2            2            2            2            2
+seconds                            14.286       15.036       19.243       13.878        9.061        9.021
+raster frames                         808          902         1143          823          488          483
+ui frames                             808          901         1151          825          501          485
+saveLayer/frame                     4.928        3.785        7.948        8.187       18.398       13.669
+saveLayer self ms/frame             0.955        0.759        2.280        2.019        2.016        2.412
+raster submits/frame                2.000        1.998        2.000        2.002        2.000        2.000
+raster submit ms/frame              2.309        1.993        3.200        2.307        3.178        2.999
+Draw incl ms/frame                  8.558        8.470       11.344        9.844       11.745       11.913
+Encode self ms/frame                2.907        3.398        3.114        3.422        3.650        3.344
+ui submits/frame                    0.000        0.757        0.864        0.890        0.820        0.066
+ui submit ms/frame                  0.000        0.986        0.398        0.942        0.747        0.061
+BeginFrame incl ms/frame            3.070        5.128        5.790        6.148        6.974        3.685
+BUILD self ms/frame                 0.057        0.282        0.441        0.983        2.237        0.532
+LAYOUT self ms/frame                0.105        0.200        0.046        0.324        0.239        0.060
+PAINT self ms/frame                 1.583        1.719        2.692        1.593        1.416        0.669
+COMPOSITING self ms/frame           0.651        1.109        1.321        1.455        1.447        1.555
+scavenges                              18           36           65           25           15            7
+frames/scavenge                    44.889       25.028       17.708       33.000       33.400       69.286
+scavenge ms                        70.456      124.896      225.287      112.124       89.210       40.833

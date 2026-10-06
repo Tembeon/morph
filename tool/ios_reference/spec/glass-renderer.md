@@ -1200,6 +1200,89 @@ settle (scale 1.07 -> 0.998 -> 1, ~38 engine keys, crisp on purpose),
 the swell, the menu button's press scale, the first lift on each grid
 scale; all bounded sets that fill the atlas and stop.
 
+## Round two levers R1, U2, R4 (Pixel 6a, 2026-10-06)
+
+The levers of tool/audit/round2-fable.md for the shadow saveLayer, the
+per-layer UI hygiene and the filter-clip buckets, measured first and then
+built. Evidence: perf/2026-10-06-pixel6a-census (the baseline per scene,
+eae3c9f) and perf/2026-10-06-pixel6a-r1u2 (traces and timings of every
+variant, the same launch session, ABAB, 5 runs per scene).
+
+Measurement (M2 and a light M6): the glass audit marks every timed run
+with zero-length timeline slices, `atrace_slices.py <trace> --scenes`
+windows a systrace capture by them, and `AUDIT_CENSUS=true` counts the
+engine layers of the same frames (support/layer_census.dart). Per raster
+frame, liquid / flat:
+
+| scene | saveLayers (trace) | backdrop filters (census) | other offscreen layers | glass shadow pictures | PAINT ms | COMPOSITING ms | frames per scavenge |
+|---|---|---|---|---|---|---|---|
+| home-scroll | 4.9 / 2.9 | 1.7 / 0.7 | 1.1 / 1.1 | 0 | 1.62 / 1.54 | 0.70 / 0.48 | 45 / 47 |
+| segmented | 3.8 / 0 | 1.8 / 0 | 0.2 / 0 | 0 | 1.74 / 0.43 | 1.08 / 0.53 | 25 / 49 |
+| tab-bar | 7.9 / 2.0 | 3.9 / 1.0 | 0.2 / 0 | 0 | 2.60 / 1.17 | 1.29 / 0.52 | 17 / 42 |
+| controls | 8.2 / 0 | 3.9 / 0 | 0.3 / 0 | 0 | 1.61 / 0.45 | 1.54 / 0.57 | 17 / 66 |
+| menu | 18.4 / 0.4 | 9.0 / 0 | 0.2 / 0.2 | 0 | 1.33 / 0.52 | 1.29 / 0.56 | 45 / 40 |
+| sheet | 13.7 / 0 | 7.5 / 0 | 0 / 0 | 0 | 0.64 / 0.44 | 1.55 / 0.49 | 70 / 122 |
+
+Impeller's trace records two Canvas::saveLayer per backdrop filter (the
+flat tab bar: one filter, two) and one per opacity or image filter layer,
+so the trace count is 2 x filters + other offscreen layers in every scene,
+liquid and flat: no saveLayer is recorded inside a picture. The renderer's
+shadow pictures do not occur in the gallery at all - every glass shadow is
+drawn by GlassShadow or MorphGlassBodyShadow, both clipped since b0f79b1.
+
+- R1 (the layer's shadow picture through the even-odd clip): built and
+  measured, NOT landed. The saveLayer count per frame did not move in any
+  scene (4.93 / 3.79 / 7.95 / 8.19 / 18.40 / 13.67), as the census
+  predicted - kill criterion K-R1. The clip form drew the shadows to
+  within 1 step off the rim and 9 on the rim row on the host's Impeller
+  (35 with a darker test shadow), no shadow inside a shape; a fading or
+  overlapping shape needs the layer anyway. It is a lever for apps that
+  hand LiquidGlass shapes their own shadows, not for the gallery.
+- U2 (per-layer UI hygiene, IDENTICAL, landed): the tracked screen
+  transform is no longer cloned and the shader transform is cloned only
+  when the pass transform changes it; the coordinate mapping inverts into a
+  kept matrix and maps its three points with MatrixUtils.transformPoint's
+  own arithmetic; the mapping and sampled-bounds uniforms are written with
+  setFloat, without setter closures and lists; the appearance list is
+  compared in place and built only on change; the sampled backdrop's
+  ancestor clips need no list; the frost blur is kept per sigma and only
+  the composition is rebuilt. Identity: glass_frames on the host's Impeller
+  (--enable-impeller --enable-flutter-gpu) - the 56 scenes that are
+  deterministic run to run are hash-identical to HEAD; the 7 liquid scenes
+  whose frames differ between two runs of the same build (lens, tab bar,
+  switch, slider, controls, menu) differ from HEAD by as many frames as two
+  HEAD runs differ from each other; Skia glass_frames identical. Device:
+  within the run-to-run noise everywhere (trace PAINT and COMPOSITING
+  +-0.05 ms per frame, timings below). Not done: the shadow picture
+  retention (no consumer, see R1) and skipping the compositing poll's
+  ancestor walks - an ancestor Opacity changing its alpha neither repaints
+  the layer nor moves its transform, so a skipped walk would miss the
+  opacity seed.
+- R4 (16 px filter-clip buckets for unfrosted layers): built IDENTICAL by
+  construction (the fine clip only where the material plus its sampling
+  reach already lies inside the 64 px clip, so no sample changes domain)
+  and hash-identical on the host, NOT landed: the reach exceeds the coarse
+  clip for most layers (refraction samples beyond the material regularly
+  reach the 64 px clip's edge and mirror there), so the fine clip applies
+  rarely, and the device shows no change.
+
+End to end (mean of two launches each, median of 5 runs; flat floor in the
+same session):
+
+| scene | raster p95 base / U2 (flat) | build p95 base / U2 (flat) | over budget base / U2 (flat) | round2 target |
+|---|---|---|---|---|
+| home-scroll | 11.14 / 11.26 (10.59) | 5.89 / 5.88 (5.51) | 2 / 1 (2) | raster <= flat + 1.0: met |
+| segmented | 10.75 / 10.78 (6.85) | 7.66 / 7.58 (3.24) | 0 / 0 | raster <= flat + 1.5: +3.9, not met |
+| tab-bar | 15.48 / 15.00 (10.06) | 8.96 / 8.95 (4.00) | 19.5 / 17.5 | raster <= flat + 3.0: +4.9, not met |
+| controls | 15.19 / 15.49 (6.78) | 12.77 / 13.00 (7.75) | 14.5 / 14.5 | raster <= flat + 4.0: +8.7, not met |
+| menu | 20.25 / 19.83 (13.07) | 14.36 / 15.23 (12.82) | 24 / 25 (11) | raster p95 <= 15: not met |
+| sheet | 15.75 / 15.97 (7.88) | 7.26 / 6.89 (3.55) | 8.5 / 9 | raster <= flat + 4.5: +8.1, not met |
+
+Reading: the liquid raster cost is the backdrop filters themselves - two
+saveLayers and a submit share each - and the UI thread's liquid PAINT and
+COMPOSITING are not allocation-bound; the remaining levers are fewer
+filters (R3, the container) and cheaper filters, not bookkeeping.
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
@@ -1213,6 +1296,9 @@ test/glass_frames_test.dart (channel vs rebuild, pixel for pixel; with
 `GLASS_FRAMES_OUT=<file>` it writes the frame hashes to compare commits).
 `--dart-define=AUDIT_ATLAS=true` adds per-scene glyph atlas work from
 the engine timeline (`atlas` in the report).
+Scene windows: the audit's `scene:<name>:<run>:begin/end` slices,
+`perf/atrace_slices.py <trace> --scenes` (trace_android.sh prints it),
+and `AUDIT_CENSUS=true` for the layer census per scene in the report.
 perf/shotdiff.py compares two runs' shots (mean, max, percent over 15);
 the shader harness and its tools are under "Shader harness" above;
 perf/contact.py lays several tiers' shots side by side.

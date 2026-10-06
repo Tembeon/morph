@@ -1036,12 +1036,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   Rect _prepareGeometryAppearance(Rect boundingBox) {
     final usedShapeAppearances = _usesShapeAppearances;
     final usedTintOnlyAppearance = _usesTintOnlyAppearance;
-    final appearances = [
-      for (final (_, geometry, _) in shapesWithGeometry)
-        for (final shape in geometry.shapes) shape.appearance,
-    ];
-    final appearanceValuesChanged = !listEquals(_shapeAppearances, appearances);
-    _setShapeAppearances(appearances);
+    final appearanceValuesChanged = !_committedAppearancesMatch();
+    _setShapeAppearances(
+      appearanceValuesChanged
+          ? [
+              for (final (_, geometry, _) in shapesWithGeometry)
+                for (final shape in geometry.shapes) shape.appearance,
+            ]
+          : _shapeAppearances,
+    );
     if (usedShapeAppearances != _usesShapeAppearances ||
         usedTintOnlyAppearance != _usesTintOnlyAppearance ||
         (_usesShapeAppearances && appearanceValuesChanged)) {
@@ -1052,6 +1055,22 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final materialBounds = boundingBox.inflate(_contourOutset);
     effectPaintBounds = expandBoundsForShadows(materialBounds);
     return materialBounds;
+  }
+
+  // Whether the committed shapes' appearances equal the last appearance list,
+  // element by element, without building the list.
+  bool _committedAppearancesMatch() {
+    final last = _shapeAppearances;
+    var index = 0;
+    for (final (_, geometry, _) in shapesWithGeometry) {
+      for (final shape in geometry.shapes) {
+        if (index >= last.length || last[index] != shape.appearance) {
+          return false;
+        }
+        index++;
+      }
+    }
+    return index == last.length;
   }
 
   // Resource binding is separate from recording/painting children so a
@@ -1148,17 +1167,25 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @override
   Matrix4 trackedTransform() {
     final transform = getTransformTo(null);
-    _compositingScreen = transform.clone();
+    _compositingScreen = transform;
     return transform;
   }
 
-  Matrix4 get shaderCoordinateTransform => filterPassTransform(
-    this,
-    screen: _compositingScreen?.clone(),
-    seeding: compositionProbeSeeding,
-    devicePixelRatio: devicePixelRatio,
-    translation: compositorTranslation,
-  );
+  /// This layer's transform into the pass its filter samples. During
+  /// compositing it may be the tracked screen transform itself: callers
+  /// read it and never modify it.
+  Matrix4 get shaderCoordinateTransform {
+    final seeding = compositionProbeSeeding;
+    final translation = compositorTranslation;
+    final screen = _compositingScreen;
+    return filterPassTransform(
+      this,
+      screen: seeding || translation != Offset.zero ? screen?.clone() : screen,
+      seeding: seeding,
+      devicePixelRatio: devicePixelRatio,
+      translation: translation,
+    );
+  }
 
   (double, double, double, double, double, double)? _coordinateMapping;
   Rect? _backdropBounds;
@@ -1172,9 +1199,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (clip == null || blurPassSigma <= 0) return clip;
     final translation = compositorTranslation;
     var captured = clip.shift(translation);
-    final ancestorClips = [retainedClipBounds, localPaintClipAbove(this)];
-    for (final ancestorClip in ancestorClips) {
-      if (ancestorClip != null) captured = captured.intersect(ancestorClip);
+    if (retainedClipBounds case final retained?) {
+      captured = captured.intersect(retained);
+    }
+    if (localPaintClipAbove(this) case final above?) {
+      captured = captured.intersect(above);
     }
     return captured.shift(-translation);
   }
@@ -1197,18 +1226,41 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   }
 
   (double, double, double, double, double, double) _currentCoordinateMapping() {
-    final globalToMatte = Matrix4.inverted(shaderCoordinateTransform);
-    final origin = MatrixUtils.transformPoint(globalToMatte, Offset.zero);
-    final axisX = MatrixUtils.transformPoint(globalToMatte, const Offset(1, 0));
-    final axisY = MatrixUtils.transformPoint(globalToMatte, const Offset(0, 1));
+    final layerToPass = shaderCoordinateTransform;
+    final globalToMatte = _globalToMatte;
+    if (globalToMatte.copyInverse(layerToPass) == 0.0) {
+      throw ArgumentError.value(
+        layerToPass,
+        'other',
+        'Matrix cannot be inverted',
+      );
+    }
+    final m = globalToMatte.storage;
+    final originX = _mappedX(m, 0, 0);
+    final originY = _mappedY(m, 0, 0);
     return (
-      axisX.dx - origin.dx,
-      axisY.dx - origin.dx,
-      axisX.dy - origin.dy,
-      axisY.dy - origin.dy,
-      origin.dx * devicePixelRatio,
-      origin.dy * devicePixelRatio,
+      _mappedX(m, 1, 0) - originX,
+      _mappedX(m, 0, 1) - originX,
+      _mappedY(m, 1, 0) - originY,
+      _mappedY(m, 0, 1) - originY,
+      originX * devicePixelRatio,
+      originY * devicePixelRatio,
     );
+  }
+
+  final Matrix4 _globalToMatte = Matrix4.zero();
+
+  // MatrixUtils.transformPoint, one coordinate at a time.
+  static double _mappedX(Float64List m, double x, double y) {
+    final rx = m[0] * x + m[4] * y + m[12];
+    final rw = m[3] * x + m[7] * y + m[15];
+    return rw == 1.0 ? rx : rx / rw;
+  }
+
+  static double _mappedY(Float64List m, double x, double y) {
+    final ry = m[1] * x + m[5] * y + m[13];
+    final rw = m[3] * x + m[7] * y + m[15];
+    return rw == 1.0 ? ry : ry / rw;
   }
 
   void _writeCoordinateMapping(
@@ -1216,26 +1268,18 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     (double, double, double, double, double, double) mapping,
     Rect? backdropBounds,
   ) {
-    shader.setFloatUniforms(initialIndex: 47, (value) {
-      value.setFloats([
-        mapping.$1,
-        mapping.$2,
-        mapping.$3,
-        mapping.$4,
-        mapping.$5,
-        mapping.$6,
-      ]);
-    });
+    shader.setFloat(47, mapping.$1);
+    shader.setFloat(48, mapping.$2);
+    shader.setFloat(49, mapping.$3);
+    shader.setFloat(50, mapping.$4);
+    shader.setFloat(51, mapping.$5);
+    shader.setFloat(52, mapping.$6);
     // Float index 55, after the frost flags.
     final matteBounds = backdropBounds ?? Rect.largest;
-    shader.setFloatUniforms(initialIndex: 55, (value) {
-      value.setFloats([
-        matteBounds.left * devicePixelRatio,
-        matteBounds.top * devicePixelRatio,
-        matteBounds.right * devicePixelRatio,
-        matteBounds.bottom * devicePixelRatio,
-      ]);
-    });
+    shader.setFloat(55, matteBounds.left * devicePixelRatio);
+    shader.setFloat(56, matteBounds.top * devicePixelRatio);
+    shader.setFloat(57, matteBounds.right * devicePixelRatio);
+    shader.setFloat(58, matteBounds.bottom * devicePixelRatio);
   }
 
   // MARK: Native filter
@@ -1280,17 +1324,26 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final shader = ImageFilter.shader(renderShader);
     final frostSigma = blurPassSigma;
     final filter = frostSigma > 0
-        ? ImageFilter.compose(
-            inner: ImageFilter.blur(
-              tileMode: TileMode.mirror,
-              sigmaX: frostSigma,
-              sigmaY: frostSigma,
-            ),
-            outer: shader,
-          )
+        ? ImageFilter.compose(inner: _frostBlur(frostSigma), outer: shader)
         : shader;
     _cachedFilter = filter;
     return filter;
+  }
+
+  ImageFilter? _blur;
+  double _blurSigma = 0;
+
+  ImageFilter _frostBlur(double sigma) {
+    final kept = _blur;
+    if (kept != null && _blurSigma == sigma) return kept;
+    final blur = ImageFilter.blur(
+      tileMode: TileMode.mirror,
+      sigmaX: sigma,
+      sigmaY: sigma,
+    );
+    _blur = blur;
+    _blurSigma = sigma;
+    return blur;
   }
 
   // Both painting and retained geometry updates need the same native filter

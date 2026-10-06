@@ -207,3 +207,11 @@ Local patches (some commits include related package changes):
   exterior reject ahead of the material map (Metal, material variant).
   ShaderKeys.debugRuntimeRoot lets the harness load a frozen copy of the
   runtime shaders (example/shader_audit/baseline).
+- 2026-10-06 layer hygiene: RenderLiquidGlassLayer keeps the tracked
+  screen transform without a copy (the shader transform copies it only
+  when the pass transform changes it), inverts the coordinate mapping into
+  a kept matrix and maps its points with MatrixUtils.transformPoint's
+  arithmetic, writes the mapping and sampled-bounds uniforms with
+  setFloat, compares shape appearances in place, and keeps the frost blur
+  per sigma. The same uniforms and filters as before (glass_frames on the
+  host's Impeller).
