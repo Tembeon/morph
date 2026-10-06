@@ -1,0 +1,2239 @@
+{
+  "tier": "liquid",
+  "liquid_available": true,
+  "liquid_unavailable_reason": null,
+  "platform": "android",
+  "refresh_rate": 60.0,
+  "cadence_ms": 16.621,
+  "budget_ms": 16.621,
+  "precache_ms": 660.534,
+  "device_class": "capable",
+  "drawn_tier": "liquid",
+  "first_use": {
+    "tab-bar": {
+      "n": 486.0,
+      "build_p50": 3.504,
+      "build_p95": 8.819,
+      "build_worst": 68.439,
+      "raster_p50": 8.975,
+      "raster_p95": 15.936,
+      "raster_worst": 50.556,
+      "span_p95": 25.152,
+      "vsync_p95": 1.449,
+      "over_8.3ms": 317.0,
+      "build_p99": 12.53,
+      "raster_p99": 27.533,
+      "over_budget": 24.0
+    },
+    "controls": {
+      "n": 244.0,
+      "build_p50": 4.636,
+      "build_p95": 10.839,
+      "build_worst": 68.819,
+      "raster_p50": 9.194,
+      "raster_p95": 12.923,
+      "raster_worst": 17.452,
+      "span_p95": 24.863,
+      "vsync_p95": 1.597,
+      "over_8.3ms": 169.0,
+      "build_p99": 17.252,
+      "raster_p99": 14.923,
+      "over_budget": 4.0
+    },
+    "menu": {
+      "n": 424.0,
+      "build_p50": 5.987,
+      "build_p95": 13.708,
+      "build_worst": 52.121,
+      "raster_p50": 8.722,
+      "raster_p95": 16.894,
+      "raster_worst": 33.517,
+      "span_p95": 33.467,
+      "vsync_p95": 1.473,
+      "over_8.3ms": 259.0,
+      "build_p99": 21.357,
+      "raster_p99": 26.103,
+      "over_budget": 29.0
+    },
+    "sheet": {
+      "n": 199.0,
+      "build_p50": 2.825,
+      "build_p95": 10.026,
+      "build_worst": 36.67,
+      "raster_p50": 9.047,
+      "raster_p95": 13.922,
+      "raster_worst": 39.049,
+      "span_p95": 25.239,
+      "vsync_p95": 1.545,
+      "over_8.3ms": 130.0,
+      "build_p99": 23.83,
+      "raster_p99": 17.156,
+      "over_budget": 5.0
+    }
+  },
+  "semantics": [
+    false
+  ],
+  "runs": 3,
+  "outline_us": {
+    "menu10-r4-cold": 1909.91,
+    "menu10-r10-cold": 551.13,
+    "menu10-r20-cold": 441.28,
+    "union-cold": 27.28,
+    "bar-capsules-cold": 276.2,
+    "menu10-r4": 726.74,
+    "menu10-r10": 527.58,
+    "menu10-r20": 438.87,
+    "union": 26.74,
+    "bar-capsules": 276.22
+  },
+  "windows_us": {
+    "tab-bar": [
+      [
+        1127347355,
+        1137226246
+      ],
+      [
+        1137536190,
+        1146875329
+      ],
+      [
+        1147188853,
+        1157626226
+      ]
+    ],
+    "controls": [
+      [
+        1166111403,
+        1172862952
+      ],
+      [
+        1173178744,
+        1180114570
+      ],
+      [
+        1180430536,
+        1187282405
+      ]
+    ],
+    "menu": [
+      [
+        1195918846,
+        1200437138
+      ],
+      [
+        1200751495,
+        1205270841
+      ],
+      [
+        1205588966,
+        1210121249
+      ]
+    ],
+    "sheet": [
+      [
+        1214789135,
+        1219373428
+      ],
+      [
+        1219689863,
+        1224277305
+      ],
+      [
+        1224591403,
+        1229159730
+      ]
+    ]
+  },
+  "fusion_served_ahead": 249,
+  "fusion_fused_here": 162,
+  "census": {
+    "tab-bar": {
+      "frames": 1763,
+      "mean": {
+        "backdrop": 4.874645490640953,
+        "opacity": 0.0652297220646625,
+        "image_filter": 0.0,
+        "color_filter": 0.0,
+        "shader_mask": 0.0,
+        "clip_save_layer": 0.0,
+        "offscreen": 4.939875212705616,
+        "pictures": 24.89449801474759,
+        "glass_shadow_pictures": 0.0,
+        "layers": 94.70618264322178,
+        "captures": 4.874645490640953
+      },
+      "max": {
+        "backdrop": 5,
+        "opacity": 1,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 6,
+        "pictures": 26,
+        "glass_shadow_pictures": 0,
+        "layers": 98,
+        "captures": 5
+      },
+      "first": {
+        "backdrop": 4,
+        "opacity": 0,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 4,
+        "pictures": 23,
+        "glass_shadow_pictures": 0,
+        "layers": 84,
+        "captures": 4
+      },
+      "owners": {
+        "MorphPresentationBoundary > MorphNavigationBar > MorphScrollEdgeEffect [-] _RenderEdge": 2.0,
+        "MorphPresentationBoundary > TabBarPage > MorphTabBar [body] RenderLiquidGlassLayer": 1.0,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+        "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer": 0.8746454906409529
+      },
+      "owners_first": {
+        "MorphPresentationBoundary > TabBarPage > MorphTabBar [body] RenderLiquidGlassLayer @69,831 274x62": 1,
+        "MorphPresentationBoundary > MorphNavigationBar > MorphScrollEdgeEffect [-] _RenderEdge @0,0 411x104": 2,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer @0,50 411x54": 1
+      }
+    },
+    "controls": {
+      "frames": 1208,
+      "mean": {
+        "backdrop": 3.1067880794701987,
+        "opacity": 0.14155629139072848,
+        "image_filter": 0.0,
+        "color_filter": 0.0,
+        "shader_mask": 0.0,
+        "clip_save_layer": 0.0,
+        "offscreen": 3.248344370860927,
+        "pictures": 36.14155629139073,
+        "glass_shadow_pictures": 0.0,
+        "layers": 119.82615894039735,
+        "captures": 3.1067880794701987
+      },
+      "max": {
+        "backdrop": 4,
+        "opacity": 1,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 5,
+        "pictures": 37,
+        "glass_shadow_pictures": 0,
+        "layers": 124,
+        "captures": 4
+      },
+      "first": {
+        "backdrop": 4,
+        "opacity": 1,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 5,
+        "pictures": 37,
+        "glass_shadow_pictures": 0,
+        "layers": 124,
+        "captures": 4
+      },
+      "owners": {
+        "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": 1.0,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+        "MorphNavigationScaffold > MorphSlider > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": 0.6051324503311258,
+        "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": 0.5016556291390728
+      },
+      "owners_first": {
+        "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer @20,178 63x28": 2,
+        "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer @20,524 371x220": 1,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer @0,50 411x54": 1
+      }
+    },
+    "menu": {
+      "frames": 763,
+      "mean": {
+        "backdrop": 2.893840104849279,
+        "opacity": 0.001310615989515072,
+        "image_filter": 0.20707732634338138,
+        "color_filter": 0.0,
+        "shader_mask": 0.0,
+        "clip_save_layer": 0.0,
+        "offscreen": 3.1022280471821757,
+        "pictures": 28.56356487549148,
+        "glass_shadow_pictures": 0.0,
+        "layers": 105.2778505897772,
+        "captures": 2.8296199213630406
+      },
+      "max": {
+        "backdrop": 3,
+        "opacity": 1,
+        "image_filter": 2,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 5,
+        "pictures": 33,
+        "glass_shadow_pictures": 0,
+        "layers": 119,
+        "captures": 3
+      },
+      "first": {
+        "backdrop": 3,
+        "opacity": 0,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 3,
+        "pictures": 26,
+        "glass_shadow_pictures": 0,
+        "layers": 96,
+        "captures": 2
+      },
+      "owners": {
+        "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": 1.0,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+        "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer": 0.583224115334207,
+        "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer": 0.3106159895150721
+      },
+      "owners_first": {
+        "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer @0,104 411x810": 1,
+        "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer @182,120 48x48": 1,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer @0,50 411x54": 1
+      }
+    },
+    "sheet": {
+      "frames": 790,
+      "mean": {
+        "backdrop": 5.141772151898734,
+        "opacity": 0.0,
+        "image_filter": 0.0,
+        "color_filter": 0.0,
+        "shader_mask": 0.0,
+        "clip_save_layer": 0.0,
+        "offscreen": 5.141772151898734,
+        "pictures": 29.954430379746835,
+        "glass_shadow_pictures": 0.0,
+        "layers": 121.83544303797468,
+        "captures": 3.392405063291139
+      },
+      "max": {
+        "backdrop": 7,
+        "opacity": 0,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 7,
+        "pictures": 33,
+        "glass_shadow_pictures": 0,
+        "layers": 144,
+        "captures": 4
+      },
+      "first": {
+        "backdrop": 3,
+        "opacity": 0,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 3,
+        "pictures": 23,
+        "glass_shadow_pictures": 0,
+        "layers": 88,
+        "captures": 2
+      },
+      "owners": {
+        "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer": 2.088607594936709,
+        "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": 1.0,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+        "MorphGlassInspector [-] RenderLiquidGlassLayer": 0.6962025316455697,
+        "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer": 0.3569620253164557
+      },
+      "owners_first": {
+        "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer @20,124 371x484": 1,
+        "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer @20,160 372x48": 1,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer @0,50 411x54": 1
+      }
+    }
+  },
+  "resource_study": {
+    "tab-bar": [
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 76317910,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 178,
+              "paint.dirty_flag": 112,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 178,
+              "paint.encode": 178,
+              "native.encode": 178
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          },
+          {
+            "id": 726017346,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 146,
+              "paint.dirty_flag": 110,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 146,
+              "paint.encode": 146,
+              "native.encode": 146
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          },
+          {
+            "id": 606185492,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 189,
+              "paint.dirty_flag": 113,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 189,
+              "paint.encode": 189,
+              "native.encode": 189
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          }
+        ]
+      },
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 111552663,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 136,
+              "paint.dirty_flag": 110,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 136,
+              "paint.encode": 136,
+              "native.encode": 136
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          },
+          {
+            "id": 715929992,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 175,
+              "paint.dirty_flag": 112,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 175,
+              "paint.encode": 175,
+              "native.encode": 175
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          },
+          {
+            "id": 234252769,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 167,
+              "paint.dirty_flag": 111,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 167,
+              "paint.encode": 167,
+              "native.encode": 167
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          }
+        ]
+      },
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 1069489980,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 180,
+              "paint.dirty_flag": 113,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 180,
+              "paint.encode": 180,
+              "native.encode": 180
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          },
+          {
+            "id": 764513279,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 185,
+              "paint.dirty_flag": 113,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 185,
+              "paint.encode": 185,
+              "native.encode": 185
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          },
+          {
+            "id": 897468570,
+            "role": "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 186,
+              "paint.dirty_flag": 113,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 186,
+              "paint.encode": 186,
+              "native.encode": 186
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          }
+        ]
+      }
+    ],
+    "controls": [
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 581695911,
+            "role": "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 73,
+              "paint.dirty_flag": 54,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 73,
+              "paint.encode": 73,
+              "native.encode": 73
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15656
+            }
+          },
+          {
+            "id": 960543317,
+            "role": "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 64,
+              "paint.dirty_flag": 45,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 64,
+              "paint.encode": 64,
+              "native.encode": 64
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15657
+            }
+          },
+          {
+            "id": 707924427,
+            "role": "MorphNavigationScaffold > MorphSlider > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 216,
+              "paint.dirty_flag": 108,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 216,
+              "paint.encode": 216,
+              "native.encode": 216
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 257,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49344,
+              "blur_sigma_milli_px": 15658
+            }
+          }
+        ]
+      },
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 210712377,
+            "role": "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 71,
+              "paint.dirty_flag": 52,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 71,
+              "paint.encode": 71,
+              "native.encode": 71
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15654
+            }
+          },
+          {
+            "id": 1029154055,
+            "role": "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 75,
+              "paint.dirty_flag": 56,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 75,
+              "paint.encode": 75,
+              "native.encode": 75
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15659
+            }
+          },
+          {
+            "id": 216913026,
+            "role": "MorphNavigationScaffold > MorphSlider > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 214,
+              "paint.dirty_flag": 104,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 214,
+              "paint.encode": 214,
+              "native.encode": 214
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 257,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49344,
+              "blur_sigma_milli_px": 15655
+            }
+          }
+        ]
+      },
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 876483168,
+            "role": "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 73,
+              "paint.dirty_flag": 54,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 73,
+              "paint.encode": 73,
+              "native.encode": 73
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15656
+            }
+          },
+          {
+            "id": 508343101,
+            "role": "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 73,
+              "paint.dirty_flag": 54,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 73,
+              "paint.encode": 73,
+              "native.encode": 73
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15656
+            }
+          },
+          {
+            "id": 1022006779,
+            "role": "MorphNavigationScaffold > MorphSlider > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 214,
+              "paint.dirty_flag": 108,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 214,
+              "paint.encode": 214,
+              "native.encode": 214
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 257,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49344,
+              "blur_sigma_milli_px": 15655
+            }
+          }
+        ]
+      }
+    ],
+    "menu": [
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 119900697,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 147456,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 156888910,
+            "role": "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 168,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 166,
+              "retained.refresh": 1
+            },
+            "peaks": {
+              "ring_bytes": 17301504,
+              "matte_pixels": 2162688,
+              "filter_width_px": 1088,
+              "filter_height_px": 2112,
+              "filter_output_pixels": 2297856
+            }
+          },
+          {
+            "id": 749894838,
+            "role": "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 74,
+              "paint.dirty_flag": 47,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 74,
+              "paint.encode": 74,
+              "native.encode": 74,
+              "native.field": 45
+            },
+            "peaks": {
+              "ring_bytes": 15116544,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          },
+          {
+            "id": 761049141,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 31,
+              "paint.dirty_flag": 3,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 31,
+              "paint.encode": 31,
+              "native.encode": 31,
+              "native.field": 2
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 724220227,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 147456,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 647472772,
+            "role": "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 72,
+              "paint.dirty_flag": 46,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 72,
+              "paint.encode": 72,
+              "native.encode": 72,
+              "native.field": 45
+            },
+            "peaks": {
+              "ring_bytes": 15116544,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          },
+          {
+            "id": 807202235,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 31,
+              "paint.dirty_flag": 3,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 31,
+              "paint.encode": 31,
+              "native.encode": 31,
+              "native.field": 2
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          }
+        ]
+      },
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 39188569,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 147456,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 156888910,
+            "role": "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 169,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 167,
+              "retained.refresh": 1
+            },
+            "peaks": {
+              "ring_bytes": 17301504,
+              "matte_pixels": 2162688,
+              "filter_width_px": 1088,
+              "filter_height_px": 2112,
+              "filter_output_pixels": 2297856
+            }
+          },
+          {
+            "id": 210705143,
+            "role": "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 75,
+              "paint.dirty_flag": 48,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 75,
+              "paint.encode": 75,
+              "native.encode": 75,
+              "native.field": 47
+            },
+            "peaks": {
+              "ring_bytes": 15116544,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          },
+          {
+            "id": 61655653,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 30,
+              "paint.dirty_flag": 2,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 30,
+              "paint.encode": 30,
+              "native.encode": 30,
+              "native.field": 1
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 783050445,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 147456,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 969233140,
+            "role": "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 76,
+              "paint.dirty_flag": 49,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 76,
+              "paint.encode": 76,
+              "native.encode": 76,
+              "native.field": 48
+            },
+            "peaks": {
+              "ring_bytes": 17006112,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          },
+          {
+            "id": 244445216,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 32,
+              "paint.dirty_flag": 4,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 32,
+              "paint.encode": 32,
+              "native.encode": 32,
+              "native.field": 3
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          }
+        ]
+      },
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 436579240,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 147456,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 156888910,
+            "role": "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 166,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 164,
+              "retained.refresh": 1
+            },
+            "peaks": {
+              "ring_bytes": 17301504,
+              "matte_pixels": 2162688,
+              "filter_width_px": 1088,
+              "filter_height_px": 2112,
+              "filter_output_pixels": 2297856
+            }
+          },
+          {
+            "id": 266628589,
+            "role": "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 73,
+              "paint.dirty_flag": 46,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 73,
+              "paint.encode": 73,
+              "native.encode": 73,
+              "native.field": 45
+            },
+            "peaks": {
+              "ring_bytes": 17006112,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          },
+          {
+            "id": 799644093,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 33,
+              "paint.dirty_flag": 5,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 33,
+              "paint.encode": 33,
+              "native.encode": 33,
+              "native.field": 4
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 604558108,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 147456,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          {
+            "id": 230264812,
+            "role": "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 75,
+              "paint.dirty_flag": 48,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 75,
+              "paint.encode": 75,
+              "native.encode": 75,
+              "native.field": 47
+            },
+            "peaks": {
+              "ring_bytes": 17006112,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          },
+          {
+            "id": 299959218,
+            "role": "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 31,
+              "paint.dirty_flag": 3,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 31,
+              "paint.encode": 31,
+              "native.encode": 31,
+              "native.field": 2
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          }
+        ]
+      }
+    ],
+    "sheet": [
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 886281786,
+            "role": "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 25,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1,
+              "paint.clean_reuse": 24
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          {
+            "id": 469099658,
+            "role": "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer",
+            "counts": {
+              "retained.refresh": 4,
+              "paint.active": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 9961472,
+              "matte_pixels": 1245184,
+              "filter_width_px": 1088,
+              "filter_height_px": 1216,
+              "filter_output_pixels": 1323008
+            }
+          },
+          {
+            "id": 68705458,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 639436676,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 1035003235,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 364598357,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 1045858887,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 3507359,
+            "role": "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 27,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1,
+              "paint.clean_reuse": 26
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          {
+            "id": 970611840,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 632080599,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 832712774,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 168426493,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 208950570,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          }
+        ]
+      },
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 728052443,
+            "role": "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 27,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1,
+              "paint.clean_reuse": 26
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          {
+            "id": 469099658,
+            "role": "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer",
+            "counts": {
+              "retained.refresh": 4,
+              "paint.active": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 9961472,
+              "matte_pixels": 1245184,
+              "filter_width_px": 1088,
+              "filter_height_px": 1216,
+              "filter_output_pixels": 1323008
+            }
+          },
+          {
+            "id": 979680946,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 810689479,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 173707132,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 516456989,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 737903716,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 112510645,
+            "role": "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 27,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1,
+              "paint.clean_reuse": 26
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          {
+            "id": 901362001,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 601788868,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 59530942,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 205156239,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 600316314,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          }
+        ]
+      },
+      {
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "layers": [
+          {
+            "id": 192817924,
+            "role": "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 25,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1,
+              "paint.clean_reuse": 24
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          {
+            "id": 469099658,
+            "role": "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer",
+            "counts": {
+              "retained.refresh": 4,
+              "paint.active": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 9961472,
+              "matte_pixels": 1245184,
+              "filter_width_px": 1088,
+              "filter_height_px": 1216,
+              "filter_output_pixels": 1323008
+            }
+          },
+          {
+            "id": 88107506,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 538503959,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 1071312106,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 472943861,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 471695961,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 394874464,
+            "role": "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 28,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1,
+              "paint.clean_reuse": 27
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          {
+            "id": 1027797090,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          {
+            "id": 980205095,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 306769147,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 795360491,
+            "role": "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          },
+          {
+            "id": 809671169,
+            "role": "MorphGlassInspector [-] RenderLiquidGlassLayer",
+            "counts": {
+              "paint.active": 1,
+              "paint.dirty_flag": 1,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 1,
+              "paint.encode": 1,
+              "native.encode": 1
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "tab-bar": {
+    "median": {
+      "n": 583.0,
+      "build_p50": 6.259,
+      "build_p95": 9.601,
+      "build_worst": 31.583,
+      "raster_p50": 10.795,
+      "raster_p95": 14.23,
+      "raster_worst": 25.408,
+      "span_p95": 24.043,
+      "vsync_p95": 1.369,
+      "over_8.3ms": 544.0,
+      "build_p99": 11.263,
+      "raster_p99": 17.996,
+      "over_budget": 11.0
+    },
+    "runs": [
+      {
+        "n": 583.0,
+        "build_p50": 6.259,
+        "build_p95": 9.601,
+        "build_worst": 37.552,
+        "raster_p50": 10.795,
+        "raster_p95": 14.23,
+        "raster_worst": 27.741,
+        "span_p95": 24.545,
+        "vsync_p95": 1.279,
+        "over_8.3ms": 544.0,
+        "build_p99": 11.218,
+        "raster_p99": 18.878,
+        "over_budget": 15.0
+      },
+      {
+        "n": 553.0,
+        "build_p50": 5.459,
+        "build_p95": 9.59,
+        "build_worst": 31.583,
+        "raster_p50": 10.708,
+        "raster_p95": 14.284,
+        "raster_worst": 25.408,
+        "span_p95": 23.817,
+        "vsync_p95": 1.369,
+        "over_8.3ms": 462.0,
+        "build_p99": 11.637,
+        "raster_p99": 17.996,
+        "over_budget": 11.0
+      },
+      {
+        "n": 619.0,
+        "build_p50": 6.76,
+        "build_p95": 10.138,
+        "build_worst": 29.208,
+        "raster_p50": 11.222,
+        "raster_p95": 13.673,
+        "raster_worst": 17.84,
+        "span_p95": 24.043,
+        "vsync_p95": 1.507,
+        "over_8.3ms": 601.0,
+        "build_p99": 11.263,
+        "raster_p99": 15.445,
+        "over_budget": 3.0
+      }
+    ]
+  },
+  "controls": {
+    "median": {
+      "n": 405.0,
+      "build_p50": 5.195,
+      "build_p95": 13.392,
+      "build_worst": 40.409,
+      "raster_p50": 8.806,
+      "raster_p95": 11.895,
+      "raster_worst": 16.151,
+      "span_p95": 24.582,
+      "vsync_p95": 1.535,
+      "over_8.3ms": 284.0,
+      "build_p99": 15.934,
+      "raster_p99": 14.218,
+      "over_budget": 4.0
+    },
+    "runs": [
+      {
+        "n": 399.0,
+        "build_p50": 5.195,
+        "build_p95": 13.561,
+        "build_worst": 35.346,
+        "raster_p50": 8.806,
+        "raster_p95": 12.009,
+        "raster_worst": 15.75,
+        "span_p95": 24.582,
+        "vsync_p95": 1.535,
+        "over_8.3ms": 284.0,
+        "build_p99": 15.934,
+        "raster_p99": 13.772,
+        "over_budget": 2.0
+      },
+      {
+        "n": 405.0,
+        "build_p50": 5.433,
+        "build_p95": 13.392,
+        "build_worst": 40.409,
+        "raster_p50": 8.938,
+        "raster_p95": 11.895,
+        "raster_worst": 20.477,
+        "span_p95": 24.702,
+        "vsync_p95": 1.602,
+        "over_8.3ms": 287.0,
+        "build_p99": 16.318,
+        "raster_p99": 14.3,
+        "over_budget": 4.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 5.025,
+        "build_p95": 12.797,
+        "build_worst": 44.794,
+        "raster_p50": 8.758,
+        "raster_p95": 11.804,
+        "raster_worst": 16.151,
+        "span_p95": 23.783,
+        "vsync_p95": 1.477,
+        "over_8.3ms": 279.0,
+        "build_p99": 14.864,
+        "raster_p99": 14.218,
+        "over_budget": 4.0
+      }
+    ]
+  },
+  "menu": {
+    "median": {
+      "n": 253.0,
+      "build_p50": 6.312,
+      "build_p95": 14.249,
+      "build_worst": 56.525,
+      "raster_p50": 9.108,
+      "raster_p95": 14.793,
+      "raster_worst": 31.829,
+      "span_p95": 31.234,
+      "vsync_p95": 1.506,
+      "over_8.3ms": 174.0,
+      "build_p99": 32.365,
+      "raster_p99": 20.635,
+      "over_budget": 15.0
+    },
+    "runs": [
+      {
+        "n": 252.0,
+        "build_p50": 6.314,
+        "build_p95": 13.782,
+        "build_worst": 47.878,
+        "raster_p50": 9.108,
+        "raster_p95": 14.197,
+        "raster_worst": 31.829,
+        "span_p95": 34.832,
+        "vsync_p95": 1.526,
+        "over_8.3ms": 174.0,
+        "build_p99": 28.359,
+        "raster_p99": 21.572,
+        "over_budget": 15.0
+      },
+      {
+        "n": 253.0,
+        "build_p50": 6.312,
+        "build_p95": 14.249,
+        "build_worst": 60.094,
+        "raster_p50": 9.132,
+        "raster_p95": 15.027,
+        "raster_worst": 24.821,
+        "span_p95": 30.418,
+        "vsync_p95": 1.506,
+        "over_8.3ms": 180.0,
+        "build_p99": 32.365,
+        "raster_p99": 19.35,
+        "over_budget": 12.0
+      },
+      {
+        "n": 256.0,
+        "build_p50": 6.09,
+        "build_p95": 15.201,
+        "build_worst": 56.525,
+        "raster_p50": 8.858,
+        "raster_p95": 14.793,
+        "raster_worst": 38.952,
+        "span_p95": 31.234,
+        "vsync_p95": 1.429,
+        "over_8.3ms": 158.0,
+        "build_p99": 45.549,
+        "raster_p99": 20.635,
+        "over_budget": 15.0
+      }
+    ]
+  },
+  "sheet": {
+    "median": {
+      "n": 265.0,
+      "build_p50": 2.448,
+      "build_p95": 7.026,
+      "build_worst": 50.677,
+      "raster_p50": 10.037,
+      "raster_p95": 15.085,
+      "raster_worst": 31.174,
+      "span_p95": 24.047,
+      "vsync_p95": 1.575,
+      "over_8.3ms": 193.0,
+      "build_p99": 29.702,
+      "raster_p99": 19.342,
+      "over_budget": 9.0
+    },
+    "runs": [
+      {
+        "n": 265.0,
+        "build_p50": 2.448,
+        "build_p95": 7.026,
+        "build_worst": 50.677,
+        "raster_p50": 10.477,
+        "raster_p95": 15.085,
+        "raster_worst": 31.174,
+        "span_p95": 23.26,
+        "vsync_p95": 1.618,
+        "over_8.3ms": 210.0,
+        "build_p99": 35.757,
+        "raster_p99": 19.687,
+        "over_budget": 9.0
+      },
+      {
+        "n": 265.0,
+        "build_p50": 2.477,
+        "build_p95": 6.369,
+        "build_worst": 51.857,
+        "raster_p50": 10.037,
+        "raster_p95": 15.895,
+        "raster_worst": 33.371,
+        "span_p95": 24.047,
+        "vsync_p95": 1.547,
+        "over_8.3ms": 193.0,
+        "build_p99": 26.143,
+        "raster_p99": 16.883,
+        "over_budget": 9.0
+      },
+      {
+        "n": 264.0,
+        "build_p50": 2.409,
+        "build_p95": 7.772,
+        "build_worst": 47.081,
+        "raster_p50": 9.881,
+        "raster_p95": 13.602,
+        "raster_worst": 22.743,
+        "span_p95": 24.897,
+        "vsync_p95": 1.575,
+        "over_8.3ms": 189.0,
+        "build_p99": 29.702,
+        "raster_p99": 19.342,
+        "over_budget": 8.0
+      }
+    ]
+  }
+}

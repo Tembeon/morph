@@ -1,0 +1,5 @@
+00:25 +15: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: the slow-motion button sits in the bar, clear of the tab bar
+00:26 +16: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: holding the bar button of the menu page opens its menu
+00:28 +17: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: the glass page settings reach every page
+00:30 +18: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: (tearDownAll)
+00:30 +18: All tests passed!

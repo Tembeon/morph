@@ -1,0 +1,2386 @@
+{
+  "tab-bar": {
+    "runs": [
+      {
+        "totals": {
+          "accumulatedSize": 19112560,
+          "bytesCurrent": 19112560,
+          "instancesAccumulated": 189003,
+          "instancesCurrent": 189003
+        },
+        "memoryUsage": {
+          "type": "MemoryUsage",
+          "externalUsage": 10800,
+          "heapCapacity": 19959808,
+          "heapUsage": 13714224
+        },
+        "top": [
+          {
+            "class": "InstructionsSection",
+            "id": "classes/21",
+            "accumulatedSize": 4863904,
+            "bytesCurrent": 4863904,
+            "instancesAccumulated": 1,
+            "instancesCurrent": 1
+          },
+          {
+            "class": "Code",
+            "id": "classes/18",
+            "accumulatedSize": 3393120,
+            "bytesCurrent": 3393120,
+            "instancesAccumulated": 21207,
+            "instancesCurrent": 21207
+          },
+          {
+            "class": "CodeSourceMap",
+            "id": "classes/25",
+            "accumulatedSize": 1913840,
+            "bytesCurrent": 1913840,
+            "instancesAccumulated": 16613,
+            "instancesCurrent": 16613
+          },
+          {
+            "class": "_OneByteString",
+            "id": "classes/94",
+            "accumulatedSize": 1868000,
+            "bytesCurrent": 1868000,
+            "instancesAccumulated": 28102,
+            "instancesCurrent": 28102
+          },
+          {
+            "class": "Function",
+            "id": "classes/7",
+            "accumulatedSize": 1333824,
+            "bytesCurrent": 1333824,
+            "instancesAccumulated": 20841,
+            "instancesCurrent": 20841
+          },
+          {
+            "class": "_List",
+            "id": "classes/90",
+            "accumulatedSize": 1182016,
+            "bytesCurrent": 1182016,
+            "instancesAccumulated": 20887,
+            "instancesCurrent": 20887
+          },
+          {
+            "class": "Field",
+            "id": "classes/11",
+            "accumulatedSize": 645056,
+            "bytesCurrent": 645056,
+            "instancesAccumulated": 10079,
+            "instancesCurrent": 10079
+          },
+          {
+            "class": "Class",
+            "id": "classes/5",
+            "accumulatedSize": 467488,
+            "bytesCurrent": 467488,
+            "instancesAccumulated": 4174,
+            "instancesCurrent": 4174
+          },
+          {
+            "class": "_Type",
+            "id": "classes/49",
+            "accumulatedSize": 266544,
+            "bytesCurrent": 266544,
+            "instancesAccumulated": 5553,
+            "instancesCurrent": 5553
+          },
+          {
+            "class": "WeakArray",
+            "id": "classes/17",
+            "accumulatedSize": 262256,
+            "bytesCurrent": 262256,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "ObjectPool",
+            "id": "classes/23",
+            "accumulatedSize": 207296,
+            "bytesCurrent": 207296,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "_GrowableList",
+            "id": "classes/92",
+            "accumulatedSize": 185632,
+            "bytesCurrent": 185632,
+            "instancesAccumulated": 5801,
+            "instancesCurrent": 5801
+          },
+          {
+            "class": "_FunctionType",
+            "id": "classes/50",
+            "accumulatedSize": 154688,
+            "bytesCurrent": 154688,
+            "instancesAccumulated": 2417,
+            "instancesCurrent": 2417
+          },
+          {
+            "class": "_Int64List",
+            "id": "classes/141",
+            "accumulatedSize": 151232,
+            "bytesCurrent": 151232,
+            "instancesAccumulated": 1722,
+            "instancesCurrent": 1722
+          },
+          {
+            "class": "SemanticsConfiguration",
+            "id": "classes/901",
+            "accumulatedSize": 142272,
+            "bytesCurrent": 142272,
+            "instancesAccumulated": 684,
+            "instancesCurrent": 684
+          },
+          {
+            "class": "ClosureData",
+            "id": "classes/9",
+            "accumulatedSize": 105152,
+            "bytesCurrent": 105152,
+            "instancesAccumulated": 3286,
+            "instancesCurrent": 3286
+          },
+          {
+            "class": "_Closure",
+            "id": "classes/57",
+            "accumulatedSize": 104592,
+            "bytesCurrent": 104592,
+            "instancesAccumulated": 2179,
+            "instancesCurrent": 2179
+          },
+          {
+            "class": "_Map",
+            "id": "classes/86",
+            "accumulatedSize": 101056,
+            "bytesCurrent": 101056,
+            "instancesAccumulated": 3158,
+            "instancesCurrent": 3158
+          },
+          {
+            "class": "_Uint32List",
+            "id": "classes/137",
+            "accumulatedSize": 89632,
+            "bytesCurrent": 89632,
+            "instancesAccumulated": 957,
+            "instancesCurrent": 957
+          },
+          {
+            "class": "_ImmutableList",
+            "id": "classes/91",
+            "accumulatedSize": 76048,
+            "bytesCurrent": 76048,
+            "instancesAccumulated": 903,
+            "instancesCurrent": 903
+          },
+          {
+            "class": "_Float64List",
+            "id": "classes/153",
+            "accumulatedSize": 64256,
+            "bytesCurrent": 64256,
+            "instancesAccumulated": 404,
+            "instancesCurrent": 404
+          },
+          {
+            "class": "Library",
+            "id": "classes/13",
+            "accumulatedSize": 59808,
+            "bytesCurrent": 59808,
+            "instancesAccumulated": 623,
+            "instancesCurrent": 623
+          },
+          {
+            "class": "AttributedString",
+            "id": "classes/905",
+            "accumulatedSize": 54800,
+            "bytesCurrent": 54800,
+            "instancesAccumulated": 3425,
+            "instancesCurrent": 3425
+          },
+          {
+            "class": "_RenderObjectSemantics",
+            "id": "classes/1676",
+            "accumulatedSize": 54720,
+            "bytesCurrent": 54720,
+            "instancesAccumulated": 684,
+            "instancesCurrent": 684
+          },
+          {
+            "class": "TypeArguments",
+            "id": "classes/47",
+            "accumulatedSize": 53392,
+            "bytesCurrent": 53392,
+            "instancesAccumulated": 1619,
+            "instancesCurrent": 1619
+          },
+          {
+            "class": "_Location",
+            "id": "classes/672",
+            "accumulatedSize": 53280,
+            "bytesCurrent": 53280,
+            "instancesAccumulated": 1665,
+            "instancesCurrent": 1665
+          },
+          {
+            "class": "SingleChildRenderObjectElement",
+            "id": "classes/2987",
+            "accumulatedSize": 52080,
+            "bytesCurrent": 52080,
+            "instancesAccumulated": 651,
+            "instancesCurrent": 651
+          },
+          {
+            "class": "Offset",
+            "id": "classes/1470",
+            "accumulatedSize": 45088,
+            "bytesCurrent": 45088,
+            "instancesAccumulated": 1409,
+            "instancesCurrent": 1409
+          },
+          {
+            "class": "_HashSetEntry",
+            "id": "classes/3433",
+            "accumulatedSize": 42976,
+            "bytesCurrent": 42976,
+            "instancesAccumulated": 1343,
+            "instancesCurrent": 1343
+          },
+          {
+            "class": "Script",
+            "id": "classes/12",
+            "accumulatedSize": 42144,
+            "bytesCurrent": 42144,
+            "instancesAccumulated": 878,
+            "instancesCurrent": 878
+          },
+          {
+            "class": "_Double",
+            "id": "classes/62",
+            "accumulatedSize": 41872,
+            "bytesCurrent": 41872,
+            "instancesAccumulated": 2617,
+            "instancesCurrent": 2617
+          },
+          {
+            "class": "TextStyle",
+            "id": "classes/2112",
+            "accumulatedSize": 33264,
+            "bytesCurrent": 33264,
+            "instancesAccumulated": 297,
+            "instancesCurrent": 297
+          },
+          {
+            "class": "_Uint8List",
+            "id": "classes/117",
+            "accumulatedSize": 32336,
+            "bytesCurrent": 32336,
+            "instancesAccumulated": 47,
+            "instancesCurrent": 47
+          },
+          {
+            "class": "_HashSet",
+            "id": "classes/3468",
+            "accumulatedSize": 28096,
+            "bytesCurrent": 28096,
+            "instancesAccumulated": 878,
+            "instancesCurrent": 878
+          },
+          {
+            "class": "SemanticsProperties",
+            "id": "classes/2524",
+            "accumulatedSize": 24320,
+            "bytesCurrent": 24320,
+            "instancesAccumulated": 76,
+            "instancesCurrent": 76
+          }
+        ]
+      },
+      {
+        "totals": {
+          "accumulatedSize": 29865744,
+          "bytesCurrent": 29865744,
+          "instancesAccumulated": 424449,
+          "instancesCurrent": 424449
+        },
+        "memoryUsage": {
+          "type": "MemoryUsage",
+          "externalUsage": 35728,
+          "heapCapacity": 25202688,
+          "heapUsage": 24471312
+        },
+        "top": [
+          {
+            "class": "InstructionsSection",
+            "id": "classes/21",
+            "accumulatedSize": 4863904,
+            "bytesCurrent": 4863904,
+            "instancesAccumulated": 1,
+            "instancesCurrent": 1
+          },
+          {
+            "class": "Code",
+            "id": "classes/18",
+            "accumulatedSize": 3393120,
+            "bytesCurrent": 3393120,
+            "instancesAccumulated": 21207,
+            "instancesCurrent": 21207
+          },
+          {
+            "class": "_OneByteString",
+            "id": "classes/94",
+            "accumulatedSize": 3332368,
+            "bytesCurrent": 3332368,
+            "instancesAccumulated": 55940,
+            "instancesCurrent": 55940
+          },
+          {
+            "class": "_List",
+            "id": "classes/90",
+            "accumulatedSize": 3235120,
+            "bytesCurrent": 3235120,
+            "instancesAccumulated": 53788,
+            "instancesCurrent": 53788
+          },
+          {
+            "class": "CodeSourceMap",
+            "id": "classes/25",
+            "accumulatedSize": 1913840,
+            "bytesCurrent": 1913840,
+            "instancesAccumulated": 16613,
+            "instancesCurrent": 16613
+          },
+          {
+            "class": "_Uint32List",
+            "id": "classes/137",
+            "accumulatedSize": 1860640,
+            "bytesCurrent": 1860640,
+            "instancesAccumulated": 22224,
+            "instancesCurrent": 22224
+          },
+          {
+            "class": "Function",
+            "id": "classes/7",
+            "accumulatedSize": 1333824,
+            "bytesCurrent": 1333824,
+            "instancesAccumulated": 20841,
+            "instancesCurrent": 20841
+          },
+          {
+            "class": "_Float64List",
+            "id": "classes/153",
+            "accumulatedSize": 1117248,
+            "bytesCurrent": 1117248,
+            "instancesAccumulated": 7039,
+            "instancesCurrent": 7039
+          },
+          {
+            "class": "_Map",
+            "id": "classes/86",
+            "accumulatedSize": 787936,
+            "bytesCurrent": 787936,
+            "instancesAccumulated": 24623,
+            "instancesCurrent": 24623
+          },
+          {
+            "class": "Field",
+            "id": "classes/11",
+            "accumulatedSize": 645056,
+            "bytesCurrent": 645056,
+            "instancesAccumulated": 10079,
+            "instancesCurrent": 10079
+          },
+          {
+            "class": "_Double",
+            "id": "classes/62",
+            "accumulatedSize": 575168,
+            "bytesCurrent": 575168,
+            "instancesAccumulated": 35948,
+            "instancesCurrent": 35948
+          },
+          {
+            "class": "Pointer",
+            "id": "classes/72",
+            "accumulatedSize": 551520,
+            "bytesCurrent": 551520,
+            "instancesAccumulated": 17235,
+            "instancesCurrent": 17235
+          },
+          {
+            "class": "Offset",
+            "id": "classes/1470",
+            "accumulatedSize": 548160,
+            "bytesCurrent": 548160,
+            "instancesAccumulated": 17130,
+            "instancesCurrent": 17130
+          },
+          {
+            "class": "Class",
+            "id": "classes/5",
+            "accumulatedSize": 467488,
+            "bytesCurrent": 467488,
+            "instancesAccumulated": 4174,
+            "instancesCurrent": 4174
+          },
+          {
+            "class": "_GrowableList",
+            "id": "classes/92",
+            "accumulatedSize": 404192,
+            "bytesCurrent": 404192,
+            "instancesAccumulated": 12631,
+            "instancesCurrent": 12631
+          },
+          {
+            "class": "_Closure",
+            "id": "classes/57",
+            "accumulatedSize": 352128,
+            "bytesCurrent": 352128,
+            "instancesAccumulated": 7336,
+            "instancesCurrent": 7336
+          },
+          {
+            "class": "_Int64List",
+            "id": "classes/141",
+            "accumulatedSize": 334320,
+            "bytesCurrent": 334320,
+            "instancesAccumulated": 5731,
+            "instancesCurrent": 5731
+          },
+          {
+            "class": "Rect",
+            "id": "classes/1467",
+            "accumulatedSize": 294912,
+            "bytesCurrent": 294912,
+            "instancesAccumulated": 6144,
+            "instancesCurrent": 6144
+          },
+          {
+            "class": "_Type",
+            "id": "classes/49",
+            "accumulatedSize": 266688,
+            "bytesCurrent": 266688,
+            "instancesAccumulated": 5556,
+            "instancesCurrent": 5556
+          },
+          {
+            "class": "WeakArray",
+            "id": "classes/17",
+            "accumulatedSize": 262256,
+            "bytesCurrent": 262256,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "ObjectPool",
+            "id": "classes/23",
+            "accumulatedSize": 207296,
+            "bytesCurrent": 207296,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Context",
+            "id": "classes/29",
+            "accumulatedSize": 181536,
+            "bytesCurrent": 181536,
+            "instancesAccumulated": 5511,
+            "instancesCurrent": 5511
+          },
+          {
+            "class": "_FunctionType",
+            "id": "classes/50",
+            "accumulatedSize": 154688,
+            "bytesCurrent": 154688,
+            "instancesAccumulated": 2417,
+            "instancesCurrent": 2417
+          },
+          {
+            "class": "SemanticsConfiguration",
+            "id": "classes/901",
+            "accumulatedSize": 142272,
+            "bytesCurrent": 142272,
+            "instancesAccumulated": 684,
+            "instancesCurrent": 684
+          },
+          {
+            "class": "Matrix4",
+            "id": "classes/1556",
+            "accumulatedSize": 111152,
+            "bytesCurrent": 111152,
+            "instancesAccumulated": 6947,
+            "instancesCurrent": 6947
+          },
+          {
+            "class": "ClosureData",
+            "id": "classes/9",
+            "accumulatedSize": 105152,
+            "bytesCurrent": 105152,
+            "instancesAccumulated": 3286,
+            "instancesCurrent": 3286
+          },
+          {
+            "class": "RRect",
+            "id": "classes/1465",
+            "accumulatedSize": 91504,
+            "bytesCurrent": 91504,
+            "instancesAccumulated": 817,
+            "instancesCurrent": 817
+          },
+          {
+            "class": "ListIterator",
+            "id": "classes/3315",
+            "accumulatedSize": 80064,
+            "bytesCurrent": 80064,
+            "instancesAccumulated": 1668,
+            "instancesCurrent": 1668
+          },
+          {
+            "class": "_ImmutableList",
+            "id": "classes/91",
+            "accumulatedSize": 76368,
+            "bytesCurrent": 76368,
+            "instancesAccumulated": 913,
+            "instancesCurrent": 913
+          },
+          {
+            "class": "Color",
+            "id": "classes/1452",
+            "accumulatedSize": 66288,
+            "bytesCurrent": 66288,
+            "instancesAccumulated": 1381,
+            "instancesCurrent": 1381
+          },
+          {
+            "class": "_Record",
+            "id": "classes/67",
+            "accumulatedSize": 63568,
+            "bytesCurrent": 63568,
+            "instancesAccumulated": 1817,
+            "instancesCurrent": 1817
+          },
+          {
+            "class": "_Float32List",
+            "id": "classes/149",
+            "accumulatedSize": 63296,
+            "bytesCurrent": 63296,
+            "instancesAccumulated": 671,
+            "instancesCurrent": 671
+          },
+          {
+            "class": "Library",
+            "id": "classes/13",
+            "accumulatedSize": 59808,
+            "bytesCurrent": 59808,
+            "instancesAccumulated": 623,
+            "instancesCurrent": 623
+          },
+          {
+            "class": "AttributedString",
+            "id": "classes/905",
+            "accumulatedSize": 54800,
+            "bytesCurrent": 54800,
+            "instancesAccumulated": 3425,
+            "instancesCurrent": 3425
+          },
+          {
+            "class": "_RenderObjectSemantics",
+            "id": "classes/1676",
+            "accumulatedSize": 54720,
+            "bytesCurrent": 54720,
+            "instancesAccumulated": 684,
+            "instancesCurrent": 684
+          }
+        ]
+      }
+    ]
+  },
+  "controls": {
+    "runs": [
+      {
+        "totals": {
+          "accumulatedSize": 53968560,
+          "bytesCurrent": 53968560,
+          "instancesAccumulated": 915094,
+          "instancesCurrent": 915094
+        },
+        "memoryUsage": {
+          "type": "MemoryUsage",
+          "externalUsage": 29552,
+          "heapCapacity": 50368512,
+          "heapUsage": 48573664
+        },
+        "top": [
+          {
+            "class": "_OneByteString",
+            "id": "classes/94",
+            "accumulatedSize": 11342336,
+            "bytesCurrent": 11342336,
+            "instancesAccumulated": 265497,
+            "instancesCurrent": 265497
+          },
+          {
+            "class": "_List",
+            "id": "classes/90",
+            "accumulatedSize": 8707760,
+            "bytesCurrent": 8707760,
+            "instancesAccumulated": 131069,
+            "instancesCurrent": 131069
+          },
+          {
+            "class": "_Uint32List",
+            "id": "classes/137",
+            "accumulatedSize": 7349024,
+            "bytesCurrent": 7349024,
+            "instancesAccumulated": 86452,
+            "instancesCurrent": 86452
+          },
+          {
+            "class": "InstructionsSection",
+            "id": "classes/21",
+            "accumulatedSize": 4863904,
+            "bytesCurrent": 4863904,
+            "instancesAccumulated": 1,
+            "instancesCurrent": 1
+          },
+          {
+            "class": "Code",
+            "id": "classes/18",
+            "accumulatedSize": 3393120,
+            "bytesCurrent": 3393120,
+            "instancesAccumulated": 21207,
+            "instancesCurrent": 21207
+          },
+          {
+            "class": "_Map",
+            "id": "classes/86",
+            "accumulatedSize": 2822304,
+            "bytesCurrent": 2822304,
+            "instancesAccumulated": 88197,
+            "instancesCurrent": 88197
+          },
+          {
+            "class": "CodeSourceMap",
+            "id": "classes/25",
+            "accumulatedSize": 1913840,
+            "bytesCurrent": 1913840,
+            "instancesAccumulated": 16613,
+            "instancesCurrent": 16613
+          },
+          {
+            "class": "_Float64List",
+            "id": "classes/153",
+            "accumulatedSize": 1339360,
+            "bytesCurrent": 1339360,
+            "instancesAccumulated": 8386,
+            "instancesCurrent": 8386
+          },
+          {
+            "class": "Function",
+            "id": "classes/7",
+            "accumulatedSize": 1333824,
+            "bytesCurrent": 1333824,
+            "instancesAccumulated": 20841,
+            "instancesCurrent": 20841
+          },
+          {
+            "class": "_Double",
+            "id": "classes/62",
+            "accumulatedSize": 751152,
+            "bytesCurrent": 751152,
+            "instancesAccumulated": 46947,
+            "instancesCurrent": 46947
+          },
+          {
+            "class": "Offset",
+            "id": "classes/1470",
+            "accumulatedSize": 736768,
+            "bytesCurrent": 736768,
+            "instancesAccumulated": 23024,
+            "instancesCurrent": 23024
+          },
+          {
+            "class": "Field",
+            "id": "classes/11",
+            "accumulatedSize": 645056,
+            "bytesCurrent": 645056,
+            "instancesAccumulated": 10079,
+            "instancesCurrent": 10079
+          },
+          {
+            "class": "_GrowableList",
+            "id": "classes/92",
+            "accumulatedSize": 640800,
+            "bytesCurrent": 640800,
+            "instancesAccumulated": 20025,
+            "instancesCurrent": 20025
+          },
+          {
+            "class": "_Closure",
+            "id": "classes/57",
+            "accumulatedSize": 629760,
+            "bytesCurrent": 629760,
+            "instancesAccumulated": 13120,
+            "instancesCurrent": 13120
+          },
+          {
+            "class": "Rect",
+            "id": "classes/1467",
+            "accumulatedSize": 549024,
+            "bytesCurrent": 549024,
+            "instancesAccumulated": 11438,
+            "instancesCurrent": 11438
+          },
+          {
+            "class": "Class",
+            "id": "classes/5",
+            "accumulatedSize": 467488,
+            "bytesCurrent": 467488,
+            "instancesAccumulated": 4174,
+            "instancesCurrent": 4174
+          },
+          {
+            "class": "_Int64List",
+            "id": "classes/141",
+            "accumulatedSize": 437872,
+            "bytesCurrent": 437872,
+            "instancesAccumulated": 6648,
+            "instancesCurrent": 6648
+          },
+          {
+            "class": "Pointer",
+            "id": "classes/72",
+            "accumulatedSize": 418656,
+            "bytesCurrent": 418656,
+            "instancesAccumulated": 13083,
+            "instancesCurrent": 13083
+          },
+          {
+            "class": "Context",
+            "id": "classes/29",
+            "accumulatedSize": 299984,
+            "bytesCurrent": 299984,
+            "instancesAccumulated": 9084,
+            "instancesCurrent": 9084
+          },
+          {
+            "class": "_Type",
+            "id": "classes/49",
+            "accumulatedSize": 266640,
+            "bytesCurrent": 266640,
+            "instancesAccumulated": 5555,
+            "instancesCurrent": 5555
+          },
+          {
+            "class": "WeakArray",
+            "id": "classes/17",
+            "accumulatedSize": 262256,
+            "bytesCurrent": 262256,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "ObjectPool",
+            "id": "classes/23",
+            "accumulatedSize": 207296,
+            "bytesCurrent": 207296,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "ClassRef",
+            "id": "classes/260",
+            "accumulatedSize": 194880,
+            "bytesCurrent": 194880,
+            "instancesAccumulated": 4060,
+            "instancesCurrent": 4060
+          },
+          {
+            "class": "SourceLocation",
+            "id": "classes/206",
+            "accumulatedSize": 192864,
+            "bytesCurrent": 192864,
+            "instancesAccumulated": 4018,
+            "instancesCurrent": 4018
+          },
+          {
+            "class": "ClassHeapStats",
+            "id": "classes/233",
+            "accumulatedSize": 170448,
+            "bytesCurrent": 170448,
+            "instancesAccumulated": 3551,
+            "instancesCurrent": 3551
+          },
+          {
+            "class": "_FunctionType",
+            "id": "classes/50",
+            "accumulatedSize": 154688,
+            "bytesCurrent": 154688,
+            "instancesAccumulated": 2417,
+            "instancesCurrent": 2417
+          },
+          {
+            "class": "RRect",
+            "id": "classes/1465",
+            "accumulatedSize": 151984,
+            "bytesCurrent": 151984,
+            "instancesAccumulated": 1357,
+            "instancesCurrent": 1357
+          },
+          {
+            "class": "_Record",
+            "id": "classes/67",
+            "accumulatedSize": 136864,
+            "bytesCurrent": 136864,
+            "instancesAccumulated": 4039,
+            "instancesCurrent": 4039
+          },
+          {
+            "class": "Matrix4",
+            "id": "classes/1556",
+            "accumulatedSize": 133776,
+            "bytesCurrent": 133776,
+            "instancesAccumulated": 8361,
+            "instancesCurrent": 8361
+          },
+          {
+            "class": "ScriptRef",
+            "id": "classes/251",
+            "accumulatedSize": 128576,
+            "bytesCurrent": 128576,
+            "instancesAccumulated": 4018,
+            "instancesCurrent": 4018
+          },
+          {
+            "class": "LibraryRef",
+            "id": "classes/252",
+            "accumulatedSize": 128576,
+            "bytesCurrent": 128576,
+            "instancesAccumulated": 4018,
+            "instancesCurrent": 4018
+          },
+          {
+            "class": "ListIterator",
+            "id": "classes/3315",
+            "accumulatedSize": 123744,
+            "bytesCurrent": 123744,
+            "instancesAccumulated": 2578,
+            "instancesCurrent": 2578
+          },
+          {
+            "class": "ClosureData",
+            "id": "classes/9",
+            "accumulatedSize": 105152,
+            "bytesCurrent": 105152,
+            "instancesAccumulated": 3286,
+            "instancesCurrent": 3286
+          },
+          {
+            "class": "_CompactIterator",
+            "id": "classes/3480",
+            "accumulatedSize": 96128,
+            "bytesCurrent": 96128,
+            "instancesAccumulated": 1502,
+            "instancesCurrent": 1502
+          },
+          {
+            "class": "SemanticsProperties",
+            "id": "classes/2524",
+            "accumulatedSize": 95360,
+            "bytesCurrent": 95360,
+            "instancesAccumulated": 298,
+            "instancesCurrent": 298
+          }
+        ]
+      },
+      {
+        "totals": {
+          "accumulatedSize": 36377856,
+          "bytesCurrent": 36377856,
+          "instancesAccumulated": 497503,
+          "instancesCurrent": 497503
+        },
+        "memoryUsage": {
+          "type": "MemoryUsage",
+          "externalUsage": 8336,
+          "heapCapacity": 38834176,
+          "heapUsage": 30979712
+        },
+        "top": [
+          {
+            "class": "_OneByteString",
+            "id": "classes/94",
+            "accumulatedSize": 6196864,
+            "bytesCurrent": 6196864,
+            "instancesAccumulated": 110015,
+            "instancesCurrent": 110015
+          },
+          {
+            "class": "_List",
+            "id": "classes/90",
+            "accumulatedSize": 5673040,
+            "bytesCurrent": 5673040,
+            "instancesAccumulated": 87929,
+            "instancesCurrent": 87929
+          },
+          {
+            "class": "_Uint32List",
+            "id": "classes/137",
+            "accumulatedSize": 5278176,
+            "bytesCurrent": 5278176,
+            "instancesAccumulated": 63115,
+            "instancesCurrent": 63115
+          },
+          {
+            "class": "InstructionsSection",
+            "id": "classes/21",
+            "accumulatedSize": 4863904,
+            "bytesCurrent": 4863904,
+            "instancesAccumulated": 1,
+            "instancesCurrent": 1
+          },
+          {
+            "class": "Code",
+            "id": "classes/18",
+            "accumulatedSize": 3393120,
+            "bytesCurrent": 3393120,
+            "instancesAccumulated": 21207,
+            "instancesCurrent": 21207
+          },
+          {
+            "class": "_Map",
+            "id": "classes/86",
+            "accumulatedSize": 2075552,
+            "bytesCurrent": 2075552,
+            "instancesAccumulated": 64861,
+            "instancesCurrent": 64861
+          },
+          {
+            "class": "CodeSourceMap",
+            "id": "classes/25",
+            "accumulatedSize": 1913840,
+            "bytesCurrent": 1913840,
+            "instancesAccumulated": 16613,
+            "instancesCurrent": 16613
+          },
+          {
+            "class": "Function",
+            "id": "classes/7",
+            "accumulatedSize": 1333824,
+            "bytesCurrent": 1333824,
+            "instancesAccumulated": 20841,
+            "instancesCurrent": 20841
+          },
+          {
+            "class": "Field",
+            "id": "classes/11",
+            "accumulatedSize": 645056,
+            "bytesCurrent": 645056,
+            "instancesAccumulated": 10079,
+            "instancesCurrent": 10079
+          },
+          {
+            "class": "Class",
+            "id": "classes/5",
+            "accumulatedSize": 467488,
+            "bytesCurrent": 467488,
+            "instancesAccumulated": 4174,
+            "instancesCurrent": 4174
+          },
+          {
+            "class": "_Int64List",
+            "id": "classes/141",
+            "accumulatedSize": 390944,
+            "bytesCurrent": 390944,
+            "instancesAccumulated": 4282,
+            "instancesCurrent": 4282
+          },
+          {
+            "class": "_GrowableList",
+            "id": "classes/92",
+            "accumulatedSize": 291328,
+            "bytesCurrent": 291328,
+            "instancesAccumulated": 9104,
+            "instancesCurrent": 9104
+          },
+          {
+            "class": "_Type",
+            "id": "classes/49",
+            "accumulatedSize": 266688,
+            "bytesCurrent": 266688,
+            "instancesAccumulated": 5556,
+            "instancesCurrent": 5556
+          },
+          {
+            "class": "WeakArray",
+            "id": "classes/17",
+            "accumulatedSize": 262256,
+            "bytesCurrent": 262256,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Offset",
+            "id": "classes/1470",
+            "accumulatedSize": 226528,
+            "bytesCurrent": 226528,
+            "instancesAccumulated": 7079,
+            "instancesCurrent": 7079
+          },
+          {
+            "class": "ObjectPool",
+            "id": "classes/23",
+            "accumulatedSize": 207296,
+            "bytesCurrent": 207296,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "_Closure",
+            "id": "classes/57",
+            "accumulatedSize": 188976,
+            "bytesCurrent": 188976,
+            "instancesAccumulated": 3937,
+            "instancesCurrent": 3937
+          },
+          {
+            "class": "_FunctionType",
+            "id": "classes/50",
+            "accumulatedSize": 154688,
+            "bytesCurrent": 154688,
+            "instancesAccumulated": 2417,
+            "instancesCurrent": 2417
+          },
+          {
+            "class": "_Double",
+            "id": "classes/62",
+            "accumulatedSize": 152976,
+            "bytesCurrent": 152976,
+            "instancesAccumulated": 9561,
+            "instancesCurrent": 9561
+          },
+          {
+            "class": "_Float64List",
+            "id": "classes/153",
+            "accumulatedSize": 109600,
+            "bytesCurrent": 109600,
+            "instancesAccumulated": 685,
+            "instancesCurrent": 685
+          },
+          {
+            "class": "ClosureData",
+            "id": "classes/9",
+            "accumulatedSize": 105152,
+            "bytesCurrent": 105152,
+            "instancesAccumulated": 3286,
+            "instancesCurrent": 3286
+          },
+          {
+            "class": "Pointer",
+            "id": "classes/72",
+            "accumulatedSize": 103520,
+            "bytesCurrent": 103520,
+            "instancesAccumulated": 3235,
+            "instancesCurrent": 3235
+          },
+          {
+            "class": "Rect",
+            "id": "classes/1467",
+            "accumulatedSize": 93696,
+            "bytesCurrent": 93696,
+            "instancesAccumulated": 1952,
+            "instancesCurrent": 1952
+          },
+          {
+            "class": "SemanticsConfiguration",
+            "id": "classes/901",
+            "accumulatedSize": 79872,
+            "bytesCurrent": 79872,
+            "instancesAccumulated": 384,
+            "instancesCurrent": 384
+          },
+          {
+            "class": "_ImmutableList",
+            "id": "classes/91",
+            "accumulatedSize": 76000,
+            "bytesCurrent": 76000,
+            "instancesAccumulated": 901,
+            "instancesCurrent": 901
+          },
+          {
+            "class": "RRect",
+            "id": "classes/1465",
+            "accumulatedSize": 60704,
+            "bytesCurrent": 60704,
+            "instancesAccumulated": 542,
+            "instancesCurrent": 542
+          },
+          {
+            "class": "Library",
+            "id": "classes/13",
+            "accumulatedSize": 59808,
+            "bytesCurrent": 59808,
+            "instancesAccumulated": 623,
+            "instancesCurrent": 623
+          },
+          {
+            "class": "Context",
+            "id": "classes/29",
+            "accumulatedSize": 56688,
+            "bytesCurrent": 56688,
+            "instancesAccumulated": 1694,
+            "instancesCurrent": 1694
+          },
+          {
+            "class": "_RenderObjectSemantics",
+            "id": "classes/1676",
+            "accumulatedSize": 56560,
+            "bytesCurrent": 56560,
+            "instancesAccumulated": 707,
+            "instancesCurrent": 707
+          },
+          {
+            "class": "TypeArguments",
+            "id": "classes/47",
+            "accumulatedSize": 53824,
+            "bytesCurrent": 53824,
+            "instancesAccumulated": 1629,
+            "instancesCurrent": 1629
+          },
+          {
+            "class": "_Location",
+            "id": "classes/672",
+            "accumulatedSize": 53280,
+            "bytesCurrent": 53280,
+            "instancesAccumulated": 1665,
+            "instancesCurrent": 1665
+          },
+          {
+            "class": "FrameTiming",
+            "id": "classes/1422",
+            "accumulatedSize": 50176,
+            "bytesCurrent": 50176,
+            "instancesAccumulated": 3136,
+            "instancesCurrent": 3136
+          },
+          {
+            "class": "SingleChildRenderObjectElement",
+            "id": "classes/2987",
+            "accumulatedSize": 44800,
+            "bytesCurrent": 44800,
+            "instancesAccumulated": 560,
+            "instancesCurrent": 560
+          },
+          {
+            "class": "_Uint8List",
+            "id": "classes/117",
+            "accumulatedSize": 43376,
+            "bytesCurrent": 43376,
+            "instancesAccumulated": 210,
+            "instancesCurrent": 210
+          },
+          {
+            "class": "Script",
+            "id": "classes/12",
+            "accumulatedSize": 42144,
+            "bytesCurrent": 42144,
+            "instancesAccumulated": 878,
+            "instancesCurrent": 878
+          }
+        ]
+      }
+    ]
+  },
+  "menu": {
+    "runs": [
+      {
+        "totals": {
+          "accumulatedSize": 58270176,
+          "bytesCurrent": 58270176,
+          "instancesAccumulated": 664856,
+          "instancesCurrent": 664856
+        },
+        "memoryUsage": {
+          "type": "MemoryUsage",
+          "externalUsage": 590640,
+          "heapCapacity": 55582720,
+          "heapUsage": 52872032
+        },
+        "top": [
+          {
+            "class": "_Float64List",
+            "id": "classes/153",
+            "accumulatedSize": 8674032,
+            "bytesCurrent": 8674032,
+            "instancesAccumulated": 2466,
+            "instancesCurrent": 2466
+          },
+          {
+            "class": "_OneByteString",
+            "id": "classes/94",
+            "accumulatedSize": 7647568,
+            "bytesCurrent": 7647568,
+            "instancesAccumulated": 137525,
+            "instancesCurrent": 137525
+          },
+          {
+            "class": "_List",
+            "id": "classes/90",
+            "accumulatedSize": 7592336,
+            "bytesCurrent": 7592336,
+            "instancesAccumulated": 116562,
+            "instancesCurrent": 116562
+          },
+          {
+            "class": "_Uint32List",
+            "id": "classes/137",
+            "accumulatedSize": 7012512,
+            "bytesCurrent": 7012512,
+            "instancesAccumulated": 83821,
+            "instancesCurrent": 83821
+          },
+          {
+            "class": "_Int32List",
+            "id": "classes/133",
+            "accumulatedSize": 5514528,
+            "bytesCurrent": 5514528,
+            "instancesAccumulated": 83,
+            "instancesCurrent": 83
+          },
+          {
+            "class": "InstructionsSection",
+            "id": "classes/21",
+            "accumulatedSize": 4863904,
+            "bytesCurrent": 4863904,
+            "instancesAccumulated": 1,
+            "instancesCurrent": 1
+          },
+          {
+            "class": "Code",
+            "id": "classes/18",
+            "accumulatedSize": 3393120,
+            "bytesCurrent": 3393120,
+            "instancesAccumulated": 21207,
+            "instancesCurrent": 21207
+          },
+          {
+            "class": "_Map",
+            "id": "classes/86",
+            "accumulatedSize": 2762688,
+            "bytesCurrent": 2762688,
+            "instancesAccumulated": 86334,
+            "instancesCurrent": 86334
+          },
+          {
+            "class": "CodeSourceMap",
+            "id": "classes/25",
+            "accumulatedSize": 1913840,
+            "bytesCurrent": 1913840,
+            "instancesAccumulated": 16613,
+            "instancesCurrent": 16613
+          },
+          {
+            "class": "Function",
+            "id": "classes/7",
+            "accumulatedSize": 1333824,
+            "bytesCurrent": 1333824,
+            "instancesAccumulated": 20841,
+            "instancesCurrent": 20841
+          },
+          {
+            "class": "Field",
+            "id": "classes/11",
+            "accumulatedSize": 645056,
+            "bytesCurrent": 645056,
+            "instancesAccumulated": 10079,
+            "instancesCurrent": 10079
+          },
+          {
+            "class": "_Double",
+            "id": "classes/62",
+            "accumulatedSize": 633680,
+            "bytesCurrent": 633680,
+            "instancesAccumulated": 39605,
+            "instancesCurrent": 39605
+          },
+          {
+            "class": "_Int64List",
+            "id": "classes/141",
+            "accumulatedSize": 497920,
+            "bytesCurrent": 497920,
+            "instancesAccumulated": 5674,
+            "instancesCurrent": 5674
+          },
+          {
+            "class": "Class",
+            "id": "classes/5",
+            "accumulatedSize": 467488,
+            "bytesCurrent": 467488,
+            "instancesAccumulated": 4174,
+            "instancesCurrent": 4174
+          },
+          {
+            "class": "_GrowableList",
+            "id": "classes/92",
+            "accumulatedSize": 437088,
+            "bytesCurrent": 437088,
+            "instancesAccumulated": 13659,
+            "instancesCurrent": 13659
+          },
+          {
+            "class": "Offset",
+            "id": "classes/1470",
+            "accumulatedSize": 406240,
+            "bytesCurrent": 406240,
+            "instancesAccumulated": 12695,
+            "instancesCurrent": 12695
+          },
+          {
+            "class": "_Closure",
+            "id": "classes/57",
+            "accumulatedSize": 350880,
+            "bytesCurrent": 350880,
+            "instancesAccumulated": 7310,
+            "instancesCurrent": 7310
+          },
+          {
+            "class": "_Type",
+            "id": "classes/49",
+            "accumulatedSize": 266784,
+            "bytesCurrent": 266784,
+            "instancesAccumulated": 5558,
+            "instancesCurrent": 5558
+          },
+          {
+            "class": "WeakArray",
+            "id": "classes/17",
+            "accumulatedSize": 262256,
+            "bytesCurrent": 262256,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Pointer",
+            "id": "classes/72",
+            "accumulatedSize": 220896,
+            "bytesCurrent": 220896,
+            "instancesAccumulated": 6903,
+            "instancesCurrent": 6903
+          },
+          {
+            "class": "ObjectPool",
+            "id": "classes/23",
+            "accumulatedSize": 207296,
+            "bytesCurrent": 207296,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Rect",
+            "id": "classes/1467",
+            "accumulatedSize": 162096,
+            "bytesCurrent": 162096,
+            "instancesAccumulated": 3377,
+            "instancesCurrent": 3377
+          },
+          {
+            "class": "_FunctionType",
+            "id": "classes/50",
+            "accumulatedSize": 154688,
+            "bytesCurrent": 154688,
+            "instancesAccumulated": 2417,
+            "instancesCurrent": 2417
+          },
+          {
+            "class": "_Float32List",
+            "id": "classes/149",
+            "accumulatedSize": 141248,
+            "bytesCurrent": 141248,
+            "instancesAccumulated": 132,
+            "instancesCurrent": 132
+          },
+          {
+            "class": "SemanticsConfiguration",
+            "id": "classes/901",
+            "accumulatedSize": 136032,
+            "bytesCurrent": 136032,
+            "instancesAccumulated": 654,
+            "instancesCurrent": 654
+          },
+          {
+            "class": "Context",
+            "id": "classes/29",
+            "accumulatedSize": 114816,
+            "bytesCurrent": 114816,
+            "instancesAccumulated": 3508,
+            "instancesCurrent": 3508
+          },
+          {
+            "class": "ClosureData",
+            "id": "classes/9",
+            "accumulatedSize": 105152,
+            "bytesCurrent": 105152,
+            "instancesAccumulated": 3286,
+            "instancesCurrent": 3286
+          },
+          {
+            "class": "_Record",
+            "id": "classes/67",
+            "accumulatedSize": 83328,
+            "bytesCurrent": 83328,
+            "instancesAccumulated": 2442,
+            "instancesCurrent": 2442
+          },
+          {
+            "class": "_RenderObjectSemantics",
+            "id": "classes/1676",
+            "accumulatedSize": 77440,
+            "bytesCurrent": 77440,
+            "instancesAccumulated": 968,
+            "instancesCurrent": 968
+          },
+          {
+            "class": "_ImmutableList",
+            "id": "classes/91",
+            "accumulatedSize": 77264,
+            "bytesCurrent": 77264,
+            "instancesAccumulated": 940,
+            "instancesCurrent": 940
+          },
+          {
+            "class": "ListIterator",
+            "id": "classes/3315",
+            "accumulatedSize": 64080,
+            "bytesCurrent": 64080,
+            "instancesAccumulated": 1335,
+            "instancesCurrent": 1335
+          },
+          {
+            "class": "FrameTiming",
+            "id": "classes/1422",
+            "accumulatedSize": 62176,
+            "bytesCurrent": 62176,
+            "instancesAccumulated": 3886,
+            "instancesCurrent": 3886
+          },
+          {
+            "class": "SingleChildRenderObjectElement",
+            "id": "classes/2987",
+            "accumulatedSize": 60480,
+            "bytesCurrent": 60480,
+            "instancesAccumulated": 756,
+            "instancesCurrent": 756
+          },
+          {
+            "class": "Library",
+            "id": "classes/13",
+            "accumulatedSize": 59808,
+            "bytesCurrent": 59808,
+            "instancesAccumulated": 623,
+            "instancesCurrent": 623
+          },
+          {
+            "class": "RRect",
+            "id": "classes/1465",
+            "accumulatedSize": 59696,
+            "bytesCurrent": 59696,
+            "instancesAccumulated": 533,
+            "instancesCurrent": 533
+          }
+        ]
+      },
+      {
+        "totals": {
+          "accumulatedSize": 64154208,
+          "bytesCurrent": 64154208,
+          "instancesAccumulated": 756614,
+          "instancesCurrent": 756614
+        },
+        "memoryUsage": {
+          "type": "MemoryUsage",
+          "externalUsage": 658160,
+          "heapCapacity": 59731968,
+          "heapUsage": 58756064
+        },
+        "top": [
+          {
+            "class": "_OneByteString",
+            "id": "classes/94",
+            "accumulatedSize": 9088112,
+            "bytesCurrent": 9088112,
+            "instancesAccumulated": 164763,
+            "instancesCurrent": 164763
+          },
+          {
+            "class": "_List",
+            "id": "classes/90",
+            "accumulatedSize": 9039568,
+            "bytesCurrent": 9039568,
+            "instancesAccumulated": 137541,
+            "instancesCurrent": 137541
+          },
+          {
+            "class": "_Float64List",
+            "id": "classes/153",
+            "accumulatedSize": 8908320,
+            "bytesCurrent": 8908320,
+            "instancesAccumulated": 2578,
+            "instancesCurrent": 2578
+          },
+          {
+            "class": "_Uint32List",
+            "id": "classes/137",
+            "accumulatedSize": 8717824,
+            "bytesCurrent": 8717824,
+            "instancesAccumulated": 104255,
+            "instancesCurrent": 104255
+          },
+          {
+            "class": "_Int32List",
+            "id": "classes/133",
+            "accumulatedSize": 5514592,
+            "bytesCurrent": 5514592,
+            "instancesAccumulated": 85,
+            "instancesCurrent": 85
+          },
+          {
+            "class": "InstructionsSection",
+            "id": "classes/21",
+            "accumulatedSize": 4863904,
+            "bytesCurrent": 4863904,
+            "instancesAccumulated": 1,
+            "instancesCurrent": 1
+          },
+          {
+            "class": "_Map",
+            "id": "classes/86",
+            "accumulatedSize": 3418368,
+            "bytesCurrent": 3418368,
+            "instancesAccumulated": 106824,
+            "instancesCurrent": 106824
+          },
+          {
+            "class": "Code",
+            "id": "classes/18",
+            "accumulatedSize": 3393120,
+            "bytesCurrent": 3393120,
+            "instancesAccumulated": 21207,
+            "instancesCurrent": 21207
+          },
+          {
+            "class": "CodeSourceMap",
+            "id": "classes/25",
+            "accumulatedSize": 1913840,
+            "bytesCurrent": 1913840,
+            "instancesAccumulated": 16613,
+            "instancesCurrent": 16613
+          },
+          {
+            "class": "Function",
+            "id": "classes/7",
+            "accumulatedSize": 1333824,
+            "bytesCurrent": 1333824,
+            "instancesAccumulated": 20841,
+            "instancesCurrent": 20841
+          },
+          {
+            "class": "Field",
+            "id": "classes/11",
+            "accumulatedSize": 645056,
+            "bytesCurrent": 645056,
+            "instancesAccumulated": 10079,
+            "instancesCurrent": 10079
+          },
+          {
+            "class": "_Double",
+            "id": "classes/62",
+            "accumulatedSize": 638544,
+            "bytesCurrent": 638544,
+            "instancesAccumulated": 39909,
+            "instancesCurrent": 39909
+          },
+          {
+            "class": "_Int64List",
+            "id": "classes/141",
+            "accumulatedSize": 529168,
+            "bytesCurrent": 529168,
+            "instancesAccumulated": 5969,
+            "instancesCurrent": 5969
+          },
+          {
+            "class": "Class",
+            "id": "classes/5",
+            "accumulatedSize": 467488,
+            "bytesCurrent": 467488,
+            "instancesAccumulated": 4174,
+            "instancesCurrent": 4174
+          },
+          {
+            "class": "_GrowableList",
+            "id": "classes/92",
+            "accumulatedSize": 455840,
+            "bytesCurrent": 455840,
+            "instancesAccumulated": 14245,
+            "instancesCurrent": 14245
+          },
+          {
+            "class": "_Float32List",
+            "id": "classes/149",
+            "accumulatedSize": 438176,
+            "bytesCurrent": 438176,
+            "instancesAccumulated": 134,
+            "instancesCurrent": 134
+          },
+          {
+            "class": "Offset",
+            "id": "classes/1470",
+            "accumulatedSize": 407392,
+            "bytesCurrent": 407392,
+            "instancesAccumulated": 12731,
+            "instancesCurrent": 12731
+          },
+          {
+            "class": "_Closure",
+            "id": "classes/57",
+            "accumulatedSize": 362352,
+            "bytesCurrent": 362352,
+            "instancesAccumulated": 7549,
+            "instancesCurrent": 7549
+          },
+          {
+            "class": "_Type",
+            "id": "classes/49",
+            "accumulatedSize": 266784,
+            "bytesCurrent": 266784,
+            "instancesAccumulated": 5558,
+            "instancesCurrent": 5558
+          },
+          {
+            "class": "WeakArray",
+            "id": "classes/17",
+            "accumulatedSize": 262256,
+            "bytesCurrent": 262256,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Pointer",
+            "id": "classes/72",
+            "accumulatedSize": 222368,
+            "bytesCurrent": 222368,
+            "instancesAccumulated": 6949,
+            "instancesCurrent": 6949
+          },
+          {
+            "class": "ObjectPool",
+            "id": "classes/23",
+            "accumulatedSize": 207296,
+            "bytesCurrent": 207296,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Rect",
+            "id": "classes/1467",
+            "accumulatedSize": 165456,
+            "bytesCurrent": 165456,
+            "instancesAccumulated": 3447,
+            "instancesCurrent": 3447
+          },
+          {
+            "class": "_FunctionType",
+            "id": "classes/50",
+            "accumulatedSize": 154688,
+            "bytesCurrent": 154688,
+            "instancesAccumulated": 2417,
+            "instancesCurrent": 2417
+          },
+          {
+            "class": "SemanticsConfiguration",
+            "id": "classes/901",
+            "accumulatedSize": 138944,
+            "bytesCurrent": 138944,
+            "instancesAccumulated": 668,
+            "instancesCurrent": 668
+          },
+          {
+            "class": "Context",
+            "id": "classes/29",
+            "accumulatedSize": 119152,
+            "bytesCurrent": 119152,
+            "instancesAccumulated": 3642,
+            "instancesCurrent": 3642
+          },
+          {
+            "class": "ClosureData",
+            "id": "classes/9",
+            "accumulatedSize": 105152,
+            "bytesCurrent": 105152,
+            "instancesAccumulated": 3286,
+            "instancesCurrent": 3286
+          },
+          {
+            "class": "_Record",
+            "id": "classes/67",
+            "accumulatedSize": 84272,
+            "bytesCurrent": 84272,
+            "instancesAccumulated": 2470,
+            "instancesCurrent": 2470
+          },
+          {
+            "class": "_RenderObjectSemantics",
+            "id": "classes/1676",
+            "accumulatedSize": 78560,
+            "bytesCurrent": 78560,
+            "instancesAccumulated": 982,
+            "instancesCurrent": 982
+          },
+          {
+            "class": "_ImmutableList",
+            "id": "classes/91",
+            "accumulatedSize": 77232,
+            "bytesCurrent": 77232,
+            "instancesAccumulated": 939,
+            "instancesCurrent": 939
+          },
+          {
+            "class": "FrameTiming",
+            "id": "classes/1422",
+            "accumulatedSize": 66640,
+            "bytesCurrent": 66640,
+            "instancesAccumulated": 4165,
+            "instancesCurrent": 4165
+          },
+          {
+            "class": "ListIterator",
+            "id": "classes/3315",
+            "accumulatedSize": 65616,
+            "bytesCurrent": 65616,
+            "instancesAccumulated": 1367,
+            "instancesCurrent": 1367
+          },
+          {
+            "class": "SingleChildRenderObjectElement",
+            "id": "classes/2987",
+            "accumulatedSize": 61600,
+            "bytesCurrent": 61600,
+            "instancesAccumulated": 770,
+            "instancesCurrent": 770
+          },
+          {
+            "class": "Library",
+            "id": "classes/13",
+            "accumulatedSize": 59808,
+            "bytesCurrent": 59808,
+            "instancesAccumulated": 623,
+            "instancesCurrent": 623
+          },
+          {
+            "class": "SemanticsProperties",
+            "id": "classes/2524",
+            "accumulatedSize": 59200,
+            "bytesCurrent": 59200,
+            "instancesAccumulated": 185,
+            "instancesCurrent": 185
+          }
+        ]
+      }
+    ]
+  },
+  "sheet": {
+    "runs": [
+      {
+        "totals": {
+          "accumulatedSize": 72517728,
+          "bytesCurrent": 72517728,
+          "instancesAccumulated": 918660,
+          "instancesCurrent": 918660
+        },
+        "memoryUsage": {
+          "type": "MemoryUsage",
+          "externalUsage": 32784,
+          "heapCapacity": 75186176,
+          "heapUsage": 67120272
+        },
+        "top": [
+          {
+            "class": "_List",
+            "id": "classes/90",
+            "accumulatedSize": 11173104,
+            "bytesCurrent": 11173104,
+            "instancesAccumulated": 171673,
+            "instancesCurrent": 171673
+          },
+          {
+            "class": "_OneByteString",
+            "id": "classes/94",
+            "accumulatedSize": 10548928,
+            "bytesCurrent": 10548928,
+            "instancesAccumulated": 192416,
+            "instancesCurrent": 192416
+          },
+          {
+            "class": "_Uint32List",
+            "id": "classes/137",
+            "accumulatedSize": 10460384,
+            "bytesCurrent": 10460384,
+            "instancesAccumulated": 125306,
+            "instancesCurrent": 125306
+          },
+          {
+            "class": "_Float64List",
+            "id": "classes/153",
+            "accumulatedSize": 9657136,
+            "bytesCurrent": 9657136,
+            "instancesAccumulated": 7725,
+            "instancesCurrent": 7725
+          },
+          {
+            "class": "_Int32List",
+            "id": "classes/133",
+            "accumulatedSize": 5513056,
+            "bytesCurrent": 5513056,
+            "instancesAccumulated": 37,
+            "instancesCurrent": 37
+          },
+          {
+            "class": "InstructionsSection",
+            "id": "classes/21",
+            "accumulatedSize": 4863904,
+            "bytesCurrent": 4863904,
+            "instancesAccumulated": 1,
+            "instancesCurrent": 1
+          },
+          {
+            "class": "_Map",
+            "id": "classes/86",
+            "accumulatedSize": 4071872,
+            "bytesCurrent": 4071872,
+            "instancesAccumulated": 127246,
+            "instancesCurrent": 127246
+          },
+          {
+            "class": "Code",
+            "id": "classes/18",
+            "accumulatedSize": 3393120,
+            "bytesCurrent": 3393120,
+            "instancesAccumulated": 21207,
+            "instancesCurrent": 21207
+          },
+          {
+            "class": "CodeSourceMap",
+            "id": "classes/25",
+            "accumulatedSize": 1913840,
+            "bytesCurrent": 1913840,
+            "instancesAccumulated": 16613,
+            "instancesCurrent": 16613
+          },
+          {
+            "class": "Function",
+            "id": "classes/7",
+            "accumulatedSize": 1333824,
+            "bytesCurrent": 1333824,
+            "instancesAccumulated": 20841,
+            "instancesCurrent": 20841
+          },
+          {
+            "class": "Offset",
+            "id": "classes/1470",
+            "accumulatedSize": 745920,
+            "bytesCurrent": 745920,
+            "instancesAccumulated": 23310,
+            "instancesCurrent": 23310
+          },
+          {
+            "class": "_Int64List",
+            "id": "classes/141",
+            "accumulatedSize": 689744,
+            "bytesCurrent": 689744,
+            "instancesAccumulated": 9411,
+            "instancesCurrent": 9411
+          },
+          {
+            "class": "Field",
+            "id": "classes/11",
+            "accumulatedSize": 645056,
+            "bytesCurrent": 645056,
+            "instancesAccumulated": 10079,
+            "instancesCurrent": 10079
+          },
+          {
+            "class": "_GrowableList",
+            "id": "classes/92",
+            "accumulatedSize": 604256,
+            "bytesCurrent": 604256,
+            "instancesAccumulated": 18883,
+            "instancesCurrent": 18883
+          },
+          {
+            "class": "_Double",
+            "id": "classes/62",
+            "accumulatedSize": 556096,
+            "bytesCurrent": 556096,
+            "instancesAccumulated": 34756,
+            "instancesCurrent": 34756
+          },
+          {
+            "class": "_Closure",
+            "id": "classes/57",
+            "accumulatedSize": 520752,
+            "bytesCurrent": 520752,
+            "instancesAccumulated": 10849,
+            "instancesCurrent": 10849
+          },
+          {
+            "class": "Pointer",
+            "id": "classes/72",
+            "accumulatedSize": 485472,
+            "bytesCurrent": 485472,
+            "instancesAccumulated": 15171,
+            "instancesCurrent": 15171
+          },
+          {
+            "class": "Rect",
+            "id": "classes/1467",
+            "accumulatedSize": 481728,
+            "bytesCurrent": 481728,
+            "instancesAccumulated": 10036,
+            "instancesCurrent": 10036
+          },
+          {
+            "class": "Class",
+            "id": "classes/5",
+            "accumulatedSize": 467488,
+            "bytesCurrent": 467488,
+            "instancesAccumulated": 4174,
+            "instancesCurrent": 4174
+          },
+          {
+            "class": "_Type",
+            "id": "classes/49",
+            "accumulatedSize": 266976,
+            "bytesCurrent": 266976,
+            "instancesAccumulated": 5562,
+            "instancesCurrent": 5562
+          },
+          {
+            "class": "WeakArray",
+            "id": "classes/17",
+            "accumulatedSize": 262256,
+            "bytesCurrent": 262256,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "ObjectPool",
+            "id": "classes/23",
+            "accumulatedSize": 207296,
+            "bytesCurrent": 207296,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Context",
+            "id": "classes/29",
+            "accumulatedSize": 203568,
+            "bytesCurrent": 203568,
+            "instancesAccumulated": 6123,
+            "instancesCurrent": 6123
+          },
+          {
+            "class": "_FunctionType",
+            "id": "classes/50",
+            "accumulatedSize": 154688,
+            "bytesCurrent": 154688,
+            "instancesAccumulated": 2417,
+            "instancesCurrent": 2417
+          },
+          {
+            "class": "_Record",
+            "id": "classes/67",
+            "accumulatedSize": 131472,
+            "bytesCurrent": 131472,
+            "instancesAccumulated": 3744,
+            "instancesCurrent": 3744
+          },
+          {
+            "class": "_Float32List",
+            "id": "classes/149",
+            "accumulatedSize": 122192,
+            "bytesCurrent": 122192,
+            "instancesAccumulated": 270,
+            "instancesCurrent": 270
+          },
+          {
+            "class": "Matrix4",
+            "id": "classes/1556",
+            "accumulatedSize": 120544,
+            "bytesCurrent": 120544,
+            "instancesAccumulated": 7534,
+            "instancesCurrent": 7534
+          },
+          {
+            "class": "_CompactIterator",
+            "id": "classes/3480",
+            "accumulatedSize": 114624,
+            "bytesCurrent": 114624,
+            "instancesAccumulated": 1791,
+            "instancesCurrent": 1791
+          },
+          {
+            "class": "ClosureData",
+            "id": "classes/9",
+            "accumulatedSize": 105152,
+            "bytesCurrent": 105152,
+            "instancesAccumulated": 3286,
+            "instancesCurrent": 3286
+          },
+          {
+            "class": "SemanticsProperties",
+            "id": "classes/2524",
+            "accumulatedSize": 91520,
+            "bytesCurrent": 91520,
+            "instancesAccumulated": 286,
+            "instancesCurrent": 286
+          },
+          {
+            "class": "SemanticsConfiguration",
+            "id": "classes/901",
+            "accumulatedSize": 83616,
+            "bytesCurrent": 83616,
+            "instancesAccumulated": 402,
+            "instancesCurrent": 402
+          },
+          {
+            "class": "RRect",
+            "id": "classes/1465",
+            "accumulatedSize": 79632,
+            "bytesCurrent": 79632,
+            "instancesAccumulated": 711,
+            "instancesCurrent": 711
+          },
+          {
+            "class": "SingleChildRenderObjectElement",
+            "id": "classes/2987",
+            "accumulatedSize": 77920,
+            "bytesCurrent": 77920,
+            "instancesAccumulated": 974,
+            "instancesCurrent": 974
+          },
+          {
+            "class": "_ImmutableList",
+            "id": "classes/91",
+            "accumulatedSize": 76288,
+            "bytesCurrent": 76288,
+            "instancesAccumulated": 909,
+            "instancesCurrent": 909
+          },
+          {
+            "class": "FrameTiming",
+            "id": "classes/1422",
+            "accumulatedSize": 75280,
+            "bytesCurrent": 75280,
+            "instancesAccumulated": 4705,
+            "instancesCurrent": 4705
+          }
+        ]
+      },
+      {
+        "totals": {
+          "accumulatedSize": 74343184,
+          "bytesCurrent": 74343184,
+          "instancesAccumulated": 918434,
+          "instancesCurrent": 918434
+        },
+        "memoryUsage": {
+          "type": "MemoryUsage",
+          "externalUsage": 22288,
+          "heapCapacity": 82526208,
+          "heapUsage": 68945616
+        },
+        "top": [
+          {
+            "class": "_Uint32List",
+            "id": "classes/137",
+            "accumulatedSize": 12143040,
+            "bytesCurrent": 12143040,
+            "instancesAccumulated": 145421,
+            "instancesCurrent": 145421
+          },
+          {
+            "class": "_OneByteString",
+            "id": "classes/94",
+            "accumulatedSize": 11982480,
+            "bytesCurrent": 11982480,
+            "instancesAccumulated": 219420,
+            "instancesCurrent": 219420
+          },
+          {
+            "class": "_List",
+            "id": "classes/90",
+            "accumulatedSize": 11913200,
+            "bytesCurrent": 11913200,
+            "instancesAccumulated": 181451,
+            "instancesCurrent": 181451
+          },
+          {
+            "class": "_Float64List",
+            "id": "classes/153",
+            "accumulatedSize": 9105040,
+            "bytesCurrent": 9105040,
+            "instancesAccumulated": 4227,
+            "instancesCurrent": 4227
+          },
+          {
+            "class": "_Int32List",
+            "id": "classes/133",
+            "accumulatedSize": 5513056,
+            "bytesCurrent": 5513056,
+            "instancesAccumulated": 37,
+            "instancesCurrent": 37
+          },
+          {
+            "class": "InstructionsSection",
+            "id": "classes/21",
+            "accumulatedSize": 4863904,
+            "bytesCurrent": 4863904,
+            "instancesAccumulated": 1,
+            "instancesCurrent": 1
+          },
+          {
+            "class": "_Map",
+            "id": "classes/86",
+            "accumulatedSize": 4723776,
+            "bytesCurrent": 4723776,
+            "instancesAccumulated": 147618,
+            "instancesCurrent": 147618
+          },
+          {
+            "class": "Code",
+            "id": "classes/18",
+            "accumulatedSize": 3393120,
+            "bytesCurrent": 3393120,
+            "instancesAccumulated": 21207,
+            "instancesCurrent": 21207
+          },
+          {
+            "class": "CodeSourceMap",
+            "id": "classes/25",
+            "accumulatedSize": 1913840,
+            "bytesCurrent": 1913840,
+            "instancesAccumulated": 16613,
+            "instancesCurrent": 16613
+          },
+          {
+            "class": "Function",
+            "id": "classes/7",
+            "accumulatedSize": 1333824,
+            "bytesCurrent": 1333824,
+            "instancesAccumulated": 20841,
+            "instancesCurrent": 20841
+          },
+          {
+            "class": "Field",
+            "id": "classes/11",
+            "accumulatedSize": 645056,
+            "bytesCurrent": 645056,
+            "instancesAccumulated": 10079,
+            "instancesCurrent": 10079
+          },
+          {
+            "class": "_Int64List",
+            "id": "classes/141",
+            "accumulatedSize": 634432,
+            "bytesCurrent": 634432,
+            "instancesAccumulated": 7070,
+            "instancesCurrent": 7070
+          },
+          {
+            "class": "Class",
+            "id": "classes/5",
+            "accumulatedSize": 467488,
+            "bytesCurrent": 467488,
+            "instancesAccumulated": 4174,
+            "instancesCurrent": 4174
+          },
+          {
+            "class": "_GrowableList",
+            "id": "classes/92",
+            "accumulatedSize": 457600,
+            "bytesCurrent": 457600,
+            "instancesAccumulated": 14300,
+            "instancesCurrent": 14300
+          },
+          {
+            "class": "Offset",
+            "id": "classes/1470",
+            "accumulatedSize": 437888,
+            "bytesCurrent": 437888,
+            "instancesAccumulated": 13684,
+            "instancesCurrent": 13684
+          },
+          {
+            "class": "_Closure",
+            "id": "classes/57",
+            "accumulatedSize": 355200,
+            "bytesCurrent": 355200,
+            "instancesAccumulated": 7400,
+            "instancesCurrent": 7400
+          },
+          {
+            "class": "_Type",
+            "id": "classes/49",
+            "accumulatedSize": 266928,
+            "bytesCurrent": 266928,
+            "instancesAccumulated": 5561,
+            "instancesCurrent": 5561
+          },
+          {
+            "class": "WeakArray",
+            "id": "classes/17",
+            "accumulatedSize": 262256,
+            "bytesCurrent": 262256,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Rect",
+            "id": "classes/1467",
+            "accumulatedSize": 253152,
+            "bytesCurrent": 253152,
+            "instancesAccumulated": 5274,
+            "instancesCurrent": 5274
+          },
+          {
+            "class": "_Double",
+            "id": "classes/62",
+            "accumulatedSize": 243024,
+            "bytesCurrent": 243024,
+            "instancesAccumulated": 15189,
+            "instancesCurrent": 15189
+          },
+          {
+            "class": "ObjectPool",
+            "id": "classes/23",
+            "accumulatedSize": 207296,
+            "bytesCurrent": 207296,
+            "instancesAccumulated": 2,
+            "instancesCurrent": 2
+          },
+          {
+            "class": "Pointer",
+            "id": "classes/72",
+            "accumulatedSize": 169056,
+            "bytesCurrent": 169056,
+            "instancesAccumulated": 5283,
+            "instancesCurrent": 5283
+          },
+          {
+            "class": "_FunctionType",
+            "id": "classes/50",
+            "accumulatedSize": 154688,
+            "bytesCurrent": 154688,
+            "instancesAccumulated": 2417,
+            "instancesCurrent": 2417
+          },
+          {
+            "class": "Context",
+            "id": "classes/29",
+            "accumulatedSize": 120784,
+            "bytesCurrent": 120784,
+            "instancesAccumulated": 3625,
+            "instancesCurrent": 3625
+          },
+          {
+            "class": "SemanticsConfiguration",
+            "id": "classes/901",
+            "accumulatedSize": 106912,
+            "bytesCurrent": 106912,
+            "instancesAccumulated": 514,
+            "instancesCurrent": 514
+          },
+          {
+            "class": "ClosureData",
+            "id": "classes/9",
+            "accumulatedSize": 105152,
+            "bytesCurrent": 105152,
+            "instancesAccumulated": 3286,
+            "instancesCurrent": 3286
+          },
+          {
+            "class": "_Float32List",
+            "id": "classes/149",
+            "accumulatedSize": 98032,
+            "bytesCurrent": 98032,
+            "instancesAccumulated": 82,
+            "instancesCurrent": 82
+          },
+          {
+            "class": "SingleChildRenderObjectElement",
+            "id": "classes/2987",
+            "accumulatedSize": 85200,
+            "bytesCurrent": 85200,
+            "instancesAccumulated": 1065,
+            "instancesCurrent": 1065
+          },
+          {
+            "class": "FrameTiming",
+            "id": "classes/1422",
+            "accumulatedSize": 79952,
+            "bytesCurrent": 79952,
+            "instancesAccumulated": 4997,
+            "instancesCurrent": 4997
+          },
+          {
+            "class": "SemanticsProperties",
+            "id": "classes/2524",
+            "accumulatedSize": 78080,
+            "bytesCurrent": 78080,
+            "instancesAccumulated": 244,
+            "instancesCurrent": 244
+          },
+          {
+            "class": "_ImmutableList",
+            "id": "classes/91",
+            "accumulatedSize": 76352,
+            "bytesCurrent": 76352,
+            "instancesAccumulated": 911,
+            "instancesCurrent": 911
+          },
+          {
+            "class": "_Record",
+            "id": "classes/67",
+            "accumulatedSize": 76304,
+            "bytesCurrent": 76304,
+            "instancesAccumulated": 2187,
+            "instancesCurrent": 2187
+          },
+          {
+            "class": "_CompactIterator",
+            "id": "classes/3480",
+            "accumulatedSize": 75008,
+            "bytesCurrent": 75008,
+            "instancesAccumulated": 1172,
+            "instancesCurrent": 1172
+          },
+          {
+            "class": "_Uint8List",
+            "id": "classes/117",
+            "accumulatedSize": 73856,
+            "bytesCurrent": 73856,
+            "instancesAccumulated": 91,
+            "instancesCurrent": 91
+          },
+          {
+            "class": "_RenderObjectSemantics",
+            "id": "classes/1676",
+            "accumulatedSize": 66240,
+            "bytesCurrent": 66240,
+            "instancesAccumulated": 828,
+            "instancesCurrent": 828
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -2261,6 +2261,41 @@ Gallery: the root installs `MorphAdaptiveGlass` with the session's
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass
 renderer page edits them and shows the tier being drawn.
 
+## Current Android resource study (2026-10-06)
+
+Source 8cfcd21, Pixel 6a Vulkan, 60 Hz. No renderer change. Three-run
+separate GPU captures give flat/liquid Mcycles per active frame:
+tab 1.050/4.142, controls 0.434/2.153, menu 0.687/3.289,
+sheet 0.971/6.002. The liquid sheet clocks higher; compare cycles.
+Current menu has mean 2.89 backdrop filters, sheet at most 7 filters
+and 4 independent captures. Cached matte does not eliminate per-frame
+capture/encoding. Native saveLayer calls/frame: tab 9.70, controls
+6.21, menu 6.22, sheet 9.17 (includes picture-internal layers).
+
+Three-run exact analytic-uniform counter probe finds no identical
+native encodes. Sheet median is 16 encodes/run, with 51 clean paint
+reuses; static retained layers also bypass paint. Field inputs were
+excluded from exact duplicate detection. Animated menu ring storage
+peaks at 16.22 MiB, broad page container at 16.50 MiB, uniform arena
+at 0.57 MiB. Those figures exclude global released textures, fields,
+engine targets and driver/scene references. Do not sum as actual RSS.
+
+Inspect field-only unused analytic preparation and byte-budgeted
+texture retention next. Same-frame retained picture replay need not
+change fidelity, but must preserve current paint order and the full
+sample/mirror domain. The existing content snapshot's unsupported-layer
+toImageSync fallback is not a free generic backdrop provider. Raster
+scheduled time already averages 8-10 ms/active liquid frame here;
+CPU/GPU transfers need energy and limiting-stage checks, not equal load.
+
+GC collections in the native trace do not overlap UI BeginFrame slices.
+The VM probe reports current heap, not reliable allocation-rate counters.
+energy.py now sums every matching app raster thread and flags old caches.
+A failed launch left an extra recorder during the exploratory energy
+runs; the runner now terminates its own recorder on early exit. Future
+acceptance energy runs must start clean. Full protocol, rejected trace,
+allocation limitations and evidence: tool/audit/codex-round4-resource-study.md.
+
 ## Round 3: flat edge effects and liquid controls (2026-10-06)
 
 Scope: owner-approved flat fade/hairline only, and controls UI profiling.

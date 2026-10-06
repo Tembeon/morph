@@ -1,0 +1,778 @@
+{
+  "tab-bar": {
+    "median_counts": {
+      "native.encode": 513,
+      "paint.active": 513,
+      "paint.dirty_flag": 335,
+      "paint.dirty_link": 513,
+      "paint.encode": 513,
+      "paint.missing_image": 3
+    },
+    "runs": [
+      {
+        "counts": {
+          "paint.active": 513,
+          "paint.dirty_flag": 335,
+          "paint.missing_image": 3,
+          "paint.dirty_link": 513,
+          "paint.encode": 513,
+          "native.encode": 513
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 513,
+              "paint.dirty_flag": 335,
+              "paint.missing_image": 3,
+              "paint.dirty_link": 513,
+              "paint.encode": 513,
+              "native.encode": 513
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          }
+        }
+      },
+      {
+        "counts": {
+          "paint.active": 478,
+          "paint.dirty_flag": 333,
+          "paint.missing_image": 3,
+          "paint.dirty_link": 478,
+          "paint.encode": 478,
+          "native.encode": 478
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 478,
+              "paint.dirty_flag": 333,
+              "paint.missing_image": 3,
+              "paint.dirty_link": 478,
+              "paint.encode": 478,
+              "native.encode": 478
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          }
+        }
+      },
+      {
+        "counts": {
+          "paint.active": 551,
+          "paint.dirty_flag": 339,
+          "paint.missing_image": 3,
+          "paint.dirty_link": 551,
+          "paint.encode": 551,
+          "native.encode": 551
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphPresentationBoundary > TabBarPage > MorphTabBar [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 551,
+              "paint.dirty_flag": 339,
+              "paint.missing_image": 3,
+              "paint.dirty_link": 551,
+              "paint.encode": 551,
+              "native.encode": 551
+            },
+            "peaks": {
+              "ring_bytes": 884736,
+              "matte_pixels": 81920,
+              "filter_width_px": 384,
+              "filter_height_px": 256,
+              "filter_output_pixels": 98304
+            }
+          }
+        }
+      }
+    ]
+  },
+  "controls": {
+    "median_counts": {
+      "native.encode": 360,
+      "paint.active": 360,
+      "paint.dirty_flag": 212,
+      "paint.dirty_link": 360,
+      "paint.encode": 360,
+      "paint.missing_image": 3
+    },
+    "runs": [
+      {
+        "counts": {
+          "paint.active": 353,
+          "paint.dirty_flag": 207,
+          "paint.missing_image": 3,
+          "paint.dirty_link": 353,
+          "paint.encode": 353,
+          "native.encode": 353
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 137,
+              "paint.dirty_flag": 99,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 137,
+              "paint.encode": 137,
+              "native.encode": 137
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15657
+            }
+          },
+          "MorphNavigationScaffold > MorphSlider > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 216,
+              "paint.dirty_flag": 108,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 216,
+              "paint.encode": 216,
+              "native.encode": 216
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 257,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49344,
+              "blur_sigma_milli_px": 15658
+            }
+          }
+        }
+      },
+      {
+        "counts": {
+          "paint.active": 360,
+          "paint.dirty_flag": 212,
+          "paint.missing_image": 3,
+          "paint.dirty_link": 360,
+          "paint.encode": 360,
+          "native.encode": 360
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 146,
+              "paint.dirty_flag": 108,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 146,
+              "paint.encode": 146,
+              "native.encode": 146
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15659
+            }
+          },
+          "MorphNavigationScaffold > MorphSlider > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 214,
+              "paint.dirty_flag": 104,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 214,
+              "paint.encode": 214,
+              "native.encode": 214
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 257,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49344,
+              "blur_sigma_milli_px": 15655
+            }
+          }
+        }
+      },
+      {
+        "counts": {
+          "paint.active": 360,
+          "paint.dirty_flag": 216,
+          "paint.missing_image": 3,
+          "paint.dirty_link": 360,
+          "paint.encode": 360,
+          "native.encode": 360
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphNavigationScaffold > MorphSwitch > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 146,
+              "paint.dirty_flag": 108,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 146,
+              "paint.encode": 146,
+              "native.encode": 146
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 256,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49152,
+              "blur_sigma_milli_px": 15656
+            }
+          },
+          "MorphNavigationScaffold > MorphSlider > MorphDisabled [(glass, 0)] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 214,
+              "paint.dirty_flag": 108,
+              "paint.missing_image": 1,
+              "paint.dirty_link": 214,
+              "paint.encode": 214,
+              "native.encode": 214
+            },
+            "peaks": {
+              "ring_bytes": 196608,
+              "matte_pixels": 24576,
+              "filter_width_px": 257,
+              "filter_height_px": 192,
+              "filter_output_pixels": 49344,
+              "blur_sigma_milli_px": 15655
+            }
+          }
+        }
+      }
+    ]
+  },
+  "menu": {
+    "median_counts": {
+      "native.encode": 216,
+      "native.field": 98,
+      "paint.active": 380,
+      "paint.clean_reuse": 166,
+      "paint.dirty_flag": 104,
+      "paint.dirty_link": 216,
+      "paint.encode": 216,
+      "paint.missing_image": 6,
+      "retained.refresh": 1
+    },
+    "runs": [
+      {
+        "counts": {
+          "paint.active": 378,
+          "paint.dirty_flag": 101,
+          "paint.missing_image": 6,
+          "paint.dirty_link": 212,
+          "paint.encode": 212,
+          "native.encode": 212,
+          "paint.clean_reuse": 166,
+          "retained.refresh": 1,
+          "native.field": 94
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 64,
+              "paint.dirty_flag": 8,
+              "paint.missing_image": 4,
+              "paint.dirty_link": 64,
+              "paint.encode": 64,
+              "native.encode": 64,
+              "native.field": 4
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 168,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 166,
+              "retained.refresh": 1
+            },
+            "peaks": {
+              "ring_bytes": 17301504,
+              "matte_pixels": 2162688,
+              "filter_width_px": 1088,
+              "filter_height_px": 2112,
+              "filter_output_pixels": 2297856
+            }
+          },
+          "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 146,
+              "paint.dirty_flag": 93,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 146,
+              "paint.encode": 146,
+              "native.encode": 146,
+              "native.field": 90
+            },
+            "peaks": {
+              "ring_bytes": 15116544,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          }
+        }
+      },
+      {
+        "counts": {
+          "paint.active": 384,
+          "paint.dirty_flag": 105,
+          "paint.missing_image": 6,
+          "paint.dirty_link": 217,
+          "paint.encode": 217,
+          "native.encode": 217,
+          "paint.clean_reuse": 167,
+          "retained.refresh": 1,
+          "native.field": 99
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 64,
+              "paint.dirty_flag": 8,
+              "paint.missing_image": 4,
+              "paint.dirty_link": 64,
+              "paint.encode": 64,
+              "native.encode": 64,
+              "native.field": 4
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 169,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 167,
+              "retained.refresh": 1
+            },
+            "peaks": {
+              "ring_bytes": 17301504,
+              "matte_pixels": 2162688,
+              "filter_width_px": 1088,
+              "filter_height_px": 2112,
+              "filter_output_pixels": 2297856
+            }
+          },
+          "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 151,
+              "paint.dirty_flag": 97,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 151,
+              "paint.encode": 151,
+              "native.encode": 151,
+              "native.field": 95
+            },
+            "peaks": {
+              "ring_bytes": 17006112,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          }
+        }
+      },
+      {
+        "counts": {
+          "paint.active": 380,
+          "paint.dirty_flag": 104,
+          "paint.missing_image": 6,
+          "paint.dirty_link": 216,
+          "paint.encode": 216,
+          "native.encode": 216,
+          "paint.clean_reuse": 164,
+          "retained.refresh": 1,
+          "native.field": 98
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphMenuButton > MorphTag > MorphTagVisibility [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 66,
+              "paint.dirty_flag": 10,
+              "paint.missing_image": 4,
+              "paint.dirty_link": 66,
+              "paint.encode": 66,
+              "native.encode": 66,
+              "native.field": 6
+            },
+            "peaks": {
+              "ring_bytes": 294912,
+              "matte_pixels": 36864,
+              "filter_width_px": 256,
+              "filter_height_px": 256,
+              "filter_output_pixels": 65536
+            }
+          },
+          "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 166,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 164,
+              "retained.refresh": 1
+            },
+            "peaks": {
+              "ring_bytes": 17301504,
+              "matte_pixels": 2162688,
+              "filter_width_px": 1088,
+              "filter_height_px": 2112,
+              "filter_output_pixels": 2297856
+            }
+          },
+          "MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 148,
+              "paint.dirty_flag": 94,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 148,
+              "paint.encode": 148,
+              "native.encode": 148,
+              "native.field": 92
+            },
+            "peaks": {
+              "ring_bytes": 17006112,
+              "matte_pixels": 1036288,
+              "filter_width_px": 704,
+              "filter_height_px": 1536,
+              "filter_output_pixels": 1081344,
+              "blur_sigma_milli_px": 26250
+            }
+          }
+        }
+      }
+    ]
+  },
+  "sheet": {
+    "median_counts": {
+      "native.encode": 16,
+      "paint.active": 67,
+      "paint.clean_reuse": 51,
+      "paint.dirty_flag": 12,
+      "paint.dirty_link": 16,
+      "paint.encode": 16,
+      "paint.missing_image": 12,
+      "retained.refresh": 4
+    },
+    "runs": [
+      {
+        "counts": {
+          "paint.active": 66,
+          "paint.dirty_flag": 12,
+          "paint.missing_image": 12,
+          "paint.dirty_link": 16,
+          "paint.encode": 16,
+          "native.encode": 16,
+          "paint.clean_reuse": 50,
+          "retained.refresh": 4
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 52,
+              "paint.dirty_flag": 2,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 50
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "retained.refresh": 4,
+              "paint.active": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 9961472,
+              "matte_pixels": 1245184,
+              "filter_width_px": 1088,
+              "filter_height_px": 1216,
+              "filter_output_pixels": 1323008
+            }
+          },
+          "MorphGlassInspector [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 4,
+              "paint.dirty_flag": 4,
+              "paint.missing_image": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 6,
+              "paint.dirty_flag": 6,
+              "paint.missing_image": 6,
+              "paint.dirty_link": 6,
+              "paint.encode": 6,
+              "native.encode": 6
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          }
+        }
+      },
+      {
+        "counts": {
+          "paint.active": 68,
+          "paint.dirty_flag": 12,
+          "paint.missing_image": 12,
+          "paint.dirty_link": 16,
+          "paint.encode": 16,
+          "native.encode": 16,
+          "paint.clean_reuse": 52,
+          "retained.refresh": 4
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 54,
+              "paint.dirty_flag": 2,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 52
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "retained.refresh": 4,
+              "paint.active": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 9961472,
+              "matte_pixels": 1245184,
+              "filter_width_px": 1088,
+              "filter_height_px": 1216,
+              "filter_output_pixels": 1323008
+            }
+          },
+          "MorphGlassInspector [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 4,
+              "paint.dirty_flag": 4,
+              "paint.missing_image": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 6,
+              "paint.dirty_flag": 6,
+              "paint.missing_image": 6,
+              "paint.dirty_link": 6,
+              "paint.encode": 6,
+              "native.encode": 6
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          }
+        }
+      },
+      {
+        "counts": {
+          "paint.active": 67,
+          "paint.dirty_flag": 12,
+          "paint.missing_image": 12,
+          "paint.dirty_link": 16,
+          "paint.encode": 16,
+          "native.encode": 16,
+          "paint.clean_reuse": 51,
+          "retained.refresh": 4
+        },
+        "global": {
+          "uniform_arena_bytes": 595968
+        },
+        "roles": {
+          "MorphNavigationScaffold > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 53,
+              "paint.dirty_flag": 2,
+              "paint.missing_image": 2,
+              "paint.dirty_link": 2,
+              "paint.encode": 2,
+              "native.encode": 2,
+              "paint.clean_reuse": 51
+            },
+            "peaks": {
+              "ring_bytes": 786432,
+              "matte_pixels": 196608,
+              "filter_width_px": 1088,
+              "filter_height_px": 256,
+              "filter_output_pixels": 278528
+            }
+          },
+          "GalleryPage > MorphNavigationScaffold > MorphGlassContainer [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "retained.refresh": 4,
+              "paint.active": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 9961472,
+              "matte_pixels": 1245184,
+              "filter_width_px": 1088,
+              "filter_height_px": 1216,
+              "filter_output_pixels": 1323008
+            }
+          },
+          "MorphGlassInspector [-] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 4,
+              "paint.dirty_flag": 4,
+              "paint.missing_image": 4,
+              "paint.dirty_link": 4,
+              "paint.encode": 4,
+              "native.encode": 4
+            },
+            "peaks": {
+              "ring_bytes": 5849088,
+              "matte_pixels": 1462272,
+              "filter_width_px": 1152,
+              "filter_height_px": 1408,
+              "filter_output_pixels": 1622016,
+              "blur_sigma_milli_px": 5705
+            }
+          },
+          "MorphGlassContainerGate > MorphGlassContainer > MorphGlassButton [body] RenderLiquidGlassLayer": {
+            "counts": {
+              "paint.active": 6,
+              "paint.dirty_flag": 6,
+              "paint.missing_image": 6,
+              "paint.dirty_link": 6,
+              "paint.encode": 6,
+              "native.encode": 6
+            },
+            "peaks": {
+              "ring_bytes": 491520,
+              "matte_pixels": 122880,
+              "filter_width_px": 1024,
+              "filter_height_px": 192,
+              "filter_output_pixels": 196608
+            }
+          }
+        }
+      }
+    ]
+  }
+}

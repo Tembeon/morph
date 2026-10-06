@@ -1,0 +1,18 @@
+{
+  "liquid": {
+    "app_gpu_trace_span_ns": [
+      1594780934575,
+      1707918279520
+    ],
+    "app_gpu_periods": 109771,
+    "complete_scene_coverage": true
+  },
+  "flat": {
+    "app_gpu_trace_span_ns": [
+      996971491412,
+      1110943705376
+    ],
+    "app_gpu_periods": 18309,
+    "complete_scene_coverage": true
+  }
+}

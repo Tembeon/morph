@@ -1,0 +1,24 @@
+{
+  "source": "8cfcd219f494c349362cb6dda98d3f4d2e93ff15",
+  "diagnostic_patch_sha256": "c4cd27445f5da5f48434eae933c79c5e1ebc2a10b6b8854ef9a839232c034d70",
+  "apks": {
+    "liquid-native.apk": "e269ba321001a59cbdc2bcdd90d238e57a525fd19baeb534f191f7fe69c69bbf",
+    "liquid.apk": "306caa659a469f51f8092afe2d6d99d1adc36d342084f54b66d6ef8db7e1e000",
+    "flat.apk": "6d17af62ff3eb6648f5e43c9ee577767e4b489869c470778196e6c6afcd6d6f4",
+    "flat-alloc.apk": "5e1518859d7fd5bf4060b29e64dcfa03fa6608a707ac3e4b6a35943f12a9d180",
+    "liquid-study.apk": "28c41acaa3ad52d99d63d0b0d3330039a13d41985c29218fc81aef5230355406",
+    "liquid-alloc.apk": "106a93cddc72d05132c505fbde733b049c02940938a06883dc065a197a9634ac"
+  },
+  "energy_traces": {
+    "flat-3.pftrace": "ce3aff77f04b811e7b92e9fda02f6fdd7bfeb98bebafa7dd159eaee27c416def",
+    "flat-2.pftrace": "db560f68afe2a9277ed54496860298ea4c4e5099a9c6972ecd221aefacad4169",
+    "liquid-4.pftrace": "319e27cab05cb3c2849b35a6043d9ed464d527fc4ed44b6590828e6a6147cd8b",
+    "liquid-1.pftrace": "9135bb3bfd00365e474ccdaa735faf9fd3281bbaf29f3c7261df2f74bd60293b"
+  },
+  "native_trace_sha256": "b339ca7bb098b27f68cfc85bf481b7cde2d724db2ee9403f12b440ba3c6efef7",
+  "allocation_audit_raw_sha256": {
+    "liquid": "3543cb8ea20023d28e76ec776f702c6e441fc2507678d38a4072f723d1f2397c",
+    "flat": "289dedeb01a619bf4f55a7be785325b176111df7f57eeed0a5e2160a33078582"
+  },
+  "restored_release_apk_sha256": "46067271b0547de0bc092c52052f1986b1391d36412c350fc1e6c63ede3bd3c3"
+}

@@ -1,0 +1,5 @@
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+08:45 +1398: /Users/tembeon/IdeaProjects/morph/test/glass_frames_test.dart: (tearDownAll)
+08:45 +1398: All tests passed!

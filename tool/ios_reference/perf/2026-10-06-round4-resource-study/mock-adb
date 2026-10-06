@@ -1,0 +1,16 @@
+#!/usr/bin/env python3
+import json
+import os
+import sys
+args=sys.argv[1:]
+with open(os.environ['MOCK_ADB_LOG'],'a') as f:
+ f.write(json.dumps(args)+'\n')
+if args == ['shell','dumpsys','thermalservice']:
+ print('Temperature{mValue=30.0, mName=VIRTUAL-SKIN}')
+ print('Thermal Status: 0')
+elif args == ['shell','dumpsys','battery']:
+ print('AC powered: true\nlevel: 100')
+elif len(args)==2 and 'perfetto --txt' in args[1]:
+ print('4321')
+elif args[:4] == ['shell','am','start','-W']:
+ print('Error: deliberately failed launch')

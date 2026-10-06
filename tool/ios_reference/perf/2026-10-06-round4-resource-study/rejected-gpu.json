@@ -1,0 +1,13 @@
+{
+  "reason": "Owned orphan Perfetto shutdown stopped the GPU trace before scene windows. Discard all derived GPU metrics.",
+  "trace_sha256": "2c68f2a85db1e2cece384cb876ad5e46909256b7f4361a8e66360b3ea1869a9a",
+  "app_gpu_work_periods": 710,
+  "trace_span_s": [
+    867.500911,
+    870.003628
+  ],
+  "requested_scene_span_us": [
+    878633864,
+    979682478
+  ]
+}

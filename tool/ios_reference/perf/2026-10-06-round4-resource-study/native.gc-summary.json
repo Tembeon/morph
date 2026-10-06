@@ -1,0 +1,45 @@
+{
+  "trace_sha256": "b339ca7bb098b27f68cfc85bf481b7cde2d724db2ee9403f12b440ba3c6efef7",
+  "scenes": {
+    "controls": {
+      "ui_frames": 799,
+      "young_collections": 13,
+      "gc_total_ms": 77.57800000044517,
+      "gc_max_ms": 9.074999999953434,
+      "gc_frame_median_ms": null,
+      "other_frame_median_ms": 5.428999999770895,
+      "frames_over_16_667_ms": 8,
+      "slow_frames_overlapping_gc": 0
+    },
+    "menu": {
+      "ui_frames": 512,
+      "young_collections": 17,
+      "gc_total_ms": 110.28099999949336,
+      "gc_max_ms": 12.1160000001546,
+      "gc_frame_median_ms": null,
+      "other_frame_median_ms": 6.930999999982305,
+      "frames_over_16_667_ms": 18,
+      "slow_frames_overlapping_gc": 0
+    },
+    "sheet": {
+      "ui_frames": 527,
+      "young_collections": 8,
+      "gc_total_ms": 57.575000000651926,
+      "gc_max_ms": 10.489000000059605,
+      "gc_frame_median_ms": null,
+      "other_frame_median_ms": 3.0190000000875443,
+      "frames_over_16_667_ms": 11,
+      "slow_frames_overlapping_gc": 0
+    },
+    "tab-bar": {
+      "ui_frames": 963,
+      "young_collections": 29,
+      "gc_total_ms": 97.92199999885634,
+      "gc_max_ms": 4.8109999999869615,
+      "gc_frame_median_ms": null,
+      "other_frame_median_ms": 4.6369999998714775,
+      "frames_over_16_667_ms": 1,
+      "slow_frames_overlapping_gc": 0
+    }
+  }
+}

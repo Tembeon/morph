@@ -1,0 +1,21 @@
+                                  tab-bar     controls         menu        sheet
+runs                                    2            2            2            2
+seconds                            16.096       13.571        9.036        9.122
+raster frames                         962          799          509          527
+ui frames                             963          799          512          527
+saveLayer/frame                     9.696        6.210        6.216        9.167
+saveLayer self ms/frame             2.374        1.317        1.440        1.929
+raster submits/frame                2.000        2.000        2.024        2.000
+raster submit ms/frame              2.927        2.221        2.515        2.716
+Draw incl ms/frame                 10.367        8.875       10.031        9.808
+Encode self ms/frame                2.760        3.240        3.734        3.086
+ui submits/frame                    0.845        0.887        0.836        0.061
+ui submit ms/frame                  0.360        0.872        0.776        0.058
+BeginFrame incl ms/frame            4.712        6.528        7.397        4.021
+BUILD self ms/frame                 0.385        1.036        1.731        0.557
+LAYOUT self ms/frame                0.038        0.338        0.287        0.064
+PAINT self ms/frame                 2.155        1.783        2.046        0.575
+COMPOSITING self ms/frame           0.953        1.390        1.187        1.488
+scavenges                              29           13           17            8
+frames/scavenge                    33.207       61.462       30.118       65.875
+scavenge ms                        97.922       77.578      110.281       57.575

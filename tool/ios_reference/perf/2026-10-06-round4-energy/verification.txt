@@ -1,0 +1,4 @@
+flat-2.pftrace direct SQL matches cached raster time; threads: 2
+flat-3.pftrace direct SQL matches cached raster time; threads: 2
+liquid-1.pftrace direct SQL matches cached raster time; threads: 2
+liquid-4.pftrace direct SQL matches cached raster time; threads: 2

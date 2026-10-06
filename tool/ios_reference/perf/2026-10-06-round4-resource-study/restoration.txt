@@ -1,0 +1,2 @@
+Release APK installed successfully; MainActivity cold launch TotalTime 844 ms, WaitTime 847 ms. user_rotation=0. Device ps showed gallery running and no perfetto recorder.
+Owned raw device energy trace removed. GPU events and tracing are disabled. Audit kernel buffers reduced from 8195 KB per CPU to the idle minimum after tracing stopped.

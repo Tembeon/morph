@@ -1,0 +1,1 @@
+PASS: failed am start exits 1 and terminates only its recorder PID 4321 exactly once. Mock adb and sleep; no real device calls.

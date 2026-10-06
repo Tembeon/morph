@@ -1192,6 +1192,25 @@ relative only).
 
 ## Performance passport
 
+ROUND 4 resource study (Pixel 6a, 2026-10-06, source 8cfcd21):
+no production rendering change. Separate three-run GPU captures,
+flat/liquid Mcycles/frame: tab 1.050/4.142, controls 0.434/2.153,
+menu 0.687/3.289, sheet 0.971/6.002. Full liquid still costs 3.9-6.2x
+flat GPU cycles here. Current menu census mean 2.89 backdrop filters,
+not the old 8.8; sheet maximum 7 filters / 4 captures. Three-run
+counter probe finds zero identical analytic matte encodes; sheet
+median only 16 encodes/run. Per-renderer RGBA8 ring peaks reach
+16.22 MiB for the animated menu and 16.50 MiB for the broad container;
+not total RSS. Field-only preparation and byte-budgeted retention are
+next experiments, not proven wins. Native GC does not overlap recorded
+UI BeginFrame intervals. The VM allocation probe is only a heap census.
+energy.py now sums duplicate raster threads; old cached CPU accounting
+is warned/recomputed. The energy runner cleans its recorder on failure.
+The exploratory energy runs had an extra recorder; use their rails only
+with the report's limitations, not as a clean production power floor.
+Full method/evidence: tool/audit/codex-round4-resource-study.md and
+perf/2026-10-06-round4-*.
+
 ROUND 3 (Pixel 6a, 2026-10-06; tool/audit/codex-round3-report.md):
 flat scroll edges now keep only the fade/hairline. Census maximum
 backdrop filters is 0 in all seven audit scenes. Energy A/B/B/A,

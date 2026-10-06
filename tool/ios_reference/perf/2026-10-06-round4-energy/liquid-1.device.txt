@@ -1,0 +1,20 @@
+run: liquid-1  apk: liquid.apk  date: Tue Oct  6 22:39:17 CEST 2026
+before:
+skin: 36.9764
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 324
+  Capacity level: 5
+TotalTime: 0
+after:
+skin: 36.008003
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 4
+  level: 100
+  temperature: 334
+  Capacity level: 5

@@ -1,0 +1,123 @@
+{
+  "trace_sha256": "03a0a304175149bbf070bfa9e6711e4e8bb5779f30caea6c2ccfbafab2bfafd4",
+  "gpu_work_periods": 18309,
+  "gpu_frequency_samples": 17963,
+  "scenes": {
+    "tab-bar": {
+      "runs": [
+        {
+          "gpu_ms_per_frame": 2.4374755616740087,
+          "Mcycles_per_frame": 1.0578643937665178,
+          "busy_percent": 14.558230546009664
+        },
+        {
+          "gpu_ms_per_frame": 2.402260815384615,
+          "Mcycles_per_frame": 1.0425811938769234,
+          "busy_percent": 14.371444242296983
+        },
+        {
+          "gpu_ms_per_frame": 2.4214330659340657,
+          "Mcycles_per_frame": 1.0509019506153838,
+          "busy_percent": 14.52182579904493
+        }
+      ],
+      "weighted": {
+        "gpu_ms_per_frame": 2.4203772881231673,
+        "Mcycles_per_frame": 1.0504437430454538,
+        "busy_percent": 14.483788457901326
+      },
+      "median": {
+        "gpu_ms_per_frame": 2.4214330659340657,
+        "Mcycles_per_frame": 1.0509019506153838,
+        "busy_percent": 14.52182579904493
+      }
+    },
+    "controls": {
+      "runs": [
+        {
+          "gpu_ms_per_frame": 1.0056612724935732,
+          "Mcycles_per_frame": 0.43645699226221146,
+          "busy_percent": 5.908928926654933
+        },
+        {
+          "gpu_ms_per_frame": 0.9895412487309645,
+          "Mcycles_per_frame": 0.4294609019492388,
+          "busy_percent": 5.889121116318975
+        },
+        {
+          "gpu_ms_per_frame": 1.0019770586734693,
+          "Mcycles_per_frame": 0.43485804346428586,
+          "busy_percent": 5.977309841579036
+        }
+      ],
+      "weighted": {
+        "gpu_ms_per_frame": 0.9990268034042553,
+        "Mcycles_per_frame": 0.4335776326774471,
+        "busy_percent": 5.924990115817433
+      },
+      "median": {
+        "gpu_ms_per_frame": 1.0019770586734693,
+        "Mcycles_per_frame": 0.43485804346428586,
+        "busy_percent": 5.908928926654933
+      }
+    },
+    "menu": {
+      "runs": [
+        {
+          "gpu_ms_per_frame": 1.5958192062256809,
+          "Mcycles_per_frame": 0.6925855355019457,
+          "busy_percent": 9.151029577338454
+        },
+        {
+          "gpu_ms_per_frame": 1.5811017142857142,
+          "Mcycles_per_frame": 0.6861981439999995,
+          "busy_percent": 9.099762853719499
+        },
+        {
+          "gpu_ms_per_frame": 1.568601007751938,
+          "Mcycles_per_frame": 0.6807728373643418,
+          "busy_percent": 8.96018762636617
+        }
+      ],
+      "weighted": {
+        "gpu_ms_per_frame": 1.5818216279069768,
+        "Mcycles_per_frame": 0.6865105865116281,
+        "busy_percent": 9.070082173246112
+      },
+      "median": {
+        "gpu_ms_per_frame": 1.5811017142857142,
+        "Mcycles_per_frame": 0.6861981439999995,
+        "busy_percent": 9.099762853719499
+      }
+    },
+    "sheet": {
+      "runs": [
+        {
+          "gpu_ms_per_frame": 2.2319711188524587,
+          "Mcycles_per_frame": 0.9686754655819675,
+          "busy_percent": 12.010247572538262
+        },
+        {
+          "gpu_ms_per_frame": 2.2449436694214877,
+          "Mcycles_per_frame": 0.9743055525289265,
+          "busy_percent": 12.069884583511994
+        },
+        {
+          "gpu_ms_per_frame": 2.2327606296296296,
+          "Mcycles_per_frame": 0.9690181132592589,
+          "busy_percent": 12.027264202828096
+        }
+      ],
+      "weighted": {
+        "gpu_ms_per_frame": 2.2365406776406034,
+        "Mcycles_per_frame": 0.9706586540960223,
+        "busy_percent": 12.035729527226287
+      },
+      "median": {
+        "gpu_ms_per_frame": 2.2327606296296296,
+        "Mcycles_per_frame": 0.9690181132592589,
+        "busy_percent": 12.027264202828096
+      }
+    }
+  }
+}

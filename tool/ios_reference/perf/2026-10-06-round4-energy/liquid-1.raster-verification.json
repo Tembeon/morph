@@ -1,0 +1,36 @@
+{
+  "threads": [
+    {
+      "utid": 10,
+      "tid": 11540,
+      "name": "1.raster"
+    },
+    {
+      "utid": 36,
+      "tid": 11571,
+      "name": "1.raster"
+    }
+  ],
+  "scenes": {
+    "tab-bar": {
+      "direct_raster_ms": 16436.036231,
+      "cached_raster_ms": 16436.036231,
+      "legacy_last_thread_ms": 127.55841999999998
+    },
+    "controls": {
+      "direct_raster_ms": 9658.508135,
+      "cached_raster_ms": 9658.508135,
+      "legacy_last_thread_ms": 109.25257
+    },
+    "menu": {
+      "direct_raster_ms": 6898.398977999999,
+      "cached_raster_ms": 6898.398978,
+      "legacy_last_thread_ms": 65.604046
+    },
+    "sheet": {
+      "direct_raster_ms": 7167.856538999999,
+      "cached_raster_ms": 7167.856539,
+      "legacy_last_thread_ms": 74.555004
+    }
+  }
+}

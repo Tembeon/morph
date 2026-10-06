@@ -1,0 +1,304 @@
+--- /dev/null
++++ b/lib/src/glass/renderer/internal/resource_study.dart
+@@ -0,0 +1,152 @@
++import 'package:flutter/foundation.dart';
++import 'package:flutter/rendering.dart';
++
++/// Temporary resource counters; absent from production measurements.
++class MorphResourceStudy {
++  /// Whether the diagnostic APK collects resource counters.
++  static const enabled = bool.fromEnvironment('MORPH_RESOURCE_STUDY');
++
++  /// Human-readable role for a renderer's layer.
++  static String Function(RenderBox)? label;
++
++  static final _owners = Expando<RenderBox>();
++  static final _previous = Expando<_Inputs>();
++  static final _labels = Expando<String>();
++  static final _layers = <RenderBox, _Counts>{};
++  static final _global = <String, int>{};
++  static bool _collecting = false;
++
++  /// Links a native renderer to its layer.
++  static void owner(Object renderer, RenderBox owner) {
++    _owners[renderer] = owner;
++  }
++
++  /// Starts an ordinary audit run's counter window.
++  static void begin() {
++    _layers.clear();
++    _global.clear();
++    _collecting = true;
++  }
++
++  /// Stops collecting and copies the run's counters.
++  static Map<String, Object?> end() {
++    _collecting = false;
++    return {
++      'global': Map<String, int>.of(_global),
++      'layers': [
++        for (final entry in _layers.entries)
++          {
++            'id': identityHashCode(entry.key),
++            'role': _labels[entry.key] ?? entry.key.runtimeType.toString(),
++            'counts': Map<String, int>.of(entry.value.counts),
++            'peaks': Map<String, int>.of(entry.value.peaks),
++          },
++      ],
++    };
++  }
++
++  static _Counts? _of(RenderBox owner) {
++    if (!_collecting) return null;
++    _labels[owner] ??= label?.call(owner) ?? owner.runtimeType.toString();
++    return _layers[owner] ??= _Counts();
++  }
++
++  /// Counts a layer path taken during the window.
++  static void count(RenderBox owner, String name) {
++    final stats = _of(owner);
++    if (stats == null) return;
++    stats.counts[name] = (stats.counts[name] ?? 0) + 1;
++  }
++
++  /// Records output coverage, not an estimate of engine capture traffic.
++  static void filterBounds(
++    RenderBox owner,
++    Rect rect,
++    double dpr,
++    double sigma,
++  ) {
++    final stats = _of(owner);
++    if (stats == null) return;
++    final values = {
++      'filter_width_px': (rect.width * dpr).ceil(),
++      'filter_height_px': (rect.height * dpr).ceil(),
++      'filter_output_pixels':
++          (rect.width * dpr).ceil() * (rect.height * dpr).ceil(),
++      'blur_sigma_milli_px': (sigma * dpr * 1000).round(),
++    };
++    for (final entry in values.entries) {
++      if (entry.value > (stats.peaks[entry.key] ?? 0)) {
++        stats.peaks[entry.key] = entry.value;
++      }
++    }
++  }
++
++  /// Compares the actual packed analytic inputs, never only cache revisions.
++  static void native(
++    Object renderer,
++    ByteData uniforms, {
++    required bool field,
++    required bool materials,
++    required bool tintOnly,
++    required int ringBytes,
++    required int uniformArenaBytes,
++    required int mattePixels,
++  }) {
++    final data = uniforms.buffer.asUint8List(
++      uniforms.offsetInBytes,
++      uniforms.lengthInBytes,
++    );
++    final before = _previous[renderer];
++    final same =
++        !field &&
++        before != null &&
++        !before.field &&
++        before.materials == materials &&
++        before.tintOnly == tintOnly &&
++        listEquals(data, before.bytes);
++    if (!same) {
++      _previous[renderer] = _Inputs(
++        Uint8List.fromList(data),
++        field: field,
++        materials: materials,
++        tintOnly: tintOnly,
++      );
++    }
++    final owner = _owners[renderer];
++    if (owner == null) return;
++    final stats = _of(owner);
++    if (stats == null) return;
++    count(owner, 'native.encode');
++    if (field) count(owner, 'native.field');
++    if (materials) count(owner, 'native.material_pass');
++    if (same) count(owner, 'native.identical_analytic_inputs');
++    for (final entry in {
++      'ring_bytes': ringBytes,
++      'matte_pixels': mattePixels,
++    }.entries) {
++      final old = stats.peaks[entry.key] ?? 0;
++      if (entry.value > old) stats.peaks[entry.key] = entry.value;
++    }
++    if (uniformArenaBytes > (_global['uniform_arena_bytes'] ?? 0)) {
++      _global['uniform_arena_bytes'] = uniformArenaBytes;
++    }
++  }
++}
++
++class _Inputs {
++  _Inputs(
++    this.bytes, {
++    required this.field,
++    required this.materials,
++    required this.tintOnly,
++  });
++  final Uint8List bytes;
++  final bool field;
++  final bool materials;
++  final bool tintOnly;
++}
++
++class _Counts {
++  final counts = <String, int>{};
++  final peaks = <String, int>{};
++}
+--- a/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart
++++ b/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart
+@@ -1,0 +2,3 @@
++
++import 'package:morph/src/glass/renderer/internal/resource_study.dart';
++
+@@ -413,0 +417,13 @@
++    if (MorphResourceStudy.enabled) {
++      MorphResourceStudy.native(
++        this,
++        _uniformData,
++        field: field != null,
++        materials: writeMaterials,
++        tintOnly: writeTintOnly,
++        ringBytes: _mattes.studyBytes + _materials.studyBytes,
++        uniformArenaBytes:
++            (_uniforms?.blockCount ?? 0) * (_uniforms?.blockLength ?? 0),
++        mattePixels: matteWidth * matteHeight,
++      );
++    }
+@@ -943,0 +960,8 @@
++  int get studyBytes {
++    var bytes = 0;
++    for (final entry in [..._spares, ?_current]) {
++      bytes += entry.texture.width * entry.texture.height * 4;
++    }
++    return bytes;
++  }
++
+--- a/lib/src/glass/renderer/rendering/liquid_glass_layer.dart
++++ b/lib/src/glass/renderer/rendering/liquid_glass_layer.dart
+@@ -3,0 +4,3 @@
++
++import 'package:morph/src/glass/renderer/internal/resource_study.dart';
++
+@@ -923,0 +927,3 @@
++    if (MorphResourceStudy.enabled) {
++      MorphResourceStudy.count(this, 'retained.refresh');
++    }
+@@ -946,0 +953,9 @@
++      }
++      if (MorphResourceStudy.enabled) {
++        final delta = encodedMatteDelta(bounds);
++        if (!needsGeometryUpdate &&
++            delta == Offset.zero &&
++            !_rasterGridStale(shaderCoordinateTransform)) {
++          MorphResourceStudy.count(this, 'retained.same_matte_grid');
++        }
++        MorphResourceStudy.count(this, 'retained.encode');
+@@ -1047,0 +1063,10 @@
++        if (MorphResourceStudy.enabled) {
++          MorphResourceStudy.count(this, 'paint.active');
++          if (needsGeometryUpdate) {
++            MorphResourceStudy.count(this, 'paint.dirty_flag');
++          }
++          if (_geometryImage == null) {
++            MorphResourceStudy.count(this, 'paint.missing_image');
++          }
++          if (link.isDirty) MorphResourceStudy.count(this, 'paint.dirty_link');
++        }
+@@ -1050,0 +1076,3 @@
++          if (MorphResourceStudy.enabled) {
++            MorphResourceStudy.count(this, 'paint.raster_phase');
++          }
+@@ -1063,0 +1092,3 @@
++            if (MorphResourceStudy.enabled) {
++              MorphResourceStudy.count(this, 'paint.encode');
++            }
+@@ -1077,0 +1109,2 @@
++          } else if (MorphResourceStudy.enabled) {
++            MorphResourceStudy.count(this, 'paint.translated_reuse');
+@@ -1078,0 +1112,2 @@
++        } else if (MorphResourceStudy.enabled) {
++          MorphResourceStudy.count(this, 'paint.clean_reuse');
+@@ -1489,0 +1525,8 @@
++    if (MorphResourceStudy.enabled) {
++      MorphResourceStudy.filterBounds(
++        this,
++        filterBounds,
++        devicePixelRatio,
++        blurPassSigma,
++      );
++    }
+@@ -1804,0 +1848,3 @@
++    if (MorphResourceStudy.enabled && renderer != null) {
++      MorphResourceStudy.owner(renderer, this);
++    }
+--- a/example/integration_test/glass_audit_test.dart
++++ b/example/integration_test/glass_audit_test.dart
+@@ -1,0 +2,4 @@
++
++// ignore: implementation_imports
++import 'package:morph/src/glass/renderer/internal/resource_study.dart';
++
+@@ -3,0 +8,4 @@
++import 'dart:isolate';
++
++import 'package:vm_service/vm_service.dart' as vm;
++import 'package:vm_service/vm_service_io.dart';
+@@ -243,0 +252,17 @@
++  final Map<String, List<Map<String, Object?>>> _resourceRuns = {};
++  static const _allocStudy = bool.fromEnvironment('MORPH_ALLOC_STUDY');
++  final Map<String, List<Map<String, Object?>>> _allocRuns = {};
++  vm.VmService? _allocationService;
++
++  Future<Map<String, Object?>> _allocationProfile({bool reset = false}) async {
++    final service = _allocationService ??= await vmServiceConnectUri(
++      (await developer.Service.getInfo()).serverWebSocketUri!.toString(),
++    );
++    final result = await service.getAllocationProfile(
++      developer.Service.getIsolateId(Isolate.current)!,
++      reset: reset,
++      gc: false,
++    );
++    return result.toJson();
++  }
++
+@@ -253,0 +279 @@
++      if (_allocStudy) await _allocationProfile(reset: true);
+@@ -255,0 +282,4 @@
++      if (MorphResourceStudy.enabled) {
++        MorphResourceStudy.label = _layerCensus?.describeOwner;
++        MorphResourceStudy.begin();
++      }
+@@ -283,0 +314,6 @@
++      if (MorphResourceStudy.enabled) {
++        (_resourceRuns[scene] ??= []).add(MorphResourceStudy.end());
++      }
++      if (_allocStudy) {
++        (_allocRuns[scene] ??= []).add(await _allocationProfile());
++      }
+@@ -856,0 +893,2 @@
++      if (MorphResourceStudy.enabled) 'resource_study': _resourceRuns,
++      if (_allocStudy) 'allocation_study': _allocRuns,
+--- a/example/integration_test/support/layer_census.dart
++++ b/example/integration_test/support/layer_census.dart
+@@ -77,0 +78,6 @@
++  }
++
++  /// Resolves a render box's widget role for temporary resource counters.
++  String describeOwner(RenderBox owner) {
++    if (!_labels.containsKey(owner)) _relabel();
++    return _labels[owner] ?? owner.runtimeType.toString();
+--- a/example/android/app/src/main/AndroidManifest.xml
++++ b/example/android/app/src/main/AndroidManifest.xml
+@@ -33,0 +34,3 @@
++        <meta-data
++            android:name="io.flutter.embedding.android.TraceSystrace"
++            android:value="true" />
