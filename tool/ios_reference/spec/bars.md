@@ -207,6 +207,10 @@ action".
   with a finger). Title opacity replay <= 0.06 rms.
 - Large title: device 10 pt slop; 25 pt scrolled snaps back, 30 under
   (threshold half the title, 26).
+- On `MorphGlassTier.flat` the edge effect draws only its background fade
+  and hard-style hairline, without a blur or a backdrop copy. The installed
+  painter's effective tier decides this, including a directly installed
+  `MorphGlassRenderer`; unknown painters retain the ordinary edge effect.
 - Scroll edge effect is NOT a progressive blur: uniform variableBlur 1.5
   (soft) / 2 (hard) with a full mask; a "replay" of the background at 0.5
   (0.6 dark); soft: gradient from 0.34 (0.3407) of the band, band = bar +

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
@@ -25,6 +27,71 @@ Map<String, Object?>? _filter(Map<String, Object?> state, String type) {
 }
 
 void main() {
+  testWidgets('flat edges keep their fade without backdrop reads', (
+    WidgetTester tester,
+  ) async {
+    final opacity = ValueNotifier<double>(1);
+    addTearDown(opacity.dispose);
+    final key = GlobalKey();
+    Widget scene(
+      MorphGlassTier tier,
+      MorphScrollEdgeEffectStyle style,
+      AxisDirection edge,
+    ) => MaterialApp(
+      home: MorphGlass(
+        painter: MorphGlassRenderer(tier: tier),
+        child: RepaintBoundary(
+          key: key,
+          child: Stack(
+            children: [
+              const Positioned.fill(
+                child: ColoredBox(color: Color(0xFFFF0000)),
+              ),
+              // ignore: invalid_use_of_internal_member
+              MorphScrollEdgeEffect.driven(
+                extent: 116,
+                style: style,
+                edge: edge,
+                theme: MorphScrollEdgeEffectThemeData.light,
+                opacity: () => opacity.value,
+                repaint: opacity,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    for (final style in MorphScrollEdgeEffectStyle.values) {
+      for (final edge in [AxisDirection.up, AxisDirection.down]) {
+        await tester.pumpWidget(scene(MorphGlassTier.fake, style, edge));
+        expect(MorphGlassInspector.census().filters, 2);
+        await tester.pumpWidget(scene(MorphGlassTier.flat, style, edge));
+        for (final value in [1.0, 0.5, 0.0, 0.75, 1.0]) {
+          opacity.value = value;
+          await tester.pump();
+          expect(MorphGlassInspector.census().filters, 0);
+          if (style != MorphScrollEdgeEffectStyle.hard) continue;
+          final boundary =
+              key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+          await tester.runAsync(() async {
+            final image = await boundary.toImage();
+            final pixels = (await image.toByteData(
+              format: ui.ImageByteFormat.rawRgba,
+            ))!;
+            final y = edge == AxisDirection.up ? 20 : image.height - 20;
+            final index = (y * image.width + 20) * 4;
+            expect(pixels.getUint8(index), 255);
+            expect(pixels.getUint8(index + 1), closeTo(128 * value, 1));
+            expect(pixels.getUint8(index + 2), closeTo(128 * value, 1));
+            image.dispose();
+          });
+        }
+        await tester.pumpWidget(scene(MorphGlassTier.fake, style, edge));
+        expect(MorphGlassInspector.census().filters, 2);
+      }
+    }
+  });
+
   group('scroll edge effect against the device layers', () {
     test('hard: blur, saturation and brightness, uniform fade, hairline', () {
       final states = _states('hard-light');

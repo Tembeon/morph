@@ -92,8 +92,8 @@
     "builds": 1.9,
     "paints": 72.9,
     "pictures": 2.4,
-    "captures": 1.8,
-    "offscreen": 3.8,
+    "captures": 0.0,
+    "offscreen": 2.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0

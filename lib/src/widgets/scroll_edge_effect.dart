@@ -5,6 +5,8 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// Whether the edge effect blurs a copy of the backdrop around its band;
@@ -158,7 +160,8 @@ class MorphScrollEdgeEffectThemeData {
 /// shows only while [active] - while content lies under the edge; UIKit
 /// switches it on and off from one frame to the next.
 ///
-/// Per edge it copies the backdrop around its band and blurs that copy:
+/// On the flat glass tier only the fade and hairline are drawn. Other
+/// tiers copy the backdrop around each band and blur that copy:
 /// a band along the edge of the screen blurring the pass itself makes
 /// Impeller blur the whole pass, at full resolution for this sigma.
 class MorphScrollEdgeEffect extends StatelessWidget {
@@ -244,6 +247,7 @@ class MorphScrollEdgeEffect extends StatelessWidget {
             height: band,
             width: double.infinity,
             child: _EdgePaint(
+              blurs: MorphAdaptiveGlass.tierOf(context) != MorphGlassTier.flat,
               style: style,
               top: top,
               look: look,
@@ -261,6 +265,7 @@ class MorphScrollEdgeEffect extends StatelessWidget {
 
 class _EdgePaint extends LeafRenderObjectWidget {
   const _EdgePaint({
+    required this.blurs,
     required this.style,
     required this.top,
     required this.look,
@@ -269,6 +274,7 @@ class _EdgePaint extends LeafRenderObjectWidget {
     required this.devicePixelRatio,
   });
 
+  final bool blurs;
   final MorphScrollEdgeEffectStyle style;
   final bool top;
   final MorphScrollEdgeEffectThemeData look;
@@ -278,6 +284,7 @@ class _EdgePaint extends LeafRenderObjectWidget {
 
   @override
   RenderObject createRenderObject(BuildContext context) => _RenderEdge(
+    blurs: blurs,
     style: style,
     top: top,
     look: look,
@@ -289,14 +296,14 @@ class _EdgePaint extends LeafRenderObjectWidget {
 
   @override
   void updateRenderObject(BuildContext context, _RenderEdge renderObject) {
-    renderObject
-      ..style = style
-      ..top = top
-      ..look = look
-      ..opacity = opacity
-      ..repaint = repaint
-      ..hairline = 1 / devicePixelRatio
-      ..devicePixelRatio = devicePixelRatio;
+    renderObject.blurs = blurs;
+    renderObject.style = style;
+    renderObject.top = top;
+    renderObject.look = look;
+    renderObject.opacity = opacity;
+    renderObject.repaint = repaint;
+    renderObject.hairline = 1 / devicePixelRatio;
+    renderObject.devicePixelRatio = devicePixelRatio;
   }
 }
 
@@ -306,6 +313,7 @@ class _EdgePaint extends LeafRenderObjectWidget {
 /// copy of the backdrop as far around the band as its kernel reaches.
 class _RenderEdge extends RenderBox {
   _RenderEdge({
+    required this._blurs,
     required this._style,
     required this._top,
     required this._look,
@@ -322,6 +330,14 @@ class _RenderEdge extends RenderBox {
   final LayerHandle<BackdropFilterLayer> _blur =
       LayerHandle<BackdropFilterLayer>();
   final LayerHandle<OpacityLayer> _fade = LayerHandle<OpacityLayer>();
+
+  bool _blurs;
+  bool get blurs => _blurs;
+  set blurs(bool value) {
+    if (value == _blurs) return;
+    _blurs = value;
+    markNeedsPaint();
+  }
 
   MorphScrollEdgeEffectStyle _style;
   MorphScrollEdgeEffectStyle get style => _style;
@@ -397,13 +413,13 @@ class _RenderEdge extends RenderBox {
     if (painted == null ||
         painted <= 0.001 ||
         presence <= 0.001 ||
-        blur == null ||
+        (_blurs && blur == null) ||
         fade == null) {
       markNeedsPaint();
       return;
     }
     _painted = presence;
-    blur.filter = _filter(presence);
+    if (_blurs) blur!.filter = _filter(presence);
     fade.alpha = Color.getAlphaFromOpacity(presence);
     markNeedsCompositedLayerUpdate();
   }
@@ -478,6 +494,19 @@ class _RenderEdge extends RenderBox {
       return;
     }
     final box = offset & size;
+    if (!_blurs) {
+      _seedClip.layer = null;
+      _seed.layer = null;
+      _clip.layer = null;
+      _blur.layer = null;
+      _fade.layer = context.pushOpacity(
+        offset,
+        Color.getAlphaFromOpacity(presence),
+        (PaintingContext context, Offset _) => _paintFade(context.canvas, box),
+        oldLayer: _fade.layer,
+      );
+      return;
+    }
     void band(PaintingContext context, Offset offset) {
       _clip.layer = context.pushClipRect(true, offset, Offset.zero & size, (
         PaintingContext context,
