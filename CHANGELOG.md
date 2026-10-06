@@ -14,6 +14,8 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- The Android energy runner stops its own Perfetto recorder when an
+  audit launch fails or is interrupted, preventing leftover trace work.
 - Android energy reports sum every app raster thread when several
   share the same name; CPU placement no longer drops the main raster
   workload. Power rails and frame timings are unchanged.
