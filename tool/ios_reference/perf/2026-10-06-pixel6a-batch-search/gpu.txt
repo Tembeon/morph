@@ -1,0 +1,5 @@
+GPU active time and cycles of the app over the whole launch (kernel power/gpu_work_period, tool/ios_reference/perf/gpu_total.py); raw traces not committed
+liquid-soff.gpuwork.txt        uid 10378 active 5.031 s over 42.5 s  Gcycles 2.183
+liquid-soff2.gpuwork.txt       uid 10378 active 5.044 s over 42.6 s  Gcycles 2.189
+liquid-son.gpuwork.txt         uid 10378 active 4.642 s over 42.5 s  Gcycles 2.015
+liquid-son2.gpuwork.txt        uid 10378 active 4.576 s over 42.7 s  Gcycles 1.986

@@ -611,12 +611,13 @@ container is content above its glass.
   other scene within its run noise.
 - Pixels: on whole device pixels the container draws what each button's
   own layer draws (n8-aligned, max channel 1). Off the pixel grid a
-  standalone layer's matte is rendered in its own fractionally offset
-  space and resampled, the container's in exact positions: resting shots
-  differ by up to 45 - 53 on rim pixels (0.01 - 0.36 percent of the
-  screen over 15, the more buttons the more), invisible side by side; the
-  audit's controls-resting and sheet-medium shots 76 / 70 at 0.11 / 0.23
-  percent, only inside the buttons. flutter_test: hidden, half faded and
+  standalone layer's matte is rasterized on device pixels anchored at its
+  own origin and sampled nearest, so its rim reads the shape up to half a
+  device pixel off; the container used to rasterize every member on its
+  own grid instead: resting shots differed by up to 45 - 53 on rim pixels
+  (0.01 - 0.36 percent of the screen over 15), the audit's
+  controls-resting and sheet-medium shots 76 / 70. Fixed 2026-10-06 (see
+  "Container raster phase" below): the container now matches. flutter_test: hidden, half faded and
   clipped buttons in a container render exactly as without it
   (test/glass_container_test.dart).
 - Kill criteria (task gates): raster >= 15 percent and >= 0.3 ms on two
@@ -625,6 +626,80 @@ container is content above its glass.
   gallery scenes gain less than 15 percent. Fable K2 (>= 30 percent GPU
   time at N = 16) is not met by raster (-23 / -26 percent); GPU time was
   not recorded.
+
+### Container raster phase (2026-10-06, raster_phase.dart)
+
+- The joined host's shapes sit under a `GlassRasterAnchor` (where the
+  host's own layer would sit). When the container's layer encodes its
+  matte it shifts each anchored shape by `glassRasterPhase(container) -
+  glassRasterPhase(member)` device pixels (`0.5 - frac(0.5 - origin)`:
+  where a nearest-sampled matte reads a pixel, relative to its center), so
+  every member's rim samples the same SDF points as in its own layer. Only
+  translations count (a scaled or rotated pass or member gets no shift);
+  the matte grows half a device pixel when anything shifts, the geometry
+  pass's contour extent does not (growing it too changed every rim by 9 -
+  11). The pass phase is remembered: a paint at another sub-pixel phase
+  encodes again, and a shifted matte is never reused by translation. Pure
+  compositor motion of the container (a scroll, a route transition) moves
+  the phase without a paint: until the next paint the members can be off
+  by the old difference.
+- Device (density shots, buttons 0.17 pt off the grid with DENSITY_SHIFT,
+  resting / one held; status quo = own layers, max channel / share over
+  15): Pixel 6a (2.625x) container before the fix 48 / 0.04 - 0.10
+  percent, after 1 - 2 / 0 (n8-aligned noise 1); iPhone 16 Pro (3x)
+  before 72 - 73 / 0.08 - 0.39 percent, after 2 - 3 / 0 (aligned noise
+  2). Held shots (button 0 pressed, out of the container) 21 - 53 on <= 9
+  pixels at neighbouring rims, before and after alike: the pressed button
+  takes its own copy, a backdrop-order effect, not the raster phase.
+  Shots in /tmp (not committed), shotdiff.py.
+
+### Package stages (2026-10-06, `MorphGlassStage`)
+
+A stage is a glass container a package widget owns: it is open only while
+nothing the widget does to its members (a fade, a scale, a blur) changes
+how their glass would look in layers of their own, and closes in the same
+frame otherwise (an InheritedWidget flag; members rebuild into their own
+layers). Its fades go through `MorphGlassStageFade`, an Opacity the reach
+check sees through - legal only because the stage closes whenever one is
+below 1. A host under a `BackdropGroup` with another key than the
+container's never joins (a bar floats in its own group; it would read the
+page's copy in a container).
+
+- Signals: the search capsule tells `still` on a notifier that flips only
+  when the field settles or starts to move (perf counts search-press:
+  paints +0.5 - 0.6 per frame on every tier, two repaints per press); a
+  bar's capsule host is still while its motion, presses, hold and menu
+  rest and no drift runs.
+- MorphSearchToolbar (KEPT): open at rest (no search, progress 0), the
+  field and its side buttons in one layer. Density audit DENSITY_SEARCH
+  (one leading, one trailing button, rows scrolling under), same binary
+  with DENSITY_STAGES_OFF as the reference, ABAB launches, 5 runs each,
+  raster p50 / p95 ms: Pixel 6a (perf/2026-10-06-pixel6a-batch-search,
+  cooled to 38 C) 6.09 / 7.58, 5.36 / 7.21 -> 4.47 / 6.44, 4.45 / 6.30
+  (-1.3 / -1.0 ms), build p95 1.68 -> 1.56; app GPU active time over the
+  launch 5.03 / 5.04 -> 4.64 / 4.58 s (-8 percent, gpu.txt). iPhone 16 Pro
+  1.10 / 1.31, 1.07 / 1.28 -> 0.94 / 1.17 twice (-0.14 ms, -12 percent).
+  Layers 3 filters -> 1, captures 1 both. Shot max 3 (iPhone) / 8 (Pixel,
+  built before the contour fix above).
+- Navigation stack chrome (fable R3, REJECTED): the navigation bar and
+  toolbar capsules in one container in the stack's chrome group (the
+  prototype dropped the edge effect in both arms - in the container it
+  would paint over the capsules). Gallery home with a three-button
+  toolbar, home-scroll, ABAB (perf/2026-10-06-pixel6a-batch-r3): raster
+  p50 / p95 7.00 / 8.80 -> 6.60 / 8.40 (-0.4), build p95 4.98 -> 6.41
+  (+1.4), GPU active 7.43 -> 9.17 s per launch (+24 percent: a
+  screen-high matte and filter clip for two bands). K-R3 fires (GPU rises
+  more than raster falls); iPhone 16 Pro raster p50 1.50 both, shots
+  equal. Distant chrome stays two layers: each bar already shades all its
+  capsules in one.
+- Not stages, by construction: a toolbar or navigation bar alone (one
+  host for all its capsules already); list rows (the row highlight and
+  separators paint between members, and a resting switch, slider or
+  stepper has no glass); a sheet's content, the scaffold body and every
+  other app section (option C: the package cannot see what an app paints
+  between two controls - `MorphGlassContainer` stays the explicit tool);
+  the search tab bar (its tab bar is bar kind, its search button button
+  kind).
 
 ## First use: pipeline warm-up (2026-10-05, glass_warm_up.dart)
 

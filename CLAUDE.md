@@ -247,8 +247,18 @@ Cross-cutting policy:
   no fade / clip / filter / viewport between (a MorphTag source never
   joins), at most 32 shapes (MAX_SHAPES). The decision is part of the
   host's structure. A moving member would re-encode the container's matte
-  every frame - that is why only still glass joins. Numbers and gates in
-  glass-renderer.md "Glass container".
+  every frame - that is why only still glass joins (the glass button, the
+  search capsule and the bars tell `still`). No host under a BackdropGroup
+  of another key joins. RASTER PHASE: a joined host's shapes sit under a
+  `GlassRasterAnchor` and the container shifts them by the difference of
+  the two nearest-sampling phases, so off the pixel grid they read the
+  pixels of their own layers (1 - 3 channel steps, was 48 - 76).
+  STAGES (`MorphGlassStage`, internal): containers the package owns where
+  it owns the paint order, open only while it neither fades nor moves its
+  members (`MorphGlassStageFade`); MorphSearchToolbar is one. The
+  navigation stack's chrome is NOT (measured: one screen-high layer costs
+  the GPU more than the raster saves); app sections stay explicit (option
+  C). Numbers and gates in glass-renderer.md "Glass container".
 - ONE renderer in the package (lib/src/glass/renderer, vendored
   whynotmake-it, Apache-2.0, VENDORED lists local patches; owner decision
   2026-10-03 - the old no-shader rule is cancelled). Public entry

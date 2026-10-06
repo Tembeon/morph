@@ -98,6 +98,14 @@ search_field.dart (`MorphSearchField`, `MorphSearchFieldStyle`,
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
 
+- GLASS STAGE (2026-10-06): the toolbar is a `MorphGlassStage`. At rest
+  (no search, progress 0) the field's capsule and the side buttons share
+  one glass layer; the items fade through `MorphGlassStageFade`, and the
+  stage closes while searching or moving, so every transition draws as
+  before. The field tells `still` (settled press and focus springs). Pixel
+  6a raster p95 -1.0 ms, GPU -8 percent; glass-renderer.md "Package
+  stages".
+
 - SCREEN-RECORDING PASS (2026-10-03, search-video/ crops): a held touch
   focuses on the lift (the field's Listener; text selection gestures only
   while focused - a 0.5 s hold used to win Flutter's long press and never
