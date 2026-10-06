@@ -14,6 +14,21 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- A menu fuses its silhouette ahead: each frame it predicts the next
+  frames' times, and a pool of background isolates computes their fused
+  outlines while frames render; a frame whose shapes and blur radius are
+  within 0.02 pt of a prediction draws that outline (the exact fusion of
+  the motion a fraction of a millisecond away, at most 0.06 pt from the
+  frame's own on recorded device frames), any other fuses its own as
+  before. Profile and release builds with isolates; debug, tests and the
+  web are unchanged. 55 - 69 percent of fusing frames are served, at
+  0.04 / 0.19 ms of UI time instead of 0.85 / 7.5 ms (iPhone 16 Pro /
+  Pixel 6a, one fusion a frame); menu build p95 iPhone flat 2.4 -> 1.5,
+  liquid 2.7 -> 2.3, Pixel flat 12.2 -> 11.1, liquid 14.5 -> 13.4 ms. The
+  fusion's device cost was the UI thread's core and clock, not its
+  arithmetic (spec/glass-renderer.md). Its blur kernel no longer flips to
+  two extra taps on a rounding error, which moved the outline of some
+  frames by up to 0.04 pt.
 - A lifted lens, knob or thumb blurs a copy of its own surroundings while
   its frost animates (`LiquidGlassLayer.blursOwnBackdrop`): a blur composed
   under the glass shader read and resized the whole pass on every frame of
