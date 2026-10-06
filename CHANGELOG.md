@@ -14,6 +14,15 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- The scroll edge effect and the 2 pt glass frost cost about half the
+  GPU. The edge effect blurs a copy of the backdrop around its band
+  instead of the screen behind it (Impeller blurred the whole screen, at
+  full resolution, for a band along its edge) - the same blur within 1 - 2
+  channel steps; a frost just below the sigma Impeller blurs at half
+  resolution is raised to it, by at most 12 percent (2 -> 2.17 pt at 2.625
+  dpr, unchanged at 3x), 2 - 6 steps on real content. Pixel 6a, scrolling
+  under the bars: GPU 11.2 -> 6.3 ms a frame on liquid, 8.5 -> 3.7 on
+  flat; power on the gallery home 906 -> 565 mW, tab bar 1683 -> 905 mW.
 - `MorphGlassInspector` shows over the app, in debug and profile builds,
   how many glass layers (backdrop filters) each frame draws, which widgets
   draw them, and where neighbouring resting glass could share one
