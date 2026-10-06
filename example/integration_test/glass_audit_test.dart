@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -72,6 +73,8 @@ const bool _semantics = bool.fromEnvironment('AUDIT_SEMANTICS');
 const bool _shots = bool.fromEnvironment('AUDIT_SHOTS', defaultValue: true);
 
 const String _scenesOnly = String.fromEnvironment('AUDIT_SCENES');
+
+const bool _atlas = bool.fromEnvironment('AUDIT_ATLAS');
 
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -150,18 +153,112 @@ class _Audit {
 
   final Set<bool> _semanticsWhileTimed = {};
 
+  final Map<String, List<Map<String, Object?>>> _atlasRuns = {};
+  final List<(int, String)> _marks = [];
+
+  void mark(String what) {
+    if (_atlas) _marks.add((developer.Timeline.now, what));
+  }
+
   Future<void> measure(String scene, Future<void> Function() body) async {
     for (var run = 0; run < _runs; run++) {
       _semanticsWhileTimed.add(SemanticsBinding.instance.semanticsEnabled);
       await settle(300);
       final start = timings.length;
       if (run == 0) _firstUse[scene] = (_enteredAt, start);
-      await body();
-      await settle(300);
-      await tester.pump();
-      await settle(100);
-      (_scenes[scene] ??= []).add((start, timings.length));
+      var end = start;
+      var from = 0;
+      Future<void> timed() async {
+        from = developer.Timeline.now;
+        _marks.clear();
+        await body();
+        await settle(300);
+        await tester.pump();
+        await settle(100);
+        end = timings.length;
+      }
+
+      if (_atlas) {
+        final trace = await binding.traceTimeline(
+          timed,
+          streams: const ['Embedder'],
+        );
+        (_atlasRuns[scene] ??= []).add(
+          _atlasCounts(
+            (trace.json?['traceEvents'] as List<Object?>?) ?? const [],
+            from,
+          ),
+        );
+      } else {
+        await timed();
+      }
+      (_scenes[scene] ??= []).add((start, end));
     }
+  }
+
+  /// The glyph atlas work of one timed run: Impeller's CreateGlyphAtlas
+  /// (every frame with text), UpdateAtlasBitmap (a frame that rasterizes
+  /// glyphs the atlas does not hold yet) and the frames drawn, with the
+  /// time of every update after the run's start and the run's gesture
+  /// marks on the same clock.
+  Map<String, Object?> _atlasCounts(List<Object?> events, int from) {
+    final open = <(int, String), List<int>>{};
+    final totals = <String, List<double>>{};
+    final updates = <double>[];
+    var first = 1 << 62;
+    var last = 0;
+    for (final event in events) {
+      if (event is! Map<String, Object?>) continue;
+      final json = event;
+      final name = json['name'] as String?;
+      final ph = json['ph'] as String?;
+      final ts = (json['ts'] as num?)?.toInt();
+      final tid = (json['tid'] as num?)?.toInt() ?? 0;
+      if (name == null || ts == null) continue;
+      if (name == 'GPURasterizer::Draw') {
+        first = math.min(first, ts);
+        last = math.max(last, ts);
+      }
+      void close(int begin, int finish) {
+        final ms = (finish - begin) / 1000;
+        (totals[name] ??= []).add(ms);
+        if (name == 'UpdateAtlasBitmap') updates.add((begin - from) / 1000);
+      }
+
+      switch (ph) {
+        case 'X':
+          close(ts, ts + ((json['dur'] as num?)?.toInt() ?? 0));
+        case 'B':
+          (open[(tid, name)] ??= []).add(ts);
+        case 'E':
+          final stack = open[(tid, name)];
+          if (stack != null && stack.isNotEmpty) close(stack.removeLast(), ts);
+        case _:
+      }
+    }
+    Map<String, double> of(String name) {
+      final v = totals[name] ?? const <double>[];
+      return {
+        'count': v.length.toDouble(),
+        'ms': v.fold(0.0, (double a, double b) => a + b),
+        'max_ms': v.fold(0.0, math.max),
+      };
+    }
+
+    final seconds = last > first ? (last - first) / 1e6 : 0.0;
+    updates.sort();
+    return {
+      'seconds': seconds,
+      'frames': of('GPURasterizer::Draw')['count'],
+      'create': of('CreateGlyphAtlas'),
+      'update': of('UpdateAtlasBitmap'),
+      'append': of('AppendToExistingAtlas'),
+      'updates_per_s': seconds > 0 ? updates.length / seconds : 0.0,
+      'update_at_ms': updates,
+      'marks': [
+        for (final (t, what) in _marks) [(t - from) / 1000, what],
+      ],
+    };
   }
 
   Future<void> finger(
@@ -172,6 +269,7 @@ class _Audit {
     Duration step = const Duration(milliseconds: 8),
   }) async {
     final gesture = await tester.createGesture(pointer: _pointer++);
+    mark('down');
     await gesture.down(from, timeStamp: _clock.elapsed);
     await tester.pump(holdBefore);
     for (final p in path) {
@@ -179,6 +277,7 @@ class _Audit {
       await tester.pump(step);
     }
     if (whileHeld != null) await whileHeld();
+    mark('up');
     await gesture.up(timeStamp: _clock.elapsed);
     await tester.pump();
   }
@@ -193,6 +292,12 @@ class _Audit {
 
   Future<void> open(String title) async {
     await settle(300);
+    final entry = find.text(title);
+    final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+    if (!(Offset.zero & screen).deflate(40).contains(tester.getCenter(entry))) {
+      await tester.ensureVisible(entry);
+      await settle(300);
+    }
     _enteredAt = timings.length;
     await tester.tap(find.text(title));
     await settle(800);
@@ -589,6 +694,30 @@ class _Audit {
       'semantics': [..._semanticsWhileTimed],
       'runs': _runs,
       'outline_us': _outlineMicros,
+      if (_atlas)
+        'atlas': {
+          for (final MapEntry(key: scene, value: runs) in _atlasRuns.entries)
+            scene: {
+              'median': {
+                for (final key in ['updates_per_s', 'frames', 'seconds'])
+                  key: median([for (final r in runs) r[key]! as double]),
+                'updates': median([
+                  for (final r in runs)
+                    (r['update']! as Map<String, double>)['count']!,
+                ]),
+                'update_ms': median([
+                  for (final r in runs)
+                    (r['update']! as Map<String, double>)['ms']!,
+                ]),
+                'create_ms_per_frame': median([
+                  for (final r in runs)
+                    (r['create']! as Map<String, double>)['ms']! /
+                        math.max(1, r['frames']! as double),
+                ]),
+              },
+              'runs': runs,
+            },
+        },
       for (final MapEntry(key: scene, value: windows) in _scenes.entries)
         scene: () {
           final runs = [

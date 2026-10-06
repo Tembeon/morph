@@ -1125,6 +1125,81 @@ astra 6 / F15 output buckets (renderer_native and the layer, the
 container agent's files that day; astra notes the bucket shrink is
 VISIBLE unless the sampling domain is kept); F13 / astra 7 geometry pass.
 
+## Glyph atlas under animated scales (2026-10-06)
+
+Finding (Pixel 6a baseline): traced tab-bar and menu scenes updated
+Impeller's glyph atlas ~12 times a second at ~2.5 ms each, on every tier.
+
+Cause (engine a804b26164, impeller/typographer): a glyph is keyed by
+font, SCREEN SCALE and x subpixel (4 buckets); the scale is the largest
+basis length of the text's transform, device pixel ratio included,
+rounded to 1/200 (`TextFrame::RoundScaledFontSize`). Text whose scale
+sweeps meets a new key nearly every frame; `UpdateAtlasBitmap`
+rasterizes the label's glyphs at it and uploads them. No fontSize
+changes anywhere in lib/; no variable-font axis is set on Android. In
+place: the audit's new `AUDIT_ATLAS=true` records the engine timeline
+(`traceTimeline`, Embedder stream) per timed run and stamps every
+update against the run's finger down / up marks. Updates sat in the
+first ~400 ms after down (lens lift, bar swell) and after up (lens
+set-down; menu open / close), and fell run over run as the visited
+scales filled the atlas (iPhone 57 -> 3 per run on the tab bar), slowly
+on the Pixel (48 -> 30). Three transforms: the lens content copy
+(grow x magnification, 1 -> 1.38 on the tab bar, -> 1.25 segmented;
+liquid and fake tiers), the menu content scale (0.05 -> 1.07 -> 1, all
+tiers) and the tab bar swell (1 -> 1.04, small, saturates within a few
+presses; flat tier 42 -> 1 per run).
+
+Fix (lib/src/widgets/glyph_scale.dart):
+- Lens copy: while the lens lifts or sets down (lift < 0.99) the copy's
+  slot magnification is adjusted so the copy's SCREEN scale (render
+  tree transform x grow x magnification) lands on a grid of 64 steps
+  per octave passing through the device pixel ratio
+  (`MorphGlyphScale.snap`). Glyphs stay rasterized and crisp; the label
+  is at most 0.54 percent off its exact size about its slot center (0.1
+  pt for a 20 pt half label); at lift >= 0.99 and at rest it is exact.
+  The lift sweep has ~33 grid scales instead of ~200 engine keys.
+- Menu: while the content blur is >= 0.5 pt (`MorphGlyphRaster.minBlur`;
+  open p <= 0.94, from the first frame of a close) the root rows draw
+  from ONE raster at the device pixel ratio, mipmapped under the content
+  scale - the glyphs the rest state uses, no new key. Below that blur
+  (the open's settle, 1.07 -> 1) the rows are live and exact.
+- Tried and kept out: a raster for unblurred text (softer by ~3x the
+  1-frame jitter floor in flutter_test); coarser snapping (visible
+  steps); the swell (bounded and saturating, labels anchored at the bar
+  center would move up to 1 pt per step).
+
+Pixel evidence: test/glyph_scale_test.dart plays each scene exact
+(`MorphGlyphScale.debugExact`) and on the grid and compares every frame:
+tab bar 120 frames, 33 differ (the lift / set-down), worst frame max 147
+on edge pixels, mean 0.019, 0.023 percent of pixels over 15, first and
+last frames identical; menu 120 frames, 33 from the raster (all under
+the blur): worst max 29, mean 0.04, 0.02 percent over 15; every other
+frame identical (0). For scale: in flutter_test a 0.1 percent scale
+change of a label already moves single edge pixels by 255 and a 0.1 px
+shift by 106. Device shots (perf/2026-10-06-*-glyph-base -> -after):
+resting and held shots within run-to-run noise (flat tab bar shots,
+which this change does not touch, differ by up to 53); the
+timeDilation menu close shots move with the close's timing.
+
+Numbers (5 runs median, AUDIT_ATLAS=true on both sides, ms):
+
+| device / tier / scene | updates/s | update ms/run | raster p95 | raster p99 | over budget |
+|---|---|---|---|---|---|
+| Pixel liquid tab bar | 6.57 -> 2.33 | 113 -> 13 | 17.99 -> 17.32 | 21.45 -> 19.47 | 51 -> 41 |
+| Pixel liquid menu | 12.19 -> 7.50 | 130 -> 41 | 20.67 -> 16.69 | 30.96 -> 25.65 | 29 -> 20 |
+| Pixel liquid segmented | 1.77 -> 1.27 | 11 -> 5 | 9.20 -> 9.17 | 10.41 -> 10.68 | 0 -> 0 |
+| Pixel flat menu | 9.60 -> 5.14 | 174 -> 51 | 13.45 -> 9.70 | 27.93 -> 13.15 | 15 -> 7 |
+| Pixel flat tab bar | 2.24 -> 1.59 | 20 -> 15 | 9.36 -> 9.46 | 10.45 -> 10.46 | 0 -> 0 |
+| iPhone liquid tab bar | 5.80 -> 1.15 | 6.7 -> 1.3 | 2.81 -> 2.50 | 4.58 -> 3.05 | 2 -> 0 |
+| iPhone liquid menu | 8.43 -> 4.93 | 20.9 -> 3.6 | 3.12 -> 2.83 | 4.97 -> 3.75 | 0 -> 0 |
+| iPhone flat menu | 12.18 -> 2.75 | 57.4 -> 6.0 | 2.03 -> 1.42 | 4.26 -> 1.99 | 0 -> 0 |
+
+CreateGlyphAtlas per frame (lookups + updates), Pixel liquid: menu 0.81
+-> 0.30 ms, tab bar 0.54 -> 0.20. What remains: the menu's unblurred
+settle (scale 1.07 -> 0.998 -> 1, ~38 engine keys, crisp on purpose),
+the swell, the menu button's press scale, the first lift on each grid
+scale; all bounded sets that fill the atlas and stop.
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
@@ -1136,6 +1211,8 @@ audit.sh with `AUDIT_TARGET` / `AUDIT_REPORT`. In flutter_test:
 test/perf_counts_test.dart (work counts, ceilings) and
 test/glass_frames_test.dart (channel vs rebuild, pixel for pixel; with
 `GLASS_FRAMES_OUT=<file>` it writes the frame hashes to compare commits).
+`--dart-define=AUDIT_ATLAS=true` adds per-scene glyph atlas work from
+the engine timeline (`atlas` in the report).
 perf/shotdiff.py compares two runs' shots (mean, max, percent over 15);
 the shader harness and its tools are under "Shader harness" above;
 perf/contact.py lays several tiers' shots side by side.

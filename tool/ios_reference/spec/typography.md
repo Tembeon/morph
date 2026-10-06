@@ -39,6 +39,16 @@ tracking from the `trak` table, wght medium 510 / semibold 590.
   (every overlay of the widget layer in a bare WidgetsApp whose ambient
   style is that fallback).
 
+- Text under an ANIMATING scale (2026-10-06, glass-renderer.md "Glyph
+  atlas"): at rest every label is drawn exactly as above (resolve,
+  layout, raster). While a lens copy lifts or sets down, its labels'
+  screen scale snaps to a 64-steps-per-octave grid through the device
+  pixel ratio (`MorphGlyphScale`, at most 0.54 percent of the distance
+  from the slot center, crisp glyphs); while the menu's content blur is
+  >= 0.5 pt its root rows draw from one raster at the device pixel
+  ratio (`MorphGlyphRaster`, mipmapped). Neither touches opsz / wght /
+  tracking: the style and its layout are the rest style throughout.
+
 ## Fixtures / recordings
 
 `tool/ios_reference/recordings/fonts-{sim,device}` (gitignored dumps).

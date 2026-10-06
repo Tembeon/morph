@@ -1259,6 +1259,20 @@ Liquid menu raster p95 (~20 ms) is unchanged: the saveLayers per frame
 (10 vs flat 1) are one BackdropFilterLayer per glass layer and are the
 effect itself.
 
+GLYPH ATLAS (2026-10-06, glass-renderer.md "Glyph atlas under animated
+scales"; perf/2026-10-06-*-glyph-base -> -after, 5 runs median, engine
+timeline on both sides): Impeller keys glyphs by screen scale (1/200), so
+text under a sweeping scale re-rasterized glyphs nearly every frame. The
+lens copy now snaps its screen scale to a 64/octave grid while lifting
+(<= 0.54 percent about the slot center, exact at rest and held) and the
+menu's root rows draw from one raster while its content blur is >= 0.5 pt
+(`MorphGlyphScale`, `MorphGlyphRaster`). Atlas updates/s, raster p95:
+Pixel liquid tab bar 6.57 -> 2.33, 17.99 -> 17.32 (update ms per run 113
+-> 13); liquid menu 12.19 -> 7.50, 20.67 -> 16.69 (130 -> 41; over budget
+29 -> 20); flat menu 9.60 -> 5.14, 13.45 -> 9.70 (p99 27.93 -> 13.15).
+iPhone liquid tab bar 5.80 -> 1.15, menu 8.43 -> 4.93; flat menu 12.18 ->
+2.75 (p99 4.26 -> 1.99).
+
 Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 
 | scene                   | us/op  |

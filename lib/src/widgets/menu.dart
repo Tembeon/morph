@@ -16,6 +16,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_layout.dart';
@@ -824,6 +825,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   Expando<Widget> _rows = Expando<Widget>();
   final Expando<ValueNotifier<int?>> _hidden = Expando<ValueNotifier<int?>>();
   MorphMenuStyle? _rowsStyle;
+  final ValueNotifier<bool> _rootRaster = ValueNotifier<bool>(false);
 
   @override
   void initState() {
@@ -834,6 +836,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   @override
   void dispose() {
     _scroll.dispose();
+    _rootRaster.dispose();
     super.dispose();
   }
 
@@ -858,13 +861,17 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     host.menuWake();
   }
 
-  Widget _rowsOf(MorphMenuLayout layout, MorphMenuStyle style) {
+  Widget _rowsOf(
+    MorphMenuLayout layout,
+    MorphMenuStyle style, {
+    ValueListenable<bool>? raster,
+  }) {
     if (!identical(style, _rowsStyle)) {
       _rows = Expando<Widget>();
       _rowsStyle = style;
     }
-    return _rows[layout] ??= RepaintBoundary(
-      child: DefaultTextStyle(
+    return _rows[layout] ??= () {
+      final Widget rows = DefaultTextStyle(
         style: MorphTypography.resolve(style.textStyle),
         child: _MenuRows(
           layout: layout,
@@ -873,8 +880,13 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           content: widget.host.menuContent,
           onSelect: (int target) => _select(layout, target),
         ),
-      ),
-    );
+      );
+      return RepaintBoundary(
+        child: raster == null
+            ? rows
+            : MorphGlyphRaster(active: raster, child: rows),
+      );
+    }();
   }
 
   ValueNotifier<int?> _hiddenOf(MorphMenuLayout layout) =>
@@ -983,6 +995,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             final size = motion.menuRect.size;
             final scale = motion.contentScale;
             final at = motion.contentRect.topLeft - menu.rect.topLeft;
+            _rootRaster.value = motion.contentBlur >= MorphGlyphRaster.minBlur;
             final layer = IgnorePointer(
               ignoring: !motion.isOpen,
               child: Listener(
@@ -1135,7 +1148,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           clipBehavior: .none,
           children: [
             ?_highlight(motion, style, layout, index),
-            _rowsOf(layout, style),
+            _rowsOf(layout, style, raster: _rootRaster),
           ],
         ),
       );

@@ -19,6 +19,7 @@ import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 
 LiquidGlassSettings _preset(
   MorphGlassRenderer renderer,
@@ -693,23 +694,36 @@ class MorphGlassContentCopy extends StatelessWidget {
   @override
   Widget build(BuildContext context) => IgnorePointer(
     child: ExcludeSemantics(
-      child: CustomPaint(painter: _ContentCopyPainter(this)),
+      child: MorphScreenScalePaint(
+        repaint: frame is GlassFixed<MorphGlassCopyFrame> ? null : frame,
+        painter: _ContentCopyPainter(
+          this,
+          MediaQuery.devicePixelRatioOf(context),
+        ).paint,
+      ),
     ),
   );
 }
 
-class _ContentCopyPainter extends CustomPainter {
-  _ContentCopyPainter(this.copy)
-    : super(
-        repaint: copy.frame is GlassFixed<MorphGlassCopyFrame>
-            ? null
-            : copy.frame,
-      );
+class _ContentCopyPainter {
+  _ContentCopyPainter(this.copy, this.devicePixelRatio);
+
+  static const double _settledLift = 0.99;
 
   final MorphGlassContentCopy copy;
 
-  @override
-  void paint(Canvas canvas, Size size) {
+  final double devicePixelRatio;
+
+  double _glyphMagnification(double screenScale) {
+    final magnification = copy.magnification;
+    if (copy.surface.lift >= _settledLift) return magnification;
+    final base = screenScale * copy.grow;
+    if (base <= 0) return magnification;
+    return MorphGlyphScale.snap(base * magnification, devicePixelRatio) / base;
+  }
+
+  void paint(Canvas canvas, Size size, double screenScale) {
+    final magnification = _glyphMagnification(screenScale);
     final bounds = copy.surface.bounds;
     final center = bounds.center;
     final axis = copy.axis;
@@ -743,7 +757,7 @@ class _ContentCopyPainter extends CustomPainter {
         canvas.clipRRect(copy.surface.shape);
         canvas.clipRect(slot);
         canvas.transform(
-          MorphGlassContentCopy._about(slot.center, copy.magnification).storage,
+          MorphGlassContentCopy._about(slot.center, magnification).storage,
         );
         copy.snapshot.paint(canvas);
         canvas.restore();
@@ -752,9 +766,6 @@ class _ContentCopyPainter extends CustomPainter {
     }
     canvas.restore();
   }
-
-  @override
-  bool shouldRepaint(_ContentCopyPainter oldDelegate) => true;
 }
 
 /// The box a layer may paint into: its control's box grown by the reach

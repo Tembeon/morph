@@ -1,0 +1,257 @@
+/// Text under a scale that animates, drawn without new glyph rasters on
+/// every frame.
+///
+/// Impeller rasterizes each glyph once per font and screen scale (the
+/// largest axis of the transform the text is drawn with, rounded to
+/// 1/200) into its glyph atlas. A label whose scale sweeps continuously
+/// meets a new scale nearly every frame, and each one rasterizes and
+/// uploads the label's glyphs again on the raster thread.
+library;
+
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+
+/// The screen scales text moving through a scale animation is drawn at.
+@internal
+abstract final class MorphGlyphScale {
+  /// The grid steps per doubling of the scale: neighbors are 1.1 percent
+  /// apart, so a snapped label is drawn at most 0.54 percent off its exact
+  /// size about its anchor.
+  static const int stepsPerOctave = 64;
+
+  /// Draws every label at its exact scale and live: no snapping and no
+  /// rasters, for comparing frames against the exact drawing.
+  @visibleForTesting
+  static bool debugExact = false;
+
+  /// The nearest grid scale to [scale], a screen scale (logical to device
+  /// pixels). The grid passes through [devicePixelRatio], so text at its
+  /// layout size stays exact.
+  static double snap(double scale, double devicePixelRatio) {
+    if (debugExact || scale <= 0 || devicePixelRatio <= 0) return scale;
+    final steps =
+        (math.log(scale / devicePixelRatio) / math.ln2 * stepsPerOctave)
+            .roundToDouble();
+    return devicePixelRatio * math.pow(2, steps / stepsPerOctave);
+  }
+
+  /// The largest axis scale of [transform], the scale the glyph atlas
+  /// keys text by.
+  static double of(Matrix4 transform) {
+    final s = transform.storage;
+    final x = math.sqrt(s[0] * s[0] + s[1] * s[1] + s[2] * s[2]);
+    final y = math.sqrt(s[4] * s[4] + s[5] * s[5] + s[6] * s[6]);
+    return math.max(x, y);
+  }
+}
+
+/// Paints with [painter] and passes it the screen scale of its box: the
+/// largest axis scale of the transform from the box to the screen, device
+/// pixel ratio included.
+@internal
+class MorphScreenScalePaint extends LeafRenderObjectWidget {
+  /// Paints [painter] over the whole box, again whenever [repaint]
+  /// notifies.
+  const MorphScreenScalePaint({required this.painter, this.repaint, super.key});
+
+  /// Paints into the box of [Size] whose screen scale is the [double].
+  final void Function(Canvas canvas, Size size, double screenScale) painter;
+
+  /// Repaints the box when it notifies.
+  final Listenable? repaint;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderScreenScalePaint(painter, repaint);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant RenderObject renderObject,
+  ) {
+    (renderObject as _RenderScreenScalePaint).update(painter, repaint);
+  }
+}
+
+class _RenderScreenScalePaint extends RenderBox {
+  _RenderScreenScalePaint(this._painter, this._repaint);
+
+  void Function(Canvas canvas, Size size, double screenScale) _painter;
+
+  Listenable? _repaint;
+
+  void update(
+    void Function(Canvas canvas, Size size, double screenScale) painter,
+    Listenable? repaint,
+  ) {
+    _painter = painter;
+    markNeedsPaint();
+    if (identical(repaint, _repaint)) return;
+    if (attached) _repaint?.removeListener(markNeedsPaint);
+    _repaint = repaint;
+    if (attached) _repaint?.addListener(markNeedsPaint);
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _repaint?.addListener(markNeedsPaint);
+  }
+
+  @override
+  void detach() {
+    _repaint?.removeListener(markNeedsPaint);
+    super.detach();
+  }
+
+  @override
+  bool get sizedByParent => true;
+
+  @override
+  Size computeDryLayout(BoxConstraints constraints) => constraints.biggest;
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final scale = MorphGlyphScale.of(getTransformTo(null));
+    final canvas = context.canvas;
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    _painter(canvas, size, scale);
+    canvas.restore();
+  }
+}
+
+/// Paints [child] from one raster of it at the device pixel ratio while
+/// [active] is true, and live otherwise.
+///
+/// The raster is taken when [active] turns on and again whenever the
+/// child repaints; drawn under a scale it is resampled with mipmaps
+/// instead of having its glyphs rasterized at that scale. Meant for text
+/// under a blur, which hides the resampling: an unblurred label stays
+/// live.
+@internal
+class MorphGlyphRaster extends SingleChildRenderObjectWidget {
+  /// Draws [child] from its raster while [active] is true.
+  const MorphGlyphRaster({
+    required this.active,
+    required super.child,
+    super.key,
+  });
+
+  /// Whether the child is drawn from its raster.
+  final ValueListenable<bool> active;
+
+  /// The smallest blur, in logical pixels on screen, that hides the
+  /// resampling of a raster drawn under it.
+  static const double minBlur = 0.5;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderGlyphRaster(active, MediaQuery.devicePixelRatioOf(context));
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant RenderObject renderObject,
+  ) {
+    (renderObject as _RenderGlyphRaster).update(
+      active,
+      MediaQuery.devicePixelRatioOf(context),
+    );
+  }
+}
+
+class _RenderGlyphRaster extends RenderProxyBox {
+  _RenderGlyphRaster(this._active, this._devicePixelRatio);
+
+  ValueListenable<bool> _active;
+
+  double _devicePixelRatio;
+
+  void update(ValueListenable<bool> active, double devicePixelRatio) {
+    if (identical(active, _active) && devicePixelRatio == _devicePixelRatio) {
+      return;
+    }
+    if (attached) _active.removeListener(_changed);
+    _active = active;
+    _devicePixelRatio = devicePixelRatio;
+    if (attached) _active.addListener(_changed);
+    _changed();
+  }
+
+  ui.Image? _raster;
+
+  void _drop() {
+    _raster?.dispose();
+    _raster = null;
+  }
+
+  void _changed() {
+    _drop();
+    markNeedsPaint();
+  }
+
+  @override
+  void markNeedsPaint() {
+    _drop();
+    super.markNeedsPaint();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _active.addListener(_changed);
+  }
+
+  @override
+  void detach() {
+    _active.removeListener(_changed);
+    _drop();
+    super.detach();
+  }
+
+  @override
+  void dispose() {
+    _drop();
+    super.dispose();
+  }
+
+  ui.Image _rasterize() {
+    final layer = OffsetLayer();
+    final context = PaintingContext(layer, Offset.zero & size);
+    super.paint(context, Offset.zero);
+    // ignore: invalid_use_of_protected_member
+    context.stopRecordingIfNeeded();
+    final image = layer.toImageSync(
+      Offset.zero & size,
+      pixelRatio: _devicePixelRatio,
+    );
+    layer.dispose();
+    return image;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (!_active.value ||
+        size.isEmpty ||
+        child == null ||
+        MorphGlyphScale.debugExact) {
+      _drop();
+      super.paint(context, offset);
+      return;
+    }
+    final raster = _raster ??= _rasterize();
+    final paint = Paint();
+    paint.filterQuality = FilterQuality.medium;
+    context.canvas.drawImageRect(
+      raster,
+      Rect.fromLTWH(0, 0, raster.width.toDouble(), raster.height.toDouble()),
+      offset & size,
+      paint,
+    );
+  }
+}
