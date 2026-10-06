@@ -1147,9 +1147,9 @@ test/shader_parity_host_test.dart` in example/ (Impeller on SwiftShader;
 it ignores RelaxedPrecision and does not show the Mali contraction effects
 below; delete build/unit_test_assets after editing a .glsl include).
 Offline: tool/audit/shader/offline.py (impellerc Vulkan / Metal / GLES 3
-stages, SPIR-V counts with the NDK's spirv-dis). malioc (Arm Mobile
-Studio) is not installed; downloading it needs the owner's approval, so
-F7 / F8 (decided by Mali cycle counts) were not attempted. Runners:
+stages, SPIR-V counts with the NDK's spirv-dis, and since 2026-10-06
+Arm's malioc for the Mali-G78: see "The Mali offline compiler batch").
+Runners:
 tool/audit/shader/run_pixel.sh (Vulkan, or GLES forced in the worktree's
 manifest), run_iphone.sh; parity.py reads and cross-compares the reports.
 Results: perf/2026-10-06-shader-audit/ (traces in /tmp/morph-perf/gpuwork,
@@ -1861,6 +1861,96 @@ renderer/backend/vulkan/surface_context_vk.cc SubmitOnscreen. The
 geometry passes' Flutter GPU submits are on the UI thread, already at most
 one a frame (0.76 a frame in segmented, about 1 ms there), and never
 reach the raster thread's batch. Merging them is engine work.
+
+## The Mali offline compiler batch (2026-10-06)
+
+The audit items that waited for Arm's malioc (Mali Offline Compiler
+v2026.5.0, Mali-G78 r1p1, driver r51p0; owner approved the install):
+F1 / astra 4 (uniform-only color constants), F7 / astra 12 (variants),
+F8 (uniform-only expressions). Evidence: perf/2026-10-06-shader-f7-*,
+perf/2026-10-06-shader-f1-*, -shader-f1rerun-* (the first F1 Pixel bench
+recorded a trace without GPU work periods), perf/2026-10-06-pixel6a-
+malioc-f7 (end to end; liquid-before*, -after* = F7, -f1*); GPU work
+traces in /tmp/morph-perf/gpuwork, not committed.
+
+OFFLINE GATE (tool/audit/shader/offline.py, malioc on the GLES 3 source
+and the SPIR-V of every final, fake, geometry, field and material
+variant; `--tree name=dir` compares any shader trees). Baseline before
+the batch (e953244), Vulkan, cycles per fragment longest / total
+arithmetic, work registers, occupancy:
+
+| shader | A longest / total | registers | occupancy |
+|---|---|---|---|
+| final (one appearance) | 11.75 / 13.75 | 46 | 50 % |
+| final tint | 12.23 / 14.25 | 50 | 50 % |
+| final material | 15.38 / 17.38 | 63 | 50 % |
+| fake surface | 4.85 / 5.48 | 28 | 100 % |
+| geometry (loop) | - / 33.0, LS bound | 64 | 50 % |
+| field | 2.73 / 2.88 | 32 | 100 % |
+| material gradient | - / 13.25 | 64 | 50 % |
+| tint gradient | - / 22.0 | 64 | 50 % |
+
+GLES matches within 0.05 cycles. Every shader reports uniform
+computation and the final ones use all 128 uniform registers: the Mali
+driver evaluates uniform-only expressions once per draw (they cost
+uniform registers, not fragment cycles). The final shaders were at 31 /
+32 registers (full occupancy) before the 2026-10-05 audit batch;
+feb934d (coverage once) and 5ec645f (step picks) pushed them over 32,
+which halves the threads a core keeps in flight. malioc's longest path
+takes every uniform branch (dispersion, shrink), which a regular surface
+never runs: read the register count and the total, not the longest path,
+for those.
+
+F7, KEPT (a34e57b): the one-appearance and tint-only programs compile
+one color model family: DIRECT_MODEL (morph's lifted lens, knob, thumb)
+or IOS27_MODELS (every other surface); the material variant keeps both.
+Five programs instead of three (`ShaderKeys.liquidGlassRenders`, all
+warmed). Splitting by optics instead (no dispersion / shrink / soften)
+moves only the longest path and leaves the union at 46 registers: the
+registers come from the direct and the iOS 27 color paths living side by
+side.
+
+| variant | before A / regs / occ | after A / regs / occ |
+|---|---|---|
+| one appearance, direct | 11.75 / 46 / 50 | 9.25 / 32 / 100 |
+| one appearance, iOS 27 | 11.75 / 46 / 50 | 10.50 / 32 / 100 |
+| tint, direct | 12.23 / 50 / 50 | 9.40 / 32 / 100 |
+| tint, iOS 27 | 12.23 / 50 / 50 | 10.94 / 32 / 100 (GLES 44 / 50) |
+
+Pixels: 0 on every case, Pixel 6a Vulkan and GLES, iPhone 16 Pro Metal,
+host Impeller. GPU per layer (median paired, vs the union in the same
+app): Pixel cycles regular-dark +5.3, lens +5.4, tint +5.1, big-sheet
++3.5, menu +1.7 percent (mixed-models, whose program did not change,
++2.4; fake -0.5); iPhone wall big-sheet +1.9 (all eight blocks
+positive), the small cases within their noise. End to end (glass_audit,
+liquid, 5 runs a launch, four ABAB pairs, e953244 vs a34e57b): no raster
+change - every scene's p50 / p95 / over budget within the launch spread
+(e.g. tab-bar p95 14.48 -> 14.26, sheet 15.25 -> 14.48, menu 15.55 ->
+15.45 ms, means of the four launches); the first pair's home-scroll p95
++3 ms did not repeat in the second (11.40 -> 11.37). These scenes are CPU
+raster bound, as for the 2026-10-05 batch. Precache 491 -> 601 ms (mean,
+spread 399 - 789): two more programs to warm.
+
+F1, REJECTED (6cdd2f3, reverted by cc37658): the iOS 27 one-appearance
+and tint-only programs read the untinted wash, the face transfer, the
+dark border gain and the glint target from uniforms 65 - 74 resolved by
+`LiquidGlassColorModel.faceTransfer` / `contourScale`, written only to
+programs that declare them (so the frozen baseline and the material
+variant keep their layout and the same-app A/B worked). malioc: -0.025
+cycles, no register change - the driver already evaluated them once per
+draw. Pixels max 1 step on 1 - 11 pixels (Pixel Vulkan = GLES, iPhone,
+host). GPU vs F7 in the same app: iPhone wall big-sheet +2.7, menu +2.3
+(7 of 8 blocks each); Pixel cycles regular-dark -9.1, big-sheet +0.7,
+menu +1.3, tint +1.6 (unchanged programs -1.7 .. +2.6); end to end within
+the spread. No gain on the weak device, so the per-pixel face stays.
+
+F8, REJECTED OFFLINE: `a / uniform` as `a * (1 / uniform)` (screen and
+matte UVs, contour integral, glint profile) gives identical malioc
+cycles - the compiler already multiplies by a hoisted reciprocal - so no
+device run. The geometry pass's per-pixel smoothing budget as a uniform
+saves 0.25 load / store cycles a shape on empty pixels (0.72 -> 0.56
+shortest path), but the harness cannot A/B the Flutter GPU bundle (both
+variants share it) and the pass runs only on geometry changes: not done.
 
 ## Energy: ADPF and the fusion workers (Pixel 6a, 2026-10-06)
 

@@ -229,3 +229,12 @@ Local patches (some commits include related package changes):
   shader's pass origin is that pass's (shaderCoordinateTransform).
   `RenderLiquidGlassLayer.debugSeedsBlur` turns it off for an A/B. Numbers
   in glass-renderer.md ("The lifted lens's frost").
+- 2026-10-06 Mali offline compiler batch (numbers in glass-renderer.md,
+  "The Mali offline compiler batch"): the final shader's one-appearance
+  and tint-only entry points compile one color model family each
+  (DIRECT_MODEL or IOS27_MODELS: liquid_glass_final_render(_tint).frag and
+  the new liquid_glass_final_render(_tint)_ios27.frag); the material
+  variant keeps both. RenderLiquidGlassLayer holds five final shaders and
+  picks by the uniform appearance's color model; the warm-up and the
+  precache list draw all five (ShaderKeys.liquidGlassRenders). Tried and
+  reverted: the iOS 27 face as CPU-resolved uniforms (no Mali gain).
