@@ -14,6 +14,19 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Glass whose matte grid falls on the pixel centers (an origin on an exact
+  half device pixel, common at 3x) no longer depends on how the GPU rounds:
+  the layer moves its grid off the tie, so a glass container member draws
+  exactly what its own layer draws there (iPhone 16 Pro: a menu button 1
+  device pixel off, max 123, now within run-to-run noise). A floating sheet
+  closes the glass containers in its content while it draws it scaled and
+  opens them once docked; the gallery's plain sheet buttons share their
+  container again. The Pixel 6a raster cost of the segmented, controls and
+  tab bar scenes is attributed (glass-renderer.md): about 0.75 ms per
+  backdrop filter on the raster thread and the small lens's frost pass, no
+  pixel-identical cut left in the package. A prominent button in a row of
+  glass buttons stays out of the container (one filter less, but a few
+  steps off on its rim).
 - Resting menu buttons, and glass buttons inside a showing `MorphTag`,
   join a `MorphGlassContainer` (a tag hiding for its flight sends its glass
   back to its own layer in the same frame); a settled glass or menu button
