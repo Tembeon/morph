@@ -14,6 +14,12 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Opening a menu no longer builds its rows in its first frame: a press
+  on a menu button builds them out of sight while the tap's opening delay
+  runs, and the opening moves them into the menu. Same pixels. The
+  opening frame's build drops from up to 46 to 28 ms on a Pixel 6a (6.3
+  to 5.0 ms on an iPhone 16 Pro), and a moving menu rebuilds about one
+  widget fewer per frame.
 - A search toolbar at rest shades its field and side buttons in one glass
   layer (Pixel 6a raster p95 -1.0 ms, GPU -8 percent; a search shows as
   before), and the search field and the bars now tell a glass container
