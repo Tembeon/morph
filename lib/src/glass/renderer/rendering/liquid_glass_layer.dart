@@ -1551,14 +1551,13 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       ];
       final anchored = shifts.any((Offset shift) => shift != Offset.zero);
       _encodedPassPhase = anchored ? _passPhase(layerToPass) : null;
-      final aaPadding =
-          max(0.5 / devicePixelRatio, _contourOutset) +
-          (anchored ? 0.5 / devicePixelRatio : 0);
+      final aaPadding = max(0.5 / devicePixelRatio, _contourOutset);
+      final shiftPadding = anchored ? 0.5 / devicePixelRatio : 0.0;
       // The matte is in this layer's local coordinates. Ancestor transforms
       // are applied once by the compositor; baking them in would apply scale
       // and rotation twice.
       final boundsInMatteSpace = bounds
-          .inflate(aaPadding)
+          .inflate(aaPadding + shiftPadding)
           .snapToPixels(devicePixelRatio);
       final materialCenter = bounds.center;
 
