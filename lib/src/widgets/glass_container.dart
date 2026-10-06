@@ -97,6 +97,49 @@ class _MorphGlassStageState extends State<MorphGlassStage> {
 @internal
 bool debugMorphGlassStagesOpen = true;
 
+/// Closes every glass container in [child] while [open] is false.
+///
+/// A glass container rasterizes all its members' mattes on its own grid
+/// and moves each member's shapes so that they read the pixels a layer of
+/// its own would read. That works while the container is drawn under a
+/// translation; under a scale the grids of members at different fractions
+/// of a device pixel from the container no longer meet at any one shift,
+/// so a package widget that draws its content scaled (a floating sheet)
+/// closes the containers in it until it draws it unscaled again, and every
+/// member draws its own layer, in the same frame.
+@internal
+class MorphGlassContainerGate extends StatelessWidget {
+  /// Closes the containers in [child] unless [open].
+  const MorphGlassContainerGate({
+    required this.open,
+    required this.child,
+    super.key,
+  });
+
+  /// Whether the containers in [child] may shade their members together.
+  final bool open;
+
+  /// The subtree whose containers the gate closes.
+  final Widget child;
+
+  /// Whether every gate above [context] is open.
+  static bool openAt(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_GateScope>()?.open ?? true;
+
+  @override
+  Widget build(BuildContext context) =>
+      _GateScope(open: open && openAt(context), child: child);
+}
+
+class _GateScope extends InheritedWidget {
+  const _GateScope({required this.open, required super.child});
+
+  final bool open;
+
+  @override
+  bool updateShouldNotify(_GateScope oldWidget) => oldWidget.open != open;
+}
+
 /// An [Opacity] of a [MorphGlassStage] that its members see through: the
 /// stage closes whenever [opacity] is below 1.
 @internal
@@ -147,7 +190,7 @@ Widget _containerLayer(
           link: link,
           renderer: painter,
           settings: settings,
-          open: open,
+          open: open && MorphGlassContainerGate.openAt(context),
           child: child!,
         ),
       );

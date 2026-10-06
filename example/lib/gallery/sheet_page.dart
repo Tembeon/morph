@@ -153,33 +153,35 @@ class _PlainSheet extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const .fromLTRB(24, 32, 24, 16),
-        child: Column(
-          crossAxisAlignment: .stretch,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 22, fontWeight: .w700),
-            ),
-            const SizedBox(height: 16),
-            for (final detent in sheet.detents)
-              Padding(
-                padding: const .only(bottom: 10),
-                child: SizedBox(
-                  height: 44,
-                  child: MorphGlassButton(
-                    onPressed: () => sheet.animateTo(detent),
-                    child: Text('Go to $detent'),
+        child: MorphGlassContainer(
+          child: Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 22, fontWeight: .w700),
+              ),
+              const SizedBox(height: 16),
+              for (final detent in sheet.detents)
+                Padding(
+                  padding: const .only(bottom: 10),
+                  child: SizedBox(
+                    height: 44,
+                    child: MorphGlassButton(
+                      onPressed: () => sheet.animateTo(detent),
+                      child: Text('Go to $detent'),
+                    ),
                   ),
                 ),
+              SizedBox(
+                height: 44,
+                child: MorphGlassButton(
+                  onPressed: () => Navigator.of(context).pop('Done in $title'),
+                  child: const Text('Done'),
+                ),
               ),
-            SizedBox(
-              height: 44,
-              child: MorphGlassButton(
-                onPressed: () => Navigator.of(context).pop('Done in $title'),
-                child: const Text('Done'),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

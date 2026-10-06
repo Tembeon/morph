@@ -337,4 +337,63 @@ void main() {
       expect(shared, own);
     });
   }
+
+  testWidgets('a floating sheet closes the containers in it; docked at '
+      'large it opens them', (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(402, 874) * 3;
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    const content = Key('content');
+    await tester.pumpWidget(
+      MaterialApp(
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
+        home: MorphAdaptiveGlass(
+          tier: MorphGlassTier.fake,
+          child: Builder(
+            builder: (BuildContext context) => Center(
+              child: TextButton(
+                onPressed: () => presentMorphSheet<void>(
+                  context,
+                  detents: const [
+                    MorphSheetDetent.medium,
+                    MorphSheetDetent.large,
+                  ],
+                  builder: (BuildContext context) => MorphGlassContainer(
+                    child: Column(
+                      key: content,
+                      children: [
+                        for (var i = 0; i < 3; i++)
+                          SizedBox(
+                            width: 200,
+                            height: 44,
+                            child: MorphGlassButton(
+                              onPressed: () {},
+                              child: Text('$i'),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                child: const Text('present'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await tester.pumpAndSettle();
+    Finder layers() => find.descendant(
+      of: find.byType(MorphGlassContainer),
+      matching: find.byType(LiquidGlassLayer),
+    );
+    expect(layers(), findsNWidgets(4));
+    MorphSheet.of(
+      tester.element(find.byKey(content)),
+    ).animateTo(MorphSheetDetent.large);
+    await tester.pumpAndSettle();
+    expect(layers(), findsOneWidget);
+  });
 }

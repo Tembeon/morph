@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -384,6 +385,16 @@ class _SheetViewState extends State<_SheetView>
     return _scrubBack?.value(t);
   }
 
+  MorphGlassContainerGate? _gated;
+
+  MorphGlassContainerGate _gate({required bool open, required Widget child}) {
+    final gated = _gated;
+    if (gated != null && gated.open == open && identical(gated.child, child)) {
+      return gated;
+    }
+    return _gated = MorphGlassContainerGate(open: open, child: child);
+  }
+
   bool get _zooming {
     final zoom = _zoom;
     return zoom != null && !(zoom.isOpening && zoom.isSettled);
@@ -687,6 +698,11 @@ class _SheetViewState extends State<_SheetView>
             );
             final dimOpacity =
                 style.dimmingColor.a * MorphSheetTuning.dimmingOpacity * dim;
+            final scrub = _zooming ? null : _scrubAt(t);
+            final content = _gate(
+              open: !_zooming && scrub == null && s == 1,
+              child: child!,
+            );
             final sheet = _SheetBody(
               shape: shape,
               dock: dock,
@@ -694,7 +710,7 @@ class _SheetViewState extends State<_SheetView>
               glass: glass,
               brightness: brightness,
               grabber: _route.grabberVisible,
-              child: child!,
+              child: content,
             );
             if (_zooming) {
               return _buildZoom(
@@ -708,7 +724,6 @@ class _SheetViewState extends State<_SheetView>
               );
             }
             final natural = motion.visibleRect(t, size.height);
-            final scrub = _scrubAt(t);
             final drawn = scrub == null
                 ? natural
                 : _route.zoom.scrubFrame(natural, scrub);
@@ -737,7 +752,7 @@ class _SheetViewState extends State<_SheetView>
                     glass: glass,
                     brightness: brightness,
                     grabber: _route.grabberVisible,
-                    child: child,
+                    child: content,
                   );
             return Stack(
               children: [
