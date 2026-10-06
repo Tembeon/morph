@@ -70,7 +70,10 @@ import 'support/layer_census.dart';
 /// Every timed run is bracketed by two zero-length timeline slices,
 /// `scene:<name>:<run>:begin` and `...:end`, so a systrace capture of the
 /// run (tool/ios_reference/perf/trace_android.sh) windows its slices by
-/// scene (`atrace_slices.py <trace> --scenes`).
+/// scene (`atrace_slices.py <trace> --scenes`); the report keeps the same
+/// windows on the timeline clock (`windows_us`, CLOCK_MONOTONIC on Android),
+/// so the kernel's GPU work periods of a run with `AUDIT_GPUWORK=1` split by
+/// scene (`gpu_scenes.py`).
 /// `--dart-define=AUDIT_CENSUS=true` also counts the engine layers of
 /// every frame inside those windows (support/layer_census.dart) into the
 /// report's `census`; `AUDIT_CENSUS_OWNERS=true` names the owner of every
@@ -174,9 +177,17 @@ class _Audit {
       ? LayerCensus(owners: _censusOwners)
       : null;
 
+  final Map<String, List<List<int>>> _windowsUs = {};
+
   void _sceneMark(String scene, int run, String edge) {
     developer.Timeline.startSync('scene:$scene:$run:$edge');
     developer.Timeline.finishSync();
+    final windows = _windowsUs[scene] ??= [];
+    if (edge == 'begin') {
+      windows.add([developer.Timeline.now, 0]);
+    } else if (windows.isNotEmpty) {
+      windows.last[1] = developer.Timeline.now;
+    }
     if (edge == 'begin') {
       _layerCensus?.begin(scene);
     } else {
@@ -728,6 +739,7 @@ class _Audit {
       'semantics': [..._semanticsWhileTimed],
       'runs': _runs,
       'outline_us': _outlineMicros,
+      'windows_us': _windowsUs,
       if (_layerCensus case final census?) 'census': census.report(),
       if (_atlas)
         'atlas': {
