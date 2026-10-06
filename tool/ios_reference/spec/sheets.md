@@ -144,3 +144,11 @@ sheet.dart (`presentMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
 - Replays: sheet_test (programmatic, 0.8 - 2.1 pt rms incl. present jank),
   sheet_drag_test (16 simulator + 26 device drags/flicks, outcomes exact,
   tolerances in the file).
+- Glass containers in the content: the sheet wraps its content in a
+  `MorphGlassContainerGate` that is open only while the content is drawn
+  unscaled (docked, not zooming, not scrubbed). A floating sheet scales its
+  content to its inset width, where a container cannot keep its members on
+  their own raster grids, so their glass draws in layers of its own there
+  and shares the container once docked (glass-renderer.md, "Raster ties,
+  scaled containers"). The gate widget is reused while its state holds, so
+  the per-frame builder rebuilds nothing more.

@@ -1,0 +1,26 @@
+apk: nonav.apk  commit: ab36c1a  date: Tue Oct  6 07:17:54 CEST 2026
+thermal before:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=37.069, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=34.100002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=35.6253, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 784
+WaitTime: 785
+package:dev.tembeon.morph_example uid:10378
+thermal after:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=37.069, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=34.100002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=35.927853, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-06 07:17:55.586 29712 29796 I flutter : The Dart VM service is listening on http://127.0.0.1:36355/WqgRBW25BTg=/
+10-06 07:17:55.591 29712 29786 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-06 07:17:55.650 29712 29712 I flutter : 00:00 +0: glass audit
+10-06 07:20:22.738 29712 29712 I flutter : 02:27 +1: (tearDownAll)
+10-06 07:20:22.739 29712 29712 I flutter : 02:27 +2: All tests passed!

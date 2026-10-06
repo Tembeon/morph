@@ -1,0 +1,25 @@
+apk: cand4-census.apk  commit: ab36c1a  date: Tue Oct  6 08:19:12 CEST 2026
+thermal before:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=37.069, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=34.5, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=36.2196, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 749
+WaitTime: 751
+thermal after:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=37.069, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=34.4, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=36.28525, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-06 08:19:12.913  7975  8059 I flutter : The Dart VM service is listening on http://127.0.0.1:35237/TH--Bptw5oA=/
+10-06 08:19:12.919  7975  8049 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-06 08:19:12.976  7975  7975 I flutter : 00:00 +0: glass audit
+10-06 08:21:15.483  7975  7975 I flutter : 02:02 +1: (tearDownAll)
+10-06 08:21:15.484  7975  7975 I flutter : 02:02 +2: All tests passed!

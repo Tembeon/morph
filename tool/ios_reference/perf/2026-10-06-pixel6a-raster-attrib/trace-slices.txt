@@ -1,0 +1,12 @@
+== segmented
+variant            DoDraw       Encode    saveLayer  QueueSubmit        Paint      Preroll CreateGlyphA UpdateAtlasB  saveLayerCnt
+flat                5.141        1.837        0.000        1.516        0.187        0.118        0.192        0.000  0.00
+nonavglass          6.513        2.754        0.053        1.661        0.254        0.149        0.222        0.038  0.31
+noblur              8.007        3.158        0.708        2.030        0.315        0.187        0.226        0.032  3.79
+liquid              8.069        3.339        0.694        1.955        0.329        0.191        0.220        0.029  3.77
+== controls
+variant            DoDraw       Encode    saveLayer  QueueSubmit        Paint      Preroll CreateGlyphA UpdateAtlasB  saveLayerCnt
+flat                5.624        2.103        0.000        1.600        0.244        0.135        0.142        0.002  0.00
+nonavglass          8.009        3.249        0.653        2.076        0.312        0.192        0.143        0.003  4.42
+noblur              8.324        3.078        1.084        2.093        0.321        0.202        0.127        0.003  8.21
+liquid              9.707        3.456        1.967        2.271        0.345        0.214        0.126        0.002  8.18

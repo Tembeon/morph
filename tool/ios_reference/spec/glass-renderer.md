@@ -643,7 +643,9 @@ container is content above its glass.
   encodes again, and a shifted matte is never reused by translation. Pure
   compositor motion of the container (a scroll, a route transition) moves
   the phase without a paint: until the next paint the members can be off
-  by the old difference.
+  by the old difference. Ties (a grid within 1/64 device pixel of the
+  pixel centers) and scaled containers: see "Raster ties, scaled
+  containers" below.
 - Device (density shots, buttons 0.17 pt off the grid with DENSITY_SHIFT,
   resting / one held; status quo = own layers, max channel / share over
   15): Pixel 6a (2.625x) container before the fix 48 / 0.04 - 0.10
@@ -1433,11 +1435,13 @@ Consolidations (landed):
 - Built and REVERTED: the plain sheet's three buttons in a container. The
   floating sheet draws its content scaled to its inset width, and a scaled
   member gets no raster shift: their rims landed up to 171 steps (0.29
-  percent of the screen) off their own layers. Scaled containers need the
-  raster phase to handle scale first.
+  percent of the screen) off their own layers. Re-landed once the sheet
+  closed its containers while scaled (Q3 of "Raster ties, scaled
+  containers").
 - Not changed: the prominent button joining the row needs per-shape
   appearances (the material map shader) in the container - a different
-  final shader for every member, unmeasured, not IDENTICAL.
+  final shader for every member, not IDENTICAL; measured since (Q4 of
+  "Raster ties, scaled containers").
 
 Pixels. flutter_test: the 56 deterministic glass_frames scenes hash-equal
 on the host's Impeller, the 7 noisy liquid scenes within their run-to-run
@@ -1482,6 +1486,144 @@ snap, after3 = the landed state), -filters-census{,3},
 perf/2026-10-06-iphone-filters-{base-a..d, after-a/b, after2-a/b,
 after3-a/b}; shots in /tmp (not committed).
 
+## Raster ties, scaled containers, and where the rest of the raster goes (2026-10-06)
+
+Four questions left by the consolidation above. Evidence:
+perf/2026-10-06-pixel6a-raster-attrib (the ablations, GPU work and traces
+of Q1), perf/2026-10-06-pixel6a-tie-gate and perf/2026-10-06-iphone-tie-gate
+(base ab36c1a / cand = Q2 + Q3 / cand4 = cand + the tinted member of Q4,
+ABBA launches, census, shots in /tmp, not committed).
+
+### Q1: segmented, controls and tab bar against flat
+
+Ablation builds of the Pixel 6a audit (a worktree with a local ABL define,
+never committed; raster p50 / p95 ms, mean of 1 - 3 launches of 5 runs,
+cooled to 38 C, the launch-to-launch spread of one build is up to 0.5 ms):
+
+| scene | flat | liquid | lens copy off | content clip off | lens / knob / thumb glass off | bar capsules flat | both off | small lens frost 0 |
+|---|---|---|---|---|---|---|---|---|
+| segmented | 5.53 / 6.54 | 8.07 / 9.93 | 7.90 / 9.94 | 8.04 / 10.25 | 7.92 / 9.58 | 7.35 / 9.51 | 6.56 / 8.27 | (no frost) |
+| controls | 5.52 / 6.69 | 8.58 / 14.55 | 8.80 / 14.72 | 8.74 / 14.58 | 8.86 / 10.68 | 8.41 / 15.07 | 8.10 / 9.80 | 9.06 / 12.04 |
+| tab-bar | 8.05 / 9.87 | 10.51 / 13.48 | 10.40 / 13.35 | 10.54 / 13.38 | 10.28 / 13.39 | 10.14 / 13.05 | 9.92 / 13.09 | 10.55 / 13.61 |
+
+GPU (the kernel's work periods per scene window, `gpu_scenes.py`): busy 6 /
+20 / 8 percent of the segmented scene flat / liquid / both off (1.01 /
+3.27 / 1.27 ms a frame at 434 MHz), controls 6 / 32 percent (0.96 / 5.38
+ms), tab bar 58 / 69 percent (9.7 / 11.6 ms; the clock rises 437 -> 630
+MHz): the GPU is not what the segmented and controls frames wait for, and
+the tab bar page is GPU-heavy already flat. Raster thread per frame (one
+systrace launch each, self ms; DoDraw inclusive):
+
+| scene / build | DoDraw | SurfaceFrame::Encode | Canvas::saveLayer (count) | QueueSubmit (count) |
+|---|---|---|---|---|
+| segmented flat | 5.14 | 1.84 | 0 | 1.52 (1) |
+| segmented both off | 6.51 | 2.75 | 0.05 (0.3) | 1.66 (1.1) |
+| segmented liquid | 8.07 | 3.34 | 0.69 (3.8) | 1.96 (2) |
+| controls flat | 5.62 | 2.10 | 0 | 1.60 (1) |
+| controls frost 0 | 8.32 | 3.08 | 1.08 (8.2) | 2.09 (2) |
+| controls liquid | 9.71 | 3.46 | 1.97 (8.2) | 2.27 (2) |
+
+Reading:
+- A backdrop filter costs this phone about 0.75 ms of raster CPU, not
+  0.3: the bar's and the lens's filters each add 0.73 - 0.79 ms alone and
+  1.5 together. That is its two saveLayers (~0.18 each: Impeller ends the
+  pass to read the backdrop), its share of the encode, and - paid once,
+  by the first filter of a frame - a second queue submit (1 -> 2 a frame,
+  +0.3 - 0.45 ms).
+- Segmented, +2.5 ms p50: the navigation bar's filter (0.75), the lifted
+  lens's filter (0.75), and ~1.0 ms that the liquid tier spends with no
+  filter at all (both off; encode +0.9), of which the lens's content copy,
+  its clip and capture are 0.2 - 0.3 (lens copy / clip off, all four off
+  7.74 / 9.45); the rest is not attributed further (the platter's opacity
+  layer, 0.3 a frame, is the one other offscreen layer).
+- Controls, +8 ms p95: the tail is the knob's and thumb's lifted glass
+  (p95 14.6 -> 10.7 without it); 2.5 ms of it is the frost's blur pass
+  while the small lens lifts or settles (saveLayer self 1.97 -> 1.08 ms a
+  frame with the frost at 0; a frost under `shaderSofteningMaxDeviceSigma`
+  is already softened in the shader). The p50 does not move.
+- Tab bar: no part of the lens moves the p50 by more than the spread; the
+  lens's filter and the bar's are the cost, and the GPU is near its clock
+  ceiling there.
+- Not cut: every filter left in these scenes reads what is painted under
+  it (bar over the list, lens over the track and labels, knob over the
+  track), and the frost is measured (unlifted blur 6). What would move them
+  is engine work - a cheaper backdrop read than a pass break, or a blur
+  that does not cost a pass per step on the raster thread - or fewer
+  layers by design, not a pixel-identical change in the package.
+
+### Q2: raster ties (raster_phase.dart, landed)
+
+A nearest-sampled matte whose texel edges fall on the pixel centers reads
+one texel or the other depending on how the GPU rounds: the host's
+Impeller mixed rows of one own layer anywhere from 60.499 to 60.500003
+device px (an exact half), and the iPhone's 0.7 menu button (an exact half
+at 3x) read the other texel than the container predicted, one device
+pixel off (max 123). Now `glassRasterPhase` takes the origin as the final
+pass receives it (32-bit) and resolves a pixel center on a texel edge to
+the texel before it (as Metal and SwiftShader do), and a layer whose own
+grid falls within `glassRasterTieBand` (1/64 device px) of the pixel
+centers moves its texel grid onto them (`GlassRasterGrid.bias`) and shifts
+its shapes so that they read the phase that rule gives: own layers and
+container members are then the same function of the origin on any GPU. A
+matte encoded on its own grid that comes to rest within the band is
+encoded again (the compositor watch now checks every layer), so the
+result does not depend on when the last paint fell. A matte drawn from a
+field keeps its grid.
+
+- Host Impeller (example/test/raster_phase_host_test.dart): a container
+  member against its own layer at nine origins from 60.49 to 60.51 device
+  px: 0 everywhere (86 - 88 at 60.499 - 60.500003 before).
+- iPhone 16 Pro, container vs a build whose containers admit nothing:
+  menu-resting 123 -> 2 and 9 (two launches; 7 - 9 run to run). Own layers
+  change only inside the band: 1 pixel at 51 in controls-resting and
+  switch-knob-held, nothing else above the launch noise.
+- Pixel 6a base -> cand: controls-resting / slider / switch 53 on 389
+  pixels of one container member (0.015 percent), menu-resting 27 on 14,
+  sheet-medium 4; segmented-resting 72 on 108 pixels of one glyph (the V
+  of the VIP segment, no glass there, both launches alike; not explained).
+
+### Q3: scaled containers (glass_container.dart, sheet.dart, landed)
+
+Under a scale no single shift serves members at different fractions of a
+device pixel from the container: a pixel reads the texel before or after
+a member's own texel edge depending on where in that texel it falls, and
+under a scale that varies pixel by pixel. So containers stay closed while
+they are drawn scaled: `MorphGlassContainerGate` (internal) closes every
+container below it, and the sheet keeps it open only while it draws its
+content unscaled (docked, not zooming, not scrubbed) - a floating sheet's
+members draw their own layers, a docked one's share the container, in the
+same frame. The gallery's plain sheet has its buttons in a container again
+(1198f5c reverted): the audit's medium detent floats, so the census stays
+at 5.15 filters a frame and sheet-medium within 1 - 4 of the base (Pixel)
+and 0 - 2 (iPhone); at the large detent the three buttons share one
+filter. Other package transforms (push zoom, flights, context-menu
+previews) scale only while they move: a container in them is off by up to
+a device pixel during the motion and lands back on its grid.
+
+### Q4: the prominent button in the row container (not landed)
+
+The layer already has a tint-only variant (per-shape tint in the material
+map, SHAPE_TINT). Letting a member join when its appearance differs only in
+tint takes the controls row's prominent button into the container: 3.89
+-> 2.89 filters a frame, Pixel 6a raster p50 / p95 8.78 / 15.06 -> 8.25 /
+14.56 (cand -> cand4, same session), GPU work unchanged (5.37 ms a frame:
+the material pass costs what the filter did), iPhone 16 Pro controls 1.56
+/ 2.29 -> 1.46 / 2.11. Not exact: host Impeller max 1 on 300 - 900 channels
+of every member (the tint read from an 8-bit map instead of a uniform),
+iPhone max 7 on ~100 rim pixels of the prominent button (none over 15). By
+the container's rule (only glass that would look the same joins) it stays
+out; the change is one line in `MorphGlassContainerLink._joinable`
+(`own.copyWith(tint: appearance.tint) != appearance`) if a few-step rim
+difference is ever accepted.
+
+Timings of the landed state (Pixel 6a, 2 launches each ABBA, raster p50 /
+p95 ms, base -> cand): home-scroll 8.24 / 11.18 -> 8.30 / 11.15, segmented
+8.27 / 10.17 -> 8.47 / 10.55, tab-bar 10.51 / 13.35 -> 10.54 / 13.50,
+controls 8.51 / 14.99 -> 8.78 / 15.06, menu 9.08 / 15.85 -> 9.16 / 15.98,
+sheet 9.55 / 14.43 -> 9.69 / 14.12: within the launch spread (cand4,
+built from the same tree plus Q4, reads 8.12 / 10.20 segmented and 8.96 /
+15.88 menu). iPhone 16 Pro within 0.1 ms everywhere.
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
@@ -1497,6 +1639,9 @@ test/glass_frames_test.dart (channel vs rebuild, pixel for pixel; with
 the engine timeline (`atlas` in the report).
 Scene windows: the audit's `scene:<name>:<run>:begin/end` slices,
 `perf/atrace_slices.py <trace> --scenes` (trace_android.sh prints it),
+the report's `windows_us` (the same windows on CLOCK_MONOTONIC) and
+`perf/gpu_scenes.py <tier>.json` for the GPU work of an `AUDIT_GPUWORK=1`
+run per scene,
 and `AUDIT_CENSUS=true` for the layer census per scene in the report
 (`AUDIT_CENSUS_OWNERS=true` names each backdrop filter's owner).
 perf/shotdiff.py compares two runs' shots (mean, max, percent over 15);
@@ -1518,11 +1663,13 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
 
 ## Open
 
-- Raster phase: a container member whose origin falls on an exact half
-  device pixel (the iPhone's 0.7 menu button) lands one device pixel off
-  its own layer (the tie of `glassRasterPhase`); a container drawn scaled
-  (a floating sheet's content) skips the shift entirely, which is why the
-  sheet's buttons keep their own layers.
+- A container drawn under a transform the package does not gate (an app's
+  own scale or rotation above it) shades its members on its own grid
+  unshifted; only the sheet closes its containers while scaled (see
+  "Raster ties, scaled containers").
+- The lifted small lens's frost costs ~2.5 ms of raster p95 on the Pixel
+  6a's controls scene (blur passes on the raster thread); the backdrop
+  filter itself ~0.75 ms (Q1 above): engine-side levers.
 
 - Dark lifted slider thumb look (slider.md).
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).
