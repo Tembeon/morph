@@ -242,48 +242,50 @@ class _MenuPageState extends State<MenuPage> {
       slivers: [
         SliverFillRemaining(
           hasScrollBody: false,
-          child: Stack(
-            children: [
-              Align(
-                alignment: const Alignment(0, 0.35),
-                child: Text(
-                  _last,
-                  style: TextStyle(color: gallerySecondaryColor(context)),
-                ),
-              ),
-              Center(child: button(_items(5))),
-              Align(
-                alignment: Alignment.topCenter,
-                child: Padding(
-                  padding: const .all(16),
-                  child: button(
-                    _rich(),
-                    child: const Icon(Icons.tune, size: 22),
+          child: MorphGlassContainer(
+            child: Stack(
+              children: [
+                Align(
+                  alignment: const Alignment(0, 0.35),
+                  child: Text(
+                    _last,
+                    style: TextStyle(color: gallerySecondaryColor(context)),
                   ),
                 ),
-              ),
-              Align(
-                alignment: const Alignment(0, -0.45),
-                child: button(_items(2)),
-              ),
-              Align(
-                alignment: const Alignment(0, 0.7),
-                child: button(_items(10)),
-              ),
-              for (final alignment in const [
-                Alignment.topLeft,
-                Alignment.topRight,
-                Alignment.bottomLeft,
-                Alignment.bottomRight,
-              ])
+                Center(child: button(_items(5))),
                 Align(
-                  alignment: alignment,
+                  alignment: Alignment.topCenter,
                   child: Padding(
                     padding: const .all(16),
-                    child: button(_items(3)),
+                    child: button(
+                      _rich(),
+                      child: const Icon(Icons.tune, size: 22),
+                    ),
                   ),
                 ),
-            ],
+                Align(
+                  alignment: const Alignment(0, -0.45),
+                  child: button(_items(2)),
+                ),
+                Align(
+                  alignment: const Alignment(0, 0.7),
+                  child: button(_items(10)),
+                ),
+                for (final alignment in const [
+                  Alignment.topLeft,
+                  Alignment.topRight,
+                  Alignment.bottomLeft,
+                  Alignment.bottomRight,
+                ])
+                  Align(
+                    alignment: alignment,
+                    child: Padding(
+                      padding: const .all(16),
+                      child: button(_items(3)),
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ],

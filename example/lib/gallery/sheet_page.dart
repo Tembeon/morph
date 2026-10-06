@@ -47,7 +47,14 @@ class _SheetPageState extends State<SheetPage> {
       slivers: [
         SliverPadding(
           padding: const .all(20),
-          sliver: SliverList.list(children: _list(context)),
+          sliver: SliverToBoxAdapter(
+            child: MorphGlassContainer(
+              child: Column(
+                crossAxisAlignment: .stretch,
+                children: _list(context),
+              ),
+            ),
+          ),
         ),
       ],
     );
@@ -58,55 +65,48 @@ class _SheetPageState extends State<SheetPage> {
     return [
       Text(_last, style: secondary),
       const SizedBox(height: 16),
-      MorphGlassContainer(
-        child: Column(
-          crossAxisAlignment: .stretch,
-          children: [
-            for (final (label, onTap) in <(String, VoidCallback)>[
-              (
-                'Medium and large',
-                () => _present('Medium and large', const [
-                  MorphSheetDetent.medium,
-                  MorphSheetDetent.large,
-                ]),
-              ),
-              (
-                'Large only',
-                () => _present('Large only', const [MorphSheetDetent.large]),
-              ),
-              (
-                'Small, medium, large',
-                () => _present('Three detents', const [
-                  MorphSheetDetent.height(200),
-                  MorphSheetDetent.medium,
-                  MorphSheetDetent.large,
-                ]),
-              ),
-              (
-                'Undimmed medium',
-                () => _present('Undimmed medium', const [
-                  MorphSheetDetent.medium,
-                  MorphSheetDetent.large,
-                ], undimmed: MorphSheetDetent.medium),
-              ),
-              (
-                'List that drags the sheet',
-                () => _present('List', const [
-                  MorphSheetDetent.medium,
-                  MorphSheetDetent.large,
-                ], list: true),
-              ),
-            ])
-              Padding(
-                padding: const .only(bottom: 12),
-                child: SizedBox(
-                  height: 48,
-                  child: MorphGlassButton(onPressed: onTap, child: Text(label)),
-                ),
-              ),
-          ],
+      for (final (label, onTap) in <(String, VoidCallback)>[
+        (
+          'Medium and large',
+          () => _present('Medium and large', const [
+            MorphSheetDetent.medium,
+            MorphSheetDetent.large,
+          ]),
         ),
-      ),
+        (
+          'Large only',
+          () => _present('Large only', const [MorphSheetDetent.large]),
+        ),
+        (
+          'Small, medium, large',
+          () => _present('Three detents', const [
+            MorphSheetDetent.height(200),
+            MorphSheetDetent.medium,
+            MorphSheetDetent.large,
+          ]),
+        ),
+        (
+          'Undimmed medium',
+          () => _present('Undimmed medium', const [
+            MorphSheetDetent.medium,
+            MorphSheetDetent.large,
+          ], undimmed: MorphSheetDetent.medium),
+        ),
+        (
+          'List that drags the sheet',
+          () => _present('List', const [
+            MorphSheetDetent.medium,
+            MorphSheetDetent.large,
+          ], list: true),
+        ),
+      ])
+        Padding(
+          padding: const .only(bottom: 12),
+          child: SizedBox(
+            height: 48,
+            child: MorphGlassButton(onPressed: onTap, child: Text(label)),
+          ),
+        ),
       Padding(
         padding: const .only(bottom: 12),
         child: SizedBox(
@@ -153,33 +153,35 @@ class _PlainSheet extends StatelessWidget {
       top: false,
       child: Padding(
         padding: const .fromLTRB(24, 32, 24, 16),
-        child: Column(
-          crossAxisAlignment: .stretch,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 22, fontWeight: .w700),
-            ),
-            const SizedBox(height: 16),
-            for (final detent in sheet.detents)
-              Padding(
-                padding: const .only(bottom: 10),
-                child: SizedBox(
-                  height: 44,
-                  child: MorphGlassButton(
-                    onPressed: () => sheet.animateTo(detent),
-                    child: Text('Go to $detent'),
+        child: MorphGlassContainer(
+          child: Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(fontSize: 22, fontWeight: .w700),
+              ),
+              const SizedBox(height: 16),
+              for (final detent in sheet.detents)
+                Padding(
+                  padding: const .only(bottom: 10),
+                  child: SizedBox(
+                    height: 44,
+                    child: MorphGlassButton(
+                      onPressed: () => sheet.animateTo(detent),
+                      child: Text('Go to $detent'),
+                    ),
                   ),
                 ),
+              SizedBox(
+                height: 44,
+                child: MorphGlassButton(
+                  onPressed: () => Navigator.of(context).pop('Done in $title'),
+                  child: const Text('Done'),
+                ),
               ),
-            SizedBox(
-              height: 44,
-              child: MorphGlassButton(
-                onPressed: () => Navigator.of(context).pop('Done in $title'),
-                child: const Text('Done'),
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
