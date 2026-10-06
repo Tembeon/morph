@@ -14,6 +14,12 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- A liquid glass layer allocates less on every frame it composites (no
+  matrix copies, uniform setters or appearance lists), with the same
+  uniforms and pixels; the Pixel 6a shows no frame-time change, because
+  its liquid cost is the backdrop filters themselves (two saveLayers
+  each), which the glass audit now counts per scene
+  (`AUDIT_CENSUS=true`, `atrace_slices.py --scenes`).
 - Labels no longer re-rasterize their glyphs on every frame of a lens
   lift or a menu open. Impeller keys glyphs by screen scale, so text under
   a sweeping scale paid a glyph-atlas update nearly every frame (2 - 3 ms
