@@ -16,6 +16,7 @@ import 'package:morph/src/glass/renderer/internal/filter_pass_transform.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
+import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameters.dart';
 import 'package:morph/src/glass/renderer/internal/snap_rect_to_pixels.dart';
@@ -929,6 +930,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   bool _reuseUniformlyTranslatedGeometry(Rect bounds) {
     final delta = encodedMatteDelta(bounds);
     if (delta == null) return false;
+    if (_encodedPassPhase != null) return false;
     _geometryMatteBounds = _geometryMatteBounds.shift(delta);
     _materialCenterInMatte += delta;
     _rememberEncodedGeometry(bounds);
@@ -981,6 +983,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         _releaseCompositorFilter();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {});
       case GlassFrameState.active:
+        if (_encodedPassPhase case final phase?
+            when _passPhase(shaderCoordinateTransform) != phase) {
+          needsGeometryUpdate = true;
+        }
         if (needsGeometryUpdate || _geometryImage == null || link.isDirty) {
           link
             ..updateAllGeometries()
@@ -1509,6 +1515,18 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     return (axisX: axisX, axisY: axisY, determinant: determinant);
   }
 
+  // The pass phase the matte was encoded at when it shifts anchored shapes
+  // onto their own raster grids; null when it shifts none.
+  Offset? _encodedPassPhase;
+
+  Offset _passPhase(Matrix4 layerToPass) {
+    final origin = MatrixUtils.transformPoint(layerToPass, Offset.zero);
+    return Offset(
+      glassRasterPhase(origin.dx * devicePixelRatio),
+      glassRasterPhase(origin.dy * devicePixelRatio),
+    );
+  }
+
   _GpuGeometryFrame _buildGpuGeometryImage(
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
     Rect bounds,
@@ -1526,7 +1544,16 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // mathematical shape. Keep that margin in the persistent geometry
       // texture so the positive side of the fade is not clipped at the matte
       // edge.
-      final aaPadding = max(0.5 / devicePixelRatio, _contourOutset);
+      final layerToPass = shaderCoordinateTransform;
+      final shifts = [
+        for (final (owner, _, _) in geometries)
+          glassRasterPhaseShift(this, owner, layerToPass, devicePixelRatio),
+      ];
+      final anchored = shifts.any((Offset shift) => shift != Offset.zero);
+      _encodedPassPhase = anchored ? _passPhase(layerToPass) : null;
+      final aaPadding =
+          max(0.5 / devicePixelRatio, _contourOutset) +
+          (anchored ? 0.5 / devicePixelRatio : 0);
       // The matte is in this layer's local coordinates. Ancestor transforms
       // are applied once by the compositor; baking them in would apply scale
       // and rotation twice.
@@ -1553,7 +1580,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       var numShapes = 0;
       var shortSide = double.infinity;
 
-      for (final (_, geometry, geometryToLayer) in geometries) {
+      for (final (index, (_, geometry, geometryToLayer))
+          in geometries.indexed) {
+        final shift = shifts[index];
         var firstInGroup = true;
         for (final shape in geometry.shapes) {
           if (numShapes >= FlutterGpuGeometryRenderer.maxShapes) break;
@@ -1596,7 +1625,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             geometryToLayer,
             centerInGeometry,
           );
-          final centerInMatte = centerInLayer;
+          final centerInMatte = centerInLayer + shift;
 
           // The inverse affine basis above already maps matte coordinates back
           // into the shape's local coordinate system. Using the transformed

@@ -11,6 +11,7 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -439,11 +440,13 @@ Widget morphLiquidLayer(
               ? const ValueKey<String>('body')
               : const ValueKey<String>('separate'),
           () => joined
-              ? _shapes(
-                  renderer,
-                  source,
-                  (f) => f.parts.separate,
-                  count: parts.separate.length,
+              ? GlassRasterAnchor(
+                  child: _shapes(
+                    renderer,
+                    source,
+                    (f) => f.parts.separate,
+                    count: parts.separate.length,
+                  ),
                 )
               : _layer(
                   renderer,
