@@ -1,186 +1,11 @@
+// A frozen copy of the menu fusion before 2026-10-06's fast fusion, the
+// reference the probe compares the package's outlines against.
+// ignore_for_file: public_member_api_docs, invalid_use_of_internal_member, implementation_imports
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui';
 
-import 'package:flutter/foundation.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/src/widgets/menu_fusion_worker.dart';
-
-/// The silhouette of a menu morph: its two shapes fused the way UIKit's
-/// morph container fuses them.
-///
-/// The container is one SDF layer whose elements, the menu shape and the
-/// button shape, are united by a plain minimum (its smoothness is 0) and
-/// whose distance field is blurred by a Gaussian of standard deviation
-/// `MorphMenuMotion.fusionRadius`. The blur pulls the facing edges into
-/// points and joins the shapes by a neck while they are within a few
-/// radii of each other; it also rounds and narrows each shape a little,
-/// by about `radius^2 / (2 r)` on an edge of curvature radius `r`. Below
-/// [minimumRadius] the blur moves no edge by more than a few hundredths
-/// of a point and the silhouette is the plain union of the two shapes.
-///
-/// The fused outline is traced on a grid whose step grows with the
-/// radius (a blurred field varies no faster than its blur), and the blur
-/// is evaluated only near the edge: a blur of standard deviation `s`
-/// moves a distance field by at most `1.26 s`, so farther from the edge
-/// the sign, all the trace needs, is the unblurred one; inside the body
-/// the blur reaches [shadedDepth] deeper, as far as a renderer shades
-/// it. The last outline is reused while its inputs do not change.
-///
-/// In profile and release builds that have isolates, a motion fuses its
-/// next frame's silhouette ahead on a background isolate ([prefetch],
-/// `MorphFusionWorker`) while the current frame renders, and [outline]
-/// serves that fusion when the frame's inputs are within
-/// [prefetchTolerance] of the predicted ones: the exact silhouette of the
-/// motion at the predicted time, a fraction of a millisecond from the
-/// frame's. Otherwise the frame fuses its own.
-@internal
-class MorphMenuFusion {
-  /// The radius below which the silhouette is the plain union.
-  static const double minimumRadius = 1;
-
-  /// How deep inside the body the field stays blurred at least, in
-  /// logical pixels (the trace itself needs only the band near the edge).
-  ///
-  /// A renderer bends light by the field's distance and normal within its
-  /// bevel (20 points deep on the iOS 27 presets); farther in, the face is
-  /// flat and only the sign matters. Blurring that deep keeps the field
-  /// continuous wherever a renderer reads more than its sign.
-  static const double shadedDepth = 24;
-
-  /// How far, in logical pixels, each input of a fusion computed ahead
-  /// ([prefetch]) may be from the inputs of the frame that uses it.
-  ///
-  /// The outline moves with its shapes and radius at most one to one, so
-  /// an outline fused ahead is within this of the frame's own, a fifteenth
-  /// of a pixel on a 3x screen.
-  static const double prefetchTolerance = 0.02;
-
-  /// The longest step, in seconds, a motion predicts its next frame
-  /// across ([prefetch]): a longer one is a pause, not a frame.
-  static const double prefetchStepLimit = 0.05;
-
-  /// Whether motions fuse their next frame's silhouette ahead, on a
-  /// background isolate: in profile and release builds where isolates
-  /// exist, and where [debugPrefetch] says so.
-  static bool get prefetches =>
-      debugPrefetch ??
-      (MorphFusionWorker.supported && (kReleaseMode || kProfileMode));
-
-  /// Overrides [prefetches]; null keeps the build's default.
-  @visibleForTesting
-  static bool? debugPrefetch;
-
-  RRect? _menu;
-  RRect? _source;
-  double _radius = 0;
-  MorphGlassOutline? _outline;
-  final Float64List _inputs = Float64List(11);
-
-  /// The fused outline of [menu] and [source] blurred by [radius], or
-  /// null when [radius] is under [minimumRadius] and the silhouette is
-  /// their plain union.
-  ///
-  /// When the fusion was computed ahead ([prefetch]) for inputs within
-  /// [prefetchTolerance] of these, that outline is the one returned.
-  MorphGlassOutline? outline(RRect menu, RRect source, double radius) {
-    if (radius < minimumRadius) return null;
-    if (menu == _menu && source == _source && radius == _radius) {
-      return _outline;
-    }
-    _menu = menu;
-    _source = source;
-    _radius = radius;
-    final Float64List frame = encode(menu, source, radius, _inputs);
-    final Float64List? ready = debugOnFuse == null
-        ? null
-        : MorphFusionWorker.debugReadyInputs;
-    final MorphGlassOutlineParts? ahead = prefetches
-        ? MorphFusionWorker.take(frame, prefetchTolerance)
-        : null;
-    if (ahead != null) {
-      debugServedAhead++;
-    } else {
-      debugFusedHere++;
-    }
-    debugOnFuse?.call(
-      Float64List.fromList(frame),
-      ready,
-      served: ahead != null,
-    );
-    return _outline = morphGlassOutlineFromParts(
-      ahead ?? morphMenuSilhouetteParts(menu, source, radius),
-    );
-  }
-
-  /// The outlines [outline] has served from a fusion computed ahead, over
-  /// the isolate's life.
-  @visibleForTesting
-  static int debugServedAhead = 0;
-
-  /// Called with the inputs of every fusion [outline] makes, the inputs
-  /// of the fusion computed ahead that was waiting (null when none was),
-  /// and whether that one served.
-  @visibleForTesting
-  static void Function(
-    Float64List frame,
-    Float64List? ready, {
-    required bool served,
-  })?
-  debugOnFuse;
-
-  /// The outlines [outline] has fused where they were needed, over the
-  /// isolate's life.
-  @visibleForTesting
-  static int debugFusedHere = 0;
-
-  /// Starts fusing [menu] and [source] blurred by [radius] on a
-  /// background isolate, for a later [outline] call to pick up.
-  void prefetch(RRect menu, RRect source, double radius) {
-    if (!prefetches || radius < minimumRadius) return;
-    MorphFusionWorker.request(encode(menu, source, radius, Float64List(11)));
-  }
-
-  /// The grid step of the fusion at [radius], in logical pixels: a third
-  /// of the radius, between 2 and 6.
-  static double stepOf(double radius) => (radius / 3).clamp(2.0, 6.0);
-
-  /// The nodes on each side of the center tap of the blur's kernel at
-  /// [radius]: as many grid steps as reach three radii.
-  ///
-  /// Where the step is a third of the radius that is nine; the division
-  /// lands a rounding error either side of nine, which the ceiling must
-  /// not turn into ten.
-  static int reachOf(double radius) =>
-      (3 * radius / stepOf(radius) - 1e-9).ceil();
-
-  /// Whether fusions at radii [a] and [b] sample the same grid with the
-  /// same kernel: one grid stride and one kernel reach.
-  static bool sameGrid(double a, double b) =>
-      (stepOf(a) < 4) == (stepOf(b) < 4) && reachOf(a) == reachOf(b);
-
-  /// The inputs of a fusion as the worker receives them, written into
-  /// [out]: each shape's left, top, right, bottom and corner radius, then
-  /// the fusion radius.
-  static Float64List encode(
-    RRect menu,
-    RRect source,
-    double radius,
-    Float64List out,
-  ) {
-    out[0] = menu.left;
-    out[1] = menu.top;
-    out[2] = menu.right;
-    out[3] = menu.bottom;
-    out[4] = menu.tlRadiusX;
-    out[5] = source.left;
-    out[6] = source.top;
-    out[7] = source.right;
-    out[8] = source.bottom;
-    out[9] = source.tlRadiusX;
-    out[10] = radius;
-    return out;
-  }
-}
 
 /// The union of [menu] and [source] whose signed distance field is
 /// blurred by a Gaussian of standard deviation [radius]: its zero contour
@@ -197,22 +22,13 @@ class MorphMenuFusion {
 /// within reach. A node whose blur window sees one straight side of one
 /// shape takes its unblurred distance: the kernel is symmetric, so it
 /// leaves a linear field unchanged.
-@internal
-MorphGlassOutline morphMenuSilhouette(
-  RRect menu,
-  RRect source,
-  double radius,
-) => morphGlassOutlineFromParts(morphMenuSilhouetteParts(menu, source, radius));
-
-/// The parts of [morphMenuSilhouette]'s outline, computable on any isolate.
-@internal
 @pragma('vm:unsafe:no-bounds-checks')
-MorphGlassOutlineParts morphMenuSilhouetteParts(
+MorphGlassOutline baselineMenuSilhouette(
   RRect menu,
   RRect source,
   double radius,
 ) {
-  final double step = MorphMenuFusion.stepOf(radius);
+  final double step = (radius / 3).clamp(2.0, 6.0);
   final int stride = step < 4 ? 2 : 1;
   const int b = 2;
   final Rect area = menu.outerRect
@@ -220,7 +36,7 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
       .inflate(2 * step);
   final int cols = ((area.width / step).ceil() ~/ b) * b + b + 1;
   final int rows = ((area.height / step).ceil() ~/ b) * b + b + 1;
-  final int reach = MorphMenuFusion.reachOf(radius);
+  final int reach = (3 * radius / step).ceil();
   final Float64List kernel = Float64List(2 * reach + 1);
   var sum = 0.0;
   for (var k = -reach; k <= reach; k++) {
@@ -236,7 +52,7 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
   final boxes = MorphOutlineBoxes([menu, source]);
   final double shift = 1.26 * radius;
   final double band = shift + 1.5 * step;
-  final double depth = math.max(band, MorphMenuFusion.shadedDepth);
+  final double depth = math.max(band, 24.0);
   final double halfMenu = menu.outerRect.shortestSide / 2;
   final double halfSource = source.outerRect.shortestSide / 2;
   final double blend = math.max(radius, step);
@@ -253,15 +69,11 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
   final bool menuTurns = boxes.turns(0);
   final bool sourceTurns = boxes.turns(1);
   final Uint8List cornerColumns = _Scratch.columns(fieldCols);
-  final menuOptics = _OpticalCorners(menu, 0, fieldCols, fieldRows);
-  final sourceOptics = _OpticalCorners(source, 1, fieldCols, fieldRows);
   for (var fi = 0; fi < fieldCols; fi++) {
     final double x = area.left + fi * stride * step;
     cornerColumns[fi] =
         (menuTurns && boxes.inOpticalCornerColumns(0, x) ? 1 : 0) |
         (sourceTurns && boxes.inOpticalCornerColumns(1, x) ? 2 : 0);
-    menuOptics.column(fi, x);
-    sourceOptics.column(fi, x);
   }
   for (var fj = 0; fj < fieldRows; fj++) {
     final int j = fj * stride;
@@ -269,10 +81,9 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
     final int cornerRow =
         (menuTurns && boxes.inOpticalCornerRows(0, y) ? 1 : 0) |
         (sourceTurns && boxes.inOpticalCornerRows(1, y) ? 2 : 0);
-    menuOptics.row(fj, y);
-    sourceOptics.row(fj, y);
     for (var fi = 0; fi < fieldCols; fi++) {
       final int i = fi * stride;
+      final double x = area.left + i * step;
       final int corner = cornerRow & cornerColumns[fi];
       final int at = fj * fieldCols + fi;
       final double dg = f.menuDistance(i, j);
@@ -294,13 +105,13 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
       final bool menuCorner = corner & 1 != 0;
       final bool sourceCorner = corner & 2 != 0;
       if (menuCorner) {
-        menuOptics.turn(fi, fj, turn, at * 2);
+        boxes.opticalTurn(0, x, y, turn, at * 2);
       } else {
         turn[at * 2] = 1;
         turn[at * 2 + 1] = 0;
       }
       if (sourceCorner) {
-        sourceOptics.turn(fi, fj, sourceTurn, 0);
+        boxes.opticalTurn(1, x, y, sourceTurn, 0);
       } else {
         sourceTurn[0] = 1;
         sourceTurn[1] = 0;
@@ -350,7 +161,7 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
       }
     }
   }
-  return morphGlassOutlinePartsFromFields(
+  return morphGlassOutlineFromFields(
     trace: trace,
     cols: cols,
     rows: rows,
@@ -367,92 +178,8 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
   );
 }
 
-/// The optical turn of one rounded box (`MorphOutlineBoxes.opticalTurn`)
-/// over the field grid, its per-axis terms computed once per column and
-/// once per row.
-class _OpticalCorners {
-  _OpticalCorners(RRect shape, int index, int cols, int rows)
-    : _centerX = shape.center.dx,
-      _centerY = shape.center.dy,
-      _halfX = shape.width / 2,
-      _halfY = shape.height / 2,
-      _exact = math.min(
-        shape.tlRadiusX,
-        math.min(shape.width / 2, shape.height / 2),
-      ),
-      _optical = math.min(
-        math.min(shape.tlRadiusX, math.min(shape.width / 2, shape.height / 2)) *
-            morphOpticalCornerScale,
-        math.min(shape.width / 2, shape.height / 2),
-      ),
-      _columns = _Scratch.optics(index * 2, cols * 3),
-      _rows = _Scratch.optics(index * 2 + 1, rows * 3);
-
-  final double _centerX;
-  final double _centerY;
-  final double _halfX;
-  final double _halfY;
-  final double _exact;
-  final double _optical;
-  final Float64List _columns;
-  final Float64List _rows;
-
-  /// Records field column [fi] at [x].
-  @pragma('vm:prefer-inline')
-  void column(int fi, double x) {
-    final double p = x - _centerX;
-    final double a = p.abs() - _halfX;
-    _columns[fi * 3] = p;
-    _columns[fi * 3 + 1] = a + _optical;
-    _columns[fi * 3 + 2] = a + _exact;
-  }
-
-  /// Records field row [fj] at [y].
-  @pragma('vm:prefer-inline')
-  void row(int fj, double y) {
-    final double p = y - _centerY;
-    final double a = p.abs() - _halfY;
-    _rows[fj * 3] = p;
-    _rows[fj * 3 + 1] = a + _optical;
-    _rows[fj * 3 + 2] = a + _exact;
-  }
-
-  /// The rotation from the exact normal at field node ([fi], [fj]) to
-  /// the optical one, as (cos, sin) written into [out] at [at].
-  @pragma('vm:unsafe:no-bounds-checks')
-  void turn(int fi, int fj, Float64List out, int at) {
-    out[at] = 1;
-    out[at + 1] = 0;
-    if (_optical <= _exact) return;
-    final double ox = _columns[fi * 3 + 1];
-    final double oy = _rows[fj * 3 + 1];
-    if (ox <= 0 || oy <= 0) return;
-    final double ex = _columns[fi * 3 + 2];
-    final double ey = _rows[fj * 3 + 2];
-    double enx;
-    double eny;
-    if (ex > 0 && ey > 0) {
-      final double length = math.sqrt(ex * ex + ey * ey);
-      enx = ex / length;
-      eny = ey / length;
-    } else if (ex > ey) {
-      enx = 1;
-      eny = 0;
-    } else {
-      enx = 0;
-      eny = 1;
-    }
-    final double length = math.sqrt(ox * ox + oy * oy);
-    final double onx = ox / length;
-    final double ony = oy / length;
-    final bool mirrored = (_columns[fi * 3] < 0) != (_rows[fj * 3] < 0);
-    out[at] = enx * onx + eny * ony;
-    out[at + 1] = (enx * ony - eny * onx) * (mirrored ? -1 : 1);
-  }
-}
-
 /// The union of two rounded boxes on a grid and its Gaussian blur, both
-/// evaluated on demand: the trace and field grid of [morphMenuSilhouette]
+/// evaluated on demand: the trace and field grid of [baselineMenuSilhouette]
 /// padded by the kernel's reach, node (i, j) of the trace grid at padded
 /// node (i + reach, j + reach).
 ///
@@ -666,7 +393,7 @@ class _BlurredUnion {
       return raw;
     }
     if ((inner.dx <= 0 || qx >= r) && (inner.dy <= 0 || qy >= r)) {
-      return morphRiceMean(math.sqrt(qx * qx + qy * qy), deviation) -
+      return _riceMean(math.sqrt(qx * qx + qy * qy), deviation) -
           (menu ? _menuRadius : _sourceRadius);
     }
     return blurred(i, j);
@@ -678,8 +405,7 @@ class _BlurredUnion {
 /// mean of a Rice distribution, `sigma sqrt(pi / 2) L_1/2(-nu^2 / 2
 /// sigma^2)`, with the Bessel functions from Abramowitz and Stegun 9.8
 /// (relative error under 2e-7).
-@internal
-double morphRiceMean(double nu, double sigma) {
+double _riceMean(double nu, double sigma) {
   final double t = nu * nu / (4 * sigma * sigma);
   double i0e;
   double i1e;
@@ -776,19 +502,6 @@ abstract final class _Scratch {
       _fields[index] = Float64List(values + values ~/ 2);
     }
     return _fields[index];
-  }
-
-  static final List<Float64List> _optics = [
-    for (var i = 0; i < 4; i++) Float64List(0),
-  ];
-
-  /// Optical corner buffer [index] with room for at least [values] values,
-  /// overwritten by every call.
-  static Float64List optics(int index, int values) {
-    if (_optics[index].length < values) {
-      _optics[index] = Float64List(values + values ~/ 2);
-    }
-    return _optics[index];
   }
 
   static Uint8List _columns = Uint8List(0);

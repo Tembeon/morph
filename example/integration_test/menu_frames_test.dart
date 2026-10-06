@@ -1,3 +1,5 @@
+// The harness reads the menu fusion's counters, package internals by design.
+// ignore_for_file: invalid_use_of_internal_member, implementation_imports, invalid_use_of_visible_for_testing_member
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
@@ -11,6 +13,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:vm_service/vm_service.dart' as vm;
@@ -33,6 +36,9 @@ import 'package:vm_service/vm_service_io.dart';
 /// `--dart-define=FRAMES_DETAIL=true` also profiles every widget build,
 /// layout and paint (debugProfileBuildsEnabled and friends), which
 /// attributes a heavy frame to widgets but inflates every frame.
+/// `--dart-define=FUSION_PREFETCH=false` (or true) overrides whether the
+/// menu fuses its next frame's silhouette ahead on the fusion worker; the
+/// report counts the outlines served ahead and fused in the frame.
 /// `--dart-define=FRAMES_CPU=true` adds the Dart CPU samples of the UI
 /// thread inside each frame's build window: per run the functions of the
 /// heaviest builds, and the functions of every frame whose build is over
@@ -40,6 +46,8 @@ import 'package:vm_service/vm_service_io.dart';
 const int _runs = int.fromEnvironment('AUDIT_RUNS', defaultValue: 1);
 
 const bool _detail = bool.fromEnvironment('FRAMES_DETAIL');
+
+final List<List<double>> _fuses = [];
 
 const bool _cpu = bool.fromEnvironment('FRAMES_CPU');
 
@@ -63,6 +71,13 @@ void main() {
   testWidgets('menu frames', semanticsEnabled: false, (
     WidgetTester tester,
   ) async {
+    MorphMenuFusion.debugOnFuse = (frame, ready, {required served}) =>
+        _fuses.add([...frame, ...?ready, if (served) 1 else 0]);
+    if (const bool.hasEnvironment('FUSION_PREFETCH')) {
+      MorphMenuFusion.debugPrefetch = const bool.fromEnvironment(
+        'FUSION_PREFETCH',
+      );
+    }
     final out = Directory(
       const String.fromEnvironment('AUDIT_OUT').isEmpty
           ? '${Directory.systemTemp.path}/menu_frames'
@@ -369,6 +384,10 @@ class _Frames {
         ui.PlatformDispatcher.instance.views.first.display.refreshRate,
     'detail': _detail,
     'now_at_end': developer.Timeline.now,
+    'fusion_prefetch': MorphMenuFusion.prefetches,
+    'fusion_served_ahead': MorphMenuFusion.debugServedAhead,
+    'fusion_fused_here': MorphMenuFusion.debugFusedHere,
+    'fusion_calls': _fuses,
     'runs': _runsOut,
   };
 }

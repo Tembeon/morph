@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -8,6 +9,7 @@ import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
+import 'package:morph/src/widgets/menu_fusion_worker.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 
 const _fixture = 'test/fixtures/ios27-device/menu/fusion.json';
@@ -243,8 +245,8 @@ void main() {
     final random = math.Random(3);
     for (var n = 0; n < 12; n++) {
       final radius = 1 + random.nextDouble() * 19;
-      final step = (radius / 3).clamp(2.0, 6.0);
-      final reach = (3 * radius / step).ceil();
+      final step = MorphMenuFusion.stepOf(radius);
+      final reach = MorphMenuFusion.reachOf(radius);
       final top = 100 + random.nextDouble() * 50;
       final width = 120 + random.nextDouble() * 160;
       final height = 60 + random.nextDouble() * 300;
@@ -315,6 +317,16 @@ void main() {
     final fused = fusion.outline(g, s, 10)!;
     expect(identical(fusion.outline(g, s, 10), fused), isTrue);
     expect(fused.path.contains(const Offset(50, 105)), isTrue);
+  });
+
+  test('the kernel reaches three radii, nine steps where a step is a third '
+      'of the radius', () {
+    for (var radius = 6.0; radius <= 18; radius += 0.001) {
+      expect(MorphMenuFusion.reachOf(radius), 9, reason: '$radius');
+    }
+    expect(MorphMenuFusion.reachOf(20), 10);
+    expect(MorphMenuFusion.reachOf(2), 3);
+    expect(MorphMenuFusion.reachOf(2.01), 4);
   });
 
   testWidgets('the flat glass of a tall menu closing into a bottom button '
@@ -391,5 +403,66 @@ void main() {
     }
     expect(apart, lessThanOrEqualTo(3));
     expect(tallest, greaterThan(300));
+  });
+
+  group('the fusion computed ahead', () {
+    setUp(() => MorphMenuFusion.debugPrefetch = true);
+    tearDown(() {
+      MorphMenuFusion.debugPrefetch = null;
+      MorphFusionWorker.reset();
+    });
+
+    Future<void> ready() async {
+      for (var i = 0; i < 500 && !MorphFusionWorker.debugHasReady; i++) {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      }
+      expect(MorphFusionWorker.debugHasReady, isTrue);
+    }
+
+    final menu = RRect.fromLTRBR(70, 200, 330, 640, const Radius.circular(32));
+    final button = RRect.fromLTRBR(
+      177,
+      612,
+      225,
+      660,
+      const Radius.circular(24),
+    );
+
+    test('is the fusion of its inputs, bit for bit', () async {
+      MorphMenuFusion().prefetch(menu, button, 6.5);
+      await ready();
+      final ahead = MorphFusionWorker.take(
+        MorphMenuFusion.encode(menu, button, 6.5, Float64List(11)),
+        0,
+      )!;
+      final here = morphMenuSilhouetteParts(menu, button, 6.5);
+      expect(ahead.samples, here.samples);
+      expect(ahead.points, here.points);
+      expect(ahead.loops, here.loops);
+      expect(
+        [ahead.cols, ahead.rows, ahead.left, ahead.top, ahead.step],
+        [here.cols, here.rows, here.left, here.top, here.step],
+      );
+    });
+
+    test('serves a frame within the tolerance and no other', () async {
+      final fusion = MorphMenuFusion();
+      fusion.prefetch(menu, button, 6.5);
+      await ready();
+      final far = menu.shift(const Offset(0, 0.05));
+      final fused = fusion.outline(far, button, 6.5)!;
+      expect(MorphFusionWorker.debugHasReady, isTrue);
+      expect(
+        morphGlassOutlineField(fused)!.samples,
+        morphMenuSilhouetteParts(far, button, 6.5).samples,
+      );
+      final near = menu.shift(const Offset(0, 0.01));
+      final served = fusion.outline(near, button, 6.5)!;
+      expect(MorphFusionWorker.debugHasReady, isFalse);
+      expect(
+        morphGlassOutlineField(served)!.samples,
+        morphMenuSilhouetteParts(menu, button, 6.5).samples,
+      );
+    });
   });
 }

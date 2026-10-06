@@ -227,8 +227,87 @@ int morphGlassOutlineDebugTraces = 0;
 /// + 1` x `(rows - 1) ~/ stride + 1` nodes; its gradient is the central
 /// difference of [distance], turned by [turn].
 @internal
-@pragma('vm:unsafe:no-bounds-checks')
 MorphGlassOutline morphGlassOutlineFromFields({
+  required Float64List trace,
+  required int cols,
+  required int rows,
+  required Uint8List near,
+  required int blockCols,
+  required int block,
+  required Float64List distance,
+  required Float64List halfMinor,
+  required Float64List turn,
+  required int stride,
+  required double left,
+  required double top,
+  required double step,
+}) => morphGlassOutlineFromParts(
+  morphGlassOutlinePartsFromFields(
+    trace: trace,
+    cols: cols,
+    rows: rows,
+    near: near,
+    blockCols: blockCols,
+    block: block,
+    distance: distance,
+    halfMinor: halfMinor,
+    turn: turn,
+    stride: stride,
+    left: left,
+    top: top,
+    step: step,
+  ),
+);
+
+/// A fused outline before it becomes a [MorphGlassOutline]: its field
+/// samples and its edge as closed loops of contour crossings, plain typed
+/// data that any isolate can compute and send.
+///
+/// [morphGlassOutlineFromParts] turns the loops into the edge, the
+/// quadratic B-spline through the crossings.
+@internal
+final class MorphGlassOutlineParts {
+  /// Creates the parts of an outline.
+  const MorphGlassOutlineParts({
+    required this.samples,
+    required this.cols,
+    required this.rows,
+    required this.left,
+    required this.top,
+    required this.step,
+    required this.points,
+    required this.loops,
+  });
+
+  /// The field samples, four per node, row-major (`GlassField.samples`).
+  final Float32List samples;
+
+  /// The field nodes along x.
+  final int cols;
+
+  /// The field nodes along y.
+  final int rows;
+
+  /// The x of field node (0, 0) in logical pixels.
+  final double left;
+
+  /// The y of field node (0, 0) in logical pixels.
+  final double top;
+
+  /// The distance between neighboring field nodes, in logical pixels.
+  final double step;
+
+  /// The contour crossings, (x, y) after (x, y), loop after loop.
+  final Float64List points;
+
+  /// The number of crossings of each loop, in the order of [points].
+  final Int32List loops;
+}
+
+/// The parts of [morphGlassOutlineFromFields]'s outline.
+@internal
+@pragma('vm:unsafe:no-bounds-checks')
+MorphGlassOutlineParts morphGlassOutlinePartsFromFields({
   required Float64List trace,
   required int cols,
   required int rows,
@@ -273,7 +352,7 @@ MorphGlassOutline morphGlassOutlineFromFields({
       samples[out + 3] = halfMinor[at];
     }
   }
-  final path = _OutlineTracer.trace(
+  final (points, loops) = _OutlineTracer.trace(
     trace,
     cols,
     rows,
@@ -284,14 +363,85 @@ MorphGlassOutline morphGlassOutlineFromFields({
     top: top,
     step: step,
   );
+  return MorphGlassOutlineParts(
+    samples: samples,
+    cols: fieldCols,
+    rows: fieldRows,
+    left: left,
+    top: top,
+    step: fieldStep,
+    points: points,
+    loops: loops,
+  );
+}
+
+/// The outline [parts] describe: the quadratic B-spline through each loop
+/// of crossings as one even-odd path, shaded from the field samples.
+///
+/// A run of crossings along one grid row or column, where the spline is
+/// straight, becomes one line.
+@internal
+@pragma('vm:unsafe:no-bounds-checks')
+MorphGlassOutline morphGlassOutlineFromParts(MorphGlassOutlineParts parts) {
+  final path = Path();
+  path.fillType = PathFillType.evenOdd;
+  final Float64List xy = parts.points;
+  var base = 0;
+  for (var l = 0; l < parts.loops.length; l++) {
+    final n = parts.loops[l];
+    final first = base;
+    final last = base + n - 1;
+    var fromX = (xy[last * 2] + xy[first * 2]) / 2;
+    var fromY = (xy[last * 2 + 1] + xy[first * 2 + 1]) / 2;
+    path.moveTo(fromX, fromY);
+    var startX = 0.0;
+    var startY = 0.0;
+    var lined = false;
+    for (var k = 0; k < n; k++) {
+      final p = base + k;
+      final q = k + 1 < n ? p + 1 : first;
+      final px = xy[p * 2];
+      final py = xy[p * 2 + 1];
+      final toX = (px + xy[q * 2]) / 2;
+      final toY = (py + xy[q * 2 + 1]) / 2;
+      final across =
+          fromY == py && py == toY && (fromX <= px ? px <= toX : px >= toX);
+      final down =
+          fromX == px && px == toX && (fromY <= py ? py <= toY : py >= toY);
+      if (across || down) {
+        final continues =
+            lined &&
+            (across
+                ? startY == fromY && (startX <= fromX) == (fromX <= toX)
+                : startX == fromX && (startY <= fromY) == (fromY <= toY));
+        if (!continues) {
+          if (lined) path.lineTo(fromX, fromY);
+          startX = fromX;
+          startY = fromY;
+          lined = true;
+        }
+      } else {
+        if (lined) {
+          path.lineTo(fromX, fromY);
+          lined = false;
+        }
+        path.quadraticBezierTo(px, py, toX, toY);
+      }
+      fromX = toX;
+      fromY = toY;
+    }
+    if (lined) path.lineTo(fromX, fromY);
+    path.close();
+    base += n;
+  }
   return MorphGlassOutline._(
     path,
     GlassField(
-      samples: samples,
-      cols: fieldCols,
-      rows: fieldRows,
-      origin: Offset(left, top),
-      step: fieldStep,
+      samples: parts.samples,
+      cols: parts.cols,
+      rows: parts.rows,
+      origin: Offset(parts.left, parts.top),
+      step: parts.step,
       outline: path,
     ),
   );
@@ -340,7 +490,7 @@ class _OutlineTracer {
   Uint8List _seen;
   int _count = 0;
 
-  static Path trace(
+  static (Float64List, Int32List) trace(
     Float64List values,
     int cols,
     int rows, {
@@ -524,17 +674,19 @@ class _OutlineTracer {
     }
   }
 
-  Path _stitch() {
-    final path = Path();
-    path.fillType = PathFillType.evenOdd;
-    final loop = <int>[];
+  (Float64List, Int32List) _stitch() {
+    final points = Float64List(_count * 2);
+    final loops = <int>[];
+    var written = 0;
     for (var start = 0; start < _count; start++) {
       if (_seen[start] != 0) continue;
-      loop.clear();
+      final from = written;
       var current = start;
       while (current >= 0 && _seen[current] == 0) {
         _seen[current] = 1;
-        loop.add(current);
+        points[written * 2] = _xs[current];
+        points[written * 2 + 1] = _ys[current];
+        written++;
         final a = _links[current * 2];
         final b = _links[current * 2 + 1];
         current = a >= 0 && _seen[a] == 0
@@ -543,24 +695,16 @@ class _OutlineTracer {
             ? b
             : -1;
       }
-      final n = loop.length;
-      if (n < 3) continue;
-      final last = loop[n - 1];
-      final first = loop[0];
-      path.moveTo((_xs[last] + _xs[first]) / 2, (_ys[last] + _ys[first]) / 2);
-      for (var k = 0; k < n; k++) {
-        final p = loop[k];
-        final q = loop[k + 1 < n ? k + 1 : 0];
-        path.quadraticBezierTo(
-          _xs[p],
-          _ys[p],
-          (_xs[p] + _xs[q]) / 2,
-          (_ys[p] + _ys[q]) / 2,
-        );
+      if (written - from < 3) {
+        written = from;
+      } else {
+        loops.add(written - from);
       }
-      path.close();
     }
-    return path;
+    return (
+      Float64List.sublistView(points, 0, written * 2),
+      Int32List.fromList(loops),
+    );
   }
 }
 

@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/painting.dart';
 import 'package:morph/src/spring.dart';
@@ -1057,7 +1058,11 @@ class MorphMenuMotion {
   /// step with its scroll view so touches find the rows under them.
   double scrollOffset = 0;
 
-  double get _now => _timeline.now;
+  double get _now => _peekTime ?? _timeline.now;
+
+  double? _peekTime;
+  final Float64List _silhouetteTimes = Float64List(8);
+  int _silhouetteFrames = 0;
 
   /// The time the motion was last advanced to.
   double get time => _now;
@@ -1563,10 +1568,76 @@ class MorphMenuMotion {
   MorphGlassOutline? get silhouette {
     if (_phase == _Phase.idle) return null;
     final radius = fusionRadius;
-    if (radius < MorphMenuFusion.minimumRadius) {
-      return morphGlassContainerOutline([rootBlob.rrect, buttonBlob.rrect], 0);
+    final MorphGlassOutline outline = radius < MorphMenuFusion.minimumRadius
+        ? morphGlassContainerOutline([rootBlob.rrect, buttonBlob.rrect], 0)
+        : _fusion.outline(rootBlob.rrect, buttonBlob.rrect, radius)!;
+    _prefetchSilhouette();
+    return outline;
+  }
+
+  /// Hands the next frame's fusion to [MorphMenuFusion.prefetch]: the
+  /// shapes and radius at the next frame's time as the motion stands, the
+  /// kicks integrated up to it.
+  ///
+  /// The next frame's time continues the least-squares line through the
+  /// last eight frames' times: frame times jitter around the display's
+  /// period, and the line predicts them about two and a half times closer
+  /// than the last step repeated. A step longer than
+  /// [MorphMenuFusion.prefetchStepLimit] starts the line over.
+  void _prefetchSilhouette() {
+    final t = _timeline.now;
+    if (!MorphMenuFusion.prefetches) return;
+    final times = _silhouetteTimes;
+    final n = _silhouetteFrames;
+    if (n > 0) {
+      final last = times[(n - 1) % times.length];
+      if (t == last) return;
+      if (!(t > last && t - last < MorphMenuFusion.prefetchStepLimit)) {
+        _silhouetteFrames = 0;
+      }
     }
-    return _fusion.outline(rootBlob.rrect, buttonBlob.rrect, radius);
+    times[_silhouetteFrames % times.length] = t;
+    _silhouetteFrames++;
+    final count = math.min(_silhouetteFrames, times.length);
+    if (count < 3) return;
+    final first = _silhouetteFrames - count;
+    var meanI = 0.0;
+    var meanT = 0.0;
+    for (var k = 0; k < count; k++) {
+      meanI += k;
+      meanT += times[(first + k) % times.length] - t;
+    }
+    meanI /= count;
+    meanT /= count;
+    var cross = 0.0;
+    var spread = 0.0;
+    for (var k = 0; k < count; k++) {
+      final di = k - meanI;
+      cross += di * (times[(first + k) % times.length] - t - meanT);
+      spread += di * di;
+    }
+    final ahead = t + meanT + cross / spread * (count - meanI);
+    if (!(ahead > t)) return;
+    final menuKick = _menuKick.value;
+    final menuKickVelocity = _menuKick.velocity;
+    final buttonKick = _buttonKick.value;
+    final buttonKickVelocity = _buttonKick.velocity;
+    final sampleTime = _sampleTime;
+    _sample(ahead);
+    _peekTime = ahead;
+    try {
+      final radius = fusionRadius;
+      if (radius >= MorphMenuFusion.minimumRadius) {
+        _fusion.prefetch(rootBlob.rrect, buttonBlob.rrect, radius);
+      }
+    } finally {
+      _peekTime = null;
+      _sampleTime = sampleTime;
+      _menuKick.value = menuKick;
+      _menuKick.velocity = menuKickVelocity;
+      _buttonKick.value = buttonKick;
+      _buttonKick.velocity = buttonKickVelocity;
+    }
   }
 
   double _fusionAt(double t) {
