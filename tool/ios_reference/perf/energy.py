@@ -95,7 +95,7 @@ def analyze(trace, report):
             if r.tid == pid:
                 threads['ui'] = r.utid
             elif r.name and r.name.endswith('.raster'):
-                threads['raster'] = r.utid
+                threads.setdefault('raster', []).append(r.utid)
             elif r.name and 'DartWorker' in r.name:
                 threads.setdefault('workers', []).append(r.utid)
     out = {}
@@ -141,6 +141,7 @@ def analyze(trace, report):
             out.setdefault(scene, []).append(row)
     meta = {'rails': sorted(short(n) for n in rails),
             'threads': {k: (v if not isinstance(v, list) else len(v)) for k, v in threads.items()},
+            'raster_threads_aggregated': True,
             'mono_to_trace_ns': mono_to_trace}
     tp.close()
     return out, meta
@@ -180,6 +181,9 @@ def main():
         if os.path.exists(cache):
             data = json.load(open(cache))
             out, meta = data['out'], data['meta']
+            if os.path.exists(trace) and not meta.get('raster_threads_aggregated'):
+                out, meta = analyze(trace, report)
+                json.dump({'out': out, 'meta': meta}, open(cache, 'w'), indent=1)
         else:
             out, meta = analyze(trace, report)
             json.dump({'out': out, 'meta': meta}, open(cache, 'w'), indent=1)
@@ -202,6 +206,9 @@ def main():
             rows[variant][scene].append((run, total))
     first = next(iter(metas.values()), {})
     print('rails:', first.get('rails'), 'threads:', first.get('threads'))
+    legacy = [run for run, meta in metas.items() if not meta.get('raster_threads_aggregated')]
+    if legacy:
+        print('WARNING: legacy raster CPU caches (rails and frames unaffected):', ', '.join(legacy))
     for variant in sorted(rows):
         print(f'\n== {variant}')
         for scene, runs in rows[variant].items():
