@@ -1,0 +1,20 @@
+run: liquid-on-4  apk: liquid-on.apk  date: Tue Oct  6 15:50:05 CEST 2026
+before:
+skin: 37.66195
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 355
+  Capacity level: 5
+TotalTime: 366
+after:
+skin: 37.919205
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 358
+  Capacity level: 5

@@ -1,0 +1,20 @@
+run: liquid-off-6  apk: liquid-off.apk  date: Tue Oct  6 15:54:26 CEST 2026
+before:
+skin: 37.483
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 363
+  Capacity level: 5
+TotalTime: 333
+after:
+skin: 38.322098
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 366
+  Capacity level: 5

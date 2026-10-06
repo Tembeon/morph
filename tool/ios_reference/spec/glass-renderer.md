@@ -701,13 +701,76 @@ page's copy in a container).
   equal. Distant chrome stays two layers: each bar already shades all its
   capsules in one.
 - Not stages, by construction: a toolbar or navigation bar alone (one
-  host for all its capsules already); list rows (the row highlight and
-  separators paint between members, and a resting switch, slider or
-  stepper has no glass); a sheet's content, the scaffold body and every
-  other app section (option C: the package cannot see what an app paints
+  host for all its capsules already); a sheet's content and every other
+  app section (option C: the package cannot see what an app paints
   between two controls - `MorphGlassContainer` stays the explicit tool);
   the search tab bar (its tab bar is bar kind, its search button button
-  kind).
+  kind). List sections ARE one since 2026-10-06 (below).
+- Checked and left alone (2026-10-06): alerts and action sheets (one menu
+  kind surface each; their buttons are fills on it, no glass of their
+  own), the date picker (one menu kind overlay), sheets (one menu kind
+  surface; their content is app content), the toolbar's and navigation
+  bar's groups (each bar shades all its capsules in one host already).
+  `MorphNavigationScaffold` gets no `glassContainer` flag: its body is a
+  scroll view, and a container above a viewport joins nothing inside it
+  (test/glass_inspector_test.dart, "a container around a scroll view");
+  the container belongs inside the scroll content, around the cluster.
+
+### List sections (2026-10-06)
+
+`MorphListSection` puts a `MorphGlassStage(sharpOnly: true)` over its card
+fill, inside the card clip: the resting glass of every row's accessories
+(glass buttons in a trailing or leading slot) is shaded in one layer.
+Why nothing between the stage and a member is read (lists.md "Glass in
+rows"): resting unfrosted glass samples only inside its own outline, and
+the only thing a row paints inside an accessory is its highlight - a row
+whose highlight shows wraps its content in a closed
+`MorphGlassContainerBarrier` (an InheritedWidget the reach check depends
+on, like MorphTagVisibility), so its accessories draw their own layers
+for exactly as long; the other rows stay joined. `sharpOnly` closes the
+stage while the container's settings frost (`frostControls`): a blur
+would read the text and separators around the rim.
+
+- Empty sections: the stage's LiquidGlassLayer is a repaint boundary
+  around the card. A section without glass gains the boundary, and its
+  rows are no longer re-recorded on every frame its scroll view moves it
+  (flutter_test, gallery home, 30 scroll frames: 720 -> 18 paragraph
+  paints). Until the renderer fix of the same day an EMPTY
+  RenderLiquidGlassLayer repainted itself on every transform change
+  (onTransformChanged with no reusable geometry) and so lost exactly
+  that; it now returns while no shape is registered (VENDORED).
+- Device (Pixel 6a, liquid, profile, energy_android.sh, cooled to 38 C,
+  AUDIT_SCENES=home-scroll,list, AUDIT_RUNS=5; variants: nostage = this
+  commit with HEAD's list.dart, on = the stage without the renderer fix,
+  off = on with AUDIT_STAGES_OFF (every member its own layer, the empty
+  stage mounted), on2 = the landed state; launches interleaved, nostage
+  6, on2 3, on / off 3 each; medians of launches, mW over the scene
+  window, ms; perf/2026-10-06-pixel6a-list-stage-energy):
+
+| scene | variant | power mW | GPU rail mJ | build p50 / p95 | raster p50 / p95 | over budget |
+|---|---|---|---|---|---|---|
+| list (12 resting buttons, scrolled) | nostage | 1038 | 18775 | 4.8 / 9.9 | 11.8 / 14.6 | 4 |
+| | off | 1039 | 18317 | 5.1 / 9.6 | 11.9 / 14.8 | 4 |
+| | on | 959 | 16009 | 2.8 / 5.2 | 10.2 / 12.5 | 1 |
+| | on2 | 952 (-8.3 %) | 16042 (-15 %) | 2.7 / 5.2 | 10.1 / 12.7 | 1 |
+| home-scroll (no glass in the list) | nostage | 845 | 12634 | 3.2 / 6.5 | 8.8 / 11.5 | 2 |
+| | on | 863 | 12724 | 3.1 / 6.8 | 8.5 / 11.2 | 2 |
+| | on2 | 822 (-2.7 %) | 12087 | 1.6 / 3.8 | 8.7 / 11.4 | 2 |
+
+  Census (AUDIT_CENSUS_OWNERS, one launch each, perf/2026-10-06-pixel6a-
+  list-stage-census): list backdrop filters per frame 13.8 -> 3.8
+  (12 MorphGlassButton layers -> 2 MorphListSection stages), offscreen
+  passes 14.0 -> 4.0, captures 3.8 both; home-scroll filters 1.73 both,
+  pictures 6.6 -> 8.1 and layers 36 -> 42 (the boundary's own layers).
+  The list scene's build drops with the layers (one structure per
+  section instead of a host per button). Shots (shotdiff): list-resting
+  and list-row-held on vs nostage max 2, on vs off max 8; the landed
+  state against nostage (perf/2026-10-06-pixel6a-list-stage-shots, -shots2) list
+  max 8, the home list held mid-scroll max 2 and at rest after a scroll
+  0 (nostage against itself: 1 / 220 mid-scroll / 0). Noise <= 19.
+- Gates: raster p50 -1.6 ms, p95 -1.9 ms on the intended workload (above
+  the 0.3 ms per filter estimate: 10 filters fewer, and the build win);
+  energy lower in both scenes; resting and held shots within noise.
 
 ## First use: pipeline warm-up (2026-10-05, glass_warm_up.dart)
 
@@ -2088,6 +2151,11 @@ perf/contact.py lays several tiers' shots side by side.
 Energy: perf/energy_android.sh runs audit APKs under a Perfetto power
 trace, perf/energy.py splits the rails by scene (see "Energy: ADPF and
 the fusion workers"); `AUDIT_IDLE_S` and `FUSION_PREFETCH` on the audit.
+Glass inspector: `MorphGlassInspector` (public, debug and profile) is the
+census for app developers - filters, captures, owners and container hints
+of the last frame on screen, `MorphGlassInspector.census()` in tests; the
+gallery's Glass renderer page toggles it. A release build removes it (the
+macOS release App binary holds none of its strings).
 Gallery: the root installs `MorphAdaptiveGlass` with the session's
 `MorphGlassRenderer` (GalleryGlassSettings / GalleryGlassScope,
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass

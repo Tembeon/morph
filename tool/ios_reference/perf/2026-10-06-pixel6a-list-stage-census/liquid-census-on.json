@@ -1,0 +1,247 @@
+{
+  "tier": "liquid",
+  "liquid_available": true,
+  "liquid_unavailable_reason": null,
+  "platform": "android",
+  "refresh_rate": 60.0,
+  "cadence_ms": 16.627,
+  "budget_ms": 16.627,
+  "precache_ms": 461.41,
+  "device_class": "capable",
+  "drawn_tier": "liquid",
+  "first_use": {
+    "home-scroll": {
+      "n": 110.0,
+      "build_p50": 0.681,
+      "build_p95": 1.256,
+      "build_worst": 6.112,
+      "raster_p50": 5.142,
+      "raster_p95": 12.211,
+      "raster_worst": 21.508,
+      "span_p95": 18.869,
+      "vsync_p95": 1.635,
+      "over_8.3ms": 14.0,
+      "build_p99": 1.602,
+      "raster_p99": 20.459,
+      "over_budget": 5.0
+    },
+    "list": {
+      "n": 189.0,
+      "build_p50": 1.201,
+      "build_p95": 7.83,
+      "build_worst": 78.931,
+      "raster_p50": 8.575,
+      "raster_p95": 12.266,
+      "raster_worst": 18.777,
+      "span_p95": 20.307,
+      "vsync_p95": 1.702,
+      "over_8.3ms": 104.0,
+      "build_p99": 16.554,
+      "raster_p99": 18.287,
+      "over_budget": 3.0
+    }
+  },
+  "semantics": [
+    false
+  ],
+  "runs": 1,
+  "outline_us": {
+    "menu10-r4-cold": 1580.21,
+    "menu10-r10-cold": 550.97,
+    "menu10-r20-cold": 468.64,
+    "union-cold": 26.53,
+    "bar-capsules-cold": 295.66,
+    "menu10-r4": 782.48,
+    "menu10-r10": 570.78,
+    "menu10-r20": 482.96,
+    "union": 31.21,
+    "bar-capsules": 312.97
+  },
+  "windows_us": {
+    "home-scroll": [
+      [
+        15987573032,
+        15995111539
+      ]
+    ],
+    "list": [
+      [
+        15999065118,
+        16006254239
+      ]
+    ]
+  },
+  "fusion_served_ahead": 0,
+  "fusion_fused_here": 0,
+  "census": {
+    "home-scroll": {
+      "frames": 450,
+      "mean": {
+        "backdrop": 1.7444444444444445,
+        "opacity": 0.6488888888888888,
+        "image_filter": 0.36,
+        "color_filter": 0.0,
+        "shader_mask": 0.0,
+        "clip_save_layer": 0.0,
+        "offscreen": 2.7533333333333334,
+        "pictures": 8.13111111111111,
+        "glass_shadow_pictures": 0.0,
+        "layers": 41.58444444444444,
+        "captures": 1.7444444444444445
+      },
+      "max": {
+        "backdrop": 2,
+        "opacity": 2,
+        "image_filter": 1,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 5,
+        "pictures": 9,
+        "glass_shadow_pictures": 0,
+        "layers": 44,
+        "captures": 2
+      },
+      "first": {
+        "backdrop": 1,
+        "opacity": 0,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 1,
+        "pictures": 7,
+        "glass_shadow_pictures": 0,
+        "layers": 37,
+        "captures": 1
+      },
+      "owners": {
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+        "MorphPresentationBoundary > MorphNavigationBar > MorphScrollEdgeEffect [-] _RenderEdge": 0.7444444444444445
+      },
+      "owners_first": {
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer @0,50 411x54": 1
+      }
+    },
+    "list": {
+      "frames": 429,
+      "mean": {
+        "backdrop": 3.773892773892774,
+        "opacity": 0.26107226107226106,
+        "image_filter": 0.0,
+        "color_filter": 0.0,
+        "shader_mask": 0.0,
+        "clip_save_layer": 0.0,
+        "offscreen": 4.034965034965035,
+        "pictures": 48.324009324009324,
+        "glass_shadow_pictures": 0.0,
+        "layers": 130.64568764568764,
+        "captures": 3.773892773892774
+      },
+      "max": {
+        "backdrop": 4,
+        "opacity": 1,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 5,
+        "pictures": 49,
+        "glass_shadow_pictures": 0,
+        "layers": 132,
+        "captures": 4
+      },
+      "first": {
+        "backdrop": 3,
+        "opacity": 0,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 3,
+        "pictures": 48,
+        "glass_shadow_pictures": 0,
+        "layers": 128,
+        "captures": 3
+      },
+      "owners": {
+        "MorphNavigationScaffold > MorphListSection > MorphGlassStage [-] RenderLiquidGlassLayer": 2.0,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer": 1.0,
+        "MorphPresentationBoundary > MorphNavigationBar > MorphScrollEdgeEffect [-] _RenderEdge": 0.7738927738927739
+      },
+      "owners_first": {
+        "MorphNavigationScaffold > MorphListSection > MorphGlassStage [-] RenderLiquidGlassLayer @20,665 371x402": 1,
+        "MorphNavigationScaffold > MorphListSection > MorphGlassStage [-] RenderLiquidGlassLayer @20,196 371x414": 1,
+        "MorphNavigationStack > MorphPresentationBoundary > MorphNavigationBar [body] RenderLiquidGlassLayer @0,50 411x54": 1
+      }
+    }
+  },
+  "home-scroll": {
+    "median": {
+      "n": 448.0,
+      "build_p50": 3.442,
+      "build_p95": 6.763,
+      "build_worst": 10.659,
+      "raster_p50": 8.571,
+      "raster_p95": 11.269,
+      "raster_worst": 52.892,
+      "span_p95": 18.83,
+      "vsync_p95": 1.494,
+      "over_8.3ms": 247.0,
+      "build_p99": 8.859,
+      "raster_p99": 12.357,
+      "over_budget": 2.0
+    },
+    "runs": [
+      {
+        "n": 448.0,
+        "build_p50": 3.442,
+        "build_p95": 6.763,
+        "build_worst": 10.659,
+        "raster_p50": 8.571,
+        "raster_p95": 11.269,
+        "raster_worst": 52.892,
+        "span_p95": 18.83,
+        "vsync_p95": 1.494,
+        "over_8.3ms": 247.0,
+        "build_p99": 8.859,
+        "raster_p99": 12.357,
+        "over_budget": 2.0
+      }
+    ]
+  },
+  "list": {
+    "median": {
+      "n": 427.0,
+      "build_p50": 2.38,
+      "build_p95": 5.336,
+      "build_worst": 8.305,
+      "raster_p50": 10.346,
+      "raster_p95": 13.12,
+      "raster_worst": 18.079,
+      "span_p95": 19.037,
+      "vsync_p95": 1.525,
+      "over_8.3ms": 363.0,
+      "build_p99": 6.398,
+      "raster_p99": 15.763,
+      "over_budget": 1.0
+    },
+    "runs": [
+      {
+        "n": 427.0,
+        "build_p50": 2.38,
+        "build_p95": 5.336,
+        "build_worst": 8.305,
+        "raster_p50": 10.346,
+        "raster_p95": 13.12,
+        "raster_worst": 18.079,
+        "span_p95": 19.037,
+        "vsync_p95": 1.525,
+        "over_8.3ms": 363.0,
+        "build_p99": 6.398,
+        "raster_p99": 15.763,
+        "over_budget": 1.0
+      }
+    ]
+  }
+}

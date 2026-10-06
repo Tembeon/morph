@@ -1,0 +1,20 @@
+run: liquid-nostage-5  apk: liquid-nostage.apk  date: Tue Oct  6 15:51:55 CEST 2026
+before:
+skin: 37.8592
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 360
+  Capacity level: 5
+TotalTime: 933
+after:
+skin: 38.197655
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 362
+  Capacity level: 5

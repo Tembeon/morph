@@ -269,10 +269,30 @@ Cross-cutting policy:
   pixels of their own layers (1 - 3 channel steps, was 48 - 76).
   STAGES (`MorphGlassStage`, internal): containers the package owns where
   it owns the paint order, open only while it neither fades nor moves its
-  members (`MorphGlassStageFade`); MorphSearchToolbar is one. The
-  navigation stack's chrome is NOT (measured: one screen-high layer costs
-  the GPU more than the raster saves); app sections stay explicit (option
-  C). Numbers and gates in glass-renderer.md "Glass container".
+  members (`MorphGlassStageFade`); MorphSearchToolbar is one, and every
+  MorphListSection card (2026-10-06): the stage sits over the card fill,
+  `sharpOnly` closes it while controls frost (resting unfrosted glass
+  samples only inside its own outline, so the rows' text and separators
+  painted after the stage are never read), and a row whose highlight
+  shows keeps its accessories out through `MorphGlassContainerBarrier`
+  (an InheritedWidget the reach check depends on, like
+  MorphTagVisibility). The navigation stack's chrome is NOT (measured:
+  one screen-high layer costs the GPU more than the raster saves); the
+  scaffold body gets no flag (a container above its scroll view joins
+  nothing: the viewport blocks); app sections stay explicit (option C).
+  Numbers and gates in glass-renderer.md "Glass container".
+- GLASS INSPECTOR (glass_inspector.dart, public, 2026-10-06):
+  `MorphGlassInspector` overlays the frame's backdrop filters, captures,
+  owners (GlassLayerOwners when set, else the nearest composited render
+  object's Morph widget chain) and hints: resting joinable hosts outside
+  a container grouped by their nearest blocker
+  (`morphGlassContainerBlocker`, the reach check's own predicate) and
+  settings, and hosts inside one kept out by a blocker. Debug and
+  profile only (kReleaseMode builds the child alone; the code is
+  tree-shaken); one persistent frame hook for all inspectors, a layer
+  walk per frame, the element walk only when the filter set changes;
+  `MorphGlassInspector.census()` is the same data for tests. The
+  gallery's Glass renderer page toggles it.
 - ONE renderer in the package (lib/src/glass/renderer, vendored
   whynotmake-it, Apache-2.0, VENDORED lists local patches; owner decision
   2026-10-03 - the old no-shader rule is cancelled). Public entry

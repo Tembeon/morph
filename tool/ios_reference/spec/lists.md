@@ -2,7 +2,8 @@
 
 Status: measured simulator (layout + colors, light and dark); ported
 (`MorphListSection`, `MorphListRow`, `MorphListStyle`, `MorphListMetrics`);
-pinned by test/list_test.dart. Motion (highlight timing) not measured.
+pinned by test/list_test.dart; rows' glass in one layer per section
+(test/list_glass_stage_test.dart). Motion (highlight timing) not measured.
 
 ## Native
 
@@ -63,6 +64,25 @@ booted dev.tembeon.morph.probe`, then pull Documents/list-tree-*.txt;
 lib/src/widgets/list.dart; typography roles `MorphTypography.body`,
 `listSubtitle`, `listHeader`, `listFooter`. `MorphNavigationScaffold` gives
 its content the body style.
+
+## Glass in rows (package stage, 2026-10-06)
+
+Not a UIKit measurement: how morph draws glass accessories (glass buttons
+in a row's leading or trailing slot) on a section's card. The card fill
+sits under a `MorphGlassStage`, so the resting glass of all its rows is
+shaded in one layer, as UIKit's glass container would. Proof that nothing
+the section paints between the stage and a member is read by it: resting
+unfrosted glass samples only inside its own outline (refraction reaches
+inward, frost 0, on the liquid and the fake tier), and the only thing a
+row paints inside an accessory's outline is its highlight - a highlighted
+row keeps its accessories out (`MorphGlassContainerBarrier`) until the
+highlight goes. Text, separators (the row's own after its child, the
+previous row's 15.5 pt above an accessory) and the header lie outside
+every accessory. With `frostControls` the blur would read them, so the
+stage closes. A row's own `child` content painted under its glass is
+app content: option C applies (glass-renderer.md). Evidence:
+test/list_glass_stage_test.dart, the gallery's Lists page and the audit's
+`list` scene (glass-renderer.md "List sections").
 
 ## Not reproduced / open
 

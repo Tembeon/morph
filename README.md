@@ -71,6 +71,39 @@ Every tier shades the outlines computed by the package. Looks resolve
 from each control's `style`, then the `MorphWidgetsTheme` extension, then light and dark
 tables from the iOS system colors.
 
+## Performance: group neighbouring glass
+
+Every separate glass layer is a backdrop filter: the engine reads the
+backdrop under it, filters it and composites it, whatever its size -
+about 0.3 - 0.75 ms of raster time per layer and frame on a Pixel 6a.
+Apple's advice for Liquid Glass applies here too: group neighbouring
+glass in one container. Wrap a row or cluster of glass buttons in a
+`MorphGlassContainer` and their resting glass is shaded in one layer
+(four resting buttons over a scrolling page: Pixel 6a raster -18
+percent). Everything inside the container is content above its glass,
+so put what the glass must show through under the container, not in
+it; a pressed, faded or clipped button keeps its own layer.
+
+The package groups glass on its own only where it owns everything
+painted between the members: a `MorphListSection` shades the resting
+glass buttons in its rows in one layer (a pressed row's button leaves
+while its highlight shows), a resting `MorphSearchToolbar` its field
+and side buttons. A container around a scroll view joins nothing in
+it - wrap the content inside the scroll view instead.
+
+`MorphGlassInspector` shows, in debug and profile builds, how many
+glass layers each frame draws, who draws them, and which neighbouring
+resting glass one container could shade together (or what keeps glass
+out of the container it sits in); in release it is removed:
+
+```dart
+MaterialApp(
+  builder: (context, child) => MorphGlassInspector(
+    child: MorphScope(child: child!),
+  ),
+);
+```
+
 ## Install
 
 ```yaml
