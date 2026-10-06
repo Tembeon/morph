@@ -14,6 +14,15 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Resting menu buttons, and glass buttons inside a showing `MorphTag`,
+  join a `MorphGlassContainer` (a tag hiding for its flight sends its glass
+  back to its own layer in the same frame); a settled glass or menu button
+  draws through an exact identity transform, and a container's members
+  find their raster grid again once a push or scroll under it stops. The
+  gallery's menu and sheet pages draw 9.0 -> 2.9 and 7.4 -> 5.2 backdrop
+  filters a frame, raster p95 -2.0 / -1.1 ms on a Pixel 6a (-0.3 / -0.1
+  on an iPhone 16 Pro), resting pixels as before. The glass audit names
+  every filter's owner (`AUDIT_CENSUS_OWNERS=true`).
 - Opening a menu no longer builds its rows in its first frame: a press
   on a menu button builds them out of sight while the tap's opening delay
   runs, and the opening moves them into the menu. Same pixels. The
