@@ -21,6 +21,8 @@ import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 
+import 'support/layer_census.dart';
+
 /// The glass audit on a device: the gallery in dark mode, the states the
 /// UIKit references in tool/ios_reference/references/dark show (resting
 /// and held), screenshots of each, and the frame timings of every scene
@@ -64,6 +66,16 @@ import 'package:morph_example/gallery/gallery.dart';
 /// the device class), the precache time,
 /// and `first_use`: each scene's frames from entering its page to its
 /// first timed run (home-scroll's start at runApp, the first glass frame).
+///
+/// Every timed run is bracketed by two zero-length timeline slices,
+/// `scene:<name>:<run>:begin` and `...:end`, so a systrace capture of the
+/// run (tool/ios_reference/perf/trace_android.sh) windows its slices by
+/// scene (`atrace_slices.py <trace> --scenes`).
+/// `--dart-define=AUDIT_CENSUS=true` also counts the engine layers of
+/// every frame inside those windows (support/layer_census.dart) into the
+/// report's `census`. The audit holds the app in portrait: a phone lying
+/// on its side with auto-rotate on would otherwise lay the gallery out in
+/// landscape, where the later rows are off screen.
 const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
 
 const int _runs = int.fromEnvironment('AUDIT_RUNS', defaultValue: 1);
@@ -73,6 +85,8 @@ const bool _semantics = bool.fromEnvironment('AUDIT_SEMANTICS');
 const bool _shots = bool.fromEnvironment('AUDIT_SHOTS', defaultValue: true);
 
 const String _scenesOnly = String.fromEnvironment('AUDIT_SCENES');
+
+const bool _census = bool.fromEnvironment('AUDIT_CENSUS');
 
 const bool _atlas = bool.fromEnvironment('AUDIT_ATLAS');
 
@@ -153,6 +167,18 @@ class _Audit {
 
   final Set<bool> _semanticsWhileTimed = {};
 
+  final LayerCensus? _layerCensus = _census ? LayerCensus() : null;
+
+  void _sceneMark(String scene, int run, String edge) {
+    developer.Timeline.startSync('scene:$scene:$run:$edge');
+    developer.Timeline.finishSync();
+    if (edge == 'begin') {
+      _layerCensus?.begin(scene);
+    } else {
+      _layerCensus?.end();
+    }
+  }
+
   final Map<String, List<Map<String, Object?>>> _atlasRuns = {};
   final List<(int, String)> _marks = [];
 
@@ -166,6 +192,7 @@ class _Audit {
       await settle(300);
       final start = timings.length;
       if (run == 0) _firstUse[scene] = (_enteredAt, start);
+      _sceneMark(scene, run, 'begin');
       var end = start;
       var from = 0;
       Future<void> timed() async {
@@ -192,6 +219,7 @@ class _Audit {
       } else {
         await timed();
       }
+      _sceneMark(scene, run, 'end');
       (_scenes[scene] ??= []).add((start, end));
     }
   }
@@ -315,6 +343,7 @@ class _Audit {
     if (outDir.existsSync()) outDir.deleteSync(recursive: true);
     outDir.createSync(recursive: true);
     _clock.start();
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
     if (_outlinesOnly) {
       _outlines();
       return;
@@ -694,6 +723,7 @@ class _Audit {
       'semantics': [..._semanticsWhileTimed],
       'runs': _runs,
       'outline_us': _outlineMicros,
+      if (_layerCensus case final census?) 'census': census.report(),
       if (_atlas)
         'atlas': {
           for (final MapEntry(key: scene, value: runs) in _atlasRuns.entries)

@@ -2,7 +2,9 @@
 # One atrace capture of an audit APK built with the TraceSystrace meta-data
 # (io.flutter.embedding.android.TraceSystrace = true in the example's manifest,
 # a local patch): Flutter's trace events of the whole run as text, then
-# atrace_slices.py sums them per thread.
+# atrace_slices.py sums them per thread, and per scene of the glass audit
+# (its scene markers; build with AUDIT_DEFINES=--dart-define=AUDIT_CENSUS=true
+# for the layer census of the same frames in the pulled report).
 #
 #   trace_android.sh <apk> <out.txt> [report dir name, default glass]
 #
@@ -30,3 +32,4 @@ adb shell atrace --async_stop > "$OUT"
 adb pull "$DEVICE_DIR/report.json" "${OUT%.txt}.json" >/dev/null
 adb shell am force-stop "$PKG"
 python3 "$(dirname "$0")/atrace_slices.py" "$OUT" "" 30 | head -150
+python3 "$(dirname "$0")/atrace_slices.py" "$OUT" --scenes

@@ -1,0 +1,60 @@
+/sdcard/Android/data/dev.tembeon.morph_example/files/glass/report.json: 1 file pulled, 0 skipped. 6.2 MB/s (15859 bytes in 0.002s)
+== 1.raster (tid 19473), window 125764 ms
+   incl ms    self ms   count  incl/cnt  name
+   66890.1      221.1    6937     9.643  GPURasterizer::Draw
+   66669.0      225.2    6937     9.611  Rasterizer::DoDraw
+   66443.8     1393.3    6937     9.578  Rasterizer::DrawToSurfaces
+   59037.2      482.7    6935     8.513  SurfaceFrame::Submit
+   50092.3    20938.0    6935     7.223  SurfaceFrame::Encode
+   17870.0    17870.0   13706     1.304  QueueSubmit
+   11258.6    10940.1   56880     0.198  Canvas::saveLayer
+    6537.4      802.1   13870     0.471  queueBuffer
+    4941.6     1239.8    6935     0.713  QueuePresentKHR
+    3811.4     1754.1    6935     0.550  CreateGlyphAtlas
+    3332.1      121.9    6935     0.480  CompositorContext::ScopedFrame::Raster
+    2681.2      346.8    6935     0.387  AcquireNextSurface
+    2334.6      326.4    6936     0.337  AcquireNextDrawable
+    2047.5     1754.1    6935     0.295  LayerTree::Paint
+    1991.4      525.3    6936     0.287  AcquireNextImageKHR
+    1877.2     1877.2     839     2.237  UpdateAtlasBitmap
+    1792.9      162.0    5193     0.345  onFrameAvailable - b42fc48 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+    1377.1      145.7    6944     0.198  dequeueBuffer
+    1190.3      948.6     544     2.188  waitForBufferRelease
+    1162.7     1162.7    6935     0.168  LayerTree::Preroll
+     376.3      351.1    6245     0.060  acquireBuffer
+     328.3      328.3   20573     0.016  AllocateCommandBuffers
+     240.8        5.3     513     0.469  releaseBufferCallback - b42fc48 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+     237.6      237.6    6935     0.034  waitForever
+     236.1       23.0     544     0.434  releaseBufferCallbackLocked
+     214.6      214.6    6935     0.031  addAndGetFrameTimestamps
+     185.6       16.1     538     0.345  onFrameAvailable - b42fc48 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+     146.2        7.6       2    73.118  DoMakeRasterSnapshot
+     129.5      129.5    6935     0.019  applyGrallocMetadataLocked
+     128.1      128.1     839     0.153  AppendToExistingAtlas
+
+== surfaceflinger (tid 550), window 126721 ms
+   incl ms    self ms   count  incl/cnt  name
+   21119.2      945.1    7038     3.001  present
+   14774.4      222.7    7038     2.099  prepareFrame
+   14513.0      155.0    7038     2.062  chooseCompositionStrategy for Common Panel (4619827677550801152)
+   14358.0      103.9    7038     2.040  getDeviceCompositionChanges
+   14196.8      242.0    7000     2.028  NextFrameInterval 60_Hz
+   14011.2    14011.2    7038     1.991  HwcPresentOrValidateDisplay
+    7192.9      648.8    7039     1.022  updateLayerSnapshots
+    6004.8      333.8   14076     0.427  postComposition
+    5030.1     2003.1    7038     0.715  onCompositionPresented
+    4454.3     3028.2    7039     0.633  DisplayCallbackAndStatsUpdates
+    2081.3       87.1    7038     0.296  planComposition
+    1994.2     1221.8    7038     0.283  plan
+    1577.7      131.5    7039     0.224  chooseRefreshRateForContent
+    1386.7      163.1    7039     0.197  summarize
+    1373.8      729.3    7038     0.195  presentFrameAndReleaseLayers for Common Panel (4619827677550801152)
+    1120.1      996.5    7039     0.159  TransactionHandler:flushTransactions
+     984.7      123.6    7038     0.140  addPresentFence 4619827677550801152
+     969.7      696.9    7039     0.138  LayerSnapshotBuilder:update
+     958.7      850.2   19675     0.049  nextAnticipatedVSyncTimeFrom
+     820.7      426.2    7038     0.117  addPresentFence
+     772.5      441.2    7038     0.110  flattenLayers
+     750.7      750.7    7039     0.107  partitionLayers
+     723.5      559.7    6933     0.104  setBuffer b42fc48 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity](BLAST)#8648 - hasBuffer=true
+     661.6      661.6    7038     0.094  writeCompositionState

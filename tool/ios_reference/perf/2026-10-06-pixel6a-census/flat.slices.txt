@@ -1,0 +1,60 @@
+/sdcard/Android/data/dev.tembeon.morph_example/files/glass/report.json: 1 file pulled, 0 skipped. 4.3 MB/s (15425 bytes in 0.003s)
+== 1.raster (tid 20008), window 117606 ms
+   incl ms    self ms   count  incl/cnt  name
+   47167.4      243.5    6543     7.209  GPURasterizer::Draw
+   46923.9      186.9    6543     7.172  Rasterizer::DoDraw
+   46737.0     1328.8    6543     7.143  Rasterizer::DrawToSurfaces
+   37243.9      508.6    6541     5.694  SurfaceFrame::Submit
+   24238.9    14849.8    6541     3.706  SurfaceFrame::Encode
+   12264.2    12264.2    9259     1.325  QueueSubmit
+    6280.5      859.4   13082     0.480  queueBuffer
+    6005.1      389.5    6541     0.918  AcquireNextSurface
+    5615.8      376.6    6542     0.858  AcquireNextDrawable
+    5217.1      574.9    6542     0.797  AcquireNextImageKHR
+    4774.8     1176.2    6541     0.730  QueuePresentKHR
+    4543.4      161.3    6550     0.694  dequeueBuffer
+    4336.7     3766.0    1082     4.008  waitForBufferRelease
+    3148.5     1605.3    6541     0.481  CreateGlyphAtlas
+    2159.1      135.3    6541     0.330  CompositorContext::ScopedFrame::Raster
+    1771.4     1740.9    5681     0.312  Canvas::saveLayer
+    1418.2     1418.2     582     2.437  UpdateAtlasBitmap
+    1328.6      125.4    3565     0.373  onFrameAvailable - b42fc48 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:2)
+    1267.1     1222.0    6541     0.194  LayerTree::Paint
+     756.8      756.8    6541     0.116  LayerTree::Preroll
+     569.6       13.4    1042     0.547  releaseBufferCallback - b42fc48 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:1,a:3)
+     556.9       53.2    1081     0.515  releaseBufferCallbackLocked
+     540.9       50.3    1411     0.383  onFrameAvailable - b42fc48 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(f:0,a:1)
+     406.6      377.1    6019     0.068  acquireBuffer
+     227.4      227.4    6541     0.035  addAndGetFrameTimestamps
+     145.9        8.6       2    72.944  DoMakeRasterSnapshot
+     133.6      133.6    6541     0.020  waitForever
+     128.2      128.2    6541     0.020  applyGrallocMetadataLocked
+     103.0      103.0     582     0.177  AppendToExistingAtlas
+      76.2       71.5    1042     0.073  releaseBuffer
+
+== surfaceflinger (tid 550), window 117816 ms
+   incl ms    self ms   count  incl/cnt  name
+   19534.8      910.0    6596     2.962  present
+   13441.6      217.3    6584     2.042  prepareFrame
+   13185.7      148.7    6584     2.003  chooseCompositionStrategy for Common Panel (4619827677550801152)
+   13037.1      106.3    6584     1.980  getDeviceCompositionChanges
+   12884.8      227.3    6548     1.968  NextFrameInterval 60_Hz
+   12701.4    12701.4    6580     1.930  HwcPresentOrValidateDisplay
+    6115.9      516.7    6596     0.927  updateLayerSnapshots
+    5938.5      322.7   13192     0.450  postComposition
+    4938.9     1933.8    6596     0.749  onCompositionPresented
+    3785.2     2447.7    6596     0.574  DisplayCallbackAndStatsUpdates
+    1846.0       86.1    6596     0.280  planComposition
+    1759.9     1026.4    6596     0.267  plan
+    1466.3      726.2    6596     0.222  presentFrameAndReleaseLayers for Common Panel (4619827677550801152)
+    1387.5      133.2    6596     0.210  chooseRefreshRateForContent
+    1193.9      158.5    6596     0.181  summarize
+     989.5      862.8    6596     0.150  TransactionHandler:flushTransactions
+     962.7      126.1    6596     0.146  addPresentFence 4619827677550801152
+     959.5      850.0   18352     0.052  nextAnticipatedVSyncTimeFrom
+     824.3      555.5    6596     0.125  LayerSnapshotBuilder:update
+     796.5      410.7    6596     0.121  addPresentFence
+     733.5      415.3    6596     0.111  flattenLayers
+     674.8      531.5    6540     0.103  setBuffer b42fc48 SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity](BLAST)#8685 - hasBuffer=true
+     666.1      666.1    6596     0.101  reportActualWorkDuration
+     614.3       98.4    6671     0.092  setPresentFence
