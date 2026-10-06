@@ -238,3 +238,10 @@ Local patches (some commits include related package changes):
   picks by the uniform appearance's color model; the warm-up and the
   precache list draw all five (ShaderKeys.liquidGlassRenders). Tried and
   reverted: the iOS 27 face as CPU-resolved uniforms (no Mali gain).
+- 2026-10-06 empty layers: RenderLiquidGlassLayer.onTransformChanged
+  returns at once while no shape is registered with its link (a package
+  stage over a list section without glass): it used to repaint the layer,
+  and with it everything up to the nearest repaint boundary, on every
+  frame its screen transform moved (a scroll). A shape that registers
+  repaints through the layer. Numbers in glass-renderer.md ("List
+  sections").

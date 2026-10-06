@@ -604,6 +604,26 @@ class _MorphGlassHostElement extends ComponentElement {
   }
 }
 
+/// What a glass host draws now, for a debug inspector: null unless
+/// [element] is the element of a [MorphGlassHost].
+@internal
+({
+  MorphGlassMode mode,
+  MorphGlassPainter painter,
+  MorphGlassFrame frame,
+  bool joined,
+})?
+debugMorphGlassHostOf(Element element) {
+  if (element is! _MorphGlassHostElement || !element.mounted) return null;
+  final host = element._host;
+  return (
+    mode: host.mode,
+    painter: host.painter,
+    frame: host.frame(),
+    joined: element._container?.holds(element) ?? false,
+  );
+}
+
 /// The painter entry a [MorphGlassHost] stands for.
 @internal
 enum MorphGlassMode {

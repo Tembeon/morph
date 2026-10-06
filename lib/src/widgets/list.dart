@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/glass_container.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
@@ -201,6 +203,16 @@ class MorphListStyle {
 /// column or as box slivers; the space between two of them comes from
 /// their own headers and footers (35 pt between a card without a footer
 /// and one without a header).
+///
+/// The card shades the resting glass in its rows - glass buttons in their
+/// trailing or leading slots, say - in one glass layer, as a
+/// [MorphGlassContainer] would: one backdrop filter for the section instead
+/// of one per button. A [MorphListRow] whose highlight shows draws its glass
+/// in a layer of its own until the highlight goes, so the glass reads the
+/// highlight under it. Frosted controls ([MorphGlassRenderer.frostControls])
+/// keep their own layers: their blur reads the rows around them. Content a
+/// row's child paints under its own glass belongs in a layer of its own:
+/// wrap it in its own [MorphGlassContainer].
 class MorphListSection extends StatelessWidget {
   /// Creates a section.
   const MorphListSection({
@@ -263,16 +275,20 @@ class MorphListSection extends StatelessWidget {
             ),
             child: ColoredBox(
               color: look.cellColor,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  for (var i = 0; i < children.length; i++)
-                    _RowPlace(
-                      last: i == children.length - 1,
-                      style: look,
-                      child: children[i],
-                    ),
-                ],
+              child: MorphGlassStage(
+                open: true,
+                sharpOnly: true,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = 0; i < children.length; i++)
+                      _RowPlace(
+                        last: i == children.length - 1,
+                        style: look,
+                        child: children[i],
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -529,6 +545,7 @@ class _MorphListRowState extends State<MorphListRow> {
         child: body,
       );
     }
+    body = MorphGlassContainerBarrier(clear: !highlighted, child: body);
     final onTap = widget.onTap;
     return Semantics(
       container: true,

@@ -1593,6 +1593,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @override
   void onTransformChanged() {
+    // A layer without shapes has no mapping to synchronize; a shape that
+    // registers repaints through it.
+    if (link.shapes.isEmpty) return;
     // Synchronize the frame's mapping after retained translation is resolved.
     if (!hasReusableGeometry && !hasReusableIdleContents) markNeedsPaint();
   }

@@ -8,6 +8,9 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass_inspector.dart';
+import 'package:morph/src/widgets/list.dart';
+import 'package:morph/src/widgets/search_field.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// Shades the resting glass of the controls below it in one glass layer:
@@ -40,6 +43,18 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// menu and every other surface keep their own layer, as without the
 /// container. On the flat tier, under another painter or with no painter
 /// installed the container does nothing.
+///
+/// Group neighbouring glass, as Apple advises for Liquid Glass: every
+/// separate glass layer reads, filters and composites the backdrop under
+/// it whatever its size, about 0.3 - 0.75 ms of raster time per layer and
+/// frame on a Pixel 6a. Four resting buttons over a scrolling page draw 18
+/// percent faster on that phone in a container, eight 22 percent. Wrap
+/// the row or cluster itself, inside any scroll view, clip or fade: a
+/// container around a scroll view joins nothing in it. A
+/// [MorphListSection] already shades its rows' resting glass in one layer,
+/// a resting [MorphSearchToolbar] its field and buttons.
+/// [MorphGlassInspector] shows the layers of each frame and names
+/// neighbouring glass that a container would join.
 class MorphGlassContainer extends StatefulWidget {
   /// Shades the resting glass of the controls in [child] together.
   const MorphGlassContainer({required this.child, super.key});
@@ -70,10 +85,21 @@ class _MorphGlassContainerState extends State<MorphGlassContainer> {
 @internal
 class MorphGlassStage extends StatefulWidget {
   /// Shades the resting glass in [child] together while [open].
-  const MorphGlassStage({required this.open, required this.child, super.key});
+  const MorphGlassStage({
+    required this.open,
+    required this.child,
+    this.sharpOnly = false,
+    super.key,
+  });
 
   /// Whether the members are shaded together now.
   final bool open;
+
+  /// Whether the stage closes while its glass would blur: for a stage
+  /// that paints content between its members, which resting glass without
+  /// a blur never reads (its refraction samples only inside its own
+  /// outline) but a frosted one reads around its rim.
+  final bool sharpOnly;
 
   /// The members.
   final Widget child;
@@ -90,6 +116,7 @@ class _MorphGlassStageState extends State<MorphGlassStage> {
     context,
     _link,
     open: widget.open && debugMorphGlassStagesOpen,
+    sharpOnly: widget.sharpOnly,
     child: widget.child,
   );
 }
@@ -143,6 +170,29 @@ class _GateScope extends InheritedWidget {
   bool updateShouldNotify(_GateScope oldWidget) => oldWidget.open != open;
 }
 
+/// Keeps the glass in [child] out of every glass container above it while
+/// [clear] is false: for a package widget that sometimes paints between a
+/// container and its members, as a list row paints its highlight under
+/// its accessories.
+@internal
+class MorphGlassContainerBarrier extends InheritedWidget {
+  /// Lets the glass in [child] reach a container above it only while
+  /// [clear].
+  const MorphGlassContainerBarrier({
+    required this.clear,
+    required super.child,
+    super.key,
+  });
+
+  /// Whether nothing is painted between a container above and the glass in
+  /// the child now.
+  final bool clear;
+
+  @override
+  bool updateShouldNotify(MorphGlassContainerBarrier oldWidget) =>
+      clear != oldWidget.clear;
+}
+
 /// An [Opacity] of a [MorphGlassStage] that its members see through: the
 /// stage closes whenever [opacity] is below 1.
 @internal
@@ -164,6 +214,7 @@ Widget _containerLayer(
   MorphGlassContainerLink link, {
   required bool open,
   required Widget child,
+  bool sharpOnly = false,
 }) {
   final painter = MorphGlass.maybeOf(context);
   if (painter is! MorphGlassRenderer ||
@@ -193,7 +244,10 @@ Widget _containerLayer(
           link: link,
           renderer: painter,
           settings: settings,
-          open: open && MorphGlassContainerGate.openAt(context),
+          open:
+              open &&
+              MorphGlassContainerGate.openAt(context) &&
+              (!sharpOnly || settings.effectiveFrost == 0),
           child: child!,
         ),
       );
@@ -221,50 +275,79 @@ bool morphGlassContainerReaches(Element host) {
   Element? below;
   host.visitAncestorElements((Element element) {
     if (identical(element, scope)) return false;
-    final widget = element.widget;
     final child = below;
     below = element;
-    if (widget is BackdropGroup && widget.backdropKey != shared) {
-      clear = false;
-      return false;
-    }
-    if (widget is MorphTagVisibility) {
+    final widget = element.widget;
+    if (widget is MorphGlassContainerBarrier || widget is MorphTagVisibility) {
       host.dependOnInheritedElement(element as InheritedElement);
-      if (widget.hidden) {
-        clear = false;
-        return false;
-      }
+    }
+    if (_passes(element, child, (BackdropKey key) => key == shared)) {
       return true;
     }
-    final render = element is RenderObjectElement ? element.renderObject : null;
-    if (render is _RenderStageFade) return true;
-    if (render is RenderOpacity &&
-        child?.widget is MorphTagVisibility &&
-        render.opacity == 1) {
-      return true;
-    }
-    if (render is RenderOpacity ||
-        render is RenderAnimatedOpacityMixin ||
-        render is RenderSliverOpacity ||
-        render is RenderOffstage ||
-        render is RenderClipRect ||
-        render is RenderClipRRect ||
-        render is RenderClipRSuperellipse ||
-        render is RenderClipOval ||
-        render is RenderClipPath ||
-        render is RenderShaderMask ||
-        render is RenderBackdropFilter ||
-        render is RenderViewportBase ||
-        render is RenderFollowerLayer ||
-        element.widget is ImageFiltered ||
-        element.widget is ColorFiltered ||
-        element.widget is Visibility) {
-      clear = false;
-      return false;
-    }
-    return true;
+    clear = false;
+    return false;
   });
   return clear;
+}
+
+/// The nearest ancestor of [host] below [until] that keeps its glass out of
+/// a glass container above it, or null when none does; with [until] null,
+/// every [BackdropGroup] keeps it out and the walk ends at the root.
+@internal
+Element? morphGlassContainerBlocker(Element host, {Element? until}) {
+  final group = until?.getElementForInheritedWidgetOfExactType<BackdropGroup>();
+  final shared = (group?.widget as BackdropGroup?)?.backdropKey;
+  Element? blocker;
+  Element? below;
+  host.visitAncestorElements((Element element) {
+    if (identical(element, until)) return false;
+    final child = below;
+    below = element;
+    if (_passes(
+      element,
+      child,
+      (BackdropKey key) => until != null && key == shared,
+    )) {
+      return true;
+    }
+    blocker = element;
+    return false;
+  });
+  return blocker;
+}
+
+bool _passes(
+  Element element,
+  Element? child,
+  bool Function(BackdropKey key) shares,
+) {
+  final widget = element.widget;
+  if (widget is BackdropGroup) return shares(widget.backdropKey);
+  if (widget is MorphGlassContainerBarrier) return widget.clear;
+  if (widget is MorphTagVisibility) return !widget.hidden;
+  final render = element is RenderObjectElement ? element.renderObject : null;
+  if (render is _RenderStageFade) return true;
+  if (render is RenderOpacity &&
+      child?.widget is MorphTagVisibility &&
+      render.opacity == 1) {
+    return true;
+  }
+  return !(render is RenderOpacity ||
+      render is RenderAnimatedOpacityMixin ||
+      render is RenderSliverOpacity ||
+      render is RenderOffstage ||
+      render is RenderClipRect ||
+      render is RenderClipRRect ||
+      render is RenderClipRSuperellipse ||
+      render is RenderClipOval ||
+      render is RenderClipPath ||
+      render is RenderShaderMask ||
+      render is RenderBackdropFilter ||
+      render is RenderViewportBase ||
+      render is RenderFollowerLayer ||
+      widget is ImageFiltered ||
+      widget is ColorFiltered ||
+      widget is Visibility);
 }
 
 /// The glass container above a control, read by its glass hosts.

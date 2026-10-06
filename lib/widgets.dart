@@ -87,6 +87,8 @@ export 'src/widgets/glass_renderer.dart'
 export 'src/widgets/glass_tier.dart'
     show MorphAdaptiveGlass, MorphGlassDeviceClass;
 export 'src/widgets/glass_container.dart' show MorphGlassContainer;
+export 'src/widgets/glass_inspector.dart'
+    show MorphGlassCensus, MorphGlassHint, MorphGlassInspector;
 export 'src/widgets/glass_button.dart'
     show MorphGlassButton, MorphGlassButtonMotion, MorphGlassButtonStyle;
 export 'src/widgets/lens_motion.dart'
