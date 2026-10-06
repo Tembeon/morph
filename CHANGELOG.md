@@ -14,6 +14,12 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- A search toolbar at rest shades its field and side buttons in one glass
+  layer (Pixel 6a raster p95 -1.0 ms, GPU -8 percent; a search shows as
+  before), and the search field and the bars now tell a glass container
+  when they rest. Buttons in a `MorphGlassContainer` off the pixel grid
+  draw the pixels of their own layers again (1 - 3 channel steps, were up
+  to 76 on rims); a bar inside one keeps its own layer and backdrop.
 - A liquid glass layer allocates less on every frame it composites (no
   matrix copies, uniform setters or appearance lists), with the same
   uniforms and pixels; the Pixel 6a shows no frame-time change, because
