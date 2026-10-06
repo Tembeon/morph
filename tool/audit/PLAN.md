@@ -87,6 +87,29 @@ C1, G1, ... refer to it).
 - Second resting body glass: not detectable per frame; options A - D with
   device costs in glass-renderer.md - OWNER DECISION still open.
 
+## Status 2026-10-06 evening - HANDOFF (optimization campaign)
+
+Branch wip/measured-liquid-glass, pushed as a backup (HEAD 5950daa + this). All checks green at handoff: 1397 package + 17 example tests, analyze 0, dart doc 0. Not merged, not tagged.
+
+What landed 2026-10-05/06 (details: CLAUDE.md glass seam + Performance passport, tool/ios_reference/spec/glass-renderer.md perf sections, tool/audit/*.md):
+- Tiers: liquid / fake (fallback, web) / flat (cheap tier on GLES + pre-A13). Frosted and the frame-time governor removed. Tier chosen once per session.
+- Startup: pipeline warm-up in precache (first glass frame 100+ ms -> 5 ms), 1 s precache budget, Metal command-queue hang fixed, GLES warm-up crash fixed.
+- Renderer: Vulkan gray box (Mali ternary miscompile) fixed; uniform arena (no 31-render cap); 32 shapes per layer; F7 one color-model family per program (back to full Mali occupancy); shader audit batch (harness: example/integration_test/shader_parity_test.dart, tool/audit/shader/*, malioc installed in /Applications/Arm Performance Studio 2026.5).
+- Glass count: MorphGlassContainer (opt-in), package stages (search toolbar, list sections), tinted members join, raster phase/ties exact, scaled containers gated; MorphGlassInspector (debug counter with hints).
+- UI thread: surfaces channel (no widget rebuild per tick), retained layers, parent-rebuild reuse, glyph atlas churn cut, menu rows prebuilt, menu fusion ahead on isolates (MorphFusionWorker).
+- GPU/energy: small blurs bounded (edge effect copies its band; 2 pt frost raised to Impeller's half-res threshold on dpr 2.625): Pixel home-scroll 906 -> 565 mW, tab bar 1683 -> 905 mW.
+- Rejected with evidence: ADPF (+9 % energy, branch exp/adpf), edge effects in the bars' group, nav bar + toolbar one container (+24 % GPU), frost inside the final shader, F1 uniforms, R1 shadow clip (no saveLayer existed).
+- Harnesses: audit.sh / audit_android.sh (pinned worktree builds), energy_android.sh + energy.py (Pixel ODPM rails), gpu_work.py / gpu_scenes.py, perf_counts_test, glass_frames_test, menu_frames_test, launch_probe, g1455 one-binary bench (perf/2026-10-06-g1455-compare).
+
+NEXT (in order):
+1. Flat tier draws NO backdrop blur: MorphScrollEdgeEffect on flat = the fade/hairline only (owner 2026-10-06: "flat should have no blurs at all"). Measure Pixel GPU/energy; flat must equal Material-class GPU on scroll.
+2. iOS verification of the 2026-10-06 work on the iPhone (Metal): small blurs, list stages, inspector, F7, fusion workers - audit.sh + shotdiff + shader parity (run_iphone.sh). The iPhone was with the owner.
+3. Liquid controls UI thread: build p50 5.2 ms vs flat 1.95 on the Pixel - profile and cut (g1455-review idea 3).
+4. GPU per scene was blind before g1455: run gpu_scenes.py on every audit scene (tab bar, sheet, menu) and look for more full-pass blurs / unbounded filters.
+5. Owner decision pending: fusion workers 3 frames ahead (+4.5 - 6 % menu energy) vs 2.
+6. Optional research: same-frame variant of g1455's capture (draw known content under clip+filter instead of a backdrop read; probe 1.36 vs 3.19 ms GPU, +0.6 ms raster naive).
+Lessons: measure GPU and energy, not only frame timings (60 Hz hides GPU waste); never run on a device without its lock (mkdir must succeed); clean /tmp only after agents finish; on the Pixel keep portrait (auto-rotate broke runs).
+
 ## Order of work (owner's priorities)
 
 1. Menu API leftovers (see above) - small, can ride with WP-E.
