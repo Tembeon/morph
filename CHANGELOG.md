@@ -14,6 +14,16 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- A `MorphListSection` shades the resting glass in its rows - glass
+  buttons in a row's trailing or leading slot - in one glass layer, as a
+  `MorphGlassContainer` would; a row whose highlight shows draws its glass
+  in its own layer until the highlight goes, and frosted controls keep
+  their own layers. Pixel 6a, 12 resting buttons in a scrolling list:
+  backdrop filters 13.8 -> 3.8 a frame, raster p50 11.8 -> 10.1 ms, power
+  -8 percent, same pixels. The card is a repaint boundary now, so a list
+  without glass stops re-recording its rows on every scroll frame (gallery
+  home: build p95 6.5 -> 3.8 ms, power -3 percent); an empty liquid glass
+  layer no longer repaints whenever its screen transform moves.
 - A menu fuses its silhouette ahead: each frame it predicts the next
   frames' times, and a pool of background isolates computes their fused
   outlines while frames render; a frame whose shapes and blur radius are
