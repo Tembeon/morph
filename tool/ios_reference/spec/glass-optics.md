@@ -61,6 +61,11 @@ controls on iOS - not used. Audit p95 raster 2.0 / 2.3 / 2.9 / 3.6 ms
 (segmented / tab bar / controls / menu). A lifted lens, knob or thumb
 blurs a copy of its own surroundings while its frost animates (glass-renderer.md,
 "The lifted lens's frost"): the same measured frost, within 1 - 3 steps.
+A resting frost just below Impeller's half resolution blur (the 2 pt bar
+and menu frost at 2.625 dpr) is raised to it, by at most 12 percent
+(2.17 pt there, unchanged at 3x): about 5 ms less GPU a frame on the
+Pixel, 2 - 6 steps on real content, up to 23 on 1 px stripes
+(glass-renderer.md "Small blurs").
 
 ## References and tools
 

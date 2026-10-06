@@ -213,6 +213,11 @@ action".
   40; hard = thinFilm (saturation 1.25, +0.03 brightness, 1 px hairline 10
   percent). Automatic under a nav bar = hard; nothing under a floating
   toolbar.
+- Cost (Pixel 6a, 2026-10-06): the band blurs a copy of the backdrop
+  around it (grown by the kernel's reach), not the pass itself - a band
+  along the screen edge made Impeller blur the whole pass at full
+  resolution: 7.6 -> 2.8 ms GPU a scrolling frame, the same blur within
+  1 - 2 channel steps (glass-renderer.md "Small blurs").
 
 ## Disabled items [device, light + dark, 2026-10-03, scene x4disbars]
 

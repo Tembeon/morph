@@ -1,0 +1,207 @@
+import 'dart:ui' as ui;
+
+import 'package:material_ui/material_ui.dart';
+import 'package:morph/widgets.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/scroll_edge_effect.dart'
+    show debugMorphEdgeEffectBoundsBlur;
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
+
+enum BenchVariant {
+  plain,
+  flatOld(tier: MorphGlassTier.flat, legacy: true),
+  flatNew(tier: MorphGlassTier.flat),
+  fakeOld(tier: MorphGlassTier.fake, legacy: true),
+  fakeNew(tier: MorphGlassTier.fake),
+  liquidOld(tier: MorphGlassTier.liquid, legacy: true),
+  liquidNew(tier: MorphGlassTier.liquid);
+
+  const BenchVariant({this.tier, this.legacy = false});
+
+  final MorphGlassTier? tier;
+  final bool legacy;
+}
+
+enum BenchScene { scroll, controls }
+
+const Color benchBackground = Color(0xFF000000);
+
+Color tileColor(int i) =>
+    HSLColor.fromAHSL(1, (i * 37) % 360, 0.55, 0.62).toColor();
+
+Widget tile(int i) => Container(
+  height: 64,
+  margin: const EdgeInsets.only(bottom: 8),
+  decoration: BoxDecoration(
+    color: tileColor(i),
+    borderRadius: BorderRadius.circular(14),
+  ),
+  alignment: Alignment.centerLeft,
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  child: Text(
+    'Row $i',
+    style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 16),
+  ),
+);
+
+class BenchApp extends StatelessWidget {
+  const BenchApp({
+    required this.variant,
+    required this.scene,
+    required this.controller,
+    super.key,
+  });
+
+  final BenchVariant variant;
+  final BenchScene scene;
+  final ScrollController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final tier = variant.tier;
+    debugMorphEdgeEffectBoundsBlur = !variant.legacy;
+    debugMorphHalfResolutionBlur = !variant.legacy;
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.dark,
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: benchBackground,
+        splashFactory: NoSplash.splashFactory,
+      ),
+      builder: (BuildContext context, Widget? child) {
+        if (tier != null) {
+          return MorphAdaptiveGlass(
+            renderer: MorphGlassRenderer(tier: tier),
+            tier: tier,
+            child: BackdropGroup(child: MorphScope(child: child!)),
+          );
+        }
+        return child!;
+      },
+      home: Material(
+        type: MaterialType.transparency,
+        child: switch (scene) {
+          BenchScene.scroll => ScrollScene(
+            variant: variant,
+            controller: controller,
+          ),
+          BenchScene.controls => const ControlsScene(),
+        },
+      ),
+    );
+  }
+}
+
+class ScrollScene extends StatefulWidget {
+  const ScrollScene({
+    required this.variant,
+    required this.controller,
+    super.key,
+  });
+
+  final BenchVariant variant;
+  final ScrollController controller;
+
+  @override
+  State<ScrollScene> createState() => _ScrollSceneState();
+}
+
+class _ScrollSceneState extends State<ScrollScene> {
+  int _tab = 0;
+
+  static const List<(IconData, String)> _tabs = [
+    (Icons.home_rounded, 'Home'),
+    (Icons.search_rounded, 'Search'),
+    (Icons.radio_rounded, 'Radio'),
+    (Icons.person_rounded, 'Profile'),
+  ];
+
+  Widget _list(EdgeInsets padding) => ListView.builder(
+    controller: widget.controller,
+    padding: padding,
+    itemCount: 60,
+    itemBuilder: (BuildContext context, int i) => tile(i),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.paddingOf(context).top;
+    final v = widget.variant;
+    if (v.tier == null) {
+      return ColoredBox(
+        color: benchBackground,
+        child: _list(EdgeInsets.fromLTRB(16, top + 60, 16, 120)),
+      );
+    }
+    return Theme(
+      data: Theme.of(context),
+      child: Stack(
+        children: [
+          MorphNavigationScaffold(
+            title: 'Library',
+            controller: widget.controller,
+            backgroundColor: benchBackground,
+            edgeEffect: MorphScrollEdgeEffectStyle.hard,
+            trailing: [
+              MorphBarButtonGroup([
+                MorphBarButton(
+                  id: 'add',
+                  icon: const Icon(Icons.add),
+                  onPressed: () {},
+                ),
+                MorphBarButton(
+                  id: 'more',
+                  icon: const Icon(Icons.more_horiz),
+                  onPressed: () {},
+                ),
+              ], id: 'actions'),
+            ],
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+                sliver: SliverList.builder(
+                  itemCount: 60,
+                  itemBuilder: (BuildContext context, int i) => tile(i),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 21,
+            child: Center(
+              child: MorphTabBar(
+                items: [
+                  for (final (icon, label) in _tabs)
+                    MorphTabItem(icon: icon, label: label),
+                ],
+                selected: _tab,
+                onChanged: (int i) => setState(() => _tab = i),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class ControlsScene extends StatelessWidget {
+  const ControlsScene({super.key});
+
+  @override
+  Widget build(BuildContext context) => const SizedBox();
+}
+
+void main() {
+  runApp(
+    BenchApp(
+      variant: BenchVariant.plain,
+      scene: BenchScene.scroll,
+      controller: ScrollController(),
+    ),
+  );
+}

@@ -302,6 +302,12 @@ bench/run_pixel.sh app-profile.apk <out dir> <name>   # holds no lock itself
 bench/summarize_bench.py <out dir>/<name>.json [...]
 ```
 
+Follow-up (same day): idea 1 landed - the edge effect blurs a copy of its
+band, a frost just below half resolution is raised to it; scroll GPU flat
+8.47 -> 3.71, liquid 11.15 -> 6.28 ms, energy and pixels in
+glass-renderer.md "Small blurs" (the cause was also the whole-pass blur
+of a band along the screen edge, not only the full resolution).
+
 Not done: energy rails for these variants (perfetto's Python module is not
 installed on this Mac; GPU busy is the proxy here); the bars' frost ablation
 (idea 1's second half); macOS and iPhone runs of the bench.

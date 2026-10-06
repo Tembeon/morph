@@ -2125,6 +2125,106 @@ sched, no cpufreq; the rails still came) until the phone was rebooted.
 Check a short `perfetto -t 5s sched freq` trace has sched rows before an
 energy run.
 
+## Small blurs: the edge effect's band and the 2 pt frost (2026-10-06)
+
+Found by the g1455 bench (tool/audit/g1455-review.md, idea 1): on the
+Pixel 6a the hard scroll edge effect's 2 pt blur cost 7.6 ms of GPU a
+scrolling frame (flat 8.48 ms against 0.88 without it), and the bars' 2 pt
+frost another ~6.3 ms on liquid. Evidence:
+perf/2026-10-06-pixel6a-smallblur-{bench,a,b,energy},
+perf/2026-10-06-shader-smallblur-{vulkan,gles}-parity.
+
+Cause, two engine paths (Flutter 3.47.2, gaussian_blur_filter_contents.cc):
+- The blur trims its input to the region its output needs grown by the
+  kernel (the coverage hint) only when that region lies inside the
+  backdrop texture (CalculateDownsamplePassArgs); a band along the screen
+  edge needs pixels above the screen, so the WHOLE pass is blurred. Probe
+  (bench abl1/abl2, BackdropFilters without a clip blur the whole screen
+  too): an unclipped 2 pt blur 8.80 ms, the edge effect 7.97.
+- Below a device sigma of 4 sqrt 2 (5.66 px, after the engine's sigma
+  correction) CalculateScale rounds the downsample to 1: full resolution.
+  2 pt at 2.625 dpr is 5.21 px. The same blur at 2.2 pt (half resolution)
+  costs 3.81 ms against 8.80. At 3x (iPhone) 2 pt is 5.96 px, already half
+  resolution.
+- A frost composed under the glass shader gets no coverage hint at all
+  (runtime_effect_filter_contents.cc, F1 above): the whole pass, at full
+  resolution, per frosted layer.
+
+What changed:
+- The edge effect pushes a clip of its band grown by the kernel's reach
+  (`morphBlurReach`: 1.732 x the device sigma + the down/upsample texels,
+  in whole device pixels) and an identity color-filter backdrop
+  (`morphBackdropSeed`, BlendMode.src) under its blur, so the blur reads
+  that band-sized pass: the same full resolution Gaussian over the same
+  pixels. An identity MATRIX filter as the seed does not work: the blur
+  inside it read an empty pass on Impeller (host harness, unblurred
+  band). An identity color filter as the blur's innermost stage instead
+  of a seed trims too but leaves a transparent 1 px ring where the trim
+  meets the texture edge (Contents::RenderToSnapshot's coverage
+  expansion): 39 - 80 steps along the screen sides, rejected.
+- A frost just below the half resolution threshold is raised to it, at
+  most by 12 percent (`morphHalfResolutionSigma`, renderer
+  internal/blur_reach.dart): 2 pt becomes 2.17 pt at 2.625; nothing
+  changes at 3x or at 2x (where the raise would be 44 percent). Applied
+  to every frost that does not blur its own backdrop (bars, menus,
+  `frostControls`, the fake tier); the lifted lens keeps its seeded,
+  animated frost. Seeding the bars instead (the lens's
+  `blursOwnBackdrop`) measured 4.72 ms against the raise's 4.25 and drew
+  the tab bar's rim up to 97 steps off on the device (255 on the host):
+  the seed's pass origin is only right for the lens's geometry; not
+  pursued.
+
+Pixels (max channel step, bounded / raised against the old blur;
+`SHADER_BLUR=true` on the shader parity runner, example/test/
+blur_bound_host_test.dart on the host; support/blur_harness.dart):
+
+| case | Pixel Vulkan | Pixel GLES | host Impeller |
+|---|---|---|---|
+| edge effect hard / soft, top / bottom, faded | 1 - 2 | 1 - 2 | 1 - 2 |
+| tab bar (liquid, light, over noise) | 6 | 6 | 6 |
+| toolbar / menu / half visible frost, liquid | 13 - 22 | 13 - 22 | 13 - 23 |
+| the same, fake tier | 8 - 22 | 8 - 22 | 9 - 23 |
+| bench scroll shots (real content): flat / fake / liquid | 1 / 3 / 2 | - | - |
+| audit shots: home-scrolled / held, list, resting tab bar | 1 / 2, 0, 19 (A/A 19) | - | - |
+
+The edge effect's 1 - 2 steps are the color matrix's half precision. The
+frost's 13 - 23 are aliasing of the half resolution downsample on the
+harness's 1 px stripes and noise (a faint moire); on real content 2 - 6.
+iOS: untested (iPhone with the owner); at 3x the frost is unchanged and
+the edge effect seed is the same Gaussian.
+
+GPU (Pixel 6a, kernel gpu_work_period, ms a frame; bench = one binary,
+seeds 20261011 / 20261012, 5 runs each; audit = liquid, 5 runs, ABBA):
+
+| scene | before | after | busy before -> after |
+|---|---|---|---|
+| bench scroll, flat | 8.47 | 3.71 | 50 -> 22 % |
+| bench scroll, fake | 11.31 | 6.44 | 67 -> 38 % |
+| bench scroll, liquid | 11.15 | 6.28 | 67 -> 38 % |
+| audit home-scroll | 8.14 | 4.46 | 49 -> 27 % |
+| audit list | 9.92 | 7.68 | 59 -> 46 % |
+| audit tab bar | 11.61 (623 MHz) | 9.33 (447 MHz) | 69 -> 56 %, Mcyc 7.23 -> 4.17 |
+| audit controls | 5.00 | 4.97 | no frost, no edge effect |
+
+Ablation (bench abl2, liquid without the edge effect): frost 0 2.83, 2 pt
+9.14, raised 4.25, seeded 4.72, seeded + raised 4.10; flat edge effect
+seeded 3.70, raised 3.62, both 3.10 (the raise on the edge effect: 10
+steps on the device shot, 17 on the harness - kept exact instead).
+
+Frame timings: raster p50 +0.3 (bench liquid) to +0.8 ms (bench flat,
+the seed is one more backdrop filter for the raster thread); audit p50
+home-scroll 8.16 -> 8.44, list 9.76 -> 9.96, tab bar and controls within
+the launch spread; frames over budget unchanged (0 - 7 per run on both).
+
+Energy (perf/energy_android.sh, liquid, ABBA, 2 launches each, median,
+whole phone): home-scroll 906 -> 565 mW (GPU rail 11.95 -> 3.91 J), tab
+bar 1683 -> 905 mW (54.0 -> 15.6 J), list 954 -> 705 mW (16.0 -> 7.3 J),
+controls 623 -> 616 mW; the CPU rails do not rise (home-scroll big / mid
+/ little 1.40 / 2.14 / 3.66 -> 0.85 / 1.33 / 2.30 J).
+
+A/B switches: `debugMorphEdgeEffectBoundsBlur`,
+`debugMorphHalfResolutionBlur`; the audit's `AUDIT_LEGACY_BLURS=true`.
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
@@ -2178,7 +2278,9 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
   "Raster ties, scaled containers").
 - The backdrop filter itself costs ~0.75 ms of raster a frame on the
   Pixel 6a (Q1 above), and a composed blur reads its whole pass (F1 of
-  "The lifted lens's frost"): engine-side levers.
+  "The lifted lens's frost", "Small blurs"): engine-side levers. The
+  bars' frost could be exact and as cheap if the frost seed's pass
+  origin were right for bar geometry ("Small blurs").
 
 - Dark lifted slider thumb look (slider.md).
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).

@@ -1,0 +1,14 @@
+apk: /tmp/morph-blur/final-20261012.apk  date: Tue Oct  6 19:19:08 CEST 2026
+skin before: 35
+Thermal Status: 0
+TotalTime: 449
+WaitTime: 453
+package:dev.tembeon.g1455_bench uid:10349
+skin after: 36
+Thermal Status: 0
+logcat (impeller, errors):
+10-06 19:19:09.425 25128 25177 I flutter : The Dart VM service is listening on http://127.0.0.1:33891/cmipgnbWOMY=/
+10-06 19:19:09.429 25128 25167 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-06 19:19:09.532 25128 25128 I flutter : 00:00 +0: compare
+10-06 19:25:19.231 25128 25128 I flutter : 06:09 +1: (tearDownAll)
+10-06 19:25:19.233 25128 25128 I flutter : 06:09 +2: All tests passed!

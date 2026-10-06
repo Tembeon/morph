@@ -1,0 +1,39 @@
+rails: ['rails.aoc.logic', 'rails.aoc.memory', 'rails.cpu.big', 'rails.cpu.little', 'rails.cpu.mid', 'rails.ddr.a', 'rails.ddr.b', 'rails.ddr.c', 'rails.display', 'rails.gps', 'rails.gpu', 'rails.memory.interface', 'rails.system.fabric', 'rails.tpu'] threads: {'ui': 7437, 'raster': 7499, 'workers': 16}
+
+== liquid-legacy
+home-scroll  n=2 s=35.2 total 31846 mJ (906 mW) | rails.aoc.logic=166 rails.aoc.memory=85 rails.cpu.big=1396 rails.cpu.little=3657 rails.cpu.mid=2139 rails.ddr.a=330 rails.ddr.b=512 rails.ddr.c=2590 rails.display=4780 rails.gps=31 rails.gpu=11952 rails.memory.interface=2524 rails.system.fabric=1253 rails.tpu=432
+    liquid-legacy-2    35778 mJ   35.1s  freq L/M/B 764/782/566  busy 0.27/0.40/0.11  ui ms 5175/1507/418  raster ms 0/86/100  b95 3.48 r95 10.83 over 2  skin 36.6>37.4
+    liquid-legacy-3    27915 mJ   35.2s  freq L/M/B 515/474/504  busy 0.25/0.38/0.05  ui ms 5704/2113/221  raster ms 0/88/135  b95 3.59 r95 11.18 over 2  skin 36.4>37.4
+tab-bar      n=2 s=50.9 total 85556 mJ (1683 mW) | rails.aoc.logic=243 rails.aoc.memory=144 rails.cpu.big=1906 rails.cpu.little=4365 rails.cpu.mid=2216 rails.ddr.a=599 rails.ddr.b=713 rails.ddr.c=4887 rails.display=9117 rails.gps=45 rails.gpu=54044 rails.memory.interface=4483 rails.system.fabric=2169 rails.tpu=624
+    liquid-legacy-2    87234 mJ   51.9s  freq L/M/B 650/580/508  busy 0.35/0.41/0.11  ui ms 20313/3364/1240  raster ms 0/113/130  b95 9.36 r95 14.11 over 6  skin 36.6>37.4
+    liquid-legacy-3    83877 mJ   49.8s  freq L/M/B 633/573/508  busy 0.34/0.41/0.11  ui ms 17524/3819/1232  raster ms 0/109/155  b95 8.92 r95 14.04 over 4  skin 36.4>37.4
+controls     n=2 s=33.9 total 21162 mJ (623 mW) | rails.aoc.logic=159 rails.aoc.memory=83 rails.cpu.big=911 rails.cpu.little=2568 rails.cpu.mid=1246 rails.ddr.a=257 rails.ddr.b=476 rails.ddr.c=2160 rails.display=4452 rails.gps=27 rails.gpu=5208 rails.memory.interface=2015 rails.system.fabric=1183 rails.tpu=417
+    liquid-legacy-2    21270 mJ   34.0s  freq L/M/B 624/479/502  busy 0.28/0.39/0.07  ui ms 10687/3752/614  raster ms 0/85/103  b95 13.37 r95 12.20 over 3  skin 36.6>37.4
+    liquid-legacy-3    21054 mJ   33.9s  freq L/M/B 619/487/503  busy 0.28/0.39/0.07  ui ms 10773/3382/563  raster ms 0/84/104  b95 13.79 r95 12.26 over 2  skin 36.4>37.4
+list         n=2 s=35.5 total 33886 mJ (954 mW) | rails.aoc.logic=171 rails.aoc.memory=89 rails.cpu.big=1022 rails.cpu.little=2623 rails.cpu.mid=1490 rails.ddr.a=319 rails.ddr.b=502 rails.ddr.c=2627 rails.display=4826 rails.gps=31 rails.gpu=15960 rails.memory.interface=2491 rails.system.fabric=1300 rails.tpu=436
+    liquid-legacy-2    34468 mJ   35.5s  freq L/M/B 598/590/505  busy 0.29/0.39/0.09  ui ms 8101/1867/465  raster ms 0/79/121  b95 5.22 r95 12.55 over 0  skin 36.6>37.4
+    liquid-legacy-3    33304 mJ   35.5s  freq L/M/B 559/556/502  busy 0.27/0.40/0.07  ui ms 8098/1739/346  raster ms 0/75/131  b95 5.06 r95 12.79 over 1  skin 36.4>37.4
+
+== liquid-new
+home-scroll  n=2 s=35.2 total 19877 mJ (565 mW) | rails.aoc.logic=163 rails.aoc.memory=80 rails.cpu.big=849 rails.cpu.little=2296 rails.cpu.mid=1331 rails.ddr.a=256 rails.ddr.b=510 rails.ddr.c=2215 rails.display=4740 rails.gps=31 rails.gpu=3914 rails.memory.interface=1896 rails.system.fabric=1164 rails.tpu=432
+    liquid-new-1      20179 mJ   35.1s  freq L/M/B 552/528/513  busy 0.25/0.38/0.06  ui ms 5260/2103/246  raster ms 0/83/143  b95 3.27 r95 11.37 over 1  skin 36.8>36.4
+    liquid-new-4      19574 mJ   35.2s  freq L/M/B 548/491/503  busy 0.24/0.38/0.05  ui ms 4966/2242/211  raster ms 0/82/144  b95 3.45 r95 11.37 over 2  skin 36.5>36.6
+tab-bar      n=2 s=50.3 total 45552 mJ (905 mW) | rails.aoc.logic=237 rails.aoc.memory=120 rails.cpu.big=1927 rails.cpu.little=4484 rails.cpu.mid=2215 rails.ddr.a=512 rails.ddr.b=681 rails.ddr.c=4057 rails.display=9045 rails.gps=45 rails.gpu=15580 rails.memory.interface=4132 rails.system.fabric=1900 rails.tpu=618
+    liquid-new-1      45160 mJ   50.5s  freq L/M/B 638/601/508  busy 0.34/0.39/0.12  ui ms 18393/3751/1214  raster ms 0/107/156  b95 9.41 r95 14.04 over 7  skin 36.8>36.4
+    liquid-new-4      45945 mJ   50.1s  freq L/M/B 663/614/523  busy 0.34/0.39/0.14  ui ms 17720/3790/1251  raster ms 0/111/148  b95 9.03 r95 14.08 over 5  skin 36.5>36.6
+controls     n=2 s=33.8 total 20832 mJ (616 mW) | rails.aoc.logic=165 rails.aoc.memory=78 rails.cpu.big=856 rails.cpu.little=2579 rails.cpu.mid=1226 rails.ddr.a=254 rails.ddr.b=476 rails.ddr.c=2104 rails.display=4417 rails.gps=29 rails.gpu=5134 rails.memory.interface=1951 rails.system.fabric=1148 rails.tpu=415
+    liquid-new-1      20720 mJ   33.7s  freq L/M/B 634/477/502  busy 0.27/0.39/0.07  ui ms 10477/3320/657  raster ms 0/88/100  b95 12.66 r95 11.76 over 1  skin 36.8>36.4
+    liquid-new-4      20943 mJ   33.9s  freq L/M/B 621/489/505  busy 0.27/0.39/0.06  ui ms 10497/3409/649  raster ms 0/87/98  b95 13.42 r95 12.23 over 3  skin 36.5>36.6
+list         n=2 s=35.4 total 24979 mJ (705 mW) | rails.aoc.logic=172 rails.aoc.memory=81 rails.cpu.big=1061 rails.cpu.little=2719 rails.cpu.mid=1545 rails.ddr.a=298 rails.ddr.b=493 rails.ddr.c=2439 rails.display=4771 rails.gps=31 rails.gpu=7293 rails.memory.interface=2414 rails.system.fabric=1226 rails.tpu=435
+    liquid-new-1      24649 mJ   35.5s  freq L/M/B 568/583/501  busy 0.26/0.38/0.09  ui ms 7087/2119/425  raster ms 0/84/122  b95 5.06 r95 12.74 over 2  skin 36.8>36.4
+    liquid-new-4      25310 mJ   35.4s  freq L/M/B 607/588/514  busy 0.28/0.39/0.09  ui ms 7007/1939/440  raster ms 0/82/121  b95 5.02 r95 12.60 over 1  skin 36.5>36.6
+
+median per variant and scene: total mJ (mW) | cpu big/mid/little | gpu | mem | display | build p95 / raster p95 / over budget (median of launches) | n
+home-scroll  liquid-legacy   31846 (  906) | 1396/2139/3657 |  11952 |  7208 |  4780 | 3.53 / 11.00 / 2 | 2
+home-scroll  liquid-new   19877 (  565) | 849/1331/2296 |   3914 |  6042 |  4740 | 3.36 / 11.37 / 2 | 2
+tab-bar      liquid-legacy   85556 ( 1683) | 1906/2216/4365 |  54044 | 12851 |  9117 | 9.14 / 14.08 / 5 | 2
+tab-bar      liquid-new   45552 (  905) | 1927/2215/4484 |  15580 | 11283 |  9045 | 9.22 / 14.06 / 6 | 2
+controls     liquid-legacy   21162 (  623) | 911/1246/2568 |   5208 |  6091 |  4452 | 13.58 / 12.23 / 2 | 2
+controls     liquid-new   20832 (  616) | 856/1226/2579 |   5134 |  5932 |  4417 | 13.04 / 12.00 / 2 | 2
+list         liquid-legacy   33886 (  954) | 1022/1490/2623 |  15960 |  7239 |  4826 | 5.14 / 12.67 / 0 | 2
+list         liquid-new   24979 (  705) | 1061/1545/2719 |   7293 |  6871 |  4771 | 5.04 / 12.67 / 2 | 2

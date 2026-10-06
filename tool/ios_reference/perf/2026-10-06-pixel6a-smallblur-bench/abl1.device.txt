@@ -1,0 +1,23 @@
+apk: /tmp/morph-blur/abl1.apk  date: Tue Oct  6 18:07:31 CEST 2026
+skin before: 33
+Thermal Status: 0
+TotalTime: 905
+WaitTime: 909
+package:dev.tembeon.g1455_bench uid:10349
+skin after: 37
+Thermal Status: 0
+logcat (impeller, errors):
+10-06 18:07:32.486 21698 21698 I flutter : 00:00 +0: compare
+10-06 18:10:09.500 22027 22027 I flutter : [IMPORTANT:flutter/shell/common/shell.cc(528)] [Action Required]: Impeller opt-out deprecated.
+10-06 18:10:09.500 22027 22027 I flutter :     The application opted out of Impeller by either using the
+10-06 18:10:09.500 22027 22027 I flutter :     `--no-enable-impeller` flag or the
+10-06 18:10:09.500 22027 22027 I flutter :     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+10-06 18:10:09.500 22027 22027 I flutter :     These options are going to go away in an upcoming Flutter release. Remove
+10-06 18:10:09.500 22027 22027 I flutter :     the explicit opt-out. If you need to opt-out, please report a bug describing
+10-06 18:10:09.500 22027 22027 I flutter :     the issue.
+10-06 18:10:09.500 22027 22027 I flutter : 
+10-06 18:10:09.500 22027 22027 I flutter :     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+10-06 18:10:09.500 22027 22027 I flutter : 
+10-06 18:10:10.170 22027 22114 I flutter : The Dart VM service is listening on http://127.0.0.1:44791/dCUTtqX-lu0=/
+10-06 18:24:14.662 21698 21698 I flutter : 16:42 +1: (tearDownAll)
+10-06 18:24:14.663 21698 21698 I flutter : 16:42 +2: All tests passed!

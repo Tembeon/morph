@@ -1,0 +1,9 @@
+tier     scene           build_p50    build_p95   raster_p50   raster_p95   raster_p99 raster_worst     span_p95  over_budget
+liquid-legacy controls             5.21        12.21         8.60        12.02        13.12        15.88        23.08         1.00
+liquid-legacy home-scroll          1.81         3.82         8.38        10.96        12.39        24.54        15.50         2.00
+liquid-legacy list                 2.67         5.48         9.77        11.93        13.46        17.60        18.01         1.00
+liquid-legacy tab-bar              5.73         9.05        10.27        12.82        15.63        20.50        22.57         4.00
+liquid-new controls             4.78        12.28         8.64        11.59        13.91        16.11        23.14         1.00
+liquid-new home-scroll          1.66         3.32         8.46        11.10        12.84        17.75        15.16         1.00
+liquid-new list                 2.33         5.91         9.98        12.22        13.91        17.09        18.42         1.00
+liquid-new tab-bar              5.51         9.20        10.57        13.95        16.00        20.54        22.64         4.00

@@ -1,0 +1,20 @@
+run: liquid-legacy-3  apk: liquid-legacy.apk  date: Tue Oct  6 19:48:45 CEST 2026
+before:
+skin: 36.449905
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 357
+  Capacity level: 5
+TotalTime: 746
+after:
+skin: 37.3627
+Thermal Status: 0
+  AC powered: true
+  USB powered: false
+  status: 5
+  level: 100
+  temperature: 357
+  Capacity level: 5

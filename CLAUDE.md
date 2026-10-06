@@ -1340,6 +1340,20 @@ The menu fusion workers cost 4.5 - 6 percent of the menu scene's energy
 fewer frames over budget in 40 transitions; one frame ahead costs
 nothing and gains nothing.
 
+SMALL BLURS (2026-10-06, glass-renderer.md "Small blurs"; perf/2026-10-06-
+pixel6a-smallblur-*): a backdrop blur whose clip grown by the kernel
+leaves the pass (a band along the screen edge) makes Impeller blur the
+WHOLE pass, and below 5.66 device px of sigma at full resolution. The
+scroll edge effect blurs a copy of its band (`morphBackdropSeed` under a
+clip grown by `morphBlurReach`, within 1 - 2 steps); a frost just below
+half resolution is raised to it by at most 12 percent
+(`morphHalfResolutionSigma`, 2 -> 2.17 pt at 2.625, 2 - 6 steps on real
+content, up to 23 on 1 px stripes). Pixel GPU ms a frame: bench scroll
+flat 8.47 -> 3.71, liquid 11.15 -> 6.28; audit home-scroll 8.14 -> 4.46,
+list 9.92 -> 7.68, tab bar 11.61 -> 9.33; energy home-scroll 906 -> 565
+mW, tab bar 1683 -> 905, list 954 -> 705; raster p50 +0.3 - 0.8 ms (one
+more backdrop filter). iOS not yet verified.
+
 Release bench 2026-10-05, Apple Silicon macBook (tembeon), macOS:
 
 | scene                   | us/op  |

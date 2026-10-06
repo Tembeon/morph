@@ -1,0 +1,11 @@
+apk: /tmp/morph-blur/abl2.apk  date: Tue Oct  6 18:28:21 CEST 2026
+skin before: 35
+Thermal Status: 0
+TotalTime: 871
+WaitTime: 875
+package:dev.tembeon.g1455_bench uid:10349
+skin after: 36
+Thermal Status: 0
+logcat (impeller, errors):
+10-06 18:46:49.196 23014 23014 I flutter : 18:27 +1: (tearDownAll)
+10-06 18:46:49.197 23014 23014 I flutter : 18:27 +2: All tests passed!

@@ -1,0 +1,8 @@
+scene.variant                      n   build_p50   build_p95  raster_p50  raster_p95 raster_mean over_budget   gpu_ms/f     Mcyc/f  gpu_busy%    r50/mat    r95/mat    cyc/mat     caps/f
+scroll.fakeNew                409.00        1.75        3.58       10.10       12.87        9.98        1.50      6.440      2.795     38.095                                 
+scroll.fakeOld                409.00        1.79        3.79        9.53       12.21        9.46        1.00     11.309      6.794     66.887                                 
+scroll.flatNew                409.00        1.80        3.79        8.41        9.93        8.09        1.00      3.706      1.608     21.906                                 
+scroll.flatOld                409.00        1.76        3.75        7.61        9.05        7.28        1.00      8.470      3.676     50.109                                 
+scroll.liquidNew              417.50        1.80        3.77        9.66       12.25        9.61        1.00      6.280      2.726     37.863                                 
+scroll.liquidOld              420.00        1.97        4.25        9.39       11.96        9.27        2.00     11.148      6.708     67.478                                 
+scroll.plain                  391.00        1.27        3.34        4.52        5.71        4.36        0.00      0.697      0.302      3.940                                 

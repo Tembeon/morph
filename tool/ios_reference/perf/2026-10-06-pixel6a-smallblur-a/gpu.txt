@@ -1,0 +1,10 @@
+gpu_scenes.py (traces in /tmp, not committed), launches: new, legacy
+report                             scene         busy %  ms/frame Mcyc/frame   MHz
+liquid-new.json                    home-scroll     26.8     4.484      1.946   434
+liquid-new.json                    tab-bar         55.9     9.361      4.182   447
+liquid-new.json                    controls        29.8     4.979      2.161   434
+liquid-new.json                    list            46.0     7.672      3.330   434
+liquid-legacy.json                 home-scroll     48.4     8.105      3.540   437
+liquid-legacy.json                 tab-bar         69.5    11.627      7.243   623
+liquid-legacy.json                 controls        29.9     5.014      2.176   434
+liquid-legacy.json                 list            58.9     9.835      4.655   473
