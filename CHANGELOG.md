@@ -14,6 +14,15 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Labels no longer re-rasterize their glyphs on every frame of a lens
+  lift or a menu open. Impeller keys glyphs by screen scale, so text under
+  a sweeping scale paid a glyph-atlas update nearly every frame (2 - 3 ms
+  of raster each on a Pixel 6a). A lens's magnified copy now steps its
+  text scale on a fine grid while it lifts or sets down (at most 0.54
+  percent off, exact at rest and held), and a menu's rows draw from one
+  raster while its content is blurred. Pixel 6a: menu atlas work 130 ->
+  41 ms and tab bar 113 -> 13 ms per audit run, menu raster p95 20.7 ->
+  16.7 ms; resting text is unchanged.
 - Large liquid glass costs the GPU less, same pixels: a sheet- or
   menu-sized face skips its rim lighting where none can reach, and the
   final pass shares work it did twice. A 340 x 600 pt sheet layer draws
