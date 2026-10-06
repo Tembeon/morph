@@ -1,0 +1,25 @@
+apk: liquid-seedab.apk  commit: ec62123  date: Tue Oct  6 09:49:03 CEST 2026
+thermal before:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=37.06555, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=34.0, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=34.127155, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+TotalTime: 1796
+WaitTime: 1798
+thermal after:
+Thermal Status: 0
+ Temperature{mValue=29.500002, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=37.06555, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ Temperature{mValue=33.5, mType=2, mName=battery, mStatus=0}
+ Temperature{mValue=34.3809, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+ TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+ TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+logcat (impeller, gpu, errors):
+10-06 09:49:04.839 21841 21917 I flutter : The Dart VM service is listening on http://127.0.0.1:37533/drNgiV_PQVA=/
+10-06 09:49:04.846 21841 21883 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-06 09:49:05.307 21841 21841 I flutter : 00:00 +0: shader parity
+10-06 09:49:24.704 21841 21841 I flutter : 00:19 +1: (tearDownAll)
+10-06 09:49:24.717 21841 21841 I flutter : 00:19 +2: All tests passed!

@@ -1,0 +1,85 @@
+== segmented, raster slices per frame (count, self ms, incl ms)
+/tmp/morph-perf/abl-out/flat.txt frames 775
+/tmp/morph-perf/abl-out/a0.txt frames 778
+/tmp/morph-perf/abl-out/a1.txt frames 775
+/tmp/morph-perf/abl-out/a2.txt frames 776
+/tmp/morph-perf/abl-out/a3.txt frames 775
+/tmp/morph-perf/abl-out/a4.txt frames 772
+/tmp/morph-perf/abl-out/a5.txt frames 775
+/tmp/morph-perf/abl-out/a6.txt frames 773
+/tmp/morph-perf/abl-out/liquid.txt frames 877
+name                                                                flat.txt                    a0.txt                    a1.txt                    a2.txt                    a3.txt                    a4.txt                    a5.txt                    a6.txt                liquid.txt
+SurfaceFrame::Encode                                 1.00   1.942   2.160     1.00   2.494   3.059     1.00   2.271   2.748     1.00   2.444   2.946     1.00   2.154   2.649     1.00   1.746   1.958     1.00   1.865   2.081     1.00   1.848   2.060     1.00   2.994   5.403  
+QueueSubmit                                          1.00   1.539   1.539     1.20   1.613   1.613     1.15   1.562   1.562     1.15   1.659   1.659     1.15   1.668   1.668     1.00   1.528   1.528     1.00   1.539   1.539     1.00   1.514   1.514     2.00   1.944   1.944  
+Canvas::saveLayer                                    0.00   0.000   0.000     0.31   0.053   0.054     0.31   0.049   0.051     0.31   0.055   0.057     0.30   0.051   0.053     0.00   0.000   0.000     0.00   0.000   0.000     0.00   0.000   0.000     3.77   0.682   0.685  
+LayerTree::Paint                                     1.00   0.183   0.183     1.00   0.242   0.244     1.00   0.268   0.270     1.00   0.291   0.293     1.00   0.244   0.246     1.00   0.200   0.200     1.00   0.177   0.177     1.00   0.176   0.176     1.00   0.296   0.322  
+CreateGlyphAtlas                                     1.00   0.208   0.208     1.00   0.205   0.241     1.00   0.204   0.204     1.00   0.213   0.213     1.00   0.206   0.206     1.00   0.201   0.201     1.00   0.205   0.205     1.00   0.201   0.201     1.00   0.218   0.255  
+Rasterizer::DrawToSurfaces                           1.00   0.193   5.360     1.00   0.194   6.094     1.00   0.190   5.801     1.00   0.184   6.133     1.00   0.172   5.778     1.00   0.168   5.108     1.00   0.192   5.247     1.00   0.184   5.189     1.00   0.196   7.683  
+QueuePresentKHR                                      1.00   0.174   0.828     1.00   0.171   0.764     1.00   0.165   0.766     1.00   0.176   0.773     1.00   0.181   0.789     1.00   0.168   0.804     1.00   0.172   0.794     1.00   0.176   0.811     1.00   0.184   0.767  
+LayerTree::Preroll                                   1.00   0.114   0.114     1.00   0.146   0.146     1.00   0.156   0.156     1.00   0.162   0.162     1.00   0.141   0.141     1.00   0.122   0.122     1.00   0.116   0.116     1.00   0.109   0.109     1.00   0.177   0.177  
+queueBuffer                                          2.00   0.140   1.170     2.00   0.124   1.056     2.00   0.125   1.074     2.00   0.134   1.057     2.00   0.133   1.083     2.01   0.134   1.138     2.00   0.134   1.110     2.00   0.139   1.133     2.00   0.120   1.034  
+AcquireNextImageKHR                                  1.00   0.092   0.133     1.00   0.088   0.127     1.00   0.089   0.127     1.00   0.088   0.126     1.00   0.089   0.130     1.00   0.091   0.130     1.00   0.091   0.132     1.00   0.094   0.133     1.00   0.086   0.162  
+SurfaceFrame::Submit                                 1.00   0.086   4.615     1.00   0.088   5.265     1.00   0.084   4.947     1.00   0.087   5.242     1.00   0.084   4.962     1.00   0.084   4.373     1.00   0.084   4.498     1.00   0.083   4.469     1.00   0.061   6.690  
+acquireBuffer                                        1.00   0.065   0.070     0.98   0.061   0.065     1.00   0.061   0.065     0.90   0.061   0.065     0.95   0.061   0.067     1.00   0.062   0.067     1.00   0.064   0.069     1.00   0.064   0.069     0.98   0.061   0.066  
+-- flat frames by (saveLayers, submits)
+(0, 0) 2 DoDraw 5.20 Encode 0.66 Submit 0.00 saveLayer 0.00 Paint 0.07
+(0, 1) 773 DoDraw 5.51 Encode 2.15 Submit 1.43 saveLayer 0.00 Paint 0.17
+-- a0 frames by (saveLayers, submits)
+(0, 0) 2 DoDraw 5.05 Encode 0.72 Submit 0.00 saveLayer 0.00 Paint 0.08
+(0, 1) 624 DoDraw 5.79 Encode 2.42 Submit 1.43 saveLayer 0.00 Paint 0.22
+(0, 2) 34 DoDraw 7.28 Encode 2.35 Submit 2.09 saveLayer 0.00 Paint 0.19
+(2, 2) 118 DoDraw 7.11 Encode 2.78 Submit 1.84 saveLayer 0.33 Paint 0.25
+-- a3 frames by (saveLayers, submits)
+(0, 0) 2 DoDraw 6.04 Encode 0.00 Submit 0.00 saveLayer 0.00 Paint 0.00
+(0, 1) 657 DoDraw 5.47 Encode 2.02 Submit 1.47 saveLayer 0.00 Paint 0.22
+(2, 2) 116 DoDraw 7.20 Encode 2.87 Submit 1.90 saveLayer 0.35 Paint 0.25
+-- a4 frames by (saveLayers, submits)
+(0, 1) 772 DoDraw 5.32 Encode 1.76 Submit 1.43 saveLayer 0.00 Paint 0.19
+-- a6 frames by (saveLayers, submits)
+(0, 0) 1 DoDraw 3.70 Encode 0.00 Submit 0.00 saveLayer 0.00 Paint 0.00
+(0, 1) 772 DoDraw 5.35 Encode 1.85 Submit 1.44 saveLayer 0.00 Paint 0.16
+-- liquid frames by (saveLayers, submits)
+(0, 0) 2 DoDraw 6.70 Encode 0.00 Submit 0.00 saveLayer 0.00 Paint 0.00
+(2, 2) 175 DoDraw 7.41 Encode 2.82 Submit 1.88 saveLayer 0.42 Paint 0.26
+(4, 2) 621 DoDraw 7.75 Encode 3.06 Submit 1.91 saveLayer 0.69 Paint 0.28
+(6, 2) 79 DoDraw 8.50 Encode 3.30 Submit 1.91 saveLayer 1.01 Paint 0.30
+== controls base vs final
+/tmp/morph-perf/abl-out/final-trace-base.txt frames 802
+/tmp/morph-perf/abl-out/final-trace-final.txt frames 805
+name                                                      final-trace-base.t        final-trace-final.
+SurfaceFrame::Encode                                 1.00   2.888   6.364     1.00   3.189   6.235  
+QueueSubmit                                          2.00   2.151   2.151     2.00   2.194   2.194  
+Canvas::saveLayer                                    6.18   1.729   1.734     6.22   1.235   1.240  
+LayerTree::Paint                                     1.00   0.281   0.315     1.00   0.326   0.366  
+LayerTree::Preroll                                   1.00   0.188   0.188     1.00   0.201   0.201  
+Rasterizer::DrawToSurfaces                           1.00   0.182   8.601     1.00   0.185   8.574  
+QueuePresentKHR                                      1.00   0.180   0.741     1.00   0.181   0.752  
+CreateGlyphAtlas                                     1.00   0.122   0.125     1.00   0.135   0.138  
+queueBuffer                                          2.00   0.114   0.998     2.00   0.115   1.017  
+AcquireNextImageKHR                                  1.00   0.077   0.112     1.00   0.081   0.119  
+SurfaceFrame::Submit                                 1.00   0.079   7.691     1.00   0.079   7.560  
+acquireBuffer                                        0.99   0.057   0.061     0.99   0.059   0.063  
+final-trace-base.txt n 802 DoDraw pct [ 6.13  8.05 11.95 13.85 17.41] saveLayer self pct [0.57 1.02 1.34 4.42 6.6 ] encode [2.8  3.99]
+  saveLayer self hist [ 36 354 245  23  31  19  42  46]
+final-trace-final.txt n 805 DoDraw pct [ 6.26  8.52 11.01 11.69 13.3 ] saveLayer self pct [0.6  1.08 1.41 2.18 2.58] encode [3.15 4.19]
+  saveLayer self hist [ 26 309 289  91  70  15   4   1]
+== segmented base vs final
+/tmp/morph-perf/abl-out/final-trace-base.txt frames 889
+/tmp/morph-perf/abl-out/final-trace-final.txt frames 860
+name                                                      final-trace-base.t        final-trace-final.
+SurfaceFrame::Encode                                 1.00   3.185   5.679     1.00   2.871   5.176  
+QueueSubmit                                          2.00   2.020   2.020     2.00   1.913   1.913  
+waitForBufferRelease                                 0.00   0.000   0.000     0.41   0.821   1.022  
+Canvas::saveLayer                                    3.78   0.719   0.723     3.49   0.605   0.606  
+LayerTree::Paint                                     1.00   0.315   0.341     1.00   0.301   0.325  
+CreateGlyphAtlas                                     1.00   0.225   0.259     1.00   0.215   0.248  
+Rasterizer::DrawToSurfaces                           1.00   0.205   8.011     1.00   0.194   8.081  
+LayerTree::Preroll                                   1.00   0.188   0.188     1.00   0.178   0.178  
+QueuePresentKHR                                      1.00   0.188   0.797     1.00   0.160   0.401  
+queueBuffer                                          2.00   0.125   1.080     2.00   0.115   0.353  
+AcquireNextImageKHR                                  1.00   0.086   0.124     1.00   0.080   1.180  
+SurfaceFrame::Submit                                 1.00   0.067   7.034     1.00   0.062   6.086  
+final-trace-base.txt n 889 DoDraw pct [ 5.99  7.98  9.97 10.58 11.87] saveLayer self pct [0.4  0.68 0.87 1.08 1.33] encode [3.18 4.16]
+  saveLayer self hist [290 492  80  23   3   1   0   0]
+final-trace-final.txt n 860 DoDraw pct [ 5.4   7.92 11.18 12.14 14.35] saveLayer self pct [0.3  0.5  0.8  0.93 1.13] encode [2.79 4.14]
+  saveLayer self hist [423 380  44  12   1   0   0   0]

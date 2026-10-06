@@ -1,0 +1,150 @@
+{
+  "tier": "liquid",
+  "liquid_available": true,
+  "liquid_unavailable_reason": null,
+  "platform": "android",
+  "refresh_rate": 60.0,
+  "cadence_ms": 16.645,
+  "budget_ms": 16.645,
+  "precache_ms": 440.752,
+  "device_class": "capable",
+  "drawn_tier": "liquid",
+  "first_use": {
+    "segmented": {
+      "n": 279.0,
+      "build_p50": 1.207,
+      "build_p95": 3.047,
+      "build_worst": 62.16,
+      "raster_p50": 5.436,
+      "raster_p95": 9.029,
+      "raster_worst": 23.945,
+      "span_p95": 14.275,
+      "vsync_p95": 2.172,
+      "over_8.3ms": 18.0,
+      "build_p99": 3.962,
+      "raster_p99": 15.513,
+      "over_budget": 2.0
+    }
+  },
+  "semantics": [
+    false
+  ],
+  "runs": 2,
+  "outline_us": {
+    "menu10-r4-cold": 1750.16,
+    "menu10-r10-cold": 531.92,
+    "menu10-r20-cold": 437.57,
+    "union-cold": 27.31,
+    "bar-capsules-cold": 284.74,
+    "menu10-r4": 745.5,
+    "menu10-r10": 532.93,
+    "menu10-r20": 435.89,
+    "union": 27.02,
+    "bar-capsules": 276.86
+  },
+  "windows_us": {
+    "segmented": [
+      [
+        80134133390,
+        80140597729
+      ],
+      [
+        80140918537,
+        80147385472
+      ]
+    ]
+  },
+  "census": {
+    "segmented": {
+      "frames": 774,
+      "mean": {
+        "backdrop": 0.0,
+        "opacity": 0.0,
+        "image_filter": 0.0,
+        "color_filter": 0.0,
+        "shader_mask": 0.0,
+        "clip_save_layer": 0.0,
+        "offscreen": 0.0,
+        "pictures": 27.0,
+        "glass_shadow_pictures": 0.0,
+        "layers": 73.0,
+        "captures": 0.0
+      },
+      "max": {
+        "backdrop": 0,
+        "opacity": 0,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 0,
+        "pictures": 27,
+        "glass_shadow_pictures": 0,
+        "layers": 73,
+        "captures": 0
+      },
+      "first": {
+        "backdrop": 0,
+        "opacity": 0,
+        "image_filter": 0,
+        "color_filter": 0,
+        "shader_mask": 0,
+        "clip_save_layer": 0,
+        "offscreen": 0,
+        "pictures": 27,
+        "glass_shadow_pictures": 0,
+        "layers": 73,
+        "captures": 0
+      }
+    }
+  },
+  "segmented": {
+    "median": {
+      "n": 384.0,
+      "build_p50": 1.389,
+      "build_p95": 2.243,
+      "build_worst": 4.492,
+      "raster_p50": 5.505,
+      "raster_p95": 6.61,
+      "raster_worst": 10.361,
+      "span_p95": 10.697,
+      "vsync_p95": 1.962,
+      "over_8.3ms": 3.0,
+      "build_p99": 3.128,
+      "raster_p99": 7.671,
+      "over_budget": 0.0
+    },
+    "runs": [
+      {
+        "n": 383.0,
+        "build_p50": 1.196,
+        "build_p95": 2.128,
+        "build_worst": 4.492,
+        "raster_p50": 4.938,
+        "raster_p95": 6.582,
+        "raster_worst": 9.965,
+        "span_p95": 10.181,
+        "vsync_p95": 1.782,
+        "over_8.3ms": 3.0,
+        "build_p99": 2.771,
+        "raster_p99": 7.671,
+        "over_budget": 0.0
+      },
+      {
+        "n": 384.0,
+        "build_p50": 1.389,
+        "build_p95": 2.243,
+        "build_worst": 3.595,
+        "raster_p50": 5.505,
+        "raster_p95": 6.61,
+        "raster_worst": 10.361,
+        "span_p95": 10.697,
+        "vsync_p95": 1.962,
+        "over_8.3ms": 1.0,
+        "build_p99": 3.128,
+        "raster_p99": 7.138,
+        "over_budget": 0.0
+      }
+    ]
+  }
+}

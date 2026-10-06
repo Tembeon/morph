@@ -1626,6 +1626,119 @@ sheet 9.55 / 14.43 -> 9.69 / 14.12: within the launch spread (cand4,
 built from the same tree plus Q4, reads 8.12 / 10.20 segmented and 8.96 /
 15.88 menu). iPhone 16 Pro within 0.1 ms everywhere.
 
+## The lifted lens's frost, the segmented remainder, the second submit (2026-10-06)
+
+Three questions left by "Raster ties" Q1. Evidence:
+perf/2026-10-06-pixel6a-frost-{seed,seed-parity,final},
+perf/2026-10-06-iphone-frost-{seed,final},
+perf/2026-10-06-pixel6a-segmented-ablation.
+
+### F1: the small lens's frost (landed)
+
+Not the blur's sigma but where it reads. A blur composed under the glass
+shader (`ImageFilter.compose(inner: blur, outer: shader)`) gets no coverage
+hint (Flutter 3.47.2: the runtime-effect filter asks its input for a
+snapshot without a limit, impeller/entity/contents/filters/
+runtime_effect_filter_contents.cc), so the Gaussian downsamples and blurs
+the WHOLE pass the backdrop comes from, then re-rasterizes it for the
+shader; a lifted knob's frost animates (UIKit's resting 6 pt to 0 over the
+lift), so every frame's padding resizes those full-pass targets. Systrace:
+frames with the frost spent 3 - 10 ms in that one saveLayer (p90 / p95 of
+saveLayer self time per frame 4.4 / 6.6 ms in controls).
+
+A lifted lens, knob or thumb now blurs a copy of its own surroundings
+(`LiquidGlassLayer.blursOwnBackdrop`, set by the widget layer on the
+lifted glass only): while its frost needs a blur pass, the layer pushes a
+clip of the filter clip grown by the blur's reach (1.732 x the engine's
+scaled sigma + the texels its downsample adds, on the 64 px buckets) and an
+identity color-filter backdrop under it, the same seed the opacity probe
+uses; the blur then reads that small pass, and the shader's fragment
+coordinates start at the seed pass's origin (floor of the seed clip and
+the clips above it in device pixels). Inside a backdrop group or an
+opacity-seeded pass it blurs as before. The frost value is unchanged
+(UIKit's `unliftedBlurRadius`).
+
+Pixels (shader harness, `SHADER_SEED_AB=true`: the same runtime shaders
+with and without the seed; cases lens-frost-rise / -quarter / -half / -late
+= lift 0.1 at visibility 0.4, 0.25, 0.5, 0.85, frost 5.4 .. 0.9 pt): Pixel
+6a Vulkan max 1 step (3 - 546 pixels of 1.59 M), host Impeller max 3; every
+other case 0. The rest of the difference is the downsample grid's phase
+(it follows the seed's origin instead of the pass's). Audit shots within
+run-to-run noise on both phones (the held shots are fully lifted).
+example/test/frost_seed_host_test.dart pins the seed (two filters, a color
+filter first) and max 3 on the host.
+
+Timings (raster p50 / p95 ms, over budget, ABBA 2 + 2 launches, mean):
+
+| scene | Pixel base | Pixel after | iPhone base | iPhone after |
+|---|---|---|---|---|
+| controls | 8.12 / 14.28, 10 | 8.44 / 11.77, 0.5 | 1.49 / 2.11 | 1.51 / 2.22 |
+| segmented | 7.92 / 9.92 | 8.16 / 10.04 | 1.37 / 1.68 | 1.35 / 1.65 |
+| tab-bar | 10.46 / 13.53 | 10.42 / 13.39 | 2.04 / 2.57 | 2.06 / 2.56 |
+| menu | 8.64 / 15.40 | 8.95 / 15.69 | 1.62 / 2.52 | 1.65 / 2.60 |
+| sheet | 9.16 / 14.23 | 9.33 / 13.86 | 1.91 / 2.62 | 1.89 / 2.61 |
+| home-scroll | 7.83 / 10.73 | 8.14 / 10.68 | 1.49 / 2.24 | 1.51 / 2.28 |
+
+The Pixel's controls tail goes: p95 -2.5 ms, frames over budget 10 -> 0.5,
+raster p99 (systrace DoDraw) 17.4 -> 13.3 ms, saveLayer self p95 6.6 ->
+2.6 ms, GPU 5.38 -> 5.10 ms a frame; the other scenes are within the
+launch spread. The iPhone (Metal) gains nothing: its controls p95 is +0.1
+(within its 2.08 - 2.43 base spread), the seed is one more backdrop read
+there for a blur Metal already does cheaply.
+
+Rejected:
+- Seeding every frosted layer (bars, menus, sheets): GPU -0.7 / -1.0 ms on
+  the Pixel's tab bar / sheet, but raster p95 +1.7 (tab bar), +3.3 (menu),
+  +6.3 (sheet) on the Pixel and +0.2 - 0.3 on the iPhone: a still frost
+  keeps its full-pass targets cached, and the seed is one more backdrop
+  read (perf/2026-10-06-*-frost-seed, cand).
+- The frost inside the final shader (a few-tap blur over the sampled
+  backdrop): the filter input is sampled nearest
+  (impeller/display_list/image_filter.cc: the input's sampler is the
+  default), so a sigma of 4 - 16 device px needs a 2D kernel; offline
+  against a Gaussian a 7 x 7 grid is off by 14 - 33 steps on edges and up
+  to 70 on noise, 11 x 11 by 5 - 19 and ~40 (scratch simulation of the
+  harness bands and a track edge). malioc (Mali-G78, Vulkan) puts the
+  kernel alone at 6.3 / 13.9 / 32.8 texture cycles a fragment for 25 / 49 /
+  121 taps at 50 % occupancy: cheap on a 100 x 70 px lens, but not near.
+  A separable pair of runtime-effect passes would be near but runs over
+  the whole pass for the same missing hint.
+
+### F2: segmented without filters (attributed; the platter landed)
+
+Systrace per build (perf/2026-10-06-pixel6a-segmented-ablation; DoDraw
+mean ms a frame, flat 5.39): navigation bar flat + no lens glass 6.12,
+then without the lens's content copy 5.83, without its capture 6.16 (noise),
+without its clip 5.80, without the platter 5.13 (= flat); navigation bar
+and segmented controls flat 5.21 - 5.27. So the remainder is the lens copy
+(~0.3, its strips replaying the content) and the platter (~0.7): the resting
+platter fades through an opacity layer while the lens lifts or lands - an
+offscreen pass that also forces the frame's second queue submit when no
+filter does (frames with it 7.1 - 7.2 ms vs 5.5). Nothing else (no shadow,
+text, preroll or picture cost) separates the tiers.
+
+The platter now fades by the alpha of its fill and shadow (the opacity
+layer only hides it at full glass). Not exact: where the faded shadow
+lies under the faded fill the result is darker by shadow alpha (0.1) x
+opacity x (1 - opacity) of the backdrop, at most 0.025 x 255 = 6 steps
+over white at half opacity, during the first quarter of a lift. Systrace
+segmented: saveLayers 3.78 -> 3.49 a frame, encode self -0.3 ms; the audit
+p50 / p95 is within the launch spread.
+
+### F3: the second queue submit (engine, not changeable here)
+
+The extra vkQueueSubmit comes from Impeller, not from the renderer's
+Flutter GPU work. With any backdrop filter or offscreen layer the frame
+renders offscreen first: those command buffers are batched and flushed in
+`Canvas::EndReplay` (inside SurfaceFrame::Encode, 1.4 ms on the Pixel),
+and the onscreen buffer goes to the swapchain as its final command buffer
+at present (0.47 ms); a frame without offscreen work submits once, at
+present (1.42 ms) - impeller/display_list/canvas.cc EndReplay,
+renderer/backend/vulkan/surface_context_vk.cc SubmitOnscreen. The
+geometry passes' Flutter GPU submits are on the UI thread, already at most
+one a frame (0.76 a frame in segmented, about 1 ms there), and never
+reach the raster thread's batch. Merging them is engine work.
+
 ## Tools
 
 example/integration_test/glass_audit_test.dart (profile, dark; shots of
@@ -1669,9 +1782,9 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
   own scale or rotation above it) shades its members on its own grid
   unshifted; only the sheet closes its containers while scaled (see
   "Raster ties, scaled containers").
-- The lifted small lens's frost costs ~2.5 ms of raster p95 on the Pixel
-  6a's controls scene (blur passes on the raster thread); the backdrop
-  filter itself ~0.75 ms (Q1 above): engine-side levers.
+- The backdrop filter itself costs ~0.75 ms of raster a frame on the
+  Pixel 6a (Q1 above), and a composed blur reads its whole pass (F1 of
+  "The lifted lens's frost"): engine-side levers.
 
 - Dark lifted slider thumb look (slider.md).
 - Popover arrow drawn flat; LIGHT reference set pending (glass-optics.md).

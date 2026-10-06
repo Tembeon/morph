@@ -58,7 +58,9 @@ ms vs 2.6); only bars, menus and lifted lenses frost unless "Frost
 controls". An OpacityLayer between resting glass broke BackdropGroup
 sharing (raster p50 11.8 ms vs 2.3). LiquidGlassCapture drops whole
 controls on iOS - not used. Audit p95 raster 2.0 / 2.3 / 2.9 / 3.6 ms
-(segmented / tab bar / controls / menu).
+(segmented / tab bar / controls / menu). A lifted lens, knob or thumb
+blurs a copy of its own surroundings while its frost animates (glass-renderer.md,
+"The lifted lens's frost"): the same measured frost, within 1 - 3 steps.
 
 ## References and tools
 
