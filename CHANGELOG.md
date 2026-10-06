@@ -29,6 +29,16 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   arithmetic (spec/glass-renderer.md). Its blur kernel no longer flips to
   two extra taps on a rounding error, which moved the outline of some
   frames by up to 0.04 pt.
+- The liquid tier's one-appearance and tint-only final shaders compile
+  one color model family each - the direct model (a lifted lens, knob or
+  thumb) or iOS 27 (every other surface) - instead of both: on a Mali-G78
+  they fit 32 registers again, full thread occupancy where the union ran
+  at half. The same pixels on every backend; Pixel 6a GPU cycles per
+  layer -2 to -5 percent (iPhone 16 Pro large faces -2), frame raster
+  unchanged (CPU bound), warm-up two more programs. tool/audit/shader/
+  offline.py reads Arm's malioc per variant; folding the iOS 27 face into
+  CPU-resolved uniforms was tried and dropped (the driver already does it
+  once per draw).
 - A lifted lens, knob or thumb blurs a copy of its own surroundings while
   its frost animates (`LiquidGlassLayer.blursOwnBackdrop`): a blur composed
   under the glass shader read and resized the whole pass on every frame of
