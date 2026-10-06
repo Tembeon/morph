@@ -41,6 +41,7 @@ class LiquidGlassLayer extends StatefulWidget {
     this.fake = false,
     this.useBackdropGroup = false,
     this.backdropKey,
+    this.blursOwnBackdrop = false,
     this._field,
     super.key,
   }) : live = null,
@@ -63,6 +64,7 @@ class LiquidGlassLayer extends StatefulWidget {
     this.fake = false,
     this.useBackdropGroup = false,
     this.backdropKey,
+    this.blursOwnBackdrop = false,
     super.key,
   }) : _settings = const LiquidGlassSettings(),
        _field = null;
@@ -151,6 +153,17 @@ class LiquidGlassLayer extends StatefulWidget {
   /// repeated backdrop captures. Effects that overlap should use different
   /// keys because Flutter treats a shared key as a single backdrop filter.
   final BackdropKey? backdropKey;
+
+  /// Whether a frost that needs a blur pass blurs a copy of the backdrop
+  /// around this layer's glass instead of the whole pass it paints in.
+  ///
+  /// The copy is one more backdrop read; it pays for a small surface whose
+  /// frost animates (a lifted lens): a blur composed under the glass shader
+  /// reads the whole enclosing pass, and an animated frost resizes its
+  /// full-size targets on every frame. A large or still frost (a bar, a
+  /// menu, a sheet) blurs cheaper without it. Ignored inside a backdrop
+  /// group.
+  final bool blursOwnBackdrop;
 
   /// Whether there is a [LiquidGlassLayer] in the widget tree above the given
   /// [context].
@@ -341,6 +354,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
                 materialRenderShader: shaders[1],
                 tintRenderShader: shaders[2],
                 backdropKey: backdropKey,
+                blursOwnBackdrop: widget.blursOwnBackdrop,
                 live: live,
                 settingsOf: () => widget.settings,
                 defaultAppearance: defaultAppearance,
@@ -409,6 +423,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.materialRenderShader,
     required this.tintRenderShader,
     required this.backdropKey,
+    required this.blursOwnBackdrop,
     required this.live,
     required this.settingsOf,
     required this.defaultAppearance,
@@ -422,6 +437,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final FragmentShader materialRenderShader;
   final FragmentShader tintRenderShader;
   final BackdropKey? backdropKey;
+  final bool blursOwnBackdrop;
   final Listenable? live;
   final LiquidGlassSettings Function() settingsOf;
   final LiquidGlassAppearance defaultAppearance;
@@ -443,6 +459,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
       link: link,
       gpuGeometryRenderer: gpuGeometryRenderer,
     );
+    layer.blursOwnBackdrop = blursOwnBackdrop;
     layer.bindLive(live, () => _apply(layer));
     return layer;
   }
@@ -462,6 +479,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     renderObject.defaultAppearance = defaultAppearance;
     renderObject.backdropKey = backdropKey;
     renderObject.gpuGeometryRenderer = gpuGeometryRenderer;
+    renderObject.blursOwnBackdrop = blursOwnBackdrop;
     renderObject.bindLive(live, () => _apply(renderObject));
   }
 }
@@ -1179,13 +1197,21 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final seeding = compositionProbeSeeding;
     final translation = compositorTranslation;
     final screen = _compositingScreen;
-    return filterPassTransform(
+    final ownPass = _seedsBlur;
+    final transform = filterPassTransform(
       this,
-      screen: seeding || translation != Offset.zero ? screen?.clone() : screen,
+      screen: seeding || ownPass || translation != Offset.zero
+          ? screen?.clone()
+          : screen,
       seeding: seeding,
       devicePixelRatio: devicePixelRatio,
       translation: translation,
     );
+    if (ownPass) {
+      final origin = _seedPassOrigin(transform);
+      transform.leftTranslateByDouble(-origin.dx, -origin.dy, 0, 1);
+    }
+    return transform;
   }
 
   (double, double, double, double, double, double)? _coordinateMapping;
@@ -1287,6 +1313,85 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   final _shaderHandle = LayerHandle<BackdropFilterLayer>();
   final _clipRectLayerHandle = LayerHandle<ClipRectLayer>();
+  final _seedClipHandle = LayerHandle<ClipRectLayer>();
+  final _seedHandle = LayerHandle<BackdropFilterLayer>();
+
+  /// Whether a layer that [blursOwnBackdrop] copies its backdrop; off
+  /// blurs the whole pass as every other layer does, for an A/B.
+  @visibleForTesting
+  static bool debugSeedsBlur = true;
+
+  static const ColorFilter _seedIdentity = ColorFilter.matrix(<double>[
+    1, 0, 0, 0, 0, //
+    0, 1, 0, 0, 0, //
+    0, 0, 1, 0, 0, //
+    0, 0, 0, 1, 0, //
+  ]);
+
+  bool _blursOwnBackdrop = false;
+
+  /// See [LiquidGlassLayer.blursOwnBackdrop].
+  bool get blursOwnBackdrop => _blursOwnBackdrop;
+  set blursOwnBackdrop(bool value) {
+    if (_blursOwnBackdrop == value) return;
+    _blursOwnBackdrop = value;
+    _shaderInputsChanged = true;
+    markNeedsPaint();
+  }
+
+  bool get _seedsBlur =>
+      _blursOwnBackdrop &&
+      debugSeedsBlur &&
+      blurPassSigma > 0 &&
+      backdropKey == null &&
+      !compositionProbeSeeding;
+
+  /// The device pixels around the blurred coverage the frost blur reads:
+  /// the engine's kernel radius (1.732 of its scaled sigma) plus the
+  /// texels its downsample and upsample add.
+  double get _seedMargin {
+    final sigma = blurPassSigma * devicePixelRatio;
+    final clamped = min(sigma, 500.0);
+    final scaled =
+        clamped * (1 - 3.4e-3 * clamped + 3.4e-6 * clamped * clamped);
+    final scale = scaled <= 4
+        ? 1.0
+        : pow(
+            2.0,
+            max(-4.0, (log(4 / scaled) / ln2).roundToDouble()),
+          ).toDouble();
+    return (1.7320508 * scaled + 2 / scale + 2).ceilToDouble() /
+        devicePixelRatio;
+  }
+
+  // The seed pass's clip in the translated frame, on the filter clip's
+  // pixel buckets so retained motion does not resize the pass.
+  Rect? get _seedClip {
+    final clip = _filterClip;
+    if (clip == null) return null;
+    final translation = compositorTranslation;
+    return clip
+        .shift(translation)
+        .inflate(_seedMargin)
+        .expandToPixelBuckets(devicePixelRatio)
+        .shift(-translation);
+  }
+
+  // Impeller bounds the seed pass by its clip and every clip above it,
+  // rounded out to device pixels; the glass shader's fragment coordinates
+  // start at that origin.
+  Offset _seedPassOrigin(Matrix4 layerToScreen) {
+    final seed = _seedClip;
+    if (seed == null) return Offset.zero;
+    var screen = MatrixUtils.transformRect(layerToScreen, seed);
+    if (screenClipAbove(this) case final above?) {
+      screen = screen.intersect(above);
+    }
+    return Offset(
+      (screen.left * devicePixelRatio).floorToDouble() / devicePixelRatio,
+      (screen.top * devicePixelRatio).floorToDouble() / devicePixelRatio,
+    );
+  }
 
   @visibleForTesting
   BackdropFilterLayer? get debugBackdropFilterLayer => _shaderHandle.layer;
@@ -1349,12 +1454,23 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   // Both painting and retained geometry updates need the same native filter
   // bounds. This only updates existing handles; it never paints children.
-  Rect _syncMaterialFilter(Rect materialBounds, Offset offset) {
+  Rect _syncMaterialFilter(
+    Rect materialBounds,
+    Offset offset, {
+    bool retained = false,
+  }) {
     final filterBounds = materialBounds.expandToPixelBuckets(devicePixelRatio);
     _filterMaterialBounds = materialBounds;
     _filterPaintOffset = offset;
     debugFilterBounds = filterBounds;
     _clipRectLayerHandle.layer?.clipRect = filterBounds.shift(offset);
+    if (_seedClipHandle.layer case final seedClip?) {
+      if (_seedClip case final seed?) seedClip.clipRect = seed.shift(offset);
+    }
+    if (retained &&
+        (_seedsBlur && !drawableEmpty) != (_seedClipHandle.layer != null)) {
+      markNeedsPaint();
+    }
     if (drawableEmpty) {
       _shaderHandle.layer?.remove();
       _shaderHandle.layer = null;
@@ -1395,15 +1511,36 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       return true;
     }(), 'Count independent backdrop captures in debug builds.');
 
-    _clipRectLayerHandle.layer = context.pushClipRect(
+    void paintFilter(PaintingContext context, Offset offset) {
+      _clipRectLayerHandle.layer = context.pushClipRect(
+        needsCompositing,
+        offset,
+        filterBounds,
+        (context, offset) {
+          if (drawableEmpty) return;
+          context.pushLayer(shaderLayer!, (context, offset) {}, offset);
+        },
+        oldLayer: _clipRectLayerHandle.layer,
+      );
+    }
+
+    final seed = _seedsBlur && !drawableEmpty ? _seedClip : null;
+    if (seed == null) {
+      _seedClipHandle.layer = null;
+      _seedHandle.layer = null;
+      paintFilter(context, offset);
+      return;
+    }
+    final seedLayer = _seedHandle.layer ??= BackdropFilterLayer(
+      filter: _seedIdentity,
+    );
+    GlassLayerOwners.note(seedLayer, this);
+    _seedClipHandle.layer = context.pushClipRect(
       needsCompositing,
       offset,
-      filterBounds,
-      (context, offset) {
-        if (drawableEmpty) return;
-        context.pushLayer(shaderLayer!, (context, offset) {}, offset);
-      },
-      oldLayer: _clipRectLayerHandle.layer,
+      seed,
+      (context, offset) => context.pushLayer(seedLayer, paintFilter, offset),
+      oldLayer: _seedClipHandle.layer,
     );
   }
 
@@ -1411,6 +1548,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   void _releaseCompositorFilter() {
     _shaderHandle.layer = null;
     _clipRectLayerHandle.layer = null;
+    _seedClipHandle.layer = null;
+    _seedHandle.layer = null;
     _cachedFilter = null;
   }
 
@@ -1439,6 +1578,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (clip != null && _clipRectLayerHandle.layer != null) {
       _clipRectLayerHandle.layer!.clipRect = clip.shift(_filterPaintOffset);
     }
+    if (_seedClipHandle.layer case final seedClip?) {
+      if (_seedClip case final seed?) {
+        seedClip.clipRect = seed.shift(_filterPaintOffset);
+      }
+    }
     if (!drawableEmpty && hasReusableGeometry && syncCoordinateMapping()) {
       _shaderHandle.layer?.filter = _updateShaderFilter();
     }
@@ -1465,7 +1609,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         (_shaderHandle.layer != null || drawableEmpty) &&
         _clipRectLayerHandle.layer != null &&
         refreshRetainedGeometry((shapes, bounds, offset) {
-          _syncMaterialFilter(bounds, offset);
+          _syncMaterialFilter(bounds, offset, retained: true);
         })) {
       return;
     }
@@ -1476,6 +1620,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   void dispose() {
     _shaderHandle.layer = null;
     _clipRectLayerHandle.layer = null;
+    _seedClipHandle.layer = null;
+    _seedHandle.layer = null;
     _cachedFilter = null;
     _clearGeometryImage();
     _gpuGeometryRenderer = null;

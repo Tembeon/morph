@@ -190,6 +190,7 @@ Widget _layer(
   bool shadows = true,
   bool exact = false,
   bool? fake,
+  bool ownBackdrop = false,
 }) {
   final count = select(source.frame).length;
   final settings = source.pick((f) {
@@ -211,6 +212,7 @@ Widget _layer(
       outlineOf: outlineOf == null ? null : () => outlineOf.value,
       fake: fake ?? renderer.effectiveTier == MorphGlassTier.fake,
       useBackdropGroup: shared,
+      blursOwnBackdrop: ownBackdrop,
       child: _shapes(
         renderer,
         source,
@@ -543,6 +545,7 @@ Widget morphLiquidLayer(
               shared: false,
               shrink: shrinkOf,
               rim: optics(surface).rim,
+              ownBackdrop: true,
             ),
           ),
         ],
@@ -552,6 +555,8 @@ Widget morphLiquidLayer(
 
 /// A resting lens, knob or thumb: an opaque platter, as UIKit draws one
 /// until the finger lifts it into glass.
+///
+/// It fades by the alpha of its fill and shadow, not an opacity layer.
 class _Platter extends StatelessWidget {
   const _Platter({required this.source, required this.select});
 
@@ -563,20 +568,28 @@ class _Platter extends StatelessWidget {
     final surface = source.pick(select);
     return GlassLiveOpacity(
       live: source.live,
-      opacityOf: () => 1 - MorphGlassRenderer.glassness(surface.value),
+      opacityOf: () => MorphGlassRenderer.glassness(surface.value) >= 1 ? 0 : 1,
       child: MorphLiveDecoratedBox(
         live: source.pick((f) {
           final surface = select(f);
           final shape = surface.localShape;
+          final opacity = 1 - MorphGlassRenderer.glassness(surface);
           return BoxDecoration(
-            color: surface.color,
+            color: surface.color.withValues(alpha: surface.color.a * opacity),
             borderRadius: BorderRadius.only(
               topLeft: shape.tlRadius,
               topRight: shape.trRadius,
               bottomLeft: shape.blRadius,
               bottomRight: shape.brRadius,
             ),
-            boxShadow: _shadows(surface),
+            boxShadow: [
+              for (final shadow in _shadows(surface))
+                shadow.copyWith(
+                  color: shadow.color.withValues(
+                    alpha: shadow.color.a * opacity,
+                  ),
+                ),
+            ],
           );
         }),
       ),

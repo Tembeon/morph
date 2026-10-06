@@ -27,6 +27,9 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
+    show RenderLiquidGlassLayer;
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/shaders.dart';
 
 /// The asset folder of the frozen baseline shaders.
@@ -69,6 +72,7 @@ class HarnessCase {
     this.shapes, {
     this.fake = false,
     this.field,
+    this.ownBackdrop = false,
   });
 
   /// The case's name, also its file name.
@@ -85,6 +89,10 @@ class HarnessCase {
 
   /// The fused body's distance field, for a field case.
   final GlassField? field;
+
+  /// Whether the layer blurs a copy of its own backdrop, as a lifted lens
+  /// does.
+  final bool ownBackdrop;
 }
 
 const Color _blue = Color(0xFF007AFF);
@@ -118,6 +126,33 @@ const LiquidGlassSettings _liftedLens = LiquidGlassSettings(
   backdropShrinkRim: 1,
   highlight: 1.4,
 );
+
+/// A lifted small lens still frosted on its way up: the lens settings
+/// with UIKit's resting blur of 6 pt interpolated at [lift], seen through
+/// [visibility] of its glass.
+HarnessCase _frostedLens(String name, double lift, double visibility) =>
+    HarnessCase(
+      name,
+      _liftedLens.copyWith(frost: 6 * (1 - lift)),
+      ownBackdrop: true,
+      [
+        HarnessShape(
+          const Rect.fromLTWH(30, 70, 150, 64),
+          const LiquidRoundedSuperellipse(borderRadius: 32),
+          LiquidGlassAppearance(visibility: visibility),
+        ),
+        HarnessShape(
+          const Rect.fromLTWH(160, 250, 64, 120),
+          const LiquidRoundedSuperellipse(borderRadius: 32),
+          LiquidGlassAppearance(visibility: visibility),
+        ),
+        HarnessShape(
+          const Rect.fromLTWH(200, 470, 120, 80),
+          const LiquidRoundedSuperellipse(borderRadius: 40),
+          LiquidGlassAppearance(visibility: visibility),
+        ),
+      ],
+    );
 
 /// Every case of the harness, each pinning a path of the final shaders.
 final List<HarnessCase> harnessCases = [
@@ -257,6 +292,10 @@ final List<HarnessCase> harnessCases = [
     _trio(const LiquidGlassAppearance.ios27Clear()),
     fake: true,
   ),
+  _frostedLens('lens-frost-rise', 0.1, 0.4),
+  _frostedLens('lens-frost-quarter', 0.25, 1),
+  _frostedLens('lens-frost-half', 0.5, 1),
+  _frostedLens('lens-frost-late', 0.85, 1),
   HarnessCase('fake-big-sheet', const LiquidGlassSettings(frost: 0), [
     HarnessShape(
       const Rect.fromLTWH(10, 20, 340, 600),
@@ -411,6 +450,7 @@ Widget harnessScene({
                     settings: glassCase.settings,
                     fake: glassCase.fake,
                     field: glassCase.field,
+                    blursOwnBackdrop: glassCase.ownBackdrop,
                     defaultAppearance: _darkRegular,
                     child: Stack(
                       children: [
@@ -435,12 +475,20 @@ Widget harnessScene({
   );
 }
 
+/// Whether the baseline is the candidate's own shaders with the frost
+/// blur reading the whole pass, instead of the frozen shader copy: the
+/// A/B of the frost seed pass alone.
+const bool harnessSeedAB = bool.fromEnvironment('SHADER_SEED_AB');
+
 /// Points the renderer at [variant]'s runtime shaders.
 void useShaderVariant(ShaderVariant variant) {
   ShaderKeys.debugRuntimeRoot = switch (variant) {
     ShaderVariant.candidate => null,
-    ShaderVariant.baseline => baselineShaderRoot,
+    ShaderVariant.baseline => harnessSeedAB ? null : baselineShaderRoot,
   };
+  if (harnessSeedAB) {
+    RenderLiquidGlassLayer.debugSeedsBlur = variant == ShaderVariant.candidate;
+  }
 }
 
 /// One offscreen capture: premultiplied RGBA bytes of the region.
