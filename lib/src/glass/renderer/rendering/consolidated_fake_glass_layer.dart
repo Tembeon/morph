@@ -480,6 +480,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
         final filter = fakeGlassBackdropFilter(
           settings,
           defaultAppearance.copyWith(visibility: shape.appearance.visibility),
+          devicePixelRatio: devicePixelRatio,
           shortSide: shape.renderObject.size.shortestSide,
         );
         if (filter == null) continue;
@@ -553,6 +554,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     return fakeGlassBackdropFilter(
       settings,
       defaultAppearance,
+      devicePixelRatio: devicePixelRatio,
       shortSide: _shortSide,
     )!;
   }

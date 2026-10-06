@@ -245,3 +245,14 @@ Local patches (some commits include related package changes):
   frame its screen transform moved (a scroll). A shape that registers
   repaints through the layer. Numbers in glass-renderer.md ("List
   sections").
+- 2026-10-06 small frosts at half resolution: a frost whose device sigma
+  falls just below the one Impeller blurs at half resolution (4 sqrt 2
+  device px after its sigma correction) is raised to it, at most by 12
+  percent (internal/blur_reach.dart morphHalfResolutionSigma): the 2 pt
+  bar and menu frost at 2.625 dpr becomes 2.17 pt. RenderLiquidGlassLayer
+  .blurPassSigma raises it unless the layer blurs its own backdrop (the
+  lifted lens's frost animates); fakeGlassBackdropFilter takes the device
+  pixel ratio and raises its frost the same way. The frost seed's margin
+  is morphBlurReach and its filter morphBackdropSeed, shared with the
+  scroll edge effect. `debugMorphHalfResolutionBlur` turns the raise off
+  for an A/B. Numbers in glass-renderer.md ("Small blurs").

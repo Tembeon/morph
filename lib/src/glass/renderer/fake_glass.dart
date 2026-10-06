@@ -545,6 +545,7 @@ class RenderFakeGlass extends RenderProxyBox with GlassLiveBinding {
     final backdropFilter = fakeGlassBackdropFilter(
       settings,
       appearance,
+      devicePixelRatio: devicePixelRatio,
       shortSide: size.shortestSide,
     )!;
     assert(() {

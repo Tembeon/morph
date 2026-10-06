@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
 
 /// Affine tint-over-backdrop followed by saturation, expressed as Flutter's
 /// 4x5 color matrix: the same per-pixel result as a shader, but a native color
@@ -132,16 +133,22 @@ List<double> fakeGlassFaceMatrix({
 
 /// Builds the backdrop-only portion shared by standalone and consolidated
 /// fake glass. Tint remains in the analytic surface pass so contour
-/// transmittance can treat tint and backdrop energy independently.
+/// transmittance can treat tint and backdrop energy independently. A
+/// frost just below Impeller's half resolution blur is raised to it
+/// ([morphHalfResolutionSigma]).
 @internal
 ImageFilter? fakeGlassBackdropFilter(
   LiquidGlassSettings settings,
   LiquidGlassAppearance appearance, {
+  required double devicePixelRatio,
   double shortSide = 1e4,
 }) {
   final visibility = appearance.visibility.clamp(0.0, 1.0);
   if (visibility <= 0) return null;
-  final frost = settings.effectiveFrost;
+  final frost = morphHalfResolutionSigma(
+    settings.effectiveFrost,
+    devicePixelRatio,
+  );
   final blur = frost != 0
       ? ImageFilter.blur(
           sigmaX: frost,

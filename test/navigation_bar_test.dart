@@ -329,7 +329,7 @@ void main() {
       EnginePhase.sendSemanticsUpdate,
       const Duration(seconds: 10),
     );
-    expect(_blurLayers(), 1);
+    expect(_blurLayers(), 2, reason: 'the backdrop copy and its blur');
   });
 
   testWidgets('a screen arriving with its inline title hidden never shows '

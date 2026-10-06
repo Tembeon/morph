@@ -13,6 +13,7 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/ancestor_clip.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
+import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
 import 'package:morph/src/glass/renderer/internal/filter_pass_transform.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
@@ -761,7 +762,16 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   }
 
   /// Sigma of the separate backdrop blur pass; `0` when there is none.
-  double get blurPassSigma => softensInShader ? 0 : _frostSigma;
+  ///
+  /// A frost just below the sigma Impeller blurs at half resolution is
+  /// raised to it ([morphHalfResolutionSigma]), unless the layer blurs its
+  /// own backdrop: that blur is already small, and its frost animates.
+  double get blurPassSigma {
+    if (softensInShader) return 0;
+    final frost = _frostSigma;
+    if (_blursOwnBackdrop) return frost;
+    return morphHalfResolutionSigma(frost, devicePixelRatio);
+  }
 
   double get _frostSigma => settings.effectiveFrost;
 
@@ -1357,13 +1367,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @visibleForTesting
   static bool debugSeedsBlur = true;
 
-  static const ColorFilter _seedIdentity = ColorFilter.matrix(<double>[
-    1, 0, 0, 0, 0, //
-    0, 1, 0, 0, 0, //
-    0, 0, 1, 0, 0, //
-    0, 0, 0, 1, 0, //
-  ]);
-
   bool _blursOwnBackdrop = false;
 
   /// See [LiquidGlassLayer.blursOwnBackdrop].
@@ -1382,23 +1385,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       backdropKey == null &&
       !compositionProbeSeeding;
 
-  /// The device pixels around the blurred coverage the frost blur reads:
-  /// the engine's kernel radius (1.732 of its scaled sigma) plus the
-  /// texels its downsample and upsample add.
-  double get _seedMargin {
-    final sigma = blurPassSigma * devicePixelRatio;
-    final clamped = min(sigma, 500.0);
-    final scaled =
-        clamped * (1 - 3.4e-3 * clamped + 3.4e-6 * clamped * clamped);
-    final scale = scaled <= 4
-        ? 1.0
-        : pow(
-            2.0,
-            max(-4.0, (log(4 / scaled) / ln2).roundToDouble()),
-          ).toDouble();
-    return (1.7320508 * scaled + 2 / scale + 2).ceilToDouble() /
-        devicePixelRatio;
-  }
+  /// The logical pixels around the blurred coverage the frost blur reads.
+  double get _seedMargin => morphBlurReach(blurPassSigma, devicePixelRatio);
 
   // The seed pass's clip in the translated frame, on the filter clip's
   // pixel buckets so retained motion does not resize the pass.
@@ -1568,7 +1556,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       return;
     }
     final seedLayer = _seedHandle.layer ??= BackdropFilterLayer(
-      filter: _seedIdentity,
+      filter: morphBackdropSeed,
     );
     GlassLayerOwners.note(seedLayer, this);
     _seedClipHandle.layer = context.pushClipRect(
