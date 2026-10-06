@@ -15,11 +15,17 @@ import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 // The audit times the package's outline fusion on the device.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
+    show debugMorphHalfResolutionBlur;
+// ignore: implementation_imports
 import 'package:morph/src/widgets/glass_container.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_outline.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/menu_fusion.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/scroll_edge_effect.dart'
+    show debugMorphEdgeEffectBoundsBlur;
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 
@@ -91,6 +97,9 @@ import 'support/layer_census.dart';
 /// `--dart-define=AUDIT_STAGES_OFF=true` keeps the package's own glass
 /// containers (a list section's, a search toolbar's) closed, every member in
 /// its own layer: the reference a stage is measured against.
+/// `--dart-define=AUDIT_LEGACY_BLURS=true` draws the small blurs as before
+/// 2026-10-06: the edge effect blurring the whole pass behind it, a frost
+/// just below Impeller's half resolution blur as given.
 /// The audit holds the app in portrait: a phone lying
 /// on its side with auto-rotate on would otherwise lay the gallery out in
 /// landscape, where the later rows are off screen.
@@ -114,6 +123,8 @@ const int _idleSeconds = int.fromEnvironment('AUDIT_IDLE_S');
 
 const bool _stagesOff = bool.fromEnvironment('AUDIT_STAGES_OFF');
 
+const bool _legacyBlurs = bool.fromEnvironment('AUDIT_LEGACY_BLURS');
+
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
@@ -128,6 +139,12 @@ void main() {
     SchedulerBinding.instance.addTimingsCallback(audit.timings.addAll);
     // ignore: invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
     if (_stagesOff) debugMorphGlassStagesOpen = false;
+    if (_legacyBlurs) {
+      // ignore: invalid_use_of_visible_for_testing_member
+      debugMorphEdgeEffectBoundsBlur = false;
+      // ignore: invalid_use_of_visible_for_testing_member
+      debugMorphHalfResolutionBlur = false;
+    }
     if (const bool.hasEnvironment('FUSION_PREFETCH')) {
       // ignore: invalid_use_of_internal_member
       MorphMenuFusion.debugPrefetch = const bool.fromEnvironment(

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:morph/widgets.dart';
 
+import 'support/blur_harness.dart';
 import 'support/shader_harness.dart';
 
 /// The synthetic shader harness on a device: every case of
@@ -19,7 +20,11 @@ import 'support/shader_harness.dart';
 /// named cases; `--dart-define=SHADER_MAX_DIFF=n` is the largest channel
 /// difference from the baseline the run accepts (default 0);
 /// `SHADER_COPIES` (6) and `SHADER_FRAMES` (40) size the bench.
+/// `--dart-define=SHADER_BLUR=true` runs the small-blur harness
+/// (support/blur_harness.dart) instead, each case within its own bound.
 const bool _bench = bool.fromEnvironment('SHADER_BENCH');
+
+const bool _blur = bool.fromEnvironment('SHADER_BLUR');
 
 const String _only = String.fromEnvironment('SHADER_CASES');
 
@@ -50,6 +55,20 @@ void main() {
     if (stale.existsSync()) stale.deleteSync();
     await tester.runAsync(MorphGlassRenderer.precache);
     final harness = ShaderHarness(tester);
+    if (_blur) {
+      final report = await runBlurParity(
+        harness,
+        cases: blurCases,
+        outDir: out.path,
+      );
+      report['liquid_available'] = MorphGlassRenderer.liquidAvailable;
+      report['platform'] = Platform.operatingSystemVersion;
+      File(
+        '${out.path}/report.json',
+      ).writeAsStringSync(const JsonEncoder.withIndent('  ').convert(report));
+      expectBlurParity(report);
+      return;
+    }
     final cases = harnessCasesNamed(
       _only.isEmpty && _bench ? _benchCases : _only,
     );
