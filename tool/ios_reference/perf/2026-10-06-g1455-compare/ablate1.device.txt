@@ -1,0 +1,14 @@
+apk: /tmp/morph-perf/apks/g1455-bench-ablate.apk  date: Tue Oct  6 17:25:46 CEST 2026
+skin before: 34
+Thermal Status: 0
+TotalTime: 966
+WaitTime: 968
+package:dev.tembeon.g1455_bench uid:10041
+skin after: 35
+Thermal Status: 0
+logcat (impeller, errors):
+10-06 17:25:47.077 19162 19211 I flutter : The Dart VM service is listening on http://127.0.0.1:42343/JYzjE1RoZmE=/
+10-06 17:25:47.083 19162 19201 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-06 17:25:47.141 19162 19162 I flutter : 00:00 +0: compare
+10-06 17:32:47.048 19162 19162 I flutter : 06:59 +1: (tearDownAll)
+10-06 17:32:47.050 19162 19162 I flutter : 06:59 +2: All tests passed!

@@ -1,0 +1,782 @@
+{
+  "platform": "android",
+  "refresh_rate": 60.0,
+  "budget_ms": 16.615,
+  "runs": 5,
+  "seed": 20261010,
+  "liquid_available": true,
+  "liquid_unavailable_reason": null,
+  "windows_us": {
+    "scroll.probeFilter": [
+      [
+        21990394434,
+        21997310574
+      ],
+      [
+        22077938179,
+        22084853573
+      ],
+      [
+        22130466854,
+        22137384878
+      ],
+      [
+        22183002781,
+        22189919445
+      ],
+      [
+        22288064529,
+        22294985061
+      ]
+    ],
+    "scroll.probeCopy": [
+      [
+        21999150952,
+        22006062471
+      ],
+      [
+        22051676687,
+        22058591858
+      ],
+      [
+        22112960643,
+        22119873280
+      ],
+      [
+        22200511951,
+        22207430831
+      ],
+      [
+        22279311089,
+        22286227962
+      ]
+    ],
+    "scroll.morphFlat": [
+      [
+        22007904698,
+        22014818272
+      ],
+      [
+        22095448699,
+        22102363622
+      ],
+      [
+        22156737320,
+        22163650894
+      ],
+      [
+        22191761643,
+        22198674851
+      ],
+      [
+        22261798102,
+        22268713378
+      ]
+    ],
+    "scroll.plain": [
+      [
+        22016655581,
+        22023571709
+      ],
+      [
+        22069180534,
+        22076098688
+      ],
+      [
+        22165485274,
+        22172406489
+      ],
+      [
+        22209266637,
+        22216183160
+      ],
+      [
+        22253042457,
+        22259957065
+      ]
+    ],
+    "scroll.probeBlur": [
+      [
+        22025406617,
+        22032325458
+      ],
+      [
+        22104199938,
+        22111118392
+      ],
+      [
+        22121711981,
+        22128626869
+      ],
+      [
+        22174245456,
+        22181162768
+      ],
+      [
+        22244286302,
+        22251201717
+      ]
+    ],
+    "scroll.material": [
+      [
+        22034168647,
+        22041082946
+      ],
+      [
+        22060433802,
+        22067346657
+      ],
+      [
+        22139226995,
+        22146140504
+      ],
+      [
+        22226774063,
+        22233690591
+      ],
+      [
+        22270554653,
+        22277471814
+      ]
+    ],
+    "scroll.morphFlatNoEdge": [
+      [
+        22042921376,
+        22049835364
+      ],
+      [
+        22086693787,
+        22093607902
+      ],
+      [
+        22147980211,
+        22154895767
+      ],
+      [
+        22218023029,
+        22224937039
+      ],
+      [
+        22235532242,
+        22242445617
+      ]
+    ]
+  },
+  "g1455_captures": {},
+  "scroll.probeFilter": {
+    "median": {
+      "n": 391.0,
+      "build_p50": 1.499,
+      "build_p95": 3.949,
+      "build_p99": 5.593,
+      "build_worst": 6.377,
+      "raster_p50": 5.331,
+      "raster_p95": 6.645,
+      "raster_p99": 7.673,
+      "raster_worst": 9.01,
+      "raster_mean": 5.271560102301784,
+      "span_p95": 11.439,
+      "over_budget": 0.0
+    },
+    "runs": [
+      {
+        "n": 391.0,
+        "build_p50": 1.549,
+        "build_p95": 3.608,
+        "build_p99": 5.044,
+        "build_worst": 5.26,
+        "raster_p50": 5.25,
+        "raster_p95": 6.536,
+        "raster_p99": 8.016,
+        "raster_worst": 9.157,
+        "raster_mean": 5.13587979539642,
+        "span_p95": 11.439,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.499,
+        "build_p95": 3.988,
+        "build_p99": 5.741,
+        "build_worst": 5.885,
+        "raster_p50": 5.426,
+        "raster_p95": 6.657,
+        "raster_p99": 8.255,
+        "raster_worst": 8.769,
+        "raster_mean": 5.365872122762153,
+        "span_p95": 11.664,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.448,
+        "build_p95": 3.949,
+        "build_p99": 5.593,
+        "build_worst": 6.377,
+        "raster_p50": 5.193,
+        "raster_p95": 6.592,
+        "raster_p99": 7.673,
+        "raster_worst": 9.144,
+        "raster_mean": 5.099063938618924,
+        "span_p95": 11.335,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.439,
+        "build_p95": 3.669,
+        "build_p99": 5.437,
+        "build_worst": 6.485,
+        "raster_p50": 5.331,
+        "raster_p95": 6.657,
+        "raster_p99": 7.603,
+        "raster_worst": 8.969,
+        "raster_mean": 5.271560102301784,
+        "span_p95": 11.392,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.531,
+        "build_p95": 3.962,
+        "build_p99": 6.031,
+        "build_worst": 6.644,
+        "raster_p50": 5.374,
+        "raster_p95": 6.645,
+        "raster_p99": 7.329,
+        "raster_worst": 9.01,
+        "raster_mean": 5.2797135549872145,
+        "span_p95": 11.484,
+        "over_budget": 0.0
+      }
+    ]
+  },
+  "scroll.probeCopy": {
+    "median": {
+      "n": 391.0,
+      "build_p50": 2.31,
+      "build_p95": 5.235,
+      "build_p99": 7.218,
+      "build_worst": 8.876,
+      "raster_p50": 6.575,
+      "raster_p95": 8.915,
+      "raster_p99": 10.291,
+      "raster_worst": 11.607,
+      "raster_mean": 6.703273657289011,
+      "span_p95": 14.417,
+      "over_budget": 0.0
+    },
+    "runs": [
+      {
+        "n": 391.0,
+        "build_p50": 2.321,
+        "build_p95": 5.562,
+        "build_p99": 8.287,
+        "build_worst": 8.953,
+        "raster_p50": 6.619,
+        "raster_p95": 8.911,
+        "raster_p99": 10.072,
+        "raster_worst": 11.607,
+        "raster_mean": 6.703273657289011,
+        "span_p95": 14.844,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 2.111,
+        "build_p95": 5.235,
+        "build_p99": 7.256,
+        "build_worst": 7.638,
+        "raster_p50": 6.575,
+        "raster_p95": 8.915,
+        "raster_p99": 10.36,
+        "raster_worst": 11.608,
+        "raster_mean": 6.697227621483379,
+        "span_p95": 14.384,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 2.226,
+        "build_p95": 5.115,
+        "build_p99": 7.218,
+        "build_worst": 9.143,
+        "raster_p50": 6.468,
+        "raster_p95": 8.793,
+        "raster_p99": 10.084,
+        "raster_worst": 11.267,
+        "raster_mean": 6.477217391304347,
+        "span_p95": 14.233,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 2.31,
+        "build_p95": 5.398,
+        "build_p99": 6.402,
+        "build_worst": 7.471,
+        "raster_p50": 6.548,
+        "raster_p95": 9.047,
+        "raster_p99": 10.291,
+        "raster_worst": 10.862,
+        "raster_mean": 6.741631713554991,
+        "span_p95": 14.417,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 2.332,
+        "build_p95": 5.224,
+        "build_p99": 6.686,
+        "build_worst": 8.876,
+        "raster_p50": 6.639,
+        "raster_p95": 9.292,
+        "raster_p99": 10.8,
+        "raster_worst": 12.392,
+        "raster_mean": 6.790933503836317,
+        "span_p95": 15.173,
+        "over_budget": 0.0
+      }
+    ]
+  },
+  "scroll.morphFlat": {
+    "median": {
+      "n": 409.0,
+      "build_p50": 1.729,
+      "build_p95": 3.769,
+      "build_p99": 4.83,
+      "build_worst": 7.337,
+      "raster_p50": 7.079,
+      "raster_p95": 8.4,
+      "raster_p99": 9.387,
+      "raster_worst": 22.503,
+      "raster_mean": 6.884501222493888,
+      "span_p95": 13.413,
+      "over_budget": 1.0
+    },
+    "runs": [
+      {
+        "n": 409.0,
+        "build_p50": 1.729,
+        "build_p95": 3.707,
+        "build_p99": 5.187,
+        "build_worst": 7.337,
+        "raster_p50": 7.117,
+        "raster_p95": 8.65,
+        "raster_p99": 9.775,
+        "raster_worst": 25.047,
+        "raster_mean": 6.995127139364304,
+        "span_p95": 13.413,
+        "over_budget": 1.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 1.731,
+        "build_p95": 3.769,
+        "build_p99": 4.83,
+        "build_worst": 7.179,
+        "raster_p50": 7.1,
+        "raster_p95": 8.49,
+        "raster_p99": 9.387,
+        "raster_worst": 22.377,
+        "raster_mean": 6.970630806845964,
+        "span_p95": 13.157,
+        "over_budget": 1.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 1.633,
+        "build_p95": 4.042,
+        "build_p99": 5.341,
+        "build_worst": 8.626,
+        "raster_p50": 6.919,
+        "raster_p95": 8.4,
+        "raster_p99": 9.137,
+        "raster_worst": 24.098,
+        "raster_mean": 6.670283618581903,
+        "span_p95": 13.551,
+        "over_budget": 1.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 1.764,
+        "build_p95": 3.773,
+        "build_p99": 4.653,
+        "build_worst": 5.051,
+        "raster_p50": 6.994,
+        "raster_p95": 8.317,
+        "raster_p99": 8.963,
+        "raster_worst": 22.503,
+        "raster_mean": 6.875674816625915,
+        "span_p95": 13.48,
+        "over_budget": 2.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 1.642,
+        "build_p95": 3.471,
+        "build_p99": 4.727,
+        "build_worst": 8.247,
+        "raster_p50": 7.079,
+        "raster_p95": 8.351,
+        "raster_p99": 9.45,
+        "raster_worst": 21.302,
+        "raster_mean": 6.884501222493888,
+        "span_p95": 13.28,
+        "over_budget": 1.0
+      }
+    ]
+  },
+  "scroll.plain": {
+    "median": {
+      "n": 391.0,
+      "build_p50": 1.272,
+      "build_p95": 3.661,
+      "build_p99": 5.454,
+      "build_worst": 6.446,
+      "raster_p50": 4.327,
+      "raster_p95": 5.529,
+      "raster_p99": 6.518,
+      "raster_worst": 7.595,
+      "raster_mean": 4.267324808184144,
+      "span_p95": 10.297,
+      "over_budget": 0.0
+    },
+    "runs": [
+      {
+        "n": 391.0,
+        "build_p50": 1.176,
+        "build_p95": 3.608,
+        "build_p99": 5.258,
+        "build_worst": 6.066,
+        "raster_p50": 4.411,
+        "raster_p95": 5.713,
+        "raster_p99": 6.518,
+        "raster_worst": 7.403,
+        "raster_mean": 4.400391304347825,
+        "span_p95": 10.297,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.36,
+        "build_p95": 4.053,
+        "build_p99": 5.44,
+        "build_worst": 8.036,
+        "raster_p50": 4.244,
+        "raster_p95": 5.445,
+        "raster_p99": 6.514,
+        "raster_worst": 7.595,
+        "raster_mean": 4.128480818414321,
+        "span_p95": 10.53,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.196,
+        "build_p95": 3.661,
+        "build_p99": 5.991,
+        "build_worst": 7.115,
+        "raster_p50": 4.327,
+        "raster_p95": 5.582,
+        "raster_p99": 6.625,
+        "raster_worst": 7.895,
+        "raster_mean": 4.267276214833757,
+        "span_p95": 10.121,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.336,
+        "build_p95": 4.014,
+        "build_p99": 5.835,
+        "build_worst": 6.446,
+        "raster_p50": 4.341,
+        "raster_p95": 5.479,
+        "raster_p99": 6.549,
+        "raster_worst": 7.064,
+        "raster_mean": 4.267324808184144,
+        "span_p95": 10.878,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.272,
+        "build_p95": 3.502,
+        "build_p99": 5.454,
+        "build_worst": 5.965,
+        "raster_p50": 4.313,
+        "raster_p95": 5.529,
+        "raster_p99": 6.282,
+        "raster_worst": 7.977,
+        "raster_mean": 4.293769820971868,
+        "span_p95": 10.256,
+        "over_budget": 0.0
+      }
+    ]
+  },
+  "scroll.probeBlur": {
+    "median": {
+      "n": 391.0,
+      "build_p50": 1.678,
+      "build_p95": 3.748,
+      "build_p99": 5.149,
+      "build_worst": 5.884,
+      "raster_p50": 6.016,
+      "raster_p95": 7.401,
+      "raster_p99": 8.659,
+      "raster_worst": 9.672,
+      "raster_mean": 6.003982097186703,
+      "span_p95": 11.994,
+      "over_budget": 0.0
+    },
+    "runs": [
+      {
+        "n": 391.0,
+        "build_p50": 1.633,
+        "build_p95": 3.831,
+        "build_p99": 5.149,
+        "build_worst": 5.972,
+        "raster_p50": 5.935,
+        "raster_p95": 7.178,
+        "raster_p99": 7.956,
+        "raster_worst": 9.153,
+        "raster_mean": 5.802552429667513,
+        "span_p95": 12.209,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.747,
+        "build_p95": 3.924,
+        "build_p99": 5.099,
+        "build_worst": 5.884,
+        "raster_p50": 6.167,
+        "raster_p95": 7.43,
+        "raster_p99": 8.701,
+        "raster_worst": 10.623,
+        "raster_mean": 6.085529411764714,
+        "span_p95": 12.526,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.678,
+        "build_p95": 3.748,
+        "build_p99": 5.372,
+        "build_worst": 6.25,
+        "raster_p50": 6.016,
+        "raster_p95": 7.401,
+        "raster_p99": 8.893,
+        "raster_worst": 12.68,
+        "raster_mean": 6.003982097186703,
+        "span_p95": 11.963,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.612,
+        "build_p95": 3.56,
+        "build_p99": 4.958,
+        "build_worst": 5.846,
+        "raster_p50": 5.939,
+        "raster_p95": 7.294,
+        "raster_p99": 8.459,
+        "raster_worst": 9.661,
+        "raster_mean": 5.900411764705883,
+        "span_p95": 11.933,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.687,
+        "build_p95": 3.746,
+        "build_p99": 5.294,
+        "build_worst": 5.646,
+        "raster_p50": 6.088,
+        "raster_p95": 7.442,
+        "raster_p99": 8.659,
+        "raster_worst": 9.672,
+        "raster_mean": 6.053427109974428,
+        "span_p95": 11.994,
+        "over_budget": 0.0
+      }
+    ]
+  },
+  "scroll.material": {
+    "median": {
+      "n": 391.0,
+      "build_p50": 1.69,
+      "build_p95": 4.773,
+      "build_p99": 5.842,
+      "build_worst": 7.721,
+      "raster_p50": 4.949,
+      "raster_p95": 6.084,
+      "raster_p99": 7.195,
+      "raster_worst": 8.553,
+      "raster_mean": 4.966534526854219,
+      "span_p95": 12.207,
+      "over_budget": 0.0
+    },
+    "runs": [
+      {
+        "n": 391.0,
+        "build_p50": 1.678,
+        "build_p95": 4.773,
+        "build_p99": 6.15,
+        "build_worst": 7.784,
+        "raster_p50": 4.95,
+        "raster_p95": 6.166,
+        "raster_p99": 7.702,
+        "raster_worst": 8.539,
+        "raster_mean": 4.984787723785162,
+        "span_p95": 12.22,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.69,
+        "build_p95": 4.841,
+        "build_p99": 5.572,
+        "build_worst": 6.814,
+        "raster_p50": 4.956,
+        "raster_p95": 6.084,
+        "raster_p99": 7.136,
+        "raster_worst": 11.212,
+        "raster_mean": 4.981925831202048,
+        "span_p95": 12.207,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.662,
+        "build_p95": 4.84,
+        "build_p99": 6.373,
+        "build_worst": 7.721,
+        "raster_p50": 4.931,
+        "raster_p95": 6.086,
+        "raster_p99": 7.195,
+        "raster_worst": 8.755,
+        "raster_mean": 4.952769820971869,
+        "span_p95": 11.928,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.69,
+        "build_p95": 4.7,
+        "build_p99": 5.842,
+        "build_worst": 7.535,
+        "raster_p50": 4.881,
+        "raster_p95": 5.947,
+        "raster_p99": 6.678,
+        "raster_worst": 8.553,
+        "raster_mean": 4.908713554987213,
+        "span_p95": 12.214,
+        "over_budget": 0.0
+      },
+      {
+        "n": 391.0,
+        "build_p50": 1.798,
+        "build_p95": 4.434,
+        "build_p99": 5.675,
+        "build_worst": 8.32,
+        "raster_p50": 4.949,
+        "raster_p95": 6.031,
+        "raster_p99": 7.292,
+        "raster_worst": 7.76,
+        "raster_mean": 4.966534526854219,
+        "span_p95": 11.78,
+        "over_budget": 0.0
+      }
+    ]
+  },
+  "scroll.morphFlatNoEdge": {
+    "median": {
+      "n": 409.0,
+      "build_p50": 1.435,
+      "build_p95": 3.803,
+      "build_p99": 5.106,
+      "build_worst": 6.2,
+      "raster_p50": 5.047,
+      "raster_p95": 6.183,
+      "raster_p99": 6.977,
+      "raster_worst": 8.39,
+      "raster_mean": 4.991090464547681,
+      "span_p95": 11.211,
+      "over_budget": 0.0
+    },
+    "runs": [
+      {
+        "n": 409.0,
+        "build_p50": 1.389,
+        "build_p95": 3.861,
+        "build_p99": 5.385,
+        "build_worst": 7.531,
+        "raster_p50": 5.122,
+        "raster_p95": 6.047,
+        "raster_p99": 6.594,
+        "raster_worst": 8.364,
+        "raster_mean": 4.994430317848414,
+        "span_p95": 11.373,
+        "over_budget": 0.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 1.505,
+        "build_p95": 3.649,
+        "build_p99": 4.904,
+        "build_worst": 5.578,
+        "raster_p50": 5.093,
+        "raster_p95": 6.183,
+        "raster_p99": 6.977,
+        "raster_worst": 8.876,
+        "raster_mean": 5.027716381418093,
+        "span_p95": 11.211,
+        "over_budget": 0.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 1.371,
+        "build_p95": 3.919,
+        "build_p99": 5.184,
+        "build_worst": 5.841,
+        "raster_p50": 5.005,
+        "raster_p95": 6.214,
+        "raster_p99": 6.953,
+        "raster_worst": 7.336,
+        "raster_mean": 4.859393643031789,
+        "span_p95": 11.074,
+        "over_budget": 0.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 1.435,
+        "build_p95": 3.703,
+        "build_p99": 5.106,
+        "build_worst": 6.2,
+        "raster_p50": 4.992,
+        "raster_p95": 6.152,
+        "raster_p99": 7.067,
+        "raster_worst": 10.303,
+        "raster_mean": 4.931963325183373,
+        "span_p95": 11.167,
+        "over_budget": 0.0
+      },
+      {
+        "n": 409.0,
+        "build_p50": 1.447,
+        "build_p95": 3.803,
+        "build_p99": 5.105,
+        "build_worst": 6.251,
+        "raster_p50": 5.047,
+        "raster_p95": 6.19,
+        "raster_p99": 7.184,
+        "raster_worst": 8.39,
+        "raster_mean": 4.991090464547681,
+        "span_p95": 11.49,
+        "over_budget": 0.0
+      }
+    ]
+  }
+}

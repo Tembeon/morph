@@ -1,0 +1,582 @@
+import 'dart:ui' as ui;
+
+import 'package:g1455/g1455.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:morph/widgets.dart';
+
+enum BenchVariant {
+  plain,
+  material,
+  morphFlat,
+  morphFake,
+  morphLiquid,
+  morphFlatNoEdge,
+  morphLiquidNoEdge,
+  morphFlatBare,
+  probeFilter,
+  probeBlur,
+  probeCopy,
+  probeBlur2,
+  probeHard,
+  probeEdge,
+  g1455Full,
+  g1455Cheap,
+}
+
+enum BenchScene { scroll, controls }
+
+const Color benchBackground = Color(0xFF000000);
+
+Color tileColor(int i) =>
+    HSLColor.fromAHSL(1, (i * 37) % 360, 0.55, 0.62).toColor();
+
+Widget tile(int i) => Container(
+  height: 64,
+  margin: const EdgeInsets.only(bottom: 8),
+  decoration: BoxDecoration(
+    color: tileColor(i),
+    borderRadius: BorderRadius.circular(14),
+  ),
+  alignment: Alignment.centerLeft,
+  padding: const EdgeInsets.symmetric(horizontal: 16),
+  child: Text(
+    'Row $i',
+    style: const TextStyle(color: Color(0xFFFFFFFF), fontSize: 16),
+  ),
+);
+
+class BenchApp extends StatelessWidget {
+  const BenchApp({
+    required this.variant,
+    required this.scene,
+    required this.controller,
+    super.key,
+  });
+
+  final BenchVariant variant;
+  final BenchScene scene;
+  final ScrollController controller;
+
+  MorphGlassTier? get _morphTier => switch (variant) {
+    BenchVariant.morphFlat ||
+    BenchVariant.morphFlatNoEdge ||
+    BenchVariant.morphFlatBare => MorphGlassTier.flat,
+    BenchVariant.morphFake => MorphGlassTier.fake,
+    BenchVariant.morphLiquid ||
+    BenchVariant.morphLiquidNoEdge => MorphGlassTier.liquid,
+    _ => null,
+  };
+
+  GlassTier? get _g1455Tier => switch (variant) {
+    BenchVariant.g1455Full => GlassTier.full,
+    BenchVariant.g1455Cheap => GlassTier.cheap,
+    _ => null,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final morphTier = _morphTier;
+    final g1455Tier = _g1455Tier;
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      themeMode: ThemeMode.dark,
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF007AFF),
+          brightness: Brightness.dark,
+        ),
+        scaffoldBackgroundColor: benchBackground,
+        splashFactory: variant == BenchVariant.material
+            ? null
+            : NoSplash.splashFactory,
+      ),
+      builder: (BuildContext context, Widget? child) {
+        if (morphTier != null) {
+          return MorphAdaptiveGlass(
+            renderer: MorphGlassRenderer(tier: morphTier),
+            tier: morphTier,
+            child: BackdropGroup(child: MorphScope(child: child!)),
+          );
+        }
+        if (g1455Tier != null) {
+          return GlassHost(
+            backdrop: benchBackground,
+            tier: GlassTierPolicy(pinned: g1455Tier).choose(),
+            child: child!,
+          );
+        }
+        return child!;
+      },
+      home: Material(
+        type: MaterialType.transparency,
+        child: switch (scene) {
+          BenchScene.scroll => ScrollScene(
+            variant: variant,
+            controller: controller,
+          ),
+          BenchScene.controls => ControlsScene(variant: variant),
+        },
+      ),
+    );
+  }
+}
+
+class ScrollScene extends StatefulWidget {
+  const ScrollScene({
+    required this.variant,
+    required this.controller,
+    super.key,
+  });
+
+  final BenchVariant variant;
+  final ScrollController controller;
+
+  @override
+  State<ScrollScene> createState() => _ScrollSceneState();
+}
+
+class _ScrollSceneState extends State<ScrollScene> {
+  int _tab = 0;
+  final ScrollController _mirror = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    widget.controller.addListener(_sync);
+  }
+
+  void _sync() {
+    if (_mirror.hasClients) _mirror.jumpTo(widget.controller.offset);
+  }
+
+  @override
+  void dispose() {
+    widget.controller.removeListener(_sync);
+    _mirror.dispose();
+    super.dispose();
+  }
+
+  Widget _probe(double top) {
+    final strip = top + 60;
+    final Widget over = switch (widget.variant) {
+      BenchVariant.probeFilter => BackdropFilter(
+        filter: ui.ImageFilter.matrix(
+          Matrix4.translationValues(0, 0.5, 0).storage,
+        ),
+        child: const SizedBox.expand(),
+      ),
+      BenchVariant.probeBlur2 => BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        child: const SizedBox.expand(),
+      ),
+      BenchVariant.probeHard => BackdropFilter(
+        filter: ui.ImageFilter.compose(
+          outer: ui.ColorFilter.matrix(
+            MorphScrollEdgeEffectThemeData.dark.hardColorMatrix,
+          ),
+          inner: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+        ),
+        child: const SizedBox.expand(),
+      ),
+      BenchVariant.probeEdge => MorphScrollEdgeEffect(
+        extent: strip,
+        style: MorphScrollEdgeEffectStyle.hard,
+      ),
+      BenchVariant.probeBlur => BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: const SizedBox.expand(),
+      ),
+      _ => ClipRect(
+        child: ImageFiltered(
+          imageFilter: ui.ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          child: IgnorePointer(
+            child: OverflowBox(
+              alignment: Alignment.topCenter,
+              maxHeight: MediaQuery.sizeOf(context).height,
+              child: ListView.builder(
+                controller: _mirror,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.fromLTRB(16, strip, 16, 120),
+                itemCount: 60,
+                itemBuilder: (BuildContext context, int i) => tile(i),
+              ),
+            ),
+          ),
+        ),
+      ),
+    };
+    return ColoredBox(
+      color: benchBackground,
+      child: Stack(
+        children: [
+          _list(padding: EdgeInsets.fromLTRB(16, strip, 16, 120)),
+          Positioned(top: 0, left: 0, right: 0, height: strip, child: over),
+        ],
+      ),
+    );
+  }
+
+  static const List<(IconData, String)> _tabs = [
+    (Icons.home_rounded, 'Home'),
+    (Icons.search_rounded, 'Search'),
+    (Icons.radio_rounded, 'Radio'),
+    (Icons.person_rounded, 'Profile'),
+  ];
+
+  Widget _list({
+    EdgeInsets padding = const EdgeInsets.fromLTRB(16, 8, 16, 8),
+  }) => ListView.builder(
+    controller: widget.controller,
+    padding: padding,
+    itemCount: 60,
+    itemBuilder: (BuildContext context, int i) => tile(i),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final top = MediaQuery.paddingOf(context).top;
+    switch (widget.variant) {
+      case BenchVariant.probeFilter ||
+          BenchVariant.probeBlur ||
+          BenchVariant.probeCopy ||
+          BenchVariant.probeBlur2 ||
+          BenchVariant.probeHard ||
+          BenchVariant.probeEdge:
+        return _probe(top);
+      case BenchVariant.plain:
+        return ColoredBox(
+          color: benchBackground,
+          child: _list(padding: EdgeInsets.fromLTRB(16, top + 60, 16, 120)),
+        );
+      case BenchVariant.material:
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Library'),
+            actions: [
+              IconButton(onPressed: () {}, icon: const Icon(Icons.add)),
+              IconButton(onPressed: () {}, icon: const Icon(Icons.more_horiz)),
+            ],
+          ),
+          body: _list(),
+          bottomNavigationBar: NavigationBar(
+            selectedIndex: _tab,
+            onDestinationSelected: (int i) => setState(() => _tab = i),
+            destinations: [
+              for (final (icon, label) in _tabs)
+                NavigationDestination(icon: Icon(icon), label: label),
+            ],
+          ),
+        );
+      case BenchVariant.morphFlat ||
+          BenchVariant.morphFake ||
+          BenchVariant.morphLiquid ||
+          BenchVariant.morphFlatNoEdge ||
+          BenchVariant.morphLiquidNoEdge ||
+          BenchVariant.morphFlatBare:
+        return Stack(
+          children: [
+            MorphNavigationScaffold(
+              title: 'Library',
+              controller: widget.controller,
+              backgroundColor: benchBackground,
+              edgeEffect: switch (widget.variant) {
+                BenchVariant.morphFlatNoEdge ||
+                BenchVariant.morphLiquidNoEdge ||
+                BenchVariant.morphFlatBare => null,
+                _ => MorphScrollEdgeEffectStyle.hard,
+              },
+              trailing: [
+                MorphBarButtonGroup([
+                  MorphBarButton(
+                    id: 'add',
+                    icon: const Icon(Icons.add),
+                    onPressed: () {},
+                  ),
+                  MorphBarButton(
+                    id: 'more',
+                    icon: const Icon(Icons.more_horiz),
+                    onPressed: () {},
+                  ),
+                ], id: 'actions'),
+              ],
+              slivers: [
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+                  sliver: SliverList.builder(
+                    itemCount: 60,
+                    itemBuilder: (BuildContext context, int i) => tile(i),
+                  ),
+                ),
+              ],
+            ),
+            if (widget.variant != BenchVariant.morphFlatBare)
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 21,
+                child: Center(
+                  child: MorphTabBar(
+                    items: [
+                      for (final (icon, label) in _tabs)
+                        MorphTabItem(icon: icon, label: label),
+                    ],
+                    selected: _tab,
+                    onChanged: (int i) => setState(() => _tab = i),
+                  ),
+                ),
+              ),
+          ],
+        );
+      case BenchVariant.g1455Full || BenchVariant.g1455Cheap:
+        return ColoredBox(
+          color: benchBackground,
+          child: Stack(
+            children: [
+              _list(padding: EdgeInsets.fromLTRB(16, top + 60, 16, 120)),
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: GlassScrollEdge(
+                  side: GlassScrollEdgeSide.top,
+                  extent: top + 60,
+                  child: SafeArea(
+                    bottom: false,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                      child: GlassBar(
+                        child: Row(
+                          children: const [
+                            Expanded(child: Text('Library')),
+                            Icon(Icons.add),
+                            SizedBox(width: 16),
+                            Icon(Icons.more_horiz),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 21,
+                child: GlassTabBar(
+                  items: [
+                    for (final (icon, label) in _tabs)
+                      GlassTabItem(icon: icon, label: label),
+                  ],
+                  selectedIndex: _tab,
+                  onSelected: (int i) => setState(() => _tab = i),
+                ),
+              ),
+            ],
+          ),
+        );
+    }
+  }
+}
+
+class ControlsScene extends StatefulWidget {
+  const ControlsScene({required this.variant, super.key});
+
+  final BenchVariant variant;
+
+  @override
+  State<ControlsScene> createState() => _ControlsSceneState();
+}
+
+class _ControlsSceneState extends State<ControlsScene> {
+  bool _a = true;
+  bool _b = false;
+  double _value = 0.5;
+  int _segment = 0;
+
+  static const List<String> _segments = ['Day', 'Week', 'Month'];
+
+  Widget _row(Widget child) => SizedBox(
+    height: 56,
+    child: Align(alignment: Alignment.centerLeft, child: child),
+  );
+
+  List<Widget> _controls() => switch (widget.variant) {
+    BenchVariant.plain ||
+    BenchVariant.probeFilter ||
+    BenchVariant.probeBlur ||
+    BenchVariant.probeCopy ||
+    BenchVariant.probeBlur2 ||
+    BenchVariant.probeHard ||
+    BenchVariant.probeEdge => [
+      for (var i = 0; i < 5; i++) const SizedBox(height: 56),
+    ],
+    BenchVariant.material => [
+      _row(Switch(value: _a, onChanged: (bool v) => setState(() => _a = v))),
+      _row(Switch(value: _b, onChanged: (bool v) => setState(() => _b = v))),
+      SizedBox(
+        height: 56,
+        child: Slider(
+          value: _value,
+          onChanged: (double v) => setState(() => _value = v),
+        ),
+      ),
+      _row(
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<int>(
+            showSelectedIcon: false,
+            segments: [
+              for (var i = 0; i < _segments.length; i++)
+                ButtonSegment(value: i, label: Text(_segments[i])),
+            ],
+            selected: {_segment},
+            onSelectionChanged: (Set<int> s) =>
+                setState(() => _segment = s.first),
+          ),
+        ),
+      ),
+      _row(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            for (final label in const ['One', 'Two', 'Three'])
+              Flexible(
+                child: FilledButton.tonal(onPressed: () {}, child: Text(label)),
+              ),
+          ],
+        ),
+      ),
+    ],
+    BenchVariant.morphFlat ||
+    BenchVariant.morphFake ||
+    BenchVariant.morphLiquid ||
+    BenchVariant.morphFlatNoEdge ||
+    BenchVariant.morphLiquidNoEdge ||
+    BenchVariant.morphFlatBare => [
+      _row(
+        MorphSwitch(value: _a, onChanged: (bool v) => setState(() => _a = v)),
+      ),
+      _row(
+        MorphSwitch(value: _b, onChanged: (bool v) => setState(() => _b = v)),
+      ),
+      SizedBox(
+        height: 56,
+        child: Center(
+          child: MorphSlider(
+            value: _value,
+            onChanged: (double v) => setState(() => _value = v),
+          ),
+        ),
+      ),
+      _row(
+        MorphSegmentedControl(
+          segments: _segments,
+          selected: _segment,
+          onChanged: (int i) => setState(() => _segment = i),
+        ),
+      ),
+      _row(
+        MorphGlassContainer(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              for (final label in const ['One', 'Two', 'Three'])
+                Flexible(
+                  child: MorphGlassButton(onPressed: () {}, child: Text(label)),
+                ),
+            ],
+          ),
+        ),
+      ),
+    ],
+    BenchVariant.g1455Full || BenchVariant.g1455Cheap => [
+      _row(
+        GlassSwitch(value: _a, onChanged: (bool v) => setState(() => _a = v)),
+      ),
+      _row(
+        GlassSwitch(value: _b, onChanged: (bool v) => setState(() => _b = v)),
+      ),
+      SizedBox(
+        height: 56,
+        child: Center(
+          child: GlassSlider(
+            value: _value,
+            onChanged: (double v) => setState(() => _value = v),
+          ),
+        ),
+      ),
+      _row(
+        GlassSegmentedControl(
+          segments: [for (final s in _segments) Text(s)],
+          selectedIndex: _segment,
+          onSelected: (int i) => setState(() => _segment = i),
+        ),
+      ),
+      _row(
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            for (final label in const ['One', 'Two', 'Three'])
+              Flexible(
+                child: GlassButton(onPressed: () {}, child: Text(label)),
+              ),
+          ],
+        ),
+      ),
+    ],
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final body = Stack(
+      children: [
+        Positioned.fill(
+          child: RepaintBoundary(
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 40, 16, 0),
+              itemCount: 20,
+              itemBuilder: (BuildContext context, int i) => tile(i),
+            ),
+          ),
+        ),
+        Center(
+          child: Container(
+            width: 340,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: const Color(0x66000000),
+              borderRadius: BorderRadius.circular(26),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: _controls(),
+            ),
+          ),
+        ),
+      ],
+    );
+    return switch (widget.variant) {
+      BenchVariant.material => Scaffold(body: body),
+      _ => ColoredBox(color: benchBackground, child: body),
+    };
+  }
+}
+
+void main() {
+  runApp(
+    BenchApp(
+      variant: BenchVariant.values.byName(
+        const String.fromEnvironment(
+          'BENCH_VARIANT',
+          defaultValue: 'morphLiquid',
+        ),
+      ),
+      scene: BenchScene.values.byName(
+        const String.fromEnvironment('BENCH_SCENE', defaultValue: 'scroll'),
+      ),
+      controller: ScrollController(),
+    ),
+  );
+}

@@ -1,0 +1,25 @@
+name: g1455_bench
+description: "Material, morph and g1455 in one binary, same layout, shuffled."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: ^1.1.0
+  morph:
+    path: /tmp/morph-g1455-wt
+  g1455:
+    path: /tmp/g1455
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true

@@ -1,0 +1,340 @@
+import 'dart:convert';
+import 'dart:developer' as developer;
+import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:g1455/g1455.dart';
+import 'package:g1455/glass_diagnostics.dart';
+import 'package:g1455_bench/main.dart';
+import 'package:integration_test/integration_test.dart';
+// ignore: implementation_imports
+import 'package:integration_test/src/channel.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:morph/widgets.dart';
+
+const int _runs = int.fromEnvironment('BENCH_RUNS', defaultValue: 5);
+const int _seed = int.fromEnvironment('BENCH_SEED', defaultValue: 20261006);
+const String _only = String.fromEnvironment('BENCH_VARIANTS');
+const String _scenesOnly = String.fromEnvironment('BENCH_SCENES');
+const bool _shots = bool.fromEnvironment('BENCH_SHOTS');
+final Directory _out = Directory(
+  const String.fromEnvironment('AUDIT_OUT').isEmpty
+      ? '${Directory.systemTemp.path}/compare'
+      : const String.fromEnvironment('AUDIT_OUT'),
+);
+
+void main() {
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
+
+  testWidgets('compare', semanticsEnabled: false, (WidgetTester tester) async {
+    final bench = _Bench(tester);
+    binding.platformDispatcher.platformBrightnessTestValue = ui.Brightness.dark;
+    SchedulerBinding.instance.addTimingsCallback(bench.timings.addAll);
+    await bench.run();
+    File('${_out.path}/report.json').writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert(bench.report()),
+    );
+  });
+}
+
+class _Bench {
+  _Bench(this.tester);
+
+  final WidgetTester tester;
+  final List<ui.FrameTiming> timings = [];
+  final Map<String, List<(int, int)>> _scenes = {};
+  final Map<String, List<List<int>>> _windowsUs = {};
+  final Map<String, List<int>> _captures = {};
+  final Stopwatch _clock = Stopwatch();
+  int _pointer = 300;
+  ScrollController _controller = ScrollController();
+
+  List<BenchVariant> get _variants => [
+    for (final v in BenchVariant.values)
+      if (_only.isEmpty || _only.split('+').contains(v.name)) v,
+  ];
+
+  Future<void> settle(int ms) => tester.pump(Duration(milliseconds: ms));
+
+  Future<void> mount(BenchVariant variant, BenchScene scene) async {
+    _controller = ScrollController();
+    runApp(
+      BenchApp(
+        key: UniqueKey(),
+        variant: variant,
+        scene: scene,
+        controller: _controller,
+      ),
+    );
+    await settle(1500);
+  }
+
+  Future<void> finger(
+    Offset from,
+    List<Offset> path, {
+    Duration holdBefore = const Duration(milliseconds: 16),
+    Duration step = const Duration(milliseconds: 16),
+  }) async {
+    final gesture = await tester.createGesture(pointer: _pointer++);
+    await gesture.down(from, timeStamp: _clock.elapsed);
+    await tester.pump(holdBefore);
+    for (final p in path) {
+      await gesture.moveTo(p, timeStamp: _clock.elapsed);
+      await tester.pump(step);
+    }
+    await gesture.up(timeStamp: _clock.elapsed);
+    await tester.pump();
+  }
+
+  static List<Offset> line(Offset a, Offset b, int n) => [
+    for (var i = 1; i <= n; i++) Offset.lerp(a, b, i / n)!,
+  ];
+
+  Rect rectOf(List<Type> types, {int index = 0}) {
+    for (final t in types) {
+      final f = find.byType(t);
+      if (f.evaluate().length > index) return tester.getRect(f.at(index));
+    }
+    throw StateError('none of $types');
+  }
+
+  Future<void> scrollBody() async {
+    await _controller.animateTo(
+      2400,
+      duration: const Duration(seconds: 3),
+      curve: Curves.linear,
+    );
+    await settle(100);
+    await _controller.animateTo(
+      0,
+      duration: const Duration(seconds: 3),
+      curve: Curves.linear,
+    );
+    await settle(300);
+  }
+
+  Future<void> controlsBody() async {
+    final slider = rectOf([Slider, MorphSlider, GlassSlider]);
+    final left = Offset(slider.left + 24, slider.center.dy);
+    final right = Offset(slider.right - 24, slider.center.dy);
+    await finger(slider.center, [
+      ...line(slider.center, left, 30),
+      ...line(left, right, 60),
+      ...line(right, slider.center, 30),
+    ], holdBefore: const Duration(milliseconds: 150));
+    await settle(600);
+    for (var i = 0; i < 2; i++) {
+      final s = rectOf([Switch, MorphSwitch, GlassSwitch], index: i);
+      await finger(
+        s.center,
+        const [],
+        holdBefore: const Duration(milliseconds: 60),
+      );
+      await settle(600);
+    }
+    final seg = rectOf([
+      SegmentedButton<int>,
+      MorphSegmentedControl,
+      GlassSegmentedControl,
+    ]);
+    final a = Offset(seg.left + seg.width / 6, seg.center.dy);
+    final c = Offset(seg.right - seg.width / 6, seg.center.dy);
+    await finger(
+      a,
+      [...line(a, c, 40), ...line(c, a, 40)],
+      holdBefore: const Duration(milliseconds: 150),
+      step: const Duration(milliseconds: 8),
+    );
+    await settle(600);
+    final b = rectOf([FilledButton, MorphGlassButton, GlassButton]);
+    await finger(
+      b.center,
+      const [],
+      holdBefore: const Duration(milliseconds: 60),
+    );
+    await settle(600);
+  }
+
+  int _snapshots() {
+    if (find.byType(GlassHost).evaluate().isEmpty) return -1;
+    final scene = find.byWidgetPredicate(
+      (Widget w) => w is ScrollScene || w is ControlsScene,
+    );
+    if (scene.evaluate().isEmpty) return -1;
+    return GlassProxyScope.maybeOf(tester.element(scene.first))?.snapshots ??
+        -1;
+  }
+
+  Future<void> measure(
+    String key,
+    int run,
+    Future<void> Function() body,
+  ) async {
+    await settle(300);
+    final start = timings.length;
+    final before = _snapshots();
+    developer.Timeline.startSync('scene:$key:$run:begin');
+    developer.Timeline.finishSync();
+    final window = [developer.Timeline.now, 0];
+    await body();
+    await settle(300);
+    await tester.pump();
+    await settle(100);
+    window[1] = developer.Timeline.now;
+    developer.Timeline.startSync('scene:$key:$run:end');
+    developer.Timeline.finishSync();
+    (_windowsUs[key] ??= []).add(window);
+    (_scenes[key] ??= []).add((start, timings.length));
+    final after = _snapshots();
+    if (before >= 0 && after >= 0) (_captures[key] ??= []).add(after - before);
+  }
+
+  Future<void> shot(String name) async {
+    if (!_shots || !Platform.isAndroid) return;
+    integrationTestChannel.setMethodCallHandler((MethodCall call) async {
+      if (call.method == 'scheduleFrame') {
+        ui.PlatformDispatcher.instance.scheduleFrame();
+      }
+      return null;
+    });
+    await integrationTestChannel.invokeMethod<void>(
+      'convertFlutterSurfaceToImage',
+    );
+    await tester.pump();
+    final bytes = await integrationTestChannel.invokeMethod<List<int>>(
+      'captureScreenshot',
+      <String, Object?>{'name': name},
+    );
+    await integrationTestChannel.invokeMethod<void>('revertFlutterImage');
+    await tester.pump();
+    if (bytes != null) File('${_out.path}/$name.png').writeAsBytesSync(bytes);
+  }
+
+  Future<void> run() async {
+    if (_out.existsSync()) _out.deleteSync(recursive: true);
+    _out.createSync(recursive: true);
+    _clock.start();
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+    await MorphGlassRenderer.precache();
+    await GlassHost.precache();
+    final pairs = [
+      for (final v in _variants)
+        for (final s in BenchScene.values)
+          if (_scenesOnly.isEmpty || _scenesOnly.split('+').contains(s.name))
+            if (!(v == BenchVariant.plain && s == BenchScene.controls)) (v, s),
+    ];
+    for (final (v, s) in pairs) {
+      await mount(v, s);
+      if (s == BenchScene.scroll) {
+        _controller.jumpTo(600);
+        await settle(600);
+      }
+      await shot('${s.name}.${v.name}');
+      await (s == BenchScene.scroll ? scrollBody() : controlsBody());
+    }
+    final random = math.Random(_seed);
+    for (var run = 0; run < _runs; run++) {
+      final order = [...pairs];
+      order.shuffle(random);
+      for (final (v, s) in order) {
+        await mount(v, s);
+        await measure(
+          '${s.name}.${v.name}',
+          run,
+          s == BenchScene.scroll ? scrollBody : controlsBody,
+        );
+      }
+    }
+  }
+
+  Map<String, Object?> report() {
+    final display = ui.PlatformDispatcher.instance.views.first.display;
+    final rate = display.refreshRate > 0 ? display.refreshRate : 60.0;
+    double ms(Duration d) => d.inMicroseconds / 1000;
+    double pick(List<double> v, double q) =>
+        v[math.min(v.length - 1, (v.length * q).floor())];
+    final intervals = [
+      for (var i = 1; i < timings.length; i++)
+        (timings[i].timestampInMicroseconds(ui.FramePhase.vsyncStart) -
+                timings[i - 1].timestampInMicroseconds(
+                  ui.FramePhase.vsyncStart,
+                )) /
+            1000,
+    ].where((double v) => v >= 4 && v <= 50).toList();
+    intervals.sort();
+    final budget = intervals.length < 8 ? 1000 / rate : pick(intervals, 0.1);
+    double median(List<double> v) {
+      final sorted = [...v];
+      sorted.sort();
+      return sorted[sorted.length ~/ 2];
+    }
+
+    Map<String, double>? stats(List<ui.FrameTiming> all) {
+      final frames = [
+        for (final f in all)
+          if (ms(f.buildDuration) > 0.3 || ms(f.rasterDuration) > 0.3) f,
+      ];
+      if (frames.isEmpty) return null;
+      List<double> sorted(double Function(ui.FrameTiming f) of) {
+        final values = [for (final f in frames) of(f)];
+        values.sort();
+        return values;
+      }
+
+      final build = sorted((f) => ms(f.buildDuration));
+      final raster = sorted((f) => ms(f.rasterDuration));
+      final span = sorted((f) => ms(f.totalSpan));
+      return {
+        'n': frames.length.toDouble(),
+        'build_p50': pick(build, 0.5),
+        'build_p95': pick(build, 0.95),
+        'build_p99': pick(build, 0.99),
+        'build_worst': build.last,
+        'raster_p50': pick(raster, 0.5),
+        'raster_p95': pick(raster, 0.95),
+        'raster_p99': pick(raster, 0.99),
+        'raster_worst': raster.last,
+        'raster_mean':
+            raster.fold(0.0, (double a, double b) => a + b) / raster.length,
+        'span_p95': pick(span, 0.95),
+        'over_budget': [
+          for (final f in frames)
+            if (ms(f.buildDuration) > budget || ms(f.rasterDuration) > budget)
+              f,
+        ].length.toDouble(),
+      };
+    }
+
+    return {
+      'platform': Platform.operatingSystem,
+      'refresh_rate': rate,
+      'budget_ms': budget,
+      'runs': _runs,
+      'seed': _seed,
+      'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'liquid_unavailable_reason': MorphGlassRenderer.liquidUnavailableReason,
+      'windows_us': _windowsUs,
+      'g1455_captures': _captures,
+      for (final MapEntry(key: scene, value: windows) in _scenes.entries)
+        scene: () {
+          final runs = [
+            for (final (start, end) in windows)
+              ?stats(timings.sublist(start, end)),
+          ];
+          if (runs.isEmpty) return 'no frames';
+          return {
+            'median': {
+              for (final key in runs.first.keys)
+                key: median([for (final r in runs) r[key]!]),
+            },
+            'runs': runs,
+          };
+        }(),
+    };
+  }
+}
