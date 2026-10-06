@@ -511,14 +511,13 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
               listenable: frames,
               builder: (BuildContext context, Widget? child) {
                 final lean = _motion.lean;
-                final transform = Matrix4.translationValues(
-                  lean.dx,
-                  lean.dy,
-                  0,
-                );
-                transform.multiply(
-                  Matrix4.diagonal3Values(_motion.scaleX, _motion.scaleY, 1),
-                );
+                final transform = Matrix4.identity();
+                if (!_motion.isSettled) {
+                  transform.translateByDouble(lean.dx, lean.dy, 0, 1);
+                  transform.multiply(
+                    Matrix4.diagonal3Values(_motion.scaleX, _motion.scaleY, 1),
+                  );
+                }
                 return Transform(
                   transform: transform,
                   alignment: Alignment.center,

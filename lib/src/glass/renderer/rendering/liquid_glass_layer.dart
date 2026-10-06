@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_shaders/flutter_shaders.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -1433,6 +1434,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @override
   void onCompositorTranslated(Offset translation) {
+    _watchRasterPhase();
     final clip = _filterClip;
     if (clip != null && _clipRectLayerHandle.layer != null) {
       _clipRectLayerHandle.layer!.clipRect = clip.shift(_filterPaintOffset);
@@ -1572,6 +1574,36 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // The pass phase the matte was encoded at when it shifts anchored shapes
   // onto their own raster grids; null when it shifts none.
   Offset? _encodedPassPhase;
+
+  Duration? _movedAt;
+  bool _phaseWatched = false;
+
+  // Compositor motion moves the pass phase without a paint, so the shifts
+  // baked into the matte go stale. A paint re-encodes them; it is asked for
+  // once the motion has stopped for a frame, so the motion itself stays on
+  // the compositor.
+  void _watchRasterPhase() {
+    if (_encodedPassPhase == null) return;
+    final scheduler = SchedulerBinding.instance;
+    _movedAt = scheduler.currentSystemFrameTimeStamp;
+    if (_phaseWatched) return;
+    _phaseWatched = true;
+    scheduler.addPostFrameCallback(_checkRasterPhase);
+  }
+
+  void _checkRasterPhase(Duration _) {
+    _phaseWatched = false;
+    final phase = _encodedPassPhase;
+    if (!attached || phase == null) return;
+    final scheduler = SchedulerBinding.instance;
+    if (_movedAt == scheduler.currentSystemFrameTimeStamp) {
+      _phaseWatched = true;
+      scheduler.addPostFrameCallback(_checkRasterPhase);
+      scheduler.scheduleFrame();
+      return;
+    }
+    if (_passPhase(shaderCoordinateTransform) != phase) markNeedsPaint();
+  }
 
   Offset _passPhase(Matrix4 layerToPass) {
     final origin = MatrixUtils.transformPoint(layerToPass, Offset.zero);

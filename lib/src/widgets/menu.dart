@@ -642,7 +642,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
           child: ListenableBuilder(
             listenable: frames,
             builder: (BuildContext context, Widget? child) => Transform.scale(
-              scale: _landing ? 1 : _motion?.pressScale ?? 1,
+              scale: _landing || _still() ? 1 : _motion?.pressScale ?? 1,
               child: child,
             ),
             child: Builder(
