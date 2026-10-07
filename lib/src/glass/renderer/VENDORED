@@ -6,8 +6,8 @@ Apache-2.0 (LICENSE, NOTICE); the third_party/ notices cover adapted
 shader code.
 
 Upstream:  https://github.com/whynotmake-it/flutter_liquid_glass
-Branch:    release/01-renderer-core
-Commit:    ab1c2d294683f7eea6ee8da6c81d5cd0225ee129 (2026-10-02)
+Branch:    main
+Commit:    3cec75eda468f9c6e481bd90b7533dcb5e997b8e (2026-10-06)
 Path:      packages/liquid_glass_renderer
 License:   Apache-2.0 (LICENSE), copyright Tim Lehmann for whynotmake.it;
            third_party/ keeps the Flutter (BSD) and Inigo Quilez (MIT)
@@ -36,6 +36,21 @@ Update history:
   LoupeTabBar are EXAMPLE code there, not part of the package, and were
   already present at cbbac845; the renderer itself never enlarges its
   backdrop (backdropShrink is clamped to 0..0.75).
+
+- 3cec75e (2026-10-06, main head checked 2026-10-07): compositor
+  translation polling compares the last committed frame, including idle
+  frames, rather than the deliberately retained last encode; hidden glass
+  settles while application frames continue. Skip the shared shadow pass
+  when no contributor has shadows. Fake shapes with appearance overrides
+  get their own backdrop transfer, including when the shared transfer is
+  identity, and share one source key with the consolidated filter. Only
+  three retained library files changed since ab1c2d2; upstream's example
+  measurement tooling was not imported. GPU geometry and shader sources
+  are unchanged upstream. Morph's live bindings, outlines, shader families,
+  frost seed, census and tuned blur sigmas remain. Fused outlines exclude
+  separately served shapes using nested inverse clips (no Path.combine).
+  Morph layer builders set their surface palette explicitly; containers
+  use Morph brightness so compatible surfaces retain a shared transfer.
 
 Local patches (some commits include related package changes):
 - 2026-10-03 backdropShrinkRim: LiquidGlassSettings.backdropShrinkRim

@@ -35,10 +35,11 @@ enum GlassFrameState {
   /// stay on the compositor.
   empty,
 
-  /// Every registered shape is hidden but drawable. The snapshot and the
-  /// retained effect of the last active frame stay encoded - the GPU matte
-  /// in particular - so ancestor motion stays compositor-only until a shape
-  /// becomes visible again.
+  /// Every registered shape is hidden but drawable. The retained effect
+  /// keeps the last active frame's encode - the GPU matte in particular -
+  /// so the layer stays compositor-managed until a shape becomes visible
+  /// again. The matte itself cannot be reused on un-hide: a visibility
+  /// crossing rebuilds the geometry cache.
   idle,
 
   /// The frame drew the glass effect for at least one visible shape.
@@ -242,11 +243,12 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   final List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)>
   shapesWithGeometry = [];
 
-  /// Encoded snapshot of the inputs the last non-idle frame was committed
-  /// with: each shape's render object, geometry cache and transform into
-  /// this layer. Idle frames preserve it, keeping the encoded snapshot of
-  /// the last active frame so ancestor motion stays compositor-only when
-  /// the glass becomes visible again.
+  /// Snapshot of the inputs the effect last encoded: each shape's render
+  /// object, geometry cache and transform into this layer. The real layer
+  /// writes it when it encodes the GPU matte; the fake layer's clip cache
+  /// matches against it. This is not the compositor-translation baseline -
+  /// the poll compares [shapesWithGeometry] - so it may stay stale while a
+  /// frame intentionally keeps the last encode (idle).
   final List<_EncodedGeometryInput> _encodedGeometryInputs = [];
 
   /// Layer-local bounds the retained frame was encoded for. Only effects
@@ -380,6 +382,9 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   /// Commits the collected [candidate] to the retained frame state without
   /// deciding the frame's [GlassFrameState], so retained compositor ticks
   /// can refresh contributors without crossing an idle boundary.
+  /// [shapesWithGeometry] is also the compositor-translation poll's
+  /// baseline: it always reflects the last painted frame, including idle
+  /// and drawable-empty ones.
   @protected
   void commitFrameGeometry(
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> candidate,
@@ -454,7 +459,9 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   );
 
   /// Snapshots the committed shapes' identities, caches and transforms into
-  /// the encoded inputs, reusing entries where possible.
+  /// the encoded inputs, reusing entries where possible. Only encode paths
+  /// call this - the matte render for real glass, the clip cache for fake;
+  /// the compositor-translation poll reads [shapesWithGeometry] instead.
   @protected
   void rememberFrameInputs() {
     final inputs = _encodedGeometryInputs;
@@ -504,17 +511,22 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
 
   /// Polls retained geometry for a translation that can be applied directly
   /// to the layer tree before it is submitted to the engine.
+  ///
+  /// The baseline is [shapesWithGeometry], the last painted frame's
+  /// committed inputs - not the encode snapshot, which is deliberately
+  /// stale while idle or drawable-empty so the retained effect settles
+  /// instead of repainting every frame.
   @protected
   ({bool needsRepaint, Offset? translation}) pollCompositorTranslation() {
     final current = link.shapes;
-    final inputs = _encodedGeometryInputs;
-    if (_framePoll.polledThisFrame && inputs.length == current.length) {
+    final committed = shapesWithGeometry;
+    if (_framePoll.polledThisFrame && committed.length == current.length) {
       return (needsRepaint: false, translation: Offset.zero);
     }
-    if (current.isEmpty && inputs.isEmpty) {
+    if (current.isEmpty && committed.isEmpty) {
       return (needsRepaint: false, translation: Offset.zero);
     }
-    if (inputs.isEmpty || current.length != inputs.length) {
+    if (committed.isEmpty || current.length != committed.length) {
       for (final geometry in current) {
         geometry.pollRelativeTransforms(this);
       }
@@ -527,12 +539,12 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     final translated = <RenderLiquidGlassGeometry>[];
     for (var index = 0; index < current.length; index++) {
       final geometry = current[index];
-      final encoded = inputs[index];
-      final wasCurrent = isSnapshotCurrent(geometry, encoded.cache);
+      final encoded = committed[index];
+      final wasCurrent = isSnapshotCurrent(geometry, encoded.$2);
       final poll = geometry.pollRelativeTransforms(this);
       final transform = poll.transform;
       if (poll.selfChanged || poll.childChanged) needsRepaint = true;
-      if (!identical(geometry, encoded.renderObject) ||
+      if (!identical(geometry, encoded.$1) ||
           !wasCurrent ||
           poll.childChanged ||
           transform == null) {
@@ -547,7 +559,9 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     if (!canTranslate) {
       return (needsRepaint: needsRepaint, translation: null);
     }
-    final translation = _sharedTranslation(inputs, transforms);
+    final translation = _sharedTranslation([
+      for (final entry in committed) entry.$3,
+    ], transforms);
     if (translation == null) return (needsRepaint: true, translation: null);
     for (final geometry in translated) {
       geometry.acceptCompositorTranslation();
@@ -564,15 +578,15 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     GeometryCache snapshot,
   );
 
-  /// The one translation that maps every encoded transform in [inputs] to
+  /// The one translation that maps every encoded transform in [before] to
   /// the matching transform in [current], or `null` when there is none.
   static Offset? _sharedTranslation(
-    List<_EncodedGeometryInput> inputs,
+    List<Matrix4> before,
     List<Matrix4> current,
   ) {
     Offset? shared;
     for (var index = 0; index < current.length; index++) {
-      final delta = _translationDelta(inputs[index].transform, current[index]);
+      final delta = _translationDelta(before[index], current[index]);
       if (delta == null) return null;
       if (shared == null) {
         shared = delta;
@@ -629,9 +643,10 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
         return null;
       }
     }
-    final delta = _sharedTranslation(_encodedGeometryInputs, [
-      for (final entry in shapesWithGeometry) entry.$3,
-    ]);
+    final delta = _sharedTranslation(
+      [for (final entry in _encodedGeometryInputs) entry.transform],
+      [for (final entry in shapesWithGeometry) entry.$3],
+    );
     if (delta == null) return null;
     if (!_nearRect(bounds, oldBounds.shift(delta))) return null;
     return delta;
@@ -742,6 +757,12 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   /// do not darken the glass. Both passes scale with shape visibility.
   @protected
   void drawGlassShadows(Canvas canvas, Offset offset) {
+    // The silhouette cutout needs a saveLayer, so skip the pass entirely
+    // when no committed shape casts a shadow.
+    final hasShadows = shapesWithGeometry.any(
+      (entry) => entry.$2.shapes.any((shape) => shape.shadows.isNotEmpty),
+    );
+    if (!hasShadows) return;
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
     canvas.saveLayer(effectPaintBounds, Paint());

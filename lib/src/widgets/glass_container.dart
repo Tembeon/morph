@@ -238,6 +238,15 @@ Widget _containerLayer(
       link.configure(painter, settings);
       return LiquidGlassLayer(
         settings: settings,
+        defaultAppearance: morphLiquidAppearance(
+          painter,
+          MorphGlassSurface(
+            kind: MorphGlassKind.button,
+            shape: RRect.zero,
+            color: const Color(0x00000000),
+            brightness: morphBrightnessOf(context),
+          ),
+        ),
         fake: tier == MorphGlassTier.fake,
         useBackdropGroup: true,
         child: MorphGlassContainerScope(

@@ -1192,6 +1192,21 @@ relative only).
 
 ## Performance passport
 
+UPSTREAM SYNC (2026-10-07): renderer library changes through main
+3cec75e (2026-10-06), preserving Morph's local patches. Hidden layers poll
+against the committed frame and stop repeated paints; shadowless fake
+layers skip their shadow saveLayer. Appearance overrides use their own
+fake backdrop transfer and a shared source key, including when the
+layer's transfer is identity. Fused outlines use nested inverse clips for
+those separately served shapes. Regression tests cover idle/unhide,
+transfer keys, shared-clip exclusion and identity-default overrides.
+Morph layers explicitly set the first surface's palette; containers use
+the installed Morph brightness, avoiding separate passes for identical
+surfaces when system and Morph brightness differ.
+No numeric device speed/energy gain is claimed for this correctness sync;
+upstream GPU geometry and shaders are unchanged. Provenance: renderer
+VENDORED; test/glass_upstream_sync_test.dart.
+
 DUAL KAWASE FOLLOW-UP (Pixel 6a, 2026-10-07, 620798e): experimental
 owned-input fused 5/8-tap ROI pyramid, persistent targets and final
 upsample/composition fusion; no production renderer replacement. Two GPU

@@ -928,9 +928,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
     commitFrameGeometry(candidate);
     final materialBounds = _prepareGeometryAppearance(bounds);
-    if (!hasDrawableGlass(shapesWithGeometry)) {
-      rememberFrameInputs();
-    } else {
+    // A drawable-empty refresh encodes nothing; the committed list alone
+    // is the compositor-translation poll's baseline.
+    if (hasDrawableGlass(shapesWithGeometry)) {
       // Keep old borrowed handles valid until the replacement is installed.
       if (!_ownsGeometryImages && _geometryImage != null) {
         final geometry = _geometryImage!.clone();
@@ -1022,7 +1022,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           releaseRetainedEffectLayer();
           return;
         }
-        rememberFrameInputs();
         needsGeometryUpdate = false;
         link.markClean();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {
@@ -1037,10 +1036,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           );
         });
       case GlassFrameState.idle:
-        // Keep the encoded snapshot of the last active matte untouched so
-        // ancestor motion stays compositor-only when the glass becomes
-        // visible again. Skip the backdrop filter so idle glass does not
-        // sample.
+        // Keep the last matte and its encode snapshot; ancestor motion
+        // stays compositor-only while hidden because the translation poll
+        // rebaselines on the committed frame, not on that snapshot. Skip
+        // the backdrop filter so idle glass does not sample.
         updateIdleAncestorClips();
         _releaseCompositorFilter();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {});

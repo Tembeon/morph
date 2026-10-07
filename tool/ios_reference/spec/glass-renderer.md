@@ -58,7 +58,7 @@ measurements.
 
 ## Packaging
 
-- whynotmake-it's `liquid_glass_renderer` (Apache-2.0, upstream ab1c2d29)
+- whynotmake-it's `liquid_glass_renderer` (Apache-2.0, upstream 3cec75ed)
   lives at lib/src/glass/renderer (LICENSE, NOTICE, VENDORED lists every
   local patch; analyzed with the package's lints). Shaders are package
   assets (pubspec `flutter: shaders:`); hook/build.dart builds its Flutter
@@ -77,6 +77,32 @@ measurements.
   simple shader sampling is supported"), so the web builds with nothing
   removed.
 - Package tests set the renderer's `isLocalTest` (root-package asset keys).
+
+## Upstream sync (2026-10-07)
+
+The vendored library tracks upstream main through 3cec75eda468f9c6e481bd90b7533dcb5e997b8e
+(2026-10-06), with Morph's local renderer patches preserved. The two
+upstream commits after ab1c2d2 change only the real layer, the fake layer
+and their shared render base; GPU geometry and shader sources do not change.
+The compositor poll now compares the committed frame rather than the last
+encode, so hidden glass settles instead of repainting on continuing app
+frames. The shared shadow pass returns before saveLayer without shadows.
+Fake appearance overrides use separately clipped backdrop transfers and
+one source key with the shared filter; they still draw when the default
+transfer is identity. Only matching, fully visible shapes use the shared
+transfer. Morph's fused outline remains the outer clip, with inverse clips
+excluding shapes served separately; no path Boolean operation is used.
+
+Morph layer builders explicitly set their surface palette; containers
+resolve the installed Morph brightness instead of relying on the
+renderer's system-brightness default. Otherwise identical dark surfaces
+inside a light-system host would all become individual override passes.
+Container and list-stage tests retain the one-filter grouping contract.
+
+`test/glass_upstream_sync_test.dart` covers hide/unhide while frames keep
+running, separate transfer/key ownership, fused-outline exclusions and an
+identity shared transfer. This is a correctness sync, not a measured GPU
+or energy optimization. Native optical shaders remain unchanged.
 
 ## Tiers
 
@@ -2518,7 +2544,7 @@ remain next work, not implemented production features.
 
 whynotmake-it/flutter_liquid_glass `liquid_glass_renderer`
 (release/01-renderer-core @ cbbac845, sdf.glsl; ours derives from
-ab1c2d29 - see VENDORED). Upstream's LiquidGlassLoupe and LoupeTabBar are
+ab1c2d29 with library fixes through 3cec75ed - see VENDORED). Upstream's LiquidGlassLoupe and LoupeTabBar are
 EXAMPLE code, not package API. Its smin uses the normal-modulation idea
 with the WRONG exponent (sin(theta/2) chord vs Apple's sin^2 - necks too
 fat by +0.5..+8 pt as spacing grows); its fusion is not used.

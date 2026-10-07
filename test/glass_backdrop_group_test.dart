@@ -196,6 +196,9 @@ void main() {
     );
     tester.takeException();
     await tester.pump();
-    expect(_keys(), [null]);
+    final keys = _keys();
+    expect(keys, hasLength(1));
+    expect(keys.single, isNotNull);
+    expect(keys.single, isNot(same(shared)));
   });
 }

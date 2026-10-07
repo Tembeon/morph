@@ -208,6 +208,10 @@ Widget _layer(
     child: LiquidGlassLayer.live(
       live: source.live,
       settingsOf: () => settings.value,
+      defaultAppearance: morphLiquidAppearance(
+        renderer,
+        select(source.frame).first,
+      ),
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
       outlineOf: outlineOf == null ? null : () => outlineOf.value,
       fake: fake ?? renderer.effectiveTier == MorphGlassTier.fake,

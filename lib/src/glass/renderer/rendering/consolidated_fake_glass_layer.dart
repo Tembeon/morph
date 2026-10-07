@@ -126,17 +126,28 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
   final _backdropLayer = LayerHandle<BackdropFilterLayer>();
   final _clipLayer = LayerHandle<ClipPathLayer>();
 
-  /// Per-shape blur passes for shapes that are fading (0 < visibility < 1).
-  /// They sit between the shared opaque-shape blur and the surfaces so a
-  /// fading shape keeps its own clipped backdrop filter instead of swapping
-  /// its widget subtree.
-  final Map<LiquidGlassShapeRenderObject, _FadingShapeLayers>
-  _fadingShapeLayers = {};
+  /// Capture shared by this layer's own backdrop filters when the user did
+  /// not provide a [backdropKey] or [BackdropGroup]. Without it, a
+  /// separately served shape would sample the shared filter's output in
+  /// overlapping pixels and compound both transfers; sharing one capture
+  /// also collapses their backdrop readbacks into one.
+  final _ownBackdropKey = BackdropKey();
+
+  BackdropKey get _effectiveBackdropKey => backdropKey ?? _ownBackdropKey;
+
+  /// Per-shape backdrop passes for shapes the shared union clip cannot
+  /// serve: shapes that are fading (0 < visibility < 1) or whose appearance
+  /// needs a different backdrop transfer than the layer's. They sit between
+  /// the shared opaque-shape filter and the surfaces so a fading shape keeps
+  /// its own clipped backdrop filter instead of swapping its widget subtree.
+  final Map<LiquidGlassShapeRenderObject, _SeparateBackdropLayers>
+  _separateBackdropLayers = {};
   ImageFilter? _cachedFilter;
 
   /// Shorter side of the smallest shape sharing the consolidated filter.
   double _shortSide = 10000;
   Path? _cachedClipPath;
+  Path? _lastBackdropClipPath;
   Rect? _cachedClipBounds;
   List<int> _cachedClipClasses = const [];
   bool _repaintAfterCompositingScheduled = false;
@@ -148,14 +159,29 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
       defaultAppearance.colorModel.faceTransfer(_shortSide) != null;
   bool get _hasBackdropEffect => _hasBlur || _hasColorTransfer;
 
+  /// Whether [appearance] can be served by the layer's shared backdrop
+  /// filter - that is, it differs from [defaultAppearance] only in fields
+  /// the surface pass and opacity handle (tint, vibrancy, visibility).
+  bool _sharesLayerBackdrop(LiquidGlassAppearance appearance) =>
+      appearance.saturation == defaultAppearance.saturation &&
+      appearance.transmissionGamma == defaultAppearance.transmissionGamma &&
+      appearance.colorModel == defaultAppearance.colorModel;
+
   @visibleForTesting
   BackdropFilterLayer? get debugBackdropFilterLayer => _backdropLayer.layer;
+
+  /// The retained per-shape clipped backdrop passes, keyed by shape.
+  @visibleForTesting
+  Iterable<BackdropFilterLayer> get debugSeparateBackdropLayers =>
+      _separateBackdropLayers.values
+          .map((layers) => layers.backdrop.layer)
+          .nonNulls;
 
   @visibleForTesting
   Rect? debugClipBounds;
 
   @visibleForTesting
-  Path? get debugClipPath => _outline ?? _cachedClipPath;
+  Path? get debugClipPath => _lastBackdropClipPath;
 
   final List<_FakeGlassPaintStage> _debugLastPaintStages = [];
 
@@ -230,17 +256,13 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
       final rebuiltClasses = <int>[];
       for (final (_, geometry, transform) in shapesWithGeometry) {
         for (final shape in geometry.shapes) {
-          final visibilityClass = _visibilityClass(shape.appearance);
-          rebuiltClasses.add(visibilityClass);
-          if (visibilityClass == 0) continue;
+          final backdropClass = _backdropClass(shape.appearance);
+          rebuiltClasses.add(backdropClass);
+          if (backdropClass == 0) continue;
           final shapeToLayer = shape.shapeToGeometry == null
               ? transform
               : transform.multiplied(shape.shapeToGeometry!);
           final shapeBounds = Offset.zero & shape.renderObject.size;
-          rebuiltShortSide = math.min(
-            rebuiltShortSide,
-            shape.renderObject.size.shortestSide,
-          );
           final transformedBounds = MatrixUtils.transformRect(
             shapeToLayer,
             shapeBounds,
@@ -248,9 +270,14 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
           rebuiltBounds =
               rebuiltBounds?.expandToInclude(transformedBounds) ??
               transformedBounds;
-          // The shared union clip covers only fully visible shapes; a fading
-          // shape gets its own clipped blur pass below.
-          if (visibilityClass == 2) {
+          // The shared union clip covers only fully visible shapes whose
+          // backdrop transfer matches the layer's; every other visible shape
+          // gets its own clipped pass below.
+          if (backdropClass == 2) {
+            rebuiltShortSide = math.min(
+              rebuiltShortSide,
+              shape.renderObject.size.shortestSide,
+            );
             rebuiltPath.addPath(
               shape.shape.getOuterPath(shapeBounds),
               Offset.zero,
@@ -279,7 +306,25 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
       return;
     }
     final clipPath = outline ?? _cachedClipPath!;
-
+    final sharedExclusions = <Path>[];
+    if (outline != null && _cachedClipClasses.any((value) => value != 2)) {
+      for (final (_, geometry, transform) in shapesWithGeometry) {
+        for (final shape in geometry.shapes) {
+          if (_backdropClass(shape.appearance) == 2) continue;
+          final shapeToLayer = shape.shapeToGeometry == null
+              ? transform
+              : transform.multiplied(shape.shapeToGeometry!);
+          final path = Path();
+          path.addPath(
+            shape.shape.getOuterPath(Offset.zero & shape.renderObject.size),
+            Offset.zero,
+            matrix4: shapeToLayer.storage,
+          );
+          sharedExclusions.add(_outside(path, bounds));
+        }
+      }
+    }
+    _lastBackdropClipPath = clipPath;
     debugClipBounds = bounds;
     effectPaintBounds = expandEffectBounds(bounds);
     assert(() {
@@ -289,18 +334,19 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     paintRetainedEffect(context, offset, (effectContext, effectOffset) {
       drawGlassShadows(effectContext.canvas, effectOffset);
 
-      if (_hasBackdropEffect) {
-        assert(() {
-          _debugLastPaintStages.add(_FakeGlassPaintStage.backdrop);
-          return true;
-        }(), 'Record backdrop composition order.');
+      // The shared filter only exists while a fully visible shape shares
+      // the layer's backdrop transfer.
+      final sharedBackdropActive =
+          _hasBackdropEffect && _cachedClipClasses.contains(2);
+      var paintedBackdrop = sharedBackdropActive;
+      if (sharedBackdropActive) {
         final backdropLayer = (_backdropLayer.layer ??= BackdropFilterLayer())
           ..filter = _cachedFilter ??= _buildBackdropFilter()
           ..blendMode = BlendMode.srcOver
-          ..backdropKey = backdropKey;
+          ..backdropKey = _effectiveBackdropKey;
         GlassLayerOwners.note(backdropLayer, this);
         assert(() {
-          debugRegisterBackdropCapture(this, backdropKey);
+          debugRegisterBackdropCapture(this, _effectiveBackdropKey);
           return true;
         }(), 'Count independent backdrop captures in debug builds.');
         _clipLayer.layer = effectContext.pushClipPath(
@@ -309,14 +355,45 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
           bounds,
           clipPath,
           (clipContext, clipOffset) {
-            clipContext.pushLayer(backdropLayer, (_, _) {}, clipOffset);
+            void paintShared(
+              PaintingContext nested,
+              Offset nestedOffset,
+              int index,
+            ) {
+              if (index == sharedExclusions.length) {
+                nested.pushLayer(backdropLayer, (_, _) {}, nestedOffset);
+                return;
+              }
+              nested.pushClipPath(
+                true,
+                nestedOffset,
+                bounds,
+                sharedExclusions[index],
+                (next, nextOffset) => paintShared(next, nextOffset, index + 1),
+              );
+            }
+
+            paintShared(clipContext, clipOffset, 0);
           },
           oldLayer: _clipLayer.layer,
         );
-        _paintFadingBackdrops(effectContext, effectOffset, shapesWithGeometry);
       } else {
-        _releaseGlassLayers();
+        _backdropLayer.layer = null;
+        _clipLayer.layer = null;
       }
+      paintedBackdrop =
+          _paintSeparateBackdrops(
+            effectContext,
+            effectOffset,
+            shapesWithGeometry,
+          ) ||
+          paintedBackdrop;
+      assert(() {
+        if (paintedBackdrop) {
+          _debugLastPaintStages.add(_FakeGlassPaintStage.backdrop);
+        }
+        return true;
+      }(), 'Record backdrop composition order.');
 
       assert(() {
         _debugLastPaintStages.add(_FakeGlassPaintStage.surfaces);
@@ -462,11 +539,12 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     }
   }
 
-  /// Paints each fading shape's own clipped backdrop filter so its blur fades
-  /// independently while the shape stays registered with this layer. Layers
-  /// are retained across frames keyed by the shape's render object; entries
-  /// for shapes that stopped fading are released.
-  void _paintFadingBackdrops(
+  /// Paints each separately served shape's own clipped backdrop filter so
+  /// its transfer applies independently while the shape stays registered
+  /// with this layer. Layers are retained across frames keyed by the
+  /// shape's render object; entries for shapes that rejoined the shared
+  /// clip or hid are released. Returns whether any pass was painted.
+  bool _paintSeparateBackdrops(
     PaintingContext context,
     Offset offset,
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
@@ -474,29 +552,30 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     final active = <LiquidGlassShapeRenderObject>{};
     for (final (_, geometry, geometryToLayer) in geometries) {
       for (final shape in geometry.shapes) {
-        if (_visibilityClass(shape.appearance) != 1) continue;
-        // The shared filter of fully visible shapes applies the layer's
-        // backdrop transfer, so a shape leaving it keeps that transfer.
+        if (_backdropClass(shape.appearance) != 1) continue;
+        // The shape's own appearance carries its visibility and any
+        // backdrop-transfer override, so fading keeps the same transfer the
+        // shared filter applied while it was fully visible.
         final filter = fakeGlassBackdropFilter(
           settings,
-          defaultAppearance.copyWith(visibility: shape.appearance.visibility),
+          shape.appearance,
           devicePixelRatio: devicePixelRatio,
           shortSide: shape.renderObject.size.shortestSide,
         );
         if (filter == null) continue;
         final renderObject = shape.renderObject;
         active.add(renderObject);
-        final layers = _fadingShapeLayers.putIfAbsent(
+        final layers = _separateBackdropLayers.putIfAbsent(
           renderObject,
-          _FadingShapeLayers.new,
+          _SeparateBackdropLayers.new,
         );
         final backdropLayer = (layers.backdrop.layer ??= BackdropFilterLayer())
           ..filter = filter
           ..blendMode = BlendMode.srcOver
-          ..backdropKey = backdropKey;
+          ..backdropKey = _effectiveBackdropKey;
         GlassLayerOwners.note(backdropLayer, this);
         assert(() {
-          debugRegisterBackdropCapture(this, backdropKey);
+          debugRegisterBackdropCapture(this, _effectiveBackdropKey);
           return true;
         }(), 'Count independent backdrop captures in debug builds.');
         final shapeToLayer = shape.shapeToGeometry == null
@@ -515,10 +594,11 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
         );
       }
     }
-    for (final renderObject in _fadingShapeLayers.keys.toList()) {
+    for (final renderObject in _separateBackdropLayers.keys.toList()) {
       if (active.contains(renderObject)) continue;
-      _fadingShapeLayers.remove(renderObject)!.dispose();
+      _separateBackdropLayers.remove(renderObject)!.dispose();
     }
+    return active.isNotEmpty;
   }
 
   bool _clipInputsMatch() {
@@ -528,7 +608,7 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
       for (final shape in geometry.shapes) {
         if (shapeIndex >= _cachedClipClasses.length ||
             _cachedClipClasses[shapeIndex] !=
-                _visibilityClass(shape.appearance)) {
+                _backdropClass(shape.appearance)) {
           return false;
         }
         shapeIndex++;
@@ -537,23 +617,29 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     return shapeIndex == _cachedClipClasses.length;
   }
 
-  /// 0: hidden, 1: fading (needs its own clipped blur), 2: fully visible
-  /// (covered by the shared union clip).
-  static int _visibilityClass(LiquidGlassAppearance appearance) {
+  /// 0: hidden, 1: needs its own clipped backdrop pass - fading visibility,
+  /// or a backdrop transfer that differs from the layer's shared one,
+  /// 2: fully visible and covered by the shared union clip.
+  int _backdropClass(LiquidGlassAppearance appearance) {
     final visibility = appearance.visibility.clamp(0.0, 1.0);
-    return visibility <= 0 ? 0 : (visibility >= 1 ? 2 : 1);
+    if (visibility <= 0) return 0;
+    if (visibility >= 1 && _sharesLayerBackdrop(appearance)) return 2;
+    return 1;
   }
 
   void _clearClipCache() {
+    _lastBackdropClipPath = null;
     _cachedClipPath = null;
     _cachedClipBounds = null;
     _cachedClipClasses = const [];
   }
 
   ImageFilter _buildBackdropFilter() {
+    // Every shape the shared clip covers is fully visible, so the shared
+    // transfer always applies at full strength.
     return fakeGlassBackdropFilter(
       settings,
-      defaultAppearance,
+      defaultAppearance.copyWith(visibility: 1),
       devicePixelRatio: devicePixelRatio,
       shortSide: _shortSide,
     )!;
@@ -593,10 +679,10 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
   void _releaseGlassLayers() {
     _backdropLayer.layer = null;
     _clipLayer.layer = null;
-    for (final layers in _fadingShapeLayers.values) {
+    for (final layers in _separateBackdropLayers.values) {
       layers.dispose();
     }
-    _fadingShapeLayers.clear();
+    _separateBackdropLayers.clear();
   }
 
   void _releaseLayers() {
@@ -627,8 +713,8 @@ class _BodyShape {
   final double area;
 }
 
-/// Retained layer handles for one fading shape's clipped backdrop pass.
-class _FadingShapeLayers {
+/// Retained layer handles for one shape's own clipped backdrop pass.
+class _SeparateBackdropLayers {
   final clip = LayerHandle<ClipPathLayer>();
   final backdrop = LayerHandle<BackdropFilterLayer>();
 
