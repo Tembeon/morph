@@ -1,0 +1,18 @@
+{
+  "patch_sha256_verified": true,
+  "measured_bench_source_sha256_verified": true,
+  "corrected_apk_and_source_hashes_match_all_four_launches": true,
+  "unchanged_stock_wrappers_and_gpu_geometry": [
+    "lib/src/glass/renderer/shaders/liquid_glass_final_render.frag",
+    "lib/src/glass/renderer/shaders/liquid_glass_final_render_ios27.frag",
+    "lib/src/glass/renderer/shaders/gpu/displacement_encoding.glsl",
+    "lib/src/glass/renderer/shaders/gpu/geometry_field_fragment.glsl",
+    "lib/src/glass/renderer/shaders/gpu/geometry_fragment.glsl",
+    "lib/src/glass/renderer/shaders/gpu/geometry_vertex.glsl",
+    "lib/src/glass/renderer/shaders/gpu/material_gradient_fragment.glsl",
+    "lib/src/glass/renderer/shaders/gpu/material_sdf.glsl",
+    "lib/src/glass/renderer/shaders/gpu/material_tint_gradient_fragment.glsl",
+    "lib/src/glass/renderer/shaders/gpu/sdf.glsl"
+  ],
+  "prototype_commit": "a34b9d0e356173cbd16322e59de5f60aa7ae3a56"
+}

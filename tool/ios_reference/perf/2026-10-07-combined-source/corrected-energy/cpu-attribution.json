@@ -1,0 +1,30 @@
+{
+  "text-1": {
+    "cluster-updates-merged-mix-gaussian-s2.0": {
+      "other": 6095.889933000004,
+      "app": 5200.014002
+    },
+    "cluster-updates-merged-mix-bare-s0.0": {
+      "other": 5738.083072,
+      "app": 5283.671942
+    },
+    "cluster-updates-merged-mix-native-s2.0": {
+      "other": 6102.446600999999,
+      "app": 5536.38558
+    }
+  },
+  "text-2": {
+    "cluster-updates-merged-mix-gaussian-s2.0": {
+      "other": 6583.880683000004,
+      "app": 5327.224904000001
+    },
+    "cluster-updates-merged-mix-bare-s0.0": {
+      "other": 5686.5987110000015,
+      "app": 5338.810582
+    },
+    "cluster-updates-merged-mix-native-s2.0": {
+      "other": 6179.1707890000025,
+      "app": 5597.916738
+    }
+  }
+}

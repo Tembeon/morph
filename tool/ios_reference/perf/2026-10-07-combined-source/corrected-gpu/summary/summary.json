@@ -1,0 +1,2028 @@
+[
+  {
+    "report": "/tmp/morph-combined-r7/corrected-gpu/text-1.json",
+    "rows": [
+      {
+        "case": "cluster-background-merged-mix-gaussian-s2.0",
+        "layout": "cluster",
+        "motion": "background",
+        "plan": "merged",
+        "mode": "mix-gaussian",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "background",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.1194097222222221,
+        "raster_mean": 10.054847222222223,
+        "build_p50": 1.1,
+        "raster_p50": 10.369,
+        "build_p95": 2.044,
+        "raster_p95": 12.108,
+        "build_p99": 2.949,
+        "raster_p99": 13.035,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.897778576388889,
+        "gpu_mcycles": 0.8236359021527782,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.1194097222222221,
+            "raster_mean": 9.02721527777778,
+            "build_p50": 0.983,
+            "raster_p50": 8.567,
+            "build_p95": 2.044,
+            "raster_p95": 12.108,
+            "build_p99": 2.834,
+            "raster_p99": 13.035,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.8728112569444444,
+            "gpu_mcycles": 0.8128000855138883
+          },
+          {
+            "n": 144,
+            "build_mean": 1.177402777777778,
+            "raster_mean": 10.054847222222223,
+            "build_p50": 1.116,
+            "raster_p50": 10.369,
+            "build_p95": 2.317,
+            "raster_p95": 12.034,
+            "build_p99": 3.123,
+            "raster_p99": 12.66,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.908098263888889,
+            "gpu_mcycles": 0.8281146465277774
+          },
+          {
+            "n": 144,
+            "build_mean": 1.111319444444444,
+            "raster_mean": 10.417583333333333,
+            "build_p50": 1.1,
+            "raster_p50": 10.676,
+            "build_p95": 1.91,
+            "raster_p95": 12.187,
+            "build_p99": 2.949,
+            "raster_p99": 13.165,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.897778576388889,
+            "gpu_mcycles": 0.8236359021527782
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-dynamic-merged-mix-bare-s0.0",
+        "layout": "cluster",
+        "motion": "dynamic",
+        "plan": "merged",
+        "mode": "mix-bare",
+        "requested_sigma_logical": 0.0,
+        "content": "text",
+        "source_workload": "dynamic",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.7163194444444447,
+        "raster_mean": 10.622861111111114,
+        "build_p50": 0.671,
+        "raster_p50": 10.801,
+        "build_p95": 1.388,
+        "raster_p95": 12.25,
+        "build_p99": 1.803,
+        "raster_p99": 13.451,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.4502014027777776,
+        "gpu_mcycles": 0.6293874088055555,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.7370486111111111,
+            "raster_mean": 10.622861111111114,
+            "build_p50": 0.701,
+            "raster_p50": 10.808,
+            "build_p95": 1.324,
+            "raster_p95": 12.25,
+            "build_p99": 1.757,
+            "raster_p99": 13.233,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4502014027777776,
+            "gpu_mcycles": 0.6293874088055555
+          },
+          {
+            "n": 144,
+            "build_mean": 0.7024513888888886,
+            "raster_mean": 10.24690972222222,
+            "build_p50": 0.542,
+            "raster_p50": 10.632,
+            "build_p95": 1.492,
+            "raster_p95": 12.549,
+            "build_p99": 1.942,
+            "raster_p99": 13.637,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4622684097222223,
+            "gpu_mcycles": 0.6346244898194452
+          },
+          {
+            "n": 144,
+            "build_mean": 0.7163194444444447,
+            "raster_mean": 10.726701388888891,
+            "build_p50": 0.671,
+            "raster_p50": 10.801,
+            "build_p95": 1.388,
+            "raster_p95": 12.144,
+            "build_p99": 1.803,
+            "raster_p99": 13.451,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4409440277777779,
+            "gpu_mcycles": 0.6253697080555553
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "cluster-background-merged-mix-native-s2.0",
+        "layout": "cluster",
+        "motion": "background",
+        "plan": "merged",
+        "mode": "mix-native",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "background",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.2225555555555556,
+        "raster_mean": 10.19241666666667,
+        "build_p50": 1.225,
+        "raster_p50": 10.458,
+        "build_p95": 1.894,
+        "raster_p95": 12.34,
+        "build_p99": 2.627,
+        "raster_p99": 13.136,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.073821284722222,
+        "gpu_mcycles": 1.7680384375694418,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.181472222222222,
+            "raster_mean": 9.56696527777778,
+            "build_p50": 1.083,
+            "raster_p50": 10.16,
+            "build_p95": 1.872,
+            "raster_p95": 12.34,
+            "build_p99": 2.585,
+            "raster_p99": 12.915,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.072611652777778,
+            "gpu_mcycles": 1.7675134573055564
+          },
+          {
+            "n": 144,
+            "build_mean": 1.2966388888888891,
+            "raster_mean": 10.329756944444448,
+            "build_p50": 1.303,
+            "raster_p50": 10.641,
+            "build_p95": 1.965,
+            "raster_p95": 12.499,
+            "build_p99": 3.572,
+            "raster_p99": 14.594,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.073821284722222,
+            "gpu_mcycles": 1.7680384375694418
+          },
+          {
+            "n": 144,
+            "build_mean": 1.2225555555555556,
+            "raster_mean": 10.19241666666667,
+            "build_p50": 1.225,
+            "raster_p50": 10.458,
+            "build_p95": 1.894,
+            "raster_p95": 12.204,
+            "build_p99": 2.627,
+            "raster_p99": 13.136,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.082860791666667,
+            "gpu_mcycles": 1.77196158358333
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-updates-merged-mix-gaussian-s2.0",
+        "layout": "cluster",
+        "motion": "updates",
+        "plan": "merged",
+        "mode": "mix-gaussian",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "updates",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.1332777777777774,
+        "raster_mean": 9.24245833333333,
+        "build_p50": 1.081,
+        "raster_p50": 9.189,
+        "build_p95": 1.867,
+        "raster_p95": 11.797,
+        "build_p99": 2.802,
+        "raster_p99": 12.811,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 2.241171986111111,
+        "gpu_mcycles": 0.9726686419722228,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.1297569444444453,
+            "raster_mean": 9.490784722222225,
+            "build_p50": 1.092,
+            "raster_p50": 9.53,
+            "build_p95": 1.858,
+            "raster_p95": 11.797,
+            "build_p99": 2.915,
+            "raster_p99": 13.213,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.260753840277778,
+            "gpu_mcycles": 0.9811671666805558
+          },
+          {
+            "n": 144,
+            "build_mean": 1.1332777777777774,
+            "raster_mean": 9.087868055555553,
+            "build_p50": 1.081,
+            "raster_p50": 9.165,
+            "build_p95": 1.867,
+            "raster_p95": 11.347,
+            "build_p99": 2.802,
+            "raster_p99": 12.006,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.231581152777778,
+            "gpu_mcycles": 0.9685062203055557
+          },
+          {
+            "n": 144,
+            "build_mean": 1.1715000000000004,
+            "raster_mean": 9.24245833333333,
+            "build_p50": 1.02,
+            "raster_p50": 9.189,
+            "build_p95": 1.993,
+            "raster_p95": 12.027,
+            "build_p99": 2.715,
+            "raster_p99": 12.811,
+            "over_budget": 1,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.241171986111111,
+            "gpu_mcycles": 0.9726686419722228
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-updates-merged-mix-bare-s0.0",
+        "layout": "cluster",
+        "motion": "updates",
+        "plan": "merged",
+        "mode": "mix-bare",
+        "requested_sigma_logical": 0.0,
+        "content": "text",
+        "source_workload": "updates",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.6626527777777778,
+        "raster_mean": 10.680534722222221,
+        "build_p50": 0.572,
+        "raster_p50": 10.749,
+        "build_p95": 1.154,
+        "raster_p95": 12.182,
+        "build_p99": 1.863,
+        "raster_p99": 13.364,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.4432585069444446,
+        "gpu_mcycles": 0.6263741920138889,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.7336666666666668,
+            "raster_mean": 10.806618055555553,
+            "build_p50": 0.572,
+            "raster_p50": 10.749,
+            "build_p95": 1.048,
+            "raster_p95": 12.692,
+            "build_p99": 1.48,
+            "raster_p99": 13.364,
+            "over_budget": 1,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4432585069444446,
+            "gpu_mcycles": 0.6263741920138889
+          },
+          {
+            "n": 144,
+            "build_mean": 0.6052152777777778,
+            "raster_mean": 10.273062500000002,
+            "build_p50": 0.502,
+            "raster_p50": 10.592,
+            "build_p95": 1.154,
+            "raster_p95": 12.091,
+            "build_p99": 1.879,
+            "raster_p99": 12.585,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4456553125,
+            "gpu_mcycles": 0.6274144056250001
+          },
+          {
+            "n": 144,
+            "build_mean": 0.6626527777777778,
+            "raster_mean": 10.680534722222221,
+            "build_p50": 0.599,
+            "raster_p50": 10.922,
+            "build_p95": 1.308,
+            "raster_p95": 12.182,
+            "build_p99": 1.863,
+            "raster_p99": 13.457,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4399465,
+            "gpu_mcycles": 0.6249367809999997
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "cluster-background-merged-mix-bare-s0.0",
+        "layout": "cluster",
+        "motion": "background",
+        "plan": "merged",
+        "mode": "mix-bare",
+        "requested_sigma_logical": 0.0,
+        "content": "text",
+        "source_workload": "background",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.6094305555555557,
+        "raster_mean": 10.523687500000001,
+        "build_p50": 0.564,
+        "raster_p50": 10.72,
+        "build_p95": 1.361,
+        "raster_p95": 12.365,
+        "build_p99": 1.796,
+        "raster_p99": 12.971,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.435878076388889,
+        "gpu_mcycles": 0.623171085152778,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.6847013888888891,
+            "raster_mean": 10.55213888888889,
+            "build_p50": 0.607,
+            "raster_p50": 10.72,
+            "build_p95": 1.397,
+            "raster_p95": 12.105,
+            "build_p99": 2.576,
+            "raster_p99": 12.93,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4333010208333332,
+            "gpu_mcycles": 0.6220526430416665
+          },
+          {
+            "n": 144,
+            "build_mean": 0.6094305555555557,
+            "raster_mean": 10.523687500000001,
+            "build_p50": 0.529,
+            "raster_p50": 10.669,
+            "build_p95": 1.361,
+            "raster_p95": 12.365,
+            "build_p99": 1.796,
+            "raster_p99": 12.971,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.435878076388889,
+            "gpu_mcycles": 0.623171085152778
+          },
+          {
+            "n": 144,
+            "build_mean": 0.6002013888888892,
+            "raster_mean": 10.471611111111109,
+            "build_p50": 0.564,
+            "raster_p50": 10.743,
+            "build_p95": 1.087,
+            "raster_p95": 12.406,
+            "build_p99": 1.471,
+            "raster_p99": 13.032,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4518463055555555,
+            "gpu_mcycles": 0.630101296611111
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "cluster-updates-merged-mix-native-s2.0",
+        "layout": "cluster",
+        "motion": "updates",
+        "plan": "merged",
+        "mode": "mix-native",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "updates",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.1811111111111112,
+        "raster_mean": 10.322118055555553,
+        "build_p50": 1.151,
+        "raster_p50": 10.279,
+        "build_p95": 1.934,
+        "raster_p95": 12.474,
+        "build_p99": 2.388,
+        "raster_p99": 13.583,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.067212888888889,
+        "gpu_mcycles": 1.7651703937777763,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.2126736111111112,
+            "raster_mean": 10.200993055555559,
+            "build_p50": 1.18,
+            "raster_p50": 10.49,
+            "build_p95": 1.886,
+            "raster_p95": 12.344,
+            "build_p99": 1.958,
+            "raster_p99": 13.269,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.067212888888889,
+            "gpu_mcycles": 1.7651703937777763
+          },
+          {
+            "n": 144,
+            "build_mean": 1.1811111111111112,
+            "raster_mean": 10.334437500000005,
+            "build_p50": 1.143,
+            "raster_p50": 10.279,
+            "build_p95": 1.934,
+            "raster_p95": 12.66,
+            "build_p99": 2.388,
+            "raster_p99": 13.583,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.055509548611111,
+            "gpu_mcycles": 1.760091144097223
+          },
+          {
+            "n": 144,
+            "build_mean": 1.1780833333333331,
+            "raster_mean": 10.322118055555553,
+            "build_p50": 1.151,
+            "raster_p50": 10.234,
+            "build_p95": 2.017,
+            "raster_p95": 12.474,
+            "build_p99": 2.669,
+            "raster_p99": 13.744,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.079692583333333,
+            "gpu_mcycles": 1.7705865811666657
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-dynamic-merged-mix-gaussian-s2.0",
+        "layout": "cluster",
+        "motion": "dynamic",
+        "plan": "merged",
+        "mode": "mix-gaussian",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "dynamic",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.9610555555555562,
+        "raster_mean": 6.9316666666666675,
+        "build_p50": 1.996,
+        "raster_p50": 6.841,
+        "build_p95": 2.699,
+        "raster_p95": 7.987,
+        "build_p99": 3.226,
+        "raster_p99": 8.934,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 3.5414308125,
+        "gpu_mcycles": 1.5369809726249963,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.961833333333333,
+            "raster_mean": 6.872520833333335,
+            "build_p50": 2.121,
+            "raster_p50": 6.841,
+            "build_p95": 2.69,
+            "raster_p95": 7.868,
+            "build_p99": 2.874,
+            "raster_p99": 8.934,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 3.5487406458333335,
+            "gpu_mcycles": 1.5401534402916628
+          },
+          {
+            "n": 144,
+            "build_mean": 1.9369791666666671,
+            "raster_mean": 6.9316666666666675,
+            "build_p50": 1.996,
+            "raster_p50": 6.838,
+            "build_p95": 2.699,
+            "raster_p95": 8.175,
+            "build_p99": 3.347,
+            "raster_p99": 9.793,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 3.522464840277778,
+            "gpu_mcycles": 1.528749740680555
+          },
+          {
+            "n": 144,
+            "build_mean": 1.9610555555555562,
+            "raster_mean": 6.9886319444444425,
+            "build_p50": 1.968,
+            "raster_p50": 6.924,
+            "build_p95": 2.825,
+            "raster_p95": 7.987,
+            "build_p99": 3.226,
+            "raster_p99": 8.475,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 3.5414308125,
+            "gpu_mcycles": 1.5369809726249963
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-dynamic-merged-mix-native-s2.0",
+        "layout": "cluster",
+        "motion": "dynamic",
+        "plan": "merged",
+        "mode": "mix-native",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "dynamic",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.2570000000000006,
+        "raster_mean": 10.120861111111104,
+        "build_p50": 1.207,
+        "raster_p50": 10.209,
+        "build_p95": 2.031,
+        "raster_p95": 12.607,
+        "build_p99": 2.657,
+        "raster_p99": 13.618,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.085647215277778,
+        "gpu_mcycles": 1.773170891430555,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.2570000000000006,
+            "raster_mean": 9.999444444444444,
+            "build_p50": 1.207,
+            "raster_p50": 10.185,
+            "build_p95": 2.031,
+            "raster_p95": 12.282,
+            "build_p99": 2.657,
+            "raster_p99": 13.402,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.085647215277778,
+            "gpu_mcycles": 1.773170891430555
+          },
+          {
+            "n": 144,
+            "build_mean": 1.2990902777777775,
+            "raster_mean": 10.120861111111104,
+            "build_p50": 1.279,
+            "raster_p50": 10.209,
+            "build_p95": 2.055,
+            "raster_p95": 12.655,
+            "build_p99": 3.164,
+            "raster_p99": 13.885,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.0760882291666665,
+            "gpu_mcycles": 1.7690222914583327
+          },
+          {
+            "n": 144,
+            "build_mean": 1.2349236111111108,
+            "raster_mean": 10.510923611111108,
+            "build_p50": 1.069,
+            "raster_p50": 10.584,
+            "build_p95": 1.999,
+            "raster_p95": 12.607,
+            "build_p99": 2.53,
+            "raster_p99": 13.618,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.091635076388889,
+            "gpu_mcycles": 1.7757696231527764
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      }
+    ],
+    "deltas": [],
+    "limitations": [
+      "Stage differences change topology and are not exact engine attribution.",
+      "Raster duration is not GPU time; GPU work periods are active work, not presentation latency.",
+      "GPU activity is prorated uniformly within each kernel work-period event.",
+      "Missing frequency coverage produces null cycles, never an extrapolated frequency.",
+      "Vsync gaps are inferred scheduling slots, not measured Android presentation jank.",
+      "Layer bounds/counts do not measure transient GPU memory or native pass count."
+    ]
+  },
+  {
+    "report": "/tmp/morph-combined-r7/corrected-gpu/text-2.json",
+    "rows": [
+      {
+        "case": "cluster-background-merged-mix-gaussian-s2.0",
+        "layout": "cluster",
+        "motion": "background",
+        "plan": "merged",
+        "mode": "mix-gaussian",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "background",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.0906944444444444,
+        "raster_mean": 10.48752777777778,
+        "build_p50": 1.003,
+        "raster_p50": 10.572,
+        "build_p95": 2.433,
+        "raster_p95": 12.7,
+        "build_p99": 3.027,
+        "raster_p99": 13.41,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.9017912916666668,
+        "gpu_mcycles": 0.8253774205833331,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.3507222222222224,
+            "raster_mean": 10.48752777777778,
+            "build_p50": 1.259,
+            "raster_p50": 10.572,
+            "build_p95": 2.731,
+            "raster_p95": 12.7,
+            "build_p99": 3.141,
+            "raster_p99": 13.41,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.8978011180555554,
+            "gpu_mcycles": 0.8236456852361108
+          },
+          {
+            "n": 144,
+            "build_mean": 1.020548611111111,
+            "raster_mean": 10.359083333333334,
+            "build_p50": 1.003,
+            "raster_p50": 10.569,
+            "build_p95": 1.827,
+            "raster_p95": 12.818,
+            "build_p99": 2.954,
+            "raster_p99": 13.763,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.9017912916666668,
+            "gpu_mcycles": 0.8253774205833331
+          },
+          {
+            "n": 144,
+            "build_mean": 1.0906944444444444,
+            "raster_mean": 10.5199375,
+            "build_p50": 0.982,
+            "raster_p50": 10.726,
+            "build_p95": 2.433,
+            "raster_p95": 12.197,
+            "build_p99": 3.027,
+            "raster_p99": 12.852,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.9255857291666667,
+            "gpu_mcycles": 0.8357042064583338
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-dynamic-merged-mix-bare-s0.0",
+        "layout": "cluster",
+        "motion": "dynamic",
+        "plan": "merged",
+        "mode": "mix-bare",
+        "requested_sigma_logical": 0.0,
+        "content": "text",
+        "source_workload": "dynamic",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.695902777777778,
+        "raster_mean": 10.443944444444442,
+        "build_p50": 0.641,
+        "raster_p50": 10.635,
+        "build_p95": 1.497,
+        "raster_p95": 12.248,
+        "build_p99": 1.762,
+        "raster_p99": 13.149,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.4256178680555556,
+        "gpu_mcycles": 0.6187181547361109,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.7626805555555556,
+            "raster_mean": 10.443944444444442,
+            "build_p50": 0.712,
+            "raster_p50": 10.734,
+            "build_p95": 1.648,
+            "raster_p95": 12.177,
+            "build_p99": 2.136,
+            "raster_p99": 13.059,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4255227083333333,
+            "gpu_mcycles": 0.6186768554166667
+          },
+          {
+            "n": 144,
+            "build_mean": 0.695902777777778,
+            "raster_mean": 10.357006944444437,
+            "build_p50": 0.641,
+            "raster_p50": 10.635,
+            "build_p95": 1.497,
+            "raster_p95": 12.248,
+            "build_p99": 1.762,
+            "raster_p99": 13.149,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4256178680555556,
+            "gpu_mcycles": 0.6187181547361109
+          },
+          {
+            "n": 144,
+            "build_mean": 0.6272152777777777,
+            "raster_mean": 10.519826388888882,
+            "build_p50": 0.573,
+            "raster_p50": 10.628,
+            "build_p95": 1.107,
+            "raster_p95": 12.534,
+            "build_p99": 1.635,
+            "raster_p99": 13.783,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4436967291666667,
+            "gpu_mcycles": 0.6265643804583331
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "cluster-background-merged-mix-native-s2.0",
+        "layout": "cluster",
+        "motion": "background",
+        "plan": "merged",
+        "mode": "mix-native",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "background",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.1826319444444446,
+        "raster_mean": 10.475590277777776,
+        "build_p50": 1.202,
+        "raster_p50": 10.621,
+        "build_p95": 1.866,
+        "raster_p95": 12.691,
+        "build_p99": 2.301,
+        "raster_p99": 13.414,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.060668090909091,
+        "gpu_mcycles": 1.7623299514545452,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.2202291666666667,
+            "raster_mean": 10.088444444444447,
+            "build_p50": 1.134,
+            "raster_p50": 10.168,
+            "build_p95": 1.866,
+            "raster_p95": 12.63,
+            "build_p99": 2.301,
+            "raster_p99": 13.363,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.080256069444444,
+            "gpu_mcycles": 1.7708311341388843
+          },
+          {
+            "n": 143,
+            "build_mean": 1.1619020979020973,
+            "raster_mean": 10.546482517482522,
+            "build_p50": 1.202,
+            "raster_p50": 10.621,
+            "build_p95": 1.844,
+            "raster_p95": 12.691,
+            "build_p99": 1.965,
+            "raster_p99": 13.414,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.060668090909091,
+            "gpu_mcycles": 1.7623299514545452
+          },
+          {
+            "n": 144,
+            "build_mean": 1.1826319444444446,
+            "raster_mean": 10.475590277777776,
+            "build_p50": 1.218,
+            "raster_p50": 10.669,
+            "build_p95": 1.905,
+            "raster_p95": 12.74,
+            "build_p99": 2.442,
+            "raster_p99": 13.656,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.060348909722222,
+            "gpu_mcycles": 1.7621914268194414
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-updates-merged-mix-gaussian-s2.0",
+        "layout": "cluster",
+        "motion": "updates",
+        "plan": "merged",
+        "mode": "mix-gaussian",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "updates",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.151895833333333,
+        "raster_mean": 9.431076388888886,
+        "build_p50": 0.993,
+        "raster_p50": 9.588,
+        "build_p95": 2.408,
+        "raster_p95": 11.619,
+        "build_p99": 2.953,
+        "raster_p99": 12.511,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 2.2335729305555554,
+        "gpu_mcycles": 0.9693706518611122,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.3406944444444444,
+            "raster_mean": 9.554229166666666,
+            "build_p50": 1.19,
+            "raster_p50": 9.625,
+            "build_p95": 2.408,
+            "raster_p95": 11.619,
+            "build_p99": 2.866,
+            "raster_p99": 12.11,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.234405902777778,
+            "gpu_mcycles": 0.9697321618055558
+          },
+          {
+            "n": 144,
+            "build_mean": 1.151895833333333,
+            "raster_mean": 9.431076388888886,
+            "build_p50": 0.993,
+            "raster_p50": 9.588,
+            "build_p95": 2.444,
+            "raster_p95": 11.741,
+            "build_p99": 3.015,
+            "raster_p99": 12.511,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.2224957083333337,
+            "gpu_mcycles": 0.9645631374166663
+          },
+          {
+            "n": 144,
+            "build_mean": 1.0229166666666665,
+            "raster_mean": 9.004298611111112,
+            "build_p50": 0.911,
+            "raster_p50": 9.034,
+            "build_p95": 1.874,
+            "raster_p95": 11.568,
+            "build_p99": 2.953,
+            "raster_p99": 13.064,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.2335729305555554,
+            "gpu_mcycles": 0.9693706518611122
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-updates-merged-mix-bare-s0.0",
+        "layout": "cluster",
+        "motion": "updates",
+        "plan": "merged",
+        "mode": "mix-bare",
+        "requested_sigma_logical": 0.0,
+        "content": "text",
+        "source_workload": "updates",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.6406944444444448,
+        "raster_mean": 10.521236111111115,
+        "build_p50": 0.609,
+        "raster_p50": 10.728,
+        "build_p95": 1.135,
+        "raster_p95": 12.521,
+        "build_p99": 1.635,
+        "raster_p99": 13.607,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.4258397708333332,
+        "gpu_mcycles": 0.618814460541667,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.6844583333333335,
+            "raster_mean": 8.748423611111109,
+            "build_p50": 0.636,
+            "raster_p50": 9.439,
+            "build_p95": 1.103,
+            "raster_p95": 12.088,
+            "build_p99": 1.527,
+            "raster_p99": 13.66,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.3949506180555555,
+            "gpu_mcycles": 0.6054085682361111
+          },
+          {
+            "n": 144,
+            "build_mean": 0.6406944444444448,
+            "raster_mean": 10.521236111111115,
+            "build_p50": 0.609,
+            "raster_p50": 10.783,
+            "build_p95": 1.135,
+            "raster_p95": 12.79,
+            "build_p99": 1.873,
+            "raster_p99": 13.544,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4258397708333332,
+            "gpu_mcycles": 0.618814460541667
+          },
+          {
+            "n": 144,
+            "build_mean": 0.6227222222222224,
+            "raster_mean": 10.63497222222222,
+            "build_p50": 0.528,
+            "raster_p50": 10.728,
+            "build_p95": 1.356,
+            "raster_p95": 12.521,
+            "build_p99": 1.635,
+            "raster_p99": 13.607,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4437959722222222,
+            "gpu_mcycles": 0.6266074519444448
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "cluster-background-merged-mix-bare-s0.0",
+        "layout": "cluster",
+        "motion": "background",
+        "plan": "merged",
+        "mode": "mix-bare",
+        "requested_sigma_logical": 0.0,
+        "content": "text",
+        "source_workload": "background",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.55125,
+        "raster_mean": 10.491361111111111,
+        "build_p50": 0.521,
+        "raster_p50": 10.659,
+        "build_p95": 1.098,
+        "raster_p95": 12.297,
+        "build_p99": 1.486,
+        "raster_p99": 13.1,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.4313343958333333,
+        "gpu_mcycles": 0.621199127791667,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.7333472222222224,
+            "raster_mean": 10.565368055555549,
+            "build_p50": 0.728,
+            "raster_p50": 10.555,
+            "build_p95": 1.302,
+            "raster_p95": 12.427,
+            "build_p99": 1.625,
+            "raster_p99": 13.1,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.421019326388889,
+            "gpu_mcycles": 0.6167223876527776
+          },
+          {
+            "n": 144,
+            "build_mean": 0.55125,
+            "raster_mean": 10.491361111111111,
+            "build_p50": 0.521,
+            "raster_p50": 10.659,
+            "build_p95": 1.098,
+            "raster_p95": 12.297,
+            "build_p99": 1.351,
+            "raster_p99": 13.466,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4344499930555554,
+            "gpu_mcycles": 0.6225512969861108
+          },
+          {
+            "n": 144,
+            "build_mean": 0.5456666666666667,
+            "raster_mean": 10.37021527777778,
+            "build_p50": 0.504,
+            "raster_p50": 10.668,
+            "build_p95": 1.095,
+            "raster_p95": 12.168,
+            "build_p99": 1.486,
+            "raster_p99": 12.597,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.4313343958333333,
+            "gpu_mcycles": 0.621199127791667
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "cluster-updates-merged-mix-native-s2.0",
+        "layout": "cluster",
+        "motion": "updates",
+        "plan": "merged",
+        "mode": "mix-native",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "updates",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.2123333333333335,
+        "raster_mean": 10.188416666666665,
+        "build_p50": 1.237,
+        "raster_p50": 10.523,
+        "build_p95": 1.997,
+        "raster_p95": 12.441,
+        "build_p99": 2.269,
+        "raster_p99": 13.306,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.060575965277778,
+        "gpu_mcycles": 1.7622899689305536,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.1925138888888887,
+            "raster_mean": 10.093069444444449,
+            "build_p50": 1.225,
+            "raster_p50": 10.438,
+            "build_p95": 1.913,
+            "raster_p95": 12.556,
+            "build_p99": 2.269,
+            "raster_p99": 13.306,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.046829375,
+            "gpu_mcycles": 1.756323948749999
+          },
+          {
+            "n": 144,
+            "build_mean": 1.2123333333333335,
+            "raster_mean": 10.662104166666667,
+            "build_p50": 1.237,
+            "raster_p50": 10.782,
+            "build_p95": 2.02,
+            "raster_p95": 12.441,
+            "build_p99": 2.231,
+            "raster_p99": 14.67,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.060575965277778,
+            "gpu_mcycles": 1.7622899689305536
+          },
+          {
+            "n": 144,
+            "build_mean": 1.2343472222222216,
+            "raster_mean": 10.188416666666665,
+            "build_p50": 1.245,
+            "raster_p50": 10.523,
+            "build_p95": 1.997,
+            "raster_p95": 12.339,
+            "build_p99": 3.083,
+            "raster_p99": 12.751,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.087192555555555,
+            "gpu_mcycles": 1.7738415691111094
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-dynamic-merged-mix-gaussian-s2.0",
+        "layout": "cluster",
+        "motion": "dynamic",
+        "plan": "merged",
+        "mode": "mix-gaussian",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "dynamic",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.9222152777777781,
+        "raster_mean": 6.927430555555557,
+        "build_p50": 1.97,
+        "raster_p50": 6.798,
+        "build_p95": 2.678,
+        "raster_p95": 8.075,
+        "build_p99": 3.202,
+        "raster_p99": 9.029,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 3.5066357430555555,
+        "gpu_mcycles": 1.5218799124861075,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.9261875000000006,
+            "raster_mean": 6.898493055555556,
+            "build_p50": 2.124,
+            "raster_p50": 6.798,
+            "build_p95": 2.508,
+            "raster_p95": 8.075,
+            "build_p99": 3.211,
+            "raster_p99": 9.029,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 3.5066357430555555,
+            "gpu_mcycles": 1.5218799124861075
+          },
+          {
+            "n": 144,
+            "build_mean": 1.8918333333333333,
+            "raster_mean": 6.965645833333333,
+            "build_p50": 1.846,
+            "raster_p50": 6.877,
+            "build_p95": 2.74,
+            "raster_p95": 8.049,
+            "build_p99": 3.202,
+            "raster_p99": 8.446,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 3.4803334305555556,
+            "gpu_mcycles": 1.5104647088611134
+          },
+          {
+            "n": 144,
+            "build_mean": 1.9222152777777781,
+            "raster_mean": 6.927430555555557,
+            "build_p50": 1.97,
+            "raster_p50": 6.772,
+            "build_p95": 2.678,
+            "raster_p95": 8.272,
+            "build_p99": 3.076,
+            "raster_p99": 9.044,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 3.5401544375,
+            "gpu_mcycles": 1.536427025874997
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      },
+      {
+        "case": "cluster-dynamic-merged-mix-native-s2.0",
+        "layout": "cluster",
+        "motion": "dynamic",
+        "plan": "merged",
+        "mode": "mix-native",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "source_workload": "dynamic",
+        "gpu_implementation": "shared versioned ROI, raster-side passes, original Morph optics",
+        "owned_gpu": [],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [
+          [
+            97.52380952380952,
+            292.57142857142856,
+            219.42857142857144,
+            268.19047619047615
+          ]
+        ],
+        "liquid_blur_pass_sigmas_logical": [
+          2.1731692520167614
+        ],
+        "visible_rects_logical": [
+          [
+            111.0857142857143,
+            310.8571428571429,
+            90.51428571428572,
+            109.71428571428572
+          ],
+          [
+            111.0857142857143,
+            438.8571428571429,
+            90.51428571428572,
+            109.71428571428578
+          ],
+          [
+            213.94285714285715,
+            310.8571428571429,
+            90.5142857142857,
+            109.71428571428572
+          ],
+          [
+            213.94285714285715,
+            438.8571428571429,
+            90.5142857142857,
+            109.71428571428578
+          ]
+        ],
+        "n": 144,
+        "build_mean": 1.182291666666667,
+        "raster_mean": 10.15900694444444,
+        "build_p50": 1.172,
+        "raster_p50": 10.255,
+        "build_p95": 1.926,
+        "raster_p95": 12.759,
+        "build_p99": 3.007,
+        "raster_p99": 13.752,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.0819038125,
+        "gpu_mcycles": 1.7715462546249974,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.330791666666667,
+            "raster_mean": 10.15900694444444,
+            "build_p50": 1.248,
+            "raster_p50": 10.298,
+            "build_p95": 2.388,
+            "raster_p95": 12.759,
+            "build_p99": 3.924,
+            "raster_p99": 13.056,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.0819038125,
+            "gpu_mcycles": 1.7715462546249974
+          },
+          {
+            "n": 144,
+            "build_mean": 1.144722222222222,
+            "raster_mean": 10.081791666666668,
+            "build_p50": 1.123,
+            "raster_p50": 10.191,
+            "build_p95": 1.926,
+            "raster_p95": 12.385,
+            "build_p99": 2.619,
+            "raster_p99": 14.015,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.099529333333334,
+            "gpu_mcycles": 1.7791957306666641
+          },
+          {
+            "n": 144,
+            "build_mean": 1.182291666666667,
+            "raster_mean": 10.263048611111111,
+            "build_p50": 1.172,
+            "raster_p50": 10.255,
+            "build_p95": 1.894,
+            "raster_p95": 12.883,
+            "build_p99": 3.007,
+            "raster_p99": 13.752,
+            "over_budget": 1,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.080118729166666,
+            "gpu_mcycles": 1.770771528458333
+          }
+        ],
+        "visible_mpix": 0.27371520000000005,
+        "union_to_visible_area": 1.1571969696969695,
+        "liquid_filter_output_mpix": 0.4055039999999999
+      }
+    ],
+    "deltas": [],
+    "limitations": [
+      "Stage differences change topology and are not exact engine attribution.",
+      "Raster duration is not GPU time; GPU work periods are active work, not presentation latency.",
+      "GPU activity is prorated uniformly within each kernel work-period event.",
+      "Missing frequency coverage produces null cycles, never an extrapolated frequency.",
+      "Vsync gaps are inferred scheduling slots, not measured Android presentation jank.",
+      "Layer bounds/counts do not measure transient GPU memory or native pass count."
+    ]
+  }
+]

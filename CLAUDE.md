@@ -1192,6 +1192,25 @@ relative only).
 
 ## Performance passport
 
+COMBINED CURRENT-FRAME SOURCE (2026-10-07, Pixel 6a Vulkan): unmerged
+exp/same-frame-backdrop a34b9d0 combines versioned owned-picture ROI,
+current translation, native deferred blur and unchanged full Morph optics.
+Two GPU/two energy launches, three repeats, final small Gaussian sigma 2:
+GPU native/candidate static 4.073/1.900, periodic 4.064/2.234, dynamic
+4.084/3.531 ms/frame; selected whole-phone power 738/609, 748/777,
+754/735 mW. Max native phase error 3/255 over 42 comparisons. Periodic
+power +3.8 percent rejects unconditional admission despite GPU savings;
+app CPU scheduled time did not grow, CPU-rail/DVFS cause unresolved.
+Large-sigma hybrid Gaussian static/periodic wins, dynamic costs more;
+Dual dynamic costs more at both widths. Current-frame misses are included,
+0/30/144 per typical static/periodic/dynamic 144-frame window. Small
+logical-sigma single-picture Gaussian aligns ROI to two device pixels.
+One retained output 3.063/4.717 MiB, not total GPU memory or RSS. Fixed
+opaque picture fixture only: no generic backdrop service, iOS acceptance,
+nested glass or arbitrary textures. Production optics stay unchanged.
+Report and reproducible evidence: tool/audit/codex-combined-source-report.md,
+perf/2026-10-07-combined-source.
+
 UPSTREAM SYNC (2026-10-07): renderer library changes through main
 3cec75e (2026-10-06), preserving Morph's local patches. Hidden layers poll
 against the committed frame and stop repeated paints; shadowless fake

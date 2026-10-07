@@ -1,0 +1,218 @@
+[
+  {
+    "case": "cluster-background-merged-mix-gaussian-s2.0",
+    "phase": -1.0,
+    "max_channel_error": 3,
+    "mean_channel_error": 0.01677150848765432,
+    "changed_pixels": 117774,
+    "pixels_above_4": 0,
+    "pixels_above_8": 0,
+    "face": {
+      "max": 3,
+      "mean": 0.1587301816585005,
+      "pixels": 173072,
+      "changed": 73290
+    },
+    "rim": {
+      "max": 3,
+      "mean": 0.16554419268355963,
+      "pixels": 92504,
+      "changed": 42330
+    },
+    "outside": {
+      "max": 1,
+      "mean": 0.00029508808368551906,
+      "pixels": 2326424,
+      "changed": 2154
+    }
+  },
+  {
+    "case": "cluster-background-merged-mix-gaussian-s2.0",
+    "phase": 0.0,
+    "max_channel_error": 1,
+    "mean_channel_error": 0.0005262345679012346,
+    "changed_pixels": 4471,
+    "pixels_above_4": 0,
+    "pixels_above_8": 0,
+    "face": {
+      "max": 1,
+      "mean": 0.002067058796339096,
+      "pixels": 173072,
+      "changed": 1171
+    },
+    "rim": {
+      "max": 1,
+      "mean": 0.00365119346190435,
+      "pixels": 92504,
+      "changed": 1134
+    },
+    "outside": {
+      "max": 1,
+      "mean": 0.0002873508870266125,
+      "pixels": 2326424,
+      "changed": 2166
+    }
+  },
+  {
+    "case": "cluster-background-merged-mix-gaussian-s2.0",
+    "phase": 0.0034013605,
+    "max_channel_error": 3,
+    "mean_channel_error": 0.013767168209876543,
+    "changed_pixels": 103475,
+    "pixels_above_4": 0,
+    "pixels_above_8": 0,
+    "face": {
+      "max": 3,
+      "mean": 0.12836420680410465,
+      "pixels": 173072,
+      "changed": 63721
+    },
+    "rim": {
+      "max": 2,
+      "mean": 0.13812105422468218,
+      "pixels": 92504,
+      "changed": 37564
+    },
+    "outside": {
+      "max": 1,
+      "mean": 0.00029723730497965975,
+      "pixels": 2326424,
+      "changed": 2190
+    }
+  },
+  {
+    "case": "cluster-background-merged-mix-gaussian-s2.0",
+    "phase": 1.0,
+    "max_channel_error": 3,
+    "mean_channel_error": 0.017438850308641975,
+    "changed_pixels": 120329,
+    "pixels_above_4": 0,
+    "pixels_above_8": 0,
+    "face": {
+      "max": 2,
+      "mean": 0.16349842839974116,
+      "pixels": 173072,
+      "changed": 74876
+    },
+    "rim": {
+      "max": 3,
+      "mean": 0.1760140102049641,
+      "pixels": 92504,
+      "changed": 43459
+    },
+    "outside": {
+      "max": 1,
+      "mean": 0.000267578051120518,
+      "pixels": 2326424,
+      "changed": 1994
+    }
+  },
+  {
+    "case": "cluster-dynamic-merged-mix-gaussian-s2.0",
+    "phase": -1.0,
+    "max_channel_error": 3,
+    "mean_channel_error": 0.016849537037037038,
+    "changed_pixels": 118356,
+    "pixels_above_4": 0,
+    "pixels_above_8": 0,
+    "face": {
+      "max": 3,
+      "mean": 0.15936719977812702,
+      "pixels": 173072,
+      "changed": 73627
+    },
+    "rim": {
+      "max": 3,
+      "mean": 0.1660063348611952,
+      "pixels": 92504,
+      "changed": 42441
+    },
+    "outside": {
+      "max": 1,
+      "mean": 0.00031625791343280505,
+      "pixels": 2326424,
+      "changed": 2288
+    }
+  },
+  {
+    "case": "cluster-dynamic-merged-mix-gaussian-s2.0",
+    "phase": 0.0,
+    "max_channel_error": 1,
+    "mean_channel_error": 0.0005465856481481481,
+    "changed_pixels": 4618,
+    "pixels_above_4": 0,
+    "pixels_above_8": 0,
+    "face": {
+      "max": 1,
+      "mean": 0.002208618378478321,
+      "pixels": 173072,
+      "changed": 1236
+    },
+    "rim": {
+      "max": 1,
+      "mean": 0.0038052408544495373,
+      "pixels": 92504,
+      "changed": 1166
+    },
+    "outside": {
+      "max": 1,
+      "mean": 0.0002933687066502065,
+      "pixels": 2326424,
+      "changed": 2216
+    }
+  },
+  {
+    "case": "cluster-dynamic-merged-mix-gaussian-s2.0",
+    "phase": 0.0034013605,
+    "max_channel_error": 3,
+    "mean_channel_error": 0.01380246913580247,
+    "changed_pixels": 103338,
+    "pixels_above_4": 0,
+    "pixels_above_8": 0,
+    "face": {
+      "max": 3,
+      "mean": 0.1292048973837478,
+      "pixels": 173072,
+      "changed": 63792
+    },
+    "rim": {
+      "max": 2,
+      "mean": 0.13739135604946814,
+      "pixels": 92504,
+      "changed": 37306
+    },
+    "outside": {
+      "max": 1,
+      "mean": 0.0003030402024738397,
+      "pixels": 2326424,
+      "changed": 2240
+    }
+  },
+  {
+    "case": "cluster-dynamic-merged-mix-gaussian-s2.0",
+    "phase": 1.0,
+    "max_channel_error": 3,
+    "mean_channel_error": 0.017419560185185184,
+    "changed_pixels": 119722,
+    "pixels_above_4": 0,
+    "pixels_above_8": 0,
+    "face": {
+      "max": 2,
+      "mean": 0.16415566931681613,
+      "pixels": 173072,
+      "changed": 74844
+    },
+    "rim": {
+      "max": 3,
+      "mean": 0.17414382080774884,
+      "pixels": 92504,
+      "changed": 42857
+    },
+    "outside": {
+      "max": 1,
+      "mean": 0.0002715541105146783,
+      "pixels": 2326424,
+      "changed": 2021
+    }
+  }
+]

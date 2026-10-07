@@ -1,0 +1,12 @@
+{
+  "text-2.pftrace": {
+    "sha256": "cd621f5ea3349fd4ba3bc9da3abbeec6b2747f76b397fd6114a396f8ad31457d",
+    "bytes": 84166730,
+    "retention": "System-wide raw trace omitted; ODPM and CPU cache retained."
+  },
+  "text-1.pftrace": {
+    "sha256": "319aff1c045ed438d519299c7b6d643b112d555c58c1b5991ced80e94deaed71",
+    "bytes": 83857337,
+    "retention": "System-wide raw trace omitted; ODPM and CPU cache retained."
+  }
+}

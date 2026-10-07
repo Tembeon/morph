@@ -1,0 +1,24 @@
+{
+  "base": "c6df35ee9209e82369e9a702c1adc79c47ede805",
+  "patch_sha256": "ce9e70b5f0839b55ba500fd56354cc518c4661649fff6b685574f03fab4ba550",
+  "files": {
+    "example/lib/perf/glass_stage_bench.dart": "e9bf0edee55ab963b9a843555316bfa92b62efa4673bd7c3d093f3ff8af85815",
+    "example/pubspec.lock": "793eb2d869365ee87c0037db3d67c470ca2524c4e2375cb0a76b2fba73f83cdf",
+    "example/pubspec.yaml": "db1a7fda4450726efba907f7e1fa72c3463d1fd3c23459d7bdc43797f7c2f8db",
+    "example/shaders/dual_canvas.frag": "fd400107f0cf8f26e3e3587a6e1f949fcc0aecf3411781e950ffacbd7e111f86",
+    "example/shaders/dual_final.frag": "09711bfe78cd97c83a35ec9a5b4496cf5193eca3dc9546eb1975e122724b52c5",
+    "lib/src/glass/renderer/internal/owned_input_experiment.dart": "dc4cf0649753a7a29819efe7f4eaaf68558521d24786b9e55f5fb432dceed6d1",
+    "lib/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart": "52be2941d681f1401c7ba7f834bc156031cb711433370323d74df2d588256a99",
+    "lib/src/glass/renderer/rendering/liquid_glass_layer.dart": "8df896414e3c57dc409f44e0a8bc49545d49e97600b1c860ddfdbf1aaa32d26e",
+    "lib/src/glass/renderer/shaders/gpu/dual_copy.glsl": "5e187b3038c5575b4c9ef6da36c44994ecabd37f81f75bb95038a124b486952c",
+    "lib/src/glass/renderer/shaders/gpu/dual_down.glsl": "ba6e8359fef1670cdd7d499952733518bed9f8b399040ce673983fbdc7d14f6e",
+    "lib/src/glass/renderer/shaders/gpu/dual_up.glsl": "f6b375867e4dfa3bca130b45bfa143e1484638d0003fce35ac71c37fea5a745e",
+    "lib/src/glass/renderer/shaders/gpu/dual_vertex.glsl": "c43985139c010084e4b323baf74e8329cb2b4c1045649a072fa9a30395c8d08d",
+    "lib/src/glass/renderer/shaders/liquid_glass_final_render_core.glsl": "8b2b6fe68c681bdb20b405cf5de913578754340f7270d94f2f472b70609347e0",
+    "lib/src/glass/renderer/shaders/owned_glass_ios27.frag": "5c1ea0e19fce4c73c4341ff1ae526d5eeb6e5c4be90f026b3f1a301aee32c295",
+    "morph_glass.shaderbundle.json": "e2458794dc9d163a676690401ee2212e977f76ecd8c1e5f85e1f8a701321f87f",
+    "pubspec.yaml": "1208585764ff6a464490382bbcf7cabd447e1a732648669ea687f502349e755f",
+    "pubspec.lock": "3b870535085d7450646c25f35a9e9a496867abe2210cc179d7294b06b1ca1975",
+    "hook/build.dart": "7e4facaa53279658fda6d20c09617e90320105823c2b207c1e6092abfa69ca7f"
+  }
+}

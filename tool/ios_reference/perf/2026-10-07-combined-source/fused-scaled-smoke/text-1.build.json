@@ -1,0 +1,20 @@
+{
+  "target": "lib/perf/glass_stage_bench.dart",
+  "defines": [
+    "STAGE_MODES=mix-native,mix-gaussian,mix-dual",
+    "STAGE_LAYOUTS=cluster",
+    "STAGE_PLANS=merged",
+    "STAGE_MOTIONS=background,updates,dynamic",
+    "STAGE_CONTENT=text",
+    "STAGE_SIGMAS=2,10",
+    "STAGE_SHOTS=true",
+    "STAGE_SHOT_PHASES=-1,0,0.0034013605,1",
+    "STAGE_RUNS=1",
+    "STAGE_SEED=202610083",
+    "STAGE_WARM_MS=300",
+    "STAGE_SAMPLE_MS=600"
+  ],
+  "commit": "27fa39e8d8314cf7875560877f3f56ac57f4b191",
+  "source_sha256": "c065423a16aaf2d9254b6aa8da69487a71f66fa0e3b93de9a596ca7d4a06204a",
+  "apk_sha256": "790ba6ccc73911e59abb863392036c22feed536af4ee1460dfb28821fb983da7"
+}
