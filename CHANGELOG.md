@@ -14,6 +14,10 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Glass renderer syncs upstream through 3cec75e: hidden layers stop
+  redundant paints, shadowless layers skip their shadow pass, and fake
+  appearance overrides use independent transfers over a shared source.
+  Morph palettes preserve grouping and fused outlines keep their clips.
 - Corrected Dual Kawase research uses fused bilinear ROI passes, retained
   targets and final composition fusion. Pixel 6a unchanged-source
   translation caching cuts whole-app GPU work by 52-53 percent, with
