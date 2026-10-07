@@ -1,0 +1,6 @@
+{
+  "trace_sha256": "786425a21d81fd113569251cacf4b494af4ee83498c8a57431850160468d6b8b",
+  "trace_bytes": 25280914,
+  "energy_reducer_sha256": "25714fe6366ee0f57a9828e5ee582fc2aaaf446e4390245c2986a67e8d70d701",
+  "retained": "Per-window reducer cache, raw FrameTiming report, build/thermal/backend notes and launch summary. Raw Perfetto trace is not committed. Cached reductions reprint with the existing energy.py; independently recomputing counters requires a fresh trace."
+}

@@ -1192,6 +1192,19 @@ relative only).
 
 ## Performance passport
 
+Standalone stage stand (2026-10-07, base bdab3cb; no renderer change):
+example/lib/perf/glass_stage_bench.dart compares bare/capture/blur/optics/
+glass with shuffled windows, exact raw timings and separate GPU/energy
+launches. Pixel 6a Vulkan default smoke, three repeats: GPU ms/frame
+0.829 bare, 1.733 capture, 2.121/2.140 raw blur sigma 2/10, 2.179 optics,
+3.570/3.123 production glass frost 2/10. Differences change topology and
+are proxies, not exact native pass attribution or optimization acceptance.
+The 36-case text/motion/grouping smoke verifies independent/shared/merged
+native filter/key counts 4/4, 4/1, 1/1. Bounds are output geometry, not
+capture input size or GPU RAM. Stand usage:
+tool/ios_reference/perf/stage_bench/README.md;
+method/evidence: tool/audit/codex-stage-bench-report.md.
+
 ROUND 4 resource study (Pixel 6a, 2026-10-06, source 8cfcd21):
 no production rendering change. Separate three-run GPU captures,
 flat/liquid Mcycles/frame: tab 1.050/4.142, controls 0.434/2.153,

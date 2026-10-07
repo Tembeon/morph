@@ -1,0 +1,14 @@
+{
+  "target": "lib/perf/glass_stage_bench.dart",
+  "defines": [
+    "STAGE_LAYOUTS=large",
+    "STAGE_MOTIONS=glass",
+    "STAGE_SIGMAS=2",
+    "STAGE_RUNS=2",
+    "STAGE_WARM_MS=200",
+    "STAGE_SAMPLE_MS=600"
+  ],
+  "commit": "bdab3cb9a47e58c68b46b9046d0d3d9781aae764",
+  "source_sha256": "70def2205a95b65ebc28cdcad940b2fc2299bca3cd1172e03435b3642b01f46e",
+  "apk_sha256": "cf11e893d401d7e4d7dd91f50a94ef16d884db16a802e580de78d4342015c6a9"
+}

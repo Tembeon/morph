@@ -2261,6 +2261,28 @@ Gallery: the root installs `MorphAdaptiveGlass` with the session's
 glass_settings.dart, tier null = auto, in GalleryApp's State); the Glass
 renderer page edits them and shows the tier being drawn.
 
+## Standalone stage measurement stand (2026-10-07)
+
+`example/lib/perf/glass_stage_bench.dart` runs the production renderer in
+profile/release without the gallery or integration-test binding. The
+stdlib runner in `tool/ios_reference/perf/stage_bench/` restores the gallery
+APK and owned device tracing state. GPU and energy have separate launches.
+Raw timings include cheap frames; windows, shuffled order, production
+filter bounds, pass sigmas and capture keys are retained. No renderer or
+cache change. Usage: the stand's README.md; full smoke evidence and limits:
+`tool/audit/codex-stage-bench-report.md`.
+
+Pixel 6a Vulkan default smoke, base bdab3cb plus recorded stand source hash,
+three repeats, one strip over animated tiles: bare/capture/optics GPU active
+0.829/1.733/2.179 ms/frame; raw blur sigma 2/10 2.121/2.140; production
+glass frost 2/10 3.570/3.123. All median over-budget counts are 0 at 60 Hz.
+Expanded 36-case text/motion smoke confirms four separate filters/captures,
+four filters with one shared key, or one merged filter/key. Short windows
+are functional coverage, not grouping acceptance. Subtractions change
+composition topology and cannot isolate native passes; filter output area
+is not capture input dimensions, GPU memory or bandwidth. Glass-over-glass
+and intervening content still need their own fidelity experiments.
+
 ## Current Android resource study (2026-10-06)
 
 Source 8cfcd21, Pixel 6a Vulkan, 60 Hz. No renderer change. Three-run

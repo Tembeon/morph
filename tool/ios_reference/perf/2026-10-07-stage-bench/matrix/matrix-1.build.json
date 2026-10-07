@@ -1,0 +1,17 @@
+{
+  "target": "lib/perf/glass_stage_bench.dart",
+  "defines": [
+    "STAGE_LAYOUTS=cluster,spread",
+    "STAGE_PLANS=independent,shared,merged",
+    "STAGE_MODES=capture,blur,glass",
+    "STAGE_SIGMAS=2",
+    "STAGE_MOTIONS=glass,both",
+    "STAGE_CONTENT=text",
+    "STAGE_RUNS=1",
+    "STAGE_WARM_MS=300",
+    "STAGE_SAMPLE_MS=600"
+  ],
+  "commit": "bdab3cb9a47e58c68b46b9046d0d3d9781aae764",
+  "source_sha256": "b573665f08a2280da66f97bb422e8495d5f91acc39d17a5454404272a9a400d8",
+  "apk_sha256": "f29d9b1caf97b0c394a5939bf8d6aed465018559c7e9174165553f2c1d949a16"
+}

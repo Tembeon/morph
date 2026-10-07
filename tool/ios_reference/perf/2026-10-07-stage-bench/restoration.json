@@ -1,0 +1,14 @@
+{
+  "restored_gallery_apk_sha256": "46067271b0547de0bc092c52052f1986b1391d36412c350fc1e6c63ede3bd3c3",
+  "observed_after_final_launch": {
+    "tracing_on": 0,
+    "gpu_work_period_enabled": 0,
+    "gpu_frequency_enabled": 0,
+    "trace_clock": "boot",
+    "buffer_size_kb": 7,
+    "owned_perfetto_pid": null,
+    "pixel_lock_present": false,
+    "foreground_activity": "dev.tembeon.morph_example.MainActivity"
+  },
+  "scope": "Restored APK checksum verified with adb sha256sum; tracing settings checked after the energy launch; final non-traced launch never changes them."
+}

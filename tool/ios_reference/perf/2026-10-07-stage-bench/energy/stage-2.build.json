@@ -1,0 +1,7 @@
+{
+  "target": "lib/perf/glass_stage_bench.dart",
+  "defines": [],
+  "commit": "bdab3cb9a47e58c68b46b9046d0d3d9781aae764",
+  "source_sha256": "b573665f08a2280da66f97bb422e8495d5f91acc39d17a5454404272a9a400d8",
+  "apk_sha256": "a7903266883a2702b24762e94b77f27b57e156a510043cdcd956981c31bd3cdc"
+}

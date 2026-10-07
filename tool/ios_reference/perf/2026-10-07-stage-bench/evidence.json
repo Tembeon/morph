@@ -1,0 +1,18 @@
+{
+  "default": {
+    "raw_trace_sha256": "e63573dd0d17ecfa89ee7a1b039a7fa9e801bc5fabda333bdeb56526f6012cba",
+    "raw_trace_bytes": 7516538,
+    "kept_trace_sha256": "284b573f5bb4521db42c2aa70a78e2a4cb2e57d88ecaf1252b335dbd5abba877",
+    "kept_trace_bytes": 5731857,
+    "selection": "App GPU 0 work overlapping measured envelope, all GPU 0 frequency transitions within it plus last preceding transition; lost-event lines retained. Reduction checked identical.",
+    "compressed_trace_bytes": 649151
+  },
+  "matrix": {
+    "raw_trace_sha256": "234365d81cfeb63dcb313f5381d4ac3f87569a1c1fd44b8fbe94ecb75058b0ad",
+    "raw_trace_bytes": 7764261,
+    "kept_trace_sha256": "ea11c3610c1cae59723120e26091271bec71d35baa6948b5143ef695aa4f64fa",
+    "kept_trace_bytes": 4844487,
+    "selection": "App GPU 0 work overlapping measured envelope, all GPU 0 frequency transitions within it plus last preceding transition; lost-event lines retained. Reduction checked identical.",
+    "compressed_trace_bytes": 546332
+  }
+}
