@@ -60,7 +60,9 @@ full-resolution native Gaussian result. Source plus native filter are recorded i
 receives logical sigma before the canvas scale; small-sigma ROI bounds
 are aligned to two physical pixels to preserve the half-resolution grid. `mix-dual` caches a reduced 5/8-tap pyramid and
 fuses its final eight taps into the existing optical background reads.
-All cache misses occur inside collection. There is no post-frame capture,
+Requested sigma 2 uses the existing half-resolution sigma correction
+for both stock and owned Gaussian at DPR 2.625; it is not a comparison
+against an uncorrected 2-point native filter. All cache misses occur inside collection. There is no post-frame capture,
 readback inside timing, per-pass Dart Flutter GPU submission, or stale
 source displayed to disguise a miss.
 
@@ -107,5 +109,5 @@ the traces do not establish a causal explanation. Do not admit this
 variant for periodic updates on these results. cpu-attribution.json
 contains only app/other totals; raw system-wide traces stay uncommitted.
 
-Gate logs escape non-ASCII test output to keep repository text ASCII.
-gates/log-provenance.json pins original log bytes and marks that escaping.
+Gate logs are gzip-compressed native command output.
+gates/log-provenance.json pins their uncompressed bytes and SHA-256.

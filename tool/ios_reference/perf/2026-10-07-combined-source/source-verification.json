@@ -14,5 +14,6 @@
     "lib/src/glass/renderer/shaders/gpu/material_tint_gradient_fragment.glsl",
     "lib/src/glass/renderer/shaders/gpu/sdf.glsl"
   ],
-  "prototype_commit": "a34b9d0e356173cbd16322e59de5f60aa7ae3a56"
+  "prototype_commit": "a34b9d0e356173cbd16322e59de5f60aa7ae3a56",
+  "archived_compressed_gpu_inputs_reproduce_all_corrected_summary_rows": true
 }

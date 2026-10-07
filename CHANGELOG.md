@@ -14,6 +14,11 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Combined current-frame source research keeps full Morph optics: an
+  aligned, cached Gaussian cuts Pixel 6a GPU work 4.073 -> 1.900 ms and
+  power 738 -> 609 mW on immutable-source motion, within 3 channel steps.
+  The prototype is preserved separately; periodic-update energy remains
+  unresolved. Reproduction, native evidence and verification are archived.
 - Glass renderer syncs upstream through 3cec75e: hidden layers stop
   redundant paints, shadowless layers skip their shadow pass, and fake
   appearance overrides use independent transfers over a shared source.

@@ -1,102 +1,102 @@
 {
-  "experiment-clean/gate-experiment-clean-root-tests.log": {
-    "sha256": "2919e926391d7a1447120d6f8f574cf1d277bf89110007d3c1c7495b10287bcd",
-    "bytes": 353068,
-    "unicode_escaped": true
+  "experiment-clean/gate-experiment-clean-root-tests.log.gz": {
+    "uncompressed_sha256": "2919e926391d7a1447120d6f8f574cf1d277bf89110007d3c1c7495b10287bcd",
+    "uncompressed_bytes": 353068
   },
-  "experiment-clean/gate-experiment-clean-example-tests.log": {
-    "sha256": "12467f99d89f16cfe37dc9314657ea179e7ae9812103f53d049f073cbf85531b",
-    "bytes": 3531,
-    "unicode_escaped": false
+  "experiment-clean/gate-experiment-clean-example-tests.log.gz": {
+    "uncompressed_sha256": "12467f99d89f16cfe37dc9314657ea179e7ae9812103f53d049f073cbf85531b",
+    "uncompressed_bytes": 3531
   },
-  "experiment-clean/gate-experiment-clean-analyze.log": {
-    "sha256": "f3372196f0d2075c7de9f8abd3b5cf6540fc41f0e7004c8b7bdeddde812aa674",
-    "bytes": 737,
-    "unicode_escaped": false
+  "experiment-clean/gate-experiment-clean-analyze.log.gz": {
+    "uncompressed_sha256": "f3372196f0d2075c7de9f8abd3b5cf6540fc41f0e7004c8b7bdeddde812aa674",
+    "uncompressed_bytes": 737
   },
-  "experiment-clean/gate-experiment-clean-doc.log": {
-    "sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
-    "bytes": 31,
-    "unicode_escaped": false
+  "experiment-clean/gate-experiment-clean-doc.log.gz": {
+    "uncompressed_sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
+    "uncompressed_bytes": 31
   },
-  "experiment-clean/gate-experiment-clean-format.log": {
-    "sha256": "891d54b1bd84d9636ac67341b70d255a9fac0c8b9187be0b2ef55b503a2a1ecc",
-    "bytes": 49,
-    "unicode_escaped": false
+  "experiment-clean/gate-experiment-clean-format.log.gz": {
+    "uncompressed_sha256": "891d54b1bd84d9636ac67341b70d255a9fac0c8b9187be0b2ef55b503a2a1ecc",
+    "uncompressed_bytes": 49
   },
-  "upstream-changelog/gate-upstream-changelog-example-tests.log": {
-    "sha256": "75311e74cf3fe0b1790b7468ee909759d151cd5a5bc1eee5654db142f7b2beec",
-    "bytes": 3475,
-    "unicode_escaped": false
+  "upstream-changelog/gate-upstream-changelog-example-tests.log.gz": {
+    "uncompressed_sha256": "75311e74cf3fe0b1790b7468ee909759d151cd5a5bc1eee5654db142f7b2beec",
+    "uncompressed_bytes": 3475
   },
-  "upstream-changelog/gate-upstream-changelog-format.log": {
-    "sha256": "775535c9704b2fa9153d96004da88c19d0adc43173ff53710778c30cbaab056f",
-    "bytes": 49,
-    "unicode_escaped": false
+  "upstream-changelog/gate-upstream-changelog-format.log.gz": {
+    "uncompressed_sha256": "775535c9704b2fa9153d96004da88c19d0adc43173ff53710778c30cbaab056f",
+    "uncompressed_bytes": 49
   },
-  "upstream-changelog/gate-upstream-changelog-root-tests.log": {
-    "sha256": "502918594125aa8a659b518af68fb2218598344fff2dd66f601a3ca9c74d1196",
-    "bytes": 343998,
-    "unicode_escaped": true
+  "upstream-changelog/gate-upstream-changelog-root-tests.log.gz": {
+    "uncompressed_sha256": "502918594125aa8a659b518af68fb2218598344fff2dd66f601a3ca9c74d1196",
+    "uncompressed_bytes": 343998
   },
-  "upstream-changelog/gate-upstream-changelog-doc.log": {
-    "sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
-    "bytes": 31,
-    "unicode_escaped": false
+  "upstream-changelog/gate-upstream-changelog-doc.log.gz": {
+    "uncompressed_sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
+    "uncompressed_bytes": 31
   },
-  "upstream-changelog/gate-upstream-changelog-analyze.log": {
-    "sha256": "3ae81ee4fb609e09315e56111c435019958e1e38531617e90913d674754946eb",
-    "bytes": 736,
-    "unicode_escaped": false
+  "upstream-changelog/gate-upstream-changelog-analyze.log.gz": {
+    "uncompressed_sha256": "3ae81ee4fb609e09315e56111c435019958e1e38531617e90913d674754946eb",
+    "uncompressed_bytes": 736
   },
-  "upstream/gate-upstream-format.log": {
-    "sha256": "775535c9704b2fa9153d96004da88c19d0adc43173ff53710778c30cbaab056f",
-    "bytes": 49,
-    "unicode_escaped": false
+  "upstream/gate-upstream-format.log.gz": {
+    "uncompressed_sha256": "775535c9704b2fa9153d96004da88c19d0adc43173ff53710778c30cbaab056f",
+    "uncompressed_bytes": 49
   },
-  "upstream/gate-upstream-root-tests.log": {
-    "sha256": "5f803b8bbfebf629d59e83ea0249ff1f3827167da7a9cd20144bb4ae133db559",
-    "bytes": 344790,
-    "unicode_escaped": true
+  "upstream/gate-upstream-root-tests.log.gz": {
+    "uncompressed_sha256": "5f803b8bbfebf629d59e83ea0249ff1f3827167da7a9cd20144bb4ae133db559",
+    "uncompressed_bytes": 344790
   },
-  "upstream/gate-upstream-doc.log": {
-    "sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
-    "bytes": 31,
-    "unicode_escaped": false
+  "upstream/gate-upstream-doc.log.gz": {
+    "uncompressed_sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
+    "uncompressed_bytes": 31
   },
-  "upstream/gate-upstream-example-tests.log": {
-    "sha256": "a6d681187ff62b2428c8a801618ed709752afdd6c9ceee769766c8f86bf36def",
-    "bytes": 3388,
-    "unicode_escaped": false
+  "upstream/gate-upstream-example-tests.log.gz": {
+    "uncompressed_sha256": "a6d681187ff62b2428c8a801618ed709752afdd6c9ceee769766c8f86bf36def",
+    "uncompressed_bytes": 3388
   },
-  "upstream/gate-upstream-analyze.log": {
-    "sha256": "3ae81ee4fb609e09315e56111c435019958e1e38531617e90913d674754946eb",
-    "bytes": 736,
-    "unicode_escaped": false
+  "upstream/gate-upstream-analyze.log.gz": {
+    "uncompressed_sha256": "3ae81ee4fb609e09315e56111c435019958e1e38531617e90913d674754946eb",
+    "uncompressed_bytes": 736
   },
-  "combined-report/gate-combined-report-format.log": {
-    "sha256": "8d11d0074e36d7b6500e195a8b3d91a81a61f84a4d4d2be5357914f7b97fd566",
-    "bytes": 49,
-    "unicode_escaped": false
+  "combined-report/gate-combined-report-format.log.gz": {
+    "uncompressed_sha256": "8d11d0074e36d7b6500e195a8b3d91a81a61f84a4d4d2be5357914f7b97fd566",
+    "uncompressed_bytes": 49
   },
-  "combined-report/gate-combined-report-analyze.log": {
-    "sha256": "7ae9eb96354c7fc95ba9b4eac1cb901eb69c20b85d14d11fb6ddcba6efc36ba1",
-    "bytes": 737,
-    "unicode_escaped": false
+  "combined-report/gate-combined-report-analyze.log.gz": {
+    "uncompressed_sha256": "7ae9eb96354c7fc95ba9b4eac1cb901eb69c20b85d14d11fb6ddcba6efc36ba1",
+    "uncompressed_bytes": 737
   },
-  "combined-report/gate-combined-report-root-tests.log": {
-    "sha256": "7fe62abacb8d03afba39a084e97d1360dabdbe3fc61f7cbac52503e1d9fba804",
-    "bytes": 345206,
-    "unicode_escaped": true
+  "combined-report/gate-combined-report-root-tests.log.gz": {
+    "uncompressed_sha256": "7fe62abacb8d03afba39a084e97d1360dabdbe3fc61f7cbac52503e1d9fba804",
+    "uncompressed_bytes": 345206
   },
-  "combined-report/gate-combined-report-example-tests.log": {
-    "sha256": "9ac4c26f5659b67919eac5831917b02815c2da5de731075a336b90b073e7020e",
-    "bytes": 3371,
-    "unicode_escaped": false
+  "combined-report/gate-combined-report-example-tests.log.gz": {
+    "uncompressed_sha256": "9ac4c26f5659b67919eac5831917b02815c2da5de731075a336b90b073e7020e",
+    "uncompressed_bytes": 3371
   },
-  "combined-report/gate-combined-report-doc.log": {
-    "sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
-    "bytes": 31,
-    "unicode_escaped": false
+  "combined-report/gate-combined-report-doc.log.gz": {
+    "uncompressed_sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
+    "uncompressed_bytes": 31
+  },
+  "combined-changelog/gate-combined-changelog-format.log.gz": {
+    "uncompressed_sha256": "b21ebc3d56f60a09783cd5b0ac361f5e3d1168325823277999ba3c5a8bcb8409",
+    "uncompressed_bytes": 49
+  },
+  "combined-changelog/gate-combined-changelog-analyze.log.gz": {
+    "uncompressed_sha256": "d6545b70164c6ebf1c6790702ede3e9f965e03c454c6cec9ff5f5d2699ca7561",
+    "uncompressed_bytes": 737
+  },
+  "combined-changelog/gate-combined-changelog-root-tests.log.gz": {
+    "uncompressed_sha256": "790fa46f1adedb53885373408953a054af72c552a2426c83b460569b7320a631",
+    "uncompressed_bytes": 345272
+  },
+  "combined-changelog/gate-combined-changelog-example-tests.log.gz": {
+    "uncompressed_sha256": "18235525eded6bed994d380e0cafb0fb9b0f3077fe8aaf7064b8498dbdecc2c0",
+    "uncompressed_bytes": 3393
+  },
+  "combined-changelog/gate-combined-changelog-doc.log.gz": {
+    "uncompressed_sha256": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
+    "uncompressed_bytes": 31
   }
 }
