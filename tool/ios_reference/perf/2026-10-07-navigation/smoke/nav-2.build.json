@@ -1,0 +1,14 @@
+{
+  "target": "lib/perf/navigation_stage_bench.dart",
+  "defines": [
+    "NAV_MODES=liquid,edge-top-flat,edge-bottom-flat,edge-flat,frost-zero,both-zero,flat",
+    "NAV_MOTIONS=steady",
+    "NAV_RUNS=1",
+    "NAV_WARM_MS=500",
+    "NAV_SAMPLE_MS=1600",
+    "NAV_SHOT_OFFSETS=0,160,420"
+  ],
+  "commit": "a34b9d0e356173cbd16322e59de5f60aa7ae3a56",
+  "source_sha256": "a8e49a4765d8e536b5b8e7f661262c1d18e74e1d95e99ac2cc80379e7cf191ce",
+  "apk_sha256": "41bd617e55d76fe28e361c4d978b74bba13e241bd0424a808b1295510e2d4a8a"
+}

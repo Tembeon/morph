@@ -170,3 +170,65 @@ equal-area geometry, UID attribution, frequency transitions, incomplete
 windows, negative differences, current HAL temperature selection, and
 restoration after cleanup failure.
 See `tool/audit/codex-stage-bench-report.md` for device smoke evidence.
+
+## Real gallery Navigation
+
+`example/lib/perf/navigation_stage_bench.dart` exercises the actual
+GalleryApp, NavigationDemoPage, detail-page callbacks and shared chrome.
+This is a separate fixture from the glass-only stage matrix above.
+
+```sh
+python3 tool/ios_reference/perf/stage_bench/run_android.py build --target lib/perf/navigation_stage_bench.dart --apk /tmp/morph-nav/nav.apk --define NAV_MODES=liquid,flat --define NAV_MOTIONS=enter,nested-push,nested-pop,toolbar --define NAV_RUNS=3 --define NAV_WARM_MS=500 --define NAV_SAMPLE_MS=800
+python3 tool/ios_reference/perf/stage_bench/run_android.py run --apk /tmp/morph-nav/nav.apk --out /tmp/morph-nav/results --name gpu-1 --trace gpu
+python3 tool/ios_reference/perf/stage_bench/summarize.py /tmp/morph-nav/results/gpu-1.json --out /tmp/morph-nav/results/summary
+```
+
+NAV_MODES selects liquid/flat. Flat changes appearance and is an attribution
+baseline, not a candidate preserving the liquid image. NAV_MOTIONS selects
+enter, nested-push, nested-pop, toolbar, steady, title and workflow. Actions invoke
+the real callbacks once per window; scroll workloads use ScrollPosition's
+animateTo, retaining normal scroll activity notifications. NAV_PAGES defaults
+to navigation; home is intended for the two scroll workloads only.
+
+NAV_WARM_ACTIONS defaults to true: every selected action runs once before
+shuffled measured repeats, followed by a five-second pause. The first
+liquid enter is recorded separately as cold_enter, after shader precache
+and before action warmup. It is not a cold app-launch measurement. The
+stand uses dark appearance and resets each case through a new GalleryApp.
+Report windows use CLOCK_MONOTONIC; UI/raster statistics include every
+produced frame. A settled action can stop producing frames before its
+800 ms window ends. Inferred vsync gaps in that idle tail are not Android
+presentation jank. GPU active work is divided by produced frames; power
+includes the whole fixed window and device/background work.
+
+NAV_PHASES optionally collects framework BUILD, LAYOUT, PAINT and
+COMPOSITING aggregates per repeat. Default false avoids that observer's
+cost. Root/nested aggregates and builds nested inside LayoutBuilder layout
+are not disjoint timings to sum. A
+layer census and liquid bounds/sigma snapshot run before each window,
+not on every frame; they do not describe all in-flight route topology.
+
+NAV_SHOTS defaults to false. When enabled, native snapshots follow all
+timing collection. Action frames are 0, 1, 4, 10, 20, 34 and 48 at
+16667 us increments; the binding supplies frozen raw handleBeginFrame
+timestamps, including Ticker callbacks. NAV_REPEAT_REFERENCE adds a
+second stock capture for render-repeatability checks. Scroll snapshots
+use NAV_SHOT_OFFSETS, default 0,40,160,420,640. Use --pull-artifacts and
+only the report's filenames; older files may remain in app data.
+
+Navigation research and preserved experimental variants are documented in
+`tool/audit/codex-navigation-report.md` and
+`tool/ios_reference/perf/2026-10-07-navigation/`. A diagnostic CPU profiler
+run is separate from unprofiled GPU/energy acceptance launches.
+
+For more stable power attribution, workflow repeats five real actions:
+enter Inbox, open Message 0, pop to Inbox, swap the toolbar, pop to home.
+NAV_WORKFLOW_CYCLES defaults to five. NAV_SAMPLE_MS is the pause per
+action, so five cycles at 800 ms give a roughly 20-second measured window.
+The JSON includes actual windows and cycle counts. Workflow is opt-in,
+requires NAV_PAGES=navigation and NAV_SHOTS=false, and its action mix
+must not be labeled the energy of one isolated push/pop.
+
+```sh
+python3 tool/ios_reference/perf/stage_bench/run_android.py build --target lib/perf/navigation_stage_bench.dart --apk /tmp/morph-nav/workflow.apk --define NAV_MODES=liquid,flat --define NAV_MOTIONS=workflow --define NAV_RUNS=3 --define NAV_SAMPLE_MS=800 --define NAV_SHOTS=false
+```

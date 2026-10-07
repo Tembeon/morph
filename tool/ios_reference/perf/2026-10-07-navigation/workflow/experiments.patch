@@ -1,0 +1,210 @@
+diff --git a/lib/src/liquid_field.dart b/lib/src/liquid_field.dart
+index dae5e5e..7574464 100644
+--- a/lib/src/liquid_field.dart
++++ b/lib/src/liquid_field.dart
+@@ -361,6 +361,11 @@ class LiquidField {
+   }
+ }
+ 
++/// Enables the isolated two-box sampler experiment.
++@visibleForTesting
++@internal
++bool debugMorphPairSampler = false;
++
+ /// The allocation-free evaluator for the sampling hot loop. Shape
+ /// parameters are flattened into typed arrays once per trace; the
+ /// per-vertex work is pure double arithmetic - no Offset objects, no
+@@ -430,6 +435,69 @@ class _FieldSampler {
+   double _nx = 0;
+   double _ny = 0;
+ 
++  double _pairNx = 0;
++  double _pairNy = 0;
++
++  void _pairNormal(
++    double px,
++    double py,
++    double qx,
++    double qy,
++    double ax,
++    double ay,
++    double length,
++  ) {
++    if (length > 0) {
++      _pairNx = ax / length;
++      _pairNy = ay / length;
++    } else if (qx > qy) {
++      _pairNx = 1;
++      _pairNy = 0;
++    } else {
++      _pairNx = 0;
++      _pairNy = 1;
++    }
++    if (px < 0) _pairNx = -_pairNx;
++    if (py < 0) _pairNy = -_pairNy;
++  }
++
++  double evalPair(double x, double y) {
++    final boxes = _boxes;
++    final px = x - boxes[0];
++    final py = y - boxes[1];
++    final r = boxes[4];
++    final qx = px.abs() - boxes[2] + r;
++    final qy = py.abs() - boxes[3] + r;
++    final ax = qx > 0 ? qx : 0.0;
++    final ay = qy > 0 ? qy : 0.0;
++    final length = math.sqrt(ax * ax + ay * ay);
++    var a = length - r;
++    final inner = qx > qy ? qx : qy;
++    if (inner < 0) a += inner;
++
++    final bx = x - boxes[5];
++    final by = y - boxes[6];
++    final br = boxes[9];
++    final bqx = bx.abs() - boxes[7] + br;
++    final bqy = by.abs() - boxes[8] + br;
++    final bax = bqx > 0 ? bqx : 0.0;
++    final bay = bqy > 0 ? bqy : 0.0;
++    final blength = math.sqrt(bax * bax + bay * bay);
++    var b = blength - br;
++    final binner = bqx > bqy ? bqx : bqy;
++    if (binner < 0) b += binner;
++
++    if (b - a >= _k) return a;
++    if (a - b >= _k) return b;
++    _pairNormal(px, py, qx, qy, ax, ay, length);
++    _d = a;
++    _nx = _pairNx;
++    _ny = _pairNy;
++    _pairNormal(bx, by, bqx, bqy, bax, bay, blength);
++    _merge(b, _pairNx, _pairNy);
++    return _d;
++  }
++
+   double eval(double x, double y) {
+     final double k = _k;
+     // Seeded by the first shape, exactly like the reference
+@@ -1089,8 +1157,14 @@ List<(Offset, Offset)> _marchGrid(
+ /// without an [Offset] or a normal allocated per call, the same values as
+ /// [LiquidField.eval].
+ @internal
+-double Function(double x, double y) liquidFieldSampler(LiquidField field) =>
+-    _FieldSampler(field.shapes, field.k).eval;
++double Function(double x, double y) liquidFieldSampler(LiquidField field) {
++  final sampler = _FieldSampler(field.shapes, field.k);
++  return debugMorphPairSampler &&
++          sampler._boxes.length == 10 &&
++          sampler._bridges.isEmpty
++      ? sampler.evalPair
++      : sampler.eval;
++}
+ 
+ /// Stitches loose segments into closed loops: endpoints snap together
+ /// with half-grid-step precision - on thin necks numerically identical
+diff --git a/lib/src/widgets/bar_items.dart b/lib/src/widgets/bar_items.dart
+index b575494..a7e7ffd 100644
+--- a/lib/src/widgets/bar_items.dart
++++ b/lib/src/widgets/bar_items.dart
+@@ -23,6 +23,10 @@ import 'package:morph/src/widgets/menu_motion.dart';
+ import 'package:morph/src/widgets/widgets_theme.dart';
+ import 'package:morph/src/widgets/typography.dart';
+ 
++/// Separates bar content during the isolated navigation experiment.
++@visibleForTesting
++bool debugMorphBarSeparateContent = false;
++
+ /// One button of a glass bar: a label or an icon.
+ ///
+ /// Its [id] keeps its identity when the bar's items change: an item with
+@@ -1318,6 +1322,35 @@ class _MorphBarItemsState extends State<MorphBarItems>
+                       ], style),
+                       child: content,
+                     )
++                  : debugMorphBarSeparateContent
++                  ? Stack(
++                      clipBehavior: Clip.none,
++                      children: [
++                        Positioned.fill(
++                          child: MorphGlassHost(
++                            painter: glass,
++                            mode: MorphGlassMode.layer,
++                            frame: () => MorphGlassFrame(
++                              joined,
++                              spacing: spacing,
++                              still: progress == null && motionSettled,
++                            ),
++                          ),
++                        ),
++                        if (apart.isNotEmpty)
++                          Positioned.fill(
++                            child: IgnorePointer(
++                              child: MorphGlassHost(
++                                painter: glass,
++                                mode: MorphGlassMode.layer,
++                                frame: () =>
++                                    MorphGlassFrame(apart, spacing: spacing),
++                              ),
++                            ),
++                          ),
++                        Positioned.fill(child: content),
++                      ],
++                    )
+                   : MorphGlassHost(
+                       painter: glass,
+                       mode: MorphGlassMode.layer,
+diff --git a/lib/src/widgets/scroll_edge_effect.dart b/lib/src/widgets/scroll_edge_effect.dart
+index fe27cca..be6ae51 100644
+--- a/lib/src/widgets/scroll_edge_effect.dart
++++ b/lib/src/widgets/scroll_edge_effect.dart
+@@ -14,6 +14,10 @@ import 'package:morph/src/widgets/widgets_theme.dart';
+ @visibleForTesting
+ bool debugMorphEdgeEffectBoundsBlur = true;
+ 
++/// Edges whose blur the isolated navigation laboratory omits for attribution.
++@visibleForTesting
++Set<AxisDirection> debugMorphEdgeEffectOmitBlur = const {};
++
+ /// How a [MorphScrollEdgeEffect] separates the content under a bar.
+ enum MorphScrollEdgeEffectStyle {
+   /// UIKit's `.soft` edge effect: a light blur over a band that reaches
+@@ -247,7 +251,9 @@ class MorphScrollEdgeEffect extends StatelessWidget {
+             height: band,
+             width: double.infinity,
+             child: _EdgePaint(
+-              blurs: MorphAdaptiveGlass.tierOf(context) != MorphGlassTier.flat,
++              blurs:
++                  MorphAdaptiveGlass.tierOf(context) != MorphGlassTier.flat &&
++                  !debugMorphEdgeEffectOmitBlur.contains(edge),
+               style: style,
+               top: top,
+               look: look,
+diff --git a/tool/ios_reference/perf/stage_bench/run_android.py b/tool/ios_reference/perf/stage_bench/run_android.py
+index 9afd126..68ddaf7 100644
+--- a/tool/ios_reference/perf/stage_bench/run_android.py
++++ b/tool/ios_reference/perf/stage_bench/run_android.py
+@@ -237,6 +237,7 @@ def main():
+     sub = parser.add_subparsers(dest='step', required=True)
+     build = sub.add_parser('build')
+     build.add_argument('--apk', required=True, type=Path)
++    build.add_argument('--target', default=TARGET)
+     build.add_argument('--define', action='append', default=[])
+     launch = sub.add_parser('run')
+     launch.add_argument('--apk', required=True, type=Path)
+@@ -251,14 +252,14 @@ def main():
+     args = parser.parse_args()
+     if args.step == 'build':
+         command(['flutter', 'build', 'apk', '--profile', '--target-platform', 'android-arm64',
+-                 '-t', TARGET, f'--dart-define=AUDIT_OUT={DEVICE}',
++                 '-t', args.target, f'--dart-define=AUDIT_OUT={DEVICE}',
+                  *[f'--dart-define={value}' for value in args.define]], cwd=ROOT / 'example')
+         args.apk.parent.mkdir(parents=True, exist_ok=True)
+         args.apk.write_bytes((ROOT / 'example/build/app/outputs/flutter-apk/app-profile.apk').read_bytes())
+         Path(str(args.apk) + '.build.json').write_text(json.dumps({
+-            'target': TARGET, 'defines': args.define,
++            'target': args.target, 'defines': args.define,
+             'commit': command(['git', 'rev-parse', 'HEAD'], cwd=ROOT, stdout=subprocess.PIPE).stdout.strip(),
+-            'source_sha256': hashlib.sha256((ROOT / 'example' / TARGET).read_bytes()).hexdigest(),
++            'source_sha256': hashlib.sha256((ROOT / 'example' / args.target).read_bytes()).hexdigest(),
+             'apk_sha256': hashlib.sha256(args.apk.read_bytes()).hexdigest(),
+         }, indent=2) + '\n')
+     else:

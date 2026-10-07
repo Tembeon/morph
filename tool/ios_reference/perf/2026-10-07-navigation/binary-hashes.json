@@ -1,0 +1,102 @@
+[
+  {
+    "file": "nav-content.apk",
+    "bytes": 35983265,
+    "sha256": "ed4236f22692a0273c3174672d72f850a960e22a31903656f8fa3408b530e917"
+  },
+  {
+    "file": "nav-main-smoke.apk",
+    "bytes": 28067037,
+    "sha256": "93685c62b7de5d78ce08336b1d4a922fc14d4e51a523df440c5b2fe3c2ac3912"
+  },
+  {
+    "file": "nav-smoke.apk",
+    "bytes": 27519200,
+    "sha256": "41bd617e55d76fe28e361c4d978b74bba13e241bd0424a808b1295510e2d4a8a"
+  },
+  {
+    "file": "nav-workflow.apk",
+    "bytes": 35983265,
+    "sha256": "ec45cb2fd23984bc1ec173d9bb02b703cecd15b43cf23a9c2e3ded86805c3896"
+  },
+  {
+    "file": "nav-content-final.apk",
+    "bytes": 36048801,
+    "sha256": "0a48a1c6cf290d11b0a7587d5ebf280a6e64e9f2da9ec3bce27150a0c000f77d"
+  },
+  {
+    "file": "nav-actions.apk",
+    "bytes": 35917729,
+    "sha256": "4aeec6341216c1de05f1855d60839c254d90074c51f4187eb30c635047941e90"
+  },
+  {
+    "file": "nav-stock-final.apk",
+    "bytes": 36458082,
+    "sha256": "0c40002cc423bc0c3f4e9c1e2888745a01d6ddfa449a9be013a3129c702ca64d"
+  },
+  {
+    "file": "nav-pair.apk",
+    "bytes": 36048801,
+    "sha256": "408deb39e48ac96b990fd9605561704d61ac4e149f175ab0fcabd6a58bb9e761"
+  },
+  {
+    "file": "nav-main-final.apk",
+    "bytes": 36458082,
+    "sha256": "e207a503df87d23bbb3c04128944d5816b9ea61d9749513f008af25fa3ab0535"
+  },
+  {
+    "file": "nav-parity.apk",
+    "bytes": 36048801,
+    "sha256": "f3ebcff5199237d901e15459f6e965378859cdcaf48454209573b501db27b2cd"
+  },
+  {
+    "file": "nav-warm.apk",
+    "bytes": 36048801,
+    "sha256": "299a6724bf5609390b1c45e9a4eca373d2c5c7d3667ed53d37f75f80acdad94b"
+  },
+  {
+    "file": "content/energy-1.pftrace",
+    "bytes": 28295169,
+    "sha256": "8c5bed45d0d3fd63025f34f7fb7498e9735262285c4c75545a1a8ca59feb2e13"
+  },
+  {
+    "file": "content/energy-2.pftrace",
+    "bytes": 28029584,
+    "sha256": "f6807531ba8d90b6c152e27dee84c9a749a236c17065d896800069ec0b5c3923"
+  },
+  {
+    "file": "workflow/energy-1.pftrace",
+    "bytes": 107659000,
+    "sha256": "4843f1d6a8f8defd4d9920ed21adcb600f45484c6b2fc699102fe5b757c6166e"
+  },
+  {
+    "file": "workflow/energy-2.pftrace",
+    "bytes": 105874753,
+    "sha256": "18f62a3dc184dbfa928455abe54dcc85d123ca6877642429238a6fc319a36297"
+  },
+  {
+    "file": "warm/energy-1.pftrace",
+    "bytes": 45403423,
+    "sha256": "9355fca0bf7aaba4aebe66693bf61c3045512e462ee33a3aeba9668cab3b8fe6"
+  },
+  {
+    "file": "warm/energy-2.pftrace",
+    "bytes": 45795571,
+    "sha256": "e8ca041126e82947d8184667dd10499b438443953771a9eba292b737a77685b7"
+  },
+  {
+    "file": "actions/baseline-1.pftrace",
+    "bytes": 53538931,
+    "sha256": "703d225c3eb8a05f7f5ee5c7e8c009ee4bde84c102985da303196c00c644eaf9"
+  },
+  {
+    "file": "pair/energy-1.pftrace",
+    "bytes": 55126607,
+    "sha256": "0ffe56a39f52de4e75a0352ef2c0ca0e7bd57d8f542045d2aca2965d14cbff75"
+  },
+  {
+    "file": "pair/energy-2.pftrace",
+    "bytes": 53370380,
+    "sha256": "87f4655fa329d1a3bf8202fcc96b987dd1c7cbb413d93a9e71baee365ef24a99"
+  }
+]

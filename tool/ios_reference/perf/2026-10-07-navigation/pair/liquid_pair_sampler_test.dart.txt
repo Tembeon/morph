@@ -1,0 +1,35 @@
+import 'dart:math' as math;
+import 'dart:ui';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/liquid_field.dart';
+
+void main() {
+  test('pair specialization retains the field and exact sampler values', () {
+    addTearDown(() => debugMorphPairSampler = false);
+    final random = math.Random(20261007);
+    for (var scene = 0; scene < 100; scene++) {
+      Rect box() => Rect.fromLTWH(
+        random.nextDouble() * 150 - 75,
+        random.nextDouble() * 80 - 40,
+        2 + random.nextDouble() * 180,
+        2 + random.nextDouble() * 70,
+      );
+      final field = LiquidField([
+        MorphMass.box(box(), radius: random.nextDouble() * 70),
+        MorphMass.box(box(), radius: random.nextDouble() * 70),
+      ], k: scene == 0 ? 0 : random.nextDouble() * 80);
+      debugMorphPairSampler = false;
+      final legacy = liquidFieldSampler(field);
+      debugMorphPairSampler = true;
+      final pair = liquidFieldSampler(field);
+      for (var probe = 0; probe < 200; probe++) {
+        final x = random.nextDouble() * 450 - 150;
+        final y = random.nextDouble() * 250 - 100;
+        final expected = legacy(x, y);
+        expect(pair(x, y), expected, reason: '$scene/$probe');
+        expect(pair(x, y), closeTo(field.eval(Offset(x, y)), 1e-10));
+      }
+    }
+  });
+}

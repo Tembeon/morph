@@ -1,0 +1,77 @@
+diff --git a/lib/src/widgets/bar_items.dart b/lib/src/widgets/bar_items.dart
+index b575494..a7e7ffd 100644
+--- a/lib/src/widgets/bar_items.dart
++++ b/lib/src/widgets/bar_items.dart
+@@ -23,6 +23,10 @@ import 'package:morph/src/widgets/menu_motion.dart';
+ import 'package:morph/src/widgets/widgets_theme.dart';
+ import 'package:morph/src/widgets/typography.dart';
+ 
++/// Separates bar content during the isolated navigation experiment.
++@visibleForTesting
++bool debugMorphBarSeparateContent = false;
++
+ /// One button of a glass bar: a label or an icon.
+ ///
+ /// Its [id] keeps its identity when the bar's items change: an item with
+@@ -1318,6 +1322,35 @@ class _MorphBarItemsState extends State<MorphBarItems>
+                       ], style),
+                       child: content,
+                     )
++                  : debugMorphBarSeparateContent
++                  ? Stack(
++                      clipBehavior: Clip.none,
++                      children: [
++                        Positioned.fill(
++                          child: MorphGlassHost(
++                            painter: glass,
++                            mode: MorphGlassMode.layer,
++                            frame: () => MorphGlassFrame(
++                              joined,
++                              spacing: spacing,
++                              still: progress == null && motionSettled,
++                            ),
++                          ),
++                        ),
++                        if (apart.isNotEmpty)
++                          Positioned.fill(
++                            child: IgnorePointer(
++                              child: MorphGlassHost(
++                                painter: glass,
++                                mode: MorphGlassMode.layer,
++                                frame: () =>
++                                    MorphGlassFrame(apart, spacing: spacing),
++                              ),
++                            ),
++                          ),
++                        Positioned.fill(child: content),
++                      ],
++                    )
+                   : MorphGlassHost(
+                       painter: glass,
+                       mode: MorphGlassMode.layer,
+diff --git a/lib/src/widgets/scroll_edge_effect.dart b/lib/src/widgets/scroll_edge_effect.dart
+index fe27cca..be6ae51 100644
+--- a/lib/src/widgets/scroll_edge_effect.dart
++++ b/lib/src/widgets/scroll_edge_effect.dart
+@@ -14,6 +14,10 @@ import 'package:morph/src/widgets/widgets_theme.dart';
+ @visibleForTesting
+ bool debugMorphEdgeEffectBoundsBlur = true;
+ 
++/// Edges whose blur the isolated navigation laboratory omits for attribution.
++@visibleForTesting
++Set<AxisDirection> debugMorphEdgeEffectOmitBlur = const {};
++
+ /// How a [MorphScrollEdgeEffect] separates the content under a bar.
+ enum MorphScrollEdgeEffectStyle {
+   /// UIKit's `.soft` edge effect: a light blur over a band that reaches
+@@ -247,7 +251,9 @@ class MorphScrollEdgeEffect extends StatelessWidget {
+             height: band,
+             width: double.infinity,
+             child: _EdgePaint(
+-              blurs: MorphAdaptiveGlass.tierOf(context) != MorphGlassTier.flat,
++              blurs:
++                  MorphAdaptiveGlass.tierOf(context) != MorphGlassTier.flat &&
++                  !debugMorphEdgeEffectOmitBlur.contains(edge),
+               style: style,
+               top: top,
+               look: look,

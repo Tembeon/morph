@@ -1,0 +1,43 @@
+name: morph
+description: "Identity-based, spring-driven, interruptible widget-to-overlay morphs with liquid skin fusion. No Navigator coupling."
+version: 0.7.0
+publish_to: 'none'
+
+environment:
+  sdk: ^3.12.2
+  flutter: ">=3.47.0"
+
+dependencies:
+  equatable: ^2.1.0
+  flutter:
+    sdk: flutter
+  flutter_gpu:
+    sdk: flutter
+  flutter_gpu_shaders: ^0.5.2
+  flutter_shaders: ^0.1.3
+  hooks: ^2.0.2
+  material_ui: ^1.1.0
+  meta: ^1.16.0
+  motor: ^1.1.0
+
+dev_dependencies:
+  benchmark_harness: ^2.2.2
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  # The glass renderer (lib/src/glass/renderer). Every fragment shader
+  # compiles for the web too, where it is a stub: the web draws frosted or
+  # flat glass. The Flutter GPU bundle is written into build/shaderbundles/
+  # by hook/build.dart, which creates the directory on every build.
+  shaders:
+    - lib/src/glass/renderer/shaders/liquid_glass_final_render.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_final_render_material.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_final_render_ios27.frag
+    - lib/src/glass/renderer/shaders/owned_glass_ios27.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint_ios27.frag
+    - lib/src/glass/renderer/shaders/fake_glass_surface.frag
+  assets:
+    - build/shaderbundles/

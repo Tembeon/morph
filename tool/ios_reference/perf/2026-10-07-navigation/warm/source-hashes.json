@@ -1,0 +1,6 @@
+{
+  "lib/src/widgets/bar_items.dart": "4e662868805867017bdb6c94e77c7454a58cf2d94cb6af1af0dbfff71700a371",
+  "lib/src/widgets/scroll_edge_effect.dart": "139fbaedbae8d12c8afdcdaf63edf7119ff7f667b5e8328aac4562c47505103a",
+  "example/lib/perf/navigation_stage_bench.dart": "ba1d0dd7265d5977dcffe91d24cc3df7d00388a26b82156352e28fd8b58b76ac",
+  "example/test/navigation_content_host_test.dart": "484b70e175630a986838f347d114033e3b662a7bfc266749f84bc58b647ad5b1"
+}

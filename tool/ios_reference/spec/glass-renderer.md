@@ -2589,3 +2589,29 @@ fat by +0.5..+8 pt as spacing grows); its fusion is not used.
   unless the app gives the later section its own BackdropGroup (option
   C, decided 2026-10-05; device evidence and costs under "Second resting
   body glass").
+
+## Real gallery Navigation (2026-10-07)
+
+REAL GALLERY NAVIGATION (2026-10-07, Pixel 6a Vulkan): new standalone
+navigation_stage_bench exercises actual GalleryApp/Inbox/detail callbacks,
+first enter, nested push/pop, toolbar morph, scrolling and a repeated
+five-action workflow. Short clean stock liquid: nested push UI p95
+23.71-26.32, raster 29.00-32.08, GPU 5.818-5.887 ms/frame; pop
+19.01-24.36/27.61-35.16/5.250-5.291. These are profile windows with
+framework phase collection, not presentation latency. First-enter raster
+p99 reached 64.712 ms after shader precache. Capsules have sigma zero;
+edge blur/seed and real optics remain. Own-isolate CPU samples attribute
+about 20 percent to native GPU submit, 12-16 percent inclusive to fused
+outlines, about 12 percent to geometry preparation. Short content-channel
+and exact two-box sampler experiments do not establish stable power wins;
+no production optimization is admitted from those windows. Native host
+168 phase pairs are byte-identical across the two experiments, and 20,000
+pair-field probes equal the original. Pixel raw candidate and stock/stock
+repeat both reach 64 on isolated body pixels; raw errors are retained.
+Long workflow power stock/content/pair: 706/705/706, then 704/699/712
+mW; UI p95 17.649/16.555/16.599, then 17.211/17.086/17.570 ms.
+Neither candidate delivers a repeatable material win; both stay unmerged.
+The native control and final verdict are documented in
+tool/audit/codex-navigation-report.md; source/evidence in
+perf/2026-10-07-navigation. Runner restores the release gallery and its
+owned tracing state. Main library behavior is unchanged.

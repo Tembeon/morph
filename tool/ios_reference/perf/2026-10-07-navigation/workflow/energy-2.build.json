@@ -1,0 +1,16 @@
+{
+  "target": "lib/perf/navigation_stage_bench.dart",
+  "defines": [
+    "NAV_MODES=liquid,content-channel,pair-field",
+    "NAV_MOTIONS=workflow",
+    "NAV_RUNS=3",
+    "NAV_WARM_MS=500",
+    "NAV_SAMPLE_MS=800",
+    "NAV_PHASES=false",
+    "NAV_SHOTS=false",
+    "NAV_WORKFLOW_CYCLES=5"
+  ],
+  "commit": "a34b9d0e356173cbd16322e59de5f60aa7ae3a56",
+  "source_sha256": "c8e9ec5edd8013f4e23c9fbc6a972cbbb884a143c73902f05c911b388c2ede3b",
+  "apk_sha256": "ec45cb2fd23984bc1ec173d9bb02b703cecd15b43cf23a9c2e3ded86805c3896"
+}

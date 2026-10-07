@@ -1,0 +1,9 @@
+{
+  "lib/src/liquid_field.dart": "0bd2a61bf1c4fa78e48e1ebca053581e22d524303b091235a60cd7e9fe68a2f5",
+  "lib/src/widgets/bar_items.dart": "4e662868805867017bdb6c94e77c7454a58cf2d94cb6af1af0dbfff71700a371",
+  "lib/src/widgets/scroll_edge_effect.dart": "139fbaedbae8d12c8afdcdaf63edf7119ff7f667b5e8328aac4562c47505103a",
+  "tool/ios_reference/perf/stage_bench/run_android.py": "58d7eb564847813e73cd71d40ec8d3680364e12cb59e24be7302258a6e761120",
+  "example/lib/perf/navigation_stage_bench.dart": "ef631c2c154dca6294f2d7acc2c37413a3bf5c92932dd526b910e666582b7716",
+  "example/test/navigation_content_host_test.dart": "5cb9d0bc8392b604176ce1b829f21ff9f2dee6a15fa614edd6fed46e06859929",
+  "test/liquid_pair_sampler_test.dart": "d05a5be9a62f6e4455805af61aef65c452260d425eecaf85f9ca5a2d4d34b341"
+}

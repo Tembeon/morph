@@ -1,0 +1,170 @@
+[
+  {
+    "motion": "nav-navigation-enter-liquid-f0.png",
+    "max_channel": 255,
+    "changed_pixels": 59307,
+    "over3_pixels": 49190
+  },
+  {
+    "motion": "nav-navigation-enter-liquid-f1.png",
+    "max_channel": 255,
+    "changed_pixels": 43245,
+    "over3_pixels": 33473
+  },
+  {
+    "motion": "nav-navigation-enter-liquid-f10.png",
+    "max_channel": 16,
+    "changed_pixels": 921,
+    "over3_pixels": 114
+  },
+  {
+    "motion": "nav-navigation-enter-liquid-f20.png",
+    "max_channel": 7,
+    "changed_pixels": 2,
+    "over3_pixels": 1
+  },
+  {
+    "motion": "nav-navigation-enter-liquid-f34.png",
+    "max_channel": 7,
+    "changed_pixels": 2,
+    "over3_pixels": 1
+  },
+  {
+    "motion": "nav-navigation-enter-liquid-f4.png",
+    "max_channel": 69,
+    "changed_pixels": 1167,
+    "over3_pixels": 307
+  },
+  {
+    "motion": "nav-navigation-enter-liquid-f48.png",
+    "max_channel": 7,
+    "changed_pixels": 2,
+    "over3_pixels": 1
+  },
+  {
+    "motion": "nav-navigation-nested-pop-liquid-f0.png",
+    "max_channel": 255,
+    "changed_pixels": 416654,
+    "over3_pixels": 363551
+  },
+  {
+    "motion": "nav-navigation-nested-pop-liquid-f1.png",
+    "max_channel": 255,
+    "changed_pixels": 66020,
+    "over3_pixels": 32326
+  },
+  {
+    "motion": "nav-navigation-nested-pop-liquid-f10.png",
+    "max_channel": 15,
+    "changed_pixels": 2330,
+    "over3_pixels": 114
+  },
+  {
+    "motion": "nav-navigation-nested-pop-liquid-f20.png",
+    "max_channel": 10,
+    "changed_pixels": 121,
+    "over3_pixels": 12
+  },
+  {
+    "motion": "nav-navigation-nested-pop-liquid-f34.png",
+    "max_channel": 10,
+    "changed_pixels": 121,
+    "over3_pixels": 12
+  },
+  {
+    "motion": "nav-navigation-nested-pop-liquid-f4.png",
+    "max_channel": 55,
+    "changed_pixels": 10646,
+    "over3_pixels": 3564
+  },
+  {
+    "motion": "nav-navigation-nested-pop-liquid-f48.png",
+    "max_channel": 10,
+    "changed_pixels": 121,
+    "over3_pixels": 12
+  },
+  {
+    "motion": "nav-navigation-nested-push-liquid-f0.png",
+    "max_channel": 255,
+    "changed_pixels": 569271,
+    "over3_pixels": 504829
+  },
+  {
+    "motion": "nav-navigation-nested-push-liquid-f1.png",
+    "max_channel": 206,
+    "changed_pixels": 17081,
+    "over3_pixels": 7767
+  },
+  {
+    "motion": "nav-navigation-nested-push-liquid-f10.png",
+    "max_channel": 31,
+    "changed_pixels": 1060,
+    "over3_pixels": 108
+  },
+  {
+    "motion": "nav-navigation-nested-push-liquid-f20.png",
+    "max_channel": 10,
+    "changed_pixels": 2,
+    "over3_pixels": 1
+  },
+  {
+    "motion": "nav-navigation-nested-push-liquid-f34.png",
+    "max_channel": 10,
+    "changed_pixels": 2,
+    "over3_pixels": 1
+  },
+  {
+    "motion": "nav-navigation-nested-push-liquid-f4.png",
+    "max_channel": 26,
+    "changed_pixels": 63,
+    "over3_pixels": 8
+  },
+  {
+    "motion": "nav-navigation-nested-push-liquid-f48.png",
+    "max_channel": 10,
+    "changed_pixels": 2,
+    "over3_pixels": 1
+  },
+  {
+    "motion": "nav-navigation-toolbar-liquid-f0.png",
+    "max_channel": 0,
+    "changed_pixels": 0,
+    "over3_pixels": 0
+  },
+  {
+    "motion": "nav-navigation-toolbar-liquid-f1.png",
+    "max_channel": 188,
+    "changed_pixels": 68213,
+    "over3_pixels": 12969
+  },
+  {
+    "motion": "nav-navigation-toolbar-liquid-f10.png",
+    "max_channel": 6,
+    "changed_pixels": 73,
+    "over3_pixels": 2
+  },
+  {
+    "motion": "nav-navigation-toolbar-liquid-f20.png",
+    "max_channel": 0,
+    "changed_pixels": 0,
+    "over3_pixels": 0
+  },
+  {
+    "motion": "nav-navigation-toolbar-liquid-f34.png",
+    "max_channel": 0,
+    "changed_pixels": 0,
+    "over3_pixels": 0
+  },
+  {
+    "motion": "nav-navigation-toolbar-liquid-f4.png",
+    "max_channel": 9,
+    "changed_pixels": 419,
+    "over3_pixels": 22
+  },
+  {
+    "motion": "nav-navigation-toolbar-liquid-f48.png",
+    "max_channel": 0,
+    "changed_pixels": 0,
+    "over3_pixels": 0
+  }
+]

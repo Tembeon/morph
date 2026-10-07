@@ -1,0 +1,1 @@
+{"error": "{'code': 100, 'message': 'Feature is disabled', 'data': {'request': {'method': 'getCpuSamples', 'params': {'isolateId': 'isolates/4277448587417999', 'timeOrigin': '0', 'timeExtent': '222875931474'}}, 'details': 'Profiler is disabled.'}}"}

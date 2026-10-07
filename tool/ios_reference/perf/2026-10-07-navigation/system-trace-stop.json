@@ -1,0 +1,10 @@
+{
+  "prior": "null",
+  "final": "null",
+  "recorders": [],
+  "tracing": {
+    "tracing_on": "0",
+    "events/power/gpu_work_period/enable": "0",
+    "events/power/gpu_frequency/enable": "0"
+  }
+}

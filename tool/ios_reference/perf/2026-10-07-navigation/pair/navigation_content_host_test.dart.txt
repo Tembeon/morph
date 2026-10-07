@@ -1,0 +1,164 @@
+// ignore_for_file: implementation_imports, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+
+import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/liquid_field.dart';
+import 'package:morph/widgets.dart';
+import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph_example/gallery/navigation_page.dart';
+
+void main() {
+  testWidgets('bar content keeps real gallery transition frames', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    addTearDown(() {
+      debugMorphBarSeparateContent = false;
+      debugMorphPairSampler = false;
+    });
+    await tester.runAsync(MorphGlassRenderer.precache);
+    final native =
+        ui.ImageFilter.isShaderFilterSupported &&
+        MorphGlassRenderer.liquidAvailable;
+    final results = <Map<String, Object?>>[];
+    for (final tier in MorphGlassTier.values) {
+      for (final motion in ['enter', 'nested-push', 'nested-pop', 'toolbar']) {
+        Future<List<Uint8List>> record({required bool channel}) async {
+          debugMorphBarSeparateContent = channel;
+          debugMorphPairSampler = channel;
+          final root = GlobalKey();
+          final navigator = GlobalKey<NavigatorState>();
+          await tester.pumpWidget(
+            RepaintBoundary(
+              key: root,
+              child: GalleryApp(navigatorKey: navigator),
+            ),
+          );
+          await tester.pump();
+          final settings = GalleryGlassScope.of(navigator.currentContext!);
+          settings.appearance = ThemeMode.dark;
+          settings.tier = tier;
+          for (var warm = 0; warm < 90; warm++) {
+            await tester.pump(const Duration(milliseconds: 16));
+          }
+          void enter() => navigator.currentState!.push<void>(
+            MorphNavigationRoute<void>(
+              builder: (_) => const NavigationDemoPage(),
+            ),
+          );
+          VoidCallback message() {
+            VoidCallback? callback;
+            find
+                .text('Message 0')
+                .first
+                .evaluate()
+                .single
+                .visitAncestorElements((e) {
+                  final widget = e.widget;
+                  if (widget is GestureDetector && widget.onTap != null) {
+                    callback = widget.onTap;
+                    return false;
+                  }
+                  return true;
+                });
+            return callback!;
+          }
+
+          if (motion != 'enter') {
+            enter();
+            for (var warm = 0; warm < 90; warm++) {
+              await tester.pump(const Duration(milliseconds: 16));
+            }
+          }
+          late final VoidCallback action;
+          switch (motion) {
+            case 'enter':
+              action = enter;
+            case 'nested-push':
+              action = message();
+            case 'nested-pop':
+              message()();
+              for (var warm = 0; warm < 90; warm++) {
+                await tester.pump(const Duration(milliseconds: 16));
+              }
+              action = () => navigator.currentState!.pop();
+            case 'toolbar':
+              final buttons = tester.widgetList<MorphBarItems>(
+                find.byType(MorphBarItems),
+              );
+              action = [
+                for (final bar in buttons)
+                  for (final group in bar.groups)
+                    for (final button in group.group.buttons)
+                      if (button.id == 'filter') button.onPressed!,
+              ].single;
+          }
+          action();
+          await tester.pump();
+          await tester.pump();
+          final frames = <Uint8List>[];
+          for (var frame = 0; frame <= 48; frame++) {
+            if (const {0, 1, 4, 10, 20, 34, 48}.contains(frame)) {
+              final boundary =
+                  root.currentContext!.findRenderObject()!
+                      as RenderRepaintBoundary;
+              final image = await tester.runAsync(
+                () => boundary.toImage(pixelRatio: 2.625),
+              );
+              final bytes = await tester.runAsync(
+                () => image!.toByteData(format: ui.ImageByteFormat.rawRgba),
+              );
+              image!.dispose();
+              frames.add(bytes!.buffer.asUint8List());
+            }
+            await tester.pump(const Duration(microseconds: 16667));
+          }
+          await tester.pumpWidget(const SizedBox.shrink());
+          for (var warm = 0; warm < 90; warm++) {
+            await tester.pump(const Duration(milliseconds: 16));
+          }
+          return frames;
+        }
+
+        debugPrint('parity: ${tier.name}/$motion');
+        final legacy = await record(channel: false);
+        final channel = await record(channel: true);
+        expect(channel.length, legacy.length);
+        var worst = 0;
+        var changed = 0;
+        for (var frame = 0; frame < legacy.length; frame++) {
+          expect(channel[frame].length, legacy[frame].length);
+          for (var i = 0; i < legacy[frame].length; i++) {
+            final delta = (channel[frame][i] - legacy[frame][i]).abs();
+            if (delta > 0) changed++;
+            if (delta > worst) worst = delta;
+          }
+        }
+        results.add({
+          'tier': tier.name,
+          'motion': motion,
+          'frames': legacy.length,
+          'max_channel': worst,
+          'changed_channels': changed,
+        });
+        expect(worst, 0, reason: '${tier.name}/$motion');
+      }
+    }
+    final path = Platform.environment['NAV_CONTENT_FRAMES_OUT'];
+    if (path != null) {
+      File(path).writeAsStringSync(
+        '${jsonEncode({'native': native, 'pairs': results})}\n',
+      );
+    }
+  });
+}

@@ -1,0 +1,52 @@
+import importlib.util,json,re,sys,time,urllib.parse,urllib.request
+from pathlib import Path
+runner=Path('/tmp/morph-navigation-r8/lab/tool/ios_reference/perf/stage_bench/run_android.py')
+spec=importlib.util.spec_from_file_location('stage_runner',runner)
+module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
+original=module.command
+output=Path(sys.argv[sys.argv.index('--out')+1]) / sys.argv[sys.argv.index('--name')+1]
+collected=False
+enabled=False
+
+def collect(kwargs, enable=False):
+ port=None
+ def adb(*args):
+  return original(['adb',*args],env=kwargs['env'],capture_output=True,timeout=30).stdout.strip()
+ try:
+  pid=adb('shell','pidof',module.PKG).split()[0]
+  log=adb('logcat','-d',f'--pid={pid}','-s','flutter')
+  uri=re.findall(r'The Dart VM service is listening on (http://127\.0\.0\.1:\d+/[^\s]+)',log)[-1]
+  parsed=urllib.parse.urlparse(uri)
+  port=adb('forward','tcp:0',f'tcp:{parsed.port}')
+  base=f'http://127.0.0.1:{port}{parsed.path}'
+  def rpc(method,**params):
+   with urllib.request.urlopen(base+method+'?'+urllib.parse.urlencode(params),timeout=45) as response:
+    data=json.load(response)
+   if 'error' in data: raise RuntimeError(data['error'])
+   return data['result']
+  vm=rpc('getVM')
+  isolate=next(i['id'] for i in vm['isolates'] if i['name']=='main')
+  if enable:
+   print('CPU profiler enabled:',rpc('setFlag',name='profiler',value='true'))
+   return
+  data=rpc('getCpuSamples',isolateId=isolate,timeOrigin=0,timeExtent=int(time.monotonic()*1e6))
+  Path(str(output)+'.cpu.json').write_text(json.dumps(data)+'\n')
+  print('CPU samples:',data.get('sampleCount'))
+ except Exception as e:
+  Path(str(output)+'.cpu-error.json').write_text(json.dumps({'error':str(e)})+'\n')
+  print('CPU collection unavailable:',str(e))
+ finally:
+  if port: adb('forward','--remove',f'tcp:{port}')
+
+def command(args,**kwargs):
+ global collected,enabled
+ if not enabled and args[:5]==['adb','shell','am','start','-W']:
+  result=original(args,**kwargs)
+  time.sleep(1)
+  enabled=True;collect(kwargs,enable=True)
+  return result
+ if not collected and args[:3]==['adb','pull',module.DEVICE+'/report.json']:
+  collected=True;collect(kwargs)
+ return original(args,**kwargs)
+module.command=command
+module.main()
