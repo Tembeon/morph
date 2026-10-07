@@ -1,0 +1,122 @@
+[
+  {
+    "motion": "background",
+    "sigma": "2.0",
+    "phase": "-1.0",
+    "max_channel_error": 138,
+    "changed_pixels": 78929,
+    "mean": 0.17846103395061727,
+    "a_sha256": "27c37b31dab038eb6220aa562f990f7e600877ae03424adf70fd0d8ec52bc245",
+    "b_sha256": "5a97a19aaf5832424cfd955abef651b30858023143c61a10bee0f0bface69213"
+  },
+  {
+    "motion": "background",
+    "sigma": "2.0",
+    "phase": "0.0",
+    "max_channel_error": 142,
+    "changed_pixels": 80275,
+    "mean": 0.19118354552469136,
+    "a_sha256": "4bfd8f7cd2da5d9614de7dbac424f318c0719871ec6bb14d1893d8a31b1cf507",
+    "b_sha256": "c99daa30cdc7b2036d2c16aec34b80739add258020c964e13a9066c465e7635f"
+  },
+  {
+    "motion": "background",
+    "sigma": "2.0",
+    "phase": "1.0",
+    "max_channel_error": 138,
+    "changed_pixels": 75666,
+    "mean": 0.15742226080246913,
+    "a_sha256": "24fa2eb09a15aea7adf8059e37c7ad463d9afdbecab885c6e97478e8faf04834",
+    "b_sha256": "a5273df1006ad9f15f558e27015d16ce5d8aee6c6e8d75fdc14b8e82fcd16145"
+  },
+  {
+    "motion": "background",
+    "sigma": "10.0",
+    "phase": "-1.0",
+    "max_channel_error": 157,
+    "changed_pixels": 227993,
+    "mean": 1.0957472029320987,
+    "a_sha256": "239956af3eb6e430fa8898c2e15cad0aa91bfe40f5e86a5e3e80fc288343995e",
+    "b_sha256": "78c20829fd187f67823d561122fa3d94e0614b56a4ff72eb1d2697aaa43ae1e6"
+  },
+  {
+    "motion": "background",
+    "sigma": "10.0",
+    "phase": "0.0",
+    "max_channel_error": 155,
+    "changed_pixels": 227905,
+    "mean": 1.051942611882716,
+    "a_sha256": "a881aff632a8094e33eaab218688bc850731cfb2dccda2c5058e52fcf846e9b1",
+    "b_sha256": "c8fccb78a726688c7933b2f364c7e709f72cdf2f8734a6fc85651126afe73ef0"
+  },
+  {
+    "motion": "background",
+    "sigma": "10.0",
+    "phase": "1.0",
+    "max_channel_error": 155,
+    "changed_pixels": 226573,
+    "mean": 1.0487543402777777,
+    "a_sha256": "83293bada481c2b04edca9ba94ee4b2cdb3aaf42eac4cc362c18f15d545f555b",
+    "b_sha256": "b85c2ee64ac5d9a42b3fc17e1b313f60aea8630736aad3006c8b22ab637b4939"
+  },
+  {
+    "motion": "glass",
+    "sigma": "2.0",
+    "phase": "-1.0",
+    "max_channel_error": 142,
+    "changed_pixels": 78304,
+    "mean": 0.171882137345679,
+    "a_sha256": "4bfd8f7cd2da5d9614de7dbac424f318c0719871ec6bb14d1893d8a31b1cf507",
+    "b_sha256": "49dcf3042dd25c1839362942582a6c967b0a5924d781bbd8de51b8ba60ae3c89"
+  },
+  {
+    "motion": "glass",
+    "sigma": "2.0",
+    "phase": "0.0",
+    "max_channel_error": 142,
+    "changed_pixels": 80275,
+    "mean": 0.19118354552469136,
+    "a_sha256": "4bfd8f7cd2da5d9614de7dbac424f318c0719871ec6bb14d1893d8a31b1cf507",
+    "b_sha256": "c99daa30cdc7b2036d2c16aec34b80739add258020c964e13a9066c465e7635f"
+  },
+  {
+    "motion": "glass",
+    "sigma": "2.0",
+    "phase": "1.0",
+    "max_channel_error": 142,
+    "changed_pixels": 72287,
+    "mean": 0.17706288580246912,
+    "a_sha256": "4bfd8f7cd2da5d9614de7dbac424f318c0719871ec6bb14d1893d8a31b1cf507",
+    "b_sha256": "28a065f5a1c55f8603b55929ac0e40dacbcf404a5487df92ec5b2eb4307b22c6"
+  },
+  {
+    "motion": "glass",
+    "sigma": "10.0",
+    "phase": "-1.0",
+    "max_channel_error": 155,
+    "changed_pixels": 227337,
+    "mean": 1.0322430555555555,
+    "a_sha256": "a881aff632a8094e33eaab218688bc850731cfb2dccda2c5058e52fcf846e9b1",
+    "b_sha256": "eee8550b30b55d14f3dfa59a3cb1a2e0e04c28d29527884181df93025aab27f9"
+  },
+  {
+    "motion": "glass",
+    "sigma": "10.0",
+    "phase": "0.0",
+    "max_channel_error": 155,
+    "changed_pixels": 227905,
+    "mean": 1.051942611882716,
+    "a_sha256": "a881aff632a8094e33eaab218688bc850731cfb2dccda2c5058e52fcf846e9b1",
+    "b_sha256": "c8fccb78a726688c7933b2f364c7e709f72cdf2f8734a6fc85651126afe73ef0"
+  },
+  {
+    "motion": "glass",
+    "sigma": "10.0",
+    "phase": "1.0",
+    "max_channel_error": 155,
+    "changed_pixels": 214596,
+    "mean": 1.037102237654321,
+    "a_sha256": "a881aff632a8094e33eaab218688bc850731cfb2dccda2c5058e52fcf846e9b1",
+    "b_sha256": "57135b6a7a8cd54da59a27c11c8591a8ff974191a2d2ab55c94bfb72ce599ce1"
+  }
+]

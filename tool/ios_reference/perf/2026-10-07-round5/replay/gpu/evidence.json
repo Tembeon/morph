@@ -1,0 +1,10 @@
+{
+  "replay-1": {
+    "report_sha256": "bee86a1bf15c8381f4addf084f3b5d205ea56e09b11b99d50082b01135942bc9",
+    "raw_gpu_sha256": "b4631295484947cbc2714185a3fb5c45e9d563bf6409467f7920bdd4eb50f03a",
+    "raw_gpu_bytes": 32604662,
+    "filtered_gpu_bytes": 23914988,
+    "compressed_gpu_bytes": 2716480,
+    "reduction_identical": true
+  }
+}

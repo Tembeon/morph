@@ -1,0 +1,26 @@
+{
+  "base": "c80a90508cdea2aa1b6142a8c859c19d2fa2b72e",
+  "branch": "exp/same-frame-backdrop",
+  "files": {
+    "lib/src/glass/renderer/rendering/liquid_glass_layer.dart": "cfa40f537bfcdbf44752a99a69b4278e348a23b20fc1166e8b99136743fdf2b2",
+    "example/lib/perf/glass_stage_bench.dart": "82ed6b60977efa62ec368ea14f63801f082b9b022f4fb9f9e991289f6e5d26c6",
+    "example/shaders/dual_filter.frag": "cf2e007aeaa9222722b9586c90b6976ddcc77379bb203948e60d518b63a0f8d8",
+    "example/pubspec.yaml": "f87df49e3a2a321b6ffa0d41b3f2252f51748edcf4aa7c1cbea5a85d39618cc3",
+    "example/pubspec.lock": "a1a27a7ab03d89d0179c7676985ab684d93d26b2faa79aaecea73e2662973f92"
+  },
+  "apk_sha256": "0c4001a604ba1f76647bc79db0fa0afc487bef68d0c8bd138cb6b902c32abe6e",
+  "defines": [
+    "STAGE_MODES=blur,dual",
+    "STAGE_SIGMAS=2,10",
+    "STAGE_MOTIONS=background",
+    "STAGE_RUNS=1",
+    "STAGE_SHOTS=true",
+    "STAGE_CONTENT=edge",
+    "STAGE_WARM_MS=300",
+    "STAGE_SAMPLE_MS=600"
+  ],
+  "kernel_source": "Marius Bjorge, SIGGRAPH 2015, slides 20-21; independent GLSL implementation",
+  "haze_version": "0.5.0",
+  "warm_ms": 600,
+  "sample_ms": 2400
+}

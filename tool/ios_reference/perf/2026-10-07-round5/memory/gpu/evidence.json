@@ -1,0 +1,34 @@
+{
+  "a-1": {
+    "report_sha256": "d0034a228aa7cd2f3c2cff5c108502daabd2c14e71b9da6b0a28b2c5327006eb",
+    "raw_gpu_sha256": "b9db010e7555eb3e94e67d9f1d653d285c9ce786a52b7ee5e3f14083ad1a2c31",
+    "raw_gpu_bytes": 4082365,
+    "filtered_gpu_bytes": 2708348,
+    "compressed_gpu_bytes": 307531,
+    "reduction_identical": true
+  },
+  "a-4": {
+    "report_sha256": "54bf3c89faad1a14fdd74dde841b1612a39f8c2cb23584608b914d37f98d2a37",
+    "raw_gpu_sha256": "9104d3e9111eea876be3931a21c6c8fd0bd330d4db0d8f19d87591774634ebd7",
+    "raw_gpu_bytes": 4294682,
+    "filtered_gpu_bytes": 2901663,
+    "compressed_gpu_bytes": 326064,
+    "reduction_identical": true
+  },
+  "b-2": {
+    "report_sha256": "bbfef9bc657b1594e1e7c5b3d4f8e4cceeca500dd8713f8c886f3111a7a8724f",
+    "raw_gpu_sha256": "5c444cd1b05850d3554533f978194d598c3dc010baa892303a30a84588a21203",
+    "raw_gpu_bytes": 4224870,
+    "filtered_gpu_bytes": 2869587,
+    "compressed_gpu_bytes": 323735,
+    "reduction_identical": true
+  },
+  "b-3": {
+    "report_sha256": "77e934c6306183370762e310929fdb07ccb71e25f20cb9ea2f2fe6245ddcea31",
+    "raw_gpu_sha256": "10c78d170736aefcc69d257c9b0d387ac8460ed4dba27d596f97c5613839aca8",
+    "raw_gpu_bytes": 4165456,
+    "filtered_gpu_bytes": 2756141,
+    "compressed_gpu_bytes": 312293,
+    "reduction_identical": true
+  }
+}

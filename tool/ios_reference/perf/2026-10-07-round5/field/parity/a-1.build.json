@@ -1,0 +1,6 @@
+{
+  "target": "integration_test/shader_parity_test.dart",
+  "commit": "c80a905",
+  "renderer_sha256": "876bdc9de6adfb7774eac21f5332e40bfc1e3be24fef2128ab098083ca8a1578",
+  "apk_sha256": "0eb7d83025b0feb2f90daa4b564a4436527b437d7a3253d692b43449c659e2ec"
+}

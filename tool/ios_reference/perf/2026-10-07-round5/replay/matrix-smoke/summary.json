@@ -1,0 +1,340 @@
+[
+  {
+    "report": "/tmp/morph-opt-r5/replay/matrix-smoke/text-1.json",
+    "rows": [
+      {
+        "case": "single-background-independent-blur-s10.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "blur",
+        "requested_sigma_logical": 10.0,
+        "content": "text",
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 36,
+        "build_mean": 5.579611111111111,
+        "raster_mean": 9.05102777777778,
+        "build_p50": 5.131,
+        "raster_p50": 8.559,
+        "build_p95": 8.764,
+        "raster_p95": 11.29,
+        "build_p99": 10.754,
+        "raster_p99": 12.686,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 2.5832238055555554,
+        "gpu_mcycles": 1.1211191316111115,
+        "runs": [
+          {
+            "n": 36,
+            "build_mean": 5.579611111111111,
+            "raster_mean": 9.05102777777778,
+            "build_p50": 5.131,
+            "raster_p50": 8.559,
+            "build_p95": 8.764,
+            "raster_p95": 11.29,
+            "build_p99": 10.754,
+            "raster_p99": 12.686,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.5832238055555554,
+            "gpu_mcycles": 1.1211191316111115
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-blur-s2.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "blur",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 36,
+        "build_mean": 7.469527777777778,
+        "raster_mean": 9.972500000000002,
+        "build_p50": 7.938,
+        "raster_p50": 9.473,
+        "build_p95": 10.606,
+        "raster_p95": 12.385,
+        "build_p99": 10.781,
+        "raster_p99": 13.514,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 2.544739,
+        "gpu_mcycles": 1.1044167260000002,
+        "runs": [
+          {
+            "n": 36,
+            "build_mean": 7.469527777777778,
+            "raster_mean": 9.972500000000002,
+            "build_p50": 7.938,
+            "raster_p50": 9.473,
+            "build_p95": 10.606,
+            "raster_p95": 12.385,
+            "build_p99": 10.781,
+            "raster_p99": 13.514,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.544739,
+            "gpu_mcycles": 1.1044167260000002
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-matrix-probe-s10.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "matrix-probe",
+        "requested_sigma_logical": 10.0,
+        "content": "text",
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 36,
+        "build_mean": 5.750833333333334,
+        "raster_mean": 10.086388888888889,
+        "build_p50": 5.979,
+        "raster_p50": 9.974,
+        "build_p95": 8.558,
+        "raster_p95": 12.336,
+        "build_p99": 10.098,
+        "raster_p99": 13.677,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.182281,
+        "gpu_mcycles": 1.8151099540000002,
+        "runs": [
+          {
+            "n": 36,
+            "build_mean": 5.750833333333334,
+            "raster_mean": 10.086388888888889,
+            "build_p50": 5.979,
+            "raster_p50": 9.974,
+            "build_p95": 8.558,
+            "raster_p95": 12.336,
+            "build_p99": 10.098,
+            "raster_p99": 13.677,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.182281,
+            "gpu_mcycles": 1.8151099540000002
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-matrix-probe-s2.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "matrix-probe",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 36,
+        "build_mean": 6.532833333333333,
+        "raster_mean": 10.475111111111111,
+        "build_p50": 6.049,
+        "raster_p50": 10.487,
+        "build_p95": 10.988,
+        "raster_p95": 12.511,
+        "build_p99": 11.42,
+        "raster_p99": 12.54,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 3.677156861111111,
+        "gpu_mcycles": 1.5958860777222232,
+        "runs": [
+          {
+            "n": 36,
+            "build_mean": 6.532833333333333,
+            "raster_mean": 10.475111111111111,
+            "build_p50": 6.049,
+            "raster_p50": 10.487,
+            "build_p95": 10.988,
+            "raster_p95": 12.511,
+            "build_p99": 11.42,
+            "raster_p99": 12.54,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 3.677156861111111,
+            "gpu_mcycles": 1.5958860777222232
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-matrix-s10.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "matrix",
+        "requested_sigma_logical": 10.0,
+        "content": "text",
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 36,
+        "build_mean": 5.579666666666667,
+        "raster_mean": 9.733638888888889,
+        "build_p50": 5.552,
+        "raster_p50": 9.644,
+        "build_p95": 8.286,
+        "raster_p95": 12.011,
+        "build_p99": 8.291,
+        "raster_p99": 12.142,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.518772888888889,
+        "gpu_mcycles": 1.9611474337777761,
+        "runs": [
+          {
+            "n": 36,
+            "build_mean": 5.579666666666667,
+            "raster_mean": 9.733638888888889,
+            "build_p50": 5.552,
+            "raster_p50": 9.644,
+            "build_p95": 8.286,
+            "raster_p95": 12.011,
+            "build_p99": 8.291,
+            "raster_p99": 12.142,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.518772888888889,
+            "gpu_mcycles": 1.9611474337777761
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-matrix-s2.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "matrix",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 36,
+        "build_mean": 5.7122222222222225,
+        "raster_mean": 9.70427777777778,
+        "build_p50": 5.994,
+        "raster_p50": 9.538,
+        "build_p95": 10.741,
+        "raster_p95": 11.838,
+        "build_p99": 11.364,
+        "raster_p99": 17.748,
+        "over_budget": 1,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 3.9915061944444443,
+        "gpu_mcycles": 1.73231368838889,
+        "runs": [
+          {
+            "n": 36,
+            "build_mean": 5.7122222222222225,
+            "raster_mean": 9.70427777777778,
+            "build_p50": 5.994,
+            "raster_p50": 9.538,
+            "build_p95": 10.741,
+            "raster_p95": 11.838,
+            "build_p99": 11.364,
+            "raster_p99": 17.748,
+            "over_budget": 1,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 3.9915061944444443,
+            "gpu_mcycles": 1.73231368838889
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      }
+    ],
+    "deltas": [],
+    "limitations": [
+      "Stage differences change topology and are not exact engine attribution.",
+      "Raster duration is not GPU time; GPU work periods are active work, not presentation latency.",
+      "GPU activity is prorated uniformly within each kernel work-period event.",
+      "Missing frequency coverage produces null cycles, never an extrapolated frequency.",
+      "Vsync gaps are inferred scheduling slots, not measured Android presentation jank.",
+      "Layer bounds/counts do not measure transient GPU memory or native pass count."
+    ]
+  }
+]

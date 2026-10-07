@@ -1,0 +1,15 @@
+{
+  "base": "c80a90508cdea2aa1b6142a8c859c19d2fa2b72e",
+  "branch": "exp/released-byte-budget",
+  "renderer_sha256": "c164a123ff9f8e618d260666bc607de0a3a771cba4ab4d82b85c8ad43461eb6a",
+  "stand_sha256": "d4c91439ddc749f0a6845920d90e61d996f964cb1842aab2426d4038c2ce809e",
+  "apk_sha256": "e8bfea0dcbf6510d0a4650dd78ffd21e838914ef64c7eb47cc111e382dc8b3df",
+  "defines": [
+    "STAGE_LAYOUTS=large,single",
+    "STAGE_MOTIONS=glass",
+    "STAGE_MODES=glass",
+    "STAGE_SIGMAS=2",
+    "STAGE_RUNS=5",
+    "STAGE_SHOTS=true"
+  ]
+}

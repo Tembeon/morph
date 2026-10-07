@@ -1,0 +1,14 @@
+{
+  "patch_base": "c80a905",
+  "patches_apply_cleanly": [
+    "field/candidate.patch",
+    "memory/candidate.patch",
+    "memory/stress-prototype.patch",
+    "replay/prototype.patch"
+  ],
+  "experimental_analysis": "No issues found after matrix prototype; Flutter 3.47.2",
+  "python_harness_tests": 6,
+  "native_geometry_pixel_error": 0,
+  "rejected_runtime_candidates_reverted": true,
+  "no_production_dependencies_added": true
+}

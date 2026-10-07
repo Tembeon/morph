@@ -1,0 +1,344 @@
+diff --git a/example/lib/perf/glass_stage_bench.dart b/example/lib/perf/glass_stage_bench.dart
+index eecf9ff..456ecd4 100644
+--- a/example/lib/perf/glass_stage_bench.dart
++++ b/example/lib/perf/glass_stage_bench.dart
+@@ -12,6 +12,7 @@ import 'package:flutter/scheduler.dart';
+ import 'package:flutter/services.dart';
+ import 'package:flutter/widgets.dart';
+ import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
++import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
+ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
+ import 'package:morph/src/glass/renderer/renderer.dart';
+ import 'package:morph/widgets.dart' show MorphGlassRenderer;
+@@ -35,6 +36,7 @@ const _plans = String.fromEnvironment(
+ const _sigmas = String.fromEnvironment('STAGE_SIGMAS', defaultValue: '2,10');
+ const _only = String.fromEnvironment('STAGE_MODES');
+ const _content = String.fromEnvironment('STAGE_CONTENT', defaultValue: 'tiles');
++const _shots = bool.fromEnvironment('STAGE_SHOTS');
+ 
+ /// Runs the standalone AOT stage benchmark, without a test binding.
+ void main() async {
+@@ -97,6 +99,7 @@ List<_Case> _cases() {
+       'cluster',
+       'spread',
+       'large',
++      'large4',
+     ]))
+       for (final motion in _selection(_motions, [
+         'background',
+@@ -122,6 +125,10 @@ List<Rect> stageBenchRects(String layout, Size size) {
+   return switch (layout) {
+     'single' => [Rect.fromLTWH(w * .12, h * .38, w * .76, h * .16)],
+     'large' => [Rect.fromLTWH(w * .08, h * .16, w * .84, h * .68)],
++    'large4' => [
++      for (var i = 0; i < 4; i++)
++        Rect.fromLTWH(w * .08 + i, h * .16 + i, w * .84, h * .68),
++    ],
+     'cluster' || 'spread' => [
+       for (final x in layout == 'cluster' ? [.27, .52] : [.08, .70])
+         for (final y in layout == 'cluster' ? [.34, .48] : [.14, .72])
+@@ -248,6 +255,11 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
+     }
+     _sceneKey.currentContext?.findRenderObject()?.visitChildren(visitRender);
+     return {
++      'released_capacity_bytes': FlutterGpuGeometryRenderer.debugReleasedBytes,
++      'released_peak_capacity_bytes':
++          FlutterGpuGeometryRenderer.debugPeakReleasedBytes,
++      'released_count': FlutterGpuGeometryRenderer.debugReleasedTextureCount,
++      'process_rss_bytes': ProcessInfo.currentRss,
+       'backdrop_layers': filters,
+       'distinct_capture_keys': independent + keys.length,
+       'liquid_filter_rects_logical': bounds,
+@@ -314,7 +326,44 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
+       _ticker.stop();
+       await Future<void>.delayed(const Duration(milliseconds: 1200));
+       final report = _report();
++      setState(() => _current = null);
++      await SchedulerBinding.instance.endOfFrame;
++      await SchedulerBinding.instance.endOfFrame;
++      final afterClose = _layerSnapshot();
++      await Future<void>.delayed(const Duration(seconds: 5));
++      report['memory_after_close'] = [afterClose, _layerSnapshot()];
+       out.createSync(recursive: true);
++      if (_shots) {
++        for (final c in cases) {
++          await _mount(c);
++          _ticker.stop();
++          for (final phase in [-1.0, 0.0, 1.0]) {
++            _phase.value = phase;
++            await SchedulerBinding.instance.endOfFrame;
++            await SchedulerBinding.instance.endOfFrame;
++            final boundary =
++                _sceneKey.currentContext!.findRenderObject()!
++                    as RenderRepaintBoundary;
++            final shot = await boundary.toImage(
++              pixelRatio: View.of(_sceneKey.currentContext!).devicePixelRatio,
++            );
++            try {
++              final bytes = await shot.toByteData(
++                format: ui.ImageByteFormat.png,
++              );
++              if (bytes == null) throw StateError('Missing PNG for ${c.name}');
++              File('${out.path}/${c.name}-p$phase.png').writeAsBytesSync(
++                bytes.buffer.asUint8List(
++                  bytes.offsetInBytes,
++                  bytes.lengthInBytes,
++                ),
++              );
++            } finally {
++              shot.dispose();
++            }
++          }
++        }
++      }
+       final temporary = File('${out.path}/report.tmp');
+       temporary.writeAsStringSync(jsonEncode(report));
+       temporary.renameSync('${out.path}/report.json');
+@@ -336,6 +385,7 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
+     final budget = 1000 / rate;
+     return {
+       'schema': 'morph-stage-bench-v1',
++      'final_resources': _layerSnapshot(),
+       'platform': Platform.operatingSystem,
+       'build_mode': kProfileMode ? 'profile' : 'release',
+       'refresh_rate': rate,
+@@ -347,6 +397,7 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
+       'warm_ms': _warmMs,
+       'sample_ms': _sampleMs,
+       'seed': _seed,
++      'shot_phases': _shots ? [-1.0, 0.0, 1.0] : <double>[],
+       'order': _order,
+       'case_metadata': _metadata,
+       'windows_us': _windows,
+diff --git a/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart b/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart
+index 506ebd1..8f0724b 100644
+--- a/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart
++++ b/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart
+@@ -9,6 +9,7 @@ import 'package:flutter/scheduler.dart';
+ import 'package:flutter/widgets.dart';
+ import 'package:flutter_gpu/gpu.dart' as gpu;
+ import 'package:morph/src/glass/renderer/glass_field.dart';
++import 'package:morph/src/glass/renderer/internal/released_texture_pool.dart';
+ 
+ /// Renders the liquid glass geometry SDF shader using flutter_gpu.
+ ///
+@@ -61,6 +62,9 @@ class FlutterGpuGeometryRenderer {
+ 
+   // Flutter's centered half-pixel coverage transition.
+   static const double _geometryAaHalfWidth = 0.5;
++  static const bool _legacyFieldPreparation = bool.fromEnvironment(
++    'MORPH_FIELD_PREP_LEGACY',
++  );
+ 
+   static Future<FlutterGpuGeometryRenderer> fromAsset(String assetKey) async {
+     final cachedResources = _resolvedAssetResources[assetKey];
+@@ -389,7 +393,10 @@ class FlutterGpuGeometryRenderer {
+       _renderersWithSpares.add(this);
+     }
+ 
++    final fieldOnly =
++        field != null && !writeMaterials && !_legacyFieldPreparation;
+     _packUniformData(
++      packShapes: !fieldOnly,
+       offsetX: offsetX,
+       offsetY: offsetY,
+       textureWidth: matteWidth.toDouble(),
+@@ -410,7 +417,9 @@ class FlutterGpuGeometryRenderer {
+       boundsData: boundsData,
+     );
+ 
+-    final uniformView = _emplaceUniforms(_uniformData, _uniformSize);
++    final uniformView = fieldOnly
++        ? null
++        : _emplaceUniforms(_uniformData, _uniformSize);
+ 
+     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
+     gpu.Texture? fieldTexture;
+@@ -425,7 +434,10 @@ class FlutterGpuGeometryRenderer {
+           fieldScale: fieldScale,
+           texture: fieldTexture,
+         );
+-        fieldUniformView = _emplaceUniforms(_fieldUniformData, _uniformSize);
++        fieldUniformView = _emplaceUniforms(
++          _fieldUniformData,
++          fieldOnly ? _fieldUniformData.lengthInBytes : _uniformSize,
++        );
+       }
+     } on Object {
+       geometryCommandBuffer.submit();
+@@ -436,7 +448,7 @@ class FlutterGpuGeometryRenderer {
+       geometryPass
+         ..bindPipeline(_pipeline)
+         ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
+-        ..bindUniform(_uniformSlot, uniformView)
++        ..bindUniform(_uniformSlot, uniformView!)
+         ..bindVertexBuffer(_vertexBufferView);
+     } else {
+       geometryPass.bindPipeline(_fieldPipeline);
+@@ -458,7 +470,7 @@ class FlutterGpuGeometryRenderer {
+                   : _materialGradientPipeline,
+             )
+             ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
+-            ..bindUniform(_uniformSlot, uniformView)
++            ..bindUniform(_uniformSlot, uniformView!)
+             ..bindVertexBuffer(_vertexBufferView);
+       _restrictTo(
+         materialPass,
+@@ -642,7 +654,20 @@ class FlutterGpuGeometryRenderer {
+   static int _completedFrames = 0;
+   static bool _countingFrames = false;
+   static final Set<FlutterGpuGeometryRenderer> _renderersWithSpares = {};
+-  static final List<_RingTexture> _released = [];
++  static final _released = MorphReleasedTexturePool<_RingTexture>(
++    maxEntries: _maxReleased,
++    maxBytes: const bool.fromEnvironment('MORPH_LEGACY_RELEASED_POOL')
++        ? 1 << 60
++        : 16 * 1024 * 1024,
++    bytesOf: (texture) => texture.texture.width * texture.texture.height * 4,
++    onDrop: (_) => _countDropped(),
++  );
++
++  /// Retained released RGBA8 capacity, excluding driver overhead.
++  static int get debugReleasedBytes => _released.bytes;
++
++  /// Peak retained released RGBA8 capacity in this diagnostic launch.
++  static int debugPeakReleasedBytes = 0;
+ 
+   /// Counts frames that submit a scene, the unit [reuseAfterFrames] is in.
+   ///
+@@ -657,7 +682,6 @@ class FlutterGpuGeometryRenderer {
+       _released.removeWhere((texture) {
+         final stale =
+             _completedFrames - texture.retiredFrame > _idleFramesBeforeTrim;
+-        if (stale) _countDropped();
+         return stale;
+       });
+       if (_renderersWithSpares.isEmpty) return;
+@@ -735,6 +759,7 @@ class FlutterGpuGeometryRenderer {
+   }
+ 
+   void _packUniformData({
++    required bool packShapes,
+     required double offsetX,
+     required double offsetY,
+     required double textureWidth,
+@@ -780,6 +805,16 @@ class FlutterGpuGeometryRenderer {
+     floatData[contourPropsIndex + 2] = materialMapWidth;
+     floatData[contourPropsIndex + 3] = materialMapHeight;
+ 
++    if (appearanceData.isNotEmpty &&
++        appearanceData.length != maxShapes * 2 * 4) {
++      throw ArgumentError.value(
++        appearanceData.length,
++        'appearanceData.length',
++        'must contain two vec4 rows for each of $maxShapes shapes',
++      );
++    }
++    if (!packShapes) return;
++
+     final shapeDataStartIndex = _offsetShapeData ~/ 4;
+     const shapeLimit = maxShapes * 12;
+     final shapeFloats = shapeData.length < shapeLimit
+@@ -803,14 +838,6 @@ class FlutterGpuGeometryRenderer {
+     }
+     _writtenRseFloats = rseFloats;
+ 
+-    if (appearanceData.isNotEmpty &&
+-        appearanceData.length != maxShapes * 2 * 4) {
+-      throw ArgumentError.value(
+-        appearanceData.length,
+-        'appearanceData.length',
+-        'must contain two vec4 rows for each of $maxShapes shapes',
+-      );
+-    }
+     if (appearanceData.isNotEmpty) {
+       final shapeTintsStartIndex = _offsetShapeTints ~/ 4;
+       final shapeResponsesStartIndex = _offsetShapeResponses ~/ 4;
+@@ -1025,10 +1052,10 @@ final class _TextureRing {
+     for (final texture in textures) {
+       texture.retiredFrame = frame;
+       released.add(texture);
+-    }
+-    while (released.length > FlutterGpuGeometryRenderer._maxReleased) {
+-      released.removeAt(0);
+-      FlutterGpuGeometryRenderer._countDropped();
++      FlutterGpuGeometryRenderer.debugPeakReleasedBytes = math.max(
++        FlutterGpuGeometryRenderer.debugPeakReleasedBytes,
++        released.bytes,
++      );
+     }
+   }
+ 
+diff --git a/lib/src/glass/renderer/internal/released_texture_pool.dart b/lib/src/glass/renderer/internal/released_texture_pool.dart
+new file mode 100644
+index 0000000..94f60cc
+--- /dev/null
++++ b/lib/src/glass/renderer/internal/released_texture_pool.dart
+@@ -0,0 +1,67 @@
++import 'package:meta/meta.dart';
++
++/// FIFO reuse storage bounded by both entry count and texture capacity.
++@internal
++final class MorphReleasedTexturePool<T extends Object> {
++  /// Creates storage whose drops notify [onDrop] without disposing handles.
++  MorphReleasedTexturePool({
++    required this.maxEntries,
++    required this.maxBytes,
++    required this.bytesOf,
++    required this.onDrop,
++  }) : assert(maxEntries >= 0),
++       assert(maxBytes >= 0);
++
++  /// Maximum retained entry count.
++  final int maxEntries;
++
++  /// Maximum retained capacity, excluding driver overhead.
++  final int maxBytes;
++
++  /// Stable capacity of an entry in bytes.
++  final int Function(T) bytesOf;
++
++  /// Notification when storage drops its reference to an entry.
++  final void Function(T) onDrop;
++
++  final List<T> _entries = [];
++  int _bytes = 0;
++
++  /// Number of retained entries.
++  int get length => _entries.length;
++
++  /// Total retained capacity in bytes.
++  int get bytes => _bytes;
++
++  /// Entry at [index], in insertion order.
++  T operator [](int index) => _entries[index];
++
++  /// Retains [entry], evicting oldest entries when either budget is exceeded.
++  void add(T entry) {
++    final size = bytesOf(entry);
++    if (size < 0) throw ArgumentError.value(size, 'bytesOf');
++    if (size > maxBytes || maxEntries == 0) {
++      onDrop(entry);
++      return;
++    }
++    _entries.add(entry);
++    _bytes += size;
++    while (length > maxEntries || _bytes > maxBytes) {
++      onDrop(removeAt(0));
++    }
++  }
++
++  /// Claims an entry and removes its capacity from this pool.
++  T removeAt(int index) {
++    final entry = _entries.removeAt(index);
++    _bytes -= bytesOf(entry);
++    return entry;
++  }
++
++  /// Drops entries for which [test] is true.
++  void removeWhere(bool Function(T) test) {
++    for (var index = length - 1; index >= 0; index--) {
++      if (test(_entries[index])) onDrop(removeAt(index));
++    }
++  }
++}

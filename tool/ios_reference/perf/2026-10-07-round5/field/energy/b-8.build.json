@@ -1,0 +1,13 @@
+{
+  "target": "integration_test/glass_audit_test.dart",
+  "commit": "c80a90508cdea2aa1b6142a8c859c19d2fa2b72e",
+  "renderer_sha256": "2e3e9f328a3d4be66d5877c5f5c8adbffc8c377e6fc7dd3e0ae01a189393562a",
+  "apk_sha256": "7d51fde6890d79cd4292cd7c9446cba55b5709373b3cfed3352225fd986ea1d5",
+  "defines": [
+    "GALLERY_GLASS=liquid",
+    "AUDIT_RUNS=5",
+    "AUDIT_SCENES=menu,controls",
+    "AUDIT_SHOTS=true",
+    "AUDIT_OUT=stage-bench"
+  ]
+}

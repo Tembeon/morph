@@ -2385,6 +2385,94 @@ native Flutter GPU encode/submit is a separate engine lever.
 
 Full protocol, limitations and verification: tool/audit/codex-round3-report.md.
 
+## Round 5 resource experiments (2026-10-07)
+
+Source c80a905, Pixel 6a, Impeller Vulkan, 60 Hz. Full protocol, original
+report/trace hashes, exact windows and reproduction patches:
+`tool/audit/codex-round5-optimization.md` and
+`perf/2026-10-07-round5/`. Phase PNG readbacks run after timing collection.
+The production renderer and dependency graph remain unchanged.
+
+Existing grouping was measured in two GPU and two independent energy
+launches, three repeats each, with four equal non-overlapping surfaces
+sharing the same background and appearance. Independent/shared/merged
+filter/key counts are 4/4, 4/1, 1/1; all 48 native comparisons are
+byte-identical. Cluster independent -> merged: GPU 9.716 -> 4.057 ms,
+4.239 -> 1.761 Mcycles/frame, whole-phone power 1155.1 -> 841.1 mW,
+raster p95 11.280 -> 13.125 ms. Spread: GPU 9.853 -> 4.976,
+4.276 -> 2.159 Mcycles, power 1183.5 -> 949.5, raster p95
+11.625 -> 12.593. Spread's union/visible area is 5.568; larger union
+area can still cost less than repeated filters. These geometry counts
+are not captured-input or transient-memory measurements. Keep backdrop
+depth and content ordering compatible; never infer a blanket merge rule
+from this stand. The earlier navigation/toolbar merge rejection remains.
+
+Field-only preparation skips analytic packing and unused analytic
+uniform emplacement. Four native shader/appearance cases are identical;
+GPU is unchanged, controls about 4.94 ms and menu about 7.5 ms/frame.
+A/B/B/A then B/A/A/B energy, five runs each: controls 683.5 -> 720.3 mW,
+menu 804.4 -> 821.4. Controls scarcely use the field path, so this is not
+proof of a causal energy regression. There is no repeatable energy win;
+the candidate is reverted. The warmed shared uniform arena remains
+0.57 MiB; do not claim that skipping preparation reduces its capacity.
+
+The released-texture candidate adds a 16 MiB byte cap to the existing
+four-entry pool. A strengthened four-large-layer/single-layer rapid
+reopen stress reaches the cap: native phases are identical, held
+RGBA8 capacity after close 24.375 -> 12.188 MiB, but process RSS after
+five idle seconds rises 387.45 -> 467.04 MiB. Median GPU large stress
+11.512 -> 11.630 ms, raster p95 11.735 -> 12.551; energy 1566 -> 1551 mW
+is a small short-window difference. Rejected and reverted. Dropped
+references await native ownership/finalization; a reusable byte sum is
+not a total-memory bound. Age expiry advances with submitted frames and
+does not trim the pool while idle. The initial two-layer negative
+control did not reach the byte cap and was replaced by this stress.
+
+Haze 0.5.0 (ru-ji/haze, Flutter package) is progressive rather than uniform
+blur. Its two sibling custom BackdropFilter layers have up to 128 taps
+per direction, without an explicit reduced-resolution pyramid. One
+three-repeat tile comparison: sigma 2/10 GPU 11.053/24.257 ms against
+stock rectangular Gaussian 2.125/2.155 and production glass 3.423/3.097.
+An outer ClipRect reduces Haze to 5.253/10.927 but visibly changes
+pixels (max channel error 138-157): not an equivalent optimization.
+No Haze production dependency or energy benefit is claimed.
+
+Known-prefix same-frame picture replay is an isolated prototype on
+exp/same-frame-backdrop, not a generic backdrop API. Tiles/moving source:
+production -> replay GPU 3.423 -> 1.955 at sigma 2 and
+3.097 -> 2.117 at sigma 10. UI p95 at sigma 2 rises 5.50 -> 7.09;
+raster 10.25 -> 10.97. Static chrome has max 1-2 native channel steps;
+translated glass reaches max 7/3 on tiles and 9/3 on a native text smoke,
+even with retained actual ImageFilter uniforms refreshed. Coordinates
+under movement remain unresolved. The full-DPR image cache adds
+9.89 MiB and still gives visibly incorrect filter coordinates
+(max 215-231); reject it. Texture/platform-view, glass-over-glass,
+transformed retained subtrees, input reach and lifetime contracts are
+not established. Details and blur-kernel experiments are in the report.
+
+Current-frame input audit, exact installed Flutter 3.47.2 source:
+Texture.fromImage shares a ready ui.Image's GPU storage without copying;
+it does not export Impeller's private backdrop. The existing final shader
+receives that texture natively as sampler 0. A matrix/runtime-effect
+composition probe keeps it inside the native filter graph, with no
+per-frame toImageSync or widget replay. The diagnostic input size is
+consistent with 270 x 600 at two down levels and 68 x 150 at four, from
+1080 x 2400. One-repeat text smoke GPU stock Gaussian 2.545/2.583 versus
+chain 3.992/4.519 ms at sigma 2/10; native max error 50/35 is visible.
+This proves a reduced-resolution source route, not an equivalent blur
+optimization. Separate matrix resamples add work beyond a fused dual
+filter. See tool/audit/codex-backdrop-input-review.md for ownership and
+public API limits. The initial captured-image Dual experiment is excluded
+from algorithm verdicts: duplicate source rasterization, nearest sampling
+and unequal actual blur width made it an invalid kernel comparison.
+The focused native follow-up has two GPU and two energy launches, three
+repeats: Gaussian/chain GPU at sigma 2 is 2.555/4.007 ms and at sigma 10
+2.596/4.541. Whole-phone sigma 10 power 718/873 mW; sigma 2 power has
+large launch variation, so no repeatable benefit is established.
+The same 50/35 max pixel errors repeat. This characterizes an unfused
+full-viewport intermediate graph, not the limit of Dual Kawase on a
+bounded source texture. The production Gaussian remains.
+
 ## Provenance
 
 whynotmake-it/flutter_liquid_glass `liquid_glass_renderer`

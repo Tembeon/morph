@@ -1,0 +1,60 @@
+{
+  "single-glass-independent-glass-s2.0": [
+    {
+      "a_sha256": "1d10492a7c98855923aa439ea9f299e4033f5a9e27b5a67a07d97ac7169dedb9",
+      "b_sha256": "1d10492a7c98855923aa439ea9f299e4033f5a9e27b5a67a07d97ac7169dedb9",
+      "max": 0,
+      "changed_pixels": 0,
+      "rmse": 0.0,
+      "mean": 0.0,
+      "phase": -1.0
+    },
+    {
+      "a_sha256": "c5f2ec1089f669d49f867281f3bd1082745f7973896cf682f0de67fc7dfcc97b",
+      "b_sha256": "c5f2ec1089f669d49f867281f3bd1082745f7973896cf682f0de67fc7dfcc97b",
+      "max": 0,
+      "changed_pixels": 0,
+      "rmse": 0.0,
+      "mean": 0.0,
+      "phase": 0.0
+    },
+    {
+      "a_sha256": "a7d2f3b4d5d067b030c098a59ae8a3e6faa570090d45321289b8c2dbfe9807e5",
+      "b_sha256": "a7d2f3b4d5d067b030c098a59ae8a3e6faa570090d45321289b8c2dbfe9807e5",
+      "max": 0,
+      "changed_pixels": 0,
+      "rmse": 0.0,
+      "mean": 0.0,
+      "phase": 1.0
+    }
+  ],
+  "large4-glass-independent-glass-s2.0": [
+    {
+      "a_sha256": "0f0132ee25d66c774851df94931742b4e13955293d9da7ee0357c49972b00530",
+      "b_sha256": "0f0132ee25d66c774851df94931742b4e13955293d9da7ee0357c49972b00530",
+      "max": 0,
+      "changed_pixels": 0,
+      "rmse": 0.0,
+      "mean": 0.0,
+      "phase": -1.0
+    },
+    {
+      "a_sha256": "c32e989de96aa08cebcfb29792b953b900b2bc2b7bbbd9b291d887a0a4336bd6",
+      "b_sha256": "c32e989de96aa08cebcfb29792b953b900b2bc2b7bbbd9b291d887a0a4336bd6",
+      "max": 0,
+      "changed_pixels": 0,
+      "rmse": 0.0,
+      "mean": 0.0,
+      "phase": 0.0
+    },
+    {
+      "a_sha256": "e46b533f79b1039c40925dadf96cfac2bf84f80d13157ea8bf69bd80da269d79",
+      "b_sha256": "e46b533f79b1039c40925dadf96cfac2bf84f80d13157ea8bf69bd80da269d79",
+      "max": 0,
+      "changed_pixels": 0,
+      "rmse": 0.0,
+      "mean": 0.0,
+      "phase": 1.0
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "single-background-independent-blur-s2.0": {
+    "build_p50": 6.304,
+    "build_p95": 10.5945,
+    "build_p99": 11.746500000000001,
+    "raster_p50": 10.1475,
+    "raster_p95": 12.625,
+    "raster_p99": 13.558499999999999,
+    "gpu_ms": 2.5545489027777775,
+    "gpu_mcycles": 1.1086742238055556,
+    "over_budget": 0.0
+  },
+  "single-background-independent-bare-s0.0": {
+    "build_p50": 6.849,
+    "build_p95": 10.245000000000001,
+    "build_p99": 11.0705,
+    "raster_p50": 10.015,
+    "raster_p95": 12.432500000000001,
+    "raster_p99": 13.214,
+    "gpu_ms": 1.4089588541666667,
+    "gpu_mcycles": 0.6114881427083332,
+    "over_budget": 0.0
+  },
+  "single-background-independent-matrix-s10.0": {
+    "build_p50": 6.301,
+    "build_p95": 11.229,
+    "build_p99": 12.2225,
+    "raster_p50": 9.901,
+    "raster_p95": 11.9065,
+    "raster_p99": 13.520499999999998,
+    "gpu_ms": 4.5414503860236985,
+    "gpu_mcycles": 1.970989467534281,
+    "over_budget": 0.0
+  },
+  "single-background-independent-matrix-s2.0": {
+    "build_p50": 5.984999999999999,
+    "build_p95": 10.6195,
+    "build_p99": 11.5615,
+    "raster_p50": 9.867,
+    "raster_p95": 12.5945,
+    "raster_p99": 13.544,
+    "gpu_ms": 4.006505097222222,
+    "gpu_mcycles": 1.7388232121944465,
+    "over_budget": 0.5
+  },
+  "single-background-independent-blur-s10.0": {
+    "build_p50": 6.0655,
+    "build_p95": 10.598500000000001,
+    "build_p99": 11.0045,
+    "raster_p50": 10.2315,
+    "raster_p95": 12.5715,
+    "raster_p99": 13.414000000000001,
+    "gpu_ms": 2.5958430763888884,
+    "gpu_mcycles": 1.1265958951527781,
+    "over_budget": 0.0
+  }
+}

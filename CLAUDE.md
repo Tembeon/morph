@@ -1192,6 +1192,38 @@ relative only).
 
 ## Performance passport
 
+ROUND 5 native resource experiments (Pixel 6a, 2026-10-07, c80a905):
+no production renderer substitution. Existing grouping, two GPU + two
+energy launches with three repeats: four compatible cluster surfaces
+independent -> merged, GPU 9.716 -> 4.057 ms/frame, whole-phone power
+1155 -> 841 mW, raster p95 11.280 -> 13.125 ms, 48 native comparisons
+max channel error 0 across cluster/spread and shared/merged plans.
+Spread GPU 9.853 -> 4.976, power 1184 -> 950 mW; raster p95 +0.97 ms.
+These are same-depth synthetic arrangements, not gallery-wide savings.
+Field-only preparation has identical native pixels and unchanged GPU;
+eight energy launches establish no repeatable power benefit: reverted.
+A released-texture 16 MiB cap lowers retained capacity 24.375 -> 12.188
+MiB but raises post-close RSS 387.45 -> 467.04 MiB in rapid reopen stress:
+reverted; reference bytes alone do not bound native memory. Haze 0.5.0
+costs 11.05/24.26 ms GPU at sigma 2/10, versus stock Gaussian 2.13/2.16;
+its cheaper outer ClipRect visibly changes pixels. Same-frame known
+picture replay saves capture GPU work but moving-coordinate fidelity is
+unresolved; full-DPR cached image input has visibly incorrect native
+pixels and is rejected. Method and reproducible experimental patches:
+tool/audit/codex-round5-optimization.md,
+perf/2026-10-07-round5. The stage stand's phase readbacks are outside
+collection; no Haze dependency or generic backdrop API is installed.
+The installed Flutter GPU Texture.fromImage wraps a ready ui.Image without
+copying, but does not expose the private current backdrop to Dart. A
+matrix/runtime-effect native chain instead keeps that backdrop inside
+Impeller: probe dimensions confirm quarter/sixteenth inputs without
+per-frame scene capture. Its image and pass topology are not yet suitable
+for adoption: two GPU/energy launches with three repeats give GPU
+stock Gaussian 2.555/2.596 versus chain 4.007/4.541 ms at sigma 2/10,
+max channel error 50/35, sigma 10 power 718 -> 873 mW. Sigma 2 power
+varies too much across launches to claim a benefit. Source-path audit:
+tool/audit/codex-backdrop-input-review.md.
+
 Standalone stage stand (2026-10-07, base bdab3cb; no renderer change):
 example/lib/perf/glass_stage_bench.dart compares bare/capture/blur/optics/
 glass with shuffled windows, exact raw timings and separate GPU/energy

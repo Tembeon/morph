@@ -1,0 +1,18 @@
+{
+  "text-1": {
+    "report_sha256": "b5996a0728796a36ce4a893949742158e8cae921e1b5e754c78b2775d45f51c0",
+    "raw_gpu_sha256": "4f14c39fd6c599a1315289da0c5bfe755b57fc381694b222e5c2c6dfe441e926",
+    "raw_gpu_bytes": 7311748,
+    "filtered_gpu_bytes": 5402714,
+    "compressed_gpu_bytes": 599052,
+    "reduction_identical": true
+  },
+  "text-2": {
+    "report_sha256": "73d5ad98121b4648d0ce220288c20a97093c9e24fdf23cbb9f679a4fde76dcb1",
+    "raw_gpu_sha256": "3fc7021f4e8def685087bf9e1ee2802c9b9773037ecc6098cd23475e489287ef",
+    "raw_gpu_bytes": 7347739,
+    "filtered_gpu_bytes": 5419213,
+    "compressed_gpu_bytes": 600765,
+    "reduction_identical": true
+  }
+}

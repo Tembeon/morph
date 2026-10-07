@@ -1,0 +1,26 @@
+{
+  "base": "c80a90508cdea2aa1b6142a8c859c19d2fa2b72e",
+  "branch": "exp/same-frame-backdrop",
+  "files": {
+    "lib/src/glass/renderer/rendering/liquid_glass_layer.dart": "cfa40f537bfcdbf44752a99a69b4278e348a23b20fc1166e8b99136743fdf2b2",
+    "example/lib/perf/glass_stage_bench.dart": "53282a8e3d1129f4c4fb4527dd2d04bee0789db9fd7a0d3153996201ebc588a1",
+    "example/shaders/dual_filter.frag": "cf2e007aeaa9222722b9586c90b6976ddcc77379bb203948e60d518b63a0f8d8",
+    "example/shaders/dual_backdrop.frag": "7242c1990a032732a5c6940d061339ecbf45e674bd9544b9a06cf2ad238ad4be",
+    "example/pubspec.yaml": "06e00242d0239a3cc7434b4d30539785cf940536bd89c215ae7f0534cd7efc38",
+    "example/pubspec.lock": "a1a27a7ab03d89d0179c7676985ab684d93d26b2faa79aaecea73e2662973f92"
+  },
+  "apk_sha256": "2d9f843e646b00fca6e963ed90cc891db6411cbd972e9aa7d84c324b18cf122c",
+  "defines": [
+    "STAGE_MODES=bare,blur,matrix",
+    "STAGE_SIGMAS=2,10",
+    "STAGE_MOTIONS=background",
+    "STAGE_RUNS=3",
+    "STAGE_SHOTS=true",
+    "STAGE_CONTENT=text",
+    "STAGE_SEED=20261010"
+  ],
+  "kernel_source": "Marius Bjorge, SIGGRAPH 2015, slides 20-21; independent GLSL implementation",
+  "haze_version": "0.5.0",
+  "warm_ms": 600,
+  "sample_ms": 2400
+}

@@ -1,0 +1,162 @@
+{
+  "background/2.0/replay": [
+    {
+      "phase": "-1.0",
+      "max": 2,
+      "changed_pixels": 3818,
+      "mean": 0.0004039351851851852
+    },
+    {
+      "phase": "0.0",
+      "max": 1,
+      "changed_pixels": 3181,
+      "mean": 0.00033352623456790124
+    },
+    {
+      "phase": "1.0",
+      "max": 1,
+      "changed_pixels": 3763,
+      "mean": 0.0004107831790123457
+    }
+  ],
+  "background/2.0/cache": [
+    {
+      "phase": "-1.0",
+      "max": 225,
+      "changed_pixels": 169023,
+      "mean": 0.9923204089506172
+    },
+    {
+      "phase": "0.0",
+      "max": 225,
+      "changed_pixels": 180673,
+      "mean": 0.8989192708333333
+    },
+    {
+      "phase": "1.0",
+      "max": 231,
+      "changed_pixels": 168651,
+      "mean": 1.0288079668209877
+    }
+  ],
+  "background/10.0/replay": [
+    {
+      "phase": "-1.0",
+      "max": 1,
+      "changed_pixels": 1172,
+      "mean": 0.00013368055555555556
+    },
+    {
+      "phase": "0.0",
+      "max": 1,
+      "changed_pixels": 933,
+      "mean": 0.00010677083333333334
+    },
+    {
+      "phase": "1.0",
+      "max": 1,
+      "changed_pixels": 1159,
+      "mean": 0.00013059413580246914
+    }
+  ],
+  "background/10.0/cache": [
+    {
+      "phase": "-1.0",
+      "max": 229,
+      "changed_pixels": 314291,
+      "mean": 1.8110585455246913
+    },
+    {
+      "phase": "0.0",
+      "max": 229,
+      "changed_pixels": 321803,
+      "mean": 1.8298952546296297
+    },
+    {
+      "phase": "1.0",
+      "max": 229,
+      "changed_pixels": 314167,
+      "mean": 1.827712287808642
+    }
+  ],
+  "glass/2.0/replay": [
+    {
+      "phase": "-1.0",
+      "max": 7,
+      "changed_pixels": 84464,
+      "mean": 0.03865046296296296
+    },
+    {
+      "phase": "0.0",
+      "max": 1,
+      "changed_pixels": 3181,
+      "mean": 0.00033352623456790124
+    },
+    {
+      "phase": "1.0",
+      "max": 7,
+      "changed_pixels": 70142,
+      "mean": 0.03224633487654321
+    }
+  ],
+  "glass/2.0/cache": [
+    {
+      "phase": "-1.0",
+      "max": 225,
+      "changed_pixels": 183394,
+      "mean": 0.9961438078703704
+    },
+    {
+      "phase": "0.0",
+      "max": 225,
+      "changed_pixels": 180673,
+      "mean": 0.8989192708333333
+    },
+    {
+      "phase": "1.0",
+      "max": 225,
+      "changed_pixels": 178149,
+      "mean": 0.9380913387345678
+    }
+  ],
+  "glass/10.0/replay": [
+    {
+      "phase": "-1.0",
+      "max": 3,
+      "changed_pixels": 203039,
+      "mean": 0.03238628472222222
+    },
+    {
+      "phase": "0.0",
+      "max": 1,
+      "changed_pixels": 933,
+      "mean": 0.00010677083333333334
+    },
+    {
+      "phase": "1.0",
+      "max": 3,
+      "changed_pixels": 187672,
+      "mean": 0.0298852237654321
+    }
+  ],
+  "glass/10.0/cache": [
+    {
+      "phase": "-1.0",
+      "max": 229,
+      "changed_pixels": 322250,
+      "mean": 1.8535934606481481
+    },
+    {
+      "phase": "0.0",
+      "max": 229,
+      "changed_pixels": 321803,
+      "mean": 1.8298952546296297
+    },
+    {
+      "phase": "1.0",
+      "max": 229,
+      "changed_pixels": 321602,
+      "mean": 1.8173683449074074
+    }
+  ]
+}

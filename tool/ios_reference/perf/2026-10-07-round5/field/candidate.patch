@@ -1,0 +1,187 @@
+diff --git a/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart b/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart
+index 506ebd1..ffefb0b 100644
+--- a/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart
++++ b/lib/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart
+@@ -61,6 +61,9 @@ class FlutterGpuGeometryRenderer {
+ 
+   // Flutter's centered half-pixel coverage transition.
+   static const double _geometryAaHalfWidth = 0.5;
++  static const bool _legacyFieldPreparation = bool.fromEnvironment(
++    'MORPH_FIELD_PREP_LEGACY',
++  );
+ 
+   static Future<FlutterGpuGeometryRenderer> fromAsset(String assetKey) async {
+     final cachedResources = _resolvedAssetResources[assetKey];
+@@ -389,7 +392,10 @@ class FlutterGpuGeometryRenderer {
+       _renderersWithSpares.add(this);
+     }
+ 
++    final fieldOnly =
++        field != null && !writeMaterials && !_legacyFieldPreparation;
+     _packUniformData(
++      packShapes: !fieldOnly,
+       offsetX: offsetX,
+       offsetY: offsetY,
+       textureWidth: matteWidth.toDouble(),
+@@ -410,7 +416,9 @@ class FlutterGpuGeometryRenderer {
+       boundsData: boundsData,
+     );
+ 
+-    final uniformView = _emplaceUniforms(_uniformData, _uniformSize);
++    final uniformView = fieldOnly
++        ? null
++        : _emplaceUniforms(_uniformData, _uniformSize);
+ 
+     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
+     gpu.Texture? fieldTexture;
+@@ -425,7 +433,10 @@ class FlutterGpuGeometryRenderer {
+           fieldScale: fieldScale,
+           texture: fieldTexture,
+         );
+-        fieldUniformView = _emplaceUniforms(_fieldUniformData, _uniformSize);
++        fieldUniformView = _emplaceUniforms(
++          _fieldUniformData,
++          fieldOnly ? _fieldUniformData.lengthInBytes : _uniformSize,
++        );
+       }
+     } on Object {
+       geometryCommandBuffer.submit();
+@@ -436,7 +447,7 @@ class FlutterGpuGeometryRenderer {
+       geometryPass
+         ..bindPipeline(_pipeline)
+         ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
+-        ..bindUniform(_uniformSlot, uniformView)
++        ..bindUniform(_uniformSlot, uniformView!)
+         ..bindVertexBuffer(_vertexBufferView);
+     } else {
+       geometryPass.bindPipeline(_fieldPipeline);
+@@ -458,7 +469,7 @@ class FlutterGpuGeometryRenderer {
+                   : _materialGradientPipeline,
+             )
+             ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
+-            ..bindUniform(_uniformSlot, uniformView)
++            ..bindUniform(_uniformSlot, uniformView!)
+             ..bindVertexBuffer(_vertexBufferView);
+       _restrictTo(
+         materialPass,
+@@ -735,6 +746,7 @@ class FlutterGpuGeometryRenderer {
+   }
+ 
+   void _packUniformData({
++    required bool packShapes,
+     required double offsetX,
+     required double offsetY,
+     required double textureWidth,
+@@ -780,6 +792,16 @@ class FlutterGpuGeometryRenderer {
+     floatData[contourPropsIndex + 2] = materialMapWidth;
+     floatData[contourPropsIndex + 3] = materialMapHeight;
+ 
++    if (appearanceData.isNotEmpty &&
++        appearanceData.length != maxShapes * 2 * 4) {
++      throw ArgumentError.value(
++        appearanceData.length,
++        'appearanceData.length',
++        'must contain two vec4 rows for each of $maxShapes shapes',
++      );
++    }
++    if (!packShapes) return;
++
+     final shapeDataStartIndex = _offsetShapeData ~/ 4;
+     const shapeLimit = maxShapes * 12;
+     final shapeFloats = shapeData.length < shapeLimit
+@@ -803,14 +825,6 @@ class FlutterGpuGeometryRenderer {
+     }
+     _writtenRseFloats = rseFloats;
+ 
+-    if (appearanceData.isNotEmpty &&
+-        appearanceData.length != maxShapes * 2 * 4) {
+-      throw ArgumentError.value(
+-        appearanceData.length,
+-        'appearanceData.length',
+-        'must contain two vec4 rows for each of $maxShapes shapes',
+-      );
+-    }
+     if (appearanceData.isNotEmpty) {
+       final shapeTintsStartIndex = _offsetShapeTints ~/ 4;
+       final shapeResponsesStartIndex = _offsetShapeResponses ~/ 4;
+diff --git a/test/glass_uniform_arena_test.dart b/test/glass_uniform_arena_test.dart
+index 7a281fb..1d289ce 100644
+--- a/test/glass_uniform_arena_test.dart
++++ b/test/glass_uniform_arena_test.dart
+@@ -10,23 +10,26 @@ final class _Block {
+   final List<(int, int)> writes = [];
+ }
+ 
+-MorphUniformArena<_Block> _arena(List<_Block> allocated, {int slots = 32}) =>
+-    MorphUniformArena<_Block>(
+-      blockLength: 2368 * slots,
+-      alignment: 256,
+-      allocate: (int length) {
+-        final block = _Block(length);
+-        allocated.add(block);
+-        return block;
+-      },
+-      write: (_Block block, ByteData data, int offset) {
+-        if (offset < 0 || offset + data.lengthInBytes > block.length) {
+-          return false;
+-        }
+-        block.writes.add((offset, data.lengthInBytes));
+-        return true;
+-      },
+-    );
++MorphUniformArena<_Block> _arena(
++  List<_Block> allocated, {
++  int slots = 32,
++  int stride = 2368,
++}) => MorphUniformArena<_Block>(
++  blockLength: stride * slots,
++  alignment: 256,
++  allocate: (int length) {
++    final block = _Block(length);
++    allocated.add(block);
++    return block;
++  },
++  write: (_Block block, ByteData data, int offset) {
++    if (offset < 0 || offset + data.lengthInBytes > block.length) {
++      return false;
++    }
++    block.writes.add((offset, data.lengthInBytes));
++    return true;
++  },
++);
+ 
+ void main() {
+   test('a frame of any number of geometry passes gets all its uniforms', () {
+@@ -67,6 +70,32 @@ void main() {
+     expect(perFrame, lessThanOrEqualTo(4));
+   });
+ 
++  test('field and analytic blocks stay aligned without overlapping', () {
++    final allocated = <_Block>[];
++    final arena = _arena(allocated, slots: 1, stride: 4864);
++    for (var frame = 0; frame < 12; frame++) {
++      arena.nextFrame();
++      for (final block in allocated) {
++        block.writes.clear();
++      }
++      for (final length in [80, 4656, 80, 80, 4656, 80]) {
++        final placed = arena.emplace(ByteData(length));
++        expect(placed.offset % 256, 0);
++      }
++      for (final block in allocated) {
++        final writes = [...block.writes];
++        writes.sort((a, b) => a.$1.compareTo(b.$1));
++        for (var i = 1; i < writes.length; i++) {
++          expect(
++            writes[i].$1,
++            greaterThanOrEqualTo(writes[i - 1].$1 + writes[i - 1].$2),
++          );
++        }
++      }
++    }
++    expect(allocated.length, arena.frameCount * 5);
++  });
++
+   test('data longer than a block gets a block of its own', () {
+     final allocated = <_Block>[];
+     final arena = _arena(allocated, slots: 1);

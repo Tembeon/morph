@@ -1,0 +1,13 @@
+{
+  "calibration": {
+    "report_sha256": "9301435169e7e850862ca64b375b222f61720ba4a9302d65d2aa8ed3a75b52ca"
+  },
+  "edge-1": {
+    "report_sha256": "b6c69a6c3f52fb36cdb5d6b5a0b7b02fe493210103b0f004f4ec12cda8ea11b0",
+    "raw_gpu_sha256": "77acb54d45e067146949b8ba786d1121ea9a9f05bde21b2cdcbfe6ffb61aae49",
+    "raw_gpu_bytes": 3057365,
+    "filtered_gpu_bytes": 1209274,
+    "compressed_gpu_bytes": 128224,
+    "reduction_identical": true
+  }
+}

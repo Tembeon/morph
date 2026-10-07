@@ -1,0 +1,10 @@
+{
+  "text-1": {
+    "report_sha256": "b131e23736fb75141a97d32f9660feb20abc23a8f41fc52c12bf7a54035ed154",
+    "raw_gpu_sha256": "f2d3ce18028315c4c303eda6a73717d4544fc07457b47a3a9b9f742d6ef79974",
+    "raw_gpu_bytes": 13376890,
+    "filtered_gpu_bytes": 5983504,
+    "compressed_gpu_bytes": 639343,
+    "reduction_identical": true
+  }
+}

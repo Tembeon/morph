@@ -1,0 +1,13 @@
+{
+  "size-probe": {
+    "report_sha256": "daa6883a56063872e4418480cfdf01b8efd843e1a53097b9a77ae61ca1f50c6a"
+  },
+  "text-1": {
+    "report_sha256": "77a4df1c8acff2d24b27e09c7d84e6886bee74549d076e4d4e01853800a32bdc",
+    "raw_gpu_sha256": "d6d57f0d549fadbc5568a666aa039a14b629257272e42b1b81ea10f9101585fe",
+    "raw_gpu_bytes": 1857170,
+    "filtered_gpu_bytes": 804891,
+    "compressed_gpu_bytes": 89461,
+    "reduction_identical": true
+  }
+}

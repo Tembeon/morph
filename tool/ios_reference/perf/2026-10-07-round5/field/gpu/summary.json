@@ -1,0 +1,618 @@
+{
+  "a-1": {
+    "controls": {
+      "runs": [
+        {
+          "n": 398.0,
+          "build_p50": 4.409,
+          "raster_p50": 7.275,
+          "build_p95": 11.556,
+          "raster_p95": 11.024,
+          "build_p99": 13.626,
+          "raster_p99": 13.273,
+          "over_budget": 2.0,
+          "gpu_ms": 4.8512534221105525,
+          "gpu_mcycles": 2.1054439851959796
+        },
+        {
+          "n": 403.0,
+          "build_p50": 4.277,
+          "raster_p50": 7.424,
+          "build_p95": 11.043,
+          "raster_p95": 11.3,
+          "build_p99": 12.802,
+          "raster_p99": 13.612,
+          "over_budget": 0.0,
+          "gpu_ms": 4.934758570719603,
+          "gpu_mcycles": 2.141685219692312
+        },
+        {
+          "n": 406.0,
+          "build_p50": 4.712,
+          "raster_p50": 7.82,
+          "build_p95": 11.884,
+          "raster_p95": 11.874,
+          "build_p99": 13.804,
+          "raster_p99": 14.103,
+          "over_budget": 2.0,
+          "gpu_ms": 4.951685692118226,
+          "gpu_mcycles": 2.1490315903793054
+        },
+        {
+          "n": 411.0,
+          "build_p50": 4.836,
+          "raster_p50": 8.616,
+          "build_p95": 11.866,
+          "raster_p95": 11.427,
+          "build_p99": 12.894,
+          "raster_p99": 13.979,
+          "over_budget": 0.0,
+          "gpu_ms": 4.927496525547445,
+          "gpu_mcycles": 2.138533492087599
+        },
+        {
+          "n": 411.0,
+          "build_p50": 5.127,
+          "raster_p50": 8.48,
+          "build_p95": 12.275,
+          "raster_p95": 11.667,
+          "build_p99": 13.449,
+          "raster_p99": 13.642,
+          "over_budget": 0.0,
+          "gpu_ms": 4.964383605839417,
+          "gpu_mcycles": 2.154542484934302
+        }
+      ],
+      "median": {
+        "n": 406.0,
+        "build_p50": 4.712,
+        "raster_p50": 7.82,
+        "build_p95": 11.866,
+        "raster_p95": 11.427,
+        "build_p99": 13.449,
+        "raster_p99": 13.642,
+        "over_budget": 0.0,
+        "gpu_ms": 4.934758570719603,
+        "gpu_mcycles": 2.141685219692312
+      }
+    },
+    "menu": {
+      "runs": [
+        {
+          "n": 252.0,
+          "build_p50": 5.434,
+          "raster_p50": 8.731,
+          "build_p95": 16.588,
+          "raster_p95": 16.075,
+          "build_p99": 22.505,
+          "raster_p99": 27.519,
+          "over_budget": 16.0,
+          "gpu_ms": 7.267891531746032,
+          "gpu_mcycles": 3.2241072094007994
+        },
+        {
+          "n": 253.0,
+          "build_p50": 5.875,
+          "raster_p50": 8.468,
+          "build_p95": 17.028,
+          "raster_p95": 16.511,
+          "build_p99": 24.907,
+          "raster_p99": 24.061,
+          "over_budget": 19.0,
+          "gpu_ms": 7.570288782608696,
+          "gpu_mcycles": 3.2855053316521654
+        },
+        {
+          "n": 259.0,
+          "build_p50": 6.196,
+          "raster_p50": 8.718,
+          "build_p95": 13.121,
+          "raster_p95": 15.502,
+          "build_p99": 17.506,
+          "raster_p99": 22.309,
+          "over_budget": 13.0,
+          "gpu_ms": 7.563203250965251,
+          "gpu_mcycles": 3.2824302109189194
+        },
+        {
+          "n": 263.0,
+          "build_p50": 5.755,
+          "raster_p50": 8.694,
+          "build_p95": 13.018,
+          "raster_p95": 14.829,
+          "build_p99": 20.021,
+          "raster_p99": 19.984,
+          "over_budget": 10.0,
+          "gpu_ms": 7.3617793269961975,
+          "gpu_mcycles": 3.2477216681178738
+        },
+        {
+          "n": 261.0,
+          "build_p50": 5.531,
+          "raster_p50": 8.84,
+          "build_p95": 13.196,
+          "raster_p95": 14.457,
+          "build_p99": 21.712,
+          "raster_p99": 20.672,
+          "over_budget": 9.0,
+          "gpu_ms": 7.572759126436782,
+          "gpu_mcycles": 3.2977347838927265
+        }
+      ],
+      "median": {
+        "n": 259.0,
+        "build_p50": 5.755,
+        "raster_p50": 8.718,
+        "build_p95": 13.196,
+        "raster_p95": 15.502,
+        "build_p99": 21.712,
+        "raster_p99": 22.309,
+        "over_budget": 13.0,
+        "gpu_ms": 7.563203250965251,
+        "gpu_mcycles": 3.2824302109189194
+      }
+    }
+  },
+  "a-4": {
+    "controls": {
+      "runs": [
+        {
+          "n": 407.0,
+          "build_p50": 4.294,
+          "raster_p50": 7.34,
+          "build_p95": 11.412,
+          "raster_p95": 10.768,
+          "build_p99": 12.715,
+          "raster_p99": 12.663,
+          "over_budget": 0.0,
+          "gpu_ms": 4.886306422604423,
+          "gpu_mcycles": 2.1206569874103223
+        },
+        {
+          "n": 405.0,
+          "build_p50": 4.63,
+          "raster_p50": 8.133,
+          "build_p95": 12.042,
+          "raster_p95": 11.445,
+          "build_p99": 13.15,
+          "raster_p99": 13.193,
+          "over_budget": 0.0,
+          "gpu_ms": 4.918327177777777,
+          "gpu_mcycles": 2.134553995155556
+        },
+        {
+          "n": 401.0,
+          "build_p50": 4.357,
+          "raster_p50": 7.564,
+          "build_p95": 11.142,
+          "raster_p95": 11.451,
+          "build_p99": 12.949,
+          "raster_p99": 13.09,
+          "over_budget": 0.0,
+          "gpu_ms": 4.936422591022444,
+          "gpu_mcycles": 2.142407404503746
+        },
+        {
+          "n": 394.0,
+          "build_p50": 4.709,
+          "raster_p50": 8.112,
+          "build_p95": 12.003,
+          "raster_p95": 11.197,
+          "build_p99": 13.993,
+          "raster_p99": 13.285,
+          "over_budget": 0.0,
+          "gpu_ms": 4.993400467005076,
+          "gpu_mcycles": 2.1671358026802094
+        },
+        {
+          "n": 396.0,
+          "build_p50": 4.879,
+          "raster_p50": 8.133,
+          "build_p95": 11.611,
+          "raster_p95": 11.413,
+          "build_p99": 13.487,
+          "raster_p99": 13.055,
+          "over_budget": 0.0,
+          "gpu_ms": 5.033673671717172,
+          "gpu_mcycles": 2.1846143735252554
+        }
+      ],
+      "median": {
+        "n": 401.0,
+        "build_p50": 4.63,
+        "raster_p50": 8.112,
+        "build_p95": 11.611,
+        "raster_p95": 11.413,
+        "build_p99": 13.15,
+        "raster_p99": 13.09,
+        "over_budget": 0.0,
+        "gpu_ms": 4.936422591022444,
+        "gpu_mcycles": 2.142407404503746
+      }
+    },
+    "menu": {
+      "runs": [
+        {
+          "n": 255.0,
+          "build_p50": 5.722,
+          "raster_p50": 8.258,
+          "build_p95": 15.62,
+          "raster_p95": 16.958,
+          "build_p99": 23.317,
+          "raster_p99": 26.751,
+          "over_budget": 17.0,
+          "gpu_ms": 7.445696611764705,
+          "gpu_mcycles": 3.304642475376478
+        },
+        {
+          "n": 257.0,
+          "build_p50": 5.729,
+          "raster_p50": 8.385,
+          "build_p95": 13.563,
+          "raster_p95": 15.814,
+          "build_p99": 19.674,
+          "raster_p99": 19.344,
+          "over_budget": 15.0,
+          "gpu_ms": 7.546777556420233,
+          "gpu_mcycles": 3.300909196322959
+        },
+        {
+          "n": 258.0,
+          "build_p50": 5.753,
+          "raster_p50": 8.623,
+          "build_p95": 12.653,
+          "raster_p95": 14.953,
+          "build_p99": 20.759,
+          "raster_p99": 20.854,
+          "over_budget": 13.0,
+          "gpu_ms": 7.3372479767441865,
+          "gpu_mcycles": 3.1843656219069647
+        },
+        {
+          "n": 253.0,
+          "build_p50": 6.148,
+          "raster_p50": 8.463,
+          "build_p95": 14.725,
+          "raster_p95": 13.763,
+          "build_p99": 24.789,
+          "raster_p99": 20.749,
+          "over_budget": 8.0,
+          "gpu_ms": 7.681927162055336,
+          "gpu_mcycles": 3.3339563883320125
+        },
+        {
+          "n": 260.0,
+          "build_p50": 5.986,
+          "raster_p50": 8.495,
+          "build_p95": 13.433,
+          "raster_p95": 15.041,
+          "build_p99": 18.982,
+          "raster_p99": 20.7,
+          "over_budget": 11.0,
+          "gpu_ms": 7.410068580769231,
+          "gpu_mcycles": 3.268989477553863
+        }
+      ],
+      "median": {
+        "n": 257.0,
+        "build_p50": 5.753,
+        "raster_p50": 8.463,
+        "build_p95": 13.563,
+        "raster_p95": 15.041,
+        "build_p99": 20.759,
+        "raster_p99": 20.749,
+        "over_budget": 13.0,
+        "gpu_ms": 7.445696611764705,
+        "gpu_mcycles": 3.300909196322959
+      }
+    }
+  },
+  "b-2": {
+    "controls": {
+      "runs": [
+        {
+          "n": 396.0,
+          "build_p50": 4.486,
+          "raster_p50": 7.731,
+          "build_p95": 11.338,
+          "raster_p95": 11.291,
+          "build_p99": 12.504,
+          "raster_p99": 13.632,
+          "over_budget": 0.0,
+          "gpu_ms": 4.926896878787879,
+          "gpu_mcycles": 2.1382732453939415
+        },
+        {
+          "n": 401.0,
+          "build_p50": 4.892,
+          "raster_p50": 8.559,
+          "build_p95": 11.786,
+          "raster_p95": 12.448,
+          "build_p99": 13.701,
+          "raster_p99": 14.06,
+          "over_budget": 2.0,
+          "gpu_ms": 5.000545089775561,
+          "gpu_mcycles": 2.170236568962593
+        },
+        {
+          "n": 414.0,
+          "build_p50": 4.616,
+          "raster_p50": 7.872,
+          "build_p95": 11.607,
+          "raster_p95": 11.531,
+          "build_p99": 13.432,
+          "raster_p99": 13.354,
+          "over_budget": 0.0,
+          "gpu_ms": 4.9354520507246376,
+          "gpu_mcycles": 2.141986190014487
+        },
+        {
+          "n": 402.0,
+          "build_p50": 5.045,
+          "raster_p50": 8.731,
+          "build_p95": 11.801,
+          "raster_p95": 12.215,
+          "build_p99": 13.906,
+          "raster_p99": 14.166,
+          "over_budget": 1.0,
+          "gpu_ms": 4.9346240348258705,
+          "gpu_mcycles": 2.1416268311144275
+        },
+        {
+          "n": 406.0,
+          "build_p50": 4.5,
+          "raster_p50": 8.56,
+          "build_p95": 11.614,
+          "raster_p95": 12.0,
+          "build_p99": 13.251,
+          "raster_p99": 13.47,
+          "over_budget": 0.0,
+          "gpu_ms": 4.934500943349754,
+          "gpu_mcycles": 2.1415734094137973
+        }
+      ],
+      "median": {
+        "n": 402.0,
+        "build_p50": 4.616,
+        "raster_p50": 8.559,
+        "build_p95": 11.614,
+        "raster_p95": 12.0,
+        "build_p99": 13.432,
+        "raster_p99": 13.632,
+        "over_budget": 0.0,
+        "gpu_ms": 4.9346240348258705,
+        "gpu_mcycles": 2.1416268311144275
+      }
+    },
+    "menu": {
+      "runs": [
+        {
+          "n": 259.0,
+          "build_p50": 5.645,
+          "raster_p50": 8.53,
+          "build_p95": 14.282,
+          "raster_p95": 15.268,
+          "build_p99": 27.512,
+          "raster_p99": 22.856,
+          "over_budget": 14.0,
+          "gpu_ms": 7.365407428571428,
+          "gpu_mcycles": 3.1965868239999966
+        },
+        {
+          "n": 264.0,
+          "build_p50": 5.618,
+          "raster_p50": 8.873,
+          "build_p95": 12.046,
+          "raster_p95": 14.337,
+          "build_p99": 17.267,
+          "raster_p99": 17.463,
+          "over_budget": 10.0,
+          "gpu_ms": 7.426235166666667,
+          "gpu_mcycles": 3.2356484507083305
+        },
+        {
+          "n": 262.0,
+          "build_p50": 5.488,
+          "raster_p50": 8.644,
+          "build_p95": 12.85,
+          "raster_p95": 15.096,
+          "build_p99": 17.624,
+          "raster_p99": 19.042,
+          "over_budget": 9.0,
+          "gpu_ms": 7.532918606870229,
+          "gpu_mcycles": 3.2991987600725223
+        },
+        {
+          "n": 263.0,
+          "build_p50": 6.035,
+          "raster_p50": 9.116,
+          "build_p95": 12.534,
+          "raster_p95": 14.485,
+          "build_p99": 21.714,
+          "raster_p99": 17.268,
+          "over_budget": 9.0,
+          "gpu_ms": 7.520461110266159,
+          "gpu_mcycles": 3.263880121855508
+        },
+        {
+          "n": 259.0,
+          "build_p50": 5.672,
+          "raster_p50": 9.035,
+          "build_p95": 14.347,
+          "raster_p95": 14.745,
+          "build_p99": 25.773,
+          "raster_p99": 18.91,
+          "over_budget": 11.0,
+          "gpu_ms": 7.257635563706564,
+          "gpu_mcycles": 3.2258679063088835
+        }
+      ],
+      "median": {
+        "n": 262.0,
+        "build_p50": 5.645,
+        "raster_p50": 8.873,
+        "build_p95": 12.85,
+        "raster_p95": 14.745,
+        "build_p99": 21.714,
+        "raster_p99": 18.91,
+        "over_budget": 10.0,
+        "gpu_ms": 7.426235166666667,
+        "gpu_mcycles": 3.2356484507083305
+      }
+    }
+  },
+  "b-3": {
+    "controls": {
+      "runs": [
+        {
+          "n": 404.0,
+          "build_p50": 4.739,
+          "raster_p50": 7.548,
+          "build_p95": 11.871,
+          "raster_p95": 10.836,
+          "build_p99": 13.038,
+          "raster_p99": 12.185,
+          "over_budget": 0.0,
+          "gpu_ms": 4.901684155940594,
+          "gpu_mcycles": 2.1273309236782194
+        },
+        {
+          "n": 405.0,
+          "build_p50": 4.735,
+          "raster_p50": 8.401,
+          "build_p95": 11.681,
+          "raster_p95": 11.72,
+          "build_p99": 13.429,
+          "raster_p99": 13.25,
+          "over_budget": 1.0,
+          "gpu_ms": 4.980740745679013,
+          "gpu_mcycles": 2.1616414836246993
+        },
+        {
+          "n": 400.0,
+          "build_p50": 4.272,
+          "raster_p50": 6.701,
+          "build_p95": 11.161,
+          "raster_p95": 11.574,
+          "build_p99": 13.184,
+          "raster_p99": 14.069,
+          "over_budget": 0.0,
+          "gpu_ms": 4.9695932175,
+          "gpu_mcycles": 2.1568034563949987
+        },
+        {
+          "n": 394.0,
+          "build_p50": 4.25,
+          "raster_p50": 7.355,
+          "build_p95": 11.227,
+          "raster_p95": 10.628,
+          "build_p99": 12.978,
+          "raster_p99": 14.876,
+          "over_budget": 2.0,
+          "gpu_ms": 4.916140903553299,
+          "gpu_mcycles": 2.133605152142134
+        },
+        {
+          "n": 401.0,
+          "build_p50": 4.818,
+          "raster_p50": 7.965,
+          "build_p95": 11.49,
+          "raster_p95": 11.257,
+          "build_p99": 13.482,
+          "raster_p99": 12.758,
+          "over_budget": 1.0,
+          "gpu_ms": 4.976629201995013,
+          "gpu_mcycles": 2.159857073665843
+        }
+      ],
+      "median": {
+        "n": 401.0,
+        "build_p50": 4.735,
+        "raster_p50": 7.548,
+        "build_p95": 11.49,
+        "raster_p95": 11.257,
+        "build_p99": 13.184,
+        "raster_p99": 13.25,
+        "over_budget": 1.0,
+        "gpu_ms": 4.9695932175,
+        "gpu_mcycles": 2.1568034563949987
+      }
+    },
+    "menu": {
+      "runs": [
+        {
+          "n": 260.0,
+          "build_p50": 4.661,
+          "raster_p50": 7.354,
+          "build_p95": 11.361,
+          "raster_p95": 13.819,
+          "build_p99": 22.444,
+          "raster_p99": 20.671,
+          "over_budget": 11.0,
+          "gpu_ms": 7.270193680769231,
+          "gpu_mcycles": 3.18677300700385
+        },
+        {
+          "n": 258.0,
+          "build_p50": 5.838,
+          "raster_p50": 8.339,
+          "build_p95": 13.757,
+          "raster_p95": 14.144,
+          "build_p99": 20.99,
+          "raster_p99": 18.744,
+          "over_budget": 10.0,
+          "gpu_ms": 7.542334189922481,
+          "gpu_mcycles": 3.2857397922519485
+        },
+        {
+          "n": 256.0,
+          "build_p50": 5.78,
+          "raster_p50": 8.379,
+          "build_p95": 13.127,
+          "raster_p95": 16.066,
+          "build_p99": 22.22,
+          "raster_p99": 19.296,
+          "over_budget": 14.0,
+          "gpu_ms": 7.6313619296875,
+          "gpu_mcycles": 3.334886027593761
+        },
+        {
+          "n": 251.0,
+          "build_p50": 6.149,
+          "raster_p50": 8.395,
+          "build_p95": 15.619,
+          "raster_p95": 14.487,
+          "build_p99": 28.46,
+          "raster_p99": 17.793,
+          "over_budget": 14.0,
+          "gpu_ms": 7.62290761752988,
+          "gpu_mcycles": 3.3083419060079744
+        },
+        {
+          "n": 256.0,
+          "build_p50": 5.467,
+          "raster_p50": 8.519,
+          "build_p95": 14.181,
+          "raster_p95": 15.143,
+          "build_p99": 22.831,
+          "raster_p99": 21.799,
+          "over_budget": 10.0,
+          "gpu_ms": 7.47503998046875,
+          "gpu_mcycles": 3.301954168476563
+        }
+      ],
+      "median": {
+        "n": 256.0,
+        "build_p50": 5.78,
+        "raster_p50": 8.379,
+        "build_p95": 13.757,
+        "raster_p95": 14.487,
+        "build_p99": 22.444,
+        "raster_p99": 19.296,
+        "over_budget": 11.0,
+        "gpu_ms": 7.542334189922481,
+        "gpu_mcycles": 3.301954168476563
+      }
+    }
+  }
+}

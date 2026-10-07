@@ -1,0 +1,60 @@
+{
+  "single-background-independent-matrix-s10.0": [
+    {
+      "a_sha256": "979c09151747274e67b0f85f106908549924a9f1a8bbc11def2faf6b2ebb5e8e",
+      "b_sha256": "01a80bd440b66aa58944a29609dae8a4faab27f5041f5f2672a52076dd79c455",
+      "max": 35,
+      "changed_pixels": 314880,
+      "rmse": 3.272823719122467,
+      "mean": 0.8352273341049383,
+      "phase": -1.0
+    },
+    {
+      "a_sha256": "bb17d101f1b092a1a90311ceebc6c564a6eac54d7894aa4e02afe0f37b7c3b35",
+      "b_sha256": "bcdfdfaa4dd0c2a226f4b40e4d6ed16423eb7e97cb6b139139d1b9a9d50dc17d",
+      "max": 35,
+      "changed_pixels": 314880,
+      "rmse": 3.2874587496825263,
+      "mean": 0.8380534336419753,
+      "phase": 0.0
+    },
+    {
+      "a_sha256": "64868be8eb0f3ec2ba23aa2034362e9a32cf0131b748cf9f168f8f67d8518a6e",
+      "b_sha256": "bce0ff3ed998e8d1e9f29b69d066961657267bdd9482bec1f8f5b4bfedfabac4",
+      "max": 35,
+      "changed_pixels": 314880,
+      "rmse": 3.2459041587622965,
+      "mean": 0.8260589313271605,
+      "phase": 1.0
+    }
+  ],
+  "single-background-independent-matrix-s2.0": [
+    {
+      "a_sha256": "ad1d5bed085210b292a6fc47c2a6aa3e3f5fb6564beb7e3edcf21fa3798c1ed0",
+      "b_sha256": "a6f39ece051f425e7b5f8117727e8d14412a0e479d7356cf7023c0f0ee4fd309",
+      "max": 49,
+      "changed_pixels": 282318,
+      "rmse": 2.2952129547639037,
+      "mean": 0.46119135802469136,
+      "phase": -1.0
+    },
+    {
+      "a_sha256": "61d60001b88643ede02040fab788ff1df0bce64e26d5cb5306927352c1895c04",
+      "b_sha256": "b381ee1b2b560d92ce8eaed612b7c1d257a039cc9c2231ccb16fffa27e379fd2",
+      "max": 50,
+      "changed_pixels": 281158,
+      "rmse": 2.3029498117953304,
+      "mean": 0.46193856095679015,
+      "phase": 0.0
+    },
+    {
+      "a_sha256": "7ddff9bd422d4dd3b0fffff74a08f9d2d87cd60d19aac0e406f3947138e230b7",
+      "b_sha256": "491f43103f813a6a2441559c84ada80448c3fbd76cfa6fe79165def70501af28",
+      "max": 49,
+      "changed_pixels": 280406,
+      "rmse": 2.2854206970152515,
+      "mean": 0.4593659336419753,
+      "phase": 1.0
+    }
+  ]
+}

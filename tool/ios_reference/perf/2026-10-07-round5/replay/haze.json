@@ -1,0 +1,10 @@
+{
+  "package": "haze",
+  "version": "0.5.0",
+  "repository": "https://github.com/ru-ji/haze",
+  "archive_url": "https://pub.dev/api/archives/haze-0.5.0.tar.gz",
+  "archive_sha256": "73cf374a8c6a78763b3f86ecfe7c430e5b34dbbf25ff8c592480002d267b7a69",
+  "license": "BSD-3-Clause",
+  "license_sha256": "c457501dba147f83318ed2083c7b397f13dd062d82c850796008aa74d5f14fee",
+  "production_dependency_added": false
+}

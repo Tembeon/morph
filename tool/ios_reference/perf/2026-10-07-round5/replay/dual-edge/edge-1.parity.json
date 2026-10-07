@@ -1,0 +1,60 @@
+{
+  "single-background-independent-dual-s10.0": [
+    {
+      "a_sha256": "95810129b28b0ac38663b540989dfd2d94e070afafa5f69ba63d303da7ccfefc",
+      "b_sha256": "c6da9f0ff870ba2e429a651a0a026d5f4bd0045110a1759414ef0c864fe40e49",
+      "max": 17,
+      "changed_pixels": 55296,
+      "rmse": 1.2011568497818166,
+      "mean": 0.1292222222222222,
+      "phase": -1.0
+    },
+    {
+      "a_sha256": "02cb903353ae97a33d615f3ee75cda6709d52e07e12e1092b93c5fbed3c40100",
+      "b_sha256": "c2c350fc1ca78b86e84045fc630a731f1a572fbe15f97c8e28a5f5437904a0ec",
+      "max": 20,
+      "changed_pixels": 51840,
+      "rmse": 1.3068622302633468,
+      "mean": 0.13255555555555557,
+      "phase": 0.0
+    },
+    {
+      "a_sha256": "1b44f9b18234b0063fc3efc61acf15aaf4f3f14929f423f85ee8869d41d50d8d",
+      "b_sha256": "d1ec214d1035491397d8930f4e8cc692c21094723aaf6349d9085e0e4939684b",
+      "max": 18,
+      "changed_pixels": 53376,
+      "rmse": 1.1027239001672178,
+      "mean": 0.116,
+      "phase": 1.0
+    }
+  ],
+  "single-background-independent-dual-s2.0": [
+    {
+      "a_sha256": "4fb0c21ffb93c2cfe3e3990b79fa44183f0b03ee9889478ab14bb8c86e53cdec",
+      "b_sha256": "7522f155228adb6712e7ba2e3f62c40684f6e9eeab1af5ef10ceace61d6be15b",
+      "max": 39,
+      "changed_pixels": 10752,
+      "rmse": 0.8776863524821001,
+      "mean": 0.03788888888888889,
+      "phase": -1.0
+    },
+    {
+      "a_sha256": "2d611a550a0c882a424688d76c23eac56eac636760670bb7a08ce0f56865286d",
+      "b_sha256": "c977178892e2a2b9de9dd5e8c584a40842d0e4d559f69971f6bb319dcf6a1221",
+      "max": 28,
+      "changed_pixels": 11520,
+      "rmse": 0.8146573922003449,
+      "mean": 0.03766666666666667,
+      "phase": 0.0
+    },
+    {
+      "a_sha256": "5e458d718c360e5aa04d0a3c506239839d27914284c57fb0a5ae9fc8d2e5b6e7",
+      "b_sha256": "785630d77d42c21002743c0cbeafdcb3a6ed2e4390d1a473467f11ac3b5e1615",
+      "max": 33,
+      "changed_pixels": 11520,
+      "rmse": 0.7938653678188905,
+      "mean": 0.035111111111111114,
+      "phase": 1.0
+    }
+  ]
+}

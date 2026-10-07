@@ -1,0 +1,22 @@
+{
+  "base": "c80a90508cdea2aa1b6142a8c859c19d2fa2b72e",
+  "branch": "exp/same-frame-backdrop",
+  "files": {
+    "lib/src/glass/renderer/rendering/liquid_glass_layer.dart": "8010670b6bae79d298abecd5c8807f9330eae083c9b48da54b5092ad117ac99d",
+    "example/lib/perf/glass_stage_bench.dart": "cad1a64396f05091583129e0fe1ce04959bbba353d56549472898c98fbaf47f4",
+    "example/pubspec.yaml": "bf94e389594da933ef77e7ac26750bb48a9629f6bee7dbb221c4d8df64ec6827",
+    "example/pubspec.lock": "a1a27a7ab03d89d0179c7676985ab684d93d26b2faa79aaecea73e2662973f92"
+  },
+  "haze_version": "0.5.0",
+  "haze_archive_sha256": "73cf374a8c6a78763b3f86ecfe7c430e5b34dbbf25ff8c592480002d267b7a69",
+  "apk_sha256": "e622213938f7309be1329a4c01d895901cafcdbf1292985c4e0f7c666b8586ad",
+  "defines": [
+    "STAGE_MODES=glass,replay,cache,haze,haze-clipped,blur",
+    "STAGE_SIGMAS=2,10",
+    "STAGE_MOTIONS=background,glass",
+    "STAGE_RUNS=3",
+    "STAGE_SHOTS=true"
+  ],
+  "warm_ms": 600,
+  "sample_ms": 2400
+}

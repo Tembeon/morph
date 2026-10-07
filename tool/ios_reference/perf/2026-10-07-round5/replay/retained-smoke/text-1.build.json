@@ -1,0 +1,21 @@
+{
+  "base": "c80a90508cdea2aa1b6142a8c859c19d2fa2b72e",
+  "branch": "exp/same-frame-backdrop",
+  "files": {
+    "lib/src/glass/renderer/rendering/liquid_glass_layer.dart": "75aa2e8f88ccb9e9297c886a358c4b8ca521d085f07007f72c6c53da440e275e",
+    "example/lib/perf/glass_stage_bench.dart": "a17ff4e708cdc25be366e27975490c33a6d9e01f5b93b5c9e900233a046597ec",
+    "example/pubspec.yaml": "bf94e389594da933ef77e7ac26750bb48a9629f6bee7dbb221c4d8df64ec6827",
+    "example/pubspec.lock": "a1a27a7ab03d89d0179c7676985ab684d93d26b2faa79aaecea73e2662973f92"
+  },
+  "apk_sha256": "3182238271321911c0129bc1b899fbe00002b6fc7f859bf154e1ee39ac3ae5f4",
+  "defines": [
+    "STAGE_MODES=glass,replay,cache",
+    "STAGE_SIGMAS=2,10",
+    "STAGE_MOTIONS=background,glass",
+    "STAGE_RUNS=1",
+    "STAGE_SHOTS=true",
+    "STAGE_CONTENT=text",
+    "STAGE_WARM_MS=300",
+    "STAGE_SAMPLE_MS=600"
+  ]
+}

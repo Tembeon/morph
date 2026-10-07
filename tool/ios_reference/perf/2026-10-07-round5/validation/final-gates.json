@@ -1,0 +1,31 @@
+{
+  "all_exit_codes": 0,
+  "commands": [
+    "dart format lib test example/lib example/test",
+    "flutter analyze",
+    "flutter test",
+    "cd example && flutter test",
+    "dart doc --dry-run"
+  ],
+  "tails": {
+    "analyze": [
+      "Got dependencies in `./example`.",
+      "Analyzing morph...                                              ",
+      "No issues found! (ran in 3.7s)"
+    ],
+    "package-tests": [
+      "01:27 +1398: /Users/tembeon/IdeaProjects/morph/test/glass_frames_test.dart: (tearDownAll)",
+      "01:27 +1398: All tests passed!"
+    ],
+    "format": [
+      "Formatted 307 files (0 changed) in 0.93 seconds."
+    ],
+    "example-tests": [
+      "00:03 +21: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: (tearDownAll)",
+      "00:04 +21: All tests passed!"
+    ],
+    "dartdoc": [
+      "Found 0 warnings and 0 errors."
+    ]
+  }
+}

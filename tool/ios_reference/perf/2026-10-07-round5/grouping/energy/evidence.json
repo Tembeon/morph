@@ -1,0 +1,10 @@
+{
+  "groups-1": {
+    "report_sha256": "764071ea838d89cd8d41347413a54c97a8bbb71aabb2a208053b2158b8b3f8de",
+    "pftrace_sha256": "c3af1510cfd64fa381f01df36f62e9d8c053af1f41881b40a72f8d9bbe702053"
+  },
+  "groups-2": {
+    "report_sha256": "b3cc9e074d2162d5543567057ef6bd1e501d7f3f7142dfe8a869b4abbc00583f",
+    "pftrace_sha256": "8affa34b8a5caf87f6f823e2f4b98c52a223be5797036409a347e255c7baabba"
+  }
+}
