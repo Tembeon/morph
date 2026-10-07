@@ -14,6 +14,9 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- The stage benchmark can capture deterministic native phase PNGs after
+  timing collection. Its Android runner can also restore the gallery
+  around native audit APKs and pull their fidelity artifacts.
 - A standalone glass stage benchmark compares capture, Gaussian blur,
   production optics and full glass across configurable footprints, motion
   and grouping. It saves raw frame timings, GPU work and separate energy
