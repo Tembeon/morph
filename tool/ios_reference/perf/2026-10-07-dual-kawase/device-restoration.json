@@ -1,0 +1,9 @@
+{
+  "gallery_apk_sha256": "46067271b0547de0bc092c52052f1986b1391d36412c350fc1e6c63ede3bd3c3",
+  "rotation": "0",
+  "tracing_on": "0",
+  "trace_clock": "local global counter uptime perf mono mono_raw [boot] tai",
+  "buffer_size_kb": "7",
+  "gpu_work_event_enabled": "0",
+  "gpu_frequency_event_enabled": "0"
+}

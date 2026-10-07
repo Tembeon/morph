@@ -1,0 +1,87 @@
+[
+  {
+    "case": "single-background-independent-gpu-gaussian-s2.0",
+    "gpu_ms": 1.9822884756944443,
+    "gpu_mcycles": 0.860313198451389,
+    "build_p50": 0.8354999999999999,
+    "build_p95": 1.6165,
+    "build_p99": 1.972,
+    "raster_p50": 4.877,
+    "raster_p95": 6.119,
+    "raster_p99": 6.6845,
+    "power_mw": 572.5943933531607,
+    "power_launches_mw": [
+      541.2726696379667,
+      603.9161170683548
+    ],
+    "over_budget_total": 0
+  },
+  {
+    "case": "single-background-independent-gpu-bare-s0.0",
+    "gpu_ms": 0.8410271076388889,
+    "gpu_mcycles": 0.3650057647152779,
+    "build_p50": 0.6234999999999999,
+    "build_p95": 1.387,
+    "build_p99": 1.6404999999999998,
+    "raster_p50": 3.1955,
+    "raster_p95": 4.2745,
+    "raster_p99": 4.8580000000000005,
+    "power_mw": 501.60124795037115,
+    "power_launches_mw": [
+      492.752312809274,
+      510.4501830914683
+    ],
+    "over_budget_total": 0
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s2.0",
+    "gpu_ms": 0.9515098090277778,
+    "gpu_mcycles": 0.4129552571180555,
+    "build_p50": 0.673,
+    "build_p95": 1.495,
+    "build_p99": 1.888,
+    "raster_p50": 3.2275,
+    "raster_p95": 4.1255,
+    "raster_p99": 4.695,
+    "power_mw": 499.5531488554102,
+    "power_launches_mw": [
+      494.24019665226473,
+      504.8661010585557
+    ],
+    "over_budget_total": 0
+  },
+  {
+    "case": "single-background-independent-gpu-gaussian-s10.0",
+    "gpu_ms": 2.079337517361111,
+    "gpu_mcycles": 0.9024324825347221,
+    "build_p50": 0.8069999999999999,
+    "build_p95": 1.6215000000000002,
+    "build_p99": 2.007,
+    "raster_p50": 4.872999999999999,
+    "raster_p95": 5.9605,
+    "raster_p99": 6.532,
+    "power_mw": 610.7162233443246,
+    "power_launches_mw": [
+      525.5981713397712,
+      695.8342753488781
+    ],
+    "over_budget_total": 0
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s10.0",
+    "gpu_ms": 0.9721441944444444,
+    "gpu_mcycles": 0.42191058038888896,
+    "build_p50": 0.7005,
+    "build_p95": 1.5234999999999999,
+    "build_p99": 1.897,
+    "raster_p50": 3.2055,
+    "raster_p95": 4.3215,
+    "raster_p99": 5.1745,
+    "power_mw": 518.1722854453769,
+    "power_launches_mw": [
+      498.01272722105193,
+      538.331843669702
+    ],
+    "over_budget_total": 0
+  }
+]

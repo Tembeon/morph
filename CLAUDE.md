@@ -1192,6 +1192,38 @@ relative only).
 
 ## Performance passport
 
+DUAL KAWASE FOLLOW-UP (Pixel 6a, 2026-10-07, 620798e): experimental
+owned-input fused 5/8-tap ROI pyramid, persistent targets and final
+upsample/composition fusion; no production renderer replacement. Two GPU
+and two energy launches, three repeats: Gaussian -> direct Dual sigma 2
+GPU 2.030 -> 1.492 ms/frame, power 547 -> 548 mW, UI p95 1.685 -> 8.569.
+At sigma 10 a three-level pyramid gives 2.110 -> 1.865 ms GPU but
+534 -> 564 mW; four levels give 2.176 ms and 639 mW. Raw native max
+channel errors 9/8/7, identity source copy <=1 after UV orientation fix.
+Direct per-pass native submit wall time is about 0.51-1.46 ms in an
+instrumented smoke; native-raster pass images trade UI for more GPU work.
+The SDK image-surface smoke retained 23-36 backing textures; the direct
+stand's fixed output ring stays at three. Algorithm verdicts must not
+compare the old nearest, duplicate-source, full-viewport matrix graph
+with a fused, calibrated kernel. Details and reproducible patches:
+tool/audit/codex-dual-kawase-followup.md,
+perf/2026-10-07-dual-kawase.
+
+Unchanged-source translation cache (same device/base, two GPU and two
+energy launches, three repeats): Gaussian -> cached Dual sigma 2 GPU
+1.982 -> 0.952 ms/frame, power 573 -> 500 mW; sigma 10 GPU
+2.079 -> 0.972, power 611 -> 518. UI p95 stays 1.495/1.523 ms.
+Power improves in both launches but baseline variation is substantial
+(small 8.7/16.4 percent, large 5.2/22.6 percent); no app-wide guarantee.
+The immutable owned source has 100 percent cache hits; source setup/misses
+and production optics are excluded. Native phase max error 8/7 with a
+motion+kernel guard, not production fidelity acceptance. Three/seven
+prewarm passes remain constant across repeats, with one retained output
+and owned target capacities 1.306/2.232 MiB, plus a shared 9.89 MiB source;
+these are not RSS measurements. The current transform is applied in the
+current frame. Real source invalidation and native batched submission
+remain next work, not implemented production features.
+
 ROUND 5 native resource experiments (Pixel 6a, 2026-10-07, c80a905):
 no production renderer substitution. Existing grouping, two GPU + two
 energy launches with three repeats: four compatible cluster surfaces

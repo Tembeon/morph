@@ -1,0 +1,1840 @@
+[
+  {
+    "report": "/tmp/morph-opt-r6/retained-padded-gpu/text-1.json",
+    "rows": [
+      {
+        "case": "single-background-independent-gpu-gaussian-s2.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-gaussian",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.9502986111111108,
+        "raster_mean": 4.806868055555559,
+        "build_p50": 0.832,
+        "raster_p50": 4.821,
+        "build_p95": 1.612,
+        "raster_p95": 6.057,
+        "build_p99": 1.942,
+        "raster_p99": 6.572,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.9591570902777777,
+        "gpu_mcycles": 0.8502741771805549,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.9502986111111108,
+            "raster_mean": 4.806868055555559,
+            "build_p50": 0.781,
+            "raster_p50": 4.841,
+            "build_p95": 1.612,
+            "raster_p95": 5.876,
+            "build_p99": 1.942,
+            "raster_p99": 6.217,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.9963307291666668,
+            "gpu_mcycles": 0.8664075364583336
+          },
+          {
+            "n": 144,
+            "build_mean": 0.9838263888888888,
+            "raster_mean": 4.854590277777776,
+            "build_p50": 0.832,
+            "raster_p50": 4.821,
+            "build_p95": 1.642,
+            "raster_p95": 6.057,
+            "build_p99": 2.143,
+            "raster_p99": 6.572,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.9536542569444444,
+            "gpu_mcycles": 0.8478859475138881
+          },
+          {
+            "n": 144,
+            "build_mean": 0.9178819444444447,
+            "raster_mean": 4.623611111111114,
+            "build_p50": 0.869,
+            "raster_p50": 4.662,
+            "build_p95": 1.587,
+            "raster_p95": 6.125,
+            "build_p99": 1.937,
+            "raster_p99": 6.868,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.9591570902777777,
+            "gpu_mcycles": 0.8502741771805549
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-gpu-bare-s0.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-bare",
+        "requested_sigma_logical": 0.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.7800763888888887,
+        "raster_mean": 3.3358125000000003,
+        "build_p50": 0.623,
+        "raster_p50": 3.258,
+        "build_p95": 1.442,
+        "raster_p95": 4.29,
+        "build_p99": 1.678,
+        "raster_p99": 4.997,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 0.8813421597222223,
+        "gpu_mcycles": 0.3825024973194445,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.7800763888888887,
+            "raster_mean": 3.120208333333335,
+            "build_p50": 0.623,
+            "raster_p50": 3.104,
+            "build_p95": 1.442,
+            "raster_p95": 4.061,
+            "build_p99": 1.678,
+            "raster_p99": 4.579,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.8128543333333333,
+            "gpu_mcycles": 0.35277878066666657
+          },
+          {
+            "n": 144,
+            "build_mean": 0.8255416666666671,
+            "raster_mean": 3.3473750000000013,
+            "build_p50": 0.697,
+            "raster_p50": 3.258,
+            "build_p95": 1.516,
+            "raster_p95": 4.578,
+            "build_p99": 1.878,
+            "raster_p99": 4.997,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.8813421597222223,
+            "gpu_mcycles": 0.3825024973194445
+          },
+          {
+            "n": 144,
+            "build_mean": 0.719583333333333,
+            "raster_mean": 3.3358125000000003,
+            "build_p50": 0.617,
+            "raster_p50": 3.292,
+            "build_p95": 1.369,
+            "raster_p95": 4.29,
+            "build_p99": 1.485,
+            "raster_p99": 5.119,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.8906685972222222,
+            "gpu_mcycles": 0.38655017119444457
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-gpu-retained-s2.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-retained",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.7590347222222225,
+        "raster_mean": 3.2359999999999993,
+        "build_p50": 0.657,
+        "raster_p50": 3.16,
+        "build_p95": 1.435,
+        "raster_p95": 3.999,
+        "build_p99": 1.867,
+        "raster_p99": 4.56,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 0.9256862569444445,
+        "gpu_mcycles": 0.40174783551388865,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.690951388888889,
+            "raster_mean": 2.8652361111111118,
+            "build_p50": 0.613,
+            "raster_p50": 2.864,
+            "build_p95": 1.412,
+            "raster_p95": 3.741,
+            "build_p99": 1.577,
+            "raster_p99": 4.56,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.8878496597222223,
+            "gpu_mcycles": 0.3853267523194446
+          },
+          {
+            "n": 144,
+            "build_mean": 0.7590347222222225,
+            "raster_mean": 3.2359999999999993,
+            "build_p50": 0.657,
+            "raster_p50": 3.16,
+            "build_p95": 1.435,
+            "raster_p95": 3.999,
+            "build_p99": 1.867,
+            "raster_p99": 4.303,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.9256862569444445,
+            "gpu_mcycles": 0.40174783551388865
+          },
+          {
+            "n": 144,
+            "build_mean": 0.9311041666666667,
+            "raster_mean": 3.399097222222222,
+            "build_p50": 0.721,
+            "raster_p50": 3.334,
+            "build_p95": 1.629,
+            "raster_p95": 4.491,
+            "build_p99": 2.122,
+            "raster_p99": 5.228,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.0526374583333333,
+            "gpu_mcycles": 0.4568446569166666
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-gpu-gaussian-s10.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-gaussian",
+        "requested_sigma_logical": 10.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.9700625000000004,
+        "raster_mean": 4.889111111111109,
+        "build_p50": 0.852,
+        "raster_p50": 4.896,
+        "build_p95": 1.602,
+        "raster_p95": 5.915,
+        "build_p99": 1.945,
+        "raster_p99": 6.567,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 2.083788125,
+        "gpu_mcycles": 0.9043640462499997,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.0019930555555556,
+            "raster_mean": 4.889111111111109,
+            "build_p50": 0.898,
+            "raster_p50": 4.896,
+            "build_p95": 1.682,
+            "raster_p95": 5.915,
+            "build_p99": 1.949,
+            "raster_p99": 6.567,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.083788125,
+            "gpu_mcycles": 0.9043640462499997
+          },
+          {
+            "n": 144,
+            "build_mean": 0.8861458333333335,
+            "raster_mean": 4.326604166666666,
+            "build_p50": 0.786,
+            "raster_p50": 4.342,
+            "build_p95": 1.567,
+            "raster_p95": 5.791,
+            "build_p99": 1.923,
+            "raster_p99": 6.455,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.025451875,
+            "gpu_mcycles": 0.8790461137499991
+          },
+          {
+            "n": 144,
+            "build_mean": 0.9700625000000004,
+            "raster_mean": 4.904034722222221,
+            "build_p50": 0.852,
+            "raster_p50": 4.941,
+            "build_p95": 1.602,
+            "raster_p95": 6.269,
+            "build_p99": 1.945,
+            "raster_p99": 6.829,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.122485701388889,
+            "gpu_mcycles": 0.9211587944027786
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-gpu-retained-s10.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-retained",
+        "requested_sigma_logical": 10.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.7834791666666665,
+        "raster_mean": 3.180701388888888,
+        "build_p50": 0.683,
+        "raster_p50": 3.118,
+        "build_p95": 1.404,
+        "raster_p95": 4.299,
+        "build_p99": 1.771,
+        "raster_p99": 5.134,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 0.9408391180555555,
+        "gpu_mcycles": 0.40832417723611125,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.7584097222222224,
+            "raster_mean": 3.160638888888888,
+            "build_p50": 0.651,
+            "raster_p50": 3.048,
+            "build_p95": 1.404,
+            "raster_p95": 4.354,
+            "build_p99": 1.721,
+            "raster_p99": 5.134,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.9408391180555555,
+            "gpu_mcycles": 0.40832417723611125
+          },
+          {
+            "n": 144,
+            "build_mean": 0.7834791666666665,
+            "raster_mean": 3.180701388888888,
+            "build_p50": 0.683,
+            "raster_p50": 3.118,
+            "build_p95": 1.342,
+            "raster_p95": 4.193,
+            "build_p99": 1.771,
+            "raster_p99": 5.11,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.9406046319444445,
+            "gpu_mcycles": 0.4082224102638889
+          },
+          {
+            "n": 144,
+            "build_mean": 0.8622569444444447,
+            "raster_mean": 3.322354166666665,
+            "build_p50": 0.725,
+            "raster_p50": 3.276,
+            "build_p95": 1.609,
+            "raster_p95": 4.299,
+            "build_p99": 1.802,
+            "raster_p99": 5.794,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.0502958680555554,
+            "gpu_mcycles": 0.45582840673611114
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      }
+    ],
+    "deltas": [],
+    "limitations": [
+      "Stage differences change topology and are not exact engine attribution.",
+      "Raster duration is not GPU time; GPU work periods are active work, not presentation latency.",
+      "GPU activity is prorated uniformly within each kernel work-period event.",
+      "Missing frequency coverage produces null cycles, never an extrapolated frequency.",
+      "Vsync gaps are inferred scheduling slots, not measured Android presentation jank.",
+      "Layer bounds/counts do not measure transient GPU memory or native pass count."
+    ]
+  },
+  {
+    "report": "/tmp/morph-opt-r6/retained-padded-gpu/text-2.json",
+    "rows": [
+      {
+        "case": "single-background-independent-gpu-gaussian-s2.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-gaussian",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.9864791666666667,
+        "raster_mean": 4.953555555555553,
+        "build_p50": 0.839,
+        "raster_p50": 4.933,
+        "build_p95": 1.621,
+        "raster_p95": 6.181,
+        "build_p99": 2.002,
+        "raster_p99": 6.797,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 2.005419861111111,
+        "gpu_mcycles": 0.870352219722223,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 1.0310208333333333,
+            "raster_mean": 4.953555555555553,
+            "build_p50": 0.894,
+            "raster_p50": 4.933,
+            "build_p95": 1.731,
+            "raster_p95": 6.173,
+            "build_p99": 2.173,
+            "raster_p99": 7.624,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.004897965277778,
+            "gpu_mcycles": 0.8701257169305566
+          },
+          {
+            "n": 144,
+            "build_mean": 0.9864791666666667,
+            "raster_mean": 4.996895833333332,
+            "build_p50": 0.839,
+            "raster_p50": 4.981,
+            "build_p95": 1.621,
+            "raster_p95": 6.325,
+            "build_p99": 1.755,
+            "raster_p99": 6.704,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.0355028958333334,
+            "gpu_mcycles": 0.8834082567916672
+          },
+          {
+            "n": 144,
+            "build_mean": 0.8915069444444441,
+            "raster_mean": 4.878583333333335,
+            "build_p50": 0.738,
+            "raster_p50": 4.843,
+            "build_p95": 1.582,
+            "raster_p95": 6.181,
+            "build_p99": 2.002,
+            "raster_p99": 6.797,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.005419861111111,
+            "gpu_mcycles": 0.870352219722223
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-gpu-gaussian-s10.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-gaussian",
+        "requested_sigma_logical": 10.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.8973888888888892,
+        "raster_mean": 4.839243055555555,
+        "build_p50": 0.762,
+        "raster_p50": 4.85,
+        "build_p95": 1.641,
+        "raster_p95": 6.006,
+        "build_p99": 2.069,
+        "raster_p99": 6.497,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 2.0748869097222222,
+        "gpu_mcycles": 0.9005009188194444,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.9681805555555552,
+            "raster_mean": 4.839243055555555,
+            "build_p50": 0.793,
+            "raster_p50": 4.925,
+            "build_p95": 1.671,
+            "raster_p95": 6.006,
+            "build_p99": 2.093,
+            "raster_p99": 6.347,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.1090360833333337,
+            "gpu_mcycles": 0.915321660166667
+          },
+          {
+            "n": 144,
+            "build_mean": 0.8973888888888892,
+            "raster_mean": 4.917319444444447,
+            "build_p50": 0.762,
+            "raster_p50": 4.85,
+            "build_p95": 1.641,
+            "raster_p95": 6.047,
+            "build_p99": 2.069,
+            "raster_p99": 6.497,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 2.0748869097222222,
+            "gpu_mcycles": 0.9005009188194444
+          },
+          {
+            "n": 144,
+            "build_mean": 0.8357708333333335,
+            "raster_mean": 4.378312500000003,
+            "build_p50": 0.745,
+            "raster_p50": 4.361,
+            "build_p95": 1.489,
+            "raster_p95": 5.992,
+            "build_p99": 1.693,
+            "raster_p99": 6.738,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.989625548611111,
+            "gpu_mcycles": 0.863497488097223
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-gpu-retained-s2.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-retained",
+        "requested_sigma_logical": 2.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.8150555555555554,
+        "raster_mean": 3.342569444444444,
+        "build_p50": 0.689,
+        "raster_p50": 3.295,
+        "build_p95": 1.555,
+        "raster_p95": 4.252,
+        "build_p99": 1.909,
+        "raster_p99": 4.83,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 0.9773333611111111,
+        "gpu_mcycles": 0.42416267872222235,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.8150555555555554,
+            "raster_mean": 3.2822361111111125,
+            "build_p50": 0.688,
+            "raster_p50": 3.26,
+            "build_p95": 1.555,
+            "raster_p95": 3.95,
+            "build_p99": 1.909,
+            "raster_p99": 4.426,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.9559192777777777,
+            "gpu_mcycles": 0.41486896655555533
+          },
+          {
+            "n": 144,
+            "build_mean": 0.9425902777777773,
+            "raster_mean": 3.406486111111111,
+            "build_p50": 0.77,
+            "raster_p50": 3.295,
+            "build_p95": 1.595,
+            "raster_p95": 4.469,
+            "build_p99": 1.957,
+            "raster_p99": 4.83,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.0189880902777777,
+            "gpu_mcycles": 0.44224083118055574
+          },
+          {
+            "n": 144,
+            "build_mean": 0.78175,
+            "raster_mean": 3.342569444444444,
+            "build_p50": 0.689,
+            "raster_p50": 3.324,
+            "build_p95": 1.513,
+            "raster_p95": 4.252,
+            "build_p99": 1.711,
+            "raster_p99": 4.91,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.9773333611111111,
+            "gpu_mcycles": 0.42416267872222235
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-gpu-bare-s0.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-bare",
+        "requested_sigma_logical": 0.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.7143402777777776,
+        "raster_mean": 3.1721250000000003,
+        "build_p50": 0.624,
+        "raster_p50": 3.133,
+        "build_p95": 1.332,
+        "raster_p95": 4.259,
+        "build_p99": 1.603,
+        "raster_p99": 4.719,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 0.8007120555555555,
+        "gpu_mcycles": 0.34750903211111134,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.7143402777777776,
+            "raster_mean": 3.1721250000000003,
+            "build_p50": 0.627,
+            "raster_p50": 3.133,
+            "build_p95": 1.336,
+            "raster_p95": 4.275,
+            "build_p99": 1.603,
+            "raster_p99": 4.719,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.8165444027777777,
+            "gpu_mcycles": 0.35438027080555556
+          },
+          {
+            "n": 144,
+            "build_mean": 0.668013888888889,
+            "raster_mean": 2.821013888888889,
+            "build_p50": 0.618,
+            "raster_p50": 2.735,
+            "build_p95": 1.153,
+            "raster_p95": 3.864,
+            "build_p99": 1.716,
+            "raster_p99": 4.347,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.7316631458333334,
+            "gpu_mcycles": 0.3175418052916666
+          },
+          {
+            "n": 144,
+            "build_mean": 0.7270277777777778,
+            "raster_mean": 3.2814513888888888,
+            "build_p50": 0.624,
+            "raster_p50": 3.248,
+            "build_p95": 1.332,
+            "raster_p95": 4.259,
+            "build_p99": 1.487,
+            "raster_p99": 4.815,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.8007120555555555,
+            "gpu_mcycles": 0.34750903211111134
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "single-background-independent-gpu-retained-s10.0",
+        "layout": "single",
+        "motion": "background",
+        "plan": "independent",
+        "mode": "gpu-retained",
+        "requested_sigma_logical": 10.0,
+        "content": "text",
+        "gpu_implementation": "fused bilinear ROI pyramid, persistent intermediates, image surfaces",
+        "owned_gpu": [
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/2.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1028.0,
+              591.0
+            ],
+            "intermediate_pixels": [
+              [
+                514,
+                296
+              ],
+              [
+                257,
+                148
+              ]
+            ],
+            "surface_pixels": [
+              514,
+              296
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 3,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 3,
+            "owned_target_capacity_bytes": 1369296,
+            "first_pass_uniform_buffers": 1
+          },
+          {
+            "plan": "49.142857142857146/347.42857142857144/313.1428571428571/146.66666666666663/10.0/false/6/true",
+            "source_pixels": [
+              1080,
+              2400
+            ],
+            "roi_pixels": [
+              1244.0,
+              807.0
+            ],
+            "intermediate_pixels": [
+              [
+                622,
+                404
+              ],
+              [
+                311,
+                202
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                78,
+                51
+              ],
+              [
+                156,
+                101
+              ],
+              [
+                311,
+                202
+              ]
+            ],
+            "surface_pixels": [
+              622,
+              404
+            ],
+            "surface_backing_textures": 1,
+            "gpu_render_passes": 7,
+            "cpu_encoding_us": [
+              {},
+              {},
+              {},
+              {},
+              {},
+              {},
+              {}
+            ],
+            "fused_final": true,
+            "retained_source_cache": true,
+            "executed_gpu_passes": 7,
+            "owned_target_capacity_bytes": 2340528,
+            "first_pass_uniform_buffers": 1
+          }
+        ],
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "liquid_filter_rects_logical": [],
+        "liquid_blur_pass_sigmas_logical": [],
+        "visible_rects_logical": [
+          [
+            49.371428571428574,
+            347.42857142857144,
+            312.6857142857143,
+            146.28571428571433
+          ]
+        ],
+        "n": 144,
+        "build_mean": 0.8464236111111112,
+        "raster_mean": 3.3753263888888885,
+        "build_p50": 0.718,
+        "raster_p50": 3.293,
+        "build_p95": 1.643,
+        "raster_p95": 4.344,
+        "build_p99": 2.023,
+        "raster_p99": 5.215,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 1.0034492708333334,
+        "gpu_mcycles": 0.4354969835416666,
+        "runs": [
+          {
+            "n": 144,
+            "build_mean": 0.8363888888888885,
+            "raster_mean": 3.3753263888888885,
+            "build_p50": 0.686,
+            "raster_p50": 3.293,
+            "build_p95": 1.649,
+            "raster_p95": 4.344,
+            "build_p99": 2.023,
+            "raster_p99": 5.215,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 0.9987358125,
+            "gpu_mcycles": 0.4334513426249998
+          },
+          {
+            "n": 144,
+            "build_mean": 0.8464236111111112,
+            "raster_mean": 3.242027777777778,
+            "build_p50": 0.718,
+            "raster_p50": 3.232,
+            "build_p95": 1.59,
+            "raster_p95": 4.167,
+            "build_p99": 2.141,
+            "raster_p99": 4.784,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.0034492708333334,
+            "gpu_mcycles": 0.4354969835416666
+          },
+          {
+            "n": 144,
+            "build_mean": 0.9091944444444446,
+            "raster_mean": 3.453409722222221,
+            "build_p50": 0.73,
+            "raster_p50": 3.336,
+            "build_p95": 1.643,
+            "raster_p95": 4.354,
+            "build_p99": 1.989,
+            "raster_p99": 5.767,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 1.0146535,
+            "gpu_mcycles": 0.44035961899999976
+          }
+        ],
+        "visible_mpix": 0.3151872000000001,
+        "union_to_visible_area": 1.0,
+        "liquid_filter_output_mpix": 0.0
+      }
+    ],
+    "deltas": [],
+    "limitations": [
+      "Stage differences change topology and are not exact engine attribution.",
+      "Raster duration is not GPU time; GPU work periods are active work, not presentation latency.",
+      "GPU activity is prorated uniformly within each kernel work-period event.",
+      "Missing frequency coverage produces null cycles, never an extrapolated frequency.",
+      "Vsync gaps are inferred scheduling slots, not measured Android presentation jank.",
+      "Layer bounds/counts do not measure transient GPU memory or native pass count."
+    ]
+  }
+]

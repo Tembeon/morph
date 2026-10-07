@@ -2473,6 +2473,47 @@ The same 50/35 max pixel errors repeat. This characterizes an unfused
 full-viewport intermediate graph, not the limit of Dual Kawase on a
 bounded source texture. The production Gaussian remains.
 
+Dual Kawase follow-up (2026-10-07, Pixel 6a Vulkan, base 620798e):
+true bilinear 5/8-tap GPU passes combine scale and kernel over a guarded
+ROI, retain intermediate targets and fuse the last upsample into the
+visible Canvas shader draw. The same ready source image is displayed
+and sampled; source setup occurs before collection. This is owned-input
+research on exp/same-frame-backdrop, not arbitrary widget capture.
+Two GPU plus two energy launches, three shuffled repeats, text source:
+Gaussian/direct Dual sigma 2 GPU 2.030/1.492 ms, power 547/548 mW,
+UI p95 1.685/8.569, raster p95 6.216/3.508. At sigma 10 Gaussian is
+2.110 ms, 534 mW; a three-level Dual is 1.865 ms, 564 mW, UI p95 11.872;
+four levels are 2.176 ms, 639 mW, UI p95 14.053. Max channel errors
+9/8/7; native identity copy <=1 after correcting the vertical UV.
+The direct large four-level path has eight over-budget frames across
+the two GPU launches. Submission wall time averages 0.51-1.46 ms per
+pass in a diagnostic smoke; dynamic uniform preparation is ~18-20 us.
+Public SDK command buffers cannot safely contain these nested passes,
+and each submit clears Vulkan thread-local pool caches. Native-raster
+pass images lower UI but raise GPU to 2.098/3.270 ms at sigma 2/10.
+The image-surface control accumulates 23-36 textures during short native
+runs, while the corrected direct outputs hold three fixed textures.
+Raw kernel likeness is not production optics fidelity; lower GPU work
+at equal/higher power is not accepted. The old graph's cost is not the
+limit of the algorithm. Report, calibration, source hashes and patches:
+tool/audit/codex-dual-kawase-followup.md,
+perf/2026-10-07-dual-kawase.
+
+Unchanged-source translation cache (same device/base, two GPU and two
+energy launches, three repeats): Gaussian -> cached Dual sigma 2 GPU
+1.982 -> 0.952 ms/frame, power 573 -> 500 mW; sigma 10 GPU
+2.079 -> 0.972, power 611 -> 518. UI p95 stays 1.495/1.523 ms.
+Power improves in both launches but baseline variation is substantial
+(small 8.7/16.4 percent, large 5.2/22.6 percent); no app-wide guarantee.
+The immutable owned source has 100 percent cache hits; source setup/misses
+and production optics are excluded. Native phase max error 8/7 with a
+motion+kernel guard, not production fidelity acceptance. Three/seven
+prewarm passes remain constant across repeats, with one retained output
+and owned target capacities 1.306/2.232 MiB, plus a shared 9.89 MiB source;
+these are not RSS measurements. The current transform is applied in the
+current frame. Real source invalidation and native batched submission
+remain next work, not implemented production features.
+
 ## Provenance
 
 whynotmake-it/flutter_liquid_glass `liquid_glass_renderer`

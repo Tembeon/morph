@@ -1,0 +1,18 @@
+{
+  "base": "620798e3002cb0c0e2d3376884898794cd1a115b",
+  "main_gates": {
+    "dart_format": "307 files, 0 changed",
+    "flutter_analyze": "0 issues",
+    "flutter_test": "1398 passed",
+    "example_flutter_test": "21 passed",
+    "dart_doc_dry_run": "exit 0; 0 warnings"
+  },
+  "experimental_gates": {
+    "flutter_analyze": "0 issues",
+    "example_stage_tests": "3 passed"
+  },
+  "python_stage_summary_tests": "6 passed",
+  "portable_patches": "both git apply --check succeeded",
+  "source_inputs": "all recorded SHA256 values match frozen build inputs",
+  "device_restoration": "gallery SHA256 and portrait verified; tracing and owned GPU events disabled"
+}

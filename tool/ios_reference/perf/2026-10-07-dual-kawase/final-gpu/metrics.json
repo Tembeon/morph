@@ -1,0 +1,98 @@
+{
+  "single-background-independent-gpu-dual-s10.0": {
+    "gpu_ms": 2.176275597598392,
+    "gpu_mcycles": 0.9445036093577013,
+    "build_p50": 6.9205000000000005,
+    "build_p95": 14.0535,
+    "build_p99": 15.934999999999999,
+    "raster_p50": 2.7439999999999998,
+    "raster_p95": 3.5410000000000004,
+    "raster_p99": 3.9905,
+    "over_budget": 0.5,
+    "vsync_gap_slots": 3.5
+  },
+  "single-background-independent-gpu-dual3-s10.0": {
+    "gpu_ms": 1.8645454618055557,
+    "gpu_mcycles": 0.8092127304236107,
+    "build_p50": 6.827,
+    "build_p95": 11.872499999999999,
+    "build_p99": 13.187999999999999,
+    "raster_p50": 2.7035,
+    "raster_p95": 3.378,
+    "raster_p99": 4.034,
+    "over_budget": 0.0,
+    "vsync_gap_slots": 0.0
+  },
+  "single-background-independent-gpu-copy-s10.0": {
+    "gpu_ms": 0.9468980451388889,
+    "gpu_mcycles": 0.4109537515902776,
+    "build_p50": 3.0445,
+    "build_p95": 4.371,
+    "build_p99": 5.6425,
+    "raster_p50": 2.8985000000000003,
+    "raster_p95": 3.641,
+    "raster_p99": 4.162,
+    "over_budget": 0.0,
+    "vsync_gap_slots": 0.0
+  },
+  "single-background-independent-gpu-copy-s2.0": {
+    "gpu_ms": 0.94859646875,
+    "gpu_mcycles": 0.4116908674375001,
+    "build_p50": 3.0,
+    "build_p95": 4.515000000000001,
+    "build_p99": 5.482,
+    "raster_p50": 2.8745000000000003,
+    "raster_p95": 3.7305,
+    "raster_p99": 4.305,
+    "over_budget": 0.0,
+    "vsync_gap_slots": 0.0
+  },
+  "single-background-independent-gpu-dual-s2.0": {
+    "gpu_ms": 1.4921178321921134,
+    "gpu_mcycles": 0.647579139171377,
+    "build_p50": 5.8149999999999995,
+    "build_p95": 8.5685,
+    "build_p99": 9.27,
+    "raster_p50": 2.8070000000000004,
+    "raster_p95": 3.5075000000000003,
+    "raster_p99": 4.096500000000001,
+    "over_budget": 0.0,
+    "vsync_gap_slots": 0.0
+  },
+  "single-background-independent-gpu-bare-s0.0": {
+    "gpu_ms": 0.8601283645833333,
+    "gpu_mcycles": 0.37329571022916674,
+    "build_p50": 0.651,
+    "build_p95": 1.396,
+    "build_p99": 1.638,
+    "raster_p50": 2.925,
+    "raster_p95": 4.1605,
+    "raster_p99": 4.713,
+    "over_budget": 0.0,
+    "vsync_gap_slots": 0.0
+  },
+  "single-background-independent-gpu-gaussian-s2.0": {
+    "gpu_ms": 2.030397763888889,
+    "gpu_mcycles": 0.881192629527778,
+    "build_p50": 0.85,
+    "build_p95": 1.6855,
+    "build_p99": 1.94,
+    "raster_p50": 4.8945,
+    "raster_p95": 6.2155000000000005,
+    "raster_p99": 7.0325,
+    "over_budget": 0.0,
+    "vsync_gap_slots": 0.0
+  },
+  "single-background-independent-gpu-gaussian-s10.0": {
+    "gpu_ms": 2.1100530381944447,
+    "gpu_mcycles": 0.915763018576389,
+    "build_p50": 0.8694999999999999,
+    "build_p95": 1.584,
+    "build_p99": 1.9325,
+    "raster_p50": 4.9655000000000005,
+    "raster_p95": 6.242,
+    "raster_p99": 8.2045,
+    "over_budget": 0.0,
+    "vsync_gap_slots": 0.0
+  }
+}

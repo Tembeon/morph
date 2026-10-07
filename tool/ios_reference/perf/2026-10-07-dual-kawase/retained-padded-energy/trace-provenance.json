@@ -1,0 +1,12 @@
+{
+  "text-2.pftrace": {
+    "sha256": "d79a0d736acb5c7f76e9b372f0d855f45c7a71336f9132ff2c6b8b5f50f902d1",
+    "bytes": 16105176,
+    "retention": "Excluded system-wide trace; derived energy cache retained."
+  },
+  "text-1.pftrace": {
+    "sha256": "0988b489cb2f1ccd700a280f2d46956dd3ad8faeccf183834ad7e0f03a12ea8d",
+    "bytes": 15045298,
+    "retention": "Excluded system-wide trace; derived energy cache retained."
+  }
+}

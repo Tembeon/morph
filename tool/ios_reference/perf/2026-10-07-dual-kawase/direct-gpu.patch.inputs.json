@@ -1,0 +1,13 @@
+{
+  "example/lib/perf/glass_stage_bench.dart": "82dd18f5b2ee7ca7ee1935a2182e92d91a55a2072fdbccc33c07abd96d400484",
+  "example/pubspec.yaml": "95bc8c591832dd378fa63d56c238eb2dd3fa62ec02f0ea367a4cab88dba68317",
+  "example/pubspec.lock": "793eb2d869365ee87c0037db3d67c470ca2524c4e2375cb0a76b2fba73f83cdf",
+  "pubspec.lock": "3b870535085d7450646c25f35a9e9a496867abe2210cc179d7294b06b1ca1975",
+  "hook/build.dart": "7e4facaa53279658fda6d20c09617e90320105823c2b207c1e6092abfa69ca7f",
+  "morph_glass.shaderbundle.json": "e2458794dc9d163a676690401ee2212e977f76ecd8c1e5f85e1f8a701321f87f",
+  "example/shaders/dual_final.frag": "09711bfe78cd97c83a35ec9a5b4496cf5193eca3dc9546eb1975e122724b52c5",
+  "lib/src/glass/renderer/shaders/gpu/dual_up.glsl": "f6b375867e4dfa3bca130b45bfa143e1484638d0003fce35ac71c37fea5a745e",
+  "lib/src/glass/renderer/shaders/gpu/dual_vertex.glsl": "c43985139c010084e4b323baf74e8329cb2b4c1045649a072fa9a30395c8d08d",
+  "lib/src/glass/renderer/shaders/gpu/dual_copy.glsl": "5e187b3038c5575b4c9ef6da36c44994ecabd37f81f75bb95038a124b486952c",
+  "lib/src/glass/renderer/shaders/gpu/dual_down.glsl": "ba6e8359fef1670cdd7d499952733518bed9f8b399040ce673983fbdc7d14f6e"
+}

@@ -1,0 +1,1044 @@
+{
+ "text": {
+  "single-background-independent-gpu-dual-s10.0": [
+   [
+    "text-1",
+    {
+     "s": 7.202937,
+     "total_mj": 4735.443749327719,
+     "rails_mj": {
+      "rails.tpu": 88.40774251759052,
+      "rails.display": 1075.3507432098388,
+      "rails.cpu.big": 222.957163138628,
+      "rails.cpu.mid": 420.8749083042145,
+      "rails.cpu.little": 768.2368403377533,
+      "rails.system.fabric": 244.00025571036338,
+      "rails.memory.interface": 523.9860566158295,
+      "rails.gps": 6.062037248134613,
+      "rails.aoc.memory": 29.027835715651513,
+      "rails.aoc.logic": 110.7505175778866,
+      "rails.ddr.a": 60.57853817456961,
+      "rails.ddr.b": 102.9053734768629,
+      "rails.ddr.c": 464.92437392783165,
+      "rails.gpu": 617.3813633725644
+     },
+     "freq_mhz": {
+      "little": 649.1951827124636,
+      "mid": 608.719411024166,
+      "big": 526.4575313808997
+     },
+     "busy": {
+      "little": 0.2978708813231723,
+      "mid": 0.3464076443645276,
+      "big": 0.06851725867260633
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 2050.857466,
+       "mid": 1163.587806,
+       "big": 88.63619
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 852.536623,
+       "big": 219.87606499999998
+      },
+      "workers": {
+       "little": 3.8392749999999998,
+       "mid": 38.523599,
+       "big": 1.921102
+      }
+     },
+     "skin_c": [
+      34.768353,
+      35.075554
+     ],
+     "frames": {
+      "build_p95": 10.068,
+      "raster_p95": 3.646,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ],
+   [
+    "text-2",
+    {
+     "s": 7.205236,
+     "total_mj": 4475.229273306064,
+     "rails_mj": {
+      "rails.tpu": 88.38741719734669,
+      "rails.display": 1080.746256351471,
+      "rails.cpu.big": 238.72762027525903,
+      "rails.cpu.mid": 289.47376760649684,
+      "rails.cpu.little": 659.2408117675782,
+      "rails.system.fabric": 245.8922551574707,
+      "rails.memory.interface": 465.98339834785463,
+      "rails.gps": 6.063856544457376,
+      "rails.aoc.memory": 29.64406798878312,
+      "rails.aoc.logic": 110.64605645298957,
+      "rails.ddr.a": 59.18668868678808,
+      "rails.ddr.b": 104.27006135368347,
+      "rails.ddr.c": 471.98022710371015,
+      "rails.gpu": 624.9867884721756
+     },
+     "freq_mhz": {
+      "little": 582.7355221485527,
+      "mid": 476.0771142592106,
+      "big": 527.7270792719528
+     },
+     "busy": {
+      "little": 0.32038508273744576,
+      "mid": 0.353362533384901,
+      "big": 0.06431666853823917
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 1920.629492,
+       "mid": 1462.612529,
+       "big": 126.255176
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 937.034795,
+       "big": 184.794938
+      },
+      "workers": {
+       "little": 99.65287,
+       "mid": 13.472127,
+       "big": 6.893677
+      }
+     },
+     "skin_c": [
+      35.734203,
+      35.6909
+     ],
+     "frames": {
+      "build_p95": 10.3,
+      "raster_p95": 3.969,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ]
+  ],
+  "single-background-independent-gpu-dual3-s10.0": [
+   [
+    "text-1",
+    {
+     "s": 7.203944999999999,
+     "total_mj": 3996.97444664488,
+     "rails_mj": {
+      "rails.tpu": 88.43643692779541,
+      "rails.display": 1090.8709763088227,
+      "rails.cpu.big": 193.91862171459198,
+      "rails.cpu.mid": 213.13828960180282,
+      "rails.cpu.little": 476.63295289325714,
+      "rails.system.fabric": 234.13878226995467,
+      "rails.memory.interface": 398.03363668584825,
+      "rails.gps": 5.894434415347874,
+      "rails.aoc.memory": 28.539683506816626,
+      "rails.aoc.logic": 109.80138788348437,
+      "rails.ddr.a": 52.1945329349637,
+      "rails.ddr.b": 106.7050272923708,
+      "rails.ddr.c": 438.74155402445797,
+      "rails.gpu": 559.9281301853657
+     },
+     "freq_mhz": {
+      "little": 528.0828582891502,
+      "mid": 428.44535971186457,
+      "big": 523.8686777549939
+     },
+     "busy": {
+      "little": 0.2838788827365602,
+      "mid": 0.3139845344171225,
+      "big": 0.05036574087811939
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 1695.9906799999999,
+       "mid": 1233.68379,
+       "big": 59.998798
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 1025.122525,
+       "big": 138.736329
+      },
+      "workers": {
+       "little": 3.743651,
+       "mid": 14.513428000000001,
+       "big": 14.77645
+      }
+     },
+     "skin_c": [
+      34.768353,
+      35.075554
+     ],
+     "frames": {
+      "build_p95": 9.257,
+      "raster_p95": 3.751,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ],
+   [
+    "text-2",
+    {
+     "s": 7.203444,
+     "total_mj": 4127.90920343025,
+     "rails_mj": {
+      "rails.tpu": 88.43404979121685,
+      "rails.display": 1085.6312408809663,
+      "rails.cpu.big": 210.55368950033187,
+      "rails.cpu.mid": 221.19240160894395,
+      "rails.cpu.little": 489.6507299218178,
+      "rails.system.fabric": 235.4233411846161,
+      "rails.memory.interface": 401.3730750625134,
+      "rails.gps": 6.355230364754796,
+      "rails.aoc.memory": 29.174203453481198,
+      "rails.aoc.logic": 109.7098813906312,
+      "rails.ddr.a": 55.396395527482035,
+      "rails.ddr.b": 106.11504297292232,
+      "rails.ddr.c": 450.42451822900773,
+      "rails.gpu": 638.4754035415649
+     },
+     "freq_mhz": {
+      "little": 506.21317124143684,
+      "mid": 423.1813628235471,
+      "big": 531.5338772539274
+     },
+     "busy": {
+      "little": 0.2788251606595426,
+      "mid": 0.3315716380225231,
+      "big": 0.046790545848527994
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 1545.267203,
+       "mid": 1415.764539,
+       "big": 51.372278
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 1033.582463,
+       "big": 151.72027500000002
+      },
+      "workers": {
+       "little": 0.751342,
+       "mid": 36.579919000000004,
+       "big": 0.0
+      }
+     },
+     "skin_c": [
+      35.734203,
+      35.6909
+     ],
+     "frames": {
+      "build_p95": 9.769,
+      "raster_p95": 3.84,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ]
+  ],
+  "single-background-independent-gpu-copy-s10.0": [
+   [
+    "text-1",
+    {
+     "s": 7.207504999999999,
+     "total_mj": 3661.5688143056404,
+     "rails_mj": {
+      "rails.tpu": 88.47286179482937,
+      "rails.display": 1103.750402171135,
+      "rails.cpu.big": 171.47501761865615,
+      "rails.cpu.mid": 206.2757186074257,
+      "rails.cpu.little": 406.66913476753234,
+      "rails.system.fabric": 229.86824597144127,
+      "rails.memory.interface": 375.2924287948608,
+      "rails.gps": 5.999449595727026,
+      "rails.aoc.memory": 28.497714642643928,
+      "rails.aoc.logic": 110.20848186790943,
+      "rails.ddr.a": 50.421834455907344,
+      "rails.ddr.b": 107.25054104351997,
+      "rails.ddr.c": 434.72942452931403,
+      "rails.gpu": 342.65755844473836
+     },
+     "freq_mhz": {
+      "little": 464.25018634376124,
+      "mid": 449.5133697433381,
+      "big": 508.08119657493523
+     },
+     "busy": {
+      "little": 0.21688777188659286,
+      "mid": 0.2740409521980826,
+      "big": 0.05465555783936626
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 927.381701,
+       "mid": 752.5052619999999,
+       "big": 59.596343000000005
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 989.393174,
+       "big": 191.556698
+      },
+      "workers": {
+       "little": 3.953003,
+       "mid": 0.139812,
+       "big": 3.2467040000000003
+      }
+     },
+     "skin_c": [
+      34.768353,
+      35.075554
+     ],
+     "frames": {
+      "build_p95": 4.567,
+      "raster_p95": 4.004,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ],
+   [
+    "text-2",
+    {
+     "s": 7.204397,
+     "total_mj": 3666.8220493033677,
+     "rails_mj": {
+      "rails.tpu": 88.43779137325288,
+      "rails.display": 1099.8780583467483,
+      "rails.cpu.big": 169.40891537189484,
+      "rails.cpu.mid": 217.56730761885643,
+      "rails.cpu.little": 436.79717016506197,
+      "rails.system.fabric": 227.05514098644255,
+      "rails.memory.interface": 386.7187180957794,
+      "rails.gps": 5.9776891415268185,
+      "rails.aoc.memory": 29.220184344947338,
+      "rails.aoc.logic": 110.25119478499889,
+      "rails.ddr.a": 51.9176698410511,
+      "rails.ddr.b": 106.25500805187227,
+      "rails.ddr.c": 420.276634837389,
+      "rails.gpu": 317.06056634354593
+     },
+     "freq_mhz": {
+      "little": 485.89150472176874,
+      "mid": 458.3265881918612,
+      "big": 510.0419240440561
+     },
+     "busy": {
+      "little": 0.21525260882854141,
+      "mid": 0.27521064786256955,
+      "big": 0.052132379190337565
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 852.204623,
+       "mid": 773.6267210000001,
+       "big": 52.989741
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 988.10261,
+       "big": 198.878249
+      },
+      "workers": {
+       "little": 0.0,
+       "mid": 10.939415,
+       "big": 1.504557
+      }
+     },
+     "skin_c": [
+      35.734203,
+      35.6909
+     ],
+     "frames": {
+      "build_p95": 4.428,
+      "raster_p95": 4.043,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ]
+  ],
+  "single-background-independent-gpu-copy-s2.0": [
+   [
+    "text-1",
+    {
+     "s": 7.203462,
+     "total_mj": 3619.1701396779195,
+     "rails_mj": {
+      "rails.tpu": 88.40467869508267,
+      "rails.display": 1101.5213758802413,
+      "rails.cpu.big": 177.43083010244368,
+      "rails.cpu.mid": 210.21714269065856,
+      "rails.cpu.little": 410.40059680366517,
+      "rails.system.fabric": 225.45743549728394,
+      "rails.memory.interface": 374.83320936203,
+      "rails.gps": 6.143758797235787,
+      "rails.aoc.memory": 28.388657260090113,
+      "rails.aoc.logic": 110.41650453537702,
+      "rails.ddr.a": 50.83896369206905,
+      "rails.ddr.b": 106.53902654051781,
+      "rails.ddr.c": 428.13200503993033,
+      "rails.gpu": 300.44595478129384
+     },
+     "freq_mhz": {
+      "little": 457.6040024089983,
+      "mid": 442.2910566440926,
+      "big": 516.3865631775019
+     },
+     "busy": {
+      "little": 0.22633828505913298,
+      "mid": 0.28045727495581824,
+      "big": 0.05128963211335547
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 912.362469,
+       "mid": 781.984235,
+       "big": 52.697300999999996
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 979.775191,
+       "big": 208.18498
+      },
+      "workers": {
+       "little": 0.0,
+       "mid": 6.158731,
+       "big": 3.100221
+      }
+     },
+     "skin_c": [
+      34.768353,
+      35.075554
+     ],
+     "frames": {
+      "build_p95": 4.496,
+      "raster_p95": 3.991,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ],
+   [
+    "text-2",
+    {
+     "s": 7.204136999999999,
+     "total_mj": 4133.164286387519,
+     "rails_mj": {
+      "rails.tpu": 88.4232709864378,
+      "rails.display": 1105.2648809251787,
+      "rails.cpu.big": 291.91475925779343,
+      "rails.cpu.mid": 320.2235775208473,
+      "rails.cpu.little": 558.1229679994583,
+      "rails.system.fabric": 230.7723142645359,
+      "rails.memory.interface": 447.1412257142067,
+      "rails.gps": 6.172852876201272,
+      "rails.aoc.memory": 29.07111939024925,
+      "rails.aoc.logic": 110.25713001155853,
+      "rails.ddr.a": 56.93946236568689,
+      "rails.ddr.b": 104.93056348741055,
+      "rails.ddr.c": 447.5580247993469,
+      "rails.gpu": 336.37213678860667
+     },
+     "freq_mhz": {
+      "little": 538.1516838167548,
+      "mid": 556.8377552076491,
+      "big": 557.6681313675462
+     },
+     "busy": {
+      "little": 0.21302206435268603,
+      "mid": 0.29923097335588467,
+      "big": 0.08042414691428607
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 875.4750710000001,
+       "mid": 703.445835,
+       "big": 58.023728999999996
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 887.342422,
+       "big": 246.26337600000002
+      },
+      "workers": {
+       "little": 0.0,
+       "mid": 10.774538,
+       "big": 1.320271
+      }
+     },
+     "skin_c": [
+      35.734203,
+      35.6909
+     ],
+     "frames": {
+      "build_p95": 4.69,
+      "raster_p95": 4.135,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ]
+  ],
+  "single-background-independent-gpu-dual-s2.0": [
+   [
+    "text-1",
+    {
+     "s": 7.202846,
+     "total_mj": 3926.8108577260077,
+     "rails_mj": {
+      "rails.tpu": 88.39487552356721,
+      "rails.display": 1090.5700100326537,
+      "rails.cpu.big": 193.70386213612557,
+      "rails.cpu.mid": 211.01646092700958,
+      "rails.cpu.little": 451.1516357750893,
+      "rails.system.fabric": 234.22792445302008,
+      "rails.memory.interface": 383.27217862915995,
+      "rails.gps": 5.965760807752609,
+      "rails.aoc.memory": 28.471878414958717,
+      "rails.aoc.logic": 109.96276015007496,
+      "rails.ddr.a": 51.71281456679105,
+      "rails.ddr.b": 107.56594982409476,
+      "rails.ddr.c": 432.5610569894314,
+      "rails.gpu": 538.2336894962788
+     },
+     "freq_mhz": {
+      "little": 496.5907799278032,
+      "mid": 427.73859634275414,
+      "big": 523.5705117243854
+     },
+     "busy": {
+      "little": 0.24681841015180875,
+      "mid": 0.3039285580610539,
+      "big": 0.05214157255695833
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 1175.319,
+       "mid": 1164.735128,
+       "big": 43.328691
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 944.332494,
+       "big": 209.028071
+      },
+      "workers": {
+       "little": 22.098957000000002,
+       "mid": 11.296875,
+       "big": 4.463826
+      }
+     },
+     "skin_c": [
+      34.768353,
+      35.075554
+     ],
+     "frames": {
+      "build_p95": 7.48,
+      "raster_p95": 3.905,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ],
+   [
+    "text-2",
+    {
+     "s": 7.203258,
+     "total_mj": 3963.219815081663,
+     "rails_mj": {
+      "rails.tpu": 88.42020437920094,
+      "rails.display": 1089.033431383133,
+      "rails.cpu.big": 196.3178193798065,
+      "rails.cpu.mid": 216.78581904268265,
+      "rails.cpu.little": 465.2562329082489,
+      "rails.system.fabric": 239.56841331505774,
+      "rails.memory.interface": 405.5605319437981,
+      "rails.gps": 6.242019745953381,
+      "rails.aoc.memory": 29.40964086508751,
+      "rails.aoc.logic": 110.54997465002538,
+      "rails.ddr.a": 55.546217263519765,
+      "rails.ddr.b": 104.50226682150364,
+      "rails.ddr.c": 439.774058529377,
+      "rails.gpu": 516.253184854269
+     },
+     "freq_mhz": {
+      "little": 505.24590207871114,
+      "mid": 438.73887415845184,
+      "big": 514.6088673950353
+     },
+     "busy": {
+      "little": 0.25952964742649465,
+      "mid": 0.31756565141257714,
+      "big": 0.05458712867106039
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 1289.842778,
+       "mid": 1129.399161,
+       "big": 50.725519000000006
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 963.830435,
+       "big": 204.39548000000002
+      },
+      "workers": {
+       "little": 1.465496,
+       "mid": 19.768555,
+       "big": 0.431722
+      }
+     },
+     "skin_c": [
+      35.734203,
+      35.6909
+     ],
+     "frames": {
+      "build_p95": 7.816,
+      "raster_p95": 3.803,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ]
+  ],
+  "single-background-independent-gpu-bare-s0.0": [
+   [
+    "text-1",
+    {
+     "s": 7.204619,
+     "total_mj": 3826.2442676864716,
+     "rails_mj": {
+      "rails.tpu": 88.43536714720726,
+      "rails.display": 1102.5056965913773,
+      "rails.cpu.big": 231.0336791768074,
+      "rails.cpu.mid": 286.07622528219224,
+      "rails.cpu.little": 473.7024752798081,
+      "rails.system.fabric": 221.21030233097076,
+      "rails.memory.interface": 414.3379923586845,
+      "rails.gps": 5.821883799955248,
+      "rails.aoc.memory": 28.381676996707917,
+      "rails.aoc.logic": 110.51754593092204,
+      "rails.ddr.a": 61.5526627742052,
+      "rails.ddr.b": 106.8791647028923,
+      "rails.ddr.c": 431.90864171576504,
+      "rails.gpu": 263.88095359897613
+     },
+     "freq_mhz": {
+      "little": 490.54149236063137,
+      "mid": 535.0157768508104,
+      "big": 540.7865362344221
+     },
+     "busy": {
+      "little": 0.1694157372914118,
+      "mid": 0.299065540361951,
+      "big": 0.06485393775777899
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 451.56958499999996,
+       "mid": 343.51144800000003,
+       "big": 54.706621
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 891.579457,
+       "big": 245.13280400000002
+      },
+      "workers": {
+       "little": 0.0,
+       "mid": 1.0063069999999998,
+       "big": 0.547486
+      }
+     },
+     "skin_c": [
+      34.768353,
+      35.075554
+     ],
+     "frames": {
+      "build_p95": 1.433,
+      "raster_p95": 3.978,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ],
+   [
+    "text-2",
+    {
+     "s": 7.204309,
+     "total_mj": 3430.055738178343,
+     "rails_mj": {
+      "rails.tpu": 88.4371716810465,
+      "rails.display": 1113.3619861021043,
+      "rails.cpu.big": 150.76119566440582,
+      "rails.cpu.mid": 203.5025984966755,
+      "rails.cpu.little": 363.19431419467924,
+      "rails.system.fabric": 222.41305554819107,
+      "rails.memory.interface": 344.80440385866166,
+      "rails.gps": 6.229617902815342,
+      "rails.aoc.memory": 28.943782024770975,
+      "rails.aoc.logic": 109.6137616521716,
+      "rails.ddr.a": 47.26444035965204,
+      "rails.ddr.b": 108.9577256588936,
+      "rails.ddr.c": 400.1615854318142,
+      "rails.gpu": 242.41009960246086
+     },
+     "freq_mhz": {
+      "little": 444.69123962143925,
+      "mid": 442.558896592633,
+      "big": 505.19314614998086
+     },
+     "busy": {
+      "little": 0.1694648545345941,
+      "mid": 0.2732060276702956,
+      "big": 0.044830730741960666
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 399.734562,
+       "mid": 438.8651249999999,
+       "big": 33.447024
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 962.980653,
+       "big": 243.639563
+      },
+      "workers": {
+       "little": 0.0,
+       "mid": 10.05965,
+       "big": 0.596191
+      }
+     },
+     "skin_c": [
+      35.734203,
+      35.6909
+     ],
+     "frames": {
+      "build_p95": 1.344,
+      "raster_p95": 4.31,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ]
+  ],
+  "single-background-independent-gpu-gaussian-s2.0": [
+   [
+    "text-1",
+    {
+     "s": 7.203492000000001,
+     "total_mj": 4145.170367694929,
+     "rails_mj": {
+      "rails.tpu": 88.42840572404862,
+      "rails.display": 1097.3803668575288,
+      "rails.cpu.big": 191.31109975671768,
+      "rails.cpu.mid": 248.810670494318,
+      "rails.cpu.little": 624.2265941057206,
+      "rails.system.fabric": 236.14120622706415,
+      "rails.memory.interface": 427.4540629806519,
+      "rails.gps": 6.06774352876842,
+      "rails.aoc.memory": 28.490703439444303,
+      "rails.aoc.logic": 109.60980196869373,
+      "rails.ddr.a": 56.94437089341879,
+      "rails.ddr.b": 109.15480481064318,
+      "rails.ddr.c": 466.2890843346119,
+      "rails.gpu": 454.8614525732994
+     },
+     "freq_mhz": {
+      "little": 600.3015739907363,
+      "mid": 469.8512728514516,
+      "big": 531.1465603031772
+     },
+     "busy": {
+      "little": 0.2518284520341609,
+      "mid": 0.3047313679034795,
+      "big": 0.0539706573639265
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 522.259889,
+       "mid": 328.171498,
+       "big": 33.524461
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 1650.544658,
+       "big": 237.604106
+      },
+      "workers": {
+       "little": 0.765219,
+       "mid": 1.140504,
+       "big": 1.6209730000000002
+      }
+     },
+     "skin_c": [
+      34.768353,
+      35.075554
+     ],
+     "frames": {
+      "build_p95": 1.56,
+      "raster_p95": 6.556,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ],
+   [
+    "text-2",
+    {
+     "s": 7.203288000000001,
+     "total_mj": 3739.208333229147,
+     "rails_mj": {
+      "rails.tpu": 88.4184762494564,
+      "rails.display": 1095.825503517151,
+      "rails.cpu.big": 159.8548895409107,
+      "rails.cpu.mid": 211.65007490706444,
+      "rails.cpu.little": 387.4741145505905,
+      "rails.system.fabric": 230.66216411089897,
+      "rails.memory.interface": 379.17156460905073,
+      "rails.gps": 6.2084838643297555,
+      "rails.aoc.memory": 29.180383276581765,
+      "rails.aoc.logic": 110.42684008473158,
+      "rails.ddr.a": 51.623636935353275,
+      "rails.ddr.b": 110.66865485727787,
+      "rails.ddr.c": 442.9317441265583,
+      "rails.gpu": 435.11180259919166
+     },
+     "freq_mhz": {
+      "little": 466.6289277195127,
+      "mid": 446.61092817107783,
+      "big": 507.43444199506774
+     },
+     "busy": {
+      "little": 0.20436370084428462,
+      "mid": 0.31911794026956347,
+      "big": 0.05538149612423565
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 465.699064,
+       "mid": 413.165695,
+       "big": 32.808667
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 1655.147733,
+       "big": 307.79893400000003
+      },
+      "workers": {
+       "little": 1.227052,
+       "mid": 3.699504,
+       "big": 0.908325
+      }
+     },
+     "skin_c": [
+      35.734203,
+      35.6909
+     ],
+     "frames": {
+      "build_p95": 1.603,
+      "raster_p95": 6.683,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ]
+  ],
+  "single-background-independent-gpu-gaussian-s10.0": [
+   [
+    "text-1",
+    {
+     "s": 7.204230000000001,
+     "total_mj": 3910.8150409292134,
+     "rails_mj": {
+      "rails.tpu": 88.37044473028183,
+      "rails.display": 1087.3683552122116,
+      "rails.cpu.big": 200.59043604516984,
+      "rails.cpu.mid": 227.40454270887375,
+      "rails.cpu.little": 498.7842185778618,
+      "rails.system.fabric": 242.68996992015838,
+      "rails.memory.interface": 413.7186189556122,
+      "rails.gps": 6.068442183032632,
+      "rails.aoc.memory": 28.303260699748993,
+      "rails.aoc.logic": 110.27655492442847,
+      "rails.ddr.a": 53.75490773791075,
+      "rails.ddr.b": 108.16427676177025,
+      "rails.ddr.c": 455.2324122140408,
+      "rails.gpu": 390.08860025811197
+     },
+     "freq_mhz": {
+      "little": 551.771148161827,
+      "mid": 462.15481236405833,
+      "big": 523.5676406666266
+     },
+     "busy": {
+      "little": 0.23074139859548054,
+      "mid": 0.32084445481563195,
+      "big": 0.05821161094866532
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 526.15602,
+       "mid": 338.242844,
+       "big": 43.117875
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 1573.502616,
+       "big": 295.985672
+      },
+      "workers": {
+       "little": 0.0,
+       "mid": 0.257406,
+       "big": 1.001586
+      }
+     },
+     "skin_c": [
+      34.768353,
+      35.075554
+     ],
+     "frames": {
+      "build_p95": 1.54,
+      "raster_p95": 6.17,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ],
+   [
+    "text-2",
+    {
+     "s": 7.204966,
+     "total_mj": 3777.73794627212,
+     "rails_mj": {
+      "rails.tpu": 88.4109954227209,
+      "rails.display": 1099.0235957241057,
+      "rails.cpu.big": 165.0685128223896,
+      "rails.cpu.mid": 215.2334623758793,
+      "rails.cpu.little": 408.31287485837936,
+      "rails.system.fabric": 230.8466586410999,
+      "rails.memory.interface": 378.7240650818348,
+      "rails.gps": 6.153187880083919,
+      "rails.aoc.memory": 29.257471243619918,
+      "rails.aoc.logic": 110.62112530249357,
+      "rails.ddr.a": 52.700222244858736,
+      "rails.ddr.b": 109.02146409249306,
+      "rails.ddr.c": 433.3584213190079,
+      "rails.gpu": 451.0058892631531
+     },
+     "freq_mhz": {
+      "little": 488.42718414719803,
+      "mid": 448.1325539812869,
+      "big": 513.0563971359347
+     },
+     "busy": {
+      "little": 0.20509035912326395,
+      "mid": 0.3128813994734021,
+      "big": 0.05350439044610998
+     },
+     "thread_ms": {
+      "ui": {
+       "little": 454.171562,
+       "mid": 417.922732,
+       "big": 34.332154
+      },
+      "raster": {
+       "little": 0.0,
+       "mid": 1677.8907800000002,
+       "big": 264.256412
+      },
+      "workers": {
+       "little": 0.7618,
+       "mid": 0.405843,
+       "big": 4.487997
+      }
+     },
+     "skin_c": [
+      35.734203,
+      35.6909
+     ],
+     "frames": {
+      "build_p95": 1.572,
+      "raster_p95": 6.449,
+      "over_budget": 0.0
+     },
+     "adpf": null,
+     "served": [
+      null,
+      null
+     ]
+    }
+   ]
+  ]
+ }
+}

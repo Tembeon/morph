@@ -1,0 +1,14 @@
+[
+  {
+    "file": "text-1.pftrace",
+    "bytes": 29765699,
+    "sha256": "365b9ab8d7da7f76a0341acd92f2f775f46eb8d4de00d22740f78faaa2400e47",
+    "retention": "per-launch energy cache and summaries; raw system-wide trace excluded from repository"
+  },
+  {
+    "file": "text-2.pftrace",
+    "bytes": 29561725,
+    "sha256": "e36e21776597f4543c1c9e353622786cf4d14eb882fd8a6c1e5c1daf8f929193",
+    "retention": "per-launch energy cache and summaries; raw system-wide trace excluded from repository"
+  }
+]

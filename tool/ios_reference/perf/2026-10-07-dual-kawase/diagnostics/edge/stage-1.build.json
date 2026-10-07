@@ -1,0 +1,14 @@
+{
+  "target": "lib/perf/glass_stage_bench.dart",
+  "defines": [
+    "STAGE_MODES=gpu-bare,gpu-copy,gpu-gaussian,gpu-dual",
+    "STAGE_CONTENT=edge",
+    "STAGE_SHOTS=true",
+    "STAGE_RUNS=1",
+    "STAGE_WARM_MS=600",
+    "STAGE_SAMPLE_MS=600"
+  ],
+  "commit": "620798e3002cb0c0e2d3376884898794cd1a115b",
+  "source_sha256": "bb23b98c324489659787cc7c112139e4c05956187daafe7241adbce437a59f9d",
+  "apk_sha256": "69d7777bedaef31b00d59b62f82055581fb65f87a083ab07962beb57cce07d59"
+}

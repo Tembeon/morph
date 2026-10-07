@@ -1,0 +1,114 @@
+[
+  {
+    "case": "single-background-independent-gpu-retained-s2.0",
+    "reference": "single-background-independent-gpu-gaussian-s2.0",
+    "phase": -1.0,
+    "max_channel": 8,
+    "mean_channel": 0.05500733024691358,
+    "changed_pixels": 203800
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s2.0",
+    "reference": "single-background-independent-gpu-gaussian-s2.0",
+    "phase": 0.0,
+    "max_channel": 8,
+    "mean_channel": 0.0573016975308642,
+    "changed_pixels": 203965
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s2.0",
+    "reference": "single-background-independent-gpu-gaussian-s2.0",
+    "phase": 0.0034013605,
+    "max_channel": 8,
+    "mean_channel": 0.05520814043209876,
+    "changed_pixels": 201800
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s2.0",
+    "reference": "single-background-independent-gpu-gaussian-s2.0",
+    "phase": 0.006802721,
+    "max_channel": 8,
+    "mean_channel": 0.054925443672839504,
+    "changed_pixels": 204392
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s2.0",
+    "reference": "single-background-independent-gpu-gaussian-s2.0",
+    "phase": 0.0102040816,
+    "max_channel": 8,
+    "mean_channel": 0.05488532021604938,
+    "changed_pixels": 205107
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s2.0",
+    "reference": "single-background-independent-gpu-gaussian-s2.0",
+    "phase": 0.01360544,
+    "max_channel": 8,
+    "mean_channel": 0.0553695987654321,
+    "changed_pixels": 207209
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s2.0",
+    "reference": "single-background-independent-gpu-gaussian-s2.0",
+    "phase": 1.0,
+    "max_channel": 8,
+    "mean_channel": 0.05514429012345679,
+    "changed_pixels": 204225
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s10.0",
+    "reference": "single-background-independent-gpu-gaussian-s10.0",
+    "phase": -1.0,
+    "max_channel": 6,
+    "mean_channel": 0.06675279706790123,
+    "changed_pixels": 279539
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s10.0",
+    "reference": "single-background-independent-gpu-gaussian-s10.0",
+    "phase": 0.0,
+    "max_channel": 7,
+    "mean_channel": 0.06386988811728395,
+    "changed_pixels": 274117
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s10.0",
+    "reference": "single-background-independent-gpu-gaussian-s10.0",
+    "phase": 0.0034013605,
+    "max_channel": 6,
+    "mean_channel": 0.06504658564814815,
+    "changed_pixels": 275578
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s10.0",
+    "reference": "single-background-independent-gpu-gaussian-s10.0",
+    "phase": 0.006802721,
+    "max_channel": 7,
+    "mean_channel": 0.06574990354938272,
+    "changed_pixels": 276601
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s10.0",
+    "reference": "single-background-independent-gpu-gaussian-s10.0",
+    "phase": 0.0102040816,
+    "max_channel": 7,
+    "mean_channel": 0.06533159722222222,
+    "changed_pixels": 276837
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s10.0",
+    "reference": "single-background-independent-gpu-gaussian-s10.0",
+    "phase": 0.01360544,
+    "max_channel": 7,
+    "mean_channel": 0.06625144675925926,
+    "changed_pixels": 276144
+  },
+  {
+    "case": "single-background-independent-gpu-retained-s10.0",
+    "reference": "single-background-independent-gpu-gaussian-s10.0",
+    "phase": 1.0,
+    "max_channel": 7,
+    "mean_channel": 0.06486448688271605,
+    "changed_pixels": 277353
+  }
+]

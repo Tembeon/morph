@@ -1,0 +1,23 @@
+{
+  "single-background-independent-gpu-dual-s10.0-p-1.0.png": "3dd9e2f77f20d6b428c16ca74bb8322ecf31e9c0035086525ad065ba47eaccce",
+  "single-background-independent-gpu-dual-s10.0-p0.0.png": "76cfbb2483ef6f6ad9f9e2207d99d301ba6e8f9bff007a323cb40846aa0c6acd",
+  "single-background-independent-gpu-dual-s10.0-p1.0.png": "3c3906d06e7e4b9786057f309e83aa7521271def72a2bd74bc411ae341034a1c",
+  "single-background-independent-gpu-bare-s0.0-p-1.0.png": "0f552c217a6622cdf89a62779ef9af8e497d77b2d4c43ce171d448159b91a2aa",
+  "single-background-independent-gpu-bare-s0.0-p0.0.png": "9d975a51db8e2d57bd1f9e51cd271ce88bf553150d331df08b19055ae1342cc3",
+  "single-background-independent-gpu-bare-s0.0-p1.0.png": "ca4426f318d6567ea4432544bdb957630878a5a0acfb98cc0d00c38f61128af6",
+  "single-background-independent-gpu-canvas-s2.0-p-1.0.png": "48e90db9dc0882cae57ed2820e159f822a8c09da3773949d5b7de888213593eb",
+  "single-background-independent-gpu-canvas-s2.0-p0.0.png": "e8db0ce54e9e84e6da76c2e1daf0b3c4818a54046b930a8c0b9302d3af1ebf25",
+  "single-background-independent-gpu-canvas-s2.0-p1.0.png": "211f922fc446a7921e331bbdcc15e7ae087ec7ba3d136ec6f4025f8b4016712b",
+  "single-background-independent-gpu-canvas-s10.0-p-1.0.png": "3d0b799c554ecfc326a98b991494744ea0380e6e440a69737dffb4923079332e",
+  "single-background-independent-gpu-canvas-s10.0-p0.0.png": "13d40657a893cf67ac98aae97089a69dc43b4203188e750fbfee9981007d1f44",
+  "single-background-independent-gpu-canvas-s10.0-p1.0.png": "7097db148aed3e36878be75ab70af28c3f4336e18ad110ff20a7a100256d8970",
+  "single-background-independent-gpu-gaussian-s2.0-p-1.0.png": "d81a9398e4e67acbc7d0df4f6329d525e41f0ded33401f4664993826a1e02d65",
+  "single-background-independent-gpu-gaussian-s2.0-p0.0.png": "43b7fadfa8779de24b2cd138459b9c33b229f56f9889872a4a1795ff124f8b1a",
+  "single-background-independent-gpu-gaussian-s2.0-p1.0.png": "956c0d94383d52415c10fec9b28cebb20eac3fa1ccd8b5501cf44f6f926333ec",
+  "single-background-independent-gpu-dual-s2.0-p-1.0.png": "65237bfc78d50078d1c13d18bd4d9916ceca775f854350fd63eb63eedf5bdf54",
+  "single-background-independent-gpu-dual-s2.0-p0.0.png": "d847ccae448979d4178e1eebffb2a0a2af954d98c26dc5731292e61f9a84db1e",
+  "single-background-independent-gpu-dual-s2.0-p1.0.png": "ed738b4c4326735481e1a565650d3b940c21f2684768fa5340258292faa1d5c3",
+  "single-background-independent-gpu-gaussian-s10.0-p-1.0.png": "6beb7ea494e8f7687627f4ec32ba8ff4633356c7b6f4af41f3ef59dc1d22b661",
+  "single-background-independent-gpu-gaussian-s10.0-p0.0.png": "536080f387e8d99a02b8ebaec4ba67842476546f417291ae989d0c70271ea6cd",
+  "single-background-independent-gpu-gaussian-s10.0-p1.0.png": "61ba675e295acf034fd8d63b5215cd115e11cecdb1eb2b5dadae41f72d81a0c0"
+}
