@@ -1,0 +1,16 @@
+{
+  "change_commit": "3f8c001",
+  "format_changed_files": 0,
+  "analyzer_issues": 0,
+  "package_tests": 1402,
+  "example_tests": 21,
+  "dartdoc_warnings": 0,
+  "dartdoc_errors": 0,
+  "logs_sha256": {
+    "format.log": "78d5f888ef44eca1c0c812c914d55d99741e1454c044f94ace0264c67c3cdaf5",
+    "example-test.log": "c2a91ee12a91041e6388422f0e4894df95fe84a4c94be9dc1f453c68fb515895",
+    "dartdoc.log": "e66ee678fa0407b86cd7eb9765e461733cfe150578ff032478bf8108bbef7770",
+    "package-test.log": "bd4d7eaf26d090c24f0fbb99ec2636d69bc1bb19d4df45464ba1f96ca6d1a655",
+    "analyze.log": "3ae81ee4fb609e09315e56111c435019958e1e38531617e90913d674754946eb"
+  }
+}

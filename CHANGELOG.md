@@ -14,6 +14,11 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- A real Gallery Navigation benchmark covers first entry, nested
+  push/pop, toolbar morphing and repeated navigation cycles. Raw native
+  timings, GPU work, phase costs, energy and fidelity evidence are
+  archived with reproducible experiments; candidate optimizations stay
+  separate because their gains did not repeat reliably.
 - Combined current-frame source research keeps full Morph optics: an
   aligned, cached Gaussian cuts Pixel 6a GPU work 4.073 -> 1.900 ms and
   power 738 -> 609 mW on immutable-source motion, within 3 channel steps.
