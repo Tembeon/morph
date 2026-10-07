@@ -14,6 +14,11 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Corrected Dual Kawase research uses fused bilinear ROI passes, retained
+  targets and final composition fusion. Pixel 6a unchanged-source
+  translation caching cuts whole-app GPU work by 52-53 percent, with
+  lower measured power in both launches. Source patches, native evidence
+  and limitations are recorded; production glass remains unchanged.
 - The glass performance passport includes native GPU, power, memory and
   fidelity experiments, with reproducible research patches and an audit
   of reusing the current backdrop through the installed Flutter GPU and
