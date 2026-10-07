@@ -2,10 +2,11 @@
 
 The AOT entry point is `example/lib/perf/glass_stage_bench.dart`. It uses
 the existing morph renderer and Flutter dependencies. There is no test
-binding, gesture driver, gallery, per-frame logging, image readback, or
+binding, gesture driver, gallery, per-frame logging, or
 per-frame layer traversal. The background repaints through a listenable;
 moving glass uses a retained child under a transform. JSON is written once,
-after collection, with an atomic rename.
+after collection, with an atomic rename. Optional native PNG readbacks run
+after all timing windows and never contribute to their frame/GPU statistics.
 
 ## Quick run
 
@@ -72,6 +73,7 @@ Build flags (`--define NAME=value`, repeatable):
 | `STAGE_WARM_MS` | `600` | At least 100 ms; short values are smoke checks |
 | `STAGE_SAMPLE_MS` | `2400` | At least 100 ms; four timings/window required |
 | `STAGE_SEED` | `20261007` | Shuffle seed |
+| `STAGE_SHOTS` | `false` | Native PNGs at phases -1, 0, 1 after collection |
 
 `cluster` and `spread` have four equal-sized non-overlapping shapes and
 the same total visible area. Their bounding rectangles differ. `shared`
@@ -91,6 +93,18 @@ Run motion/content experiments separately rather than taking the entire
 Cartesian product at once. `glass` motion leaves the backdrop static;
 `both` moves both. These establish workloads for a future cache prototype;
 this benchmark does not implement a new backdrop cache or renderer.
+
+With `STAGE_SHOTS=true`, pass `--pull-artifacts` to keep the phase PNGs
+next to the report. Compare filenames from that report's case list: the
+runner preserves app data, so the device directory may also contain older
+artifacts. Snapshot phases are recorded in `shot_phases`.
+
+The same restoring runner can launch existing native audit APKs with
+`--schema native`. Build them with `AUDIT_OUT` set to the stage directory
+(`/sdcard/Android/data/dev.tembeon.morph_example/files/stage-bench`). Native
+mode requires `liquid_available`, but each audit's own fidelity assertions
+and completeness must also be checked. The stage reducer intentionally
+requires the standalone schema and cannot reduce legacy audit timings.
 
 ## Output and calculations
 

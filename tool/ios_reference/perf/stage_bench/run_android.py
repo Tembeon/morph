@@ -168,8 +168,13 @@ def run(args):
                 adb('pull', remote_trace, str(base) + '.pftrace')
             adb('pull', f'{DEVICE}/report.json', str(base) + '.json')
             report = json.loads(Path(str(base) + '.json').read_text())
-            if report.get('schema') != 'morph-stage-bench-v1':
-                raise RuntimeError('Unexpected report schema')
+            if args.schema == 'stage':
+                if report.get('schema') != 'morph-stage-bench-v1':
+                    raise RuntimeError('Unexpected report schema')
+            elif not report.get('liquid_available'):
+                raise RuntimeError('Native audit did not enable liquid glass')
+            if args.pull_artifacts:
+                adb('pull', DEVICE, str(base) + '.artifacts')
             after = adb('shell', 'dumpsys', 'thermalservice')
             notes.extend(['after:', after, adb('shell', 'dumpsys', 'battery'),
                           'renderer log:', adb('logcat', '-d', f'--pid={app_pid}', '-s', 'flutter')])
@@ -239,6 +244,8 @@ def main():
     launch.add_argument('--name', default='stage-1')
     launch.add_argument('--serial', default='26221JEGR12737')
     launch.add_argument('--trace', choices=['gpu', 'energy', 'none'], default='gpu')
+    launch.add_argument('--schema', choices=['stage', 'native'], default='stage')
+    launch.add_argument('--pull-artifacts', action='store_true')
     launch.add_argument('--timeout', type=int, default=600)
     launch.add_argument('--cool-c', type=float, default=37)
     args = parser.parse_args()

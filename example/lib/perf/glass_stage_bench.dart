@@ -35,6 +35,7 @@ const _plans = String.fromEnvironment(
 const _sigmas = String.fromEnvironment('STAGE_SIGMAS', defaultValue: '2,10');
 const _only = String.fromEnvironment('STAGE_MODES');
 const _content = String.fromEnvironment('STAGE_CONTENT', defaultValue: 'tiles');
+const _shots = bool.fromEnvironment('STAGE_SHOTS');
 
 /// Runs the standalone AOT stage benchmark, without a test binding.
 void main() async {
@@ -315,6 +316,37 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
       await Future<void>.delayed(const Duration(milliseconds: 1200));
       final report = _report();
       out.createSync(recursive: true);
+      if (_shots) {
+        for (final c in cases) {
+          await _mount(c);
+          _ticker.stop();
+          for (final phase in [-1.0, 0.0, 1.0]) {
+            _phase.value = phase;
+            await SchedulerBinding.instance.endOfFrame;
+            await SchedulerBinding.instance.endOfFrame;
+            final boundary =
+                _sceneKey.currentContext!.findRenderObject()!
+                    as RenderRepaintBoundary;
+            final shot = await boundary.toImage(
+              pixelRatio: View.of(_sceneKey.currentContext!).devicePixelRatio,
+            );
+            try {
+              final bytes = await shot.toByteData(
+                format: ui.ImageByteFormat.png,
+              );
+              if (bytes == null) throw StateError('Missing PNG for ${c.name}');
+              File('${out.path}/${c.name}-p$phase.png').writeAsBytesSync(
+                bytes.buffer.asUint8List(
+                  bytes.offsetInBytes,
+                  bytes.lengthInBytes,
+                ),
+              );
+            } finally {
+              shot.dispose();
+            }
+          }
+        }
+      }
       final temporary = File('${out.path}/report.tmp');
       temporary.writeAsStringSync(jsonEncode(report));
       temporary.renameSync('${out.path}/report.json');
@@ -347,6 +379,7 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
       'warm_ms': _warmMs,
       'sample_ms': _sampleMs,
       'seed': _seed,
+      'shot_phases': _shots ? [-1.0, 0.0, 1.0] : <double>[],
       'order': _order,
       'case_metadata': _metadata,
       'windows_us': _windows,
