@@ -14,6 +14,10 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- The glass performance passport includes native GPU, power, memory and
+  fidelity experiments, with reproducible research patches and an audit
+  of reusing the current backdrop through the installed Flutter GPU and
+  Impeller APIs. The production renderer keeps its measured behavior.
 - The stage benchmark can capture deterministic native phase PNGs after
   timing collection. Its Android runner can also restore the gallery
   around native audit APKs and pull their fidelity artifacts.
