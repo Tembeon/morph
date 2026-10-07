@@ -14,6 +14,11 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- A standalone glass stage benchmark compares capture, Gaussian blur,
+  production optics and full glass across configurable footprints, motion
+  and grouping. It saves raw frame timings, GPU work and separate energy
+  traces without an integration-test binding, and restores the Android
+  gallery and owned recorder state after each launch.
 - The Android energy runner stops its own Perfetto recorder when an
   audit launch fails or is interrupted, preventing leftover trace work.
 - Android energy reports sum every app raster thread when several
