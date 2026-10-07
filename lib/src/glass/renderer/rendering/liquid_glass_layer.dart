@@ -4,6 +4,8 @@ import 'dart:math';
 import 'dart:ui';
 import 'dart:ui' as ui;
 
+import 'package:morph/src/glass/renderer/internal/owned_input_experiment.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
@@ -575,7 +577,21 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// compiles only the color models it can meet, which keeps the
   /// one-appearance and tint-only variants inside the register budget of
   /// full thread occupancy on a Mali-G78.
+  FragmentShader? _ownedRenderShader;
+
   FragmentShader get renderShader {
+    if (OwnedGlassExperiment.read != null) {
+      if (_usesShapeAppearances) {
+        throw StateError('Owned experiment requires uniform appearance');
+      }
+      if (_ownedRenderShader == null) {
+        _ownedRenderShader = OwnedGlassExperiment.program!.fragmentShader();
+        _staleShaders.add(_ownedRenderShader!);
+      }
+      final shader = _ownedRenderShader!;
+      _writeStaleShaderSettings(shader);
+      return shader;
+    }
     final ios27 =
         (_uniformAppearance ?? defaultAppearance).colorModel
             is! DirectLiquidGlassColorModel;
@@ -660,6 +676,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _staleShaders.add(materialRenderShader);
     _staleShaders.add(tintRenderShader);
     _staleShaders.add(tintIos27RenderShader);
+    if (_ownedRenderShader case final shader?) _staleShaders.add(shader);
     _writeStaleShaderSettings(renderShader);
   }
 
@@ -928,8 +945,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
     commitFrameGeometry(candidate);
     final materialBounds = _prepareGeometryAppearance(bounds);
-    // A drawable-empty refresh encodes nothing; the committed list alone
-    // is the compositor-translation poll's baseline.
     if (hasDrawableGlass(shapesWithGeometry)) {
       // Keep old borrowed handles valid until the replacement is installed.
       if (!_ownsGeometryImages && _geometryImage != null) {
@@ -1036,10 +1051,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           );
         });
       case GlassFrameState.idle:
-        // Keep the last matte and its encode snapshot; ancestor motion
-        // stays compositor-only while hidden because the translation poll
-        // rebaselines on the committed frame, not on that snapshot. Skip
-        // the backdrop filter so idle glass does not sample.
+        // Keep the encoded snapshot of the last active matte untouched so
+        // ancestor motion stays compositor-only when the glass becomes
+        // visible again. Skip the backdrop filter so idle glass does not
+        // sample.
         updateIdleAncestorClips();
         _releaseCompositorFilter();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {});
@@ -1514,12 +1529,70 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     return filterBounds;
   }
 
+  void _paintOwnedInput(
+    Canvas canvas,
+    Offset offset,
+    Rect materialBounds,
+    OwnedGlassInput input,
+  ) {
+    _filterMaterialBounds = materialBounds;
+    _filterPaintOffset = offset;
+    final bounds = _filterClip!;
+    debugFilterBounds = bounds;
+    final matrix = getTransformTo(null).storage;
+    if (matrix[0] != 1 || matrix[5] != 1 || matrix[1] != 0 || matrix[4] != 0) {
+      throw StateError('Owned experiment supports translations only');
+    }
+    final shader = renderShader;
+    shader.setFloat(
+      0,
+      PlatformDispatcher.instance.views.first.physicalSize.width,
+    );
+    shader.setFloat(
+      1,
+      PlatformDispatcher.instance.views.first.physicalSize.height,
+    );
+    _writeCoordinateMapping(shader, (1, 0, 0, 1, 0, 0), bounds);
+    shader.setImageSampler(0, input.image, filterQuality: FilterQuality.low);
+    shader.setFloat(
+      65,
+      (matrix[12] - input.shift.dx - input.region.left) * devicePixelRatio,
+    );
+    shader.setFloat(
+      66,
+      (matrix[13] - input.shift.dy - input.region.top) * devicePixelRatio,
+    );
+    shader.setFloat(67, input.region.width * devicePixelRatio);
+    shader.setFloat(68, input.region.height * devicePixelRatio);
+    shader.setFloat(69, input.halfOffset.dx);
+    shader.setFloat(70, input.halfOffset.dy);
+    final paint = Paint();
+    paint.shader = shader;
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    canvas.scale(1 / devicePixelRatio);
+    canvas.drawRect(
+      Rect.fromLTRB(
+        bounds.left * devicePixelRatio,
+        bounds.top * devicePixelRatio,
+        bounds.right * devicePixelRatio,
+        bounds.bottom * devicePixelRatio,
+      ),
+      paint,
+    );
+    canvas.restore();
+  }
+
   void _paintMaterialFilter(
     PaintingContext context,
     Offset offset,
     Rect materialBounds,
   ) {
     if (!attached) return;
+    if (OwnedGlassExperiment.read case final read?) {
+      _paintOwnedInput(context.canvas, offset, materialBounds, read());
+      return;
+    }
     // The engine snapshots this shader's uniforms into the native image
     // filter at creation, so the composed filter can only be reused while
     // every snapshotted input is unchanged. Repaints with identical shader
@@ -1644,6 +1717,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @override
   void dispose() {
+    _ownedRenderShader?.dispose();
+    _ownedRenderShader = null;
     _shaderHandle.layer = null;
     _clipRectLayerHandle.layer = null;
     _seedClipHandle.layer = null;

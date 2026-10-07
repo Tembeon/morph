@@ -18,5 +18,21 @@
     "MaterialTintGradientFragment": {
         "type": "fragment",
         "file": "lib/src/glass/renderer/shaders/gpu/material_tint_gradient_fragment.glsl"
+    },
+    "DualVertex": {
+        "type": "vertex",
+        "file": "lib/src/glass/renderer/shaders/gpu/dual_vertex.glsl"
+    },
+    "DualDown": {
+        "type": "fragment",
+        "file": "lib/src/glass/renderer/shaders/gpu/dual_down.glsl"
+    },
+    "DualUp": {
+        "type": "fragment",
+        "file": "lib/src/glass/renderer/shaders/gpu/dual_up.glsl"
+    },
+    "DualCopy": {
+        "type": "fragment",
+        "file": "lib/src/glass/renderer/shaders/gpu/dual_copy.glsl"
     }
 }

@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_gpu:
+    sdk: flutter
   material_ui: ^1.1.0
   morph:
     path: ../
@@ -28,6 +30,8 @@ flutter:
   # renders these frozen copies of the package's runtime shaders next to
   # the live ones in the same app.
   shaders:
+    - shaders/dual_final.frag
+    - shaders/dual_canvas.frag
     - shader_audit/baseline/liquid_glass_final_render.frag
     - shader_audit/baseline/liquid_glass_final_render_material.frag
     - shader_audit/baseline/liquid_glass_final_render_tint.frag

@@ -36,6 +36,7 @@ flutter:
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_material.frag
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint.frag
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_ios27.frag
+    - lib/src/glass/renderer/shaders/owned_glass_ios27.frag
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint_ios27.frag
     - lib/src/glass/renderer/shaders/fake_glass_surface.frag
   assets:

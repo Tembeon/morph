@@ -111,6 +111,10 @@ float gGlintVibrancy = kGlintVibrancy;
 // decoding and geometry placement remain bit-for-bit unchanged.
 const float kContourCoverageFeather = 1.0;
 
+#ifdef OWNED_SOURCE
+uniform vec4 uOwnedMap;
+uniform vec2 uOwnedHalfOffset;
+#endif
 uniform sampler2D uBackgroundTexture;
 uniform sampler2D uGeometryTexture;
 #if SHAPE_APPEARANCE || SHAPE_TINT
@@ -121,6 +125,23 @@ uniform sampler2D uMaterialLinearTexture;
 #endif
 
 layout(location = 0) out vec4 fragColor;
+#ifdef OWNED_SOURCE
+vec4 readOwnedBackground(vec2 uv) {
+    vec2 p = (uv * uSize + uOwnedMap.xy) / uOwnedMap.zw;
+    vec2 h = uOwnedHalfOffset;
+    if (h.x == 0.0 && h.y == 0.0) return texture(uBackgroundTexture, p);
+    vec4 sum = texture(uBackgroundTexture, p + vec2(-2.0 * h.x, 0.0));
+    sum += texture(uBackgroundTexture, p + vec2(-h.x, h.y)) * 2.0;
+    sum += texture(uBackgroundTexture, p + vec2(0.0, 2.0 * h.y));
+    sum += texture(uBackgroundTexture, p + h) * 2.0;
+    sum += texture(uBackgroundTexture, p + vec2(2.0 * h.x, 0.0));
+    sum += texture(uBackgroundTexture, p + vec2(h.x, -h.y)) * 2.0;
+    sum += texture(uBackgroundTexture, p + vec2(0.0, -2.0 * h.y));
+    sum += texture(uBackgroundTexture, p - h) * 2.0;
+    return sum / 12.0;
+}
+#endif
+
 
 #if SHAPE_APPEARANCE
 vec4 shapeLookup(
@@ -535,6 +556,13 @@ vec3 applySpecularHighlights(
 }
 
 
+
+#ifdef OWNED_SOURCE
+#define READ_BACKGROUND(uv) readOwnedBackground(uv)
+#else
+#define READ_BACKGROUND(uv) texture(uBackgroundTexture, uv)
+#endif
+
 void main() {
     // Map image-filter fragment coordinates back into the layer-local geometry
     // matte. Apple Metal surfaces expose global filter coordinates, while
@@ -767,20 +795,18 @@ void main() {
             // The GLES runtime stages also emit GLSL ES 1.00, which has no
             // texelFetch. The texel centre is exact under nearest sampling;
             // bilinear can differ by a few LSB at hard edges.
-            refractColor = texture(uBackgroundTexture, refractedUV);
+            refractColor = READ_BACKGROUND(refractedUV);
             #else
-            refractColor = texelFetch(
-                uBackgroundTexture,
-                ivec2(floor(fragCoord)),
-                0
-            );
+            #ifdef OWNED_SOURCE
+            refractColor = readOwnedBackground(refractedUV);
+            #else
+            refractColor = texelFetch(uBackgroundTexture, ivec2(floor(fragCoord)), 0);
+            #endif
             #endif
         } else {
             refractedUV = screenUV +
                 mirrorIntoBackdrop(sourceOffset, matteCoord) * invUSize;
-            refractColor = texture(
-                uBackgroundTexture,
-                mirrorBackgroundUV(refractedUV, invUSize)
+            refractColor = READ_BACKGROUND(mirrorBackgroundUV(refractedUV, invUSize)
             );
         }
         if (uSoften > 0.5) {
@@ -790,8 +816,8 @@ void main() {
             vec2 tapA = mirrorBackgroundUV(refractedUV + softenTap, invUSize);
             vec2 tapB = mirrorBackgroundUV(refractedUV - softenTap, invUSize);
             refractColor = 0.5 * refractColor + 0.25 * (
-                texture(uBackgroundTexture, tapA) +
-                texture(uBackgroundTexture, tapB)
+                READ_BACKGROUND(tapA) +
+                READ_BACKGROUND(tapB)
             );
         }
     } else {
@@ -821,9 +847,9 @@ void main() {
             invUSize
         );
         
-        float red = texture(uBackgroundTexture, redUV).r;
-        vec4 greenSample = texture(uBackgroundTexture, greenUV);
-        float blue = texture(uBackgroundTexture, blueUV).b;
+        float red = READ_BACKGROUND(redUV).r;
+        vec4 greenSample = READ_BACKGROUND(greenUV);
+        float blue = READ_BACKGROUND(blueUV).b;
         
         refractColor = vec4(red, greenSample.g, blue, greenSample.a);
     }
