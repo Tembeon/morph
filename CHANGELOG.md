@@ -14,6 +14,13 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Flat fused bodies skip unused optical-field preparation, and Android
+  navigation bars retain device-resolution glyph rasters under their
+  existing content blur. Pixel 6a final five-repeat controls reduce flat
+  push raster p95 27.7 -> 21.6 ms and liquid pop 32.8 -> 26.7 ms, with
+  modest GPU tradeoffs; nested UI frames still exceed the 60 Hz budget.
+  Native chrome resampling stays within 8 channel steps, full gallery
+  lifecycle tests pass, and iOS/web bar glyphs retain live rendering.
 - Native Navigation attribution separates nonglass costs: animated button
   glyph filters dominate the raster tail, while fused capsule contours
   consume substantial UI time even on flat. Four repeated diagnostic GPU
