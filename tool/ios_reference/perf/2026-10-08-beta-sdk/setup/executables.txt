@@ -1,0 +1,4 @@
+/opt/homebrew/bin/flutter
+/opt/homebrew/bin/flutter-beta
+/opt/homebrew/bin/dart-beta
+Dart SDK version: 3.14.0-211.1.beta (beta) (Wed Sep 9 04:11:05 2026 -0700) on "macos_arm64"

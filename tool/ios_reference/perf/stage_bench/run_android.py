@@ -238,6 +238,8 @@ def main():
     build = sub.add_parser('build')
     build.add_argument('--apk', required=True, type=Path)
     build.add_argument('--target', default=TARGET)
+    build.add_argument('--flutter', default='flutter',
+                       help='Flutter executable, for example flutter-beta')
     build.add_argument('--define', action='append', default=[])
     launch = sub.add_parser('run')
     launch.add_argument('--apk', required=True, type=Path)
@@ -251,13 +253,16 @@ def main():
     launch.add_argument('--cool-c', type=float, default=37)
     args = parser.parse_args()
     if args.step == 'build':
-        command(['flutter', 'build', 'apk', '--profile', '--target-platform', 'android-arm64',
+        sdk = json.loads(command([args.flutter, '--version', '--machine'],
+                                stdout=subprocess.PIPE).stdout)
+        command([args.flutter, 'build', 'apk', '--profile', '--target-platform', 'android-arm64',
                  '-t', args.target, f'--dart-define=AUDIT_OUT={DEVICE}',
                  *[f'--dart-define={value}' for value in args.define]], cwd=ROOT / 'example')
         args.apk.parent.mkdir(parents=True, exist_ok=True)
         args.apk.write_bytes((ROOT / 'example/build/app/outputs/flutter-apk/app-profile.apk').read_bytes())
         Path(str(args.apk) + '.build.json').write_text(json.dumps({
             'target': args.target, 'defines': args.define,
+            'flutter_executable': args.flutter, 'sdk': sdk,
             'commit': command(['git', 'rev-parse', 'HEAD'], cwd=ROOT, stdout=subprocess.PIPE).stdout.strip(),
             'source_sha256': hashlib.sha256((ROOT / 'example' / args.target).read_bytes()).hexdigest(),
             'apk_sha256': hashlib.sha256(args.apk.read_bytes()).hexdigest(),

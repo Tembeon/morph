@@ -1199,6 +1199,29 @@ energy-first rejection rule below describes historical decisions rather
 than the current admission policy. Fidelity remains IDENTICAL or stated
 NEAR; visible quality reductions need an owner decision.
 
+BETA SDK (2026-10-08): flutter-beta / dart-beta select the separate
+official 3.49.0-0.2.pre SDK; normal commands retain 3.47.2 stable.
+The native shader-filter factory now requests low quality when its typed
+signature exposes filterQuality, retaining the legacy bound-sampler path
+on stable. This fixes beta's nearest-sampling regression: native liquid
+chrome maximum 27 -> 1/255 against stable; flat chrome is identical.
+Isolated whole-frame/repeat errors remain in the recorded evidence.
+Two five-repeat native launches per SDK, liquid nested push UI p95:
+stable 25.191/27.266 -> beta 21.641/19.984 ms; raster p95 is mixed
+25.611/27.517 -> 29.419/26.456, GPU 5.938/5.925 -> 6.228/6.202 ms.
+Nested frames still exceed 16.667 ms; no uniform FPS or power win.
+Paired runtime Gaussian matches its discrete reference within 1/255 and
+reduces its GPU work, but the complete graph is 3.1-3.5 times stock and
+differs from stock by 20/255. It stays research-only.
+Native dimension probe: the second runtime input is 1082x2402 for both
+small/large regions on a 1080x2400 screen; reduce intermediate area first.
+An independent Android screencap confirms this on the displayed small
+region without Flutter toImage re-rendering.
+Both SDKs pass
+1404 package and 21 gallery tests; stable docs/analyze have zero issues.
+Report and reproduction: tool/audit/codex-beta-sdk-report.md and
+tool/ios_reference/perf/2026-10-08-beta-sdk.
+
 STABLE NAVIGATION (2026-10-08, Pixel 6a, Flutter 3.47.2): flat fused
 bodies now trace their exact silhouette without unused optical fields;
 fake/liquid and custom renderer contracts retain full fields. Android

@@ -271,3 +271,8 @@ Local patches (some commits include related package changes):
   is morphBlurReach and its filter morphBackdropSeed, shared with the
   scroll edge effect. `debugMorphHalfResolutionBlur` turns the raise off
   for an A/B. Numbers in glass-renderer.md ("Small blurs").
+- 2026-10-08 shader-filter SDK compatibility: the final filter and its
+  warm-up preserve bilinear backdrop sampling on Flutter 3.49 beta with
+  the typed optional filterQuality factory. Older SDKs keep their bound
+  first-sampler quality. Native phase evidence and SDK provenance are in
+  tool/audit/codex-beta-sdk-report.md.

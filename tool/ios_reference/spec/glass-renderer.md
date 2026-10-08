@@ -2682,3 +2682,48 @@ This is stated NEAR resampling under blur, not native byte identity.
 Performance readbacks are separate from pixel captures. Final port
 matrices and verification: tool/audit/codex-navigation-stable-report.md,
 perf/2026-10-08-navigation-stable. No beta feature or added frame delay.
+
+## Separate beta SDK and sampler compatibility (2026-10-08)
+
+Flutter 3.49.0-0.2.pre is installed alongside stable 3.47.2 as flutter-beta
+and dart-beta. The stage runner can select an SDK and records full
+framework/engine/Dart provenance. Builds use independent checkouts,
+package configurations and shader bundles; SDK-pinned lock differences
+are retained with native results.
+
+Stable Impeller preserves the first bound sampler's low quality when
+substituting the filter input. Beta chooses quality from ImageFilter.shader
+instead, defaulting to nearest and ignoring that legacy sampler setting.
+Unmodified beta therefore reaches 27/255 native chrome error. The typed
+morphGlassShaderFilter factory supplies low quality when the named argument
+exists and keeps the old call on stable. Final filter and pipeline warm-up
+share this policy. No source capture or frame delay is added.
+Corrected beta versus stable: flat chrome identical, liquid chrome maximum
+1/255 over 28 phase pairs each. Isolated whole-frame maxima 63/64 and
+same-variant repeat errors are retained rather than hidden by a chrome crop.
+
+Two native five-repeat launches per SDK, actual Gallery Navigation:
+liquid push UI p95 stable 25.191/27.266 -> beta 21.641/19.984 ms;
+raster p95 25.611/27.517 -> 29.419/26.456, GPU active work per frame
+5.938/5.925 -> 6.228/6.202 ms. Pop UI also improves in these launches;
+nested work remains over the 16.667 ms budget. This is a complete SDK
+comparison, not attribution to one filter API or proof of uniform
+presentation-FPS/energy improvement. Energy was not measured here.
+
+Native paired-Gaussian research uses two composed runtime filters with
+a three-sigma discrete reference and the same half-resolution sigma
+policy. Pairing matches that reference within 1/255 and reduces GPU work:
+small 11.378/10.963 -> 8.230/8.230 ms; large 11.687/11.522 ->
+10.441/9.994 ms. Stock is 2.348/2.334 and 3.171/3.184 ms respectively.
+Custom versus stock maximum error is 20/255; neither mode is admitted.
+Impeller already pairs bilinear Gaussian samples, corrects sigma and
+downsamples. A cheaper arithmetic kernel alone does not fix the complete
+runtime graph's cost. Both SDKs pass 1404 package and 21 gallery tests.
+The native byte-encoding input probe returns 1082x2402 for the second
+runtime pass for both region sizes, at all three phases, on a 1080x2400
+screen. This prototype carries a viewport-sized intermediate even for the
+small ROI; reducing that allocation/graph is the next source experiment.
+Android exec-out screencap independently confirms 1082x2402 in the
+displayed small-region frame, without invoking Flutter toImage.
+Details, provenance and reproduction: tool/audit/codex-beta-sdk-report.md,
+perf/2026-10-08-beta-sdk. Production blur remains the stock path.

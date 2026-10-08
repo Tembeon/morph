@@ -1,0 +1,140 @@
+[
+  {
+    "layout": "single",
+    "phase": -1.0,
+    "outer_runtime_input_physical": [
+      1082,
+      2402
+    ],
+    "screenshot_physical": [
+      1080,
+      2400
+    ],
+    "center_encoded_pixels": [
+      [
+        4,
+        9
+      ],
+      [
+        58,
+        98
+      ]
+    ],
+    "png_sha256": "3f4f8dad43806af6601f1f8fa4e25625623d11b5c53b4c28c094d062b96bb572"
+  },
+  {
+    "layout": "single",
+    "phase": 0.0,
+    "outer_runtime_input_physical": [
+      1082,
+      2402
+    ],
+    "screenshot_physical": [
+      1080,
+      2400
+    ],
+    "center_encoded_pixels": [
+      [
+        4,
+        9
+      ],
+      [
+        58,
+        98
+      ]
+    ],
+    "png_sha256": "e878eeecc1480b3b3bbb96f990e3c063ce38fe3df88a03e7a4467fdff6b5bce0"
+  },
+  {
+    "layout": "single",
+    "phase": 1.0,
+    "outer_runtime_input_physical": [
+      1082,
+      2402
+    ],
+    "screenshot_physical": [
+      1080,
+      2400
+    ],
+    "center_encoded_pixels": [
+      [
+        4,
+        9
+      ],
+      [
+        58,
+        98
+      ]
+    ],
+    "png_sha256": "3edd27895ba249906d1a5b6bcf4bb1304b4e1ad7e39a234d2b71399d4f54d9a9"
+  },
+  {
+    "layout": "large",
+    "phase": -1.0,
+    "outer_runtime_input_physical": [
+      1082,
+      2402
+    ],
+    "screenshot_physical": [
+      1080,
+      2400
+    ],
+    "center_encoded_pixels": [
+      [
+        4,
+        9
+      ],
+      [
+        58,
+        98
+      ]
+    ],
+    "png_sha256": "19de17e7cbd443ddf39e00f6482bc9c675479a235568dc9c44476da598e31398"
+  },
+  {
+    "layout": "large",
+    "phase": 0.0,
+    "outer_runtime_input_physical": [
+      1082,
+      2402
+    ],
+    "screenshot_physical": [
+      1080,
+      2400
+    ],
+    "center_encoded_pixels": [
+      [
+        4,
+        9
+      ],
+      [
+        58,
+        98
+      ]
+    ],
+    "png_sha256": "6c27e2b3eb5335602fa273611718d150498eb7c8b7c6991afc92e1d661c0cf93"
+  },
+  {
+    "layout": "large",
+    "phase": 1.0,
+    "outer_runtime_input_physical": [
+      1082,
+      2402
+    ],
+    "screenshot_physical": [
+      1080,
+      2400
+    ],
+    "center_encoded_pixels": [
+      [
+        4,
+        9
+      ],
+      [
+        58,
+        98
+      ]
+    ],
+    "png_sha256": "096fc64600345b848fc2cf9cb2cdff42cf57fa89089f506072db1ccbd667df9b"
+  }
+]

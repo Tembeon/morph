@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/private/tmp/morph-beta-r11/lab/tool/ios_reference/perf/stage_bench/run_android.py", line 285, in <module>
+    main()
+    ~~~~^^
+  File "/private/tmp/morph-beta-r11/lab/tool/ios_reference/perf/stage_bench/run_android.py", line 277, in main
+    run(args)
+    ~~~^^^^^^
+  File "/private/tmp/morph-beta-r11/lab/tool/ios_reference/perf/stage_bench/run_android.py", line 161, in run
+    raise RuntimeError(error.stdout)
+RuntimeError: {"error":"Invalid argument(s): Expected distinct members of [bare, capture, blur, optics, glass], got input","stack":"#0      _selection (package:morph_example/perf/glass_stage_bench.dart:72)\n#1      _cases (package:morph_example/perf/glass_stage_bench.dart:94)\n#2      _BenchState._run (package:morph_example/perf/glass_stage_bench.dart:279)\n#3      _BenchState.initState.<anonymous closure> (package:morph_example/perf/glass_stage_bench.dart:191)\n#4      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1433)\n#5      SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1360)\n#6      SchedulerBinding.scheduleWarmUpFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1058)\n#7      PlatformDispatcher.scheduleWarmUpFrame.<anonymous closure> (dart:ui/platform_dispatcher.dart:915)\n#8      Timer._createTimer.<anonymous closure> (dart:async-patch/timer_patch.dart:18)\n#9      _Timer._runTimers (dart:isolate-patch/timer_impl.dart:423)\n#10     _Timer._handleMessage (dart:isolate-patch/timer_impl.dart:454)\n#11     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:192)\n"}

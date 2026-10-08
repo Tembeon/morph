@@ -1,0 +1,25 @@
+00:00 +0: loading /private/tmp/morph-beta-r11/lab/example/test/glass_stage_bench_test.dart
+00:00 +0: /private/tmp/morph-beta-r11/lab/example/test/glass_stage_bench_test.dart: cheap rendered frames remain in the percentile denominator
+00:00 +1: /private/tmp/morph-beta-r11/lab/example/test/glass_stage_bench_test.dart: frame budget counts either pipeline stage, not their sum
+00:00 +2: /private/tmp/morph-beta-r11/lab/example/test/glass_stage_bench_test.dart: spread and cluster preserve visible area while changing union area
+00:00 +3: /private/tmp/morph-beta-r11/lab/example/test/frost_seed_host_test.dart: a frosted layer blurs a copy of its own surroundings
+00:00 +4: /private/tmp/morph-beta-r11/lab/example/test/blur_bound_host_test.dart: cheap small blurs draw the blurs they replace
+00:00 +5: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: (setUpAll)
+00:00 +5: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:00 +6: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:00 +7: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:01 +8: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:01 +9: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +10: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +11: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +12: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +13: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +14: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +15: /private/tmp/morph-beta-r11/lab/example/test/gallery_extras_test.dart: navigation: holding Back opens its menu over the glass
+00:03 +16: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: every page opens in light with styled text
+00:03 +17: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: the open menu has styled rows
+00:03 +18: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: the slow-motion button sits in the bar, clear of the tab bar
+00:03 +19: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: holding the bar button of the menu page opens its menu
+00:03 +20: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: the glass page settings reach every page
+00:04 +21: /private/tmp/morph-beta-r11/lab/example/test/gallery_test.dart: (tearDownAll)
+00:04 +21: All tests passed!

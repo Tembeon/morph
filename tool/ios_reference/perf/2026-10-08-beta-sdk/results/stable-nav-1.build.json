@@ -1,0 +1,33 @@
+{
+  "target": "lib/perf/navigation_stage_bench.dart",
+  "defines": [
+    "NAV_MODES=flat,liquid",
+    "NAV_MOTIONS=enter,nested-push,nested-pop,toolbar",
+    "NAV_PAGES=navigation",
+    "NAV_RUNS=5",
+    "NAV_WARM_MS=500",
+    "NAV_SAMPLE_MS=800",
+    "NAV_SEED=2026100811",
+    "NAV_SHOTS=true",
+    "NAV_SHOT_OFFSETS=0,160,420,640"
+  ],
+  "flutter_executable": "flutter",
+  "sdk": {
+    "frameworkVersion": "3.47.2",
+    "channel": "stable",
+    "repositoryUrl": "https://github.com/flutter/flutter.git",
+    "frameworkRevision": "d3b14c876900e553bc736ca19295fc09e3853e8e",
+    "frameworkCommitDate": "2026-08-26 16:07:51 -0700",
+    "engineRevision": "a804b261645ef8c13eb3d5c44a5c2fb0340c5539",
+    "engineCommitDate": "2026-08-26 18:46:13.000Z",
+    "engineContentHash": "1cf1c4773fb941c4c74a7f8bb144a8837596c0f4",
+    "engineBuildDate": "2026-08-26 21:23:07.677",
+    "dartSdkVersion": "3.13.2",
+    "devToolsVersion": "2.60.0",
+    "flutterVersion": "3.47.2",
+    "flutterRoot": "/opt/homebrew/Caskroom/flutter/3.19.1/flutter"
+  },
+  "commit": "f3cb00a4f8dd3336aa5ede796c55314ffa3ecf32",
+  "source_sha256": "d1e8a862515d837c729a8932e9b3d9aaf39925d7f580cf6adf047bf4a50b0db9",
+  "apk_sha256": "0f05cb6575a4f99c1319172ec7dec4a5f9c5d449f5d877a18e92c09c73f10692"
+}

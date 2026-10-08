@@ -21,6 +21,7 @@ import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameters.dart';
+import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
 import 'package:morph/src/glass/renderer/internal/snap_rect_to_pixels.dart';
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
@@ -1163,9 +1164,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           _materialTextureSize.height,
         ]);
       })
-      // Sampler 0 is the image-filter input. The engine replaces its texture
-      // with the backdrop but keeps the sampling set here, so any bound image
-      // selects bilinear or nearest backdrop sampling at no cost.
+      // Older engines retain this sampler's quality when replacing its
+      // texture. Newer engines use morphGlassShaderFilter's explicit quality.
       ..setImageSampler(0, geometryImage, filterQuality: FilterQuality.low)
       // Nearest: the matte packs 12-bit normal angle and displacement codes
       // across byte boundaries, which filtering between texels would mix.
@@ -1450,7 +1450,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   ImageFilter _updateShaderFilter() {
     final inputsChanged = takeShaderInputsChanged();
     if (_cachedFilter != null && !inputsChanged) return _cachedFilter!;
-    final shader = ImageFilter.shader(renderShader);
+    final shader = morphGlassShaderFilter(renderShader);
     final frostSigma = blurPassSigma;
     final filter = frostSigma > 0
         ? ImageFilter.compose(inner: _frostBlur(frostSigma), outer: shader)

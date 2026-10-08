@@ -1,0 +1,36 @@
+name: morph_example
+description: "The morph widgets gallery: the example app of the morph package."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  material_ui: ^1.1.0
+  morph:
+    path: ../
+  motor: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  integration_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  vm_service: any
+
+flutter:
+  uses-material-design: true
+  # The shader parity harness (integration_test/shader_parity_test.dart)
+  # renders these frozen copies of the package's runtime shaders next to
+  # the live ones in the same app.
+  shaders:
+    - shader_audit/baseline/liquid_glass_final_render.frag
+    - shader_audit/baseline/liquid_glass_final_render_material.frag
+    - shader_audit/baseline/liquid_glass_final_render_tint.frag
+    - shader_audit/baseline/liquid_glass_final_render_ios27.frag
+    - shader_audit/baseline/liquid_glass_final_render_tint_ios27.frag
+    - shader_audit/baseline/fake_glass_surface.frag

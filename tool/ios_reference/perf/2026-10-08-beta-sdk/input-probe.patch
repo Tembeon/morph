@@ -1,0 +1,190 @@
+diff --git a/example/lib/perf/glass_stage_bench.dart b/example/lib/perf/glass_stage_bench.dart
+index 8541adc..529f3fa 100644
+--- a/example/lib/perf/glass_stage_bench.dart
++++ b/example/lib/perf/glass_stage_bench.dart
+@@ -16,6 +16,8 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
+ import 'package:morph/src/glass/renderer/renderer.dart';
+ import 'package:morph/widgets.dart' show MorphGlassRenderer;
+ 
++late ui.FragmentProgram _gaussianProgram;
++
+ const _runs = int.fromEnvironment('STAGE_RUNS', defaultValue: 3);
+ const _warmMs = int.fromEnvironment('STAGE_WARM_MS', defaultValue: 600);
+ const _sampleMs = int.fromEnvironment('STAGE_SAMPLE_MS', defaultValue: 2400);
+@@ -41,6 +43,9 @@ const _shots = bool.fromEnvironment('STAGE_SHOTS');
+ void main() async {
+   WidgetsFlutterBinding.ensureInitialized();
+   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
++  _gaussianProgram = await ui.FragmentProgram.fromAsset(
++    'shaders/beta_gaussian.frag',
++  );
+   runApp(const _Bench());
+ }
+ 
+@@ -91,7 +96,16 @@ List<_Case> _cases() {
+   }
+   final modes = _only.isEmpty
+       ? ['bare', 'capture', 'blur', 'optics', 'glass']
+-      : _selection(_only, ['bare', 'capture', 'blur', 'optics', 'glass']);
++      : _selection(_only, [
++          'bare',
++          'capture',
++          'blur',
++          'optics',
++          'glass',
++          'exact',
++          'paired',
++          'input',
++        ]);
+   return [
+     for (final layout in _selection(_layouts, [
+       'single',
+@@ -111,7 +125,9 @@ List<_Case> _cases() {
+         ]))
+           for (final mode in modes)
+             for (final sigma
+-                in mode == 'blur' || mode == 'glass' ? sigmas : [0.0])
++                in ['blur', 'glass', 'exact', 'paired', 'input'].contains(mode)
++                    ? sigmas
++                    : [0.0])
+               _Case(layout, motion, plan, mode, sigma),
+   ];
+ }
+@@ -467,8 +483,58 @@ class _SceneState extends State<_Scene> {
+     config.motion == 'glass' ? null : phase,
+   );
+ 
++  final _shaders = <ui.FragmentShader>[];
++  ui.ImageFilter? _runtimeFilter;
++
++  ui.ImageFilter _gaussian(double sigma) {
++    final radius = (sigma * 3).ceil();
++    if (radius > 96) throw StateError('Kernel exceeds probe capacity');
++    final weights = [
++      for (var i = 0; i <= radius; i++) math.exp(-i * i / (2 * sigma * sigma)),
++    ];
++    final total = weights[0] + 2 * weights.skip(1).reduce((a, b) => a + b);
++    final taps = <(double, double)>[];
++    if (config.mode == 'paired') {
++      for (var i = 1; i <= radius; i += 2) {
++        final a = weights[i];
++        final b = i + 1 <= radius ? weights[i + 1] : 0.0;
++        taps.add((i + b / (a + b), (a + b) / total));
++      }
++    } else {
++      for (var i = 1; i <= radius; i++) {
++        taps.add((i.toDouble(), weights[i] / total));
++      }
++    }
++    ui.ImageFilter axis(double x, double y) {
++      final shader = _gaussianProgram.fragmentShader();
++      _shaders.add(shader);
++      shader.setFloat(2, x);
++      shader.setFloat(3, y);
++      shader.setFloat(
++        4,
++        config.mode == 'input' && y == 1 ? -1 : taps.length.toDouble(),
++      );
++      shader.setFloat(5, weights[0] / total);
++      for (var i = 0; i < taps.length; i++) {
++        shader.setFloat(6 + i * 2, taps[i].$1);
++        shader.setFloat(7 + i * 2, taps[i].$2);
++      }
++      return ui.ImageFilter.shader(
++        shader,
++        filterQuality: config.mode == 'paired'
++            ? ui.FilterQuality.low
++            : ui.FilterQuality.none,
++      );
++    }
++
++    return ui.ImageFilter.compose(inner: axis(1, 0), outer: axis(0, 1));
++  }
++
+   @override
+   void dispose() {
++    for (final shader in _shaders) {
++      shader.dispose();
++    }
+     _background.disposeText();
+     super.dispose();
+   }
+@@ -482,6 +548,13 @@ class _SceneState extends State<_Scene> {
+         config.sigma,
+         View.of(context).devicePixelRatio,
+       );
++      if (config.mode == 'exact' ||
++          config.mode == 'paired' ||
++          config.mode == 'input') {
++        _runtimeFilter ??= _gaussian(
++          effectiveSigma * View.of(context).devicePixelRatio,
++        );
++      }
+       Widget shapes(List<Rect> regions) => Stack(
+         children: [
+           for (final rect in regions)
+@@ -509,11 +582,12 @@ class _SceneState extends State<_Scene> {
+             backdropGroupKey: config.plan == 'shared' ? sharedKey : null,
+             filter: config.mode == 'capture'
+                 ? morphBackdropSeed
+-                : ui.ImageFilter.blur(
+-                    sigmaX: effectiveSigma,
+-                    sigmaY: effectiveSigma,
+-                    tileMode: TileMode.mirror,
+-                  ),
++                : _runtimeFilter ??
++                      ui.ImageFilter.blur(
++                        sigmaX: effectiveSigma,
++                        sigmaY: effectiveSigma,
++                        tileMode: TileMode.mirror,
++                      ),
+             child: const SizedBox.expand(),
+           ),
+         ),
+diff --git a/example/pubspec.yaml b/example/pubspec.yaml
+index e605a21..860e22b 100644
+--- a/example/pubspec.yaml
++++ b/example/pubspec.yaml
+@@ -34,3 +34,4 @@ flutter:
+     - shader_audit/baseline/liquid_glass_final_render_ios27.frag
+     - shader_audit/baseline/liquid_glass_final_render_tint_ios27.frag
+     - shader_audit/baseline/fake_glass_surface.frag
++    - shaders/beta_gaussian.frag
+diff --git a/example/shaders/beta_gaussian.frag b/example/shaders/beta_gaussian.frag
+new file mode 100644
+index 0000000..de54523
+--- /dev/null
++++ b/example/shaders/beta_gaussian.frag
+@@ -0,0 +1,32 @@
++#include <flutter/runtime_effect.glsl>
++
++uniform vec2 u_size;
++uniform vec2 u_axis;
++uniform float u_count;
++uniform float u_center;
++uniform vec2 u_taps[96];
++uniform sampler2D u_input;
++out vec4 frag_color;
++
++void main() {
++  if (u_count < 0.0) {
++    vec2 bytes = mod(floor(FlutterFragCoord().x), 2.0) < 1.0
++        ? mod(u_size, 256.0) : floor(u_size / 256.0);
++    frag_color = vec4(bytes / 255.0, 0.0, 1.0);
++    return;
++  }
++  vec2 uv = FlutterFragCoord().xy / u_size;
++#ifdef IMPELLER_TARGET_OPENGLES
++  uv.y = 1.0 - uv.y;
++#endif
++  vec2 step_uv = u_axis / u_size;
++  vec4 sum = texture(u_input, uv) * u_center;
++  for (int i = 0; i < 96; i++) {
++    if (float(i) >= u_count) break;
++    vec2 tap = u_taps[i];
++    vec2 delta = step_uv * tap.x;
++    sum += (texture(u_input, uv + delta) +
++            texture(u_input, uv - delta)) * tap.y;
++  }
++  frag_color = sum;
++}

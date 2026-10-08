@@ -1,0 +1,23 @@
+{
+  "method": "Android exec-out screencap of the existing displayed frame; no Flutter toImage",
+  "layout": "single",
+  "screen_physical": [
+    1080,
+    2400
+  ],
+  "outer_runtime_input_physical": [
+    1082,
+    2402
+  ],
+  "center_encoded_pixels": [
+    [
+      4,
+      9
+    ],
+    [
+      58,
+      98
+    ]
+  ],
+  "png_sha256": "f9439473ee1910d986333352cbeab7d25e15ca4c9e0cf87a4aa89e4c3c8f3331"
+}

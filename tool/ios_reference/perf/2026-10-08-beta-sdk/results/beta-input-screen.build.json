@@ -1,0 +1,31 @@
+{
+  "target": "lib/perf/glass_stage_bench.dart",
+  "defines": [
+    "STAGE_LAYOUTS=single",
+    "STAGE_MODES=input",
+    "STAGE_SIGMAS=2",
+    "STAGE_RUNS=1",
+    "STAGE_SAMPLE_MS=800",
+    "STAGE_WARM_MS=300",
+    "STAGE_SHOTS=false"
+  ],
+  "flutter_executable": "flutter-beta",
+  "sdk": {
+    "frameworkVersion": "3.49.0-0.2.pre",
+    "channel": "beta",
+    "repositoryUrl": "https://github.com/flutter/flutter.git",
+    "frameworkRevision": "38ec981bad973156ad05bdef0aa8e82d1a58905b",
+    "frameworkCommitDate": "2026-09-30 09:52:04 -0700",
+    "engineRevision": "774a76734848e38c908681d752e465b2a1595adb",
+    "engineCommitDate": "2026-09-18 21:11:54.000Z",
+    "engineContentHash": "1dd8f8de143bd458caafa09072e090ebefd2d6b1",
+    "engineBuildDate": "2026-09-19 00:12:55.388",
+    "dartSdkVersion": "3.14.0 (build 3.14.0-211.1.beta)",
+    "devToolsVersion": "2.61.0-dev.0",
+    "flutterVersion": "3.49.0-0.2.pre",
+    "flutterRoot": "/Users/tembeon/.local/share/flutter-beta"
+  },
+  "commit": "f3cb00a4f8dd3336aa5ede796c55314ffa3ecf32",
+  "source_sha256": "a290e2b69e24fd97795aaaa962fb860fb3efd319ce2ac18b3bf66d47ab66943c",
+  "apk_sha256": "617f64c745719e9ebfdafe183dc0143e12193fdf949cee81231ea585f0beaa83"
+}

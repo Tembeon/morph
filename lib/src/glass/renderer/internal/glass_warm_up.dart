@@ -7,6 +7,7 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer_native.dart';
 import 'package:morph/src/glass/renderer/internal/fake_glass_color.dart';
 import 'package:morph/src/glass/renderer/internal/paint_fake_glass_surface.dart';
+import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
@@ -99,7 +100,7 @@ Future<void> morphWarmLiquidPipelines(
       } else if (tintKeys.contains(key)) {
         shader.setImageSampler(2, tint, filterQuality: FilterQuality.low);
       }
-      final filter = ui.ImageFilter.shader(shader);
+      final filter = morphGlassShaderFilter(shader);
       filters.add(filter);
       for (final sigma in _frostSigmas) {
         filters.add(

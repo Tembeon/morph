@@ -24,6 +24,12 @@ three shuffled repeats, 600 ms warmup before each measured window, and
 measurement to warm its pipelines. The seed and actual order are recorded.
 Different seeds can be built for independent launches.
 
+Use `build --flutter flutter-beta` to select the separately installed beta
+SDK without changing the normal `flutter` command. Build records save
+the framework, engine, Dart versions and selected executable. Use separate
+checkouts for stable and beta: their package configuration, native build
+hooks and shader bundles must not be shared across a timed comparison.
+
 The runner takes the Pixel lock itself and refuses an occupied lock or
 active kernel GPU recorder. It backs up the installed single gallery APK,
 restores it and opens the gallery on success, failure, or interruption.

@@ -1,0 +1,39 @@
+Resolving dependencies...
+Downloading packages...
+  cupertino_ui 1.1.1 (1.1.2 available)
+  equatable 2.1.0 (3.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.5.0 (1.6.0 available)
+  meta 1.18.3 (1.19.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.12 (0.7.14 available)
+  vector_math 2.4.0 (2.4.3 available)
+Got dependencies!
+9 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/glass_stage_bench_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/glass_stage_bench_test.dart: cheap rendered frames remain in the percentile denominator
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/glass_stage_bench_test.dart: frame budget counts either pipeline stage, not their sum
+00:00 +2: /Users/tembeon/IdeaProjects/morph/example/test/glass_stage_bench_test.dart: spread and cluster preserve visible area while changing union area
+00:00 +3: /Users/tembeon/IdeaProjects/morph/example/test/blur_bound_host_test.dart: cheap small blurs draw the blurs they replace
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/frost_seed_host_test.dart: a frosted layer blurs a copy of its own surroundings
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: (setUpAll)
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:00 +6: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:00 +7: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:01 +8: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:01 +9: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:01 +10: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:01 +11: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:01 +12: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +13: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +14: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +15: /Users/tembeon/IdeaProjects/morph/example/test/gallery_extras_test.dart: navigation: holding Back opens its menu over the glass
+00:02 +16: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+00:03 +17: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: the open menu has styled rows
+00:03 +18: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: the slow-motion button sits in the bar, clear of the tab bar
+00:03 +19: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: holding the bar button of the menu page opens its menu
+00:03 +20: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: the glass page settings reach every page
+00:03 +21: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: (tearDownAll)
+00:03 +21: All tests passed!
