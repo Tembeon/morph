@@ -1,0 +1,27 @@
+[
+  {
+    "name": "format",
+    "exit": 0,
+    "seconds": 1.03
+  },
+  {
+    "name": "analyze",
+    "exit": 0,
+    "seconds": 4.37
+  },
+  {
+    "name": "package-test",
+    "exit": 0,
+    "seconds": 136.3
+  },
+  {
+    "name": "example-test",
+    "exit": 0,
+    "seconds": 7.89
+  },
+  {
+    "name": "dartdoc",
+    "exit": 0,
+    "seconds": 20.57
+  }
+]

@@ -14,6 +14,11 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Native Navigation attribution separates nonglass costs: animated button
+  glyph filters dominate the raster tail, while fused capsule contours
+  consume substantial UI time even on flat. Four repeated diagnostic GPU
+  matrices and CPU/timeline evidence preserve reproduction and priorities;
+  visible ablations remain separate from production rendering.
 - A real Gallery Navigation benchmark covers first entry, nested
   push/pop, toolbar morphing and repeated navigation cycles. Raw native
   timings, GPU work, phase costs, energy and fidelity evidence are
