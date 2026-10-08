@@ -14,6 +14,12 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Glass preserves bilinear native input sampling across stable and beta
+  SDKs, fixing a Flutter 3.49 beta regression within one native chrome
+  channel step. The benchmark selects an SDK and records its revisions;
+  Pixel Navigation and paired-Gaussian/input-size research are archived.
+  The runtime experiment exposes a viewport-sized intermediate, so its
+  cheaper kernel remains outside production until the graph is cheaper.
 - Flat fused bodies skip unused optical-field preparation, and Android
   navigation bars retain device-resolution glyph rasters under their
   existing content blur. Pixel 6a final five-repeat controls reduce flat
