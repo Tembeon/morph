@@ -1,0 +1,735 @@
+{
+  "stack_mismatches": 0,
+  "cases": {
+    "nav-navigation-toolbar-flat": {
+      "complete_raster_slices_per_window": [
+        0,
+        0,
+        0
+      ],
+      "events": {}
+    },
+    "nav-navigation-nested-pop-flat": {
+      "complete_raster_slices_per_window": [
+        0,
+        0,
+        42
+      ],
+      "events": {
+        "AcquireNextDrawable": {
+          "count": 42,
+          "total_ms": 3.763,
+          "mean_ms": 0.08959523809523809,
+          "max_ms": 0.181
+        },
+        "AcquireNextSurface": {
+          "count": 42,
+          "total_ms": 5.744,
+          "mean_ms": 0.13676190476190475,
+          "max_ms": 0.347
+        },
+        "Animator::BeginFrame": {
+          "count": 44,
+          "total_ms": 283.924,
+          "mean_ms": 6.452818181818182,
+          "max_ms": 28.754
+        },
+        "Animator::Render": {
+          "count": 42,
+          "total_ms": 0.46,
+          "mean_ms": 0.010952380952380953,
+          "max_ms": 0.065
+        },
+        "AppendToExistingAtlas": {
+          "count": 12,
+          "total_ms": 0.979,
+          "mean_ms": 0.08158333333333334,
+          "max_ms": 0.28
+        },
+        "AsyncWaitForVsync": {
+          "count": 45,
+          "total_ms": 7.401,
+          "mean_ms": 0.16446666666666668,
+          "max_ms": 0.69
+        },
+        "BUILD": {
+          "count": 140,
+          "total_ms": 152.671,
+          "mean_ms": 1.090507142857143,
+          "max_ms": 14.554
+        },
+        "COMPOSITING": {
+          "count": 42,
+          "total_ms": 31.443,
+          "mean_ms": 0.7486428571428572,
+          "max_ms": 3.66
+        },
+        "Canvas::saveLayer": {
+          "count": 204,
+          "total_ms": 16.066,
+          "mean_ms": 0.07875490196078432,
+          "max_ms": 0.58
+        },
+        "CheckFenceStatus": {
+          "count": 14,
+          "total_ms": 0.252,
+          "mean_ms": 0.018,
+          "max_ms": 0.117
+        },
+        "ClearSignaledFences": {
+          "count": 14,
+          "total_ms": 2.467,
+          "mean_ms": 0.1762142857142857,
+          "max_ms": 0.394
+        },
+        "CollectNewGeneration": {
+          "count": 1,
+          "total_ms": 2.11,
+          "mean_ms": 2.11,
+          "max_ms": 2.11
+        },
+        "CompositorContext::ScopedFrame::Raster": {
+          "count": 42,
+          "total_ms": 20.715,
+          "mean_ms": 0.4932142857142857,
+          "max_ms": 1.901
+        },
+        "CreateGlyphAtlas": {
+          "count": 42,
+          "total_ms": 21.56,
+          "mean_ms": 0.5133333333333333,
+          "max_ms": 3.389
+        },
+        "DestroyImage": {
+          "count": 469,
+          "total_ms": 9.522,
+          "mean_ms": 0.02030277185501066,
+          "max_ms": 0.477
+        },
+        "Epilogue": {
+          "count": 1,
+          "total_ms": 0.007,
+          "mean_ms": 0.007,
+          "max_ms": 0.007
+        },
+        "FINALIZE TREE": {
+          "count": 42,
+          "total_ms": 4.432,
+          "mean_ms": 0.10552380952380953,
+          "max_ms": 1.417
+        },
+        "GPURasterizer::Draw": {
+          "count": 42,
+          "total_ms": 376.914,
+          "mean_ms": 8.974142857142857,
+          "max_ms": 41.236
+        },
+        "IterateIsolateRoots": {
+          "count": 1,
+          "total_ms": 0.159,
+          "mean_ms": 0.159,
+          "max_ms": 0.159
+        },
+        "IterateRememberedCards": {
+          "count": 2,
+          "total_ms": 0.004,
+          "mean_ms": 0.002,
+          "max_ms": 0.002
+        },
+        "IterateStoreBuffers": {
+          "count": 2,
+          "total_ms": 0.342,
+          "mean_ms": 0.171,
+          "max_ms": 0.341
+        },
+        "LAYOUT": {
+          "count": 42,
+          "total_ms": 159.725,
+          "mean_ms": 3.8029761904761905,
+          "max_ms": 15.597
+        },
+        "LAYOUT (root)": {
+          "count": 42,
+          "total_ms": 160.363,
+          "mean_ms": 3.8181666666666665,
+          "max_ms": 15.619
+        },
+        "LayerTree::Paint": {
+          "count": 42,
+          "total_ms": 13.727,
+          "mean_ms": 0.32683333333333336,
+          "max_ms": 1.469
+        },
+        "LayerTree::Preroll": {
+          "count": 42,
+          "total_ms": 6.6,
+          "mean_ms": 0.15714285714285714,
+          "max_ms": 0.448
+        },
+        "MournWeakHandles": {
+          "count": 1,
+          "total_ms": 0.138,
+          "mean_ms": 0.138,
+          "max_ms": 0.138
+        },
+        "MournWeakTables": {
+          "count": 1,
+          "total_ms": 0.017,
+          "mean_ms": 0.017,
+          "max_ms": 0.017
+        },
+        "NotifyIdle": {
+          "count": 37,
+          "total_ms": 2.709,
+          "mean_ms": 0.07321621621621621,
+          "max_ms": 2.223
+        },
+        "PAINT": {
+          "count": 42,
+          "total_ms": 50.366,
+          "mean_ms": 1.1991904761904761,
+          "max_ms": 5.727
+        },
+        "PAINT (root)": {
+          "count": 42,
+          "total_ms": 51.394,
+          "mean_ms": 1.2236666666666667,
+          "max_ms": 5.762
+        },
+        "POST_FRAME": {
+          "count": 42,
+          "total_ms": 2.1839999999999997,
+          "mean_ms": 0.052,
+          "max_ms": 1.341
+        },
+        "PipelineFull": {
+          "count": 2,
+          "total_ms": 0.072,
+          "mean_ms": 0.036,
+          "max_ms": 0.044
+        },
+        "PlatformVsync": {
+          "count": 44,
+          "total_ms": 3.688,
+          "mean_ms": 0.08381818181818182,
+          "max_ms": 0.368
+        },
+        "Prologue": {
+          "count": 1,
+          "total_ms": 0.004,
+          "mean_ms": 0.004,
+          "max_ms": 0.004
+        },
+        "Rasterizer::DoDraw": {
+          "count": 42,
+          "total_ms": 375.95300000000003,
+          "mean_ms": 8.951261904761905,
+          "max_ms": 41.201
+        },
+        "Rasterizer::DrawToSurfaces": {
+          "count": 42,
+          "total_ms": 374.657,
+          "mean_ms": 8.920404761904761,
+          "max_ms": 41.157
+        },
+        "ReclaimResources": {
+          "count": 74,
+          "total_ms": 32.328,
+          "mean_ms": 0.43686486486486487,
+          "max_ms": 3.824
+        },
+        "Scavenge": {
+          "count": 2,
+          "total_ms": 2.617,
+          "mean_ms": 1.3085,
+          "max_ms": 1.77
+        },
+        "SurfaceFrame::BuildDisplayList": {
+          "count": 42,
+          "total_ms": 0.24,
+          "mean_ms": 0.005714285714285714,
+          "max_ms": 0.011
+        },
+        "SurfaceFrame::Encode": {
+          "count": 42,
+          "total_ms": 262.416,
+          "mean_ms": 6.248,
+          "max_ms": 37.457
+        },
+        "SurfaceFrame::Submit": {
+          "count": 42,
+          "total_ms": 339.411,
+          "mean_ms": 8.081214285714285,
+          "max_ms": 39.007
+        },
+        "UPDATING COMPOSITING BITS": {
+          "count": 42,
+          "total_ms": 0.626,
+          "mean_ms": 0.014904761904761905,
+          "max_ms": 0.151
+        },
+        "UPDATING COMPOSITING BITS (root)": {
+          "count": 42,
+          "total_ms": 1.14,
+          "mean_ms": 0.027142857142857142,
+          "max_ms": 0.215
+        },
+        "UpdateAtlasBitmap": {
+          "count": 12,
+          "total_ms": 11.891,
+          "mean_ms": 0.9909166666666667,
+          "max_ms": 2.15
+        },
+        "VsyncFireCallback": {
+          "count": 44,
+          "total_ms": 2.677,
+          "mean_ms": 0.06084090909090909,
+          "max_ms": 0.324
+        },
+        "VsyncProcessCallback": {
+          "count": 44,
+          "total_ms": 287.477,
+          "mean_ms": 6.533568181818182,
+          "max_ms": 28.842
+        }
+      }
+    },
+    "nav-navigation-nested-push-flat": {
+      "complete_raster_slices_per_window": [
+        0,
+        0,
+        42
+      ],
+      "events": {
+        "AcquireNextDrawable": {
+          "count": 43,
+          "total_ms": 4.931,
+          "mean_ms": 0.11467441860465116,
+          "max_ms": 0.726
+        },
+        "AcquireNextSurface": {
+          "count": 43,
+          "total_ms": 7.016,
+          "mean_ms": 0.16316279069767442,
+          "max_ms": 0.779
+        },
+        "Animator::BeginFrame": {
+          "count": 47,
+          "total_ms": 246.06,
+          "mean_ms": 5.235319148936171,
+          "max_ms": 19.362
+        },
+        "Animator::Render": {
+          "count": 43,
+          "total_ms": 0.389,
+          "mean_ms": 0.009046511627906977,
+          "max_ms": 0.022
+        },
+        "AppendToExistingAtlas": {
+          "count": 3,
+          "total_ms": 0.081,
+          "mean_ms": 0.027,
+          "max_ms": 0.032
+        },
+        "AsyncWaitForVsync": {
+          "count": 48,
+          "total_ms": 7.304,
+          "mean_ms": 0.15216666666666667,
+          "max_ms": 0.305
+        },
+        "BUILD": {
+          "count": 146,
+          "total_ms": 125.764,
+          "mean_ms": 0.8613972602739726,
+          "max_ms": 9.127
+        },
+        "COMPOSITING": {
+          "count": 43,
+          "total_ms": 32.713,
+          "mean_ms": 0.7607674418604651,
+          "max_ms": 2.103
+        },
+        "Canvas::saveLayer": {
+          "count": 200,
+          "total_ms": 17.55,
+          "mean_ms": 0.08775,
+          "max_ms": 0.48
+        },
+        "CheckFenceStatus": {
+          "count": 10,
+          "total_ms": 0.115,
+          "mean_ms": 0.0115,
+          "max_ms": 0.023
+        },
+        "ClearSignaledFences": {
+          "count": 10,
+          "total_ms": 2.668,
+          "mean_ms": 0.2668,
+          "max_ms": 0.472
+        },
+        "CollectNewGeneration": {
+          "count": 2,
+          "total_ms": 15.412,
+          "mean_ms": 7.706,
+          "max_ms": 10.364
+        },
+        "CollectOldGeneration": {
+          "count": 1,
+          "total_ms": 4.526,
+          "mean_ms": 4.526,
+          "max_ms": 4.526
+        },
+        "CompositorContext::ScopedFrame::Raster": {
+          "count": 43,
+          "total_ms": 22.519,
+          "mean_ms": 0.5236976744186046,
+          "max_ms": 1.178
+        },
+        "ConcurrentMark": {
+          "count": 1,
+          "total_ms": 0.623,
+          "mean_ms": 0.623,
+          "max_ms": 0.623
+        },
+        "CreateGlyphAtlas": {
+          "count": 42,
+          "total_ms": 5.525,
+          "mean_ms": 0.13154761904761905,
+          "max_ms": 1.017
+        },
+        "DartIsolate::HandleMessage": {
+          "count": 2,
+          "total_ms": 0.038,
+          "mean_ms": 0.019,
+          "max_ms": 0.029
+        },
+        "DestroyImage": {
+          "count": 467,
+          "total_ms": 11.343,
+          "mean_ms": 0.024289079229122056,
+          "max_ms": 0.393
+        },
+        "Epilogue": {
+          "count": 2,
+          "total_ms": 0.013000000000000001,
+          "mean_ms": 0.006500000000000001,
+          "max_ms": 0.007
+        },
+        "Evacuate": {
+          "count": 1,
+          "total_ms": 0.181,
+          "mean_ms": 0.181,
+          "max_ms": 0.181
+        },
+        "FINALIZE TREE": {
+          "count": 43,
+          "total_ms": 1.778,
+          "mean_ms": 0.041348837209302325,
+          "max_ms": 0.556
+        },
+        "FinishIncrementalCompact": {
+          "count": 1,
+          "total_ms": 2.738,
+          "mean_ms": 2.738,
+          "max_ms": 2.738
+        },
+        "ForwardNewSpace": {
+          "count": 1,
+          "total_ms": 1.406,
+          "mean_ms": 1.406,
+          "max_ms": 1.406
+        },
+        "ForwardRememberedCards": {
+          "count": 1,
+          "total_ms": 0.003,
+          "mean_ms": 0.003,
+          "max_ms": 0.003
+        },
+        "ForwardStoreBuffer": {
+          "count": 1,
+          "total_ms": 0.194,
+          "mean_ms": 0.194,
+          "max_ms": 0.194
+        },
+        "GPURasterizer::Draw": {
+          "count": 42,
+          "total_ms": 391.983,
+          "mean_ms": 9.332928571428571,
+          "max_ms": 41.315
+        },
+        "IncrementalMarkWithSizeBudget": {
+          "count": 2,
+          "total_ms": 1.21,
+          "mean_ms": 0.605,
+          "max_ms": 1.168
+        },
+        "IterateIsolateRoots": {
+          "count": 2,
+          "total_ms": 0.736,
+          "mean_ms": 0.368,
+          "max_ms": 0.449
+        },
+        "IterateRememberedCards": {
+          "count": 2,
+          "total_ms": 0.005,
+          "mean_ms": 0.0025,
+          "max_ms": 0.003
+        },
+        "IterateStoreBuffers": {
+          "count": 2,
+          "total_ms": 3.572,
+          "mean_ms": 1.786,
+          "max_ms": 3.309
+        },
+        "LAYOUT": {
+          "count": 43,
+          "total_ms": 124.738,
+          "mean_ms": 2.9008837209302327,
+          "max_ms": 10.097
+        },
+        "LAYOUT (root)": {
+          "count": 43,
+          "total_ms": 125.192,
+          "mean_ms": 2.9114418604651164,
+          "max_ms": 10.115
+        },
+        "LayerTree::Paint": {
+          "count": 43,
+          "total_ms": 14.427,
+          "mean_ms": 0.33551162790697675,
+          "max_ms": 0.8
+        },
+        "LayerTree::Preroll": {
+          "count": 43,
+          "total_ms": 7.601,
+          "mean_ms": 0.1767674418604651,
+          "max_ms": 0.418
+        },
+        "MarkEvacuationCandidates": {
+          "count": 1,
+          "total_ms": 0.125,
+          "mean_ms": 0.125,
+          "max_ms": 0.125
+        },
+        "MournWeakHandles": {
+          "count": 2,
+          "total_ms": 0.555,
+          "mean_ms": 0.2775,
+          "max_ms": 0.324
+        },
+        "MournWeakTables": {
+          "count": 1,
+          "total_ms": 0.015,
+          "mean_ms": 0.015,
+          "max_ms": 0.015
+        },
+        "NotifyIdle": {
+          "count": 40,
+          "total_ms": 17.476,
+          "mean_ms": 0.4369,
+          "max_ms": 10.511
+        },
+        "PAINT": {
+          "count": 43,
+          "total_ms": 48.332,
+          "mean_ms": 1.124,
+          "max_ms": 3.323
+        },
+        "PAINT (root)": {
+          "count": 43,
+          "total_ms": 48.853,
+          "mean_ms": 1.1361162790697674,
+          "max_ms": 3.348
+        },
+        "POST_FRAME": {
+          "count": 43,
+          "total_ms": 2.0340000000000003,
+          "mean_ms": 0.047302325581395355,
+          "max_ms": 1.737
+        },
+        "ParallelMark": {
+          "count": 1,
+          "total_ms": 1.333,
+          "mean_ms": 1.333,
+          "max_ms": 1.333
+        },
+        "PipelineFull": {
+          "count": 4,
+          "total_ms": 0.147,
+          "mean_ms": 0.03675,
+          "max_ms": 0.044
+        },
+        "PlatformVsync": {
+          "count": 47,
+          "total_ms": 4.09,
+          "mean_ms": 0.08702127659574468,
+          "max_ms": 0.2
+        },
+        "ProcessDeferredMarking": {
+          "count": 2,
+          "total_ms": 0.005,
+          "mean_ms": 0.0025,
+          "max_ms": 0.003
+        },
+        "ProcessIsolateGroupRoots": {
+          "count": 2,
+          "total_ms": 0.931,
+          "mean_ms": 0.4655,
+          "max_ms": 0.599
+        },
+        "ProcessWeakHandles": {
+          "count": 1,
+          "total_ms": 0.246,
+          "mean_ms": 0.246,
+          "max_ms": 0.246
+        },
+        "Prologue": {
+          "count": 2,
+          "total_ms": 0.014,
+          "mean_ms": 0.007,
+          "max_ms": 0.008
+        },
+        "PruneFreeLists": {
+          "count": 1,
+          "total_ms": 0.001,
+          "mean_ms": 0.001,
+          "max_ms": 0.001
+        },
+        "Rasterizer::DoDraw": {
+          "count": 42,
+          "total_ms": 390.714,
+          "mean_ms": 9.302714285714286,
+          "max_ms": 41.295
+        },
+        "Rasterizer::DrawToSurfaces": {
+          "count": 42,
+          "total_ms": 389.613,
+          "mean_ms": 9.2765,
+          "max_ms": 41.214
+        },
+        "ReclaimResources": {
+          "count": 63,
+          "total_ms": 36.883,
+          "mean_ms": 0.5854444444444444,
+          "max_ms": 3.711
+        },
+        "Scavenge": {
+          "count": 2,
+          "total_ms": 14.908999999999999,
+          "mean_ms": 7.4544999999999995,
+          "max_ms": 10.088
+        },
+        "SelectEvacuationCandidates": {
+          "count": 1,
+          "total_ms": 0.023,
+          "mean_ms": 0.023,
+          "max_ms": 0.023
+        },
+        "StartConcurrentMarking": {
+          "count": 1,
+          "total_ms": 1.006,
+          "mean_ms": 1.006,
+          "max_ms": 1.006
+        },
+        "StartIncrementalCompact": {
+          "count": 1,
+          "total_ms": 0.201,
+          "mean_ms": 0.201,
+          "max_ms": 0.201
+        },
+        "SurfaceFrame::BuildDisplayList": {
+          "count": 43,
+          "total_ms": 0.257,
+          "mean_ms": 0.0059767441860465115,
+          "max_ms": 0.011
+        },
+        "SurfaceFrame::Encode": {
+          "count": 42,
+          "total_ms": 268.364,
+          "mean_ms": 6.389619047619048,
+          "max_ms": 38.507
+        },
+        "SurfaceFrame::Submit": {
+          "count": 42,
+          "total_ms": 351.241,
+          "mean_ms": 8.362880952380952,
+          "max_ms": 39.607
+        },
+        "SuspendStates": {
+          "count": 1,
+          "total_ms": 0.012,
+          "mean_ms": 0.012,
+          "max_ms": 0.012
+        },
+        "SweepExecutable": {
+          "count": 1,
+          "total_ms": 0.0,
+          "mean_ms": 0.0,
+          "max_ms": 0.0
+        },
+        "UPDATING COMPOSITING BITS": {
+          "count": 43,
+          "total_ms": 0.658,
+          "mean_ms": 0.015302325581395349,
+          "max_ms": 0.174
+        },
+        "UPDATING COMPOSITING BITS (root)": {
+          "count": 43,
+          "total_ms": 1.1280000000000001,
+          "mean_ms": 0.026232558139534883,
+          "max_ms": 0.26
+        },
+        "UpdateAtlasBitmap": {
+          "count": 3,
+          "total_ms": 1.857,
+          "mean_ms": 0.619,
+          "max_ms": 0.738
+        },
+        "UpdateGrowthLimit": {
+          "count": 1,
+          "total_ms": 0.007,
+          "mean_ms": 0.007,
+          "max_ms": 0.007
+        },
+        "Views": {
+          "count": 1,
+          "total_ms": 0.001,
+          "mean_ms": 0.001,
+          "max_ms": 0.001
+        },
+        "VsyncFireCallback": {
+          "count": 47,
+          "total_ms": 2.845,
+          "mean_ms": 0.06053191489361702,
+          "max_ms": 0.173
+        },
+        "VsyncProcessCallback": {
+          "count": 47,
+          "total_ms": 249.081,
+          "mean_ms": 5.299595744680851,
+          "max_ms": 19.462
+        },
+        "WeakPersistentHandles": {
+          "count": 1,
+          "total_ms": 0.024,
+          "mean_ms": 0.024,
+          "max_ms": 0.024
+        },
+        "WeakTables": {
+          "count": 1,
+          "total_ms": 0.003,
+          "mean_ms": 0.003,
+          "max_ms": 0.003
+        }
+      }
+    },
+    "nav-navigation-enter-flat": {
+      "complete_raster_slices_per_window": [
+        0,
+        0,
+        0
+      ],
+      "events": {}
+    }
+  }
+}

@@ -1,0 +1,625 @@
+// ignore_for_file: implementation_imports, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+
+import 'dart:async';
+import 'dart:convert';
+import 'dart:developer' as developer;
+import 'dart:io';
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
+import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/widgets.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
+import 'package:morph/src/widgets/navigation_stack.dart';
+import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph_example/gallery/navigation_page.dart';
+import 'package:morph_example/perf/glass_stage_bench.dart' show stageBenchStats;
+
+const _runs = int.fromEnvironment('NAV_RUNS', defaultValue: 3);
+const _warmMs = int.fromEnvironment('NAV_WARM_MS', defaultValue: 800);
+const _sampleMs = int.fromEnvironment('NAV_SAMPLE_MS', defaultValue: 2400);
+const _seed = int.fromEnvironment('NAV_SEED', defaultValue: 202610078);
+const _workflowCycles = int.fromEnvironment(
+  'NAV_WORKFLOW_CYCLES',
+  defaultValue: 5,
+);
+const _warmActions = bool.fromEnvironment(
+  'NAV_WARM_ACTIONS',
+  defaultValue: true,
+);
+const _phases = bool.fromEnvironment('NAV_PHASES', defaultValue: false);
+const _shots = bool.fromEnvironment('NAV_SHOTS', defaultValue: false);
+const _repeatShots = bool.fromEnvironment('NAV_REPEAT_REFERENCE');
+const _pageSelection = String.fromEnvironment(
+  'NAV_PAGES',
+  defaultValue: 'navigation',
+);
+const _modeSelection = String.fromEnvironment(
+  'NAV_MODES',
+  defaultValue: 'liquid,flat',
+);
+const _motionSelection = String.fromEnvironment(
+  'NAV_MOTIONS',
+  defaultValue: 'enter,nested-push,nested-pop,toolbar,steady,title',
+);
+const _offsetSelection = String.fromEnvironment(
+  'NAV_SHOT_OFFSETS',
+  defaultValue: '0,40,160,420,640',
+);
+
+/// Runs the real gallery navigation page in the restoring native stage runner.
+void main() async {
+  _BenchBinding();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  runApp(const _Bench());
+}
+
+class _BenchBinding extends WidgetsFlutterBinding {
+  _BenchBinding() {
+    addPersistentFrameCallback((_) {
+      _lastSystem = super.currentSystemFrameTimeStamp;
+    });
+  }
+
+  Duration? _lastSystem;
+  Duration? _system;
+
+  @override
+  void handleBeginFrame(Duration? rawTimeStamp) {
+    super.handleBeginFrame(_system ?? rawTimeStamp);
+  }
+
+  void freeze() {
+    _system = _lastSystem!;
+  }
+
+  void step(Duration delta) {
+    _system = _system! + delta;
+  }
+
+  void release() {
+    _system = null;
+  }
+}
+
+class _Case {
+  const _Case(this.page, this.motion, this.mode);
+  final String page;
+  final String motion;
+  final String mode;
+  String get name => 'nav-$page-$motion-$mode';
+}
+
+List<String> _select(String input, List<String> allowed) {
+  final values = input.split(',');
+  if (values.any((v) => !allowed.contains(v)) ||
+      values.toSet().length != values.length) {
+    throw ArgumentError('Expected distinct members of $allowed, got $input');
+  }
+  return values;
+}
+
+List<_Case> _cases() => [
+  for (final page in _select(_pageSelection, ['navigation', 'home']))
+    for (final motion in _select(_motionSelection, [
+      'enter',
+      'nested-push',
+      'nested-pop',
+      'toolbar',
+      'workflow',
+      'steady',
+      'title',
+    ]))
+      for (final mode in _select(_modeSelection, ['liquid', 'flat', 'no-glyphs', 'no-fusion', 'no-body', 'still-body', 'no-blur', 'no-scale', 'no-opacity']))
+        _Case(page, motion, mode),
+];
+
+class _Bench extends StatefulWidget {
+  const _Bench();
+  @override
+  State<_Bench> createState() => _BenchState();
+}
+
+class _BenchState extends State<_Bench> {
+  final _timings = <ui.FrameTiming>[];
+  final _windows = <String, List<List<int>>>{};
+  final _metadata = <String, Map<String, Object?>>{};
+  final _order = <String>[];
+  final _rootKey = GlobalKey();
+  GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
+  GlobalKey _pageKey = GlobalKey();
+  ScrollPosition? _position;
+  int _generation = 0;
+  _Case? _current;
+  bool _inboxMounted = false;
+  VoidCallback? _action;
+  List<int>? _coldWindow;
+
+  bool _scrolls(_Case c) => c.motion == 'steady' || c.motion == 'title';
+
+  VoidCallback _messageAction() {
+    VoidCallback? result;
+    void visit(Element element) {
+      final widget = element.widget;
+      if (widget is Text && widget.data == 'Message 0') {
+        element.visitAncestorElements((ancestor) {
+          final parent = ancestor.widget;
+          if (parent is GestureDetector && parent.onTap != null) {
+            result = parent.onTap;
+            return false;
+          }
+          return true;
+        });
+      }
+      element.visitChildren(visit);
+    }
+
+    (_pageKey.currentContext! as Element).visitChildren(visit);
+    return result ?? (throw StateError('Message 0 action unavailable'));
+  }
+
+  VoidCallback _toolbarAction() {
+    VoidCallback? result;
+    void visit(Element element) {
+      final widget = element.widget;
+      if (widget is MorphBarItems) {
+        for (final group in widget.groups) {
+          for (final button in group.group.buttons) {
+            if (button.id == 'filter') result = button.onPressed;
+          }
+        }
+      }
+      element.visitChildren(visit);
+    }
+
+    (_navigator.currentContext! as Element).visitAncestorElements((e) {
+      if (e.widget is MorphNavigationStack) {
+        visit(e);
+        return false;
+      }
+      return true;
+    });
+    return result ?? (throw StateError('Filter action unavailable'));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    SchedulerBinding.instance.addTimingsCallback(_collect);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _run());
+  }
+
+  void _collect(List<ui.FrameTiming> batch) => _timings.addAll(batch);
+
+  @override
+  void dispose() {
+    _generation++;
+    SchedulerBinding.instance.removeTimingsCallback(_collect);
+    super.dispose();
+  }
+
+  BuildContext get _context =>
+      !_inboxMounted ? _navigator.currentContext! : _pageKey.currentContext!;
+
+  Future<void> _drive(ScrollPosition position, _Case c, int generation) async {
+    final low = c.motion == 'steady' ? 140.0 : .2;
+    final high = c.motion == 'steady' ? 580.0 : 88.0;
+    while (mounted && _generation == generation) {
+      await position.animateTo(
+        high,
+        duration: const Duration(milliseconds: _sampleMs ~/ 2),
+        curve: Curves.easeInOutSine,
+      );
+      if (!mounted || _generation != generation) return;
+      await position.animateTo(
+        low,
+        duration: const Duration(milliseconds: _sampleMs ~/ 2),
+        curve: Curves.easeInOutSine,
+      );
+    }
+  }
+
+  void _enterInbox() {
+    _navigator.currentState!.push<void>(
+      MorphNavigationRoute<void>(
+        builder: (_) =>
+            KeyedSubtree(key: _pageKey, child: const NavigationDemoPage()),
+      ),
+    );
+  }
+
+  Future<void> _perform(_Case c) async {
+    Future<void> pause() =>
+        Future<void>.delayed(const Duration(milliseconds: _sampleMs));
+    if (c.motion == 'workflow') {
+      for (var cycle = 0; cycle < _workflowCycles; cycle++) {
+        _enterInbox();
+        await pause();
+        _messageAction()();
+        await pause();
+        _navigator.currentState!.pop();
+        await pause();
+        _toolbarAction()();
+        await pause();
+        _navigator.currentState!.pop();
+        await pause();
+      }
+    } else {
+      _action?.call();
+      await pause();
+    }
+  }
+
+  Future<void> _mount(_Case c, {bool drive = true}) async {
+    debugMorphOmitBarGlyphs = c.mode == 'no-glyphs';
+    debugMorphOmitBarBlur = c.mode == 'no-blur';
+    debugMorphOmitBarScale = c.mode == 'no-scale';
+    debugMorphOmitBarOpacity = c.mode == 'no-opacity';
+    debugMorphPlainContour = c.mode == 'no-fusion';
+    debugMorphOmitNavigationBody = c.mode == 'no-body';
+    debugMorphStillNavigationBody = c.mode == 'still-body';
+    _generation++;
+    _position?.jumpTo(_position!.pixels);
+    _position = null;
+    _inboxMounted = false;
+    _action = null;
+    _navigator = GlobalKey<NavigatorState>();
+    _pageKey = GlobalKey();
+    setState(() => _current = c);
+    await SchedulerBinding.instance.endOfFrame;
+    final settings = GalleryGlassScope.of(_navigator.currentContext!);
+    settings.appearance = ThemeMode.dark;
+    settings.tier = c.mode != 'liquid'
+        ? MorphGlassTier.flat
+        : MorphGlassTier.liquid;
+    settings.blur = 1;
+    await SchedulerBinding.instance.endOfFrame;
+    if (c.page == 'navigation' &&
+        c.motion != 'enter' &&
+        c.motion != 'workflow') {
+      _enterInbox();
+      _inboxMounted = true;
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
+    }
+    _action = switch (c.motion) {
+      'enter' => _enterInbox,
+      'nested-push' => _messageAction(),
+      'nested-pop' => () => _navigator.currentState!.pop(),
+      'toolbar' => _toolbarAction(),
+      _ => null,
+    };
+    final positions = <ScrollPosition>[];
+    void visit(Element element) {
+      if (element is StatefulElement && element.state is ScrollableState) {
+        final state = element.state as ScrollableState;
+        if (axisDirectionToAxis(state.position.axisDirection) ==
+            Axis.vertical) {
+          positions.add(state.position);
+        }
+      }
+      element.visitChildren(visit);
+    }
+
+    (_context as Element).visitChildren(visit);
+    if (positions.length != 1) {
+      throw StateError(
+        'Expected one page scroll position, got ${positions.length}',
+      );
+    }
+    final position = positions.single;
+    _position = position;
+    position.jumpTo(c.motion == 'steady' ? 140 : .2);
+    await SchedulerBinding.instance.endOfFrame;
+    if (c.motion == 'nested-pop') {
+      _messageAction()();
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
+    }
+    if (drive && _scrolls(c)) unawaited(_drive(position, c, _generation));
+    await Future<void>.delayed(const Duration(milliseconds: _warmMs));
+  }
+
+  Map<String, Object?> _snapshot() {
+    final census = MorphGlassInspector.census();
+    final layers = <Map<String, Object?>>[];
+    void visit(RenderObject object) {
+      if (object is RenderLiquidGlassLayer &&
+          object.debugFilterBounds != null) {
+        final local = object.debugFilterBounds!;
+        final global = MatrixUtils.transformRect(
+          object.getTransformTo(null),
+          local,
+        );
+        layers.add({
+          'local_rect': [local.left, local.top, local.width, local.height],
+          'screen_rect': [global.left, global.top, global.width, global.height],
+          'sigma': object.blurPassSigma,
+          'grouped': object.backdropKey != null,
+        });
+      }
+      object.visitChildren(visit);
+    }
+
+    for (final view in RendererBinding.instance.renderViews) {
+      visit(view);
+    }
+    return {
+      'backdrop_layers': census.filters,
+      'distinct_capture_keys': census.captures,
+      'owners': census.owners,
+      'liquid_layers': layers,
+      'liquid_filter_rects_logical': [
+        for (final layer in layers) layer['screen_rect'],
+      ],
+      'scroll_extent': _position!.maxScrollExtent,
+    };
+  }
+
+  Map<String, Object?> _report(List<double> offsets) {
+    final view = ui.PlatformDispatcher.instance.views.first;
+    final rate = view.display.refreshRate > 0 ? view.display.refreshRate : 60.0;
+    final budget = 1000 / rate;
+    return {
+      'schema': 'morph-stage-bench-v1',
+      'fixture': 'real-gallery-navigation',
+      'platform': Platform.operatingSystem,
+      'build_mode': kProfileMode ? 'profile' : 'release',
+      'refresh_rate': rate,
+      'budget_ms': budget,
+      'device_pixel_ratio': view.devicePixelRatio,
+      'physical_size': [view.physicalSize.width, view.physicalSize.height],
+      'liquid_available': MorphGlassRenderer.liquidAvailable,
+      'runs': _runs,
+      'warm_ms': _warmMs,
+      'sample_ms': _sampleMs,
+      'workflow_cycles': _workflowCycles,
+      'workflow_actions': const [
+        'enter',
+        'nested-push',
+        'nested-pop',
+        'toolbar',
+        'exit',
+      ],
+      'seed': _seed,
+      'actions_prewarmed': _warmActions,
+      'cold_enter': _coldWindow == null
+          ? null
+          : {
+              'window_us': _coldWindow,
+              ...stageBenchStats(
+                _timings.where((f) {
+                  final at = f.timestampInMicroseconds(
+                    ui.FramePhase.vsyncStart,
+                  );
+                  return at >= _coldWindow![0] && at < _coldWindow![1];
+                }).toList(),
+                budget,
+              ),
+            },
+      'framework_phases_collected': _phases,
+      'shot_phases': _shots ? offsets : <double>[],
+      'action_shot_frames': _shots
+          ? const [0, 1, 4, 10, 20, 34, 48]
+          : const <int>[],
+      'repeat_reference_shots': _repeatShots,
+      'shot_clock':
+          'Raw scheduler timestamps advance 16667 us; all reads follow timing collection.',
+      'order': _order,
+      'case_metadata': _metadata,
+      'windows_us': _windows,
+      'motion_protocol':
+          'Actions invoke actual callbacks once per window; settled tails are not jank.',
+      'attribution':
+          'Flat changes visible transfer; its comparison is diagnostic only',
+      for (final entry in _windows.entries)
+        entry.key: {
+          'runs': [
+            for (final window in entry.value)
+              () {
+                final frames = _timings.where((f) {
+                  final time = f.timestampInMicroseconds(
+                    ui.FramePhase.vsyncStart,
+                  );
+                  return time >= window[0] && time < window[1];
+                }).toList();
+                if (frames.length < 4) {
+                  throw StateError('Insufficient timings for ${entry.key}');
+                }
+                return {
+                  ...stageBenchStats(frames, budget),
+                  'frames': [
+                    for (final f in frames)
+                      [
+                        f.timestampInMicroseconds(ui.FramePhase.vsyncStart),
+                        f.buildDuration.inMicroseconds,
+                        f.rasterDuration.inMicroseconds,
+                        f.totalSpan.inMicroseconds,
+                      ],
+                  ],
+                };
+              }(),
+          ],
+        },
+    };
+  }
+
+  Future<void> _run() async {
+    final out = Directory(
+      const String.fromEnvironment(
+        'AUDIT_OUT',
+        defaultValue: '/tmp/morph-navigation',
+      ),
+    );
+    try {
+      if (kDebugMode || _runs < 1 || _warmMs < 100 || _sampleMs < 800) {
+        throw StateError('Native bounded collection windows required');
+      }
+      await MorphGlassRenderer.precache();
+      if (!MorphGlassRenderer.liquidAvailable) {
+        throw StateError('Liquid glass unavailable');
+      }
+      final cases = _cases();
+      if (_workflowCycles < 1 ||
+          cases.any(
+            (c) => c.motion == 'workflow' && (c.page != 'navigation' || _shots),
+          )) {
+        throw ArgumentError(
+          'Workflow requires navigation, shots off and positive cycles',
+        );
+      }
+      final offsets = _offsetSelection.split(',').map(double.parse).toList();
+      if (offsets.any((x) => !x.isFinite || x < 0)) {
+        throw ArgumentError('Nonnegative finite offsets required');
+      }
+      if (cases.any((c) => c.page == 'navigation' && c.motion == 'enter')) {
+        await _mount(const _Case('navigation', 'enter', 'liquid'));
+        _coldWindow = [developer.Timeline.now, 0];
+        _action!();
+        await Future<void>.delayed(const Duration(milliseconds: _sampleMs));
+        _coldWindow![1] = developer.Timeline.now;
+      }
+      for (final c in cases) {
+        await _mount(c);
+        if (_warmActions && (_action != null || c.motion == 'workflow')) {
+          await _perform(c);
+        }
+      }
+      await Future<void>.delayed(const Duration(seconds: 5));
+      final random = math.Random(_seed);
+      for (var run = 0; run < _runs; run++) {
+        final order = [...cases];
+        order.shuffle(random);
+        for (final c in order) {
+          await _mount(c);
+          _metadata.putIfAbsent(
+            c.name,
+            () => {
+              'layout': c.page,
+              'motion': c.motion,
+              'mode': c.mode,
+              'plan': 'actual-gallery',
+              'content': c.page == 'navigation' ? 'mail' : 'gallery-list',
+              'requested_sigma_logical': 2,
+              'diagnostic_ablation': c.mode == 'flat',
+              ..._snapshot(),
+            },
+          );
+          _order.add(c.name);
+          developer.Timeline.startSync('scene:${c.name}:$run:begin');
+          developer.Timeline.finishSync();
+          FlutterTimeline.debugCollectionEnabled = _phases;
+          final window = [developer.Timeline.now, 0];
+          await _perform(c);
+          window[1] = developer.Timeline.now;
+          if (_phases) {
+            final collected = FlutterTimeline.debugCollect();
+            FlutterTimeline.debugCollectionEnabled = false;
+            final count = collected.getAggregated('COMPOSITING').count;
+            final blocks = <String, double>{};
+            for (final block in collected.aggregatedBlocks) {
+              blocks[block.name] = block.duration / 1000;
+            }
+            final samples =
+                (_metadata[c.name]!['framework_phases'] ??=
+                        <Map<String, Object?>>[])
+                    as List<Map<String, Object?>>;
+            samples.add({'composited': count, 'total_ms': blocks});
+          }
+          developer.Timeline.startSync('scene:${c.name}:$run:end');
+          developer.Timeline.finishSync();
+          (_windows[c.name] ??= []).add(window);
+        }
+      }
+      _generation++;
+      _position?.jumpTo(_position!.pixels);
+      await Future<void>.delayed(const Duration(milliseconds: 1200));
+      final report = _report(offsets);
+      out.createSync(recursive: true);
+      File('${out.path}/timings.json').writeAsStringSync(jsonEncode(report));
+      if (_shots) {
+        final binding = WidgetsBinding.instance as _BenchBinding;
+        Future<void> save(String name) async {
+          final boundary =
+              _rootKey.currentContext!.findRenderObject()!
+                  as RenderRepaintBoundary;
+          final image = await boundary.toImage(
+            pixelRatio: View.of(_rootKey.currentContext!).devicePixelRatio,
+          );
+          try {
+            final bytes = await image.toByteData(
+              format: ui.ImageByteFormat.png,
+            );
+            if (bytes == null) throw StateError('Missing PNG');
+            File('${out.path}/$name.png').writeAsBytesSync(
+              bytes.buffer.asUint8List(
+                bytes.offsetInBytes,
+                bytes.lengthInBytes,
+              ),
+            );
+          } finally {
+            image.dispose();
+          }
+        }
+
+        final captures = [
+          for (final c in cases) (c, ''),
+          if (_repeatShots)
+            for (final c in cases.where((c) => c.mode == 'liquid')) (c, '-ref'),
+        ];
+        for (final (c, suffix) in captures) {
+          await _mount(c, drive: false);
+          if (_scrolls(c)) {
+            for (final offset in offsets) {
+              _position!.jumpTo(offset);
+              await SchedulerBinding.instance.endOfFrame;
+              await SchedulerBinding.instance.endOfFrame;
+              await save('${c.name}$suffix-p$offset');
+            }
+          } else {
+            binding.freeze();
+            try {
+              _action!();
+              await binding.endOfFrame;
+              await binding.endOfFrame;
+              for (var frame = 0; frame <= 48; frame++) {
+                if (const {0, 1, 4, 10, 20, 34, 48}.contains(frame)) {
+                  await binding.endOfFrame;
+                  await save('${c.name}$suffix-f$frame');
+                }
+                binding.step(const Duration(microseconds: 16667));
+                await binding.endOfFrame;
+              }
+            } finally {
+              binding.release();
+            }
+          }
+        }
+      }
+      final temporary = File('${out.path}/report.tmp');
+      temporary.writeAsStringSync(jsonEncode(report));
+      temporary.renameSync('${out.path}/report.json');
+      setState(() => _current = null);
+    } on Object catch (error, stack) {
+      _generation++;
+      _position?.jumpTo(_position!.pixels);
+      out.createSync(recursive: true);
+      File(
+        '${out.path}/error.json',
+      ).writeAsStringSync(jsonEncode({'error': '$error', 'stack': '$stack'}));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => RepaintBoundary(
+    key: _rootKey,
+    child: _current == null
+        ? const SizedBox.shrink()
+        : GalleryApp(key: ValueKey(_generation), navigatorKey: _navigator),
+  );
+}

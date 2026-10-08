@@ -2615,3 +2615,18 @@ The native control and final verdict are documented in
 tool/audit/codex-navigation-report.md; source/evidence in
 perf/2026-10-07-navigation. Runner restores the release gallery and its
 owned tracing state. Main library behavior is unchanged.
+
+## Navigation without glass (2026-10-07)
+
+FLAT NAVIGATION ATTRIBUTION (2026-10-07, Pixel 6a): four clean native
+GPU launches isolate nonglass cost, three repeats per action. All case
+censuses have zero backdrop filters. Hiding button glyphs cuts nested
+raster p95 from roughly 24-33 to 7-8 ms; omitting their blur alone cuts
+roughly 24-29 to 15-17 ms. Plain contour substitution cuts nested UI
+p95 roughly 13-15 to 7-11 ms, while the raster tail remains. Removing
+page painting does not remove the nested raster tail. These are visible
+diagnostic ablations, not production wins. Prioritize preserving the
+animated glyph/filter path and skipping unused optical-field preparation
+on flat/fake; energy and native fidelity still gate any implementation.
+See tool/audit/codex-navigation-flat-report.md and the frozen evidence in
+perf/2026-10-07-navigation-flat. Main library behavior is unchanged.

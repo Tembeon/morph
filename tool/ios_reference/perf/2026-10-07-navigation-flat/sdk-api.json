@@ -1,0 +1,9 @@
+{
+  "sdk_head": "d3b14c876900e553bc736ca19295fc09e3853e8e",
+  "engine_stamp": "a804b261645ef8c13eb3d5c44a5c2fb0340c5539",
+  "commit_ancestor_exit": 1,
+  "cached_api_signature": "  factory ImageFilter.shader(FragmentShader shader) {",
+  "cached_api_sha256": "9858458e34b236815023634099223d845fe13f38bc309f330605fc5ad7a93e9e",
+  "commit_url": "https://github.com/flutter/flutter/commit/0c52dee3bc3653a6fefd86409b68f4e10cc4194f",
+  "sdk_modified": false
+}

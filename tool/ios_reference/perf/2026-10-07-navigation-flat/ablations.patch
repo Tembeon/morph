@@ -1,0 +1,111 @@
+--- a/example/lib/perf/navigation_stage_bench.dart
++++ b/example/lib/perf/navigation_stage_bench.dart
+@@ -15,6 +15,8 @@
+ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
+ import 'package:morph/src/widgets/bar_items.dart';
+ import 'package:morph/widgets.dart';
++import 'package:morph/src/widgets/glass_outline.dart';
++import 'package:morph/src/widgets/navigation_stack.dart';
+ import 'package:morph_example/gallery/gallery.dart';
+ import 'package:morph_example/gallery/glass_settings.dart';
+ import 'package:morph_example/gallery/navigation_page.dart';
+@@ -115,7 +117,7 @@
+       'steady',
+       'title',
+     ]))
+-      for (final mode in _select(_modeSelection, ['liquid', 'flat']))
++      for (final mode in _select(_modeSelection, ['liquid', 'flat', 'no-glyphs', 'no-fusion', 'no-body', 'still-body']))
+         _Case(page, motion, mode),
+ ];
+ 
+@@ -256,6 +258,10 @@
+   }
+ 
+   Future<void> _mount(_Case c, {bool drive = true}) async {
++    debugMorphOmitBarGlyphs = c.mode == 'no-glyphs';
++    debugMorphPlainContour = c.mode == 'no-fusion';
++    debugMorphOmitNavigationBody = c.mode == 'no-body';
++    debugMorphStillNavigationBody = c.mode == 'still-body';
+     _generation++;
+     _position?.jumpTo(_position!.pixels);
+     _position = null;
+@@ -267,7 +273,7 @@
+     await SchedulerBinding.instance.endOfFrame;
+     final settings = GalleryGlassScope.of(_navigator.currentContext!);
+     settings.appearance = ThemeMode.dark;
+-    settings.tier = c.mode == 'flat'
++    settings.tier = c.mode != 'liquid'
+         ? MorphGlassTier.flat
+         : MorphGlassTier.liquid;
+     settings.blur = 1;
+--- a/lib/src/widgets/bar_items.dart
++++ b/lib/src/widgets/bar_items.dart
+@@ -765,6 +765,9 @@
+   @override
+   State<MorphBarItems> createState() => _MorphBarItemsState();
+ }
++
++/// Diagnostic omission of glyph painting.
++bool debugMorphOmitBarGlyphs = false;
+ 
+ class _MorphBarItemsState extends State<MorphBarItems>
+     with
+@@ -1431,6 +1434,7 @@
+       );
+       _contents[button.id] = (inputs, content);
+     }
++    if (debugMorphOmitBarGlyphs) content = Opacity(opacity: 0, child: content);
+     if (frame.blur > 0.05) {
+       content = ImageFiltered(
+         imageFilter: ui.ImageFilter.blur(
+--- a/lib/src/widgets/navigation_stack.dart
++++ b/lib/src/widgets/navigation_stack.dart
+@@ -601,7 +601,7 @@
+             ((1 - animation.value) -
+                 MorphNavigationTransition.parallax * secondaryAnimation.value);
+         return Transform.translate(
+-          offset: Offset(rtl ? -x : x, 0),
++          offset: debugMorphStillNavigationBody ? Offset.zero : Offset(rtl ? -x : x, 0),
+           child: child,
+         );
+       },
+@@ -900,6 +900,12 @@
+   State<MorphNavigationScaffold> createState() =>
+       _MorphNavigationScaffoldState();
+ }
++
++/// Diagnostic omission of page painting.
++bool debugMorphOmitNavigationBody = false;
++
++/// Diagnostic omission of page translation.
++bool debugMorphStillNavigationBody = false;
+ 
+ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
+   ScrollController? _own;
+@@ -1026,7 +1032,7 @@
+         child: scroll,
+       ),
+     );
+-    if (shared) return body;
++    if (shared) return debugMorphOmitNavigationBody ? Opacity(opacity: 0, child: body) : body;
+     var leading = widget.leading;
+     if (leading == null && (route?.canPop ?? false)) {
+       leading = MorphBarButtonGroup([
+--- a/lib/src/widgets/glass_outline.dart
++++ b/lib/src/widgets/glass_outline.dart
+@@ -837,11 +837,14 @@
+ /// fuse them again. Shapes must have uniform
+ /// circular corner radii; non-uniform corners are rejected in debug builds.
+ @internal
++/// Diagnostic omission of fused field calculations.
++bool debugMorphPlainContour = false;
++
+ MorphGlassOutline morphGlassContainerOutline(
+   List<RRect> shapes,
+   double spacing,
+ ) {
+-  if (spacing <= 0) return _plainUnion(shapes);
++  if (debugMorphPlainContour || spacing <= 0) return _plainUnion(shapes);
+   for (final (recent, recentSpacing, outline) in _recentOutlines) {
+     if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
+   }

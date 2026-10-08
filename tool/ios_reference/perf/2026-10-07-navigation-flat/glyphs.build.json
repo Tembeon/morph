@@ -1,0 +1,13 @@
+{
+  "target": "lib/perf/navigation_stage_bench.dart",
+  "defines": [
+    "NAV_MODES=flat,no-blur,no-scale,no-opacity",
+    "NAV_MOTIONS=nested-push,nested-pop,toolbar",
+    "NAV_RUNS=3",
+    "NAV_WARM_MS=500",
+    "NAV_SAMPLE_MS=800"
+  ],
+  "commit": "71709392641daf71c768f6e4a12e9f0f0056b536",
+  "source_sha256": "f3b26be910462e4f4031891f81d8325015c3e8a66ac5a0b1467796590507860e",
+  "apk_sha256": "ebe02ca9592cefa4016010e7333c4693ebd9e6d16bbaf8ba9ea47d78ee11d074"
+}

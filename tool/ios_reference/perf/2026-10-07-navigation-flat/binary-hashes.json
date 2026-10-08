@@ -1,0 +1,14 @@
+{
+  "flat": {
+    "sha256": "1036d8242103b026d8591e9115eed1f0d318ec96352477768b0638aefbd58a26",
+    "bytes": 36458082
+  },
+  "ablations": {
+    "sha256": "a281d5fc917e16fc42e3b4c52570693ef1fe134bab8679481fb943d4af89bb20",
+    "bytes": 27477213
+  },
+  "glyphs": {
+    "sha256": "ebe02ca9592cefa4016010e7333c4693ebd9e6d16bbaf8ba9ea47d78ee11d074",
+    "bytes": 35868258
+  }
+}

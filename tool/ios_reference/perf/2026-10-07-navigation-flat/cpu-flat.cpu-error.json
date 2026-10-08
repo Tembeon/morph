@@ -1,0 +1,1 @@
+{"error": "{'code': -32602, 'message': 'Invalid params', 'data': {'request': {'method': 'setVMTimelineFlags', 'params': {'recordedStreams': '[\"Dart\", \"Embedder\", \"GC\"]'}}, 'details': 'setVMTimelineFlags: invalid \\'recordedStreams\\' parameter: [\"Dart\", \"Embedder\", \"GC\"]'}}"}
