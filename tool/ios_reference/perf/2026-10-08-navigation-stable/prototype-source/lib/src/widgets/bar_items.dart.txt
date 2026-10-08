@@ -1,4 +1,7 @@
 import 'dart:math' as math;
+
+import 'package:morph/src/widgets/glyph_scale.dart';
+
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -15,7 +18,6 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
@@ -982,9 +984,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
   void _relayout(double width) {
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final scaler =
-        MediaQuery.maybeTextScalerOf(
-          context,
-        )?.clamp(maxScaleFactor: MorphBarMetrics.maxTextScale) ??
+        MediaQuery.maybeTextScalerOf(context)
+            ?.clamp(maxScaleFactor: MorphBarMetrics.maxTextScale) ??
         TextScaler.noScaling;
     List<MorphBarCapsuleLayout> lay(List<MorphPlacedGroup> groups) =>
         morphLayoutBarGroups(
@@ -1432,12 +1433,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
       );
       _contents[button.id] = (inputs, content);
     }
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      content = MorphGlyphRaster(
-        active: frame.blur * scale.abs() >= MorphGlyphRaster.minBlur
-            ? const AlwaysStoppedAnimation(true)
-            : const AlwaysStoppedAnimation(false),
-        sampleLogicalBounds: true,
+    if (debugBarRasters) {
+      content = _RasterBarContent(
+        active: frame.blur * scale.abs() >= MorphGlyphRaster.minBlur,
         child: content,
       );
     }
@@ -1706,7 +1704,7 @@ class _FlatBodies {
               : morphGlassContainerOutline(
                   [for (final i in group) shapes[i]],
                   spacing,
-                  withField: false,
+                  withField: debugFullFlatFields,
                 ).path,
           opacities[group.first],
         ),
@@ -1773,4 +1771,33 @@ class _CapsulePainter extends CustomPainter {
   @override
   bool shouldRepaint(_CapsulePainter oldDelegate) =>
       !listEquals(oldDelegate.bodies, bodies) || oldDelegate.style != style;
+}
+
+bool debugBarRasters = false;
+
+class _RasterBarContent extends StatefulWidget {
+  const _RasterBarContent({required this.active, required this.child});
+  final bool active;
+  final Widget child;
+  @override
+  State<_RasterBarContent> createState() => _RasterBarContentState();
+}
+
+class _RasterBarContentState extends State<_RasterBarContent> {
+  late final ValueNotifier<bool> _active = ValueNotifier(widget.active);
+  @override
+  void didUpdateWidget(_RasterBarContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _active.value = widget.active;
+  }
+
+  @override
+  void dispose() {
+    _active.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) =>
+      MorphGlyphRaster(active: _active, child: widget.child);
 }

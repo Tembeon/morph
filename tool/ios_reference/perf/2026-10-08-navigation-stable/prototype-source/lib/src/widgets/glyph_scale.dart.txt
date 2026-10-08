@@ -139,27 +139,19 @@ class MorphGlyphRaster extends SingleChildRenderObjectWidget {
   const MorphGlyphRaster({
     required this.active,
     required super.child,
-    this.sampleLogicalBounds = false,
     super.key,
   });
 
   /// Whether the child is drawn from its raster.
   final ValueListenable<bool> active;
 
-  /// Samples the child's logical extent instead of stretching the rounded
-  /// pixel dimensions of its raster over that extent.
-  final bool sampleLogicalBounds;
-
   /// The smallest blur, in logical pixels on screen, that hides the
   /// resampling of a raster drawn under it.
   static const double minBlur = 0.5;
 
   @override
-  RenderObject createRenderObject(BuildContext context) => _RenderGlyphRaster(
-    active,
-    MediaQuery.devicePixelRatioOf(context),
-    sampleLogicalBounds: sampleLogicalBounds,
-  );
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderGlyphRaster(active, MediaQuery.devicePixelRatioOf(context));
 
   @override
   void updateRenderObject(
@@ -169,39 +161,24 @@ class MorphGlyphRaster extends SingleChildRenderObjectWidget {
     (renderObject as _RenderGlyphRaster).update(
       active,
       MediaQuery.devicePixelRatioOf(context),
-      sampleLogicalBounds: sampleLogicalBounds,
     );
   }
 }
 
 class _RenderGlyphRaster extends RenderProxyBox {
-  _RenderGlyphRaster(
-    this._active,
-    this._devicePixelRatio, {
-    required bool sampleLogicalBounds,
-    // ignore: prefer_initializing_formals
-  }) : _sampleLogicalBounds = sampleLogicalBounds;
+  _RenderGlyphRaster(this._active, this._devicePixelRatio);
 
   ValueListenable<bool> _active;
 
   double _devicePixelRatio;
 
-  bool _sampleLogicalBounds;
-
-  void update(
-    ValueListenable<bool> active,
-    double devicePixelRatio, {
-    required bool sampleLogicalBounds,
-  }) {
-    if (identical(active, _active) &&
-        devicePixelRatio == _devicePixelRatio &&
-        sampleLogicalBounds == _sampleLogicalBounds) {
+  void update(ValueListenable<bool> active, double devicePixelRatio) {
+    if (identical(active, _active) && devicePixelRatio == _devicePixelRatio) {
       return;
     }
     if (attached) _active.removeListener(_changed);
     _active = active;
     _devicePixelRatio = devicePixelRatio;
-    _sampleLogicalBounds = sampleLogicalBounds;
     if (attached) _active.addListener(_changed);
     _changed();
   }
@@ -272,16 +249,7 @@ class _RenderGlyphRaster extends RenderProxyBox {
     paint.filterQuality = FilterQuality.medium;
     context.canvas.drawImageRect(
       raster,
-      Rect.fromLTWH(
-        0,
-        0,
-        _sampleLogicalBounds
-            ? size.width * _devicePixelRatio
-            : raster.width.toDouble(),
-        _sampleLogicalBounds
-            ? size.height * _devicePixelRatio
-            : raster.height.toDouble(),
-      ),
+      Rect.fromLTWH(0, 0, size.width * _devicePixelRatio, size.height * _devicePixelRatio),
       offset & size,
       paint,
     );

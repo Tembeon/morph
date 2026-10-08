@@ -1,0 +1,13 @@
+{
+  "target": "lib/perf/navigation_stage_bench.dart",
+  "defines": [
+    "NAV_MODES=flat,glyph,liquid-live,liquid",
+    "NAV_MOTIONS=enter,nested-push,nested-pop,toolbar",
+    "NAV_RUNS=3",
+    "NAV_WARM_MS=500",
+    "NAV_SAMPLE_MS=800"
+  ],
+  "commit": "114e827ac5c116cbaa8e667d3a325986d2538397",
+  "source_sha256": "7b5d7d33e53c2298a9ec7c7871e115d713e46bc696eff647057aa8041b47de68",
+  "apk_sha256": "6a185cf659d71055a05615796480abe16e27916e0a9fff2a4447b6f62c5f342c"
+}

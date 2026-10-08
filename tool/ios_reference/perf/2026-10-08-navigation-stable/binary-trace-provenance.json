@@ -1,0 +1,62 @@
+{
+  "stock.apk": {
+    "sha256": "38fd86ed55003575e6a2c958104d4cd64578817b6539fa8452cd2cba1dac5445",
+    "bytes": 27542749
+  },
+  "energy.apk": {
+    "sha256": "b62849e7a9cdcdd1333ddad7fe5c2c10b767567122774629fe1d3e1f3fa69455",
+    "bytes": 35999330
+  },
+  "production-shots.apk": {
+    "sha256": "3ed3a6f273a18ce4e1f8d9d291bcb4eaeedecc5c2daf8db3ff696501e0f7f641",
+    "bytes": 35999330
+  },
+  "final-matrix-shots.apk": {
+    "sha256": "1a448f49a42f79158c403e0c7ded7f76b1f1e55e136bd3dd602ff08e128248dd",
+    "bytes": 35999330
+  },
+  "matrix-gpu.apk": {
+    "sha256": "997f9e67e35407751869e5bd90cd193da9fbe6b46682b1ba5d260fbacbd9f8b1",
+    "bytes": 35999330
+  },
+  "energy-2.apk": {
+    "sha256": "c0638faad1fc2f0e21862ef678e7b26fa2ec26d04ba3e795b78d2111290d155c",
+    "bytes": 35999330
+  },
+  "final-matrix-gpu.apk": {
+    "sha256": "fc75fc572444a5d6b7f2e89933feba7ec36ec7a6933098e63433e5a66390f1bf",
+    "bytes": 35999330
+  },
+  "final-matrix-gpu-2.apk": {
+    "sha256": "c807698c5735909c0ac39cf7ffbfa737b4284f7456bc11d87d9f84b361cee5b5",
+    "bytes": 35999330
+  },
+  "matrix-shots.apk": {
+    "sha256": "0cf3ed013dc6e3e9b753483f6e48adfcb366aed701d2f4b4196e9aee15f955df",
+    "bytes": 35999330
+  },
+  "fusion-shots.apk": {
+    "sha256": "a57b4bbb6482a0b20a3b7e5df26cf7e114859a5759c9f490547310f338d00722",
+    "bytes": 35999330
+  },
+  "matrix-1.pftrace": {
+    "sha256": "f6aa7eff3e3e6be3c6a8a3bccae95b85cb569d078da753f61592fcdbfb465a35",
+    "bytes": 56198582
+  },
+  "matrix-2.pftrace": {
+    "sha256": "f27c8a1d3b2938d631c99244a055f58d5955bcacb7b5f6680e7abbe7f19929fa",
+    "bytes": 53504429
+  },
+  "production-gpu.apk": {
+    "sha256": "6a185cf659d71055a05615796480abe16e27916e0a9fff2a4447b6f62c5f342c",
+    "bytes": 35999330
+  },
+  "production-gpu-2.apk": {
+    "sha256": "002bbd6abe56f24493e21d8f4c4aa3797f01fca5a32ab879a052eca4e9416eef",
+    "bytes": 35999330
+  },
+  "final-production-shots.apk": {
+    "sha256": "46d9f25de5caaad910a9242087db405539bb8db1f80381381f71441787325e58",
+    "bytes": 35999330
+  }
+}

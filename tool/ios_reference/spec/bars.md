@@ -392,3 +392,19 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
   morph presenter without an explicit `overlay:` / `useRootNavigator:`
   uses the overlay / navigator around the outermost boundary
   (presentation_boundary_test).
+
+## Android rendering cost (2026-10-08)
+
+Button motion, content blur, opacity and scale keep their measured laws.
+On Android only, MorphBarItems uses a retained device-resolution glyph
+raster while that blur reaches the existing 0.5 pt screen-space threshold.
+The render object owns its image and activation uses immutable values,
+so retained/reparented bar content cannot outlive a disposed owner
+notifier. Child repaint and DPR changes invalidate the image; live
+unblurred content and semantics remain. iOS/web bars stay live.
+
+Stable-SDK Pixel matrices, native NEAR fidelity bounds and the remaining
+nested-transition budget gap are recorded in glass-renderer.md's
+"Stable Navigation optimization" section and
+tool/audit/codex-navigation-stable-report.md. No spring or measured
+timing parameter changes.

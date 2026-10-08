@@ -7,6 +7,8 @@ import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
+bool debugFullFlatFields = false;
+
 /// Everything a control hands the glass painter in one frame.
 @internal
 class MorphGlassFrame {
@@ -51,7 +53,9 @@ class MorphGlassFrame {
 
   /// The same bodies with optical samples only when [tier] uses them.
   MorphGlassLayerParts partsFor(MorphGlassTier tier) =>
-      tier == MorphGlassTier.flat ? _silhouetteParts : parts;
+      tier == MorphGlassTier.flat && !debugFullFlatFields
+      ? _silhouetteParts
+      : parts;
 }
 
 /// Where a glass tree reads its values: one fixed frame, or a channel

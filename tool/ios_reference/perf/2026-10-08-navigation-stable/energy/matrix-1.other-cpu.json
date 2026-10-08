@@ -1,0 +1,416 @@
+[
+  {
+    "case": "nav-navigation-workflow-stock-flat",
+    "run": 0,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 14127.654836
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4592.778197
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 1726.704132
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1345.72674
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 1165.509438
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1080.971145
+      },
+      {
+        "name": "com.android.settings",
+        "cpu_ms": 531.088368
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.sensors-service.multihal",
+        "cpu_ms": 495.636327
+      },
+      {
+        "name": "/system/bin/traced_probes",
+        "cpu_ms": 429.386031
+      },
+      {
+        "name": "cat",
+        "cpu_ms": 387.118211
+      }
+    ]
+  },
+  {
+    "case": "nav-navigation-workflow-stock-flat",
+    "run": 1,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 14458.898713
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4738.224981
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1369.829941
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 1273.580034
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1107.079282
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 1071.843598
+      },
+      {
+        "name": "com.google.android.gms",
+        "cpu_ms": 503.864833
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.sensors-service.multihal",
+        "cpu_ms": 499.330738
+      },
+      {
+        "name": "/system/bin/traced_probes",
+        "cpu_ms": 400.657373
+      },
+      {
+        "name": "cat",
+        "cpu_ms": 390.715699
+      }
+    ]
+  },
+  {
+    "case": "nav-navigation-workflow-stock-flat",
+    "run": 2,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 14408.495101
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4693.186774
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1364.179428
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1095.370973
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 1056.522164
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 974.923437
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.sensors-service.multihal",
+        "cpu_ms": 504.525174
+      },
+      {
+        "name": "/system/bin/traced_probes",
+        "cpu_ms": 434.432708
+      },
+      {
+        "name": "cat",
+        "cpu_ms": 404.29269
+      },
+      {
+        "name": "com.google.android.gms",
+        "cpu_ms": 393.457406
+      }
+    ]
+  },
+  {
+    "case": "nav-navigation-workflow-flat",
+    "run": 0,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 14117.470815
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4732.519788
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 1762.057324
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1349.830828
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1057.599164
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 838.48177
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.sensors-service.multihal",
+        "cpu_ms": 507.923917
+      },
+      {
+        "name": "cat",
+        "cpu_ms": 451.442426
+      },
+      {
+        "name": "/system/bin/traced_probes",
+        "cpu_ms": 417.620596
+      },
+      {
+        "name": "decon0_kthread",
+        "cpu_ms": 372.202223
+      }
+    ]
+  },
+  {
+    "case": "nav-navigation-workflow-flat",
+    "run": 1,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 13088.285634
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4515.762697
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 2650.447934
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 2332.196726
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1364.447877
+      },
+      {
+        "name": "org.telegram.messenger",
+        "cpu_ms": 1260.55251
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1018.753378
+      },
+      {
+        "name": "com.google.android.gms",
+        "cpu_ms": 681.876629
+      },
+      {
+        "name": "org.telegram.messenger.web",
+        "cpu_ms": 539.138793
+      },
+      {
+        "name": "org.thunderdog.challegram",
+        "cpu_ms": 490.611777
+      }
+    ]
+  },
+  {
+    "case": "nav-navigation-workflow-flat",
+    "run": 2,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 14165.526231
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4629.070842
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1320.265901
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 1120.097111
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1102.119163
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 779.674815
+      },
+      {
+        "name": "org.telegram.messenger.web",
+        "cpu_ms": 641.80051
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.sensors-service.multihal",
+        "cpu_ms": 495.250708
+      },
+      {
+        "name": "com.google.android.gms",
+        "cpu_ms": 494.593171
+      },
+      {
+        "name": "/system/bin/traced_probes",
+        "cpu_ms": 437.806237
+      }
+    ]
+  },
+  {
+    "case": "nav-navigation-workflow-glyph",
+    "run": 0,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 14341.57241
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4730.680733
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 1558.48307
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1370.266043
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1110.343305
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 1050.590475
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.sensors-service.multihal",
+        "cpu_ms": 509.897546
+      },
+      {
+        "name": "com.google.android.gms",
+        "cpu_ms": 467.746704
+      },
+      {
+        "name": "cat",
+        "cpu_ms": 442.298951
+      },
+      {
+        "name": "/system/bin/traced_probes",
+        "cpu_ms": 409.091648
+      }
+    ]
+  },
+  {
+    "case": "nav-navigation-workflow-glyph",
+    "run": 1,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 14455.992522
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4854.339037
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 1651.293182
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1383.842145
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1112.116196
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 792.183574
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.sensors-service.multihal",
+        "cpu_ms": 512.804925
+      },
+      {
+        "name": "cat",
+        "cpu_ms": 424.043747
+      },
+      {
+        "name": "/system/bin/traced_probes",
+        "cpu_ms": 397.272358
+      },
+      {
+        "name": "decon0_kthread",
+        "cpu_ms": 382.23684
+      }
+    ]
+  },
+  {
+    "case": "nav-navigation-workflow-glyph",
+    "run": 2,
+    "top": [
+      {
+        "name": "dev.tembeon.morph_example",
+        "cpu_ms": 14438.033241
+      },
+      {
+        "name": "/system/bin/surfaceflinger",
+        "cpu_ms": 4748.78104
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.graphics.composer@2.4-service",
+        "cpu_ms": 1354.409323
+      },
+      {
+        "name": "mali_jd_thread",
+        "cpu_ms": 1097.625888
+      },
+      {
+        "name": "com.android.systemui",
+        "cpu_ms": 1020.29294
+      },
+      {
+        "name": "system_server",
+        "cpu_ms": 863.894047
+      },
+      {
+        "name": "/vendor/bin/hw/android.hardware.sensors-service.multihal",
+        "cpu_ms": 503.671757
+      },
+      {
+        "name": "cat",
+        "cpu_ms": 474.877034
+      },
+      {
+        "name": "/system/bin/traced_probes",
+        "cpu_ms": 443.288565
+      },
+      {
+        "name": "decon0_kthread",
+        "cpu_ms": 372.14793
+      }
+    ]
+  }
+]

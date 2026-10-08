@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
@@ -92,6 +93,73 @@ Future<List<(Uint8List, Uint8List, bool)>> _twice(
 
 void main() {
   setUpAll(() => isLocalTest = true);
+
+  testWidgets('a retained raster refreshes and releases its source image', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final created = <ui.Image>{};
+    final disposed = <ui.Image>{};
+    final oldCreate = ui.Image.onCreate;
+    final oldDispose = ui.Image.onDispose;
+    ui.Image.onCreate = (image) {
+      oldCreate?.call(image);
+      if (image.width == 98 && image.height == 59) created.add(image);
+    };
+    ui.Image.onDispose = (image) {
+      oldDispose?.call(image);
+      if (created.contains(image)) disposed.add(image);
+    };
+    addTearDown(() {
+      ui.Image.onCreate = oldCreate;
+      ui.Image.onDispose = oldDispose;
+    });
+    final active = ValueNotifier(true);
+    addTearDown(active.dispose);
+    const key = ValueKey<String>('retained');
+    Widget app(Color color) => _app(
+      MorphGlyphRaster(
+        active: active,
+        sampleLogicalBounds: true,
+        child: SizedBox(
+          key: key,
+          width: 37.125,
+          height: 22.25,
+          child: ColoredBox(color: color),
+        ),
+      ),
+    );
+    Future<List<int>> center() async {
+      final rect = tester.getRect(find.byKey(key));
+      final boundary =
+          tester.renderObject(find.byKey(_frameKey)) as RenderRepaintBoundary;
+      final width = (boundary.size.width * 3).ceil();
+      final offset =
+          ((rect.center.dy * 3).floor() * width +
+              (rect.center.dx * 3).floor()) *
+          4;
+      return (await _frame(tester)).sublist(offset, offset + 4);
+    }
+
+    await tester.pumpWidget(app(const Color(0xFFFF0000)));
+    expect(await center(), [255, 0, 0, 255]);
+    expect(created.difference(disposed), hasLength(1));
+    final first = created.single;
+    await tester.pumpWidget(app(const Color(0xFF0000FF)));
+    expect(await center(), [0, 0, 255, 255]);
+    expect(disposed, contains(first));
+    expect(created.difference(disposed), hasLength(1));
+    active.value = false;
+    await tester.pump();
+    expect(await center(), [0, 0, 255, 255]);
+    expect(created.difference(disposed), isEmpty);
+    active.value = true;
+    await tester.pump();
+    expect(created.difference(disposed), hasLength(1));
+    await tester.pumpWidget(const SizedBox());
+    expect(created.difference(disposed), isEmpty);
+  });
 
   test('the grid passes through the device pixel ratio', () {
     for (final ratio in [1.0, 2.0, 2.625, 3.0]) {

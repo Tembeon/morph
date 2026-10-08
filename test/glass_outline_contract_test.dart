@@ -5,9 +5,84 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/widgets.dart';
 
 void main() {
+  test(
+    'flat fusion keeps the exact contour without sharing optical caches',
+    () {
+      final random = math.Random(20261008);
+      for (var trial = 0; trial < 120; trial++) {
+        final shapes = [
+          for (var i = 0; i < 2 + trial % 3; i++)
+            RRect.fromRectAndRadius(
+              Rect.fromLTWH(
+                i * 43 + random.nextDouble() * 8,
+                random.nextDouble() * 12,
+                38 + random.nextDouble() * 36,
+                30 + random.nextDouble() * 20,
+              ),
+              Radius.circular(8 + random.nextDouble() * 6),
+            ),
+        ];
+        final spacing = 8 + random.nextDouble() * 16;
+        final flat = morphGlassContainerOutline(
+          shapes,
+          spacing,
+          withField: false,
+        );
+        final optical = morphGlassContainerOutline(shapes, spacing);
+        expect(morphGlassOutlineField(flat), isNull);
+        expect(morphGlassOutlineField(optical), isNotNull);
+        expect(morphGlassContainerOutline(shapes, spacing), same(optical));
+        expect(
+          morphGlassContainerOutline(shapes, spacing, withField: false),
+          same(flat),
+        );
+        void equalPaths(Path a, Path b) {
+          expect(a.getBounds(), b.getBounds());
+          final first = a.computeMetrics().toList();
+          final second = b.computeMetrics().toList();
+          expect(first.length, second.length);
+          for (var i = 0; i < first.length; i++) {
+            expect(first[i].length, second[i].length);
+            for (var t = 0.0; t < first[i].length; t += 0.75) {
+              expect(
+                first[i].getTangentForOffset(t)!.position,
+                second[i].getTangentForOffset(t)!.position,
+              );
+            }
+          }
+        }
+
+        equalPaths(flat.path, optical.path);
+        const shift = Offset(0.75, -37.5);
+        final moved = [for (final shape in shapes) shape.shift(shift)];
+        equalPaths(
+          morphGlassContainerOutline(moved, spacing, withField: false).path,
+          flat.shift(shift).path,
+        );
+        final frame = MorphGlassFrame([
+          for (final shape in shapes)
+            MorphGlassSurface(
+              kind: MorphGlassKind.bar,
+              shape: shape,
+              color: const Color(0xFFFFFFFF),
+              brightness: Brightness.dark,
+            ),
+        ], spacing: spacing);
+        for (final (_, outline) in frame.partsFor(MorphGlassTier.flat).fused) {
+          expect(morphGlassOutlineField(outline), isNull);
+        }
+        for (final (_, outline) in frame.partsFor(MorphGlassTier.fake).fused) {
+          expect(morphGlassOutlineField(outline), isNotNull);
+        }
+        expect(frame.partsFor(MorphGlassTier.liquid), same(frame.parts));
+      }
+    },
+  );
+
   test('K2 rejects nonuniform and elliptical distance-field corners', () {
     final nonuniform = RRect.fromRectAndCorners(
       const Rect.fromLTWH(0, 0, 80, 40),

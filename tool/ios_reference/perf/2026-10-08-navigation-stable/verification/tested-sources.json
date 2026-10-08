@@ -1,0 +1,9 @@
+{
+  "lib/src/widgets/glass_outline.dart": "7b5f5485cb8f5ea939410758050cd9c933147ceb9de3861f608c972d980e90d1",
+  "lib/src/widgets/glass_channel.dart": "120709a93221aa0ba021c14496bce54eff765596e7ccc5bf3a92f99b2e1c1035",
+  "lib/src/widgets/glass_renderer.dart": "c0a5faea737d67f53e9936f8e6666db53fba02b9591f80fb95d59570cdef29e2",
+  "lib/src/widgets/glyph_scale.dart": "6c4f45060ea0de2d5f69fc637a99ae7713f598483a0889d386f9731c6a6e471b",
+  "lib/src/widgets/bar_items.dart": "afb241cf7cb4baccc52175c8012db1ccfd94c9d5257ef84adf7dc02a6154f40d",
+  "test/glass_outline_contract_test.dart": "12ecc097e0f63931df7bd9d37eb702503c2bd5eeb112deff1abd2d5f6fb9f7b6",
+  "test/glyph_scale_test.dart": "df9e44025b1ed5b6393b115ce2131d4702f3d14aa133400d0ae05f9e1ce3cdc1"
+}

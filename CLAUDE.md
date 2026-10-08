@@ -1192,6 +1192,35 @@ relative only).
 
 ## Performance passport
 
+OWNER PRIORITY (2026-10-08): smoothness on weak Android devices is the
+primary objective. Modest measured energy increases are acceptable for
+meaningful frame-time improvements. Energy is still measured; the old
+energy-first rejection rule below describes historical decisions rather
+than the current admission policy. Fidelity remains IDENTICAL or stated
+NEAR; visible quality reductions need an owner decision.
+
+STABLE NAVIGATION (2026-10-08, Pixel 6a, Flutter 3.47.2): flat fused
+bodies now trace their exact silhouette without unused optical fields;
+fake/liquid and custom renderer contracts retain full fields. Android
+bar button glyphs retain a device-resolution raster only under the
+existing >=0.5 pt screen-space content blur. Images invalidate with child
+paint and are owned by the render object; immutable activation avoids
+sharing a disposed notifier with retained glass content. iOS/web stay
+live. Initial same-binary flat matrix, five repeats and two launches:
+full-field/live -> sparse/raster push raster p95 24.545/28.192 ->
+19.916/21.350 ms; GPU 2.527/2.483 -> 2.574/2.625 ms/frame. Other
+actions are mixed; this does not establish consistent 60 FPS. Final
+five-repeat immutable-activation port, liquid live -> raster: push raster
+p95 33.843 -> 25.341 ms, pop 32.829 -> 26.671; UI remains over budget
+and over-budget medians are unchanged. A preceding port's liquid push
+regresses, so no uniform glass/FPS claim. Separate
+three-repeat workflow power 556/534 -> 542/547 mW, no repeatable saving.
+Silhouette-only host hashes match all 63 collections. Native raster
+chrome error <=8/255 on flat/liquid; isolated body errors up to 64 also
+occur in same-variant repeats. Final port controls, raw evidence and
+limitations: tool/audit/codex-navigation-stable-report.md,
+perf/2026-10-08-navigation-stable. No SDK update or previous-frame source.
+
 FLAT NAVIGATION ATTRIBUTION (2026-10-07, Pixel 6a): four clean native
 GPU launches isolate nonglass cost, three repeats per action. All case
 censuses have zero backdrop filters. Hiding button glyphs cuts nested

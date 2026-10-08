@@ -2630,3 +2630,55 @@ animated glyph/filter path and skipping unused optical-field preparation
 on flat/fake; energy and native fidelity still gate any implementation.
 See tool/audit/codex-navigation-flat-report.md and the frozen evidence in
 perf/2026-10-07-navigation-flat. Main library behavior is unchanged.
+
+## Stable Navigation optimization (2026-10-08)
+
+The owner's current priority is smoothness on weak Android devices;
+modest measured power increases may buy a meaningful reduction in frame
+cost. Historical energy-only rejections above remain historical.
+
+Flat layer parts now generate a silhouette without unused optical
+distance/half-minor/turn fields. Block-corner minima still use the same
+near-block bound; the original normal-aware sampler, contour trace and
+spline determine the exact outline. Separate bounded caches prevent
+fieldless outlines serving fake/liquid. Those tiers and custom renderer
+subclasses keep full optical parts. All 63 host scene/tier collections
+match the original source; seeded path/cache tests cover two-to-four-box
+fusions and translations. This is work reduction, not a quality tier.
+
+Android bar content retains a device-resolution image under the existing
+>=0.5 pt screen-space blur. Scale, blur, opacity, spring timing and
+semantics remain. Existing cached button content is retained, while
+immutable activation values give image ownership to the render object.
+Content repaint and DPR changes invalidate it; disabling, detach and
+dispose release it. Fractional logical bounds sample the corresponding
+pixel extent. iOS/web bar content remains live and menu sampling remains
+unchanged. This is a small additional source render, not framebuffer
+reuse or a previous-frame backdrop.
+
+Pixel 6a, stable 3.47.2, two clean same-binary flat GPU launches,
+five repeats: full-field/live -> sparse/raster nested push raster p95
+24.545/28.192 -> 19.916/21.350 ms, GPU active time per frame
+2.527/2.483 -> 2.574/2.625 ms. Entry improves with silhouettes alone;
+other actions are mixed, and nested frames still exceed 16.667 ms.
+Separate three-repeat 16-second workflows give selected ODPM power
+556/534 -> 542/547 mW, not a repeatable saving. An anomalous sparse
+727.6 mW window is retained and accompanied by other-process accounting.
+
+Final immutable-activation port, five repeats in one native launch:
+liquid live -> retained push UI p95 26.690 -> 21.612 ms, raster p95
+33.843 -> 25.341 ms, GPU 5.807 -> 5.950 ms; pop raster 32.829 -> 26.671 ms,
+GPU 5.147 -> 5.303 ms. A preceding three-repeat port also improves pop
+33.833 -> 26.729 ms but regresses push 22.782 -> 28.551 ms. Liquid push is
+variable, UI remains over budget and final over-budget medians 10/10
+push and 9/9 pop are unchanged. These are work reductions, not proof of
+a presentation-FPS gain. That preceding notifier-owning port's gallery
+reparenting error is fixed by immutable activation in the final source.
+
+Final native phase controls use 28 pairs per flat/liquid path. Chrome
+maximum difference is 8/255; whole-frame 64/56 errors occur on isolated
+body pixels, with 64 also observed in liquid same-variant repeats.
+This is stated NEAR resampling under blur, not native byte identity.
+Performance readbacks are separate from pixel captures. Final port
+matrices and verification: tool/audit/codex-navigation-stable-report.md,
+perf/2026-10-08-navigation-stable. No beta feature or added frame delay.

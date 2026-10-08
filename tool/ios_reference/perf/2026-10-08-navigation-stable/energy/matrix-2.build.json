@@ -1,0 +1,15 @@
+{
+  "target": "lib/perf/navigation_stage_bench.dart",
+  "defines": [
+    "NAV_MODES=stock-flat,flat,glyph",
+    "NAV_MOTIONS=workflow",
+    "NAV_RUNS=3",
+    "NAV_WORKFLOW_CYCLES=4",
+    "NAV_WARM_MS=500",
+    "NAV_SAMPLE_MS=800",
+    "NAV_SEED=202610082"
+  ],
+  "commit": "114e827ac5c116cbaa8e667d3a325986d2538397",
+  "source_sha256": "6cb6b73be3a805b3b64f8886cbf6d4af85ff1522c6d440f9a6b30a254a95decf",
+  "apk_sha256": "c0638faad1fc2f0e21862ef678e7b26fa2ec26d04ba3e795b78d2111290d155c"
+}

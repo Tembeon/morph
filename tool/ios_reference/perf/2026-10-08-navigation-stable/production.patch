@@ -1,0 +1,673 @@
+diff --git a/lib/src/widgets/bar_items.dart b/lib/src/widgets/bar_items.dart
+index b575494..9769c4b 100644
+--- a/lib/src/widgets/bar_items.dart
++++ b/lib/src/widgets/bar_items.dart
+@@ -15,6 +15,7 @@ import 'package:morph/src/widgets/glass.dart';
+ import 'package:morph/src/widgets/glass_channel.dart';
+ import 'package:morph/src/widgets/glass_button.dart';
+ import 'package:morph/src/widgets/glass_outline.dart';
++import 'package:morph/src/widgets/glyph_scale.dart';
+ import 'package:morph/src/widgets/menu.dart';
+ import 'package:morph/src/widgets/menu_content.dart';
+ import 'package:morph/src/widgets/menu_entries.dart';
+@@ -1431,6 +1432,15 @@ class _MorphBarItemsState extends State<MorphBarItems>
+       );
+       _contents[button.id] = (inputs, content);
+     }
++    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
++      content = MorphGlyphRaster(
++        active: frame.blur * scale.abs() >= MorphGlyphRaster.minBlur
++            ? const AlwaysStoppedAnimation(true)
++            : const AlwaysStoppedAnimation(false),
++        sampleLogicalBounds: true,
++        child: content,
++      );
++    }
+     if (frame.blur > 0.05) {
+       content = ImageFiltered(
+         imageFilter: ui.ImageFilter.blur(
+@@ -1693,9 +1703,11 @@ class _FlatBodies {
+           colors[group.first],
+           group.length == 1
+               ? shapes[group.single]
+-              : morphGlassContainerOutline([
+-                  for (final i in group) shapes[i],
+-                ], spacing).path,
++              : morphGlassContainerOutline(
++                  [for (final i in group) shapes[i]],
++                  spacing,
++                  withField: false,
++                ).path,
+           opacities[group.first],
+         ),
+     ];
+diff --git a/lib/src/widgets/glass_channel.dart b/lib/src/widgets/glass_channel.dart
+index 6e4b66a..3e3dbd9 100644
+--- a/lib/src/widgets/glass_channel.dart
++++ b/lib/src/widgets/glass_channel.dart
+@@ -41,6 +41,17 @@ class MorphGlassFrame {
+     spacing: spacing,
+     outline: outline,
+   );
++
++  late final MorphGlassLayerParts _silhouetteParts = MorphGlassLayerParts.of(
++    surfaces,
++    spacing: spacing,
++    outline: outline,
++    withField: false,
++  );
++
++  /// The same bodies with optical samples only when [tier] uses them.
++  MorphGlassLayerParts partsFor(MorphGlassTier tier) =>
++      tier == MorphGlassTier.flat ? _silhouetteParts : parts;
+ }
+ 
+ /// Where a glass tree reads its values: one fixed frame, or a channel
+diff --git a/lib/src/widgets/glass_outline.dart b/lib/src/widgets/glass_outline.dart
+index 6469586..1beebe9 100644
+--- a/lib/src/widgets/glass_outline.dart
++++ b/lib/src/widgets/glass_outline.dart
+@@ -383,12 +383,27 @@ MorphGlassOutlineParts morphGlassOutlinePartsFromFields({
+ @internal
+ @pragma('vm:unsafe:no-bounds-checks')
+ MorphGlassOutline morphGlassOutlineFromParts(MorphGlassOutlineParts parts) {
++  final path = _outlinePath(parts.points, parts.loops);
++  return MorphGlassOutline._(
++    path,
++    GlassField(
++      samples: parts.samples,
++      cols: parts.cols,
++      rows: parts.rows,
++      origin: Offset(parts.left, parts.top),
++      step: parts.step,
++      outline: path,
++    ),
++  );
++}
++
++@pragma('vm:unsafe:no-bounds-checks')
++Path _outlinePath(Float64List xy, Int32List loops) {
+   final path = Path();
+   path.fillType = PathFillType.evenOdd;
+-  final Float64List xy = parts.points;
+   var base = 0;
+-  for (var l = 0; l < parts.loops.length; l++) {
+-    final n = parts.loops[l];
++  for (var l = 0; l < loops.length; l++) {
++    final n = loops[l];
+     final first = base;
+     final last = base + n - 1;
+     var fromX = (xy[last * 2] + xy[first * 2]) / 2;
+@@ -434,17 +449,7 @@ MorphGlassOutline morphGlassOutlineFromParts(MorphGlassOutlineParts parts) {
+     path.close();
+     base += n;
+   }
+-  return MorphGlassOutline._(
+-    path,
+-    GlassField(
+-      samples: parts.samples,
+-      cols: parts.cols,
+-      rows: parts.rows,
+-      origin: Offset(parts.left, parts.top),
+-      step: parts.step,
+-      outline: path,
+-    ),
+-  );
++  return path;
+ }
+ 
+ /// Marching squares over the near blocks of a trace grid, stitched by the
+@@ -821,6 +826,9 @@ bool _fuses(List<RRect> group, double spacing) {
+ /// The last four outlines retained by the isolate, newest last.
+ final List<(List<RRect>, double, MorphGlassOutline)> _recentOutlines = [];
+ 
++/// The last four silhouettes retained separately from optical outlines.
++final List<(List<RRect>, double, MorphGlassOutline)> _recentSilhouettes = [];
++
+ /// The last four plain unions retained by the isolate, newest last.
+ final List<(List<RRect>, MorphGlassOutline)> _recentUnions = [];
+ 
+@@ -836,27 +844,32 @@ final List<(List<RRect>, MorphGlassOutline)> _recentUnions = [];
+ /// its shapes moving, or with all of them moved by one offset, does not
+ /// fuse them again. Shapes must have uniform
+ /// circular corner radii; non-uniform corners are rejected in debug builds.
++/// With [withField] false, keeps the same contour but omits the optical
++/// samples; suitable for a flat fill only. The two forms have separate
++/// bounded caches, so a silhouette cannot replace a liquid field.
+ @internal
+ MorphGlassOutline morphGlassContainerOutline(
+   List<RRect> shapes,
+-  double spacing,
+-) {
++  double spacing, {
++  bool withField = true,
++}) {
+   if (spacing <= 0) return _plainUnion(shapes);
+-  for (final (recent, recentSpacing, outline) in _recentOutlines) {
++  final outlines = withField ? _recentOutlines : _recentSilhouettes;
++  for (final (recent, recentSpacing, outline) in outlines) {
+     if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
+   }
+-  for (final (recent, recentSpacing, outline) in _recentOutlines) {
++  for (final (recent, recentSpacing, outline) in outlines) {
+     if (recentSpacing != spacing) continue;
+     final offset = _translation(recent, shapes);
+     if (offset == null) continue;
+     final moved = outline.shift(offset);
+-    _recentOutlines.add((List.of(shapes), spacing, moved));
+-    if (_recentOutlines.length > 4) _recentOutlines.removeAt(0);
++    outlines.add((List.of(shapes), spacing, moved));
++    if (outlines.length > 4) outlines.removeAt(0);
+     return moved;
+   }
+-  final outline = _fuseContainer(shapes, spacing);
+-  _recentOutlines.add((List.of(shapes), spacing, outline));
+-  if (_recentOutlines.length > 4) _recentOutlines.removeAt(0);
++  final outline = _fuseContainer(shapes, spacing, withField: withField);
++  outlines.add((List.of(shapes), spacing, outline));
++  if (outlines.length > 4) outlines.removeAt(0);
+   return outline;
+ }
+ 
+@@ -937,8 +950,13 @@ Offset? _translation(List<RRect> from, List<RRect> to) {
+ /// the boxes bounds the merged field (it lies between the minimum less a
+ /// quarter of the spacing per merge and the minimum), so a block whose
+ /// corners keep the minimum clear of that range by more than the block's
+-/// reach holds no edge; the field grid is sampled everywhere.
+-MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
++/// reach holds no edge. Optical fields need every coarse node; a flat
++/// silhouette needs only block-corner minima and samples in near blocks.
++MorphGlassOutline _fuseContainer(
++  List<RRect> shapes,
++  double spacing, {
++  required bool withField,
++}) {
+   const step = _fusionStep;
+   const stride = 2;
+   const b = 4;
+@@ -961,24 +979,35 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
+   final nodes = fieldCols * fieldRows;
+   final trace = _ContainerScratch.trace(cols * rows);
+   final minimum = _ContainerScratch.field(0, nodes);
+-  final distance = _ContainerScratch.field(1, nodes);
+-  final halfMinor = _ContainerScratch.field(2, nodes);
+-  final turn = _ContainerScratch.field(3, nodes * 2);
+-  final fold = Float64List(2);
+-  final turns = [for (var i = 0; i < boxes.length; i++) boxes.turns(i)];
++  final distance = withField ? _ContainerScratch.field(1, nodes) : null;
++  final halfMinor = withField ? _ContainerScratch.field(2, nodes) : null;
++  final turn = withField ? _ContainerScratch.field(3, nodes * 2) : null;
++  final fold = withField ? Float64List(2) : null;
++  final turns = withField
++      ? [for (var i = 0; i < boxes.length; i++) boxes.turns(i)]
++      : null;
+   for (var fj = 0; fj < fieldRows; fj++) {
+     final y = area.top + fj * stride * step;
+     for (var fi = 0; fi < fieldCols; fi++) {
+       final x = area.left + fi * stride * step;
+       final at = fj * fieldCols + fi;
++      if (!withField) {
++        if (fi % (b ~/ stride) != 0 || fj % (b ~/ stride) != 0) continue;
++        var m = boxes.distance(0, x, y);
++        for (var i = 1; i < boxes.length; i++) {
++          m = math.min(m, boxes.distance(i, x, y));
++        }
++        minimum[at] = m;
++        continue;
++      }
+       var d = boxes.distance(0, x, y);
+       var m = d;
+       var half = boxes.halfMinor(0);
+-      var turned = turns[0] && boxes.inOpticalCorner(0, x, y);
++      var turned = turns![0] && boxes.inOpticalCorner(0, x, y);
+       if (turned) {
+-        boxes.opticalTurn(0, x, y, turn, at * 2);
++        boxes.opticalTurn(0, x, y, turn!, at * 2);
+       } else {
+-        turn[at * 2] = 1;
++        turn![at * 2] = 1;
+         turn[at * 2 + 1] = 0;
+       }
+       for (var i = 1; i < boxes.length; i++) {
+@@ -986,10 +1015,10 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
+         final w = _share(d, di, spacing);
+         half = boxes.halfMinor(i) + (half - boxes.halfMinor(i)) * w;
+         if (turns[i] && boxes.inOpticalCorner(i, x, y)) {
+-          boxes.opticalTurn(i, x, y, fold, 0);
++          boxes.opticalTurn(i, x, y, fold!, 0);
+           turned = true;
+         } else {
+-          fold[0] = 1;
++          fold![0] = 1;
+           fold[1] = 0;
+         }
+         if (turned) {
+@@ -1002,9 +1031,9 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
+       }
+       if (turned) morphNormalizeTurn(turn, at * 2);
+       final value = sample(x, y);
+-      distance[at] = value;
++      distance![at] = value;
+       minimum[at] = m;
+-      halfMinor[at] = half;
++      halfMinor![at] = half;
+       trace[fj * stride * cols + fi * stride] = value;
+     }
+   }
+@@ -1028,13 +1057,31 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
+         for (var j = bj * b; j <= bj * b + b; j++) {
+           final y = area.top + j * step;
+           for (var i = bi * b; i <= bi * b + b; i++) {
+-            if (i % stride == 0 && j % stride == 0) continue;
++            if (withField && i % stride == 0 && j % stride == 0) continue;
+             trace[j * cols + i] = sample(area.left + i * step, y);
+           }
+         }
+       }
+     }
+   }
++  if (!withField) {
++    assert(() {
++      morphGlassOutlineDebugTraces++;
++      return true;
++    }());
++    final (points, loops) = _OutlineTracer.trace(
++      trace,
++      cols,
++      rows,
++      near: near,
++      blockCols: blockCols,
++      block: b,
++      left: area.left,
++      top: area.top,
++      step: step,
++    );
++    return MorphGlassOutline(_outlinePath(points, loops));
++  }
+   return morphGlassOutlineFromFields(
+     trace: trace,
+     cols: cols,
+@@ -1042,9 +1089,9 @@ MorphGlassOutline _fuseContainer(List<RRect> shapes, double spacing) {
+     near: near,
+     blockCols: blockCols,
+     block: b,
+-    distance: distance,
+-    halfMinor: halfMinor,
+-    turn: turn,
++    distance: distance!,
++    halfMinor: halfMinor!,
++    turn: turn!,
+     stride: stride,
+     left: area.left,
+     top: area.top,
+diff --git a/lib/src/widgets/glass_renderer.dart b/lib/src/widgets/glass_renderer.dart
+index 7b9d579..0d9fb7d 100644
+--- a/lib/src/widgets/glass_renderer.dart
++++ b/lib/src/widgets/glass_renderer.dart
+@@ -368,7 +368,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
+       MorphGlassMode.layer => [
+         tier,
+         content,
+-        ..._layerStructure(tier, frame.parts),
++        ..._layerStructure(tier, frame.partsFor(tier)),
+       ],
+       MorphGlassMode.surface => [
+         tier,
+@@ -504,7 +504,9 @@ class MorphGlassRenderer extends MorphGlassPainter {
+     if (effectiveTier != MorphGlassTier.flat) {
+       return morphLiquidLayer(this, context, source, content: content);
+     }
+-    final parts = source.frame.parts;
++    MorphGlassLayerParts partsOf(MorphGlassFrame f) =>
++        _exact ? f.partsFor(MorphGlassTier.flat) : f.parts;
++    final parts = partsOf(source.frame);
+     Widget at(
+       (String, int) slot,
+       Rect Function(MorphGlassFrame f) rect,
+@@ -523,15 +525,15 @@ class MorphGlassRenderer extends MorphGlassPainter {
+         for (var i = 0; i < parts.fills.length; i++)
+           at(
+             ('fill', i),
+-            (f) => f.parts.fills[i].bounds,
+-            () => liveFill(context, source, (f) => f.parts.fills[i]),
++            (f) => partsOf(f).fills[i].bounds,
++            () => liveFill(context, source, (f) => partsOf(f).fills[i]),
+           ),
+         for (var i = 0; i < parts.separate.length; i++)
+           at(
+             ('surface', i),
+-            (f) => f.parts.separate[i].bounds,
++            (f) => partsOf(f).separate[i].bounds,
+             () => _exact
+-                ? _surface(context, source, (f) => f.parts.separate[i])
++                ? _surface(context, source, (f) => partsOf(f).separate[i])
+                 : buildSurface(context, parts.separate[i]),
+           ),
+         for (var i = 0; i < parts.fused.length; i++)
+@@ -540,7 +542,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
+             () => Positioned.fill(
+               key: ValueKey<(String, int)>(('body', i)),
+               child: _exact
+-                  ? _body(context, source, (f) => f.parts.fused[i])
++                  ? _body(context, source, (f) => partsOf(f).fused[i])
+                   : buildBody(context, parts.fused[i].$2, parts.fused[i].$1),
+             ),
+           ),
+@@ -548,15 +550,15 @@ class MorphGlassRenderer extends MorphGlassPainter {
+           if (surface.glow != null)
+             at(
+               ('glow', i),
+-              (f) => f.parts.body[i].bounds,
+-              () => liveGlow(context, source, (f) => f.parts.body[i]),
++              (f) => partsOf(f).body[i].bounds,
++              () => liveGlow(context, source, (f) => partsOf(f).body[i]),
+             ),
+         for (var i = 0; i < parts.floating.length; i++)
+           at(
+             ('floating', i),
+-            (f) => f.parts.floating[i].bounds,
++            (f) => partsOf(f).floating[i].bounds,
+             () => _exact
+-                ? _surface(context, source, (f) => f.parts.floating[i])
++                ? _surface(context, source, (f) => partsOf(f).floating[i])
+                 : buildSurface(context, parts.floating[i]),
+           ),
+         if (content != null)
+@@ -603,10 +605,13 @@ class MorphGlassLayerParts {
+   /// surfaces drawn as their own shapes, glass bodies fused into one
+   /// outline - the control's [outline], or the groups a glass container
+   /// with [spacing] fuses - and floating lenses, knobs and thumbs.
++  /// With [withField] false, generated fused bodies carry their silhouette
++  /// alone; supplied [outline] values are retained unchanged.
+   factory MorphGlassLayerParts.of(
+     List<MorphGlassSurface> surfaces, {
+     double spacing = 0,
+     MorphGlassOutline? outline,
++    bool withField = true,
+   }) {
+     final visible = [
+       for (final s in surfaces)
+@@ -630,9 +635,11 @@ class MorphGlassLayerParts {
+           final members = [for (final i in group) body[i]];
+           fused.add((
+             members,
+-            morphGlassContainerOutline([
+-              for (final s in members) s.shape,
+-            ], spacing),
++            morphGlassContainerOutline(
++              [for (final s in members) s.shape],
++              spacing,
++              withField: withField,
++            ),
+           ));
+         }
+       }
+diff --git a/lib/src/widgets/glyph_scale.dart b/lib/src/widgets/glyph_scale.dart
+index 3a61ee5..a5990ea 100644
+--- a/lib/src/widgets/glyph_scale.dart
++++ b/lib/src/widgets/glyph_scale.dart
+@@ -139,19 +139,27 @@ class MorphGlyphRaster extends SingleChildRenderObjectWidget {
+   const MorphGlyphRaster({
+     required this.active,
+     required super.child,
++    this.sampleLogicalBounds = false,
+     super.key,
+   });
+ 
+   /// Whether the child is drawn from its raster.
+   final ValueListenable<bool> active;
+ 
++  /// Samples the child's logical extent instead of stretching the rounded
++  /// pixel dimensions of its raster over that extent.
++  final bool sampleLogicalBounds;
++
+   /// The smallest blur, in logical pixels on screen, that hides the
+   /// resampling of a raster drawn under it.
+   static const double minBlur = 0.5;
+ 
+   @override
+-  RenderObject createRenderObject(BuildContext context) =>
+-      _RenderGlyphRaster(active, MediaQuery.devicePixelRatioOf(context));
++  RenderObject createRenderObject(BuildContext context) => _RenderGlyphRaster(
++    active,
++    MediaQuery.devicePixelRatioOf(context),
++    sampleLogicalBounds: sampleLogicalBounds,
++  );
+ 
+   @override
+   void updateRenderObject(
+@@ -161,24 +169,39 @@ class MorphGlyphRaster extends SingleChildRenderObjectWidget {
+     (renderObject as _RenderGlyphRaster).update(
+       active,
+       MediaQuery.devicePixelRatioOf(context),
++      sampleLogicalBounds: sampleLogicalBounds,
+     );
+   }
+ }
+ 
+ class _RenderGlyphRaster extends RenderProxyBox {
+-  _RenderGlyphRaster(this._active, this._devicePixelRatio);
++  _RenderGlyphRaster(
++    this._active,
++    this._devicePixelRatio, {
++    required bool sampleLogicalBounds,
++    // ignore: prefer_initializing_formals
++  }) : _sampleLogicalBounds = sampleLogicalBounds;
+ 
+   ValueListenable<bool> _active;
+ 
+   double _devicePixelRatio;
+ 
+-  void update(ValueListenable<bool> active, double devicePixelRatio) {
+-    if (identical(active, _active) && devicePixelRatio == _devicePixelRatio) {
++  bool _sampleLogicalBounds;
++
++  void update(
++    ValueListenable<bool> active,
++    double devicePixelRatio, {
++    required bool sampleLogicalBounds,
++  }) {
++    if (identical(active, _active) &&
++        devicePixelRatio == _devicePixelRatio &&
++        sampleLogicalBounds == _sampleLogicalBounds) {
+       return;
+     }
+     if (attached) _active.removeListener(_changed);
+     _active = active;
+     _devicePixelRatio = devicePixelRatio;
++    _sampleLogicalBounds = sampleLogicalBounds;
+     if (attached) _active.addListener(_changed);
+     _changed();
+   }
+@@ -249,7 +272,16 @@ class _RenderGlyphRaster extends RenderProxyBox {
+     paint.filterQuality = FilterQuality.medium;
+     context.canvas.drawImageRect(
+       raster,
+-      Rect.fromLTWH(0, 0, raster.width.toDouble(), raster.height.toDouble()),
++      Rect.fromLTWH(
++        0,
++        0,
++        _sampleLogicalBounds
++            ? size.width * _devicePixelRatio
++            : raster.width.toDouble(),
++        _sampleLogicalBounds
++            ? size.height * _devicePixelRatio
++            : raster.height.toDouble(),
++      ),
+       offset & size,
+       paint,
+     );
+diff --git a/test/glass_outline_contract_test.dart b/test/glass_outline_contract_test.dart
+index ce8482b..3691f3c 100644
+--- a/test/glass_outline_contract_test.dart
++++ b/test/glass_outline_contract_test.dart
+@@ -5,9 +5,84 @@ import 'package:flutter_test/flutter_test.dart';
+ import 'package:morph/src/glass/renderer/renderer.dart';
+ import 'package:morph/src/glass/renderer/shaders.dart';
+ import 'package:morph/src/widgets/glass_outline.dart';
++import 'package:morph/src/widgets/glass_channel.dart';
+ import 'package:morph/widgets.dart';
+ 
+ void main() {
++  test(
++    'flat fusion keeps the exact contour without sharing optical caches',
++    () {
++      final random = math.Random(20261008);
++      for (var trial = 0; trial < 120; trial++) {
++        final shapes = [
++          for (var i = 0; i < 2 + trial % 3; i++)
++            RRect.fromRectAndRadius(
++              Rect.fromLTWH(
++                i * 43 + random.nextDouble() * 8,
++                random.nextDouble() * 12,
++                38 + random.nextDouble() * 36,
++                30 + random.nextDouble() * 20,
++              ),
++              Radius.circular(8 + random.nextDouble() * 6),
++            ),
++        ];
++        final spacing = 8 + random.nextDouble() * 16;
++        final flat = morphGlassContainerOutline(
++          shapes,
++          spacing,
++          withField: false,
++        );
++        final optical = morphGlassContainerOutline(shapes, spacing);
++        expect(morphGlassOutlineField(flat), isNull);
++        expect(morphGlassOutlineField(optical), isNotNull);
++        expect(morphGlassContainerOutline(shapes, spacing), same(optical));
++        expect(
++          morphGlassContainerOutline(shapes, spacing, withField: false),
++          same(flat),
++        );
++        void equalPaths(Path a, Path b) {
++          expect(a.getBounds(), b.getBounds());
++          final first = a.computeMetrics().toList();
++          final second = b.computeMetrics().toList();
++          expect(first.length, second.length);
++          for (var i = 0; i < first.length; i++) {
++            expect(first[i].length, second[i].length);
++            for (var t = 0.0; t < first[i].length; t += 0.75) {
++              expect(
++                first[i].getTangentForOffset(t)!.position,
++                second[i].getTangentForOffset(t)!.position,
++              );
++            }
++          }
++        }
++
++        equalPaths(flat.path, optical.path);
++        const shift = Offset(0.75, -37.5);
++        final moved = [for (final shape in shapes) shape.shift(shift)];
++        equalPaths(
++          morphGlassContainerOutline(moved, spacing, withField: false).path,
++          flat.shift(shift).path,
++        );
++        final frame = MorphGlassFrame([
++          for (final shape in shapes)
++            MorphGlassSurface(
++              kind: MorphGlassKind.bar,
++              shape: shape,
++              color: const Color(0xFFFFFFFF),
++              brightness: Brightness.dark,
++            ),
++        ], spacing: spacing);
++        for (final (_, outline) in frame.partsFor(MorphGlassTier.flat).fused) {
++          expect(morphGlassOutlineField(outline), isNull);
++        }
++        for (final (_, outline) in frame.partsFor(MorphGlassTier.fake).fused) {
++          expect(morphGlassOutlineField(outline), isNotNull);
++        }
++        expect(frame.partsFor(MorphGlassTier.liquid), same(frame.parts));
++      }
++    },
++  );
++
+   test('K2 rejects nonuniform and elliptical distance-field corners', () {
+     final nonuniform = RRect.fromRectAndCorners(
+       const Rect.fromLTWH(0, 0, 80, 40),
+diff --git a/test/glyph_scale_test.dart b/test/glyph_scale_test.dart
+index 4b99154..a14a2f7 100644
+--- a/test/glyph_scale_test.dart
++++ b/test/glyph_scale_test.dart
+@@ -1,5 +1,6 @@
+ import 'dart:math' as math;
+ import 'dart:typed_data';
++import 'dart:ui' as ui;
+ 
+ import 'package:flutter/rendering.dart';
+ import 'package:flutter/widgets.dart';
+@@ -93,6 +94,73 @@ Future<List<(Uint8List, Uint8List, bool)>> _twice(
+ void main() {
+   setUpAll(() => isLocalTest = true);
+ 
++  testWidgets('a retained raster refreshes and releases its source image', (
++    tester,
++  ) async {
++    tester.view.devicePixelRatio = 2.625;
++    addTearDown(tester.view.resetDevicePixelRatio);
++    final created = <ui.Image>{};
++    final disposed = <ui.Image>{};
++    final oldCreate = ui.Image.onCreate;
++    final oldDispose = ui.Image.onDispose;
++    ui.Image.onCreate = (image) {
++      oldCreate?.call(image);
++      if (image.width == 98 && image.height == 59) created.add(image);
++    };
++    ui.Image.onDispose = (image) {
++      oldDispose?.call(image);
++      if (created.contains(image)) disposed.add(image);
++    };
++    addTearDown(() {
++      ui.Image.onCreate = oldCreate;
++      ui.Image.onDispose = oldDispose;
++    });
++    final active = ValueNotifier(true);
++    addTearDown(active.dispose);
++    const key = ValueKey<String>('retained');
++    Widget app(Color color) => _app(
++      MorphGlyphRaster(
++        active: active,
++        sampleLogicalBounds: true,
++        child: SizedBox(
++          key: key,
++          width: 37.125,
++          height: 22.25,
++          child: ColoredBox(color: color),
++        ),
++      ),
++    );
++    Future<List<int>> center() async {
++      final rect = tester.getRect(find.byKey(key));
++      final boundary =
++          tester.renderObject(find.byKey(_frameKey)) as RenderRepaintBoundary;
++      final width = (boundary.size.width * 3).ceil();
++      final offset =
++          ((rect.center.dy * 3).floor() * width +
++              (rect.center.dx * 3).floor()) *
++          4;
++      return (await _frame(tester)).sublist(offset, offset + 4);
++    }
++
++    await tester.pumpWidget(app(const Color(0xFFFF0000)));
++    expect(await center(), [255, 0, 0, 255]);
++    expect(created.difference(disposed), hasLength(1));
++    final first = created.single;
++    await tester.pumpWidget(app(const Color(0xFF0000FF)));
++    expect(await center(), [0, 0, 255, 255]);
++    expect(disposed, contains(first));
++    expect(created.difference(disposed), hasLength(1));
++    active.value = false;
++    await tester.pump();
++    expect(await center(), [0, 0, 255, 255]);
++    expect(created.difference(disposed), isEmpty);
++    active.value = true;
++    await tester.pump();
++    expect(created.difference(disposed), hasLength(1));
++    await tester.pumpWidget(const SizedBox());
++    expect(created.difference(disposed), isEmpty);
++  });
++
+   test('the grid passes through the device pixel ratio', () {
+     for (final ratio in [1.0, 2.0, 2.625, 3.0]) {
+       expect(MorphGlyphScale.snap(ratio, ratio), ratio);
