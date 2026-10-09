@@ -27,6 +27,15 @@ python3 $D/cpu.py trace.cpu.json                                         # whole
   highest refresh rate; the Moto still held the app at 60 fps.
 - The VM timeline is a ring buffer: trace one motion with `NAV_RUNS=1` and
   `NAV_MOTIONS=nested-push` to keep its frames.
+- `NAV_KEEP_APP=true` repeats a nested push in one app (pop, push again)
+  instead of remounting the gallery per run.
+- `NAV_TRACE_TICKERS=true` logs the tree per run, live tickers every
+  250 ms (`LIVE`), the start stacks of tickers still running 1 s into a
+  window (`TICKER`) and who requested frames (`SCHED`). Diagnostics only:
+  it slows the windows.
+- Moto g86 at 120 Hz: `adb shell settings put system min_refresh_rate 120`
+  (restore 60.0); `cmd power set-fixed-performance-mode-enabled true` for
+  steadier clocks (restore false). Synthetic actions get no touch boost.
 - Keep the phone on a direct USB port with Stay awake on; a hub dropped the
   Moto mid-run.
 

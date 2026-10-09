@@ -45,6 +45,14 @@ const _performanceHints = bool.fromEnvironment('NAV_HINTS');
 const _immediateUiHints = bool.fromEnvironment('NAV_HINTS_IMMEDIATE_UI');
 const _uiHintsOnly = bool.fromEnvironment('NAV_HINTS_UI_ONLY');
 const _threadPhases = bool.fromEnvironment('NAV_THREAD_PHASES');
+
+/// Logs the tree per run, live tickers and frame requesters (slows windows;
+/// for diagnosis, not measurement).
+const _traceTickers = bool.fromEnvironment('NAV_TRACE_TICKERS');
+
+/// Repeats a nested push in the same app (pop back, push again) instead of
+/// remounting the gallery for every run.
+const _keepApp = bool.fromEnvironment('NAV_KEEP_APP');
 const _pageSelection = String.fromEnvironment(
   'NAV_PAGES',
   defaultValue: 'navigation',
@@ -77,6 +85,52 @@ class _BenchBinding extends WidgetsFlutterBinding {
   }
 
   int? _uiFrameStart;
+
+  /// Callers of [scheduleFrame] while [traceSchedule] is on, by stack.
+  final Map<String, int> scheduleCallers = {};
+  bool traceSchedule = false;
+
+  /// The stack each transient callback was first registered from, by
+  /// callback, while [traceStarts] is on; and the callbacks registered in
+  /// the latest frame.
+  final Map<Object, String> starts = {};
+  final Set<Object> latest = {};
+  bool traceStarts = false;
+
+  @override
+  int scheduleFrameCallback(
+    FrameCallback callback, {
+    bool rescheduling = false,
+    bool scheduleNewFrame = true,
+  }) {
+    if (traceStarts) {
+      latest.add(callback);
+      starts.putIfAbsent(
+        callback,
+        () => StackTrace.current
+            .toString()
+            .split('\n')
+            .skip(1)
+            .take(14)
+            .join(' | '),
+      );
+    }
+    return super.scheduleFrameCallback(
+      callback,
+      rescheduling: rescheduling,
+      scheduleNewFrame: scheduleNewFrame,
+    );
+  }
+
+  @override
+  void scheduleFrame() {
+    if (traceSchedule) {
+      final stack = StackTrace.current.toString().split('\n');
+      final key = stack.skip(1).take(8).join(' | ');
+      scheduleCallers[key] = (scheduleCallers[key] ?? 0) + 1;
+    }
+    super.scheduleFrame();
+  }
 
   @override
   void handleBeginFrame(Duration? rawTimeStamp) {
@@ -296,6 +350,14 @@ class _BenchState extends State<_Bench> {
   }
 
   Future<void> _mount(_Case c, {bool drive = true}) async {
+    if (_keepApp && _current == c && c.motion == 'nested-push') {
+      // Repeats the push in the same app: back to the inbox first.
+      _navigator.currentState!.pop();
+      await Future<void>.delayed(const Duration(milliseconds: 1000));
+      _action = _messageAction();
+      await Future<void>.delayed(const Duration(milliseconds: _warmMs));
+      return;
+    }
     _generation++;
     _position?.jumpTo(_position!.pixels);
     _position = null;
@@ -655,11 +717,62 @@ class _BenchState extends State<_Bench> {
             },
           );
           _order.add(c.name);
+          if (_traceTickers) {
+            final snap = _snapshot();
+            var renderObjects = 0;
+            void count(RenderObject o) {
+              renderObjects++;
+              o.visitChildren(count);
+            }
+
+            for (final view in RendererBinding.instance.renderViews) {
+              count(view);
+            }
+            debugPrint(
+              'TREE ${c.name} run $run renderObjects $renderObjects '
+              'layers ${snap['composed_layer_types']} '
+              'liquid ${snap['visible_liquid_layers']}',
+            );
+          }
           developer.Timeline.startSync('scene:${c.name}:$run:begin');
           developer.Timeline.finishSync();
           if (_phases) FlutterTimeline.debugCollectionEnabled = true;
           final window = [developer.Timeline.now, 0];
+          final framesBefore = _timings.length;
+          final binding = WidgetsBinding.instance as _BenchBinding;
+          if (_traceTickers) {
+            // Diagnostics only (they slow the window): which tickers and
+            // frame requests are still live a second into the window.
+            binding.starts.clear();
+            binding.traceStarts = true;
+            Future<void>.delayed(const Duration(milliseconds: 1000), () {
+              binding.latest.clear();
+              binding.scheduleCallers.clear();
+              binding.traceSchedule = true;
+            });
+            for (var ms = 250; ms < _sampleMs; ms += 250) {
+              Future<void>.delayed(Duration(milliseconds: ms), () {
+                debugPrint(
+                  'LIVE $ms ${SchedulerBinding.instance.transientCallbackCount}',
+                );
+              });
+            }
+          }
           await _perform(c);
+          if (_traceTickers) {
+            binding.traceSchedule = false;
+            binding.traceStarts = false;
+            for (final e in binding.scheduleCallers.entries) {
+              debugPrint('SCHED ${e.value} ${e.key}');
+            }
+            for (final callback in binding.latest) {
+              debugPrint('TICKER ${binding.starts[callback]}');
+            }
+            debugPrint(
+              'WORK ${c.name} run $run timings '
+              '${_timings.length - framesBefore}',
+            );
+          }
           window[1] = developer.Timeline.now;
           (_work[c.name] ??= []).add({
             'callback_us': _callbackUs,

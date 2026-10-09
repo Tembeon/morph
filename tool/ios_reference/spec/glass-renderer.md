@@ -2830,3 +2830,23 @@ now runs flat-only on a device without liquid, records `glyph_rasters`
 per window and the owners of every opacity / filter layer in frozen
 shots; MainActivity accepts `--ez morph-max-refresh true` for benchmark
 launches.
+
+Liquid at 120 Hz (Moto, min_refresh_rate 120, fixed performance mode):
+the same liquid push runs at 0 - 3 missed slots alone (UI / raster p50
+1.75 / 1.3 ms) but at 3.4 / 2.8 ms per frame from the second push on,
+whether the gallery is remounted or the push repeats in one app; render
+trees are identical (660 render objects, two liquid layers). Synthetic
+actions get no touch boost, and the clocks a run lands on dominate its
+120 Hz result: liquid push misses 24 - 68 slots per window in full runs
+on both sides. Frames continue for 1.25 - 1.5 s after an action - the bar
+motion's springs settling, not a stuck ticker - and in liquid each of
+those frames re-encodes the two glass layers' geometry (two Flutter GPU
+command buffers per layer: matte and material, plus the field upload):
+~22 percent of the UI thread, fusion ~15 percent, scene building ~17.
+Liquid fusion's optical field pass now uses the same decided blocks (the
+blends weigh the other boxes by 0 or 1 there; samples equal to float
+rounding, seeded test): Moto median 0.62 -> 0.53 ms, p90 1.27 -> 0.98 ms.
+Liquid push at 120 Hz remains budget-bound: next is the per-frame
+geometry encode (re-encode only when the matte changes by a visible
+amount, or fewer command buffers) and the settle tail.
+

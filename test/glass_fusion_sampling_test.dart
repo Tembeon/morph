@@ -20,7 +20,7 @@ void main() {
 
   for (final withField in [false, true]) {
     test('a container fusion reads one box where one box decides the merge, '
-        'and traces the outline the full merge law traces '
+        'and traces the outline and field the full merge law gives '
         '(${withField ? 'optical field' : 'silhouette'})', () {
       final random = math.Random(withField ? 7 : 20261009);
       debugMorphFusionDecidedBlocks = 0;
@@ -72,6 +72,21 @@ void main() {
           _walk(full.path),
           reason: 'round $round: $shapes spacing $spacing',
         );
+        if (withField) {
+          // The optical field's blends weigh the other boxes by exactly 0
+          // or 1 where one box decides; the samples agree to float
+          // rounding (they are uploaded as 32-bit floats).
+          final a = morphGlassOutlineField(fast)!.samples;
+          final b = morphGlassOutlineField(full)!.samples;
+          expect(a.length, b.length);
+          for (var i = 0; i < a.length; i++) {
+            expect(
+              (a[i] - b[i]).abs(),
+              lessThanOrEqualTo(1e-5 * (1 + b[i].abs())),
+              reason: 'round $round sample $i',
+            );
+          }
+        }
       }
       expect(fused, greaterThan(100));
       expect(debugMorphFusionDecidedBlocks, greaterThan(fused * 10));

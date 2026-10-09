@@ -986,6 +986,29 @@ MorphGlassOutline _fuseContainer(
   final turns = withField
       ? [for (var i = 0; i < boxes.length; i++) boxes.turns(i)]
       : null;
+  final blockCols = (cols - 1) ~/ b;
+  final blockRows = (rows - 1) ~/ b;
+  // The margin by which one box must be nearer than every other
+  // throughout a block to decide its merge alone.
+  final guard = spacing * (1 + (shapes.length - 2) / 4) + 1e-6;
+  // Each block's deciding box, -1 for none, -2 until decided.
+  final decided = Int32List(blockCols * blockRows);
+  decided.fillRange(0, decided.length, -2);
+  int decide(int bi, int bj) {
+    final at = bj * blockCols + bi;
+    final known = decided[at];
+    if (known != -2) return known;
+    return decided[at] = debugMorphFusionFullSampling
+        ? -1
+        : _decidingBox(
+            sample,
+            area.left + (bi * b).toDouble() * step + b * step / 2,
+            area.top + (bj * b).toDouble() * step + b * step / 2,
+            b * step / 2 * math.sqrt2,
+            guard,
+          );
+  }
+
   for (var fj = 0; fj < fieldRows; fj++) {
     final y = area.top + (fj * stride).toDouble() * step;
     for (var fi = 0; fi < fieldCols; fi++) {
@@ -998,6 +1021,27 @@ MorphGlassOutline _fuseContainer(
           m = math.min(m, boxes.distance(i, x, y));
         }
         minimum[at] = m;
+        continue;
+      }
+      // A node one box decides takes that box's distance, half minor and
+      // turn: the fold's blends then weigh the other boxes by 0 or 1.
+      final single = decide(
+        math.min(fi * stride ~/ b, blockCols - 1),
+        math.min(fj * stride ~/ b, blockRows - 1),
+      );
+      if (single >= 0) {
+        if (turns![single] && boxes.inOpticalCorner(single, x, y)) {
+          boxes.opticalTurn(single, x, y, turn!, at * 2);
+          morphNormalizeTurn(turn, at * 2);
+        } else {
+          turn![at * 2] = 1;
+          turn[at * 2 + 1] = 0;
+        }
+        final value = sample.evalBox(single, x, y);
+        distance![at] = value;
+        minimum[at] = boxes.distance(single, x, y);
+        halfMinor![at] = boxes.halfMinor(single);
+        trace[fj * stride * cols + fi * stride] = value;
         continue;
       }
       var d = boxes.distance(0, x, y);
@@ -1037,13 +1081,8 @@ MorphGlassOutline _fuseContainer(
       trace[fj * stride * cols + fi * stride] = value;
     }
   }
-  final blockCols = (cols - 1) ~/ b;
-  final blockRows = (rows - 1) ~/ b;
   final near = Uint8List(blockCols * blockRows);
   final reach = b * step * math.sqrt1_2 + step;
-  // The margin by which one box must be nearer than every other
-  // throughout a block to decide its merge alone.
-  final guard = spacing * (1 + (shapes.length - 2) / 4) + 1e-6;
   final depth = (shapes.length - 1) * spacing / 4 + step;
   const span = b ~/ stride;
   // A block one box decides reads that box alone.
@@ -1060,16 +1099,6 @@ MorphGlassOutline _fuseContainer(
     }
   }
 
-  int decide(int i0, int j0, int n) => debugMorphFusionFullSampling
-      ? -1
-      : _decidingBox(
-          sample,
-          area.left + i0.toDouble() * step + n * step / 2,
-          area.top + j0.toDouble() * step + n * step / 2,
-          n * step / 2 * math.sqrt2,
-          guard,
-        );
-
   for (var bj = 0; bj < blockRows; bj++) {
     for (var bi = 0; bi < blockCols; bi++) {
       final corner = bj * span * fieldCols + bi * span;
@@ -1081,7 +1110,7 @@ MorphGlassOutline _fuseContainer(
       final hi = math.max(math.max(a, b2), math.max(c, d));
       if (hi + reach >= 0 && lo - reach <= depth) {
         near[bj * blockCols + bi] = 1;
-        fill(bi * b, bj * b, b, decide(bi * b, bj * b, b));
+        fill(bi * b, bj * b, b, decide(bi, bj));
       }
     }
   }
