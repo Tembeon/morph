@@ -150,6 +150,19 @@ class MorphScrollEdgeEffectThemeData {
   );
 }
 
+/// Whether the scroll edge effect blurs its band on the glass tiers; false
+/// draws the flat tier's fade and hairline alone everywhere, without the
+/// band's two backdrop passes (`MORPH_EDGE_EFFECT_BLUR`, default true).
+@internal
+bool get morphEdgeEffectBlurs =>
+    debugMorphEdgeEffectBlurs ??
+    const bool.fromEnvironment('MORPH_EDGE_EFFECT_BLUR', defaultValue: true);
+
+/// Overrides [morphEdgeEffectBlurs] in tests and benches; null keeps the
+/// define.
+@visibleForTesting
+bool? debugMorphEdgeEffectBlurs;
+
 /// The iOS 27 scroll edge effect: what replaces a bar's solid background
 /// when content scrolls under it.
 ///
@@ -247,7 +260,9 @@ class MorphScrollEdgeEffect extends StatelessWidget {
             height: band,
             width: double.infinity,
             child: _EdgePaint(
-              blurs: MorphAdaptiveGlass.tierOf(context) != MorphGlassTier.flat,
+              blurs:
+                  morphEdgeEffectBlurs &&
+                  MorphAdaptiveGlass.tierOf(context) != MorphGlassTier.flat,
               style: style,
               top: top,
               look: look,
