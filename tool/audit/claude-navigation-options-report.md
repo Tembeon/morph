@@ -62,6 +62,33 @@ shader draws), so missed slots only drop with analytic geometry, which
 takes the per-frame matte encode off the UI thread while the glass
 moves and rests on the matte otherwise.
 
+## The same, started from real input
+
+Synthetic callbacks get no input boost: on the Moto the GPU then ran
+anywhere from 265 to 1047 MHz window to window, even in fixed
+performance mode, and most remaining misses fell on frames whose UI and
+raster times were both well under budget. With `NAV_REAL_INPUT` the
+bench asks the runner (`run.py --real`) to inject a real tap on the
+message row (push) or the back key (pop), so the action gets the boost a
+user's touch gets (GPU 775 - 1047 MHz in those windows); the window
+starts at the input. Same three builds, two launches each:
+
+| device | case | metric | base | now | opt |
+|---|---|---|---|---|---|
+| Redmi flat | push | missed | 25 | 10 - 12 | 3 - 5 |
+| Redmi flat | push | worst ms | 149 - 153 | 25 - 33 | 25 - 27 |
+| Redmi flat | push | build p95 ms | 19.9 - 21.4 | 16.7 - 18.5 | 8.5 - 8.7 |
+| Redmi flat | pop | missed | 19 - 24 | 6 - 7 | 2 - 3 |
+| Redmi flat | pop | worst ms | 142 - 152 | 20 - 23 | 23 - 25 |
+| Moto liquid | push | missed | 57 | 19 - 22 | 3 - 5 |
+| Moto liquid | push | worst ms | 27 - 29 | 13 - 14 | 11 - 12 |
+| Moto liquid | pop | missed | 18 - 23 | 4 - 7 | 4 - 5 |
+| Moto liquid | pop | worst ms | 25 - 28 | 12 - 13 | 10 - 11 |
+
+Real input is the closer model of a user's tap and the one to judge
+options by; it makes both recommended options decisive (Redmi push
+missed 10 - 12 -> 3 - 5, Moto push 19 - 22 -> 3 - 5).
+
 ## Options in the harness (compile-time defines)
 
 | define | default | what it does | evidence | recommendation |
