@@ -112,7 +112,9 @@ float gGlintVibrancy = kGlintVibrancy;
 const float kContourCoverageFeather = 1.0;
 
 uniform sampler2D uBackgroundTexture;
+#if !DIRECT_GEOMETRY
 uniform sampler2D uGeometryTexture;
+#endif
 #if SHAPE_APPEARANCE || SHAPE_TINT
 uniform sampler2D uMaterialTexture;
 #endif
@@ -535,6 +537,13 @@ vec3 applySpecularHighlights(
 }
 
 
+#if DIRECT_GEOMETRY
+#include "direct_geometry.glsl"
+#endif
+#if DIRECT_FIELD
+#include "direct_field.glsl"
+#endif
+
 void main() {
     // Map image-filter fragment coordinates back into the layer-local geometry
     // matte. Apple Metal surfaces expose global filter coordinates, while
@@ -557,10 +566,16 @@ void main() {
         return;
     }
 
+    #if DIRECT_GEOMETRY
+    vec4 geometryData = directGeometryData(matteCoord);
+    #elif DIRECT_FIELD
+    vec4 geometryData = directFieldData(matteCoord);
+    #else
     vec4 geometryData = texture(
         uGeometryTexture,
         geometryUV * uGeometryUVScale
     );
+    #endif
     vec4 materialTint = uTint;
     float appearanceVisibility = clamp(uAppearanceConfig.y, 0.0, 1.0);
     // Weight of the material over the refracted backdrop. Frosted glass

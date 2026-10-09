@@ -86,5 +86,9 @@ class FlutterGpuGeometryRenderer {
 
   void releaseOutput() {}
 
+  /// Unavailable on the web, which uses fake glass.
+  ui.Image directFieldImage(GlassField field) =>
+      throw UnsupportedError('Flutter GPU is not available on the web.');
+
   void dispose() {}
 }

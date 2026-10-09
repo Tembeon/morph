@@ -13,6 +13,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
@@ -374,6 +375,8 @@ class _BenchState extends State<_Bench> {
           'screen_rect': [global.left, global.top, global.width, global.height],
           'sigma': object.blurPassSigma,
           'grouped': object.backdropKey != null,
+          'direct_geometry': object.debugDirectGeometry,
+          'direct_field': object.debugDirectField,
           'has_field': object.field != null,
           'mixed_appearance': object.debugUsesShapeAppearances,
           'tint_only': object.debugUsesTintOnlyAppearance,
@@ -624,6 +627,12 @@ class _BenchState extends State<_Bench> {
               'requested_sigma_logical': 2,
               'diagnostic_ablation': c.mode == 'flat',
 
+              'direct_geometry': ShaderKeys.directGeometry,
+              'direct_geometry_updates':
+                  RenderLiquidGlassLayer.directGeometryUpdates,
+              'direct_field': ShaderKeys.directField,
+
+              'direct_field_updates': RenderLiquidGlassLayer.directFieldUpdates,
               ..._snapshot(),
             },
           );
@@ -632,11 +641,14 @@ class _BenchState extends State<_Bench> {
           developer.Timeline.finishSync();
           if (_phases) FlutterTimeline.debugCollectionEnabled = true;
           final window = [developer.Timeline.now, 0];
+          final fieldUpdates = RenderLiquidGlassLayer.directFieldUpdates;
           await _perform(c);
           window[1] = developer.Timeline.now;
           (_work[c.name] ??= []).add({
             'callback_us': _callbackUs,
 
+            'direct_field_updates':
+                RenderLiquidGlassLayer.directFieldUpdates - fieldUpdates,
           });
           if (_phases) {
             final collected = FlutterTimeline.debugCollect();

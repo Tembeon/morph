@@ -499,6 +499,29 @@ class FlutterGpuGeometryRenderer {
     }
   }
 
+  ui.Image? _directFieldImage;
+
+  /// Uploads field nodes for a final runtime filter, skipping the matte draw.
+  ///
+  /// The returned handle is borrowed until the next call or disposal. The
+  /// texture ring follows the same scene lifetime rule as the geometry pass.
+  ui.Image directFieldImage(GlassField field) {
+    _ensureFrameCounter();
+    final held = _fieldTextures.held(field, _completedFrames);
+    gpu.Texture texture;
+    if (held != null) {
+      texture = held;
+    } else {
+      final commands = gpu.gpuContext.createCommandBuffer();
+      texture = _fieldTextures.upload(field, _completedFrames, commands);
+      _submitOrDefer(commands);
+    }
+    _directFieldImage?.dispose();
+    final image = texture.asImage();
+    _directFieldImage = image;
+    return image;
+  }
+
   /// Limits [pass] to the top-left [width] x [height] of [texture].
   ///
   /// `gl_FragCoord` stays framebuffer-relative, so the shaders need no
@@ -898,6 +921,8 @@ class FlutterGpuGeometryRenderer {
     if (_disposed) return;
     _disposed = true;
     releaseOutput();
+    _directFieldImage?.dispose();
+    _directFieldImage = null;
     _fieldTextures.release();
     assert(() {
       _debugActiveRendererCount--;

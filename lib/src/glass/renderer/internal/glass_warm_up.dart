@@ -93,7 +93,10 @@ Future<void> morphWarmLiquidPipelines(
       final key = finalShaderKeys[index];
       final shader = program.fragmentShader();
       shader.setImageSampler(0, matte, filterQuality: FilterQuality.low);
-      shader.setImageSampler(1, matte);
+      final directGeometry =
+          key == ShaderKeys.liquidGlassDirectGeometry ||
+          key == ShaderKeys.liquidGlassDirectGeometryIos27;
+      if (!directGeometry) shader.setImageSampler(1, matte);
       if (key == ShaderKeys.liquidGlassMaterialRender) {
         shader.setImageSampler(2, material);
         shader.setImageSampler(3, material, filterQuality: FilterQuality.low);
