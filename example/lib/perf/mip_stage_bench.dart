@@ -27,9 +27,10 @@ const _sampleMs = int.fromEnvironment('MIP_SAMPLE_MS', defaultValue: 1600);
 const _seed = int.fromEnvironment('MIP_SEED', defaultValue: 20261008);
 const _shots = bool.fromEnvironment('MIP_SHOTS');
 const _nativeShots = bool.fromEnvironment('MIP_NATIVE_SHOTS');
+const _batch = bool.fromEnvironment('MIP_BATCH');
 const _optics = bool.fromEnvironment('MIP_OPTICS');
 
-/// Measures owned GPU blur production and optional real Morph optical consumers.
+/// Measures shared GPU pyramid production and multiple blur-only consumers.
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const _Bench());
@@ -272,6 +273,9 @@ class _Producer {
   Duration? previousFrame;
   String? failure;
   bool disposed = false;
+  gpu.CommandBuffer? activeCommand;
+  final activeTargets = <_Target>[];
+  final activeUniforms = <gpu.DeviceBuffer>[];
 
   void check() {
     if (failure case final message?) throw StateError(message);
@@ -285,7 +289,8 @@ class _Producer {
     gpu.DeviceBuffer? leased,
   }) {
     final target = ring.lease(epoch);
-    final command = gpu.gpuContext.createCommandBuffer();
+    final command = activeCommand ?? gpu.gpuContext.createCommandBuffer();
+    if (_batch) activeCommand = command;
     try {
       final pass = command.createRenderPass(
         gpu.RenderTarget.singleColor(
@@ -310,14 +315,19 @@ class _Producer {
         );
       }
       pass.draw(4);
-      submissions++;
-      command.submit(
-        completionCallback: (success) {
-          target.pending = false;
-          if (!success) failure = 'GPU producer command failed';
-          if (leased != null && !disposed) availableUniforms.add(leased);
-        },
-      );
+      if (activeCommand != null) {
+        activeTargets.add(target);
+        if (leased != null) activeUniforms.add(leased);
+      } else {
+        submissions++;
+        command.submit(
+          completionCallback: (success) {
+            target.pending = false;
+            if (!success) failure = 'GPU producer command failed';
+            if (leased != null && !disposed) availableUniforms.add(leased);
+          },
+        );
+      }
       return target.texture;
     } on Object {
       target.pending = false;
@@ -327,6 +337,39 @@ class _Producer {
 
   void update(_Case c, double phase) {
     check();
+    try {
+      recordUpdate(c, phase);
+      if (activeTargets.isNotEmpty) {
+        final targets = List<_Target>.of(activeTargets);
+        final uniforms = List<gpu.DeviceBuffer>.of(activeUniforms);
+        submissions++;
+        final elapsed = Stopwatch();
+        elapsed.start();
+        activeCommand!.submit(
+          completionCallback: (success) {
+            for (final target in targets) {
+              target.pending = false;
+            }
+            if (!success) failure = 'Batched GPU producer command failed';
+            if (!disposed) availableUniforms.addAll(uniforms);
+          },
+        );
+        elapsed.stop();
+        recordUs += elapsed.elapsedMicroseconds;
+      }
+    } on Object {
+      for (final target in activeTargets) {
+        target.pending = false;
+      }
+      rethrow;
+    } finally {
+      activeCommand = null;
+      activeTargets.clear();
+      activeUniforms.clear();
+    }
+  }
+
+  void recordUpdate(_Case c, double phase) {
     stopwatch.reset();
     stopwatch.start();
     paintCalls++;
@@ -472,7 +515,7 @@ class _SourcePainter extends CustomPainter {
   final ValueNotifier<double> phase;
   @override
   void paint(ui.Canvas canvas, ui.Size size) {
-    if (!_optics) producer.update(c, phase.value);
+    producer.update(c, phase.value);
     final paint = ui.Paint();
     paint.filterQuality = ui.FilterQuality.low;
     canvas.drawImageRect(
@@ -659,7 +702,6 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
   final ownedShaders =
       <RenderLiquidGlassLayer, Map<String, ui.FragmentShader>>{};
   final opticalLayers = <RenderLiquidGlassLayer>{};
-  bool sourceFrameScheduled = false;
 
   OwnedGlassBackdrop? ownedSource(RenderLiquidGlassLayer layer) {
     final c = current;
@@ -673,8 +715,6 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
         producer?.source == null) {
       return null;
     }
-    if (c.pyramid && producer!.images[c.kernel] == null) return null;
-    if (c.cached && producer!.cachedGaussian == null) return null;
     final shaders = ownedShaders.putIfAbsent(layer, () => {});
     final shader = shaders.putIfAbsent(
       variant,
@@ -707,20 +747,6 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
   }
 
   void invalidateOpticalConsumers() {
-    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.idle) {
-      if (!sourceFrameScheduled) {
-        sourceFrameScheduled = true;
-        SchedulerBinding.instance.scheduleFrameCallback((_) {
-          sourceFrameScheduled = false;
-          if (mounted) invalidateOpticalConsumers();
-        });
-      }
-      return;
-    }
-    // Repaint boundaries can be painted before their source's parent even
-    // when the source is visually below them. Publish before paint begins.
-    final c = current;
-    if (c != null && producer != null) producer!.update(c, phase.value);
     for (final layer in opticalLayers) {
       if (layer.attached) layer.markNeedsPaint();
     }
@@ -755,9 +781,8 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
 
   Future<void> mount(_Case c) async {
     ticker.stop();
-    setState(() => current = c);
     phase.value = 0;
-    if (_optics) invalidateOpticalConsumers();
+    setState(() => current = c);
     await SchedulerBinding.instance.endOfFrame;
     if (_optics) {
       opticalLayers.clear();
@@ -837,7 +862,6 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
             'lens_count': c.count,
             'requested_sigma_physical': c.sigma,
             if (_optics) 'optical_layers': opticalLayers.length,
-            'producer_submission': 'per-pass',
             'source_update': c.dynamicSource ? 'every-frame' : 'unchanged',
             'lod': c.pyramid ? c.lod : 0.0,
             'visible_rects_logical': [
@@ -945,10 +969,10 @@ class _BenchState extends State<_Bench> with SingleTickerProviderStateMixin {
           : 'shared-mip-owned-texture-blur-only',
       'resource_pool':
           'four targets / three scene epochs / producer completion, Vulkan only',
-      'producer_submission': 'one command buffer per producer pass',
-      'shot_transport': !_shots && !_nativeShots
-          ? 'none'
-          : _nativeShots
+      'producer_submission': _batch
+          ? 'one command buffer per dirty source/filter update'
+          : 'one command buffer per producer pass',
+      'shot_transport': _nativeShots
           ? 'adb screencap after timed windows; separate physical crop metadata'
           : 'RepaintBoundary.toImage after timed windows',
       'platform': Platform.operatingSystem,
