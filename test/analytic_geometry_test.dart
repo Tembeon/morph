@@ -1,0 +1,281 @@
+// The test reads the renderer's internals directly.
+// ignore_for_file: invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+
+import 'dart:io';
+import 'dart:ui';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/glass/renderer/renderer.dart';
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
+
+const String _shaders = 'lib/src/glass/renderer/shaders/';
+
+final RegExp _uniform = RegExp(
+  r'^uniform (float|vec2|vec3|vec4) (\w+)(?:\[([^\]]+)\])?;',
+);
+
+const Map<String, int> _floats = {'float': 1, 'vec2': 2, 'vec3': 3, 'vec4': 4};
+
+/// The float index of every non-sampler uniform declared in [lines], in
+/// declaration order from [start], array sizes evaluated with [defines].
+Map<String, (int, int)> _layout(
+  Iterable<String> lines,
+  int start,
+  Map<String, int> defines,
+) {
+  final layout = <String, (int, int)>{};
+  var index = start;
+  for (final line in lines) {
+    final match = _uniform.firstMatch(line.trim());
+    if (match == null) continue;
+    var count = 1;
+    if (match.group(3) case final size?) {
+      for (final factor in size.split('*')) {
+        final term = factor.trim();
+        count *= defines[term] ?? int.parse(term);
+      }
+    }
+    final floats = _floats[match.group(1)]! * count;
+    layout[match.group(2)!] = (index, floats);
+    index += floats;
+  }
+  return layout;
+}
+
+/// The core's floats before the analytic include.
+int _coreFloats() {
+  final core = File(
+    '${_shaders}liquid_glass_final_render_core.glsl',
+  ).readAsLinesSync();
+  final include = core.indexWhere(
+    (line) => line.contains('#include "analytic_geometry.glsl"'),
+  );
+  expect(include, greaterThan(0));
+  final layout = _layout(core.take(include), 0, const {});
+  final (last, size) = layout.values.last;
+  return last + size;
+}
+
+/// The analytic file's uniforms, with only the variant's #if SHAPE_TINT
+/// blocks.
+List<String> _analyticLines({required bool tint}) {
+  final lines = File('${_shaders}analytic_geometry.glsl').readAsLinesSync();
+  final kept = <String>[];
+  var skipping = false;
+  for (final line in lines) {
+    final trimmed = line.trim();
+    if (trimmed == '#if SHAPE_TINT') {
+      skipping = !tint;
+      continue;
+    }
+    if (trimmed == '#endif') {
+      skipping = false;
+      continue;
+    }
+    if (!skipping) kept.add(line);
+  }
+  return kept;
+}
+
+int _maxShapes() {
+  final define = RegExp(r'^#define ANALYTIC_MAX_SHAPES (\d+)');
+  for (final line in File(
+    '${_shaders}analytic_geometry.glsl',
+  ).readAsLinesSync()) {
+    if (define.firstMatch(line) case final match?) {
+      return int.parse(match.group(1)!);
+    }
+  }
+  throw StateError('ANALYTIC_MAX_SHAPES not defined');
+}
+
+String? _ineligibility({
+  bool enabled = true,
+  bool hasField = false,
+  bool shadersReady = true,
+  required List<(double, List<LiquidGlassAppearance>)> geometries,
+}) => RenderLiquidGlassLayer.analyticIneligibility(
+  enabled: enabled,
+  hasField: hasField,
+  shadersReady: () => shadersReady,
+  geometries: geometries,
+  fallback: const LiquidGlassAppearance.ios27RegularDark(),
+);
+
+void main() {
+  group('analytic uniform layout', () {
+    test('the core ends its float uniforms at 65', () {
+      expect(_coreFloats(), RenderLiquidGlassLayer.analyticUniformIndex);
+      expect(RenderLiquidGlassLayer.analyticUniformIndex, 65);
+    });
+
+    test('the shape cap matches the shader', () {
+      expect(_maxShapes(), RenderLiquidGlassLayer.analyticMaxShapes);
+      expect(RenderLiquidGlassLayer.analyticMaxShapes, 8);
+    });
+
+    for (final tint in [false, true]) {
+      test('the analytic uniforms sit where the layer writes them: '
+          '${tint ? 'tint' : 'one appearance'}', () {
+        final max = _maxShapes();
+        final layout = _layout(_analyticLines(tint: tint), _coreFloats(), {
+          'MAX_SHAPES': max,
+          'ANALYTIC_MAX_SHAPES': max,
+        });
+        expect(layout['uAnalyticOptics'], (
+          RenderLiquidGlassLayer.analyticUniformIndex,
+          4,
+        ));
+        expect(layout['uAnalyticRanges'], (69, 4));
+        expect(layout['uShapeData'], (
+          RenderLiquidGlassLayer.analyticShapeDataIndex,
+          max * 12,
+        ));
+        expect(RenderLiquidGlassLayer.analyticShapeDataIndex, 73);
+        expect(layout['uRseData'], (
+          RenderLiquidGlassLayer.analyticRseDataIndex,
+          max * 12,
+        ));
+        expect(RenderLiquidGlassLayer.analyticRseDataIndex, 169);
+        expect(layout['uShapeBounds'], (
+          RenderLiquidGlassLayer.analyticBoundsIndex,
+          max * 4,
+        ));
+        expect(RenderLiquidGlassLayer.analyticBoundsIndex, 265);
+        if (tint) {
+          expect(layout['uShapeTints'], (
+            RenderLiquidGlassLayer.analyticTintsIndex,
+            max * 4,
+          ));
+          expect(RenderLiquidGlassLayer.analyticTintsIndex, 297);
+        } else {
+          expect(layout.containsKey('uShapeTints'), isFalse);
+        }
+        expect(layout.keys, [
+          'uAnalyticOptics',
+          'uAnalyticRanges',
+          'uShapeData',
+          'uRseData',
+          'uShapeBounds',
+          if (tint) 'uShapeTints',
+        ]);
+      });
+    }
+  });
+
+  group('analytic eligibility', () {
+    const dark = LiquidGlassAppearance.ios27RegularDark();
+    const green = LiquidGlassAppearance.ios27RegularDark(
+      tint: Color(0x9934C759),
+    );
+    const light = LiquidGlassAppearance.ios27RegularLight();
+
+    test('separate shapes with one appearance are eligible', () {
+      expect(
+        _ineligibility(
+          geometries: [
+            (0, [dark, dark]),
+            (0, [dark]),
+          ],
+        ),
+        isNull,
+      );
+    });
+
+    test('the toggle', () {
+      expect(
+        _ineligibility(
+          enabled: false,
+          geometries: [
+            (0, [dark]),
+          ],
+        ),
+        'disabled',
+      );
+    });
+
+    test('a fused field', () {
+      expect(
+        _ineligibility(
+          hasField: true,
+          geometries: [
+            (0, [dark]),
+          ],
+        ),
+        'fused field',
+      );
+    });
+
+    test('a blend with one shape never blends; with two it does', () {
+      expect(
+        _ineligibility(
+          geometries: [
+            (12, [dark]),
+            (0, [dark]),
+          ],
+        ),
+        isNull,
+      );
+      expect(
+        _ineligibility(
+          geometries: [
+            (12, [dark, dark]),
+          ],
+        ),
+        'blend group',
+      );
+    });
+
+    test('eight shapes are eligible, nine are not', () {
+      expect(_ineligibility(geometries: [(0, List.filled(8, dark))]), isNull);
+      expect(
+        _ineligibility(
+          geometries: [(0, List.filled(5, dark)), (0, List.filled(4, dark))],
+        ),
+        'more than 8 shapes',
+      );
+    });
+
+    test('appearances that differ only by tint are eligible', () {
+      expect(
+        _ineligibility(
+          geometries: [
+            (0, [dark, green]),
+          ],
+        ),
+        isNull,
+      );
+    });
+
+    test('mixed appearances are not', () {
+      expect(
+        _ineligibility(
+          geometries: [
+            (0, [dark, light]),
+          ],
+        ),
+        'mixed appearances',
+      );
+    });
+
+    test('shaders that have not loaded', () {
+      expect(
+        _ineligibility(
+          shadersReady: false,
+          geometries: [
+            (0, [dark]),
+          ],
+        ),
+        'shaders not loaded',
+      );
+    });
+  });
+
+  test('the analytic shaders stay out of the liquid program list', () {
+    expect(ShaderKeys.liquidGlassRenders, hasLength(5));
+    for (final key in ShaderKeys.liquidGlassAnalyticRenders) {
+      expect(ShaderKeys.liquidGlassRenders, isNot(contains(key)));
+    }
+  });
+}

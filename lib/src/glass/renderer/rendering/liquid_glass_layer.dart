@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_setters_without_getters, cascade_invocations
 
+import 'dart:async';
 import 'dart:math';
 import 'dart:ui';
 import 'dart:ui' as ui;
@@ -355,10 +356,6 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
               materialRenderShader: shaders[2],
               tintRenderShader: shaders[3],
               tintIos27RenderShader: shaders[4],
-              analyticRenderShader: shaders[5],
-              analyticIos27RenderShader: shaders[6],
-              analyticTintRenderShader: shaders[7],
-              analyticTintIos27RenderShader: shaders[8],
               backdropKey: backdropKey,
               blursOwnBackdrop: widget.blursOwnBackdrop,
               live: live,
@@ -428,10 +425,6 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.materialRenderShader,
     required this.tintRenderShader,
     required this.tintIos27RenderShader,
-    required this.analyticRenderShader,
-    required this.analyticIos27RenderShader,
-    required this.analyticTintRenderShader,
-    required this.analyticTintIos27RenderShader,
     required this.backdropKey,
     required this.blursOwnBackdrop,
     required this.live,
@@ -448,10 +441,6 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final FragmentShader materialRenderShader;
   final FragmentShader tintRenderShader;
   final FragmentShader tintIos27RenderShader;
-  final FragmentShader analyticRenderShader;
-  final FragmentShader analyticIos27RenderShader;
-  final FragmentShader analyticTintRenderShader;
-  final FragmentShader analyticTintIos27RenderShader;
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
   final Listenable? live;
@@ -471,10 +460,6 @@ class _RawShapes extends SingleChildRenderObjectWidget {
       materialRenderShader: materialRenderShader,
       tintRenderShader: tintRenderShader,
       tintIos27RenderShader: tintIos27RenderShader,
-      analyticRenderShader: analyticRenderShader,
-      analyticIos27RenderShader: analyticIos27RenderShader,
-      analyticTintRenderShader: analyticTintRenderShader,
-      analyticTintIos27RenderShader: analyticTintIos27RenderShader,
       backdropKey: backdropKey,
       settings: settingsOf(),
       defaultAppearance: defaultAppearance,
@@ -551,10 +536,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     required this.materialRenderShader,
     required this.tintRenderShader,
     required this.tintIos27RenderShader,
-    required this.analyticRenderShader,
-    required this.analyticIos27RenderShader,
-    required this.analyticTintRenderShader,
-    required this.analyticTintIos27RenderShader,
     required super.backdropKey,
     required super.devicePixelRatio,
     required super.settings,
@@ -592,44 +573,171 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// Shapes that differ only by tint, an iOS 27 color model.
   final FragmentShader tintIos27RenderShader;
 
-  /// One appearance for the layer, the direct color model, with the shapes
-  /// evaluated in the final shader.
-  final FragmentShader analyticRenderShader;
-
-  /// One appearance for the layer, an iOS 27 color model, with the shapes
-  /// evaluated in the final shader.
-  final FragmentShader analyticIos27RenderShader;
-
-  /// Shapes that differ only by tint, the direct color model, evaluated in
-  /// the final shader.
-  final FragmentShader analyticTintRenderShader;
-
-  /// Shapes that differ only by tint, an iOS 27 color model, evaluated in
-  /// the final shader.
-  final FragmentShader analyticTintIos27RenderShader;
+  /// The analytic final shaders of this layer, in the order of
+  /// [ShaderKeys.liquidGlassAnalyticRenders], or null until analytic
+  /// geometry is enabled and their programs have loaded.
+  List<FragmentShader>? _analyticShaders;
 
   /// The most shapes a layer evaluates in its final shader; a layer with
   /// more renders a geometry matte. Matches ANALYTIC_MAX_SHAPES in
   /// shaders/analytic_geometry.glsl.
   static const int analyticMaxShapes = 8;
 
+  static bool? _debugAnalyticGeometry;
+
   /// Overrides [ShaderKeys.analyticGeometry] for every layer when not null,
-  /// for an A/B of the analytic and the matte geometry.
+  /// for an A/B of the analytic and the matte geometry. Setting it asks
+  /// every attached layer for a new geometry frame.
   @visibleForTesting
-  static bool? debugAnalyticGeometry;
+  static bool? get debugAnalyticGeometry => _debugAnalyticGeometry;
+  @visibleForTesting
+  static set debugAnalyticGeometry(bool? value) {
+    if (_debugAnalyticGeometry == value) return;
+    _debugAnalyticGeometry = value;
+    if (analyticGeometryEnabled) unawaited(precacheAnalyticShaders());
+    _invalidateAttachedLayers();
+  }
 
   /// Whether layers whose shapes are separate evaluate them in the final
   /// shader: [debugAnalyticGeometry], else [ShaderKeys.analyticGeometry].
+  ///
+  /// An analytic frame draws the same shading as the matte path; only the
+  /// matte's quantization and nearest sampling are gone. Its culling rect
+  /// and the bevel shadow's size response (written as 0, so inert today)
+  /// read the geometry bounds rounded out to device pixels, not a texture
+  /// size bucket. Shapes are evaluated where they are, without the matte's
+  /// raster-phase shifts.
   static bool get analyticGeometryEnabled =>
-      debugAnalyticGeometry ?? ShaderKeys.analyticGeometry;
+      _debugAnalyticGeometry ?? ShaderKeys.analyticGeometry;
+
+  static final Set<RenderLiquidGlassLayer> _attachedLayers = {};
+
+  static void _invalidateAttachedLayers() {
+    for (final layer in _attachedLayers) {
+      layer.needsGeometryUpdate = true;
+      layer.markNeedsPaint();
+    }
+  }
+
+  static final Map<String, Future<FragmentProgram?>> _analyticLoads = {};
+  static final Map<String, FragmentProgram> _analyticPrograms = {};
+
+  /// Loads the analytic final shader programs; completes when each has
+  /// loaded or failed. A program that fails to load leaves every layer on
+  /// the matte path. Layers ask for a new geometry frame once a load
+  /// completes.
+  static Future<void> precacheAnalyticShaders() => Future.wait([
+    for (final key in ShaderKeys.liquidGlassAnalyticRenders)
+      _loadAnalyticProgram(key),
+  ]);
+
+  static Future<FragmentProgram?> _loadAnalyticProgram(String key) =>
+      _analyticLoads[key] ??= FragmentProgram.fromAsset(key).then(
+        (program) {
+          _analyticPrograms[key] = program;
+          _invalidateAttachedLayers();
+          return program;
+        },
+        onError: (Object error) {
+          if (kDebugMode) {
+            debugPrint('morph: analytic glass shader unavailable: $error');
+          }
+          return null;
+        },
+      );
+
+  /// The loaded analytic program for [key], or null when it has not loaded
+  /// (yet).
+  static FragmentProgram? analyticProgram(String key) => _analyticPrograms[key];
+
+  // Whether this layer has its analytic shaders, creating them once their
+  // programs have loaded and starting the loads otherwise.
+  bool _analyticShadersReady() {
+    if (_analyticShaders != null) return true;
+    final shaders = <FragmentShader>[];
+    for (final key in ShaderKeys.liquidGlassAnalyticRenders) {
+      final program = _analyticPrograms[key];
+      if (program == null) {
+        unawaited(_loadAnalyticProgram(key));
+        for (final shader in shaders) {
+          shader.dispose();
+        }
+        return false;
+      }
+      shaders.add(program.fragmentShader());
+    }
+    _analyticShaders = shaders;
+    _staleShaders.addAll(shaders);
+    return true;
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    // Only a debug override or a build with analytic geometry ever asks
+    // the attached layers for a new frame.
+    if (!kReleaseMode || ShaderKeys.analyticGeometry) _attachedLayers.add(this);
+  }
+
+  @override
+  void detach() {
+    _attachedLayers.remove(this);
+    super.detach();
+  }
 
   // Whether the current frame's shapes are evaluated in the final shader
   // instead of read from a geometry matte.
   bool _analytic = false;
 
+  // Why the latest geometry frame was not analytic, or null when it was.
+  String? _analyticIneligibility;
+
   /// Whether the current frame evaluates its shapes in the final shader.
   @visibleForTesting
   bool get debugAnalytic => _analytic;
+
+  /// Why the latest geometry frame took the matte path, or null when it
+  /// was analytic.
+  @visibleForTesting
+  String? get debugAnalyticIneligibility => _analyticIneligibility;
+
+  /// Why shapes cannot be evaluated in the final shader, or null when they
+  /// can: analytic geometry is [enabled], the layer has no fused field
+  /// ([hasField]), there are at most [analyticMaxShapes] shapes, no
+  /// geometry of two or more shapes blends them, the appearances are one
+  /// or differ only by tint (against [fallback] when there are none), and
+  /// the analytic shaders are ready ([shadersReady]).
+  ///
+  /// [geometries] holds each geometry's blend and its shapes' appearances.
+  @visibleForTesting
+  static String? analyticIneligibility({
+    required bool enabled,
+    required bool hasField,
+    required bool Function() shadersReady,
+    required Iterable<(double, Iterable<LiquidGlassAppearance>)> geometries,
+    required LiquidGlassAppearance fallback,
+  }) {
+    if (!enabled) return 'disabled';
+    if (hasField) return 'fused field';
+    final appearances = <LiquidGlassAppearance>[];
+    for (final (blend, shapes) in geometries) {
+      final start = appearances.length;
+      for (final appearance in shapes) {
+        if (appearances.length == analyticMaxShapes) {
+          return 'more than $analyticMaxShapes shapes';
+        }
+        appearances.add(appearance);
+      }
+      if (blend != 0 && appearances.length - start > 1) return 'blend group';
+    }
+    final (mixed, tintOnly, _) = _classifyShapeAppearances(
+      appearances,
+      fallback,
+    );
+    if (mixed && !tintOnly) return 'mixed appearances';
+    if (!shadersReady()) return 'shaders not loaded';
+    return null;
+  }
 
   /// The final shader the current appearances draw with: each variant
   /// compiles only the color models it can meet, which keeps the
@@ -644,10 +752,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _usesTintOnlyAppearance,
       ios27,
     )) {
-      (false, _, false) when _analytic => analyticRenderShader,
-      (false, _, true) when _analytic => analyticIos27RenderShader,
-      (true, true, false) when _analytic => analyticTintRenderShader,
-      (true, true, true) when _analytic => analyticTintIos27RenderShader,
+      (false, _, false) when _analytic => _analyticShaders![0],
+      (false, _, true) when _analytic => _analyticShaders![1],
+      (true, true, false) when _analytic => _analyticShaders![2],
+      (true, true, true) when _analytic => _analyticShaders![3],
       (false, _, false) => defaultRenderShader,
       (false, _, true) => ios27RenderShader,
       (true, true, false) => tintRenderShader,
@@ -724,10 +832,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _staleShaders.add(materialRenderShader);
     _staleShaders.add(tintRenderShader);
     _staleShaders.add(tintIos27RenderShader);
-    _staleShaders.add(analyticRenderShader);
-    _staleShaders.add(analyticIos27RenderShader);
-    _staleShaders.add(analyticTintRenderShader);
-    _staleShaders.add(analyticTintIos27RenderShader);
+    if (_analyticShaders case final shaders?) _staleShaders.addAll(shaders);
     _writeStaleShaderSettings(renderShader);
   }
 
@@ -1240,7 +1345,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // texture. Newer engines use morphGlassShaderFilter's explicit quality.
       activeRenderShader.setImageSampler(
         0,
-        _analyticSamplerImage,
+        _analyticSamplerImage ??= _blankImage(),
         filterQuality: FilterQuality.low,
       );
       _writeAnalyticUniforms(activeRenderShader);
@@ -1284,24 +1389,41 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   // The image bound to the background sampler before the native filter
   // replaces it with its input, when no matte exists to bind there.
-  static final ui.Image _analyticSamplerImage = () {
+  ui.Image? _analyticSamplerImage;
+
+  static ui.Image _blankImage() {
     final recorder = ui.PictureRecorder();
     Canvas(recorder);
-    return recorder.endRecording().toImageSync(1, 1);
-  }();
+    final picture = recorder.endRecording();
+    final image = picture.toImageSync(1, 1);
+    picture.dispose();
+    return image;
+  }
 
-  // Float index of uAnalyticOptics, the first analytic uniform after the
-  // 65 common floats; then uAnalyticRanges, uShapeData, uRseData,
-  // uShapeBounds and, in the tint variants, uShapeTints
-  // (shaders/analytic_geometry.glsl).
-  static const int _analyticUniformIndex = 65;
-  static const int _analyticShapeDataIndex = _analyticUniformIndex + 8;
-  static const int _analyticRseDataIndex =
-      _analyticShapeDataIndex + analyticMaxShapes * 12;
-  static const int _analyticBoundsIndex =
-      _analyticRseDataIndex + analyticMaxShapes * 12;
-  static const int _analyticTintsIndex =
-      _analyticBoundsIndex + analyticMaxShapes * 4;
+  /// Float index of uAnalyticOptics, the first analytic uniform, after the
+  /// 65 common floats (shaders/analytic_geometry.glsl).
+  @visibleForTesting
+  static const int analyticUniformIndex = 65;
+
+  /// Float index of uShapeData, after uAnalyticOptics and uAnalyticRanges.
+  @visibleForTesting
+  static const int analyticShapeDataIndex = analyticUniformIndex + 8;
+
+  /// Float index of uRseData, after 3 vec4 of uShapeData per shape.
+  @visibleForTesting
+  static const int analyticRseDataIndex =
+      analyticShapeDataIndex + analyticMaxShapes * 12;
+
+  /// Float index of uShapeBounds, after 3 vec4 of uRseData per shape.
+  @visibleForTesting
+  static const int analyticBoundsIndex =
+      analyticRseDataIndex + analyticMaxShapes * 12;
+
+  /// Float index of uShapeTints, after one vec4 of uShapeBounds per shape;
+  /// only the tint variants declare it.
+  @visibleForTesting
+  static const int analyticTintsIndex =
+      analyticBoundsIndex + analyticMaxShapes * 4;
 
   // The geometry pass's optical inputs of the current analytic frame.
   double _analyticRefractionHeight = 0;
@@ -1314,25 +1436,25 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // Writes the analytic frame's shapes and the geometry pass's optical
   // inputs into [shader], from float index 65.
   void _writeAnalyticUniforms(FragmentShader shader) {
-    shader.setFloat(_analyticUniformIndex, _analyticRefractionHeight);
-    shader.setFloat(_analyticUniformIndex + 1, _analyticRefractionAmount);
-    shader.setFloat(_analyticUniformIndex + 2, _analyticFitsShape ? 1 : 0);
-    shader.setFloat(_analyticUniformIndex + 3, _analyticShapeCount.toDouble());
-    shader.setFloat(_analyticUniformIndex + 4, _analyticContourExtent);
+    shader.setFloat(analyticUniformIndex, _analyticRefractionHeight);
+    shader.setFloat(analyticUniformIndex + 1, _analyticRefractionAmount);
+    shader.setFloat(analyticUniformIndex + 2, _analyticFitsShape ? 1 : 0);
+    shader.setFloat(analyticUniformIndex + 3, _analyticShapeCount.toDouble());
+    shader.setFloat(analyticUniformIndex + 4, _analyticContourExtent);
     for (var i = 0; i < _shapeData.length; i++) {
-      shader.setFloat(_analyticShapeDataIndex + i, _shapeData[i]);
+      shader.setFloat(analyticShapeDataIndex + i, _shapeData[i]);
     }
     for (var i = 0; i < _rseData.length; i++) {
-      shader.setFloat(_analyticRseDataIndex + i, _rseData[i]);
+      shader.setFloat(analyticRseDataIndex + i, _rseData[i]);
     }
     for (var i = 0; i < _boundsData.length; i++) {
-      shader.setFloat(_analyticBoundsIndex + i, _boundsData[i]);
+      shader.setFloat(analyticBoundsIndex + i, _boundsData[i]);
     }
     // Only the tint variants declare uShapeTints.
-    if (identical(shader, analyticTintRenderShader) ||
-        identical(shader, analyticTintIos27RenderShader)) {
+    final shaders = _analyticShaders!;
+    if (identical(shader, shaders[2]) || identical(shader, shaders[3])) {
       for (var i = 0; i < _analyticTints.length; i++) {
-        shader.setFloat(_analyticTintsIndex + i, _analyticTints[i]);
+        shader.setFloat(analyticTintsIndex + i, _analyticTints[i]);
       }
     }
   }
@@ -1351,26 +1473,24 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _shaderInputsChanged = true;
   }
 
-  // Whether [geometries] can be evaluated in the final shader: no fused
-  // field, at most [analyticMaxShapes] shapes that never blend, and one
-  // appearance or appearances that differ only by tint.
-  bool _analyticEligible(
+  // Why [geometries] cannot be evaluated in the final shader, or null.
+  String? _analyticIneligibilityOf(
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
   ) {
-    if (!analyticGeometryEnabled || _field != null) return false;
-    final appearances = <LiquidGlassAppearance>[];
-    for (final (_, geometry, _) in geometries) {
-      if (geometry.blend != 0) return false;
-      for (final shape in geometry.shapes) {
-        if (appearances.length == analyticMaxShapes) return false;
-        appearances.add(shape.appearance);
-      }
-    }
-    final (mixed, tintOnly, _) = _classifyShapeAppearances(
-      appearances,
-      defaultAppearance,
+    if (!analyticGeometryEnabled) return 'disabled';
+    return analyticIneligibility(
+      enabled: true,
+      hasField: _field != null,
+      shadersReady: _analyticShadersReady,
+      geometries: [
+        for (final (_, geometry, _) in geometries)
+          (
+            geometry.blend,
+            [for (final shape in geometry.shapes) shape.appearance],
+          ),
+      ],
+      fallback: defaultAppearance,
     );
-    return !mixed || tintOnly;
   }
 
   // Own a replaceable picture rather than recording shadows together with
@@ -1823,6 +1943,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _cachedFilter = null;
     _clearGeometryImage();
     _gpuGeometryRenderer = null;
+    _analyticSamplerImage?.dispose();
+    _analyticSamplerImage = null;
+    if (_analyticShaders case final shaders?) {
+      _staleShaders.removeAll(shaders);
+      for (final shader in shaders) {
+        shader.dispose();
+      }
+    }
+    _analyticShaders = null;
     super.dispose();
   }
 
@@ -1987,7 +2116,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // mathematical shape. Keep that margin in the persistent geometry
       // texture so the positive side of the fade is not clipped at the matte
       // edge.
-      final analytic = _analyticEligible(geometries);
+      final ineligibility = _analyticIneligibilityOf(geometries);
+      _analyticIneligibility = ineligibility;
+      final analytic = ineligibility == null;
       final layerToPass = shaderCoordinateTransform;
       // Analytic shapes are evaluated where they are: no matte grid to
       // move or to shift them onto.
@@ -2031,6 +2162,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // Gather shapes in cache order. A negative blend marker starts a new
       // group; this preserves smooth unions within a group without blending
       // unrelated standalone glass widgets together.
+      // The analytic frame reads these lists; it ends with them.
+      _analytic = false;
       _shapeData.clear();
       _rseData.clear();
       _boundsData.clear();

@@ -8,7 +8,7 @@
 // are gone.
 //
 // Shapes never blend here (the layer sends only frames whose every shape
-// is its own group), so the scene is the plain minimum of its shapes.
+// is its own group), so sceneSample is the plain minimum of its shapes.
 //
 // Included by liquid_glass_final_render_core.glsl after its uniforms, so
 // these uniforms follow its float uniforms (from float index 65).
@@ -29,6 +29,7 @@ uniform vec4 uShapeBounds[MAX_SHAPES];
 uniform vec4 uShapeTints[MAX_SHAPES];
 #endif
 
+#define SCENE_SAMPLE_INDEX 1
 #include "gpu/sdf.glsl"
 
 struct AnalyticGeometry {
@@ -62,23 +63,14 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
         return result;
     }
 
-    SceneSample scene;
-    scene.distance = 1e9;
-    scene.halfMinor = 0.0;
-    scene.curvatureFactor = 0.0;
-    scene.normal = vec2(0.0);
-    scene.opticalNormal = vec2(0.0);
-    for (int i = 0; i < MAX_SHAPES; i++) {
-        if (i >= count) break;
-        SceneSample shape = getShapeSampleFromArray(i, p, false);
-        if (shape.distance < scene.distance) {
-            scene = shape;
-            #if SHAPE_TINT
-            result.tint = uShapeTints[i];
-            #endif
-        }
-    }
+    // The geometry pass's own scene: with no blends every shape starts a
+    // group and the nearest wins, in its order and with its culling.
+    SceneSample scene = sceneSample(p, count);
     #if SHAPE_TINT
+    // A constant-index chain: the index selects a uniform array element.
+    for (int i = 0; i < MAX_SHAPES; i++) {
+        if (float(i) == scene.index) result.tint = uShapeTints[i];
+    }
     if (result.tint.a <= 0.0001) {
         result.tint.rgb = vec3(0.0);
     }

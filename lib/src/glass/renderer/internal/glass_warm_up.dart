@@ -82,17 +82,22 @@ Future<void> morphWarmLiquidPipelines(
     images.add(tint);
     FlutterGpuGeometryRenderer.flushPendingSubmissions();
 
-    // The analytic variants are warmed only where layers use them.
-    final analyticKeys = ShaderKeys.liquidGlassAnalyticRenders.toSet();
-    final warmedKeys = [
-      for (final key in finalShaderKeys)
-        if (RenderLiquidGlassLayer.analyticGeometryEnabled ||
-            !analyticKeys.contains(key))
-          key,
+    final programs = [
+      ...await Future.wait(finalShaderKeys.map(ui.FragmentProgram.fromAsset)),
     ];
-    final programs = await Future.wait(
-      warmedKeys.map(ui.FragmentProgram.fromAsset),
-    );
+    final warmedKeys = [...finalShaderKeys];
+    // The analytic variants are warmed only where layers use them; one
+    // that does not load is left out rather than failing the warm-up.
+    if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
+      await RenderLiquidGlassLayer.precacheAnalyticShaders();
+      for (final key in ShaderKeys.liquidGlassAnalyticRenders) {
+        if (RenderLiquidGlassLayer.analyticProgram(key) case final program?) {
+          programs.add(program);
+          warmedKeys.add(key);
+        }
+      }
+    }
+    final analyticKeys = ShaderKeys.liquidGlassAnalyticRenders.toSet();
     final filters = <ui.ImageFilter>[];
     final tintKeys = {
       ShaderKeys.liquidGlassTintRender,

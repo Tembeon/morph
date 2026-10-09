@@ -102,6 +102,7 @@ void main() {
     addTearDown(tester.view.reset);
     addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
     await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     if (_out.isNotEmpty) Directory(_out).createSync(recursive: true);
     final harness = ShaderHarness(tester);
     final dpr = harness.devicePixelRatio;
@@ -173,6 +174,7 @@ void main() {
     addTearDown(tester.view.reset);
     addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
     await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
     final backdrop = await harness.backdrop();
     final boundary = GlobalKey();
@@ -297,9 +299,22 @@ void main() {
     expect(layerAnalytic(), isTrue);
     expect(HarnessDiff.of(await shoot(), twoMoved).max, lessThanOrEqualTo(1));
 
+    // Flipping the override in one mount takes effect on the next frame.
+    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    await tester.pump();
+    expect(layerAnalytic(), isFalse);
+    await settle();
+    final keptMatte = await shoot();
+    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    await tester.pump();
+    expect(layerAnalytic(), isTrue);
+    await settle();
+    expect(HarnessDiff.of(await shoot(), twoMoved).max, lessThanOrEqualTo(1));
+
     // The matte path with the same transitions draws the same as fresh.
     RenderLiquidGlassLayer.debugAnalyticGeometry = false;
     final matteMoved = await fresh(2, moved);
+    expect(HarnessDiff.of(keptMatte, matteMoved).max, lessThanOrEqualTo(1));
     final compared = _compare(matteMoved, twoMoved, (x, y) => true);
     // ignore: avoid_print
     print('moved pair matte vs analytic $compared');

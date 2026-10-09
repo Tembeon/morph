@@ -43,27 +43,25 @@ abstract class ShaderKeys {
     'MORPH_ANALYTIC_GEOMETRY',
   );
 
-  // The analytic variants always load from the package: a frozen copy of
-  // the runtime shaders (debugRuntimeRoot) may predate them.
-  static String get _analyticRoot =>
-      '${_shadersRoot}lib/src/glass/renderer/shaders/';
-
   static String get liquidGlassAnalyticRender =>
-      '${_analyticRoot}liquid_glass_final_render_analytic.frag';
+      '${_runtimeRoot}liquid_glass_final_render_analytic.frag';
 
   static String get liquidGlassAnalyticIos27Render =>
-      '${_analyticRoot}liquid_glass_final_render_analytic_ios27.frag';
+      '${_runtimeRoot}liquid_glass_final_render_analytic_ios27.frag';
 
   static String get liquidGlassAnalyticTintRender =>
-      '${_analyticRoot}liquid_glass_final_render_analytic_tint.frag';
+      '${_runtimeRoot}liquid_glass_final_render_analytic_tint.frag';
 
   static String get liquidGlassAnalyticTintIos27Render =>
-      '${_analyticRoot}liquid_glass_final_render_analytic_tint_ios27.frag';
+      '${_runtimeRoot}liquid_glass_final_render_analytic_tint_ios27.frag';
 
-  /// The final shaders that evaluate their shapes analytically, in the
-  /// order of [liquidGlassRenders]' tail: one appearance with the direct and
-  /// with an iOS 27 color model, shapes that differ only by tint with the
-  /// direct and with an iOS 27 color model.
+  /// The final shaders that evaluate their shapes analytically: one
+  /// appearance with the direct and with an iOS 27 color model, shapes that
+  /// differ only by tint with the direct and with an iOS 27 color model.
+  ///
+  /// Not part of [liquidGlassRenders]: they load only while analytic
+  /// geometry is enabled, and a copy of the runtime shaders under
+  /// [debugRuntimeRoot] without them leaves its layers on the matte path.
   static List<String> get liquidGlassAnalyticRenders => [
     liquidGlassAnalyticRender,
     liquidGlassAnalyticIos27Render,
@@ -74,14 +72,13 @@ abstract class ShaderKeys {
   /// The final liquid glass shaders in the order a layer binds them: one
   /// appearance with the direct and with an iOS 27 color model, shapes with
   /// their own appearances, shapes that differ only by tint with the direct
-  /// and with an iOS 27 color model, then [liquidGlassAnalyticRenders].
+  /// and with an iOS 27 color model.
   static List<String> get liquidGlassRenders => [
     liquidGlassRender,
     liquidGlassIos27Render,
     liquidGlassMaterialRender,
     liquidGlassTintRender,
     liquidGlassTintIos27Render,
-    ...liquidGlassAnalyticRenders,
   ];
 
   static String get fakeGlassSurface =>

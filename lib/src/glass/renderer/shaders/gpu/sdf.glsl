@@ -177,6 +177,11 @@ struct SceneSample {
     // refraction, lighting and antialiasing.
     vec2 normal;
     vec2 opticalNormal;
+    #ifdef SCENE_SAMPLE_INDEX
+    // The shape whose sample won (the one with the larger weight in a
+    // smooth union); only shaders that define SCENE_SAMPLE_INDEX carry it.
+    float index;
+    #endif
 };
 
 // Apple's glass turns its optical normal before a corner starts, as if the
@@ -393,6 +398,9 @@ SceneSample getShapeSampleFromArray(int index, vec2 p, bool blended) {
     );
     resultSample.normal = gradients.xy;
     resultSample.opticalNormal = gradients.zw;
+    #ifdef SCENE_SAMPLE_INDEX
+    resultSample.index = float(index);
+    #endif
     return resultSample;
 }
 
@@ -425,6 +433,9 @@ SceneSample smoothUnionSample(SceneSample a, SceneSample b, float k) {
         a.opticalNormal,
         gradientWeightA
     );
+    #ifdef SCENE_SAMPLE_INDEX
+    result.index = gradientWeightA >= 0.5 ? a.index : b.index;
+    #endif
     return result;
 }
 
@@ -435,6 +446,9 @@ SceneSample sceneSample(vec2 p, int numShapes) {
     empty.curvatureFactor = 0.0;
     empty.normal = vec2(0.0);
     empty.opticalNormal = vec2(0.0);
+    #ifdef SCENE_SAMPLE_INDEX
+    empty.index = 0.0;
+    #endif
     if (numShapes <= 0) {
         return empty;
     }

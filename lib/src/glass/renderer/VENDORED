@@ -277,24 +277,36 @@ Local patches (some commits include related package changes):
   first-sampler quality. Native phase evidence and SDK provenance are in
   tool/audit/codex-beta-sdk-report.md.
 - 2026-10-09 analytic geometry: a layer whose frame has no fused field,
-  1 to 8 shapes that never blend (RenderLiquidGlassLayer.analyticMaxShapes)
-  and one appearance or appearances that differ only by tint evaluates its
-  shapes in the final shader instead of rendering the Flutter GPU matte and
-  material map: shaders/analytic_geometry.glsl (included by the core under
-  ANALYTIC_GEOMETRY) runs the geometry pass's SDFs (gpu/sdf.glsl), optics
-  and empty-pixel rejection per fragment and maps the signed distance and
-  displacement through the matte's encode and decode ranges, so only the
-  matte's quantization and nearest sampling are gone; the tint variants
-  take the nearest shape's tint, as the material map does without blends.
-  Four new final shaders (liquid_glass_final_render_analytic,
+  1 to 8 shapes (RenderLiquidGlassLayer.analyticMaxShapes), no geometry
+  of two or more shapes with a blend, and one appearance or appearances
+  that differ only by tint evaluates its shapes in the final shader
+  instead of rendering the Flutter GPU matte and material map:
+  shaders/analytic_geometry.glsl (included by the core under
+  ANALYTIC_GEOMETRY) runs the geometry pass's own sceneSample (gpu/sdf.glsl,
+  with SCENE_SAMPLE_INDEX carrying the winning shape for the tint; the
+  geometry and material passes do not define it and compile as before),
+  optics and empty-pixel rejection per fragment, and maps the signed
+  distance and displacement through the matte's encode and decode ranges,
+  so only the matte's quantization and nearest sampling are gone; the
+  tint variants take the nearest shape's tint, as the material map does
+  without blends. Four final shaders (liquid_glass_final_render_analytic,
   _analytic_ios27, _analytic_tint, _analytic_tint_ios27) declare only the
   background sampler and take the shapes as uniform arrays from float
   index 65 (uAnalyticOptics, uAnalyticRanges, uShapeData, uRseData,
-  uShapeBounds, uShapeTints). Analytic shapes are not moved onto a raster
-  grid (no raster-phase shifts, bias or phase watch); a uniformly
-  translated frame moves their centers and boxes. Every other frame takes
-  the matte path, unchanged, in the same frame. Off by default:
+  uShapeBounds, uShapeTints). They are not in ShaderKeys.liquidGlassRenders:
+  their programs load (RenderLiquidGlassLayer.precacheAnalyticShaders) only
+  while analytic geometry is enabled, outside the liquid capability, each
+  layer creates its four shaders once they have loaded, and a program
+  that fails to load (a debugRuntimeRoot copy without them) leaves the
+  matte path. Analytic shapes are not moved onto a raster grid (no
+  raster-phase shifts, bias or phase watch); a uniformly translated frame
+  moves their centers and boxes. Every other frame takes the matte path,
+  unchanged, in the same frame. Off by default:
   `--dart-define=MORPH_ANALYTIC_GEOMETRY=true` (ShaderKeys
-  .analyticGeometry) or RenderLiquidGlassLayer.debugAnalyticGeometry turn
-  it on; the warm-up draws the analytic shaders only then. Host A/B
-  against the matte: example/test/analytic_geometry_host_test.dart.
+  .analyticGeometry) or RenderLiquidGlassLayer.debugAnalyticGeometry, whose
+  setter asks every attached layer for a new geometry frame; the warm-up
+  draws the analytic shaders only then. Unit tests:
+  test/analytic_geometry_test.dart (uniform layout against the GLSL,
+  eligibility); host A/B against the matte and the gallery's Navigation
+  layers: example/test/analytic_geometry_host_test.dart,
+  example/test/analytic_gallery_host_test.dart.
