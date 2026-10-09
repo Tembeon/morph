@@ -51,6 +51,9 @@ abstract class ShaderKeys {
   static String get fakeGlassSurface =>
       '${_runtimeRoot}fake_glass_surface.frag';
 
+  /// The experimental retained foreground blur sampler.
+  static String get glyphBlurAtlas => '${_runtimeRoot}glyph_blur_atlas.frag';
+
   static final String gpuGeometryShaderBundle =
       '${_shadersRoot}build/shaderbundles/morph_glass.shaderbundle';
 }

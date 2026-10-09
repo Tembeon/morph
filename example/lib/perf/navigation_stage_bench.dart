@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/glyph_blur_atlas.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -570,6 +571,7 @@ class _BenchState extends State<_Bench> {
         throw StateError('Framework phase counters require profile mode.');
       }
       await MorphGlassRenderer.precache();
+      if (MorphGlyphBlurAtlas.enabled) await MorphGlyphBlurAtlas.precache();
       if (!MorphGlassRenderer.liquidAvailable) {
         throw StateError('Liquid glass unavailable');
       }
@@ -623,6 +625,12 @@ class _BenchState extends State<_Bench> {
               'content': c.page == 'navigation' ? 'mail' : 'gallery-list',
               'requested_sigma_logical': 2,
               'diagnostic_ablation': c.mode == 'flat',
+              'glyph_blur_atlas': MorphGlyphBlurAtlas.enabled,
+
+              'glyph_atlas_reduced': MorphGlyphBlurAtlas.reduced,
+              'glyph_atlas_captures': MorphGlyphBlurAtlas.captures,
+              'glyph_atlas_live_bytes': MorphGlyphBlurAtlas.liveBytes,
+              'glyph_atlas_peak_bytes': MorphGlyphBlurAtlas.peakBytes,
 
               ..._snapshot(),
             },
@@ -632,10 +640,16 @@ class _BenchState extends State<_Bench> {
           developer.Timeline.finishSync();
           if (_phases) FlutterTimeline.debugCollectionEnabled = true;
           final window = [developer.Timeline.now, 0];
+          final captures = MorphGlyphBlurAtlas.captures;
+          final preparation = MorphGlyphBlurAtlas.preparationUs;
           await _perform(c);
           window[1] = developer.Timeline.now;
           (_work[c.name] ??= []).add({
             'callback_us': _callbackUs,
+
+            'glyph_atlas_captures': MorphGlyphBlurAtlas.captures - captures,
+            'glyph_atlas_preparation_us':
+                MorphGlyphBlurAtlas.preparationUs - preparation,
 
           });
           if (_phases) {

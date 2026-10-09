@@ -16,6 +16,7 @@ import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
+import 'package:morph/src/widgets/glyph_blur_atlas.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
@@ -1432,7 +1433,16 @@ class _MorphBarItemsState extends State<MorphBarItems>
       );
       _contents[button.id] = (inputs, content);
     }
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+    final blurAtlas =
+        MorphGlyphBlurAtlas.enabled &&
+        frame.blur * scale.abs() >= MorphGlyphRaster.minBlur;
+    if (blurAtlas) {
+      content = MorphGlyphBlurAtlas(
+        sigma: frame.blur,
+        opacity: frame.presence,
+        child: content,
+      );
+    } else if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       content = MorphGlyphRaster(
         active: frame.blur * scale.abs() >= MorphGlyphRaster.minBlur
             ? const AlwaysStoppedAnimation(true)
@@ -1441,7 +1451,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         child: content,
       );
     }
-    if (frame.blur > 0.05) {
+    if (!blurAtlas && frame.blur > 0.05) {
       content = ImageFiltered(
         imageFilter: ui.ImageFilter.blur(
           sigmaX: frame.blur,
@@ -1451,10 +1461,13 @@ class _MorphBarItemsState extends State<MorphBarItems>
         child: content,
       );
     }
-    content = Opacity(
-      opacity: frame.presence.clamp(0.0, 1.0),
-      child: Transform.scale(scale: scale, child: content),
-    );
+    content = Transform.scale(scale: scale, child: content);
+    if (!blurAtlas) {
+      content = Opacity(
+        opacity: frame.presence.clamp(0.0, 1.0),
+        child: content,
+      );
+    }
     if (!frame.leaving) {
       content = Semantics(
         button: true,
