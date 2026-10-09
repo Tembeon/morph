@@ -1,0 +1,15 @@
+{
+  "package_tests": 1407,
+  "example_tests": 21,
+  "targeted_renderer_tests": 47,
+  "python_tests": 22,
+  "analyze": "zero issues",
+  "dartdoc": "zero warnings/errors",
+  "macos_release": "passed",
+  "web_wasm": "passed; native-only LOD SkSL stub",
+  "metal_autodemo": "AUTODEMO done; no exception",
+  "owned_hook_default": null,
+  "native_source_snapshot": "owned-optics-admission",
+  "delivered_source_snapshot": "owned-optics-delivered",
+  "research_reference_sha256": "0e3d256fa91e86b9053de04014e3df560c6bf20d93797385c2bec0d810ef400c"
+}

@@ -1,0 +1,23 @@
+#include <flutter/runtime_effect.glsl>
+
+precision highp float;
+
+uniform vec2 uOrigin;
+uniform float uRatio;
+uniform vec2 uAtlasSize;
+uniform vec2 uCellSize;
+uniform vec2 uRows;
+uniform float uMix;
+uniform float uOpacity;
+uniform float uPad;
+uniform sampler2D uAtlas;
+
+out vec4 fragColor;
+
+void main() {
+    vec2 p = (FlutterFragCoord().xy - uOrigin) * uRatio + vec2(uPad);
+    p = clamp(p, vec2(0.5), uCellSize - vec2(0.5));
+    vec4 a = texture(uAtlas, (p + vec2(0.0, uRows.x)) / uAtlasSize);
+    vec4 b = texture(uAtlas, (p + vec2(0.0, uRows.y)) / uAtlasSize);
+    fragColor = mix(a, b, uMix) * uOpacity;
+}

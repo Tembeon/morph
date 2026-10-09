@@ -1,0 +1,12 @@
+{
+  "nav-glyph-bounds-control.apk": {
+    "path": "/tmp/morph-architecture/navigation-research/nav-glyph-bounds-control.apk",
+    "bytes": 18015748,
+    "sha256": "04e3b55f9d5998b3bfaa4480fd7a5bbfb98c1ee60fa91658975849eddd7ed3d2"
+  },
+  "nav-glyph-bounds-tight.apk": {
+    "path": "/tmp/morph-architecture/navigation-research/nav-glyph-bounds-tight.apk",
+    "bytes": 18015748,
+    "sha256": "4c2270aed1f010e735fa8c403e816b68050bd2b436bbde0afa74e913824aa9bf"
+  }
+}

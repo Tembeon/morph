@@ -1,0 +1,33 @@
+{
+  "target": "lib/perf/navigation_stage_bench.dart",
+  "defines": [
+    "NAV_HINTS=true",
+    "MORPH_DIRECT_FIELD=true",
+    "NAV_RUNS=3",
+    "NAV_WARM_MS=500",
+    "NAV_SAMPLE_MS=800",
+    "NAV_SEED=2026100814",
+    "NAV_MOTIONS=enter,nested-push,nested-pop,toolbar",
+    "NAV_SHOTS=true",
+    "NAV_SHOT_OFFSETS=0,1,4,10,20,34,48"
+  ],
+  "flutter_executable": "flutter-beta",
+  "sdk": {
+    "frameworkVersion": "3.49.0-0.2.pre",
+    "channel": "beta",
+    "repositoryUrl": "https://github.com/flutter/flutter.git",
+    "frameworkRevision": "38ec981bad973156ad05bdef0aa8e82d1a58905b",
+    "frameworkCommitDate": "2026-09-30 09:52:04 -0700",
+    "engineRevision": "774a76734848e38c908681d752e465b2a1595adb",
+    "engineCommitDate": "2026-09-18 21:11:54.000Z",
+    "engineContentHash": "1dd8f8de143bd458caafa09072e090ebefd2d6b1",
+    "engineBuildDate": "2026-09-19 00:12:55.388",
+    "dartSdkVersion": "3.14.0 (build 3.14.0-211.1.beta)",
+    "devToolsVersion": "2.61.0-dev.0",
+    "flutterVersion": "3.49.0-0.2.pre",
+    "flutterRoot": "/Users/tembeon/.local/share/flutter-beta"
+  },
+  "commit": "1325722f3ecc60c9b0e3cd9dd47835a756869a3e",
+  "source_sha256": "9a7fb7a5aa8d88f33616faca1714a326b42ce08fa7837faf6d44fcb4aa96ee9f",
+  "apk_sha256": "7e54363313b1f2752159e60a63d0289bd589e69ca37755c50d91cb0690193ac7"
+}

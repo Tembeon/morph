@@ -1,0 +1,202 @@
+apk: /tmp/morph-architecture/glyph-batch/control.apk
+sha256: cfe4e964e570e8b755d1643612239cfbea7b481568ffb97024c782a851f87748
+leave_installed: True
+trace: presentation
+commit: 1325722f3ecc60c9b0e3cd9dd47835a756869a3e
+before:
+IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 9
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 13
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+	Temperature{mValue=31.639002, mType=-1, mName=neutral_therm, mStatus=0}
+	Temperature{mValue=37.293003, mType=-1, mName=charger_skin_therm, mStatus=0}
+	Temperature{mValue=0.0, mType=4, mName=VIRTUAL-USB-UI, mStatus=0}
+	Temperature{mValue=31.572002, mType=-1, mName=disp_therm, mStatus=0}
+	Temperature{mValue=31.683, mType=-1, mName=quiet_therm, mStatus=0}
+	Temperature{mValue=33.597, mType=-1, mName=skin_therm1, mStatus=0}
+	Temperature{mValue=34.955, mType=-1, mName=skin_therm2, mStatus=0}
+	Temperature{mValue=31.400002, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=51.000004, mType=9, mName=TPU, mStatus=0}
+	Temperature{mValue=31.371002, mType=-1, mName=usb_pwr_therm2, mStatus=0}
+	Temperature{mValue=32.7527, mType=5, mName=cellular-emergency, mStatus=0}
+	Temperature{mValue=32.796, mType=-1, mName=gnss_tcxo_therm, mStatus=0}
+	Temperature{mValue=37.0479, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+HAL Ready: true
+HAL connection:
+	ThermalHAL AIDL 3  connected: yes
+Current temperatures from HAL:
+	Temperature{mValue=33.800003, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=35.649754, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+	Temperature{mValue=37.693, mType=-1, mName=skin_therm2, mStatus=0}
+	Temperature{mValue=34.488003, mType=-1, mName=neutral_therm, mStatus=1}
+	Temperature{mValue=35.649754, mType=5, mName=cellular-emergency, mStatus=0}
+	Temperature{mValue=41.000004, mType=9, mName=TPU, mStatus=0}
+	Temperature{mValue=38.918003, mType=-1, mName=charger_skin_therm, mStatus=0}
+	Temperature{mValue=33.709003, mType=-1, mName=usb_pwr_therm2, mStatus=0}
+	Temperature{mValue=36.246002, mType=-1, mName=gnss_tcxo_therm, mStatus=0}
+	Temperature{mValue=33.909, mType=-1, mName=quiet_therm, mStatus=0}
+	Temperature{mValue=0.0, mType=4, mName=VIRTUAL-USB-UI, mStatus=0}
+	Temperature{mValue=33.686, mType=-1, mName=disp_therm, mStatus=0}
+	Temperature{mValue=36.536003, mType=-1, mName=skin_therm1, mStatus=0}
+Current cooling devices from HAL:
+	CoolingDevice{mValue=0, mType=1, mName=usbc-port}
+	CoolingDevice{mValue=0, mType=1, mName=fcc}
+	CoolingDevice{mValue=0, mType=2, mName=thermal-cpufreq-1}
+	CoolingDevice{mValue=0, mType=5, mName=tpu_cooling}
+	CoolingDevice{mValue=0, mType=3, mName=thermal-gpufreq-0}
+	CoolingDevice{mValue=0, mType=2, mName=thermal-cpufreq-2}
+	CoolingDevice{mValue=0, mType=2, mName=thermal-cpufreq-0}
+Temperature static thresholds from HAL:
+	TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=skin_therm2, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=neutral_therm, mHotThrottlingThresholds=[NaN, 32.0, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=5, mName=cellular-emergency, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, 54.0, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=9, mName=TPU, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=charger_skin_therm, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=usb_pwr_therm2, mHotThrottlingThresholds=[NaN, 39.0, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=gnss_tcxo_therm, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=quiet_therm, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=4, mName=VIRTUAL-USB-UI, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, 2.0, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=disp_therm, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=skin_therm1, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+Temperature headroom thresholds:
+[NaN, 0.8, 0.93333334, 1.0, 1.0666667, 1.2333333, 1.3333334]
+
+Current Battery Service state:
+  AC powered: true
+  USB powered: false
+  Wireless powered: false
+  Dock powered: false
+  Max charging current: 3000000
+ Time when the latest updated value of the Max charging current was sent via battery changed broadcast: +2d1h10m57s215ms
+  Max charging voltage: 5000000
+  Charge counter: 2396000
+  status: 2
+  health: 4
+  present: true
+  level: 100
+  scale: 100
+  voltage: 4029
+ Time when the latest updated value of the voltage was sent via battery changed broadcast: +2d2h16m15s546ms
+ The last voltage value sent via the battery changed broadcast: 4029
+  temperature: 339
+  technology: Li-ion
+  Charging state: 1
+  Charging policy: 1
+  Capacity level: 5
+
+skin: 35.649754
+trace_config_sha256: 990e86eecc30ee33274f4dc79a33939713082ec456011490d70c534164e8bdf0
+package:dev.tembeon.morph_example uid:10378
+
+Starting: Intent { cmp=dev.tembeon.morph_example/.MainActivity }
+Status: ok
+LaunchState: COLD
+Activity: dev.tembeon.morph_example/.MainActivity
+TotalTime: 868
+WaitTime: 871
+Complete
+
+after:
+IsStatusOverride: false
+ThermalEventListeners:
+	callbacks: 9
+	killed: false
+	broadcasts count: -1
+ThermalStatusListeners:
+	callbacks: 13
+	killed: false
+	broadcasts count: -1
+Thermal Status: 0
+Cached temperatures:
+	Temperature{mValue=31.639002, mType=-1, mName=neutral_therm, mStatus=0}
+	Temperature{mValue=37.293003, mType=-1, mName=charger_skin_therm, mStatus=0}
+	Temperature{mValue=0.0, mType=4, mName=VIRTUAL-USB-UI, mStatus=0}
+	Temperature{mValue=31.572002, mType=-1, mName=disp_therm, mStatus=0}
+	Temperature{mValue=31.683, mType=-1, mName=quiet_therm, mStatus=0}
+	Temperature{mValue=33.597, mType=-1, mName=skin_therm1, mStatus=0}
+	Temperature{mValue=34.955, mType=-1, mName=skin_therm2, mStatus=0}
+	Temperature{mValue=31.400002, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=51.000004, mType=9, mName=TPU, mStatus=0}
+	Temperature{mValue=31.371002, mType=-1, mName=usb_pwr_therm2, mStatus=0}
+	Temperature{mValue=32.7527, mType=5, mName=cellular-emergency, mStatus=0}
+	Temperature{mValue=32.796, mType=-1, mName=gnss_tcxo_therm, mStatus=0}
+	Temperature{mValue=37.0479, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+HAL Ready: true
+HAL connection:
+	ThermalHAL AIDL 3  connected: yes
+Current temperatures from HAL:
+	Temperature{mValue=34.100002, mType=2, mName=battery, mStatus=0}
+	Temperature{mValue=36.096207, mType=3, mName=VIRTUAL-SKIN, mStatus=0}
+	Temperature{mValue=38.406002, mType=-1, mName=skin_therm2, mStatus=0}
+	Temperature{mValue=34.822002, mType=-1, mName=neutral_therm, mStatus=1}
+	Temperature{mValue=36.096207, mType=5, mName=cellular-emergency, mStatus=0}
+	Temperature{mValue=44.000004, mType=9, mName=TPU, mStatus=0}
+	Temperature{mValue=40.253002, mType=-1, mName=charger_skin_therm, mStatus=0}
+	Temperature{mValue=34.065002, mType=-1, mName=usb_pwr_therm2, mStatus=0}
+	Temperature{mValue=36.58, mType=-1, mName=gnss_tcxo_therm, mStatus=0}
+	Temperature{mValue=34.31, mType=-1, mName=quiet_therm, mStatus=0}
+	Temperature{mValue=0.0, mType=4, mName=VIRTUAL-USB-UI, mStatus=0}
+	Temperature{mValue=33.998, mType=-1, mName=disp_therm, mStatus=0}
+	Temperature{mValue=37.159, mType=-1, mName=skin_therm1, mStatus=0}
+Current cooling devices from HAL:
+	CoolingDevice{mValue=0, mType=1, mName=usbc-port}
+	CoolingDevice{mValue=0, mType=1, mName=fcc}
+	CoolingDevice{mValue=0, mType=2, mName=thermal-cpufreq-1}
+	CoolingDevice{mValue=0, mType=5, mName=tpu_cooling}
+	CoolingDevice{mValue=0, mType=3, mName=thermal-gpufreq-0}
+	CoolingDevice{mValue=0, mType=2, mName=thermal-cpufreq-2}
+	CoolingDevice{mValue=0, mType=2, mName=thermal-cpufreq-0}
+Temperature static thresholds from HAL:
+	TemperatureThreshold{mType=2, mName=battery, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=3, mName=VIRTUAL-SKIN, mHotThrottlingThresholds=[NaN, 39.0, 43.0, 45.0, 47.0, 52.0, 55.0], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=skin_therm2, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=neutral_therm, mHotThrottlingThresholds=[NaN, 32.0, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=5, mName=cellular-emergency, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, 54.0, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=9, mName=TPU, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=charger_skin_therm, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=usb_pwr_therm2, mHotThrottlingThresholds=[NaN, 39.0, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=gnss_tcxo_therm, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=quiet_therm, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=4, mName=VIRTUAL-USB-UI, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, 2.0, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=disp_therm, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+	TemperatureThreshold{mType=-1, mName=skin_therm1, mHotThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN], mColdThrottlingThresholds=[NaN, NaN, NaN, NaN, NaN, NaN, NaN]}
+Temperature headroom thresholds:
+[NaN, 0.8, 0.93333334, 1.0, 1.0666667, 1.2333333, 1.3333334]
+
+Current Battery Service state:
+  AC powered: true
+  USB powered: false
+  Wireless powered: false
+  Dock powered: false
+  Max charging current: 3000000
+ Time when the latest updated value of the Max charging current was sent via battery changed broadcast: +2d1h10m57s215ms
+  Max charging voltage: 5000000
+  Charge counter: 2404000
+  status: 2
+  health: 4
+  present: true
+  level: 100
+  scale: 100
+  voltage: 4030
+ Time when the latest updated value of the voltage was sent via battery changed broadcast: +2d2h16m15s546ms
+ The last voltage value sent via the battery changed broadcast: 4029
+  temperature: 338
+  technology: Li-ion
+  Charging state: 1
+  Charging policy: 1
+  Capacity level: 5
+
+renderer log:
+--------- beginning of main
+10-09 00:50:20.039  7283  7315 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+
+skin: 36.096207

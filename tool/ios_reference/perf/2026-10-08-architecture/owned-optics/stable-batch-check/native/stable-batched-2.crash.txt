@@ -1,0 +1,35 @@
+--------- beginning of main
+10-09 00:03:42.688 30538 30538 I libprocessgroup: Created cgroup /sys/fs/cgroup/apps/uid_10378/pid_30538
+10-09 00:03:42.691 30538 30538 I Zygote  : Process 30538 created for dev.tembeon.morph_example
+10-09 00:03:42.691 30538 30538 I n.morph_example: Using generational CollectorTypeCMC GC.
+10-09 00:03:42.695 30538 30538 D nativeloader: Load libframework-connectivity-tiramisu-jni.so using APEX ns com_android_tethering for caller /apex/com.android.tethering/javalib/framework-connectivity-t.jar: ok
+10-09 00:03:42.705 30538 30538 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+10-09 00:03:42.705 30538 30538 D ApplicationLoaders: Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+10-09 00:03:42.706 30538 30538 D nativeloader: Configuring clns-9 for other apk /data/app/~~RQ3q0NG_NmdEtHMjhtkzdQ==/dev.tembeon.morph_example-YYQJ9ljZ1C6GB60z9lFXLA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~RQ3q0NG_NmdEtHMjhtkzdQ==/dev.tembeon.morph_example-YYQJ9ljZ1C6GB60z9lFXLA==/lib/arm64:/data/app/~~RQ3q0NG_NmdEtHMjhtkzdQ==/dev.tembeon.morph_example-YYQJ9ljZ1C6GB60z9lFXLA==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/dev.tembeon.morph_example
+--------- beginning of system
+10-09 00:03:42.709 30538 30538 D ActivityThread: Set OS env TMPDIR to /data/user/0/dev.tembeon.morph_example/cache
+10-09 00:03:42.709 30538 30538 V GraphicsEnvironment: Currently set values for:
+10-09 00:03:42.709 30538 30538 V GraphicsEnvironment:   angle_gl_driver_selection_pkgs=[com.android.angle]
+10-09 00:03:42.709 30538 30538 V GraphicsEnvironment:   angle_gl_driver_selection_values=[angle]
+10-09 00:03:42.709 30538 30538 V GraphicsEnvironment: dev.tembeon.morph_example is not listed in per-application setting
+10-09 00:03:42.709 30538 30538 V GraphicsEnvironment: No special selections for ANGLE, returning default driver choice
+10-09 00:03:42.710 30538 30538 V GraphicsEnvironment: Neither updatable production driver nor prerelease driver is supported.
+10-09 00:03:42.717 30538 30553 I DisplayManager: Choreographer implicitly registered for the refresh rate.
+10-09 00:03:42.718 30538 30553 D vulkan  : searching for layers in '/data/app/~~RQ3q0NG_NmdEtHMjhtkzdQ==/dev.tembeon.morph_example-YYQJ9ljZ1C6GB60z9lFXLA==/lib/arm64'
+10-09 00:03:42.718 30538 30553 D vulkan  : searching for layers in '/data/app/~~RQ3q0NG_NmdEtHMjhtkzdQ==/dev.tembeon.morph_example-YYQJ9ljZ1C6GB60z9lFXLA==/base.apk!/lib/arm64-v8a'
+10-09 00:03:42.727 30538 30556 D nativeloader: Load /data/app/~~RQ3q0NG_NmdEtHMjhtkzdQ==/dev.tembeon.morph_example-YYQJ9ljZ1C6GB60z9lFXLA==/base.apk!/lib/arm64-v8a/libflutter.so using class loader ns clns-9 (caller=/data/app/~~RQ3q0NG_NmdEtHMjhtkzdQ==/dev.tembeon.morph_example-YYQJ9ljZ1C6GB60z9lFXLA==/base.apk): ok
+10-09 00:03:42.729 30538 30538 W n.morph_example: type=1400 audit(0.0:14633): avc:  denied  { read } for  name="max_map_count" dev="proc" ino=5388448 scontext=u:r:untrusted_app_34:s0:c122,c257,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=0 app=dev.tembeon.morph_example
+10-09 00:03:42.746 30538 30568 I flutter : [IMPORTANT:flutter/shell/platform/android/android_context_vk_impeller.cc(62)] Using the Impeller rendering backend (Vulkan).
+10-09 00:03:42.794 30538 30538 D CompatChangeReporter: Compat change id reported: 377864165; UID 10378; state: ENABLED
+10-09 00:03:42.991 30538 30538 D WindowOnBackDispatcher: setTopOnBackInvokedCallback (unwrapped): android.app.Activity$$ExternalSyntheticLambda0@a1fa259
+10-09 00:03:42.992 30538 30538 I WindowExtensionsImpl: Initializing Window Extensions, vendor API level=10, activity embedding enabled=true
+10-09 00:03:42.992 30538 30629 D WindowOnBackDispatcher: setOnBackInvokedCallbackInfo: android.app.Activity$$ExternalSyntheticLambda0@a1fa259
+10-09 00:03:42.994 30538 30538 W UiContextUtils: Requested context is a non-UI Context. Creating a UI-Context with display: 0. Context: Context=android.app.Application@33039c2, of which baseContext=android.app.ContextImpl@375fe3d
+10-09 00:03:42.999 30538 30538 D VRI[MainActivity]: WindowInsets changed: 1080x2400 statusBars:[0,132,0,0] navigationBars:[0,0,0,63] mandatorySystemGestures:[0,164,0,84] 
+10-09 00:03:43.002 30538 30538 I Surface : Creating surface for consumer unnamed-30538-0 with slotExpansion=1 for 64 slots
+10-09 00:03:43.002 30538 30538 I Surface : Creating surface for consumer VRI[MainActivity]#0(BLAST Consumer)0 with slotExpansion=1 for 64 slots
+10-09 00:03:43.004 30538 30538 I Surface : Creating surface for consumer unnamed-30538-1 with slotExpansion=1 for 64 slots
+10-09 00:03:43.004 30538 30538 I Surface : Creating surface for consumer cb620df SurfaceView[dev.tembeon.morph_example/dev.tembeon.morph_example.MainActivity]#1(BLAST Consumer)1 with slotExpansion=1 for 64 slots
+10-09 00:03:43.424 30538 30538 D WindowLayoutComponentImpl: Register WindowLayoutInfoListener on Context=dev.tembeon.morph_example.MainActivity@573b7f5, of which baseContext=android.app.ContextImpl@f8e2418
+--------- beginning of crash
+10-09 00:03:43.517 30538 30538 F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x8 in tid 30538 (n.morph_example), pid 30538 (n.morph_example)

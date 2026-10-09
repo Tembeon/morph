@@ -1,0 +1,12 @@
+{
+  "package_tests": 1409,
+  "example_tests": 21,
+  "analyze": "No issues found",
+  "dartdoc_warnings": 0,
+  "dartdoc_errors": 0,
+  "macos_release": true,
+  "wasm": true,
+  "autodemo_done": true,
+  "autodemo_renderer": "Impeller MetalSDF, default experimental flags",
+  "candidate_production_admitted": false
+}

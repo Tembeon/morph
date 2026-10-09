@@ -1,0 +1,1300 @@
+{
+  "left": "/tmp/morph-architecture/glyph-batch/results/control-gpu-1.json",
+  "right": "/tmp/morph-architecture/glyph-batch/results/cohort-gpu-1.json",
+  "limitations": [
+    "Framework-root toImage captures after timing; not direct SurfaceFlinger screen grabs.",
+    "Glyph witness is the union of transformed foreground boxes with a fixed 100-pixel halo; not engine filter attachment coverage.",
+    "Read only current report shot_graphs names; artifact directories contain older unowned PNGs.",
+    "Raw differences include unrelated one-pixel contour/render noise; compare the repeated control."
+  ],
+  "rows": [
+    {
+      "shot": "nav-navigation-enter-liquid-f0",
+      "left_png_sha256": "830bd4006c7ef3369444379d4ebe8fd68a211b4c6ad9526bc2f4d8815588eae1",
+      "right_png_sha256": "830bd4006c7ef3369444379d4ebe8fd68a211b4c6ad9526bc2f4d8815588eae1",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-enter-liquid-f1",
+      "left_png_sha256": "6c4e450d537676a1a2cf32d47c6591e045f233628aaa8815bc7481a1a47b0a78",
+      "right_png_sha256": "6c4e450d537676a1a2cf32d47c6591e045f233628aaa8815bc7481a1a47b0a78",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-enter-liquid-f4",
+      "left_png_sha256": "d013be55679a04854d6bdcbb0e2607036416a9a642c06f1ef4195490c9fd653b",
+      "right_png_sha256": "d013be55679a04854d6bdcbb0e2607036416a9a642c06f1ef4195490c9fd653b",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 7723.9164843749995,
+      "right_source_area": 7723.9164843749995,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": {
+        "pixels": 209724,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      }
+    },
+    {
+      "shot": "nav-navigation-enter-liquid-f10",
+      "left_png_sha256": "7a616cda8bfcc48295184d383e3932ce91d57c3741c2468b9b50c61d5c4ae1c4",
+      "right_png_sha256": "7a616cda8bfcc48295184d383e3932ce91d57c3741c2468b9b50c61d5c4ae1c4",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 7723.9164843749995,
+      "right_source_area": 7723.9164843749995,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": {
+        "pixels": 250908,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      }
+    },
+    {
+      "shot": "nav-navigation-enter-liquid-f20",
+      "left_png_sha256": "e7b9b428be1711a940c5dd903a1eb6bb47beefc41d57989e32b812ab779decd9",
+      "right_png_sha256": "e7b9b428be1711a940c5dd903a1eb6bb47beefc41d57989e32b812ab779decd9",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-enter-liquid-f34",
+      "left_png_sha256": "438be6491f38c63544f8c99390ba0886cded4385240b8eac9a4b1d5f26528f69",
+      "right_png_sha256": "438be6491f38c63544f8c99390ba0886cded4385240b8eac9a4b1d5f26528f69",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-enter-liquid-f48",
+      "left_png_sha256": "63d065ccae315b881e4391e0e6a4d3be02d6ca52791eca8d9658f43c498f06ec",
+      "right_png_sha256": "63d065ccae315b881e4391e0e6a4d3be02d6ca52791eca8d9658f43c498f06ec",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-push-liquid-f0",
+      "left_png_sha256": "963351690ccf255a47447a7ab4150a6dc54b1b72fc3627134f639bceffe672bb",
+      "right_png_sha256": "963351690ccf255a47447a7ab4150a6dc54b1b72fc3627134f639bceffe672bb",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-push-liquid-f1",
+      "left_png_sha256": "ea0440005dc7061a31b518d87ff016b6efe249bdad7396ddedf2c906dba15568",
+      "right_png_sha256": "ea0440005dc7061a31b518d87ff016b6efe249bdad7396ddedf2c906dba15568",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-push-liquid-f4",
+      "left_png_sha256": "05b171598b7fa8a4c014c446a5d30b09fd99c05b2eef8972bdc6650c7ff563c4",
+      "right_png_sha256": "2d26239e325438f334df1c4c5cb946258bfe4886b82e75132e97311f2fea2c74",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 16142.7802734375,
+      "right_source_area": 16142.7802734375,
+      "all": {
+        "pixels": 2592000,
+        "max": 222,
+        "p95": 0.0,
+        "mean": 0.0055231481481481486,
+        "changed": 173,
+        "over_2": 168
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 222,
+        "p95": 0.0,
+        "mean": 0.02651111111111111,
+        "changed": 173,
+        "over_2": 168
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": {
+        "pixels": 310223,
+        "max": 222,
+        "p95": 0.0,
+        "mean": 0.04614744877072299,
+        "changed": 173,
+        "over_2": 168
+      }
+    },
+    {
+      "shot": "nav-navigation-nested-push-liquid-f10",
+      "left_png_sha256": "0357c8057efa469072d59203ab09cb5a1d89cc0bad8d3a89b5e40727f33ff061",
+      "right_png_sha256": "0357c8057efa469072d59203ab09cb5a1d89cc0bad8d3a89b5e40727f33ff061",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 16142.7802734375,
+      "right_source_area": 16142.7802734375,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": {
+        "pixels": 325772,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      }
+    },
+    {
+      "shot": "nav-navigation-nested-push-liquid-f20",
+      "left_png_sha256": "3bfddb5df575d9a92396c1bb0ccd62e3f78f1179c93a7a2e9fe6e8dcbbcd907d",
+      "right_png_sha256": "3bfddb5df575d9a92396c1bb0ccd62e3f78f1179c93a7a2e9fe6e8dcbbcd907d",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-push-liquid-f34",
+      "left_png_sha256": "e6db2b295903d51c1e2d608873067173b3e233b7e879e6ef839cc61af956b91d",
+      "right_png_sha256": "e6db2b295903d51c1e2d608873067173b3e233b7e879e6ef839cc61af956b91d",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-push-liquid-f48",
+      "left_png_sha256": "a0516f9683c1890ea5f164304aece2fceb6cb452d56d09bab47ee3f38c3eb7dd",
+      "right_png_sha256": "a0516f9683c1890ea5f164304aece2fceb6cb452d56d09bab47ee3f38c3eb7dd",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-pop-liquid-f0",
+      "left_png_sha256": "e2024a5df718e4542a9ab11f5282686e214af0c317586600c2a7be6c59943e50",
+      "right_png_sha256": "e2024a5df718e4542a9ab11f5282686e214af0c317586600c2a7be6c59943e50",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-pop-liquid-f1",
+      "left_png_sha256": "f251e744982a18d5d5c159d1d343f521daf19bd82d741e61a2b05e1a3a9224af",
+      "right_png_sha256": "f251e744982a18d5d5c159d1d343f521daf19bd82d741e61a2b05e1a3a9224af",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-pop-liquid-f4",
+      "left_png_sha256": "bfbe986a1439132623386bcb8ac6b255b17ad0b6474b8a649220fdc56b18a6c3",
+      "right_png_sha256": "62bc179713b10cd68c8c75518f8d33f5b8320d225b07aedaf7d35576e4279398",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 16142.7802734375,
+      "right_source_area": 16142.7802734375,
+      "all": {
+        "pixels": 2592000,
+        "max": 197,
+        "p95": 0.0,
+        "mean": 0.02270756172839506,
+        "changed": 698,
+        "over_2": 683
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 197,
+        "p95": 0.0,
+        "mean": 0.08921111111111112,
+        "changed": 527,
+        "over_2": 517
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 131,
+        "p95": 0.0,
+        "mean": 0.024731481481481483,
+        "changed": 171,
+        "over_2": 166
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": {
+        "pixels": 396363,
+        "max": 197,
+        "p95": 0.0,
+        "mean": 0.14849519253815316,
+        "changed": 698,
+        "over_2": 683
+      }
+    },
+    {
+      "shot": "nav-navigation-nested-pop-liquid-f10",
+      "left_png_sha256": "becc5b39cbeea3f845871616761bcb2d9cfa64e5a20f5b1140285a8716f942a6",
+      "right_png_sha256": "becc5b39cbeea3f845871616761bcb2d9cfa64e5a20f5b1140285a8716f942a6",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 16142.7802734375,
+      "right_source_area": 16142.7802734375,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": {
+        "pixels": 290634,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      }
+    },
+    {
+      "shot": "nav-navigation-nested-pop-liquid-f20",
+      "left_png_sha256": "f3e345e6154a2476ae94318b91e7309d7a80fb2936f5538a0b79b75a1ce09101",
+      "right_png_sha256": "f3e345e6154a2476ae94318b91e7309d7a80fb2936f5538a0b79b75a1ce09101",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-pop-liquid-f34",
+      "left_png_sha256": "183f425be13619332359ee24380368479b3f69efad60e4433406610d810e4817",
+      "right_png_sha256": "183f425be13619332359ee24380368479b3f69efad60e4433406610d810e4817",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-nested-pop-liquid-f48",
+      "left_png_sha256": "0402e08d8b05c61315081df50c34595b215871c91b329d5bcba4ee2920837794",
+      "right_png_sha256": "0402e08d8b05c61315081df50c34595b215871c91b329d5bcba4ee2920837794",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-toolbar-liquid-f0",
+      "left_png_sha256": "ae206882bde2ff2eaedc4e921900640d921d798f3b08a6f3a6e042f25dc6fc3c",
+      "right_png_sha256": "3b9c0e036506b74441c79a7f04492365b102bc6163a298a773b9824e2047ae14",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 3.0864197530864196e-06,
+        "changed": 1,
+        "over_2": 1
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 1.4814814814814815e-05,
+        "changed": 1,
+        "over_2": 1
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-toolbar-liquid-f1",
+      "left_png_sha256": "ae206882bde2ff2eaedc4e921900640d921d798f3b08a6f3a6e042f25dc6fc3c",
+      "right_png_sha256": "3b9c0e036506b74441c79a7f04492365b102bc6163a298a773b9824e2047ae14",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 3.0864197530864196e-06,
+        "changed": 1,
+        "over_2": 1
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 1.4814814814814815e-05,
+        "changed": 1,
+        "over_2": 1
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-toolbar-liquid-f4",
+      "left_png_sha256": "c4a49cd28db3ff37a5d4f4e7bdb2417e7725749075198abf8dc8c592796268dd",
+      "right_png_sha256": "c77939957bce73807ff94696bc4489f0a4849581c69eba7af78b21acd64e5f39",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 6870.6337890625,
+      "right_source_area": 6870.6337890625,
+      "all": {
+        "pixels": 2592000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 3.0864197530864196e-06,
+        "changed": 1,
+        "over_2": 1
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 1.4814814814814815e-05,
+        "changed": 1,
+        "over_2": 1
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": {
+        "pixels": 148908,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      }
+    },
+    {
+      "shot": "nav-navigation-toolbar-liquid-f10",
+      "left_png_sha256": "676bc45cf1ee39e840315f0577f719efab668de845878835120cb4ce7da7fbd9",
+      "right_png_sha256": "ec3c1c72634a1d3844554a76c230fb62350fc57f90a91707f14b8092cceffb4d",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 6870.6337890625,
+      "right_source_area": 6870.6337890625,
+      "all": {
+        "pixels": 2592000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 3.0864197530864196e-06,
+        "changed": 1,
+        "over_2": 1
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 1.4814814814814815e-05,
+        "changed": 1,
+        "over_2": 1
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": {
+        "pixels": 184036,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      }
+    },
+    {
+      "shot": "nav-navigation-toolbar-liquid-f20",
+      "left_png_sha256": "8027d3ea46ca7678130b53c2702d279a27a6525430ea3514633c67138592ed1b",
+      "right_png_sha256": "0f0cf59141ddb7377f2572620db56f3d8c76af5b5a8acb67c0822af3676d5676",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 3.0864197530864196e-06,
+        "changed": 1,
+        "over_2": 1
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 1.4814814814814815e-05,
+        "changed": 1,
+        "over_2": 1
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-toolbar-liquid-f34",
+      "left_png_sha256": "069704a32be75a0bc1096f15b2140cfb873f63dbb40b7d512b1e4dbfa2111ae6",
+      "right_png_sha256": "2a62809d9d0289e67dbe941473c20a217b088b4f10c7c58c76ffe9fe8a86eaad",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 3.0864197530864196e-06,
+        "changed": 1,
+        "over_2": 1
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 1.4814814814814815e-05,
+        "changed": 1,
+        "over_2": 1
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    },
+    {
+      "shot": "nav-navigation-toolbar-liquid-f48",
+      "left_png_sha256": "0a1b2ad25f3f5877bc40ec69e435ac7382940e7428061ac60c440d0943c58285",
+      "right_png_sha256": "2f632874792ea0a96a5092789e5830550a6581623178451480044d069b8e4c8c",
+      "image_size": [
+        1080,
+        2400
+      ],
+      "left_source_area": 0,
+      "right_source_area": 0,
+      "all": {
+        "pixels": 2592000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 3.0864197530864196e-06,
+        "changed": 1,
+        "over_2": 1
+      },
+      "upper_chrome": {
+        "pixels": 540000,
+        "max": 8,
+        "p95": 0.0,
+        "mean": 1.4814814814814815e-05,
+        "changed": 1,
+        "over_2": 1
+      },
+      "lower_chrome": {
+        "pixels": 432000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "page": {
+        "pixels": 1620000,
+        "max": 0,
+        "p95": 0.0,
+        "mean": 0.0,
+        "changed": 0,
+        "over_2": 0
+      },
+      "glyph_witness": null
+    }
+  ]
+}

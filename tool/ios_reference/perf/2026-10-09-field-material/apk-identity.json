@@ -1,0 +1,22 @@
+{
+  "control.apk": {
+    "path": "/tmp/morph-architecture/direct-field-material/control.apk",
+    "bytes": 18088057,
+    "sha256": "484c47c78748910f785521e9441534847ac1aca31b98b8878700ff5d278e4e11"
+  },
+  "candidate-v1.apk": {
+    "path": "/tmp/morph-architecture/direct-field-material/candidate-v1.apk",
+    "bytes": 18045177,
+    "sha256": "17978fe26f9fa9ca4336a5e6eb09a56aca1aca54f5652321f244d638332f0a30"
+  },
+  "control-v1.apk": {
+    "path": "/tmp/morph-architecture/direct-field-material/control-v1.apk",
+    "bytes": 18045177,
+    "sha256": "3f966adea70f656693cdfbb1eeddfa1d243b4d3759d8ff8a1c2c89f354cbdcd3"
+  },
+  "candidate.apk": {
+    "path": "/tmp/morph-architecture/direct-field-material/candidate.apk",
+    "bytes": 18088057,
+    "sha256": "061b3ae5ad17b06ccbe5934804c3cae5911232355c47b9e9575c3c50cd670258"
+  }
+}

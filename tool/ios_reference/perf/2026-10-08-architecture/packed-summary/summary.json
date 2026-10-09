@@ -1,0 +1,853 @@
+[
+  {
+    "report": "/tmp/morph-architecture/results/packed-1.json",
+    "rows": [
+      {
+        "case": "nav-navigation-enter-liquid",
+        "layout": "navigation",
+        "motion": "enter",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": true,
+        "glyph_atlas_captures": 95,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 3942564,
+        "backdrop_layers": 1,
+        "distinct_capture_keys": 1,
+        "owners": {
+          "MorphPresentationBoundary > MorphNavigationBar [body]": 1
+        },
+        "liquid_layers": [
+          {
+            "local_rect": [
+              341.3333333333333,
+              -24.38095238095238,
+              73.14285714285717,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              341.3333333333333,
+              25.904761904761905,
+              73.14285714285717,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true
+          }
+        ],
+        "liquid_filter_rects_logical": [
+          [
+            341.3333333333333,
+            25.904761904761905,
+            73.14285714285717,
+            73.14285714285714
+          ]
+        ],
+        "scroll_extent": 377.9999999999999,
+        "n": 45,
+        "build_mean": 7.488888888888889,
+        "raster_mean": 7.416955555555555,
+        "build_p50": 6.541,
+        "raster_p50": 7.114,
+        "build_p95": 14.233,
+        "raster_p95": 11.895,
+        "build_p99": 25.429,
+        "raster_p99": 12.538,
+        "over_budget": 2,
+        "vsync_gap_slots": 3,
+        "gpu_ms": 5.047369044444444,
+        "gpu_mcycles": 2.1905581652888886,
+        "runs": [
+          {
+            "n": 45,
+            "build_mean": 6.885444444444443,
+            "raster_mean": 6.715088888888889,
+            "build_p50": 6.071,
+            "raster_p50": 6.798,
+            "build_p95": 15.02,
+            "raster_p95": 9.069,
+            "build_p99": 25.429,
+            "raster_p99": 11.998,
+            "over_budget": 1,
+            "vsync_gap_slots": 3,
+            "gpu_ms": 4.977263355555555,
+            "gpu_mcycles": 2.1601322963111107
+          },
+          {
+            "n": 43,
+            "build_mean": 8.370302325581395,
+            "raster_mean": 7.850023255813953,
+            "build_p50": 6.952,
+            "raster_p50": 8.228,
+            "build_p95": 14.233,
+            "raster_p95": 11.895,
+            "build_p99": 29.256,
+            "raster_p99": 12.538,
+            "over_budget": 2,
+            "vsync_gap_slots": 5,
+            "gpu_ms": 5.059295697674419,
+            "gpu_mcycles": 2.1957343327906984
+          },
+          {
+            "n": 45,
+            "build_mean": 7.488888888888889,
+            "raster_mean": 7.416955555555555,
+            "build_p50": 6.541,
+            "raster_p50": 7.114,
+            "build_p95": 12.408,
+            "raster_p95": 12.661,
+            "build_p99": 25.086,
+            "raster_p99": 15.7,
+            "over_budget": 2,
+            "vsync_gap_slots": 3,
+            "gpu_ms": 5.047369044444444,
+            "gpu_mcycles": 2.1905581652888886
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.03686400000000001
+      },
+      {
+        "case": "nav-navigation-nested-pop-liquid",
+        "layout": "navigation",
+        "motion": "nested-pop",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": true,
+        "glyph_atlas_captures": 111,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 3942564,
+        "backdrop_layers": 2,
+        "distinct_capture_keys": 1,
+        "owners": {
+          "MorphPresentationBoundary > MorphNavigationBar [body]": 1,
+          "MorphPresentationBoundary > MorphToolbar [body]": 1
+        },
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true
+          }
+        ],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 35,
+        "build_mean": 9.851228571428571,
+        "raster_mean": 7.260205882352942,
+        "build_p50": 7.441,
+        "raster_p50": 6.945,
+        "build_p95": 20.552,
+        "raster_p95": 13.287,
+        "build_p99": 24.227,
+        "raster_p99": 16.529,
+        "over_budget": 6,
+        "vsync_gap_slots": 13,
+        "gpu_ms": 5.851393378378378,
+        "gpu_mcycles": 2.539504726216217,
+        "runs": [
+          {
+            "n": 37,
+            "build_mean": 8.384459459459457,
+            "raster_mean": 7.062567567567568,
+            "build_p50": 7.289,
+            "raster_p50": 6.945,
+            "build_p95": 19.897,
+            "raster_p95": 13.287,
+            "build_p99": 24.227,
+            "raster_p99": 15.818,
+            "over_budget": 2,
+            "vsync_gap_slots": 9,
+            "gpu_ms": 5.851393378378378,
+            "gpu_mcycles": 2.539504726216217
+          },
+          {
+            "n": 34,
+            "build_mean": 10.622794117647057,
+            "raster_mean": 7.260205882352942,
+            "build_p50": 7.441,
+            "raster_p50": 6.359,
+            "build_p95": 29.887,
+            "raster_p95": 12.009,
+            "build_p99": 30.239,
+            "raster_p99": 16.529,
+            "over_budget": 8,
+            "vsync_gap_slots": 14,
+            "gpu_ms": 5.886954088235295,
+            "gpu_mcycles": 2.5549380742941166
+          },
+          {
+            "n": 35,
+            "build_mean": 9.851228571428571,
+            "raster_mean": 7.650057142857143,
+            "build_p50": 8.031,
+            "raster_p50": 6.991,
+            "build_p95": 20.552,
+            "raster_p95": 14.99,
+            "build_p99": 22.263,
+            "raster_p99": 18.128,
+            "over_budget": 6,
+            "vsync_gap_slots": 13,
+            "gpu_ms": 5.847349057142857,
+            "gpu_mcycles": 2.5377494907999973
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      },
+      {
+        "case": "nav-navigation-toolbar-liquid",
+        "layout": "navigation",
+        "motion": "toolbar",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": true,
+        "glyph_atlas_captures": 124,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 3942564,
+        "backdrop_layers": 2,
+        "distinct_capture_keys": 1,
+        "owners": {
+          "MorphPresentationBoundary > MorphNavigationBar [body]": 1,
+          "MorphPresentationBoundary > MorphToolbar [body]": 1
+        },
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true
+          }
+        ],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 47,
+        "build_mean": 5.5082,
+        "raster_mean": 5.8794680851063825,
+        "build_p50": 5.456,
+        "raster_p50": 5.972,
+        "build_p95": 8.292,
+        "raster_p95": 8.889,
+        "build_p99": 10.308,
+        "raster_p99": 10.648,
+        "over_budget": 0,
+        "vsync_gap_slots": 1,
+        "gpu_ms": 4.384669744680851,
+        "gpu_mcycles": 1.902946669191492,
+        "runs": [
+          {
+            "n": 45,
+            "build_mean": 5.5082,
+            "raster_mean": 6.429422222222223,
+            "build_p50": 5.456,
+            "raster_p50": 6.131,
+            "build_p95": 9.861,
+            "raster_p95": 10.279,
+            "build_p99": 10.308,
+            "raster_p99": 16.478,
+            "over_budget": 0,
+            "vsync_gap_slots": 2,
+            "gpu_ms": 4.527131711111111,
+            "gpu_mcycles": 1.9647751626222227
+          },
+          {
+            "n": 47,
+            "build_mean": 4.6228510638297875,
+            "raster_mean": 5.8794680851063825,
+            "build_p50": 4.67,
+            "raster_p50": 5.67,
+            "build_p95": 7.27,
+            "raster_p95": 8.889,
+            "build_p99": 12.472,
+            "raster_p99": 10.377,
+            "over_budget": 0,
+            "vsync_gap_slots": 1,
+            "gpu_ms": 4.314978468085107,
+            "gpu_mcycles": 1.8727006551489345
+          },
+          {
+            "n": 47,
+            "build_mean": 5.67872340425532,
+            "raster_mean": 5.849617021276596,
+            "build_p50": 5.739,
+            "raster_p50": 5.972,
+            "build_p95": 8.292,
+            "raster_p95": 7.13,
+            "build_p99": 10.164,
+            "raster_p99": 10.648,
+            "over_budget": 0,
+            "vsync_gap_slots": 1,
+            "gpu_ms": 4.384669744680851,
+            "gpu_mcycles": 1.902946669191492
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      },
+      {
+        "case": "nav-navigation-nested-push-flat",
+        "layout": "navigation",
+        "motion": "nested-push",
+        "mode": "flat",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": true,
+        "glyph_blur_atlas": true,
+        "glyph_atlas_captures": 131,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 3942564,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "owners": {},
+        "liquid_layers": [],
+        "liquid_filter_rects_logical": [],
+        "scroll_extent": 3794.8571428571427,
+        "n": 40,
+        "build_mean": 5.9270249999999995,
+        "raster_mean": 4.972605263157895,
+        "build_p50": 4.591,
+        "raster_p50": 4.109,
+        "build_p95": 11.085,
+        "raster_p95": 11.342,
+        "build_p99": 24.949,
+        "raster_p99": 17.161,
+        "over_budget": 2,
+        "vsync_gap_slots": 8,
+        "gpu_ms": 2.868544025,
+        "gpu_mcycles": 1.2449481068499995,
+        "runs": [
+          {
+            "n": 38,
+            "build_mean": 6.4079736842105275,
+            "raster_mean": 4.972605263157895,
+            "build_p50": 5.369,
+            "raster_p50": 4.109,
+            "build_p95": 17.532,
+            "raster_p95": 11.342,
+            "build_p99": 23.239,
+            "raster_p99": 14.833,
+            "over_budget": 2,
+            "vsync_gap_slots": 10,
+            "gpu_ms": 2.8076852368421052,
+            "gpu_mcycles": 1.2185353927894738
+          },
+          {
+            "n": 40,
+            "build_mean": 5.9270249999999995,
+            "raster_mean": 5.20805,
+            "build_p50": 4.59,
+            "raster_p50": 4.222,
+            "build_p95": 11.085,
+            "raster_p95": 12.214,
+            "build_p99": 24.949,
+            "raster_p99": 19.534,
+            "over_budget": 2,
+            "vsync_gap_slots": 8,
+            "gpu_ms": 2.868544025,
+            "gpu_mcycles": 1.2449481068499995
+          },
+          {
+            "n": 40,
+            "build_mean": 5.616525000000001,
+            "raster_mean": 4.785675,
+            "build_p50": 4.591,
+            "raster_p50": 4.05,
+            "build_p95": 10.512,
+            "raster_p95": 9.118,
+            "build_p99": 27.71,
+            "raster_p99": 17.161,
+            "over_budget": 2,
+            "vsync_gap_slots": 8,
+            "gpu_ms": 2.8737522999999996,
+            "gpu_mcycles": 1.2472084981999998
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "nav-navigation-enter-flat",
+        "layout": "navigation",
+        "motion": "enter",
+        "mode": "flat",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": true,
+        "glyph_blur_atlas": true,
+        "glyph_atlas_captures": 141,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 3942564,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "owners": {},
+        "liquid_layers": [],
+        "liquid_filter_rects_logical": [],
+        "scroll_extent": 377.9999999999999,
+        "n": 43,
+        "build_mean": 4.889913043478261,
+        "raster_mean": 5.383186046511628,
+        "build_p50": 3.428,
+        "raster_p50": 4.868,
+        "build_p95": 10.266,
+        "raster_p95": 7.715,
+        "build_p99": 30.605,
+        "raster_p99": 13.124,
+        "over_budget": 1,
+        "vsync_gap_slots": 5,
+        "gpu_ms": 2.717688065217391,
+        "gpu_mcycles": 1.1794766203043479,
+        "runs": [
+          {
+            "n": 46,
+            "build_mean": 4.889913043478261,
+            "raster_mean": 5.602239130434782,
+            "build_p50": 3.833,
+            "raster_p50": 5.46,
+            "build_p95": 12.412,
+            "raster_p95": 8.316,
+            "build_p99": 17.805,
+            "raster_p99": 13.124,
+            "over_budget": 1,
+            "vsync_gap_slots": 2,
+            "gpu_ms": 2.717688065217391,
+            "gpu_mcycles": 1.1794766203043479
+          },
+          {
+            "n": 43,
+            "build_mean": 4.337581395348837,
+            "raster_mean": 5.383186046511628,
+            "build_p50": 2.958,
+            "raster_p50": 4.868,
+            "build_p95": 9.524,
+            "raster_p95": 7.715,
+            "build_p99": 30.605,
+            "raster_p99": 9.386,
+            "over_budget": 1,
+            "vsync_gap_slots": 5,
+            "gpu_ms": 2.717909023255814,
+            "gpu_mcycles": 1.1795725160930228
+          },
+          {
+            "n": 43,
+            "build_mean": 4.927186046511627,
+            "raster_mean": 5.332813953488372,
+            "build_p50": 3.428,
+            "raster_p50": 4.755,
+            "build_p95": 10.266,
+            "raster_p95": 7.509,
+            "build_p99": 30.64,
+            "raster_p99": 14.896,
+            "over_budget": 1,
+            "vsync_gap_slots": 5,
+            "gpu_ms": 2.714715069767442,
+            "gpu_mcycles": 1.1781863402790704
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "nav-navigation-nested-push-liquid",
+        "layout": "navigation",
+        "motion": "nested-push",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": true,
+        "glyph_atlas_captures": 147,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 3942564,
+        "backdrop_layers": 2,
+        "distinct_capture_keys": 1,
+        "owners": {
+          "MorphPresentationBoundary > MorphNavigationBar [body]": 1,
+          "MorphPresentationBoundary > MorphToolbar [body]": 1
+        },
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true
+          }
+        ],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 37,
+        "build_mean": 9.126837837837838,
+        "raster_mean": 6.670648648648649,
+        "build_p50": 7.608,
+        "raster_p50": 5.746,
+        "build_p95": 26.142,
+        "raster_p95": 14.162,
+        "build_p99": 28.48,
+        "raster_p99": 17.407,
+        "over_budget": 3,
+        "vsync_gap_slots": 10,
+        "gpu_ms": 6.52181927027027,
+        "gpu_mcycles": 2.830469563297297,
+        "runs": [
+          {
+            "n": 37,
+            "build_mean": 8.968513513513512,
+            "raster_mean": 6.751567567567568,
+            "build_p50": 7.085,
+            "raster_p50": 6.107,
+            "build_p95": 26.142,
+            "raster_p95": 14.162,
+            "build_p99": 34.074,
+            "raster_p99": 18.5,
+            "over_budget": 3,
+            "vsync_gap_slots": 10,
+            "gpu_ms": 6.531076513513514,
+            "gpu_mcycles": 2.834487206864866
+          },
+          {
+            "n": 37,
+            "build_mean": 9.126837837837838,
+            "raster_mean": 6.670648648648649,
+            "build_p50": 7.963,
+            "raster_p50": 5.403,
+            "build_p95": 21.427,
+            "raster_p95": 16.599,
+            "build_p99": 27.766,
+            "raster_p99": 17.407,
+            "over_budget": 2,
+            "vsync_gap_slots": 11,
+            "gpu_ms": 6.52181927027027,
+            "gpu_mcycles": 2.830469563297297
+          },
+          {
+            "n": 38,
+            "build_mean": 9.453973684210528,
+            "raster_mean": 6.606763157894737,
+            "build_p50": 7.608,
+            "raster_p50": 5.746,
+            "build_p95": 28.113,
+            "raster_p95": 13.125,
+            "build_p99": 28.48,
+            "raster_p99": 15.702,
+            "over_budget": 3,
+            "vsync_gap_slots": 10,
+            "gpu_ms": 6.463635789473685,
+            "gpu_mcycles": 2.8052179326315807
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      },
+      {
+        "case": "nav-navigation-toolbar-flat",
+        "layout": "navigation",
+        "motion": "toolbar",
+        "mode": "flat",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": true,
+        "glyph_blur_atlas": true,
+        "glyph_atlas_captures": 160,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 3942564,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "owners": {},
+        "liquid_layers": [],
+        "liquid_filter_rects_logical": [],
+        "scroll_extent": 3794.8571428571427,
+        "n": 46,
+        "build_mean": 3.753022222222222,
+        "raster_mean": 4.644217391304347,
+        "build_p50": 3.626,
+        "raster_p50": 4.264,
+        "build_p95": 6.296,
+        "raster_p95": 6.97,
+        "build_p99": 9.634,
+        "raster_p99": 13.75,
+        "over_budget": 0,
+        "vsync_gap_slots": 2,
+        "gpu_ms": 1.9265119347826087,
+        "gpu_mcycles": 0.8361061796956525,
+        "runs": [
+          {
+            "n": 46,
+            "build_mean": 3.863673913043478,
+            "raster_mean": 4.644217391304347,
+            "build_p50": 3.722,
+            "raster_p50": 4.264,
+            "build_p95": 6.296,
+            "raster_p95": 6.97,
+            "build_p99": 9.634,
+            "raster_p99": 14.434,
+            "over_budget": 0,
+            "vsync_gap_slots": 2,
+            "gpu_ms": 1.9265119347826087,
+            "gpu_mcycles": 0.8361061796956525
+          },
+          {
+            "n": 47,
+            "build_mean": 3.436872340425533,
+            "raster_mean": 4.547893617021276,
+            "build_p50": 3.626,
+            "raster_p50": 4.327,
+            "build_p95": 5.513,
+            "raster_p95": 6.046,
+            "build_p99": 8.292,
+            "raster_p99": 11.841,
+            "over_budget": 0,
+            "vsync_gap_slots": 1,
+            "gpu_ms": 1.8648535319148936,
+            "gpu_mcycles": 0.8093464328510641
+          },
+          {
+            "n": 45,
+            "build_mean": 3.753022222222222,
+            "raster_mean": 4.731844444444443,
+            "build_p50": 3.157,
+            "raster_p50": 4.229,
+            "build_p95": 8.284,
+            "raster_p95": 7.475,
+            "build_p99": 10.416,
+            "raster_p99": 13.75,
+            "over_budget": 0,
+            "vsync_gap_slots": 3,
+            "gpu_ms": 1.9274080444444444,
+            "gpu_mcycles": 0.8364950912888885
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.0
+      },
+      {
+        "case": "nav-navigation-nested-pop-flat",
+        "layout": "navigation",
+        "motion": "nested-pop",
+        "mode": "flat",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": true,
+        "glyph_blur_atlas": true,
+        "glyph_atlas_captures": 177,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 3942564,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "owners": {},
+        "liquid_layers": [],
+        "liquid_filter_rects_logical": [],
+        "scroll_extent": 3794.8571428571427,
+        "n": 40,
+        "build_mean": 6.283076923076925,
+        "raster_mean": 5.192525,
+        "build_p50": 6.022,
+        "raster_p50": 4.345,
+        "build_p95": 10.372,
+        "raster_p95": 12.347,
+        "build_p99": 24.98,
+        "raster_p99": 15.053,
+        "over_budget": 1,
+        "vsync_gap_slots": 8,
+        "gpu_ms": 2.414295675,
+        "gpu_mcycles": 1.04780432295,
+        "runs": [
+          {
+            "n": 39,
+            "build_mean": 6.283076923076925,
+            "raster_mean": 5.334153846153846,
+            "build_p50": 6.087,
+            "raster_p50": 4.65,
+            "build_p95": 15.27,
+            "raster_p95": 14.051,
+            "build_p99": 21.356,
+            "raster_p99": 15.053,
+            "over_budget": 1,
+            "vsync_gap_slots": 9,
+            "gpu_ms": 2.516556923076923,
+            "gpu_mcycles": 1.0921857046153844
+          },
+          {
+            "n": 40,
+            "build_mean": 6.659625,
+            "raster_mean": 5.192525,
+            "build_p50": 6.022,
+            "raster_p50": 4.294,
+            "build_p95": 10.059,
+            "raster_p95": 11.961,
+            "build_p99": 41.828,
+            "raster_p99": 16.551,
+            "over_budget": 1,
+            "vsync_gap_slots": 8,
+            "gpu_ms": 2.414295675,
+            "gpu_mcycles": 1.04780432295
+          },
+          {
+            "n": 43,
+            "build_mean": 6.255511627906976,
+            "raster_mean": 5.023186046511628,
+            "build_p50": 5.817,
+            "raster_p50": 4.345,
+            "build_p95": 10.372,
+            "raster_p95": 12.347,
+            "build_p99": 24.98,
+            "raster_p99": 14.312,
+            "over_budget": 1,
+            "vsync_gap_slots": 5,
+            "gpu_ms": 2.345380046511628,
+            "gpu_mcycles": 1.0178949401860469
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.0
+      }
+    ],
+    "deltas": [],
+    "limitations": [
+      "Stage differences change topology and are not exact engine attribution.",
+      "Raster duration is not GPU time; GPU work periods are active work, not presentation latency.",
+      "GPU activity is prorated uniformly within each kernel work-period event.",
+      "Missing frequency coverage produces null cycles, never an extrapolated frequency.",
+      "Vsync gaps are inferred scheduling slots, not measured Android presentation jank.",
+      "Layer bounds/counts do not measure transient GPU memory or native pass count."
+    ]
+  }
+]

@@ -1,0 +1,206 @@
+{
+  "report": "/tmp/morph-architecture/results/energy-field-hints-1.json",
+  "metadata": {
+    "rails": [
+      "rails.aoc.logic",
+      "rails.aoc.memory",
+      "rails.cpu.big",
+      "rails.cpu.little",
+      "rails.cpu.mid",
+      "rails.ddr.a",
+      "rails.ddr.b",
+      "rails.ddr.c",
+      "rails.display",
+      "rails.gps",
+      "rails.gpu",
+      "rails.memory.interface",
+      "rails.system.fabric",
+      "rails.tpu"
+    ],
+    "threads": {
+      "ui": 8153,
+      "raster": 1,
+      "workers": 11
+    },
+    "raster_threads_aggregated": true,
+    "mono_to_trace_ns": 39618544487651.0
+  },
+  "cases": {
+    "nav-navigation-workflow-liquid": {
+      "median": {
+        "power_mw": 820.5351070425398,
+        "energy_mj_per_cycle": 3287.793422736618,
+        "build_p95": 9.492,
+        "raster_p95": 14.276,
+        "over_budget": 41
+      },
+      "windows": [
+        {
+          "s": 20.034447,
+          "rails_mj": {
+            "rails.tpu": 245.97646621084212,
+            "rails.display": 3066.6117240428925,
+            "rails.cpu.big": 1711.703518509388,
+            "rails.cpu.mid": 1052.8866572418212,
+            "rails.cpu.little": 2696.5720009880065,
+            "rails.system.fabric": 732.1796807994842,
+            "rails.memory.interface": 1864.3009783668517,
+            "rails.gps": 16.4334277253598,
+            "rails.aoc.memory": 87.126717038095,
+            "rails.aoc.logic": 307.23988853144647,
+            "rails.ddr.a": 212.71173624789714,
+            "rails.ddr.b": 265.0173213570118,
+            "rails.ddr.c": 1564.7823626241684,
+            "rails.gpu": 2615.4246339998244
+          },
+          "total_mj": 16438.96711368309,
+          "freq_mhz": {
+            "little": 834.7150933752752,
+            "mid": 822.4350790555387,
+            "big": 800.2190616249103
+          },
+          "busy": {
+            "little": 0.27332483563184945,
+            "mid": 0.29438170264944175,
+            "big": 0.2206437684304438
+          },
+          "thread_ms": {
+            "ui": {
+              "little": 2162.8654479999996,
+              "mid": 3802.261694,
+              "big": 2101.4563909999997
+            },
+            "raster": {
+              "little": 0.0,
+              "mid": 2504.201895,
+              "big": 4579.855382
+            },
+            "workers": {
+              "little": 319.691816,
+              "mid": 231.589597,
+              "big": 69.105265
+            }
+          },
+          "power_mw": 820.5351070425398,
+          "energy_mj_per_cycle": 3287.793422736618,
+          "frames": 1172,
+          "build_p95": 10.122,
+          "raster_p95": 14.09,
+          "over_budget": 41
+        },
+        {
+          "s": 20.033863,
+          "rails_mj": {
+            "rails.tpu": 245.87829607105255,
+            "rails.display": 3059.1945924625397,
+            "rails.cpu.big": 1744.7284619116783,
+            "rails.cpu.mid": 1046.590677470684,
+            "rails.cpu.little": 2937.3828803386687,
+            "rails.system.fabric": 732.4694339590072,
+            "rails.memory.interface": 1858.0973424186707,
+            "rails.gps": 16.84391012644768,
+            "rails.aoc.memory": 87.29442591243982,
+            "rails.aoc.logic": 308.4978884453773,
+            "rails.ddr.a": 212.3435892250538,
+            "rails.ddr.b": 263.3823298420906,
+            "rails.ddr.c": 1571.7253804273605,
+            "rails.gpu": 2619.1632944183348
+          },
+          "total_mj": 16703.592503029406,
+          "freq_mhz": {
+            "little": 893.5387649659978,
+            "mid": 813.6905247047462,
+            "big": 805.6007971576425
+          },
+          "busy": {
+            "little": 0.26401289031226777,
+            "mid": 0.29665413282999886,
+            "big": 0.21960574650530454
+          },
+          "thread_ms": {
+            "ui": {
+              "little": 1773.525426,
+              "mid": 3757.2020620000003,
+              "big": 2310.000947
+            },
+            "raster": {
+              "little": 0.0,
+              "mid": 2565.336057,
+              "big": 4539.46449
+            },
+            "workers": {
+              "little": 204.29463599999997,
+              "mid": 274.26128,
+              "big": 39.159347
+            }
+          },
+          "power_mw": 833.767930979133,
+          "energy_mj_per_cycle": 3340.718500605881,
+          "frames": 1174,
+          "build_p95": 9.357,
+          "raster_p95": 14.276,
+          "over_budget": 32
+        },
+        {
+          "s": 20.035405,
+          "rails_mj": {
+            "rails.tpu": 245.93592453598976,
+            "rails.display": 3064.8102305278776,
+            "rails.cpu.big": 1594.5250754551887,
+            "rails.cpu.mid": 1017.1199622979165,
+            "rails.cpu.little": 2517.556772562027,
+            "rails.system.fabric": 714.4668114995957,
+            "rails.memory.interface": 1815.934121389389,
+            "rails.gps": 17.158620644405485,
+            "rails.aoc.memory": 87.32309543603658,
+            "rails.aoc.logic": 307.73384223842623,
+            "rails.ddr.a": 204.75748905193805,
+            "rails.ddr.b": 263.9259029531479,
+            "rails.ddr.c": 1531.465463736534,
+            "rails.gpu": 2672.1508388900756
+          },
+          "total_mj": 16054.864151218548,
+          "freq_mhz": {
+            "little": 792.197198741977,
+            "mid": 783.405685645536,
+            "big": 776.5097851813327
+          },
+          "busy": {
+            "little": 0.26346228058529386,
+            "mid": 0.3009850589493948,
+            "big": 0.21702901987756174
+          },
+          "thread_ms": {
+            "ui": {
+              "little": 2126.14506,
+              "mid": 3400.9579080000003,
+              "big": 2500.068029
+            },
+            "raster": {
+              "little": 0.0,
+              "mid": 3279.054629,
+              "big": 4265.806252
+            },
+            "workers": {
+              "little": 258.512611,
+              "mid": 162.678102,
+              "big": 75.428665
+            }
+          },
+          "power_mw": 801.3246625770004,
+          "energy_mj_per_cycle": 3210.9728302437097,
+          "frames": 1173,
+          "build_p95": 9.492,
+          "raster_p95": 15.135,
+          "over_budget": 47
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Power rails measure the whole phone, not app-attributed energy.",
+    "Rail counter endpoints are linearly interpolated inside measured coverage.",
+    "FrameTiming over-budget counts are not actual presentation misses.",
+    "Callback-driven interactions omit physical-touch input boosts."
+  ]
+}

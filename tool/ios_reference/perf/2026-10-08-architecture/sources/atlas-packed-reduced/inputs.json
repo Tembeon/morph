@@ -1,0 +1,12 @@
+{
+  "head": "1325722f3ecc60c9b0e3cd9dd47835a756869a3e",
+  "sources": {
+    "lib/src/widgets/glyph_blur_atlas.dart": "c8519bc8f5dcb94069025030271b650f119bce55a91e243b20535adbe02cddb5",
+    "lib/src/widgets/bar_items.dart": "e180c33ee8c0adfee3180e9c61330cfd030cece9b6f23374e9e7870277a6e9f8",
+    "lib/src/glass/renderer/shaders/glyph_blur_atlas.frag": "956316182715d7f35d4c56e37488d0fb78117f97fcbc3d6cd2e53515e204a33f",
+    "lib/src/glass/renderer/shaders.dart": "d8ebf8a55da896046dd500b22b43c3a86a8078eac66667135cf2db0a6d5c3432",
+    "pubspec.yaml": "4e3fa877e4e89f2896c030cc20c69d913ac50e58a4b39aeaa7314cf83716f5cf",
+    "example/lib/perf/navigation_stage_bench.dart": "a357cb65d2ad2c42b742e2c7f6f53262d448a4adb4d15b150eef3d156c0022cc",
+    "example/pubspec.lock": "d02acaa562203d0a1e7ffbaa71282456062805374b736e8c3e4fd4e17880f025"
+  }
+}

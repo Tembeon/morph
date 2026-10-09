@@ -1,0 +1,13 @@
+--- build/lib/src/glass/renderer/rendering/liquid_glass_layer.dart
++++ final/lib/src/glass/renderer/rendering/liquid_glass_layer.dart
+@@ -815,8 +815,9 @@
+     if (directFieldIos27Shader case final shader?) _staleShaders.add(shader);
+     if (directFieldMaterialShader case final shader?) _staleShaders.add(shader);
+     if (directFieldTintShader case final shader?) _staleShaders.add(shader);
+-    if (directFieldTintIos27Shader case final shader?)
++    if (directFieldTintIos27Shader case final shader?) {
+       _staleShaders.add(shader);
++    }
+     _writeStaleShaderSettings(renderShader);
+   }
+ 
