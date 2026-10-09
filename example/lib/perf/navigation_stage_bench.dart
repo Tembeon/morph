@@ -380,6 +380,7 @@ class _BenchState extends State<_Bench> {
           'direct_geometry': object.debugDirectGeometry,
           'direct_field': object.debugDirectField,
           'has_field': object.field != null,
+          'optical_overlays': object.field?.overlays.length ?? 0,
           'mixed_appearance': object.debugUsesShapeAppearances,
           'tint_only': object.debugUsesTintOnlyAppearance,
         });

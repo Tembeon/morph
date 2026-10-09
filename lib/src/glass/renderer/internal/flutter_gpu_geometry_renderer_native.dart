@@ -442,10 +442,28 @@ class FlutterGpuGeometryRenderer {
       final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
       gpu.Texture? fieldTexture;
       gpu.BufferView? fieldUniformView;
+      final overlays = field != null && field.overlays.isNotEmpty
+          ? <(GlassField, gpu.Texture, gpu.BufferView)>[]
+          : const <(GlassField, gpu.Texture, gpu.BufferView)>[];
       try {
-        fieldTexture = field == null
+        fieldTexture = field == null || field.overlays.isNotEmpty
             ? null
             : _uploadField(field, geometryCommandBuffer);
+        if (field != null && field.overlays.isNotEmpty) {
+          for (final overlay in field.overlays) {
+            final texture = _uploadField(overlay, geometryCommandBuffer);
+            _packFieldUniformData(
+              field: overlay,
+              fieldScale: fieldScale,
+              texture: texture,
+            );
+            overlays.add((
+              overlay,
+              texture,
+              _emplaceUniforms(_fieldUniformData, _uniformSize),
+            ));
+          }
+        }
         if (field != null && fieldTexture != null) {
           _packFieldUniformData(
             field: field,
@@ -476,6 +494,37 @@ class FlutterGpuGeometryRenderer {
       }
       _restrictTo(geometryPass, _texture!, matteWidth, matteHeight);
       geometryPass.draw(4);
+      for (final (overlay, texture, uniforms) in overlays) {
+        final area = overlay.bounds;
+        final x = ((area.left * fieldScale - offsetX).floor()).clamp(
+          0,
+          matteWidth,
+        );
+        final y = ((area.top * fieldScale - offsetY).floor()).clamp(
+          0,
+          matteHeight,
+        );
+        final right = ((area.right * fieldScale - offsetX).ceil()).clamp(
+          0,
+          matteWidth,
+        );
+        final bottom = ((area.bottom * fieldScale - offsetY).ceil()).clamp(
+          0,
+          matteHeight,
+        );
+        if (right <= x || bottom <= y) continue;
+        // Pipeline switches must not replay uniforms from the analytic draw.
+        geometryPass.clearBindings();
+        geometryPass.bindPipeline(_fieldPipeline);
+        geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
+        geometryPass.bindUniform(_fieldUniformSlot, uniforms);
+        geometryPass.bindTexture(_fieldTextureSlot, texture);
+        geometryPass.bindVertexBuffer(_vertexBufferView);
+        geometryPass.setScissor(
+          gpu.Scissor(x: x, y: y, width: right - x, height: bottom - y),
+        );
+        geometryPass.draw(4);
+      }
       _submitOrDefer(geometryCommandBuffer);
     }
     if (writeMaterials) {

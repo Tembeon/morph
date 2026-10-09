@@ -2255,6 +2255,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           directFieldShader != null &&
           directFieldIos27Shader != null &&
           _field != null &&
+          _field!.overlays.isEmpty &&
           !usesShapeAppearances) {
         final image = renderer.directFieldImage(_field!);
         _shaderInputsChanged = true;
@@ -2278,6 +2279,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           directFieldTintShader != null &&
           directFieldTintIos27Shader != null &&
           _field != null &&
+          _field!.overlays.isEmpty &&
           usesShapeAppearances;
       if (directMixedField) directFieldUpdates++;
       final result = renderer.render(

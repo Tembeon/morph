@@ -349,6 +349,80 @@ Widget morphLiquidBody(
   );
 }
 
+/// Whether compatible disconnected chrome bodies share one optical filter.
+@visibleForTesting
+bool morphDebugOpticalBatch =
+    !kIsWeb && const bool.fromEnvironment('MORPH_OPTICAL_BATCH');
+
+/// Whether [parts] can preserve its optical settings in a common chrome host.
+@internal
+bool morphCanBatchOptics(
+  MorphGlassRenderer renderer,
+  MorphGlassLayerParts parts,
+) {
+  if (!morphDebugOpticalBatch ||
+      kIsWeb ||
+      defaultTargetPlatform != TargetPlatform.android ||
+      renderer.effectiveTier != MorphGlassTier.liquid ||
+      parts.separate.isEmpty ||
+      parts.fused.isEmpty ||
+      parts.fused.length > 2) {
+    return false;
+  }
+  final body = parts.body;
+  final first = body.first;
+  final settings = morphLiquidSettings(renderer, first);
+  final appearance = _shapeFrame(
+    renderer,
+    first,
+    shadows: false,
+    exact: false,
+  ).appearance!;
+  final shortSide = first.localShape.shortestSide;
+  for (final surface in body) {
+    final next = _shapeFrame(
+      renderer,
+      surface,
+      shadows: false,
+      exact: false,
+    ).appearance!;
+    if (surface.kind != MorphGlassKind.bar ||
+        _shadows(surface).isNotEmpty ||
+        morphLiquidSettings(renderer, surface) != settings ||
+        surface.localShape.shortestSide != shortSide ||
+        next.copyWith(tint: appearance.tint) != appearance) {
+      return false;
+    }
+  }
+  final areas = [for (final s in parts.separate) s.bounds.inflate(24)];
+  for (final (_, outline) in parts.fused) {
+    final field = morphGlassOutlineField(outline);
+    if (field == null || field.analytic != null || field.overlays.isNotEmpty) {
+      return false;
+    }
+    for (final area in areas) {
+      if (area.overlaps(field.bounds)) return false;
+    }
+    areas.add(field.bounds);
+  }
+  final union = areas.reduce((a, b) => a.expandToInclude(b));
+  final occupied = areas.fold<double>(0, (sum, a) => sum + a.width * a.height);
+  return union.width * union.height <= occupied * 2;
+}
+
+GlassField _batchOpticalField(MorphGlassFrame frame) {
+  final outline = Path();
+  for (final surface in frame.parts.separate) {
+    outline.addRRect(surface.shape);
+  }
+  for (final (_, body) in frame.parts.fused) {
+    outline.addPath(body.path, Offset.zero);
+  }
+  return GlassField.withOverlays([
+    for (final (_, body) in frame.parts.fused) morphGlassOutlineField(body)!,
+  ], outline);
+}
+
 bool _chrome(MorphGlassSurface s) =>
     s.kind == MorphGlassKind.bar || s.kind == MorphGlassKind.menu;
 
@@ -430,6 +504,7 @@ Widget morphLiquidLayer(
   Widget fill(Object slot, Key key, Widget Function() child) =>
       source.keep(slot, () => Positioned.fill(key: key, child: child()));
   final live = source.live;
+  final batch = !joined && morphCanBatchOptics(renderer, parts);
   return MorphLiveStack(
     live: live,
     children: [
@@ -439,7 +514,20 @@ Widget morphLiquidLayer(
           (f) => f.parts.fills[i].bounds,
           () => renderer.liveFill(context, source, (f) => f.parts.fills[i]),
         ),
-      if (parts.separate.isNotEmpty)
+      if (batch)
+        fill(
+          'optical batch',
+          const ValueKey<String>('optical batch'),
+          () => _layer(
+            renderer,
+            source,
+            (f) => f.parts.body,
+            shared: !chrome,
+            field: _batchOpticalField,
+            shadows: false,
+          ),
+        ),
+      if (!batch && parts.separate.isNotEmpty)
         fill(
           'separate',
           parts.fused.isEmpty
@@ -461,7 +549,7 @@ Widget morphLiquidLayer(
                   shared: !chrome,
                 ),
         ),
-      for (var i = 0; i < parts.fused.length; i++)
+      for (var i = 0; !batch && i < parts.fused.length; i++)
         fill(
           ('fused', i),
           i == 0

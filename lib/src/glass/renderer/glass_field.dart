@@ -30,6 +30,7 @@ class GlassField {
     required this.step,
     this.outline,
     this.analytic,
+    this.overlays = const [],
   });
 
   /// Enables the beta-only GPU optical grid experiment on native platforms.
@@ -57,6 +58,24 @@ class GlassField {
     outline: outline,
     analytic: GlassAnalyticField(shapes, origin, spacing),
   );
+
+  /// Keeps independently sampled fields over an analytic shape matte.
+  ///
+  /// Every overlay retains its own node origin, spacing and sample identity.
+  /// Their bounds must be disjoint from unrelated visible shapes.
+  factory GlassField.withOverlays(List<GlassField> overlays, Path outline) =>
+      GlassField(
+        samples: _emptySamples,
+        cols: 2,
+        rows: 2,
+        origin: Offset.zero,
+        step: 1,
+        outline: outline,
+        overlays: List.unmodifiable(overlays),
+      );
+
+  /// Independent optical grids replacing regions of an analytic matte.
+  final List<GlassField> overlays;
 
   static final Float32List _emptySamples = Float32List(0);
 
@@ -100,6 +119,7 @@ class GlassField {
     step: step,
     outline: outline?.shift(offset),
     analytic: analytic,
+    overlays: [for (final field in overlays) field.shift(offset)],
   );
 }
 

@@ -369,6 +369,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
         tier,
         content,
         ..._layerStructure(tier, frame.partsFor(tier)),
+        morphCanBatchOptics(this, frame.partsFor(tier)),
       ],
       MorphGlassMode.surface => [
         tier,
