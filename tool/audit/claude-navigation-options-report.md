@@ -120,6 +120,11 @@ pixel as a smooth curve (`tool/ios_reference/perf/2026-10-10-nav-options/
 analytic-vs-matte-push-f10-bar.png`: matte, analytic, difference x3). At
 rest the `changes` mode shows the matte itself.
 
+The same shots on the Redmi, flat shader bodies against the traced
+silhouette (28 frames, repeat noise max 8 and 0 pixels over 8 steps):
+pixels over 8 steps 0 - 0.021 percent, largest step 48 along a neck
+edge, mean under 0.005 steps; toolbar frames identical.
+
 ## Frame-rate policy (measured, not an option in the package)
 
 Moto g86, liquid, production defaults (40a76ec), A B B A: forced 120 Hz
