@@ -354,3 +354,15 @@ Local patches (some commits include related package changes):
   disposed with the last layer that bound it. Analytic container members
   match their own layers within one channel step (glass-renderer.md
   "Container raster phase"); the matte parity oracle pins the matte path.
+- 2026-10-09 analytic variants split: the four separate-shape analytic
+  shaders carry no merge law (ANALYTIC_FUSED 0); four fused variants
+  (liquid_glass_final_render_analytic_fused*, ANALYTIC_FUSED 1) draw a
+  GlassBoxField's merged boxes, created per layer only when such a frame
+  needs them and all four have loaded. The separate variants find the
+  nearest shape in sceneSample's order and tie rule but skip a shape whose
+  box distance, scaled by uShapeCull (float index 297: the basis' singular
+  value ratio over sqrt 2, a lower bound of its distance), cannot beat
+  the nearest so far; the empty-pixel rejection runs on the boxes alone,
+  before any SDF. Layout: uFusedBoxes 305 and uShapeTints 337 in the
+  fused variants, uShapeTints 305 in the separate ones. The host A/B is
+  unchanged to the last digit. sdf.glsl is back to its pre-analytic text.

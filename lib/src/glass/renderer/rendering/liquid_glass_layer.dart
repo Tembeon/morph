@@ -574,10 +574,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// Shapes that differ only by tint, an iOS 27 color model.
   final FragmentShader tintIos27RenderShader;
 
-  /// The analytic final shaders of this layer, in the order of
-  /// [ShaderKeys.liquidGlassAnalyticRenders], or null until analytic
-  /// geometry is enabled and their programs have loaded.
+  /// The analytic final shaders of this layer for separate shapes, in the
+  /// order of [ShaderKeys.liquidGlassAnalyticRenders], or null until
+  /// analytic geometry is enabled and their programs have loaded.
   List<FragmentShader>? _analyticShaders;
+
+  /// The analytic final shaders for a fused body of merged boxes, in the
+  /// order of [ShaderKeys.liquidGlassAnalyticFusedRenders], or null until
+  /// a layer needs them and their programs have loaded.
+  List<FragmentShader>? _analyticFusedShaders;
 
   /// The most shapes a layer evaluates in its final shader; a layer with
   /// more renders a geometry matte. Matches ANALYTIC_MAX_SHAPES in
@@ -640,7 +645,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// the matte path. Layers ask for a new geometry frame once a load
   /// completes.
   static Future<void> precacheAnalyticShaders() => Future.wait([
-    for (final key in ShaderKeys.liquidGlassAnalyticRenders)
+    for (final key in [
+      ...ShaderKeys.liquidGlassAnalyticRenders,
+      ...ShaderKeys.liquidGlassAnalyticFusedRenders,
+    ])
       _loadAnalyticProgram(key),
   ]);
 
@@ -663,11 +671,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// (yet).
   static FragmentProgram? analyticProgram(String key) => _analyticPrograms[key];
 
-  // Whether this layer has its analytic shaders, creating them once their
-  // programs have loaded and starting the loads otherwise.
-  bool _analyticShadersReady() {
-    if (_analyticShaders != null) return true;
-    final keys = ShaderKeys.liquidGlassAnalyticRenders;
+  // Whether this layer has the analytic shaders a frame of separate shapes
+  // or, with [fused], of merged boxes draws with, creating the four of that
+  // kind once all their programs have loaded and starting the loads
+  // otherwise.
+  bool _analyticShadersReady({required bool fused}) {
+    if ((fused ? _analyticFusedShaders : _analyticShaders) != null) {
+      return true;
+    }
+    final keys = fused
+        ? ShaderKeys.liquidGlassAnalyticFusedRenders
+        : ShaderKeys.liquidGlassAnalyticRenders;
     var ready = true;
     for (final key in keys) {
       if (_analyticPrograms[key] == null) {
@@ -679,10 +693,19 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final shaders = [
       for (final key in keys) _analyticPrograms[key]!.fragmentShader(),
     ];
-    _analyticShaders = shaders;
+    if (fused) {
+      _analyticFusedShaders = shaders;
+    } else {
+      _analyticShaders = shaders;
+    }
     _staleShaders.addAll(shaders);
     return true;
   }
+
+  // The analytic shaders of the current frame: merged boxes or separate
+  // shapes.
+  List<FragmentShader> get _analyticSet =>
+      _analyticBoxCount > 0 ? _analyticFusedShaders! : _analyticShaders!;
 
   @override
   void attach(PipelineOwner owner) {
@@ -816,10 +839,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _usesTintOnlyAppearance,
       ios27,
     )) {
-      (false, _, false) when _analytic => _analyticShaders![0],
-      (false, _, true) when _analytic => _analyticShaders![1],
-      (true, true, false) when _analytic => _analyticShaders![2],
-      (true, true, true) when _analytic => _analyticShaders![3],
+      (false, _, false) when _analytic => _analyticSet[0],
+      (false, _, true) when _analytic => _analyticSet[1],
+      (true, true, false) when _analytic => _analyticSet[2],
+      (true, true, true) when _analytic => _analyticSet[3],
       (false, _, false) => defaultRenderShader,
       (false, _, true) => ios27RenderShader,
       (true, true, false) => tintRenderShader,
@@ -897,6 +920,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _staleShaders.add(tintRenderShader);
     _staleShaders.add(tintIos27RenderShader);
     if (_analyticShaders case final shaders?) _staleShaders.addAll(shaders);
+    if (_analyticFusedShaders case final shaders?) {
+      _staleShaders.addAll(shaders);
+    }
     _writeStaleShaderSettings(renderShader);
   }
 
@@ -1511,15 +1537,27 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   static const int analyticBoundsIndex =
       analyticRseDataIndex + analyticMaxShapes * 12;
 
-  /// Float index of uFusedBoxes, after one vec4 of uShapeBounds per shape.
+  /// Float index of uShapeCull, after one vec4 of uShapeBounds per shape:
+  /// one float per shape, four to a vec4.
   @visibleForTesting
-  static const int analyticFusedBoxesIndex =
+  static const int analyticCullIndex =
       analyticBoundsIndex + analyticMaxShapes * 4;
 
-  /// Float index of uShapeTints, after 2 vec4 of uFusedBoxes per fused box;
-  /// only the tint variants declare it.
+  /// Float index of uFusedBoxes, after uShapeCull; only the fused variants
+  /// declare it.
   @visibleForTesting
-  static const int analyticTintsIndex =
+  static const int analyticFusedBoxesIndex =
+      analyticCullIndex + analyticMaxShapes;
+
+  /// Float index of uShapeTints in the separate-shape tint variants,
+  /// after uShapeCull.
+  @visibleForTesting
+  static const int analyticTintsIndex = analyticCullIndex + analyticMaxShapes;
+
+  /// Float index of uShapeTints in the fused tint variants, after 2 vec4
+  /// of uFusedBoxes per fused box.
+  @visibleForTesting
+  static const int analyticFusedTintsIndex =
       analyticFusedBoxesIndex + GlassBoxField.maxBoxes * 8;
 
   // The geometry pass's optical inputs of the current analytic frame.
@@ -1550,8 +1588,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       analyticUniformIndex + 7,
       liquidMinMergeWidth * devicePixelRatio,
     );
-    for (var i = 0; i < _analyticBoxCount * 8; i++) {
-      shader.setFloat(analyticFusedBoxesIndex + i, _analyticBoxes[i]);
+    final fused = _analyticBoxCount > 0;
+    // Only the fused variants declare uFusedBoxes.
+    if (fused) {
+      for (var i = 0; i < _analyticBoxCount * 8; i++) {
+        shader.setFloat(analyticFusedBoxesIndex + i, _analyticBoxes[i]);
+      }
+    }
+    for (var i = 0; i < _cullData.length && i < analyticMaxShapes; i++) {
+      shader.setFloat(analyticCullIndex + i, _cullData[i]);
     }
     for (var i = 0; i < _shapeData.length; i++) {
       shader.setFloat(analyticShapeDataIndex + i, _shapeData[i]);
@@ -1563,10 +1608,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       shader.setFloat(analyticBoundsIndex + i, _boundsData[i]);
     }
     // Only the tint variants declare uShapeTints.
-    final shaders = _analyticShaders!;
+    final shaders = _analyticSet;
     if (identical(shader, shaders[2]) || identical(shader, shaders[3])) {
+      final at = fused ? analyticFusedTintsIndex : analyticTintsIndex;
       for (var i = 0; i < _analyticTints.length; i++) {
-        shader.setFloat(analyticTintsIndex + i, _analyticTints[i]);
+        shader.setFloat(at + i, _analyticTints[i]);
       }
     }
   }
@@ -1601,7 +1647,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         GlassBoxField(:final boxes) => boxes.length,
         _ => 0,
       },
-      shadersReady: _analyticShadersReady,
+      shadersReady: () => _analyticShadersReady(fused: _field is GlassBoxField),
       geometries: [
         for (final (_, geometry, _) in geometries)
           (
@@ -2064,13 +2110,14 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _clearGeometryImage();
     _gpuGeometryRenderer = null;
     _releaseBlankImage();
-    if (_analyticShaders case final shaders?) {
+    for (final shaders in [?_analyticShaders, ?_analyticFusedShaders]) {
       _staleShaders.removeAll(shaders);
       for (final shader in shaders) {
         shader.dispose();
       }
     }
     _analyticShaders = null;
+    _analyticFusedShaders = null;
     super.dispose();
   }
 
@@ -2082,6 +2129,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   final List<double> _shapeData = [];
   final List<double> _rseData = [];
   final List<double> _boundsData = [];
+  final List<double> _cullData = [];
   static final Matrix4 _identity = Matrix4.identity();
 
   @override
@@ -2286,6 +2334,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _shapeData.clear();
       _rseData.clear();
       _boundsData.clear();
+      _cullData.clear();
       final appearances = <LiquidGlassAppearance>[];
       var numShapes = 0;
       var shortSide = double.infinity;
@@ -2323,6 +2372,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           final distanceScale = sqrt(
             max(0.0, (trace - sqrt(discriminant)) * 0.5),
           );
+          // The analytic shader's lower bound of the shape's distance from
+          // its box distance: the scaled distance can fall below the true
+          // one by the singular values' ratio, and the corner solvers'
+          // Chebyshev branches by up to sqrt 2.
+          final largest = sqrt(max(0.0, (trace + sqrt(discriminant)) * 0.5));
+          _cullData.add(largest > 0 ? distanceScale / largest * sqrt1_2 : 0);
 
           final centerInGeometry = MatrixUtils.transformPoint(
             shapeToGeometry,

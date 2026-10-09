@@ -8,10 +8,12 @@
 // are gone.
 //
 // Shapes never blend here (the layer sends only frames whose every shape
-// is its own group), so sceneSample is the plain minimum of its shapes.
+// is its own group), so the scene is the plain minimum of its shapes, in
+// sceneSample's order and tie rule; a shape whose box cannot come nearer
+// than the nearest so far is not evaluated.
 //
-// A fused body (uAnalyticRanges.y boxes, at most ANALYTIC_MAX_BOXES) is
-// instead the glass container's merge law over its rounded boxes, the law
+// With ANALYTIC_FUSED 1 (the fused variants, for a GlassBoxField) the body
+// is instead the glass container's merge law over its rounded boxes, the law
 // the package samples into a field on the CPU (lib/src/liquid_field.dart
 // LiquidField.eval and lib/src/widgets/glass_outline.dart): the distance
 // is the angular fold, whose blend width is k sin^2 of half the angle
@@ -23,6 +25,10 @@
 //
 // Included by liquid_glass_final_render_core.glsl after its uniforms, so
 // these uniforms follow its float uniforms (from float index 65).
+
+#ifndef ANALYTIC_FUSED
+#define ANALYTIC_FUSED 0
+#endif
 
 #define ANALYTIC_MAX_SHAPES 8
 #define ANALYTIC_MAX_BOXES 4
@@ -39,14 +45,20 @@ uniform vec4 uAnalyticRanges;
 uniform vec4 uShapeData[MAX_SHAPES * 3];
 uniform vec4 uRseData[MAX_SHAPES * 3];
 uniform vec4 uShapeBounds[MAX_SHAPES];
+// Per shape, four to a vec4: the factor that turns its box distance into
+// a lower bound of its distance (the smaller over the larger singular
+// value of its basis, over sqrt 2 for the corner solvers' Chebyshev
+// branches).
+uniform vec4 uShapeCull[MAX_SHAPES / 4];
+#if ANALYTIC_FUSED
 // Per fused box: (center, half extents), then (corner radius, 0, 0, 0),
 // the radius already clamped to the half extents.
 uniform vec4 uFusedBoxes[ANALYTIC_MAX_BOXES * 2];
+#endif
 #if SHAPE_TINT
 uniform vec4 uShapeTints[MAX_SHAPES];
 #endif
 
-#define SCENE_SAMPLE_INDEX 1
 #include "gpu/sdf.glsl"
 
 struct AnalyticGeometry {
@@ -62,6 +74,7 @@ struct AnalyticGeometry {
     vec4 tint;
 };
 
+#if ANALYTIC_FUSED
 // The signed distance of fused box [i] at p and its unit normal: the
 // normal of the corner circle outside the inner rectangle, else the
 // dominant axis, mirrored into p's quadrant.
@@ -178,6 +191,47 @@ float analyticFlatDepth() {
     ) + 1.0;
 }
 
+#endif
+
+// The nearest shape at p, in sceneSample's order and tie rule for shapes
+// that never blend (each its own group: the later of equal shapes wins
+// until the last, which must be strictly nearer), with its index; null
+// distance 1e9 when every shape is farther than [reach] from its box (the
+// geometry pass's empty-pixel rejection, before any SDF is evaluated).
+SceneSample nearestShape(vec2 p, int count, float reach, out int index) {
+    SceneSample best;
+    best.distance = 1e9;
+    best.halfMinor = 0.0;
+    best.curvatureFactor = 0.0;
+    best.normal = vec2(0.0);
+    best.opticalNormal = vec2(0.0);
+    index = 0;
+    float boxDistance[MAX_SHAPES];
+    float nearestBox = 1e18;
+    for (int i = 0; i < MAX_SHAPES; i++) {
+        if (i >= count) break;
+        boxDistance[i] = shapeBoundsDistanceSquared(uShapeBounds[i], p);
+        nearestBox = min(nearestBox, boxDistance[i]);
+    }
+    if (nearestBox > reach * reach) return best;
+    for (int i = 0; i < MAX_SHAPES; i++) {
+        if (i >= count) break;
+        // A lower bound of the shape's distance that cannot beat the
+        // nearest so far: the shape cannot win, not even a tie.
+        float bound = sqrt(boxDistance[i]) * uShapeCull[i / 4][i - (i / 4) * 4];
+        if (bound > best.distance) continue;
+        SceneSample shape = getShapeSampleFromArray(i, p, false);
+        bool nearer = i == count - 1
+            ? shape.distance < best.distance
+            : shape.distance <= best.distance;
+        if (nearer) {
+            best = shape;
+            index = i;
+        }
+    }
+    return best;
+}
+
 AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange) {
     AnalyticGeometry result;
     // An empty matte pixel decodes to the full exterior range, the normal
@@ -188,65 +242,64 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
     result.tint = vec4(0.0);
 
     int count = int(uAnalyticOptics.w);
-    int boxes = int(uAnalyticRanges.y);
     float sd;
     vec2 opticalGradient;
     float halfMinor;
-    if (boxes > 0) {
-        sd = fusedDistance(p, boxes);
-        // Past the encoded exterior range a matte pixel is empty.
-        if (sd >= uAnalyticRanges.x) {
-            return result;
-        }
-        if (-sd > analyticFlatDepth()) {
-            // The flat face: no displacement whatever the bevel, and no
-            // lighting term reads the normal.
-            halfMinor = uAnalyticOptics.x;
-            opticalGradient = vec2(1.0, 0.0);
-        } else {
-            vec2 gradient = vec2(
-                fusedDistance(p + vec2(0.5, 0.0), boxes) -
-                    fusedDistance(p - vec2(0.5, 0.0), boxes),
-                fusedDistance(p + vec2(0.0, 0.5), boxes) -
-                    fusedDistance(p - vec2(0.0, 0.5), boxes)
-            );
-            vec3 optics = fusedOptics(p, boxes);
-            halfMinor = optics.x;
-            opticalGradient = vec2(
-                gradient.x * optics.y - gradient.y * optics.z,
-                gradient.x * optics.z + gradient.y * optics.y
-            );
-        }
-        #if SHAPE_TINT
-        // The material map's tint: the nearest of the layer's shapes.
-        SceneSample tinted = sceneSample(p, count);
-        for (int i = 0; i < MAX_SHAPES; i++) {
-            if (float(i) == tinted.index) result.tint = uShapeTints[i];
-        }
-        #endif
-    } else {
-        // The geometry pass's empty-pixel rejection: farther from every
-        // shape's matte-space box than the contour extent plus two pixels.
-        vec2 outside = sceneBoundsOutsideSquared(p, count);
-        float emptyThreshold = uAnalyticRanges.x + 2.0 + outside.y;
-        if (outside.x > emptyThreshold * emptyThreshold) {
-            return result;
-        }
-
-        // The geometry pass's own scene: with no blends every shape starts
-        // a group and the nearest wins, in its order and with its culling.
-        SceneSample scene = sceneSample(p, count);
-        #if SHAPE_TINT
-        // A constant-index chain: the index selects a uniform array
-        // element.
-        for (int i = 0; i < MAX_SHAPES; i++) {
-            if (float(i) == scene.index) result.tint = uShapeTints[i];
-        }
-        #endif
-        sd = scene.distance;
-        opticalGradient = scene.opticalNormal;
-        halfMinor = scene.halfMinor;
+    #if ANALYTIC_FUSED
+    int boxes = int(uAnalyticRanges.y);
+    sd = fusedDistance(p, boxes);
+    // Past the encoded exterior range a matte pixel is empty.
+    if (sd >= uAnalyticRanges.x) {
+        return result;
     }
+    if (-sd > analyticFlatDepth()) {
+        // The flat face: no displacement whatever the bevel, and no
+        // lighting term reads the normal.
+        halfMinor = uAnalyticOptics.x;
+        opticalGradient = vec2(1.0, 0.0);
+    } else {
+        vec2 gradient = vec2(
+            fusedDistance(p + vec2(0.5, 0.0), boxes) -
+                fusedDistance(p - vec2(0.5, 0.0), boxes),
+            fusedDistance(p + vec2(0.0, 0.5), boxes) -
+                fusedDistance(p - vec2(0.0, 0.5), boxes)
+        );
+        vec3 optics = fusedOptics(p, boxes);
+        halfMinor = optics.x;
+        opticalGradient = vec2(
+            gradient.x * optics.y - gradient.y * optics.z,
+            gradient.x * optics.z + gradient.y * optics.y
+        );
+    }
+    #if SHAPE_TINT
+    // The material map's tint: the nearest of the layer's shapes.
+    int tinted;
+    nearestShape(p, count, 1e9, tinted);
+    for (int i = 0; i < MAX_SHAPES; i++) {
+        if (i == tinted) result.tint = uShapeTints[i];
+    }
+    #endif
+    #else
+    int nearest;
+    SceneSample scene = nearestShape(
+        p,
+        count,
+        uAnalyticRanges.x + 2.0,
+        nearest
+    );
+    if (scene.distance >= 1e9) {
+        return result;
+    }
+    #if SHAPE_TINT
+    // A constant-index chain: the index selects a uniform array element.
+    for (int i = 0; i < MAX_SHAPES; i++) {
+        if (i == nearest) result.tint = uShapeTints[i];
+    }
+    #endif
+    sd = scene.distance;
+    opticalGradient = scene.opticalNormal;
+    halfMinor = scene.halfMinor;
+    #endif
     #if SHAPE_TINT
     if (result.tint.a <= 0.0001) {
         result.tint.rgb = vec3(0.0);

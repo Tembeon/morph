@@ -90,14 +90,20 @@ Future<void> morphWarmLiquidPipelines(
     // that does not load is left out rather than failing the warm-up.
     if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
       await RenderLiquidGlassLayer.precacheAnalyticShaders();
-      for (final key in ShaderKeys.liquidGlassAnalyticRenders) {
+      for (final key in [
+        ...ShaderKeys.liquidGlassAnalyticRenders,
+        ...ShaderKeys.liquidGlassAnalyticFusedRenders,
+      ]) {
         if (RenderLiquidGlassLayer.analyticProgram(key) case final program?) {
           programs.add(program);
           warmedKeys.add(key);
         }
       }
     }
-    final analyticKeys = ShaderKeys.liquidGlassAnalyticRenders.toSet();
+    final analyticKeys = {
+      ...ShaderKeys.liquidGlassAnalyticRenders,
+      ...ShaderKeys.liquidGlassAnalyticFusedRenders,
+    };
     final filters = <ui.ImageFilter>[];
     final tintKeys = {
       ShaderKeys.liquidGlassTintRender,

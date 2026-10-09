@@ -32,9 +32,14 @@ Map<String, (int, int)> _layout(
     if (match == null) continue;
     var count = 1;
     if (match.group(3) case final size?) {
-      for (final factor in size.split('*')) {
-        final term = factor.trim();
-        count *= defines[term] ?? int.parse(term);
+      // Left to right over * and /, as the declarations write them.
+      final terms = size.split(' ').where((t) => t.isNotEmpty).toList();
+      int value(String term) => defines[term] ?? int.parse(term);
+      count = value(terms.first);
+      for (var t = 1; t + 1 < terms.length; t += 2) {
+        count = terms[t] == '*'
+            ? count * value(terms[t + 1])
+            : count ~/ value(terms[t + 1]);
       }
     }
     final floats = _floats[match.group(1)]! * count;
@@ -58,23 +63,33 @@ int _coreFloats() {
   return last + size;
 }
 
-/// The analytic file's uniforms, with only the variant's #if SHAPE_TINT
-/// blocks.
-List<String> _analyticLines({required bool tint}) {
+/// The analytic file's lines a variant compiles: its `#if SHAPE_TINT` and
+/// `#if ANALYTIC_FUSED` blocks (with their `#else`) by [tint] and [fused],
+/// every other conditional kept.
+List<String> _analyticLines({required bool tint, required bool fused}) {
   final lines = File('${_shaders}analytic_geometry.glsl').readAsLinesSync();
   final kept = <String>[];
-  var skipping = false;
+  final open = <bool>[];
+  bool active() => open.every((on) => on);
   for (final line in lines) {
     final trimmed = line.trim();
-    if (trimmed == '#if SHAPE_TINT') {
-      skipping = !tint;
+    if (trimmed.startsWith('#if')) {
+      open.add(switch (trimmed) {
+        '#if SHAPE_TINT' => tint,
+        '#if ANALYTIC_FUSED' => fused,
+        _ => true,
+      });
+      continue;
+    }
+    if (trimmed == '#else') {
+      open.add(!open.removeLast());
       continue;
     }
     if (trimmed == '#endif') {
-      skipping = false;
+      open.removeLast();
       continue;
     }
-    if (!skipping) kept.add(line);
+    if (active()) kept.add(line);
   }
   return kept;
 }
@@ -120,62 +135,94 @@ void main() {
       expect(RenderLiquidGlassLayer.analyticMaxShapes, 8);
     });
 
-    for (final tint in [false, true]) {
-      test('the analytic uniforms sit where the layer writes them: '
-          '${tint ? 'tint' : 'one appearance'}', () {
-        final max = _maxShapes();
-        final boxes = _define('ANALYTIC_MAX_BOXES');
-        expect(boxes, GlassBoxField.maxBoxes);
-        final layout = _layout(_analyticLines(tint: tint), _coreFloats(), {
-          'MAX_SHAPES': max,
-          'ANALYTIC_MAX_SHAPES': max,
-          'ANALYTIC_MAX_BOXES': boxes,
-        });
-        expect(layout['uAnalyticOptics'], (
-          RenderLiquidGlassLayer.analyticUniformIndex,
-          4,
-        ));
-        expect(layout['uAnalyticRanges'], (69, 4));
-        expect(layout['uShapeData'], (
-          RenderLiquidGlassLayer.analyticShapeDataIndex,
-          max * 12,
-        ));
-        expect(RenderLiquidGlassLayer.analyticShapeDataIndex, 73);
-        expect(layout['uRseData'], (
-          RenderLiquidGlassLayer.analyticRseDataIndex,
-          max * 12,
-        ));
-        expect(RenderLiquidGlassLayer.analyticRseDataIndex, 169);
-        expect(layout['uShapeBounds'], (
-          RenderLiquidGlassLayer.analyticBoundsIndex,
-          max * 4,
-        ));
-        expect(RenderLiquidGlassLayer.analyticBoundsIndex, 265);
-        expect(layout['uFusedBoxes'], (
-          RenderLiquidGlassLayer.analyticFusedBoxesIndex,
-          boxes * 8,
-        ));
-        expect(RenderLiquidGlassLayer.analyticFusedBoxesIndex, 297);
-        if (tint) {
-          expect(layout['uShapeTints'], (
-            RenderLiquidGlassLayer.analyticTintsIndex,
+    for (final fused in [false, true]) {
+      for (final tint in [false, true]) {
+        test('the analytic uniforms sit where the layer writes them: '
+            '${fused ? 'fused ' : ''}${tint ? 'tint' : 'one appearance'}', () {
+          final max = _maxShapes();
+          final boxes = _define('ANALYTIC_MAX_BOXES');
+          expect(boxes, GlassBoxField.maxBoxes);
+          final layout =
+              _layout(_analyticLines(tint: tint, fused: fused), _coreFloats(), {
+                'MAX_SHAPES': max,
+                'ANALYTIC_MAX_SHAPES': max,
+                'ANALYTIC_MAX_BOXES': boxes,
+              });
+          expect(layout['uAnalyticOptics'], (
+            RenderLiquidGlassLayer.analyticUniformIndex,
+            4,
+          ));
+          expect(layout['uAnalyticRanges'], (69, 4));
+          expect(layout['uShapeData'], (
+            RenderLiquidGlassLayer.analyticShapeDataIndex,
+            max * 12,
+          ));
+          expect(RenderLiquidGlassLayer.analyticShapeDataIndex, 73);
+          expect(layout['uRseData'], (
+            RenderLiquidGlassLayer.analyticRseDataIndex,
+            max * 12,
+          ));
+          expect(RenderLiquidGlassLayer.analyticRseDataIndex, 169);
+          expect(layout['uShapeBounds'], (
+            RenderLiquidGlassLayer.analyticBoundsIndex,
             max * 4,
           ));
-          expect(RenderLiquidGlassLayer.analyticTintsIndex, 329);
-        } else {
-          expect(layout.containsKey('uShapeTints'), isFalse);
-        }
-        expect(layout.keys, [
-          'uAnalyticOptics',
-          'uAnalyticRanges',
-          'uShapeData',
-          'uRseData',
-          'uShapeBounds',
-          'uFusedBoxes',
-          if (tint) 'uShapeTints',
-        ]);
-      });
+          expect(RenderLiquidGlassLayer.analyticBoundsIndex, 265);
+          expect(layout['uShapeCull'], (
+            RenderLiquidGlassLayer.analyticCullIndex,
+            max,
+          ));
+          expect(RenderLiquidGlassLayer.analyticCullIndex, 297);
+          if (fused) {
+            expect(layout['uFusedBoxes'], (
+              RenderLiquidGlassLayer.analyticFusedBoxesIndex,
+              boxes * 8,
+            ));
+            expect(RenderLiquidGlassLayer.analyticFusedBoxesIndex, 305);
+          } else {
+            expect(layout.containsKey('uFusedBoxes'), isFalse);
+          }
+          if (tint) {
+            final at = fused
+                ? RenderLiquidGlassLayer.analyticFusedTintsIndex
+                : RenderLiquidGlassLayer.analyticTintsIndex;
+            expect(layout['uShapeTints'], (at, max * 4));
+            expect(at, fused ? 337 : 305);
+          } else {
+            expect(layout.containsKey('uShapeTints'), isFalse);
+          }
+          expect(layout.keys, [
+            'uAnalyticOptics',
+            'uAnalyticRanges',
+            'uShapeData',
+            'uRseData',
+            'uShapeBounds',
+            'uShapeCull',
+            if (fused) 'uFusedBoxes',
+            if (tint) 'uShapeTints',
+          ]);
+        });
+      }
     }
+
+    test('the separate-shape variants carry no merge law', () {
+      final separate = _analyticLines(tint: true, fused: false).join('\n');
+      for (final name in ['fusedDistance', 'fusedOptics', 'fusedBox(']) {
+        expect(separate, isNot(contains(name)));
+      }
+      final fused = _analyticLines(tint: true, fused: true).join('\n');
+      expect(fused, contains('fusedDistance'));
+      for (final variant in ['', '_ios27', '_tint', '_tint_ios27']) {
+        final plain = File(
+          '${_shaders}liquid_glass_final_render_analytic$variant.frag',
+        ).readAsStringSync();
+        expect(plain, isNot(contains('ANALYTIC_FUSED')));
+        final merged = File(
+          '${_shaders}liquid_glass_final_render_analytic_fused$variant.frag',
+        ).readAsStringSync();
+        expect(merged, contains('#define ANALYTIC_FUSED 1'));
+      }
+    });
   });
 
   group('analytic eligibility', () {

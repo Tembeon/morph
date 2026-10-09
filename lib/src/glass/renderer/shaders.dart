@@ -57,6 +57,29 @@ abstract class ShaderKeys {
   static String get liquidGlassAnalyticTintIos27Render =>
       '${_runtimeRoot}liquid_glass_final_render_analytic_tint_ios27.frag';
 
+  static String get liquidGlassAnalyticFusedRender =>
+      '${_runtimeRoot}liquid_glass_final_render_analytic_fused.frag';
+
+  static String get liquidGlassAnalyticFusedIos27Render =>
+      '${_runtimeRoot}liquid_glass_final_render_analytic_fused_ios27.frag';
+
+  static String get liquidGlassAnalyticFusedTintRender =>
+      '${_runtimeRoot}liquid_glass_final_render_analytic_fused_tint.frag';
+
+  static String get liquidGlassAnalyticFusedTintIos27Render =>
+      '${_runtimeRoot}liquid_glass_final_render_analytic_fused_tint_ios27.frag';
+
+  /// The final shaders that merge a fused body of boxes analytically, in
+  /// the order of [liquidGlassAnalyticRenders]; only a layer whose field
+  /// is a `GlassBoxField` draws with them, so the separate-shape variants
+  /// carry none of the merge law.
+  static List<String> get liquidGlassAnalyticFusedRenders => [
+    liquidGlassAnalyticFusedRender,
+    liquidGlassAnalyticFusedIos27Render,
+    liquidGlassAnalyticFusedTintRender,
+    liquidGlassAnalyticFusedTintIos27Render,
+  ];
+
   /// The final shaders that evaluate their shapes analytically: one
   /// appearance with the direct and with an iOS 27 color model, shapes that
   /// differ only by tint with the direct and with an iOS 27 color model.
