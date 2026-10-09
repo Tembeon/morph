@@ -1,0 +1,18 @@
+{
+  "tool/ios_reference/perf/2026-10-08-architecture": {
+    "files": 641,
+    "mismatches": []
+  },
+  "tool/ios_reference/perf/2026-10-09-field-material": {
+    "files": 513,
+    "mismatches": []
+  },
+  "tool/ios_reference/perf/2026-10-09-glyph-cohorts": {
+    "files": 201,
+    "mismatches": []
+  },
+  "tool/ios_reference/perf/2026-10-09-navigation-transition": {
+    "files": 167,
+    "mismatches": []
+  }
+}
