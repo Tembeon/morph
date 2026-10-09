@@ -2,6 +2,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/bar_items.dart' show MorphBackChevronPainter;
+import 'package:morph/src/widgets/glyph_scale.dart' show MorphGlyphBlur;
 import 'package:morph/widgets.dart';
 
 const _screen = Size(402, 874);
@@ -318,12 +319,21 @@ void main() {
     await tester.pumpWidget(bar(visible: true));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    final opacity = tester.widget<Opacity>(
+    final fade = tester.widget(
       find
-          .ancestor(of: find.text('Inbox'), matching: find.byType(Opacity))
+          .ancestor(
+            of: find.text('Inbox'),
+            matching: find.byWidgetPredicate(
+              (Widget w) => w is Opacity || w is MorphGlyphBlur,
+            ),
+          )
           .first,
     );
-    expect(opacity.opacity, inExclusiveRange(0.05, 0.95));
+    final opacity = switch (fade) {
+      Opacity(:final opacity) || MorphGlyphBlur(:final opacity) => opacity,
+      _ => throw StateError('no fade'),
+    };
+    expect(opacity, inExclusiveRange(0.05, 0.95));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),
       EnginePhase.sendSemanticsUpdate,

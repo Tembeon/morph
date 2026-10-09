@@ -90,10 +90,10 @@
   "nav-scroll/flat": {
     "frames": 94,
     "builds": 1.9,
-    "paints": 72.9,
-    "pictures": 2.4,
+    "paints": 75.1,
+    "pictures": 3.0,
     "captures": 0.0,
-    "offscreen": 2.0,
+    "offscreen": 1.0,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -321,10 +321,10 @@
   "nav-scroll/fake": {
     "frames": 94,
     "builds": 1.9,
-    "paints": 60.1,
-    "pictures": 0.5,
+    "paints": 59.6,
+    "pictures": 1.1,
     "captures": 4.8,
-    "offscreen": 7.8,
+    "offscreen": 6.8,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0
@@ -552,10 +552,10 @@
   "nav-scroll/liquid": {
     "frames": 94,
     "builds": 1.9,
-    "paints": 60.1,
-    "pictures": 0.5,
+    "paints": 59.6,
+    "pictures": 1.1,
     "captures": 4.8,
-    "offscreen": 7.8,
+    "offscreen": 6.8,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0

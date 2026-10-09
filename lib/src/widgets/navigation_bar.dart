@@ -7,6 +7,7 @@ import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
@@ -488,6 +489,20 @@ class _InlineTitle extends StatelessWidget {
             Widget out = child!;
             if (m == null) out = ExcludeSemantics(child: out);
             final blur = m?.titleBlur ?? 0;
+            final offset = Offset(
+              direction == TextDirection.rtl ? -shift() : shift(),
+              m?.titleOffset ?? 0,
+            );
+            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+              return Transform.translate(
+                offset: offset,
+                child: MorphGlyphBlur(
+                  blur: blur,
+                  opacity: opacity.clamp(0.0, 1.0),
+                  child: out,
+                ),
+              );
+            }
             if (blur > 0.05) {
               out = ImageFiltered(
                 imageFilter: ui.ImageFilter.blur(
@@ -500,13 +515,7 @@ class _InlineTitle extends StatelessWidget {
             }
             return Opacity(
               opacity: opacity,
-              child: Transform.translate(
-                offset: Offset(
-                  direction == TextDirection.rtl ? -shift() : shift(),
-                  m?.titleOffset ?? 0,
-                ),
-                child: out,
-              ),
+              child: Transform.translate(offset: offset, child: out),
             );
           },
           child: Text(

@@ -51,6 +51,14 @@ abstract class ShaderKeys {
   static String get fakeGlassSurface =>
       '${_runtimeRoot}fake_glass_surface.frag';
 
+  /// The single-pass Gaussian the bar glyphs blur with.
+  static String get glyphBlur =>
+      '${_shadersRoot}lib/src/widgets/shaders/glyph_blur.frag';
+
+  /// The box reduction the glyph blur's raster pyramids are drawn with.
+  static String get glyphReduce =>
+      '${_shadersRoot}lib/src/widgets/shaders/glyph_reduce.frag';
+
   static final String gpuGeometryShaderBundle =
       '${_shadersRoot}build/shaderbundles/morph_glass.shaderbundle';
 }

@@ -14,6 +14,13 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Android navigation bar items and the inline title draw their blur and
+  fade as one shader draw from a mip pyramid of their content, instead
+  of a blur layer, an opacity layer and a raster each; flat container
+  fusion reads a single box where one box provably decides the merge.
+  Redmi 6A (Skia) missed display slots per push window 21 -> 2-4, pop
+  22 -> 3; Moto g86 liquid push raster p95 22 -> 9.4 ms. Blur fidelity
+  stays within a channel step of the replaced layers on average.
 - Glass preserves bilinear native input sampling across stable and beta
   SDKs, fixing a Flutter 3.49 beta regression within one native chrome
   channel step. The benchmark selects an SDK and records its revisions;

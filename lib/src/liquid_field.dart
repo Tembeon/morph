@@ -430,6 +430,26 @@ class _FieldSampler {
   double _nx = 0;
   double _ny = 0;
 
+  /// The distance of the box at [i] in [_boxes], the arithmetic of [eval]
+  /// step for step.
+  double boxDistance(int i, double x, double y) {
+    final Float64List boxes = _boxes;
+    final double px = x - boxes[i];
+    final double py = y - boxes[i + 1];
+    final double r = boxes[i + 4];
+    final double qx = px.abs() - boxes[i + 2] + r;
+    final double qy = py.abs() - boxes[i + 3] + r;
+    final double ax = qx > 0 ? qx : 0.0;
+    final double ay = qy > 0 ? qy : 0.0;
+    final double length = math.sqrt(ax * ax + ay * ay);
+    double di = length - r;
+    final double inner = qx > qy ? qx : qy;
+    if (inner < 0) {
+      di += inner;
+    }
+    return di;
+  }
+
   double eval(double x, double y) {
     final double k = _k;
     // Seeded by the first shape, exactly like the reference
@@ -989,10 +1009,10 @@ _ClusterTrace _traceCluster(
   final _FieldSampler sampler = _FieldSampler(shapes, k);
   final Float64List values = Float64List(cols * rows);
   for (int j = 0; j < rows; j++) {
-    final double y = b.top + j * step;
+    final double y = b.top + j.toDouble() * step;
     final int rowBase = j * cols;
     for (int i = 0; i < cols; i++) {
-      values[rowBase + i] = sampler.eval(b.left + i * step, y);
+      values[rowBase + i] = sampler.eval(b.left + i.toDouble() * step, y);
     }
   }
 
@@ -1046,8 +1066,8 @@ List<(Offset, Offset)> _marchGrid(
         continue;
       }
 
-      final double x0 = left + i * step;
-      final double y0 = top + j * step;
+      final double x0 = left + i.toDouble() * step;
+      final double y0 = top + j.toDouble() * step;
       final double x1 = x0 + step;
       final double y1 = y0 + step;
 
@@ -1087,10 +1107,32 @@ List<(Offset, Offset)> _marchGrid(
 
 /// The evaluator of [field] for a sampling loop: the merge law at (x, y)
 /// without an [Offset] or a normal allocated per call, the same values as
-/// [LiquidField.eval].
+/// [LiquidField.eval]. Call its `eval` directly: a torn-off closure boxes
+/// every coordinate and value it passes.
 @internal
-double Function(double x, double y) liquidFieldSampler(LiquidField field) =>
-    _FieldSampler(field.shapes, field.k).eval;
+LiquidFieldSampler liquidFieldSampler(LiquidField field) =>
+    LiquidFieldSampler._(_FieldSampler(field.shapes, field.k));
+
+/// A sampler of a [LiquidField], from [liquidFieldSampler].
+@internal
+final class LiquidFieldSampler {
+  LiquidFieldSampler._(this._sampler);
+
+  final _FieldSampler _sampler;
+
+  /// The field at ([x], [y]).
+  @pragma('vm:prefer-inline')
+  double eval(double x, double y) => _sampler.eval(x, y);
+
+  /// The number of box masses, the first of the field's masses.
+  int get boxCount => _sampler._boxes.length ~/ 5;
+
+  /// The distance of box [index] alone at ([x], [y]), computed exactly as
+  /// [eval] computes it: where that box decides the merge, the two are
+  /// equal.
+  double evalBox(int index, double x, double y) =>
+      _sampler.boxDistance(index * 5, x, y);
+}
 
 /// Stitches loose segments into closed loops: endpoints snap together
 /// with half-grid-step precision - on thin necks numerically identical

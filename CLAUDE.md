@@ -1624,6 +1624,17 @@ animated skin frame costs 57 us; the eval budget keeps the 64-piece
 worst case at 1.9 ms (8.2 ms unbounded).
 
 
+NAVIGATION GLYPH BLUR (2026-10-09, Redmi 6A Skia + Moto g86 Vulkan):
+Android bar items and the inline title draw blur and fade as one shader
+draw from a per-child mip pyramid (MorphGlyphBlur, glyph_blur.frag /
+glyph_reduce.frag; pyramids built once per content, every pyramid a
+frame needs in two passes); flat fusion reads one box in blocks one box
+provably decides (bit-identical). Redmi flat missed slots per push / pop
+window 21 / 22 -> 2-4 / 3; Moto liquid push / pop raster p95 22 / 24 ->
+9.4 / 10.6 ms. Fidelity NEAR (within a channel step of mean error of the
+replaced layers along the bar's curve). Details: glass-renderer.md
+"Navigation glyph blur in one pass".
+
 OPTIMIZATION HANDOFF (2026-10-09): use flutter-beta / dart-beta for current
 work. Smoothness on weak Android remains the priority. New experimental
 renderer and glyph paths are isolated from wip/measured-liquid-glass.

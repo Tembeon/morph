@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/widgets/glyph_scale.dart' show MorphGlyphBlur;
 import 'package:morph/widgets.dart';
 
 const _screen = Size(402, 874);
@@ -109,11 +110,21 @@ Finder _key(String id) => find.byKey(ValueKey<Object>(id));
 
 Offset _item(WidgetTester tester, String id) => tester.getCenter(_key(id));
 
-double _opacity(WidgetTester tester, String id) => tester
-    .widget<Opacity>(
-      find.descendant(of: _key(id), matching: find.byType(Opacity)).first,
-    )
-    .opacity;
+/// The opacity an item fades with: an [Opacity], or on Android the
+/// [MorphGlyphBlur] that draws its blur and fade in one.
+double _opacity(WidgetTester tester, String id) => switch (tester.widget(
+  find
+      .descendant(
+        of: _key(id),
+        matching: find.byWidgetPredicate(
+          (Widget w) => w is Opacity || w is MorphGlyphBlur,
+        ),
+      )
+      .first,
+)) {
+  Opacity(:final opacity) || MorphGlyphBlur(:final opacity) => opacity,
+  _ => throw StateError('no fade'),
+};
 
 /// How far the detail page is out, as a share of the width.
 double _pageOut(WidgetTester tester) =>

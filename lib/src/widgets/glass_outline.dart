@@ -517,7 +517,7 @@ class _OutlineTracer {
         for (var j = bj * block; j < jEnd; j++) {
           final upper = j * cols;
           final lower = upper + cols;
-          final y0 = top + j * step;
+          final y0 = top + j.toDouble() * step;
           for (var i = bi * block; i < iEnd; i++) {
             final tl = values[upper + i];
             final tr = values[upper + i + 1];
@@ -529,7 +529,7 @@ class _OutlineTracer {
                 (br < 0 ? 2 : 0) |
                 (bl < 0 ? 1 : 0);
             if (mask == 0 || mask == 15) continue;
-            final x0 = left + i * step;
+            final x0 = left + i.toDouble() * step;
             final eTop = j * (cols - 1) + i;
             final eLeft = horizontal + j * cols + i;
             final saddle = mask == 5 || mask == 10;
@@ -987,9 +987,9 @@ MorphGlassOutline _fuseContainer(
       ? [for (var i = 0; i < boxes.length; i++) boxes.turns(i)]
       : null;
   for (var fj = 0; fj < fieldRows; fj++) {
-    final y = area.top + fj * stride * step;
+    final y = area.top + (fj * stride).toDouble() * step;
     for (var fi = 0; fi < fieldCols; fi++) {
-      final x = area.left + fi * stride * step;
+      final x = area.left + (fi * stride).toDouble() * step;
       final at = fj * fieldCols + fi;
       if (!withField) {
         if (fi % (b ~/ stride) != 0 || fj % (b ~/ stride) != 0) continue;
@@ -1030,7 +1030,7 @@ MorphGlassOutline _fuseContainer(
         m = math.min(m, di);
       }
       if (turned) morphNormalizeTurn(turn, at * 2);
-      final value = sample(x, y);
+      final value = sample.eval(x, y);
       distance![at] = value;
       minimum[at] = m;
       halfMinor![at] = half;
@@ -1041,8 +1041,35 @@ MorphGlassOutline _fuseContainer(
   final blockRows = (rows - 1) ~/ b;
   final near = Uint8List(blockCols * blockRows);
   final reach = b * step * math.sqrt1_2 + step;
+  // The margin by which one box must be nearer than every other
+  // throughout a block to decide its merge alone.
+  final guard = spacing * (1 + (shapes.length - 2) / 4) + 1e-6;
   final depth = (shapes.length - 1) * spacing / 4 + step;
   const span = b ~/ stride;
+  // A block one box decides reads that box alone.
+  void fill(int i0, int j0, int n, int single) {
+    for (var j = j0; j <= j0 + n; j++) {
+      final y = area.top + j.toDouble() * step;
+      for (var i = i0; i <= i0 + n; i++) {
+        if (withField && i % stride == 0 && j % stride == 0) continue;
+        final x = area.left + i.toDouble() * step;
+        trace[j * cols + i] = single < 0
+            ? sample.eval(x, y)
+            : sample.evalBox(single, x, y);
+      }
+    }
+  }
+
+  int decide(int i0, int j0, int n) => debugMorphFusionFullSampling
+      ? -1
+      : _decidingBox(
+          sample,
+          area.left + i0.toDouble() * step + n * step / 2,
+          area.top + j0.toDouble() * step + n * step / 2,
+          n * step / 2 * math.sqrt2,
+          guard,
+        );
+
   for (var bj = 0; bj < blockRows; bj++) {
     for (var bi = 0; bi < blockCols; bi++) {
       final corner = bj * span * fieldCols + bi * span;
@@ -1054,13 +1081,7 @@ MorphGlassOutline _fuseContainer(
       final hi = math.max(math.max(a, b2), math.max(c, d));
       if (hi + reach >= 0 && lo - reach <= depth) {
         near[bj * blockCols + bi] = 1;
-        for (var j = bj * b; j <= bj * b + b; j++) {
-          final y = area.top + j * step;
-          for (var i = bi * b; i <= bi * b + b; i++) {
-            if (withField && i % stride == 0 && j % stride == 0) continue;
-            trace[j * cols + i] = sample(area.left + i * step, y);
-          }
-        }
+        fill(bi * b, bj * b, b, decide(bi * b, bj * b, b));
       }
     }
   }
@@ -1097,6 +1118,61 @@ MorphGlassOutline _fuseContainer(
     top: area.top,
     step: step,
   );
+}
+
+/// The box that alone decides the merged field throughout the block
+/// centered on ([x], [y]) with half diagonal [radius], or -1.
+///
+/// Box distances change by at most the distance moved, so a box nearer
+/// than every other at the center by `2 * radius + guard` stays nearer by
+/// [guard] everywhere in the block. With [guard] at least `k (1 + (n - 2)
+/// / 4)`, the other boxes fold among themselves to no less than the
+/// nearest distance plus k (each smooth merge lowers by at most k / 4),
+/// and the nearest one then wins the fold outright: the field is that
+/// box's distance, bit for bit.
+int _decidingBox(
+  LiquidFieldSampler sample,
+  double x,
+  double y,
+  double radius,
+  double guard,
+) {
+  var best = -1;
+  var nearest = double.infinity;
+  var second = double.infinity;
+  for (var i = 0; i < sample.boxCount; i++) {
+    final d = sample.evalBox(i, x, y);
+    if (d < nearest) {
+      second = nearest;
+      nearest = d;
+      best = i;
+    } else if (d < second) {
+      second = d;
+    }
+  }
+  if (second - nearest < 2 * radius + guard) return -1;
+  assert(() {
+    debugMorphFusionDecidedBlocks++;
+    return true;
+  }());
+  return best;
+}
+
+/// The blocks a single box decided, counted in debug builds.
+@visibleForTesting
+int debugMorphFusionDecidedBlocks = 0;
+
+/// Samples every node with the full merge law, as before blocks that one
+/// box decides read that box alone, for comparing the two.
+@visibleForTesting
+bool debugMorphFusionFullSampling = false;
+
+/// Forgets every remembered outline, silhouette and union.
+@visibleForTesting
+void debugClearMorphGlassOutlines() {
+  _recentOutlines.clear();
+  _recentSilhouettes.clear();
+  _recentUnions.clear();
 }
 
 /// The grids [_fuseContainer] works in, kept across calls (an outline is

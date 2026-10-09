@@ -1433,28 +1433,30 @@ class _MorphBarItemsState extends State<MorphBarItems>
       _contents[button.id] = (inputs, content);
     }
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      content = MorphGlyphRaster(
-        active: frame.blur * scale.abs() >= MorphGlyphRaster.minBlur
-            ? const AlwaysStoppedAnimation(true)
-            : const AlwaysStoppedAnimation(false),
-        sampleLogicalBounds: true,
-        child: content,
-      );
-    }
-    if (frame.blur > 0.05) {
-      content = ImageFiltered(
-        imageFilter: ui.ImageFilter.blur(
-          sigmaX: frame.blur,
-          sigmaY: frame.blur,
-          tileMode: TileMode.decal,
+      content = Transform.scale(
+        scale: scale,
+        child: MorphGlyphBlur(
+          blur: frame.blur > 0.05 ? frame.blur : 0,
+          opacity: frame.presence.clamp(0.0, 1.0),
+          child: content,
         ),
-        child: content,
+      );
+    } else {
+      if (frame.blur > 0.05) {
+        content = ImageFiltered(
+          imageFilter: ui.ImageFilter.blur(
+            sigmaX: frame.blur,
+            sigmaY: frame.blur,
+            tileMode: TileMode.decal,
+          ),
+          child: content,
+        );
+      }
+      content = Opacity(
+        opacity: frame.presence.clamp(0.0, 1.0),
+        child: Transform.scale(scale: scale, child: content),
       );
     }
-    content = Opacity(
-      opacity: frame.presence.clamp(0.0, 1.0),
-      child: Transform.scale(scale: scale, child: content),
-    );
     if (!frame.leaving) {
       content = Semantics(
         button: true,

@@ -2731,3 +2731,98 @@ perf/2026-10-08-beta-sdk. Production blur remains the stock path.
 
 2026-10-09 handoff: experimental paths and evidence are published separately.
 See docs/optimization-handoff.md for branches, dependencies and admission state.
+
+## Navigation glyph blur in one pass, decided fusion blocks (2026-10-09)
+
+Devices: Redmi 6A (MT6762, PowerVR GE8320, Android 9, 32-bit, Skia GLES -
+Impeller is unavailable there, so liquid falls back and only flat is
+native), Moto g86 power (Dimensity 7300, Mali, Android 16, Impeller
+Vulkan, 120 Hz panel but the app is held at 60 fps without a touch; the
+system ignores window and surface frame-rate votes). Flutter beta
+3.49.0-0.2.pre, profile, actual gallery Navigation callbacks
+(navigation_stage_bench, 1500 ms windows, three shuffled repeats).
+
+Finding (Redmi, Skia trace with `--trace-skia`): each push / pop began
+with three or four frames of 80 - 140 ms raster. They held 55 - 64 render
+passes each: every bar item's blur (`ImageFiltered`, a save layer and
+two blur passes), its opacity layer (the engine raster-caches the
+children of an opacity layer that cannot inherit opacity), the Android
+glyph raster (`toImageSync`, a texture copy and a mipmap regeneration
+per new image) - about 2 ms of GL driver time per pass on this GPU.
+Attribution by removal: no blur 21 -> 8 missed slots per push window,
+no partial opacity as well 8 -> 6; the glyph raster alone 21 -> 19.
+
+Change (Android only, iOS / web unchanged): `MorphGlyphBlur`
+(glyph_scale.dart) draws a bar item's content, and the inline title,
+blurred and faded as ONE draw in the pass it belongs to, through
+`glyph_blur.frag`. It samples a mip pyramid of one raster of the child
+at the device pixel ratio: each frame picks the finest level the blur
+spans at most 2 texels of (and no finer than about the screen), and the
+shader evaluates the continuous Gaussian over the texel centers around
+each point (per-fragment weights, 7 x 7 bilinear taps at most, 3 x 3 or
+5 x 5 for small sigmas; the kernel leaves out the texels' own box
+filter and never goes under 0.4 screen pixels). Pyramids are built once
+per child content - every pyramid one frame needs together, in two
+passes (one raster atlas, one atlas of all levels drawn by
+`glyph_reduce.frag`, exact 2 x 2 box means, no Skia mipmaps: those
+copied the source once per downscaled draw, 211 ms in one frame) - and
+then last while blur and scale animate. A blur under 0.5 device pixels
+paints the child sharp under the box's own opacity layer (a repaint
+boundary whose opacity changes update the layer, like `RenderOpacity`).
+Rasterized text is drawn at the device ratio, then reduced: text
+rasterized directly on a coarse grid moves by up to half a texel
+(baselines snap), which a 10 pt blur showed as a 4 pt shift. The
+previous bar glyph raster (`MorphGlyphRaster` under `ImageFiltered`
+under `Opacity`) remains only on the menu.
+
+Fidelity (test/glyph_blur_test.dart, against a true separable Gaussian
+of the sharp render, along the bar's own (presence, scale, blur) curve,
+max / mean channel error): p 0.1 2/0.48 (blur layers 2/0.70, previous
+Android path 3/0.90); p 0.5 4/0.91 (4/1.32, 5/1.47); p 0.75 14/1.36
+(8/1.59, 16/2.07); p 0.9 31/2.52 (1/0.29, 31/2.24); p 0.97 153/3.65
+(139/3.05, 139/3.05); p >= 0.99 identical to the sharp live path. Every
+step is within one channel step of mean error of the layers it replaces
+or of the previous path. Skia's own large-sigma blur is the less exact
+one (it downsamples): a blurred square's peak is 107 under the layers,
+117 here, 119 in theory.
+
+Container fusion (glass_outline.dart): an 8 pt block where one box is
+nearer than every other by `k (1 + (n - 2) / 4)` plus the block's
+diameter reads that box alone (`_decidingBox`); the merge law is then
+that box's distance bit for bit (the other masses fold to at least the
+nearest plus k, and the nearest wins outright). Seeded equivalence over
+200 random rows and steps per path (test/glass_fusion_sampling_test.dart)
+traces identical outlines, silhouette and optical. Redmi flat fusion of
+a 2 - 4 capsule bar row: median 3.3 -> 2.3 ms per frame. Tried and
+dropped: per-node sign classification from the box minimum (as costly
+as the sampler it skips), re-deciding block quarters (slower), the
+sampler torn off as a closure (kept: direct calls, ~5 percent).
+
+Redmi flat, missed display slots summed over three windows, two
+launches (A B B A), baseline -> now: push 21/19 -> 4/2, pop 22/22 ->
+3/3, enter 11/10 -> 2/4, toolbar 11/11 -> 1/0; raster p95 push
+10.6/20.5 -> 12.7/10.6 ms, toolbar 48.7/40.5 -> 9.7/9.6 ms; pop UI p95
+14.2/14.3 -> 9.3/12.4 ms. One frame per transition still builds the
+pyramids (~30 - 40 ms raster), and fusion stays the largest UI cost of
+the remaining slow frames.
+
+Moto, two launch pairs (baseline A, current B, B, A; 60 Hz), raster p95
+/ missed slots: liquid push 22.1/21.9 -> 9.4/9.7 ms, 5/5 -> 0/1; liquid
+pop 23.7/21.0 -> 10.6/10.2 ms, 6/6 -> 1/1; liquid enter 13.1/13.0 ->
+10.3/10.6 ms; flat push 19.8/23.8 -> 4.5/4.5 ms, flat pop 15.7/16.4 ->
+4.9/5.1 ms. 120 Hz was not measured: the system holds the app at 60 fps
+without a touch and ignores window and surface frame-rate votes (needs
+the system refresh setting).
+
+Perf counts: nav-scroll's inline title re-records one small picture per
+animated frame instead of updating a filter and an opacity layer
+(pictures 0.5 -> 1.1, offscreen layers 7.8 -> 6.8 on fake / liquid;
+flat paints 72.9 -> 75.1, offscreen 2.0 -> 1.0); ceilings updated for
+that scene only.
+
+Evidence: perf/2026-10-09-nav-glyph-blur (reports, fusion logs; the
+Skia / Dart traces were not kept), tools in perf/nav_quick. The bench
+now runs flat-only on a device without liquid, records `glyph_rasters`
+per window and the owners of every opacity / filter layer in frozen
+shots; MainActivity accepts `--ez morph-max-refresh true` for benchmark
+launches.
