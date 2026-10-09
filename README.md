@@ -1,3 +1,7 @@
+> **Research branch: implementations may be incorrect or incomplete.**
+> Read [EXPERIMENT.md](EXPERIMENT.md) and
+> [the branch map](docs/optimization-handoff.md) before interpreting results.
+
 # morph
 
 Identity-based, spring-driven, interruptible widget-to-overlay morphs

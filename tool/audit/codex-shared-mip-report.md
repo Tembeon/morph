@@ -1,5 +1,9 @@
 # Shared prefilter producer experiment (2026-10-08)
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 Standalone release experiment on the authorized Flutter 3.49.0-0.2.pre beta,
 Pixel 6a / Mali-G78 / Vulkan / 60 Hz. Source ownership is deliberately
 controlled: this does not acquire the live Flutter compositor backdrop.

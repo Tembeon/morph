@@ -11,8 +11,16 @@ The complete integration rendering snapshot d69943c passed analyze/doc,
 1423 package and 21 example tests, macOS/AUTODEMO, Wasm. Later commits
 contain documentation and byte-exact archive preservation only.
 
-Topic branch verification is in progress and will be recorded here before
-the handoff is completed. Native admission states remain those in the reports.
+Additional per-branch checking was stopped at the owner request. Glyph atlas
+completed analyze/doc, 1405 package tests, 21 gallery tests and Android compile.
+Glyph cohorts completed analyze/doc; its test run was interrupted. The remaining
+reconstructed topic branches were not separately checked after the split.
+Historical branches were not rebuilt on the current SDK. These statuses must
+not be presented as native speedup or correctness certification.
+
+Every experimental implementation may be wrong or incomplete; negative results
+apply to the specific implementation and protocol. The colleague can assemble,
+correct and independently validate the prototypes.
 
 Both evidence and integration branches reproduce all 1522 SHA-256 entries
 across the four pre-existing new evidence manifests, with zero mismatches.
