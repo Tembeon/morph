@@ -105,6 +105,21 @@ paths kept across frames (pixel-identical on Impeller), fading glyphs
 drawn through the blur shader (removes Skia's per-item layer cache
 passes: Redmi worst push / pop frame 22 - 43 -> 13 - 25 ms).
 
+## Analytic frames on the device
+
+The bench's frozen-clock shots (`NAV_SHOTS`, frames 0 - 48 of each
+action) on the Moto, analytic (`changes`) against the matte, with a
+second matte run as the noise floor (28 frames): pixels over 8 channel
+steps 0 - 0.27 percent (repeat: 0), mean difference under 0.23 steps.
+Most frames stay under 0.15 percent with a largest step of about 60
+along glass rims. The largest steps (252 - 253, push frames 10 and 20)
+are the blue and grey toolbar capsules fusing: the matte draws their tint
+boundary inside the neck as a staircase (its material map is sampled at
+1/8 resolution), the analytic pass draws the same nearest-shape rule per
+pixel as a smooth curve (`tool/ios_reference/perf/2026-10-10-nav-options/
+analytic-vs-matte-push-f10-bar.png`: matte, analytic, difference x3). At
+rest the `changes` mode shows the matte itself.
+
 ## Frame-rate policy (measured, not an option in the package)
 
 Moto g86, liquid, production defaults (40a76ec), A B B A: forced 120 Hz
@@ -136,8 +151,6 @@ API; it takes a platform call like the gallery's MainActivity).
 
 ## Open
 
-- Native pixel spot checks of analytic frames in motion on the device
-  (host oracles: max 19, mostly 1 - 4 channel steps against the matte).
 - The Moto's remaining push UI cost: geometry encode at the first
   frames, glass shadows of resizing bar buttons (path rebuilt per size),
   container fusion when analytic is off.
