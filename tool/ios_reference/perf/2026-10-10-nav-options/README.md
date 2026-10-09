@@ -11,6 +11,7 @@ Reports of `example/lib/perf/navigation_stage_bench.dart` run through
 | `hlm-` | Moto g86 liquid | base 37abe0e / now 40a76ec / opt = now + MORPH_ANALYTIC_GEOMETRY (changes) |
 | `rer-` | Redmi 6A flat, real input (`NAV_REAL_INPUT`, `run.py --real`) | base / now / opt as `hlr-`, push and pop only |
 | `rem-` | Moto g86 liquid, real input | base / now / opt as `hlm-`, push and pop only |
+| `rem-def` | Moto liquid, real input | exp/navigation-defaults fc0f560 (defaults on, area cap) |
 | `hy-` | Moto liquid | a16606f: m = matte, a = analytic always, c = analytic changes |
 | `edge-` | Moto liquid | e8916b9 scroll edge blur on / off |
 | `sh-` | Moto liquid | 8c37f81 b = base, s = glass shadow paths kept |

@@ -181,8 +181,16 @@ API; it takes a platform call like the gallery's MainActivity).
 
 ## Open
 
-- The Moto's remaining push UI cost: geometry encode at the first
-  frames, glass shadows of resizing bar buttons (path rebuilt per size),
-  container fusion when analytic is off.
-- Redmi: the route's first build frame (14 - 26 ms) and pop's first
-  frames (detail page disposal, ~10 percent of UI).
+- Decide `exp/navigation-defaults` (both options on, area cap): rechecked
+  from real input on the Moto after the cap, push missed 4 - 6, pop 3 - 6
+  (`rem-def*`), the same as before it.
+- The Moto with analytic on: glass shadows of resizing bar buttons are
+  about 15 percent of the remaining push UI time (their clip path is
+  rebuilt for every new size); moving lenses cost +0.5 ms raster p95 in
+  the controls scene.
+- Redmi: the route's first build frame (one 20 - 27 ms frame per push)
+  and pop's first frames (detail page disposal, about 10 percent of UI);
+  pop raster p95 sits near the 16.5 ms budget (GPU fill of two pages).
+- Pixel 6a: none of these were measured on it this round.
+- `MORPH_ANALYTIC_CAPSULE` and the scroll edge branch stay unmeasured /
+  owner decisions.
