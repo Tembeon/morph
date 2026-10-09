@@ -1,5 +1,9 @@
 # Retained foreground blur experiment (2026-10-08)
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 Work in progress. Production routing remains unchanged: the atlas is behind
 MORPH_GLYPH_BLUR_ATLAS, false by default. Experiments 2-5 in
 codex-rendering-architecture-research.md remain open. No general 60 FPS,

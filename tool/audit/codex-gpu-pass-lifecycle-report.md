@@ -1,5 +1,9 @@
 # Flutter GPU pass lifecycle: stable verification, 2026-10-09
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 ## Result
 
 Flutter stable 3.47.2 does not unlock the rejected multi-pass command-buffer
