@@ -15,7 +15,18 @@ adb('install', '-r', '-d', apk)
 adb('shell', 'am', 'force-stop', PKG)
 adb('shell', 'rm', '-f', f'{DEV}/report.json', f'{DEV}/error.json')
 adb('logcat', '-c')
-adb('shell', 'am', 'start', '-W', '-n', f'{PKG}/.MainActivity', *(['--ez', 'trace-skia', 'true'] if '--skia' in sys.argv else []), *(['--ez', 'morph-max-refresh', 'true'] if '--hz' in sys.argv else []))
+gpu = '--gpu' in sys.argv
+recorder = None
+TR = '/sys/kernel/tracing'
+if gpu:
+    state = [adb('shell', 'cat', f'{TR}/{n}').strip() for n in ('tracing_on', 'events/power/gpu_work_period/enable')]
+    if state != ['0', '0']:
+        raise SystemExit('kernel GPU tracing already in use')
+    adb('shell', f'cd {TR} && echo mono > trace_clock && echo 8192 > buffer_size_kb && echo > trace && '
+        'echo 1 > events/power/gpu_work_period/enable && echo 1 > events/power/gpu_frequency/enable && echo 1 > tracing_on')
+    gpu_file = open(out + '.gpuwork.txt', 'w')
+    recorder = subprocess.Popen(['adb', 'shell', 'cat', f'{TR}/trace_pipe'], env=env, stdout=gpu_file, stderr=subprocess.DEVNULL)
+adb('shell', 'am', 'start', '-W', '-n', f'{PKG}/.MainActivity', *(['--ez', 'trace-skia', 'true'] if '--skia' in sys.argv else []), *(['--ez', 'morph-max-refresh', 'true'] if '--hz' in sys.argv else []), *(['--ef', 'morph-frame-rate', '60'] if '--60' in sys.argv else []))
 time.sleep(2)
 pid = adb('shell', 'pidof', PKG).split()[0]
 base = None; port = None
@@ -52,6 +63,12 @@ if cpu:
     data = rpc('getCpuSamples', isolateId=iso, timeOrigin=0, timeExtent=rpc('getVMTimelineMicros')['timestamp'])
     open(out + '.cpu.json', 'w').write(json.dumps(data))
     adb('forward', '--remove', f'tcp:{port}')
+if gpu:
+    adb('shell', f'echo 0 > {TR}/tracing_on')
+    recorder.terminate(); recorder.wait()
+    gpu_file.close()
+    adb('shell', f'cd {TR} && echo 0 > events/power/gpu_work_period/enable && echo 0 > events/power/gpu_frequency/enable && echo > trace && echo local > trace_clock')
+    open(out + '.device.txt', 'w').write(adb('shell', 'pm', 'list', 'packages', '-U', PKG))
 adb('pull', f'{DEV}/report.json', out + '.json')
 open(out + '.log.txt', 'w').write(adb('logcat', '-d', f'--pid={pid}'))
 print('ok', out)

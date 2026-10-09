@@ -21,6 +21,10 @@ class MainActivity : FlutterActivity() {
         if (intent?.getBooleanExtra("morph-max-refresh", false) == true) {
             preferHighestRefreshRate()
         }
+        // Benchmark launches may pass morph-frame-rate (for example 60) to
+        // vote a fixed frame rate for the Flutter surface instead.
+        val rate = intent?.getFloatExtra("morph-frame-rate", 0f) ?: 0f
+        if (rate > 0f) maxRefreshRate = rate
     }
 
     private fun preferHighestRefreshRate() {
