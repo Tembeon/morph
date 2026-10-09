@@ -1622,3 +1622,11 @@ Frame timings (glacial open+close, n=756): build avg 0.21 / p95 0.52
 / worst 0.83 ms; raster avg 0.71 / p95 1.33 / worst 4.33 ms. The cached
 animated skin frame costs 57 us; the eval budget keeps the 64-piece
 worst case at 1.9 ms (8.2 ms unbounded).
+
+
+OPTIMIZATION HANDOFF (2026-10-09): use flutter-beta / dart-beta for current
+work. Smoothness on weak Android remains the priority. New experimental
+renderer and glyph paths are isolated from wip/measured-liquid-glass.
+Branch/dependency/measurement map: docs/optimization-handoff.md. Do not merge
+experimental paths solely because CPU/raster timing improves; verify activation,
+native pixels, actual presentation and sustained resource use.

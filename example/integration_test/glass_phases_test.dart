@@ -79,6 +79,8 @@ void main() {
       Widget page,
       Future<void> Function() body,
     ) async {
+      const only = String.fromEnvironment('PHASES_ONLY');
+      if (only.isNotEmpty && !only.split(',').contains(name)) return;
       runApp(_App(tier: tier, child: page));
       await tester.pump(const Duration(milliseconds: 1500));
       final runs = <Map<String, double>>[];

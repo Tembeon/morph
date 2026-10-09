@@ -2727,3 +2727,7 @@ Android exec-out screencap independently confirms 1082x2402 in the
 displayed small-region frame, without invoking Flutter toImage.
 Details, provenance and reproduction: tool/audit/codex-beta-sdk-report.md,
 perf/2026-10-08-beta-sdk. Production blur remains the stock path.
+
+
+2026-10-09 handoff: experimental paths and evidence are published separately.
+See docs/optimization-handoff.md for branches, dependencies and admission state.

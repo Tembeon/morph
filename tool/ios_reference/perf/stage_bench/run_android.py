@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build/run the standalone stage bench; restore the installed APK on exit."""
+"""Build/run the standalone stage bench with optional APK restoration."""
 
 import argparse
 import hashlib
@@ -44,6 +44,32 @@ def cleanup(actions):
         raise RuntimeError('Cleanup incomplete: ' + '; '.join(failures))
 
 
+def stop_owned_perfetto(perfetto_pid, env):
+    """Stop an owned recorder, tolerating expiry without signaling a reused PID."""
+    # An owned recorder can finish its configured duration before the
+    # host stops it. Do not discard its trace or signal a reused PID.
+    probe = subprocess.run(['adb', 'shell', 'cat', f'/proc/{perfetto_pid}/comm'],
+                           env=env, capture_output=True, text=True, timeout=15)
+    if probe.returncode != 0:
+        if 'No such file or directory' not in probe.stderr:
+            raise RuntimeError(f'Cannot inspect owned Perfetto: {probe.stderr.strip()}')
+        return
+    if probe.stdout.strip() != 'perfetto':
+        return
+    stopped = subprocess.run(['adb', 'shell', 'kill', '-TERM', perfetto_pid],
+                             env=env, capture_output=True, text=True, timeout=15)
+    if stopped.returncode != 0 and 'No such process' not in stopped.stderr:
+        raise RuntimeError(f'Cannot stop owned Perfetto: {stopped.stderr.strip()}')
+    deadline = time.monotonic() + 20
+    while time.monotonic() < deadline:
+        alive = subprocess.run(['adb', 'shell', 'kill', '-0', perfetto_pid],
+                               env=env, capture_output=True, timeout=15)
+        if alive.returncode != 0:
+            return
+        time.sleep(.25)
+    raise TimeoutError('Owned Perfetto recorder did not stop')
+
+
 def skin_temperature(thermal):
     """Prefer the final HAL sensor reading over an earlier cached reading."""
     readings = re.findall(r'Temperature\{mValue=(-?[0-9.]+)[^\n]*?mName=VIRTUAL-SKIN', thermal)
@@ -84,21 +110,14 @@ def run(args):
             nonlocal perfetto_pid
             if not perfetto_pid:
                 return
-            adb('shell', 'kill', '-TERM', perfetto_pid)
-            deadline = time.monotonic() + 20
-            while time.monotonic() < deadline:
-                alive = subprocess.run(['adb', 'shell', 'kill', '-0', perfetto_pid],
-                                       env=env, capture_output=True, timeout=15)
-                if alive.returncode != 0:
-                    perfetto_pid = None
-                    return
-                time.sleep(.25)
-            raise TimeoutError('Owned Perfetto recorder did not stop')
+            stop_owned_perfetto(perfetto_pid, env)
+            perfetto_pid = None
         try:
-            paths = adb('shell', 'pm', 'path', PKG).strip().splitlines()
-            if len(paths) != 1 or not paths[0].startswith('package:'):
-                raise RuntimeError('A single installed gallery APK is required for restoration')
-            adb('pull', paths[0].removeprefix('package:'), str(backup))
+            if not args.leave_installed:
+                paths = adb('shell', 'pm', 'path', PKG).strip().splitlines()
+                if len(paths) != 1 or not paths[0].startswith('package:'):
+                    raise RuntimeError('A single installed gallery APK is required for restoration')
+                adb('pull', paths[0].removeprefix('package:'), str(backup))
             adb('shell', 'am', 'force-stop', PKG)
             gallery_stopped = True
             cool_deadline = time.monotonic() + 300
@@ -112,9 +131,11 @@ def run(args):
                 time.sleep(5)
                 before = adb('shell', 'dumpsys', 'thermalservice')
             notes = [f'apk: {args.apk}', f'sha256: {hashlib.sha256(args.apk.read_bytes()).hexdigest()}',
-                     f'original_apk_sha256: {hashlib.sha256(backup.read_bytes()).hexdigest()}',
+                     f'leave_installed: {args.leave_installed}',
                      f'trace: {args.trace}', f'commit: {command(["git", "rev-parse", "HEAD"], cwd=ROOT, stdout=subprocess.PIPE).stdout.strip()}',
                      'before:', before, adb('shell', 'dumpsys', 'battery')]
+            if backup.exists():
+                notes.append(f'original_apk_sha256: {hashlib.sha256(backup.read_bytes()).hexdigest()}')
             if skin_temperature(before) is not None:
                 notes.append(f'skin: {skin_temperature(before)}')
             build_record = Path(str(args.apk) + '.build.json')
@@ -123,7 +144,8 @@ def run(args):
             installed = True
             adb('install', '-r', str(args.apk))
             adb('shell', 'am', 'force-stop', PKG)
-            adb('shell', 'rm', '-f', f'{DEVICE}/report.json', f'{DEVICE}/error.json')
+            adb('shell', 'rm', '-f', f'{DEVICE}/report.json', f'{DEVICE}/error.json',
+                f'{DEVICE}/screen-request.json', f'{DEVICE}/screen-ack.txt')
             if args.trace == 'gpu':
                 trace_dir = '/sys/kernel/tracing'
                 names = ['tracing_on', 'trace_clock', 'buffer_size_kb',
@@ -138,8 +160,15 @@ def run(args):
                 recorder_file = Path(str(base) + '.gpuwork.txt').open('w')
                 recorder = subprocess.Popen(['adb', 'shell', 'cat', f'{trace_dir}/trace_pipe'],
                                             env=env, stdout=recorder_file, stderr=subprocess.DEVNULL)
-            elif args.trace == 'energy':
-                adb('push', str(ROOT / 'tool/ios_reference/perf/energy_android.cfg'), remote_config)
+            elif args.trace in ('energy', 'presentation', 'frame-cpu', 'frame-cpu-app', 'cpu-stack'):
+                config = {'energy': 'energy_android.cfg',
+                          'presentation': 'stage_bench/presentation_android.cfg',
+                          'frame-cpu': 'stage_bench/frame_cpu_android.cfg',
+                          'frame-cpu-app': 'stage_bench/frame_cpu_app_android.cfg',
+                          'cpu-stack': 'stage_bench/cpu_stack_android.cfg'}[args.trace]
+                notes.append('trace_config_sha256: ' + hashlib.sha256(
+                    (ROOT / 'tool/ios_reference/perf' / config).read_bytes()).hexdigest())
+                adb('push', str(ROOT / 'tool/ios_reference/perf' / config), remote_config)
                 result = adb('shell', f'cat {remote_config} | perfetto --txt -c - -o {remote_trace} --background')
                 perfetto_pid = result.strip().splitlines()[-1]
                 if not perfetto_pid.isdigit() or int(perfetto_pid) <= 1:
@@ -147,14 +176,41 @@ def run(args):
                     raise RuntimeError(f'Invalid Perfetto PID: {result}')
                 time.sleep(3)
             notes.append(adb('shell', 'pm', 'list', 'packages', '-U', PKG))
-            notes.append(adb('shell', 'am', 'start', '-W', '-n', f'{PKG}/.MainActivity'))
+            launch = ['shell', 'am', 'start', '-W', '-n', f'{PKG}/.MainActivity']
+            if args.trace in ('frame-cpu', 'frame-cpu-app', 'cpu-stack'):
+                launch.extend(['--ez', 'trace-systrace', 'true'])
+            notes.append(adb(*launch))
             app_pid = adb('shell', 'pidof', PKG).strip().split()[0]
             deadline = time.monotonic() + args.timeout
+            captured = set()
             while time.monotonic() < deadline:
-                result = subprocess.run(['adb', 'shell', 'test', '-f', f'{DEVICE}/report.json'],
-                                        env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=15)
+                poll = (f'if test -f {DEVICE}/report.json; then exit 0; fi; '
+                        f'if ! test -d /proc/{app_pid}; then exit 2; fi; '
+                        f'cat {DEVICE}/screen-request.json 2>/dev/null; exit 1')
+                result = subprocess.run(['adb', 'shell', poll], env=env,
+                                        capture_output=True, text=True, timeout=15)
                 if result.returncode == 0:
                     break
+                if result.returncode == 2:
+                    crash = adb('logcat', '-d', f'--pid={app_pid}')
+                    Path(str(base) + '.crash.txt').write_text(crash)
+                    raise RuntimeError(f'Benchmark process {app_pid} exited; see {base}.crash.txt')
+                if args.screen_shots and result.stdout.strip():
+                    request = json.loads(result.stdout)
+                    name = request['case']
+                    if not re.fullmatch(r'mip-[a-z0-9-]+', name):
+                        raise ValueError('Invalid screen shot case name')
+                    if name not in captured:
+                        # Screen capture occurs after all timed windows. Preserve
+                        # the full native frame and the exact crop separately.
+                        folder = Path(str(base) + '.screens')
+                        folder.mkdir(exist_ok=True)
+                        shot = subprocess.run(['adb', 'exec-out', 'screencap', '-p'],
+                                              env=env, capture_output=True, check=True, timeout=20)
+                        (folder / (name + '.png')).write_bytes(shot.stdout)
+                        (folder / (name + '.json')).write_text(json.dumps(request, indent=2) + '\n')
+                        adb('shell', f'echo -n {name} > {DEVICE}/screen-ack.txt')
+                        captured.add(name)
                 error = subprocess.run(['adb', 'shell', 'cat', f'{DEVICE}/error.json'],
                                        env=env, capture_output=True, text=True, timeout=15)
                 if error.returncode == 0:
@@ -171,6 +227,9 @@ def run(args):
             if args.schema == 'stage':
                 if report.get('schema') != 'morph-stage-bench-v1':
                     raise RuntimeError('Unexpected report schema')
+            elif args.schema == 'mip':
+                if report.get('schema') != 'morph-mip-api-probe-v1':
+                    raise RuntimeError('Unexpected mip probe schema')
             elif not report.get('liquid_available'):
                 raise RuntimeError('Native audit did not enable liquid glass')
             if args.pull_artifacts:
@@ -204,14 +263,14 @@ def run(args):
                     f'cd /sys/kernel/tracing && echo 0 > events/power/gpu_work_period/enable && '
                     'echo 0 > events/power/gpu_frequency/enable && echo > trace && '
                     f'echo {clock} > trace_clock && echo {gpu_state["buffer_size_kb"]} > buffer_size_kb')))
-            if args.trace == 'energy':
+            if args.trace in ('energy', 'presentation', 'frame-cpu', 'frame-cpu-app', 'cpu-stack'):
                 actions.append(('remove owned Perfetto files', lambda: adb('shell', 'rm', '-f', remote_trace, remote_config)))
-            if installed:
+            if installed and not args.leave_installed:
                 actions.extend([
                     ('stop bench', lambda: adb('shell', 'am', 'force-stop', PKG)),
                     ('restore gallery APK', lambda: adb('install', '-r', str(backup))),
                 ])
-            if gallery_stopped or installed:
+            if not args.leave_installed and (gallery_stopped or installed):
                 actions.append(('open gallery', lambda: adb('shell', 'am', 'start', '-n', f'{PKG}/.MainActivity')))
             def unlock():
                 if (lock / 'owner').read_text().strip() == owner:
@@ -229,7 +288,8 @@ def run(args):
             finally:
                 if notes and not Path(str(base) + '.device.txt').exists():
                     Path(str(base) + '.device.txt').write_text('\n'.join(notes) + '\nincomplete launch\n')
-    print(f'Report: {base}.json; original gallery restored')
+    disposition = 'benchmark APK retained' if args.leave_installed else 'original gallery restored'
+    print(f'Report: {base}.json; {disposition}')
 
 
 def main():
@@ -240,28 +300,33 @@ def main():
     build.add_argument('--target', default=TARGET)
     build.add_argument('--flutter', default='flutter',
                        help='Flutter executable, for example flutter-beta')
+    build.add_argument('--mode', choices=['profile', 'release'], default='profile')
     build.add_argument('--define', action='append', default=[])
     launch = sub.add_parser('run')
     launch.add_argument('--apk', required=True, type=Path)
     launch.add_argument('--out', required=True, type=Path)
     launch.add_argument('--name', default='stage-1')
     launch.add_argument('--serial', default='26221JEGR12737')
-    launch.add_argument('--trace', choices=['gpu', 'energy', 'none'], default='gpu')
-    launch.add_argument('--schema', choices=['stage', 'native'], default='stage')
+    launch.add_argument('--trace', choices=['gpu', 'energy', 'presentation', 'frame-cpu', 'frame-cpu-app', 'cpu-stack', 'none'], default='gpu')
+    launch.add_argument('--schema', choices=['stage', 'native', 'mip'], default='stage')
     launch.add_argument('--pull-artifacts', action='store_true')
+    launch.add_argument('--screen-shots', action='store_true',
+                        help='Answer post-measurement native screen capture requests')
+    launch.add_argument('--leave-installed', action='store_true',
+                        help='Keep the benchmark APK for ongoing experiments; skip backup and restoration')
     launch.add_argument('--timeout', type=int, default=600)
     launch.add_argument('--cool-c', type=float, default=37)
     args = parser.parse_args()
     if args.step == 'build':
         sdk = json.loads(command([args.flutter, '--version', '--machine'],
                                 stdout=subprocess.PIPE).stdout)
-        command([args.flutter, 'build', 'apk', '--profile', '--target-platform', 'android-arm64',
+        command([args.flutter, 'build', 'apk', f'--{args.mode}', '--target-platform', 'android-arm64',
                  '-t', args.target, f'--dart-define=AUDIT_OUT={DEVICE}',
                  *[f'--dart-define={value}' for value in args.define]], cwd=ROOT / 'example')
         args.apk.parent.mkdir(parents=True, exist_ok=True)
-        args.apk.write_bytes((ROOT / 'example/build/app/outputs/flutter-apk/app-profile.apk').read_bytes())
+        args.apk.write_bytes((ROOT / f'example/build/app/outputs/flutter-apk/app-{args.mode}.apk').read_bytes())
         Path(str(args.apk) + '.build.json').write_text(json.dumps({
-            'target': args.target, 'defines': args.define,
+            'target': args.target, 'defines': args.define, 'build_mode': args.mode,
             'flutter_executable': args.flutter, 'sdk': sdk,
             'commit': command(['git', 'rev-parse', 'HEAD'], cwd=ROOT, stdout=subprocess.PIPE).stdout.strip(),
             'source_sha256': hashlib.sha256((ROOT / 'example' / args.target).read_bytes()).hexdigest(),

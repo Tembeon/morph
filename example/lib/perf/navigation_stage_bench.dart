@@ -19,6 +19,7 @@ import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/navigation_page.dart';
 import 'package:morph_example/perf/glass_stage_bench.dart' show stageBenchStats;
+import 'package:morph_example/perf/adpf.dart';
 
 const _runs = int.fromEnvironment('NAV_RUNS', defaultValue: 3);
 const _warmMs = int.fromEnvironment('NAV_WARM_MS', defaultValue: 800);
@@ -35,6 +36,14 @@ const _warmActions = bool.fromEnvironment(
 const _phases = bool.fromEnvironment('NAV_PHASES', defaultValue: false);
 const _shots = bool.fromEnvironment('NAV_SHOTS', defaultValue: false);
 const _repeatShots = bool.fromEnvironment('NAV_REPEAT_REFERENCE');
+final _shotFrames = const String.fromEnvironment(
+  'NAV_SHOT_FRAMES',
+  defaultValue: '0,1,4,10,20,34,48',
+).split(',').map(int.parse).toSet();
+const _performanceHints = bool.fromEnvironment('NAV_HINTS');
+const _immediateUiHints = bool.fromEnvironment('NAV_HINTS_IMMEDIATE_UI');
+const _uiHintsOnly = bool.fromEnvironment('NAV_HINTS_UI_ONLY');
+const _threadPhases = bool.fromEnvironment('NAV_THREAD_PHASES');
 const _pageSelection = String.fromEnvironment(
   'NAV_PAGES',
   defaultValue: 'navigation',
@@ -66,13 +75,31 @@ class _BenchBinding extends WidgetsFlutterBinding {
     });
   }
 
-  Duration? _lastSystem;
-  Duration? _system;
+  int? _uiFrameStart;
 
   @override
   void handleBeginFrame(Duration? rawTimeStamp) {
+    if (_immediateUiHints) _uiFrameStart = developer.Timeline.now;
     super.handleBeginFrame(_system ?? rawTimeStamp);
   }
+
+  @override
+  void handleDrawFrame() {
+    try {
+      super.handleDrawFrame();
+    } finally {
+      if (_immediateUiHints) {
+        final start = _uiFrameStart;
+        _uiFrameStart = null;
+        if (start != null) {
+          GalleryPerformanceHints.reportUiFrame(start, developer.Timeline.now);
+        }
+      }
+    }
+  }
+
+  Duration? _lastSystem;
+  Duration? _system;
 
   void freeze() {
     _system = _lastSystem!;
@@ -126,10 +153,13 @@ class _Bench extends StatefulWidget {
 }
 
 class _BenchState extends State<_Bench> {
+  GalleryPerformanceHints? _hints;
   final _timings = <ui.FrameTiming>[];
   final _windows = <String, List<List<int>>>{};
   final _metadata = <String, Map<String, Object?>>{};
   final _order = <String>[];
+  final _work = <String, List<Map<String, Object?>>>{};
+  int _callbackUs = 0;
   final _rootKey = GlobalKey();
   GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
   GlobalKey _pageKey = GlobalKey();
@@ -199,6 +229,7 @@ class _BenchState extends State<_Bench> {
   @override
   void dispose() {
     _generation++;
+    _hints?.dispose();
     SchedulerBinding.instance.removeTimingsCallback(_collect);
     super.dispose();
   }
@@ -234,23 +265,30 @@ class _BenchState extends State<_Bench> {
   }
 
   Future<void> _perform(_Case c) async {
+    _callbackUs = 0;
+    void trigger(VoidCallback action) {
+      final start = developer.Timeline.now;
+      action();
+      _callbackUs += developer.Timeline.now - start;
+    }
+
     Future<void> pause() =>
         Future<void>.delayed(const Duration(milliseconds: _sampleMs));
     if (c.motion == 'workflow') {
       for (var cycle = 0; cycle < _workflowCycles; cycle++) {
-        _enterInbox();
+        trigger(_enterInbox);
         await pause();
-        _messageAction()();
+        trigger(_messageAction());
         await pause();
-        _navigator.currentState!.pop();
+        trigger(() => _navigator.currentState!.pop());
         await pause();
-        _toolbarAction()();
+        trigger(_toolbarAction());
         await pause();
-        _navigator.currentState!.pop();
+        trigger(() => _navigator.currentState!.pop());
         await pause();
       }
     } else {
-      _action?.call();
+      if (_action case final action?) trigger(action);
       await pause();
     }
   }
@@ -319,9 +357,13 @@ class _BenchState extends State<_Bench> {
   Map<String, Object?> _snapshot() {
     final census = MorphGlassInspector.census();
     final layers = <Map<String, Object?>>[];
+    final keys = <Object>{};
     void visit(RenderObject object) {
+      if (object is RenderOffstage && object.offstage) return;
+      if (object is RenderOpacity && object.opacity == 0) return;
       if (object is RenderLiquidGlassLayer &&
           object.debugFilterBounds != null) {
+        keys.add(object.backdropKey ?? object);
         final local = object.debugFilterBounds!;
         final global = MatrixUtils.transformRect(
           object.getTransformTo(null),
@@ -332,6 +374,9 @@ class _BenchState extends State<_Bench> {
           'screen_rect': [global.left, global.top, global.width, global.height],
           'sigma': object.blurPassSigma,
           'grouped': object.backdropKey != null,
+          'has_field': object.field != null,
+          'mixed_appearance': object.debugUsesShapeAppearances,
+          'tint_only': object.debugUsesTintOnlyAppearance,
         });
       }
       object.visitChildren(visit);
@@ -340,11 +385,63 @@ class _BenchState extends State<_Bench> {
     for (final view in RendererBinding.instance.renderViews) {
       visit(view);
     }
+    final foreground = <Map<String, Object?>>[];
+    void content(Element element) {
+      final widget = element.widget;
+      if (widget is Offstage && widget.offstage) return;
+      if (widget is Opacity && widget.opacity == 0) return;
+      if (widget is ImageFiltered && widget.enabled) {
+        final object = element.findRenderObject();
+        if (object is RenderBox && object.attached && object.hasSize) {
+          final rect = MatrixUtils.transformRect(
+            object.getTransformTo(null),
+            Offset.zero & object.size,
+          );
+          foreground.add({
+            'filter': widget.imageFilter.toString(),
+            'source_size_logical': [object.size.width, object.size.height],
+            'screen_rect': [rect.left, rect.top, rect.width, rect.height],
+          });
+        }
+      }
+      element.visitChildren(content);
+    }
+
+    _rootKey.currentContext?.visitChildElements(content);
+    final layerTypes = <String, int>{};
+    final imageFilters = <String>[];
+    void composed(Layer layer) {
+      final type = layer.runtimeType.toString();
+      layerTypes[type] = (layerTypes[type] ?? 0) + 1;
+      if (layer is ImageFilterLayer) {
+        imageFilters.add(layer.imageFilter.toString());
+      }
+      if (layer is ContainerLayer) {
+        for (
+          var child = layer.firstChild;
+          child != null;
+          child = child.nextSibling
+        ) {
+          composed(child);
+        }
+      }
+    }
+
+    for (final view in RendererBinding.instance.renderViews) {
+      // ignore: invalid_use_of_protected_member
+      final root = view.layer;
+      if (root != null) composed(root);
+    }
     return {
       'backdrop_layers': census.filters,
       'distinct_capture_keys': census.captures,
+      'visible_liquid_layers': layers.length,
+      'visible_liquid_capture_keys': keys.length,
       'owners': census.owners,
       'liquid_layers': layers,
+      'foreground_filter_sources': foreground,
+      'composed_layer_types': layerTypes,
+      'composed_image_filters': imageFilters,
       'liquid_filter_rects_logical': [
         for (final layer in layers) layer['screen_rect'],
       ],
@@ -379,6 +476,7 @@ class _BenchState extends State<_Bench> {
       ],
       'seed': _seed,
       'actions_prewarmed': _warmActions,
+      'performance_hints': _hints?.stats(),
       'cold_enter': _coldWindow == null
           ? null
           : {
@@ -395,15 +493,26 @@ class _BenchState extends State<_Bench> {
             },
       'framework_phases_collected': _phases,
       'shot_phases': _shots ? offsets : <double>[],
-      'action_shot_frames': _shots
-          ? const [0, 1, 4, 10, 20, 34, 48]
-          : const <int>[],
+      'action_shot_frames': _shots ? _shotFrames.toList() : const <int>[],
       'repeat_reference_shots': _repeatShots,
       'shot_clock':
           'Raw scheduler timestamps advance 16667 us; all reads follow timing collection.',
       'order': _order,
       'case_metadata': _metadata,
       'windows_us': _windows,
+      'window_work': _work,
+      'frame_columns': [
+        'vsync_start_us',
+        'build_duration_us',
+        'raster_duration_us',
+        'total_span_us',
+        if (_threadPhases) ...[
+          'build_start_us',
+          'build_finish_us',
+          'raster_start_us',
+          'raster_finish_us',
+        ],
+      ],
       'motion_protocol':
           'Actions invoke actual callbacks once per window; settled tails are not jank.',
       'attribution':
@@ -431,6 +540,12 @@ class _BenchState extends State<_Bench> {
                         f.buildDuration.inMicroseconds,
                         f.rasterDuration.inMicroseconds,
                         f.totalSpan.inMicroseconds,
+                        if (_threadPhases) ...[
+                          f.timestampInMicroseconds(ui.FramePhase.buildStart),
+                          f.timestampInMicroseconds(ui.FramePhase.buildFinish),
+                          f.timestampInMicroseconds(ui.FramePhase.rasterStart),
+                          f.timestampInMicroseconds(ui.FramePhase.rasterFinish),
+                        ],
                       ],
                   ],
                 };
@@ -451,9 +566,19 @@ class _BenchState extends State<_Bench> {
       if (kDebugMode || _runs < 1 || _warmMs < 100 || _sampleMs < 800) {
         throw StateError('Native bounded collection windows required');
       }
+      if (_phases && kReleaseMode) {
+        throw StateError('Framework phase counters require profile mode.');
+      }
       await MorphGlassRenderer.precache();
       if (!MorphGlassRenderer.liquidAvailable) {
         throw StateError('Liquid glass unavailable');
+      }
+      if (_performanceHints) {
+        _hints = GalleryPerformanceHints.start(
+          immediateUi: _immediateUiHints,
+          rasterHints: !_uiHintsOnly,
+        );
+        if (_hints == null) throw StateError('Performance hints unavailable');
       }
       final cases = _cases();
       if (_workflowCycles < 1 ||
@@ -498,16 +623,21 @@ class _BenchState extends State<_Bench> {
               'content': c.page == 'navigation' ? 'mail' : 'gallery-list',
               'requested_sigma_logical': 2,
               'diagnostic_ablation': c.mode == 'flat',
+
               ..._snapshot(),
             },
           );
           _order.add(c.name);
           developer.Timeline.startSync('scene:${c.name}:$run:begin');
           developer.Timeline.finishSync();
-          FlutterTimeline.debugCollectionEnabled = _phases;
+          if (_phases) FlutterTimeline.debugCollectionEnabled = true;
           final window = [developer.Timeline.now, 0];
           await _perform(c);
           window[1] = developer.Timeline.now;
+          (_work[c.name] ??= []).add({
+            'callback_us': _callbackUs,
+
+          });
           if (_phases) {
             final collected = FlutterTimeline.debugCollect();
             FlutterTimeline.debugCollectionEnabled = false;
@@ -531,11 +661,16 @@ class _BenchState extends State<_Bench> {
       _position?.jumpTo(_position!.pixels);
       await Future<void>.delayed(const Duration(milliseconds: 1200));
       final report = _report(offsets);
+      _hints?.dispose();
       out.createSync(recursive: true);
       File('${out.path}/timings.json').writeAsStringSync(jsonEncode(report));
       if (_shots) {
         final binding = WidgetsBinding.instance as _BenchBinding;
         Future<void> save(String name) async {
+          final snapshots =
+              (report['shot_graphs'] ??= <String, Object?>{})
+                  as Map<String, Object?>;
+          snapshots[name] = _snapshot();
           final boundary =
               _rootKey.currentContext!.findRenderObject()!
                   as RenderRepaintBoundary;
@@ -579,7 +714,7 @@ class _BenchState extends State<_Bench> {
               await binding.endOfFrame;
               await binding.endOfFrame;
               for (var frame = 0; frame <= 48; frame++) {
-                if (const {0, 1, 4, 10, 20, 34, 48}.contains(frame)) {
+                if (_shotFrames.contains(frame)) {
                   await binding.endOfFrame;
                   await save('${c.name}$suffix-f$frame');
                 }
@@ -603,6 +738,8 @@ class _BenchState extends State<_Bench> {
       File(
         '${out.path}/error.json',
       ).writeAsStringSync(jsonEncode({'error': '$error', 'stack': '$stack'}));
+    } finally {
+      _hints?.dispose();
     }
   }
 
