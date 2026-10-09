@@ -1,5 +1,9 @@
 # Optical filter batching pilot, 2026-10-09
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 The prototype draws analytic bodies and independent owner field overlays into
 one geometry render pass, then uses one optical filter. It does not construct
 multiple dependent render passes on one command buffer. Pipeline switches
