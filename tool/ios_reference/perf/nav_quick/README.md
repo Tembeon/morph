@@ -26,6 +26,13 @@ python3 $D/compare.py a=a1.json,a2.json b=b1.json,b2.json                # varia
 - `slots_missed` in `summ.py` counts vsync slots between consecutive frames
   inside each window (gaps over 200 ms excluded): an estimate of dropped
   frames, not Android presentation jank.
+- `run.py ... --real` with a bench built with `NAV_REAL_INPUT=true`: push
+  and pop start from real input the runner injects (`input tap` on the
+  message row, `input keyevent 4` for back) when the bench logs `NAVTAP` /
+  `NAVKEY`, so they get the platform's input boost like a user's touch;
+  the window starts at the input. Synthetic callbacks get no boost, and on
+  the Moto the GPU then runs 265 - 1047 MHz window to window even in fixed
+  performance mode.
 - `run.py ... --60` launches with `morph-frame-rate 60` (MainActivity sets
   the window's maximum refresh rate); the system minimum must allow it.
 - `run.py ... --hz` asks MainActivity (`morph-max-refresh`) for the panel's

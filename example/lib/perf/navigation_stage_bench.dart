@@ -8,6 +8,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
@@ -53,6 +54,13 @@ const _traceTickers = bool.fromEnvironment('NAV_TRACE_TICKERS');
 /// Repeats a nested push in the same app (pop back, push again) instead of
 /// remounting the gallery for every run.
 const _keepApp = bool.fromEnvironment('NAV_KEEP_APP');
+
+/// Whether push and pop start from real input: the bench logs `NAVTAP x y`
+/// (physical pixels, the message row) or `NAVKEY 4` (back) and waits for
+/// the runner (`run.py --real`) to inject it, so the action gets the
+/// platform's input boost as a user's would; the window starts at the
+/// input. Enter and the toolbar stay programmatic.
+const _realInput = bool.fromEnvironment('NAV_REAL_INPUT');
 const _pageSelection = String.fromEnvironment(
   'NAV_PAGES',
   defaultValue: 'navigation',
@@ -227,6 +235,57 @@ class _BenchState extends State<_Bench> {
 
   bool _scrolls(_Case c) => c.motion == 'steady' || c.motion == 'title';
 
+  /// When the injected input of the current action arrived, in timeline
+  /// microseconds, or null.
+  int? _inputUs;
+
+  void _routeInput(PointerEvent event) {
+    if (event is PointerDownEvent) _inputUs ??= developer.Timeline.now;
+  }
+
+  bool _keyInput(KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.goBack) {
+      _inputUs ??= developer.Timeline.now;
+    }
+    return false;
+  }
+
+  /// Asks the runner for the real input that starts [c]'s action and waits
+  /// for it: true once it arrived (the action runs from it), false when
+  /// the action has no real input or none came.
+  Future<bool> _realAction(_Case c) async {
+    String request;
+    switch (c.motion) {
+      case 'nested-push':
+        RenderBox? box;
+        void visit(Element element) {
+          final widget = element.widget;
+          if (widget is Text && widget.data == 'Message 0') {
+            box = element.findRenderObject() as RenderBox?;
+          }
+          if (box == null) element.visitChildren(visit);
+        }
+        (_pageKey.currentContext! as Element).visitChildren(visit);
+        final found = box;
+        if (found == null) return false;
+        final ratio = View.of(_pageKey.currentContext!).devicePixelRatio;
+        final at = found.localToGlobal(found.size.center(Offset.zero)) * ratio;
+        request = 'NAVTAP ${at.dx.round()} ${at.dy.round()}';
+      case 'nested-pop':
+        request = 'NAVKEY 4';
+      default:
+        return false;
+    }
+    _inputUs = null;
+    debugPrint(request);
+    for (var waited = 0; waited < 5000; waited += 4) {
+      await Future<void>.delayed(const Duration(milliseconds: 4));
+      if (_inputUs != null) return true;
+    }
+    return false;
+  }
+
   VoidCallback _messageAction() {
     VoidCallback? result;
     void visit(Element element) {
@@ -276,6 +335,10 @@ class _BenchState extends State<_Bench> {
   void initState() {
     super.initState();
     SchedulerBinding.instance.addTimingsCallback(_collect);
+    if (_realInput) {
+      GestureBinding.instance.pointerRouter.addGlobalRoute(_routeInput);
+      HardwareKeyboard.instance.addHandler(_keyInput);
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) => _run());
   }
 
@@ -286,6 +349,10 @@ class _BenchState extends State<_Bench> {
     _generation++;
     _hints?.dispose();
     SchedulerBinding.instance.removeTimingsCallback(_collect);
+    if (_realInput) {
+      GestureBinding.instance.pointerRouter.removeGlobalRoute(_routeInput);
+      HardwareKeyboard.instance.removeHandler(_keyInput);
+    }
     super.dispose();
   }
 
@@ -344,7 +411,9 @@ class _BenchState extends State<_Bench> {
         await pause();
       }
     } else {
-      if (_action case final action?) trigger(action);
+      if (_action case final action?) {
+        if (!(_realInput && await _realAction(c))) trigger(action);
+      }
       await pause();
     }
   }
@@ -565,6 +634,7 @@ class _BenchState extends State<_Bench> {
       'seed': _seed,
       'actions_prewarmed': _warmActions,
       'performance_hints': _hints?.stats(),
+      'real_input': _realInput,
       'cold_enter': _coldWindow == null
           ? null
           : {
@@ -758,7 +828,9 @@ class _BenchState extends State<_Bench> {
               });
             }
           }
+          _inputUs = null;
           await _perform(c);
+          if (_inputUs case final input?) window[0] = input;
           if (_traceTickers) {
             binding.traceSchedule = false;
             binding.traceStarts = false;

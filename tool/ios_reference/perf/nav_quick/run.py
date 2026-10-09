@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Install a nav bench APK, run it, pull the report; optional Dart CPU samples.
-usage: run.py SERIAL APK OUTBASE [--cpu]"""
+usage: run.py SERIAL APK OUTBASE [--cpu] [--gpu] [--skia] [--hz | --60] [--real]"""
 import json, re, subprocess, sys, time, urllib.parse, urllib.request, os
 serial, apk, out = sys.argv[1:4]
 cpu = '--cpu' in sys.argv
@@ -26,6 +26,21 @@ if gpu:
         'echo 1 > events/power/gpu_work_period/enable && echo 1 > events/power/gpu_frequency/enable && echo 1 > tracing_on')
     gpu_file = open(out + '.gpuwork.txt', 'w')
     recorder = subprocess.Popen(['adb', 'shell', 'cat', f'{TR}/trace_pipe'], env=env, stdout=gpu_file, stderr=subprocess.DEVNULL)
+tapper = None
+if '--real' in sys.argv:
+    # The bench (NAV_REAL_INPUT) logs NAVTAP x y / NAVKEY code when an
+    # action should start; answering with real input gives the action the
+    # platform's input boost, as a user's touch would.
+    tapper = subprocess.Popen(['adb', 'logcat', '-v', 'raw', '-s', 'flutter:I'], env=env, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
+    import threading
+    def answer():
+        for line in tapper.stdout:
+            parts = line.split()
+            if len(parts) == 3 and parts[0] == 'NAVTAP':
+                subprocess.run(['adb', 'shell', 'input', 'tap', parts[1], parts[2]], env=env)
+            elif len(parts) == 2 and parts[0] == 'NAVKEY':
+                subprocess.run(['adb', 'shell', 'input', 'keyevent', parts[1]], env=env)
+    threading.Thread(target=answer, daemon=True).start()
 adb('shell', 'am', 'start', '-W', '-n', f'{PKG}/.MainActivity', *(['--ez', 'trace-skia', 'true'] if '--skia' in sys.argv else []), *(['--ez', 'morph-max-refresh', 'true'] if '--hz' in sys.argv else []), *(['--ef', 'morph-frame-rate', '60'] if '--60' in sys.argv else []))
 time.sleep(2)
 pid = adb('shell', 'pidof', PKG).split()[0]
@@ -69,6 +84,8 @@ if gpu:
     gpu_file.close()
     adb('shell', f'cd {TR} && echo 0 > events/power/gpu_work_period/enable && echo 0 > events/power/gpu_frequency/enable && echo > trace && echo local > trace_clock')
     open(out + '.device.txt', 'w').write(adb('shell', 'pm', 'list', 'packages', '-U', PKG))
+if tapper:
+    tapper.terminate()
 adb('pull', f'{DEV}/report.json', out + '.json')
 open(out + '.log.txt', 'w').write(adb('logcat', '-d', f'--pid={pid}'))
 print('ok', out)
