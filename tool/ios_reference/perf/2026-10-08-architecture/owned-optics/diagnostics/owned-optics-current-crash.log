@@ -1,0 +1,144 @@
+--------- beginning of crash
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: FATAL EXCEPTION: main
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: Process: com.GoogleCamera.mwp84, PID: 24628
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: java.lang.RuntimeException: android.app.BackgroundServiceStartNotAllowedException: Not allowed to start service Intent { xflg=0x4 cmp=com.GoogleCamera.mwp84/com.google.android.apps.camera.prewarm.NoOpPrewarmService }: app is in background uid UidRecord{449dee2 u0a266 TRNB bg:+608ms idle change:procadj procs:0 seq(338146,338143)} caps=-------TI
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.app.job.JobServiceEngine$JobHandler.handleMessage(JobServiceEngine.java:198)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.os.Handler.dispatchMessageImpl(Handler.java:142)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:126)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:295)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:398)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:9569)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:918)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: Caused by: android.app.BackgroundServiceStartNotAllowedException: Not allowed to start service Intent { xflg=0x4 cmp=com.GoogleCamera.mwp84/com.google.android.apps.camera.prewarm.NoOpPrewarmService }: app is in background uid UidRecord{449dee2 u0a266 TRNB bg:+608ms idle change:procadj procs:0 seq(338146,338143)} caps=-------TI
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.app.ContextImpl.startServiceCommon(ContextImpl.java:2235)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.app.ContextImpl.startService(ContextImpl.java:2190)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.content.ContextWrapper.startService(ContextWrapper.java:871)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at eoc.b(PG:45)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at com.google.android.apps.camera.keepalive.ProcessGcService.onStartJob(PG:85)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.app.job.JobService$1.onStartJob(JobService.java:119)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	at android.app.job.JobServiceEngine$JobHandler.handleMessage(JobServiceEngine.java:191)
+10-07 14:15:01.956 24628 24628 E AndroidRuntime: 	... 8 more
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: FATAL EXCEPTION: main
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: Process: com.GoogleCamera.mwp84, PID: 26510
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: java.lang.RuntimeException: android.app.BackgroundServiceStartNotAllowedException: Not allowed to start service Intent { xflg=0x4 cmp=com.GoogleCamera.mwp84/com.google.android.apps.camera.prewarm.NoOpPrewarmService }: app is in background uid UidRecord{8acd8b7 u0a266 TRNB bg:+591ms idle change:procadj procs:0 seq(346810,346808)} caps=-------TI
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.app.job.JobServiceEngine$JobHandler.handleMessage(JobServiceEngine.java:198)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.os.Handler.dispatchMessageImpl(Handler.java:142)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:126)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:295)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:398)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:9569)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:918)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: Caused by: android.app.BackgroundServiceStartNotAllowedException: Not allowed to start service Intent { xflg=0x4 cmp=com.GoogleCamera.mwp84/com.google.android.apps.camera.prewarm.NoOpPrewarmService }: app is in background uid UidRecord{8acd8b7 u0a266 TRNB bg:+591ms idle change:procadj procs:0 seq(346810,346808)} caps=-------TI
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.app.ContextImpl.startServiceCommon(ContextImpl.java:2235)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.app.ContextImpl.startService(ContextImpl.java:2190)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.content.ContextWrapper.startService(ContextWrapper.java:871)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at eoc.b(PG:45)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at com.google.android.apps.camera.keepalive.ProcessGcService.onStartJob(PG:85)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.app.job.JobService$1.onStartJob(JobService.java:119)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	at android.app.job.JobServiceEngine$JobHandler.handleMessage(JobServiceEngine.java:191)
+10-07 14:16:00.673 26510 26510 E AndroidRuntime: 	... 8 more
+10-08 20:33:41.251  8224  8224 F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x8 in tid 8224 (n.morph_example), pid 8224 (n.morph_example)
+10-08 20:33:41.665  8369  8369 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+10-08 20:33:41.666  8369  8369 F DEBUG   : Build fingerprint: 'google/bluejay/bluejay:17/CP3A.260905.009/16091614:user/release-keys'
+10-08 20:33:41.666  8369  8369 F DEBUG   : Kernel Release: '6.1.162-android14-11-g2ec90535fa34-ab15810641'
+10-08 20:33:41.666  8369  8369 F DEBUG   : Revision: 'MP1.0'
+10-08 20:33:41.666  8369  8369 F DEBUG   : ABI: 'arm64'
+10-08 20:33:41.666  8369  8369 F DEBUG   : Timestamp: 2026-10-08 20:33:41.461850389+0200
+10-08 20:33:41.666  8369  8369 F DEBUG   : Process uptime: 10s
+10-08 20:33:41.666  8369  8369 F DEBUG   : Executable: /system/bin/app_process64
+10-08 20:33:41.666  8369  8369 F DEBUG   : Cmdline: dev.tembeon.morph_example
+10-08 20:33:41.666  8369  8369 F DEBUG   : pid: 8224, ppid: 977, tid: 8224, name: n.morph_example  >>> dev.tembeon.morph_example <<<
+10-08 20:33:41.666  8369  8369 F DEBUG   : uid: 10378
+10-08 20:33:41.666  8369  8369 F DEBUG   : tagged_addr_ctrl: 0000000000000001 (PR_TAGGED_ADDR_ENABLE)
+10-08 20:33:41.666  8369  8369 F DEBUG   : esr: 0000000092000006 (Data Abort Exception 0x24)
+10-08 20:33:41.666  8369  8369 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0000000000000008 (read)
+10-08 20:33:41.666  8369  8369 F DEBUG   : Cause: null pointer dereference
+10-08 20:33:41.666  8369  8369 F DEBUG   : 
+10-08 20:33:41.666  8369  8369 F DEBUG   :     x0  0000000000000000  x1  0000007ff0d78598  x2  0000000000000001  x3  b400007b5ab2e130
+10-08 20:33:41.666  8369  8369 F DEBUG   :     x4  b400007c4b1e6288  x5  0000005efdfbb280  x6  0000000000000000  x7  0000005efdfa7300
+10-08 20:33:41.666  8369  8369 F DEBUG   :     x8  0000007ff0d784a0  x9  000000003b9c73ce  x10 b400007cfa9aa9f0  x11 b400007cfa9aaa30
+10-08 20:33:41.666  8369  8369 F DEBUG   :     x12 0000000000000000  x13 b400007b5ab2f9d8  x14 0000000000000008  x15 0000000000218200
+10-08 20:33:41.666  8369  8369 F DEBUG   :     x16 00000079f7a5289c  x17 0000007dbad35540  x18 0000007dd732c000  x19 b400007bfa902378
+10-08 20:33:41.666  8369  8369 F DEBUG   :     x20 b400007d0a85f850  x21 b400007d0a85f8d0  x22 0000007dd6c79340  x23 0000007ff0d784b8
+10-08 20:33:41.666  8369  8369 F DEBUG   :     x24 0000000000000000  x25 0000007ff059c000  x26 b400007c0a83e2f0  x27 0000007800300080
+10-08 20:33:41.666  8369  8369 F DEBUG   :     x28 0000000800000078  x29 0000007ff0d78918
+10-08 20:33:41.666  8369  8369 F DEBUG   :     lr  0000007ad636d15c  sp  0000007ff0d78460  pc  0000007ad636d1fc  pst 0000000080001000
+10-08 20:33:41.666  8369  8369 F DEBUG   :     esr 0000000092000006  vg  0000000000000000
+10-08 20:33:41.666  8369  8369 F DEBUG   : 
+10-08 20:33:41.666  8369  8369 F DEBUG   : 68 total frames
+10-08 20:33:41.666  8369  8369 F DEBUG   : backtrace:
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #00 pc 00000000008fd1fc  /vendor/lib64/egl/libGLES_mali.so (vulkan::command_buffer::end_renderpass(VkSubpassEndInfo const&)+124) (BuildId: 3adee7a43339c3596a20dbd47a65ac6bef1f80af)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #01 pc 00000000008fd158  /vendor/lib64/egl/libGLES_mali.so (vkCmdEndRenderPass+40) (BuildId: 3adee7a43339c3596a20dbd47a65ac6bef1f80af)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #02 pc 00000000007fd8c8  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #03 pc 00000000008a5be8  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #04 pc 00000000008a6364  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (InternalFlutterGpu_CommandBuffer_Submit+272) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #05 pc 00000000002419a8  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #06 pc 00000000001247ec  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #07 pc 0000000000124670  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #08 pc 0000000000124468  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #09 pc 0000000000123dcc  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #10 pc 0000000000123ce0  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #11 pc 0000000000123bc0  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #12 pc 0000000000119c30  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #13 pc 0000000000119b7c  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #14 pc 000000000012d7a8  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #15 pc 000000000012d6a0  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #16 pc 0000000000119c30  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #17 pc 0000000000119b7c  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #18 pc 000000000012a5c8  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #19 pc 0000000000119c30  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #20 pc 0000000000119b7c  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #21 pc 000000000012a5c8  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #22 pc 0000000000119c30  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #23 pc 0000000000119ff4  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #24 pc 00000000001cb838  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #25 pc 00000000001cb93c  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #26 pc 00000000001c1f24  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #27 pc 00000000001c1c24  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #28 pc 00000000001c15d0  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #29 pc 00000000001c1594  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #30 pc 0000000000111a18  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #31 pc 00000000001117ac  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #32 pc 0000000000111644  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #33 pc 000000000011150c  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #34 pc 00000000000e1010  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #35 pc 00000000000eaaf8  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #36 pc 00000000000eaab4  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #37 pc 00000000000eab28  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #38 pc 0000000000244164  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk (offset 0x3c000) (BuildId: 16cfdeac4e37241615ab1373cfb02c4e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #39 pc 00000000008ead80  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #40 pc 0000000000a46e88  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #41 pc 0000000000833a60  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #42 pc 0000000000825160  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #43 pc 0000000000811818  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #44 pc 000000000082ff84  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #45 pc 000000000043324c  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #46 pc 0000000000437d04  /data/app/~~70zlluEPhXkUqRJJV4HdVA==/dev.tembeon.morph_example-eEw5jWFp3FsdFTfdi2MBrQ==/base.apk!libflutter.so (offset 0x290000) (BuildId: 95f51ced78a1b86bebc0a0c74e7e4e7907865db7)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #47 pc 000000000001a464  /system/lib64/libutils.so (android::Looper::pollOnce(int, int*, int*, void**)+1060) (BuildId: d562bc17f76289a9c513f32c5bbbd88f)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #48 pc 000000000023727c  /system/lib64/libandroid_runtime.so (android::android_os_MessageQueue_nativePollOnce(_JNIEnv*, _jobject*, long, int) (.__uniq.190462215528616872930035678816392364378)+44) (BuildId: 7f4d086054897dc7077f24171e43963a)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #49 pc 0000000000ca1bfc  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (art_jni_trampoline+108)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #50 pc 00000000008d6d84  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (android.os.MessageQueue.nextLegacy+164)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #51 pc 00000000008e15c0  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (android.os.MessageQueue.next+48)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #52 pc 00000000008ccde8  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (android.os.Looper.loopOnce+88)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #53 pc 00000000008ccd08  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (android.os.Looper.loop+328)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #54 pc 00000000006002a4  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (android.app.ActivityThread.main+1780)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #55 pc 0000000000270fc0  /apex/com.android.art/lib64/libart.so (art_quick_invoke_static_stub+640) (BuildId: a47994c420371ffbd05d16fc9a15ac9f)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #56 pc 000000000026c2d8  /apex/com.android.art/lib64/libart.so (_jobject* art::InvokeMethod<(art::PointerSize)8>(art::ScopedObjectAccessAlreadyRunnable const&, _jobject*, _jobject*, _jobject*, unsigned long)+1240) (BuildId: a47994c420371ffbd05d16fc9a15ac9f)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #57 pc 00000000005eb428  /apex/com.android.art/lib64/libart.so (art::Method_invoke(_JNIEnv*, _jobject*, _jobject*, _jobjectArray*) (.__uniq.165753521025965369065708152063621506277)+36) (BuildId: a47994c420371ffbd05d16fc9a15ac9f)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #58 pc 0000000000ca2de4  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (art_jni_trampoline+116)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #59 pc 0000000000b838c4  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run+116)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #60 pc 0000000000b8b3b0  /data/misc/apexdata/com.android.art/dalvik-cache/arm64/boot.oat (com.android.internal.os.ZygoteInit.main+2800)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #61 pc 0000000000270fc0  /apex/com.android.art/lib64/libart.so (art_quick_invoke_static_stub+640) (BuildId: a47994c420371ffbd05d16fc9a15ac9f)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #62 pc 0000000000270024  /apex/com.android.art/lib64/libart.so (art::JValue art::InvokeWithVarArgs<_jmethodID*>(art::ScopedObjectAccessAlreadyRunnable const&, _jobject*, _jmethodID*, std::__va_list)+1304) (BuildId: a47994c420371ffbd05d16fc9a15ac9f)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #63 pc 000000000064b4fc  /apex/com.android.art/lib64/libart.so (art::JNI<true>::CallStaticVoidMethodV(_JNIEnv*, _jclass*, _jmethodID*, std::__va_list)+192) (BuildId: a47994c420371ffbd05d16fc9a15ac9f)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #64 pc 000000000012b638  /system/lib64/libandroid_runtime.so (_JNIEnv::CallStaticVoidMethod(_jclass*, _jmethodID*, ...)+104) (BuildId: 7f4d086054897dc7077f24171e43963a)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #65 pc 0000000000194b18  /system/lib64/libandroid_runtime.so (android::AndroidRuntime::start(char const*, android::Vector<android::String8> const&, bool)+744) (BuildId: 7f4d086054897dc7077f24171e43963a)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #66 pc 00000000000025dc  /system/bin/app_process64 (main+1276) (BuildId: e19dded2f20c559c8df4f5a5a99ff37e)
+10-08 20:33:41.666  8369  8369 F DEBUG   :       #67 pc 000000000006f0ec  /apex/com.android.runtime/lib64/bionic/libc.so (__libc_init+124) (BuildId: b28bc0c0cbd24a34ece4340da3a09292)
+10-08 20:33:41.666  8369  8369 F DEBUG   : 
+10-08 20:33:41.666  8369  8369 F DEBUG   : Note: To display stack pointer information, use the pbtombstone tool:
+10-08 20:33:41.666  8369  8369 F DEBUG   :         pbtombstone --display-sp tombstone_XX.pb

@@ -1,0 +1,35 @@
+Launching lib/main.dart on macOS in debug mode...
+Building macOS application...                                   
+warning: Shader `/Users/tembeon/IdeaProjects/morph/example/lib/perf/shaders/mip_lod.frag` is incompatible with SkSL. This shader will not load when running with the Skia backend.
+impellerc failure: There was a compiler error: Only simple shader sampling is supported.
+Project /Users/tembeon/IdeaProjects/morph/example built and packaged successfully.
+✓ Built build/macos/Build/Products/Debug/morph_example.app
+[IMPORTANT:flutter/shell/platform/embedder/embedder_surface_metal_impeller.mm(53)] Using the Impeller rendering backend (MetalSDF).
+Failed to foreground app; open returned 1
+Syncing files to device macOS...                                    41ms
+
+Flutter run key commands.
+r Hot reload. 🔥🔥🔥
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+A Dart VM Service on macOS is available at: http://127.0.0.1:51223/q13teFOl3dc=/
+The Flutter DevTools debugger and profiler on macOS is available at: http://127.0.0.1:51223/q13teFOl3dc=/devtools/?uri=ws://127.0.0.1:51223/q13teFOl3dc=/ws
+flutter: AUTODEMO page Segmented control
+flutter: AUTODEMO page Tab bar
+flutter: AUTODEMO page Controls
+flutter: AUTODEMO page Menu
+flutter: AUTODEMO page Sheets
+flutter: AUTODEMO page Indicators
+flutter: AUTODEMO page Glass renderer
+flutter: AUTODEMO page Size to physics
+flutter: AUTODEMO page Navigation
+flutter: AUTODEMO page Alerts
+flutter: AUTODEMO page Search
+flutter: AUTODEMO page Date picker
+flutter: AUTODEMO page Lists
+flutter: AUTODEMO done
+Lost connection to device.

@@ -1,0 +1,188 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: (setUpAll)
+00:00 +0: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:00 +0: /Users/tembeon/IdeaProjects/morph/test/glass_pipeline_warm_up_test.dart: the fake glass warm-up scene rasterizes offscreen
+morph: glass warm-up skipped: Exception: Asset 'packages/morph/lib/src/glass/renderer/shaders/fake_glass_surface.frag' not found
+00:00 +1: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:00 +2: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:00 +3: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:00 +4: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:01 +5: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:01 +6: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:01 +7: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:01 +8: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:01 +9: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: the fake tier draws the liquid layers as fake glass
+00:01 +10: /Users/tembeon/IdeaProjects/morph/test/glass_content_mount_test.dart: G7 a lifted multi-slot lens mounts keyed content once
+00:01 +11: /Users/tembeon/IdeaProjects/morph/test/glass_content_mount_test.dart: G7 a lifted multi-slot lens mounts keyed content once
+00:01 +11: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: a lifted segmented lens shows its label at its own size
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:01 +11: /Users/tembeon/IdeaProjects/morph/test/glass_content_mount_test.dart: G7 a lifted multi-slot lens mounts keyed content once
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:01 +12: /Users/tembeon/IdeaProjects/morph/test/glass_content_mount_test.dart: G7 a lifted multi-slot lens mounts keyed content once
+00:01 +12: /Users/tembeon/IdeaProjects/morph/test/glass_backdrop_group_test.dart: G4 fake separate and fused bodies share a backdrop key
+══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞═════════════════════════════════════════════════════════
+The following _Exception was thrown:
+Exception: Asset 'packages/morph/lib/src/glass/renderer/shaders/fake_glass_surface.frag' not found
+
+When the exception was thrown, this was the stack:
+#0      new FragmentProgram._fromAsset (dart:ui/painting.dart:5423:7)
+#1      FragmentProgram.fromAsset.<anonymous closure> (dart:ui/painting.dart:5451:39)
+#8      FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#9      FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#10     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2271:26)
+#12     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#13     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2258:27)
+#14     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#16     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#17     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#18     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/test/glass_backdrop_group_test.dart:79:18)
+#19     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#20     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1960:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 9 frames from dart:async and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞═════════════════════════════════════════════════════════
+The following _Exception was thrown:
+Exception: Asset 'packages/morph/lib/src/glass/renderer/shaders/fake_glass_surface.frag' not found
+
+When the exception was thrown, this was the stack:
+#0      new FragmentProgram._fromAsset (dart:ui/painting.dart:5423:7)
+#1      FragmentProgram.fromAsset.<anonymous closure> (dart:ui/painting.dart:5451:39)
+#8      FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#9      FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#10     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2271:26)
+#12     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#13     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2258:27)
+#14     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#16     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#17     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#18     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/test/glass_backdrop_group_test.dart:79:18)
+#19     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#20     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1960:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 9 frames from dart:async and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +13: /Users/tembeon/IdeaProjects/morph/test/glass_content_mount_test.dart: G7 a lifted multi-slot lens mounts keyed content once
+00:01 +14: /Users/tembeon/IdeaProjects/morph/test/glass_content_mount_test.dart: G7 a lifted multi-slot lens mounts keyed content once
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:01 +14: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: a label seen through a dragged lens stays on its slot
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:02 +15: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: a label seen through a dragged lens stays on its slot
+00:02 +15: /Users/tembeon/IdeaProjects/morph/test/glass_content_mount_test.dart: G7 copies the current composited paint without another mount
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:02 +16: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: a label seen through a dragged lens stays on its slot
+00:02 +16: /Users/tembeon/IdeaProjects/morph/test/glass_backdrop_group_test.dart: G5 bars share a backdrop group apart from the page glass
+══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞═════════════════════════════════════════════════════════
+The following _Exception was thrown:
+Exception: Asset 'packages/morph/lib/src/glass/renderer/shaders/fake_glass_surface.frag' not found
+
+When the exception was thrown, this was the stack:
+#0      new FragmentProgram._fromAsset (dart:ui/painting.dart:5423:7)
+#1      FragmentProgram.fromAsset.<anonymous closure> (dart:ui/painting.dart:5451:39)
+#8      FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#9      FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#10     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2271:26)
+#12     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#13     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2258:27)
+#14     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#16     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#17     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#18     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/test/glass_backdrop_group_test.dart:119:18)
+#19     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#20     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1960:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 9 frames from dart:async and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞═════════════════════════════════════════════════════════
+The following _Exception was thrown:
+Exception: Asset 'packages/morph/lib/src/glass/renderer/shaders/fake_glass_surface.frag' not found
+
+When the exception was thrown, this was the stack:
+#0      new FragmentProgram._fromAsset (dart:ui/painting.dart:5423:7)
+#1      FragmentProgram.fromAsset.<anonymous closure> (dart:ui/painting.dart:5451:39)
+#8      FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#9      FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#10     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2271:26)
+#12     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#13     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2258:27)
+#14     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#16     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#17     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#18     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/test/glass_backdrop_group_test.dart:119:18)
+#19     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#20     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1960:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 9 frames from dart:async and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞═════════════════════════════════════════════════════════
+The following _Exception was thrown:
+Exception: Asset 'packages/morph/lib/src/glass/renderer/shaders/fake_glass_surface.frag' not found
+
+When the exception was thrown, this was the stack:
+#0      new FragmentProgram._fromAsset (dart:ui/painting.dart:5423:7)
+#1      FragmentProgram.fromAsset.<anonymous closure> (dart:ui/painting.dart:5451:39)
+#8      FakeAsync.run.<anonymous closure>.<anonymous closure> (package:fake_async/fake_async.dart:189:18)
+#9      FakeAsync.flushMicrotasks (package:fake_async/fake_async.dart:200:32)
+#10     AutomatedTestWidgetsFlutterBinding.pump.<anonymous closure> (package:flutter_test/src/binding.dart:2271:26)
+#12     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#13     AutomatedTestWidgetsFlutterBinding.pump (package:flutter_test/src/binding.dart:2258:27)
+#14     WidgetTester.pumpWidget.<anonymous closure> (package:flutter_test/src/widget_tester.dart:598:22)
+#16     TestAsyncUtils.guard (package:flutter_test/src/test_async_utils.dart:74:41)
+#17     WidgetTester.pumpWidget (package:flutter_test/src/widget_tester.dart:595:27)
+#18     main.<anonymous closure> (file:///Users/tembeon/IdeaProjects/morph/test/glass_backdrop_group_test.dart:119:18)
+#19     testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:29)
+<asynchronous suspension>
+#20     TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1960:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided 9 frames from dart:async and package:stack_trace)
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:02 +17: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: a label seen through a dragged lens stays on its slot
+00:02 +18: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: a label seen through a dragged lens stays on its slot
+00:02 +19: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: a lifted lens on a bar refracts the bar glass beneath it
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:02 +20: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: a lifted lens on a bar minifies the bar, not the label
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:02 +21: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: tiers shade the same shapes flat draws the fused capsules as one body
+00:02 +22: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: tiers shade the same shapes fake draws the fused capsules as one body
+00:03 +23: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: tiers shade the same shapes liquid draws the fused capsules as one body
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:03 +24: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: tiers shade the same shapes capsules the spacing apart stay their own shapes
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:03 +25: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: tiers shade the same shapes a menu outline is shaded from its distance field
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:03 +26: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: tiers shade the same shapes a menu outline is shaded from its distance field
+00:03 +27: /Users/tembeon/IdeaProjects/morph/test/glass_renderer_test.dart: tiers shade the same shapes a menu outline is shaded from its distance field
+00:03 +28: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a grid within the tie band moves onto the pixel centers
+00:03 +29: /Users/tembeon/IdeaProjects/morph/test/glass_uniform_arena_test.dart: a frame of any number of geometry passes gets all its uniforms
+00:03 +30: /Users/tembeon/IdeaProjects/morph/test/glass_uniform_arena_test.dart: a frame of any number of geometry passes gets all its uniforms
+00:03 +31: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +32: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +33: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +34: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +35: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +36: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +37: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +38: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +39: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +40: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:03 +41: /Users/tembeon/IdeaProjects/morph/test/glass_raster_phase_test.dart: a shape under an anchor shifts onto its own grid
+00:04 +42: /Users/tembeon/IdeaProjects/morph/test/glass_outline_contract_test.dart: flat fusion keeps the exact contour without sharing optical caches
+00:05 +43: /Users/tembeon/IdeaProjects/morph/test/glass_outline_contract_test.dart: K2 rejects nonuniform and elliptical distance-field corners
+00:05 +44: /Users/tembeon/IdeaProjects/morph/test/glass_outline_contract_test.dart: K1 a fused body survives gaining a separate surface
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+morph: Impeller shader filters are unavailable; LiquidGlassLayer is using FakeGlass. Enable Impeller and Flutter GPU for the full effect.
+00:06 +45: /Users/tembeon/IdeaProjects/morph/test/glass_outline_contract_test.dart: a plain union at spacing 0 is the exact union of its boxes
+00:06 +46: /Users/tembeon/IdeaProjects/morph/test/glass_outline_contract_test.dart: shapes moved together reuse their fused outline, moved
+00:06 +47: All tests passed!

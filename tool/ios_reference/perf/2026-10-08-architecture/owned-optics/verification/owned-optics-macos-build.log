@@ -1,0 +1,37 @@
+Building macOS application...                                   
+warning: Shader `/Users/tembeon/IdeaProjects/morph/example/lib/perf/shaders/mip_lod.frag` is incompatible with SkSL. This shader will not load when running with the Skia backend.
+impellerc failure: There was a compiler error: Only simple shader sampling is supported.
+Project /Users/tembeon/IdeaProjects/morph/example built and packaged successfully.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+✓ Built build/macos/Build/Products/Release/morph_example.app (23.3MB)

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 327, in <module>
+    main()
+    ~~~~^^
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 319, in main
+    run(args)
+    ~~~^^^^^^
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 197, in run
+    raise TimeoutError('Stage benchmark did not finish')
+TimeoutError: Stage benchmark did not finish

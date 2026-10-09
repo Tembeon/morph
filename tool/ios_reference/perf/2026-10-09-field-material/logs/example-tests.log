@@ -1,0 +1,37 @@
+Resolving dependencies...
+Downloading packages...
+  cupertino_ui 1.1.1 (1.1.2 available)
+  equatable 2.1.0 (3.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.5.0 (1.6.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.14 (0.7.15 available)
+Got dependencies!
+7 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/example/test/glass_stage_bench_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/example/test/frost_seed_host_test.dart: a frosted layer blurs a copy of its own surroundings
+00:00 +1: /Users/tembeon/IdeaProjects/morph/example/test/glass_stage_bench_test.dart: cheap rendered frames remain in the percentile denominator
+00:00 +2: /Users/tembeon/IdeaProjects/morph/example/test/glass_stage_bench_test.dart: frame budget counts either pipeline stage, not their sum
+00:00 +3: /Users/tembeon/IdeaProjects/morph/example/test/glass_stage_bench_test.dart: spread and cluster preserve visible area while changing union area
+00:00 +4: /Users/tembeon/IdeaProjects/morph/example/test/blur_bound_host_test.dart: cheap small blurs draw the blurs they replace
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: (setUpAll)
+00:00 +5: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:01 +6: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +7: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +8: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in dark with styled text
+00:02 +9: /Users/tembeon/IdeaProjects/morph/example/test/gallery_extras_test.dart: date picker: the calendar opens and picks
+00:02 +10: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+00:03 +11: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: every page opens in light with styled text
+00:03 +12: /Users/tembeon/IdeaProjects/morph/example/test/gallery_extras_test.dart: navigation: holding Back opens its menu over the glass
+00:03 +13: /Users/tembeon/IdeaProjects/morph/example/test/gallery_extras_test.dart: navigation: holding Back opens its menu over the glass
+00:03 +14: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: the slow-motion button sits in the bar, clear of the tab bar
+00:03 +15: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: holding the bar button of the menu page opens its menu
+00:04 +16: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: the glass page settings reach every page
+00:04 +17: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: the glass page settings reach every page
+00:04 +18: /Users/tembeon/IdeaProjects/morph/example/test/gallery_test.dart: (tearDownAll)
+00:04 +18: /Users/tembeon/IdeaProjects/morph/example/test/lab_test.dart: lab observes short menu cards at every nested level
+00:05 +19: /Users/tembeon/IdeaProjects/morph/example/test/lab_test.dart: lab records cancellation without activating the button
+00:05 +20: /Users/tembeon/IdeaProjects/morph/example/test/lab_test.dart: lab captures semantic activation from a measured tap
+00:05 +21: All tests passed!

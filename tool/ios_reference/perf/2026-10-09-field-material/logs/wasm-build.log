@@ -1,0 +1,21 @@
+Resolving dependencies...
+Downloading packages...
+  cupertino_ui 1.1.1 (1.1.2 available)
+  equatable 2.1.0 (3.0.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.5.0 (1.6.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  test_api 0.7.14 (0.7.15 available)
+Got dependencies!
+7 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+
+┌─ New feature ────────────────────────────────────────────────────────────────────────────┐
+│   WebAssembly compilation is new. Understand the details before deploying to production. │
+│   See https://flutter.dev/to/wasm for more information.                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+Compiling lib/main.dart for the Web...                          
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 7480 bytes (99.5% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Compiling lib/main.dart for the Web...                             22.8s
+✓ Built build/web

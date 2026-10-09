@@ -1,0 +1,17 @@
+Resolving dependencies...
+Downloading packages...
+  cupertino_ui 1.0.1 (1.1.2 available)
+  equatable 2.1.0 (3.0.0 available)
+  material_color_utilities 0.13.0 (0.13.1 available)
+  material_ui 1.1.0 (1.6.0 available)
+  test_api 0.7.14 (0.7.15 available)
+  vector_math 2.4.2 (2.4.3 available)
+  vm_service 15.2.0 (15.3.0 available)
+Got dependencies!
+7 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+Resolving dependencies in `./example`...
+Downloading packages...
+Got dependencies in `./example`.
+Analyzing morph...                                              
+No issues found! (ran in 903.5s)

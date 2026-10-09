@@ -1738,3 +1738,9 @@ one fewer optical layer or guaranteed submission. Report/evidence in
 tool/audit/codex-direct-field-material-report.md and
 perf/2026-10-09-field-material. Final checks: 1419 + 21 tests, 18 Python
 checks, zero analyze/doc issues, macOS release/Metal autodemo, Wasm.
+
+
+OPTIMIZATION HANDOFF (2026-10-09): docs/optimization-handoff.md maps the
+measured working baseline, isolated experiment stacks and native evidence.
+This integration branch preserves all opt-in experiments; do not merge it
+wholesale into wip/measured-liquid-glass.
