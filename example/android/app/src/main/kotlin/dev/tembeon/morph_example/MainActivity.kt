@@ -19,15 +19,16 @@ class MainActivity : FlutterActivity() {
         // highest refresh rate: without a touch the system may hold an app
         // that votes for no rate at 60 Hz on a 120 Hz panel.
         if (intent?.getBooleanExtra("morph-max-refresh", false) == true) {
-            preferHighestRefreshRate()
+            preferRefreshRate(Float.MAX_VALUE)
         }
         // Benchmark launches may pass morph-frame-rate (for example 60) to
-        // vote a fixed frame rate for the Flutter surface instead.
+        // ask for the display mode closest to that rate instead, and vote
+        // it for the Flutter surface.
         val rate = intent?.getFloatExtra("morph-frame-rate", 0f) ?: 0f
-        if (rate > 0f) maxRefreshRate = rate
+        if (rate > 0f) preferRefreshRate(rate)
     }
 
-    private fun preferHighestRefreshRate() {
+    private fun preferRefreshRate(target: Float) {
         @Suppress("DEPRECATION")
         val display = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             display
@@ -40,7 +41,7 @@ class MainActivity : FlutterActivity() {
                 it.physicalWidth == current.physicalWidth &&
                     it.physicalHeight == current.physicalHeight
             }
-            .maxByOrNull { it.refreshRate } ?: return
+            .minByOrNull { Math.abs(it.refreshRate - target) } ?: return
         val attributes = window.attributes
         attributes.preferredDisplayModeId = best.modeId
         attributes.preferredRefreshRate = best.refreshRate
