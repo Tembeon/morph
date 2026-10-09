@@ -89,11 +89,30 @@ Real input is the closer model of a user's tap and the one to judge
 options by; it makes both recommended options decisive (Redmi push
 missed 10 - 12 -> 3 - 5, Moto push 19 - 22 -> 3 - 5).
 
-Branch `exp/navigation-defaults` (bc429dc, on top of this report) turns
+Branch `exp/navigation-defaults` (bc429dc + the area cap fc0f560) turns
 both recommended options on by default, with the docs and one test pinned
 to the traced path; package (1439), example (32) and host suites pass,
 the macOS autodemo ends clean and the web build compiles. Merging it is
 the owner's call.
+
+## Outside navigation: the glass audit scenes
+
+`tool/ios_reference/perf/audit_android.sh` (glass_audit_test, five
+repeats per scene, synthetic input), current (05f668f) against the
+defaults-on branch, A B B A; directories `2026-10-10-{moto,redmi}-audit-*`.
+
+- Redmi flat (a / b pairs): every scene within the a/a spread.
+- Moto liquid, first defaults-on build (a / b): build p50 -0.3 to -0.6 ms
+  in controls, segmented, tab bar and menu, menu raster p95 -1.4 to -2.0,
+  but the sheet regressed in both pairs (raster p99 +8.7 / +9.2 ms, worst
+  +16 / +15; a/a +1.2 / +0.8): a screen-high surface shaded per pixel.
+  Analytic frames are now capped at 600 000 device pixels of geometry
+  bounds (`RenderLiquidGlassLayer.analyticMaxPixels`; 416688f, also on the
+  defaults branch).
+- Moto liquid with the cap (c / d): sheet raster p99 -1.5 / +1.5, worst
+  +0.2 / 0.0; build p50 still -0.3 to -0.5 ms in controls, segmented, tab
+  bar and menu; controls raster p95 +0.5 / +0.5 ms (moving lenses shaded
+  per pixel), within budget.
 
 ## Options in the harness (compile-time defines)
 

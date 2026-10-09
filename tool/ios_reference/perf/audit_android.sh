@@ -14,6 +14,7 @@
 #   AUDIT_TARGET=<test file>      default integration_test/glass_audit_test.dart
 #   AUDIT_REPORT=<name>           the report directory name, default glass
 #   AUDIT_DEFINES="..."           extra --dart-define flags for the build
+#   AUDIT_ARCH=android-arm        target platform (32-bit phones); default android-arm64
 #   AUDIT_COLD=1                  pm clear before every launch: a cold pipeline cache
 #   AUDIT_SUFFIX=<s>              appended to the tier in the APK and result names
 #   AUDIT_GPUFREQ=1               sample the Mali GPU clock (cur_freq) twice a second while
@@ -55,7 +56,7 @@ if [ "$STEP" = build ] || [ "$STEP" = all ]; then
   mkdir -p "$APPS"
   for tier in $TIERS; do
     # shellcheck disable=SC2086
-    (cd "$SOURCE/example" && flutter build apk --profile --target-platform android-arm64 \
+    (cd "$SOURCE/example" && flutter build apk --profile --target-platform "${AUDIT_ARCH:-android-arm64}" \
       -t "$TARGET" \
       --dart-define=GALLERY_GLASS="$tier" --dart-define=AUDIT_RUNS="$RUNS" \
       --dart-define=AUDIT_OUT="$DEVICE_DIR" $DEFINES | tail -2)

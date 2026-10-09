@@ -1,0 +1,49 @@
+apk: liquid-cur.apk  commit: 05f668f  date: Sat Oct 10 02:21:44 +05 2026
+thermal before:
+Thermal Status: 0
+TotalTime: 1058
+WaitTime: 1062
+package:dev.tembeon.morph_example uid:10436
+thermal after:
+Thermal Status: 0
+logcat (impeller, gpu, errors):
+10-10 02:24:38.897  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:38.898  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:38.913  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:38.914  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.079  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.080  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.080  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.081  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.082  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.082  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.083  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.084  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.090  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.090  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.091  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.092  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.096  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.096  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.097  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.097  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.104  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.105  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.105  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.106  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.111  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.112  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.113  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.113  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.120  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.121  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.121  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.122  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.129  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.129  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.130  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.130  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.137  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.137  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.138  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0
+10-10 02:24:39.138  1666  1666 I mali_platform_hal: useCompressionVulkan pid=5655, applicationName=Impeller, 0

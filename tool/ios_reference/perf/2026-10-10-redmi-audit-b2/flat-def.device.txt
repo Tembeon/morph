@@ -1,0 +1,29 @@
+apk: flat-def.apk  commit: bc429dc  date: Sat Oct 10 01:51:26 +05 2026
+thermal before:
+TotalTime: 2848
+WaitTime: 2907
+thermal after:
+logcat (impeller, gpu, errors):
+10-10 01:56:19.867 18985 18985 I flutter : Liquid glass is unavailable; morph is using fake glass. Reason: Unsupported operation: Impeller shader filters are unavailable.
+10-10 01:56:19.870 18985 18985 I flutter : #0      _capability.<anonymous closure> (package:morph/src/widgets/glass_liquid_native.dart:19)
+10-10 01:56:19.871 18985 18985 I flutter : #1      LiquidCapability._resolve (package:morph/src/glass/renderer/internal/liquid_capability.dart:25)
+10-10 01:56:19.871 18985 18985 I flutter : #2      LiquidCapability.precache (package:morph/src/glass/renderer/internal/liquid_capability.dart:21)
+10-10 01:56:19.871 18985 18985 I flutter : #3      _precacheAndWarm (package:morph/src/widgets/glass_liquid_native.dart:94)
+10-10 01:56:19.871 18985 18985 I flutter : #4      morphPrecacheLiquidGlass (package:morph/src/widgets/glass_liquid_native.dart:90)
+10-10 01:56:19.871 18985 18985 I flutter : #5      MorphGlassRenderer.precache (package:morph/src/widgets/glass_renderer.dart:179)
+10-10 01:56:19.871 18985 18985 I flutter : #6      _Audit.run (file:///private/tmp/claude-501/-Users-lazurit-Projects-tembeon-morph/ce96ecb5-76b5-4335-819c-f90b5ed589e5/scratchpad/def-wt/example/integration_test/glass_audit_test.dart:414)
+10-10 01:56:19.871 18985 18985 I flutter : <asynchronous suspension>
+10-10 01:56:19.871 18985 18985 I flutter : #7      main.<anonymous closure> (file:///private/tmp/claude-501/-Users-lazurit-Projects-tembeon-morph/ce96ecb5-76b5-4335-819c-f90b5ed589e5/scratchpad/def-wt/example/integration_test/glass_audit_test.dart:154)
+10-10 01:56:19.871 18985 18985 I flutter : <asynchronous suspension>
+10-10 01:56:19.871 18985 18985 I flutter : #8      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192)
+10-10 01:56:19.871 18985 18985 I flutter : <asynchronous suspension>
+10-10 01:56:19.871 18985 18985 I flutter : #9      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1960)
+10-10 01:56:19.871 18985 18985 I flutter : <asynchronous suspension>
+10-10 01:56:19.871 18985 18985 I flutter : #10     TestWidgetsFlutterBinding._createTestCompletionHandler.<anonymous closure> (package:flutter_test/src/binding.dart:1716)
+10-10 01:56:19.871 18985 18985 I flutter : <asynchronous suspension>
+10-10 01:56:19.871 18985 18985 I flutter : 04:51 +0: glass audit [E]
+10-10 01:56:19.871 18985 18985 I flutter :   Test failed. See exception logs above.
+10-10 01:56:19.871 18985 18985 I flutter :   The test description was: glass audit
+10-10 01:56:19.872 18985 18985 I flutter :   
+10-10 01:56:19.872 18985 18985 I flutter : 04:51 +0 -1: (tearDownAll)
+10-10 01:56:19.880 18985 18985 I flutter : 04:51 +1 -1: Some tests failed.
