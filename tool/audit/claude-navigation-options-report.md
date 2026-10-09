@@ -89,6 +89,12 @@ Real input is the closer model of a user's tap and the one to judge
 options by; it makes both recommended options decisive (Redmi push
 missed 10 - 12 -> 3 - 5, Moto push 19 - 22 -> 3 - 5).
 
+Branch `exp/navigation-defaults` (bc429dc, on top of this report) turns
+both recommended options on by default, with the docs and one test pinned
+to the traced path; package (1439), example (32) and host suites pass,
+the macOS autodemo ends clean and the web build compiles. Merging it is
+the owner's call.
+
 ## Options in the harness (compile-time defines)
 
 | define | default | what it does | evidence | recommendation |
