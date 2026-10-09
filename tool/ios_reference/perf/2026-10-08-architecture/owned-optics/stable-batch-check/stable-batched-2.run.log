@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/private/tmp/morph-architecture/stable-batch-check/tool/ios_reference/perf/stage_bench/run_android.py", line 332, in <module>
+    main()
+    ~~~~^^
+  File "/private/tmp/morph-architecture/stable-batch-check/tool/ios_reference/perf/stage_bench/run_android.py", line 324, in main
+    run(args)
+    ~~~^^^^^^
+  File "/private/tmp/morph-architecture/stable-batch-check/tool/ios_reference/perf/stage_bench/run_android.py", line 179, in run
+    raise RuntimeError(f'Benchmark process {app_pid} exited; see {base}.crash.txt')
+RuntimeError: Benchmark process 30538 exited; see /private/tmp/morph-architecture/stable-batch-check/results/stable-batched-2.crash.txt

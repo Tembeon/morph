@@ -1,0 +1,6 @@
+Running Gradle task 'assembleRelease'...                        
+warning: Shader `/private/tmp/morph-architecture/stable-batch-check/example/lib/perf/shaders/mip_lod.frag` is incompatible with SkSL. This shader will not load when running with the Skia backend.
+impellerc failure: There was a compiler error: Only simple shader sampling is supported.
+
+Running Gradle task 'assembleRelease'...                           17.6s
+✓ Built build/app/outputs/flutter-apk/app-release.apk (15.6MB)

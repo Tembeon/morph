@@ -1,0 +1,9 @@
+
+┌─ New feature ────────────────────────────────────────────────────────────────────────────┐
+│   WebAssembly compilation is new. Understand the details before deploying to production. │
+│   See https://flutter.dev/to/wasm for more information.                                  │
+└──────────────────────────────────────────────────────────────────────────────────────────┘
+Compiling lib/main.dart for the Web...                          
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 7480 bytes (99.5% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+Compiling lib/main.dart for the Web...                             22.5s
+✓ Built build/web

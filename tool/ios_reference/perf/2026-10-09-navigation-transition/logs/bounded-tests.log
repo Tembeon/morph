@@ -1,0 +1,4 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/test/bar_glyph_bounds_test.dart
+00:00 +0: bounded glyphs preserve TextDirection.rtl placement and hit boxes
+00:00 +1: bounded glyphs preserve TextDirection.ltr placement and hit boxes
+00:00 +2: All tests passed!

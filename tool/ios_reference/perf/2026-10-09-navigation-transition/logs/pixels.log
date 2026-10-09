@@ -1,0 +1,12 @@
+nav-navigation-enter-liquid-f4 7724 3759 {'pixels': 2592000, 'max': 1, 'p95': 0.0, 'mean': 2.700617283950617e-06, 'changed': 7, 'over_2': 0} page 0
+nav-navigation-enter-liquid-f10 7724 3759 {'pixels': 2592000, 'max': 3, 'p95': 0.0, 'mean': 0.00559375, 'changed': 13190, 'over_2': 15} page 0
+nav-navigation-nested-push-liquid-f4 16143 6171 {'pixels': 2592000, 'max': 2, 'p95': 0.0, 'mean': 3.973765432098765e-05, 'changed': 101, 'over_2': 0} page 0
+nav-navigation-nested-push-liquid-f10 16143 6171 {'pixels': 2592000, 'max': 4, 'p95': 0.0, 'mean': 0.00646141975308642, 'changed': 13472, 'over_2': 410} page 0
+nav-navigation-nested-pop-liquid-f0 0 0 {'pixels': 2592000, 'max': 10, 'p95': 0.0, 'mean': 4.243827160493827e-06, 'changed': 2, 'over_2': 1} page 0
+nav-navigation-nested-pop-liquid-f4 16143 6170 {'pixels': 2592000, 'max': 2, 'p95': 0.0, 'mean': 3.780864197530864e-05, 'changed': 97, 'over_2': 0} page 0
+nav-navigation-nested-pop-liquid-f10 16143 6170 {'pixels': 2592000, 'max': 5, 'p95': 0.0, 'mean': 0.006926311728395061, 'changed': 13526, 'over_2': 867} page 0
+nav-navigation-nested-pop-liquid-f20 0 0 {'pixels': 2592000, 'max': 55, 'p95': 0.0, 'mean': 2.1219135802469135e-05, 'changed': 1, 'over_2': 1} page 55
+nav-navigation-nested-pop-liquid-f34 0 0 {'pixels': 2592000, 'max': 64, 'p95': 0.0, 'mean': 6.018518518518519e-05, 'changed': 4, 'over_2': 4} page 64
+nav-navigation-nested-pop-liquid-f48 0 0 {'pixels': 2592000, 'max': 8, 'p95': 0.0, 'mean': 3.0864197530864196e-06, 'changed': 1, 'over_2': 1} page 0
+nav-navigation-toolbar-liquid-f4 6871 2504 {'pixels': 2592000, 'max': 1, 'p95': 0.0, 'mean': 2.044753086419753e-05, 'changed': 53, 'over_2': 0} page 0
+nav-navigation-toolbar-liquid-f10 6871 2504 {'pixels': 2592000, 'max': 5, 'p95': 0.0, 'mean': 0.00485841049382716, 'changed': 9200, 'over_2': 633} page 0

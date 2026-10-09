@@ -1,0 +1,11 @@
+Running Gradle task 'assembleRelease'...                        
+Font asset "MaterialIcons-Regular.otf" was tree-shaken, reducing it from 1645184 to 984 bytes (99.9% reduction). Tree-shaking can be disabled by providing the --no-tree-shake-icons flag when building your app.
+warning: Shader `/Users/tembeon/IdeaProjects/morph/example/lib/perf/shaders/mip_lod.frag` is incompatible with SkSL. This shader will not load when running with the Skia backend.
+impellerc failure: There was a compiler error: Only simple shader sampling is supported.
+
+
+┌─ Shader Warning ──────────────────────────────────────────────────────┐
+│ There was a compiler error: Only simple shader sampling is supported. │
+└───────────────────────────────────────────────────────────────────────┘
+Running Gradle task 'assembleRelease'...                           11.6s
+✓ Built build/app/outputs/flutter-apk/app-release.apk (14.6MB)

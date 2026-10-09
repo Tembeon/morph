@@ -1,0 +1,44 @@
+Traceback (most recent call last):
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 25, in command
+    return subprocess.run(args, check=True, text=True, **kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['adb', 'shell', 'kill', '-TERM', '19082']' returned non-zero exit status 1.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 205, in run
+    stop_perfetto()
+    ~~~~~~~~~~~~~^^
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 87, in stop_perfetto
+    adb('shell', 'kill', '-TERM', perfetto_pid)
+    ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 57, in adb
+    return command(['adb', *items], env=env, timeout=45,
+           ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   stdout=subprocess.PIPE if capture else None,
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                   stderr=subprocess.PIPE if capture else None).stdout
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 28, in command
+    raise RuntimeError(f'Command failed ({error.returncode}): {args}; {detail.strip()}') from error
+RuntimeError: Command failed (1): ['adb', 'shell', 'kill', '-TERM', '19082']; /system/bin/sh: kill: 19082: No such process
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 332, in <module>
+    main()
+    ~~~~^^
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 324, in main
+    run(args)
+    ~~~^^^^^^
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 263, in run
+    cleanup(actions)
+    ~~~~~~~^^^^^^^^^
+  File "/Users/tembeon/IdeaProjects/morph/tool/ios_reference/perf/stage_bench/run_android.py", line 44, in cleanup
+    raise RuntimeError('Cleanup incomplete: ' + '; '.join(failures))
+RuntimeError: Cleanup incomplete: stop Perfetto: Command failed (1): ['adb', 'shell', 'kill', '-TERM', '19082']; /system/bin/sh: kill: 19082: No such process

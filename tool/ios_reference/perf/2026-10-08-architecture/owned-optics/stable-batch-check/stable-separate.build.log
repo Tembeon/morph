@@ -1,0 +1,87 @@
+Building flutter tool...
+Resolving dependencies...
+Downloading packages...
+  _fe_analyzer_shared 95.0.0 (109.0.0 available)
+  analyzer 10.1.0 (14.5.0 available)
+  archive 3.6.1 (4.3.0 available)
+  browser_launcher 1.1.3 (1.2.0 available)
+  built_collection 5.1.1 (5.1.2 available)
+  built_value 8.12.6 (8.13.0 available)
+  clock 1.1.2 (1.1.3 available)
+  code_assets 1.2.1 (2.1.0 available)
+  code_builder 4.11.1 (4.12.0 available)
+  dart_style 3.1.7 (3.1.13 available)
+  dds 5.3.0 (5.4.0 available)
+  devtools_shared 12.1.0 (14.0.0 available)
+  dwds 27.1.2 (27.1.4 available)
+  file_testing 3.0.2 (3.1.0 available)
+  flutter_template_images 5.0.0 (5.0.1 available)
+  frontend_server_client 4.0.0 (4.1.0 available)
+  glob 2.1.3 (2.2.0 available)
+  hooks 2.0.2 (2.2.0 available)
+  hooks_runner 1.5.0 (1.6.4 available)
+  html 0.15.6 (0.15.7 available)
+  io 1.0.5 (1.1.0 available)
+  js 0.7.2 (discontinued)
+  meta 1.18.3 (1.19.0 available)
+  mime 2.0.0 (2.1.0 available)
+  mustache_template 2.0.5 (2.0.6 available)
+  native_stack_traces 0.6.1 (0.7.0 available)
+  package_config 2.2.0 (3.0.0 available)
+  petitparser 7.0.2 (7.1.0 available)
+  platform 3.1.6 (3.2.0 available)
+  pool 1.5.2 (1.5.3 available)
+  process 5.0.5 (5.0.6 available)
+  pub_semver 2.2.0 (2.2.1 available)
+  pubspec_parse 1.5.0 (1.6.0 available)
+  record_use 0.6.0 (1.1.1 available)
+  source_maps 0.10.13 (0.10.14 available)
+  stack_trace 1.12.1 (1.12.2 available)
+  test 1.31.1 (1.33.0 available)
+  test_api 0.7.12 (0.7.15 available)
+  test_core 0.6.18 (0.6.21 available)
+  unified_analytics 8.0.15 (8.0.18 available)
+  uuid 4.5.3 (4.6.0 available)
+  vm_service 15.2.0 (15.3.0 available)
+  webdriver 3.1.0 (3.2.0 available)
+  xml 6.6.1 (7.1.0 available)
+  yaml 3.1.3 (3.1.4 available)
+No dependencies changed.
+1 package is discontinued.
+44 packages have newer versions incompatible with dependency constraints.
+Try `dart pub outdated` for more information.
+Resolving dependencies...
+The current Flutter SDK version is 0.0.0-unknown.
+
+Because motor 1.1.0 requires Flutter SDK version >=3.32.0 and no versions of motor match >1.1.0 <2.0.0, motor ^1.1.0 is forbidden.
+So, because morph_example depends on motor ^1.1.0, version solving failed.
+
+
+You can try the following suggestion to make the pubspec resolve:
+* Try using the Flutter SDK version: 3.47.6. 
+Failed to update packages.
+Traceback (most recent call last):
+  File "/private/tmp/morph-architecture/stable-batch-check/tool/ios_reference/perf/stage_bench/run_android.py", line 25, in command
+    return subprocess.run(args, check=True, text=True, **kwargs)
+           ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.5/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['/opt/homebrew/bin/flutter', 'build', 'apk', '--release', '--target-platform', 'android-arm64', '-t', 'lib/perf/mip_stage_bench.dart', '--dart-define=AUDIT_OUT=/sdcard/Android/data/dev.tembeon.morph_example/files/stage-bench', '--dart-define=MIP_OPTICS=true', '--dart-define=MIP_BATCH=false', '--dart-define=MIP_RUNS=1', '--dart-define=MIP_COUNTS=4', '--dart-define=MIP_MODES=owned-tent,owned-wide', '--dart-define=MIP_UPDATES=fresh,reuse', '--dart-define=MIP_SAMPLE_MS=600', '--dart-define=MIP_WARM_MS=200']' returned non-zero exit status 1.
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/private/tmp/morph-architecture/stable-batch-check/tool/ios_reference/perf/stage_bench/run_android.py", line 332, in <module>
+    main()
+    ~~~~^^
+  File "/private/tmp/morph-architecture/stable-batch-check/tool/ios_reference/perf/stage_bench/run_android.py", line 305, in main
+    command([args.flutter, 'build', 'apk', f'--{args.mode}', '--target-platform', 'android-arm64',
+    ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             '-t', args.target, f'--dart-define=AUDIT_OUT={DEVICE}',
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             *[f'--dart-define={value}' for value in args.define]], cwd=ROOT / 'example')
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/private/tmp/morph-architecture/stable-batch-check/tool/ios_reference/perf/stage_bench/run_android.py", line 28, in command
+    raise RuntimeError(f'Command failed ({error.returncode}): {args}; {detail.strip()}') from error
+RuntimeError: Command failed (1): ['/opt/homebrew/bin/flutter', 'build', 'apk', '--release', '--target-platform', 'android-arm64', '-t', 'lib/perf/mip_stage_bench.dart', '--dart-define=AUDIT_OUT=/sdcard/Android/data/dev.tembeon.morph_example/files/stage-bench', '--dart-define=MIP_OPTICS=true', '--dart-define=MIP_BATCH=false', '--dart-define=MIP_RUNS=1', '--dart-define=MIP_COUNTS=4', '--dart-define=MIP_MODES=owned-tent,owned-wide', '--dart-define=MIP_UPDATES=fresh,reuse', '--dart-define=MIP_SAMPLE_MS=600', '--dart-define=MIP_WARM_MS=200']; 

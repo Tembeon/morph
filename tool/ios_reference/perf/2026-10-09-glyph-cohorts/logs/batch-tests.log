@@ -1,0 +1,13 @@
+00:00 +0: loading /Users/tembeon/IdeaProjects/morph/test/bar_glyph_batch_test.dart
+00:00 +0: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_batch_test.dart: disjoint compatible glyphs share filter, scale and opacity
+00:00 +1: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_batch_test.dart: sigma retains independent filters
+00:00 +2: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_batch_test.dart: scale retains independent filters
+00:00 +3: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_batch_test.dart: opacity retains independent filters
+00:00 +4: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_batch_test.dart: halo overlap retains independent filters
+00:00 +5: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_batch_test.dart: sparse union retains independent filters
+00:00 +6: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_batch_test.dart: child-only repaint reaches the batched surface
+00:02 +7: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_bounds_test.dart: bounded glyphs preserve TextDirection.rtl placement and hit boxes
+00:02 +8: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_bounds_test.dart: bounded glyphs preserve TextDirection.ltr placement and hit boxes
+00:02 +9: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_bounds_test.dart: batched glyphs preserve TextDirection.rtl placement and hit boxes
+00:02 +10: /Users/tembeon/IdeaProjects/morph/test/bar_glyph_bounds_test.dart: batched glyphs preserve TextDirection.ltr placement and hit boxes
+00:02 +11: All tests passed!
