@@ -2850,3 +2850,33 @@ Liquid push at 120 Hz remains budget-bound: next is the per-frame
 geometry encode (re-encode only when the matte changes by a visible
 amount, or fewer command buffers) and the settle tail.
 
+
+## Analytic liquid geometry (2026-10-09, behind MORPH_ANALYTIC_GEOMETRY)
+
+Owner-approved direction (invisible differences do not matter; tiers of
+cheaper glass allowed). Reference: Apple's QuartzCore glass evaluates up to
+four shapes in the shader per draw (reconstruction in
+medfa12/liquid-glass-react-native). An eligible liquid layer skips the
+Flutter GPU geometry matte, the material map and the field upload; the
+final shader evaluates the shapes (sdf.glsl `sceneSample`, separate shapes)
+or the container merge law (<= 4 boxes, `GlassBoxField`) itself, and the
+CPU no longer fuses those bodies. Eligibility: <= 8 shapes, uniform or
+tint-only appearance, analytic programs loaded; otherwise the matte path in
+the same frame. Gallery Navigation: every bar layer analytic at rest, mid
+push and pushed (host census).
+
+Host oracles (Impeller + Flutter GPU in flutter_tester):
+- separate shapes vs the matte: mean 0.02 - 0.32 per channel over covered
+  pixels, max up to 46 on single rim pixels (the matte's 12-bit codes);
+- fused bodies vs the sampled 4 pt field: the field's own error dominates
+  (far-apart pair vs exact shapes: field mean 3.5 / max 255, analytic
+  0.002); vs a fine CPU field (0.25 pt trace) the difference converges to
+  0.07 - 0.12 mean on smooth backdrops, 0.32 - 0.51 on stripes (corner
+  diagonals); bound mean 0.75.
+- Toggle off: byte-identical (parity 0; programs not loaded).
+
+Open before the default flips: Moto/Pixel timing at 120 Hz incl.
+static-geometry scroll scenes (per-pixel shape cost now every frame),
+Mali register pressure (malioc not available here), native pixels, the
+switch pop when a body crosses 4 -> 5 boxes. Commits 1c4c0d3, ecccb2a,
+a785a80, 4273ecf; spec in the owner-local specs folder.

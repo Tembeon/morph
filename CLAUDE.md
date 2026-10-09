@@ -322,6 +322,19 @@ Cross-cutting policy:
   cards) carries its boxes instead of a field - path union for the edge,
   each box shaded as its own circular rounded rectangle - exact, and no
   per-frame trace or upload.
+  ANALYTIC GEOMETRY (2026-10-09, owner-approved, behind
+  `MORPH_ANALYTIC_GEOMETRY`, default off until device-qualified): an
+  eligible liquid layer (<= 8 shapes, uniform or tint-only appearance;
+  a container body of <= 4 uniform-radius boxes as a `GlassBoxField`)
+  is evaluated in the final shader itself (analytic_geometry.glsl) - no
+  matte, no material pass, no field upload, no CPU fusion. The shader
+  carries the SAME merge law as liquid_field.dart (angular width
+  k*sin^2(theta/2), the `_share` optics fold, the optical turn); the
+  law now has two implementations and the host oracles pin them
+  together (analytic A/B vs the matte; fine-grid CPU field at 1/8 step,
+  mean < 0.75 per channel). The body shadow is the plain union of the
+  boxes clipped outside a neck-covering path (NEAR). Menus (blurred
+  SDF), bodies of 5+ boxes and mixed appearances keep the matte path.
 - Glass shadows clip to outside the glass (an even-odd path), never a
   saveLayer + dstOut per surface: no offscreen pass, no shadow under the
   translucent body (GlassShadow, MorphGlassBodyShadow).
@@ -1060,9 +1073,10 @@ Hard-won rules still enforced in the core:
   Apple never does (rms 9 pt at spacing 80). Also rejected: the
   renderer's sin(theta/2) chord (necks too fat).
 - **Shader/blur-based liquid neck** (SDF shader, blur+threshold
-  metaballs): halos and mush. The CPU vector path is the only supported
-  skin; the glass renderer shades the outline the package hands it and
-  never fuses on its own (the renderer's blend groups are not used).
+  metaballs): halos and mush. The skin stays the CPU vector path; the
+  renderer's blend groups are not used. The analytic liquid path
+  (above) evaluates the package's own merge law per pixel in the final
+  shader - an exact SDF evaluation, not blur+threshold.
 - **Prebuilt drag widget**: gesture policy for dismissing a flight
   belongs to the app. The primitives and the scrub API remain.
 - **Snapshot ghost by default**: a frozen ripple looks worse than a live
