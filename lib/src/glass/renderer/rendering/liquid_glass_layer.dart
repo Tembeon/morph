@@ -368,6 +368,15 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
               directFieldIos27Shader: ShaderKeys.directField
                   ? shaders[ShaderKeys.directGeometry ? 8 : 6]
                   : null,
+              directFieldMaterialShader: ShaderKeys.directFieldMaterial
+                  ? shaders[ShaderKeys.directGeometry ? 9 : 7]
+                  : null,
+              directFieldTintShader: ShaderKeys.directFieldMaterial
+                  ? shaders[ShaderKeys.directGeometry ? 10 : 8]
+                  : null,
+              directFieldTintIos27Shader: ShaderKeys.directFieldMaterial
+                  ? shaders[ShaderKeys.directGeometry ? 11 : 9]
+                  : null,
               backdropKey: backdropKey,
               blursOwnBackdrop: widget.blursOwnBackdrop,
               live: live,
@@ -450,6 +459,9 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     this.directGeometryIos27Shader,
     this.directFieldShader,
     this.directFieldIos27Shader,
+    this.directFieldMaterialShader,
+    this.directFieldTintShader,
+    this.directFieldTintIos27Shader,
   });
 
   final FragmentShader defaultRenderShader;
@@ -461,6 +473,15 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final FragmentShader? directGeometryIos27Shader;
   final FragmentShader? directFieldShader;
   final FragmentShader? directFieldIos27Shader;
+
+  /// Mixed appearance without the field-to-matte pass.
+  final FragmentShader? directFieldMaterialShader;
+
+  /// Direct tint variations without the field-to-matte pass.
+  final FragmentShader? directFieldTintShader;
+
+  /// Fitted tint variations without the field-to-matte pass.
+  final FragmentShader? directFieldTintIos27Shader;
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
   final Listenable? live;
@@ -484,6 +505,9 @@ class _RawShapes extends SingleChildRenderObjectWidget {
       directGeometryIos27Shader: directGeometryIos27Shader,
       directFieldShader: directFieldShader,
       directFieldIos27Shader: directFieldIos27Shader,
+      directFieldMaterialShader: directFieldMaterialShader,
+      directFieldTintShader: directFieldTintShader,
+      directFieldTintIos27Shader: directFieldTintIos27Shader,
       backdropKey: backdropKey,
       settings: settingsOf(),
       defaultAppearance: defaultAppearance,
@@ -595,6 +619,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     this.directGeometryIos27Shader,
     this.directFieldShader,
     this.directFieldIos27Shader,
+    this.directFieldMaterialShader,
+    this.directFieldTintShader,
+    this.directFieldTintIos27Shader,
   }) {
     _updateShaderSettings();
   }
@@ -637,6 +664,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// Experimental fitted appearance without a field-to-matte pass.
   final FragmentShader? directFieldIos27Shader;
 
+  /// Mixed appearance without the field-to-matte pass.
+  final FragmentShader? directFieldMaterialShader;
+
+  /// Direct tint variations without the field-to-matte pass.
+  final FragmentShader? directFieldTintShader;
+
+  /// Fitted tint variations without the field-to-matte pass.
+  final FragmentShader? directFieldTintIos27Shader;
+
   bool _directGeometry = false;
   bool _directField = false;
 
@@ -673,7 +709,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         (_uniformAppearance ?? defaultAppearance).colorModel
             is! DirectLiquidGlassColorModel;
     final direct = ios27 ? directGeometryIos27Shader : directGeometryShader;
-    final directField = ios27 ? directFieldIos27Shader : directFieldShader;
+    final directField = switch ((
+      _usesShapeAppearances,
+      _usesTintOnlyAppearance,
+      ios27,
+    )) {
+      (false, _, false) => directFieldShader,
+      (false, _, true) => directFieldIos27Shader,
+      (true, true, false) => directFieldTintShader,
+      (true, true, true) => directFieldTintIos27Shader,
+      (true, false, _) => directFieldMaterialShader,
+    };
     if (_directField && directField != null) {
       _writeStaleShaderSettings(directField);
       return directField;
@@ -767,6 +813,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (directGeometryIos27Shader case final shader?) _staleShaders.add(shader);
     if (directFieldShader case final shader?) _staleShaders.add(shader);
     if (directFieldIos27Shader case final shader?) _staleShaders.add(shader);
+    if (directFieldMaterialShader case final shader?) _staleShaders.add(shader);
+    if (directFieldTintShader case final shader?) _staleShaders.add(shader);
+    if (directFieldTintIos27Shader case final shader?) {
+      _staleShaders.add(shader);
+    }
     _writeStaleShaderSettings(renderShader);
   }
 
@@ -2221,6 +2272,14 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         );
       }
 
+      final directMixedField =
+          ShaderKeys.directFieldMaterial &&
+          directFieldMaterialShader != null &&
+          directFieldTintShader != null &&
+          directFieldTintIos27Shader != null &&
+          _field != null &&
+          usesShapeAppearances;
+      if (directMixedField) directFieldUpdates++;
       final result = renderer.render(
         width: textureWidth,
         height: textureHeight,
@@ -2243,10 +2302,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         offsetY: boundsInMatteSpace.top * devicePixelRatio,
         field: _field,
         fieldScale: devicePixelRatio,
+        useDirectField: directMixedField,
       );
       return (
         image: result.image,
-        directField: false,
+        directField: directMixedField,
         materialImage: renderer.materialImage,
         materialCenter: materialCenter,
         materialSize: bounds.size,

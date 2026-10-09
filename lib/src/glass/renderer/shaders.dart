@@ -44,6 +44,22 @@ abstract class ShaderKeys {
   /// Enables experimental sampled-field shading without a geometry matte.
   static const bool directField = bool.fromEnvironment('MORPH_DIRECT_FIELD');
 
+  /// Extends direct field shading to the retained mixed-appearance map.
+  static const bool directFieldMaterial =
+      directField && bool.fromEnvironment('MORPH_DIRECT_FIELD_MATERIAL');
+
+  /// Mixed appearances reading the owner's field and contributor map.
+  static String get liquidGlassDirectFieldMaterial =>
+      '${_runtimeRoot}liquid_glass_direct_field_material.frag';
+
+  /// Direct tint variations reading the owner's field.
+  static String get liquidGlassDirectFieldTint =>
+      '${_runtimeRoot}liquid_glass_direct_field_tint.frag';
+
+  /// Fitted tint variations reading the owner's field.
+  static String get liquidGlassDirectFieldTintIos27 =>
+      '${_runtimeRoot}liquid_glass_direct_field_tint_ios27.frag';
+
   /// Direct appearance reading the owner's floating-point field.
   static String get liquidGlassDirectField =>
       '${_runtimeRoot}liquid_glass_direct_field.frag';
@@ -74,6 +90,9 @@ abstract class ShaderKeys {
     if (directGeometry) liquidGlassDirectGeometryIos27,
     if (directField) liquidGlassDirectField,
     if (directField) liquidGlassDirectFieldIos27,
+    if (directFieldMaterial) liquidGlassDirectFieldMaterial,
+    if (directFieldMaterial) liquidGlassDirectFieldTint,
+    if (directFieldMaterial) liquidGlassDirectFieldTintIos27,
   ];
 
   static String get fakeGlassSurface =>

@@ -318,6 +318,7 @@ class FlutterGpuGeometryRenderer {
     List<double> boundsData = const <double>[],
     GlassField? field,
     double fieldScale = 1,
+    bool useDirectField = false,
   }) {
     assert(() {
       debugRenderCount++;
@@ -341,22 +342,28 @@ class FlutterGpuGeometryRenderer {
         return true;
       }(), 'Track replaced geometry textures in debug builds.');
     }
-    // The shader writes every pixel of the sub-rect; the rest of the texture
-    // is undefined and never sampled, so no clear or copy is needed.
-    final matte = _mattes.next(
-      _completedFrames,
-      width: matteWidth,
-      height: matteHeight,
-      maxWidth: viewWidth,
-      maxHeight: viewHeight,
-    );
-    _texture = matte.texture;
-    _renderTarget = matte.renderTarget;
-    _image = _texture!.asImage();
-    assert(() {
-      _debugActiveGeometryTextureCount++;
-      return true;
-    }(), 'Track live geometry textures in debug builds.');
+    assert(!useDirectField || (field != null && writeMaterials));
+    final directImage = useDirectField ? directFieldImage(field!) : null;
+    if (useDirectField) {
+      _mattes.releaseCurrent(_completedFrames);
+    } else {
+      // The shader writes every pixel of the sub-rect; the rest of the texture
+      // is undefined and never sampled, so no clear or copy is needed.
+      final matte = _mattes.next(
+        _completedFrames,
+        width: matteWidth,
+        height: matteHeight,
+        maxWidth: viewWidth,
+        maxHeight: viewHeight,
+      );
+      _texture = matte.texture;
+      _renderTarget = matte.renderTarget;
+      _image = _texture!.asImage();
+      assert(() {
+        _debugActiveGeometryTextureCount++;
+        return true;
+      }(), 'Track live geometry textures in debug builds.');
+    }
 
     final materialMapWidth = math.max(
       1,
@@ -431,42 +438,46 @@ class FlutterGpuGeometryRenderer {
 
     final uniformView = _emplaceUniforms(_uniformData, _uniformSize);
 
-    final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
-    gpu.Texture? fieldTexture;
-    gpu.BufferView? fieldUniformView;
-    try {
-      fieldTexture = field == null
-          ? null
-          : _uploadField(field, geometryCommandBuffer);
-      if (field != null && fieldTexture != null) {
-        _packFieldUniformData(
-          field: field,
-          fieldScale: fieldScale,
-          texture: fieldTexture,
-        );
-        fieldUniformView = _emplaceUniforms(_fieldUniformData, _uniformSize);
+    if (!useDirectField) {
+      final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
+      gpu.Texture? fieldTexture;
+      gpu.BufferView? fieldUniformView;
+      try {
+        fieldTexture = field == null
+            ? null
+            : _uploadField(field, geometryCommandBuffer);
+        if (field != null && fieldTexture != null) {
+          _packFieldUniformData(
+            field: field,
+            fieldScale: fieldScale,
+            texture: fieldTexture,
+          );
+          fieldUniformView = _emplaceUniforms(_fieldUniformData, _uniformSize);
+        }
+      } on Object {
+        geometryCommandBuffer.submit();
+        rethrow;
       }
-    } on Object {
-      geometryCommandBuffer.submit();
-      rethrow;
+      final geometryPass = geometryCommandBuffer.createRenderPass(
+        _renderTarget!,
+      );
+      if (fieldTexture == null || fieldUniformView == null) {
+        geometryPass
+          ..bindPipeline(_pipeline)
+          ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
+          ..bindUniform(_uniformSlot, uniformView)
+          ..bindVertexBuffer(_vertexBufferView);
+      } else {
+        geometryPass.bindPipeline(_fieldPipeline);
+        geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
+        geometryPass.bindUniform(_fieldUniformSlot, fieldUniformView);
+        geometryPass.bindTexture(_fieldTextureSlot, fieldTexture);
+        geometryPass.bindVertexBuffer(_vertexBufferView);
+      }
+      _restrictTo(geometryPass, _texture!, matteWidth, matteHeight);
+      geometryPass.draw(4);
+      _submitOrDefer(geometryCommandBuffer);
     }
-    final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!);
-    if (fieldTexture == null || fieldUniformView == null) {
-      geometryPass
-        ..bindPipeline(_pipeline)
-        ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
-        ..bindUniform(_uniformSlot, uniformView)
-        ..bindVertexBuffer(_vertexBufferView);
-    } else {
-      geometryPass.bindPipeline(_fieldPipeline);
-      geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
-      geometryPass.bindUniform(_fieldUniformSlot, fieldUniformView);
-      geometryPass.bindTexture(_fieldTextureSlot, fieldTexture);
-      geometryPass.bindVertexBuffer(_vertexBufferView);
-    }
-    _restrictTo(geometryPass, _texture!, matteWidth, matteHeight);
-    geometryPass.draw(4);
-    _submitOrDefer(geometryCommandBuffer);
     if (writeMaterials) {
       final materialCommandBuffer = gpu.gpuContext.createCommandBuffer();
       final materialPass =
@@ -490,11 +501,11 @@ class FlutterGpuGeometryRenderer {
     }
 
     return (
-      image: _image!,
+      image: directImage ?? _image!,
       width: matteWidth,
       height: matteHeight,
-      textureWidth: _texture!.width,
-      textureHeight: _texture!.height,
+      textureWidth: useDirectField ? matteWidth : _texture!.width,
+      textureHeight: useDirectField ? matteHeight : _texture!.height,
     );
   }
 
