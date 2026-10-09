@@ -1,8 +1,15 @@
+// The oracle pins a debug override of the renderer.
+// ignore_for_file: invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
 
 import 'package:flutter_test/flutter_test.dart';
+// The oracle pins the renderer's geometry path.
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
+    show RenderLiquidGlassLayer;
 import 'package:morph/widgets.dart';
 
 import '../integration_test/support/shader_harness.dart';
@@ -33,6 +40,12 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
+    // The oracle compares the matte path's shaders with a frozen copy that
+    // has no analytic variants: a build with MORPH_ANALYTIC_GEOMETRY would
+    // draw the candidate analytically and the baseline from its matte.
+    // analytic_geometry_host_test.dart compares the two paths instead.
+    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
     await tester.runAsync(MorphGlassRenderer.precache);
     if (_out.isNotEmpty) Directory(_out).createSync(recursive: true);
     final report = await runShaderParity(

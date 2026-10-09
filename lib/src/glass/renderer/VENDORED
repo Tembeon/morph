@@ -338,8 +338,19 @@ Local patches (some commits include related package changes):
   the union plus a bridge over every gap below the spacing, grown by a
   quarter of the spacing (morphGlassOutlineShadowCover). Flipping
   RenderLiquidGlassLayer.debugAnalyticGeometry notifies
-  analyticGeometryChanges, which glass hosts follow outside release
-  builds, so resting layers take the other field kind. The analytic
+  analyticGeometryChanges, which glass hosts follow in debug and profile
+  builds and in any build with the MORPH_ANALYTIC_GEOMETRY define (a
+  release build without it neither listens nor tracks layers), so
+  resting layers take the other field kind. The analytic
   shader skips the fused gradient and optics fold deeper inside than any
   bevel, glint, border or bevel shadow reads them (analyticFlatDepth);
   the host A/B is unchanged to the last digit.
+- 2026-10-09 analytic geometry, pre-flip cleanup: a layer analytic for two
+  frames with no matte between them hands its matte and material textures
+  back (FlutterGpuGeometryRenderer.releaseOutput, holdsOutput); the next
+  matte frame takes textures again. The analytic shaders are created only
+  once all four programs have loaded; GlassBoxField asserts uniform
+  circular corners; analytic layers share one 1x1 sampler placeholder,
+  disposed with the last layer that bound it. Analytic container members
+  match their own layers within one channel step (glass-renderer.md
+  "Container raster phase"); the matte parity oracle pins the matte path.

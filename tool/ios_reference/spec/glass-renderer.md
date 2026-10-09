@@ -687,6 +687,14 @@ container is content above its glass.
   (perf/2026-10-06-pixel6a-batch-gallery; one uncooled run each, its
   timings are not a measurement).
 
+- Analytic geometry (MORPH_ANALYTIC_GEOMETRY, 2026-10-09): an analytic
+  frame evaluates every shape where it is, with no matte grid, so the
+  container applies no raster-phase shift or bias and there is nothing to
+  tie. A member then matches its own layer NEAR, not bit for bit: host
+  (example/test/raster_phase_host_test.dart, 3x, origins 60.49 - 60.51
+  device px) max channel step 1 at 60.49, 60.499, 60.4999 and 60.51, 0 at
+  60.5 - 1e-9 through 60.5001; the matte path stays 0 at every origin.
+
 ### Package stages (2026-10-06, `MorphGlassStage`)
 
 A stage is a glass container a package widget owns: it is open only while

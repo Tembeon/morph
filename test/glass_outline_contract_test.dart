@@ -2,7 +2,8 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/glass/renderer/renderer.dart';
+import 'package:morph/src/glass/renderer/glass_field.dart';
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
@@ -78,7 +79,20 @@ void main() {
         for (final (_, outline) in frame.partsFor(MorphGlassTier.fake).fused) {
           expect(morphGlassOutlineField(outline), isNotNull);
         }
-        expect(frame.partsFor(MorphGlassTier.liquid), same(frame.parts));
+        final liquid = frame.partsFor(MorphGlassTier.liquid);
+        if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
+          // The liquid tier merges bodies of at most four boxes itself and
+          // takes the package's fused field for larger ones.
+          expect(liquid.fused, hasLength(frame.parts.fused.length));
+          for (final (members, outline) in liquid.fused) {
+            expect(
+              morphGlassOutlineField(outline) is GlassBoxField,
+              members.length <= GlassBoxField.maxBoxes,
+            );
+          }
+        } else {
+          expect(liquid, same(frame.parts));
+        }
       }
     },
   );

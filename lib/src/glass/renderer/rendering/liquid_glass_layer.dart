@@ -606,11 +606,16 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// glass by [analyticGeometryEnabled] chooses again.
   static Listenable get analyticGeometryChanges => _analyticChanges;
 
-  /// Whether layers whose shapes are separate evaluate them in the final
-  /// shader: [debugAnalyticGeometry], else [ShaderKeys.analyticGeometry].
+  /// Whether liquid layers evaluate their geometry in the final shader:
+  /// [debugAnalyticGeometry], else [ShaderKeys.analyticGeometry].
   ///
-  /// An analytic frame draws the same shading as the matte path; only the
-  /// matte's quantization and nearest sampling are gone. Its culling rect
+  /// A frame is analytic when it has at most [analyticMaxShapes] separate
+  /// shapes, or a [GlassBoxField] of at most [GlassBoxField.maxBoxes]
+  /// merged boxes, and one appearance or appearances that differ only by
+  /// tint; every other frame renders a matte. Separate shapes draw the
+  /// same shading as the matte path, only the matte's quantization and
+  /// nearest sampling gone; merged boxes follow the container's merge law
+  /// exactly, where the sampled field approximates it on a 4 pt grid. Its culling rect
   /// and the bevel shadow's size response (written as 0, so inert today)
   /// read the geometry bounds rounded out to device pixels, not a texture
   /// size bucket. Shapes are evaluated where they are, without the matte's
@@ -662,18 +667,18 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // programs have loaded and starting the loads otherwise.
   bool _analyticShadersReady() {
     if (_analyticShaders != null) return true;
-    final shaders = <FragmentShader>[];
-    for (final key in ShaderKeys.liquidGlassAnalyticRenders) {
-      final program = _analyticPrograms[key];
-      if (program == null) {
+    final keys = ShaderKeys.liquidGlassAnalyticRenders;
+    var ready = true;
+    for (final key in keys) {
+      if (_analyticPrograms[key] == null) {
         unawaited(_loadAnalyticProgram(key));
-        for (final shader in shaders) {
-          shader.dispose();
-        }
-        return false;
+        ready = false;
       }
-      shaders.add(program.fragmentShader());
     }
+    if (!ready) return false;
+    final shaders = [
+      for (final key in keys) _analyticPrograms[key]!.fragmentShader(),
+    ];
     _analyticShaders = shaders;
     _staleShaders.addAll(shaders);
     return true;
@@ -696,6 +701,49 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // Whether the current frame's shapes are evaluated in the final shader
   // instead of read from a geometry matte.
   bool _analytic = false;
+
+  // Geometry frames rendered as a matte, counted so a release waits for a
+  // run of analytic frames without one.
+  int _matteBuilds = 0;
+  bool _matteReleaseScheduled = false;
+
+  // Hands the renderer's matte and material textures back once this layer
+  // has drawn analytic frames for two frames with no matte between them;
+  // the next matte frame takes textures again.
+  void _scheduleMatteRelease() {
+    if (_matteReleaseScheduled) return;
+    final renderer = _gpuGeometryRenderer;
+    if (renderer == null || !renderer.holdsOutput) return;
+    _matteReleaseScheduled = true;
+    final builds = _matteBuilds;
+    final scheduler = SchedulerBinding.instance;
+    scheduler.addPostFrameCallback((_) {
+      if (!attached || !_analytic || _matteBuilds != builds) {
+        _matteReleaseScheduled = false;
+        return;
+      }
+      scheduler.addPostFrameCallback((_) {
+        _matteReleaseScheduled = false;
+        final renderer = _gpuGeometryRenderer;
+        if (attached &&
+            _analytic &&
+            _matteBuilds == builds &&
+            renderer != null &&
+            _geometryImage == null) {
+          renderer.releaseOutput();
+          assert(() {
+            debugMatteReleases++;
+            return true;
+          }());
+        }
+      });
+      scheduler.scheduleFrame();
+    });
+  }
+
+  /// The times layers handed their matte textures back, in debug builds.
+  @visibleForTesting
+  static int debugMatteReleases = 0;
 
   // Why the latest geometry frame was not analytic, or null when it was.
   String? _analyticIneligibility;
@@ -1013,8 +1061,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   bool get drawableEmpty =>
       shapesWithGeometry.isNotEmpty && !hasDrawableGlass(shapesWithGeometry);
 
-  /// True once geometry has been encoded, so ancestor motion can stay on the
-  /// compositor without crossing this layer's repaint boundary.
+  /// True once geometry is ready to draw again - a matte encoded, or an
+  /// analytic frame's shapes written into its shader's uniforms - so
+  /// ancestor motion can stay on the compositor without crossing this
+  /// layer's repaint boundary.
   @protected
   bool get hasReusableGeometry => _geometryImage != null || _analytic;
 
@@ -1138,6 +1188,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _releaseGeometryImageHandles();
       _geometryImage = result.image;
       _analytic = result.analytic;
+      if (_analytic) _scheduleMatteRelease();
       _materialImage = result.materialImage;
       _geometryMatteBounds = result.matteBounds;
       _geometryTextureSize = result.textureSize;
@@ -1259,6 +1310,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             );
             _geometryImage = gpuResult.image;
             _analytic = gpuResult.analytic;
+            if (_analytic) _scheduleMatteRelease();
             _materialImage = gpuResult.materialImage;
             _geometryMatteBounds = gpuResult.matteBounds;
             _geometryTextureSize = gpuResult.textureSize;
@@ -1361,7 +1413,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // texture. Newer engines use morphGlassShaderFilter's explicit quality.
       activeRenderShader.setImageSampler(
         0,
-        _analyticSamplerImage ??= _blankImage(),
+        _holdBlankImage(),
         filterQuality: FilterQuality.low,
       );
       _writeAnalyticUniforms(activeRenderShader);
@@ -1404,17 +1456,41 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   Rect? _boundMatteBounds;
 
   // The image bound to the background sampler before the native filter
-  // replaces it with its input, when no matte exists to bind there.
-  ui.Image? _analyticSamplerImage;
+  // replaces it with its input, when no matte exists to bind there: one
+  // 1x1 image every analytic layer shares, disposed with the last layer
+  // that bound it. A shader keeps its own reference to a bound image, so
+  // disposing the handle never pulls it from under a filter.
+  static ui.Image? _blankImage;
+  static int _blankImageHolders = 0;
+  bool _holdsBlankImage = false;
 
-  static ui.Image _blankImage() {
-    final recorder = ui.PictureRecorder();
-    Canvas(recorder);
-    final picture = recorder.endRecording();
-    final image = picture.toImageSync(1, 1);
-    picture.dispose();
-    return image;
+  ui.Image _holdBlankImage() {
+    if (!_holdsBlankImage) {
+      _holdsBlankImage = true;
+      _blankImageHolders++;
+    }
+    return _blankImage ??= () {
+      final recorder = ui.PictureRecorder();
+      Canvas(recorder);
+      final picture = recorder.endRecording();
+      final image = picture.toImageSync(1, 1);
+      picture.dispose();
+      return image;
+    }();
   }
+
+  void _releaseBlankImage() {
+    if (!_holdsBlankImage) return;
+    _holdsBlankImage = false;
+    if (--_blankImageHolders == 0) {
+      _blankImage?.dispose();
+      _blankImage = null;
+    }
+  }
+
+  /// Whether the shared placeholder image exists, for tests.
+  @visibleForTesting
+  static bool get debugHasBlankImage => _blankImage != null;
 
   /// Float index of uAnalyticOptics, the first analytic uniform, after the
   /// 65 common floats (shaders/analytic_geometry.glsl).
@@ -1987,8 +2063,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _cachedFilter = null;
     _clearGeometryImage();
     _gpuGeometryRenderer = null;
-    _analyticSamplerImage?.dispose();
-    _analyticSamplerImage = null;
+    _releaseBlankImage();
     if (_analyticShaders case final shaders?) {
       _staleShaders.removeAll(shaders);
       for (final shader in shaders) {
@@ -2388,6 +2463,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         );
       }
 
+      _matteBuilds++;
       final result = renderer.render(
         width: textureWidth,
         height: textureHeight,

@@ -1,9 +1,15 @@
+// ignore_for_file: invalid_use_of_internal_member
+
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+// The test reads which geometry path the renderer takes.
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
+    show RenderLiquidGlassLayer;
 import 'package:morph/widgets.dart';
 
 /// Glass container members against their own layers on the host's
@@ -23,6 +29,9 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.runAsync(MorphGlassRenderer.precache);
     if (!MorphGlassRenderer.liquidAvailable) return;
+    if (RenderLiquidGlassLayer.analyticGeometryEnabled) {
+      await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    }
     final boundary = GlobalKey();
     Future<Uint8List> shot(double top, {required bool container}) async {
       final buttons = Stack(
@@ -73,6 +82,12 @@ void main() {
       return data!.buffer.asUint8List();
     }
 
+    // Analytic frames evaluate every shape where it is: they have no matte
+    // grid to share, so a member's rim matches its own layer's within the
+    // rasterization of the two passes (NEAR, glass-renderer.md "Glass
+    // container") instead of bit for bit.
+    final analytic = RenderLiquidGlassLayer.analyticGeometryEnabled;
+    final worstAt = <double, int>{};
     for (final device in <double>[
       60.49,
       60.499,
@@ -91,7 +106,17 @@ void main() {
         final d = (own[i] - shared[i]).abs();
         if (d > worst) worst = d;
       }
-      expect(worst, 0, reason: 'origin at $device device px');
+      worstAt[device] = worst;
+    }
+    // The comparison per origin is the test's output.
+    // ignore: avoid_print
+    print('analytic $analytic worst channel step per origin $worstAt');
+    for (final MapEntry(key: device, value: worst) in worstAt.entries) {
+      expect(
+        worst,
+        lessThanOrEqualTo(analytic ? 1 : 0),
+        reason: 'origin at $device device px',
+      );
     }
   });
 }

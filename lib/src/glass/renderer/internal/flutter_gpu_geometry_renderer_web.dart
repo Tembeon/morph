@@ -84,6 +84,9 @@ class FlutterGpuGeometryRenderer {
     double fieldScale = 1,
   }) => throw UnsupportedError('Flutter GPU is not available on the web.');
 
+  /// Nothing is held on the web.
+  bool get holdsOutput => false;
+
   void releaseOutput() {}
 
   void dispose() {}

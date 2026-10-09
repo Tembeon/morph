@@ -14,6 +14,8 @@ import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
@@ -606,5 +608,64 @@ void main() {
         reason: merged.name,
       );
     }
+  });
+
+  testWidgets('an analytic layer hands its matte textures back', (
+    WidgetTester tester,
+  ) async {
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+    tester.view.physicalSize = const ui.Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    final harness = ShaderHarness(tester);
+    final glassCase = harnessCases.firstWhere((c) => c.name == 'tint-pair');
+
+    Future<void> frames(int count) async {
+      for (var i = 0; i < count; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 5)),
+        );
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+    }
+
+    RenderLiquidGlassLayer layer() => tester.allRenderObjects
+        .whereType<RenderLiquidGlassLayer>()
+        .toSet()
+        .single;
+
+    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    await harness.show(glassCase, ShaderVariant.candidate);
+    final matte = await harness.shoot();
+    final renderer = layer().gpuGeometryRenderer!;
+    expect(renderer.holdsOutput, isTrue);
+    final releases = RenderLiquidGlassLayer.debugMatteReleases;
+    final textures = FlutterGpuGeometryRenderer.debugActiveGeometryTextureCount;
+
+    // Alternating frames keep the textures.
+    for (var i = 0; i < 6; i++) {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = i.isEven;
+      await frames(1);
+    }
+    expect(RenderLiquidGlassLayer.debugMatteReleases, releases);
+
+    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    await frames(6);
+    expect(layer().debugAnalytic, isTrue);
+    expect(renderer.holdsOutput, isFalse);
+    expect(RenderLiquidGlassLayer.debugMatteReleases, releases + 1);
+    expect(
+      FlutterGpuGeometryRenderer.debugActiveGeometryTextureCount,
+      lessThan(textures),
+    );
+
+    RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+    await frames(6);
+    expect(layer().debugAnalytic, isFalse);
+    expect(renderer.holdsOutput, isTrue);
+    expect(HarnessDiff.of(await harness.shoot(), matte).max, 0);
   });
 }

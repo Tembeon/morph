@@ -83,8 +83,18 @@ class GlassBoxField implements GlassField {
     required this.boxes,
     required this.spacing,
     required GlassField Function() fuse,
-  }) : _root = _LazyField(fuse),
+  }) : assert(
+         boxes.every(_uniform),
+         'Merged glass boxes require uniform circular corner radii.',
+       ),
+       _root = _LazyField(fuse),
        _offset = Offset.zero;
+
+  static bool _uniform(RRect box) =>
+      box.tlRadiusX == box.tlRadiusY &&
+      box.tlRadius == box.trRadius &&
+      box.tlRadius == box.blRadius &&
+      box.tlRadius == box.brRadius;
 
   GlassBoxField._moved(this.boxes, this.spacing, this._root, this._offset);
 

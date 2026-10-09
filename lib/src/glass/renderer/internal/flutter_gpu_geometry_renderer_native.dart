@@ -863,6 +863,13 @@ class FlutterGpuGeometryRenderer {
     to[size + 3] = 1 / texture.height;
   }
 
+  /// Whether this renderer holds matte or material textures, in use or
+  /// spare.
+  bool get holdsOutput =>
+      _mattes.textureCount + _materials.textureCount > 0 ||
+      _texture != null ||
+      _materialTexture != null;
+
   /// Releases borrowed output handles, keeping reusable rendering resources.
   ///
   /// Callers retaining an output must clone its images before calling this.

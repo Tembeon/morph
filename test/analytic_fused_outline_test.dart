@@ -174,4 +174,15 @@ void main() {
       isNull,
     );
   });
+
+  test('merged boxes need uniform circular corners', () {
+    expect(
+      () => GlassBoxField(
+        boxes: [RRect.fromRectXY(const Rect.fromLTWH(0, 0, 80, 40), 10, 15)],
+        spacing: 12,
+        fuse: () => throw StateError('never fused'),
+      ),
+      throwsAssertionError,
+    );
+  });
 }

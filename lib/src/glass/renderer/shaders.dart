@@ -36,9 +36,11 @@ abstract class ShaderKeys {
   static String get liquidGlassTintIos27Render =>
       '${_runtimeRoot}liquid_glass_final_render_tint_ios27.frag';
 
-  /// Whether layers whose shapes are separate evaluate them in the final
-  /// shader instead of rendering a geometry matte; set at compile time with
-  /// `--dart-define=MORPH_ANALYTIC_GEOMETRY=true`.
+  /// Whether liquid layers evaluate their geometry in the final shader
+  /// instead of rendering a geometry matte: up to eight separate shapes,
+  /// and a glass container's fused body of up to four boxes (merged by the
+  /// container's law, never fused on the CPU). Set at compile time with
+  /// `--dart-define=MORPH_ANALYTIC_GEOMETRY=true`; off by default.
   static const bool analyticGeometry = bool.fromEnvironment(
     'MORPH_ANALYTIC_GEOMETRY',
   );
