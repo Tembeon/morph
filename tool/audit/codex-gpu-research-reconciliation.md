@@ -1,5 +1,9 @@
 # GPU research reconciliation (2026-10-08)
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 Owner research: /Users/tembeon/Downloads/morph_gpu_liquid_glass_research.md.
 An unchanged copy and SHA are retained in
 ../ios_reference/perf/2026-10-08-architecture/references.

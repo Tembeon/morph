@@ -1,5 +1,9 @@
 # Direct field and Android scheduling experiments (2026-10-08)
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 WIP, beta only, Pixel 6a Vulkan, actual dark Navigation, 60 Hz, arm64.
 Profile and release evidence are labeled separately below.
 All code paths are opt-in. No production adoption or weak-device guarantee.
