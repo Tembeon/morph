@@ -9,6 +9,7 @@ import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
+import 'package:morph/src/widgets/bar_glyph_filter.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -698,6 +699,21 @@ Rect _mirror(Rect r, double width) =>
 /// [MorphGlassButton].
 @internal
 class MorphBarItems extends StatefulWidget {
+  /// Whether compatible adjacent foreground items share paint filters.
+  @visibleForTesting
+  static bool debugBatchGlyphFilters = const bool.fromEnvironment(
+    'MORPH_BAR_GLYPH_BATCH',
+  );
+
+  /// Whether the foreground filter uses the content's intrinsic box.
+  ///
+  /// The experimental path keeps the item and its hit target at their
+  /// measured size, with the filtered content centered inside that box.
+  @visibleForTesting
+  static bool debugBoundedGlyphFilters = const bool.fromEnvironment(
+    'MORPH_BAR_GLYPH_BOUNDS',
+  );
+
   /// Creates the row.
   const MorphBarItems({
     required this.groups,
@@ -1277,37 +1293,43 @@ class _MorphBarItemsState extends State<MorphBarItems>
                   ),
             ];
             final menuCapsule = _menuCapsule();
-            final content = Stack(
-              key: _contentKey,
-              clipBehavior: Clip.none,
-              children: [
-                Positioned.fromRect(
-                  rect: menuCapsule ?? Rect.zero,
-                  child: IgnorePointer(
-                    child: Builder(
-                      builder: (BuildContext context) {
-                        _scopeContext = context;
-                        return MorphTag(
-                          id: _menuTag,
-                          shape: const StadiumBorder(),
-                          child: const SizedBox.expand(),
-                        );
-                      },
-                    ),
+            final contents = <Widget>[
+              Positioned.fromRect(
+                rect: menuCapsule ?? Rect.zero,
+                child: IgnorePointer(
+                  child: Builder(
+                    builder: (BuildContext context) {
+                      _scopeContext = context;
+                      return MorphTag(
+                        id: _menuTag,
+                        shape: const StadiumBorder(),
+                        child: const SizedBox.expand(),
+                      );
+                    },
                   ),
                 ),
-                for (final f in items)
-                  if (_buttons[f.id] case final button?)
-                    if (!_carried(_capsuleOf[f.id] ?? f.id))
-                      _buildItem(
-                        button,
-                        f,
-                        style,
-                        direction,
-                        capsuleId: _capsuleOf[f.id],
-                      ),
-              ],
-            );
+              ),
+              for (final f in items)
+                if (_buttons[f.id] case final button?)
+                  if (!_carried(_capsuleOf[f.id] ?? f.id))
+                    _buildItem(
+                      button,
+                      f,
+                      style,
+                      direction,
+                      capsuleId: _capsuleOf[f.id],
+                    ),
+            ];
+            final content =
+                MorphBarItems.debugBatchGlyphFilters &&
+                    !MorphBarItems.debugBoundedGlyphFilters &&
+                    !MorphGlyphBlurAtlas.enabled
+                ? MorphBarGlyphStack(key: _contentKey, children: contents)
+                : Stack(
+                    key: _contentKey,
+                    clipBehavior: Clip.none,
+                    children: contents,
+                  );
             final spacing = widget.metrics.containerSpacing;
             final bar = SizedBox(
               width: constraints.maxWidth,
@@ -1417,7 +1439,15 @@ class _MorphBarItemsState extends State<MorphBarItems>
       scale *= press.scale;
     }
     final metrics = widget.metrics;
-    final inputs = (button, color, iconColor, prominent, direction, metrics);
+    final inputs = (
+      button,
+      color,
+      iconColor,
+      prominent,
+      direction,
+      metrics,
+      MorphBarItems.debugBoundedGlyphFilters,
+    );
     final cached = _contents[button.id];
     Widget content;
     if (cached != null && cached.$1 == inputs) {
@@ -1430,6 +1460,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         iconColor: iconColor,
         bold: prominent,
         direction: direction,
+        bounded: MorphBarItems.debugBoundedGlyphFilters,
       );
       _contents[button.id] = (inputs, content);
     }
@@ -1451,7 +1482,11 @@ class _MorphBarItemsState extends State<MorphBarItems>
         child: content,
       );
     }
-    if (!blurAtlas && frame.blur > 0.05) {
+    final batch =
+        MorphBarItems.debugBatchGlyphFilters &&
+        !MorphBarItems.debugBoundedGlyphFilters &&
+        !MorphGlyphBlurAtlas.enabled;
+    if (!batch && !blurAtlas && frame.blur > 0.05) {
       content = ImageFiltered(
         imageFilter: ui.ImageFilter.blur(
           sigmaX: frame.blur,
@@ -1461,8 +1496,28 @@ class _MorphBarItemsState extends State<MorphBarItems>
         child: content,
       );
     }
-    content = Transform.scale(scale: scale, child: content);
-    if (!blurAtlas) {
+    if (MorphBarItems.debugBoundedGlyphFilters) {
+      content = Center(child: content);
+    }
+    if (batch) {
+      content = MorphBarGlyphFilter(
+        sigma: frame.blur > 0.05 ? frame.blur : 0,
+        scale: scale,
+        opacity: frame.presence,
+        allowBatch:
+            !kIsWeb &&
+            defaultTargetPlatform == TargetPlatform.android &&
+            (button.label != null ||
+                switch (button.icon) {
+                  Icon(shadows: final shadows) => shadows?.isNotEmpty != true,
+                  _ => false,
+                }),
+        child: content,
+      );
+    } else {
+      content = Transform.scale(scale: scale, child: content);
+    }
+    if (!batch && !blurAtlas) {
       content = Opacity(
         opacity: frame.presence.clamp(0.0, 1.0),
         child: content,
@@ -1569,6 +1624,7 @@ class _ButtonContent extends StatelessWidget {
     required this.color,
     required this.bold,
     required this.direction,
+    this.bounded = false,
     Color? iconColor,
   }) : iconColor = iconColor ?? color;
 
@@ -1578,6 +1634,7 @@ class _ButtonContent extends StatelessWidget {
   final Color iconColor;
   final bool bold;
   final TextDirection direction;
+  final bool bounded;
 
   @override
   Widget build(BuildContext context) {
@@ -1595,7 +1652,7 @@ class _ButtonContent extends StatelessWidget {
             ).copyWith(color: color),
           );
     if (button.back) {
-      return Padding(
+      final back = Padding(
         padding: EdgeInsetsDirectional.only(start: metrics.backChevronInset),
         child: Row(
           children: [
@@ -1616,8 +1673,11 @@ class _ButtonContent extends StatelessWidget {
           ],
         ),
       );
+      return bounded ? Center(heightFactor: 1, child: back) : back;
     }
     return Center(
+      widthFactor: bounded ? 1 : null,
+      heightFactor: bounded ? 1 : null,
       child:
           text ??
           IconTheme.merge(

@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/bar_glyph_filter.dart';
 import 'package:morph/src/widgets/glyph_blur_atlas.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
@@ -405,6 +406,30 @@ class _BenchState extends State<_Bench> {
           });
         }
       }
+      if (widget is MorphBarGlyphFilter &&
+          widget.sigma > 0 &&
+          widget.opacity > 0) {
+        final object = element.findRenderObject();
+        if (object is RenderBox && object.attached && object.hasSize) {
+          final local = Rect.fromCenter(
+            center: object.size.center(Offset.zero),
+            width: object.size.width * widget.scale,
+            height: object.size.height * widget.scale,
+          );
+          final rect = MatrixUtils.transformRect(
+            object.getTransformTo(null),
+            local,
+          );
+          foreground.add({
+            'filter': 'Gaussian cohort sprite',
+            'sigma': widget.sigma,
+            'scale': widget.scale,
+            'opacity': widget.opacity,
+            'source_size_logical': [object.size.width, object.size.height],
+            'screen_rect': [rect.left, rect.top, rect.width, rect.height],
+          });
+        }
+      }
       element.visitChildren(content);
     }
 
@@ -626,7 +651,8 @@ class _BenchState extends State<_Bench> {
               'requested_sigma_logical': 2,
               'diagnostic_ablation': c.mode == 'flat',
               'glyph_blur_atlas': MorphGlyphBlurAtlas.enabled,
-
+              'bounded_glyph_filters': MorphBarItems.debugBoundedGlyphFilters,
+              'batch_glyph_filters': MorphBarItems.debugBatchGlyphFilters,
               'glyph_atlas_reduced': MorphGlyphBlurAtlas.reduced,
               'glyph_atlas_captures': MorphGlyphBlurAtlas.captures,
               'glyph_atlas_live_bytes': MorphGlyphBlurAtlas.liveBytes,
