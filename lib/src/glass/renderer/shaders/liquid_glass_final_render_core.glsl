@@ -10,8 +10,10 @@
 precision highp float;
 
 #include <flutter/runtime_effect.glsl>
+#if !OWNED_BACKGROUND
 #include "gpu/displacement_encoding.glsl"
 #include "render.glsl"
+#endif
 
 uniform vec2 uSize;
 uniform vec2 uGeometryOffset;
@@ -53,6 +55,13 @@ uniform vec2 uMaterialTextureSize;
 // Half the line backdropShrink is about, matte device px from the material
 // center. Zero shrinks about the center itself.
 uniform vec2 uBackdropShrinkAxis;
+
+#if OWNED_BACKGROUND
+// Standalone optical experiment: canvas coordinates are layer physical px.
+uniform vec4 uOwnedBasis;
+uniform vec2 uOwnedOffset;
+uniform float uOwnedMix;
+#endif
 
 float uDisplacementScale = uOpticalProps.x;
 float uDispersion = uOpticalProps.y;
@@ -121,6 +130,26 @@ uniform sampler2D uMaterialTexture;
 #if SHAPE_APPEARANCE
 uniform sampler2D uMaterialLinearTexture;
 #endif
+#if OWNED_BACKGROUND
+uniform sampler2D uOwnedUpper;
+#endif
+
+vec4 sampleBackground(vec2 uv) {
+    #if OWNED_BACKGROUND
+    vec2 local = uv * uSize;
+    vec2 source = vec2(dot(uOwnedBasis.xy, local), dot(uOwnedBasis.zw, local))
+        + uOwnedOffset;
+    vec2 sourceUV = source / uSize;
+    sourceUV = vec2(1.0) - abs(mod(sourceUV, vec2(2.0)) - vec2(1.0));
+    vec2 halfTexel = vec2(0.5) / uSize;
+    sourceUV = clamp(sourceUV, halfTexel, vec2(1.0) - halfTexel);
+    vec4 lower = texture(uBackgroundTexture, sourceUV);
+    if (uOwnedMix <= 0.0) return lower;
+    return mix(lower, texture(uOwnedUpper, sourceUV), uOwnedMix);
+    #else
+    return texture(uBackgroundTexture, uv);
+    #endif
+}
 
 layout(location = 0) out vec4 fragColor;
 
@@ -313,6 +342,9 @@ float contourDirection(vec2 surfaceNormal) {
 }
 
 vec2 mirrorBackgroundUV(vec2 uv, vec2 inverseTextureSize) {
+    #if OWNED_BACKGROUND
+    return uv; // Mirror after mapping into the shared source plane.
+    #else
     // Image-filter sampler edge behavior differs between Impeller backends.
     // Preserve every coordinate inside the input texture exactly, and mirror
     // only displaced samples that genuinely leave it. This avoids GLES decal
@@ -320,6 +352,7 @@ vec2 mirrorBackgroundUV(vec2 uv, vec2 inverseTextureSize) {
     vec2 mirrored = vec2(1.0) - abs(mod(uv, vec2(2.0)) - vec2(1.0));
     vec2 halfTexel = inverseTextureSize * 0.5;
     return clamp(mirrored, halfTexel, vec2(1.0) - halfTexel);
+    #endif
 }
 
 vec2 filterDeltaFromMatteDelta(vec2 matteDelta, vec4 basis) {
@@ -778,11 +811,11 @@ void main() {
             // bilinear (whose fixed-point sub-texel weights are never exactly
             // zero at texel centres).
             refractedUV = (floor(fragCoord) + 0.5) * invUSize;
-            #ifdef IMPELLER_TARGET_OPENGLES
+            #if defined(IMPELLER_TARGET_OPENGLES) || OWNED_BACKGROUND
             // The GLES runtime stages also emit GLSL ES 1.00, which has no
             // texelFetch. The texel centre is exact under nearest sampling;
             // bilinear can differ by a few LSB at hard edges.
-            refractColor = texture(uBackgroundTexture, refractedUV);
+            refractColor = sampleBackground(refractedUV);
             #else
             refractColor = texelFetch(
                 uBackgroundTexture,
@@ -793,8 +826,7 @@ void main() {
         } else {
             refractedUV = screenUV +
                 mirrorIntoBackdrop(sourceOffset, matteCoord) * invUSize;
-            refractColor = texture(
-                uBackgroundTexture,
+            refractColor = sampleBackground(
                 mirrorBackgroundUV(refractedUV, invUSize)
             );
         }
@@ -805,8 +837,8 @@ void main() {
             vec2 tapA = mirrorBackgroundUV(refractedUV + softenTap, invUSize);
             vec2 tapB = mirrorBackgroundUV(refractedUV - softenTap, invUSize);
             refractColor = 0.5 * refractColor + 0.25 * (
-                texture(uBackgroundTexture, tapA) +
-                texture(uBackgroundTexture, tapB)
+                sampleBackground(tapA) +
+                sampleBackground(tapB)
             );
         }
     } else {
@@ -836,9 +868,9 @@ void main() {
             invUSize
         );
         
-        float red = texture(uBackgroundTexture, redUV).r;
-        vec4 greenSample = texture(uBackgroundTexture, greenUV);
-        float blue = texture(uBackgroundTexture, blueUV).b;
+        float red = sampleBackground(redUV).r;
+        vec4 greenSample = sampleBackground(greenUV);
+        float blue = sampleBackground(blueUV).b;
         
         refractColor = vec4(red, greenSample.g, blue, greenSample.a);
     }

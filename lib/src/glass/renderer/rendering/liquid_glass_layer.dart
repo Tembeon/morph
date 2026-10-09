@@ -18,6 +18,7 @@ import 'package:morph/src/glass/renderer/internal/filter_pass_transform.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
+import 'package:morph/src/glass/renderer/internal/owned_glass_backdrop.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameters.dart';
@@ -553,6 +554,30 @@ class _LayerSettings extends ChangeNotifier
 class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     with TransformTrackingRenderObjectMixin, GlassLiveBinding
     implements LiquidGlassLayerRenderObject {
+  /// Standalone research hook; null preserves the production backdrop path.
+  ///
+  /// The harness must invalidate each consumer when its source/mapping changes.
+  /// Only uniform appearances with the regular matte are supported currently.
+  @visibleForTesting
+  static OwnedGlassBackdrop? Function(RenderLiquidGlassLayer)?
+  debugOwnedBackdrop;
+
+  /// Shader specialization required by the owned-source experiment.
+  @visibleForTesting
+  String? get debugOwnedVariant {
+    if (_directField || _directGeometry || _usesShapeAppearances) return null;
+    return (_uniformAppearance ?? defaultAppearance).colorModel
+            is DirectLiquidGlassColorModel
+        ? 'direct'
+        : 'ios27';
+  }
+
+  OwnedGlassBackdrop? _ownedBackdrop;
+
+  /// Counts actual direct optical draws in the standalone research hook.
+  @visibleForTesting
+  static int debugOwnedPaints = 0;
+
   RenderLiquidGlassLayer({
     required this.defaultRenderShader,
     required this.ios27RenderShader,
@@ -634,6 +659,16 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// one-appearance and tint-only variants inside the register budget of
   /// full thread occupancy on a Mali-G78.
   FragmentShader get renderShader {
+    final owned = debugOwnedBackdrop?.call(this);
+    _ownedBackdrop = owned;
+    if (owned != null) {
+      _writeCommonShaderUniforms(
+        owned.shader,
+        _uniformAppearance ?? defaultAppearance,
+        _materialCenterInMatte,
+      );
+      return owned.shader;
+    }
     final ios27 =
         (_uniformAppearance ?? defaultAppearance).colorModel
             is! DirectLiquidGlassColorModel;
@@ -1401,6 +1436,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @protected
   bool syncCoordinateMapping() {
+    final activeShader = renderShader;
     final mapping = _currentCoordinateMapping();
     final backdropBounds = backdropSampleBounds;
     final changed =
@@ -1408,11 +1444,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _coordinateMapping = mapping;
     _backdropBounds = backdropBounds;
     if (changed) _shaderInputsChanged = true;
-    _writeCoordinateMapping(renderShader, mapping, backdropBounds);
+    _writeCoordinateMapping(activeShader, mapping, backdropBounds);
     return changed;
   }
 
   (double, double, double, double, double, double) _currentCoordinateMapping() {
+    if (_ownedBackdrop != null) return (1, 0, 0, 1, 0, 0);
     final layerToPass = shaderCoordinateTransform;
     final globalToMatte = _globalToMatte;
     if (globalToMatte.copyInverse(layerToPass) == 0.0) {
@@ -1635,6 +1672,55 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     Rect materialBounds,
   ) {
     if (!attached) return;
+    if (_ownedBackdrop != null) {
+      _releaseCompositorFilter();
+      _filterMaterialBounds = materialBounds;
+      syncCoordinateMapping();
+      // The source painter can publish a new image earlier in this same
+      // paint traversal. Resolve the borrowed frame after refreshing inputs.
+      final source = _ownedBackdrop!;
+      debugFilterBounds = materialBounds;
+      if (drawableEmpty) return;
+      debugOwnedPaints++;
+      final shader = source.shader;
+      final m = source.layerToSource.storage;
+      if (m[3] != 0 || m[7] != 0 || m[15] != 1) {
+        throw StateError('Owned glass source requires an affine mapping');
+      }
+      shader.setFloat(0, source.sourceSize.width);
+      shader.setFloat(1, source.sourceSize.height);
+      final values = <double>[
+        m[0],
+        m[4],
+        m[1],
+        m[5],
+        m[12] * devicePixelRatio,
+        m[13] * devicePixelRatio,
+        source.mix,
+      ];
+      for (var i = 0; i < values.length; i++) {
+        shader.setFloat(65 + i, values[i]);
+      }
+      shader.setImageSampler(0, source.lower, filterQuality: FilterQuality.low);
+      shader.setImageSampler(2, source.upper, filterQuality: FilterQuality.low);
+      final paint = Paint();
+      paint.shader = shader;
+      final canvas = context.canvas;
+      canvas.save();
+      canvas.translate(offset.dx, offset.dy);
+      canvas.scale(1 / devicePixelRatio);
+      canvas.drawRect(
+        Rect.fromLTRB(
+          materialBounds.left * devicePixelRatio,
+          materialBounds.top * devicePixelRatio,
+          materialBounds.right * devicePixelRatio,
+          materialBounds.bottom * devicePixelRatio,
+        ),
+        paint,
+      );
+      canvas.restore();
+      return;
+    }
     // The engine snapshots this shader's uniforms into the native image
     // filter at creation, so the composed filter can only be reused while
     // every snapshotted input is unchanged. Repaints with identical shader

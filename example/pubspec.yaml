@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_gpu:
+    sdk: flutter
   material_ui: ^1.1.0
   morph:
     path: ../
@@ -28,9 +30,15 @@ flutter:
   # renders these frozen copies of the package's runtime shaders next to
   # the live ones in the same app.
   shaders:
+    - lib/perf/shaders/owned_glass_direct.frag
+    - lib/perf/shaders/owned_glass_ios27.frag
+    - lib/perf/shaders/mip_lod.frag
+    - lib/perf/shaders/mip_consumer.frag
     - shader_audit/baseline/liquid_glass_final_render.frag
     - shader_audit/baseline/liquid_glass_final_render_material.frag
     - shader_audit/baseline/liquid_glass_final_render_tint.frag
     - shader_audit/baseline/liquid_glass_final_render_ios27.frag
     - shader_audit/baseline/liquid_glass_final_render_tint_ios27.frag
     - shader_audit/baseline/fake_glass_surface.frag
+  assets:
+    - perf_assets/mip.shaderbundle
