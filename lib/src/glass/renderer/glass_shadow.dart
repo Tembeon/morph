@@ -168,32 +168,43 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
     return bounds;
   }
 
-  // What paint draws, in local coordinates, for the size, shape, shadows
-  // and visibility it was made for: built once and translated to the
-  // paint offset, so a shadow that only moves rebuilds no path.
-  _ShadowPlan? _plan;
+  // The clip and shapes paint draws, in local coordinates, for the size,
+  // shape and shadow geometry they were made for: built once and
+  // translated to the paint offset, so a shadow that moves or fades
+  // rebuilds no path.
+  _ShadowGeometry? _geometry;
 
-  _ShadowPlan _planFor(Size size) {
-    final plan = _plan;
-    if (plan != null &&
-        plan.size == size &&
-        plan.shape == shape &&
-        listEquals(plan.shadows, shadows) &&
-        plan.visibility == visibility) {
-      return plan;
+  // The paints for the shadows and visibility they were made for.
+  List<Paint>? _paints;
+  List<BoxShadow>? _paintShadows;
+  double? _paintVisibility;
+
+  _ShadowGeometry _geometryFor(Size size) {
+    final geometry = _geometry;
+    if (geometry != null &&
+        geometry.size == size &&
+        geometry.shape == shape &&
+        geometry.fits(shadows)) {
+      return geometry;
     }
     final rect = Offset.zero & size;
     final needsCutout = shadows.any((s) => s.offset != Offset.zero);
     Path? outside;
     if (needsCutout) {
+      // The clip reaches past the support of every shadow at full
+      // visibility; a fading shadow reaches less far, so the same clip
+      // cuts the same pixels.
       var bounds = rect;
       for (final shadow in shadows) {
         bounds = bounds.expandToInclude(
           rect
               .shift(shadow.offset)
               .inflate(
-                shadow.spreadRadius +
-                    glassShadowBlurSupport(shadow.blurRadius * visibility),
+                math.max(
+                  shadow.spreadRadius +
+                      glassShadowBlurSupport(shadow.blurRadius),
+                  0,
+                ),
               ),
         );
       }
@@ -202,41 +213,53 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
       outside.addRect(bounds.inflate(1));
       _addShape(outside, rect.deflate(.5));
     }
-    return _plan = _ShadowPlan(
+    return _geometry = _ShadowGeometry(
       size: size,
       shape: shape,
       shadows: shadows,
-      visibility: visibility,
       outside: outside,
-      draws: [
+      rects: [
         for (final shadow in shadows)
-          (
-            rect.shift(shadow.offset).inflate(shadow.spreadRadius),
-            shadow
-                .copyWith(
-                  blurRadius: shadow.blurRadius * visibility,
-                  blurStyle: needsCutout ? BlurStyle.normal : BlurStyle.outer,
-                  color: shadow.color.withValues(
-                    alpha: shadow.color.a * visibility,
-                  ),
-                )
-                .toPaint(),
-          ),
+          rect.shift(shadow.offset).inflate(shadow.spreadRadius),
       ],
     );
+  }
+
+  List<Paint> _paintsFor(bool needsCutout) {
+    final paints = _paints;
+    if (paints != null &&
+        _paintVisibility == visibility &&
+        listEquals(_paintShadows, shadows)) {
+      return paints;
+    }
+    _paintShadows = shadows;
+    _paintVisibility = visibility;
+    return _paints = [
+      for (final shadow in shadows)
+        shadow
+            .copyWith(
+              blurRadius: shadow.blurRadius * visibility,
+              blurStyle: needsCutout ? BlurStyle.normal : BlurStyle.outer,
+              color: shadow.color.withValues(
+                alpha: shadow.color.a * visibility,
+              ),
+            )
+            .toPaint(),
+    ];
   }
 
   @override
   void paint(PaintingContext context, Offset offset) {
     if (shadows.isNotEmpty) {
-      final plan = _planFor(size);
+      final geometry = _geometryFor(size);
+      final outside = geometry.outside;
+      final paints = _paintsFor(outside != null);
       final canvas = context.canvas;
       canvas.save();
       canvas.translate(offset.dx, offset.dy);
-      final outside = plan.outside;
       if (outside != null) canvas.clipPath(outside);
-      for (final (rect, paint) in plan.draws) {
-        _drawShape(canvas, rect, paint);
+      for (var i = 0; i < paints.length; i++) {
+        _drawShape(canvas, geometry.rects[i], paints[i]);
       }
       canvas.restore();
     }
@@ -277,24 +300,41 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
   }
 }
 
-class _ShadowPlan {
-  _ShadowPlan({
+class _ShadowGeometry {
+  _ShadowGeometry({
     required this.size,
     required this.shape,
-    required this.shadows,
-    required this.visibility,
+    required List<BoxShadow> shadows,
     required this.outside,
-    required this.draws,
-  });
+    required this.rects,
+  }) : _offsets = [for (final s in shadows) s.offset],
+       _spreads = [for (final s in shadows) s.spreadRadius],
+       _blurs = [for (final s in shadows) s.blurRadius];
 
   final Size size;
   final LiquidShape shape;
-  final List<BoxShadow> shadows;
-  final double visibility;
+  final List<Offset> _offsets;
+  final List<double> _spreads;
+  final List<double> _blurs;
 
   // The region outside the glass the shadows are clipped to, or null when
   // no shadow is offset.
   final Path? outside;
 
-  final List<(Rect, Paint)> draws;
+  // Each shadow's shape before its blur.
+  final List<Rect> rects;
+
+  // Whether [shadows] have the geometry this was made for.
+  bool fits(List<BoxShadow> shadows) {
+    if (shadows.length != _offsets.length) return false;
+    for (var i = 0; i < shadows.length; i++) {
+      final s = shadows[i];
+      if (s.offset != _offsets[i] ||
+          s.spreadRadius != _spreads[i] ||
+          s.blurRadius != _blurs[i]) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

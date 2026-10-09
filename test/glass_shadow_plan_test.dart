@@ -143,9 +143,10 @@ void main() {
       for (final visibility in const [1.0, 0.4]) {
         await tester.pumpWidget(_scene(at, visibility, direct: true));
         final direct = await _shot(tester);
-        // Mount at another place first, so the kept plan is moved.
+        // Mount at another place and visibility first, so the kept paths
+        // are moved and the paints remade.
         await tester.pumpWidget(
-          _scene(at + const Offset(7, 3), visibility, direct: false),
+          _scene(at + const Offset(7, 3), 1, direct: false),
         );
         await tester.pumpWidget(_scene(at, visibility, direct: false));
         final kept = await _shot(tester);
