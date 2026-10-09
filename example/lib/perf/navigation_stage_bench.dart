@@ -14,6 +14,7 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/bar_items.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -266,6 +267,7 @@ class _BenchState extends State<_Bench> {
 
   Future<void> _perform(_Case c) async {
     _callbackUs = 0;
+    MorphGlyphBlur.debugRasterCount = 0;
     void trigger(VoidCallback action) {
       final start = developer.Timeline.now;
       action();
@@ -385,6 +387,29 @@ class _BenchState extends State<_Bench> {
     for (final view in RendererBinding.instance.renderViews) {
       visit(view);
     }
+    final layerOwners = <String>[];
+    void owners(RenderObject object) {
+      // ignore: invalid_use_of_protected_member
+      final layer = object.layer;
+      if (layer is OpacityLayer ||
+          layer is ImageFilterLayer ||
+          layer is ColorFilterLayer ||
+          layer is ShaderMaskLayer) {
+        final chain = <String>[];
+        RenderObject? at = object;
+        for (var i = 0; i < 7 && at != null; i++) {
+          chain.add(at.runtimeType.toString());
+          at = at.parent;
+        }
+        final alpha = layer is OpacityLayer ? layer.alpha : null;
+        layerOwners.add('${layer.runtimeType} a=$alpha ${chain.join('<')}');
+      }
+      object.visitChildren(owners);
+    }
+
+    for (final view in RendererBinding.instance.renderViews) {
+      owners(view);
+    }
     final foreground = <Map<String, Object?>>[];
     void content(Element element) {
       final widget = element.widget;
@@ -433,6 +458,7 @@ class _BenchState extends State<_Bench> {
       if (root != null) composed(root);
     }
     return {
+      'layer_owners': layerOwners,
       'backdrop_layers': census.filters,
       'distinct_capture_keys': census.captures,
       'visible_liquid_layers': layers.length,
@@ -570,7 +596,9 @@ class _BenchState extends State<_Bench> {
         throw StateError('Framework phase counters require profile mode.');
       }
       await MorphGlassRenderer.precache();
-      if (!MorphGlassRenderer.liquidAvailable) {
+      final cases = _cases();
+      if (cases.any((c) => c.mode == 'liquid') &&
+          !MorphGlassRenderer.liquidAvailable) {
         throw StateError('Liquid glass unavailable');
       }
       if (_performanceHints) {
@@ -580,7 +608,6 @@ class _BenchState extends State<_Bench> {
         );
         if (_hints == null) throw StateError('Performance hints unavailable');
       }
-      final cases = _cases();
       if (_workflowCycles < 1 ||
           cases.any(
             (c) => c.motion == 'workflow' && (c.page != 'navigation' || _shots),
@@ -594,7 +621,7 @@ class _BenchState extends State<_Bench> {
         throw ArgumentError('Nonnegative finite offsets required');
       }
       if (cases.any((c) => c.page == 'navigation' && c.motion == 'enter')) {
-        await _mount(const _Case('navigation', 'enter', 'liquid'));
+        await _mount(_Case('navigation', 'enter', cases.first.mode));
         _coldWindow = [developer.Timeline.now, 0];
         _action!();
         await Future<void>.delayed(const Duration(milliseconds: _sampleMs));
@@ -636,7 +663,7 @@ class _BenchState extends State<_Bench> {
           window[1] = developer.Timeline.now;
           (_work[c.name] ??= []).add({
             'callback_us': _callbackUs,
-
+            'glyph_rasters': MorphGlyphBlur.debugRasterCount,
           });
           if (_phases) {
             final collected = FlutterTimeline.debugCollect();

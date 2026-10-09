@@ -1,0 +1,766 @@
+--------- beginning of main
+10-09 16:27:04.257 18169 18169 I n.morph_exampl: Late-enabling -Xcheck:jni
+10-09 16:27:04.410 18169 18169 E libc    : Access denied finding property "persist.vendor.sys.activitylog"
+10-09 16:27:04.400 18169 18169 W re-initialized>: type=1400 audit(0.0:14489): avc: denied { read } for name="u:object_r:mtk_amslog_prop:s0" dev="tmpfs" ino=7635 scontext=u:r:untrusted_app:s0:c170,c256,c512,c768 tcontext=u:object_r:mtk_amslog_prop:s0 tclass=file permissive=0
+10-09 16:27:05.820 18169 18169 W n.morph_exampl: Accessing hidden field Landroid/os/Trace;->TRACE_TAG_APP:J (light greylist, reflection)
+10-09 16:27:05.821 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/os/Trace;->isTagEnabled(J)Z (light greylist, reflection)
+10-09 16:27:05.917 18169 18169 I n.morph_exampl: Rejecting re-init on previously-failed class java.lang.Class<io.flutter.embedding.android.FlutterActivity$1>: java.lang.NoClassDefFoundError: Failed resolution of: Landroid/window/OnBackAnimationCallback;
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.Class.newInstance() (Class.java:-2)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.AppComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (AppComponentFactory.java:69)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at android.app.Activity androidx.core.app.CoreComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (CoreComponentFactory.java:44)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.Instrumentation.newActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (Instrumentation.java:1216)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.performLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.content.Intent) (ActivityThread.java:2894)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.handleLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.app.servertransaction.PendingTransactionActions, android.content.Intent) (ActivityThread.java:3113)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.LaunchActivityItem.execute(android.app.ClientTransactionHandler, android.os.IBinder, android.app.servertransaction.PendingTransactionActions) (LaunchActivityItem.java:78)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.executeCallbacks(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:113)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.execute(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:71)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread$H.handleMessage(android.os.Message) (ActivityThread.java:1858)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:106)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl: Caused by: java.lang.ClassNotFoundException: Didn't find class "android.window.OnBackAnimationCallback" on path: DexPathList[[zip file "/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk"],nativeLibraryDirectories=[/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/lib/arm, /data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk!/lib/armeabi-v7a, /system/lib]]
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at java.lang.Class dalvik.system.BaseDexClassLoader.findClass(java.lang.String) (BaseDexClassLoader.java:171)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String, boolean) (ClassLoader.java:379)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String) (ClassLoader.java:312)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.Class.newInstance() (Class.java:-2)
+10-09 16:27:05.918 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.AppComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (AppComponentFactory.java:69)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at android.app.Activity androidx.core.app.CoreComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (CoreComponentFactory.java:44)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.Instrumentation.newActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (Instrumentation.java:1216)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.performLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.content.Intent) (ActivityThread.java:2894)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.handleLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.app.servertransaction.PendingTransactionActions, android.content.Intent) (ActivityThread.java:3113)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.LaunchActivityItem.execute(android.app.ClientTransactionHandler, android.os.IBinder, android.app.servertransaction.PendingTransactionActions) (LaunchActivityItem.java:78)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.executeCallbacks(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:113)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.execute(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:71)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread$H.handleMessage(android.os.Message) (ActivityThread.java:1858)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:106)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:05.919 18169 18169 I n.morph_exampl: 
+10-09 16:27:05.920 18169 18169 I n.morph_exampl: Rejecting re-init on previously-failed class java.lang.Class<io.flutter.embedding.android.FlutterActivity$1>: java.lang.NoClassDefFoundError: Failed resolution of: Landroid/window/OnBackAnimationCallback;
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.Class.newInstance() (Class.java:-2)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.AppComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (AppComponentFactory.java:69)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at android.app.Activity androidx.core.app.CoreComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (CoreComponentFactory.java:44)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.Instrumentation.newActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (Instrumentation.java:1216)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.performLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.content.Intent) (ActivityThread.java:2894)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.handleLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.app.servertransaction.PendingTransactionActions, android.content.Intent) (ActivityThread.java:3113)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.LaunchActivityItem.execute(android.app.ClientTransactionHandler, android.os.IBinder, android.app.servertransaction.PendingTransactionActions) (LaunchActivityItem.java:78)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.executeCallbacks(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:113)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.execute(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:71)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread$H.handleMessage(android.os.Message) (ActivityThread.java:1858)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:106)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl: Caused by: java.lang.ClassNotFoundException: Didn't find class "android.window.OnBackAnimationCallback" on path: DexPathList[[zip file "/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk"],nativeLibraryDirectories=[/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/lib/arm, /data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk!/lib/armeabi-v7a, /system/lib]]
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at java.lang.Class dalvik.system.BaseDexClassLoader.findClass(java.lang.String) (BaseDexClassLoader.java:171)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String, boolean) (ClassLoader.java:379)
+10-09 16:27:05.921 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String) (ClassLoader.java:312)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.Class.newInstance() (Class.java:-2)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.AppComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (AppComponentFactory.java:69)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at android.app.Activity androidx.core.app.CoreComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (CoreComponentFactory.java:44)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.Instrumentation.newActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (Instrumentation.java:1216)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.performLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.content.Intent) (ActivityThread.java:2894)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.handleLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.app.servertransaction.PendingTransactionActions, android.content.Intent) (ActivityThread.java:3113)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.LaunchActivityItem.execute(android.app.ClientTransactionHandler, android.os.IBinder, android.app.servertransaction.PendingTransactionActions) (LaunchActivityItem.java:78)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.executeCallbacks(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:113)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.execute(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:71)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread$H.handleMessage(android.os.Message) (ActivityThread.java:1858)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:106)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:05.922 18169 18169 I n.morph_exampl: 
+10-09 16:27:05.925 18169 18169 I n.morph_exampl: Rejecting re-init on previously-failed class java.lang.Class<io.flutter.embedding.android.FlutterActivity$$ExternalSyntheticLambda0>: java.lang.NoClassDefFoundError: Failed resolution of: Landroid/window/OnBackInvokedCallback;
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.Class.newInstance() (Class.java:-2)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.AppComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (AppComponentFactory.java:69)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at android.app.Activity androidx.core.app.CoreComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (CoreComponentFactory.java:44)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.Instrumentation.newActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (Instrumentation.java:1216)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.performLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.content.Intent) (ActivityThread.java:2894)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.handleLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.app.servertransaction.PendingTransactionActions, android.content.Intent) (ActivityThread.java:3113)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.LaunchActivityItem.execute(android.app.ClientTransactionHandler, android.os.IBinder, android.app.servertransaction.PendingTransactionActions) (LaunchActivityItem.java:78)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.executeCallbacks(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:113)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.execute(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:71)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread$H.handleMessage(android.os.Message) (ActivityThread.java:1858)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:106)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl: Caused by: java.lang.ClassNotFoundException: Didn't find class "android.window.OnBackInvokedCallback" on path: DexPathList[[zip file "/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk"],nativeLibraryDirectories=[/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/lib/arm, /data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk!/lib/armeabi-v7a, /system/lib]]
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at java.lang.Class dalvik.system.BaseDexClassLoader.findClass(java.lang.String) (BaseDexClassLoader.java:171)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String, boolean) (ClassLoader.java:379)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String) (ClassLoader.java:312)
+10-09 16:27:05.926 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.Class.newInstance() (Class.java:-2)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.AppComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (AppComponentFactory.java:69)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at android.app.Activity androidx.core.app.CoreComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (CoreComponentFactory.java:44)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.Instrumentation.newActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (Instrumentation.java:1216)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.performLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.content.Intent) (ActivityThread.java:2894)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.handleLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.app.servertransaction.PendingTransactionActions, android.content.Intent) (ActivityThread.java:3113)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.LaunchActivityItem.execute(android.app.ClientTransactionHandler, android.os.IBinder, android.app.servertransaction.PendingTransactionActions) (LaunchActivityItem.java:78)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.executeCallbacks(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:113)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.execute(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:71)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread$H.handleMessage(android.os.Message) (ActivityThread.java:1858)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:106)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:05.927 18169 18169 I n.morph_exampl: 
+10-09 16:27:05.928 18169 18169 I n.morph_exampl: Rejecting re-init on previously-failed class java.lang.Class<io.flutter.embedding.android.FlutterActivity$$ExternalSyntheticLambda0>: java.lang.NoClassDefFoundError: Failed resolution of: Landroid/window/OnBackInvokedCallback;
+10-09 16:27:05.928 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.Class.newInstance() (Class.java:-2)
+10-09 16:27:05.928 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.AppComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (AppComponentFactory.java:69)
+10-09 16:27:05.928 18169 18169 I n.morph_exampl:   at android.app.Activity androidx.core.app.CoreComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (CoreComponentFactory.java:44)
+10-09 16:27:05.928 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.Instrumentation.newActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (Instrumentation.java:1216)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.performLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.content.Intent) (ActivityThread.java:2894)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.handleLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.app.servertransaction.PendingTransactionActions, android.content.Intent) (ActivityThread.java:3113)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.LaunchActivityItem.execute(android.app.ClientTransactionHandler, android.os.IBinder, android.app.servertransaction.PendingTransactionActions) (LaunchActivityItem.java:78)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.executeCallbacks(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:113)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.execute(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:71)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread$H.handleMessage(android.os.Message) (ActivityThread.java:1858)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:106)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl: Caused by: java.lang.ClassNotFoundException: Didn't find class "android.window.OnBackInvokedCallback" on path: DexPathList[[zip file "/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk"],nativeLibraryDirectories=[/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/lib/arm, /data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk!/lib/armeabi-v7a, /system/lib]]
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at java.lang.Class dalvik.system.BaseDexClassLoader.findClass(java.lang.String) (BaseDexClassLoader.java:171)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String, boolean) (ClassLoader.java:379)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String) (ClassLoader.java:312)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.Class.newInstance() (Class.java:-2)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.AppComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (AppComponentFactory.java:69)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at android.app.Activity androidx.core.app.CoreComponentFactory.instantiateActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (CoreComponentFactory.java:44)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.Instrumentation.newActivity(java.lang.ClassLoader, java.lang.String, android.content.Intent) (Instrumentation.java:1216)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.performLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.content.Intent) (ActivityThread.java:2894)
+10-09 16:27:05.929 18169 18169 I n.morph_exampl:   at android.app.Activity android.app.ActivityThread.handleLaunchActivity(android.app.ActivityThread$ActivityClientRecord, android.app.servertransaction.PendingTransactionActions, android.content.Intent) (ActivityThread.java:3113)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.LaunchActivityItem.execute(android.app.ClientTransactionHandler, android.os.IBinder, android.app.servertransaction.PendingTransactionActions) (LaunchActivityItem.java:78)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.executeCallbacks(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:113)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void android.app.servertransaction.TransactionExecutor.execute(android.app.servertransaction.ClientTransaction) (TransactionExecutor.java:71)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread$H.handleMessage(android.os.Message) (ActivityThread.java:1858)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:106)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:05.930 18169 18169 I n.morph_exampl: 
+10-09 16:27:06.061 18169 18190 D skia    : [SkFontMgr Android Parser] '/product/etc/fonts_customization.xml' could not be opened
+10-09 16:27:06.175 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/view/SurfaceControl$Transaction;-><init>()V (light greylist, linking)
+10-09 16:27:06.176 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/view/SurfaceControl$Transaction;->merge(Landroid/view/SurfaceControl$Transaction;)Landroid/view/SurfaceControl$Transaction; (dark greylist, linking)
+10-09 16:27:06.176 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/view/SurfaceControl$Transaction;->merge(Landroid/view/SurfaceControl$Transaction;)Landroid/view/SurfaceControl$Transaction; (dark greylist, linking)
+10-09 16:27:06.180 18169 18169 W n.morph_example: type=1400 audit(0.0:14493): avc: denied { read } for name="max_map_count" dev="proc" ino=305306 scontext=u:r:untrusted_app:s0:c170,c256,c512,c768 tcontext=u:object_r:proc_max_map_count:s0 tclass=file permissive=0
+10-09 16:27:06.207 18169 18169 I flutter : [IMPORTANT:flutter/shell/common/shell.cc(529)] [Action Required]: Impeller opt-out deprecated.
+10-09 16:27:06.207 18169 18169 I flutter :     The application opted out of Impeller by either using the
+10-09 16:27:06.207 18169 18169 I flutter :     `--no-enable-impeller` flag or the
+10-09 16:27:06.207 18169 18169 I flutter :     `io.flutter.embedding.android.EnableImpeller` `AndroidManifest.xml` entry.
+10-09 16:27:06.207 18169 18169 I flutter :     These options are going to go away in an upcoming Flutter release. Remove
+10-09 16:27:06.207 18169 18169 I flutter :     the explicit opt-out. If you need to opt-out, please report a bug describing
+10-09 16:27:06.207 18169 18169 I flutter :     the issue.
+10-09 16:27:06.207 18169 18169 I flutter : 
+10-09 16:27:06.207 18169 18169 I flutter :     https://github.com/flutter/flutter/issues/new?template=02_bug.yml
+10-09 16:27:06.207 18169 18169 I flutter : 
+10-09 16:27:06.219 18169 18169 I ConfigStore: android::hardware::configstore::V1_0::ISurfaceFlingerConfigs::hasWideColorDisplay retrieved: 0
+10-09 16:27:06.219 18169 18169 I ConfigStore: android::hardware::configstore::V1_0::ISurfaceFlingerConfigs::hasHDRDisplay retrieved: 0
+10-09 16:27:06.222 18169 18198 I flutter : The Dart VM service is listening on http://127.0.0.1:45895/Nju4lEIB6is=/
+10-09 16:27:06.273 18169 18169 W n.morph_exampl: Accessing hidden field Landroid/view/WindowInsets;->CONSUMED:Landroid/view/WindowInsets; (light greylist, reflection)
+10-09 16:27:06.365 18169 18169 I SurfaceFactory: [static] sSurfaceFactory = com.mediatek.view.impl.SurfaceFactoryImpl@67574a8
+10-09 16:27:06.475 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/view/accessibility/AccessibilityNodeInfo;->getSourceNodeId()J (light greylist, reflection)
+10-09 16:27:06.476 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/view/accessibility/AccessibilityRecord;->getSourceNodeId()J (light greylist, reflection)
+10-09 16:27:06.476 18169 18169 W n.morph_exampl: Accessing hidden field Landroid/view/accessibility/AccessibilityNodeInfo;->mChildNodeIds:Landroid/util/LongArray; (light greylist, reflection)
+10-09 16:27:06.477 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/util/LongArray;->get(I)J (light greylist, reflection)
+--------- beginning of system
+10-09 16:27:06.552 18169 18169 W Activity: Slow Operation: Activity dev.tembeon.morph_example/.MainActivity onCreate took 588ms
+10-09 16:27:06.595 18169 18169 D ViewRootImpl[MainActivity]: hardware acceleration = true , fakeHwAccelerated = false, sRendererDisabled = false, forceHwAccelerated = false, sSystemRendererDisabled = false
+10-09 16:27:06.604 18169 18169 V PhoneWindow: DecorView setVisiblity: visibility = 0, Parent = android.view.ViewRootImpl@7bb9f9f, this = DecorView@97f98ec[MainActivity]
+10-09 16:27:06.607 18169 18169 W Looper  : Slow Looper main: Activity dev.tembeon.morph_example/.MainActivity is 1050ms late (wall=737ms running=0ms ClientTransaction{ callbacks=[android.app.servertransaction.LaunchActivityItem] lifecycleRequest=android.app.servertransaction.ResumeActivityItem }) because of 1 msg, msg 1 took 1317ms (h=android.app.ActivityThread$H w=110)
+10-09 16:27:06.610 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/os/Trace;->asyncTraceBegin(JLjava/lang/String;I)V (light greylist, reflection)
+10-09 16:27:06.615 18169 18169 I Choreographer: Skipped 45 frames!  The application may be doing too much work on its main thread.
+10-09 16:27:06.739 18169 18169 I n.morph_exampl: Rejecting re-init on previously-failed class java.lang.Class<androidx.window.layout.adapter.sidecar.DistinctElementSidecarCallback>: java.lang.NoClassDefFoundError: Failed resolution of: Landroidx/window/sidecar/SidecarInterface$SidecarCallback;
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.initAndVerifyExtension(android.content.Context) (SidecarWindowBackend.kt:207)
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at androidx.window.layout.adapter.sidecar.SidecarWindowBackend androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.getInstance(android.content.Context) (SidecarWindowBackend.kt:191)
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at androidx.window.layout.WindowInfoTracker androidx.window.layout.WindowInfoTracker$Companion.getOrCreate(android.content.Context) (WindowInfoTracker.kt:135)
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at io.flutter.embedding.android.WindowInfoRepositoryCallbackAdapterWrapper io.flutter.embedding.android.FlutterView.createWindowInfoRepo() (FlutterView.java:547)
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at void io.flutter.embedding.android.FlutterView.onAttachedToWindow() (FlutterView.java:568)
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at void android.view.View.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (View.java:18432)
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3459)
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3466)
+10-09 16:27:06.739 18169 18169 I chatty  : uid=10170(dev.tembeon.morph_example) identical 1 line
+10-09 16:27:06.739 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3466)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl.performTraversals() (ViewRootImpl.java:1901)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl.doTraversal() (ViewRootImpl.java:1594)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl$TraversalRunnable.run() (ViewRootImpl.java:7661)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.view.Choreographer$CallbackRecord.run(long) (Choreographer.java:1047)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.view.Choreographer.doCallbacks(int, long) (Choreographer.java:843)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.view.Choreographer.doFrame(long, int) (Choreographer.java:771)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.view.Choreographer$FrameDisplayEventReceiver.run() (Choreographer.java:1033)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:873)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:99)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl: Caused by: java.lang.ClassNotFoundException: Didn't find class "androidx.window.sidecar.SidecarInterface$SidecarCallback" on path: DexPathList[[zip file "/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk"],nativeLibraryDirectories=[/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/lib/arm, /data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk!/lib/armeabi-v7a, /system/lib]]
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at java.lang.Class dalvik.system.BaseDexClassLoader.findClass(java.lang.String) (BaseDexClassLoader.java:171)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String, boolean) (ClassLoader.java:379)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String) (ClassLoader.java:312)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.initAndVerifyExtension(android.content.Context) (SidecarWindowBackend.kt:207)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at androidx.window.layout.adapter.sidecar.SidecarWindowBackend androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.getInstance(android.content.Context) (SidecarWindowBackend.kt:191)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at androidx.window.layout.WindowInfoTracker androidx.window.layout.WindowInfoTracker$Companion.getOrCreate(android.content.Context) (WindowInfoTracker.kt:135)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at io.flutter.embedding.android.WindowInfoRepositoryCallbackAdapterWrapper io.flutter.embedding.android.FlutterView.createWindowInfoRepo() (FlutterView.java:547)
+10-09 16:27:06.740 18169 18169 I n.morph_exampl:   at void io.flutter.embedding.android.FlutterView.onAttachedToWindow() (FlutterView.java:568)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.View.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (View.java:18432)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3459)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3466)
+10-09 16:27:06.741 18169 18169 I chatty  : uid=10170(dev.tembeon.morph_example) identical 1 line
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3466)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl.performTraversals() (ViewRootImpl.java:1901)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl.doTraversal() (ViewRootImpl.java:1594)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl$TraversalRunnable.run() (ViewRootImpl.java:7661)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.Choreographer$CallbackRecord.run(long) (Choreographer.java:1047)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.Choreographer.doCallbacks(int, long) (Choreographer.java:843)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.Choreographer.doFrame(long, int) (Choreographer.java:771)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.view.Choreographer$FrameDisplayEventReceiver.run() (Choreographer.java:1033)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:873)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:99)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:06.741 18169 18169 I n.morph_exampl: 
+10-09 16:27:06.742 18169 18169 I n.morph_exampl: Rejecting re-init on previously-failed class java.lang.Class<androidx.window.layout.adapter.sidecar.DistinctElementSidecarCallback>: java.lang.NoClassDefFoundError: Failed resolution of: Landroidx/window/sidecar/SidecarInterface$SidecarCallback;
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.initAndVerifyExtension(android.content.Context) (SidecarWindowBackend.kt:207)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at androidx.window.layout.adapter.sidecar.SidecarWindowBackend androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.getInstance(android.content.Context) (SidecarWindowBackend.kt:191)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at androidx.window.layout.WindowInfoTracker androidx.window.layout.WindowInfoTracker$Companion.getOrCreate(android.content.Context) (WindowInfoTracker.kt:135)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at io.flutter.embedding.android.WindowInfoRepositoryCallbackAdapterWrapper io.flutter.embedding.android.FlutterView.createWindowInfoRepo() (FlutterView.java:547)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void io.flutter.embedding.android.FlutterView.onAttachedToWindow() (FlutterView.java:568)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.View.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (View.java:18432)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3459)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3466)
+10-09 16:27:06.743 18169 18169 I chatty  : uid=10170(dev.tembeon.morph_example) identical 1 line
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3466)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl.performTraversals() (ViewRootImpl.java:1901)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl.doTraversal() (ViewRootImpl.java:1594)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl$TraversalRunnable.run() (ViewRootImpl.java:7661)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.Choreographer$CallbackRecord.run(long) (Choreographer.java:1047)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.Choreographer.doCallbacks(int, long) (Choreographer.java:843)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.Choreographer.doFrame(long, int) (Choreographer.java:771)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.view.Choreographer$FrameDisplayEventReceiver.run() (Choreographer.java:1033)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:873)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:99)
+10-09 16:27:06.743 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl: Caused by: java.lang.ClassNotFoundException: Didn't find class "androidx.window.sidecar.SidecarInterface$SidecarCallback" on path: DexPathList[[zip file "/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk"],nativeLibraryDirectories=[/data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/lib/arm, /data/app/dev.tembeon.morph_example-wMxBumIRbYjzri8X7nnc4w==/base.apk!/lib/armeabi-v7a, /system/lib]]
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at java.lang.Class dalvik.system.BaseDexClassLoader.findClass(java.lang.String) (BaseDexClassLoader.java:171)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String, boolean) (ClassLoader.java:379)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at java.lang.Class java.lang.ClassLoader.loadClass(java.lang.String) (ClassLoader.java:312)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at androidx.window.layout.adapter.sidecar.ExtensionInterfaceCompat androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.initAndVerifyExtension(android.content.Context) (SidecarWindowBackend.kt:207)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at androidx.window.layout.adapter.sidecar.SidecarWindowBackend androidx.window.layout.adapter.sidecar.SidecarWindowBackend$Companion.getInstance(android.content.Context) (SidecarWindowBackend.kt:191)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at androidx.window.layout.WindowInfoTracker androidx.window.layout.WindowInfoTracker$Companion.getOrCreate(android.content.Context) (WindowInfoTracker.kt:135)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at io.flutter.embedding.android.WindowInfoRepositoryCallbackAdapterWrapper io.flutter.embedding.android.FlutterView.createWindowInfoRepo() (FlutterView.java:547)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void io.flutter.embedding.android.FlutterView.onAttachedToWindow() (FlutterView.java:568)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.View.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (View.java:18432)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3459)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3466)
+10-09 16:27:06.744 18169 18169 I chatty  : uid=10170(dev.tembeon.morph_example) identical 1 line
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.ViewGroup.dispatchAttachedToWindow(android.view.View$AttachInfo, int) (ViewGroup.java:3466)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl.performTraversals() (ViewRootImpl.java:1901)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl.doTraversal() (ViewRootImpl.java:1594)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.ViewRootImpl$TraversalRunnable.run() (ViewRootImpl.java:7661)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.Choreographer$CallbackRecord.run(long) (Choreographer.java:1047)
+10-09 16:27:06.744 18169 18169 I n.morph_exampl:   at void android.view.Choreographer.doCallbacks(int, long) (Choreographer.java:843)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at void android.view.Choreographer.doFrame(long, int) (Choreographer.java:771)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at void android.view.Choreographer$FrameDisplayEventReceiver.run() (Choreographer.java:1033)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at void android.os.Handler.handleCallback(android.os.Message) (Handler.java:873)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at void android.os.Handler.dispatchMessage(android.os.Message) (Handler.java:99)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at void android.os.Looper.loop() (Looper.java:201)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at void android.app.ActivityThread.main(java.lang.String[]) (ActivityThread.java:6820)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at java.lang.Object java.lang.reflect.Method.invoke(java.lang.Object, java.lang.Object[]) (Method.java:-2)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at void com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run() (RuntimeInit.java:547)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl:   at void com.android.internal.os.ZygoteInit.main(java.lang.String[]) (ZygoteInit.java:922)
+10-09 16:27:06.745 18169 18169 I n.morph_exampl: 
+10-09 16:27:06.939 18169 18200 I OpenGLRenderer: Initialized EGL, version 1.4
+10-09 16:27:06.939 18169 18200 D OpenGLRenderer: Swap behavior 2
+10-09 16:27:06.962 18169 18200 D Surface : Surface::connect(this=0x9347a800,api=1)
+10-09 16:27:06.965 18169 18200 I libEGL  : [MTK Game SDK] low_latency_mode(0) pid(-1) property(-1)
+10-09 16:27:06.974 18169 18191 D Surface : Surface::connect(this=0x934e5000,api=1)
+10-09 16:27:06.977 18169 18191 I libEGL  : [MTK Game SDK] low_latency_mode(0) pid(-1) property(-1)
+10-09 16:27:06.983 18169 18191 E ion     : ioctl c0044901 failed with code -1: Invalid argument
+10-09 16:27:06.993 18169 18169 W Looper  : Slow Looper main: doFrame is 751ms late because of 3 msg, msg 1 took 1317ms (h=android.app.ActivityThread$H w=110), msg 2 took 737ms (late=1050ms h=android.app.ActivityThread$H w=159)
+10-09 16:27:06.995 18169 18169 W n.morph_exampl: Accessing hidden method Landroid/os/Trace;->asyncTraceEnd(JLjava/lang/String;I)V (light greylist, reflection)
+10-09 16:27:07.008 18169 18169 I flutter : Liquid glass is unavailable; morph is using fake glass. Reason: Unsupported operation: Impeller shader filters are unavailable.
+10-09 16:27:07.012 18169 18169 I flutter : #0      _capability.<anonymous closure> (package:morph/src/widgets/glass_liquid_native.dart:19)
+10-09 16:27:07.012 18169 18169 I flutter : #1      LiquidCapability._resolve (package:morph/src/glass/renderer/internal/liquid_capability.dart:25)
+10-09 16:27:07.012 18169 18169 I flutter : #2      LiquidCapability.precache (package:morph/src/glass/renderer/internal/liquid_capability.dart:21)
+10-09 16:27:07.012 18169 18169 I flutter : #3      _precacheAndWarm (package:morph/src/widgets/glass_liquid_native.dart:94)
+10-09 16:27:07.012 18169 18169 I flutter : #4      morphPrecacheLiquidGlass (package:morph/src/widgets/glass_liquid_native.dart:90)
+10-09 16:27:07.012 18169 18169 I flutter : #5      MorphGlassRenderer.precache (package:morph/src/widgets/glass_renderer.dart:173)
+10-09 16:27:07.012 18169 18169 I flutter : #6      _BenchState._run (package:morph_example/perf/navigation_stage_bench.dart:598)
+10-09 16:27:07.012 18169 18169 I flutter : #7      _BenchState.initState.<anonymous closure> (package:morph_example/perf/navigation_stage_bench.dart:225)
+10-09 16:27:07.012 18169 18169 I flutter : #8      SchedulerBinding._invokeFrameCallback (package:flutter/src/scheduler/binding.dart:1433)
+10-09 16:27:07.012 18169 18169 I flutter : #9      SchedulerBinding.handleDrawFrame (package:flutter/src/scheduler/binding.dart:1360)
+10-09 16:27:07.012 18169 18169 I flutter : #10     _BenchBinding.handleDrawFrame (package:morph_example/perf/navigation_stage_bench.dart:90)
+10-09 16:27:07.012 18169 18169 I flutter : #11     SchedulerBinding.scheduleWarmUpFrame.<anonymous closure> (package:flutter/src/scheduler/binding.dart:1058)
+10-09 16:27:07.012 18169 18169 I flutter : #12     PlatformDispatcher.scheduleWarmUpFrame.<anonymous closure> (dart:ui/platform_dispatcher.dart:915)
+10-09 16:27:07.013 18169 18169 I flutter : #16     _RawReceivePort._handleMessage (dart:isolate-patch/isolate_patch.dart:192)
+10-09 16:27:07.013 18169 18169 I flutter : (elided 3 frames from class _Timer and dart:async-patch)
+10-09 16:27:07.470 18169 18169 I flutter : FUSE 1477 2
+10-09 16:27:07.531 18169 18169 I flutter : FUSE 1275 2
+10-09 16:27:07.548 18169 18169 I flutter : FUSE 1359 2
+10-09 16:27:07.794 18169 18169 I flutter : FUSE 4132 2
+10-09 16:27:07.809 18169 18169 I flutter : FUSE 3064 2
+10-09 16:27:08.940 18169 18169 I flutter : FUSE 1912 2
+10-09 16:27:08.967 18169 18169 I flutter : FUSE 1737 2
+10-09 16:27:09.019 18169 18169 I flutter : FUSE 1818 2
+10-09 16:27:09.033 18169 18169 I flutter : FUSE 3955 3
+10-09 16:27:09.049 18169 18169 I flutter : FUSE 4224 3
+10-09 16:27:09.066 18169 18169 I flutter : FUSE 4720 3
+10-09 16:27:09.083 18169 18169 I flutter : FUSE 5606 3
+10-09 16:27:09.099 18169 18169 I flutter : FUSE 4699 3
+10-09 16:27:09.115 18169 18169 I flutter : FUSE 5126 3
+10-09 16:27:09.137 18169 18169 I flutter : FUSE 9195 4
+10-09 16:27:09.169 18169 18169 I flutter : FUSE 8755 4
+10-09 16:27:09.184 18169 18169 I flutter : FUSE 8824 4
+10-09 16:27:09.202 18169 18169 I flutter : FUSE 9047 4
+10-09 16:27:09.234 18169 18169 I flutter : FUSE 8898 4
+10-09 16:27:09.251 18169 18169 I flutter : FUSE 9523 4
+10-09 16:27:09.267 18169 18169 I flutter : FUSE 9718 4
+10-09 16:27:09.284 18169 18169 I flutter : FUSE 9881 4
+10-09 16:27:09.292 18169 18169 I flutter : FUSE 3132 2
+10-09 16:27:09.297 18169 18169 I flutter : FUSE 3767 2
+10-09 16:27:09.310 18169 18169 I flutter : FUSE 3976 2
+10-09 16:27:09.326 18169 18169 I flutter : FUSE 3124 2
+10-09 16:27:09.345 18169 18169 I flutter : FUSE 6166 2
+10-09 16:27:09.358 18169 18169 I flutter : FUSE 3229 2
+10-09 16:27:09.375 18169 18169 I flutter : FUSE 3670 2
+10-09 16:27:09.391 18169 18169 I flutter : FUSE 3192 2
+10-09 16:27:09.407 18169 18169 I flutter : FUSE 3115 2
+10-09 16:27:09.424 18169 18169 I flutter : FUSE 3060 2
+10-09 16:27:09.440 18169 18169 I flutter : FUSE 3268 2
+10-09 16:27:09.456 18169 18169 I flutter : FUSE 3816 2
+10-09 16:27:09.472 18169 18169 I flutter : FUSE 3178 2
+10-09 16:27:09.489 18169 18169 I flutter : FUSE 3223 2
+10-09 16:27:09.505 18169 18169 I flutter : FUSE 3077 2
+10-09 16:27:09.521 18169 18169 I flutter : FUSE 3253 2
+10-09 16:27:09.537 18169 18169 I flutter : FUSE 3191 2
+10-09 16:27:09.553 18169 18169 I flutter : FUSE 3162 2
+10-09 16:27:09.570 18169 18169 I flutter : FUSE 3156 2
+10-09 16:27:09.587 18169 18169 I flutter : FUSE 3138 2
+10-09 16:27:09.603 18169 18169 I flutter : FUSE 3306 2
+10-09 16:27:09.621 18169 18169 I flutter : FUSE 5870 3
+10-09 16:27:09.639 18169 18169 I flutter : FUSE 6823 3
+10-09 16:27:09.651 18169 18169 I flutter : FUSE 3338 2
+10-09 16:27:09.668 18169 18169 I flutter : FUSE 3715 2
+10-09 16:27:09.684 18169 18169 I flutter : FUSE 3977 2
+10-09 16:27:09.699 18169 18169 I flutter : FUSE 3110 2
+10-09 16:27:09.718 18169 18169 I flutter : FUSE 3153 2
+10-09 16:27:09.733 18169 18169 I flutter : FUSE 4338 2
+10-09 16:27:09.748 18169 18169 I flutter : FUSE 3224 2
+10-09 16:27:09.765 18169 18169 I flutter : FUSE 3838 2
+10-09 16:27:09.781 18169 18169 I flutter : FUSE 3145 2
+10-09 16:27:09.798 18169 18169 I flutter : FUSE 4032 2
+10-09 16:27:09.813 18169 18169 I flutter : FUSE 3076 2
+10-09 16:27:09.830 18169 18169 I flutter : FUSE 3205 2
+10-09 16:27:09.847 18169 18169 I flutter : FUSE 3252 2
+10-09 16:27:09.863 18169 18169 I flutter : FUSE 3034 2
+10-09 16:27:09.879 18169 18169 I flutter : FUSE 3235 2
+10-09 16:27:09.895 18169 18169 I flutter : FUSE 3055 2
+10-09 16:27:09.911 18169 18169 I flutter : FUSE 3234 2
+10-09 16:27:09.929 18169 18169 I flutter : FUSE 3265 2
+10-09 16:27:09.945 18169 18169 I flutter : FUSE 3848 2
+10-09 16:27:09.960 18169 18169 I flutter : FUSE 3266 2
+10-09 16:27:09.977 18169 18169 I flutter : FUSE 3175 2
+10-09 16:27:09.994 18169 18169 I flutter : FUSE 3988 2
+10-09 16:27:10.009 18169 18169 I flutter : FUSE 3136 2
+10-09 16:27:10.026 18169 18169 I flutter : FUSE 3234 2
+10-09 16:27:10.042 18169 18169 I flutter : FUSE 3235 2
+10-09 16:27:10.059 18169 18169 I flutter : FUSE 3947 2
+10-09 16:27:10.075 18169 18169 I flutter : FUSE 3738 2
+10-09 16:27:10.091 18169 18169 I flutter : FUSE 3277 2
+10-09 16:27:10.107 18169 18169 I flutter : FUSE 3289 2
+10-09 16:27:10.123 18169 18169 I flutter : FUSE 3168 2
+10-09 16:27:10.140 18169 18169 I flutter : FUSE 3888 2
+10-09 16:27:10.157 18169 18169 I flutter : FUSE 3838 2
+10-09 16:27:10.172 18169 18169 I flutter : FUSE 3388 2
+10-09 16:27:10.189 18169 18169 I flutter : FUSE 3842 2
+10-09 16:27:10.205 18169 18169 I flutter : FUSE 3873 2
+10-09 16:27:10.221 18169 18169 I flutter : FUSE 3261 2
+10-09 16:27:10.237 18169 18169 I flutter : FUSE 3049 2
+10-09 16:27:10.254 18169 18169 I flutter : FUSE 3988 2
+10-09 16:27:10.566 18169 18169 I flutter : FUSE 1190 2
+10-09 16:27:10.631 18169 18169 I flutter : FUSE 1272 2
+10-09 16:27:10.647 18169 18169 I flutter : FUSE 1316 2
+10-09 16:27:10.663 18169 18169 I flutter : FUSE 1463 2
+10-09 16:27:10.680 18169 18169 I flutter : FUSE 1615 2
+10-09 16:27:10.693 18169 18169 I flutter : FUSE 2031 2
+10-09 16:27:10.709 18169 18169 I flutter : FUSE 2081 2
+10-09 16:27:10.726 18169 18169 I flutter : FUSE 3105 2
+10-09 16:27:10.759 18169 18169 I flutter : FUSE 2462 2
+10-09 16:27:10.775 18169 18169 I flutter : FUSE 3761 2
+10-09 16:27:10.792 18169 18169 I flutter : FUSE 3279 2
+10-09 16:27:10.808 18169 18169 I flutter : FUSE 3299 2
+10-09 16:27:10.825 18169 18169 I flutter : FUSE 3511 2
+10-09 16:27:10.841 18169 18169 I flutter : FUSE 3669 2
+10-09 16:27:10.856 18169 18169 I flutter : FUSE 2991 2
+10-09 16:27:10.889 18169 18169 I flutter : FUSE 3358 2
+10-09 16:27:10.905 18169 18169 I flutter : FUSE 3125 2
+10-09 16:27:11.563 18169 18169 I flutter : FUSE 1820 2
+10-09 16:27:11.589 18169 18169 I flutter : FUSE 1843 2
+10-09 16:27:11.622 18169 18169 I flutter : FUSE 1759 2
+10-09 16:27:11.649 18169 18169 I flutter : FUSE 1831 2
+10-09 16:27:11.691 18169 18169 I flutter : FUSE 4189 3
+10-09 16:27:11.707 18169 18169 I flutter : FUSE 4593 3
+10-09 16:27:11.723 18169 18169 I flutter : FUSE 4770 3
+10-09 16:27:11.739 18169 18169 I flutter : FUSE 4971 3
+10-09 16:27:11.760 18169 18169 I flutter : FUSE 9349 4
+10-09 16:27:11.773 18169 18212 D ProfileInstaller: Installing profile for dev.tembeon.morph_example
+10-09 16:27:11.792 18169 18169 I flutter : FUSE 8881 4
+10-09 16:27:11.808 18169 18169 I flutter : FUSE 8930 4
+10-09 16:27:11.825 18169 18169 I flutter : FUSE 9082 4
+10-09 16:27:11.841 18169 18169 I flutter : FUSE 9215 4
+10-09 16:27:11.857 18169 18169 I flutter : FUSE 9138 4
+10-09 16:27:11.906 18169 18169 I flutter : FUSE 9627 4
+10-09 16:27:11.916 18169 18169 I flutter : FUSE 2771 2
+10-09 16:27:11.920 18169 18169 I flutter : FUSE 3587 2
+10-09 16:27:11.933 18169 18169 I flutter : FUSE 3685 2
+10-09 16:27:11.949 18169 18169 I flutter : FUSE 3060 2
+10-09 16:27:11.966 18169 18169 I flutter : FUSE 3978 2
+10-09 16:27:11.982 18169 18169 I flutter : FUSE 3114 2
+10-09 16:27:11.998 18169 18169 I flutter : FUSE 3124 2
+10-09 16:27:12.019 18169 18169 I flutter : FUSE 7074 2
+10-09 16:27:12.031 18169 18169 I flutter : FUSE 3399 2
+10-09 16:27:12.048 18169 18169 I flutter : FUSE 3857 2
+10-09 16:27:12.064 18169 18169 I flutter : FUSE 3062 2
+10-09 16:27:12.079 18169 18169 I flutter : FUSE 3132 2
+10-09 16:27:12.097 18169 18169 I flutter : FUSE 3258 2
+10-09 16:27:12.114 18169 18169 I flutter : FUSE 3047 2
+10-09 16:27:12.130 18169 18169 I flutter : FUSE 3301 2
+10-09 16:27:12.146 18169 18169 I flutter : FUSE 3072 2
+10-09 16:27:12.161 18169 18169 I flutter : FUSE 3250 2
+10-09 16:27:12.177 18169 18169 I flutter : FUSE 3090 2
+10-09 16:27:12.195 18169 18169 I flutter : FUSE 3083 2
+10-09 16:27:12.211 18169 18169 I flutter : FUSE 3377 2
+10-09 16:27:12.226 18169 18169 I flutter : FUSE 3698 2
+10-09 16:27:12.246 18169 18169 I flutter : FUSE 5766 3
+10-09 16:27:12.262 18169 18169 I flutter : FUSE 5881 3
+10-09 16:27:12.276 18169 18169 I flutter : FUSE 3159 2
+10-09 16:27:12.292 18169 18169 I flutter : FUSE 3279 2
+10-09 16:27:12.307 18169 18169 I flutter : FUSE 3271 2
+10-09 16:27:12.324 18169 18169 I flutter : FUSE 3889 2
+10-09 16:27:12.342 18169 18169 I flutter : FUSE 3276 2
+10-09 16:27:12.356 18169 18169 I flutter : FUSE 3061 2
+10-09 16:27:12.373 18169 18169 I flutter : FUSE 3836 2
+10-09 16:27:12.389 18169 18169 I flutter : FUSE 3838 2
+10-09 16:27:12.405 18169 18169 I flutter : FUSE 3166 2
+10-09 16:27:12.422 18169 18169 I flutter : FUSE 3210 2
+10-09 16:27:12.438 18169 18169 I flutter : FUSE 3821 2
+10-09 16:27:12.454 18169 18169 I flutter : FUSE 3199 2
+10-09 16:27:12.471 18169 18169 I flutter : FUSE 3931 2
+10-09 16:27:12.487 18169 18169 I flutter : FUSE 4056 2
+10-09 16:27:12.503 18169 18169 I flutter : FUSE 3966 2
+10-09 16:27:12.519 18169 18169 I flutter : FUSE 3185 2
+10-09 16:27:12.535 18169 18169 I flutter : FUSE 3055 2
+10-09 16:27:12.552 18169 18169 I flutter : FUSE 3181 2
+10-09 16:27:12.568 18169 18169 I flutter : FUSE 3257 2
+10-09 16:27:12.585 18169 18169 I flutter : FUSE 4164 2
+10-09 16:27:12.601 18169 18169 I flutter : FUSE 3444 2
+10-09 16:27:12.618 18169 18169 I flutter : FUSE 3873 2
+10-09 16:27:12.634 18169 18169 I flutter : FUSE 3982 2
+10-09 16:27:12.649 18169 18169 I flutter : FUSE 3172 2
+10-09 16:27:12.666 18169 18169 I flutter : FUSE 3251 2
+10-09 16:27:12.682 18169 18169 I flutter : FUSE 3338 2
+10-09 16:27:12.698 18169 18169 I flutter : FUSE 3145 2
+10-09 16:27:12.716 18169 18169 I flutter : FUSE 3985 2
+10-09 16:27:12.731 18169 18169 I flutter : FUSE 3185 2
+10-09 16:27:12.748 18169 18169 I flutter : FUSE 3984 2
+10-09 16:27:12.765 18169 18169 I flutter : FUSE 3144 2
+10-09 16:27:12.781 18169 18169 I flutter : FUSE 4103 2
+10-09 16:27:12.797 18169 18169 I flutter : FUSE 3876 2
+10-09 16:27:12.812 18169 18169 I flutter : FUSE 3247 2
+10-09 16:27:12.829 18169 18169 I flutter : FUSE 3247 2
+10-09 16:27:12.846 18169 18169 I flutter : FUSE 3174 2
+10-09 16:27:12.861 18169 18169 I flutter : FUSE 3314 2
+10-09 16:27:12.878 18169 18169 I flutter : FUSE 3961 2
+10-09 16:27:13.074 18169 18169 I flutter : FUSE 3549 2
+10-09 16:27:13.108 18169 18169 I flutter : FUSE 3073 2
+10-09 16:27:13.125 18169 18169 I flutter : FUSE 5841 3
+10-09 16:27:13.163 18169 18169 I flutter : FUSE 9093 4
+10-09 16:27:13.189 18169 18169 I flutter : FUSE 4461 3
+10-09 16:27:13.205 18169 18169 I flutter : FUSE 4331 3
+10-09 16:27:13.221 18169 18169 I flutter : FUSE 4229 3
+10-09 16:27:13.238 18169 18169 I flutter : FUSE 3954 3
+10-09 16:27:13.254 18169 18169 I flutter : FUSE 4127 3
+10-09 16:27:13.270 18169 18169 I flutter : FUSE 3955 3
+10-09 16:27:13.286 18169 18169 I flutter : FUSE 3913 3
+10-09 16:27:13.304 18169 18169 I flutter : FUSE 3919 3
+10-09 16:27:13.319 18169 18169 I flutter : FUSE 3821 3
+10-09 16:27:13.336 18169 18169 I flutter : FUSE 4671 3
+10-09 16:27:13.353 18169 18169 I flutter : FUSE 3811 3
+10-09 16:27:13.369 18169 18169 I flutter : FUSE 3760 3
+10-09 16:27:13.385 18169 18169 I flutter : FUSE 3818 3
+10-09 16:27:13.401 18169 18169 I flutter : FUSE 3849 3
+10-09 16:27:13.415 18169 18169 I flutter : FUSE 2001 2
+10-09 16:27:13.431 18169 18169 I flutter : FUSE 1931 2
+10-09 16:27:13.447 18169 18169 I flutter : FUSE 1779 2
+10-09 16:27:13.465 18169 18169 I flutter : FUSE 2499 2
+10-09 16:27:13.480 18169 18169 I flutter : FUSE 1839 2
+10-09 16:27:13.497 18169 18169 I flutter : FUSE 1703 2
+10-09 16:27:13.513 18169 18169 I flutter : FUSE 1766 2
+10-09 16:27:13.529 18169 18169 I flutter : FUSE 2540 2
+10-09 16:27:13.545 18169 18169 I flutter : FUSE 1836 2
+10-09 16:27:13.562 18169 18169 I flutter : FUSE 2641 2
+10-09 16:27:13.578 18169 18169 I flutter : FUSE 1901 2
+10-09 16:27:13.595 18169 18169 I flutter : FUSE 2718 2
+10-09 16:27:13.610 18169 18169 I flutter : FUSE 1931 2
+10-09 16:27:13.627 18169 18169 I flutter : FUSE 1880 2
+10-09 16:27:13.644 18169 18169 I flutter : FUSE 1797 2
+10-09 16:27:13.660 18169 18169 I flutter : FUSE 2096 2
+10-09 16:27:13.676 18169 18169 I flutter : FUSE 1982 2
+10-09 16:27:13.692 18169 18169 I flutter : FUSE 1902 2
+10-09 16:27:13.708 18169 18169 I flutter : FUSE 2564 2
+10-09 16:27:13.725 18169 18169 I flutter : FUSE 2665 2
+10-09 16:27:13.742 18169 18169 I flutter : FUSE 1970 2
+10-09 16:27:13.757 18169 18169 I flutter : FUSE 1814 2
+10-09 16:27:13.773 18169 18169 I flutter : FUSE 1995 2
+10-09 16:27:13.799 18169 18187 I n.morph_exampl: ProcessProfilingInfo new_methods=1779 is saved saved_to_disk=1 resolve_classes_delay=8000
+10-09 16:27:19.742 18169 18169 I flutter : FUSE 1145 2
+10-09 16:27:19.807 18169 18169 I flutter : FUSE 1323 2
+10-09 16:27:19.824 18169 18169 I flutter : FUSE 1291 2
+10-09 16:27:19.873 18169 18169 I flutter : FUSE 1961 2
+10-09 16:27:19.890 18169 18169 I flutter : FUSE 6992 2
+10-09 16:27:19.905 18169 18169 I flutter : FUSE 2695 2
+10-09 16:27:19.919 18169 18169 I flutter : FUSE 2443 2
+10-09 16:27:19.935 18169 18169 I flutter : FUSE 2668 2
+10-09 16:27:19.968 18169 18169 I flutter : FUSE 3140 2
+10-09 16:27:19.986 18169 18169 I flutter : FUSE 2934 2
+10-09 16:27:20.002 18169 18169 I flutter : FUSE 3146 2
+10-09 16:27:20.017 18169 18169 I flutter : FUSE 3410 2
+10-09 16:27:20.032 18169 18169 I flutter : FUSE 3132 2
+10-09 16:27:20.050 18169 18169 I flutter : FUSE 3596 2
+10-09 16:27:20.082 18169 18169 I flutter : FUSE 3323 2
+10-09 16:27:20.758 18169 18169 I flutter : FUSE 1800 2
+10-09 16:27:20.782 18169 18169 I flutter : FUSE 1991 2
+10-09 16:27:20.799 18169 18169 I flutter : FUSE 1862 2
+10-09 16:27:20.817 18169 18169 I flutter : FUSE 2015 2
+10-09 16:27:20.831 18169 18169 I flutter : FUSE 1996 2
+10-09 16:27:20.868 18169 18169 I flutter : FUSE 4645 3
+10-09 16:27:20.899 18169 18169 I flutter : FUSE 4370 3
+10-09 16:27:20.917 18169 18169 I flutter : FUSE 4995 3
+10-09 16:27:20.932 18169 18169 I flutter : FUSE 5171 3
+10-09 16:27:20.953 18169 18169 I flutter : FUSE 9513 4
+10-09 16:27:20.969 18169 18169 I flutter : FUSE 9274 4
+10-09 16:27:20.985 18169 18169 I flutter : FUSE 9119 4
+10-09 16:27:21.002 18169 18169 I flutter : FUSE 9280 4
+10-09 16:27:21.034 18169 18169 I flutter : FUSE 9299 4
+10-09 16:27:21.051 18169 18169 I flutter : FUSE 9406 4
+10-09 16:27:21.084 18169 18169 I flutter : FUSE 9408 4
+10-09 16:27:21.102 18169 18169 I flutter : FUSE 9569 4
+10-09 16:27:21.134 18169 18169 I flutter : FUSE 11779 2
+10-09 16:27:21.161 18169 18169 I flutter : FUSE 3331 2
+10-09 16:27:21.176 18169 18169 I flutter : FUSE 3220 2
+10-09 16:27:21.191 18169 18169 I flutter : FUSE 3258 2
+10-09 16:27:21.208 18169 18169 I flutter : FUSE 3269 2
+10-09 16:27:21.224 18169 18169 I flutter : FUSE 3096 2
+10-09 16:27:21.242 18169 18169 I flutter : FUSE 3368 2
+10-09 16:27:21.258 18169 18169 I flutter : FUSE 3267 2
+10-09 16:27:21.273 18169 18169 I flutter : FUSE 3177 2
+10-09 16:27:21.290 18169 18169 I flutter : FUSE 3411 2
+10-09 16:27:21.306 18169 18169 I flutter : FUSE 3073 2
+10-09 16:27:21.323 18169 18169 I flutter : FUSE 3267 2
+10-09 16:27:21.339 18169 18169 I flutter : FUSE 3121 2
+10-09 16:27:21.355 18169 18169 I flutter : FUSE 3162 2
+10-09 16:27:21.386 18169 18169 I flutter : FUSE 3191 2
+10-09 16:27:21.408 18169 18169 I flutter : FUSE 6100 2
+10-09 16:27:21.439 18169 18169 I flutter : FUSE 6913 3
+10-09 16:27:21.454 18169 18169 I flutter : FUSE 6028 3
+10-09 16:27:21.469 18169 18169 I flutter : FUSE 4092 2
+10-09 16:27:21.485 18169 18169 I flutter : FUSE 3865 2
+10-09 16:27:21.501 18169 18169 I flutter : FUSE 4041 2
+10-09 16:27:21.518 18169 18169 I flutter : FUSE 3142 2
+10-09 16:27:21.536 18169 18169 I flutter : FUSE 3569 2
+10-09 16:27:21.551 18169 18169 I flutter : FUSE 4006 2
+10-09 16:27:21.566 18169 18169 I flutter : FUSE 3238 2
+10-09 16:27:21.582 18169 18169 I flutter : FUSE 3416 2
+10-09 16:27:21.600 18169 18169 I flutter : FUSE 3308 2
+10-09 16:27:21.617 18169 18169 I flutter : FUSE 3378 2
+10-09 16:27:21.631 18169 18169 I flutter : FUSE 3155 2
+10-09 16:27:21.648 18169 18169 I flutter : FUSE 4498 2
+10-09 16:27:21.664 18169 18169 I flutter : FUSE 3998 2
+10-09 16:27:21.680 18169 18169 I flutter : FUSE 3145 2
+10-09 16:27:21.697 18169 18169 I flutter : FUSE 4153 2
+10-09 16:27:21.713 18169 18169 I flutter : FUSE 3903 2
+10-09 16:27:21.729 18169 18169 I flutter : FUSE 4032 2
+10-09 16:27:21.746 18169 18169 I flutter : FUSE 3219 2
+10-09 16:27:21.761 18169 18169 I flutter : FUSE 3271 2
+10-09 16:27:21.778 18169 18169 I flutter : FUSE 3989 2
+10-09 16:27:21.794 18169 18169 I flutter : FUSE 3907 2
+10-09 16:27:21.810 18169 18169 I flutter : FUSE 3479 2
+10-09 16:27:21.826 18169 18169 I flutter : FUSE 3118 2
+10-09 16:27:21.842 18169 18169 I flutter : FUSE 3364 2
+10-09 16:27:21.859 18169 18169 I flutter : FUSE 3797 2
+10-09 16:27:21.876 18169 18169 I flutter : FUSE 4061 2
+10-09 16:27:21.892 18169 18169 I flutter : FUSE 3194 2
+10-09 16:27:21.910 18169 18169 I flutter : FUSE 4317 2
+10-09 16:27:21.925 18169 18169 I flutter : FUSE 3126 2
+10-09 16:27:21.942 18169 18169 I flutter : FUSE 4064 2
+10-09 16:27:21.958 18169 18169 I flutter : FUSE 3165 2
+10-09 16:27:21.974 18169 18169 I flutter : FUSE 3290 2
+10-09 16:27:21.990 18169 18169 I flutter : FUSE 3185 2
+10-09 16:27:22.006 18169 18169 I flutter : FUSE 3293 2
+10-09 16:27:22.022 18169 18169 I flutter : FUSE 3361 2
+10-09 16:27:22.038 18169 18169 I flutter : FUSE 3210 2
+10-09 16:27:22.055 18169 18169 I flutter : FUSE 3268 2
+10-09 16:27:22.071 18169 18169 I flutter : FUSE 3271 2
+10-09 16:27:22.252 18169 18169 I flutter : FUSE 3447 2
+10-09 16:27:22.267 18169 18169 I flutter : FUSE 3262 2
+10-09 16:27:22.286 18169 18169 I flutter : FUSE 3323 2
+10-09 16:27:22.301 18169 18169 I flutter : FUSE 3990 2
+10-09 16:27:22.319 18169 18169 I flutter : FUSE 6266 3
+10-09 16:27:22.356 18169 18169 I flutter : FUSE 10062 4
+10-09 16:27:22.382 18169 18169 I flutter : FUSE 4743 3
+10-09 16:27:22.399 18169 18169 I flutter : FUSE 4364 3
+10-09 16:27:22.431 18169 18169 I flutter : FUSE 4103 3
+10-09 16:27:22.447 18169 18169 I flutter : FUSE 4013 3
+10-09 16:27:22.465 18169 18169 I flutter : FUSE 4322 3
+10-09 16:27:22.480 18169 18169 I flutter : FUSE 4173 3
+10-09 16:27:22.496 18169 18169 I flutter : FUSE 4083 3
+10-09 16:27:22.514 18169 18169 I flutter : FUSE 4190 3
+10-09 16:27:22.531 18169 18169 I flutter : FUSE 4140 3
+10-09 16:27:22.546 18169 18169 I flutter : FUSE 4123 3
+10-09 16:27:22.564 18169 18169 I flutter : FUSE 4062 3
+10-09 16:27:22.578 18169 18169 I flutter : FUSE 3860 3
+10-09 16:27:22.595 18169 18169 I flutter : FUSE 4710 3
+10-09 16:27:22.608 18169 18169 I flutter : FUSE 2149 2
+10-09 16:27:22.624 18169 18169 I flutter : FUSE 1803 2
+10-09 16:27:22.640 18169 18169 I flutter : FUSE 1921 2
+10-09 16:27:22.656 18169 18169 I flutter : FUSE 1787 2
+10-09 16:27:22.673 18169 18169 I flutter : FUSE 2611 2
+10-09 16:27:22.689 18169 18169 I flutter : FUSE 1652 2
+10-09 16:27:22.706 18169 18169 I flutter : FUSE 2675 2
+10-09 16:27:22.722 18169 18169 I flutter : FUSE 2614 2
+10-09 16:27:22.737 18169 18169 I flutter : FUSE 1810 2
+10-09 16:27:22.755 18169 18169 I flutter : FUSE 2533 2
+10-09 16:27:22.770 18169 18169 I flutter : FUSE 1964 2
+10-09 16:27:22.786 18169 18169 I flutter : FUSE 1803 2
+10-09 16:27:22.804 18169 18169 I flutter : FUSE 2831 2
+10-09 16:27:22.820 18169 18169 I flutter : FUSE 1931 2
+10-09 16:27:22.835 18169 18169 I flutter : FUSE 1957 2
+10-09 16:27:22.852 18169 18169 I flutter : FUSE 2605 2
+10-09 16:27:22.868 18169 18169 I flutter : FUSE 1927 2
+10-09 16:27:22.885 18169 18169 I flutter : FUSE 2722 2
+10-09 16:27:22.900 18169 18169 I flutter : FUSE 1980 2
+10-09 16:27:22.918 18169 18169 I flutter : FUSE 2700 2
+10-09 16:27:22.934 18169 18169 I flutter : FUSE 2695 2
+10-09 16:27:22.949 18169 18169 I flutter : FUSE 1852 2
+10-09 16:27:22.967 18169 18169 I flutter : FUSE 2855 2
+10-09 16:27:23.883 18169 18169 I flutter : FUSE 1304 2
+10-09 16:27:23.947 18169 18169 I flutter : FUSE 1216 2
+10-09 16:27:23.963 18169 18169 I flutter : FUSE 1283 2
+10-09 16:27:23.996 18169 18169 I flutter : FUSE 1681 2
+10-09 16:27:24.009 18169 18169 I flutter : FUSE 1844 2
+10-09 16:27:24.025 18169 18169 I flutter : FUSE 2374 2
+10-09 16:27:24.042 18169 18169 I flutter : FUSE 2680 2
+10-09 16:27:24.059 18169 18169 I flutter : FUSE 3420 2
+10-09 16:27:24.075 18169 18169 I flutter : FUSE 2529 2
+10-09 16:27:24.092 18169 18169 I flutter : FUSE 3930 2
+10-09 16:27:24.108 18169 18169 I flutter : FUSE 3198 2
+10-09 16:27:24.125 18169 18169 I flutter : FUSE 4227 2
+10-09 16:27:24.141 18169 18169 I flutter : FUSE 3455 2
+10-09 16:27:24.158 18169 18169 I flutter : FUSE 4039 2
+10-09 16:27:24.174 18169 18169 I flutter : FUSE 4253 2
+10-09 16:27:24.191 18169 18169 I flutter : FUSE 4722 2
+10-09 16:27:24.207 18169 18169 I flutter : FUSE 3183 2
+10-09 16:27:25.402 18169 18169 I flutter : FUSE 1927 2
+10-09 16:27:25.429 18169 18169 I flutter : FUSE 1941 2
+10-09 16:27:25.444 18169 18169 I flutter : FUSE 1881 2
+10-09 16:27:25.462 18169 18169 I flutter : FUSE 1965 2
+10-09 16:27:25.476 18169 18169 I flutter : FUSE 1994 2
+10-09 16:27:25.513 18169 18169 I flutter : FUSE 4327 3
+10-09 16:27:25.529 18169 18169 I flutter : FUSE 4048 3
+10-09 16:27:25.544 18169 18169 I flutter : FUSE 4578 3
+10-09 16:27:25.562 18169 18169 I flutter : FUSE 5198 3
+10-09 16:27:25.578 18169 18169 I flutter : FUSE 6123 3
+10-09 16:27:25.598 18169 18169 I flutter : FUSE 9063 4
+10-09 16:27:25.614 18169 18169 I flutter : FUSE 8884 4
+10-09 16:27:25.630 18169 18169 I flutter : FUSE 9231 4
+10-09 16:27:25.649 18169 18169 I flutter : FUSE 10011 4
+10-09 16:27:25.687 18169 18169 I flutter : FUSE 15579 4
+10-09 16:27:25.712 18169 18169 I flutter : FUSE 8938 4
+10-09 16:27:25.745 18169 18169 I flutter : FUSE 9583 4
+10-09 16:27:25.754 18169 18169 I flutter : FUSE 2779 2
+10-09 16:27:25.758 18169 18169 I flutter : FUSE 3563 2
+10-09 16:27:25.771 18169 18169 I flutter : FUSE 3723 2
+10-09 16:27:25.789 18169 18169 I flutter : FUSE 3244 2
+10-09 16:27:25.805 18169 18169 I flutter : FUSE 3766 2
+10-09 16:27:25.821 18169 18169 I flutter : FUSE 3987 2
+10-09 16:27:25.836 18169 18169 I flutter : FUSE 3258 2
+10-09 16:27:25.852 18169 18169 I flutter : FUSE 3131 2
+10-09 16:27:25.868 18169 18169 I flutter : FUSE 3211 2
+10-09 16:27:25.886 18169 18169 I flutter : FUSE 3908 2
+10-09 16:27:25.902 18169 18169 I flutter : FUSE 3363 2
+10-09 16:27:25.918 18169 18169 I flutter : FUSE 3136 2
+10-09 16:27:25.935 18169 18169 I flutter : FUSE 4030 2
+10-09 16:27:25.951 18169 18169 I flutter : FUSE 3863 2
+10-09 16:27:25.969 18169 18169 I flutter : FUSE 3360 2
+10-09 16:27:25.984 18169 18169 I flutter : FUSE 3819 2
+10-09 16:27:26.000 18169 18169 I flutter : FUSE 3987 2
+10-09 16:27:26.016 18169 18169 I flutter : FUSE 3229 2
+10-09 16:27:26.032 18169 18169 I flutter : FUSE 3195 2
+10-09 16:27:26.049 18169 18169 I flutter : FUSE 3883 2
+10-09 16:27:26.065 18169 18169 I flutter : FUSE 3854 2
+10-09 16:27:26.083 18169 18169 I flutter : FUSE 5964 3
+10-09 16:27:26.101 18169 18169 I flutter : FUSE 6694 3
+10-09 16:27:26.114 18169 18169 I flutter : FUSE 3204 2
+10-09 16:27:26.129 18169 18169 I flutter : FUSE 3171 2
+10-09 16:27:26.146 18169 18169 I flutter : FUSE 4077 2
+10-09 16:27:26.162 18169 18169 I flutter : FUSE 3537 2
+10-09 16:27:26.179 18169 18169 I flutter : FUSE 3940 2
+10-09 16:27:26.194 18169 18169 I flutter : FUSE 3106 2
+10-09 16:27:26.211 18169 18169 I flutter : FUSE 4107 2
+10-09 16:27:26.227 18169 18169 I flutter : FUSE 3171 2
+10-09 16:27:26.244 18169 18169 I flutter : FUSE 3865 2
+10-09 16:27:26.260 18169 18169 I flutter : FUSE 3380 2
+10-09 16:27:26.276 18169 18169 I flutter : FUSE 3984 2
+10-09 16:27:26.292 18169 18169 I flutter : FUSE 3385 2
+10-09 16:27:26.309 18169 18169 I flutter : FUSE 4053 2
+10-09 16:27:26.327 18169 18169 I flutter : FUSE 3402 2
+10-09 16:27:26.342 18169 18169 I flutter : FUSE 3234 2
+10-09 16:27:26.358 18169 18169 I flutter : FUSE 4079 2
+10-09 16:27:26.374 18169 18169 I flutter : FUSE 3883 2
+10-09 16:27:26.391 18169 18169 I flutter : FUSE 3336 2
+10-09 16:27:26.407 18169 18169 I flutter : FUSE 3808 2
+10-09 16:27:26.423 18169 18169 I flutter : FUSE 4079 2
+10-09 16:27:26.440 18169 18169 I flutter : FUSE 4136 2
+10-09 16:27:26.456 18169 18169 I flutter : FUSE 3860 2
+10-09 16:27:26.471 18169 18169 I flutter : FUSE 3330 2
+10-09 16:27:26.488 18169 18169 I flutter : FUSE 4041 2
+10-09 16:27:26.505 18169 18169 I flutter : FUSE 3946 2
+10-09 16:27:26.521 18169 18169 I flutter : FUSE 3946 2
+10-09 16:27:26.536 18169 18169 I flutter : FUSE 3187 2
+10-09 16:27:26.554 18169 18169 I flutter : FUSE 4144 2
+10-09 16:27:26.569 18169 18169 I flutter : FUSE 3104 2
+10-09 16:27:26.587 18169 18169 I flutter : FUSE 3368 2
+10-09 16:27:26.603 18169 18169 I flutter : FUSE 3859 2
+10-09 16:27:26.618 18169 18169 I flutter : FUSE 3278 2
+10-09 16:27:26.635 18169 18169 I flutter : FUSE 4121 2
+10-09 16:27:26.651 18169 18169 I flutter : FUSE 3846 2
+10-09 16:27:26.667 18169 18169 I flutter : FUSE 3473 2
+10-09 16:27:26.684 18169 18169 I flutter : FUSE 3891 2
+10-09 16:27:26.700 18169 18169 I flutter : FUSE 3504 2
+10-09 16:27:26.716 18169 18169 I flutter : FUSE 3209 2
