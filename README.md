@@ -1,3 +1,7 @@
+> **Experimental branch: implementation may be incorrect or incomplete.**
+> See [EXPERIMENT.md](EXPERIMENT.md) for the hypothesis, prototype, observations
+> and possible mistakes. Results do not rule out a better implementation.
+
 # morph
 
 Identity-based, spring-driven, interruptible widget-to-overlay morphs

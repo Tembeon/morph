@@ -1,0 +1,6 @@
+# Preserve native evidence bytes and their recorded SHA-256 checksums.
+tool/ios_reference/perf/2026-10-08-architecture/** -text
+tool/ios_reference/perf/2026-10-09-field-material/** -text
+tool/ios_reference/perf/2026-10-09-glyph-cohorts/** -text
+tool/ios_reference/perf/2026-10-09-navigation-transition/** -text
+tool/ios_reference/perf/2026-10-09-optical-batch/** -text
