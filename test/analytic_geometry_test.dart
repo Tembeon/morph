@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
@@ -78,8 +79,10 @@ List<String> _analyticLines({required bool tint}) {
   return kept;
 }
 
-int _maxShapes() {
-  final define = RegExp(r'^#define ANALYTIC_MAX_SHAPES (\d+)');
+int _maxShapes() => _define('ANALYTIC_MAX_SHAPES');
+
+int _define(String name) {
+  final define = RegExp('^#define $name (\\d+)');
   for (final line in File(
     '${_shaders}analytic_geometry.glsl',
   ).readAsLinesSync()) {
@@ -87,17 +90,19 @@ int _maxShapes() {
       return int.parse(match.group(1)!);
     }
   }
-  throw StateError('ANALYTIC_MAX_SHAPES not defined');
+  throw StateError('$name not defined');
 }
 
 String? _ineligibility({
   bool enabled = true,
   bool hasField = false,
+  int fusedBoxes = 0,
   bool shadersReady = true,
   required List<(double, List<LiquidGlassAppearance>)> geometries,
 }) => RenderLiquidGlassLayer.analyticIneligibility(
   enabled: enabled,
   hasField: hasField,
+  fusedBoxes: fusedBoxes,
   shadersReady: () => shadersReady,
   geometries: geometries,
   fallback: const LiquidGlassAppearance.ios27RegularDark(),
@@ -119,9 +124,12 @@ void main() {
       test('the analytic uniforms sit where the layer writes them: '
           '${tint ? 'tint' : 'one appearance'}', () {
         final max = _maxShapes();
+        final boxes = _define('ANALYTIC_MAX_BOXES');
+        expect(boxes, GlassBoxField.maxBoxes);
         final layout = _layout(_analyticLines(tint: tint), _coreFloats(), {
           'MAX_SHAPES': max,
           'ANALYTIC_MAX_SHAPES': max,
+          'ANALYTIC_MAX_BOXES': boxes,
         });
         expect(layout['uAnalyticOptics'], (
           RenderLiquidGlassLayer.analyticUniformIndex,
@@ -143,12 +151,17 @@ void main() {
           max * 4,
         ));
         expect(RenderLiquidGlassLayer.analyticBoundsIndex, 265);
+        expect(layout['uFusedBoxes'], (
+          RenderLiquidGlassLayer.analyticFusedBoxesIndex,
+          boxes * 8,
+        ));
+        expect(RenderLiquidGlassLayer.analyticFusedBoxesIndex, 297);
         if (tint) {
           expect(layout['uShapeTints'], (
             RenderLiquidGlassLayer.analyticTintsIndex,
             max * 4,
           ));
-          expect(RenderLiquidGlassLayer.analyticTintsIndex, 297);
+          expect(RenderLiquidGlassLayer.analyticTintsIndex, 329);
         } else {
           expect(layout.containsKey('uShapeTints'), isFalse);
         }
@@ -158,6 +171,7 @@ void main() {
           'uShapeData',
           'uRseData',
           'uShapeBounds',
+          'uFusedBoxes',
           if (tint) 'uShapeTints',
         ]);
       });
@@ -195,15 +209,46 @@ void main() {
       );
     });
 
-    test('a fused field', () {
+    test('a sampled fused field', () {
       expect(
         _ineligibility(
           hasField: true,
           geometries: [
-            (0, [dark]),
+            (0, [dark, dark]),
           ],
         ),
         'fused field',
+      );
+    });
+
+    test('a body of merged boxes, up to four', () {
+      for (final boxes in [2, 3, 4]) {
+        expect(
+          _ineligibility(
+            hasField: true,
+            fusedBoxes: boxes,
+            geometries: [(0, List.filled(boxes, dark))],
+          ),
+          isNull,
+        );
+      }
+      expect(
+        _ineligibility(
+          hasField: true,
+          fusedBoxes: 5,
+          geometries: [(0, List.filled(5, dark))],
+        ),
+        'more than 4 fused boxes',
+      );
+      expect(
+        _ineligibility(
+          hasField: true,
+          fusedBoxes: 2,
+          geometries: [
+            (0, [dark, light]),
+          ],
+        ),
+        'mixed appearances',
       );
     });
 

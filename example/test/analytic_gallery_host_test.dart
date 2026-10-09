@@ -8,8 +8,12 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The report reads the renderer's own layers.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/glass_field.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show RenderLiquidGlassLayer;
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -52,6 +56,7 @@ void main() {
     settings.tier = MorphGlassTier.liquid;
     settings.appearance = ThemeMode.dark;
     await frames(10);
+    final traces = morphGlassOutlineDebugTraces;
     final entry = galleryEntries.firstWhere((e) => e.title == 'Navigation');
     unawaited(
       navigator.currentState!.push(
@@ -61,6 +66,7 @@ void main() {
     await frames(90);
 
     final report = <String, List<String>>{};
+    var mergedAnalytic = 0;
     void record(String moment) {
       final lines = <String>[];
       for (final layer
@@ -87,9 +93,18 @@ void main() {
         final line =
             '$moment ${_owner(layer)} at ${_rect(bounds)} '
             'shapes $shapes blends $blends '
+            'field ${switch (layer.field) {
+              null => 'none',
+              GlassBoxField(:final boxes) => '${boxes.length} merged boxes',
+              _ => 'sampled',
+            }} '
             'analytic ${layer.debugAnalytic} '
             'reason ${layer.debugAnalyticIneligibility}';
         lines.add(line);
+        if (layer.field is GlassBoxField && layer.debugAnalytic) {
+          mergedAnalytic++;
+        }
+        expect(layer.debugAnalytic, isTrue, reason: line);
         // The report is the test's output.
         // ignore: avoid_print
         print(line);
@@ -106,6 +121,12 @@ void main() {
     record('pushed');
     await frames(300);
     record('settled');
+    // A bar group the container fuses goes analytic as merged boxes, and
+    // the CPU never fuses its field.
+    expect(mergedAnalytic, greaterThan(0));
+    // ignore: avoid_print
+    print('fields fused on the CPU ${morphGlassOutlineDebugTraces - traces}');
+    expect(morphGlassOutlineDebugTraces - traces, 0);
   });
 }
 

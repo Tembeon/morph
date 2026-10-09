@@ -49,7 +49,9 @@ class MorphGlassOutline {
       ]);
     }
     final field = _field?.shift(offset);
-    return MorphGlassOutline._(field?.outline ?? path.shift(offset), field);
+    // A merged-box field keeps the union path, not its fused edge.
+    final edge = field is GlassBoxField ? null : field?.outline;
+    return MorphGlassOutline._(edge ?? path.shift(offset), field);
   }
 }
 
@@ -832,6 +834,55 @@ final List<(List<RRect>, double, MorphGlassOutline)> _recentSilhouettes = [];
 /// The last four plain unions retained by the isolate, newest last.
 final List<(List<RRect>, MorphGlassOutline)> _recentUnions = [];
 
+/// The last four merged-box outlines retained by the isolate, newest last.
+final List<(List<RRect>, double, MorphGlassOutline)> _recentBoxOutlines = [];
+
+/// The outline of [shapes] merged by a glass container with [spacing] for
+/// a liquid layer that evaluates the merge law itself: its field is a
+/// [GlassBoxField] of the shapes, fused only if something reads its
+/// samples, and its path the plain union of the shapes, for the body's
+/// blurred shadow. Fake glass and flat fills, which clip to the edge, take
+/// [morphGlassContainerOutline] instead.
+///
+/// Falls back to [morphGlassContainerOutline] for spacing 0 or more than
+/// [GlassBoxField.maxBoxes] shapes. The last few outlines are remembered,
+/// also under one common translation.
+@internal
+MorphGlassOutline morphGlassContainerBoxOutline(
+  List<RRect> shapes,
+  double spacing,
+) {
+  if (spacing <= 0 || shapes.length > GlassBoxField.maxBoxes) {
+    return morphGlassContainerOutline(shapes, spacing);
+  }
+  for (final (recent, recentSpacing, outline) in _recentBoxOutlines) {
+    if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
+  }
+  MorphGlassOutline? outline;
+  for (final (recent, recentSpacing, kept) in _recentBoxOutlines) {
+    if (recentSpacing != spacing) continue;
+    final offset = _translation(recent, shapes);
+    if (offset == null) continue;
+    outline = kept.shift(offset);
+    break;
+  }
+  if (outline == null) {
+    final kept = List<RRect>.unmodifiable(shapes);
+    outline = MorphGlassOutline._(
+      _unionPath(kept),
+      GlassBoxField(
+        boxes: kept,
+        spacing: spacing,
+        fuse: () =>
+            morphGlassOutlineField(morphGlassContainerOutline(kept, spacing))!,
+      ),
+    );
+  }
+  _recentBoxOutlines.add((List.of(shapes), spacing, outline));
+  if (_recentBoxOutlines.length > 4) _recentBoxOutlines.removeAt(0);
+  return outline;
+}
+
 /// The outline a glass container with [spacing] fuses [shapes] into, by
 /// the skin's merge law ([LiquidField] with blend [spacing], 1:1 the
 /// container spacing of UIKit's `UIGlassContainerEffect`).
@@ -1202,6 +1253,7 @@ void debugClearMorphGlassOutlines() {
   _recentOutlines.clear();
   _recentSilhouettes.clear();
   _recentUnions.clear();
+  _recentBoxOutlines.clear();
 }
 
 /// The grids [_fuseContainer] works in, kept across calls (an outline is

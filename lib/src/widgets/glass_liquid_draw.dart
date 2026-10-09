@@ -393,7 +393,10 @@ Widget morphLiquidLayer(
   MorphGlassSource source, {
   Widget? content,
 }) {
-  final parts = source.frame.parts;
+  // The liquid tier with analytic geometry merges small fused bodies in
+  // its shader; every other tier draws the package's fused outlines.
+  final tier = renderer.effectiveTier;
+  final parts = source.frame.partsFor(tier);
   final body = parts.body;
   final floating = parts.floating;
   final chrome = body.any(_chrome);
@@ -411,7 +414,7 @@ Widget morphLiquidLayer(
       if (s.kind == MorphGlassKind.lens && lifted(s)) i,
   ];
   List<RRect> lenses(MorphGlassFrame f) => [
-    for (final i in lensed) f.parts.floating[i].shape,
+    for (final i in lensed) f.partsFor(tier).floating[i].shape,
   ];
   final refracts = renderer.effectiveTier == MorphGlassTier.liquid;
   final snapshot = source.keep('snapshot', GlassContentSnapshot.new);
@@ -436,8 +439,12 @@ Widget morphLiquidLayer(
       for (var i = 0; i < parts.fills.length; i++)
         at(
           ('fill', i),
-          (f) => f.parts.fills[i].bounds,
-          () => renderer.liveFill(context, source, (f) => f.parts.fills[i]),
+          (f) => f.partsFor(tier).fills[i].bounds,
+          () => renderer.liveFill(
+            context,
+            source,
+            (f) => f.partsFor(tier).fills[i],
+          ),
         ),
       if (parts.separate.isNotEmpty)
         fill(
@@ -450,14 +457,14 @@ Widget morphLiquidLayer(
                   child: _shapes(
                     renderer,
                     source,
-                    (f) => f.parts.separate,
+                    (f) => f.partsFor(tier).separate,
                     count: parts.separate.length,
                   ),
                 )
               : _layer(
                   renderer,
                   source,
-                  (f) => f.parts.separate,
+                  (f) => f.partsFor(tier).separate,
                   shared: !chrome,
                 ),
         ),
@@ -471,22 +478,29 @@ Widget morphLiquidLayer(
             renderer,
             context,
             source,
-            (f) => f.parts.fused[i],
+            (f) => f.partsFor(tier).fused[i],
           ),
         ),
       for (final (i, surface) in body.indexed)
         if (surface.glow != null)
           at(
             ('glow', i),
-            (f) => f.parts.body[i].bounds,
-            () => renderer.liveGlow(context, source, (f) => f.parts.body[i]),
+            (f) => f.partsFor(tier).body[i].bounds,
+            () => renderer.liveGlow(
+              context,
+              source,
+              (f) => f.partsFor(tier).body[i],
+            ),
           ),
       for (final (i, surface) in floating.indexed)
         if (MorphGlassRenderer.glassness(surface) < 1)
           at(
             ('platter', i),
-            (f) => f.parts.floating[i].bounds,
-            () => _Platter(source: source, select: (f) => f.parts.floating[i]),
+            (f) => f.partsFor(tier).floating[i].bounds,
+            () => _Platter(
+              source: source,
+              select: (f) => f.partsFor(tier).floating[i],
+            ),
           ),
       if (content != null)
         Positioned.fill(
@@ -520,7 +534,7 @@ Widget morphLiquidLayer(
               ValueKey<(String, int)>(('copy', i)),
               () => MorphGlassContentCopy(
                 frame: source.pick((f) {
-                  final lens = f.parts.floating[i];
+                  final lens = f.partsFor(tier).floating[i];
                   final lensOptics = optics(lens);
                   return MorphGlassCopyFrame(
                     surface: lens,
@@ -545,7 +559,7 @@ Widget morphLiquidLayer(
             () => _layer(
               renderer,
               source,
-              (f) => [f.parts.floating[i]],
+              (f) => [f.partsFor(tier).floating[i]],
               shared: false,
               shrink: shrinkOf,
               rim: optics(surface).rim,

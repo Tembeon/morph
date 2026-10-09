@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
@@ -606,12 +607,16 @@ class MorphGlassLayerParts {
   /// outline - the control's [outline], or the groups a glass container
   /// with [spacing] fuses - and floating lenses, knobs and thumbs.
   /// With [withField] false, generated fused bodies carry their silhouette
-  /// alone; supplied [outline] values are retained unchanged.
+  /// alone; with [boxes] true, those of at most [GlassBoxField.maxBoxes]
+  /// surfaces carry their boxes for a liquid layer that merges them itself
+  /// ([morphGlassContainerBoxOutline]). Supplied [outline] values are
+  /// retained unchanged.
   factory MorphGlassLayerParts.of(
     List<MorphGlassSurface> surfaces, {
     double spacing = 0,
     MorphGlassOutline? outline,
     bool withField = true,
+    bool boxes = false,
   }) {
     final visible = [
       for (final s in surfaces)
@@ -633,13 +638,16 @@ class MorphGlassLayerParts {
           separate.add(body[group.single]);
         } else {
           final members = [for (final i in group) body[i]];
+          final shapes = [for (final s in members) s.shape];
           fused.add((
             members,
-            morphGlassContainerOutline(
-              [for (final s in members) s.shape],
-              spacing,
-              withField: withField,
-            ),
+            boxes
+                ? morphGlassContainerBoxOutline(shapes, spacing)
+                : morphGlassContainerOutline(
+                    shapes,
+                    spacing,
+                    withField: withField,
+                  ),
           ));
         }
       }

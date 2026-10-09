@@ -11,6 +11,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_shaders/flutter_shaders.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
+import 'package:morph/src/liquid_field.dart' show liquidMinMergeWidth;
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/ancestor_clip.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
@@ -703,7 +704,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   /// Why shapes cannot be evaluated in the final shader, or null when they
   /// can: analytic geometry is [enabled], the layer has no fused field
-  /// ([hasField]), there are at most [analyticMaxShapes] shapes, no
+  /// ([hasField]) or one of at most [GlassBoxField.maxBoxes] merged boxes
+  /// ([fusedBoxes], 0 for a sampled field), there are at most
+  /// [analyticMaxShapes] shapes, no
   /// geometry of two or more shapes blends them, the appearances are one
   /// or differ only by tint (against [fallback] when there are none), and
   /// the analytic shaders are ready ([shadersReady]).
@@ -716,9 +719,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     required bool Function() shadersReady,
     required Iterable<(double, Iterable<LiquidGlassAppearance>)> geometries,
     required LiquidGlassAppearance fallback,
+    int fusedBoxes = 0,
   }) {
     if (!enabled) return 'disabled';
-    if (hasField) return 'fused field';
+    if (hasField) {
+      if (fusedBoxes == 0) return 'fused field';
+      if (fusedBoxes > GlassBoxField.maxBoxes) {
+        return 'more than ${GlassBoxField.maxBoxes} fused boxes';
+      }
+    }
     final appearances = <LiquidGlassAppearance>[];
     for (final (blend, shapes) in geometries) {
       final start = appearances.length;
@@ -1419,11 +1428,16 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   static const int analyticBoundsIndex =
       analyticRseDataIndex + analyticMaxShapes * 12;
 
-  /// Float index of uShapeTints, after one vec4 of uShapeBounds per shape;
+  /// Float index of uFusedBoxes, after one vec4 of uShapeBounds per shape.
+  @visibleForTesting
+  static const int analyticFusedBoxesIndex =
+      analyticBoundsIndex + analyticMaxShapes * 4;
+
+  /// Float index of uShapeTints, after 2 vec4 of uFusedBoxes per fused box;
   /// only the tint variants declare it.
   @visibleForTesting
   static const int analyticTintsIndex =
-      analyticBoundsIndex + analyticMaxShapes * 4;
+      analyticFusedBoxesIndex + GlassBoxField.maxBoxes * 8;
 
   // The geometry pass's optical inputs of the current analytic frame.
   double _analyticRefractionHeight = 0;
@@ -1432,6 +1446,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   double _analyticContourExtent = 0.5;
   int _analyticShapeCount = 0;
   final List<double> _analyticTints = [];
+  // The fused body's boxes in device pixels, 8 floats per box (center,
+  // half extents, clamped radius, 3 unused), and its merge spacing; empty
+  // for separate shapes.
+  final List<double> _analyticBoxes = [];
+  double _analyticSpacing = 0;
 
   // Writes the analytic frame's shapes and the geometry pass's optical
   // inputs into [shader], from float index 65.
@@ -1441,6 +1460,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     shader.setFloat(analyticUniformIndex + 2, _analyticFitsShape ? 1 : 0);
     shader.setFloat(analyticUniformIndex + 3, _analyticShapeCount.toDouble());
     shader.setFloat(analyticUniformIndex + 4, _analyticContourExtent);
+    shader.setFloat(analyticUniformIndex + 5, _analyticBoxes.length / 8);
+    shader.setFloat(analyticUniformIndex + 6, _analyticSpacing);
+    shader.setFloat(
+      analyticUniformIndex + 7,
+      liquidMinMergeWidth * devicePixelRatio,
+    );
+    for (var i = 0; i < _analyticBoxes.length; i++) {
+      shader.setFloat(analyticFusedBoxesIndex + i, _analyticBoxes[i]);
+    }
     for (var i = 0; i < _shapeData.length; i++) {
       shader.setFloat(analyticShapeDataIndex + i, _shapeData[i]);
     }
@@ -1470,6 +1498,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _boundsData[i * 4 + 2] += delta.dx;
       _boundsData[i * 4 + 3] += delta.dy;
     }
+    for (var i = 0; i < _analyticBoxes.length; i += 8) {
+      _analyticBoxes[i] += delta.dx;
+      _analyticBoxes[i + 1] += delta.dy;
+    }
     _shaderInputsChanged = true;
   }
 
@@ -1481,6 +1513,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     return analyticIneligibility(
       enabled: true,
       hasField: _field != null,
+      fusedBoxes: switch (_field) {
+        GlassBoxField(:final boxes) => boxes.length,
+        _ => 0,
+      },
       shadersReady: _analyticShadersReady,
       geometries: [
         for (final (_, geometry, _) in geometries)
@@ -2300,6 +2336,26 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         _analyticFitsShape = settings.refractionFitsShape;
         _analyticContourExtent = max(0.5, aaPadding * devicePixelRatio);
         _analyticShapeCount = numShapes;
+        _analyticBoxes.clear();
+        _analyticSpacing = 0;
+        if (_field case GlassBoxField(:final boxes, :final spacing)) {
+          final scale = devicePixelRatio;
+          for (final box in boxes) {
+            final hx = box.width / 2;
+            final hy = box.height / 2;
+            _analyticBoxes.addAll([
+              box.center.dx * scale,
+              box.center.dy * scale,
+              hx * scale,
+              hy * scale,
+              min(box.tlRadiusX, min(hx, hy)) * scale,
+              0,
+              0,
+              0,
+            ]);
+          }
+          _analyticSpacing = spacing * scale;
+        }
         _analyticTints.clear();
         if (usesTintOnlyAppearance) {
           for (final appearance in appearances) {

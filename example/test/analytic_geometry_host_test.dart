@@ -3,6 +3,7 @@
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -11,10 +12,14 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // The A/B toggles the renderer's own geometry path.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/glass_field.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show RenderLiquidGlassLayer;
+// ignore: implementation_imports
+import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/widgets.dart';
 
 import '../integration_test/support/shader_harness.dart';
@@ -37,7 +42,11 @@ const String _out = String.fromEnvironment('AUDIT_OUT');
 /// The covered region of a case: its shapes grown by the contour and the
 /// antialiasing, in device pixels.
 bool Function(int x, int y) _covered(HarnessCase glassCase, double dpr) {
-  final rects = [for (final shape in glassCase.shapes) shape.rect.inflate(3)];
+  var rects = [for (final shape in glassCase.shapes) shape.rect.inflate(3)];
+  // A fused body covers its necks too: the box around its shapes.
+  if (glassCase.field is GlassBoxField) {
+    rects = [rects.reduce((a, b) => a.expandToInclude(b))];
+  }
   return (x, y) {
     final point = ui.Offset((x + 0.5) / dpr, (y + 0.5) / dpr);
     return rects.any((rect) => rect.contains(point));
@@ -92,6 +101,105 @@ HarnessShot _amplified(HarnessShot a, HarnessShot b) {
   return HarnessShot(a.width, a.height, bytes);
 }
 
+/// A fused body of rounded boxes at [rects] with corner [radius] (a
+/// capsule when null), merged by a glass container with [spacing], as a
+/// liquid layer receives it with analytic geometry: the field is a
+/// [GlassBoxField], fused on the CPU only when the matte path reads it.
+HarnessCase _fusedCase(
+  String name,
+  double spacing,
+  List<ui.Rect> rects, {
+  double? radius,
+  List<LiquidGlassAppearance>? appearances,
+}) {
+  double r(ui.Rect rect) => radius ?? rect.shortestSide / 2;
+  final boxes = [
+    for (final rect in rects)
+      ui.RRect.fromRectAndRadius(rect, ui.Radius.circular(r(rect))),
+  ];
+  return HarnessCase(
+    name,
+    const LiquidGlassSettings(frost: 0),
+    [
+      for (final (i, rect) in rects.indexed)
+        HarnessShape(
+          rect,
+          LiquidRoundedSuperellipse(borderRadius: r(rect)),
+          appearances?[i] ?? const LiquidGlassAppearance.ios27RegularDark(),
+        ),
+    ],
+    field: morphGlassOutlineField(
+      morphGlassContainerBoxOutline(boxes, spacing),
+    ),
+  );
+}
+
+/// Capsule pairs, rows and steps over the three backdrop bands, a spacing
+/// sweep and seeded rows.
+List<HarnessCase> _fusedCases() {
+  ui.Rect row(double left, double top, double width, [double height = 44]) =>
+      ui.Rect.fromLTWH(left, top, width, height);
+  final cases = [
+    _fusedCase('fused-pair-s12', 12, [row(40, 100, 120), row(166, 100, 120)]),
+    _fusedCase('fused-row3-s12', 12, [
+      row(20, 300, 90),
+      row(118, 300, 90),
+      row(216, 300, 90),
+    ]),
+    _fusedCase('fused-row4-s16', 16, [
+      row(20, 500, 70),
+      row(100, 500, 70),
+      row(180, 500, 70),
+      row(260, 500, 70),
+    ]),
+    _fusedCase('fused-neck-s12', 12, [row(40, 240, 120), row(165, 240, 120)]),
+    _fusedCase('fused-neck-s24', 24, [row(40, 330, 120), row(170, 330, 120)]),
+    _fusedCase('fused-stepped-s20', 20, [
+      row(40, 290, 140),
+      row(190, 310, 140),
+    ]),
+    _fusedCase('fused-cards-s12', 12, [
+      row(30, 120, 140, 90),
+      row(178, 120, 140, 90),
+    ], radius: 14),
+    _fusedCase(
+      'fused-tint-pair-s12',
+      12,
+      [row(40, 480, 120), row(166, 480, 120)],
+      appearances: const [
+        LiquidGlassAppearance.ios27RegularDark(),
+        LiquidGlassAppearance.ios27RegularDark(tint: ui.Color(0x9934C759)),
+      ],
+    ),
+    for (final spacing in [2.0, 6.0, 12.0, 18.0, 24.0])
+      _fusedCase('fused-sweep-s${spacing.round()}', spacing, [
+        row(40, 480, 130),
+        row(170 + spacing * 0.6, 480, 130),
+      ]),
+  ];
+  for (final seed in [1, 2, 3]) {
+    final random = math.Random(seed);
+    final count = 2 + random.nextInt(3);
+    final spacing = 4 + random.nextDouble() * 20;
+    final top = 60 + random.nextDouble() * 500;
+    final rects = <ui.Rect>[];
+    var left = 12.0;
+    for (var i = 0; i < count; i++) {
+      final width = 45 + random.nextDouble() * 20;
+      rects.add(row(left, top + random.nextDouble() * 6, width, 36));
+      left += width + spacing * (0.2 + random.nextDouble() * 0.7);
+    }
+    cases.add(_fusedCase('fused-seed$seed', spacing, rects));
+  }
+  return cases;
+}
+
+/// The mean difference a merged-box body may show against its sampled
+/// field over the covered pixels: the field's 4 pt grid bends the normals
+/// along curves, which striped and noisy backdrops amplify (host run
+/// 2026-10-09: up to 9.1 over noise, 0.2 - 0.6 over the gradient).
+const double _fusedMeanBound = 12;
+
 void main() {
   testWidgets('analytic geometry against the matte on the host', (
     WidgetTester tester,
@@ -112,7 +220,11 @@ void main() {
         .any((layer) => layer.debugAnalytic);
 
     final report = <String, Object>{};
-    for (final glassCase in harnessCasesNamed(_only)) {
+    final fused = [
+      for (final c in _fusedCases())
+        if (_only.isEmpty || _only.split(',').contains(c.name)) c,
+    ];
+    for (final glassCase in [...harnessCasesNamed(_only), ...fused]) {
       if (glassCase.fake) continue;
       RenderLiquidGlassLayer.debugAnalyticGeometry = false;
       await harness.show(glassCase, ShaderVariant.candidate);
@@ -146,9 +258,18 @@ void main() {
       }
       expect(entry['repeat'], 0, reason: glassCase.name);
       final eligible =
-          glassCase.field == null && glassCase.name != 'mixed-models';
+          (glassCase.field == null || glassCase.field is GlassBoxField) &&
+          glassCase.name != 'mixed-models';
       expect(analytic, eligible, reason: glassCase.name);
-      if (analytic) {
+      if (analytic && glassCase.field is GlassBoxField) {
+        // The sampled field itself strays from the exact shapes along
+        // curves (see the far-apart test), so this is the field's error.
+        expect(
+          entry['mean_covered']! as double,
+          lessThanOrEqualTo(_fusedMeanBound),
+          reason: glassCase.name,
+        );
+      } else if (analytic) {
         expect(
           entry['mean_covered']! as double,
           lessThanOrEqualTo(0.5),
@@ -319,5 +440,96 @@ void main() {
     // ignore: avoid_print
     print('moved pair matte vs analytic $compared');
     expect(compared['mean_covered']! as double, lessThanOrEqualTo(0.5));
+  });
+
+  testWidgets('merged boxes far apart shade as their own shapes', (
+    WidgetTester tester,
+  ) async {
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+    tester.view.physicalSize = const ui.Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    final harness = ShaderHarness(tester);
+    final dpr = harness.devicePixelRatio;
+    final configs = [
+      (
+        'capsules',
+        22.0,
+        [
+          const ui.Rect.fromLTWH(40, 100, 120, 44),
+          const ui.Rect.fromLTWH(190, 100, 120, 44),
+        ],
+      ),
+      (
+        'cards',
+        14.0,
+        [
+          const ui.Rect.fromLTWH(30, 300, 140, 90),
+          const ui.Rect.fromLTWH(200, 300, 130, 90),
+        ],
+      ),
+    ];
+    for (final (name, radius, rects) in configs) {
+      final shapes = [
+        for (final rect in rects)
+          HarnessShape(
+            rect,
+            LiquidRoundedRectangle(borderRadius: radius),
+            const LiquidGlassAppearance.ios27RegularDark(),
+          ),
+      ];
+      final separate = HarnessCase(
+        'far-$name',
+        const LiquidGlassSettings(frost: 0),
+        shapes,
+      );
+      final merged = HarnessCase(
+        'far-$name',
+        const LiquidGlassSettings(frost: 0),
+        shapes,
+        field: morphGlassOutlineField(
+          morphGlassContainerBoxOutline([
+            for (final rect in rects)
+              ui.RRect.fromRectAndRadius(rect, ui.Radius.circular(radius)),
+          ], 12),
+        ),
+      );
+      Future<HarnessShot> shot(HarnessCase c, {required bool analytic}) async {
+        RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
+        await harness.show(c, ShaderVariant.candidate);
+        return harness.shoot();
+      }
+
+      final exact = await shot(separate, analytic: true);
+      final shader = await shot(merged, analytic: true);
+      final field = await shot(merged, analytic: false);
+      final covered = _covered(merged, dpr);
+      final analyticVsExact = _compare(exact, shader, covered);
+      final fieldVsExact = _compare(exact, field, covered);
+      // ignore: avoid_print
+      print('far-$name merged analytic vs own shapes $analyticVsExact');
+      // ignore: avoid_print
+      print('far-$name sampled field vs own shapes $fieldVsExact');
+      if (_out.isNotEmpty) {
+        final out = '$_out/far-$name';
+        File(
+          '$out.analytic-vs-shapes.diff.png',
+        ).writeAsBytesSync(await harness.png(_amplified(exact, shader)));
+        File(
+          '$out.field-vs-shapes.diff.png',
+        ).writeAsBytesSync(await harness.png(_amplified(exact, field)));
+      }
+      expect(
+        analyticVsExact['mean_covered']! as double,
+        lessThanOrEqualTo(0.05),
+      );
+      expect(
+        analyticVsExact['mean_covered']! as double,
+        lessThanOrEqualTo(fieldVsExact['mean_covered']! as double),
+      );
+    }
   });
 }

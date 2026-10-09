@@ -310,3 +310,24 @@ Local patches (some commits include related package changes):
   eligibility); host A/B against the matte and the gallery's Navigation
   layers: example/test/analytic_geometry_host_test.dart,
   example/test/analytic_gallery_host_test.dart.
+- 2026-10-09 analytic fused bodies: with analytic geometry on, the liquid
+  tier's glass container bodies of at most four boxes
+  (morphGlassContainerBoxOutline, MorphGlassFrame.partsFor) carry a
+  GlassBoxField (glass_field.dart): the boxes and the spacing, with the
+  sampled field fused only when something reads its samples; the outline
+  path is the boxes' plain union, for the blurred body shadow. Fake and
+  flat tiers keep the package's fused outlines. A layer given such a field
+  evaluates the merge law in the analytic final shader (uFusedBoxes from
+  float index 297, uShapeTints moved to 329, uAnalyticRanges.yzw = box
+  count, spacing, narrowest blending width): the distance is LiquidField's
+  angular fold (width k sin^2(theta/2), not sdf.glsl's angularBlendRadius),
+  half thickness and optical turn the plain polynomial fold over the full
+  spacing, the gradient a one-pixel central difference turned like the
+  field's; the tint variants take the nearest layer shape's tint. A layer
+  that cannot (more than eight shapes, mixed appearances, shaders not
+  loaded) reads the samples, fusing the field the same frame. Merged
+  boxes far apart shade as the boxes alone (host mean 0.002 against the
+  shapes' own analytic path; the sampled field strays by 3.5 over
+  stripes): example/test/analytic_geometry_host_test.dart,
+  example/test/analytic_gallery_host_test.dart,
+  test/analytic_fused_outline_test.dart.

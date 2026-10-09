@@ -452,7 +452,7 @@ class MorphGlassContainerLink {
         renderer.effectiveTier == MorphGlassTier.flat) {
       return 0;
     }
-    final parts = frame.parts;
+    final parts = frame.partsFor(renderer.effectiveTier);
     if (!frame.still ||
         parts.separate.isEmpty ||
         parts.fused.isNotEmpty ||

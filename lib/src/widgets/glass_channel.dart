@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -49,9 +50,22 @@ class MorphGlassFrame {
     withField: false,
   );
 
-  /// The same bodies with optical samples only when [tier] uses them.
-  MorphGlassLayerParts partsFor(MorphGlassTier tier) =>
-      tier == MorphGlassTier.flat ? _silhouetteParts : parts;
+  late final MorphGlassLayerParts _boxParts = MorphGlassLayerParts.of(
+    surfaces,
+    spacing: spacing,
+    outline: outline,
+    boxes: true,
+  );
+
+  /// The same bodies with optical samples only when [tier] uses them; on
+  /// the liquid tier with analytic geometry, small fused bodies carry their
+  /// boxes instead of a fused field.
+  MorphGlassLayerParts partsFor(MorphGlassTier tier) => switch (tier) {
+    MorphGlassTier.flat => _silhouetteParts,
+    MorphGlassTier.liquid when RenderLiquidGlassLayer.analyticGeometryEnabled =>
+      _boxParts,
+    _ => parts,
+  };
 }
 
 /// Where a glass tree reads its values: one fixed frame, or a channel

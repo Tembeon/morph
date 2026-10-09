@@ -65,3 +65,74 @@ class GlassField {
     outline: outline?.shift(offset),
   );
 }
+
+/// A fused body of a few rounded boxes, merged by the glass container's law
+/// with [spacing], whose sampled field is fused only when it is read.
+///
+/// A liquid layer that evaluates the merge law in its final shader shades
+/// the body from [boxes] and [spacing] and never reads the samples; any
+/// other reader gets the field [fuse] returns, fused once on first read.
+@internal
+@immutable
+class GlassBoxField implements GlassField {
+  /// Creates a body of [boxes] merged with [spacing], whose field [fuse]
+  /// computes on demand.
+  GlassBoxField({
+    required this.boxes,
+    required this.spacing,
+    required GlassField Function() fuse,
+  }) : _fused = _LazyField(fuse);
+
+  /// The most boxes a liquid layer merges in its final shader.
+  static const int maxBoxes = 4;
+
+  /// The rounded boxes, uniform circular corners, in the layer's logical
+  /// coordinates.
+  final List<RRect> boxes;
+
+  /// The glass container spacing they merge with, in logical pixels.
+  final double spacing;
+
+  final _LazyField _fused;
+
+  /// The sampled field of the body, fused on first read.
+  GlassField get fused => _fused.value;
+
+  @override
+  Float32List get samples => fused.samples;
+
+  @override
+  int get cols => fused.cols;
+
+  @override
+  int get rows => fused.rows;
+
+  @override
+  Offset get origin => fused.origin;
+
+  @override
+  double get step => fused.step;
+
+  @override
+  Path? get outline => fused.outline;
+
+  @override
+  Rect get bounds => fused.bounds;
+
+  @override
+  GlassBoxField shift(Offset offset) => GlassBoxField(
+    boxes: [for (final box in boxes) box.shift(offset)],
+    spacing: spacing,
+    fuse: () => fused.shift(offset),
+  );
+}
+
+/// The field a [GlassBoxField] fuses once, on first read.
+final class _LazyField {
+  _LazyField(this._fuse);
+
+  final GlassField Function() _fuse;
+  GlassField? _value;
+
+  GlassField get value => _value ??= _fuse();
+}
