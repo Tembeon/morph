@@ -1,5 +1,9 @@
 # Owned background with real Morph optics, 2026-10-08
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 This is an opt-in architectural experiment on Flutter 3.49.0-0.2.pre and
 Pixel 6a / Mali G78 / Vulkan, release arm64, 60 Hz. It connects an explicitly
 owned texture to the actual Morph optical shader, rather than replacing the
