@@ -78,6 +78,26 @@ paths kept across frames (pixel-identical on Impeller), fading glyphs
 drawn through the blur shader (removes Skia's per-item layer cache
 passes: Redmi worst push / pop frame 22 - 43 -> 13 - 25 ms).
 
+## Frame-rate policy (measured, not an option in the package)
+
+Moto g86, liquid, production defaults (40a76ec), A B B A: forced 120 Hz
+against the app asking for the 60 Hz display mode (`run.py --60`,
+MainActivity picks the closest mode; a surface frame-rate vote alone
+was ignored). Frames presented in the first 0.5 s of each action and
+the longest gap between two frames:
+
+| case | 120 Hz fps / longest gap | 60 Hz fps / longest gap |
+|---|---|---|
+| nested push | 78 / 25 ms | 58 - 60 / 17 - 33 ms |
+| nested pop | 80 - 106 / 25 ms | 60 / 33 ms |
+| enter | 110 - 112 / 17 ms | 58 - 60 / 33 ms |
+| toolbar | 118 - 120 / 17 ms | 60 - 62 / 17 ms |
+
+At 120 Hz a push drops about a third of its frames (uneven cadence); at
+60 Hz almost none, with an occasional 33 ms gap. Choosing a rate per
+screen or per transition is an app decision (Flutter has no frame-rate
+API; it takes a platform call like the gallery's MainActivity).
+
 ## Tried and rejected
 
 - Reduce-shader early-out (identical output): no Redmi change; reverted.
@@ -89,8 +109,6 @@ passes: Redmi worst push / pop frame 22 - 43 -> 13 - 25 ms).
 
 ## Open
 
-- 60 Hz frame-rate vote on the Moto (runner `--60`, needs
-  `min_refresh_rate` back at 60): consistent 60 against janky 120.
 - Native pixel spot checks of analytic frames in motion on the device
   (host oracles: max 19, mostly 1 - 4 channel steps against the matte).
 - The Moto's remaining push UI cost: geometry encode at the first

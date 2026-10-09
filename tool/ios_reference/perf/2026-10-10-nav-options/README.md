@@ -15,6 +15,7 @@ Reports of `example/lib/perf/navigation_stage_bench.dart` run through
 | `fs-` | Moto flat | c48af2f o = off, n = MORPH_FLAT_SHADER_BODIES |
 | `mf-` | Moto liquid | c48af2f b = base, f = fading glyphs through the shader |
 | `rdf-` | Redmi flat | c48af2f c = base, f = fading glyphs through the shader |
+| `hz2-` | Moto liquid | 40a76ec h = forced 120 Hz, s = 60 Hz display mode (`run.py --60`); refresh_rate in the reports stays 120 (the engine reads the panel's maximum) |
 | `rd-` | Redmi flat | c48af2f b = base, r = reduce-shader early-out (rejected) |
 
 Example: `python3 ../nav_quick/compare.py base=hlr-base1.json,hlr-base2.json now=hlr-now1.json,hlr-now2.json opt=hlr-opt1.json,hlr-opt2.json`.
