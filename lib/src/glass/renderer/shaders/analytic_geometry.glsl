@@ -158,6 +158,26 @@ vec3 fusedOptics(vec2 p, int count) {
     return vec3(halfMinor, len < 1e-9 ? vec2(1.0, 0.0) : turn / len);
 }
 
+// How deep inside a body the final pass stops reading its normal and its
+// half thickness: past the deepest refraction bevel (no displacement),
+// the glint and its bleed, the inner border and the bevel shadow band at
+// its largest offset (applySpecularHighlights returns the face unlit), plus
+// a pixel.
+float analyticFlatDepth() {
+    float glintWidth = max(
+        uHighlightWidth > 0.0 ? uHighlightWidth : uEdgeWidth,
+        0.001
+    );
+    return max(
+        max(uAnalyticOptics.x, glintWidth * kGlintBleedReach),
+        max(
+            abs(uContourOffset) + uEdgeWidth + 0.5,
+            max(uBevelShadowDepth, 0.001) * 1.0001 +
+                max(uBevelShadowOffset, 0.0)
+        )
+    ) + 1.0;
+}
+
 AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange) {
     AnalyticGeometry result;
     // An empty matte pixel decodes to the full exterior range, the normal
@@ -178,18 +198,25 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
         if (sd >= uAnalyticRanges.x) {
             return result;
         }
-        vec2 gradient = vec2(
-            fusedDistance(p + vec2(0.5, 0.0), boxes) -
-                fusedDistance(p - vec2(0.5, 0.0), boxes),
-            fusedDistance(p + vec2(0.0, 0.5), boxes) -
-                fusedDistance(p - vec2(0.0, 0.5), boxes)
-        );
-        vec3 optics = fusedOptics(p, boxes);
-        halfMinor = optics.x;
-        opticalGradient = vec2(
-            gradient.x * optics.y - gradient.y * optics.z,
-            gradient.x * optics.z + gradient.y * optics.y
-        );
+        if (-sd > analyticFlatDepth()) {
+            // The flat face: no displacement whatever the bevel, and no
+            // lighting term reads the normal.
+            halfMinor = uAnalyticOptics.x;
+            opticalGradient = vec2(1.0, 0.0);
+        } else {
+            vec2 gradient = vec2(
+                fusedDistance(p + vec2(0.5, 0.0), boxes) -
+                    fusedDistance(p - vec2(0.5, 0.0), boxes),
+                fusedDistance(p + vec2(0.0, 0.5), boxes) -
+                    fusedDistance(p - vec2(0.0, 0.5), boxes)
+            );
+            vec3 optics = fusedOptics(p, boxes);
+            halfMinor = optics.x;
+            opticalGradient = vec2(
+                gradient.x * optics.y - gradient.y * optics.z,
+                gradient.x * optics.z + gradient.y * optics.y
+            );
+        }
         #if SHAPE_TINT
         // The material map's tint: the nearest of the layer's shapes.
         SceneSample tinted = sceneSample(p, count);

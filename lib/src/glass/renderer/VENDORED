@@ -331,3 +331,15 @@ Local patches (some commits include related package changes):
   stripes): example/test/analytic_geometry_host_test.dart,
   example/test/analytic_gallery_host_test.dart,
   test/analytic_fused_outline_test.dart.
+- 2026-10-09 analytic fused bodies, follow-up: every move of a
+  GlassBoxField refers to the first field and moves its fusion once by the
+  total offset (no chain under rigid motion). The merged boxes' shadow
+  stays out of the body: MorphGlassBodyShadow clips to outside a cover of
+  the union plus a bridge over every gap below the spacing, grown by a
+  quarter of the spacing (morphGlassOutlineShadowCover). Flipping
+  RenderLiquidGlassLayer.debugAnalyticGeometry notifies
+  analyticGeometryChanges, which glass hosts follow outside release
+  builds, so resting layers take the other field kind. The analytic
+  shader skips the fused gradient and optics fold deeper inside than any
+  bevel, glint, border or bevel shadow reads them (analyticFlatDepth);
+  the host A/B is unchanged to the last digit.

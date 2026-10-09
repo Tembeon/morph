@@ -597,7 +597,14 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _debugAnalyticGeometry = value;
     if (analyticGeometryEnabled) unawaited(precacheAnalyticShaders());
     _invalidateAttachedLayers();
+    _analyticChanges.value++;
   }
+
+  static final ValueNotifier<int> _analyticChanges = ValueNotifier(0);
+
+  /// Notifies when [debugAnalyticGeometry] changes, so whatever chose its
+  /// glass by [analyticGeometryEnabled] chooses again.
+  static Listenable get analyticGeometryChanges => _analyticChanges;
 
   /// Whether layers whose shapes are separate evaluate them in the final
   /// shader: [debugAnalyticGeometry], else [ShaderKeys.analyticGeometry].
@@ -1449,7 +1456,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // The fused body's boxes in device pixels, 8 floats per box (center,
   // half extents, clamped radius, 3 unused), and its merge spacing; empty
   // for separate shapes.
-  final List<double> _analyticBoxes = [];
+  final Float64List _analyticBoxes = Float64List(GlassBoxField.maxBoxes * 8);
+  int _analyticBoxCount = 0;
   double _analyticSpacing = 0;
 
   // Writes the analytic frame's shapes and the geometry pass's optical
@@ -1460,13 +1468,13 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     shader.setFloat(analyticUniformIndex + 2, _analyticFitsShape ? 1 : 0);
     shader.setFloat(analyticUniformIndex + 3, _analyticShapeCount.toDouble());
     shader.setFloat(analyticUniformIndex + 4, _analyticContourExtent);
-    shader.setFloat(analyticUniformIndex + 5, _analyticBoxes.length / 8);
+    shader.setFloat(analyticUniformIndex + 5, _analyticBoxCount.toDouble());
     shader.setFloat(analyticUniformIndex + 6, _analyticSpacing);
     shader.setFloat(
       analyticUniformIndex + 7,
       liquidMinMergeWidth * devicePixelRatio,
     );
-    for (var i = 0; i < _analyticBoxes.length; i++) {
+    for (var i = 0; i < _analyticBoxCount * 8; i++) {
       shader.setFloat(analyticFusedBoxesIndex + i, _analyticBoxes[i]);
     }
     for (var i = 0; i < _shapeData.length; i++) {
@@ -1498,7 +1506,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _boundsData[i * 4 + 2] += delta.dx;
       _boundsData[i * 4 + 3] += delta.dy;
     }
-    for (var i = 0; i < _analyticBoxes.length; i += 8) {
+    for (var i = 0; i < _analyticBoxCount * 8; i += 8) {
       _analyticBoxes[i] += delta.dx;
       _analyticBoxes[i + 1] += delta.dy;
     }
@@ -2336,24 +2344,22 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         _analyticFitsShape = settings.refractionFitsShape;
         _analyticContourExtent = max(0.5, aaPadding * devicePixelRatio);
         _analyticShapeCount = numShapes;
-        _analyticBoxes.clear();
+        _analyticBoxCount = 0;
         _analyticSpacing = 0;
         if (_field case GlassBoxField(:final boxes, :final spacing)) {
           final scale = devicePixelRatio;
-          for (final box in boxes) {
+          final out = _analyticBoxes;
+          for (final (i, box) in boxes.indexed) {
             final hx = box.width / 2;
             final hy = box.height / 2;
-            _analyticBoxes.addAll([
-              box.center.dx * scale,
-              box.center.dy * scale,
-              hx * scale,
-              hy * scale,
-              min(box.tlRadiusX, min(hx, hy)) * scale,
-              0,
-              0,
-              0,
-            ]);
+            final at = i * 8;
+            out[at] = box.center.dx * scale;
+            out[at + 1] = box.center.dy * scale;
+            out[at + 2] = hx * scale;
+            out[at + 3] = hy * scale;
+            out[at + 4] = min(box.tlRadiusX, min(hx, hy)) * scale;
           }
+          _analyticBoxCount = boxes.length;
           _analyticSpacing = spacing * scale;
         }
         _analyticTints.clear();

@@ -72,6 +72,8 @@ class GlassField {
 /// A liquid layer that evaluates the merge law in its final shader shades
 /// the body from [boxes] and [spacing] and never reads the samples; any
 /// other reader gets the field [fuse] returns, fused once on first read.
+/// A moved body shares that one fusion: every [shift] refers to the field
+/// first created, moved once by the total offset.
 @internal
 @immutable
 class GlassBoxField implements GlassField {
@@ -81,7 +83,10 @@ class GlassBoxField implements GlassField {
     required this.boxes,
     required this.spacing,
     required GlassField Function() fuse,
-  }) : _fused = _LazyField(fuse);
+  }) : _root = _LazyField(fuse),
+       _offset = Offset.zero;
+
+  GlassBoxField._moved(this.boxes, this.spacing, this._root, this._offset);
 
   /// The most boxes a liquid layer merges in its final shader.
   static const int maxBoxes = 4;
@@ -93,10 +98,19 @@ class GlassBoxField implements GlassField {
   /// The glass container spacing they merge with, in logical pixels.
   final double spacing;
 
-  final _LazyField _fused;
+  // The field of the body this one was moved from, and how far.
+  final _LazyField _root;
+  final Offset _offset;
+  final _MovedField _moved = _MovedField();
+
+  /// The fusion every move of the first body shares, for tests.
+  @visibleForTesting
+  Object get debugRoot => _root;
 
   /// The sampled field of the body, fused on first read.
-  GlassField get fused => _fused.value;
+  GlassField get fused => _moved.value ??= _offset == Offset.zero
+      ? _root.value
+      : _root.value.shift(_offset);
 
   @override
   Float32List get samples => fused.samples;
@@ -120,10 +134,11 @@ class GlassBoxField implements GlassField {
   Rect get bounds => fused.bounds;
 
   @override
-  GlassBoxField shift(Offset offset) => GlassBoxField(
-    boxes: [for (final box in boxes) box.shift(offset)],
-    spacing: spacing,
-    fuse: () => fused.shift(offset),
+  GlassBoxField shift(Offset offset) => GlassBoxField._moved(
+    [for (final box in boxes) box.shift(offset)],
+    spacing,
+    _root,
+    _offset + offset,
   );
 }
 
@@ -135,4 +150,9 @@ final class _LazyField {
   GlassField? _value;
 
   GlassField get value => _value ??= _fuse();
+}
+
+/// The moved field one [GlassBoxField] keeps once it is read.
+final class _MovedField {
+  GlassField? value;
 }

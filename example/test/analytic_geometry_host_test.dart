@@ -200,6 +200,11 @@ List<HarnessCase> _fusedCases() {
 /// 2026-10-09: up to 9.1 over noise, 0.2 - 0.6 over the gradient).
 const double _fusedMeanBound = 12;
 
+/// The mean difference a merged-box body may show against the package's
+/// fusion sampled eight times finer than it ships (host run 2026-10-09:
+/// 0.07 - 0.12 over the gradient, 0.32 and 0.51 over the stripes).
+const double _fineMeanBound = 0.75;
+
 void main() {
   testWidgets('analytic geometry against the matte on the host', (
     WidgetTester tester,
@@ -529,6 +534,76 @@ void main() {
       expect(
         analyticVsExact['mean_covered']! as double,
         lessThanOrEqualTo(fieldVsExact['mean_covered']! as double),
+      );
+    }
+  });
+
+  testWidgets('merged necks against a fine sampled field', (
+    WidgetTester tester,
+  ) async {
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+    tester.view.physicalSize = const ui.Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.reset);
+    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    addTearDown(() {
+      debugMorphFusionStep = 2;
+      debugClearMorphGlassOutlines();
+    });
+    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    final harness = ShaderHarness(tester);
+    final dpr = harness.devicePixelRatio;
+    const names = {
+      'fused-pair-s12',
+      'fused-neck-s12',
+      'fused-neck-s24',
+      'fused-stepped-s20',
+      'fused-row3-s12',
+      'fused-cards-s12',
+    };
+    for (final merged in _fusedCases()) {
+      if (!names.contains(merged.name)) continue;
+      final boxes = (merged.field! as GlassBoxField).boxes;
+      final spacing = (merged.field! as GlassBoxField).spacing;
+      // The package's fusion on a grid eight times finer: a 0.25 pt trace
+      // and a 0.5 pt field (four times finer leaves 1.1 on the cards over
+      // the stripes, where the field smears the normal's turn across a
+      // corner's diagonal; the difference halves with each refinement).
+      debugMorphFusionStep = 0.25;
+      debugClearMorphGlassOutlines();
+      final fine = HarnessCase(
+        merged.name,
+        merged.settings,
+        merged.shapes,
+        field: morphGlassOutlineField(
+          morphGlassContainerOutline(boxes, spacing),
+        ),
+      );
+      debugMorphFusionStep = 2;
+      debugClearMorphGlassOutlines();
+      RenderLiquidGlassLayer.debugAnalyticGeometry = false;
+      await harness.show(fine, ShaderVariant.candidate);
+      final fineShot = await harness.shoot();
+      RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+      await harness.show(merged, ShaderVariant.candidate);
+      final analytic = await harness.shoot();
+      final compared = _compare(fineShot, analytic, _covered(merged, dpr));
+      // The comparison is the test's output.
+      // ignore: avoid_print
+      print('${merged.name} analytic vs fine field $compared');
+      if (_out.isNotEmpty) {
+        File(
+          '$_out/${merged.name}.fine.png',
+        ).writeAsBytesSync(await harness.png(fineShot));
+        File(
+          '$_out/${merged.name}.fine.diff.png',
+        ).writeAsBytesSync(await harness.png(_amplified(fineShot, analytic)));
+      }
+      expect(
+        compared['mean_covered']! as double,
+        lessThanOrEqualTo(_fineMeanBound),
+        reason: merged.name,
       );
     }
   });

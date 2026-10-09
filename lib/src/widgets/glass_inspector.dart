@@ -404,7 +404,7 @@ MorphGlassCensus _takeCensus() {
 }
 
 bool _resting(MorphGlassRenderer renderer, MorphGlassFrame frame) {
-  final parts = frame.parts;
+  final parts = frame.partsFor(renderer.effectiveTier);
   if (!frame.still ||
       parts.separate.isEmpty ||
       parts.fused.isNotEmpty ||
@@ -455,7 +455,7 @@ List<MorphGlassHint> _hints(List<Element> hosts, Map<Element, String> named) {
     }
     final settings = morphLiquidSettings(
       renderer,
-      state.frame.parts.separate.first,
+      state.frame.partsFor(renderer.effectiveTier).separate.first,
     );
     (planes[(morphGlassContainerBlocker(host), settings)] ??= []).add(host);
   }

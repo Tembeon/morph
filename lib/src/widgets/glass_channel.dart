@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -486,15 +487,30 @@ class _MorphGlassHostElement extends ComponentElement {
   MorphGlassContainerLink? _container;
   bool? _clearPath;
 
+  // Only a debug override or a build with analytic geometry ever flips
+  // which parts the liquid tier draws.
+  static const bool _followsAnalytic =
+      !kReleaseMode || ShaderKeys.analyticGeometry;
+
   @override
   void mount(Element? parent, Object? newSlot) {
     _host.frames?.addListener(markNeedsBuild);
+    if (_followsAnalytic) {
+      RenderLiquidGlassLayer.analyticGeometryChanges.addListener(
+        markNeedsBuild,
+      );
+    }
     super.mount(parent, newSlot);
   }
 
   @override
   void unmount() {
     _host.frames?.removeListener(markNeedsBuild);
+    if (_followsAnalytic) {
+      RenderLiquidGlassLayer.analyticGeometryChanges.removeListener(
+        markNeedsBuild,
+      );
+    }
     _container?.release(this);
     super.unmount();
   }

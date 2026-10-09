@@ -324,6 +324,7 @@ Widget morphLiquidBody(
             outline.path,
             _shadows(surfaces.first),
             surfaces.first.opacity.clamp(0.0, 1.0),
+            morphGlassOutlineShadowCover(outline),
           );
         }),
       ),

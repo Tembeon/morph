@@ -22,13 +22,18 @@ import 'package:morph/src/liquid_field.dart';
 @immutable
 class MorphGlassOutline {
   /// Creates an outline from its edge alone.
-  const MorphGlassOutline(this.path) : _field = null, _shapes = null;
+  const MorphGlassOutline(this.path)
+    : _field = null,
+      _shapes = null,
+      _cover = null;
 
-  const MorphGlassOutline._(this.path, this._field) : _shapes = null;
+  const MorphGlassOutline._(this.path, this._field, [this._cover])
+    : _shapes = null;
 
   const MorphGlassOutline._union(this.path, List<RRect> shapes)
     : _field = null,
-      _shapes = shapes;
+      _shapes = shapes,
+      _cover = null;
 
   /// The edge of the body, in the layer's local coordinates.
   final Path path;
@@ -36,6 +41,10 @@ class MorphGlassOutline {
   final GlassField? _field;
 
   final List<RRect>? _shapes;
+
+  // What the body's shadow must stay out of when [path] is not the body's
+  // edge: the plain union of merged boxes and their necks.
+  final Path? _cover;
 
   /// The box the body occupies.
   Rect get bounds => path.getBounds();
@@ -51,7 +60,11 @@ class MorphGlassOutline {
     final field = _field?.shift(offset);
     // A merged-box field keeps the union path, not its fused edge.
     final edge = field is GlassBoxField ? null : field?.outline;
-    return MorphGlassOutline._(edge ?? path.shift(offset), field);
+    return MorphGlassOutline._(
+      edge ?? path.shift(offset),
+      field,
+      _cover?.shift(offset),
+    );
   }
 }
 
@@ -59,6 +72,13 @@ class MorphGlassOutline {
 /// from a path alone or from a plain union.
 @internal
 GlassField? morphGlassOutlineField(MorphGlassOutline outline) => outline._field;
+
+/// The region a fused body's shadow must stay out of, when the outline's
+/// path is not the body's edge (merged boxes shaded by the liquid layer,
+/// whose path is their plain union): the union and its necks. Null when
+/// the path is the edge.
+@internal
+Path? morphGlassOutlineShadowCover(MorphGlassOutline outline) => outline._cover;
 
 /// The rounded boxes whose plain union [outline] is, or null for an
 /// outline the package fused by a merge law or built from a path alone.
@@ -786,6 +806,13 @@ const double _fusionSlack = 0.5;
 /// The grid step of a container's fused outline, in logical pixels.
 const double _fusionStep = 2;
 
+/// The grid step a container's fused outline is traced on, in logical
+/// pixels: [_fusionStep], or a finer one a test compares against. Clear
+/// the remembered outlines ([debugClearMorphGlassOutlines]) after changing
+/// it.
+@visibleForTesting
+double debugMorphFusionStep = _fusionStep;
+
 /// The groups of [shapes] a glass container with [spacing] fuses: shapes
 /// closer than the spacing (less a rounding slack) to a member of a group
 /// belong to it. A group of one is a shape the container leaves alone.
@@ -868,14 +895,16 @@ MorphGlassOutline morphGlassContainerBoxOutline(
   }
   if (outline == null) {
     final kept = List<RRect>.unmodifiable(shapes);
+    final union = _unionPath(kept);
     outline = MorphGlassOutline._(
-      _unionPath(kept),
+      union,
       GlassBoxField(
         boxes: kept,
         spacing: spacing,
         fuse: () =>
             morphGlassOutlineField(morphGlassContainerOutline(kept, spacing))!,
       ),
+      _neckCover(union, kept, spacing),
     );
   }
   _recentBoxOutlines.add((List.of(shapes), spacing, outline));
@@ -933,6 +962,36 @@ MorphGlassOutline _plainUnion(List<RRect> shapes) {
   _recentUnions.add((kept, outline));
   if (_recentUnions.length > 4) _recentUnions.removeAt(0);
   return outline;
+}
+
+/// [union] grown by a bridge over every gap the merge can close: for each
+/// pair of [shapes] less than [spacing] apart, the box between them over
+/// the extent they share on the other axis (both gaps for a diagonal
+/// pair), grown by the merge's depth, a quarter of the spacing.
+Path _neckCover(Path union, List<RRect> shapes, double spacing) {
+  final bridges = Path();
+  var any = false;
+  for (var i = 0; i < shapes.length; i++) {
+    for (var j = i + 1; j < shapes.length; j++) {
+      final a = shapes[i].outerRect;
+      final b = shapes[j].outerRect;
+      if (liquidRectGap(a, b) >= spacing) continue;
+      final gapX = math.max(b.left - a.right, a.left - b.right);
+      final gapY = math.max(b.top - a.bottom, a.top - b.bottom);
+      if (gapX <= 0 && gapY <= 0) continue;
+      final x = gapX > 0
+          ? (math.min(a.right, b.right), math.max(a.left, b.left))
+          : (math.max(a.left, b.left), math.min(a.right, b.right));
+      final y = gapY > 0
+          ? (math.min(a.bottom, b.bottom), math.max(a.top, b.top))
+          : (math.max(a.top, b.top), math.min(a.bottom, b.bottom));
+      bridges.addRect(
+        Rect.fromLTRB(x.$1, y.$1, x.$2, y.$2).inflate(spacing / 4),
+      );
+      any = true;
+    }
+  }
+  return any ? Path.combine(PathOperation.union, union, bridges) : union;
 }
 
 /// The edge of the plain union of [shapes]: one closed contour per
@@ -1008,7 +1067,7 @@ MorphGlassOutline _fuseContainer(
   double spacing, {
   required bool withField,
 }) {
-  const step = _fusionStep;
+  final step = debugMorphFusionStep;
   const stride = 2;
   const b = 4;
   final boxes = MorphOutlineBoxes(shapes);

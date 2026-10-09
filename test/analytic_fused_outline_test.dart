@@ -111,4 +111,67 @@ void main() {
     expect(field.origin, base.origin + offset);
     expect(field.samples, same(base.samples));
   });
+
+  test('moves of a merged-box field share one fusion, moved once', () {
+    final first =
+        morphGlassOutlineField(morphGlassContainerBoxOutline(pair, 12))!
+            as GlassBoxField;
+    var moved = first;
+    var total = Offset.zero;
+    for (var i = 0; i < 200; i++) {
+      const step = Offset(0.25, -0.5);
+      moved = moved.shift(step);
+      total += step;
+    }
+    expect(moved.debugRoot, same(first.debugRoot));
+    final once = first.shift(total);
+    expect(once.debugRoot, same(first.debugRoot));
+    expect(moved.samples, same(once.samples));
+    expect(moved.samples, same(first.samples));
+    expect(moved.origin, once.origin);
+    expect(moved.origin, first.origin + total);
+    expect(
+      moved.boxes.first.outerRect.topLeft,
+      pair.first.outerRect.topLeft + total,
+    );
+  });
+
+  test('the shadow of merged boxes stays out of their necks', () {
+    // 6 apart, spacing 12: the merge closes the gap.
+    final outline = morphGlassContainerBoxOutline(pair, 12);
+    final cover = morphGlassOutlineShadowCover(outline)!;
+    const neck = Offset(63, 22);
+    expect(pair.any((box) => box.contains(neck)), isFalse);
+    expect(outline.path.contains(neck), isFalse);
+    expect(cover.contains(neck), isTrue);
+    expect(cover.contains(const Offset(63, 1)), isTrue);
+    for (final box in pair) {
+      expect(cover.contains(box.center), isTrue);
+    }
+    expect(cover.contains(const Offset(63, -8)), isFalse);
+    expect(cover.contains(const Offset(200, 22)), isFalse);
+    // Moved with the outline.
+    const offset = Offset(10, 20);
+    final moved = morphGlassContainerBoxOutline([
+      for (final box in pair) box.shift(offset),
+    ], 12);
+    expect(
+      morphGlassOutlineShadowCover(moved)!.contains(neck + offset),
+      isTrue,
+    );
+    // Boxes farther apart than the spacing have no bridge.
+    final apart = morphGlassContainerBoxOutline([
+      _capsule(16, 0, 44),
+      _capsule(80, 0, 44),
+    ], 12);
+    expect(
+      morphGlassOutlineShadowCover(apart)!.contains(const Offset(70, 22)),
+      isFalse,
+    );
+    // A fused outline's own edge covers its neck: no separate cover.
+    expect(
+      morphGlassOutlineShadowCover(morphGlassContainerOutline(pair, 12)),
+      isNull,
+    );
+  });
 }
