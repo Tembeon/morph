@@ -9,6 +9,12 @@
 // the coordinate subtraction into visible shimmer on large layers.
 precision highp float;
 
+// 1 evaluates the shapes in this pass (analytic_geometry.glsl) instead of
+// reading a geometry matte and a material map.
+#ifndef ANALYTIC_GEOMETRY
+#define ANALYTIC_GEOMETRY 0
+#endif
+
 #include <flutter/runtime_effect.glsl>
 #include "gpu/displacement_encoding.glsl"
 #include "render.glsl"
@@ -112,9 +118,11 @@ float gGlintVibrancy = kGlintVibrancy;
 const float kContourCoverageFeather = 1.0;
 
 uniform sampler2D uBackgroundTexture;
+#if !ANALYTIC_GEOMETRY
 uniform sampler2D uGeometryTexture;
 #if SHAPE_APPEARANCE || SHAPE_TINT
 uniform sampler2D uMaterialTexture;
+#endif
 #endif
 #if SHAPE_APPEARANCE
 uniform sampler2D uMaterialLinearTexture;
@@ -534,6 +542,9 @@ vec3 applySpecularHighlights(
     return result;
 }
 
+#if ANALYTIC_GEOMETRY
+#include "analytic_geometry.glsl"
+#endif
 
 void main() {
     // Map image-filter fragment coordinates back into the layer-local geometry
@@ -557,10 +568,18 @@ void main() {
         return;
     }
 
+    #if ANALYTIC_GEOMETRY
+    AnalyticGeometry analytic = analyticGeometry(
+        matteCoord,
+        4.0 * max(uThickness, 1.0),
+        contourExtent()
+    );
+    #else
     vec4 geometryData = texture(
         uGeometryTexture,
         geometryUV * uGeometryUVScale
     );
+    #endif
     vec4 materialTint = uTint;
     float appearanceVisibility = clamp(uAppearanceConfig.y, 0.0, 1.0);
     // Weight of the material over the refracted backdrop. Frosted glass
@@ -569,7 +588,9 @@ void main() {
     // never twice.
     float materialVisibility = mix(appearanceVisibility, 1.0, uBlurFade);
     vec3 colorModelShares = colorModelSharesOf(uAppearanceConfig.x);
-    #if SHAPE_TINT
+    #if SHAPE_TINT && ANALYTIC_GEOMETRY
+    materialTint = analytic.tint;
+    #elif SHAPE_TINT
     {
         float materialRasterScale = max(uAppearanceConfig.z, 1.0);
         vec2 materialSize = max(
@@ -695,11 +716,15 @@ void main() {
     #endif
 
     float maxDisplacement = max(uDisplacementScale, 0.001);
+    #if ANALYTIC_GEOMETRY
+    float signedEdgeDistance = analytic.signedEdgeDistance;
+    #else
     float signedEdgeDistance = decodeSignedEdgeDistance(
         geometryData,
         4.0 * max(uThickness, 1.0),
         contourExtent()
     );
+    #endif
     // Box-filtered coverage of one physical pixel, as Core Animation
     // rasterizes the silhouette: a pixel-aligned edge stays hard, so the
     // glint's first row is not diluted by a wider feather.
@@ -712,10 +737,15 @@ void main() {
         fragColor = vec4(0.0);
         return;
     }
+    #if ANALYTIC_GEOMETRY
+    vec2 displacement = analytic.displacement * appearanceVisibility;
+    vec2 surfaceNormal = analytic.surfaceNormal;
+    #else
     vec2 displacement =
         decodeDisplacement(geometryData, maxDisplacement) *
         appearanceVisibility;
     vec2 surfaceNormal = decodeSurfaceNormal(geometryData);
+    #endif
     float contourDirectionWeight = contourDirection(surfaceNormal);
 
     vec2 invUSize = 1.0 / uSize;

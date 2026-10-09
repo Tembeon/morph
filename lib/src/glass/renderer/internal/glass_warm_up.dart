@@ -9,6 +9,7 @@ import 'package:morph/src/glass/renderer/internal/fake_glass_color.dart';
 import 'package:morph/src/glass/renderer/internal/paint_fake_glass_surface.dart';
 import 'package:morph/src/glass/renderer/internal/shader_filter.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 
 /// The longest precache waits for one warm-up scene on the raster thread.
@@ -81,8 +82,16 @@ Future<void> morphWarmLiquidPipelines(
     images.add(tint);
     FlutterGpuGeometryRenderer.flushPendingSubmissions();
 
+    // The analytic variants are warmed only where layers use them.
+    final analyticKeys = ShaderKeys.liquidGlassAnalyticRenders.toSet();
+    final warmedKeys = [
+      for (final key in finalShaderKeys)
+        if (RenderLiquidGlassLayer.analyticGeometryEnabled ||
+            !analyticKeys.contains(key))
+          key,
+    ];
     final programs = await Future.wait(
-      finalShaderKeys.map(ui.FragmentProgram.fromAsset),
+      warmedKeys.map(ui.FragmentProgram.fromAsset),
     );
     final filters = <ui.ImageFilter>[];
     final tintKeys = {
@@ -90,10 +99,11 @@ Future<void> morphWarmLiquidPipelines(
       ShaderKeys.liquidGlassTintIos27Render,
     };
     for (final (index, program) in programs.indexed) {
-      final key = finalShaderKeys[index];
+      final key = warmedKeys[index];
       final shader = program.fragmentShader();
       shader.setImageSampler(0, matte, filterQuality: FilterQuality.low);
-      shader.setImageSampler(1, matte);
+      // The analytic variants read no matte and no material map.
+      if (!analyticKeys.contains(key)) shader.setImageSampler(1, matte);
       if (key == ShaderKeys.liquidGlassMaterialRender) {
         shader.setImageSampler(2, material);
         shader.setImageSampler(3, material, filterQuality: FilterQuality.low);

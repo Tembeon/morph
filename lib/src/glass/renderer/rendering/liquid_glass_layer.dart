@@ -355,6 +355,10 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
               materialRenderShader: shaders[2],
               tintRenderShader: shaders[3],
               tintIos27RenderShader: shaders[4],
+              analyticRenderShader: shaders[5],
+              analyticIos27RenderShader: shaders[6],
+              analyticTintRenderShader: shaders[7],
+              analyticTintIos27RenderShader: shaders[8],
               backdropKey: backdropKey,
               blursOwnBackdrop: widget.blursOwnBackdrop,
               live: live,
@@ -424,6 +428,10 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.materialRenderShader,
     required this.tintRenderShader,
     required this.tintIos27RenderShader,
+    required this.analyticRenderShader,
+    required this.analyticIos27RenderShader,
+    required this.analyticTintRenderShader,
+    required this.analyticTintIos27RenderShader,
     required this.backdropKey,
     required this.blursOwnBackdrop,
     required this.live,
@@ -440,6 +448,10 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final FragmentShader materialRenderShader;
   final FragmentShader tintRenderShader;
   final FragmentShader tintIos27RenderShader;
+  final FragmentShader analyticRenderShader;
+  final FragmentShader analyticIos27RenderShader;
+  final FragmentShader analyticTintRenderShader;
+  final FragmentShader analyticTintIos27RenderShader;
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
   final Listenable? live;
@@ -459,6 +471,10 @@ class _RawShapes extends SingleChildRenderObjectWidget {
       materialRenderShader: materialRenderShader,
       tintRenderShader: tintRenderShader,
       tintIos27RenderShader: tintIos27RenderShader,
+      analyticRenderShader: analyticRenderShader,
+      analyticIos27RenderShader: analyticIos27RenderShader,
+      analyticTintRenderShader: analyticTintRenderShader,
+      analyticTintIos27RenderShader: analyticTintIos27RenderShader,
       backdropKey: backdropKey,
       settings: settingsOf(),
       defaultAppearance: defaultAppearance,
@@ -535,6 +551,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     required this.materialRenderShader,
     required this.tintRenderShader,
     required this.tintIos27RenderShader,
+    required this.analyticRenderShader,
+    required this.analyticIos27RenderShader,
+    required this.analyticTintRenderShader,
+    required this.analyticTintIos27RenderShader,
     required super.backdropKey,
     required super.devicePixelRatio,
     required super.settings,
@@ -572,6 +592,45 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// Shapes that differ only by tint, an iOS 27 color model.
   final FragmentShader tintIos27RenderShader;
 
+  /// One appearance for the layer, the direct color model, with the shapes
+  /// evaluated in the final shader.
+  final FragmentShader analyticRenderShader;
+
+  /// One appearance for the layer, an iOS 27 color model, with the shapes
+  /// evaluated in the final shader.
+  final FragmentShader analyticIos27RenderShader;
+
+  /// Shapes that differ only by tint, the direct color model, evaluated in
+  /// the final shader.
+  final FragmentShader analyticTintRenderShader;
+
+  /// Shapes that differ only by tint, an iOS 27 color model, evaluated in
+  /// the final shader.
+  final FragmentShader analyticTintIos27RenderShader;
+
+  /// The most shapes a layer evaluates in its final shader; a layer with
+  /// more renders a geometry matte. Matches ANALYTIC_MAX_SHAPES in
+  /// shaders/analytic_geometry.glsl.
+  static const int analyticMaxShapes = 8;
+
+  /// Overrides [ShaderKeys.analyticGeometry] for every layer when not null,
+  /// for an A/B of the analytic and the matte geometry.
+  @visibleForTesting
+  static bool? debugAnalyticGeometry;
+
+  /// Whether layers whose shapes are separate evaluate them in the final
+  /// shader: [debugAnalyticGeometry], else [ShaderKeys.analyticGeometry].
+  static bool get analyticGeometryEnabled =>
+      debugAnalyticGeometry ?? ShaderKeys.analyticGeometry;
+
+  // Whether the current frame's shapes are evaluated in the final shader
+  // instead of read from a geometry matte.
+  bool _analytic = false;
+
+  /// Whether the current frame evaluates its shapes in the final shader.
+  @visibleForTesting
+  bool get debugAnalytic => _analytic;
+
   /// The final shader the current appearances draw with: each variant
   /// compiles only the color models it can meet, which keeps the
   /// one-appearance and tint-only variants inside the register budget of
@@ -585,6 +644,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _usesTintOnlyAppearance,
       ios27,
     )) {
+      (false, _, false) when _analytic => analyticRenderShader,
+      (false, _, true) when _analytic => analyticIos27RenderShader,
+      (true, true, false) when _analytic => analyticTintRenderShader,
+      (true, true, true) when _analytic => analyticTintIos27RenderShader,
       (false, _, false) => defaultRenderShader,
       (false, _, true) => ios27RenderShader,
       (true, true, false) => tintRenderShader,
@@ -661,6 +724,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _staleShaders.add(materialRenderShader);
     _staleShaders.add(tintRenderShader);
     _staleShaders.add(tintIos27RenderShader);
+    _staleShaders.add(analyticRenderShader);
+    _staleShaders.add(analyticIos27RenderShader);
+    _staleShaders.add(analyticTintRenderShader);
+    _staleShaders.add(analyticTintIos27RenderShader);
     _writeStaleShaderSettings(renderShader);
   }
 
@@ -828,7 +895,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// True once geometry has been encoded, so ancestor motion can stay on the
   /// compositor without crossing this layer's repaint boundary.
   @protected
-  bool get hasReusableGeometry => _geometryImage != null;
+  bool get hasReusableGeometry => _geometryImage != null || _analytic;
 
   @override
   GlassFrameState get hiddenFrameState => GlassFrameState.idle;
@@ -916,7 +983,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     )
     updateMaterial,
   ) {
-    if ((_geometryImage == null && !drawableEmpty) ||
+    if ((!hasReusableGeometry && !drawableEmpty) ||
         frameState == GlassFrameState.idle) {
       return false;
     }
@@ -949,6 +1016,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final result = _buildGpuGeometryImage(shapesWithGeometry, bounds);
       _releaseGeometryImageHandles();
       _geometryImage = result.image;
+      _analytic = result.analytic;
       _materialImage = result.materialImage;
       _geometryMatteBounds = result.matteBounds;
       _geometryTextureSize = result.textureSize;
@@ -983,6 +1051,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
     _geometryImage = null;
     _materialImage = null;
+    _analytic = false;
   }
 
   void _rememberEncodedGeometry(Rect bounds) {
@@ -996,6 +1065,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (_encodedPassPhase != null) return false;
     _geometryMatteBounds = _geometryMatteBounds.shift(delta);
     _materialCenterInMatte += delta;
+    if (_analytic) _shiftAnalyticShapes(delta * devicePixelRatio);
     _rememberEncodedGeometry(bounds);
     return true;
   }
@@ -1045,18 +1115,18 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         _releaseCompositorFilter();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {});
       case GlassFrameState.active:
-        if (_geometryImage != null &&
+        if (hasReusableGeometry &&
             _rasterGridStale(shaderCoordinateTransform)) {
           needsGeometryUpdate = true;
         }
-        if (needsGeometryUpdate || _geometryImage == null || link.isDirty) {
+        if (needsGeometryUpdate || !hasReusableGeometry || link.isDirty) {
           link
             ..updateAllGeometries()
             ..markClean();
 
           final canReuseTranslatedGeometry =
               !needsGeometryUpdate &&
-              _geometryImage != null &&
+              hasReusableGeometry &&
               _reuseUniformlyTranslatedGeometry(geometryBounds);
           needsGeometryUpdate = false;
 
@@ -1067,6 +1137,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
               geometryBounds,
             );
             _geometryImage = gpuResult.image;
+            _analytic = gpuResult.analytic;
             _materialImage = gpuResult.materialImage;
             _geometryMatteBounds = gpuResult.matteBounds;
             _geometryTextureSize = gpuResult.textureSize;
@@ -1079,8 +1150,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         }
 
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {
-          if (_geometryImage != null) {
-            _bindGeometryShader(_geometryImage!);
+          if (hasReusableGeometry) {
+            _bindGeometryShader(_geometryImage);
             _recordOriginalShadows(effectOffset);
             if (_originalShadows.layer case final shadows?) {
               effectContext.addLayer(shadows);
@@ -1137,7 +1208,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   // Resource binding is separate from recording/painting children so a
   // changed geometry frame can be prepared without invoking child paint.
-  void _bindGeometryShader(ui.Image geometryImage) {
+  void _bindGeometryShader(ui.Image? geometryImage) {
     syncCoordinateMapping();
     final activeRenderShader = renderShader;
     activeRenderShader
@@ -1163,13 +1234,23 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           _materialTextureSize.width,
           _materialTextureSize.height,
         ]);
-      })
+      });
+    if (geometryImage == null) {
       // Older engines retain this sampler's quality when replacing its
       // texture. Newer engines use morphGlassShaderFilter's explicit quality.
-      ..setImageSampler(0, geometryImage, filterQuality: FilterQuality.low)
-      // Nearest: the matte packs 12-bit normal angle and displacement codes
-      // across byte boundaries, which filtering between texels would mix.
-      ..setImageSampler(1, geometryImage);
+      activeRenderShader.setImageSampler(
+        0,
+        _analyticSamplerImage,
+        filterQuality: FilterQuality.low,
+      );
+      _writeAnalyticUniforms(activeRenderShader);
+    } else {
+      activeRenderShader
+        ..setImageSampler(0, geometryImage, filterQuality: FilterQuality.low)
+        // Nearest: the matte packs 12-bit normal angle and displacement codes
+        // across byte boundaries, which filtering between texels would mix.
+        ..setImageSampler(1, geometryImage);
+    }
     _writeBackdropShrinkAxis(activeRenderShader);
     if (_materialImage case final materialImage?) {
       if (_usesTintOnlyAppearance) {
@@ -1200,6 +1281,97 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   ui.Image? _boundGeometryImage;
   ui.Image? _boundMaterialImage;
   Rect? _boundMatteBounds;
+
+  // The image bound to the background sampler before the native filter
+  // replaces it with its input, when no matte exists to bind there.
+  static final ui.Image _analyticSamplerImage = () {
+    final recorder = ui.PictureRecorder();
+    Canvas(recorder);
+    return recorder.endRecording().toImageSync(1, 1);
+  }();
+
+  // Float index of uAnalyticOptics, the first analytic uniform after the
+  // 65 common floats; then uAnalyticRanges, uShapeData, uRseData,
+  // uShapeBounds and, in the tint variants, uShapeTints
+  // (shaders/analytic_geometry.glsl).
+  static const int _analyticUniformIndex = 65;
+  static const int _analyticShapeDataIndex = _analyticUniformIndex + 8;
+  static const int _analyticRseDataIndex =
+      _analyticShapeDataIndex + analyticMaxShapes * 12;
+  static const int _analyticBoundsIndex =
+      _analyticRseDataIndex + analyticMaxShapes * 12;
+  static const int _analyticTintsIndex =
+      _analyticBoundsIndex + analyticMaxShapes * 4;
+
+  // The geometry pass's optical inputs of the current analytic frame.
+  double _analyticRefractionHeight = 0;
+  double _analyticRefractionAmount = 1e-3;
+  bool _analyticFitsShape = false;
+  double _analyticContourExtent = 0.5;
+  int _analyticShapeCount = 0;
+  final List<double> _analyticTints = [];
+
+  // Writes the analytic frame's shapes and the geometry pass's optical
+  // inputs into [shader], from float index 65.
+  void _writeAnalyticUniforms(FragmentShader shader) {
+    shader.setFloat(_analyticUniformIndex, _analyticRefractionHeight);
+    shader.setFloat(_analyticUniformIndex + 1, _analyticRefractionAmount);
+    shader.setFloat(_analyticUniformIndex + 2, _analyticFitsShape ? 1 : 0);
+    shader.setFloat(_analyticUniformIndex + 3, _analyticShapeCount.toDouble());
+    shader.setFloat(_analyticUniformIndex + 4, _analyticContourExtent);
+    for (var i = 0; i < _shapeData.length; i++) {
+      shader.setFloat(_analyticShapeDataIndex + i, _shapeData[i]);
+    }
+    for (var i = 0; i < _rseData.length; i++) {
+      shader.setFloat(_analyticRseDataIndex + i, _rseData[i]);
+    }
+    for (var i = 0; i < _boundsData.length; i++) {
+      shader.setFloat(_analyticBoundsIndex + i, _boundsData[i]);
+    }
+    // Only the tint variants declare uShapeTints.
+    if (identical(shader, analyticTintRenderShader) ||
+        identical(shader, analyticTintIos27RenderShader)) {
+      for (var i = 0; i < _analyticTints.length; i++) {
+        shader.setFloat(_analyticTintsIndex + i, _analyticTints[i]);
+      }
+    }
+  }
+
+  // Moves the analytic frame's shapes by [delta] device pixels, as a
+  // uniformly translated matte moves its bounds.
+  void _shiftAnalyticShapes(Offset delta) {
+    for (var i = 0; i < _analyticShapeCount; i++) {
+      _shapeData[i * 12 + 8] += delta.dx;
+      _shapeData[i * 12 + 9] += delta.dy;
+      _boundsData[i * 4] += delta.dx;
+      _boundsData[i * 4 + 1] += delta.dy;
+      _boundsData[i * 4 + 2] += delta.dx;
+      _boundsData[i * 4 + 3] += delta.dy;
+    }
+    _shaderInputsChanged = true;
+  }
+
+  // Whether [geometries] can be evaluated in the final shader: no fused
+  // field, at most [analyticMaxShapes] shapes that never blend, and one
+  // appearance or appearances that differ only by tint.
+  bool _analyticEligible(
+    List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
+  ) {
+    if (!analyticGeometryEnabled || _field != null) return false;
+    final appearances = <LiquidGlassAppearance>[];
+    for (final (_, geometry, _) in geometries) {
+      if (geometry.blend != 0) return false;
+      for (final shape in geometry.shapes) {
+        if (appearances.length == analyticMaxShapes) return false;
+        appearances.add(shape.appearance);
+      }
+    }
+    final (mixed, tintOnly, _) = _classifyShapeAppearances(
+      appearances,
+      defaultAppearance,
+    );
+    return !mixed || tintOnly;
+  }
 
   // Own a replaceable picture rather than recording shadows together with
   // unrelated foreground. Geometry refresh may replace this before submission
@@ -1752,6 +1924,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // differently now: its shifts moved, or a matte encoded on the layer's own
   // grid now falls within the tie band.
   bool _rasterGridStale(Matrix4 layerToPass) {
+    // Analytic shapes have no raster grid.
+    if (_analytic) return false;
     if (_encodedPassPhase case final phase?) {
       return _passPhase(layerToPass) != phase;
     }
@@ -1813,12 +1987,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // mathematical shape. Keep that margin in the persistent geometry
       // texture so the positive side of the fade is not clipped at the matte
       // edge.
+      final analytic = _analyticEligible(geometries);
       final layerToPass = shaderCoordinateTransform;
-      final grid = glassRasterGrid(
-        layerToPass,
-        devicePixelRatio,
-        movable: _field == null,
-      );
+      // Analytic shapes are evaluated where they are: no matte grid to
+      // move or to shift them onto.
+      final grid = analytic
+          ? null
+          : glassRasterGrid(
+              layerToPass,
+              devicePixelRatio,
+              movable: _field == null,
+            );
       final shifts = [
         for (final (owner, _, _) in geometries)
           grid == null
@@ -1976,6 +2155,44 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final (usesShapeAppearances, usesTintOnlyAppearance, _) =
           _classifyShapeAppearances(appearances, defaultAppearance);
 
+      if (analytic) {
+        _analyticRefractionHeight = max(
+          0.0,
+          settings.effectiveRefractionHeight * devicePixelRatio,
+        );
+        _analyticRefractionAmount = max(
+          1e-3,
+          settings.effectiveRefractionAmount * devicePixelRatio,
+        );
+        _analyticFitsShape = settings.refractionFitsShape;
+        _analyticContourExtent = max(0.5, aaPadding * devicePixelRatio);
+        _analyticShapeCount = numShapes;
+        _analyticTints.clear();
+        if (usesTintOnlyAppearance) {
+          for (final appearance in appearances) {
+            final tint = appearance.tint;
+            _analyticTints.addAll([tint.r, tint.g, tint.b, tint.a]);
+          }
+        }
+        _shaderInputsChanged = true;
+        return (
+          analytic: true,
+          image: null,
+          materialImage: null,
+          materialCenter: materialCenter,
+          materialSize: bounds.size,
+          textureSize: Size(textureWidth.toDouble(), textureHeight.toDouble()),
+          materialTextureSize: const Size(1, 1),
+          appearances: appearances,
+          matteBounds: Rect.fromLTWH(
+            boundsInMatteSpace.left,
+            boundsInMatteSpace.top,
+            textureWidth / devicePixelRatio,
+            textureHeight / devicePixelRatio,
+          ),
+        );
+      }
+
       final result = renderer.render(
         width: textureWidth,
         height: textureHeight,
@@ -2000,6 +2217,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         fieldScale: devicePixelRatio,
       );
       return (
+        analytic: false,
         image: result.image,
         materialImage: renderer.materialImage,
         materialCenter: materialCenter,
@@ -2029,9 +2247,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 // Images here borrow the renderer's handles. A retained temporary frame must
 // clone both images before another render can dispose those borrowed handles.
 typedef _GpuGeometryFrame = ({
+  bool analytic,
   Size textureSize,
   Size materialTextureSize,
-  ui.Image image,
+  ui.Image? image,
   ui.Image? materialImage,
   Rect matteBounds,
   Offset materialCenter,
