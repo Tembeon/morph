@@ -1,5 +1,9 @@
 # Compatible foreground filter cohorts
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 2026-10-09, WIP, Pixel 6a, release arm64, Impeller Vulkan, Flutter beta
 3.49.0-0.2.pre, framework 38ec981bad, engine 774a767348. Default flag off:
 `MORPH_BAR_GLYPH_BATCH`. Sources/results:
