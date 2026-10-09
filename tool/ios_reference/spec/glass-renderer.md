@@ -2858,6 +2858,24 @@ Liquid push at 120 Hz remains budget-bound: next is the per-frame
 geometry encode (re-encode only when the matte changes by a visible
 amount, or fewer command buffers) and the settle tail.
 
+Fades through the shader (2026-10-10). The Redmi's worst push / pop frame
+(41 ms raster) rendered six Skia layer raster-cache entries, one offscreen
+pass each: bar items whose screen blur had dropped under minScreenSigma
+painted live under an opacity layer while still fading, their children
+could not take the opacity themselves, and Skia cached each (Impeller
+would save a layer for each every frame instead). A fading child now
+draws through the shader at any blur (the finest kernel), so it joins the
+batched pyramid pass; an opaque child under minScreenSigma still paints
+live. Redmi 6A flat, A B B A, worst raster frame per window (three
+repeats): push 22 - 36 -> 13 - 25 ms, pop 32 - 43 -> 19 - 23 ms; raster
+p95 push 12.7 - 13.3 -> 10.8 - 12.0, pop 15.1 - 16.4 -> 13.4 - 14.8; build
+p50 +0.4 - 0.8 ms (the fading items repaint through the shader). Moto g86
+liquid: neutral within the run spread. Fidelity against a true Gaussian
+(glyph_blur_test, presence 0.97 - 0.995): Impeller mean 3.3 - 3.9 against
+the layers' 4.5 - 7.8, Skia 3.3 - 4.0 against 2.0 - 3.1 (resampling the
+raster at a scale near 1); visible only as a fraction of a pixel of
+softness on the last frames of a fade.
+
 
 ## Analytic liquid geometry (2026-10-09, behind MORPH_ANALYTIC_GEOMETRY)
 

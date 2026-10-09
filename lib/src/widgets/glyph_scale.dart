@@ -293,14 +293,15 @@ class _RenderGlyphRaster extends RenderProxyBox {
 /// Paints [child] blurred by [blur] and faded to [opacity] as one draw
 /// in the pass it belongs to, without an offscreen layer.
 ///
-/// While it is blurred by half a device pixel or more, the child is drawn
-/// through a single-pass Gaussian shader that also applies the opacity,
+/// While it is blurred by half a device pixel or more, or fades, the child
+/// is drawn through a single-pass Gaussian shader that also applies the opacity,
 /// from a mip pyramid of one raster of it at the device pixel ratio: each
 /// frame reads the finest level the blur spans at most two texels of, so
 /// the pyramid lasts while the blur and the scale animate and is taken
 /// again only when the child repaints or resizes. Every pyramid one frame
-/// needs is taken together, in two passes. A smaller blur paints the child
-/// sharp under an opacity layer, like [Opacity].
+/// needs is taken together, in two passes. A fading child is drawn by the
+/// shader at any blur, the smallest at its finest kernel, so a fade never
+/// needs a layer of its own; an opaque child blurred less paints sharp.
 @internal
 class MorphGlyphBlur extends SingleChildRenderObjectWidget {
   /// Paints [child] blurred by [blur] logical pixels and faded to
@@ -373,9 +374,10 @@ class _RenderGlyphBlur extends RenderProxyBox {
   /// The largest blur, in logical pixels, drawn sharp.
   static const double minBlur = 0.05;
 
-  /// The smallest blur, in device pixels, the shader draws; a smaller one
-  /// paints sharp, within about a channel step of a true Gaussian on
-  /// average.
+  /// The smallest blur, in device pixels, the shader draws on an opaque
+  /// child; a smaller one paints sharp, within about a channel step of a
+  /// true Gaussian on average. A fading child draws through the shader at
+  /// any blur.
   static const double minScreenSigma = 0.5;
 
   /// The pyramid's levels below the raster: the coarsest is 1/32 of it,
@@ -488,8 +490,8 @@ class _RenderGlyphBlur extends RenderProxyBox {
   }
 
   /// The screen scale of this box (device pixels per logical pixel), or
-  /// null when it paints live: no shader yet, nothing to draw, or a blur
-  /// under [minScreenSigma].
+  /// null when it paints live: no shader yet, nothing to draw, or an
+  /// opaque child blurred under [minScreenSigma].
   double? _shaderScale() {
     if (MorphGlyphBlur._program == null ||
         MorphGlyphScale.debugExact ||
@@ -497,11 +499,11 @@ class _RenderGlyphBlur extends RenderProxyBox {
         _opacity <= 0 ||
         !hasSize ||
         size.isEmpty ||
-        _blur <= minBlur) {
+        (_blur <= minBlur && _opacity >= 1)) {
       return null;
     }
     final scale = MorphGlyphScale.of(getTransformTo(null)) * _devicePixelRatio;
-    if (_blur * scale < minScreenSigma) return null;
+    if (_blur * scale < minScreenSigma && _opacity >= 1) return null;
     return scale;
   }
 

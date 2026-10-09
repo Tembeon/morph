@@ -186,10 +186,13 @@ void main() {
         'layers ${f(exact)} one-pass ${f(now)} previous ${f(before)}',
       );
       // Within a channel step of the mean error of the blur layers it
-      // replaces, or of the previous raster path.
+      // replaces, or of the previous raster path; within two where the
+      // blur is under the shader's smallest on screen and the fade alone
+      // sends the child through the shader, which resamples its raster.
+      final faint = blur * scale * ratio < 0.5;
       expect(
         now.mean,
-        lessThan(math.max(exact.mean, before.mean) + 1),
+        lessThan(math.max(exact.mean, before.mean) + (faint ? 2 : 1)),
         reason: 'presence $p',
       );
     }
