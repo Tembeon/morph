@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'dart:ui';
 
 import 'package:meta/meta.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 
 /// The signed distance field of a glass body whose outline its owner has
 /// already fused, sampled on a square grid.
@@ -28,11 +29,46 @@ class GlassField {
     required this.origin,
     required this.step,
     this.outline,
+    this.analytic,
   });
+
+  /// Enables the beta-only GPU optical grid experiment on native platforms.
+  static const bool gpuFusion =
+      !kIsWeb && bool.fromEnvironment('MORPH_GPU_FUSION_FIELD');
+
+  /// Describes a small rounded-box fusion without sampling its optical grid.
+  ///
+  /// The owner still traces [outline] with its CPU merge law. The renderer
+  /// evaluates that same law at the coarse nodes; [samples] is empty here.
+  factory GlassField.fromBoxes({
+    required List<RRect> shapes,
+    required double spacing,
+    required int cols,
+    required int rows,
+    required Offset origin,
+    required double step,
+    required Path outline,
+  }) => GlassField(
+    samples: _emptySamples,
+    cols: cols,
+    rows: rows,
+    origin: origin,
+    step: step,
+    outline: outline,
+    analytic: GlassAnalyticField(shapes, origin, spacing),
+  );
+
+  static final Float32List _emptySamples = Float32List(0);
 
   /// Four values per node, row-major; never written after the field is
   /// created (renderers keep an upload while the same list comes back).
   final Float32List samples;
+
+  /// An optional owner-provided merge descriptor in grid-relative coordinates.
+  ///
+  /// When present, [samples] is empty and both native geometry paths must
+  /// render the descriptor before sampling it. Web owners never create it.
+  final GlassAnalyticField? analytic;
 
   /// The nodes along x.
   final int cols;
@@ -63,5 +99,32 @@ class GlassField {
     origin: origin + offset,
     step: step,
     outline: outline?.shift(offset),
+    analytic: analytic,
   );
+}
+
+/// The owner merge inputs for a GPU optical grid, independent of translation.
+@internal
+@immutable
+class GlassAnalyticField {
+  /// Stores at most four uniform circular rounded boxes relative to [origin].
+  GlassAnalyticField(List<RRect> shapes, Offset origin, this.spacing)
+    : boxes = Float32List(shapes.length * 8) {
+    assert(shapes.isNotEmpty && shapes.length <= 4);
+    for (var i = 0; i < shapes.length; i++) {
+      final shape = shapes[i];
+      final at = i * 8;
+      boxes[at] = shape.center.dx - origin.dx;
+      boxes[at + 1] = shape.center.dy - origin.dy;
+      boxes[at + 2] = shape.width / 2;
+      boxes[at + 3] = shape.height / 2;
+      boxes[at + 4] = shape.tlRadiusX.clamp(0, shape.shortestSide / 2);
+    }
+  }
+
+  /// Two vec4 values per rounded box: center, half extent, then radius.
+  final Float32List boxes;
+
+  /// The owner's spacing in logical pixels, including its angular merge law.
+  final double spacing;
 }

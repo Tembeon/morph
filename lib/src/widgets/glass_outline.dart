@@ -957,6 +957,8 @@ MorphGlassOutline _fuseContainer(
   double spacing, {
   required bool withField,
 }) {
+  final gpuField = withField && GlassField.gpuFusion && shapes.length <= 4;
+  final opticalSamples = withField && !gpuField;
   const step = _fusionStep;
   const stride = 2;
   const b = 4;
@@ -979,11 +981,11 @@ MorphGlassOutline _fuseContainer(
   final nodes = fieldCols * fieldRows;
   final trace = _ContainerScratch.trace(cols * rows);
   final minimum = _ContainerScratch.field(0, nodes);
-  final distance = withField ? _ContainerScratch.field(1, nodes) : null;
-  final halfMinor = withField ? _ContainerScratch.field(2, nodes) : null;
-  final turn = withField ? _ContainerScratch.field(3, nodes * 2) : null;
-  final fold = withField ? Float64List(2) : null;
-  final turns = withField
+  final distance = opticalSamples ? _ContainerScratch.field(1, nodes) : null;
+  final halfMinor = opticalSamples ? _ContainerScratch.field(2, nodes) : null;
+  final turn = opticalSamples ? _ContainerScratch.field(3, nodes * 2) : null;
+  final fold = opticalSamples ? Float64List(2) : null;
+  final turns = opticalSamples
       ? [for (var i = 0; i < boxes.length; i++) boxes.turns(i)]
       : null;
   for (var fj = 0; fj < fieldRows; fj++) {
@@ -991,7 +993,7 @@ MorphGlassOutline _fuseContainer(
     for (var fi = 0; fi < fieldCols; fi++) {
       final x = area.left + fi * stride * step;
       final at = fj * fieldCols + fi;
-      if (!withField) {
+      if (!opticalSamples) {
         if (fi % (b ~/ stride) != 0 || fj % (b ~/ stride) != 0) continue;
         var m = boxes.distance(0, x, y);
         for (var i = 1; i < boxes.length; i++) {
@@ -1057,14 +1059,14 @@ MorphGlassOutline _fuseContainer(
         for (var j = bj * b; j <= bj * b + b; j++) {
           final y = area.top + j * step;
           for (var i = bi * b; i <= bi * b + b; i++) {
-            if (withField && i % stride == 0 && j % stride == 0) continue;
+            if (opticalSamples && i % stride == 0 && j % stride == 0) continue;
             trace[j * cols + i] = sample(area.left + i * step, y);
           }
         }
       }
     }
   }
-  if (!withField) {
+  if (!opticalSamples) {
     assert(() {
       morphGlassOutlineDebugTraces++;
       return true;
@@ -1080,7 +1082,22 @@ MorphGlassOutline _fuseContainer(
       top: area.top,
       step: step,
     );
-    return MorphGlassOutline(_outlinePath(points, loops));
+    final path = _outlinePath(points, loops);
+    if (gpuField) {
+      return MorphGlassOutline._(
+        path,
+        GlassField.fromBoxes(
+          shapes: shapes,
+          spacing: spacing,
+          cols: fieldCols,
+          rows: fieldRows,
+          origin: area.topLeft,
+          step: step * stride,
+          outline: path,
+        ),
+      );
+    }
+    return MorphGlassOutline(path);
   }
   return morphGlassOutlineFromFields(
     trace: trace,

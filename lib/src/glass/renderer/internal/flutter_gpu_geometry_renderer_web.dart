@@ -26,6 +26,9 @@ class FlutterGpuGeometryRenderer {
   static Future<void> waitUntilGpuContextAvailable() => Future.value();
 
   static int get debugTotalRenderCount => 0;
+
+  /// No experimental optical grids are generated on the web.
+  static int get analyticFieldUpdates => 0;
   static int get debugActiveRendererCount => 0;
   static int get debugActiveGeometryTextureCount => 0;
   static int get debugActiveMaterialTextureCount => 0;

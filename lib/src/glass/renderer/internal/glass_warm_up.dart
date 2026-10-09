@@ -79,6 +79,26 @@ Future<void> morphWarmLiquidPipelines(
     );
     final tint = geometry.materialImage!.clone();
     images.add(tint);
+    if (GlassField.gpuFusion) {
+      final path = ui.Path();
+      final box = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(0, 0, 4, 4),
+        const ui.Radius.circular(1),
+      );
+      path.addRRect(box);
+      final image = geometry.directFieldImage(
+        GlassField.fromBoxes(
+          shapes: [box],
+          spacing: 2,
+          cols: 2,
+          rows: 2,
+          origin: ui.Offset.zero,
+          step: 1,
+          outline: path,
+        ),
+      );
+      images.add(image.clone());
+    }
     FlutterGpuGeometryRenderer.flushPendingSubmissions();
 
     final programs = await Future.wait(

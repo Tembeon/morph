@@ -14,6 +14,8 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+import 'package:morph/src/glass/renderer/glass_field.dart';
+import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
@@ -631,7 +633,9 @@ class _BenchState extends State<_Bench> {
               'direct_geometry_updates':
                   RenderLiquidGlassLayer.directGeometryUpdates,
               'direct_field': ShaderKeys.directField,
-
+              'gpu_fusion_field': GlassField.gpuFusion,
+              'gpu_fusion_field_updates':
+                  FlutterGpuGeometryRenderer.analyticFieldUpdates,
               'direct_field_updates': RenderLiquidGlassLayer.directFieldUpdates,
               ..._snapshot(),
             },
@@ -642,10 +646,15 @@ class _BenchState extends State<_Bench> {
           if (_phases) FlutterTimeline.debugCollectionEnabled = true;
           final window = [developer.Timeline.now, 0];
           final fieldUpdates = RenderLiquidGlassLayer.directFieldUpdates;
+          final gpuFieldUpdates =
+              FlutterGpuGeometryRenderer.analyticFieldUpdates;
           await _perform(c);
           window[1] = developer.Timeline.now;
           (_work[c.name] ??= []).add({
             'callback_us': _callbackUs,
+            'gpu_fusion_field_updates':
+                FlutterGpuGeometryRenderer.analyticFieldUpdates -
+                gpuFieldUpdates,
 
             'direct_field_updates':
                 RenderLiquidGlassLayer.directFieldUpdates - fieldUpdates,
