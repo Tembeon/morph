@@ -625,9 +625,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// [ShaderKeys.analyticMode].
   static AnalyticGeometryMode get analyticMode =>
       _debugAnalyticMode ??
-      (ShaderKeys.analyticMode == 'changes'
-          ? AnalyticGeometryMode.changes
-          : AnalyticGeometryMode.always);
+      (ShaderKeys.analyticMode == 'always'
+          ? AnalyticGeometryMode.always
+          : AnalyticGeometryMode.changes);
 
   static bool? _debugAnalyticCapsule;
 

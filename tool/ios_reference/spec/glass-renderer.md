@@ -2889,6 +2889,29 @@ Mali register pressure (malioc not available here), native pixels, the
 switch pop when a body crosses 4 -> 5 boxes. Commits 1c4c0d3, ecccb2a,
 a785a80, 4273ecf; spec in the owner-local specs folder.
 
+Moto g86 power (Vulkan, 120 Hz forced, fixed performance mode), the
+navigation bench, liquid, A B B A from one commit (a16606f), medians of
+three repeats per window, matte -> analytic (`always`) -> analytic
+(`changes`). Two launches each; ranges are the two launches.
+
+| case | build p95 ms | raster p95 ms | frames in window | slots missed |
+|---|---|---|---|---|
+| nested push | 6.2-7.6 / 4.4-4.9 / 4.4-4.5 | 6.9-7.4 / 9.0-9.2 / 7.7-8.6 | 152-168 / 148-149 / 168-174 | 13-27 / 12-13 / 7-12 |
+| nested pop | 5.7-6.1 / 4.2-4.4 / 3.9-4.0 | 6.6-6.9 / 7.2-7.6 / 6.9-7.4 | 169-170 / 151-152 / 176-177 | 8-9 / 7-8 / 4 |
+| enter | 4.1-4.2 / 2.9-3.0 / 3.0-3.2 | 6.6-7.3 / 7.8-7.9 / 6.8-7.3 | 172-174 / 156 / 174-175 | 6-8 / 5-7 / 5-6 |
+| toolbar | 3.4 / 2.8 / 2.7-2.8 | 5.1-5.3 / 5.6-5.8 / 5.4-5.6 | 178-179 / 147 / 177-180 | 1-2 / 2-3 / 0-3 |
+| steady scroll | 1.8-1.9 / 2.0 / 1.8-1.9 | 5.6-5.8 / 5.7-5.9 / 5.7-5.8 | 180 / 180 / 180 | 0 |
+
+GPU active ms a frame stays 6.3 - 7.3 in every variant (DVFS holds it
+near constant; Mcycles a frame spread 3.6 - 6.7 within one variant, too
+noisy to rank). `always` cuts UI time but loses frames (147 - 156 per
+window against 170 - 180): a layer that shades per pixel every frame
+at rest raises every frame's GPU work. `changes` keeps the UI gain and
+the frame count, so it is the default mode (ShaderKeys.analyticMode);
+analytic geometry itself stays off by default until native pixels are
+checked. Runner: tool/ios_reference/perf/nav_quick (run.py --gpu,
+gpu.py).
+
 ## Flat shader bodies (2026-10-09, behind MORPH_FLAT_SHADER_BODIES)
 
 On the flat tier a glass container body of at most four boxes can skip the

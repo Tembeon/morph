@@ -367,8 +367,9 @@ Local patches (some commits include related package changes):
   fused variants, uShapeTints 305 in the separate ones. The host A/B is
   unchanged to the last digit. sdf.glsl is back to its pre-analytic text.
 - 2026-10-09 analytic modes: MORPH_ANALYTIC_MODE (ShaderKeys.analyticMode,
-  RenderLiquidGlassLayer.debugAnalyticMode) chooses `always` (the
-  default: analytic whenever eligible) or `changes`: a layer shades
+  RenderLiquidGlassLayer.debugAnalyticMode) chooses `always`
+  (analytic whenever eligible) or `changes` (the default since the Moto
+  ABBA below): a layer shades
   analytically on geometry frames whose geometry changed (its encoded
   inputs, up to a uniform translation, plus the field, the optics settings,
   the pixel ratio and mixed appearances); after analyticRestFrames (2)

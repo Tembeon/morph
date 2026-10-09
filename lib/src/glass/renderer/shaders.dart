@@ -46,13 +46,13 @@ abstract class ShaderKeys {
   );
 
   /// When liquid layers shade analytically, with [analyticGeometry] on:
-  /// `always`, every frame (the default), or `changes`, only frames whose
-  /// geometry changed - a layer at rest encodes a matte once and shades
-  /// from it until its geometry changes again. Set at compile time with
-  /// `--dart-define=MORPH_ANALYTIC_MODE=changes`.
+  /// `changes` (the default), only frames whose geometry changed - a layer
+  /// at rest encodes a matte once and shades from it until its geometry
+  /// changes again - or `always`, every frame. Set at compile time with
+  /// `--dart-define=MORPH_ANALYTIC_MODE=always`.
   static const String analyticMode = String.fromEnvironment(
     'MORPH_ANALYTIC_MODE',
-    defaultValue: 'always',
+    defaultValue: 'changes',
   );
 
   /// Whether analytic frames shade a rounded superellipse whose corners
