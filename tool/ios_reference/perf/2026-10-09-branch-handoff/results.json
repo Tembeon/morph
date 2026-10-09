@@ -1,0 +1,83 @@
+{
+  "wip/measured-liquid-glass": {
+    "analyze": {
+      "exit": 0,
+      "seconds": 2.0,
+      "log": "/tmp/morph-handoff/validation/wip-measured-liquid-glass-analyze.log"
+    },
+    "dartdoc": {
+      "exit": 0,
+      "seconds": 21.51,
+      "log": "/tmp/morph-handoff/validation/wip-measured-liquid-glass-dartdoc.log"
+    },
+    "package-tests": {
+      "exit": 0,
+      "seconds": 150.88,
+      "log": "/tmp/morph-handoff/validation/wip-measured-liquid-glass-package-tests.log"
+    },
+    "example-tests": {
+      "exit": 0,
+      "seconds": 17.06,
+      "log": "/tmp/morph-handoff/validation/wip-measured-liquid-glass-example-tests.log"
+    },
+    "macos-build": {
+      "exit": 0,
+      "seconds": 33.67,
+      "log": "/tmp/morph-handoff/validation/wip-measured-liquid-glass-macos-build.log"
+    },
+    "autodemo": {
+      "exit": 0,
+      "seconds": 61.97,
+      "log": "/tmp/morph-handoff/validation/wip-measured-liquid-glass-autodemo.log"
+    },
+    "wasm-build": {
+      "exit": 0,
+      "seconds": 24.77,
+      "log": "/tmp/morph-handoff/validation/wip-measured-liquid-glass-wasm-build.log"
+    },
+    "android-compile": {
+      "exit": 0,
+      "seconds": 40.67,
+      "log": "/tmp/morph-handoff/validation/wip-measured-liquid-glass-android-compile.log"
+    }
+  },
+  "codex/exp-glyph-atlas": {
+    "analyze": {
+      "exit": 0,
+      "seconds": 5.36,
+      "log": "/tmp/morph-handoff/validation/codex-exp-glyph-atlas-analyze.log"
+    },
+    "dartdoc": {
+      "exit": 0,
+      "seconds": 22.57,
+      "log": "/tmp/morph-handoff/validation/codex-exp-glyph-atlas-dartdoc.log"
+    },
+    "package-tests": {
+      "exit": 0,
+      "seconds": 146.9,
+      "log": "/tmp/morph-handoff/validation/codex-exp-glyph-atlas-package-tests.log"
+    },
+    "example-tests": {
+      "exit": 0,
+      "seconds": 9.26,
+      "log": "/tmp/morph-handoff/validation/codex-exp-glyph-atlas-example-tests.log"
+    },
+    "android-compile": {
+      "exit": 0,
+      "seconds": 20.77,
+      "log": "/tmp/morph-handoff/validation/codex-exp-glyph-atlas-android-compile.log"
+    }
+  },
+  "codex/exp-glyph-cohorts": {
+    "analyze": {
+      "exit": 0,
+      "seconds": 4.42,
+      "log": "/tmp/morph-handoff/validation/codex-exp-glyph-cohorts-analyze.log"
+    },
+    "dartdoc": {
+      "exit": 0,
+      "seconds": 21.1,
+      "log": "/tmp/morph-handoff/validation/codex-exp-glyph-cohorts-dartdoc.log"
+    }
+  }
+}
