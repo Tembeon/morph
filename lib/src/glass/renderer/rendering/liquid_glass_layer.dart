@@ -556,6 +556,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (identical(_field, value)) return;
     _field = value;
     needsGeometryUpdate = true;
+    _geometryInputsChanged = true;
     markNeedsPaint();
   }
 
@@ -606,6 +607,150 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   }
 
   static final ValueNotifier<int> _analyticChanges = ValueNotifier(0);
+
+  static AnalyticGeometryMode? _debugAnalyticMode;
+
+  /// Overrides [ShaderKeys.analyticMode] for every layer when not null.
+  /// Setting it asks every attached layer for a new geometry frame.
+  @visibleForTesting
+  static AnalyticGeometryMode? get debugAnalyticMode => _debugAnalyticMode;
+  @visibleForTesting
+  static set debugAnalyticMode(AnalyticGeometryMode? value) {
+    if (_debugAnalyticMode == value) return;
+    _debugAnalyticMode = value;
+    _invalidateAttachedLayers();
+  }
+
+  /// When analytic geometry shades: [debugAnalyticMode], else
+  /// [ShaderKeys.analyticMode].
+  static AnalyticGeometryMode get analyticMode =>
+      _debugAnalyticMode ??
+      (ShaderKeys.analyticMode == 'changes'
+          ? AnalyticGeometryMode.changes
+          : AnalyticGeometryMode.always);
+
+  static bool? _debugAnalyticCapsule;
+
+  /// Overrides [ShaderKeys.analyticCapsule] for every layer when not null.
+  @visibleForTesting
+  static bool? get debugAnalyticCapsule => _debugAnalyticCapsule;
+  @visibleForTesting
+  static set debugAnalyticCapsule(bool? value) {
+    if (_debugAnalyticCapsule == value) return;
+    _debugAnalyticCapsule = value;
+    _invalidateAttachedLayers();
+  }
+
+  /// Whether analytic frames shade full-radius rounded superellipses as
+  /// stadiums: [debugAnalyticCapsule], else [ShaderKeys.analyticCapsule].
+  static bool get analyticCapsuleEnabled =>
+      _debugAnalyticCapsule ?? ShaderKeys.analyticCapsule;
+
+  /// The consecutive frames a layer's geometry must stay unchanged before,
+  /// in [AnalyticGeometryMode.changes], it encodes a matte to rest on.
+  static const int analyticRestFrames = 2;
+
+  /// The analytic geometry frames in a row after which, in
+  /// [AnalyticGeometryMode.changes], a layer hands its matte textures back.
+  static const int analyticReleaseFrames = 120;
+
+  // Whether the geometry inputs a matte does not track by its own revision
+  // changed since the last geometry frame: the field, the optics settings,
+  // the pixel ratio, mixed appearances.
+  bool _geometryInputsChanged = true;
+  // Geometry changes seen, for the rest watch.
+  int _geometryChanges = 0;
+  // Whether this layer rests on a matte, and whether its next unchanged
+  // geometry frame starts resting.
+  bool _resting = false;
+  bool _restRequested = false;
+  bool _restWatched = false;
+  int _analyticSinceMatte = 0;
+
+  /// Whether the layer rests on a matte in [AnalyticGeometryMode.changes].
+  @visibleForTesting
+  bool get debugResting => _resting;
+
+  // Notes before a geometry frame whether its geometry is [unchanged] since
+  // the last one, up to a uniform translation.
+  void _noteGeometryFrame({required bool unchanged}) {
+    final changed = !unchanged || _geometryInputsChanged;
+    _geometryInputsChanged = false;
+    if (analyticMode != AnalyticGeometryMode.changes) {
+      _resting = false;
+      _restRequested = false;
+      return;
+    }
+    if (changed) {
+      _geometryChanges++;
+      _resting = false;
+      _restRequested = false;
+    } else if (_restRequested) {
+      _restRequested = false;
+      _resting = true;
+    }
+  }
+
+  // After an analytic frame in [AnalyticGeometryMode.changes]: once the
+  // geometry stayed unchanged for [analyticRestFrames] frames - or no frame
+  // is coming, so it cannot change - asks for one matte frame to rest on.
+  void _watchRest() {
+    if (_restWatched) return;
+    _restWatched = true;
+    var start = _geometryChanges;
+    // The frame that changed the geometry does not count.
+    var still = -1;
+    final scheduler = SchedulerBinding.instance;
+    void check(Duration _) {
+      if (!attached || !_analytic) {
+        _restWatched = false;
+        return;
+      }
+      if (_geometryChanges != start) {
+        start = _geometryChanges;
+        still = 0;
+      } else {
+        still++;
+      }
+      if (still >= analyticRestFrames || !scheduler.hasScheduledFrame) {
+        _restWatched = false;
+        _restRequested = true;
+        needsGeometryUpdate = true;
+        markNeedsPaint();
+        return;
+      }
+      scheduler.addPostFrameCallback(check);
+    }
+
+    scheduler.addPostFrameCallback(check);
+  }
+
+  // After a geometry frame: in [AnalyticGeometryMode.changes] an analytic
+  // frame watches for rest and hands the matte back only after a long run;
+  // otherwise the matte goes back after two analytic frames.
+  void _afterGeometryFrame() {
+    if (analyticMode == AnalyticGeometryMode.changes) {
+      if (!_analytic) {
+        _analyticSinceMatte = 0;
+        return;
+      }
+      _watchRest();
+      if (++_analyticSinceMatte == analyticReleaseFrames) {
+        final renderer = _gpuGeometryRenderer;
+        if (renderer != null &&
+            renderer.holdsOutput &&
+            _geometryImage == null) {
+          renderer.releaseOutput();
+          assert(() {
+            debugMatteReleases++;
+            return true;
+          }());
+        }
+      }
+      return;
+    }
+    if (_analytic) _scheduleMatteRelease();
+  }
 
   /// Notifies when [debugAnalyticGeometry] changes, so whatever chose its
   /// glass by [analyticGeometryEnabled] chooses again.
@@ -1122,7 +1267,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         old.refractionFitsShape != settings.refractionFitsShape ||
         old.contourWidth != settings.contourWidth;
     _updateShaderSettings();
-    if (geometryInputsChanged) needsGeometryUpdate = true;
+    if (geometryInputsChanged) {
+      needsGeometryUpdate = true;
+      _geometryInputsChanged = true;
+    }
   }
 
   @override
@@ -1132,6 +1280,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   void onDevicePixelRatioChanged() {
     _updateShaderSettings();
     needsGeometryUpdate = true;
+    _geometryInputsChanged = true;
   }
 
   // MARK: Retained matte
@@ -1192,6 +1341,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       return false;
     }
     commitFrameGeometry(candidate);
+    final unchanged = encodedMatteDelta(bounds) != null;
     final materialBounds = _prepareGeometryAppearance(bounds);
     // A drawable-empty refresh encodes nothing; the committed list alone
     // is the compositor-translation poll's baseline.
@@ -1210,11 +1360,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         _materialImage = material;
         _ownsGeometryImages = true;
       }
+      _noteGeometryFrame(unchanged: unchanged);
       final result = _buildGpuGeometryImage(shapesWithGeometry, bounds);
       _releaseGeometryImageHandles();
       _geometryImage = result.image;
       _analytic = result.analytic;
-      if (_analytic) _scheduleMatteRelease();
+      _afterGeometryFrame();
       _materialImage = result.materialImage;
       _geometryMatteBounds = result.matteBounds;
       _geometryTextureSize = result.textureSize;
@@ -1329,6 +1480,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           needsGeometryUpdate = false;
 
           if (!canReuseTranslatedGeometry) {
+            _noteGeometryFrame(
+              unchanged: encodedMatteDelta(geometryBounds) != null,
+            );
             _clearGeometryImage();
             final gpuResult = _buildGpuGeometryImage(
               shapesWithGeometry,
@@ -1336,7 +1490,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             );
             _geometryImage = gpuResult.image;
             _analytic = gpuResult.analytic;
-            if (_analytic) _scheduleMatteRelease();
+            _afterGeometryFrame();
             _materialImage = gpuResult.materialImage;
             _geometryMatteBounds = gpuResult.matteBounds;
             _geometryTextureSize = gpuResult.textureSize;
@@ -1383,6 +1537,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // Mixed material data is encoded in the geometry render target. Only
       // uniform appearance changes can be applied with final-pass uniforms.
       needsGeometryUpdate = true;
+      _geometryInputsChanged = true;
     }
     final materialBounds = boundingBox.inflate(_contourOutset);
     effectPaintBounds = expandBoundsForShadows(materialBounds);
@@ -1640,6 +1795,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
   ) {
     if (!analyticGeometryEnabled) return 'disabled';
+    if (_resting) return 'resting';
     return analyticIneligibility(
       enabled: true,
       hasField: _field != null,
@@ -2398,6 +2554,14 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           // oversized primitives), which is especially visible for stretched
           // shapes in a blend group.
           final size = shape.renderObject.size;
+          // An analytic frame may shade a full-radius superellipse as the
+          // stadium of its box (an approximation, see
+          // ShaderKeys.analyticCapsule).
+          final capsule =
+              analytic &&
+              analyticCapsuleEnabled &&
+              shape.rawShapeType == RawShapeType.squircle &&
+              shape.rawCornerRadius >= size.shortestSide / 2;
           final rseParameters = roundedSuperellipseParameters(
             size,
             shape.rawCornerRadius,
@@ -2430,11 +2594,16 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
             ..add(
               shape.appearance.visibility <= 0
                   ? 0
+                  : capsule
+                  ? RawShapeType.roundedRectangle.shaderIndex
                   : shape.rawShapeType.shaderIndex,
             )
             ..add(size.width * devicePixelRatio)
             ..add(size.height * devicePixelRatio)
-            ..add(shape.rawCornerRadius * devicePixelRatio)
+            ..add(
+              (capsule ? size.shortestSide / 2 : shape.rawCornerRadius) *
+                  devicePixelRatio,
+            )
             // vec4 1: inverse affine basis.
             ..add(inverse00)
             ..add(inverse01)
@@ -2601,4 +2770,15 @@ typedef _GpuGeometryFrame = ({
             appearance.colorModel == first.colorModel,
       );
   return (mixed, tintOnly, tintOnly || !mixed ? first : null);
+}
+
+/// When a liquid layer with analytic geometry shades analytically.
+@internal
+enum AnalyticGeometryMode {
+  /// Every frame it can.
+  always,
+
+  /// Only frames whose geometry changed: at rest it encodes a matte once
+  /// and shades from it until the geometry changes again.
+  changes,
 }

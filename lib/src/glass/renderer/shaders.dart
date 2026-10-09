@@ -45,6 +45,26 @@ abstract class ShaderKeys {
     'MORPH_ANALYTIC_GEOMETRY',
   );
 
+  /// When liquid layers shade analytically, with [analyticGeometry] on:
+  /// `always`, every frame (the default), or `changes`, only frames whose
+  /// geometry changed - a layer at rest encodes a matte once and shades
+  /// from it until its geometry changes again. Set at compile time with
+  /// `--dart-define=MORPH_ANALYTIC_MODE=changes`.
+  static const String analyticMode = String.fromEnvironment(
+    'MORPH_ANALYTIC_MODE',
+    defaultValue: 'always',
+  );
+
+  /// Whether analytic frames shade a rounded superellipse whose corners
+  /// are half its short side as the stadium of the same box, instead of
+  /// solving the superellipse per pixel: not the same shape (Flutter's
+  /// rounded superellipse lies up to 0.39 pt inside the stadium along
+  /// its caps), so an approximation, for measurement. Set at compile time
+  /// with `--dart-define=MORPH_ANALYTIC_CAPSULE=true`; off by default.
+  static const bool analyticCapsule = bool.fromEnvironment(
+    'MORPH_ANALYTIC_CAPSULE',
+  );
+
   static String get liquidGlassAnalyticRender =>
       '${_runtimeRoot}liquid_glass_final_render_analytic.frag';
 

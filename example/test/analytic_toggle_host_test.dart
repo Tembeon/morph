@@ -12,7 +12,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
+    show AnalyticGeometryMode, RenderLiquidGlassLayer;
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -34,7 +34,13 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    // These tests pin analytic shading on every frame it can; the
+    // `changes` mode has its own test (analytic_mode_host_test.dart).
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
     await tester.runAsync(MorphGlassRenderer.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
 

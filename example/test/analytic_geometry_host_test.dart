@@ -19,7 +19,7 @@ import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.
 import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
+    show AnalyticGeometryMode, RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/widgets.dart';
@@ -215,7 +215,13 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    // These tests pin analytic shading on every frame it can; the
+    // `changes` mode has its own test (analytic_mode_host_test.dart).
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
     await tester.runAsync(MorphGlassRenderer.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     if (_out.isNotEmpty) Directory(_out).createSync(recursive: true);
@@ -300,7 +306,13 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    // These tests pin analytic shading on every frame it can; the
+    // `changes` mode has its own test (analytic_mode_host_test.dart).
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
     await tester.runAsync(MorphGlassRenderer.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
@@ -456,7 +468,13 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    // These tests pin analytic shading on every frame it can; the
+    // `changes` mode has its own test (analytic_mode_host_test.dart).
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
     await tester.runAsync(MorphGlassRenderer.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);
@@ -547,7 +565,13 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    // These tests pin analytic shading on every frame it can; the
+    // `changes` mode has its own test (analytic_mode_host_test.dart).
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
     addTearDown(() {
       debugMorphFusionStep = 2;
       debugClearMorphGlassOutlines();
@@ -617,7 +641,13 @@ void main() {
     tester.view.physicalSize = const ui.Size(1080, 2400);
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.reset);
-    addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    // These tests pin analytic shading on every frame it can; the
+    // `changes` mode has its own test (analytic_mode_host_test.dart).
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
     await tester.runAsync(MorphGlassRenderer.precache);
     await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
     final harness = ShaderHarness(tester);

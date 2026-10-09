@@ -366,3 +366,20 @@ Local patches (some commits include related package changes):
   before any SDF. Layout: uFusedBoxes 305 and uShapeTints 337 in the
   fused variants, uShapeTints 305 in the separate ones. The host A/B is
   unchanged to the last digit. sdf.glsl is back to its pre-analytic text.
+- 2026-10-09 analytic modes: MORPH_ANALYTIC_MODE (ShaderKeys.analyticMode,
+  RenderLiquidGlassLayer.debugAnalyticMode) chooses `always` (the
+  default: analytic whenever eligible) or `changes`: a layer shades
+  analytically on geometry frames whose geometry changed (its encoded
+  inputs, up to a uniform translation, plus the field, the optics settings,
+  the pixel ratio and mixed appearances); after analyticRestFrames (2)
+  frames without a change - or at once when no frame is coming - it asks
+  for one matte frame and rests on it (raster-phase re-encodes stay on
+  the matte) until the geometry changes, which is analytic in the same
+  frame. A merged body's field is fused once per rest. In `changes` the
+  matte textures go back only after analyticReleaseFrames (120) analytic
+  frames in a row. MORPH_ANALYTIC_CAPSULE (ShaderKeys.analyticCapsule,
+  debugAnalyticCapsule, off by default) shades a full-radius rounded
+  superellipse in analytic frames as the stadium of its box: Flutter's
+  superellipse is not a stadium (it lies up to 1.22 device px, 0.39 pt,
+  inside it for 44 pt capsules at 3.14x; test/rse_capsule_deviation_test
+  .dart), so this is an approximation for measurement.
