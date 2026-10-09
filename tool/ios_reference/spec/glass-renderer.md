@@ -2901,7 +2901,11 @@ Host oracles (Impeller + Flutter GPU in flutter_tester):
   diagonals); bound mean 0.75.
 - Toggle off: byte-identical (parity 0; programs not loaded).
 
-Open before the default flips: Moto/Pixel timing at 120 Hz incl.
+Default on since 2026-10-10 (mode `changes`): Moto g86 timing at 120 Hz
+from real input and on-device frame shots in
+tool/audit/claude-navigation-options-report.md. Still open: Pixel timing,
+Mali register pressure, the switch pop at 4 -> 5 boxes. Before that:
+Moto/Pixel timing at 120 Hz incl.
 static-geometry scroll scenes (per-pixel shape cost now every frame),
 Mali register pressure (malioc not available here), native pixels, the
 switch pop when a body crosses 4 -> 5 boxes. Commits 1c4c0d3, ecccb2a,

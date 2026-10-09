@@ -17,13 +17,16 @@ import 'package:morph/src/liquid_field.dart'
 /// optional rim strokes the edge centered on it, as a stroked path does.
 /// It runs on Skia and on Impeller.
 ///
-/// Off by default: `--dart-define=MORPH_FLAT_SHADER_BODIES=true`, or
-/// [debugEnabled] in tests. While the shader has not loaded, a body fills
+/// On by default: `--dart-define=MORPH_FLAT_SHADER_BODIES=false` fills the
+/// traced outline instead, or [debugEnabled] in tests. While the shader has not loaded, a body fills
 /// its traced outline as before.
 @internal
 abstract final class MorphFlatBodyShader {
   /// Whether the build enables the shader bodies.
-  static const bool defined = bool.fromEnvironment('MORPH_FLAT_SHADER_BODIES');
+  static const bool defined = bool.fromEnvironment(
+    'MORPH_FLAT_SHADER_BODIES',
+    defaultValue: true,
+  );
 
   /// Overrides [defined] when not null.
   @visibleForTesting
