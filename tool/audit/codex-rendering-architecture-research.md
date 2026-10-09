@@ -1,5 +1,9 @@
 # Architectural performance research (2026-10-08)
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 Research and proposed experiments, not new device measurements or landed
 renderer changes. Use beta only. Do not restore release APKs between active
 experiments. Smoothness on weak Android is the priority; energy remains a
