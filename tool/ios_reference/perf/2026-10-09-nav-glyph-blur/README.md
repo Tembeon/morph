@@ -14,6 +14,8 @@ shuffled repeats, 1500 ms windows). Summarize with
 - redmi-shots2: frozen-frame layer owners (`layer_owners`).
 - moto-base-1, -120, -3: baseline launches (the -120 one asked for 120 Hz
   and still ran at 60). moto-new-1/2: final source.
+- m120-base-1/2, m120-new-1/2: Moto at 120 Hz (system min_refresh_rate
+  120 for the runs, restored to 60 after), A B B A.
 - redmi-fusion-before/after.log.txt: per-call `FUSE <us> <shapes>` lines
   of flat container fusion during push/pop.
 

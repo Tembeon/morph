@@ -2810,9 +2810,13 @@ Moto, two launch pairs (baseline A, current B, B, A; 60 Hz), raster p95
 / missed slots: liquid push 22.1/21.9 -> 9.4/9.7 ms, 5/5 -> 0/1; liquid
 pop 23.7/21.0 -> 10.6/10.2 ms, 6/6 -> 1/1; liquid enter 13.1/13.0 ->
 10.3/10.6 ms; flat push 19.8/23.8 -> 4.5/4.5 ms, flat pop 15.7/16.4 ->
-4.9/5.1 ms. 120 Hz was not measured: the system holds the app at 60 fps
-without a touch and ignores window and surface frame-rate votes (needs
-the system refresh setting).
+4.9/5.1 ms. Without a touch the system holds the app at 60 fps and
+ignores window and surface frame-rate votes; with min_refresh_rate 120
+(8.33 ms budget, A B B A), missed slots: flat push 21/17 -> 6/6, flat pop
+15/14 -> 3/5, flat toolbar 5/3 -> 0/1; liquid pop 26/20 -> 23/13, liquid
+push 43/68 -> 55/23 (noisy: liquid raster p95 stays ~8 - 9 ms, at the
+budget). Liquid push / pop raster p95 16.7/20.8 -> 9.3/8.8 and 16.6/13.2
+-> 8.9/7.9 ms. Liquid at 120 Hz is the next target.
 
 Perf counts: nav-scroll's inline title re-records one small picture per
 animated frame instead of updating a filter and an opacity layer
