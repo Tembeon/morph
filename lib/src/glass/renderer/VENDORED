@@ -383,3 +383,10 @@ Local patches (some commits include related package changes):
   superellipse is not a stadium (it lies up to 1.22 device px, 0.39 pt,
   inside it for 44 pt capsules at 3.14x; test/rse_capsule_deviation_test
   .dart), so this is an approximation for measurement.
+- 2026-10-09 shared merge law: the fused variants' box distance and
+  angular fold moved from analytic_geometry.glsl into fused_law.glsl
+  (fusedBoxAt, fusedFold; the includer declares uFusedBoxes and defines
+  FUSED_MAX_BOXES), unchanged in arithmetic, so the flat tier's fused
+  body shader (lib/src/widgets/shaders/flat_fused_body.frag,
+  MORPH_FLAT_SHADER_BODIES) evaluates the same law. The fold indexes
+  uFusedBoxes only with loop indices, which SkSL accepts.

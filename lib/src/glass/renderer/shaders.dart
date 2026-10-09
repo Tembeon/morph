@@ -137,6 +137,10 @@ abstract class ShaderKeys {
   static String get glyphReduce =>
       '${_shadersRoot}lib/src/widgets/shaders/glyph_reduce.frag';
 
+  /// The flat tier's fill of a glass container body of merged boxes.
+  static String get flatFusedBody =>
+      '${_shadersRoot}lib/src/widgets/shaders/flat_fused_body.frag';
+
   static final String gpuGeometryShaderBundle =
       '${_shadersRoot}build/shaderbundles/morph_glass.shaderbundle';
 }

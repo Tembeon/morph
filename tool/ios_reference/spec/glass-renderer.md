@@ -2888,3 +2888,52 @@ static-geometry scroll scenes (per-pixel shape cost now every frame),
 Mali register pressure (malioc not available here), native pixels, the
 switch pop when a body crosses 4 -> 5 boxes. Commits 1c4c0d3, ecccb2a,
 a785a80, 4273ecf; spec in the owner-local specs folder.
+
+## Flat shader bodies (2026-10-09, behind MORPH_FLAT_SHADER_BODIES)
+
+On the flat tier a glass container body of at most four boxes can skip the
+CPU fusion (`_fuseContainer`: the merge law sampled on a 2 pt grid, marching
+squares, spline path). `MorphGlassLayerParts.of(withField: false)` hands it
+`morphGlassContainerMergedOutline`: the boxes and the spacing, with the
+traced path built only if something reads `MorphGlassOutline.path`. The flat
+body (`morphGlassLiveBody`, and the bars' `_CapsulePainter` without a
+painter) draws one rect with `flat_fused_body.frag`, which folds the boxes
+by `fused_law.glsl` - the same GLSL the analytic liquid path merges with,
+LiquidField's angular fold in list order - and covers each pixel by
+clamp(0.5 - sd * device px per pt). Runs on Skia (SkSL) and Impeller. Off
+by default: `--dart-define=MORPH_FLAT_SHADER_BODIES=true` or
+`MorphFlatBodyShader.debugEnabled`. Colors and opacities are the path
+fill's. The bars' fallback strokes the 0.5 pt rim centered on the edge in
+the same shader (box-filter coverage of the band) and draws the shadow as
+the shaded fill under a Gaussian blur layer of the mask blur's sigma 6
+(exact Gaussian of the exact shape; the neck cover would shadow gaps that
+have not closed). The renderer's flat body has no shadow. Until the shader
+loads (MorphGlassRenderer.precache loads it when enabled) bodies fill the
+traced path.
+
+Host fidelity (test/flat_shader_body_test.dart, Skia, 16 rows of 2 - 4
+capsules, gaps -4 .. 11 around spacing 12, mixed heights; max channel diff /
+mean of per-row means over covered pixels):
+
+| dpr | shader vs CPU law per pixel | shader vs 2 pt trace | shader vs 0.25 pt trace |
+|-----|-----------------------------|----------------------|-------------------------|
+| 2   | 1 / 0.000                   | 130 / 0.723          | 100 / 0.500             |
+| 3   | 1 / 0.000                   | 152 / 0.653          | 105 / 0.363             |
+
+The traces' error against the law shrinks with the grid (2 pt -> 0.25 pt),
+the shader is the law; the large maxima are single pixels at thin necks.
+Under `--enable-impeller` the shader still matches the law (1 / 0.000).
+
+Redmi 6A (Skia GLES, PowerVR GE8320, 32-bit), nav_quick bench, flat,
+A B B A, build / raster ms, off -> on, pairs (off-1, on-1) and (off-2, on-2):
+
+| motion      | build p50            | build p95              | raster p95             |
+|-------------|----------------------|------------------------|------------------------|
+| enter       | 3.02/2.93 -> 3.07/3.08 | 7.99/7.76 -> 5.62/4.63 | 10.77/9.81 -> 9.41/8.90 |
+| nested push | 5.87/5.79 -> 3.69/3.68 | 11.40/10.99 -> 5.54/5.64 | 14.67/13.21 -> 10.04/8.57 |
+| nested pop  | 4.53/4.59 -> 4.07/4.34 | 12.15/11.91 -> 8.00/8.81 | 13.79/13.00 -> 13.31/15.28 |
+| toolbar     | 2.92/2.78 -> 2.90/2.90 | 4.79/4.82 -> 5.24/4.44 | 9.55/8.80 -> 9.65/9.50 |
+
+Frames over budget and missed slots do not change repeatably (0 - 4 per
+window both ways). Open: Moto/Pixel (Impeller) timing, native pixels on a
+device, per-pixel shader cost on a large static body.

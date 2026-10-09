@@ -11,6 +11,7 @@ import 'package:morph/src/target.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
@@ -1313,10 +1314,14 @@ class _MorphBarItemsState extends State<MorphBarItems>
               height: constraints.maxHeight,
               child: glass == null
                   ? CustomPaint(
-                      painter: _CapsulePainter([
-                        ..._flat.of(joined, spacing),
-                        ..._flatApart.of(apart, spacing),
-                      ], style),
+                      painter: _CapsulePainter(
+                        [
+                          ..._flat.of(joined, spacing),
+                          ..._flatApart.of(apart, spacing),
+                        ],
+                        style,
+                        MediaQuery.maybeDevicePixelRatioOf(context) ?? 1,
+                      ),
                       child: content,
                     )
                   : MorphGlassHost(
@@ -1670,7 +1675,10 @@ class MorphBackChevronPainter extends CustomPainter {
 /// its spacing, whatever their colors - and a fused body takes the color
 /// of its first capsule in drawing order, as the renderer's bodies take
 /// the tint of their first surface, faded by its opacity. Capsules under
-/// half a point either way are not drawn.
+/// half a point either way are not drawn. With
+/// [MorphFlatBodyShader.enabled], a body of at most
+/// [MorphFlatBodyShader.maxBoxes] capsules is their merged outline
+/// ([morphGlassContainerMergedOutline]) instead of a traced path.
 class _FlatBodies {
   List<RRect> _shapes = const [];
   List<Color> _colors = const [];
@@ -1682,6 +1690,7 @@ class _FlatBodies {
     List<MorphGlassSurface> surfaces,
     double spacing,
   ) {
+    if (MorphFlatBodyShader.enabled) MorphFlatBodyShader.precache().ignore();
     final visible = [
       for (final s in surfaces)
         if (s.bounds.width >= 0.5 && s.bounds.height >= 0.5) s,
@@ -1703,13 +1712,18 @@ class _FlatBodies {
       for (final group in morphGlassContainerGroups(shapes, spacing))
         (
           colors[group.first],
-          group.length == 1
-              ? shapes[group.single]
-              : morphGlassContainerOutline(
-                  [for (final i in group) shapes[i]],
-                  spacing,
-                  withField: false,
-                ).path,
+          switch (group.length) {
+            1 => shapes[group.single],
+            <= MorphFlatBodyShader.maxBoxes when MorphFlatBodyShader.enabled =>
+              morphGlassContainerMergedOutline([
+                for (final i in group) shapes[i],
+              ], spacing),
+            _ => morphGlassContainerOutline(
+              [for (final i in group) shapes[i]],
+              spacing,
+              withField: false,
+            ).path,
+          },
           opacities[group.first],
         ),
     ];
@@ -1721,8 +1735,14 @@ class _FlatBodies {
 /// except capsules the glass container fuses ([spacing]; see
 /// [_FlatBodies] for the rule every glass tier shares), which are drawn
 /// as their fused outline.
+///
+/// A body of merged capsules ([morphGlassOutlineMergedBoxes]) is filled and
+/// rimmed by [MorphFlatBodyShader] once it has loaded, and its shadow is
+/// that fill in the shadow color under a Gaussian blur layer of the same
+/// sigma as the other shadows' mask blur; before the shader loads it draws
+/// as a traced outline.
 class _CapsulePainter extends CustomPainter {
-  _CapsulePainter(this.bodies, this.style);
+  _CapsulePainter(this.bodies, this.style, this.devicePixelRatio);
 
   /// The blur of the drop shadow under a flat capsule (an engineering
   /// default of the fallback, not measured).
@@ -1737,11 +1757,17 @@ class _CapsulePainter extends CustomPainter {
   final List<(Color, Object, double)> bodies;
   final MorphBarStyle style;
 
+  /// The device pixels per logical pixel of the view.
+  final double devicePixelRatio;
+
   static Color _faded(Color color, double opacity) =>
       color.withValues(alpha: color.a * opacity);
 
   @override
   void paint(Canvas canvas, Size size) {
+    // The view's scale; a transform above the bar leaves the ramp of the
+    // shaded bodies' edges a little sharper or softer than a device pixel.
+    final screenScale = devicePixelRatio;
     final shadow = Paint();
     shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, shadowBlur);
     const down = Offset(0, shadowOffset);
@@ -1752,6 +1778,10 @@ class _CapsulePainter extends CustomPainter {
           canvas.drawRRect(shape.shift(down), shadow);
         case final Path path:
           canvas.drawPath(path.shift(down), shadow);
+        case final MorphGlassOutline outline:
+          if (!_shadeShadow(canvas, outline, shadow.color, screenScale)) {
+            canvas.drawPath(outline.path.shift(down), shadow);
+          }
       }
     }
     final fill = Paint();
@@ -1768,11 +1798,61 @@ class _CapsulePainter extends CustomPainter {
         case final Path path:
           canvas.drawPath(path, fill);
           canvas.drawPath(path, rim);
+        case final MorphGlassOutline outline:
+          final (:boxes, :spacing) = morphGlassOutlineMergedBoxes(outline)!;
+          if (!MorphFlatBodyShader.paint(
+            canvas,
+            boxes,
+            spacing,
+            screenScale,
+            fill: fill.color,
+            rim: rim.color,
+            rimWidth: rimWidth,
+          )) {
+            canvas.drawPath(outline.path, fill);
+            canvas.drawPath(outline.path, rim);
+          }
       }
     }
   }
 
+  /// Draws the shadow of merged capsules [outline] in [color]: their
+  /// shaded fill, moved down by [shadowOffset], under a blur layer of
+  /// sigma [shadowBlur]. False, drawing nothing, while the shader has not
+  /// loaded.
+  static bool _shadeShadow(
+    Canvas canvas,
+    MorphGlassOutline outline,
+    Color color,
+    double screenScale,
+  ) {
+    if (!MorphFlatBodyShader.ready) return false;
+    final (:boxes, :spacing) = morphGlassOutlineMergedBoxes(outline)!;
+    var bounds = boxes.first.outerRect;
+    for (final box in boxes.skip(1)) {
+      bounds = bounds.expandToInclude(box.outerRect);
+    }
+    final layer = Paint();
+    layer.imageFilter = ui.ImageFilter.blur(
+      sigmaX: shadowBlur,
+      sigmaY: shadowBlur,
+      tileMode: TileMode.decal,
+    );
+    canvas.saveLayer(
+      bounds
+          .shift(const Offset(0, shadowOffset))
+          .inflate(boxes.length * spacing / 4 + 3 * shadowBlur + 1),
+      layer,
+    );
+    canvas.translate(0, shadowOffset);
+    MorphFlatBodyShader.paint(canvas, boxes, spacing, screenScale, fill: color);
+    canvas.restore();
+    return true;
+  }
+
   @override
   bool shouldRepaint(_CapsulePainter oldDelegate) =>
-      !listEquals(oldDelegate.bodies, bodies) || oldDelegate.style != style;
+      !listEquals(oldDelegate.bodies, bodies) ||
+      oldDelegate.style != style ||
+      oldDelegate.devicePixelRatio != devicePixelRatio;
 }
