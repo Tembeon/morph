@@ -1,5 +1,9 @@
 # Navigation research and bounded foreground filters
 
+**Research implementation may be incorrect or incomplete.** A result here
+qualifies the tested code and setup; it does not rule out a corrected or
+better implementation of the same idea.
+
 2026-10-09, WIP. The bounded-source candidate is not admitted as a production
 optimization. It reduces Flutter source-box area, but does not establish a
 general Navigation presentation improvement and introduces small foreground
