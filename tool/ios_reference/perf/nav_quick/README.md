@@ -16,6 +16,9 @@ python3 $D/summ.py /tmp/nav/redmi-base.json /tmp/nav/redmi-new.json      # media
 python3 $D/enc.py /tmp/nav/redmi-trace.timeline.json [--all]             # raster frames: duration, render passes, top Skia events
 python3 $D/uiframes.py trace.timeline.json trace.cpu.json 12             # inclusive Dart CPU profile of UI frames > 12 ms
 python3 $D/cpu.py trace.cpu.json                                         # whole-run exclusive / inclusive profile
+python3 $D/run.py <serial> /tmp/nav/base.apk /tmp/nav/moto-base --gpu   # + kernel GPU work periods (gpuwork.txt, device.txt)
+python3 $D/gpu.py /tmp/nav/moto-base                                     # GPU active ms and Mcycles per frame, per case
+python3 $D/compare.py a=a1.json,a2.json b=b1.json,b2.json                # variants over launches: p95s, missed slots, worst frame
 ```
 
 - `ARCH` is `arm` for 32-bit-only devices (Redmi 6A), `arm64` otherwise.
@@ -23,6 +26,8 @@ python3 $D/cpu.py trace.cpu.json                                         # whole
 - `slots_missed` in `summ.py` counts vsync slots between consecutive frames
   inside each window (gaps over 200 ms excluded): an estimate of dropped
   frames, not Android presentation jank.
+- `run.py ... --60` launches with `morph-frame-rate 60` (MainActivity sets
+  the window's maximum refresh rate); the system minimum must allow it.
 - `run.py ... --hz` asks MainActivity (`morph-max-refresh`) for the panel's
   highest refresh rate; the Moto still held the app at 60 fps.
 - The VM timeline is a ring buffer: trace one motion with `NAV_RUNS=1` and
