@@ -590,6 +590,19 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// shaders/analytic_geometry.glsl.
   static const int analyticMaxShapes = 8;
 
+  /// The largest geometry, in device pixels of its bounds, an analytic
+  /// frame shades: per-pixel shape evaluation costs in proportion to the
+  /// area, and a screen-high surface (a sheet, about 2 million device
+  /// pixels on a Moto g86) cost more GPU time analytically than its matte
+  /// (sheet raster p99 +9 ms there), while bars and buttons (under 0.3
+  /// million) gain. Larger geometry renders its matte.
+  static const double analyticMaxPixels = 600000;
+
+  /// Overrides [analyticMaxPixels] when not null, for oracles that shade
+  /// large scenes analytically on purpose.
+  @visibleForTesting
+  static double? debugAnalyticMaxPixels;
+
   static bool? _debugAnalyticGeometry;
 
   /// Overrides [ShaderKeys.analyticGeometry] for every layer when not null,
@@ -1793,9 +1806,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // Why [geometries] cannot be evaluated in the final shader, or null.
   String? _analyticIneligibilityOf(
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
+    Rect bounds,
   ) {
     if (!analyticGeometryEnabled) return 'disabled';
     if (_resting) return 'resting';
+    final pixels =
+        bounds.width * bounds.height * devicePixelRatio * devicePixelRatio;
+    if (pixels > (debugAnalyticMaxPixels ?? analyticMaxPixels)) {
+      return 'larger than analyticMaxPixels';
+    }
     return analyticIneligibility(
       enabled: true,
       hasField: _field != null,
@@ -2439,7 +2458,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // mathematical shape. Keep that margin in the persistent geometry
       // texture so the positive side of the fade is not clipped at the matte
       // edge.
-      final ineligibility = _analyticIneligibilityOf(geometries);
+      final ineligibility = _analyticIneligibilityOf(geometries, bounds);
       _analyticIneligibility = ineligibility;
       final analytic = ineligibility == null;
       final layerToPass = shaderCoordinateTransform;

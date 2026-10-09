@@ -208,6 +208,10 @@ const double _fusedMeanBound = 12;
 const double _fineMeanBound = 0.75;
 
 void main() {
+  // The oracles shade every harness case analytically, large ones too.
+  setUp(() => RenderLiquidGlassLayer.debugAnalyticMaxPixels = double.infinity);
+  tearDown(() => RenderLiquidGlassLayer.debugAnalyticMaxPixels = null);
+
   testWidgets('analytic geometry against the matte on the host', (
     WidgetTester tester,
   ) async {
