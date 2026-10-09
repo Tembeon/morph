@@ -1,0 +1,1254 @@
+[
+  {
+    "report": "/tmp/morph-architecture/glyph-batch/results/control-gpu-1.json",
+    "rows": [
+      {
+        "case": "nav-navigation-toolbar-liquid",
+        "layout": "navigation",
+        "motion": "toolbar",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": false,
+        "bounded_glyph_filters": false,
+        "batch_glyph_filters": false,
+        "glyph_atlas_reduced": false,
+        "glyph_atlas_captures": 0,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 0,
+        "direct_geometry": false,
+        "direct_geometry_updates": 0,
+        "direct_field": true,
+        "gpu_fusion_field": false,
+        "gpu_fusion_field_updates": 0,
+        "direct_field_updates": 148,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "visible_liquid_layers": 2,
+        "visible_liquid_capture_keys": 1,
+        "owners": {},
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          }
+        ],
+        "foreground_filter_sources": [],
+        "composed_layer_types": {
+          "TransformLayer": 1,
+          "OffsetLayer": 24,
+          "OpacityLayer": 23,
+          "PictureLayer": 30,
+          "ClipRectLayer": 6,
+          "GeometryTransformTrackingLayer": 2,
+          "_OpacitySeedLayer": 2,
+          "BackdropFilterLayer": 2,
+          "ClipRSuperellipseLayer": 5
+        },
+        "composed_image_filters": [],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 48,
+        "build_mean": 5.329083333333333,
+        "raster_mean": 6.386937500000002,
+        "build_p50": 5.323,
+        "raster_p50": 5.478,
+        "build_p95": 8.38,
+        "raster_p95": 12.841,
+        "build_p99": 9.643,
+        "raster_p99": 14.864,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.406561229166667,
+        "gpu_mcycles": 1.9124475734583324,
+        "runs": [
+          {
+            "n": 48,
+            "build_mean": 5.7764999999999995,
+            "raster_mean": 7.011312499999999,
+            "build_p50": 5.323,
+            "raster_p50": 5.7,
+            "build_p95": 9.458,
+            "raster_p95": 12.841,
+            "build_p99": 11.117,
+            "raster_p99": 14.864,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.406561229166667,
+            "gpu_mcycles": 1.9124475734583324
+          },
+          {
+            "n": 48,
+            "build_mean": 2.099854166666667,
+            "raster_mean": 6.0119791666666655,
+            "build_p50": 2.025,
+            "raster_p50": 4.653,
+            "build_p95": 2.983,
+            "raster_p95": 13.161,
+            "build_p99": 4.1,
+            "raster_p99": 14.356,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.411676645833333,
+            "gpu_mcycles": 1.914667664291666
+          },
+          {
+            "n": 48,
+            "build_mean": 5.329083333333333,
+            "raster_mean": 6.386937500000002,
+            "build_p50": 5.324,
+            "raster_p50": 5.478,
+            "build_p95": 8.38,
+            "raster_p95": 12.011,
+            "build_p99": 9.643,
+            "raster_p99": 15.79,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.331942645833333,
+            "gpu_mcycles": 1.8800631082916652
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      },
+      {
+        "case": "nav-navigation-enter-liquid",
+        "layout": "navigation",
+        "motion": "enter",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": false,
+        "bounded_glyph_filters": false,
+        "batch_glyph_filters": false,
+        "glyph_atlas_reduced": false,
+        "glyph_atlas_captures": 0,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 0,
+        "direct_geometry": false,
+        "direct_geometry_updates": 0,
+        "direct_field": true,
+        "gpu_fusion_field": false,
+        "gpu_fusion_field_updates": 0,
+        "direct_field_updates": 148,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "visible_liquid_layers": 1,
+        "visible_liquid_capture_keys": 1,
+        "owners": {},
+        "liquid_layers": [
+          {
+            "local_rect": [
+              341.3333333333333,
+              -24.38095238095238,
+              73.14285714285717,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              341.3333333333333,
+              25.904761904761905,
+              73.14285714285717,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          }
+        ],
+        "foreground_filter_sources": [],
+        "composed_layer_types": {
+          "TransformLayer": 1,
+          "OffsetLayer": 12,
+          "OpacityLayer": 7,
+          "PictureLayer": 7,
+          "ClipRectLayer": 4,
+          "ClipRRectLayer": 1,
+          "GeometryTransformTrackingLayer": 2,
+          "_OpacitySeedLayer": 2,
+          "BackdropFilterLayer": 1,
+          "ClipRSuperellipseLayer": 1
+        },
+        "composed_image_filters": [],
+        "liquid_filter_rects_logical": [
+          [
+            341.3333333333333,
+            25.904761904761905,
+            73.14285714285717,
+            73.14285714285714
+          ]
+        ],
+        "scroll_extent": 377.9999999999999,
+        "n": 48,
+        "build_mean": 3.3483125,
+        "raster_mean": 6.788125,
+        "build_p50": 3.336,
+        "raster_p50": 6.486,
+        "build_p95": 6.009,
+        "raster_p95": 12.436,
+        "build_p99": 7.055,
+        "raster_p99": 13.331,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 5.104411083333333,
+        "gpu_mcycles": 2.2153144101666693,
+        "runs": [
+          {
+            "n": 48,
+            "build_mean": 3.297145833333334,
+            "raster_mean": 7.452958333333331,
+            "build_p50": 2.805,
+            "raster_p50": 6.734,
+            "build_p95": 6.059,
+            "raster_p95": 12.436,
+            "build_p99": 7.055,
+            "raster_p99": 13.331,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 5.132355395833333,
+            "gpu_mcycles": 2.2274422417916697
+          },
+          {
+            "n": 48,
+            "build_mean": 3.5451666666666672,
+            "raster_mean": 6.788125,
+            "build_p50": 3.341,
+            "raster_p50": 6.486,
+            "build_p95": 5.634,
+            "raster_p95": 11.486,
+            "build_p99": 8.337,
+            "raster_p99": 13.258,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 5.104411083333333,
+            "gpu_mcycles": 2.2153144101666693
+          },
+          {
+            "n": 48,
+            "build_mean": 3.3483125,
+            "raster_mean": 6.264062500000001,
+            "build_p50": 3.336,
+            "raster_p50": 4.983,
+            "build_p95": 6.009,
+            "raster_p95": 13.038,
+            "build_p99": 6.866,
+            "raster_p99": 17.511,
+            "over_budget": 1,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 5.085769125,
+            "gpu_mcycles": 2.2072238002500018
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.03686400000000001
+      },
+      {
+        "case": "nav-navigation-nested-push-liquid",
+        "layout": "navigation",
+        "motion": "nested-push",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": false,
+        "bounded_glyph_filters": false,
+        "batch_glyph_filters": false,
+        "glyph_atlas_reduced": false,
+        "glyph_atlas_captures": 0,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 0,
+        "direct_geometry": false,
+        "direct_geometry_updates": 0,
+        "direct_field": true,
+        "gpu_fusion_field": false,
+        "gpu_fusion_field_updates": 0,
+        "direct_field_updates": 186,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "visible_liquid_layers": 2,
+        "visible_liquid_capture_keys": 1,
+        "owners": {},
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          }
+        ],
+        "foreground_filter_sources": [],
+        "composed_layer_types": {
+          "TransformLayer": 1,
+          "OffsetLayer": 24,
+          "OpacityLayer": 23,
+          "PictureLayer": 30,
+          "ClipRectLayer": 6,
+          "GeometryTransformTrackingLayer": 2,
+          "_OpacitySeedLayer": 2,
+          "BackdropFilterLayer": 2,
+          "ClipRSuperellipseLayer": 5
+        },
+        "composed_image_filters": [],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 46,
+        "build_mean": 4.866304347826088,
+        "raster_mean": 7.116673913043478,
+        "build_p50": 4.554,
+        "raster_p50": 5.681,
+        "build_p95": 8.054,
+        "raster_p95": 14.502,
+        "build_p99": 9.251,
+        "raster_p99": 24.695,
+        "over_budget": 2,
+        "vsync_gap_slots": 2,
+        "gpu_ms": 6.229570065217391,
+        "gpu_mcycles": 2.703633408304351,
+        "runs": [
+          {
+            "n": 46,
+            "build_mean": 5.602847826086957,
+            "raster_mean": 8.972521739130434,
+            "build_p50": 4.554,
+            "raster_p50": 6.186,
+            "build_p95": 10.016,
+            "raster_p95": 20.192,
+            "build_p99": 12.969,
+            "raster_p99": 29.234,
+            "over_budget": 5,
+            "vsync_gap_slots": 2,
+            "gpu_ms": 6.316714326086956,
+            "gpu_mcycles": 2.741454017521739
+          },
+          {
+            "n": 46,
+            "build_mean": 4.866304347826088,
+            "raster_mean": 7.116673913043478,
+            "build_p50": 4.603,
+            "raster_p50": 5.549,
+            "build_p95": 8.054,
+            "raster_p95": 12.34,
+            "build_p99": 9.251,
+            "raster_p99": 24.695,
+            "over_budget": 2,
+            "vsync_gap_slots": 2,
+            "gpu_ms": 6.229570065217391,
+            "gpu_mcycles": 2.703633408304351
+          },
+          {
+            "n": 48,
+            "build_mean": 4.389645833333332,
+            "raster_mean": 6.913062499999999,
+            "build_p50": 4.3,
+            "raster_p50": 5.681,
+            "build_p95": 7.232,
+            "raster_p95": 14.502,
+            "build_p99": 8.795,
+            "raster_p99": 16.084,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 6.130258145833333,
+            "gpu_mcycles": 2.6605320352916637
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      },
+      {
+        "case": "nav-navigation-nested-pop-liquid",
+        "layout": "navigation",
+        "motion": "nested-pop",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": false,
+        "bounded_glyph_filters": false,
+        "batch_glyph_filters": false,
+        "glyph_atlas_reduced": false,
+        "glyph_atlas_captures": 0,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 0,
+        "direct_geometry": false,
+        "direct_geometry_updates": 0,
+        "direct_field": true,
+        "gpu_fusion_field": false,
+        "gpu_fusion_field_updates": 0,
+        "direct_field_updates": 205,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "visible_liquid_layers": 2,
+        "visible_liquid_capture_keys": 1,
+        "owners": {},
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          }
+        ],
+        "foreground_filter_sources": [],
+        "composed_layer_types": {
+          "TransformLayer": 1,
+          "OffsetLayer": 33,
+          "OpacityLayer": 21,
+          "PictureLayer": 36,
+          "ClipRectLayer": 6,
+          "GeometryTransformTrackingLayer": 2,
+          "_OpacitySeedLayer": 2,
+          "BackdropFilterLayer": 2,
+          "ClipRSuperellipseLayer": 6
+        },
+        "composed_image_filters": [],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 47,
+        "build_mean": 4.922276595744681,
+        "raster_mean": 7.509085106382977,
+        "build_p50": 4.783,
+        "raster_p50": 4.878,
+        "build_p95": 8.412,
+        "raster_p95": 16.544,
+        "build_p99": 10.978,
+        "raster_p99": 21.81,
+        "over_budget": 2,
+        "vsync_gap_slots": 1,
+        "gpu_ms": 5.462575145833333,
+        "gpu_mcycles": 2.370757613291671,
+        "runs": [
+          {
+            "n": 46,
+            "build_mean": 4.475130434782608,
+            "raster_mean": 6.217521739130436,
+            "build_p50": 3.785,
+            "raster_p50": 3.863,
+            "build_p95": 8.412,
+            "raster_p95": 19.253,
+            "build_p99": 19.971,
+            "raster_p99": 21.81,
+            "over_budget": 4,
+            "vsync_gap_slots": 2,
+            "gpu_ms": 5.451055760869566,
+            "gpu_mcycles": 2.3657582002173934
+          },
+          {
+            "n": 47,
+            "build_mean": 4.922276595744681,
+            "raster_mean": 7.509085106382977,
+            "build_p50": 4.783,
+            "raster_p50": 4.878,
+            "build_p95": 8.794,
+            "raster_p95": 16.544,
+            "build_p99": 10.978,
+            "raster_p99": 20.78,
+            "over_budget": 2,
+            "vsync_gap_slots": 1,
+            "gpu_ms": 5.611919574468086,
+            "gpu_mcycles": 2.4355730953191523
+          },
+          {
+            "n": 48,
+            "build_mean": 5.607,
+            "raster_mean": 7.566437500000002,
+            "build_p50": 5.471,
+            "raster_p50": 5.756,
+            "build_p95": 7.962,
+            "raster_p95": 14.129,
+            "build_p99": 9.26,
+            "raster_p99": 21.964,
+            "over_budget": 1,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 5.462575145833333,
+            "gpu_mcycles": 2.370757613291671
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      }
+    ],
+    "deltas": [],
+    "limitations": [
+      "Stage differences change topology and are not exact engine attribution.",
+      "Raster duration is not GPU time; GPU work periods are active work, not presentation latency.",
+      "GPU activity is prorated uniformly within each kernel work-period event.",
+      "Missing frequency coverage produces null cycles, never an extrapolated frequency.",
+      "Vsync gaps are inferred scheduling slots, not measured Android presentation jank.",
+      "Layer bounds/counts do not measure transient GPU memory or native pass count."
+    ]
+  },
+  {
+    "report": "/tmp/morph-architecture/glyph-batch/results/cohort-gpu-1.json",
+    "rows": [
+      {
+        "case": "nav-navigation-toolbar-liquid",
+        "layout": "navigation",
+        "motion": "toolbar",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": false,
+        "bounded_glyph_filters": false,
+        "batch_glyph_filters": true,
+        "glyph_atlas_reduced": false,
+        "glyph_atlas_captures": 0,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 0,
+        "direct_geometry": false,
+        "direct_geometry_updates": 0,
+        "direct_field": true,
+        "gpu_fusion_field": false,
+        "gpu_fusion_field_updates": 0,
+        "direct_field_updates": 149,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "visible_liquid_layers": 2,
+        "visible_liquid_capture_keys": 1,
+        "owners": {},
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          }
+        ],
+        "foreground_filter_sources": [],
+        "composed_layer_types": {
+          "TransformLayer": 1,
+          "OffsetLayer": 24,
+          "OpacityLayer": 17,
+          "PictureLayer": 26,
+          "ClipRectLayer": 6,
+          "GeometryTransformTrackingLayer": 2,
+          "_OpacitySeedLayer": 2,
+          "BackdropFilterLayer": 2,
+          "ClipRSuperellipseLayer": 5
+        },
+        "composed_image_filters": [],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 48,
+        "build_mean": 4.738958333333333,
+        "raster_mean": 6.6764166666666656,
+        "build_p50": 4.779,
+        "raster_p50": 5.844,
+        "build_p95": 7.454,
+        "raster_p95": 13.369,
+        "build_p99": 10.374,
+        "raster_p99": 14.292,
+        "over_budget": 0,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 4.37607525,
+        "gpu_mcycles": 1.899216658500002,
+        "runs": [
+          {
+            "n": 48,
+            "build_mean": 5.5132916666666665,
+            "raster_mean": 7.285875,
+            "build_p50": 5.191,
+            "raster_p50": 5.956,
+            "build_p95": 9.769,
+            "raster_p95": 13.373,
+            "build_p99": 10.374,
+            "raster_p99": 14.292,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.37607525,
+            "gpu_mcycles": 1.899216658500002
+          },
+          {
+            "n": 48,
+            "build_mean": 2.0418125000000003,
+            "raster_mean": 5.208041666666667,
+            "build_p50": 2.007,
+            "raster_p50": 3.561,
+            "build_p95": 3.152,
+            "raster_p95": 11.323,
+            "build_p99": 3.768,
+            "raster_p99": 11.65,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.340478104166667,
+            "gpu_mcycles": 1.883767497208332
+          },
+          {
+            "n": 48,
+            "build_mean": 4.738958333333333,
+            "raster_mean": 6.6764166666666656,
+            "build_p50": 4.779,
+            "raster_p50": 5.844,
+            "build_p95": 7.454,
+            "raster_p95": 13.369,
+            "build_p99": 11.709,
+            "raster_p99": 15.957,
+            "over_budget": 0,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 4.403999916666667,
+            "gpu_mcycles": 1.911335963833332
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      },
+      {
+        "case": "nav-navigation-enter-liquid",
+        "layout": "navigation",
+        "motion": "enter",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": false,
+        "bounded_glyph_filters": false,
+        "batch_glyph_filters": true,
+        "glyph_atlas_reduced": false,
+        "glyph_atlas_captures": 0,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 0,
+        "direct_geometry": false,
+        "direct_geometry_updates": 0,
+        "direct_field": true,
+        "gpu_fusion_field": false,
+        "gpu_fusion_field_updates": 0,
+        "direct_field_updates": 149,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "visible_liquid_layers": 1,
+        "visible_liquid_capture_keys": 1,
+        "owners": {},
+        "liquid_layers": [
+          {
+            "local_rect": [
+              341.3333333333333,
+              -24.38095238095238,
+              73.14285714285717,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              341.3333333333333,
+              25.904761904761905,
+              73.14285714285717,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          }
+        ],
+        "foreground_filter_sources": [],
+        "composed_layer_types": {
+          "TransformLayer": 1,
+          "OffsetLayer": 12,
+          "OpacityLayer": 6,
+          "PictureLayer": 7,
+          "ClipRectLayer": 4,
+          "ClipRRectLayer": 1,
+          "GeometryTransformTrackingLayer": 2,
+          "_OpacitySeedLayer": 2,
+          "BackdropFilterLayer": 1,
+          "ClipRSuperellipseLayer": 1
+        },
+        "composed_image_filters": [],
+        "liquid_filter_rects_logical": [
+          [
+            341.3333333333333,
+            25.904761904761905,
+            73.14285714285717,
+            73.14285714285714
+          ]
+        ],
+        "scroll_extent": 377.9999999999999,
+        "n": 48,
+        "build_mean": 3.463270833333334,
+        "raster_mean": 6.4385,
+        "build_p50": 2.956,
+        "raster_p50": 5.486,
+        "build_p95": 5.23,
+        "raster_p95": 14.268,
+        "build_p99": 7.791,
+        "raster_p99": 17.229,
+        "over_budget": 1,
+        "vsync_gap_slots": 0,
+        "gpu_ms": 5.1277042608695655,
+        "gpu_mcycles": 2.2254236492173924,
+        "runs": [
+          {
+            "n": 48,
+            "build_mean": 3.300270833333333,
+            "raster_mean": 7.657041666666668,
+            "build_p50": 3.103,
+            "raster_p50": 6.878,
+            "build_p95": 5.106,
+            "raster_p95": 14.268,
+            "build_p99": 6.518,
+            "raster_p99": 18.046,
+            "over_budget": 1,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 5.135997229166667,
+            "gpu_mcycles": 2.2290227974583345
+          },
+          {
+            "n": 46,
+            "build_mean": 3.95904347826087,
+            "raster_mean": 6.432543478260868,
+            "build_p50": 2.956,
+            "raster_p50": 5.486,
+            "build_p95": 5.23,
+            "raster_p95": 10.02,
+            "build_p99": 37.144,
+            "raster_p99": 12.464,
+            "over_budget": 1,
+            "vsync_gap_slots": 2,
+            "gpu_ms": 5.1277042608695655,
+            "gpu_mcycles": 2.2254236492173924
+          },
+          {
+            "n": 48,
+            "build_mean": 3.463270833333334,
+            "raster_mean": 6.4385,
+            "build_p50": 2.784,
+            "raster_p50": 5.111,
+            "build_p95": 7.136,
+            "raster_p95": 15.012,
+            "build_p99": 7.791,
+            "raster_p99": 17.229,
+            "over_budget": 2,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 5.096977125,
+            "gpu_mcycles": 2.2120880722500003
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.03686400000000001
+      },
+      {
+        "case": "nav-navigation-nested-push-liquid",
+        "layout": "navigation",
+        "motion": "nested-push",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": false,
+        "bounded_glyph_filters": false,
+        "batch_glyph_filters": true,
+        "glyph_atlas_reduced": false,
+        "glyph_atlas_captures": 0,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 0,
+        "direct_geometry": false,
+        "direct_geometry_updates": 0,
+        "direct_field": true,
+        "gpu_fusion_field": false,
+        "gpu_fusion_field_updates": 0,
+        "direct_field_updates": 187,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "visible_liquid_layers": 2,
+        "visible_liquid_capture_keys": 1,
+        "owners": {},
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          }
+        ],
+        "foreground_filter_sources": [],
+        "composed_layer_types": {
+          "TransformLayer": 1,
+          "OffsetLayer": 24,
+          "OpacityLayer": 17,
+          "PictureLayer": 26,
+          "ClipRectLayer": 6,
+          "GeometryTransformTrackingLayer": 2,
+          "_OpacitySeedLayer": 2,
+          "BackdropFilterLayer": 2,
+          "ClipRSuperellipseLayer": 5
+        },
+        "composed_image_filters": [],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 45,
+        "build_mean": 5.397130434782609,
+        "raster_mean": 6.628355555555556,
+        "build_p50": 4.722,
+        "raster_p50": 5.343,
+        "build_p95": 8.925,
+        "raster_p95": 12.768,
+        "build_p99": 14.752,
+        "raster_p99": 24.492,
+        "over_budget": 2,
+        "vsync_gap_slots": 3,
+        "gpu_ms": 6.208695088888889,
+        "gpu_mcycles": 2.6945736685777795,
+        "runs": [
+          {
+            "n": 46,
+            "build_mean": 5.397130434782609,
+            "raster_mean": 8.77595652173913,
+            "build_p50": 4.722,
+            "raster_p50": 6.445,
+            "build_p95": 8.925,
+            "raster_p95": 18.584,
+            "build_p99": 14.752,
+            "raster_p99": 24.492,
+            "over_budget": 6,
+            "vsync_gap_slots": 2,
+            "gpu_ms": 6.271287739130434,
+            "gpu_mcycles": 2.721738878782609
+          },
+          {
+            "n": 45,
+            "build_mean": 7.7726444444444445,
+            "raster_mean": 6.503244444444446,
+            "build_p50": 6.683,
+            "raster_p50": 5.343,
+            "build_p95": 12.88,
+            "raster_p95": 11.955,
+            "build_p99": 15.053,
+            "raster_p99": 23.994,
+            "over_budget": 1,
+            "vsync_gap_slots": 3,
+            "gpu_ms": 6.208695088888889,
+            "gpu_mcycles": 2.6945736685777795
+          },
+          {
+            "n": 45,
+            "build_mean": 4.745822222222222,
+            "raster_mean": 6.628355555555556,
+            "build_p50": 4.209,
+            "raster_p50": 4.797,
+            "build_p95": 8.205,
+            "raster_p95": 12.768,
+            "build_p99": 8.69,
+            "raster_p99": 32.137,
+            "over_budget": 2,
+            "vsync_gap_slots": 3,
+            "gpu_ms": 6.1588923555555555,
+            "gpu_mcycles": 2.672959282311111
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      },
+      {
+        "case": "nav-navigation-nested-pop-liquid",
+        "layout": "navigation",
+        "motion": "nested-pop",
+        "mode": "liquid",
+        "plan": "actual-gallery",
+        "content": "mail",
+        "requested_sigma_logical": 2,
+        "diagnostic_ablation": false,
+        "glyph_blur_atlas": false,
+        "bounded_glyph_filters": false,
+        "batch_glyph_filters": true,
+        "glyph_atlas_reduced": false,
+        "glyph_atlas_captures": 0,
+        "glyph_atlas_live_bytes": 0,
+        "glyph_atlas_peak_bytes": 0,
+        "direct_geometry": false,
+        "direct_geometry_updates": 0,
+        "direct_field": true,
+        "gpu_fusion_field": false,
+        "gpu_fusion_field_updates": 0,
+        "direct_field_updates": 206,
+        "backdrop_layers": 0,
+        "distinct_capture_keys": 0,
+        "visible_liquid_layers": 2,
+        "visible_liquid_capture_keys": 1,
+        "owners": {},
+        "liquid_layers": [
+          {
+            "local_rect": [
+              0.0,
+              -24.38095238095238,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "screen_rect": [
+              0.0,
+              25.904761904761905,
+              414.4761904761905,
+              73.14285714285714
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          },
+          {
+            "local_rect": [
+              24.38095238095238,
+              -24.38095238095238,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "screen_rect": [
+              24.38095238095238,
+              813.9047619047619,
+              365.71428571428567,
+              97.52380952380952
+            ],
+            "sigma": 0.0,
+            "grouped": true,
+            "direct_geometry": false,
+            "direct_field": false,
+            "has_field": false
+          }
+        ],
+        "foreground_filter_sources": [],
+        "composed_layer_types": {
+          "TransformLayer": 1,
+          "OffsetLayer": 33,
+          "OpacityLayer": 13,
+          "PictureLayer": 30,
+          "ClipRectLayer": 6,
+          "GeometryTransformTrackingLayer": 2,
+          "_OpacitySeedLayer": 2,
+          "BackdropFilterLayer": 2,
+          "ClipRSuperellipseLayer": 6
+        },
+        "composed_image_filters": [],
+        "liquid_filter_rects_logical": [
+          [
+            0.0,
+            25.904761904761905,
+            414.4761904761905,
+            73.14285714285714
+          ],
+          [
+            24.38095238095238,
+            813.9047619047619,
+            365.71428571428567,
+            97.52380952380952
+          ]
+        ],
+        "scroll_extent": 3794.8571428571427,
+        "n": 47,
+        "build_mean": 6.773638297872341,
+        "raster_mean": 8.291704545454545,
+        "build_p50": 6.436,
+        "raster_p50": 5.373,
+        "build_p95": 10.747,
+        "raster_p95": 17.769,
+        "build_p99": 11.185,
+        "raster_p99": 21.009,
+        "over_budget": 3,
+        "vsync_gap_slots": 1,
+        "gpu_ms": 5.472054872340426,
+        "gpu_mcycles": 2.374871814595746,
+        "runs": [
+          {
+            "n": 48,
+            "build_mean": 4.035645833333333,
+            "raster_mean": 5.667833333333334,
+            "build_p50": 3.689,
+            "raster_p50": 3.433,
+            "build_p95": 7.934,
+            "raster_p95": 13.343,
+            "build_p99": 10.545,
+            "raster_p99": 16.711,
+            "over_budget": 1,
+            "vsync_gap_slots": 0,
+            "gpu_ms": 5.400827958333333,
+            "gpu_mcycles": 2.3439593339166676
+          },
+          {
+            "n": 44,
+            "build_mean": 7.007090909090911,
+            "raster_mean": 8.291704545454545,
+            "build_p50": 6.715,
+            "raster_p50": 5.373,
+            "build_p95": 11.683,
+            "raster_p95": 24.576,
+            "build_p99": 16.697,
+            "raster_p99": 29.328,
+            "over_budget": 6,
+            "vsync_gap_slots": 4,
+            "gpu_ms": 5.577909295454546,
+            "gpu_mcycles": 2.4208126342272736
+          },
+          {
+            "n": 47,
+            "build_mean": 6.773638297872341,
+            "raster_mean": 8.8,
+            "build_p50": 6.436,
+            "raster_p50": 7.335,
+            "build_p95": 10.747,
+            "raster_p95": 17.769,
+            "build_p99": 11.185,
+            "raster_p99": 21.009,
+            "over_budget": 3,
+            "vsync_gap_slots": 1,
+            "gpu_ms": 5.472054872340426,
+            "gpu_mcycles": 2.374871814595746
+          }
+        ],
+        "visible_mpix": 0.0,
+        "union_to_visible_area": null,
+        "liquid_filter_output_mpix": 0.4546559999999999
+      }
+    ],
+    "deltas": [],
+    "limitations": [
+      "Stage differences change topology and are not exact engine attribution.",
+      "Raster duration is not GPU time; GPU work periods are active work, not presentation latency.",
+      "GPU activity is prorated uniformly within each kernel work-period event.",
+      "Missing frequency coverage produces null cycles, never an extrapolated frequency.",
+      "Vsync gaps are inferred scheduling slots, not measured Android presentation jank.",
+      "Layer bounds/counts do not measure transient GPU memory or native pass count."
+    ]
+  }
+]

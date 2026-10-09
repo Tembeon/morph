@@ -1,0 +1,251 @@
+{
+  "report_sha256": "71d43843c55dad59c94ac2700a62fc2e09e372e8951e62fd22ca2fa310d42253",
+  "image_sha256": {
+    "mip-owned-cached-n4-reuse.png": "3b49f75efce5965519b6f99f9f9e17a6ab9298b3527f8e78c75f139b96ddfa50",
+    "mip-owned-cached-n4-reuse.json": "890b1f3f70192424c6add5c1aeb1933c41e592d984ff22a806b89ff5ea92b117",
+    "mip-glass-merged-n4-reuse.png": "87b8e9d496bec46e5f9f1b299bd92148360359986c5a2acdfd99b57a0935bdfe",
+    "mip-glass-merged-n4-reuse.json": "ba4c209b1abecd8c0dbc92bd027b1d2ca3f66bd9d787afc86a8a72e456f2430c",
+    "mip-foreground-n4-reuse.png": "4520ed730e646d062334ffb5bfc76c37c88a02fa33dd68fc03cbd62d1b2b0af7",
+    "mip-foreground-n4-reuse.json": "87aff09fcfbbbb6beb6c8cb63108be8141cb71922d1963c30c8bc64484a4e2bb",
+    "mip-owned-wide-n4-reuse.png": "e77dbf26e3a2e2d63cbadc164046c4b178de2bd29e6029dd0d7c11ef34e656d8",
+    "mip-owned-wide-n4-reuse.json": "4f4b90364e5c68488fcdc54a5ce4b4d81501c643fe419a56eff54d1e5a8d9222",
+    "mip-owned-tent-n4-reuse.png": "7d321bf21e5e2f92a0e70df024a67ce11405d4be6a7f78518afb2644118b6867",
+    "mip-owned-tent-n4-reuse.json": "17012da583095fdbcee93e71856d874c90492bb9acaf44a57d2b6775a886b647",
+    "mip-owned-tent-n4-fresh.png": "7d321bf21e5e2f92a0e70df024a67ce11405d4be6a7f78518afb2644118b6867",
+    "mip-owned-tent-n4-fresh.json": "87c9e3fb18e166414861dbe49e61aecc861710c4e12e61bf64b60659fd42afce",
+    "mip-glass-merged-n4-fresh.png": "87b8e9d496bec46e5f9f1b299bd92148360359986c5a2acdfd99b57a0935bdfe",
+    "mip-glass-merged-n4-fresh.json": "5fff3f95d5131e90fe00d74c6eb862730de629c1a0e0d119aec25552bf2f8908",
+    "mip-foreground-n4-fresh.png": "4520ed730e646d062334ffb5bfc76c37c88a02fa33dd68fc03cbd62d1b2b0af7",
+    "mip-foreground-n4-fresh.json": "ade20f5810c44f36f6c6ef9bfca9cb8f53a13089f65438ff706a9e6149c2c6cf",
+    "mip-owned-wide-n4-fresh.png": "e77dbf26e3a2e2d63cbadc164046c4b178de2bd29e6029dd0d7c11ef34e656d8",
+    "mip-owned-wide-n4-fresh.json": "56c4bbdfe267de50532150c9bfad99771724aef35c6219fd6e4b88aac1ab5735",
+    "mip-owned-raw-n4-reuse.png": "86c6a1d5d55afd12362b33e6039485949f5e45cbaa8713a253e03341cb9ee23f",
+    "mip-owned-raw-n4-reuse.json": "c113de05465b9982e66a26befb3932cecda8f1da4b7b2c6e04e66f55226f3f88",
+    "mip-glass-zero-n4-reuse.png": "241000ff35734e9b9d587a9e79628d04466893945d6df604821b01387e49f1b3",
+    "mip-glass-zero-n4-reuse.json": "54b418918c95fe06b3f4c39f99f300a2cbfcada0fc7a0044fcbffc40fbc2a9ad",
+    "mip-owned-raw-n4-fresh.png": "86c6a1d5d55afd12362b33e6039485949f5e45cbaa8713a253e03341cb9ee23f",
+    "mip-owned-raw-n4-fresh.json": "5170410f7c1d37a7277b3bdb1cd62560f57ecef44289d840eef01fd0a8a450a9",
+    "mip-glass-zero-n4-fresh.png": "241000ff35734e9b9d587a9e79628d04466893945d6df604821b01387e49f1b3",
+    "mip-glass-zero-n4-fresh.json": "2a30317f9e0343f71c620ee05159f840b5b73609eafde02e6b08d7622b54719b"
+  },
+  "rows": [
+    {
+      "case": "mip-owned-cached-n4-reuse",
+      "control": "mip-glass-merged-n4-reuse",
+      "whole_image": {
+        "max": 1.0,
+        "mean": 0.0011773109436035156,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.0003833554801531136,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 1.0,
+        "mean": 0.01737898215651512,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-wide-n4-reuse",
+      "control": "mip-glass-merged-n4-reuse",
+      "whole_image": {
+        "max": 35.0,
+        "mean": 0.9239249229431152,
+        "p95": 6.0
+      },
+      "interior": {
+        "max": 25.0,
+        "mean": 3.1153528690338135,
+        "p95": 10.0
+      },
+      "rim_and_bounds": {
+        "max": 35.0,
+        "mean": 2.392029285430908,
+        "p95": 9.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_owned_tent": {
+        "max": 2.0,
+        "mean": 0.15295760333538055,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-owned-tent-n4-reuse",
+      "control": "mip-glass-merged-n4-reuse",
+      "whole_image": {
+        "max": 36.0,
+        "mean": 0.918818473815918,
+        "p95": 6.0
+      },
+      "interior": {
+        "max": 25.0,
+        "mean": 3.099273681640625,
+        "p95": 10.0
+      },
+      "rim_and_bounds": {
+        "max": 36.0,
+        "mean": 2.3742570877075195,
+        "p95": 9.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-tent-n4-fresh",
+      "control": "mip-glass-merged-n4-fresh",
+      "whole_image": {
+        "max": 36.0,
+        "mean": 0.918818473815918,
+        "p95": 6.0
+      },
+      "interior": {
+        "max": 25.0,
+        "mean": 3.099273681640625,
+        "p95": 10.0
+      },
+      "rim_and_bounds": {
+        "max": 36.0,
+        "mean": 2.3742570877075195,
+        "p95": 9.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-wide-n4-fresh",
+      "control": "mip-glass-merged-n4-fresh",
+      "whole_image": {
+        "max": 35.0,
+        "mean": 0.9239249229431152,
+        "p95": 6.0
+      },
+      "interior": {
+        "max": 25.0,
+        "mean": 3.1153528690338135,
+        "p95": 10.0
+      },
+      "rim_and_bounds": {
+        "max": 35.0,
+        "mean": 2.392029285430908,
+        "p95": 9.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_owned_tent": {
+        "max": 2.0,
+        "mean": 0.15295760333538055,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-owned-raw-n4-reuse",
+      "control": "mip-glass-zero-n4-reuse",
+      "whole_image": {
+        "max": 1.0,
+        "mean": 0.0019604365807026625,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.0034067523665726185,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 1.0,
+        "mean": 0.01787683740258217,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-raw-n4-fresh",
+      "control": "mip-glass-zero-n4-fresh",
+      "whole_image": {
+        "max": 1.0,
+        "mean": 0.0019604365807026625,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.0034067523665726185,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 1.0,
+        "mean": 0.01787683740258217,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    }
+  ],
+  "limitations": [
+    "Frozen phase zero; source acquisition, history/reveal and arbitrary transforms are not covered.",
+    "Owned cached Gaussian preserves requested logical sigma and DPR; graph bounds and filter phase may still differ.",
+    "Approximate pyramid kernels remain different from stock Gaussian."
+  ]
+}

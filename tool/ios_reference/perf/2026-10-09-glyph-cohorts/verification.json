@@ -1,0 +1,12 @@
+{
+  "package_tests": 1419,
+  "example_tests": 21,
+  "targeted_tests": 12,
+  "analyze_warnings": 0,
+  "dartdoc_warnings": 0,
+  "macos_release": true,
+  "wasm": true,
+  "autodemo_default_flags": true,
+  "production_admitted": false,
+  "candidate_presentation_cohort": "Not collected after image gate failure"
+}

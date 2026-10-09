@@ -79,6 +79,26 @@ Future<void> morphWarmLiquidPipelines(
     );
     final tint = geometry.materialImage!.clone();
     images.add(tint);
+    if (GlassField.gpuFusion) {
+      final path = ui.Path();
+      final box = ui.RRect.fromRectAndRadius(
+        const ui.Rect.fromLTWH(0, 0, 4, 4),
+        const ui.Radius.circular(1),
+      );
+      path.addRRect(box);
+      final image = geometry.directFieldImage(
+        GlassField.fromBoxes(
+          shapes: [box],
+          spacing: 2,
+          cols: 2,
+          rows: 2,
+          origin: ui.Offset.zero,
+          step: 1,
+          outline: path,
+        ),
+      );
+      images.add(image.clone());
+    }
     FlutterGpuGeometryRenderer.flushPendingSubmissions();
 
     final programs = await Future.wait(
@@ -93,7 +113,10 @@ Future<void> morphWarmLiquidPipelines(
       final key = finalShaderKeys[index];
       final shader = program.fragmentShader();
       shader.setImageSampler(0, matte, filterQuality: FilterQuality.low);
-      shader.setImageSampler(1, matte);
+      final directGeometry =
+          key == ShaderKeys.liquidGlassDirectGeometry ||
+          key == ShaderKeys.liquidGlassDirectGeometryIos27;
+      if (!directGeometry) shader.setImageSampler(1, matte);
       if (key == ShaderKeys.liquidGlassMaterialRender) {
         shader.setImageSampler(2, material);
         shader.setImageSampler(3, material, filterQuality: FilterQuality.low);

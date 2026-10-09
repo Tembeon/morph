@@ -1,0 +1,13 @@
+{
+  "package_tests": 1419,
+  "example_tests": 21,
+  "python_tests": 18,
+  "analyze_issues": 0,
+  "dartdoc_warnings": 0,
+  "macos_release": true,
+  "autodemo_default_flags": true,
+  "wasm": true,
+  "native_active_tint_field": true,
+  "presentation_launches": 4,
+  "production_admitted": false
+}

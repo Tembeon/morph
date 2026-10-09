@@ -34,6 +34,12 @@ class FlutterGpuGeometryRenderer {
     _fieldTextureSlot = resources.fieldTextureSlot;
     _fieldUniformData = ByteData(resources.fieldUniformSize);
     _fieldOffsets = resources.fieldOffsets;
+    _analyticFieldPipeline = resources.analyticFieldPipeline;
+    _analyticFieldSlot = resources.analyticFieldSlot;
+    _analyticFieldOffsets = resources.analyticFieldOffsets;
+    _analyticFieldData = ByteData(
+      resources.analyticFieldSlot?.sizeInBytes ?? 0,
+    );
     _materialGradientPipeline = resources.materialGradientPipeline;
     _materialTintGradientPipeline = resources.materialTintGradientPipeline;
     _uniformSlot = resources.uniformSlot;
@@ -73,6 +79,9 @@ class FlutterGpuGeometryRenderer {
       final vertexShader = library?['GeometryVertex'];
       final fragmentShader = library?['GeometryFragment'];
       final fieldFragmentShader = library?['GeometryFieldFragment'];
+      final analyticFieldShader = GlassField.gpuFusion
+          ? (library?['GeometryAnalyticFieldFragment'])
+          : null;
       final materialGradientFragmentShader =
           library?['MaterialGradientFragment'];
       final materialTintGradientFragmentShader =
@@ -80,6 +89,7 @@ class FlutterGpuGeometryRenderer {
       if (vertexShader == null ||
           fragmentShader == null ||
           fieldFragmentShader == null ||
+          (GlassField.gpuFusion && analyticFieldShader == null) ||
           materialGradientFragmentShader == null ||
           materialTintGradientFragmentShader == null) {
         throw StateError(
@@ -91,6 +101,7 @@ class FlutterGpuGeometryRenderer {
         vertexShader: vertexShader,
         fragmentShader: fragmentShader,
         fieldFragmentShader: fieldFragmentShader,
+        analyticFieldShader: analyticFieldShader,
         materialGradientFragmentShader: materialGradientFragmentShader,
         materialTintGradientFragmentShader: materialTintGradientFragmentShader,
       );
@@ -213,6 +224,14 @@ class FlutterGpuGeometryRenderer {
   late final ByteData _fieldUniformData;
   late final _FieldUniformOffsets _fieldOffsets;
   final _FieldTextures _fieldTextures = _FieldTextures();
+  final _AnalyticFieldTextures _analyticFields = _AnalyticFieldTextures();
+  late final gpu.RenderPipeline? _analyticFieldPipeline;
+  late final gpu.UniformSlot? _analyticFieldSlot;
+  late final ({int grid, int merge, int boxes})? _analyticFieldOffsets;
+  late final ByteData _analyticFieldData;
+
+  /// Coarse GPU optical grids generated in this isolate, including profile.
+  static int analyticFieldUpdates = 0;
   late final gpu.RenderPipeline _materialGradientPipeline;
   late final gpu.RenderPipeline _materialTintGradientPipeline;
 
@@ -299,6 +318,7 @@ class FlutterGpuGeometryRenderer {
     List<double> boundsData = const <double>[],
     GlassField? field,
     double fieldScale = 1,
+    bool useDirectField = false,
   }) {
     assert(() {
       debugRenderCount++;
@@ -322,22 +342,28 @@ class FlutterGpuGeometryRenderer {
         return true;
       }(), 'Track replaced geometry textures in debug builds.');
     }
-    // The shader writes every pixel of the sub-rect; the rest of the texture
-    // is undefined and never sampled, so no clear or copy is needed.
-    final matte = _mattes.next(
-      _completedFrames,
-      width: matteWidth,
-      height: matteHeight,
-      maxWidth: viewWidth,
-      maxHeight: viewHeight,
-    );
-    _texture = matte.texture;
-    _renderTarget = matte.renderTarget;
-    _image = _texture!.asImage();
-    assert(() {
-      _debugActiveGeometryTextureCount++;
-      return true;
-    }(), 'Track live geometry textures in debug builds.');
+    assert(!useDirectField || (field != null && writeMaterials));
+    final directImage = useDirectField ? directFieldImage(field!) : null;
+    if (useDirectField) {
+      _mattes.releaseCurrent(_completedFrames);
+    } else {
+      // The shader writes every pixel of the sub-rect; the rest of the texture
+      // is undefined and never sampled, so no clear or copy is needed.
+      final matte = _mattes.next(
+        _completedFrames,
+        width: matteWidth,
+        height: matteHeight,
+        maxWidth: viewWidth,
+        maxHeight: viewHeight,
+      );
+      _texture = matte.texture;
+      _renderTarget = matte.renderTarget;
+      _image = _texture!.asImage();
+      assert(() {
+        _debugActiveGeometryTextureCount++;
+        return true;
+      }(), 'Track live geometry textures in debug builds.');
+    }
 
     final materialMapWidth = math.max(
       1,
@@ -412,42 +438,95 @@ class FlutterGpuGeometryRenderer {
 
     final uniformView = _emplaceUniforms(_uniformData, _uniformSize);
 
-    final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
-    gpu.Texture? fieldTexture;
-    gpu.BufferView? fieldUniformView;
-    try {
-      fieldTexture = field == null
-          ? null
-          : _uploadField(field, geometryCommandBuffer);
-      if (field != null && fieldTexture != null) {
-        _packFieldUniformData(
-          field: field,
-          fieldScale: fieldScale,
-          texture: fieldTexture,
-        );
-        fieldUniformView = _emplaceUniforms(_fieldUniformData, _uniformSize);
+    if (!useDirectField) {
+      final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
+      gpu.Texture? fieldTexture;
+      gpu.BufferView? fieldUniformView;
+      final overlays = field != null && field.overlays.isNotEmpty
+          ? <(GlassField, gpu.Texture, gpu.BufferView)>[]
+          : const <(GlassField, gpu.Texture, gpu.BufferView)>[];
+      try {
+        fieldTexture = field == null || field.overlays.isNotEmpty
+            ? null
+            : _uploadField(field, geometryCommandBuffer);
+        if (field != null && field.overlays.isNotEmpty) {
+          for (final overlay in field.overlays) {
+            final texture = _uploadField(overlay, geometryCommandBuffer);
+            _packFieldUniformData(
+              field: overlay,
+              fieldScale: fieldScale,
+              texture: texture,
+            );
+            overlays.add((
+              overlay,
+              texture,
+              _emplaceUniforms(_fieldUniformData, _uniformSize),
+            ));
+          }
+        }
+        if (field != null && fieldTexture != null) {
+          _packFieldUniformData(
+            field: field,
+            fieldScale: fieldScale,
+            texture: fieldTexture,
+          );
+          fieldUniformView = _emplaceUniforms(_fieldUniformData, _uniformSize);
+        }
+      } on Object {
+        geometryCommandBuffer.submit();
+        rethrow;
       }
-    } on Object {
-      geometryCommandBuffer.submit();
-      rethrow;
+      final geometryPass = geometryCommandBuffer.createRenderPass(
+        _renderTarget!,
+      );
+      if (fieldTexture == null || fieldUniformView == null) {
+        geometryPass
+          ..bindPipeline(_pipeline)
+          ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
+          ..bindUniform(_uniformSlot, uniformView)
+          ..bindVertexBuffer(_vertexBufferView);
+      } else {
+        geometryPass.bindPipeline(_fieldPipeline);
+        geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
+        geometryPass.bindUniform(_fieldUniformSlot, fieldUniformView);
+        geometryPass.bindTexture(_fieldTextureSlot, fieldTexture);
+        geometryPass.bindVertexBuffer(_vertexBufferView);
+      }
+      _restrictTo(geometryPass, _texture!, matteWidth, matteHeight);
+      geometryPass.draw(4);
+      for (final (overlay, texture, uniforms) in overlays) {
+        final area = overlay.bounds;
+        final x = ((area.left * fieldScale - offsetX).floor()).clamp(
+          0,
+          matteWidth,
+        );
+        final y = ((area.top * fieldScale - offsetY).floor()).clamp(
+          0,
+          matteHeight,
+        );
+        final right = ((area.right * fieldScale - offsetX).ceil()).clamp(
+          0,
+          matteWidth,
+        );
+        final bottom = ((area.bottom * fieldScale - offsetY).ceil()).clamp(
+          0,
+          matteHeight,
+        );
+        if (right <= x || bottom <= y) continue;
+        // Pipeline switches must not replay uniforms from the analytic draw.
+        geometryPass.clearBindings();
+        geometryPass.bindPipeline(_fieldPipeline);
+        geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
+        geometryPass.bindUniform(_fieldUniformSlot, uniforms);
+        geometryPass.bindTexture(_fieldTextureSlot, texture);
+        geometryPass.bindVertexBuffer(_vertexBufferView);
+        geometryPass.setScissor(
+          gpu.Scissor(x: x, y: y, width: right - x, height: bottom - y),
+        );
+        geometryPass.draw(4);
+      }
+      _submitOrDefer(geometryCommandBuffer);
     }
-    final geometryPass = geometryCommandBuffer.createRenderPass(_renderTarget!);
-    if (fieldTexture == null || fieldUniformView == null) {
-      geometryPass
-        ..bindPipeline(_pipeline)
-        ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
-        ..bindUniform(_uniformSlot, uniformView)
-        ..bindVertexBuffer(_vertexBufferView);
-    } else {
-      geometryPass.bindPipeline(_fieldPipeline);
-      geometryPass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
-      geometryPass.bindUniform(_fieldUniformSlot, fieldUniformView);
-      geometryPass.bindTexture(_fieldTextureSlot, fieldTexture);
-      geometryPass.bindVertexBuffer(_vertexBufferView);
-    }
-    _restrictTo(geometryPass, _texture!, matteWidth, matteHeight);
-    geometryPass.draw(4);
-    _submitOrDefer(geometryCommandBuffer);
     if (writeMaterials) {
       final materialCommandBuffer = gpu.gpuContext.createCommandBuffer();
       final materialPass =
@@ -471,11 +550,11 @@ class FlutterGpuGeometryRenderer {
     }
 
     return (
-      image: _image!,
+      image: directImage ?? _image!,
       width: matteWidth,
       height: matteHeight,
-      textureWidth: _texture!.width,
-      textureHeight: _texture!.height,
+      textureWidth: useDirectField ? matteWidth : _texture!.width,
+      textureHeight: useDirectField ? matteHeight : _texture!.height,
     );
   }
 
@@ -483,6 +562,7 @@ class FlutterGpuGeometryRenderer {
   /// copy may precede the geometry pass on one command buffer, else on a
   /// command buffer of its own submitted ahead of it.
   gpu.Texture _uploadField(GlassField field, gpu.CommandBuffer geometry) {
+    if (field.analytic != null) return _renderAnalyticField(field);
     final held = _fieldTextures.held(field, _completedFrames);
     if (held != null) return held;
     if (_uploadsShareCommandBuffer) {
@@ -497,6 +577,82 @@ class FlutterGpuGeometryRenderer {
       if (!upload.submitted) upload.submit();
       rethrow;
     }
+  }
+
+  ui.Image? _directFieldImage;
+
+  /// Uploads field nodes for a final runtime filter, skipping the matte draw.
+  ///
+  /// The returned handle is borrowed until the next call or disposal. The
+  /// texture ring follows the same scene lifetime rule as the geometry pass.
+  ui.Image directFieldImage(GlassField field) {
+    _ensureFrameCounter();
+    final held = _fieldTextures.held(field, _completedFrames);
+    gpu.Texture texture;
+    if (field.analytic != null) {
+      texture = _renderAnalyticField(field);
+    } else if (held != null) {
+      texture = held;
+    } else {
+      final commands = gpu.gpuContext.createCommandBuffer();
+      texture = _fieldTextures.upload(field, _completedFrames, commands);
+      _submitOrDefer(commands);
+    }
+    _directFieldImage?.dispose();
+    final image = texture.asImage();
+    _directFieldImage = image;
+    return image;
+  }
+
+  /// Computes only the coarse optical nodes from the owner's rounded boxes.
+  ///
+  /// Contour tracing, clips and shadows stay on the owner CPU path. One
+  /// separate command buffer ends the render pass before its texture is read.
+  gpu.Texture _renderAnalyticField(GlassField field) {
+    final held = _analyticFields.held(field, _completedFrames);
+    if (held != null) return held;
+    final pipeline = _analyticFieldPipeline;
+    final uniformSlot = _analyticFieldSlot;
+    final offsets = _analyticFieldOffsets;
+    final analytic = field.analytic;
+    if (pipeline == null ||
+        uniformSlot == null ||
+        offsets == null ||
+        analytic == null) {
+      throw StateError('The experimental GPU optical grid is unavailable.');
+    }
+    final values = _analyticFieldData.buffer.asFloat32List();
+    values.fillRange(0, values.length, 0);
+    final grid = offsets.grid ~/ 4;
+    values[grid] = field.cols.toDouble();
+    values[grid + 1] = field.rows.toDouble();
+    values[grid + 2] = field.step;
+    values[grid + 3] = analytic.boxes.length / 8;
+    final merge = offsets.merge ~/ 4;
+    values[merge] = analytic.spacing;
+    values[merge + 1] = 1e-4;
+    values[merge + 2] = 1.5;
+    values.setRange(
+      offsets.boxes ~/ 4,
+      offsets.boxes ~/ 4 + analytic.boxes.length,
+      analytic.boxes,
+    );
+    final view = _emplaceUniforms(
+      _analyticFieldData,
+      _analyticFieldData.lengthInBytes,
+    );
+    final slot = _analyticFields.next(field, _completedFrames);
+    final commands = gpu.gpuContext.createCommandBuffer();
+    final pass = commands.createRenderPass(slot.target);
+    pass.bindPipeline(pipeline);
+    pass.setPrimitiveType(gpu.PrimitiveType.triangleStrip);
+    pass.bindUniform(uniformSlot, view);
+    pass.bindVertexBuffer(_vertexBufferView);
+    _restrictTo(pass, slot.texture, field.cols, field.rows);
+    pass.draw(4);
+    _submitOrDefer(commands);
+    analyticFieldUpdates++;
+    return slot.texture;
   }
 
   /// Limits [pass] to the top-left [width] x [height] of [texture].
@@ -898,7 +1054,10 @@ class FlutterGpuGeometryRenderer {
     if (_disposed) return;
     _disposed = true;
     releaseOutput();
+    _directFieldImage?.dispose();
+    _directFieldImage = null;
     _fieldTextures.release();
+    _analyticFields.release();
     assert(() {
       _debugActiveRendererCount--;
       return true;
@@ -1164,11 +1323,89 @@ final class _FieldTexture {
   int frame = -_FieldTextures._reuseAfterFrames;
 }
 
+/// Four RGBA32F render targets for coarse grids; no host sample buffer.
+///
+/// A translation keeps the grid-relative descriptor and reuses its contents.
+/// Other changes wait three frames before overwriting a target. Submitted
+/// scenes retain native references when an evicted wrapper is collected.
+final class _AnalyticFieldTextures {
+  static const int reuseAfterFrames = 3;
+  final List<_AnalyticFieldTexture> _textures = [];
+
+  /// The unchanged grid, whose descriptor identity survives translation.
+  gpu.Texture? held(GlassField field, int frame) {
+    for (final entry in _textures) {
+      if (identical(entry.analytic, field.analytic) &&
+          entry.cols == field.cols &&
+          entry.rows == field.rows &&
+          entry.step == field.step) {
+        entry.frame = frame;
+        return entry.texture;
+      }
+    }
+    return null;
+  }
+
+  /// A target safe to overwrite, grown in sixteen-node buckets.
+  _AnalyticFieldTexture next(GlassField field, int frame) {
+    _AnalyticFieldTexture? slot;
+    for (final entry in _textures) {
+      if (entry.texture.width >= field.cols &&
+          entry.texture.height >= field.rows &&
+          frame - entry.frame >= reuseAfterFrames) {
+        slot = entry;
+        break;
+      }
+    }
+    if (slot == null) {
+      slot = _AnalyticFieldTexture(
+        gpu.gpuContext.createTexture(
+          gpu.StorageMode.devicePrivate,
+          (field.cols + 15) ~/ 16 * 16,
+          (field.rows + 15) ~/ 16 * 16,
+          format: gpu.PixelFormat.r32g32b32a32Float,
+        ),
+      );
+      if (_textures.length >= 4) _textures.removeAt(0);
+      _textures.add(slot);
+    }
+    slot.analytic = field.analytic;
+    slot.cols = field.cols;
+    slot.rows = field.rows;
+    slot.step = field.step;
+    slot.frame = frame;
+    return slot;
+  }
+
+  /// Drops wrappers; submitted GPU commands retain their resources.
+  void release() => _textures.clear();
+}
+
+/// One coarse float grid, its render target and the descriptor it holds.
+final class _AnalyticFieldTexture {
+  _AnalyticFieldTexture(this.texture)
+    : target = gpu.RenderTarget.singleColor(
+        gpu.ColorAttachment(
+          texture: texture,
+          loadAction: gpu.LoadAction.dontCare,
+        ),
+      );
+
+  final gpu.Texture texture;
+  final gpu.RenderTarget target;
+  GlassAnalyticField? analytic;
+  int cols = 0;
+  int rows = 0;
+  double step = 0;
+  int frame = -_AnalyticFieldTextures.reuseAfterFrames;
+}
+
 class _SharedGeometryResources {
   _SharedGeometryResources({
     required gpu.Shader vertexShader,
     required gpu.Shader fragmentShader,
     required gpu.Shader fieldFragmentShader,
+    gpu.Shader? analyticFieldShader,
     required gpu.Shader materialGradientFragmentShader,
     required gpu.Shader materialTintGradientFragmentShader,
   }) {
@@ -1180,6 +1417,19 @@ class _SharedGeometryResources {
       vertexShader,
       fieldFragmentShader,
     );
+    if (analyticFieldShader != null) {
+      analyticFieldPipeline = gpu.gpuContext.createRenderPipeline(
+        vertexShader,
+        analyticFieldShader,
+      );
+      final slot = analyticFieldShader.getUniformSlot('AnalyticFieldUniforms');
+      analyticFieldSlot = slot;
+      analyticFieldOffsets = (
+        grid: slot.getMemberOffsetInBytes('uGrid') ?? 0,
+        merge: slot.getMemberOffsetInBytes('uMerge') ?? 0,
+        boxes: slot.getMemberOffsetInBytes('uBoxes') ?? 0,
+      );
+    }
     fieldUniformSlot = fieldFragmentShader.getUniformSlot('FieldUniforms');
     fieldTextureSlot = fieldFragmentShader.getUniformSlot('uField');
     fieldUniformSize = fieldUniformSlot.sizeInBytes ?? 0;
@@ -1234,6 +1484,9 @@ class _SharedGeometryResources {
 
   late final gpu.RenderPipeline pipeline;
   late final gpu.RenderPipeline fieldPipeline;
+  gpu.RenderPipeline? analyticFieldPipeline;
+  gpu.UniformSlot? analyticFieldSlot;
+  ({int grid, int merge, int boxes})? analyticFieldOffsets;
   late final gpu.UniformSlot fieldUniformSlot;
   late final gpu.UniformSlot fieldTextureSlot;
   late final int fieldUniformSize;

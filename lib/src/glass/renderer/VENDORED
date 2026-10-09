@@ -276,3 +276,11 @@ Local patches (some commits include related package changes):
   the typed optional filterQuality factory. Older SDKs keep their bound
   first-sampler quality. Native phase evidence and SDK provenance are in
   tool/audit/codex-beta-sdk-report.md.
+- 2026-10-08 experimental paths, all disabled by default: single-primitive
+  final geometry, direct sampling of owner RGBA32F fields, and coarse GPU
+  optical grids for up to four owner-fused circular rounded boxes. The last
+  path ports the owner's CPU angular merge and preserves its CPU contour;
+  mixed materials can consume the generated nodes through the original matte.
+  Four float targets wait three frames before reuse. Optional shaders are
+  loaded/warmed only with their flags. No production admission is claimed;
+  evidence and limitations: tool/audit/codex-direct-field-report.md.

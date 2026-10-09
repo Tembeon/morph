@@ -1,0 +1,210 @@
+import 'dart:math' as math;
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
+
+/// An experimental retained blur pyramid for immutable bar content.
+@internal
+class MorphGlyphBlurAtlas extends SingleChildRenderObjectWidget {
+  /// Draws two neighboring prefiltered levels with [opacity].
+  const MorphGlyphBlurAtlas({
+    required this.sigma,
+    required this.opacity,
+    required super.child,
+    super.key,
+  });
+
+  /// Blur in the content's logical coordinates, before its outer transform.
+  final double sigma;
+
+  /// Multiplies premultiplied color and coverage in the sampling shader.
+  final double opacity;
+
+  /// Enables the experimental Navigation implementation at build time.
+  static const bool enabled = bool.fromEnvironment('MORPH_GLYPH_BLUR_ATLAS');
+
+  /// Approximate blur levels; interpolation does not produce an exact Gaussian.
+  static const List<double> levels = [0, 0.5, 1, 2, 4, 7, 10];
+
+  /// Retained allocation estimates, excluding transient source/filter targets.
+  static int liveBytes = 0;
+
+  /// The largest retained allocation estimate since launch.
+  static int peakBytes = 0;
+
+  /// The number of content revisions rasterized since launch.
+  static int captures = 0;
+
+  static ui.FragmentProgram? _program;
+
+  /// Loads the experimental shader before native timing collection.
+  static Future<void> precache() async {
+    _program ??= await ui.FragmentProgram.fromAsset(ShaderKeys.glyphBlurAtlas);
+  }
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      _RenderGlyphBlurAtlas(
+        sigma,
+        opacity,
+        MediaQuery.devicePixelRatioOf(context),
+      );
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    covariant RenderObject renderObject,
+  ) {
+    (renderObject as _RenderGlyphBlurAtlas).update(
+      sigma,
+      opacity,
+      MediaQuery.devicePixelRatioOf(context),
+    );
+  }
+}
+
+class _RenderGlyphBlurAtlas extends RenderProxyBox {
+  _RenderGlyphBlurAtlas(this._sigma, this._opacity, this._ratio);
+
+  double _sigma;
+  double _opacity;
+  double _ratio;
+  ui.Image? _atlas;
+  ui.FragmentShader? _shader;
+  double _pad = 0;
+  int _cellWidth = 0;
+  int _cellHeight = 0;
+
+  void update(double sigma, double opacity, double ratio) {
+    if (_sigma == sigma && _opacity == opacity && _ratio == ratio) return;
+    if (_ratio != ratio) _drop();
+    _sigma = sigma;
+    _opacity = opacity;
+    _ratio = ratio;
+    super.markNeedsPaint();
+  }
+
+  void _drop() {
+    final image = _atlas;
+    if (image != null) {
+      MorphGlyphBlurAtlas.liveBytes -= image.width * image.height * 4;
+      image.dispose();
+      _atlas = null;
+    }
+  }
+
+  @override
+  void markNeedsPaint() {
+    _drop();
+    super.markNeedsPaint();
+  }
+
+  @override
+  void detach() {
+    _drop();
+    super.detach();
+  }
+
+  @override
+  void dispose() {
+    _drop();
+    _shader?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Rect get paintBounds => (Offset.zero & size).inflate(30);
+
+  ui.Image _capture() {
+    final layer = OffsetLayer();
+    final context = PaintingContext(layer, Offset.zero & size);
+    super.paint(context, Offset.zero);
+    // ignore: invalid_use_of_protected_member
+    context.stopRecordingIfNeeded();
+    final source = layer.toImageSync(Offset.zero & size, pixelRatio: _ratio);
+    layer.dispose();
+    final levels = MorphGlyphBlurAtlas.levels;
+    _pad = (3 * levels.last * _ratio).ceilToDouble();
+    _cellWidth = (size.width * _ratio + 2 * _pad).ceil();
+    _cellHeight = (size.height * _ratio + 2 * _pad).ceil();
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    for (var index = 0; index < levels.length; index++) {
+      final row = Rect.fromLTWH(
+        0,
+        index * _cellHeight.toDouble(),
+        _cellWidth.toDouble(),
+        _cellHeight.toDouble(),
+      );
+      canvas.save();
+      canvas.clipRect(row);
+      final paint = Paint();
+      if (levels[index] > 0) {
+        paint.imageFilter = ui.ImageFilter.blur(
+          sigmaX: levels[index] * _ratio,
+          sigmaY: levels[index] * _ratio,
+          tileMode: ui.TileMode.decal,
+        );
+      }
+      canvas.drawImage(source, Offset(_pad, row.top + _pad), paint);
+      canvas.restore();
+    }
+    final picture = recorder.endRecording();
+    final atlas = picture.toImageSync(_cellWidth, _cellHeight * levels.length);
+    picture.dispose();
+    source.dispose();
+    MorphGlyphBlurAtlas.captures++;
+    MorphGlyphBlurAtlas.liveBytes += atlas.width * atlas.height * 4;
+    MorphGlyphBlurAtlas.peakBytes = math.max(
+      MorphGlyphBlurAtlas.peakBytes,
+      MorphGlyphBlurAtlas.liveBytes,
+    );
+    return atlas;
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (size.isEmpty || child == null || _opacity <= 0) return;
+    if (_sigma <= 0.05 && _opacity >= 1) {
+      super.paint(context, offset);
+      return;
+    }
+    final program = MorphGlyphBlurAtlas._program;
+    if (program == null) throw StateError('Glyph blur atlas was not precached');
+    final atlas = _atlas ??= _capture();
+    final shader = _shader ??= program.fragmentShader();
+    final levels = MorphGlyphBlurAtlas.levels;
+    final sigma = _sigma.clamp(0.0, levels.last);
+    var upper = 1;
+    while (upper < levels.length - 1 && levels[upper] < sigma) {
+      upper++;
+    }
+    final lower = upper - 1;
+    final fraction = (sigma - levels[lower]) / (levels[upper] - levels[lower]);
+    final values = [
+      offset.dx,
+      offset.dy,
+      _ratio,
+      atlas.width.toDouble(),
+      atlas.height.toDouble(),
+      _cellWidth.toDouble(),
+      _cellHeight.toDouble(),
+      lower * _cellHeight.toDouble(),
+      upper * _cellHeight.toDouble(),
+      fraction,
+      _opacity.clamp(0.0, 1.0),
+      _pad,
+    ];
+    for (var index = 0; index < values.length; index++) {
+      shader.setFloat(index, values[index]);
+    }
+    shader.setImageSampler(0, atlas, filterQuality: ui.FilterQuality.low);
+    final paint = Paint();
+    paint.shader = shader;
+    paint.isAntiAlias = false;
+    context.canvas.drawRect((offset & size).inflate(_pad / _ratio), paint);
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "cohort.apk": {
+    "path": "/tmp/morph-architecture/glyph-batch/cohort.apk",
+    "bytes": 18015748,
+    "sha256": "e948e222a048de25d3e51bd0f49a19fcdaf0d7c25c53b7518991a2b82b9fc227"
+  },
+  "cohort-raster.apk": {
+    "path": "/tmp/morph-architecture/glyph-batch/cohort-raster.apk",
+    "bytes": 18015748,
+    "sha256": "b114c763d4fe2d7130f2eafa59fa64bc73840cf8644f0b48d6856d0ed5d6c004"
+  },
+  "control.apk": {
+    "path": "/tmp/morph-architecture/glyph-batch/control.apk",
+    "bytes": 18015748,
+    "sha256": "cfe4e964e570e8b755d1643612239cfbea7b481568ffb97024c782a851f87748"
+  },
+  "control-v2.apk": {
+    "path": "/tmp/morph-architecture/glyph-batch/control-v2.apk",
+    "bytes": 18015748,
+    "sha256": "b48db162da8c3ecc554c23a2b516fe3f1dddb115a81542e51e926cceee81880b"
+  }
+}

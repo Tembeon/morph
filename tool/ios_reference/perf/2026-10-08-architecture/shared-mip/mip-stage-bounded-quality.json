@@ -1,0 +1,331 @@
+{
+  "report_sha256": "b08ea9aaad207f615ced391fd5946b9d753d4829e22a5612c7c23193923f89e4",
+  "image_sha256": {
+    "mip-bare-n4-reuse.png": "c8e0e4ee424760a63afd9e937b761bcfaa8b50b1d3a6d564d2296d0215cf225b",
+    "mip-box-n16-reuse.png": "3de5f644a19869f393d2efbd1347cbe2fe9270002656909f66dda9a590c425e3",
+    "mip-gaussian-n16-reuse.png": "520d76472f46bde982a443e5b97693e3e62d3be4a7c1a6898ab028ea5a3cb77f",
+    "mip-box-n16-fresh.png": "3de5f644a19869f393d2efbd1347cbe2fe9270002656909f66dda9a590c425e3",
+    "mip-gaussian-n16-fresh.png": "520d76472f46bde982a443e5b97693e3e62d3be4a7c1a6898ab028ea5a3cb77f",
+    "mip-tent-n4-reuse.png": "06db8d28350ef6d3f28e913ba8bec74dc67660e051699112a07881e08d9dc7ef",
+    "mip-gaussian-n4-reuse.png": "60509be066011866b00f73787fc5b3d65dda29a80b7e259cddc1823bad51e012",
+    "mip-box-n1-fresh.png": "4b191226b9b6c1979ae5035eecbea1a01570a2f45eea6a6d3cce23b02e685945",
+    "mip-gaussian-n1-fresh.png": "81d28596c311b932dd3f09585243c238a6cb81d5dc3d5f7de29c232a5ecc5c4b",
+    "mip-grouped-n16-fresh.png": "1af92d263c914b29e61801468e46c7f8c59e294e6af7536c98135eba05284483",
+    "mip-tent-n4-fresh.png": "06db8d28350ef6d3f28e913ba8bec74dc67660e051699112a07881e08d9dc7ef",
+    "mip-gaussian-n4-fresh.png": "60509be066011866b00f73787fc5b3d65dda29a80b7e259cddc1823bad51e012",
+    "mip-grouped-n4-fresh.png": "138657440ee6c835daf882576a38cfed5da7577b3a3c86f9431f748a88b0d420",
+    "mip-grouped-n1-reuse.png": "81d28596c311b932dd3f09585243c238a6cb81d5dc3d5f7de29c232a5ecc5c4b",
+    "mip-gaussian-n1-reuse.png": "81d28596c311b932dd3f09585243c238a6cb81d5dc3d5f7de29c232a5ecc5c4b",
+    "mip-tent-n1-reuse.png": "442c3f9b0025d4ae521f99e0b87ba0fdad635f04269342289878503fdb9958d1",
+    "mip-grouped-n16-reuse.png": "1af92d263c914b29e61801468e46c7f8c59e294e6af7536c98135eba05284483",
+    "mip-tent-n1-fresh.png": "442c3f9b0025d4ae521f99e0b87ba0fdad635f04269342289878503fdb9958d1",
+    "mip-box-n1-reuse.png": "4b191226b9b6c1979ae5035eecbea1a01570a2f45eea6a6d3cce23b02e685945",
+    "mip-box-n4-fresh.png": "fb7dd77ec08c0f41193f304236be5e4d621e9959b0bae42c872e9f525c7385a7",
+    "mip-grouped-n1-fresh.png": "81d28596c311b932dd3f09585243c238a6cb81d5dc3d5f7de29c232a5ecc5c4b",
+    "mip-grouped-n4-reuse.png": "138657440ee6c835daf882576a38cfed5da7577b3a3c86f9431f748a88b0d420",
+    "mip-tent-n16-reuse.png": "5125761a18ef04c8df6ccef09dafac92a54b90d308fd345b7e63dd812856064e",
+    "mip-box-n4-reuse.png": "fb7dd77ec08c0f41193f304236be5e4d621e9959b0bae42c872e9f525c7385a7",
+    "mip-tent-n16-fresh.png": "5125761a18ef04c8df6ccef09dafac92a54b90d308fd345b7e63dd812856064e"
+  },
+  "rows": [
+    {
+      "case": "mip-box-n16-reuse",
+      "to_native_gaussian": {
+        "max": 54.0,
+        "mean": 3.5630056858062744,
+        "p95": 13.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.31170117109717244,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-box-n16-fresh",
+      "to_native_gaussian": {
+        "max": 54.0,
+        "mean": 3.5630056858062744,
+        "p95": 13.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.31170117109717244,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-tent-n4-reuse",
+      "to_native_gaussian": {
+        "max": 24.0,
+        "mean": 3.1614959239959717,
+        "p95": 10.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.17348001181166503,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-box-n1-fresh",
+      "to_native_gaussian": {
+        "max": 53.0,
+        "mean": 4.672415256500244,
+        "p95": 15.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.40696297840793255,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-grouped-n16-fresh",
+      "to_native_gaussian": {
+        "max": 5.0,
+        "mean": 0.8772425055503845,
+        "p95": 3.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-tent-n4-fresh",
+      "to_native_gaussian": {
+        "max": 24.0,
+        "mean": 3.1614959239959717,
+        "p95": 10.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.17348001181166503,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-grouped-n4-fresh",
+      "to_native_gaussian": {
+        "max": 7.0,
+        "mean": 1.1002399921417236,
+        "p95": 3.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-grouped-n1-reuse",
+      "to_native_gaussian": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-tent-n1-reuse",
+      "to_native_gaussian": {
+        "max": 22.0,
+        "mean": 3.0268378257751465,
+        "p95": 10.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 1.0,
+        "mean": 0.18314973125752942,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-grouped-n16-reuse",
+      "to_native_gaussian": {
+        "max": 5.0,
+        "mean": 0.8772425055503845,
+        "p95": 3.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-tent-n1-fresh",
+      "to_native_gaussian": {
+        "max": 22.0,
+        "mean": 3.0268378257751465,
+        "p95": 10.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 1.0,
+        "mean": 0.18314973125752942,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-box-n1-reuse",
+      "to_native_gaussian": {
+        "max": 53.0,
+        "mean": 4.672415256500244,
+        "p95": 15.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.40696297840793255,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-box-n4-fresh",
+      "to_native_gaussian": {
+        "max": 54.0,
+        "mean": 4.661360740661621,
+        "p95": 15.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.3629655934343434,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-grouped-n1-fresh",
+      "to_native_gaussian": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-grouped-n4-reuse",
+      "to_native_gaussian": {
+        "max": 7.0,
+        "mean": 1.1002399921417236,
+        "p95": 3.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-tent-n16-reuse",
+      "to_native_gaussian": {
+        "max": 23.0,
+        "mean": 2.3825161457061768,
+        "p95": 9.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.14088323874950218,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-box-n4-reuse",
+      "to_native_gaussian": {
+        "max": 54.0,
+        "mean": 4.661360740661621,
+        "p95": 15.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.3629655934343434,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-tent-n16-fresh",
+      "to_native_gaussian": {
+        "max": 23.0,
+        "mean": 2.3825161457061768,
+        "p95": 9.0
+      },
+      "background_to_bare": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_generator_model": {
+        "max": 2.0,
+        "mean": 0.14088323874950218,
+        "p95": 1.0
+      }
+    }
+  ],
+  "limitations": [
+    "Frozen phase zero, not motion fidelity or Apple reference.",
+    "Scalar byte model excludes color management and hardware precision differences.",
+    "Native Gaussian and pyramid PSFs are different; no equivalence is assumed."
+  ]
+}

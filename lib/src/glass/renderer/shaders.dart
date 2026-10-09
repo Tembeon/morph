@@ -36,6 +36,46 @@ abstract class ShaderKeys {
   static String get liquidGlassTintIos27Render =>
       '${_runtimeRoot}liquid_glass_final_render_tint_ios27.frag';
 
+  /// Enables the experimental single-primitive final shading path.
+  static const bool directGeometry = bool.fromEnvironment(
+    'MORPH_DIRECT_GEOMETRY',
+  );
+
+  /// Enables experimental sampled-field shading without a geometry matte.
+  static const bool directField = bool.fromEnvironment('MORPH_DIRECT_FIELD');
+
+  /// Extends direct field shading to the retained mixed-appearance map.
+  static const bool directFieldMaterial =
+      directField && bool.fromEnvironment('MORPH_DIRECT_FIELD_MATERIAL');
+
+  /// Mixed appearances reading the owner's field and contributor map.
+  static String get liquidGlassDirectFieldMaterial =>
+      '${_runtimeRoot}liquid_glass_direct_field_material.frag';
+
+  /// Direct tint variations reading the owner's field.
+  static String get liquidGlassDirectFieldTint =>
+      '${_runtimeRoot}liquid_glass_direct_field_tint.frag';
+
+  /// Fitted tint variations reading the owner's field.
+  static String get liquidGlassDirectFieldTintIos27 =>
+      '${_runtimeRoot}liquid_glass_direct_field_tint_ios27.frag';
+
+  /// Direct appearance reading the owner's floating-point field.
+  static String get liquidGlassDirectField =>
+      '${_runtimeRoot}liquid_glass_direct_field.frag';
+
+  /// Fitted appearance reading the owner's floating-point field.
+  static String get liquidGlassDirectFieldIos27 =>
+      '${_runtimeRoot}liquid_glass_direct_field_ios27.frag';
+
+  /// One direct appearance with geometry evaluated by the final filter.
+  static String get liquidGlassDirectGeometry =>
+      '${_runtimeRoot}liquid_glass_direct_geometry.frag';
+
+  /// One fitted appearance with geometry evaluated by the final filter.
+  static String get liquidGlassDirectGeometryIos27 =>
+      '${_runtimeRoot}liquid_glass_direct_geometry_ios27.frag';
+
   /// The final liquid glass shaders in the order a layer binds them: one
   /// appearance with the direct and with an iOS 27 color model, shapes with
   /// their own appearances, shapes that differ only by tint with the direct
@@ -46,10 +86,20 @@ abstract class ShaderKeys {
     liquidGlassMaterialRender,
     liquidGlassTintRender,
     liquidGlassTintIos27Render,
+    if (directGeometry) liquidGlassDirectGeometry,
+    if (directGeometry) liquidGlassDirectGeometryIos27,
+    if (directField) liquidGlassDirectField,
+    if (directField) liquidGlassDirectFieldIos27,
+    if (directFieldMaterial) liquidGlassDirectFieldMaterial,
+    if (directFieldMaterial) liquidGlassDirectFieldTint,
+    if (directFieldMaterial) liquidGlassDirectFieldTintIos27,
   ];
 
   static String get fakeGlassSurface =>
       '${_runtimeRoot}fake_glass_surface.frag';
+
+  /// The experimental retained foreground blur sampler.
+  static String get glyphBlurAtlas => '${_runtimeRoot}glyph_blur_atlas.frag';
 
   static final String gpuGeometryShaderBundle =
       '${_shadersRoot}build/shaderbundles/morph_glass.shaderbundle';

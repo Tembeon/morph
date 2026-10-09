@@ -1199,6 +1199,109 @@ energy-first rejection rule below describes historical decisions rather
 than the current admission policy. Fidelity remains IDENTICAL or stated
 NEAR; visible quality reductions need an owner decision.
 
+OWNER WORKFLOW (2026-10-08, later): use flutter-beta / dart-beta for
+ongoing optimization and validation. Do not repeat stable comparisons or
+restore the release gallery between active experiments. Research may
+explore cheaper visually similar alternatives; quantify their differences
+before production adoption. Architectural hypotheses and experiment order:
+tool/audit/codex-rendering-architecture-research.md.
+
+NAVIGATION GRAPH AUDIT (2026-10-09): the persistent shell and local shape
+components already implement the main ownership/grouping proposals in the
+owner's navigation brief. Release census now records visible liquid objects,
+capture-key identities and retained foreground filter layers after timing;
+nested push/pop peaks at ten glyph filters with two or three optical layers
+and one capture key. Counts are not native passes or allocations. All
+sampled liquid phases have blurPassSigma zero (no separate Gaussian
+backdrop pass); optical shading and possible inline softening remain. The
+MORPH_BAR_GLYPH_BOUNDS experiment narrows source boxes, preserves item/hit
+geometry and stays default false: native GPU cost is unchanged and ABBA
+presentation does not show a general win. Its phase-10 glyph max is 5/255.
+Next topology work must preserve per-item sigma, overlap, scale and apart
+semantics. Audit/reference map: docs/research/navigation-transition-audit.md;
+results: tool/audit/codex-navigation-transition-report.md.
+
+FOREGROUND COHORT PROTOTYPE (2026-10-09): MORPH_BAR_GLYPH_BATCH stays
+false. One proxy consolidates filter/scale/opacity; a positioned stack
+shares layers only for contiguous equal-sigma/scale/8-bit-alpha siblings
+with disjoint padded boxes and a compact union. Bar coalescing additionally
+requires Android raster eligibility and known label/standard icon content.
+Native live-text grouping fails image quality; raster-only grouping still
+differs by 37/255 in a newly sampled intermediate phase and rarely groups
+real Navigation. GPU work is unchanged; no candidate presentation win is
+claimed. Source grids need qualification, not just geometric compatibility.
+See tool/audit/codex-glyph-cohort-report.md. No production default changed.
+
+FOREGROUND BLUR RESEARCH (2026-10-08, beta only): experimental atlas,
+disabled by default. Two three-repeat Pixel launches: liquid push raster
+p95 32.84/24.39 -> 14.16/14.85 ms; flat push 28.29/20.41 -> 11.34/11.88.
+Liquid push GPU +5-6 percent; no reliable UI win and liquid pop UI worsens.
+Compact owned atlas peak 3.94 MB versus initial 19.51 MB, excluding transient
+targets/RSS. Chrome max 7/255; isolated whole-frame repeat noise is retained.
+First-use spikes persist. Actual presentation worsens despite lower raster
+p95; current cache admission fails. Energy and production admission remain
+open: tool/audit/codex-glyph-blur-atlas-report.md. Architectural experiments
+2-5 are not completed by this result.
+
+DIRECT FIELD / SCHEDULING RESEARCH (2026-10-08, beta, disabled): one
+three-repeat direct-field launch skips the field-to-matte draw and reads its
+RGBA32F nodes in the final filter. Liquid push UI p95 23.60 -> 18.33 ms,
+GPU 6.192 -> 6.261; chrome max 2/255. CPU field construction stays. Combined
+with glyph blur the first presentation comparison worsens despite faster
+raster. Benchmark-only Performance Hints reduce combined push UI p95
+23.48 -> 8.75 ms and median missed presentation slots 21 -> 10 per 800 ms;
+long gaps remain. Live glyphs with hints present better: liquid push/pop median
+missed slots 3/2 versus atlas 10/9. Sustained control/candidate/candidate/control
+mean of launch medians: UI p95 15.52 -> 9.13 ms, raster 19.10 -> 14.38 ms,
+whole-phone power 723 -> 825 mW (+14.1%). Callback
+benchmarks omit real-touch input boosts; Pixel big-core gains do not certify
+small-core devices. See tool/audit/codex-direct-field-report.md.
+
+GPU OPTICAL GRID RESEARCH (2026-10-08, beta, disabled): the owner keeps
+its exact CPU contour and describes up to four fused rounded boxes relative
+to its grid. One tiny RGBA32F pass computes optical nodes using the CPU
+angular merge law, central differences and contributor optical turn. Both
+direct and original matte consumers work; translation keeps descriptor
+identity, four targets retire after three frames. Initial native pair: liquid
+push UI p95 10.33 -> 10.24 ms, GPU 6.219 -> 6.310; no robust win. Native
+liquid max 2/255. Extra GPU submission can offset removed CPU grid/upload.
+1407 package and 21 gallery tests pass. Exact CPU attribution and native release
+stack sampling now support reducing encoding/submission/allocation graph work,
+not another isolated blur-kernel substitution. Two release launches per variant
+with immediate UI feedback improve presentation; raster push remains over budget.
+Owner research reconciliation and controlled mip producer/consumer next steps:
+tool/audit/codex-gpu-research-reconciliation.md. Pixel/Vulkan confirms explicit
+mip sampling through GPU texture/image/runtime shader only with medium sampler
+quality; low/none return the base level. The current single-level glass default
+stays unchanged. This is source interoperability evidence, not a live capture
+or whole-pipeline performance win.
+The owned-source producer comparison is now measured:
+tool/audit/codex-shared-mip-report.md. Cached stock Gaussian and reused tent
+have similar low GPU cost. A fresh five-pass pyramid lowers GPU work but
+loses actual presentation to grouped Gaussian; do not enable it in production.
+The standalone benchmark's collapsed three-pass tent producer cuts N=16
+producer CPU about 23% and improves actual cadence versus five passes in
+two launches; grouped Gaussian still presents more reliably. Frozen output
+differs from tent by <=1/255. All producer modes stay standalone experiments.
+Live source capture, damage/reveal invalidation, cold entry and production
+optical integration remain open. Pixel/Vulkan results do not certify weak devices.
+
+OWNED OPTICAL SOURCE RESEARCH (2026-10-08, beta, opt-in): an internal
+borrowed-image input now feeds the normal Morph optical shader in the
+standalone bench. Source generation runs before consumer painting; publishing
+in a background painter alone is too late for deeper repaint boundaries.
+Native screen capture avoids the filter-coordinate artifact of boundary
+toImage. N=16 separate layers / common layer / common cached stock Gaussian
+cost 13.065 / 5.498 / 2.879 ms of app GPU work per frame on unchanged source.
+Frozen common-versus-separate output is identical; cached Gaussian differs
+by <=1/255. Two presentation launches show the grouping benefit, but caching
+does not beat common stock cadence, and fresh pyramids still lose cadence.
+Multi-pass public GPU batching crashes this installed Vulkan backend: pass
+construction begins scopes before deferred encoding ends them. The failed
+source and native stack are preserved; the working bench submits separately.
+No live capture, mixed-appearance or Navigation admission. Report:
+tool/audit/codex-owned-backdrop-optics-report.md. Production hook stays null.
+
 BETA SDK (2026-10-08): flutter-beta / dart-beta select the separate
 official 3.49.0-0.2.pre SDK; normal commands retain 3.47.2 stable.
 The native shader-filter factory now requests low quality when its typed
@@ -1622,3 +1725,16 @@ Frame timings (glacial open+close, n=756): build avg 0.21 / p95 0.52
 / worst 0.83 ms; raster avg 0.71 / p95 1.33 / worst 4.33 ms. The cached
 animated skin frame costs 57 us; the eval budget keeps the 64-piece
 worst case at 1.9 ms (8.2 ms unbounded).
+
+Navigation mixed-field follow-up (2026-10-09): the release census now records
+mixed appearance/tint-only flags. Fused Navigation surfaces differ only by
+tint in sampled transitions, so the old uniform-only direct-field path was
+not active. MORPH_DIRECT_FIELD_MATERIAL (false by default, requires direct
+field) retains the tint/contributor map and skips its optical geometry matte.
+It preserves limited native chrome quality but does not improve presentation
+repeatably: Pixel ABBA push missed-slot medians 6/7 -> 3/9, pop 3/3 -> 5/6.
+Changed fields still upload via a command buffer; one fewer target is not
+one fewer optical layer or guaranteed submission. Report/evidence in
+tool/audit/codex-direct-field-material-report.md and
+perf/2026-10-09-field-material. Final checks: 1419 + 21 tests, 18 Python
+checks, zero analyze/doc issues, macOS release/Metal autodemo, Wasm.

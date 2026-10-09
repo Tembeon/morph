@@ -1,0 +1,632 @@
+{
+  "report_sha256": "dab904a6fa2b12d8d429c614cbe9d571beec39c5a17b172487f2ecd01866b345",
+  "image_sha256": {
+    "mip-glass-grouped-n4-fresh.png": "59ae3f523322cdf9a1a57fd089809186f17ff5ddfbbe5350e466641011861806",
+    "mip-glass-grouped-n4-fresh.json": "aa3c29e54d6a1cf93d3b03aa7dddae9387212ed7d27465443f85a37032ca3dc2",
+    "mip-glass-merged-n4-fresh.png": "59ae3f523322cdf9a1a57fd089809186f17ff5ddfbbe5350e466641011861806",
+    "mip-glass-merged-n4-fresh.json": "5fff3f95d5131e90fe00d74c6eb862730de629c1a0e0d119aec25552bf2f8908",
+    "mip-foreground-n4-fresh.png": "2126c80c04b7836995610e7b9297e03ebf385539fd360e87e1ccf21323eccefb",
+    "mip-foreground-n4-fresh.json": "ade20f5810c44f36f6c6ef9bfca9cb8f53a13089f65438ff706a9e6149c2c6cf",
+    "mip-owned-wide-n4-reuse.png": "26891f52fd129f3381bdf53a20f82cece95c750e50eab312ad0d69c0f8271698",
+    "mip-owned-wide-n4-reuse.json": "4f4b90364e5c68488fcdc54a5ce4b4d81501c643fe419a56eff54d1e5a8d9222",
+    "mip-glass-merged-n4-reuse.png": "59ae3f523322cdf9a1a57fd089809186f17ff5ddfbbe5350e466641011861806",
+    "mip-glass-merged-n4-reuse.json": "ba4c209b1abecd8c0dbc92bd027b1d2ca3f66bd9d787afc86a8a72e456f2430c",
+    "mip-foreground-n4-reuse.png": "2126c80c04b7836995610e7b9297e03ebf385539fd360e87e1ccf21323eccefb",
+    "mip-foreground-n4-reuse.json": "87aff09fcfbbbb6beb6c8cb63108be8141cb71922d1963c30c8bc64484a4e2bb",
+    "mip-owned-tent-n4-reuse.png": "66e6b4b4e6f160e91487756697dc3ffb0e5e75eddf0e20b5ee15eb5206542b22",
+    "mip-owned-tent-n4-reuse.json": "17012da583095fdbcee93e71856d874c90492bb9acaf44a57d2b6775a886b647",
+    "mip-owned-wide-n4-fresh.png": "26891f52fd129f3381bdf53a20f82cece95c750e50eab312ad0d69c0f8271698",
+    "mip-owned-wide-n4-fresh.json": "56c4bbdfe267de50532150c9bfad99771724aef35c6219fd6e4b88aac1ab5735",
+    "mip-owned-tent-n4-fresh.png": "66e6b4b4e6f160e91487756697dc3ffb0e5e75eddf0e20b5ee15eb5206542b22",
+    "mip-owned-tent-n4-fresh.json": "87c9e3fb18e166414861dbe49e61aecc861710c4e12e61bf64b60659fd42afce",
+    "mip-owned-cached-n4-reuse.png": "b4de91606d456b07fe69a303d5d6a42e17e4c0193b86efff46281888072579f3",
+    "mip-owned-cached-n4-reuse.json": "890b1f3f70192424c6add5c1aeb1933c41e592d984ff22a806b89ff5ea92b117",
+    "mip-owned-raw-n16-fresh.png": "6075eb081072d7ca1b2fa849de3db2065218de07fb574e8d6ccf699f295173ac",
+    "mip-owned-raw-n16-fresh.json": "45da14d405ad93587bae560b78fa7e1aee7e02498d4d16ac74bfc9c659d6f77b",
+    "mip-glass-zero-n16-fresh.png": "afc4cefa727cc49aa647e9ef9146283fa964e1e6ffcb2bc4d57c8236f72acc1b",
+    "mip-glass-zero-n16-fresh.json": "4119ba0c3c23170eb138c0d3db96444af4edec75e6491df8d6c6995fde533d2f",
+    "mip-foreground-n16-fresh.png": "fe40588261b6e58b070699a8c8b6a8773712de77c4cf6abe2c63ae3196071348",
+    "mip-foreground-n16-fresh.json": "93ca8c1163360b562266ee1502be298d7afe90593cc8ad95a3cc3b130f6b0ef8",
+    "mip-owned-raw-n4-reuse.png": "d8fe213616153d5a18f88a7b945c6cc73e80468068c91b9ca9136cff3a98a451",
+    "mip-owned-raw-n4-reuse.json": "c113de05465b9982e66a26befb3932cecda8f1da4b7b2c6e04e66f55226f3f88",
+    "mip-glass-zero-n4-reuse.png": "3510c96312f8ab7d41334cd6211efa9f22bfac7218e4d007b618f3f5aebc8c9c",
+    "mip-glass-zero-n4-reuse.json": "54b418918c95fe06b3f4c39f99f300a2cbfcada0fc7a0044fcbffc40fbc2a9ad",
+    "mip-owned-wide-n16-reuse.png": "0052611f6123728897b0c4ba4e5bba1da27f7d0729952b153d8003aba15a6265",
+    "mip-owned-wide-n16-reuse.json": "24e456aed2bdc3d00535cf15ec70ac8feeb8c01ed6bb475d40aac9a4ad1c9cce",
+    "mip-glass-merged-n16-reuse.png": "ff01a94b4afc2ce3951b83501b851c2ef5ac2348f085940060738744530bd9fe",
+    "mip-glass-merged-n16-reuse.json": "c46a25385d2b7f63ebf61abf717835eba3ba41f0a17e557689603ebf517a6b75",
+    "mip-foreground-n16-reuse.png": "fe40588261b6e58b070699a8c8b6a8773712de77c4cf6abe2c63ae3196071348",
+    "mip-foreground-n16-reuse.json": "c60c61f16a55c99a1c3f05c087f221293ebae85fd1a7e166de15de6a30333e8e",
+    "mip-owned-tent-n16-reuse.png": "33be82f7c0ddb4ebd6a7143442f24154e38409717ef56e33e077b1de757c01a3",
+    "mip-owned-tent-n16-reuse.json": "84c9ff0850cbdf8458f17d4510780857212c66fbe5eca00e9290fd8d91e219f4",
+    "mip-owned-cached-n16-reuse.png": "e75edeae7d3e649cf88ce3377f8e9f2138b7a4c7295cfc92035dd16f3209d3e5",
+    "mip-owned-cached-n16-reuse.json": "a079a233c7a1912fe244fc02b3cd8e49313f62f5980d2f36e7c0fe94265bdcf8",
+    "mip-owned-wide-n16-fresh.png": "0052611f6123728897b0c4ba4e5bba1da27f7d0729952b153d8003aba15a6265",
+    "mip-owned-wide-n16-fresh.json": "3b04a47884e88ff6e7248bda6840852aa5b77bd1543ff24148b0de03dc28cc08",
+    "mip-glass-merged-n16-fresh.png": "ff01a94b4afc2ce3951b83501b851c2ef5ac2348f085940060738744530bd9fe",
+    "mip-glass-merged-n16-fresh.json": "412169e3b60b0574b0ea4cf0ba15c0d5982d308355351579495014f624ea090e",
+    "mip-owned-tent-n16-fresh.png": "33be82f7c0ddb4ebd6a7143442f24154e38409717ef56e33e077b1de757c01a3",
+    "mip-owned-tent-n16-fresh.json": "f8b7420d3511e306a97a72c146014531aa03ca9aa9d0cca979700d84a3a9bd4b",
+    "mip-glass-grouped-n16-reuse.png": "ff01a94b4afc2ce3951b83501b851c2ef5ac2348f085940060738744530bd9fe",
+    "mip-glass-grouped-n16-reuse.json": "07bf8c8687f41a465b7b0fbfd2aba00fd071af28ac532e84b4a3821a7a16ae25",
+    "mip-glass-grouped-n16-fresh.png": "ff01a94b4afc2ce3951b83501b851c2ef5ac2348f085940060738744530bd9fe",
+    "mip-glass-grouped-n16-fresh.json": "347afe629e4d9474b825d98c4bc38338ceb3391039cdd5e25dacef42d7a0fcb4",
+    "mip-owned-raw-n4-fresh.png": "d8fe213616153d5a18f88a7b945c6cc73e80468068c91b9ca9136cff3a98a451",
+    "mip-owned-raw-n4-fresh.json": "5170410f7c1d37a7277b3bdb1cd62560f57ecef44289d840eef01fd0a8a450a9",
+    "mip-glass-zero-n4-fresh.png": "3510c96312f8ab7d41334cd6211efa9f22bfac7218e4d007b618f3f5aebc8c9c",
+    "mip-glass-zero-n4-fresh.json": "2a30317f9e0343f71c620ee05159f840b5b73609eafde02e6b08d7622b54719b",
+    "mip-owned-raw-n16-reuse.png": "6075eb081072d7ca1b2fa849de3db2065218de07fb574e8d6ccf699f295173ac",
+    "mip-owned-raw-n16-reuse.json": "082746bc04f59a78c21896d1e44d3ba96ecd8170d70379766cf4f8cf0de75db9",
+    "mip-glass-zero-n16-reuse.png": "342db91a27001810557bb0412852ab73a732843f4285cfeff884efac3814ddd5",
+    "mip-glass-zero-n16-reuse.json": "708292761ef87bf4f92cc23da7c46cfab9857c0fe401962f69a89c7789d63da8",
+    "mip-glass-grouped-n4-reuse.png": "59ae3f523322cdf9a1a57fd089809186f17ff5ddfbbe5350e466641011861806",
+    "mip-glass-grouped-n4-reuse.json": "acd2507ce5541312974b3f0d4b1c9a9cf688843648d3daa7c1a8e14c4e5acc3c"
+  },
+  "rows": [
+    {
+      "case": "mip-glass-grouped-n4-fresh",
+      "control": "mip-glass-merged-n4-fresh",
+      "comparison": "layer-sharing",
+      "whole_image": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-wide-n4-reuse",
+      "control": "mip-glass-merged-n4-reuse",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 35.0,
+        "mean": 0.9239249229431152,
+        "p95": 6.0
+      },
+      "interior": {
+        "max": 25.0,
+        "mean": 3.1153528690338135,
+        "p95": 10.0
+      },
+      "rim_and_bounds": {
+        "max": 35.0,
+        "mean": 2.392029285430908,
+        "p95": 9.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_owned_tent": {
+        "max": 2.0,
+        "mean": 0.15295760333538055,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-owned-wide-n4-fresh",
+      "control": "mip-glass-merged-n4-fresh",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 35.0,
+        "mean": 0.9239249229431152,
+        "p95": 6.0
+      },
+      "interior": {
+        "max": 25.0,
+        "mean": 3.1153528690338135,
+        "p95": 10.0
+      },
+      "rim_and_bounds": {
+        "max": 35.0,
+        "mean": 2.392029285430908,
+        "p95": 9.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_owned_tent": {
+        "max": 2.0,
+        "mean": 0.15295760333538055,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-owned-tent-n4-fresh",
+      "control": "mip-glass-merged-n4-fresh",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 36.0,
+        "mean": 0.918818473815918,
+        "p95": 6.0
+      },
+      "interior": {
+        "max": 25.0,
+        "mean": 3.099273681640625,
+        "p95": 10.0
+      },
+      "rim_and_bounds": {
+        "max": 36.0,
+        "mean": 2.3742570877075195,
+        "p95": 9.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-cached-n4-reuse",
+      "control": "mip-glass-merged-n4-reuse",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 1.0,
+        "mean": 0.0011773109436035156,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.0003833554801531136,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 1.0,
+        "mean": 0.01737898215651512,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-raw-n16-fresh",
+      "control": "mip-glass-zero-n16-fresh",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 2.0,
+        "mean": 0.0044205985032022,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.004824087489396334,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 2.0,
+        "mean": 0.028584731742739677,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-raw-n4-reuse",
+      "control": "mip-glass-zero-n4-reuse",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 1.0,
+        "mean": 0.0019604365807026625,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.0034067523665726185,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 1.0,
+        "mean": 0.01787683740258217,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-wide-n16-reuse",
+      "control": "mip-glass-merged-n16-reuse",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 21.0,
+        "mean": 0.6763221621513367,
+        "p95": 5.0
+      },
+      "interior": {
+        "max": 20.0,
+        "mean": 2.2689642906188965,
+        "p95": 9.0
+      },
+      "rim_and_bounds": {
+        "max": 21.0,
+        "mean": 1.8353838920593262,
+        "p95": 8.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_owned_tent": {
+        "max": 2.0,
+        "mean": 0.10732851922512054,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-owned-cached-n16-reuse",
+      "control": "mip-glass-merged-n16-reuse",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 1.0,
+        "mean": 0.0025534629821777344,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.0009775124490261078,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 1.0,
+        "mean": 0.01951027661561966,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-wide-n16-fresh",
+      "control": "mip-glass-merged-n16-fresh",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 21.0,
+        "mean": 0.6763221621513367,
+        "p95": 5.0
+      },
+      "interior": {
+        "max": 20.0,
+        "mean": 2.2689642906188965,
+        "p95": 9.0
+      },
+      "rim_and_bounds": {
+        "max": 21.0,
+        "mean": 1.8353838920593262,
+        "p95": 8.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "to_owned_tent": {
+        "max": 2.0,
+        "mean": 0.10732851922512054,
+        "p95": 1.0
+      }
+    },
+    {
+      "case": "mip-glass-grouped-n16-reuse",
+      "control": "mip-glass-merged-n16-reuse",
+      "comparison": "layer-sharing",
+      "whole_image": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-tent-n4-reuse",
+      "control": "mip-glass-merged-n4-reuse",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 36.0,
+        "mean": 0.918818473815918,
+        "p95": 6.0
+      },
+      "interior": {
+        "max": 25.0,
+        "mean": 3.099273681640625,
+        "p95": 10.0
+      },
+      "rim_and_bounds": {
+        "max": 36.0,
+        "mean": 2.3742570877075195,
+        "p95": 9.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-glass-grouped-n16-fresh",
+      "control": "mip-glass-merged-n16-fresh",
+      "comparison": "layer-sharing",
+      "whole_image": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-tent-n16-fresh",
+      "control": "mip-glass-merged-n16-fresh",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 21.0,
+        "mean": 0.6732848286628723,
+        "p95": 5.0
+      },
+      "interior": {
+        "max": 20.0,
+        "mean": 2.258408546447754,
+        "p95": 9.0
+      },
+      "rim_and_bounds": {
+        "max": 21.0,
+        "mean": 1.827748417854309,
+        "p95": 8.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-raw-n4-fresh",
+      "control": "mip-glass-zero-n4-fresh",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 1.0,
+        "mean": 0.0019604365807026625,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.0034067523665726185,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 1.0,
+        "mean": 0.01787683740258217,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-raw-n16-reuse",
+      "control": "mip-glass-zero-n16-reuse",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 2.0,
+        "mean": 0.0044205985032022,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 1.0,
+        "mean": 0.004824087489396334,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 2.0,
+        "mean": 0.028584731742739677,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-owned-tent-n16-reuse",
+      "control": "mip-glass-merged-n16-reuse",
+      "comparison": "owned-source",
+      "whole_image": {
+        "max": 21.0,
+        "mean": 0.6732848286628723,
+        "p95": 5.0
+      },
+      "interior": {
+        "max": 20.0,
+        "mean": 2.258408546447754,
+        "p95": 9.0
+      },
+      "rim_and_bounds": {
+        "max": 21.0,
+        "mean": 1.827748417854309,
+        "p95": 8.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    },
+    {
+      "case": "mip-glass-grouped-n4-reuse",
+      "control": "mip-glass-merged-n4-reuse",
+      "comparison": "layer-sharing",
+      "whole_image": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "interior": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "rim_and_bounds": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "outside": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      },
+      "opaque_foreground": {
+        "max": 0.0,
+        "mean": 0.0,
+        "p95": 0.0
+      }
+    }
+  ],
+  "limitations": [
+    "Frozen phase zero; source acquisition, history/reveal and arbitrary transforms are not covered.",
+    "Owned cached Gaussian preserves requested logical sigma and DPR; graph bounds and filter phase may still differ.",
+    "Approximate pyramid kernels remain different from stock Gaussian."
+  ]
+}

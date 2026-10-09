@@ -1,0 +1,24 @@
+{
+  "target": "lib/perf/mip_api_probe.dart",
+  "defines": [],
+  "build_mode": "release",
+  "flutter_executable": "flutter-beta",
+  "sdk": {
+    "frameworkVersion": "3.49.0-0.2.pre",
+    "channel": "beta",
+    "repositoryUrl": "https://github.com/flutter/flutter.git",
+    "frameworkRevision": "38ec981bad973156ad05bdef0aa8e82d1a58905b",
+    "frameworkCommitDate": "2026-09-30 09:52:04 -0700",
+    "engineRevision": "774a76734848e38c908681d752e465b2a1595adb",
+    "engineCommitDate": "2026-09-18 21:11:54.000Z",
+    "engineContentHash": "1dd8f8de143bd458caafa09072e090ebefd2d6b1",
+    "engineBuildDate": "2026-09-19 00:12:55.388",
+    "dartSdkVersion": "3.14.0 (build 3.14.0-211.1.beta)",
+    "devToolsVersion": "2.61.0-dev.0",
+    "flutterVersion": "3.49.0-0.2.pre",
+    "flutterRoot": "/Users/tembeon/.local/share/flutter-beta"
+  },
+  "commit": "1325722f3ecc60c9b0e3cd9dd47835a756869a3e",
+  "source_sha256": "a0a81339eb84316bf7122eb601d741c3fb1aa24c3c9b408399a905c7a599eb86",
+  "apk_sha256": "3d4c92211212bf218188291df50c711bb413fde3a5984f520bbeb7ef3e437d66"
+}

@@ -1,0 +1,4998 @@
+{
+  "surface": "TX - ImpellerSurface#8952",
+  "mono_to_trace_ns": 39618544487489,
+  "windows": {
+    "nav-navigation-toolbar-liquid": [
+      {
+        "flutter_frames": 47,
+        "buffers": 40,
+        "unique_presentations": 40,
+        "present_type": {
+          "On-time Present": 40
+        },
+        "jank_type": {
+          "None": 40
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          33.397094,
+          16.643677,
+          16.683187,
+          16.739503,
+          49.97408,
+          16.685506,
+          33.350179,
+          16.67574,
+          16.654663,
+          16.705851,
+          16.683797,
+          16.6674,
+          16.688151,
+          33.344401,
+          16.684815,
+          16.660522,
+          16.675619,
+          16.675822,
+          16.690144,
+          16.685995,
+          16.669556,
+          16.686645,
+          33.361735,
+          16.650513,
+          16.681112,
+          16.665201,
+          16.684529,
+          33.381756,
+          16.656534,
+          16.828288,
+          16.590088,
+          33.290324,
+          16.701538,
+          16.652466,
+          16.687215,
+          16.672322,
+          16.70809,
+          16.661987,
+          16.648357
+        ],
+        "missed_presentation_slots": 8,
+        "longest_presentation_gap_ms": 49.97408,
+        "frames": [
+          {
+            "ts": 150350722759411,
+            "dur": 3553752,
+            "display_frame_token": 23817921,
+            "surface_frame_token": 23817909,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350748564546
+          },
+          {
+            "ts": 150350755830782,
+            "dur": 5072387,
+            "display_frame_token": 23817940,
+            "surface_frame_token": 23817928,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350781961640
+          },
+          {
+            "ts": 150350772402558,
+            "dur": 3080812,
+            "display_frame_token": 23817953,
+            "surface_frame_token": 23817941,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350798605317
+          },
+          {
+            "ts": 150350789139904,
+            "dur": 2645223,
+            "display_frame_token": 23817966,
+            "surface_frame_token": 23817954,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350815288504
+          },
+          {
+            "ts": 150350805729747,
+            "dur": 3039715,
+            "display_frame_token": 23817979,
+            "surface_frame_token": 23817967,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350832028007
+          },
+          {
+            "ts": 150350855792614,
+            "dur": 3072835,
+            "display_frame_token": 23818004,
+            "surface_frame_token": 23817992,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350882002087
+          },
+          {
+            "ts": 150350872395641,
+            "dur": 4761272,
+            "display_frame_token": 23818017,
+            "surface_frame_token": 23818005,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350898687593
+          },
+          {
+            "ts": 150350905890434,
+            "dur": 3650634,
+            "display_frame_token": 23818036,
+            "surface_frame_token": 23818024,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350932037772
+          },
+          {
+            "ts": 150350922274303,
+            "dur": 3255697,
+            "display_frame_token": 23818049,
+            "surface_frame_token": 23818037,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350948713512
+          },
+          {
+            "ts": 150350939180228,
+            "dur": 3715536,
+            "display_frame_token": 23818062,
+            "surface_frame_token": 23818050,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350965368175
+          },
+          {
+            "ts": 150350955718518,
+            "dur": 6085368,
+            "display_frame_token": 23818075,
+            "surface_frame_token": 23818063,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350982074026
+          },
+          {
+            "ts": 150350972299491,
+            "dur": 1900431,
+            "display_frame_token": 23818088,
+            "surface_frame_token": 23818076,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150350998757823
+          },
+          {
+            "ts": 150350989150484,
+            "dur": 4644979,
+            "display_frame_token": 23818101,
+            "surface_frame_token": 23818089,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351015425223
+          },
+          {
+            "ts": 150351005960868,
+            "dur": 3199300,
+            "display_frame_token": 23818114,
+            "surface_frame_token": 23818102,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351032113374
+          },
+          {
+            "ts": 150351038926851,
+            "dur": 4183838,
+            "display_frame_token": 23818133,
+            "surface_frame_token": 23818121,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351065457775
+          },
+          {
+            "ts": 150351055576794,
+            "dur": 3423136,
+            "display_frame_token": 23818146,
+            "surface_frame_token": 23818134,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351082142590
+          },
+          {
+            "ts": 150351072284069,
+            "dur": 4505779,
+            "display_frame_token": 23818159,
+            "surface_frame_token": 23818147,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351098803112
+          },
+          {
+            "ts": 150351089383394,
+            "dur": 3531739,
+            "display_frame_token": 23818172,
+            "surface_frame_token": 23818160,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351115478731
+          },
+          {
+            "ts": 150351105942271,
+            "dur": 3797487,
+            "display_frame_token": 23818185,
+            "surface_frame_token": 23818173,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351132154553
+          },
+          {
+            "ts": 150351122331921,
+            "dur": 4758911,
+            "display_frame_token": 23818198,
+            "surface_frame_token": 23818186,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351148844697
+          },
+          {
+            "ts": 150351139112153,
+            "dur": 4101522,
+            "display_frame_token": 23818211,
+            "surface_frame_token": 23818199,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351165530692
+          },
+          {
+            "ts": 150351155851818,
+            "dur": 3826050,
+            "display_frame_token": 23818224,
+            "surface_frame_token": 23818212,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351182200248
+          },
+          {
+            "ts": 150351172624727,
+            "dur": 3853190,
+            "display_frame_token": 23818237,
+            "surface_frame_token": 23818225,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351198886893
+          },
+          {
+            "ts": 150351205850964,
+            "dur": 4395223,
+            "display_frame_token": 23818256,
+            "surface_frame_token": 23818244,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351232248628
+          },
+          {
+            "ts": 150351222520316,
+            "dur": 2954142,
+            "display_frame_token": 23818269,
+            "surface_frame_token": 23818257,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351248899141
+          },
+          {
+            "ts": 150351239233858,
+            "dur": 3261027,
+            "display_frame_token": 23818282,
+            "surface_frame_token": 23818270,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351265580253
+          },
+          {
+            "ts": 150351255943575,
+            "dur": 2993245,
+            "display_frame_token": 23818295,
+            "surface_frame_token": 23818283,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351282245454
+          },
+          {
+            "ts": 150351272980318,
+            "dur": 2401611,
+            "display_frame_token": 23818308,
+            "surface_frame_token": 23818296,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351298929983
+          },
+          {
+            "ts": 150351306049613,
+            "dur": 5086792,
+            "display_frame_token": 23818327,
+            "surface_frame_token": 23818315,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351332311739
+          },
+          {
+            "ts": 150351322563285,
+            "dur": 3716593,
+            "display_frame_token": 23818340,
+            "surface_frame_token": 23818328,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351348968273
+          },
+          {
+            "ts": 150351339288789,
+            "dur": 2865926,
+            "display_frame_token": 23818353,
+            "surface_frame_token": 23818341,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351365796561
+          },
+          {
+            "ts": 150351356204112,
+            "dur": 3400921,
+            "display_frame_token": 23818366,
+            "surface_frame_token": 23818354,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351382386649
+          },
+          {
+            "ts": 150351389764986,
+            "dur": 5171387,
+            "display_frame_token": 23818385,
+            "surface_frame_token": 23818373,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351415676973
+          },
+          {
+            "ts": 150351406040173,
+            "dur": 3659424,
+            "display_frame_token": 23818398,
+            "surface_frame_token": 23818386,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351432378511
+          },
+          {
+            "ts": 150351422985567,
+            "dur": 2944621,
+            "display_frame_token": 23818411,
+            "surface_frame_token": 23818399,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351449030977
+          },
+          {
+            "ts": 150351439493298,
+            "dur": 3200968,
+            "display_frame_token": 23818424,
+            "surface_frame_token": 23818412,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351465718192
+          },
+          {
+            "ts": 150351456060355,
+            "dur": 2891806,
+            "display_frame_token": 23818437,
+            "surface_frame_token": 23818425,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351482390514
+          },
+          {
+            "ts": 150351472851778,
+            "dur": 3934123,
+            "display_frame_token": 23818450,
+            "surface_frame_token": 23818438,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351499098604
+          },
+          {
+            "ts": 150351489590874,
+            "dur": 3912962,
+            "display_frame_token": 23818463,
+            "surface_frame_token": 23818451,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351515760591
+          },
+          {
+            "ts": 150351506188488,
+            "dur": 2851318,
+            "display_frame_token": 23818476,
+            "surface_frame_token": 23818464,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150351532408948
+          }
+        ]
+      },
+      {
+        "flutter_frames": 48,
+        "buffers": 45,
+        "unique_presentations": 45,
+        "present_type": {
+          "On-time Present": 45
+        },
+        "jank_type": {
+          "None": 45
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          16.68811,
+          33.381185,
+          16.669312,
+          16.663371,
+          33.409669,
+          16.665933,
+          16.685954,
+          16.675944,
+          16.688557,
+          16.736817,
+          16.635743,
+          16.661946,
+          16.677531,
+          16.685384,
+          16.690064,
+          33.355143,
+          16.749756,
+          16.594768,
+          16.680948,
+          16.688599,
+          16.68986,
+          16.673746,
+          16.666545,
+          16.697998,
+          16.682129,
+          16.691202,
+          16.695028,
+          16.689495,
+          16.661864,
+          16.688924,
+          16.680177,
+          16.679646,
+          16.700481,
+          16.749512,
+          16.608193,
+          16.68921,
+          16.672607,
+          16.671185,
+          16.683756,
+          16.679564,
+          16.703288,
+          16.678305,
+          16.662149,
+          16.669801
+        ],
+        "missed_presentation_slots": 3,
+        "longest_presentation_gap_ms": 33.409669,
+        "frames": [
+          {
+            "ts": 150360264680964,
+            "dur": 5288697,
+            "display_frame_token": 23824394,
+            "surface_frame_token": 23824382,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360290923193
+          },
+          {
+            "ts": 150360281864640,
+            "dur": 3712932,
+            "display_frame_token": 23824407,
+            "surface_frame_token": 23824395,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360307611303
+          },
+          {
+            "ts": 150360314622249,
+            "dur": 3641683,
+            "display_frame_token": 23824426,
+            "surface_frame_token": 23824414,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360340992488
+          },
+          {
+            "ts": 150360331752336,
+            "dur": 2946330,
+            "display_frame_token": 23824439,
+            "surface_frame_token": 23824427,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360357661800
+          },
+          {
+            "ts": 150360348103491,
+            "dur": 1937704,
+            "display_frame_token": 23824452,
+            "surface_frame_token": 23824440,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360374325171
+          },
+          {
+            "ts": 150360381334123,
+            "dur": 3434610,
+            "display_frame_token": 23824471,
+            "surface_frame_token": 23824459,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360407734840
+          },
+          {
+            "ts": 150360398011898,
+            "dur": 3125244,
+            "display_frame_token": 23824484,
+            "surface_frame_token": 23824472,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360424400773
+          },
+          {
+            "ts": 150360414827124,
+            "dur": 3569581,
+            "display_frame_token": 23824497,
+            "surface_frame_token": 23824485,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360441086727
+          },
+          {
+            "ts": 150360431431047,
+            "dur": 4329589,
+            "display_frame_token": 23824510,
+            "surface_frame_token": 23824498,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360457762671
+          },
+          {
+            "ts": 150360448064917,
+            "dur": 3832153,
+            "display_frame_token": 23824523,
+            "surface_frame_token": 23824511,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360474451228
+          },
+          {
+            "ts": 150360464833675,
+            "dur": 2848918,
+            "display_frame_token": 23824536,
+            "surface_frame_token": 23824524,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360491188045
+          },
+          {
+            "ts": 150360481297014,
+            "dur": 4369710,
+            "display_frame_token": 23824549,
+            "surface_frame_token": 23824537,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360507823788
+          },
+          {
+            "ts": 150360497951026,
+            "dur": 2791138,
+            "display_frame_token": 23824562,
+            "surface_frame_token": 23824550,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360524485734
+          },
+          {
+            "ts": 150360514892066,
+            "dur": 2439371,
+            "display_frame_token": 23824575,
+            "surface_frame_token": 23824563,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360541163265
+          },
+          {
+            "ts": 150360531319271,
+            "dur": 3723673,
+            "display_frame_token": 23824588,
+            "surface_frame_token": 23824576,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360557848649
+          },
+          {
+            "ts": 150360548113786,
+            "dur": 2976562,
+            "display_frame_token": 23824601,
+            "surface_frame_token": 23824589,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360574538713
+          },
+          {
+            "ts": 150360581340429,
+            "dur": 2557781,
+            "display_frame_token": 23824620,
+            "surface_frame_token": 23824608,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360607893856
+          },
+          {
+            "ts": 150360598189918,
+            "dur": 2395914,
+            "display_frame_token": 23824633,
+            "surface_frame_token": 23824621,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360624643612
+          },
+          {
+            "ts": 150360614784929,
+            "dur": 3350625,
+            "display_frame_token": 23824646,
+            "surface_frame_token": 23824634,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360641238380
+          },
+          {
+            "ts": 150360631270158,
+            "dur": 2834391,
+            "display_frame_token": 23824659,
+            "surface_frame_token": 23824647,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360657919328
+          },
+          {
+            "ts": 150360648097469,
+            "dur": 2569214,
+            "display_frame_token": 23824672,
+            "surface_frame_token": 23824660,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360674607927
+          },
+          {
+            "ts": 150360664733211,
+            "dur": 2438680,
+            "display_frame_token": 23824685,
+            "surface_frame_token": 23824673,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360691297787
+          },
+          {
+            "ts": 150360681473975,
+            "dur": 2238729,
+            "display_frame_token": 23824698,
+            "surface_frame_token": 23824686,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360707971533
+          },
+          {
+            "ts": 150360698223527,
+            "dur": 2872396,
+            "display_frame_token": 23824711,
+            "surface_frame_token": 23824699,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360724638078
+          },
+          {
+            "ts": 150360714820329,
+            "dur": 2417236,
+            "display_frame_token": 23824724,
+            "surface_frame_token": 23824712,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360741336076
+          },
+          {
+            "ts": 150360731420508,
+            "dur": 2724853,
+            "display_frame_token": 23824737,
+            "surface_frame_token": 23824725,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360758018205
+          },
+          {
+            "ts": 150360748377010,
+            "dur": 3081055,
+            "display_frame_token": 23824750,
+            "surface_frame_token": 23824738,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360774709407
+          },
+          {
+            "ts": 150360765037084,
+            "dur": 3366130,
+            "display_frame_token": 23824763,
+            "surface_frame_token": 23824751,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360791404435
+          },
+          {
+            "ts": 150360781508602,
+            "dur": 2531331,
+            "display_frame_token": 23824776,
+            "surface_frame_token": 23824764,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360808093930
+          },
+          {
+            "ts": 150360798424088,
+            "dur": 3614259,
+            "display_frame_token": 23824789,
+            "surface_frame_token": 23824777,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360824755794
+          },
+          {
+            "ts": 150360815180517,
+            "dur": 3152223,
+            "display_frame_token": 23824802,
+            "surface_frame_token": 23824790,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360841444718
+          },
+          {
+            "ts": 150360831585669,
+            "dur": 3320964,
+            "display_frame_token": 23824815,
+            "surface_frame_token": 23824803,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360858124895
+          },
+          {
+            "ts": 150360848393408,
+            "dur": 2954102,
+            "display_frame_token": 23824828,
+            "surface_frame_token": 23824816,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360874804541
+          },
+          {
+            "ts": 150360865065121,
+            "dur": 3721760,
+            "display_frame_token": 23824841,
+            "surface_frame_token": 23824829,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360891505022
+          },
+          {
+            "ts": 150360881797135,
+            "dur": 3014608,
+            "display_frame_token": 23824854,
+            "surface_frame_token": 23824842,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360908254534
+          },
+          {
+            "ts": 150360898835832,
+            "dur": 3066528,
+            "display_frame_token": 23824867,
+            "surface_frame_token": 23824855,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360924862727
+          },
+          {
+            "ts": 150360915474097,
+            "dur": 3100627,
+            "display_frame_token": 23824880,
+            "surface_frame_token": 23824868,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360941551937
+          },
+          {
+            "ts": 150360931853532,
+            "dur": 3768392,
+            "display_frame_token": 23824893,
+            "surface_frame_token": 23824881,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360958224544
+          },
+          {
+            "ts": 150360948761694,
+            "dur": 3106771,
+            "display_frame_token": 23824906,
+            "surface_frame_token": 23824894,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360974895729
+          },
+          {
+            "ts": 150360965198177,
+            "dur": 3551880,
+            "display_frame_token": 23824919,
+            "surface_frame_token": 23824907,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150360991579485
+          },
+          {
+            "ts": 150360981969377,
+            "dur": 4072143,
+            "display_frame_token": 23824932,
+            "surface_frame_token": 23824920,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361008259049
+          },
+          {
+            "ts": 150360998807145,
+            "dur": 4029541,
+            "display_frame_token": 23824945,
+            "surface_frame_token": 23824933,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361024962337
+          },
+          {
+            "ts": 150361015635515,
+            "dur": 3550862,
+            "display_frame_token": 23824958,
+            "surface_frame_token": 23824946,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361041640642
+          },
+          {
+            "ts": 150361031980607,
+            "dur": 2903809,
+            "display_frame_token": 23824971,
+            "surface_frame_token": 23824959,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361058302791
+          },
+          {
+            "ts": 150361048424780,
+            "dur": 2841594,
+            "display_frame_token": 23824984,
+            "surface_frame_token": 23824972,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361074972592
+          }
+        ]
+      },
+      {
+        "flutter_frames": 47,
+        "buffers": 38,
+        "unique_presentations": 38,
+        "present_type": {
+          "On-time Present": 38
+        },
+        "jank_type": {
+          "None": 38
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          33.451659,
+          16.619711,
+          16.68457,
+          16.721761,
+          50.019531,
+          16.690593,
+          16.687256,
+          16.667765,
+          16.693726,
+          16.683024,
+          16.701375,
+          33.390625,
+          33.345948,
+          16.694336,
+          16.695923,
+          16.667521,
+          33.374308,
+          33.345948,
+          16.70048,
+          16.662759,
+          16.665732,
+          16.698934,
+          16.678832,
+          16.680176,
+          16.683838,
+          16.706624,
+          16.661215,
+          16.67513,
+          33.446167,
+          16.660237,
+          16.872437,
+          33.114461,
+          16.698323,
+          16.655436,
+          16.703452,
+          33.398682,
+          16.644855
+        ],
+        "missed_presentation_slots": 10,
+        "longest_presentation_gap_ms": 50.019531,
+        "frames": [
+          {
+            "ts": 150369790040508,
+            "dur": 4798950,
+            "display_frame_token": 23830898,
+            "surface_frame_token": 23830886,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369816286439
+          },
+          {
+            "ts": 150369823497377,
+            "dur": 4820352,
+            "display_frame_token": 23830917,
+            "surface_frame_token": 23830905,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369849738098
+          },
+          {
+            "ts": 150369840221294,
+            "dur": 3818318,
+            "display_frame_token": 23830930,
+            "surface_frame_token": 23830918,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369866357809
+          },
+          {
+            "ts": 150369856683411,
+            "dur": 3059571,
+            "display_frame_token": 23830943,
+            "surface_frame_token": 23830931,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369883042379
+          },
+          {
+            "ts": 150369873884176,
+            "dur": 4725912,
+            "display_frame_token": 23830956,
+            "surface_frame_token": 23830944,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369899764140
+          },
+          {
+            "ts": 150369923427674,
+            "dur": 3633056,
+            "display_frame_token": 23830981,
+            "surface_frame_token": 23830969,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369949783671
+          },
+          {
+            "ts": 150369941287008,
+            "dur": 5406616,
+            "display_frame_token": 23830994,
+            "surface_frame_token": 23830982,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369966474264
+          },
+          {
+            "ts": 150369957313742,
+            "dur": 3869343,
+            "display_frame_token": 23831007,
+            "surface_frame_token": 23830995,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369983161520
+          },
+          {
+            "ts": 150369973373475,
+            "dur": 3719238,
+            "display_frame_token": 23831020,
+            "surface_frame_token": 23831008,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150369999829285
+          },
+          {
+            "ts": 150369989999003,
+            "dur": 2205282,
+            "display_frame_token": 23831033,
+            "surface_frame_token": 23831021,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370016523011
+          },
+          {
+            "ts": 150370006688457,
+            "dur": 2548829,
+            "display_frame_token": 23831046,
+            "surface_frame_token": 23831034,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370033206035
+          },
+          {
+            "ts": 150370023520203,
+            "dur": 2612345,
+            "display_frame_token": 23831059,
+            "surface_frame_token": 23831047,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370049907410
+          },
+          {
+            "ts": 150370057081726,
+            "dur": 3820598,
+            "display_frame_token": 23831078,
+            "surface_frame_token": 23831066,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370083298035
+          },
+          {
+            "ts": 150370090375062,
+            "dur": 4032105,
+            "display_frame_token": 23831097,
+            "surface_frame_token": 23831085,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370116643983
+          },
+          {
+            "ts": 150370107045065,
+            "dur": 3904581,
+            "display_frame_token": 23831110,
+            "surface_frame_token": 23831098,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370133338319
+          },
+          {
+            "ts": 150370123635845,
+            "dur": 4095214,
+            "display_frame_token": 23831123,
+            "surface_frame_token": 23831111,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370150034242
+          },
+          {
+            "ts": 150370140279561,
+            "dur": 3975302,
+            "display_frame_token": 23831136,
+            "surface_frame_token": 23831124,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370166701763
+          },
+          {
+            "ts": 150370173792054,
+            "dur": 4393473,
+            "display_frame_token": 23831155,
+            "surface_frame_token": 23831143,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370200076071
+          },
+          {
+            "ts": 150370207196188,
+            "dur": 3564697,
+            "display_frame_token": 23831174,
+            "surface_frame_token": 23831162,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370233422019
+          },
+          {
+            "ts": 150370223813945,
+            "dur": 3082479,
+            "display_frame_token": 23831187,
+            "surface_frame_token": 23831175,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370250122499
+          },
+          {
+            "ts": 150370240767517,
+            "dur": 2721396,
+            "display_frame_token": 23831200,
+            "surface_frame_token": 23831188,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370266785258
+          },
+          {
+            "ts": 150370257248881,
+            "dur": 1996990,
+            "display_frame_token": 23831213,
+            "surface_frame_token": 23831201,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370283450990
+          },
+          {
+            "ts": 150370274187439,
+            "dur": 3250610,
+            "display_frame_token": 23831226,
+            "surface_frame_token": 23831214,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370300149924
+          },
+          {
+            "ts": 150370290488953,
+            "dur": 3796021,
+            "display_frame_token": 23831239,
+            "surface_frame_token": 23831227,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370316828756
+          },
+          {
+            "ts": 150370307157858,
+            "dur": 3668986,
+            "display_frame_token": 23831252,
+            "surface_frame_token": 23831240,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370333508932
+          },
+          {
+            "ts": 150370323843852,
+            "dur": 2827230,
+            "display_frame_token": 23831265,
+            "surface_frame_token": 23831253,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370350192770
+          },
+          {
+            "ts": 150370340701152,
+            "dur": 3237753,
+            "display_frame_token": 23831278,
+            "surface_frame_token": 23831266,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370366899394
+          },
+          {
+            "ts": 150370357162659,
+            "dur": 4517294,
+            "display_frame_token": 23831291,
+            "surface_frame_token": 23831279,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370383560609
+          },
+          {
+            "ts": 150370374432963,
+            "dur": 5233440,
+            "display_frame_token": 23831304,
+            "surface_frame_token": 23831292,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370400235739
+          },
+          {
+            "ts": 150370407178487,
+            "dur": 4481812,
+            "display_frame_token": 23831323,
+            "surface_frame_token": 23831311,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370433681906
+          },
+          {
+            "ts": 150370423999899,
+            "dur": 4065388,
+            "display_frame_token": 23831336,
+            "surface_frame_token": 23831324,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370450342143
+          },
+          {
+            "ts": 150370441613465,
+            "dur": 3892700,
+            "display_frame_token": 23831349,
+            "surface_frame_token": 23831337,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370467214580
+          },
+          {
+            "ts": 150370474078187,
+            "dur": 3853149,
+            "display_frame_token": 23831368,
+            "surface_frame_token": 23831356,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370500329041
+          },
+          {
+            "ts": 150370490962300,
+            "dur": 1513876,
+            "display_frame_token": 23831381,
+            "surface_frame_token": 23831369,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370517027364
+          },
+          {
+            "ts": 150370507622498,
+            "dur": 3244182,
+            "display_frame_token": 23831394,
+            "surface_frame_token": 23831382,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370533682800
+          },
+          {
+            "ts": 150370524720317,
+            "dur": 4054647,
+            "display_frame_token": 23831407,
+            "surface_frame_token": 23831395,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370550386252
+          },
+          {
+            "ts": 150370557570334,
+            "dur": 4945434,
+            "display_frame_token": 23831426,
+            "surface_frame_token": 23831414,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370583784934
+          },
+          {
+            "ts": 150370573992453,
+            "dur": 3104410,
+            "display_frame_token": 23831439,
+            "surface_frame_token": 23831427,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150370600429789
+          }
+        ]
+      }
+    ],
+    "nav-navigation-nested-pop-liquid": [
+      {
+        "flutter_frames": 39,
+        "buffers": 34,
+        "unique_presentations": 34,
+        "present_type": {
+          "On-time Present": 34
+        },
+        "jank_type": {
+          "None": 34
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          33.393148,
+          33.410441,
+          50.0566,
+          50.042846,
+          33.392742,
+          16.652954,
+          33.370606,
+          33.35795,
+          33.377401,
+          33.355185,
+          33.387328,
+          16.660888,
+          16.667765,
+          16.701173,
+          16.699992,
+          16.676839,
+          16.731772,
+          16.688842,
+          16.693075,
+          16.656168,
+          16.642171,
+          16.694784,
+          16.686726,
+          16.785483,
+          16.585449,
+          33.361124,
+          16.67216,
+          16.694255,
+          16.725911,
+          16.628174,
+          16.770752,
+          16.605062,
+          33.384766
+        ],
+        "missed_presentation_slots": 14,
+        "longest_presentation_gap_ms": 50.0566,
+        "frames": [
+          {
+            "ts": 150354108660047,
+            "dur": 7649292,
+            "display_frame_token": 23820271,
+            "surface_frame_token": 23820259,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354134648613
+          },
+          {
+            "ts": 150354141996676,
+            "dur": 3332276,
+            "display_frame_token": 23820284,
+            "surface_frame_token": 23820272,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354168041761
+          },
+          {
+            "ts": 150354174962090,
+            "dur": 2693156,
+            "display_frame_token": 23820303,
+            "surface_frame_token": 23820291,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354201452202
+          },
+          {
+            "ts": 150354224902763,
+            "dur": 2506593,
+            "display_frame_token": 23820328,
+            "surface_frame_token": 23820316,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354251508802
+          },
+          {
+            "ts": 150354274952203,
+            "dur": 2486652,
+            "display_frame_token": 23820353,
+            "surface_frame_token": 23820341,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354301551648
+          },
+          {
+            "ts": 150354308203707,
+            "dur": 4630982,
+            "display_frame_token": 23820372,
+            "surface_frame_token": 23820360,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354334944390
+          },
+          {
+            "ts": 150354324923638,
+            "dur": 4266520,
+            "display_frame_token": 23820385,
+            "surface_frame_token": 23820373,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354351597344
+          },
+          {
+            "ts": 150354358966932,
+            "dur": 4171795,
+            "display_frame_token": 23820404,
+            "surface_frame_token": 23820392,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354384967950
+          },
+          {
+            "ts": 150354392121921,
+            "dur": 4239136,
+            "display_frame_token": 23820417,
+            "surface_frame_token": 23820405,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354418325900
+          },
+          {
+            "ts": 150354431941989,
+            "dur": 4799032,
+            "display_frame_token": 23820430,
+            "surface_frame_token": 23820424,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354451703301
+          },
+          {
+            "ts": 150354458374362,
+            "dur": 2880046,
+            "display_frame_token": 23820449,
+            "surface_frame_token": 23820437,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354485058486
+          },
+          {
+            "ts": 150354491830539,
+            "dur": 4540486,
+            "display_frame_token": 23820468,
+            "surface_frame_token": 23820456,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354518445814
+          },
+          {
+            "ts": 150354508585299,
+            "dur": 1673584,
+            "display_frame_token": 23820481,
+            "surface_frame_token": 23820469,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354535106702
+          },
+          {
+            "ts": 150354525210748,
+            "dur": 3105753,
+            "display_frame_token": 23820494,
+            "surface_frame_token": 23820482,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354551774467
+          },
+          {
+            "ts": 150354541926405,
+            "dur": 2937662,
+            "display_frame_token": 23820507,
+            "surface_frame_token": 23820495,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354568475640
+          },
+          {
+            "ts": 150354558688979,
+            "dur": 3225626,
+            "display_frame_token": 23820520,
+            "surface_frame_token": 23820508,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354585175632
+          },
+          {
+            "ts": 150354575650037,
+            "dur": 2944580,
+            "display_frame_token": 23820533,
+            "surface_frame_token": 23820521,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354601852471
+          },
+          {
+            "ts": 150354592863335,
+            "dur": 1873901,
+            "display_frame_token": 23820546,
+            "surface_frame_token": 23820534,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354618584243
+          },
+          {
+            "ts": 150354609012017,
+            "dur": 1757406,
+            "display_frame_token": 23820559,
+            "surface_frame_token": 23820547,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354635273085
+          },
+          {
+            "ts": 150354625316297,
+            "dur": 1662924,
+            "display_frame_token": 23820572,
+            "surface_frame_token": 23820560,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354651966160
+          },
+          {
+            "ts": 150354642101698,
+            "dur": 2073038,
+            "display_frame_token": 23820585,
+            "surface_frame_token": 23820573,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354668622328
+          },
+          {
+            "ts": 150354659094089,
+            "dur": 2035848,
+            "display_frame_token": 23820598,
+            "surface_frame_token": 23820586,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354685264499
+          },
+          {
+            "ts": 150354675545464,
+            "dur": 1630656,
+            "display_frame_token": 23820611,
+            "surface_frame_token": 23820599,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354701959283
+          },
+          {
+            "ts": 150354692224908,
+            "dur": 2137004,
+            "display_frame_token": 23820624,
+            "surface_frame_token": 23820612,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354718646009
+          },
+          {
+            "ts": 150354708826756,
+            "dur": 3069905,
+            "display_frame_token": 23820637,
+            "surface_frame_token": 23820625,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354735431492
+          },
+          {
+            "ts": 150354725659681,
+            "dur": 4080445,
+            "display_frame_token": 23820650,
+            "surface_frame_token": 23820638,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354752016941
+          },
+          {
+            "ts": 150354758757988,
+            "dur": 3068115,
+            "display_frame_token": 23820669,
+            "surface_frame_token": 23820657,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354785378065
+          },
+          {
+            "ts": 150354776164361,
+            "dur": 2263712,
+            "display_frame_token": 23820682,
+            "surface_frame_token": 23820670,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354802050225
+          },
+          {
+            "ts": 150354792690647,
+            "dur": 3459513,
+            "display_frame_token": 23820695,
+            "surface_frame_token": 23820683,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354818744480
+          },
+          {
+            "ts": 150354808907566,
+            "dur": 2911336,
+            "display_frame_token": 23820708,
+            "surface_frame_token": 23820696,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354835470391
+          },
+          {
+            "ts": 150354826026502,
+            "dur": 2018678,
+            "display_frame_token": 23820721,
+            "surface_frame_token": 23820709,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354852098565
+          },
+          {
+            "ts": 150354842858656,
+            "dur": 3505778,
+            "display_frame_token": 23820734,
+            "surface_frame_token": 23820722,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354868869317
+          },
+          {
+            "ts": 150354859232191,
+            "dur": 2357544,
+            "display_frame_token": 23820747,
+            "surface_frame_token": 23820735,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354885474379
+          },
+          {
+            "ts": 150354892212864,
+            "dur": 2690225,
+            "display_frame_token": 23820760,
+            "surface_frame_token": 23820748,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150354918859145
+          }
+        ]
+      },
+      {
+        "flutter_frames": 42,
+        "buffers": 33,
+        "unique_presentations": 33,
+        "present_type": {
+          "On-time Present": 33
+        },
+        "jank_type": {
+          "None": 33
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          49.989421,
+          16.630168,
+          33.414429,
+          33.335489,
+          66.772421,
+          33.280599,
+          33.385294,
+          16.664185,
+          16.713827,
+          16.651651,
+          16.678426,
+          16.672933,
+          16.718384,
+          16.680054,
+          16.665081,
+          16.707437,
+          33.350749,
+          16.675659,
+          16.65507,
+          16.718099,
+          33.364502,
+          16.639689,
+          33.413208,
+          33.390381,
+          16.648803,
+          33.379435,
+          16.658408,
+          16.714518,
+          33.37386,
+          16.674723,
+          16.814534,
+          16.582602
+        ],
+        "missed_presentation_slots": 15,
+        "longest_presentation_gap_ms": 66.772421,
+        "frames": [
+          {
+            "ts": 150367421009460,
+            "dur": 3686849,
+            "display_frame_token": 23829290,
+            "surface_frame_token": 23829278,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367447458393
+          },
+          {
+            "ts": 150367471037170,
+            "dur": 2957234,
+            "display_frame_token": 23829309,
+            "surface_frame_token": 23829297,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367497447814
+          },
+          {
+            "ts": 150367487960550,
+            "dur": 3091838,
+            "display_frame_token": 23829322,
+            "surface_frame_token": 23829310,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367514077982
+          },
+          {
+            "ts": 150367521216490,
+            "dur": 4916098,
+            "display_frame_token": 23829335,
+            "surface_frame_token": 23829323,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367547492411
+          },
+          {
+            "ts": 150367554598246,
+            "dur": 3716960,
+            "display_frame_token": 23829348,
+            "surface_frame_token": 23829336,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367580827900
+          },
+          {
+            "ts": 150367621311828,
+            "dur": 3244995,
+            "display_frame_token": 23829367,
+            "surface_frame_token": 23829355,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367647600321
+          },
+          {
+            "ts": 150367656152688,
+            "dur": 4482301,
+            "display_frame_token": 23829380,
+            "surface_frame_token": 23829374,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367680880920
+          },
+          {
+            "ts": 150367687821716,
+            "dur": 3636066,
+            "display_frame_token": 23829399,
+            "surface_frame_token": 23829387,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367714266214
+          },
+          {
+            "ts": 150367704102233,
+            "dur": 1932659,
+            "display_frame_token": 23829412,
+            "surface_frame_token": 23829400,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367730930399
+          },
+          {
+            "ts": 150367720762552,
+            "dur": 1713175,
+            "display_frame_token": 23829425,
+            "surface_frame_token": 23829413,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367747644226
+          },
+          {
+            "ts": 150367737617329,
+            "dur": 2320597,
+            "display_frame_token": 23829438,
+            "surface_frame_token": 23829426,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367764295877
+          },
+          {
+            "ts": 150367754119771,
+            "dur": 2955729,
+            "display_frame_token": 23829451,
+            "surface_frame_token": 23829439,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367780974303
+          },
+          {
+            "ts": 150367770977070,
+            "dur": 3209839,
+            "display_frame_token": 23829464,
+            "surface_frame_token": 23829452,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367797647236
+          },
+          {
+            "ts": 150367787758931,
+            "dur": 3155559,
+            "display_frame_token": 23829477,
+            "surface_frame_token": 23829465,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367814365620
+          },
+          {
+            "ts": 150367804345600,
+            "dur": 3200929,
+            "display_frame_token": 23829490,
+            "surface_frame_token": 23829478,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367831045674
+          },
+          {
+            "ts": 150367820911804,
+            "dur": 3426798,
+            "display_frame_token": 23829503,
+            "surface_frame_token": 23829491,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367847710755
+          },
+          {
+            "ts": 150367837870096,
+            "dur": 3758544,
+            "display_frame_token": 23829516,
+            "surface_frame_token": 23829504,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367864418192
+          },
+          {
+            "ts": 150367871345601,
+            "dur": 2103922,
+            "display_frame_token": 23829535,
+            "surface_frame_token": 23829523,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367897768941
+          },
+          {
+            "ts": 150367887852518,
+            "dur": 2461019,
+            "display_frame_token": 23829548,
+            "surface_frame_token": 23829536,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367914444600
+          },
+          {
+            "ts": 150367904586364,
+            "dur": 2328329,
+            "display_frame_token": 23829561,
+            "surface_frame_token": 23829549,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367931099670
+          },
+          {
+            "ts": 150367921416971,
+            "dur": 2504639,
+            "display_frame_token": 23829574,
+            "surface_frame_token": 23829562,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367947817769
+          },
+          {
+            "ts": 150367954477437,
+            "dur": 2359212,
+            "display_frame_token": 23829593,
+            "surface_frame_token": 23829581,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367981182271
+          },
+          {
+            "ts": 150367971352356,
+            "dur": 1758382,
+            "display_frame_token": 23829606,
+            "surface_frame_token": 23829594,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150367997821960
+          },
+          {
+            "ts": 150368005043478,
+            "dur": 1932658,
+            "display_frame_token": 23829625,
+            "surface_frame_token": 23829613,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368031235168
+          },
+          {
+            "ts": 150368038125833,
+            "dur": 3461711,
+            "display_frame_token": 23829644,
+            "surface_frame_token": 23829632,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368064625549
+          },
+          {
+            "ts": 150368054951966,
+            "dur": 2023152,
+            "display_frame_token": 23829657,
+            "surface_frame_token": 23829645,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368081274352
+          },
+          {
+            "ts": 150368088238586,
+            "dur": 1860351,
+            "display_frame_token": 23829676,
+            "surface_frame_token": 23829664,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368114653787
+          },
+          {
+            "ts": 150368105182719,
+            "dur": 4356363,
+            "display_frame_token": 23829689,
+            "surface_frame_token": 23829677,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368131312195
+          },
+          {
+            "ts": 150368121753804,
+            "dur": 2595378,
+            "display_frame_token": 23829702,
+            "surface_frame_token": 23829690,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368148026713
+          },
+          {
+            "ts": 150368154794413,
+            "dur": 2246867,
+            "display_frame_token": 23829721,
+            "surface_frame_token": 23829709,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368181400573
+          },
+          {
+            "ts": 150368171778096,
+            "dur": 2773194,
+            "display_frame_token": 23829734,
+            "surface_frame_token": 23829722,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368198075296
+          },
+          {
+            "ts": 150368188401428,
+            "dur": 2907634,
+            "display_frame_token": 23829747,
+            "surface_frame_token": 23829735,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368214889830
+          },
+          {
+            "ts": 150368205006205,
+            "dur": 2864502,
+            "display_frame_token": 23829760,
+            "surface_frame_token": 23829748,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150368231472432
+          }
+        ]
+      },
+      {
+        "flutter_frames": 41,
+        "buffers": 30,
+        "unique_presentations": 30,
+        "present_type": {
+          "On-time Present": 30
+        },
+        "jank_type": {
+          "None": 30
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          50.035399,
+          33.328247,
+          33.368001,
+          33.383911,
+          33.34017,
+          16.664592,
+          33.357748,
+          33.393799,
+          16.675536,
+          16.674072,
+          33.355591,
+          33.425131,
+          33.380127,
+          16.62032,
+          33.383017,
+          33.351358,
+          33.363769,
+          33.36792,
+          33.371054,
+          16.673217,
+          16.698975,
+          16.716756,
+          16.635376,
+          16.676229,
+          33.353475,
+          33.355063,
+          16.808023,
+          16.624268,
+          16.607097
+        ],
+        "missed_presentation_slots": 18,
+        "longest_presentation_gap_ms": 50.035399,
+        "frames": [
+          {
+            "ts": 150373176143659,
+            "dur": 3204630,
+            "display_frame_token": 23833085,
+            "surface_frame_token": 23833073,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373202480492
+          },
+          {
+            "ts": 150373226344586,
+            "dur": 4337524,
+            "display_frame_token": 23833098,
+            "surface_frame_token": 23833086,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373252515891
+          },
+          {
+            "ts": 150373259406517,
+            "dur": 3859292,
+            "display_frame_token": 23833117,
+            "surface_frame_token": 23833105,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373285844138
+          },
+          {
+            "ts": 150373292820416,
+            "dur": 1936646,
+            "display_frame_token": 23833130,
+            "surface_frame_token": 23833118,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373319212139
+          },
+          {
+            "ts": 150373326227521,
+            "dur": 2521932,
+            "display_frame_token": 23833149,
+            "surface_frame_token": 23833137,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373352596050
+          },
+          {
+            "ts": 150373359601625,
+            "dur": 3571006,
+            "display_frame_token": 23833168,
+            "surface_frame_token": 23833156,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373385936220
+          },
+          {
+            "ts": 150373376331199,
+            "dur": 3883422,
+            "display_frame_token": 23833181,
+            "surface_frame_token": 23833169,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373402600812
+          },
+          {
+            "ts": 150373409542666,
+            "dur": 3782593,
+            "display_frame_token": 23833200,
+            "surface_frame_token": 23833188,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373435958560
+          },
+          {
+            "ts": 150373442601951,
+            "dur": 3901449,
+            "display_frame_token": 23833219,
+            "surface_frame_token": 23833207,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373469352359
+          },
+          {
+            "ts": 150373459327945,
+            "dur": 2371175,
+            "display_frame_token": 23833232,
+            "surface_frame_token": 23833220,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373486027895
+          },
+          {
+            "ts": 150373475929181,
+            "dur": 2638142,
+            "display_frame_token": 23833245,
+            "surface_frame_token": 23833233,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373502701967
+          },
+          {
+            "ts": 150373509323264,
+            "dur": 3155763,
+            "display_frame_token": 23833264,
+            "surface_frame_token": 23833252,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373536057558
+          },
+          {
+            "ts": 150373542741315,
+            "dur": 1867309,
+            "display_frame_token": 23833283,
+            "surface_frame_token": 23833271,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373569482689
+          },
+          {
+            "ts": 150373576115013,
+            "dur": 2720010,
+            "display_frame_token": 23833302,
+            "surface_frame_token": 23833290,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373602862816
+          },
+          {
+            "ts": 150373592967918,
+            "dur": 1943319,
+            "display_frame_token": 23833315,
+            "surface_frame_token": 23833303,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373619483136
+          },
+          {
+            "ts": 150373626968610,
+            "dur": 2364990,
+            "display_frame_token": 23833334,
+            "surface_frame_token": 23833322,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373652866153
+          },
+          {
+            "ts": 150373659934104,
+            "dur": 2704386,
+            "display_frame_token": 23833353,
+            "surface_frame_token": 23833341,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373686217511
+          },
+          {
+            "ts": 150373693330955,
+            "dur": 2955118,
+            "display_frame_token": 23833372,
+            "surface_frame_token": 23833360,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373719581280
+          },
+          {
+            "ts": 150373726366804,
+            "dur": 2746378,
+            "display_frame_token": 23833391,
+            "surface_frame_token": 23833379,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373752949200
+          },
+          {
+            "ts": 150373760414696,
+            "dur": 2039713,
+            "display_frame_token": 23833410,
+            "surface_frame_token": 23833398,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373786320254
+          },
+          {
+            "ts": 150373776615542,
+            "dur": 2072428,
+            "display_frame_token": 23833423,
+            "surface_frame_token": 23833411,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373802993471
+          },
+          {
+            "ts": 150373793144106,
+            "dur": 2274903,
+            "display_frame_token": 23833436,
+            "surface_frame_token": 23833424,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373819692446
+          },
+          {
+            "ts": 150373810102358,
+            "dur": 3289999,
+            "display_frame_token": 23833449,
+            "surface_frame_token": 23833437,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373836409202
+          },
+          {
+            "ts": 150373826807437,
+            "dur": 2503702,
+            "display_frame_token": 23833462,
+            "surface_frame_token": 23833450,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373853044578
+          },
+          {
+            "ts": 150373843363630,
+            "dur": 2281413,
+            "display_frame_token": 23833475,
+            "surface_frame_token": 23833463,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373869720807
+          },
+          {
+            "ts": 150373877727521,
+            "dur": 3141806,
+            "display_frame_token": 23833494,
+            "surface_frame_token": 23833482,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373903074282
+          },
+          {
+            "ts": 150373910041730,
+            "dur": 3349446,
+            "display_frame_token": 23833513,
+            "surface_frame_token": 23833501,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373936429345
+          },
+          {
+            "ts": 150373927111635,
+            "dur": 2599203,
+            "display_frame_token": 23833526,
+            "surface_frame_token": 23833514,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373953237368
+          },
+          {
+            "ts": 150373943288191,
+            "dur": 3104044,
+            "display_frame_token": 23833539,
+            "surface_frame_token": 23833527,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373969861636
+          },
+          {
+            "ts": 150373960132632,
+            "dur": 2566406,
+            "display_frame_token": 23833552,
+            "surface_frame_token": 23833540,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150373986468733
+          }
+        ]
+      }
+    ],
+    "nav-navigation-nested-push-liquid": [
+      {
+        "flutter_frames": 35,
+        "buffers": 31,
+        "unique_presentations": 31,
+        "present_type": {
+          "On-time Present": 31
+        },
+        "jank_type": {
+          "None": 31
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          33.569864,
+          49.911663,
+          33.311239,
+          83.396565,
+          33.396933,
+          33.352132,
+          33.348062,
+          16.675375,
+          33.37089,
+          16.709554,
+          33.374756,
+          16.676148,
+          33.375285,
+          16.660562,
+          16.67212,
+          16.674154,
+          16.709065,
+          16.698649,
+          16.655843,
+          16.678101,
+          33.412557,
+          16.661092,
+          33.487916,
+          16.585083,
+          16.655801,
+          16.683717,
+          16.673665,
+          33.393921,
+          16.69283,
+          16.663127
+        ],
+        "missed_presentation_slots": 17,
+        "longest_presentation_gap_ms": 83.396565,
+        "frames": [
+          {
+            "ts": 150356477718724,
+            "dur": 2650187,
+            "display_frame_token": 23821878,
+            "surface_frame_token": 23821866,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356503664809
+          },
+          {
+            "ts": 150356510677586,
+            "dur": 3857910,
+            "display_frame_token": 23821891,
+            "surface_frame_token": 23821879,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356537234673
+          },
+          {
+            "ts": 150356561055068,
+            "dur": 4764608,
+            "display_frame_token": 23821904,
+            "surface_frame_token": 23821892,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356587146336
+          },
+          {
+            "ts": 150356594475763,
+            "dur": 3908080,
+            "display_frame_token": 23821917,
+            "surface_frame_token": 23821905,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356620457575
+          },
+          {
+            "ts": 150356677410659,
+            "dur": 3623006,
+            "display_frame_token": 23821936,
+            "surface_frame_token": 23821924,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356703854140
+          },
+          {
+            "ts": 150356711026259,
+            "dur": 1992636,
+            "display_frame_token": 23821955,
+            "surface_frame_token": 23821943,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356737251073
+          },
+          {
+            "ts": 150356744362035,
+            "dur": 4645344,
+            "display_frame_token": 23821968,
+            "surface_frame_token": 23821956,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356770603205
+          },
+          {
+            "ts": 150356777227025,
+            "dur": 2211954,
+            "display_frame_token": 23821981,
+            "surface_frame_token": 23821969,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356803951267
+          },
+          {
+            "ts": 150356793931939,
+            "dur": 3268067,
+            "display_frame_token": 23821994,
+            "surface_frame_token": 23821982,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356820626642
+          },
+          {
+            "ts": 150356827093560,
+            "dur": 4081341,
+            "display_frame_token": 23822007,
+            "surface_frame_token": 23821995,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356853997532
+          },
+          {
+            "ts": 150356844543553,
+            "dur": 2376302,
+            "display_frame_token": 23822020,
+            "surface_frame_token": 23822008,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356870707086
+          },
+          {
+            "ts": 150356877226455,
+            "dur": 3163127,
+            "display_frame_token": 23822033,
+            "surface_frame_token": 23822021,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356904081842
+          },
+          {
+            "ts": 150356894205010,
+            "dur": 1706829,
+            "display_frame_token": 23822046,
+            "surface_frame_token": 23822034,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356920757990
+          },
+          {
+            "ts": 150356927474827,
+            "dur": 3415731,
+            "display_frame_token": 23822065,
+            "surface_frame_token": 23822053,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356954133275
+          },
+          {
+            "ts": 150356944430069,
+            "dur": 1998493,
+            "display_frame_token": 23822078,
+            "surface_frame_token": 23822066,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356970793837
+          },
+          {
+            "ts": 150356961309625,
+            "dur": 1677043,
+            "display_frame_token": 23822091,
+            "surface_frame_token": 23822079,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150356987465957
+          },
+          {
+            "ts": 150356977659561,
+            "dur": 1368082,
+            "display_frame_token": 23822104,
+            "surface_frame_token": 23822092,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357004140111
+          },
+          {
+            "ts": 150356994334649,
+            "dur": 2575888,
+            "display_frame_token": 23822117,
+            "surface_frame_token": 23822105,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357020849176
+          },
+          {
+            "ts": 150357011150283,
+            "dur": 2718506,
+            "display_frame_token": 23822130,
+            "surface_frame_token": 23822118,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357037547825
+          },
+          {
+            "ts": 150357027786839,
+            "dur": 3956258,
+            "display_frame_token": 23822143,
+            "surface_frame_token": 23822131,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357054203668
+          },
+          {
+            "ts": 150357044575250,
+            "dur": 3020468,
+            "display_frame_token": 23822156,
+            "surface_frame_token": 23822144,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357070881769
+          },
+          {
+            "ts": 150357077838394,
+            "dur": 2745402,
+            "display_frame_token": 23822175,
+            "surface_frame_token": 23822163,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357104294326
+          },
+          {
+            "ts": 150357094818171,
+            "dur": 2396321,
+            "display_frame_token": 23822188,
+            "surface_frame_token": 23822176,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357120955418
+          },
+          {
+            "ts": 150357127882136,
+            "dur": 3462890,
+            "display_frame_token": 23822207,
+            "surface_frame_token": 23822195,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357154443334
+          },
+          {
+            "ts": 150357144405776,
+            "dur": 2546020,
+            "display_frame_token": 23822220,
+            "surface_frame_token": 23822208,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357171028417
+          },
+          {
+            "ts": 150357161141453,
+            "dur": 2841634,
+            "display_frame_token": 23822233,
+            "surface_frame_token": 23822221,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357187684218
+          },
+          {
+            "ts": 150357178158665,
+            "dur": 3434123,
+            "display_frame_token": 23822246,
+            "surface_frame_token": 23822234,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357204367935
+          },
+          {
+            "ts": 150357194667658,
+            "dur": 2842244,
+            "display_frame_token": 23822259,
+            "surface_frame_token": 23822247,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357221041600
+          },
+          {
+            "ts": 150357227919245,
+            "dur": 3674479,
+            "display_frame_token": 23822272,
+            "surface_frame_token": 23822260,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357254435521
+          },
+          {
+            "ts": 150357244824681,
+            "dur": 3112711,
+            "display_frame_token": 23822285,
+            "surface_frame_token": 23822273,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357271128351
+          },
+          {
+            "ts": 150357261929011,
+            "dur": 2322428,
+            "display_frame_token": 23822298,
+            "surface_frame_token": 23822286,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357287791478
+          }
+        ]
+      },
+      {
+        "flutter_frames": 36,
+        "buffers": 31,
+        "unique_presentations": 31,
+        "present_type": {
+          "On-time Present": 31
+        },
+        "jank_type": {
+          "None": 31
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          33.316245,
+          50.128824,
+          33.262981,
+          66.741699,
+          33.334066,
+          33.38151,
+          33.335734,
+          33.356364,
+          33.352092,
+          16.696492,
+          16.66215,
+          16.68689,
+          16.680949,
+          16.68221,
+          16.636027,
+          16.730102,
+          33.350221,
+          33.354818,
+          16.683146,
+          16.669474,
+          16.678385,
+          16.679851,
+          33.368082,
+          16.654256,
+          16.69751,
+          16.699015,
+          16.638062,
+          16.694986,
+          33.36023,
+          33.402873
+        ],
+        "missed_presentation_slots": 17,
+        "longest_presentation_gap_ms": 66.741699,
+        "frames": [
+          {
+            "ts": 150364051469501,
+            "dur": 3543741,
+            "display_frame_token": 23827128,
+            "surface_frame_token": 23827116,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364077824846
+          },
+          {
+            "ts": 150364085409930,
+            "dur": 5131959,
+            "display_frame_token": 23827141,
+            "surface_frame_token": 23827129,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364111141091
+          },
+          {
+            "ts": 150364134626605,
+            "dur": 3010213,
+            "display_frame_token": 23827154,
+            "surface_frame_token": 23827142,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364161269915
+          },
+          {
+            "ts": 150364168232644,
+            "dur": 3507731,
+            "display_frame_token": 23827167,
+            "surface_frame_token": 23827155,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364194532896
+          },
+          {
+            "ts": 150364234846575,
+            "dur": 2644531,
+            "display_frame_token": 23827186,
+            "surface_frame_token": 23827174,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364261274595
+          },
+          {
+            "ts": 150364268331602,
+            "dur": 3461629,
+            "display_frame_token": 23827199,
+            "surface_frame_token": 23827187,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364294608661
+          },
+          {
+            "ts": 150364301497576,
+            "dur": 3790691,
+            "display_frame_token": 23827212,
+            "surface_frame_token": 23827200,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364327990171
+          },
+          {
+            "ts": 150364334862729,
+            "dur": 3582805,
+            "display_frame_token": 23827225,
+            "surface_frame_token": 23827213,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364361325905
+          },
+          {
+            "ts": 150364368135271,
+            "dur": 3226360,
+            "display_frame_token": 23827238,
+            "surface_frame_token": 23827226,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364394682269
+          },
+          {
+            "ts": 150364401407489,
+            "dur": 2099813,
+            "display_frame_token": 23827251,
+            "surface_frame_token": 23827239,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364428034361
+          },
+          {
+            "ts": 150364418039244,
+            "dur": 2096313,
+            "display_frame_token": 23827264,
+            "surface_frame_token": 23827252,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364444730853
+          },
+          {
+            "ts": 150364434665829,
+            "dur": 2163616,
+            "display_frame_token": 23827277,
+            "surface_frame_token": 23827265,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364461393003
+          },
+          {
+            "ts": 150364451566262,
+            "dur": 3205565,
+            "display_frame_token": 23827290,
+            "surface_frame_token": 23827278,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364478079893
+          },
+          {
+            "ts": 150364468346657,
+            "dur": 4020956,
+            "display_frame_token": 23827303,
+            "surface_frame_token": 23827291,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364494760842
+          },
+          {
+            "ts": 150364485177264,
+            "dur": 2301066,
+            "display_frame_token": 23827316,
+            "surface_frame_token": 23827304,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364511443052
+          },
+          {
+            "ts": 150364501713885,
+            "dur": 2433146,
+            "display_frame_token": 23827329,
+            "surface_frame_token": 23827317,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364528079079
+          },
+          {
+            "ts": 150364518440081,
+            "dur": 3272135,
+            "display_frame_token": 23827342,
+            "surface_frame_token": 23827330,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364544809181
+          },
+          {
+            "ts": 150364551787860,
+            "dur": 3245971,
+            "display_frame_token": 23827361,
+            "surface_frame_token": 23827349,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364578159402
+          },
+          {
+            "ts": 150364585191546,
+            "dur": 2527425,
+            "display_frame_token": 23827380,
+            "surface_frame_token": 23827368,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364611514220
+          },
+          {
+            "ts": 150364601681497,
+            "dur": 1598875,
+            "display_frame_token": 23827393,
+            "surface_frame_token": 23827381,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364628197366
+          },
+          {
+            "ts": 150364618348855,
+            "dur": 3196980,
+            "display_frame_token": 23827406,
+            "surface_frame_token": 23827394,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364644866840
+          },
+          {
+            "ts": 150364635223326,
+            "dur": 3328938,
+            "display_frame_token": 23827419,
+            "surface_frame_token": 23827407,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364661545225
+          },
+          {
+            "ts": 150364652000832,
+            "dur": 2749389,
+            "display_frame_token": 23827432,
+            "surface_frame_token": 23827420,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364678225076
+          },
+          {
+            "ts": 150364685499204,
+            "dur": 4031576,
+            "display_frame_token": 23827451,
+            "surface_frame_token": 23827439,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364711593158
+          },
+          {
+            "ts": 150364702102028,
+            "dur": 1909912,
+            "display_frame_token": 23827464,
+            "surface_frame_token": 23827452,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364728247414
+          },
+          {
+            "ts": 150364718573871,
+            "dur": 2160197,
+            "display_frame_token": 23827477,
+            "surface_frame_token": 23827465,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364744944924
+          },
+          {
+            "ts": 150364735161070,
+            "dur": 2676310,
+            "display_frame_token": 23827490,
+            "surface_frame_token": 23827478,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364761643939
+          },
+          {
+            "ts": 150364751948342,
+            "dur": 2574910,
+            "display_frame_token": 23827503,
+            "surface_frame_token": 23827491,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364778282001
+          },
+          {
+            "ts": 150364768386777,
+            "dur": 2467733,
+            "display_frame_token": 23827516,
+            "surface_frame_token": 23827504,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364794976987
+          },
+          {
+            "ts": 150364802321389,
+            "dur": 3438354,
+            "display_frame_token": 23827529,
+            "surface_frame_token": 23827517,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364828337217
+          },
+          {
+            "ts": 150364835174579,
+            "dur": 3285319,
+            "display_frame_token": 23827548,
+            "surface_frame_token": 23827536,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150364861740090
+          }
+        ]
+      },
+      {
+        "flutter_frames": 36,
+        "buffers": 31,
+        "unique_presentations": 31,
+        "present_type": {
+          "On-time Present": 31
+        },
+        "jank_type": {
+          "None": 31
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          33.187298,
+          83.383708,
+          33.385375,
+          50.038859,
+          33.384481,
+          33.301718,
+          33.362508,
+          16.686401,
+          33.372925,
+          16.685384,
+          16.663615,
+          16.670613,
+          33.394451,
+          16.721109,
+          16.611369,
+          16.687052,
+          16.64034,
+          16.676026,
+          16.705892,
+          16.689738,
+          16.722696,
+          16.650676,
+          33.354411,
+          16.676758,
+          33.351888,
+          16.671508,
+          16.678143,
+          16.704385,
+          33.376668,
+          33.362834
+        ],
+        "missed_presentation_slots": 17,
+        "longest_presentation_gap_ms": 83.383708,
+        "frames": [
+          {
+            "ts": 150375544884586,
+            "dur": 3191854,
+            "display_frame_token": 23834711,
+            "surface_frame_token": 23834699,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375571234194
+          },
+          {
+            "ts": 150375578582217,
+            "dur": 4818605,
+            "display_frame_token": 23834724,
+            "surface_frame_token": 23834712,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375604421492
+          },
+          {
+            "ts": 150375662117862,
+            "dur": 4918010,
+            "display_frame_token": 23834743,
+            "surface_frame_token": 23834731,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375687805200
+          },
+          {
+            "ts": 150375694578596,
+            "dur": 2725789,
+            "display_frame_token": 23834756,
+            "surface_frame_token": 23834744,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375721190575
+          },
+          {
+            "ts": 150375744683535,
+            "dur": 3346924,
+            "display_frame_token": 23834775,
+            "surface_frame_token": 23834763,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375771229434
+          },
+          {
+            "ts": 150375778303735,
+            "dur": 2661091,
+            "display_frame_token": 23834788,
+            "surface_frame_token": 23834776,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375804613915
+          },
+          {
+            "ts": 150375811558658,
+            "dur": 3108561,
+            "display_frame_token": 23834801,
+            "surface_frame_token": 23834789,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375837915633
+          },
+          {
+            "ts": 150375844550357,
+            "dur": 2349162,
+            "display_frame_token": 23834814,
+            "surface_frame_token": 23834802,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375871278141
+          },
+          {
+            "ts": 150375861112695,
+            "dur": 1944091,
+            "display_frame_token": 23834827,
+            "surface_frame_token": 23834815,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375887964542
+          },
+          {
+            "ts": 150375894945011,
+            "dur": 4063232,
+            "display_frame_token": 23834840,
+            "surface_frame_token": 23834828,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375921337467
+          },
+          {
+            "ts": 150375911524845,
+            "dur": 3129842,
+            "display_frame_token": 23834853,
+            "surface_frame_token": 23834841,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375938022851
+          },
+          {
+            "ts": 150375928129744,
+            "dur": 3674316,
+            "display_frame_token": 23834866,
+            "surface_frame_token": 23834854,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375954686466
+          },
+          {
+            "ts": 150375945047266,
+            "dur": 1403319,
+            "display_frame_token": 23834879,
+            "surface_frame_token": 23834867,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150375971357079
+          },
+          {
+            "ts": 150375978016341,
+            "dur": 2312825,
+            "display_frame_token": 23834898,
+            "surface_frame_token": 23834886,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376004751530
+          },
+          {
+            "ts": 150375994804752,
+            "dur": 3334391,
+            "display_frame_token": 23834911,
+            "surface_frame_token": 23834899,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376021472639
+          },
+          {
+            "ts": 150376011455712,
+            "dur": 3829672,
+            "display_frame_token": 23834924,
+            "surface_frame_token": 23834912,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376038084008
+          },
+          {
+            "ts": 150376028717472,
+            "dur": 1526041,
+            "display_frame_token": 23834937,
+            "surface_frame_token": 23834925,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376054771060
+          },
+          {
+            "ts": 150376045244693,
+            "dur": 2009155,
+            "display_frame_token": 23834950,
+            "surface_frame_token": 23834938,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376071411400
+          },
+          {
+            "ts": 150376061974552,
+            "dur": 2462280,
+            "display_frame_token": 23834963,
+            "surface_frame_token": 23834951,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376088087426
+          },
+          {
+            "ts": 150376078440861,
+            "dur": 2014403,
+            "display_frame_token": 23834976,
+            "surface_frame_token": 23834964,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376104793318
+          },
+          {
+            "ts": 150376094963647,
+            "dur": 2498006,
+            "display_frame_token": 23834989,
+            "surface_frame_token": 23834977,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376121483056
+          },
+          {
+            "ts": 150376111993513,
+            "dur": 2776286,
+            "display_frame_token": 23835002,
+            "surface_frame_token": 23834990,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376138205752
+          },
+          {
+            "ts": 150376128606795,
+            "dur": 1506103,
+            "display_frame_token": 23835015,
+            "surface_frame_token": 23835003,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376154856428
+          },
+          {
+            "ts": 150376161780338,
+            "dur": 3176635,
+            "display_frame_token": 23835034,
+            "surface_frame_token": 23835022,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376188210839
+          },
+          {
+            "ts": 150376178732121,
+            "dur": 2653401,
+            "display_frame_token": 23835047,
+            "surface_frame_token": 23835035,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376204887597
+          },
+          {
+            "ts": 150376211982974,
+            "dur": 2781983,
+            "display_frame_token": 23835066,
+            "surface_frame_token": 23835054,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376238239485
+          },
+          {
+            "ts": 150376228767032,
+            "dur": 2339762,
+            "display_frame_token": 23835079,
+            "surface_frame_token": 23835067,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376254910993
+          },
+          {
+            "ts": 150376245020816,
+            "dur": 2718221,
+            "display_frame_token": 23835092,
+            "surface_frame_token": 23835080,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376271589136
+          },
+          {
+            "ts": 150376261799991,
+            "dur": 2958822,
+            "display_frame_token": 23835105,
+            "surface_frame_token": 23835093,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376288293521
+          },
+          {
+            "ts": 150376295353051,
+            "dur": 4684937,
+            "display_frame_token": 23835118,
+            "surface_frame_token": 23835106,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376321670189
+          },
+          {
+            "ts": 150376328417992,
+            "dur": 3871420,
+            "display_frame_token": 23835137,
+            "surface_frame_token": 23835125,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376355033023
+          }
+        ]
+      }
+    ],
+    "nav-navigation-enter-liquid": [
+      {
+        "flutter_frames": 45,
+        "buffers": 40,
+        "unique_presentations": 40,
+        "present_type": {
+          "On-time Present": 40
+        },
+        "jank_type": {
+          "None": 40
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          66.679565,
+          33.369426,
+          16.678263,
+          16.70219,
+          33.396321,
+          16.658162,
+          16.699952,
+          16.670614,
+          33.35144,
+          16.677083,
+          16.725383,
+          16.651773,
+          16.675049,
+          16.712403,
+          33.33846,
+          16.705241,
+          16.675252,
+          16.698161,
+          33.341268,
+          16.680257,
+          16.728801,
+          16.639852,
+          16.698446,
+          16.674397,
+          16.673829,
+          16.673257,
+          16.704306,
+          16.68038,
+          16.686685,
+          16.689901,
+          16.683838,
+          16.664144,
+          16.684855,
+          16.692423,
+          16.679648,
+          16.679361,
+          16.693604,
+          16.68335,
+          16.684122
+        ],
+        "missed_presentation_slots": 8,
+        "longest_presentation_gap_ms": 66.679565,
+        "frames": [
+          {
+            "ts": 150357862698053,
+            "dur": 5764487,
+            "display_frame_token": 23822740,
+            "surface_frame_token": 23822728,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357888572199
+          },
+          {
+            "ts": 150357930663060,
+            "dur": 4583008,
+            "display_frame_token": 23822753,
+            "surface_frame_token": 23822741,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357955251764
+          },
+          {
+            "ts": 150357962292861,
+            "dur": 4253907,
+            "display_frame_token": 23822772,
+            "surface_frame_token": 23822760,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150357988621190
+          },
+          {
+            "ts": 150357978810846,
+            "dur": 2803304,
+            "display_frame_token": 23822785,
+            "surface_frame_token": 23822773,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358005299453
+          },
+          {
+            "ts": 150357995445286,
+            "dur": 2046631,
+            "display_frame_token": 23822798,
+            "surface_frame_token": 23822786,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358022001643
+          },
+          {
+            "ts": 150358028878107,
+            "dur": 4978557,
+            "display_frame_token": 23822817,
+            "surface_frame_token": 23822805,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358055397964
+          },
+          {
+            "ts": 150358045400406,
+            "dur": 3919108,
+            "display_frame_token": 23822830,
+            "surface_frame_token": 23822818,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358072056126
+          },
+          {
+            "ts": 150358062297663,
+            "dur": 3486532,
+            "display_frame_token": 23822843,
+            "surface_frame_token": 23822831,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358088756078
+          },
+          {
+            "ts": 150358079137018,
+            "dur": 4240316,
+            "display_frame_token": 23822856,
+            "surface_frame_token": 23822844,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358105426692
+          },
+          {
+            "ts": 150358112653213,
+            "dur": 4022339,
+            "display_frame_token": 23822875,
+            "surface_frame_token": 23822863,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358138778132
+          },
+          {
+            "ts": 150358129409927,
+            "dur": 3042521,
+            "display_frame_token": 23822888,
+            "surface_frame_token": 23822876,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358155455215
+          },
+          {
+            "ts": 150358145969131,
+            "dur": 2777019,
+            "display_frame_token": 23822901,
+            "surface_frame_token": 23822889,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358172180598
+          },
+          {
+            "ts": 150358162594498,
+            "dur": 3731404,
+            "display_frame_token": 23822914,
+            "surface_frame_token": 23822902,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358188832371
+          },
+          {
+            "ts": 150358179061701,
+            "dur": 2874431,
+            "display_frame_token": 23822927,
+            "surface_frame_token": 23822915,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358205507420
+          },
+          {
+            "ts": 150358195868871,
+            "dur": 3059448,
+            "display_frame_token": 23822940,
+            "surface_frame_token": 23822928,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358222219823
+          },
+          {
+            "ts": 150358229155817,
+            "dur": 3275513,
+            "display_frame_token": 23822959,
+            "surface_frame_token": 23822947,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358255558283
+          },
+          {
+            "ts": 150358246417089,
+            "dur": 1979940,
+            "display_frame_token": 23822972,
+            "surface_frame_token": 23822960,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358272263524
+          },
+          {
+            "ts": 150358263057999,
+            "dur": 2006591,
+            "display_frame_token": 23822985,
+            "surface_frame_token": 23822973,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358288938776
+          },
+          {
+            "ts": 150358279126805,
+            "dur": 4746542,
+            "display_frame_token": 23822998,
+            "surface_frame_token": 23822986,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358305636937
+          },
+          {
+            "ts": 150358312573502,
+            "dur": 2523763,
+            "display_frame_token": 23823017,
+            "surface_frame_token": 23823005,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358338978205
+          },
+          {
+            "ts": 150358329097020,
+            "dur": 3249227,
+            "display_frame_token": 23823030,
+            "surface_frame_token": 23823018,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358355658462
+          },
+          {
+            "ts": 150358345954198,
+            "dur": 2655355,
+            "display_frame_token": 23823043,
+            "surface_frame_token": 23823031,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358372387263
+          },
+          {
+            "ts": 150358362939671,
+            "dur": 2941407,
+            "display_frame_token": 23823056,
+            "surface_frame_token": 23823044,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358389027115
+          },
+          {
+            "ts": 150358379132868,
+            "dur": 2587199,
+            "display_frame_token": 23823069,
+            "surface_frame_token": 23823057,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358405725561
+          },
+          {
+            "ts": 150358395961196,
+            "dur": 2691489,
+            "display_frame_token": 23823082,
+            "surface_frame_token": 23823070,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358422399958
+          },
+          {
+            "ts": 150358413024144,
+            "dur": 2879192,
+            "display_frame_token": 23823095,
+            "surface_frame_token": 23823083,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358439073787
+          },
+          {
+            "ts": 150358429309586,
+            "dur": 3371460,
+            "display_frame_token": 23823108,
+            "surface_frame_token": 23823096,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358455747044
+          },
+          {
+            "ts": 150358445952977,
+            "dur": 2491171,
+            "display_frame_token": 23823121,
+            "surface_frame_token": 23823109,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358472451350
+          },
+          {
+            "ts": 150358462822851,
+            "dur": 3114379,
+            "display_frame_token": 23823134,
+            "surface_frame_token": 23823122,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358489131730
+          },
+          {
+            "ts": 150358479471695,
+            "dur": 3005167,
+            "display_frame_token": 23823147,
+            "surface_frame_token": 23823135,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358505818415
+          },
+          {
+            "ts": 150358496124120,
+            "dur": 2560058,
+            "display_frame_token": 23823160,
+            "surface_frame_token": 23823148,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358522508316
+          },
+          {
+            "ts": 150358512871272,
+            "dur": 2017130,
+            "display_frame_token": 23823173,
+            "surface_frame_token": 23823161,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358539192154
+          },
+          {
+            "ts": 150358529511572,
+            "dur": 2394896,
+            "display_frame_token": 23823186,
+            "surface_frame_token": 23823174,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358555856298
+          },
+          {
+            "ts": 150358546280981,
+            "dur": 2806925,
+            "display_frame_token": 23823199,
+            "surface_frame_token": 23823187,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358572541153
+          },
+          {
+            "ts": 150358562922093,
+            "dur": 2264283,
+            "display_frame_token": 23823212,
+            "surface_frame_token": 23823200,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358589233576
+          },
+          {
+            "ts": 150358579593155,
+            "dur": 2335327,
+            "display_frame_token": 23823225,
+            "surface_frame_token": 23823213,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358605913224
+          },
+          {
+            "ts": 150358596159968,
+            "dur": 2826985,
+            "display_frame_token": 23823238,
+            "surface_frame_token": 23823226,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358622592585
+          },
+          {
+            "ts": 150358612837214,
+            "dur": 2512655,
+            "display_frame_token": 23823251,
+            "surface_frame_token": 23823239,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358639286189
+          },
+          {
+            "ts": 150358630263320,
+            "dur": 3067424,
+            "display_frame_token": 23823264,
+            "surface_frame_token": 23823252,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358655969539
+          },
+          {
+            "ts": 150358646689143,
+            "dur": 4032837,
+            "display_frame_token": 23823277,
+            "surface_frame_token": 23823265,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150358672653661
+          }
+        ]
+      },
+      {
+        "flutter_frames": 46,
+        "buffers": 40,
+        "unique_presentations": 40,
+        "present_type": {
+          "On-time Present": 40
+        },
+        "jank_type": {
+          "None": 40
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          66.550498,
+          16.689412,
+          16.646239,
+          33.373698,
+          16.690471,
+          16.715617,
+          16.646362,
+          16.647909,
+          16.679484,
+          16.687582,
+          16.675577,
+          16.689452,
+          16.714844,
+          16.658529,
+          16.66447,
+          16.689942,
+          16.680094,
+          16.705526,
+          16.649169,
+          16.696737,
+          33.3809,
+          16.678833,
+          16.650432,
+          33.404744,
+          16.63802,
+          16.689006,
+          16.704021,
+          33.365845,
+          16.675089,
+          16.666178,
+          16.6993,
+          16.674845,
+          16.681886,
+          16.684773,
+          16.675375,
+          16.688598,
+          33.372314,
+          16.654093,
+          16.697348
+        ],
+        "missed_presentation_slots": 8,
+        "longest_presentation_gap_ms": 66.550498,
+        "frames": [
+          {
+            "ts": 150361665748145,
+            "dur": 2630289,
+            "display_frame_token": 23825419,
+            "surface_frame_token": 23825407,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361692336849
+          },
+          {
+            "ts": 150361733806331,
+            "dur": 3461995,
+            "display_frame_token": 23825438,
+            "surface_frame_token": 23825426,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361758887347
+          },
+          {
+            "ts": 150361749223569,
+            "dur": 3208170,
+            "display_frame_token": 23825451,
+            "surface_frame_token": 23825439,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361775576759
+          },
+          {
+            "ts": 150361765710751,
+            "dur": 3776774,
+            "display_frame_token": 23825464,
+            "surface_frame_token": 23825452,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361792222998
+          },
+          {
+            "ts": 150361799112485,
+            "dur": 4056883,
+            "display_frame_token": 23825483,
+            "surface_frame_token": 23825471,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361825596696
+          },
+          {
+            "ts": 150361816420834,
+            "dur": 2563639,
+            "display_frame_token": 23825496,
+            "surface_frame_token": 23825484,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361842287167
+          },
+          {
+            "ts": 150361832617082,
+            "dur": 2798340,
+            "display_frame_token": 23825509,
+            "surface_frame_token": 23825497,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361859002784
+          },
+          {
+            "ts": 150361849288184,
+            "dur": 3784709,
+            "display_frame_token": 23825522,
+            "surface_frame_token": 23825510,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361875649146
+          },
+          {
+            "ts": 150361866217506,
+            "dur": 3588907,
+            "display_frame_token": 23825535,
+            "surface_frame_token": 23825523,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361892297055
+          },
+          {
+            "ts": 150361882333392,
+            "dur": 2080687,
+            "display_frame_token": 23825548,
+            "surface_frame_token": 23825536,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361908976539
+          },
+          {
+            "ts": 150361899061703,
+            "dur": 2583619,
+            "display_frame_token": 23825561,
+            "surface_frame_token": 23825549,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361925664121
+          },
+          {
+            "ts": 150361915754005,
+            "dur": 2048339,
+            "display_frame_token": 23825574,
+            "surface_frame_token": 23825562,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361942339698
+          },
+          {
+            "ts": 150361932679866,
+            "dur": 2391317,
+            "display_frame_token": 23825587,
+            "surface_frame_token": 23825575,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361959029150
+          },
+          {
+            "ts": 150361949733782,
+            "dur": 2866414,
+            "display_frame_token": 23825600,
+            "surface_frame_token": 23825588,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361975743994
+          },
+          {
+            "ts": 150361965883236,
+            "dur": 3852702,
+            "display_frame_token": 23825613,
+            "surface_frame_token": 23825601,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150361992402523
+          },
+          {
+            "ts": 150361982690447,
+            "dur": 2594889,
+            "display_frame_token": 23825626,
+            "surface_frame_token": 23825614,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362009066993
+          },
+          {
+            "ts": 150361999399025,
+            "dur": 3220174,
+            "display_frame_token": 23825639,
+            "surface_frame_token": 23825627,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362025756935
+          },
+          {
+            "ts": 150362015899594,
+            "dur": 2866495,
+            "display_frame_token": 23825652,
+            "surface_frame_token": 23825640,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362042437029
+          },
+          {
+            "ts": 150362032822771,
+            "dur": 2048665,
+            "display_frame_token": 23825665,
+            "surface_frame_token": 23825653,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362059142555
+          },
+          {
+            "ts": 150362049459896,
+            "dur": 2552775,
+            "display_frame_token": 23825678,
+            "surface_frame_token": 23825666,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362075791724
+          },
+          {
+            "ts": 150362066068742,
+            "dur": 1610026,
+            "display_frame_token": 23825691,
+            "surface_frame_token": 23825679,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362092488461
+          },
+          {
+            "ts": 150362099691342,
+            "dur": 3337036,
+            "display_frame_token": 23825710,
+            "surface_frame_token": 23825698,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362125869361
+          },
+          {
+            "ts": 150362116076189,
+            "dur": 4023926,
+            "display_frame_token": 23825723,
+            "surface_frame_token": 23825711,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362142548194
+          },
+          {
+            "ts": 150362132679461,
+            "dur": 1576741,
+            "display_frame_token": 23825736,
+            "surface_frame_token": 23825724,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362159198626
+          },
+          {
+            "ts": 150362166092546,
+            "dur": 3233805,
+            "display_frame_token": 23825755,
+            "surface_frame_token": 23825743,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362192603370
+          },
+          {
+            "ts": 150362182736753,
+            "dur": 2201497,
+            "display_frame_token": 23825768,
+            "surface_frame_token": 23825756,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362209241390
+          },
+          {
+            "ts": 150362199595435,
+            "dur": 2886434,
+            "display_frame_token": 23825781,
+            "surface_frame_token": 23825769,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362225930396
+          },
+          {
+            "ts": 150362216229469,
+            "dur": 2864339,
+            "display_frame_token": 23825794,
+            "surface_frame_token": 23825782,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362242634417
+          },
+          {
+            "ts": 150362249815569,
+            "dur": 3267700,
+            "display_frame_token": 23825813,
+            "surface_frame_token": 23825801,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362276000262
+          },
+          {
+            "ts": 150362266479265,
+            "dur": 1745484,
+            "display_frame_token": 23825826,
+            "surface_frame_token": 23825814,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362292675351
+          },
+          {
+            "ts": 150362283277239,
+            "dur": 4565227,
+            "display_frame_token": 23825839,
+            "surface_frame_token": 23825827,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362309341529
+          },
+          {
+            "ts": 150362299597307,
+            "dur": 2881795,
+            "display_frame_token": 23825852,
+            "surface_frame_token": 23825840,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362326040829
+          },
+          {
+            "ts": 150362316260963,
+            "dur": 4632406,
+            "display_frame_token": 23825865,
+            "surface_frame_token": 23825853,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362342715674
+          },
+          {
+            "ts": 150362332996070,
+            "dur": 3863362,
+            "display_frame_token": 23825878,
+            "surface_frame_token": 23825866,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362359397560
+          },
+          {
+            "ts": 150362349835710,
+            "dur": 4036540,
+            "display_frame_token": 23825891,
+            "surface_frame_token": 23825879,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362376082333
+          },
+          {
+            "ts": 150362366323707,
+            "dur": 4767700,
+            "display_frame_token": 23825904,
+            "surface_frame_token": 23825892,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362392757708
+          },
+          {
+            "ts": 150362383290137,
+            "dur": 4409465,
+            "display_frame_token": 23825917,
+            "surface_frame_token": 23825905,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362409446306
+          },
+          {
+            "ts": 150362416633196,
+            "dur": 4333537,
+            "display_frame_token": 23825936,
+            "surface_frame_token": 23825924,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362442818620
+          },
+          {
+            "ts": 150362433403500,
+            "dur": 3399576,
+            "display_frame_token": 23825949,
+            "surface_frame_token": 23825937,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362459472713
+          },
+          {
+            "ts": 150362449656470,
+            "dur": 2549357,
+            "display_frame_token": 23825962,
+            "surface_frame_token": 23825950,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150362476170061
+          }
+        ]
+      },
+      {
+        "flutter_frames": 45,
+        "buffers": 41,
+        "unique_presentations": 41,
+        "present_type": {
+          "On-time Present": 41
+        },
+        "jank_type": {
+          "None": 41
+        },
+        "unmapped_display_buffers": 0,
+        "presentation_gaps_ms": [
+          49.786296,
+          33.360677,
+          16.666505,
+          16.68518,
+          50.084391,
+          16.616944,
+          16.670206,
+          16.684001,
+          16.677531,
+          16.674235,
+          16.683715,
+          16.683391,
+          16.678914,
+          16.678467,
+          16.67094,
+          16.695923,
+          16.696452,
+          16.663207,
+          16.696533,
+          16.667725,
+          16.675781,
+          16.681355,
+          16.707358,
+          16.668619,
+          33.374878,
+          16.667807,
+          16.700155,
+          16.692463,
+          16.672119,
+          16.707764,
+          16.683106,
+          16.67216,
+          16.644489,
+          16.702801,
+          16.753377,
+          16.682862,
+          33.302083,
+          16.732706,
+          16.623088,
+          16.695109
+        ],
+        "missed_presentation_slots": 7,
+        "longest_presentation_gap_ms": 50.084391,
+        "frames": [
+          {
+            "ts": 150376945905827,
+            "dur": 4206013,
+            "display_frame_token": 23835584,
+            "surface_frame_token": 23835572,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150376972494205
+          },
+          {
+            "ts": 150376995952377,
+            "dur": 4156046,
+            "display_frame_token": 23835597,
+            "surface_frame_token": 23835585,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377022280501
+          },
+          {
+            "ts": 150377029330468,
+            "dur": 3492635,
+            "display_frame_token": 23835616,
+            "surface_frame_token": 23835604,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377055641178
+          },
+          {
+            "ts": 150377046026798,
+            "dur": 2933961,
+            "display_frame_token": 23835629,
+            "surface_frame_token": 23835617,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377072307683
+          },
+          {
+            "ts": 150377062885482,
+            "dur": 2715698,
+            "display_frame_token": 23835642,
+            "surface_frame_token": 23835630,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377088992863
+          },
+          {
+            "ts": 150377112874943,
+            "dur": 3936523,
+            "display_frame_token": 23835661,
+            "surface_frame_token": 23835649,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377139077254
+          },
+          {
+            "ts": 150377129245142,
+            "dur": 3001383,
+            "display_frame_token": 23835674,
+            "surface_frame_token": 23835662,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377155694198
+          },
+          {
+            "ts": 150377145920027,
+            "dur": 3793783,
+            "display_frame_token": 23835687,
+            "surface_frame_token": 23835675,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377172364404
+          },
+          {
+            "ts": 150377162951441,
+            "dur": 1973510,
+            "display_frame_token": 23835700,
+            "surface_frame_token": 23835688,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377189048405
+          },
+          {
+            "ts": 150377179512272,
+            "dur": 3581990,
+            "display_frame_token": 23835715,
+            "surface_frame_token": 23835701,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377205725936
+          },
+          {
+            "ts": 150377195949080,
+            "dur": 3983195,
+            "display_frame_token": 23835730,
+            "surface_frame_token": 23835716,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377222400171
+          },
+          {
+            "ts": 150377212415714,
+            "dur": 2876750,
+            "display_frame_token": 23835743,
+            "surface_frame_token": 23835731,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377239083886
+          },
+          {
+            "ts": 150377229435409,
+            "dur": 3870808,
+            "display_frame_token": 23835756,
+            "surface_frame_token": 23835744,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377255767277
+          },
+          {
+            "ts": 150377245860986,
+            "dur": 2782797,
+            "display_frame_token": 23835769,
+            "surface_frame_token": 23835757,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377272446191
+          },
+          {
+            "ts": 150377263276351,
+            "dur": 4698649,
+            "display_frame_token": 23835782,
+            "surface_frame_token": 23835770,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377289124658
+          },
+          {
+            "ts": 150377279494287,
+            "dur": 2422485,
+            "display_frame_token": 23835795,
+            "surface_frame_token": 23835783,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377305795598
+          },
+          {
+            "ts": 150377295959375,
+            "dur": 2748739,
+            "display_frame_token": 23835808,
+            "surface_frame_token": 23835796,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377322491521
+          },
+          {
+            "ts": 150377312609033,
+            "dur": 2361003,
+            "display_frame_token": 23835821,
+            "surface_frame_token": 23835809,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377339187973
+          },
+          {
+            "ts": 150377329187728,
+            "dur": 2435953,
+            "display_frame_token": 23835834,
+            "surface_frame_token": 23835822,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377355851180
+          },
+          {
+            "ts": 150377348346135,
+            "dur": 2364135,
+            "display_frame_token": 23835847,
+            "surface_frame_token": 23835835,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377372547713
+          },
+          {
+            "ts": 150377362524479,
+            "dur": 2401775,
+            "display_frame_token": 23835860,
+            "surface_frame_token": 23835848,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377389215438
+          },
+          {
+            "ts": 150377379438013,
+            "dur": 3121501,
+            "display_frame_token": 23835873,
+            "surface_frame_token": 23835861,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377405891219
+          },
+          {
+            "ts": 150377396054672,
+            "dur": 2844278,
+            "display_frame_token": 23835886,
+            "surface_frame_token": 23835874,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377422572574
+          },
+          {
+            "ts": 150377412883122,
+            "dur": 2137125,
+            "display_frame_token": 23835899,
+            "surface_frame_token": 23835887,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377439279932
+          },
+          {
+            "ts": 150377429561507,
+            "dur": 3783326,
+            "display_frame_token": 23835912,
+            "surface_frame_token": 23835900,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377455948551
+          },
+          {
+            "ts": 150377462690739,
+            "dur": 1764974,
+            "display_frame_token": 23835931,
+            "surface_frame_token": 23835919,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377489323429
+          },
+          {
+            "ts": 150377479757145,
+            "dur": 2719930,
+            "display_frame_token": 23835944,
+            "surface_frame_token": 23835932,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377505991236
+          },
+          {
+            "ts": 150377496482488,
+            "dur": 3447794,
+            "display_frame_token": 23835957,
+            "surface_frame_token": 23835945,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377522691391
+          },
+          {
+            "ts": 150377513125513,
+            "dur": 4101237,
+            "display_frame_token": 23835970,
+            "surface_frame_token": 23835958,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377539383854
+          },
+          {
+            "ts": 150377529445785,
+            "dur": 2353801,
+            "display_frame_token": 23835983,
+            "surface_frame_token": 23835971,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377556055973
+          },
+          {
+            "ts": 150377546270004,
+            "dur": 3290812,
+            "display_frame_token": 23835996,
+            "surface_frame_token": 23835984,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377572763737
+          },
+          {
+            "ts": 150377563040022,
+            "dur": 3049725,
+            "display_frame_token": 23836009,
+            "surface_frame_token": 23835997,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377589446843
+          },
+          {
+            "ts": 150377579753564,
+            "dur": 2853923,
+            "display_frame_token": 23836022,
+            "surface_frame_token": 23836010,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377606119003
+          },
+          {
+            "ts": 150377596362818,
+            "dur": 2996297,
+            "display_frame_token": 23836035,
+            "surface_frame_token": 23836023,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377622763492
+          },
+          {
+            "ts": 150377613322941,
+            "dur": 1908448,
+            "display_frame_token": 23836048,
+            "surface_frame_token": 23836036,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377639466293
+          },
+          {
+            "ts": 150377629825952,
+            "dur": 2018311,
+            "display_frame_token": 23836061,
+            "surface_frame_token": 23836049,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377656219670
+          },
+          {
+            "ts": 150377646453556,
+            "dur": 2825684,
+            "display_frame_token": 23836074,
+            "surface_frame_token": 23836062,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377672902532
+          },
+          {
+            "ts": 150377680138534,
+            "dur": 3540853,
+            "display_frame_token": 23836093,
+            "surface_frame_token": 23836081,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377706204615
+          },
+          {
+            "ts": 150377696606958,
+            "dur": 3561239,
+            "display_frame_token": 23836106,
+            "surface_frame_token": 23836094,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377722937321
+          },
+          {
+            "ts": 150377713234969,
+            "dur": 4427938,
+            "display_frame_token": 23836119,
+            "surface_frame_token": 23836107,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377739560409
+          },
+          {
+            "ts": 150377729940413,
+            "dur": 4198243,
+            "display_frame_token": 23836132,
+            "surface_frame_token": 23836120,
+            "present_type": "On-time Present",
+            "jank_type": "None",
+            "prediction_type": "Valid Prediction",
+            "present_ns": 150377756255518
+          }
+        ]
+      }
+    ]
+  },
+  "limitations": [
+    "Select buffers by their traced start inside the action window; boundary frames differ from Flutter vsync selection.",
+    "Cadence excludes gaps before the first and after the last mapped presentation.",
+    "SurfaceFlinger jank flags and measured buffer cadence are separate observations.",
+    "A faster raster stage alone does not establish improved presentation or input latency."
+  ]
+}

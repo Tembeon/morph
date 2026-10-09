@@ -1,0 +1,18 @@
+{
+  "MipVertex": {
+    "type": "vertex",
+    "file": "example/lib/perf/shaders/mip_vertex.glsl"
+  },
+  "MipSource": {
+    "type": "fragment",
+    "file": "example/lib/perf/shaders/mip_source.glsl"
+  },
+  "MipDownsample": {
+    "type": "fragment",
+    "file": "example/lib/perf/shaders/mip_downsample.glsl"
+  },
+  "MipWide": {
+    "type": "fragment",
+    "file": "example/lib/perf/shaders/mip_wide.glsl"
+  }
+}

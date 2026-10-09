@@ -11,6 +11,10 @@
         "type": "fragment",
         "file": "lib/src/glass/renderer/shaders/gpu/geometry_field_fragment.glsl"
     },
+    "GeometryAnalyticFieldFragment": {
+        "type": "fragment",
+        "file": "lib/src/glass/renderer/shaders/gpu/geometry_analytic_field_fragment.glsl"
+    },
     "MaterialGradientFragment": {
         "type": "fragment",
         "file": "lib/src/glass/renderer/shaders/gpu/material_gradient_fragment.glsl"

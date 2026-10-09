@@ -1,0 +1,125 @@
+{
+  "sha": "7437a8acb56bae51d6969e3b9f51b257d461d047",
+  "node_id": "C_kwDOQnRK09oAKDc0MzdhOGFjYjU2YmFlNTFkNjk2OWUzYjlmNTFiMjU3ZDQ2MWQwNDc",
+  "commit": {
+    "author": {
+      "name": "Sebastian Degenaar",
+      "email": "s.degenaar@bigpond.com",
+      "date": "2026-10-08T05:21:44Z"
+    },
+    "committer": {
+      "name": "Sebastian Degenaar",
+      "email": "s.degenaar@bigpond.com",
+      "date": "2026-10-08T05:21:44Z"
+    },
+    "message": "docs: document layered submenus and log 1.11.0 submenu fixes",
+    "tree": {
+      "sha": "95143b1771f89b11a97e30bd7c6774a3eb14404a",
+      "url": "https://api.github.com/repos/sdegenaar/liquid_glass_widgets/git/trees/95143b1771f89b11a97e30bd7c6774a3eb14404a"
+    },
+    "url": "https://api.github.com/repos/sdegenaar/liquid_glass_widgets/git/commits/7437a8acb56bae51d6969e3b9f51b257d461d047",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "url": "https://api.github.com/repos/sdegenaar/liquid_glass_widgets/commits/7437a8acb56bae51d6969e3b9f51b257d461d047",
+  "html_url": "https://github.com/sdegenaar/liquid_glass_widgets/commit/7437a8acb56bae51d6969e3b9f51b257d461d047",
+  "comments_url": "https://api.github.com/repos/sdegenaar/liquid_glass_widgets/commits/7437a8acb56bae51d6969e3b9f51b257d461d047/comments",
+  "author": {
+    "login": "sdegenaar",
+    "id": 2247107,
+    "node_id": "MDQ6VXNlcjIyNDcxMDc=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/2247107?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/sdegenaar",
+    "html_url": "https://github.com/sdegenaar",
+    "followers_url": "https://api.github.com/users/sdegenaar/followers",
+    "following_url": "https://api.github.com/users/sdegenaar/following{/other_user}",
+    "gists_url": "https://api.github.com/users/sdegenaar/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/sdegenaar/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/sdegenaar/subscriptions",
+    "organizations_url": "https://api.github.com/users/sdegenaar/orgs",
+    "repos_url": "https://api.github.com/users/sdegenaar/repos",
+    "events_url": "https://api.github.com/users/sdegenaar/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/sdegenaar/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "committer": {
+    "login": "sdegenaar",
+    "id": 2247107,
+    "node_id": "MDQ6VXNlcjIyNDcxMDc=",
+    "avatar_url": "https://avatars.githubusercontent.com/u/2247107?v=4",
+    "gravatar_id": "",
+    "url": "https://api.github.com/users/sdegenaar",
+    "html_url": "https://github.com/sdegenaar",
+    "followers_url": "https://api.github.com/users/sdegenaar/followers",
+    "following_url": "https://api.github.com/users/sdegenaar/following{/other_user}",
+    "gists_url": "https://api.github.com/users/sdegenaar/gists{/gist_id}",
+    "starred_url": "https://api.github.com/users/sdegenaar/starred{/owner}{/repo}",
+    "subscriptions_url": "https://api.github.com/users/sdegenaar/subscriptions",
+    "organizations_url": "https://api.github.com/users/sdegenaar/orgs",
+    "repos_url": "https://api.github.com/users/sdegenaar/repos",
+    "events_url": "https://api.github.com/users/sdegenaar/events{/privacy}",
+    "received_events_url": "https://api.github.com/users/sdegenaar/received_events",
+    "type": "User",
+    "user_view_type": "public",
+    "site_admin": false
+  },
+  "parents": [
+    {
+      "sha": "873b46873b6e5920e4df34224453904cee39723d",
+      "url": "https://api.github.com/repos/sdegenaar/liquid_glass_widgets/commits/873b46873b6e5920e4df34224453904cee39723d",
+      "html_url": "https://github.com/sdegenaar/liquid_glass_widgets/commit/873b46873b6e5920e4df34224453904cee39723d"
+    }
+  ],
+  "stats": {
+    "total": 34,
+    "additions": 34,
+    "deletions": 0
+  },
+  "files": [
+    {
+      "sha": "5350687ff31bec174dc4b6186fc959a45e52c721",
+      "filename": "CHANGELOG.md",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 0,
+      "changes": 4,
+      "blob_url": "https://github.com/sdegenaar/liquid_glass_widgets/blob/7437a8acb56bae51d6969e3b9f51b257d461d047/CHANGELOG.md",
+      "raw_url": "https://github.com/sdegenaar/liquid_glass_widgets/raw/7437a8acb56bae51d6969e3b9f51b257d461d047/CHANGELOG.md",
+      "contents_url": "https://api.github.com/repos/sdegenaar/liquid_glass_widgets/contents/CHANGELOG.md?ref=7437a8acb56bae51d6969e3b9f51b257d461d047",
+      "patch": "@@ -44,6 +44,10 @@\n \n   Thanks to [@JakeThomson](https://github.com/JakeThomson) for the fix (#409).\n \n+- **Submenu card touch glow was opaque white:** A layered submenu card defaulted its interaction glow to fully opaque white, so the highlight under a finger blew out the card's rows. It now uses the same theme-aware specular colour as the root menu (white at `GlassDefaults.specularLightAlpha` in dark mode, black at `GlassDefaults.specularDarkAlpha` in light mode). An explicit `GlassMenu.glowColor` still wins.\n+\n+- **`GlassPullDownButton` dropped item properties when `onSelected` was set:** Wrapping each `GlassMenuItem` to report the selection rebuilt it with only a few fields, so `submenu`, `height`, `titleStyle`, `subtitleStyle`, `iconColor`, `iconSize`, `maxLines`, `enablePressScale`, `closeDelay`, `isPressed` and `isSelected` were lost. A submenu row in a pull-down button showed no chevron and opened nothing. All properties are now forwarded.\n+\n # 1.10.0\n \n ## Features"
+    },
+    {
+      "sha": "1f100a5085547f6b16820f166d94b6ef192a0285",
+      "filename": "README.md",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2,
+      "blob_url": "https://github.com/sdegenaar/liquid_glass_widgets/blob/7437a8acb56bae51d6969e3b9f51b257d461d047/README.md",
+      "raw_url": "https://github.com/sdegenaar/liquid_glass_widgets/raw/7437a8acb56bae51d6969e3b9f51b257d461d047/README.md",
+      "contents_url": "https://api.github.com/repos/sdegenaar/liquid_glass_widgets/contents/README.md?ref=7437a8acb56bae51d6969e3b9f51b257d461d047",
+      "patch": "@@ -242,6 +242,8 @@ Most apps should use `GlassCard` or `GlassGroupedSection` instead.\n ### Overlays\n `GlassDialog` \u00b7 `GlassSheet` \u00b7 `GlassModalSheet` \u00b7 `showGlassActionSheet` \u00b7 `GlassMenu` \u00b7 `GlassMenuItem` \u00b7 `GlassMenuDivider` \u00b7 `GlassMenuLabel` \u00b7 `GlassPopover`\n \n+`GlassMenu` and `GlassPullDownButton` support native iOS-style layered submenus: give a `GlassMenuItem` a `submenu: [...]` list and it opens a card over the parent, which recedes and dims. Submenus can nest.\n+\n ### Surfaces\n `GlassScaffold` \u00b7 `GlassAppBar` \u00b7 `GlassTabBar` (`.bottom` / `.inline` / `.searchable` / `.minimizable`) \u00b7 `GlassTabBarTrailingButton` \u00b7 `GlassToolbar` \u00b7 `GlassNavigationShell` \u00b7 `GlassPinnedBarChrome` \u00b7 `GlassContentAwareScope` \u00b7 `GlassContentAwareContent` \u00b7 `GlassContentAwareBrightness`\n "
+    },
+    {
+      "sha": "e40e4710b9f66b596486a20de3faf9873ff74094",
+      "filename": "skills/liquid-glass-widgets/SKILL.md",
+      "status": "modified",
+      "additions": 28,
+      "deletions": 0,
+      "changes": 28,
+      "blob_url": "https://github.com/sdegenaar/liquid_glass_widgets/blob/7437a8acb56bae51d6969e3b9f51b257d461d047/skills%2Fliquid-glass-widgets%2FSKILL.md",
+      "raw_url": "https://github.com/sdegenaar/liquid_glass_widgets/raw/7437a8acb56bae51d6969e3b9f51b257d461d047/skills%2Fliquid-glass-widgets%2FSKILL.md",
+      "contents_url": "https://api.github.com/repos/sdegenaar/liquid_glass_widgets/contents/skills%2Fliquid-glass-widgets%2FSKILL.md?ref=7437a8acb56bae51d6969e3b9f51b257d461d047",
+      "patch": "@@ -240,6 +240,33 @@ GlassDialog.show(\n );\n ```\n \n+### GlassMenu Submenus\n+Give a `GlassMenuItem` a `submenu` list to open a native iOS-style card over the parent (the parent recedes and dims; tapping the card's header or the exposed parent collapses one level). Submenus nest. Works in `GlassMenu` and `GlassPullDownButton`:\n+\n+```dart\n+GlassPullDownButton(\n+  icon: const Icon(CupertinoIcons.ellipsis_circle),\n+  items: [\n+    GlassMenuItem(\n+      title: 'Share\u2026',\n+      icon: const Icon(CupertinoIcons.share),\n+      // onTap is required but never called on a submenu row:\n+      // activating it opens the card instead.\n+      onTap: () {},\n+      submenu: [\n+        GlassMenuItem(title: 'Messages', icon: const Icon(CupertinoIcons.chat_bubble_fill), onTap: _sendMessage),\n+        GlassMenuItem(title: 'Mail', icon: const Icon(CupertinoIcons.mail_solid), onTap: _sendMail),\n+      ],\n+    ),\n+    const GlassMenuDivider(),\n+    GlassMenuItem(title: 'Delete', icon: const Icon(CupertinoIcons.trash), isDestructive: true, onTap: _delete),\n+  ],\n+)\n+```\n+\n+- A submenu row shows a chevron automatically unless you pass `trailing`.\n+- Do **not** build nested menus by opening a second `GlassMenu` from an item's `onTap`; use `submenu`.\n+\n ### GlassMaterialize\n For widgets appearing or disappearing dynamically, use `GlassMaterialize` to match iOS 26's progressive defogging transition:\n \n@@ -315,4 +342,5 @@ GlassAppBar.pinned(\n - [ ] **`GlassAppBar` uses `actions: [...]` (a List), not `trailing:`.** There is no `trailing` parameter.\n - [ ] **`GlassChip.label` is a `String`, not a `Widget`.** Pass `label: 'text'`, not `label: Text('text')`.\n - [ ] **`GlassBarItem.icon` uses `onTap` (required), not `onPressed`.**\n+- [ ] **Nested menus use `GlassMenuItem(submenu: [...])`.** The parent row still needs `onTap: () {}` (required, never called). Don't open a second `GlassMenu` from `onTap`.\n - [ ] **`tintColor` on `GlassBarItem` requires `background: GlassBarItemBackground.separate`.** A shared-background item cannot be tinted (asserts in debug mode). The foreground icon colour is flipped automatically \u2014 do not also set a manual `Icon(color:)` on the child."
+    }
+  ]
+}

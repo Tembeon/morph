@@ -1,0 +1,155 @@
+{
+  "date": "2026-10-09",
+  "test_purpose": "pass lifecycle compatibility only; not performance or image admission",
+  "stable_sdk": {
+    "frameworkVersion": "3.47.2",
+    "channel": "stable",
+    "repositoryUrl": "https://github.com/flutter/flutter.git",
+    "frameworkRevision": "d3b14c876900e553bc736ca19295fc09e3853e8e",
+    "frameworkCommitDate": "2026-08-26 16:07:51 -0700",
+    "engineRevision": "a804b261645ef8c13eb3d5c44a5c2fb0340c5539",
+    "engineCommitDate": "2026-08-26 18:46:13.000Z",
+    "engineContentHash": "1cf1c4773fb941c4c74a7f8bb144a8837596c0f4",
+    "engineBuildDate": "2026-08-26 21:23:07.677",
+    "dartSdkVersion": "3.13.2",
+    "devToolsVersion": "2.60.0",
+    "flutterVersion": "3.47.2",
+    "flutterRoot": "/opt/homebrew/Caskroom/flutter/3.19.1/flutter"
+  },
+  "archived_batch_source_changes": [
+    "example/pubspec.lock"
+  ],
+  "source_files": 247,
+  "launches": {
+    "stable-separate-1": {
+      "outcome": "completed",
+      "cases": 4,
+      "liquid_available": true,
+      "window_work": {
+        "mip-owned-wide-n4-reuse": [
+          {
+            "source_passes": 0,
+            "downsample_passes": 0,
+            "producer_submissions": 0,
+            "producer_record_us": 212,
+            "producer_paints": 36,
+            "uniform_allocations": 0,
+            "surface_retained_bytes": 58163200,
+            "surface_peak_bytes": 58163200,
+            "owned_optical_paints": 36
+          }
+        ],
+        "mip-owned-tent-n4-reuse": [
+          {
+            "source_passes": 0,
+            "downsample_passes": 0,
+            "producer_submissions": 0,
+            "producer_record_us": 233,
+            "producer_paints": 36,
+            "uniform_allocations": 0,
+            "surface_retained_bytes": 58163200,
+            "surface_peak_bytes": 58163200,
+            "owned_optical_paints": 36
+          }
+        ],
+        "mip-owned-tent-n4-fresh": [
+          {
+            "source_passes": 36,
+            "downsample_passes": 180,
+            "producer_submissions": 216,
+            "producer_record_us": 233015,
+            "producer_paints": 36,
+            "uniform_allocations": 0,
+            "surface_retained_bytes": 58163200,
+            "surface_peak_bytes": 58163200,
+            "owned_optical_paints": 36
+          }
+        ],
+        "mip-owned-wide-n4-fresh": [
+          {
+            "source_passes": 36,
+            "downsample_passes": 108,
+            "producer_submissions": 144,
+            "producer_record_us": 202892,
+            "producer_paints": 36,
+            "uniform_allocations": 0,
+            "surface_retained_bytes": 58163200,
+            "surface_peak_bytes": 58163200,
+            "owned_optical_paints": 36
+          }
+        ]
+      }
+    },
+    "stable-batched-1": {
+      "outcome": "SIGSEGV",
+      "top_frame": "vulkan::command_buffer::end_renderpass",
+      "submit_frame": "InternalFlutterGpu_CommandBuffer_Submit",
+      "report_produced": false
+    },
+    "stable-batched-2": {
+      "outcome": "SIGSEGV",
+      "top_frame": "vulkan::command_buffer::end_renderpass",
+      "submit_frame": "InternalFlutterGpu_CommandBuffer_Submit",
+      "report_produced": false
+    },
+    "stable-separate-2": {
+      "outcome": "completed",
+      "cases": 4,
+      "liquid_available": true,
+      "window_work": {
+        "mip-owned-wide-n4-reuse": [
+          {
+            "source_passes": 0,
+            "downsample_passes": 0,
+            "producer_submissions": 0,
+            "producer_record_us": 240,
+            "producer_paints": 36,
+            "uniform_allocations": 0,
+            "surface_retained_bytes": 58163200,
+            "surface_peak_bytes": 58163200,
+            "owned_optical_paints": 36
+          }
+        ],
+        "mip-owned-tent-n4-reuse": [
+          {
+            "source_passes": 0,
+            "downsample_passes": 0,
+            "producer_submissions": 0,
+            "producer_record_us": 234,
+            "producer_paints": 36,
+            "uniform_allocations": 0,
+            "surface_retained_bytes": 58163200,
+            "surface_peak_bytes": 58163200,
+            "owned_optical_paints": 36
+          }
+        ],
+        "mip-owned-tent-n4-fresh": [
+          {
+            "source_passes": 36,
+            "downsample_passes": 180,
+            "producer_submissions": 216,
+            "producer_record_us": 222401,
+            "producer_paints": 36,
+            "uniform_allocations": 0,
+            "surface_retained_bytes": 58163200,
+            "surface_peak_bytes": 58163200,
+            "owned_optical_paints": 36
+          }
+        ],
+        "mip-owned-wide-n4-fresh": [
+          {
+            "source_passes": 36,
+            "downsample_passes": 108,
+            "producer_submissions": 144,
+            "producer_record_us": 170925,
+            "producer_paints": 36,
+            "uniform_allocations": 0,
+            "surface_retained_bytes": 58163200,
+            "surface_peak_bytes": 58163200,
+            "owned_optical_paints": 36
+          }
+        ]
+      }
+    }
+  }
+}

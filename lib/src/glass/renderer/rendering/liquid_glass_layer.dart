@@ -18,6 +18,7 @@ import 'package:morph/src/glass/renderer/internal/filter_pass_transform.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
+import 'package:morph/src/glass/renderer/internal/owned_glass_backdrop.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/rounded_superellipse_parameters.dart';
@@ -355,6 +356,27 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
               materialRenderShader: shaders[2],
               tintRenderShader: shaders[3],
               tintIos27RenderShader: shaders[4],
+              directGeometryShader: ShaderKeys.directGeometry
+                  ? shaders[5]
+                  : null,
+              directGeometryIos27Shader: ShaderKeys.directGeometry
+                  ? shaders[6]
+                  : null,
+              directFieldShader: ShaderKeys.directField
+                  ? shaders[ShaderKeys.directGeometry ? 7 : 5]
+                  : null,
+              directFieldIos27Shader: ShaderKeys.directField
+                  ? shaders[ShaderKeys.directGeometry ? 8 : 6]
+                  : null,
+              directFieldMaterialShader: ShaderKeys.directFieldMaterial
+                  ? shaders[ShaderKeys.directGeometry ? 9 : 7]
+                  : null,
+              directFieldTintShader: ShaderKeys.directFieldMaterial
+                  ? shaders[ShaderKeys.directGeometry ? 10 : 8]
+                  : null,
+              directFieldTintIos27Shader: ShaderKeys.directFieldMaterial
+                  ? shaders[ShaderKeys.directGeometry ? 11 : 9]
+                  : null,
               backdropKey: backdropKey,
               blursOwnBackdrop: widget.blursOwnBackdrop,
               live: live,
@@ -433,6 +455,13 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.link,
     required this.fieldOf,
     this.gpuGeometryRenderer,
+    this.directGeometryShader,
+    this.directGeometryIos27Shader,
+    this.directFieldShader,
+    this.directFieldIos27Shader,
+    this.directFieldMaterialShader,
+    this.directFieldTintShader,
+    this.directFieldTintIos27Shader,
   });
 
   final FragmentShader defaultRenderShader;
@@ -440,6 +469,19 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final FragmentShader materialRenderShader;
   final FragmentShader tintRenderShader;
   final FragmentShader tintIos27RenderShader;
+  final FragmentShader? directGeometryShader;
+  final FragmentShader? directGeometryIos27Shader;
+  final FragmentShader? directFieldShader;
+  final FragmentShader? directFieldIos27Shader;
+
+  /// Mixed appearance without the field-to-matte pass.
+  final FragmentShader? directFieldMaterialShader;
+
+  /// Direct tint variations without the field-to-matte pass.
+  final FragmentShader? directFieldTintShader;
+
+  /// Fitted tint variations without the field-to-matte pass.
+  final FragmentShader? directFieldTintIos27Shader;
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
   final Listenable? live;
@@ -459,6 +501,13 @@ class _RawShapes extends SingleChildRenderObjectWidget {
       materialRenderShader: materialRenderShader,
       tintRenderShader: tintRenderShader,
       tintIos27RenderShader: tintIos27RenderShader,
+      directGeometryShader: directGeometryShader,
+      directGeometryIos27Shader: directGeometryIos27Shader,
+      directFieldShader: directFieldShader,
+      directFieldIos27Shader: directFieldIos27Shader,
+      directFieldMaterialShader: directFieldMaterialShader,
+      directFieldTintShader: directFieldTintShader,
+      directFieldTintIos27Shader: directFieldTintIos27Shader,
       backdropKey: backdropKey,
       settings: settingsOf(),
       defaultAppearance: defaultAppearance,
@@ -529,6 +578,30 @@ class _LayerSettings extends ChangeNotifier
 class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     with TransformTrackingRenderObjectMixin, GlassLiveBinding
     implements LiquidGlassLayerRenderObject {
+  /// Standalone research hook; null preserves the production backdrop path.
+  ///
+  /// The harness must invalidate each consumer when its source/mapping changes.
+  /// Only uniform appearances with the regular matte are supported currently.
+  @visibleForTesting
+  static OwnedGlassBackdrop? Function(RenderLiquidGlassLayer)?
+  debugOwnedBackdrop;
+
+  /// Shader specialization required by the owned-source experiment.
+  @visibleForTesting
+  String? get debugOwnedVariant {
+    if (_directField || _directGeometry || _usesShapeAppearances) return null;
+    return (_uniformAppearance ?? defaultAppearance).colorModel
+            is DirectLiquidGlassColorModel
+        ? 'direct'
+        : 'ios27';
+  }
+
+  OwnedGlassBackdrop? _ownedBackdrop;
+
+  /// Counts actual direct optical draws in the standalone research hook.
+  @visibleForTesting
+  static int debugOwnedPaints = 0;
+
   RenderLiquidGlassLayer({
     required this.defaultRenderShader,
     required this.ios27RenderShader,
@@ -542,6 +615,13 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     required super.link,
     this._gpuGeometryRenderer,
     this._field,
+    this.directGeometryShader,
+    this.directGeometryIos27Shader,
+    this.directFieldShader,
+    this.directFieldIos27Shader,
+    this.directFieldMaterialShader,
+    this.directFieldTintShader,
+    this.directFieldTintIos27Shader,
   }) {
     _updateShaderSettings();
   }
@@ -572,14 +652,82 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// Shapes that differ only by tint, an iOS 27 color model.
   final FragmentShader tintIos27RenderShader;
 
+  /// Experimental direct geometry with one direct appearance.
+  final FragmentShader? directGeometryShader;
+
+  /// Experimental direct geometry with one fitted appearance.
+  final FragmentShader? directGeometryIos27Shader;
+
+  /// Experimental direct appearance without a field-to-matte pass.
+  final FragmentShader? directFieldShader;
+
+  /// Experimental fitted appearance without a field-to-matte pass.
+  final FragmentShader? directFieldIos27Shader;
+
+  /// Mixed appearance without the field-to-matte pass.
+  final FragmentShader? directFieldMaterialShader;
+
+  /// Direct tint variations without the field-to-matte pass.
+  final FragmentShader? directFieldTintShader;
+
+  /// Fitted tint variations without the field-to-matte pass.
+  final FragmentShader? directFieldTintIos27Shader;
+
+  bool _directGeometry = false;
+  bool _directField = false;
+
+  /// Whether this layer currently skips the geometry render target.
+  @visibleForTesting
+  bool get debugDirectGeometry => _directGeometry;
+
+  /// Prepared direct geometry updates, including warm-up frames.
+  static int directGeometryUpdates = 0;
+
+  /// Prepared direct field updates, including warm-up frames.
+  static int directFieldUpdates = 0;
+
+  /// Whether the final filter reads a sampled field without a matte.
+  @visibleForTesting
+  bool get debugDirectField => _directField;
+
   /// The final shader the current appearances draw with: each variant
   /// compiles only the color models it can meet, which keeps the
   /// one-appearance and tint-only variants inside the register budget of
   /// full thread occupancy on a Mali-G78.
   FragmentShader get renderShader {
+    final owned = debugOwnedBackdrop?.call(this);
+    _ownedBackdrop = owned;
+    if (owned != null) {
+      _writeCommonShaderUniforms(
+        owned.shader,
+        _uniformAppearance ?? defaultAppearance,
+        _materialCenterInMatte,
+      );
+      return owned.shader;
+    }
     final ios27 =
         (_uniformAppearance ?? defaultAppearance).colorModel
             is! DirectLiquidGlassColorModel;
+    final direct = ios27 ? directGeometryIos27Shader : directGeometryShader;
+    final directField = switch ((
+      _usesShapeAppearances,
+      _usesTintOnlyAppearance,
+      ios27,
+    )) {
+      (false, _, false) => directFieldShader,
+      (false, _, true) => directFieldIos27Shader,
+      (true, true, false) => directFieldTintShader,
+      (true, true, true) => directFieldTintIos27Shader,
+      (true, false, _) => directFieldMaterialShader,
+    };
+    if (_directField && directField != null) {
+      _writeStaleShaderSettings(directField);
+      return directField;
+    }
+    if (_directGeometry && direct != null) {
+      _writeStaleShaderSettings(direct);
+      return direct;
+    }
     final shader = switch ((
       _usesShapeAppearances,
       _usesTintOnlyAppearance,
@@ -661,6 +809,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _staleShaders.add(materialRenderShader);
     _staleShaders.add(tintRenderShader);
     _staleShaders.add(tintIos27RenderShader);
+    if (directGeometryShader case final shader?) _staleShaders.add(shader);
+    if (directGeometryIos27Shader case final shader?) _staleShaders.add(shader);
+    if (directFieldShader case final shader?) _staleShaders.add(shader);
+    if (directFieldIos27Shader case final shader?) _staleShaders.add(shader);
+    if (directFieldMaterialShader case final shader?) _staleShaders.add(shader);
+    if (directFieldTintShader case final shader?) _staleShaders.add(shader);
+    if (directFieldTintIos27Shader case final shader?) {
+      _staleShaders.add(shader);
+    }
     _writeStaleShaderSettings(renderShader);
   }
 
@@ -828,7 +985,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// True once geometry has been encoded, so ancestor motion can stay on the
   /// compositor without crossing this layer's repaint boundary.
   @protected
-  bool get hasReusableGeometry => _geometryImage != null;
+  bool get hasReusableGeometry => _directGeometry || _geometryImage != null;
 
   @override
   GlassFrameState get hiddenFrameState => GlassFrameState.idle;
@@ -916,7 +1073,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     )
     updateMaterial,
   ) {
-    if ((_geometryImage == null && !drawableEmpty) ||
+    if ((!hasReusableGeometry && !drawableEmpty) ||
         frameState == GlassFrameState.idle) {
       return false;
     }
@@ -949,6 +1106,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final result = _buildGpuGeometryImage(shapesWithGeometry, bounds);
       _releaseGeometryImageHandles();
       _geometryImage = result.image;
+      _directGeometry = result.image == null;
+      _directField = result.directField;
       _materialImage = result.materialImage;
       _geometryMatteBounds = result.matteBounds;
       _geometryTextureSize = result.textureSize;
@@ -983,6 +1142,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
     _geometryImage = null;
     _materialImage = null;
+    _directGeometry = false;
+    _directField = false;
   }
 
   void _rememberEncodedGeometry(Rect bounds) {
@@ -996,6 +1157,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (_encodedPassPhase != null) return false;
     _geometryMatteBounds = _geometryMatteBounds.shift(delta);
     _materialCenterInMatte += delta;
+    if (_directGeometry) {
+      _shapeData[8] += delta.dx * devicePixelRatio;
+      _shapeData[9] += delta.dy * devicePixelRatio;
+      _shaderInputsChanged = true;
+    }
     _rememberEncodedGeometry(bounds);
     return true;
   }
@@ -1045,18 +1211,18 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         _releaseCompositorFilter();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {});
       case GlassFrameState.active:
-        if (_geometryImage != null &&
+        if (hasReusableGeometry &&
             _rasterGridStale(shaderCoordinateTransform)) {
           needsGeometryUpdate = true;
         }
-        if (needsGeometryUpdate || _geometryImage == null || link.isDirty) {
+        if (needsGeometryUpdate || !hasReusableGeometry || link.isDirty) {
           link
             ..updateAllGeometries()
             ..markClean();
 
           final canReuseTranslatedGeometry =
               !needsGeometryUpdate &&
-              _geometryImage != null &&
+              hasReusableGeometry &&
               _reuseUniformlyTranslatedGeometry(geometryBounds);
           needsGeometryUpdate = false;
 
@@ -1067,6 +1233,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
               geometryBounds,
             );
             _geometryImage = gpuResult.image;
+            _directField = gpuResult.directField;
             _materialImage = gpuResult.materialImage;
             _geometryMatteBounds = gpuResult.matteBounds;
             _geometryTextureSize = gpuResult.textureSize;
@@ -1079,8 +1246,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         }
 
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {
-          if (_geometryImage != null) {
-            _bindGeometryShader(_geometryImage!);
+          if (hasReusableGeometry) {
+            _bindGeometryShader(_geometryImage);
             _recordOriginalShadows(effectOffset);
             if (_originalShadows.layer case final shadows?) {
               effectContext.addLayer(shadows);
@@ -1137,7 +1304,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   // Resource binding is separate from recording/painting children so a
   // changed geometry frame can be prepared without invoking child paint.
-  void _bindGeometryShader(ui.Image geometryImage) {
+  void _bindGeometryShader(ui.Image? geometryImage) {
     syncCoordinateMapping();
     final activeRenderShader = renderShader;
     activeRenderShader
@@ -1163,13 +1330,47 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
           _materialTextureSize.width,
           _materialTextureSize.height,
         ]);
-      })
-      // Older engines retain this sampler's quality when replacing its
-      // texture. Newer engines use morphGlassShaderFilter's explicit quality.
-      ..setImageSampler(0, geometryImage, filterQuality: FilterQuality.low)
-      // Nearest: the matte packs 12-bit normal angle and displacement codes
-      // across byte boundaries, which filtering between texels would mix.
-      ..setImageSampler(1, geometryImage);
+      });
+    if (_directField && geometryImage != null) {
+      final field = _field!;
+      var index = 65;
+      for (final value in <double>[
+        settings.effectiveRefractionHeight * devicePixelRatio,
+        settings.effectiveRefractionAmount * devicePixelRatio,
+        settings.refractionFitsShape ? 1 : 0,
+        field.origin.dx * devicePixelRatio,
+        field.origin.dy * devicePixelRatio,
+        field.step * devicePixelRatio,
+        devicePixelRatio,
+        field.cols.toDouble(),
+        field.rows.toDouble(),
+        1 / geometryImage.width,
+        1 / geometryImage.height,
+      ]) {
+        activeRenderShader.setFloat(index++, value);
+      }
+      activeRenderShader.setImageSampler(1, geometryImage);
+    } else if (_directGeometry) {
+      var index = 65;
+      for (final value in <double>[
+        settings.effectiveRefractionHeight * devicePixelRatio,
+        settings.effectiveRefractionAmount * devicePixelRatio,
+        settings.refractionFitsShape ? 1 : 0,
+        ..._shapeData,
+        ..._rseData,
+      ]) {
+        activeRenderShader.setFloat(index++, value);
+      }
+    } else if (geometryImage != null) {
+      // Sampler zero is replaced by the native backdrop filter input.
+      activeRenderShader.setImageSampler(
+        0,
+        geometryImage,
+        filterQuality: FilterQuality.low,
+      );
+      // Packed codes must use nearest sampling.
+      activeRenderShader.setImageSampler(1, geometryImage);
+    }
     _writeBackdropShrinkAxis(activeRenderShader);
     if (_materialImage case final materialImage?) {
       if (_usesTintOnlyAppearance) {
@@ -1286,6 +1487,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @protected
   bool syncCoordinateMapping() {
+    final activeShader = renderShader;
     final mapping = _currentCoordinateMapping();
     final backdropBounds = backdropSampleBounds;
     final changed =
@@ -1293,11 +1495,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _coordinateMapping = mapping;
     _backdropBounds = backdropBounds;
     if (changed) _shaderInputsChanged = true;
-    _writeCoordinateMapping(renderShader, mapping, backdropBounds);
+    _writeCoordinateMapping(activeShader, mapping, backdropBounds);
     return changed;
   }
 
   (double, double, double, double, double, double) _currentCoordinateMapping() {
+    if (_ownedBackdrop != null) return (1, 0, 0, 1, 0, 0);
     final layerToPass = shaderCoordinateTransform;
     final globalToMatte = _globalToMatte;
     if (globalToMatte.copyInverse(layerToPass) == 0.0) {
@@ -1520,6 +1723,55 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     Rect materialBounds,
   ) {
     if (!attached) return;
+    if (_ownedBackdrop != null) {
+      _releaseCompositorFilter();
+      _filterMaterialBounds = materialBounds;
+      syncCoordinateMapping();
+      // The source painter can publish a new image earlier in this same
+      // paint traversal. Resolve the borrowed frame after refreshing inputs.
+      final source = _ownedBackdrop!;
+      debugFilterBounds = materialBounds;
+      if (drawableEmpty) return;
+      debugOwnedPaints++;
+      final shader = source.shader;
+      final m = source.layerToSource.storage;
+      if (m[3] != 0 || m[7] != 0 || m[15] != 1) {
+        throw StateError('Owned glass source requires an affine mapping');
+      }
+      shader.setFloat(0, source.sourceSize.width);
+      shader.setFloat(1, source.sourceSize.height);
+      final values = <double>[
+        m[0],
+        m[4],
+        m[1],
+        m[5],
+        m[12] * devicePixelRatio,
+        m[13] * devicePixelRatio,
+        source.mix,
+      ];
+      for (var i = 0; i < values.length; i++) {
+        shader.setFloat(65 + i, values[i]);
+      }
+      shader.setImageSampler(0, source.lower, filterQuality: FilterQuality.low);
+      shader.setImageSampler(2, source.upper, filterQuality: FilterQuality.low);
+      final paint = Paint();
+      paint.shader = shader;
+      final canvas = context.canvas;
+      canvas.save();
+      canvas.translate(offset.dx, offset.dy);
+      canvas.scale(1 / devicePixelRatio);
+      canvas.drawRect(
+        Rect.fromLTRB(
+          materialBounds.left * devicePixelRatio,
+          materialBounds.top * devicePixelRatio,
+          materialBounds.right * devicePixelRatio,
+          materialBounds.bottom * devicePixelRatio,
+        ),
+        paint,
+      );
+      canvas.restore();
+      return;
+    }
     // The engine snapshots this shader's uniforms into the native image
     // filter at creation, so the composed filter can only be reused while
     // every snapshotted input is unchanged. Repaints with identical shader
@@ -1767,7 +2019,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // once the motion has stopped for a frame, so the motion itself stays on
   // the compositor.
   void _watchRasterPhase() {
-    if (_geometryImage == null) return;
+    if (!hasReusableGeometry) return;
     final scheduler = SchedulerBinding.instance;
     _movedAt = scheduler.currentSystemFrameTimeStamp;
     if (_phaseWatched) return;
@@ -1777,7 +2029,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   void _checkRasterPhase(Duration _) {
     _phaseWatched = false;
-    if (!attached || _geometryImage == null) return;
+    if (!attached || !hasReusableGeometry) return;
     final scheduler = SchedulerBinding.instance;
     if (_movedAt == scheduler.currentSystemFrameTimeStamp) {
       _phaseWatched = true;
@@ -1976,6 +2228,60 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       final (usesShapeAppearances, usesTintOnlyAppearance, _) =
           _classifyShapeAppearances(appearances, defaultAppearance);
 
+      if (ShaderKeys.directGeometry &&
+          directGeometryShader != null &&
+          directGeometryIos27Shader != null &&
+          _field == null &&
+          numShapes == 1 &&
+          !usesShapeAppearances) {
+        _directGeometry = true;
+        directGeometryUpdates++;
+        _shaderInputsChanged = true;
+        return (
+          image: null,
+          directField: false,
+          materialImage: null,
+          materialCenter: materialCenter,
+          materialSize: bounds.size,
+          textureSize: Size(textureWidth.toDouble(), textureHeight.toDouble()),
+          materialTextureSize: const Size(1, 1),
+          appearances: appearances,
+          matteBounds: boundsInMatteSpace,
+        );
+      }
+      _directGeometry = false;
+
+      if (ShaderKeys.directField &&
+          directFieldShader != null &&
+          directFieldIos27Shader != null &&
+          _field != null &&
+          _field!.overlays.isEmpty &&
+          !usesShapeAppearances) {
+        final image = renderer.directFieldImage(_field!);
+        _shaderInputsChanged = true;
+        directFieldUpdates++;
+        return (
+          image: image,
+          directField: true,
+          materialImage: null,
+          materialCenter: materialCenter,
+          materialSize: bounds.size,
+          textureSize: Size(textureWidth.toDouble(), textureHeight.toDouble()),
+          materialTextureSize: const Size(1, 1),
+          appearances: appearances,
+          matteBounds: boundsInMatteSpace,
+        );
+      }
+
+      final directMixedField =
+          ShaderKeys.directFieldMaterial &&
+          directFieldMaterialShader != null &&
+          directFieldTintShader != null &&
+          directFieldTintIos27Shader != null &&
+          _field != null &&
+          _field!.overlays.isEmpty &&
+          usesShapeAppearances;
+      if (directMixedField) directFieldUpdates++;
       final result = renderer.render(
         width: textureWidth,
         height: textureHeight,
@@ -1998,9 +2304,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         offsetY: boundsInMatteSpace.top * devicePixelRatio,
         field: _field,
         fieldScale: devicePixelRatio,
+        useDirectField: directMixedField,
       );
       return (
         image: result.image,
+        directField: directMixedField,
         materialImage: renderer.materialImage,
         materialCenter: materialCenter,
         materialSize: bounds.size,
@@ -2029,9 +2337,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 // Images here borrow the renderer's handles. A retained temporary frame must
 // clone both images before another render can dispose those borrowed handles.
 typedef _GpuGeometryFrame = ({
+  bool directField,
   Size textureSize,
   Size materialTextureSize,
-  ui.Image image,
+  ui.Image? image,
   ui.Image? materialImage,
   Rect matteBounds,
   Offset materialCenter,

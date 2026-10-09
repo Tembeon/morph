@@ -56,6 +56,29 @@ measurements.
   disabled: impeller's ColorAttachmentDescriptor default, unchanged by
   flutter_gpu unless setColorBlendEnable is called (Flutter 3.47.2).
 
+## Beta architecture probes (2026-10-08, ongoing)
+
+All probes are opt-in and run only on the beta SDK. See
+../../audit/codex-direct-field-report.md and
+../../audit/codex-rendering-architecture-research.md for methods and limits.
+The current glyph atlas lowers raster p95 but worsens real presentation gaps,
+so it remains disabled. Direct sampled-field shading removes a matte draw;
+benchmark-only Android Performance Hints address a separate scheduling cost.
+Two sustained launches each, control/candidate/candidate/control: mean of
+launch medians UI p95 15.52 -> 9.13 ms, raster p95 19.10 -> 14.38 ms,
+whole-phone power 723 -> 825 mW (+14.1%). Actual presentation was measured
+separately; FrameTiming over-budget counts do not establish display cadence.
+The input callbacks omit physical-touch boosts, and Pixel 6a is not a weak
+device admission test. Neither hints nor these renderer paths are defaults.
+
+MORPH_GPU_FUSION_FIELD describes the owner's small rounded-box optical grid
+analytically and computes its nodes on GPU. The CPU owner still traces the
+same silhouette. The GPU explicitly ports the CPU angular merge and optical
+turn/thickness fold; this is shading the owner's law, not the renderer's old
+fusion law. The added tiny float render pass can cost more than the upload it
+replaces. Initial liquid push UI p95 10.33 -> 10.24 ms, GPU 6.219 -> 6.310,
+native liquid max 2/255; no robust benefit. Presentation admission remains open.
+
 ## Packaging
 
 - whynotmake-it's `liquid_glass_renderer` (Apache-2.0, upstream 3cec75ed)
@@ -105,6 +128,18 @@ identity shared transfer. This is a correctness sync, not a measured GPU
 or energy optimization. Native optical shaders remain unchanged.
 
 ## Tiers
+
+Beta architectural research (2026-10-08) is opt-in, not a tier policy.
+The seven-level foreground glyph blur atlas reduces native liquid push raster
+p95 from 32.84/24.39 to 14.16/14.85 ms across two three-repeat launches;
+owned atlas peak is 3.94 MB, excluding transient targets and RSS. Chrome max
+error is 7/255. UI is still over budget, liquid pop UI worsens, and liquid
+push GPU work grows 5-6 percent. The first separate FrameTimeline pair does
+not confirm a presentation win. Leave the compile-time experiment disabled.
+See ../../audit/codex-glyph-blur-atlas-report.md and
+../perf/2026-10-08-architecture. Single-shape direct geometry and a direct
+sampled-field shader are separate experiments, also disabled; these do not
+change the outline-as-truth contract or admit a production replacement.
 
 - Tier 0 (flat) fills the outline.
 - Tier 1 (fake) is the liquid layers through the renderer's FakeGlass
@@ -2727,3 +2762,132 @@ Android exec-out screencap independently confirms 1082x2402 in the
 displayed small-region frame, without invoking Flutter toImage.
 Details, provenance and reproduction: tool/audit/codex-beta-sdk-report.md,
 perf/2026-10-08-beta-sdk. Production blur remains the stock path.
+
+## Shared mip source research (2026-10-08, beta only)
+
+An opt-in gallery API probe uploads four distinct colors into four mip
+levels, waits for the copy command, wraps GPU texture -> ui.Image, and samples
+explicit LOD in a runtime shader. Pixel/Vulkan preserves all four levels;
+medium sampler quality reads/interpolates them, while none/low read only base.
+This is interoperability evidence, not a live backdrop capture or timing win.
+The public installed GPU CommandBuffer has no generateMipmap method; source
+production must be included in the next whole-pipeline comparison.
+Numerical box/tent4 PSF tests expose grid-phase bias of naive 2x2 mips.
+Both shared prefilter and analytic-shadow alternatives remain quality research,
+disabled in the production renderer. Evidence/protocol and H01-H20 triage:
+tool/audit/codex-gpu-research-reconciliation.md;
+perf/2026-10-08-architecture/research. Existing optics/shader defaults remain.
+
+The controlled owned-source producer is implemented in
+example/lib/perf/mip_stage_bench.dart, with fixed Vulkan texture rings and
+N=1,2,4,8,16 constant visible-area consumers. Stock grouped/cached Gaussian
+controls separate grouping and reuse from algorithm changes. Five-pass fresh
+tent lowers GPU activity but loses FrameTimeline cadence to grouped Gaussian;
+reuse and cached Gaussian have similar cost and saturate 60 Hz. A specialized
+three-pass producer collapses the first four tent levels into two axis passes.
+See tool/audit/codex-shared-mip-report.md and
+perf/2026-10-08-architecture/shared-mip for exact scope, results and hashes.
+There is no live compositor capture, Navigation admission or default change.
+
+## Owned source with real optical consumers (2026-10-08, beta only)
+
+The standalone bench now connects borrowed lower/upper source images to the
+existing Morph optical shader, preserving geometry, refraction, material and
+foreground. Production uses its existing backdrop filter because the internal
+debugOwnedBackdrop hook is null. Uniform regular-light appearance, translation,
+N=4/16, a 1024x2048 opaque owned source and constant 30% visible area are tested.
+Source production is scheduled before repaint-boundary traversal; a parent
+background painter can otherwise publish too late for a deeper consumer.
+Native full-screen captures and crop metadata replace boundary toImage for
+filter-coordinate quality checks. Readbacks occur after measured windows.
+
+N=16 unchanged source, three repeats: separate layers sharing a BackdropKey /
+one common stock layer / common optics with cached stock Gaussian yield
+13.065 / 5.498 / 2.879 ms app GPU activity per frame. Separate/common frozen
+frames match exactly; cached Gaussian differs by <=1/255 and owned clear glass
+by <=2/255 at its rim. Two real FrameTimeline launches, missed display slots
+over three 1200 ms windows: separate 46/71, common stock 0/3, cached 4/3.
+Grouping improves cadence; caching provides GPU headroom without a measured
+cadence win over common stock. Cache initial production awaits 29.304 ms.
+
+Fresh tent/collapsed tent GPU work is 4.055/4.115 ms versus common stock
+5.801, but UI p95 rises to 9.510/10.929 versus 6.284 ms. Actual missed slots
+are 18/14 and 16/20 versus 8/8 in two launches. Neither fresh pyramid is
+admitted. Approximate blur interior p95 error is 9-10/255, rim maximum 36;
+collapsed versus ordinary tent reaches 2/255 in optical output. All outside
+and opaque foreground witnesses match. Transparent source, arbitrary affine
+transforms, overlap, reveal, mixed appearances and cold entry remain open.
+
+Multiple pre-created render passes in one public GPU command buffer crash
+Pixel's Vulkan backend at end_renderpass. Installed engine source begins
+Vulkan scopes in construction and ends them in deferred encoding. The exact
+failed source, build identity and native stack are archived; safe production
+of the probe uses separate submissions. This is a backend constraint, not a
+successful batching result. Explicit benchmark pools reserve all kernel
+families and cache (63.46875 MiB), excluding native intermediates and optics.
+
+Evidence and reproduction: tool/audit/codex-owned-backdrop-optics-report.md;
+perf/2026-10-08-architecture/owned-optics. No Navigation FPS, weak-device,
+whole-process memory, energy or Apple fidelity admission follows.
+
+Stable lifecycle follow-up, 2026-10-09: the archived batch producer also
+crashes twice on Flutter 3.47.2 / the same Pixel Vulkan backend. The same
+input with separate submissions completes all four N=4 tent/wide fresh/reuse
+cases twice. This is compatibility evidence, not a stable performance cohort
+or new optical admission. Upstream #193867 proposes the missing sequential
+pass lifecycle and RenderPass.end(); neither installed SDK exposes it.
+#193804's sample uses separate command buffers and investigates a different
+clear/load attachment-cache problem. Exact sources, SDK identities and stacks:
+tool/audit/codex-gpu-pass-lifecycle-report.md;
+perf/2026-10-08-architecture/owned-optics/stable-batch-check.
+
+## Navigation foreground source bounds (2026-10-09)
+
+The navigation brief's persistent chrome and connected-component proposals
+already exist. A release-safe graph census, taken outside timing windows,
+finds ten foreground ImageFilterLayer instances in nested push/pop phases,
+two or three liquid layers and one capture-key identity. These are retained
+Flutter objects, not native GPU pass/capture execution/allocation counts.
+
+MORPH_BAR_GLYPH_BOUNDS crops only the foreground source layout inside the
+unchanged item and hit box. On Pixel Vulkan beta release, direct field plus
+live glyphs and benchmark hints on both sides, nested source area is 62%
+lower but GPU active work stays about 6.3 ms/frame on push. Two launches
+per side in ABBA: missed-slot totals over six 800 ms windows per action,
+control/candidate enter 16/30, push 33/26, pop 30/33, toolbar 14/16. This is
+not a broad presentation win. Frozen phase-10 glyph max is 5/255; repeated
+control glyph phases are effectively identical. Isolated unrelated contour
+outliers remain in both comparisons. No physics or optical tuning changed;
+the flag stays off. Native pass topology/batching is the next hypothesis.
+
+Evidence: tool/audit/codex-navigation-transition-report.md;
+docs/research/navigation-transition-audit.md;
+perf/2026-10-09-navigation-transition. No default, Metal performance,
+weak-device, memory or energy admission follows from this experiment.
+
+Foreground cohort follow-up, 2026-10-09: MORPH_BAR_GLYPH_BATCH shares a
+Gaussian/transform/opacity layer for compatible adjacent glyph sources,
+keeping existing layout, semantics and hit targets. The native first
+attempt fails at nearly sharp live text; raster eligibility removes those
+large errors but a newly sampled phase still differs by 37/255. Real
+Navigation filter counts fall 10 -> 9 push / 8 pop only in a narrow phase.
+GPU work remains about 6.25 ms/frame push. No presentation improvement is
+established; the planned cadence cohort stops at image admission. The
+prototype stays off and does not change measured motion or optics.
+Report: tool/audit/codex-glyph-cohort-report.md; evidence:
+perf/2026-10-09-glyph-cohorts. Native sampling grids must also qualify for
+shared filtering; sigma/scale/alpha and nonoverlapping halos are insufficient.
+
+### Navigation mixed-field follow-up, 2026-10-09
+
+MORPH_DIRECT_FIELD_MATERIAL (default false, requires MORPH_DIRECT_FIELD)
+keeps the material/tint map and reads optical nodes in the final shader,
+skipping the fused geometry matte. New release census confirms tint-only
+mixed appearances and the active direct-field path in nested transitions.
+It removes a draw/target, not all field uploads or independent optical
+filters. Pixel release GPU push first pair 6.274 -> 6.158 ms, reverse pair
+6.169 -> 6.166; FrameTimeline ABBA push missed-slot medians 6/7 -> 3/9,
+pop 3/3 -> 5/6. No repeatable FPS win; retain control. Native chrome shows
+only sparse differences comparable to repeated controls in this fixture.
+Details, limitations and source records: codex-direct-field-material-report.md
+and perf/2026-10-09-field-material. No physics/tuning/default changes.

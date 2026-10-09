@@ -26,6 +26,9 @@ class FlutterGpuGeometryRenderer {
   static Future<void> waitUntilGpuContextAvailable() => Future.value();
 
   static int get debugTotalRenderCount => 0;
+
+  /// No experimental optical grids are generated on the web.
+  static int get analyticFieldUpdates => 0;
   static int get debugActiveRendererCount => 0;
   static int get debugActiveGeometryTextureCount => 0;
   static int get debugActiveMaterialTextureCount => 0;
@@ -82,9 +85,14 @@ class FlutterGpuGeometryRenderer {
     List<double> boundsData = const <double>[],
     GlassField? field,
     double fieldScale = 1,
+    bool useDirectField = false,
   }) => throw UnsupportedError('Flutter GPU is not available on the web.');
 
   void releaseOutput() {}
+
+  /// Unavailable on the web, which uses fake glass.
+  ui.Image directFieldImage(GlassField field) =>
+      throw UnsupportedError('Flutter GPU is not available on the web.');
 
   void dispose() {}
 }

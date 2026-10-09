@@ -1,0 +1,11 @@
+{
+  "example/lib/perf/mip_stage_bench.dart": "0ac3ae0d49940632ae47bf84a8dc1b500e1a5d72bc1512f74d56a3c2706a8ce0",
+  "example/perf_assets/mip.shaderbundle": "940b35596c62586ddb2d3ad2aa8faa6af6b74dc6bf7fba9f944ccced77738890",
+  "example/lib/perf/shaders/mip.shaderbundle.json": "c8466ea4861221459d028842d851dc080bc1a8fe1a6ddec4472089ab82080c02",
+  "example/lib/perf/shaders/mip_wide.glsl": "673e3ff5c8fccbbb74be894e5a8be71370d27a2a95c173e1c9735b0e35fd0170",
+  "example/pubspec.yaml": "af406735c5a21042c7bb171492543a0eff29dc5cbda05b8e34e12088e0183a53",
+  "tool/ios_reference/perf/stage_bench/compile_mip_bundle.py": "b72930e0790fcb740207ee3a7ecb67549ac23938ecb54bd2ef60b1922635fc08",
+  "tool/ios_reference/perf/stage_bench/mip_quality.py": "945f6121eeb18675e4505c7765307c40d56f92d9ea4fb432e885e075c09abc2f",
+  "tool/ios_reference/perf/stage_bench/mip_psf.py": "fbf30cd43ea793369fd4bf740d4e9cc7c6fe4428a72d1592642b0a0b0a2bf140",
+  "tool/ios_reference/perf/stage_bench/test_mip_psf.py": "313b3e2143e510cd96276b942a5c5dba706f57acab23a2fc8a2d15c7d8d1ea32"
+}

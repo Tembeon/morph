@@ -1,0 +1,61 @@
+{
+  "sha": "a7d3c5ebd04b7efdf264a901cc521f77878744d1",
+  "node_id": "C_kwDOTsagWNoAKGE3ZDNjNWViZDA0YjdlZmRmMjY0YTkwMWNjNTIxZjc3ODc4NzQ0ZDE",
+  "commit": {
+    "author": {
+      "name": "gera",
+      "email": "gera@72241.local",
+      "date": "2026-08-04T15:31:34Z"
+    },
+    "committer": {
+      "name": "gera",
+      "email": "gera@72241.local",
+      "date": "2026-08-04T15:31:34Z"
+    },
+    "message": "Measured fidelity against a real NSGlassEffectView; fix the dark-appearance bias\n\nFirst actual pixel-for-pixel comparison. A real NSGlassEffectView (macOS 27,\ndarkAqua, 160x88, cornerRadius 44) is rendered over the same hard 0x20|0xE0\nbackdrop the shader harness uses, captured window-scoped via ScreenCaptureKit,\nand diffed against our render at identical geometry.\n\n  before   MAE 32.05   PSNR 17.49 dB   mean delta +32.0\n  after    MAE 10.03   PSNR 25.97 dB   mean delta  -4.8\n\nMAE and mean delta being equal at 32.0 showed a pure offset, not noise: our\nglass was uniformly ~12.5% too bright. platformContentGlass ships ONE colour\nmatrix, but a real view does not use the same bias in both appearances -- the\ndecoded clear variant measured bias 0.0966 dark vs 0.2795 light, ratio 0.346.\nApplying that ratio to the regular bias gives 0.235 * 0.346 = 0.0813, which\nremoves the offset. RGB terms unchanged; only the additive bias differs.\nGlass.regular now selects the matrix from the live appearance.\n\nTwo lessons recorded:\n  * cacheDisplay() cannot capture glass -- it is composited by the window\n    server, so the reference must be captured externally.\n  * the vertex stage must map vUV to the RENDER TARGET half-size, not the\n    element half-size, or the shape fills the whole target and the comparison\n    is meaningless.\n\nfidelity-vs-apple.png shows Apple, ours, and the 6x-amplified difference.\nResidual -4.8 mean is now within the tone-curve behaviour the decode agents\nfound for regular-dark, which is not affine and remains unmodelled.",
+    "tree": {
+      "sha": "54f95910cf3196a714f0f9483852a147dc5c355e",
+      "url": "https://api.github.com/repos/medfa12/liquid-glass-react/git/trees/54f95910cf3196a714f0f9483852a147dc5c355e"
+    },
+    "url": "https://api.github.com/repos/medfa12/liquid-glass-react/git/commits/a7d3c5ebd04b7efdf264a901cc521f77878744d1",
+    "comment_count": 0,
+    "verification": {
+      "verified": false,
+      "reason": "unsigned",
+      "signature": null,
+      "payload": null,
+      "verified_at": null
+    }
+  },
+  "url": "https://api.github.com/repos/medfa12/liquid-glass-react/commits/a7d3c5ebd04b7efdf264a901cc521f77878744d1",
+  "html_url": "https://github.com/medfa12/liquid-glass-react/commit/a7d3c5ebd04b7efdf264a901cc521f77878744d1",
+  "comments_url": "https://api.github.com/repos/medfa12/liquid-glass-react/commits/a7d3c5ebd04b7efdf264a901cc521f77878744d1/comments",
+  "author": null,
+  "committer": null,
+  "parents": [
+    {
+      "sha": "1eb1749f8eba963df284682d3a6ae37b0266e4bb",
+      "url": "https://api.github.com/repos/medfa12/liquid-glass-react/commits/1eb1749f8eba963df284682d3a6ae37b0266e4bb",
+      "html_url": "https://github.com/medfa12/liquid-glass-react/commit/1eb1749f8eba963df284682d3a6ae37b0266e4bb"
+    }
+  ],
+  "stats": {
+    "total": 23,
+    "additions": 22,
+    "deletions": 1
+  },
+  "files": [
+    {
+      "sha": "6291f703f649289c57ba70c3de50ef0b741e2e67",
+      "filename": "src/glass.ts",
+      "status": "modified",
+      "additions": 22,
+      "deletions": 1,
+      "changes": 23,
+      "blob_url": "https://github.com/medfa12/liquid-glass-react/blob/a7d3c5ebd04b7efdf264a901cc521f77878744d1/src%2Fglass.ts",
+      "raw_url": "https://github.com/medfa12/liquid-glass-react/raw/a7d3c5ebd04b7efdf264a901cc521f77878744d1/src%2Fglass.ts",
+      "contents_url": "https://api.github.com/repos/medfa12/liquid-glass-react/contents/src%2Fglass.ts?ref=a7d3c5ebd04b7efdf264a901cc521f77878744d1",
+      "patch": "@@ -17,6 +17,22 @@ export const GLASS_RECIPE = {\n            [-0.079, -0.265, 0.973, 0.235]],\n };\n \n+// MEASURED \u2014 diffing our render against a real darkAqua NSGlassEffectView over\n+// an identical backdrop showed our glass a uniform +32 luma too bright\n+// (MAE 32.05, mean delta +32.0 \u2014 the two being equal means a pure offset, not\n+// noise). platformContentGlass ships ONE matrix, but a real view does not use\n+// the same bias in both appearances: the decoded clear variant measured bias\n+// 0.0966 dark vs 0.2795 light, a ratio of 0.346. Applying that ratio to the\n+// regular bias gives 0.235 * 0.346 = 0.0813, which removes the offset.\n+// The RGB terms are unchanged; only the additive bias differs.\n+const DARK_BIAS = 0.0813;\n+export const GLASS_RECIPE_DARK = {\n+  blurRadius: 45,\n+  faceCM: [[0.921, -0.265, -0.027, DARK_BIAS],\n+           [-0.079, 0.735, -0.027, DARK_BIAS],\n+           [-0.079, -0.265, 0.973, DARK_BIAS]],\n+};\n+\n // DECODED \u2014 luminanceColorMap.png as a closed form. Drives CONTENT colour, not\n // the panel: this is the curve that decides whether symbols go light or dark.\n const LUM_LO = 0.3490, LUM_HI = 0.8000, LUM_K = 10.25, LUM_MID = 0.5;\n@@ -147,8 +163,13 @@ export class Glass {\n   }\n }\n \n+const _prefersDark = typeof matchMedia === 'function' &&\n+  matchMedia('(prefers-color-scheme: dark)').matches;\n+\n Glass.regular = new Glass({\n-  ...BASE, ...GLASS_RECIPE, variant: 'regular', isInteractive: false,\n+  ...BASE, ...(_prefersDark ? GLASS_RECIPE_DARK : GLASS_RECIPE),\n+  variant: 'regular', isInteractive: false,\n+  faceCMLight: GLASS_RECIPE.faceCM, faceCMDark: GLASS_RECIPE_DARK.faceCM,\n });\n \n // DECODED: clear blurs MORE than regular, not less \u2014 measured edge-transition"
+    }
+  ]
+}

@@ -38,5 +38,13 @@ flutter:
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_ios27.frag
     - lib/src/glass/renderer/shaders/liquid_glass_final_render_tint_ios27.frag
     - lib/src/glass/renderer/shaders/fake_glass_surface.frag
+    - lib/src/glass/renderer/shaders/glyph_blur_atlas.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_direct_geometry.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_direct_geometry_ios27.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_direct_field.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_direct_field_ios27.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_direct_field_material.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_direct_field_tint.frag
+    - lib/src/glass/renderer/shaders/liquid_glass_direct_field_tint_ios27.frag
   assets:
     - build/shaderbundles/
