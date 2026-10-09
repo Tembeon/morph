@@ -3,10 +3,12 @@ import 'dart:ui' show lerpDouble;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 
 /// The role a surface plays in a control.
 ///
@@ -365,17 +367,41 @@ abstract class MorphGlassPainter {
   );
 }
 
-(Path, Color) _bodyOf(
+(MorphGlassOutline, Color) _bodyOf(
   MorphGlassOutline outline,
   List<MorphGlassSurface> surfaces,
 ) {
   final surface = surfaces.first;
   return (
-    outline.path,
+    outline,
     surface.color.withValues(
       alpha: surface.color.a * surface.opacity.clamp(0.0, 1.0),
     ),
   );
+}
+
+/// Fills [body] flat: merged boxes by the merge law per pixel once its
+/// shader has loaded, any other outline (and merged boxes before that) by
+/// its path. [screenScale] is the device pixels per local unit.
+void _paintBody(
+  Canvas canvas,
+  (MorphGlassOutline, Color) body,
+  double screenScale,
+) {
+  final (outline, color) = body;
+  if (morphGlassOutlineMergedBoxes(outline) case (:final boxes, :final spacing)
+      when MorphFlatBodyShader.paint(
+        canvas,
+        boxes,
+        spacing,
+        screenScale,
+        fill: color,
+      )) {
+    return;
+  }
+  final paint = Paint();
+  paint.color = color;
+  canvas.drawPath(outline.path, paint);
 }
 
 /// The flat fill of the surface [select] picks from [source], as
@@ -387,20 +413,40 @@ Widget morphGlassLiveFill(
 ) => CustomPaint(painter: _FillPainter(source.pick((f) => _fillOf(select(f)))));
 
 /// The flat body [select] picks from [source], as the default
-/// [MorphGlassPainter.buildBody] draws it, following the source.
+/// [MorphGlassPainter.buildBody] draws it, following the source; a body of
+/// merged boxes ([morphGlassOutlineMergedBoxes], which must hold while the
+/// structure holds) is filled by [MorphFlatBodyShader].
 @internal
 Widget morphGlassLiveBody(
   MorphGlassSource source,
   (List<MorphGlassSurface>, MorphGlassOutline) Function(MorphGlassFrame frame)
   select,
-) => CustomPaint(
-  painter: _BodyPainter(
-    source.pick((f) {
-      final (surfaces, outline) = select(f);
-      return _bodyOf(outline, surfaces);
-    }),
-  ),
-);
+) {
+  final data = source.pick((f) {
+    final (surfaces, outline) = select(f);
+    return _bodyOf(outline, surfaces);
+  });
+  if (morphGlassOutlineMergedBoxes(data.value.$1) == null) {
+    return CustomPaint(painter: _BodyPainter(data));
+  }
+  MorphFlatBodyShader.precache().ignore();
+  final repaint = morphRepaintOn(data);
+  // Takes hits across its box, as the path's CustomPaint does.
+  return MetaData(
+    behavior: HitTestBehavior.opaque,
+    child: Builder(
+      builder: (context) {
+        // The box's own scale to the screen leaves out the view's.
+        final ratio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
+        return MorphScreenScalePaint(
+          repaint: repaint,
+          painter: (canvas, size, scale) =>
+              _paintBody(canvas, data.value, scale * ratio),
+        );
+      },
+    ),
+  );
+}
 
 /// The glow of the surface [select] picks from [source], as
 /// [MorphGlassPainter.buildGlow] draws it, following the source; the
@@ -435,19 +481,14 @@ class _FillPainter extends CustomPainter {
 class _BodyPainter extends CustomPainter {
   _BodyPainter(this.data) : super(repaint: morphRepaintOn(data));
 
-  final ValueListenable<(Path, Color)> data;
+  final ValueListenable<(MorphGlassOutline, Color)> data;
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final (outline, color) = data.value;
-    final paint = Paint();
-    paint.color = color;
-    canvas.drawPath(outline, paint);
-  }
+  void paint(Canvas canvas, Size size) => _paintBody(canvas, data.value, 1);
 
   @override
   bool shouldRepaint(_BodyPainter oldDelegate) =>
-      data is! GlassFixed<(Path, Color)> ||
+      data is! GlassFixed<(MorphGlassOutline, Color)> ||
       oldDelegate.data.value != data.value;
 }
 

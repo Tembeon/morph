@@ -366,3 +366,10 @@ Local patches (some commits include related package changes):
   before any SDF. Layout: uFusedBoxes 305 and uShapeTints 337 in the
   fused variants, uShapeTints 305 in the separate ones. The host A/B is
   unchanged to the last digit. sdf.glsl is back to its pre-analytic text.
+- 2026-10-09 shared merge law: the fused variants' box distance and
+  angular fold moved from analytic_geometry.glsl into fused_law.glsl
+  (fusedBoxAt, fusedFold; the includer declares uFusedBoxes and defines
+  FUSED_MAX_BOXES), unchanged in arithmetic, so the flat tier's fused
+  body shader (lib/src/widgets/shaders/flat_fused_body.frag,
+  MORPH_FLAT_SHADER_BODIES) evaluates the same law. The fold indexes
+  uFusedBoxes only with loop indices, which SkSL accepts.

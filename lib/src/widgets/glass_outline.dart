@@ -22,21 +22,39 @@ import 'package:morph/src/liquid_field.dart';
 @immutable
 class MorphGlassOutline {
   /// Creates an outline from its edge alone.
-  const MorphGlassOutline(this.path)
-    : _field = null,
+  const MorphGlassOutline(Path path)
+    : _path = path,
+      _field = null,
       _shapes = null,
-      _cover = null;
+      _cover = null,
+      _merged = null;
 
-  const MorphGlassOutline._(this.path, this._field, [this._cover])
-    : _shapes = null;
+  const MorphGlassOutline._(Path path, this._field, [this._cover])
+    : _path = path,
+      _shapes = null,
+      _merged = null;
 
-  const MorphGlassOutline._union(this.path, List<RRect> shapes)
-    : _field = null,
+  const MorphGlassOutline._union(Path path, List<RRect> shapes)
+    : _path = path,
+      _field = null,
       _shapes = shapes,
-      _cover = null;
+      _cover = null,
+      _merged = null;
+
+  MorphGlassOutline._merged(List<RRect> boxes, double spacing)
+    : _path = null,
+      _field = null,
+      _shapes = null,
+      _cover = null,
+      _merged = _MergedBoxes(boxes, spacing);
 
   /// The edge of the body, in the layer's local coordinates.
-  final Path path;
+  ///
+  /// An outline of merged boxes that a flat fill shades per pixel traces
+  /// its edge only when this is first read.
+  Path get path => _path ?? _merged!.edge;
+
+  final Path? _path;
 
   final GlassField? _field;
 
@@ -46,11 +64,20 @@ class MorphGlassOutline {
   // edge: the plain union of merged boxes and their necks.
   final Path? _cover;
 
+  // The boxes and spacing of a body a flat fill merges per pixel.
+  final _MergedBoxes? _merged;
+
   /// The box the body occupies.
   Rect get bounds => path.getBounds();
 
   /// The same outline moved by [offset].
   MorphGlassOutline shift(Offset offset) {
+    final merged = _merged;
+    if (merged != null) {
+      return MorphGlassOutline._merged([
+        for (final box in merged.boxes) box.shift(offset),
+      ], merged.spacing);
+    }
     final shapes = _shapes;
     if (shapes != null) {
       return MorphGlassOutline._union(path.shift(offset), [
@@ -85,6 +112,33 @@ Path? morphGlassOutlineShadowCover(MorphGlassOutline outline) => outline._cover;
 @internal
 List<RRect>? morphGlassOutlineShapes(MorphGlassOutline outline) =>
     outline._shapes;
+
+/// The rounded boxes and the spacing of a body a flat fill merges per
+/// pixel ([morphGlassContainerMergedOutline]), or null for any other
+/// outline.
+@internal
+({List<RRect> boxes, double spacing})? morphGlassOutlineMergedBoxes(
+  MorphGlassOutline outline,
+) => switch (outline._merged) {
+  final merged? => (boxes: merged.boxes, spacing: merged.spacing),
+  null => null,
+};
+
+/// The boxes of a merged outline, and the edge traced from them on first
+/// read.
+class _MergedBoxes {
+  _MergedBoxes(this.boxes, this.spacing);
+
+  final List<RRect> boxes;
+
+  final double spacing;
+
+  late final Path edge = morphGlassContainerOutline(
+    boxes,
+    spacing,
+    withField: false,
+  ).path;
+}
 
 /// How much larger a corner radius the glass's optical normals turn on
 /// than the shape's own: the factor the renderer's analytic shapes use
@@ -864,6 +918,9 @@ final List<(List<RRect>, MorphGlassOutline)> _recentUnions = [];
 /// The last four merged-box outlines retained by the isolate, newest last.
 final List<(List<RRect>, double, MorphGlassOutline)> _recentBoxOutlines = [];
 
+/// The last four outlines merged per pixel, newest last.
+final List<(List<RRect>, double, MorphGlassOutline)> _recentMerged = [];
+
 /// The outline of [shapes] merged by a glass container with [spacing] for
 /// a liquid layer that evaluates the merge law itself: its field is a
 /// [GlassBoxField] of the shapes, fused only if something reads its
@@ -909,6 +966,33 @@ MorphGlassOutline morphGlassContainerBoxOutline(
   }
   _recentBoxOutlines.add((List.of(shapes), spacing, outline));
   if (_recentBoxOutlines.length > 4) _recentBoxOutlines.removeAt(0);
+  return outline;
+}
+
+/// The outline of [shapes] merged by a glass container with [spacing] for
+/// a flat fill that evaluates the merge law per pixel: it carries the
+/// shapes and the spacing ([morphGlassOutlineMergedBoxes]), and traces its
+/// [MorphGlassOutline.path] by [morphGlassContainerOutline] only when that
+/// is read. The shapes must have uniform circular corners.
+///
+/// The last few outlines are remembered, so a layer that rebuilds without
+/// its shapes moving hands its painter the same outline.
+@internal
+MorphGlassOutline morphGlassContainerMergedOutline(
+  List<RRect> shapes,
+  double spacing,
+) {
+  for (final (recent, recentSpacing, outline) in _recentMerged) {
+    if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
+  }
+  assert(() {
+    shapes.forEach(_requireUniform);
+    return true;
+  }());
+  final kept = List<RRect>.unmodifiable(shapes);
+  final outline = MorphGlassOutline._merged(kept, spacing);
+  _recentMerged.add((kept, spacing, outline));
+  if (_recentMerged.length > 4) _recentMerged.removeAt(0);
   return outline;
 }
 
@@ -1313,6 +1397,7 @@ void debugClearMorphGlassOutlines() {
   _recentSilhouettes.clear();
   _recentUnions.clear();
   _recentBoxOutlines.clear();
+  _recentMerged.clear();
 }
 
 /// The grids [_fuseContainer] works in, kept across calls (an outline is

@@ -75,52 +75,17 @@ struct AnalyticGeometry {
 };
 
 #if ANALYTIC_FUSED
-// The signed distance of fused box [i] at p and its unit normal: the
-// normal of the corner circle outside the inner rectangle, else the
-// dominant axis, mirrored into p's quadrant.
+#define FUSED_MAX_BOXES ANALYTIC_MAX_BOXES
+#include "fused_law.glsl"
+
+// The signed distance of fused box [i] at p and its unit normal.
 vec3 fusedBox(vec2 p, int i) {
-    vec4 box = uFusedBoxes[i * 2];
-    float r = uFusedBoxes[i * 2 + 1].x;
-    vec2 local = p - box.xy;
-    vec2 q = abs(local) - box.zw + r;
-    vec2 outside = max(q, vec2(0.0));
-    float len = length(outside);
-    float d = len - r + min(max(q.x, q.y), 0.0);
-    vec2 normal = len > 0.0
-        ? outside / len
-        : (q.x > q.y ? vec2(1.0, 0.0) : vec2(0.0, 1.0));
-    normal *= vec2(
-        local.x < 0.0 ? -1.0 : 1.0,
-        local.y < 0.0 ? -1.0 : 1.0
-    );
-    return vec3(d, normal);
+    return fusedBoxAt(p, uFusedBoxes[i * 2], uFusedBoxes[i * 2 + 1].x);
 }
 
 // The angular fold of the fused boxes at p, in list order.
 float fusedDistance(vec2 p, int count) {
-    float k = uAnalyticRanges.z;
-    vec3 carried = fusedBox(p, 0);
-    for (int i = 1; i < ANALYTIC_MAX_BOXES; i++) {
-        if (i >= count) break;
-        vec3 next = fusedBox(p, i);
-        if (next.x - carried.x >= k) continue;
-        if (carried.x - next.x >= k) {
-            carried = next;
-            continue;
-        }
-        float width = k * (1.0 - dot(carried.yz, next.yz)) * 0.5;
-        if (width < uAnalyticRanges.w) {
-            if (next.x < carried.x) carried = next;
-            continue;
-        }
-        float h = clamp(0.5 + 0.5 * (next.x - carried.x) / width, 0.0, 1.0);
-        float d = next.x * (1.0 - h) + carried.x * h -
-            width * h * (1.0 - h);
-        vec2 n = next.yz * (1.0 - h) + carried.yz * h;
-        float len = length(n);
-        carried = vec3(d, len > 1e-12 ? n / len : vec2(0.0));
-    }
-    return carried.x;
+    return fusedFold(p, count, uAnalyticRanges.z, uAnalyticRanges.w);
 }
 
 // The rotation (cos, sin) from fused box [i]'s exact normal at p to the

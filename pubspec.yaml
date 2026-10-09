@@ -48,5 +48,6 @@ flutter:
     - lib/src/glass/renderer/shaders/fake_glass_surface.frag
     - lib/src/widgets/shaders/glyph_blur.frag
     - lib/src/widgets/shaders/glyph_reduce.frag
+    - lib/src/widgets/shaders/flat_fused_body.frag
   assets:
     - build/shaderbundles/

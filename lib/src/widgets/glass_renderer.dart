@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
+import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
@@ -171,7 +172,14 @@ class MorphGlassRenderer extends MorphGlassPainter {
   /// through [liquidUnavailableReason].
   /// On Android, calling before `runApp` can wait for the engine's GPU
   /// context initialization; it does not wait for an application frame.
-  static Future<void> precache() => morphPrecacheLiquidGlass();
+  /// With the flat tier's shader bodies enabled
+  /// (`MORPH_FLAT_SHADER_BODIES`) it also loads their shader.
+  static Future<void> precache() async {
+    await Future.wait([
+      morphPrecacheLiquidGlass(),
+      if (MorphFlatBodyShader.enabled) MorphFlatBodyShader.precache(),
+    ]);
+  }
 
   /// The same renderer at [tier], or with any other setting replaced.
   MorphGlassRenderer copyWith({
@@ -424,6 +432,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
     for (final s in surfaces) s.kind,
     morphGlassOutlineField(outline) != null,
     morphGlassOutlineShapes(outline) != null,
+    morphGlassOutlineMergedBoxes(outline) != null,
   ];
 
   static List<Object?> _layerStructure(
@@ -607,8 +616,11 @@ class MorphGlassLayerParts {
   /// outline - the control's [outline], or the groups a glass container
   /// with [spacing] fuses - and floating lenses, knobs and thumbs.
   /// With [withField] false, generated fused bodies carry their silhouette
-  /// alone; with [boxes] true, those of at most [GlassBoxField.maxBoxes]
-  /// surfaces carry their boxes for a liquid layer that merges them itself
+  /// alone, or, with [MorphFlatBodyShader.enabled], those of at most
+  /// [MorphFlatBodyShader.maxBoxes] surfaces their boxes for a flat fill
+  /// that merges them per pixel ([morphGlassContainerMergedOutline]); with
+  /// [boxes] true, those of at most [GlassBoxField.maxBoxes] surfaces carry
+  /// their boxes for a liquid layer that merges them itself
   /// ([morphGlassContainerBoxOutline]). Supplied [outline] values are
   /// retained unchanged.
   factory MorphGlassLayerParts.of(
@@ -641,13 +653,17 @@ class MorphGlassLayerParts {
           final shapes = [for (final s in members) s.shape];
           fused.add((
             members,
-            boxes
-                ? morphGlassContainerBoxOutline(shapes, spacing)
-                : morphGlassContainerOutline(
-                    shapes,
-                    spacing,
-                    withField: withField,
-                  ),
+            switch (shapes.length) {
+              _ when boxes => morphGlassContainerBoxOutline(shapes, spacing),
+              <= MorphFlatBodyShader.maxBoxes
+                  when !withField && MorphFlatBodyShader.enabled =>
+                morphGlassContainerMergedOutline(shapes, spacing),
+              _ => morphGlassContainerOutline(
+                shapes,
+                spacing,
+                withField: withField,
+              ),
+            },
           ));
         }
       }
