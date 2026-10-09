@@ -1,10 +1,10 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:meta/meta.dart';
 
 /// Conservative pixel support of Flutter's Gaussian shadow mask.
 ///
@@ -168,52 +168,77 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
     return bounds;
   }
 
+  // What paint draws, in local coordinates, for the size, shape, shadows
+  // and visibility it was made for: built once and translated to the
+  // paint offset, so a shadow that only moves rebuilds no path.
+  _ShadowPlan? _plan;
+
+  _ShadowPlan _planFor(Size size) {
+    final plan = _plan;
+    if (plan != null &&
+        plan.size == size &&
+        plan.shape == shape &&
+        listEquals(plan.shadows, shadows) &&
+        plan.visibility == visibility) {
+      return plan;
+    }
+    final rect = Offset.zero & size;
+    final needsCutout = shadows.any((s) => s.offset != Offset.zero);
+    Path? outside;
+    if (needsCutout) {
+      var bounds = rect;
+      for (final shadow in shadows) {
+        bounds = bounds.expandToInclude(
+          rect
+              .shift(shadow.offset)
+              .inflate(
+                shadow.spreadRadius +
+                    glassShadowBlurSupport(shadow.blurRadius * visibility),
+              ),
+        );
+      }
+      outside = Path();
+      outside.fillType = PathFillType.evenOdd;
+      outside.addRect(bounds.inflate(1));
+      _addShape(outside, rect.deflate(.5));
+    }
+    return _plan = _ShadowPlan(
+      size: size,
+      shape: shape,
+      shadows: shadows,
+      visibility: visibility,
+      outside: outside,
+      draws: [
+        for (final shadow in shadows)
+          (
+            rect.shift(shadow.offset).inflate(shadow.spreadRadius),
+            shadow
+                .copyWith(
+                  blurRadius: shadow.blurRadius * visibility,
+                  blurStyle: needsCutout ? BlurStyle.normal : BlurStyle.outer,
+                  color: shadow.color.withValues(
+                    alpha: shadow.color.a * visibility,
+                  ),
+                )
+                .toPaint(),
+          ),
+      ],
+    );
+  }
+
   @override
   void paint(PaintingContext context, Offset offset) {
     if (shadows.isNotEmpty) {
-      final rect = offset & size;
+      final plan = _planFor(size);
       final canvas = context.canvas;
-
-      final needsCutout = shadows.any((s) => s.offset != Offset.zero);
-
-      if (needsCutout) {
-        var bounds = rect;
-        for (final shadow in shadows) {
-          bounds = bounds.expandToInclude(
-            rect
-                .shift(shadow.offset)
-                .inflate(
-                  shadow.spreadRadius +
-                      glassShadowBlurSupport(shadow.blurRadius * visibility),
-                ),
-          );
-        }
-        final outside = Path();
-        outside.fillType = PathFillType.evenOdd;
-        outside.addRect(bounds.inflate(1));
-        _addShape(outside, rect.deflate(.5));
-        canvas.save();
-        canvas.clipPath(outside);
+      canvas.save();
+      canvas.translate(offset.dx, offset.dy);
+      final outside = plan.outside;
+      if (outside != null) canvas.clipPath(outside);
+      for (final (rect, paint) in plan.draws) {
+        _drawShape(canvas, rect, paint);
       }
-
-      for (final shadow in shadows) {
-        final shadowRect = rect
-            .shift(shadow.offset)
-            .inflate(shadow.spreadRadius);
-        final paint = shadow
-            .copyWith(
-              blurRadius: shadow.blurRadius * visibility,
-              blurStyle: needsCutout ? BlurStyle.normal : BlurStyle.outer,
-              color: shadow.color.withValues(
-                alpha: shadow.color.a * visibility,
-              ),
-            )
-            .toPaint();
-
-        _drawShape(canvas, shadowRect, paint);
-      }
-
-      if (needsCutout) canvas.restore();
+      canvas.restore();
     }
 
     super.paint(context, offset);
@@ -250,4 +275,26 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
         );
     }
   }
+}
+
+class _ShadowPlan {
+  _ShadowPlan({
+    required this.size,
+    required this.shape,
+    required this.shadows,
+    required this.visibility,
+    required this.outside,
+    required this.draws,
+  });
+
+  final Size size;
+  final LiquidShape shape;
+  final List<BoxShadow> shadows;
+  final double visibility;
+
+  // The region outside the glass the shadows are clipped to, or null when
+  // no shadow is offset.
+  final Path? outside;
+
+  final List<(Rect, Paint)> draws;
 }
