@@ -29,6 +29,7 @@ one tree per variant. Raw reports: tool/ios_reference/perf/2026-10-11-night/
 | tab bar labels snap their glyph scale while the bar swells (MorphGlyphSnap; bar items off Android too) | 52b84ac, a823499, 0387422 | tab-bar raster p95 14.0-15.7 -> 11.9-12.1, over budget 4-10 -> 0-1 (`gs-*`) | neutral (`mgs-*`) |
 | menu fusion workers only on >= 6 cores | 3715416 | menu raster p95 34-39 -> 28.5-29.4, p99 57-76 -> 44-49 (`fp-*`) | prefetch neutral either way (`mfp-*`) |
 | the flat menu fuses its silhouette's edge only (no shading field), contour bit-identical | 6cb91df | menu UI build p95 15.0-15.3 -> 11.0-11.2 ms, over budget 30-33 -> 27-28, warm cache (`fm-*`) | - (liquid keeps the field) |
+| the gallery asks Skia for a 128 MB GPU resource cache (app setting) | (this commit) | menu raster p95 23.3-23.6 -> 21.5-21.6, over budget 33 -> 27; texture creations in menu windows 419 -> 25 (`sc-*`, warm cache) | - (Impeller ignores it) |
 | list section cards shade their glass over the card's own color: one shader paint, no backdrop filter | e872d85, 30df6d8 | - (flat tier) | list raster p50 8.9-9.4 -> 4.4-4.8 ms, p95 13.7 -> 5.4, over budget 387-454 -> 5 (`sb-*`); device shots within base-vs-base noise; tab-bar / home-scroll / segmented unchanged by the new uniform (`su-*`) |
 
 Tonight's start (ab5b970) against the head (3715416), Redmi flat, all
@@ -59,6 +60,8 @@ cache serves it.
   p50 +1.7 ms, over budget 35 -> 55; `mb*-*`). The pyramid pays for small
   glyphs, not a large content layer. Rejected.
 
+- Moto menu, content blur off (timing proxy): no change (raster p95
+  18.5-18.7 -> 18.4-18.5, `mnb-*`); Impeller's menu cost is elsewhere.
 - Redmi menu, the flat body filled as a plain rect instead of its traced
   path (timing proxy): no change (`rf-b*` against `rf-a*`). The software
   path mask is not the menu's cost.
@@ -74,6 +77,26 @@ cache serves it.
   budget 18-22 -> 14-18 (`sp-*`). Shots within noise except 51 rim pixels
   up to 24 steps on the controls page (the glass no longer sees its own
   drop shadow under the rim).
+
+- Navigation bar painted inside its scroll edge effect's seed offscreen
+  (branch edge-hosts-bar, e17ad0b + an unpushed guard fix): the bar's
+  backdrop filter and frost then cover the band-sized offscreen instead of
+  the whole screen. Host pixels within 2 steps. On the Moto it engages
+  (traced) and saves nothing: tab-bar raster p50 11.5 / 11.6 -> 11.7 / 11.8
+  (`eh-*`). For comparison the whole edge effect costs 2.2 ms there
+  (tab-bar raster p50 11.3 / 11.6 -> 9.2 / 9.3 without it, `ab-*`): its own
+  copy and blur, not the bar's filter after it. Not merged.
+- The list sections' repaint boundary (18a569b) trades on the Redmi's
+  navigation: nested push raster p95 11.8-12.3 without it, 13.1-14.5 with
+  it, pop 13.2-13.9 / 13.4-16.7; enter 10.4-13.3 / 8.9-10.0 (warm cache,
+  real input, `nr-*`). Skia's raster cache serves the sections' pictures
+  while scrolling (home-scroll 19.4 -> 6.5) and has to create those
+  entries while a page slides in. Kept: the scroll win is far larger.
+- Navigation tonight, start ab5b970 -> head f8fe93b, real input, two
+  launches each: Moto unchanged or slightly better (nested push raster p95
+  7.7-8.9 -> 7.5-7.9, missed slots 6-11 -> 6-9; `nm-*`); Redmi enter raster
+  p95 11.7-12.8 -> 9.8-10.0, nested push / pop about +1 ms raster p95 (the
+  boundary above; `nr-*`).
 
 ## First use on Skia
 

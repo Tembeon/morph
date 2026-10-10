@@ -2261,6 +2261,25 @@ sched, no cpufreq; the rails still came) until the phone was rebooted.
 Check a short `perfetto -t 5s sched freq` trace has sched rows before an
 energy run.
 
+## Skia: first use and the resource cache (2026-10-11, Redmi 6A)
+
+- First use: Skia keys its Gaussian blur program by kernel radius, so a
+  menu's animated content blur compiles a new GL program for every radius
+  it meets; on the PowerVR GE8320 each compile takes 200 - 780 ms (58 in
+  one audit run). The engine keeps them in code_cache, which Android wipes
+  on install and update: a user meets them once per app update, on the
+  first menu opens. A relaunch has none (menu raster worst 41 - 53 ms).
+  Open; quantizing the blur would be visible.
+- Resource cache: the engine's default GPU resource budget, sized from the
+  screen, is too small for the menu's blur passes on a 720 x 1440 screen:
+  Skia frees and recreates its scratch textures every frame (419 texture
+  creations in the three menu windows of an audit run). 128 MB through
+  `SystemChannels.skia` 'Skia.setResourceCacheMaxBytes': 25 creations,
+  menu raster p95 23.3 / 23.6 -> 21.5 / 21.6 ms, frames over budget 33 ->
+  27, other scenes unchanged (perf/2026-10-11-night `sc-*`, warm cache).
+  The gallery sets it (GalleryApp); it is an app's call, not the
+  package's, since it sizes the whole engine's cache. Impeller ignores it.
+
 ## Small blurs: the edge effect's band and the 2 pt frost (2026-10-06)
 
 Found by the g1455 bench (tool/audit/g1455-review.md, idea 1): on the

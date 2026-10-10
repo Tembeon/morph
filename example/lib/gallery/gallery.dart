@@ -1,4 +1,5 @@
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 
@@ -37,6 +38,26 @@ class GalleryApp extends StatefulWidget {
 
 class _GalleryAppState extends State<GalleryApp> {
   final _settings = GalleryGlassSettings();
+
+  /// The GPU resource cache the gallery asks Skia for, in bytes.
+  ///
+  /// The engine sizes its default budget from the screen. On a small
+  /// screen a menu's animated blurs outgrow it every frame, and Skia frees
+  /// and recreates its scratch textures (Redmi 6A: 419 texture creations in three menu windows; 25
+  /// with this budget, menu raster p95 23.3 -> 21.5 ms). Impeller ignores
+  /// it.
+  static const int skiaResourceCacheBytes = 128 << 20;
+
+  @override
+  void initState() {
+    super.initState();
+    SystemChannels.skia
+        .invokeMethod<void>(
+          'Skia.setResourceCacheMaxBytes',
+          skiaResourceCacheBytes,
+        )
+        .ignore();
+  }
 
   static ThemeData _theme(Brightness brightness) {
     final list = switch (brightness) {
