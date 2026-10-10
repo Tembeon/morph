@@ -424,12 +424,10 @@ void main() {
         ),
       );
       final box = tester.renderObject(find.byType(GlassShadow));
-      expect(
-        box,
-        paints
-          ..clipPath()
-          ..rsuperellipse(),
-      );
+      final pattern = paints;
+      pattern.clipPath();
+      pattern.rsuperellipse();
+      expect(box, pattern);
       expect(box, paintsExactlyCountTimes(#drawRect, 0));
     });
   });
@@ -455,21 +453,18 @@ void main() {
         expect(box, paintsExactlyCountTimes(#drawRect, 1));
         // The drawn rect stays inside the paint bounds.
         final bounds = box.paintBounds;
-        expect(
-          box,
-          paints..something((method, arguments) {
-            if (method != #drawRect) return false;
-            final rect = arguments.first as Rect;
-            return bounds.expandToInclude(rect) == bounds;
-          }),
-        );
+        final pattern = paints;
+        pattern.something((method, arguments) {
+          if (method != #drawRect) return false;
+          final rect = arguments.first as Rect;
+          return bounds.expandToInclude(rect) == bounds;
+        });
+        expect(box, pattern);
       } else {
-        expect(
-          box,
-          paints
-            ..clipPath()
-            ..rsuperellipse(),
-        );
+        final pattern = paints;
+        pattern.clipPath();
+        pattern.rsuperellipse();
+        expect(box, pattern);
       }
       await tester.pumpWidget(
         _shadowScene(
@@ -481,12 +476,10 @@ void main() {
         ),
       );
       box = tester.renderObject<RenderBox>(find.byType(GlassShadow));
-      expect(
-        box,
-        paints
-          ..clipPath()
-          ..rrect(),
-      );
+      final pattern = paints;
+      pattern.clipPath();
+      pattern.rrect();
+      expect(box, pattern);
     });
   });
 }
