@@ -21,6 +21,15 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   4 / 10 -> 1 / 0.
   Navigation bar items off Android snap the same way while they scale
   through a transition or a press (not measured on a device).
+- List section cards shade their buttons' resting glass over the card's
+  own color without reading the backdrop: the glass is one plain paint
+  of the same shader instead of a backdrop filter
+  (`LiquidGlassLayer.solidBackdrop`, `MorphGlassStage.solidBackdrop`).
+  On the host the pixels match the filter's within one channel step; two
+  backdrop filters fewer in the list scene. A held row's button still
+  reads its backdrop in a layer of its own. Moto g86 liquid list raster
+  p50 8.9 / 9.4 -> 4.4 / 4.8 ms, p95 13.7 -> 5.4, frames over budget
+  387 / 454 -> 5.
 - Android navigation bar items and the inline title draw their blur and
   fade as one shader draw from a mip pyramid of their content, instead
   of a blur layer, an opacity layer and a raster each; flat container

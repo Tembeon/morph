@@ -89,11 +89,23 @@ class MorphGlassStage extends StatefulWidget {
     required this.open,
     required this.child,
     this.sharpOnly = false,
+    this.solidBackdrop,
     super.key,
   });
 
   /// Whether the members are shaded together now.
   final bool open;
+
+  /// The opaque color the stage is painted directly over, or null.
+  ///
+  /// When every member's glass would read only this color - the stage
+  /// sits on a fill of it with nothing painted between, and its members
+  /// are inset from the fill's edges by more than their refraction reaches
+  /// - the stage shades its members over the color itself instead of
+  /// reading the backdrop: no backdrop filter at all. A member that leaves
+  /// the stage reads its backdrop in its own layer as before. Ignored
+  /// unless the color is fully opaque.
+  final Color? solidBackdrop;
 
   /// Whether the stage closes while its glass would blur: for a stage
   /// that paints content between its members, which resting glass without
@@ -117,9 +129,19 @@ class _MorphGlassStageState extends State<MorphGlassStage> {
     _link,
     open: widget.open && debugMorphGlassStagesOpen,
     sharpOnly: widget.sharpOnly,
+    solidBackdrop: debugMorphGlassStageSolidBackdrops
+        ? widget.solidBackdrop
+        : null,
     child: widget.child,
   );
 }
+
+/// Whether package stages that know their solid backdrop shade over it;
+/// false makes them read their backdrop, the reference the solid backdrop
+/// is measured against.
+@visibleForTesting
+@internal
+bool debugMorphGlassStageSolidBackdrops = true;
 
 /// Whether package stages shade their members together; false keeps every
 /// member in its own layer, the reference a stage is measured against.
@@ -215,6 +237,7 @@ Widget _containerLayer(
   required bool open,
   required Widget child,
   bool sharpOnly = false,
+  Color? solidBackdrop,
 }) {
   final painter = MorphGlass.maybeOf(context);
   if (painter is! MorphGlassRenderer ||
@@ -249,6 +272,7 @@ Widget _containerLayer(
         ),
         fake: tier == MorphGlassTier.fake,
         useBackdropGroup: true,
+        solidBackdrop: solidBackdrop,
         child: MorphGlassContainerScope(
           link: link,
           renderer: painter,

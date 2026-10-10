@@ -206,8 +206,10 @@ class MorphListStyle {
 ///
 /// The card shades the resting glass in its rows - glass buttons in their
 /// trailing or leading slots, say - in one glass layer, as a
-/// [MorphGlassContainer] would: one backdrop filter for the section instead
-/// of one per button. A [MorphListRow] whose highlight shows draws its glass
+/// [MorphGlassContainer] would, and since that glass can read nothing but
+/// the card's opaque color, it shades it over that color without reading
+/// the backdrop: no backdrop filter at all, instead of one per button. A
+/// [MorphListRow] whose highlight shows draws its glass
 /// in a layer of its own until the highlight goes, so the glass reads the
 /// highlight under it. Frosted controls ([MorphGlassRenderer.frostControls])
 /// keep their own layers: their blur reads the rows around them. Content a
@@ -282,6 +284,9 @@ class MorphListSection extends StatelessWidget {
                 child: MorphGlassStage(
                   open: true,
                   sharpOnly: true,
+                  // The rows paint above the stage's glass, which sits
+                  // straight on the card: it reads nothing but the card.
+                  solidBackdrop: look.cellColor,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [

@@ -806,6 +806,60 @@ would read the text and separators around the rim.
   the 0.3 ms per filter estimate: 10 filters fewer, and the build win);
   energy lower in both scenes; resting and held shots within noise.
 
+### Solid backdrop: the card stage without a filter (2026-10-11)
+
+Moto g86 (Impeller Vulkan, 120 Hz, liquid), audit scene `list`, A B B A,
+3 runs: 4.6 backdrop filters a frame, two of them the card stages (filter
+bounds the whole card, ~349 x 400 pt); the raster thread waits 6.8 ms a
+frame for a swapchain image. Base raster p50 9.6, p95 13.7 - 13.9 ms,
+449 - 503 frames over budget; the row buttons replaced by plain content
+(upper bound) p50 3.5, p95 4.5, 2 - 3 over; stages off (a small filter
+per button) the same as base. The backdrop read itself is the cost, not
+the filter count or area.
+
+A stage sits straight on its card's opaque fill and every row paints
+above it, so the only backdrop its glass can read is the cell color, and
+refraction, dispersion and softening of a uniform color are that color.
+`MorphGlassStage(solidBackdrop:)` -> `LiquidGlassLayer.solidBackdrop`
+(opaque colors only): the layer records one rect painted with the same
+final shader into a picture of its own instead of ClipRect +
+BackdropFilterLayer; uSolidBackdrop (alpha 1) replaces every backdrop
+read in the shader. The paint's fragment coordinates are its canvas
+coordinates, so the filter->matte mapping becomes basis dpr, offset
+-paintOffset x dpr: constant under compositor motion, analytic and matte
+geometry alike. MorphListSection passes `look.cellColor`. A held row's
+button leaves the stage and reads its backdrop in its own layer as
+before. The census counts 0 filters for a solid stage (no capture is
+registered). Fake glass keeps its path. VENDORED "solid backdrop".
+
+Host A/B (example/test/solid_backdrop_host_test.dart, flutter_tester
+Impeller, 1080 x 2400 at 2.625, filter path vs solid over a ColoredBox of
+the same color, max channel difference / mean over covered pixels):
+
+| case | analytic | matte |
+|---|---|---|
+| light cell, 4 buttons with body shadows | 1 / 0.0056 | 1 / 0.0054 |
+| dark cell, 4 buttons with body shadows | 1 / 0.0107 | 1 / 0.0148 |
+| dark cell, tint-only (one green button) | 1 / 0.0102 | 1 / 0.0114 |
+| grouped light, no shadows, fractional rects | 1 / 0.0191 | 1 / 0.0196 |
+| dark, dispersion -0.25, refraction 120 | 1 / 0.0097 | 1 / 0.0120 |
+
+A solid layer kept mounted through two fractional moves against fresh
+filter mounts: max 1. Real MorphListSection pair with MorphGlassButtons
+(liquid, `changes` analytic mode), whole screen, light and dark, at rest
+and scrolled 37.62 pt on the compositor: max 1, filters 2 -> 0; a held
+row: solid 1 filter (its button), filter path 3.
+
+The reference needs each section in its own BackdropGroup: in a shared
+group (the default under MaterialApp here) the second section's stage
+reads the backdrop as it stood at the first stage, before its own card
+was painted, and its buttons draw over the page color (dark: 41 instead
+of 52 on the button face, max 12 against solid; light: max 4). Solid mode
+draws both sections as the first one, so the stacked-sections case of the
+shared-group rule disappears for list cards.
+
+Device numbers for the list scene with solid stages: not yet measured.
+
 ## First use: pipeline warm-up (2026-10-05, glass_warm_up.dart)
 
 `MorphGlassRenderer.precache()` (morphPrecacheLiquidGlass), after the

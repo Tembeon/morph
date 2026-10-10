@@ -282,7 +282,14 @@ Cross-cutting policy:
   painted after the stage are never read), and a row whose highlight
   shows keeps its accessories out through `MorphGlassContainerBarrier`
   (an InheritedWidget the reach check depends on, like
-  MorphTagVisibility). The navigation stack's chrome is NOT (measured:
+  MorphTagVisibility). SOLID BACKDROP (2026-10-11): the card's stage
+  declares `solidBackdrop: cellColor` - its glass can read nothing but
+  the opaque card - and the layer draws the final shader as a plain
+  paint with uSolidBackdrop replacing every backdrop read: no backdrop
+  filter (host A/B against the filter max 1; a member that leaves the
+  stage reads its backdrop as before). Declare it only where the color
+  really is all the glass would read. The navigation stack's chrome is
+  NOT (measured:
   one screen-high layer costs the GPU more than the raster saves); the
   scaffold body gets no flag (a container above its scroll view joins
   nothing: the viewport blocks); app sections stay explicit (option C).
