@@ -8,6 +8,8 @@ import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
 import io.flutter.embedding.android.FlutterActivity
+import io.flutter.embedding.engine.FlutterEngine
+import io.flutter.plugin.common.MethodChannel
 
 class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,6 +28,38 @@ class MainActivity : FlutterActivity() {
         // it for the Flutter surface.
         val rate = intent?.getFloatExtra("morph-frame-rate", 0f) ?: 0f
         if (rate > 0f) preferRefreshRate(rate)
+    }
+
+    override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
+        super.configureFlutterEngine(flutterEngine)
+        // The gallery's frame rate control: 0 hands the choice back to the
+        // system, any other value asks for the closest display mode.
+        MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            "dev.tembeon.morph_example/display",
+        ).setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setFrameRate" -> {
+                    val rate = (call.arguments as? Number)?.toFloat()
+                    if (rate == null || rate < 0f) {
+                        result.error("bad-argument", "A rate in hertz", null)
+                    } else {
+                        if (rate == 0f) clearRefreshRate() else preferRefreshRate(rate)
+                        result.success(null)
+                    }
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    private fun clearRefreshRate() {
+        val attributes = window.attributes
+        attributes.preferredDisplayModeId = 0
+        attributes.preferredRefreshRate = 0f
+        window.attributes = attributes
+        maxRefreshRate = 0f
+        applyFrameRateVote()
     }
 
     private fun preferRefreshRate(target: Float) {
@@ -47,30 +81,42 @@ class MainActivity : FlutterActivity() {
         attributes.preferredRefreshRate = best.refreshRate
         window.attributes = attributes
         maxRefreshRate = best.refreshRate
+        applyFrameRateVote()
     }
 
     private var maxRefreshRate = 0f
 
     override fun onPostResume() {
         super.onPostResume()
-        if (maxRefreshRate > 0 && Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            findSurfaceView(window.decorView)?.let { view ->
-                voteFrameRate(view.holder)
-                view.holder.addCallback(object : SurfaceHolder.Callback {
-                    override fun surfaceCreated(holder: SurfaceHolder) =
-                        voteFrameRate(holder)
+        if (votes) applyFrameRateVote()
+    }
 
-                    override fun surfaceChanged(
-                        holder: SurfaceHolder,
-                        format: Int,
-                        width: Int,
-                        height: Int,
-                    ) = voteFrameRate(holder)
+    // True once a rate was asked for, by an intent extra or the channel;
+    // an activity that never was keeps the system's own frame rate vote.
+    private var votes = false
+    private var votingView: SurfaceView? = null
 
-                    override fun surfaceDestroyed(holder: SurfaceHolder) {}
-                })
-            }
-        }
+    private fun applyFrameRateVote() {
+        votes = true
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return
+        if (!window.decorView.isAttachedToWindow) return
+        val view = findSurfaceView(window.decorView) ?: return
+        voteFrameRate(view.holder)
+        if (votingView === view) return
+        votingView = view
+        view.holder.addCallback(object : SurfaceHolder.Callback {
+            override fun surfaceCreated(holder: SurfaceHolder) =
+                voteFrameRate(holder)
+
+            override fun surfaceChanged(
+                holder: SurfaceHolder,
+                format: Int,
+                width: Int,
+                height: Int,
+            ) = voteFrameRate(holder)
+
+            override fun surfaceDestroyed(holder: SurfaceHolder) {}
+        })
     }
 
     private fun voteFrameRate(holder: SurfaceHolder) {

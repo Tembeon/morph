@@ -36,6 +36,7 @@ class _GlassPageState extends State<GlassPage> {
   /// knob below sets any position between the two.
   static const _liquidGlass = ['Clear', 'Tinted'];
   static const _appearances = ['System', 'Light', 'Dark'];
+  static const _frameRates = ['Auto', '60 Hz', '120 Hz'];
 
   Widget _scene(BuildContext context) {
     T? on<T extends Function>(T callback) =>
@@ -240,7 +241,8 @@ class _GlassPageState extends State<GlassPage> {
                   'These settings apply to every page of the gallery. The '
                   'glass inspector counts the glass layers of each frame '
                   'and names neighbouring resting glass that one '
-                  'MorphGlassContainer could shade together.',
+                  'MorphGlassContainer could shade together. Frame rate asks '
+                  'an Android display for that rate.',
               children: [
                 _Choice(
                   label: 'Appearance',
@@ -258,6 +260,13 @@ class _GlassPageState extends State<GlassPage> {
                   label: 'Disabled',
                   value: settings.disabled,
                   onChanged: (bool v) => settings.disabled = v,
+                ),
+                _Choice(
+                  label: 'Frame rate',
+                  segments: _frameRates,
+                  selected: settings.frameRate.index,
+                  onChanged: (int i) =>
+                      settings.frameRate = GalleryFrameRate.values[i],
                 ),
                 if (!kReleaseMode)
                   _Toggle(

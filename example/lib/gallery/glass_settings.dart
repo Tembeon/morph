@@ -1,5 +1,32 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
+
+/// The display refresh rate the gallery asks the system for.
+///
+/// Applied on Android only, where a device may hold an app at a lower rate
+/// than its panel offers; other platforms ignore it.
+enum GalleryFrameRate {
+  /// The system picks the rate.
+  auto(0),
+
+  /// The display mode closest to 60 Hz.
+  hz60(60),
+
+  /// The display mode closest to 120 Hz.
+  hz120(120);
+
+  const GalleryFrameRate(this.hertz);
+
+  /// The rate asked for in hertz, 0 for the system's choice.
+  final double hertz;
+}
+
+/// The channel that carries the frame rate to the Android activity.
+const MethodChannel galleryDisplayChannel = MethodChannel(
+  'dev.tembeon.morph_example/display',
+);
 
 /// The session-wide look of the gallery, edited on the glass page and
 /// applied to every page at once.
@@ -28,6 +55,7 @@ class GalleryGlassSettings extends ChangeNotifier {
   bool _rtl = false;
   bool _disabled = false;
   bool _inspector = false;
+  GalleryFrameRate _frameRate = GalleryFrameRate.auto;
 
   void _set<T>(T current, T next, void Function() write) {
     if (current == next) return;
@@ -87,6 +115,27 @@ class GalleryGlassSettings extends ChangeNotifier {
   bool get inspector => _inspector;
   set inspector(bool value) =>
       _set(_inspector, value, () => _inspector = value);
+
+  /// The display refresh rate asked for, applied at once on Android.
+  GalleryFrameRate get frameRate => _frameRate;
+  set frameRate(GalleryFrameRate value) => _set(_frameRate, value, () {
+    _frameRate = value;
+    _applyFrameRate(value);
+  });
+
+  Future<void> _applyFrameRate(GalleryFrameRate value) async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+    try {
+      await galleryDisplayChannel.invokeMethod<void>(
+        'setFrameRate',
+        value.hertz,
+      );
+    } on PlatformException {
+      // The activity may not answer; the rate stays where it was.
+    } on MissingPluginException {
+      // No activity behind the channel, as in a widget test.
+    }
+  }
 
   /// The renderer these settings describe, at the best tier the build
   /// has; [tier] picks the one drawn.
