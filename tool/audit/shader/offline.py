@@ -26,7 +26,8 @@ for Vulkan and GLES 3.00 as the build hook does, then reports:
     tool/audit/shader/offline.py --only final     # names containing 'final'
     tool/audit/shader/offline.py --define NAME=V  # extra define (repeatable)
 
-malioc comes from PATH or MALIOC=<path>; without it only the static counts
+malioc comes from PATH or MALIOC=<path>; MALIOC_CORE=<core> picks the GPU (default
+Mali-G78) and MALIOC_KEEP=<dir> keeps the compiled GLES source and SPIR-V; without it only the static counts
 print. Cycle counts are a model of the Mali-G78 r1p1 with driver r51p0, not
 a measurement: a change that does not move them is not worth a device run,
 a change that does still needs the device bench.
@@ -174,7 +175,7 @@ def malioc(path, api):
     tool = malioc_tool()
     if not tool:
         return None
-    result = subprocess.run([tool, '--core', 'Mali-G78', '--fragment', f'--{api}',
+    result = subprocess.run([tool, '--core', os.environ.get('MALIOC_CORE', 'Mali-G78'), '--fragment', f'--{api}',
                              '--format', 'json', path], capture_output=True, text=True)
     try:
         shader = json.loads(result.stdout)['shaders'][0]
@@ -218,6 +219,12 @@ def analyze_runtime(tree, entry, out, defines, dis):
     open(gles_path, 'w').write(gles_text)
     spv_path = os.path.join(out, 'runtime.spv')
     open(spv_path, 'wb').write(spirv)
+    keep = os.environ.get('MALIOC_KEEP')
+    if keep:
+        os.makedirs(keep, exist_ok=True)
+        stem = os.path.join(keep, entry.removesuffix('.frag'))
+        shutil.copy(gles_path, f'{stem}.gles.frag')
+        shutil.copy(spv_path, f'{stem}.spv')
     row['malioc_gles'] = malioc(gles_path, 'opengles')
     row['malioc_vulkan'] = malioc(spv_path, 'vulkan')
     return row
