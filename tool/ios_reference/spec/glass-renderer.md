@@ -1351,10 +1351,13 @@ Fix (lib/src/widgets/glyph_scale.dart):
   from ONE raster at the device pixel ratio, mipmapped under the content
   scale - the glyphs the rest state uses, no new key. Below that blur
   (the open's settle, 1.07 -> 1) the rows are live and exact.
+- Bar chrome growth: the tab bar swell draws its labels through
+  `MorphGlyphSnap`, the same grid applied by a render proxy about the
+  label's own center (numbers in tab-bar.md; Skia strikes glyphs per
+  scale too).
 - Tried and kept out: a raster for unblurred text (softer by ~3x the
   1-frame jitter floor in flutter_test); coarser snapping (visible
-  steps); the swell (bounded and saturating, labels anchored at the bar
-  center would move up to 1 pt per step).
+  steps).
 
 Pixel evidence: test/glyph_scale_test.dart plays each scene exact
 (`MorphGlyphScale.debugExact`) and on the grid and compares every frame:

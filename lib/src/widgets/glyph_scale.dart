@@ -757,3 +757,85 @@ class _RenderGlyphBlur extends RenderProxyBox {
     }
   }
 }
+
+/// Paints [child] at the nearest [MorphGlyphScale] grid scale of its
+/// screen scale, about the center of its box.
+///
+/// Text under a transform whose scale sweeps continuously (a tab bar
+/// swelling under a finger, a button lifting) meets a new screen scale
+/// every frame and each one strikes the glyphs again. Here the child is
+/// drawn at one of 64 scales per octave instead, so a sweep reuses a few
+/// strikes. At a grid scale, which includes the device pixel ratio and so
+/// every control at rest, the child paints with no transform at all.
+///
+/// The painted child is within 0.54 percent of its layout size about the
+/// center of its box; hit testing, semantics and layout use the layout
+/// size and are unchanged.
+@internal
+class MorphGlyphSnap extends SingleChildRenderObjectWidget {
+  /// Snaps the screen scale [child] is drawn at.
+  const MorphGlyphSnap({required super.child, super.key});
+
+  @override
+  RenderMorphGlyphSnap createRenderObject(BuildContext context) =>
+      RenderMorphGlyphSnap(MediaQuery.devicePixelRatioOf(context));
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderMorphGlyphSnap renderObject,
+  ) {
+    renderObject.devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+  }
+}
+
+/// The render object of [MorphGlyphSnap].
+@internal
+class RenderMorphGlyphSnap extends RenderProxyBox {
+  /// Snaps to the grid through [devicePixelRatio].
+  RenderMorphGlyphSnap(this._devicePixelRatio);
+
+  double _devicePixelRatio;
+
+  /// The pixel ratio of the view, the grid's anchor: the screen scale of
+  /// the box is its transform to the root, which stops before the view's
+  /// own scale.
+  double get devicePixelRatio => _devicePixelRatio;
+
+  set devicePixelRatio(double value) {
+    if (value == _devicePixelRatio) return;
+    _devicePixelRatio = value;
+    markNeedsPaint();
+  }
+
+  /// The factor the last paint applied, 1 when it painted untransformed.
+  @visibleForTesting
+  double debugFactor = 1;
+
+  final Matrix4 _transform = Matrix4.identity();
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final child = this.child;
+    if (child == null) return;
+    final screen = MorphGlyphScale.of(getTransformTo(null)) * _devicePixelRatio;
+    final factor = MorphGlyphScale.snap(screen, _devicePixelRatio) / screen;
+    if (!factor.isFinite || (factor - 1).abs() < 1e-6) {
+      debugFactor = 1;
+      context.paintChild(child, offset);
+      return;
+    }
+    debugFactor = factor;
+    final center = size.center(offset);
+    _transform.setIdentity();
+    _transform.translateByDouble(center.dx, center.dy, 0, 1);
+    _transform.scaleByDouble(factor, factor, 1, 1);
+    _transform.translateByDouble(-center.dx, -center.dy, 0, 1);
+    context.pushTransform(
+      needsCompositing,
+      Offset.zero,
+      _transform,
+      (PaintingContext context, Offset _) => context.paintChild(child, offset),
+    );
+  }
+}

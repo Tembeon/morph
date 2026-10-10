@@ -24,7 +24,7 @@
   "tab-bar/flat": {
     "frames": 221,
     "builds": 2.1,
-    "paints": 75.8,
+    "paints": 81.8,
     "pictures": 1.0,
     "captures": 0.0,
     "offscreen": 0.0,
@@ -255,7 +255,7 @@
   "tab-bar/fake": {
     "frames": 221,
     "builds": 2.6,
-    "paints": 85.8,
+    "paints": 91.8,
     "pictures": 4.7,
     "captures": 3.3,
     "offscreen": 3.5,
@@ -486,7 +486,7 @@
   "tab-bar/liquid": {
     "frames": 221,
     "builds": 2.6,
-    "paints": 85.8,
+    "paints": 91.8,
     "pictures": 4.7,
     "captures": 3.3,
     "offscreen": 3.5,

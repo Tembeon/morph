@@ -14,6 +14,11 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Tab bar labels draw at the glyph grid scale nearest their animated
+  screen scale (within 0.54 percent, exact at rest), so a swelling bar no
+  longer strikes its glyphs again every frame. Redmi 6A flat tab bar raster p50 11.3 / 11.6 ->
+  10.2 / 10.3 ms, p95 14.0 / 15.7 -> 11.9 / 12.1, frames over budget
+  4 / 10 -> 1 / 0.
 - Android navigation bar items and the inline title draw their blur and
   fade as one shader draw from a mip pyramid of their content, instead
   of a blur layer, an opacity layer and a raster each; flat container

@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -417,11 +418,13 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       for (final item in widget.items)
         SizedBox(
           width: _layout.pitch,
-          child: _TabLabel(
-            item: item,
-            scaler: scaler,
-            selected: selected,
-            color: selected ? _style.selectedColor : _style.color,
+          child: MorphGlyphSnap(
+            child: _TabLabel(
+              item: item,
+              scaler: scaler,
+              selected: selected,
+              color: selected ? _style.selectedColor : _style.color,
+            ),
           ),
         ),
     ],
@@ -466,11 +469,13 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                           label: widget.items[i].label,
                           onTap: _selectable(i) ? () => _select(i) : null,
                           child: ExcludeSemantics(
-                            child: _TabLabel(
-                              item: widget.items[i],
-                              scaler: scaler,
-                              selected: false,
-                              color: style.color,
+                            child: MorphGlyphSnap(
+                              child: _TabLabel(
+                                item: widget.items[i],
+                                scaler: scaler,
+                                selected: false,
+                                color: style.color,
+                              ),
                             ),
                           ),
                         ),

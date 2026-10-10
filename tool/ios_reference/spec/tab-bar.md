@@ -119,7 +119,20 @@ Scene `tabbar<N>` (N 2..5); env `PROBE_DARK`, `PROBE_TABLAYERS=1`,
 (glass_glow.dart), touch_listener.dart (`delaysInScrollable`). Tests:
 lens_test (tab bar on the undeformed frame only), lens_scrub_test,
 tab_bar_glow_test (rms bound 0.03 / 0.012), tab_bar_slow_lift_test,
-controls_scroll_test.
+controls_scroll_test, glyph_snap_test.
+
+Labels under the swell: the whole bar scales by `grow` (1 -> 1.04) under a
+finger, so every label met a new screen scale per frame and the glyph
+cache struck it again. Each label (both rows, outside and inside the lens)
+sits in `MorphGlyphSnap` (glyph_scale.dart), which paints it at the
+`MorphGlyphScale` grid scale nearest its screen scale, about its own
+center: at most 0.54 percent off its layout size, exact at rest; layout,
+hit testing and semantics are unchanged. Redmi 6A (Skia, flat), audit
+A B B A, 3 runs, tab-bar scene: raster p50 11.3 / 11.6 -> 10.2 / 10.3 ms,
+p95 14.0 / 15.7 -> 11.9 / 12.1, p99 16.0 / 16.7 -> 13.2 / 12.9, frames
+over budget 4 / 10 -> 1 / 0 (the scene had spent 8.3 ms a frame drawing
+21 text blobs and 6.3 glyph-atlas uploads); the segmented and controls
+scenes are unchanged within their spread.
 
 ## Not reproduced / open
 
