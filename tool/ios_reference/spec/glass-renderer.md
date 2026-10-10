@@ -1848,6 +1848,15 @@ fuses its own, exactly as before.
   GPU field pass (the outline path is needed on the CPU the same frame -
   the body shadow, fake and flat glass clip to it - so the field would
   still need a CPU trace or a readback).
+- CORE GATE (`MorphFusionWorker.supported`: `Platform.numberOfProcessors`
+  at least 6): on the Redmi 6A (4 cores, Skia, flat) the audit menu scene
+  (FUSION_PREFETCH on and off, A B B A, 3 runs) was worse with the pool
+  running: build p95 17.3 / 16.9 -> 15.4 / 15.6 ms, raster p95 34.2 /
+  39.0 -> 29.4 / 28.6 ms, raster p99 57 / 76 -> 49 / 44 ms, frames over
+  budget 31 / 36 -> 31 / 35 (prefetch on -> off). The worker isolates
+  compete with the UI and raster threads on a four-core phone, so the
+  pool stays off below six cores; the eight-core Pixel 6a keeps it, where
+  it was the measured win above.
 
 ## The lifted lens's frost, the segmented remainder, the second submit (2026-10-06)
 

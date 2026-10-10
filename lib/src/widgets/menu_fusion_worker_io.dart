@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 import 'dart:ui';
@@ -24,8 +25,10 @@ import 'package:morph/src/widgets/menu_fusion.dart';
 /// where it is needed.
 @internal
 abstract final class MorphFusionWorker {
-  /// Whether this platform can run the worker.
-  static const bool supported = true;
+  /// Whether this device runs the worker: only with at least six CPU
+  /// cores, since on fewer the workers compete with the UI and raster
+  /// threads and cost more frames than they save.
+  static final bool supported = Platform.numberOfProcessors >= 6;
 
   /// The most workers that run at once.
   static const int poolSize = 4;

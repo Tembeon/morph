@@ -129,8 +129,8 @@ Internal machinery (all `@internal`):
   `prefetchTolerance` (0.02 pt per input) and the same grid/kernel, else
   fuses in the frame as before - so a served outline is the exact law at
   a time a fraction of a millisecond from the frame's. Profile/release
-  with isolates only (`prefetches`); debug, every test and the web never
-  start it. Workers send plain parts (`MorphGlassOutlineParts`: samples
+  with isolates and at least six CPU cores only (`prefetches`); debug,
+  every test and the web never start it. Workers send plain parts (`MorphGlassOutlineParts`: samples
   + contour loops) because dart:ui's Path exists only on the root
   isolate. Why: the fusion's device cost is core placement and DVFS of a
   light UI thread (glass-renderer.md "Menu fusion: the device gap").

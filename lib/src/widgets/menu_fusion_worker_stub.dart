@@ -8,7 +8,7 @@ import 'package:morph/src/widgets/glass_outline.dart';
 @internal
 abstract final class MorphFusionWorker {
   /// Whether this platform can run the worker.
-  static const bool supported = false;
+  static final bool supported = false;
 
   /// Does nothing.
   static void request(Float64List inputs) {}
