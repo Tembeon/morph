@@ -1459,7 +1459,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
       }
       content = Opacity(
         opacity: frame.presence.clamp(0.0, 1.0),
-        child: Transform.scale(scale: scale, child: content),
+        child: Transform.scale(
+          scale: scale,
+          child: MorphGlyphSnap(child: content),
+        ),
       );
     }
     if (!frame.leaving) {

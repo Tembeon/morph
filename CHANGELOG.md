@@ -19,6 +19,8 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   longer strikes its glyphs again every frame. Redmi 6A flat tab bar raster p50 11.3 / 11.6 ->
   10.2 / 10.3 ms, p95 14.0 / 15.7 -> 11.9 / 12.1, frames over budget
   4 / 10 -> 1 / 0.
+  Navigation bar items off Android snap the same way while they scale
+  through a transition or a press (not measured on a device).
 - Android navigation bar items and the inline title draw their blur and
   fade as one shader draw from a mip pyramid of their content, instead
   of a blur layer, an opacity layer and a raster each; flat container

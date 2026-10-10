@@ -69,6 +69,14 @@ push_zoom.dart, push_zoom_motion.dart (`MorphPushZoomMotion`,
 `MorphPushZoomTuning`). The stack's navigator sits under a
 NavigatorPopHandler (the enclosing route is doNotPop while it can pop).
 
+Bar item content off Android rides the item scale (presence, blob, press)
+through `MorphGlyphSnap` (glyph_scale.dart), drawn at the glyph grid scale
+nearest its screen scale, within 0.54 percent about the item center, so
+the glyph cache is not struck again every frame of a transition; Android
+draws the items from the glyph blur pyramid instead. Mechanism measured
+on the tab bar (tab-bar.md); not measured separately. The inline title
+only translates and is not snapped.
+
 ## Not reproduced / open
 
 - +1.25 widths/s returning flicks.
