@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
 
@@ -57,6 +58,8 @@ Future<({double scale, Offset center})> _paint(
 }
 
 void main() {
+  setUpAll(() => isLocalTest = true);
+
   testWidgets('a grid scale paints with no transform of its own', (
     tester,
   ) async {
@@ -163,4 +166,56 @@ void main() {
     // A row outside the lens and one inside it, a snap per tab.
     expect(find.byType(MorphGlyphSnap), findsNWidgets(6));
   });
+
+  for (final tier in MorphGlassTier.values) {
+    testWidgets(
+      'a released ${tier.name} tab bar returns its labels to exact scale',
+      (tester) async {
+        tester.view.physicalSize = const Size(402, 874) * 3;
+        tester.view.devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+        await tester.pumpWidget(
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: MediaQuery(
+              data: const MediaQueryData(devicePixelRatio: 3),
+              child: MorphGlass(
+                painter: MorphGlassRenderer(tier: tier),
+                child: Center(
+                  child: MorphTabBar(
+                    items: const [
+                      MorphTabItem(label: 'One', icon: IconData(0x41)),
+                      MorphTabItem(label: 'Two', icon: IconData(0x42)),
+                      MorphTabItem(label: 'Three', icon: IconData(0x43)),
+                    ],
+                    selected: 0,
+                    onChanged: (int i) {},
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+        List<RenderMorphGlyphSnap> snaps() => tester
+            .renderObjectList<RenderMorphGlyphSnap>(find.byType(MorphGlyphSnap))
+            .toList();
+        expect(snaps(), hasLength(6));
+        final gesture = await tester.startGesture(
+          tester.getCenter(find.text('One').first),
+        );
+        var swelled = false;
+        for (var i = 0; i < 30; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          swelled = swelled || snaps().any((s) => s.debugFactor != 1);
+        }
+        // The swell is real: some frame drew a label off its layout size.
+        expect(swelled, isTrue);
+        await gesture.up();
+        await tester.pumpAndSettle();
+        for (final snap in snaps()) {
+          expect(snap.debugFactor, 1);
+        }
+      },
+    );
+  }
 }

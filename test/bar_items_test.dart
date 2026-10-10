@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
 
 MorphBarButton _icon(Object id) => MorphBarButton(
@@ -101,6 +103,41 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey<Object>('b')), findsOneWidget);
     });
+  });
+
+  testWidgets('a released bar item returns its content to exact scale', (
+    tester,
+  ) async {
+    debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+    try {
+      await _toolbar(
+        tester,
+        () => [
+          MorphBarButtonGroup([_icon('a')], id: 'A'),
+        ],
+      );
+      List<RenderMorphGlyphSnap> snaps() => tester
+          .renderObjectList<RenderMorphGlyphSnap>(find.byType(MorphGlyphSnap))
+          .toList();
+      expect(snaps(), isNotEmpty);
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.byKey(const ValueKey<Object>('a'))),
+      );
+      var swelled = false;
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        swelled = swelled || snaps().any((s) => s.debugFactor != 1);
+      }
+      // The press scales the item: some frame drew it off its layout size.
+      expect(swelled, isTrue);
+      await gesture.up();
+      await tester.pumpAndSettle();
+      for (final snap in snaps()) {
+        expect(snap.debugFactor, 1);
+      }
+    } finally {
+      debugDefaultTargetPlatformOverride = null;
+    }
   });
 
   testWidgets('ids are compared as values, not by their text', (tester) async {

@@ -766,11 +766,18 @@ class _RenderGlyphBlur extends RenderProxyBox {
 /// every frame and each one strikes the glyphs again. Here the child is
 /// drawn at one of 64 scales per octave instead, so a sweep reuses a few
 /// strikes. At a grid scale, which includes the device pixel ratio and so
-/// every control at rest, the child paints with no transform at all.
+/// every control at rest (to within 0.01 percent), the child paints with
+/// no transform at all.
 ///
 /// The painted child is within 0.54 percent of its layout size about the
 /// center of its box; hit testing, semantics and layout use the layout
 /// size and are unchanged.
+///
+/// The screen scale is read at paint, with a transform walk to the root on
+/// every paint, so this fits a handful of labels that repaint with their
+/// animating transform; it does not suit long lists, nor a label behind a
+/// repaint boundary that does not repaint when the transform above it
+/// changes.
 @internal
 class MorphGlyphSnap extends SingleChildRenderObjectWidget {
   /// Snaps the screen scale [child] is drawn at.
@@ -814,13 +821,18 @@ class RenderMorphGlyphSnap extends RenderProxyBox {
 
   final Matrix4 _transform = Matrix4.identity();
 
+  /// The factor within which the child paints untransformed: a spring that
+  /// has come to rest within a pixel still leaves a scale off one by about
+  /// 1e-5, which the glyph cache keys identically anyway.
+  static const double _exactTolerance = 1e-4;
+
   @override
   void paint(PaintingContext context, Offset offset) {
     final child = this.child;
     if (child == null) return;
     final screen = MorphGlyphScale.of(getTransformTo(null)) * _devicePixelRatio;
     final factor = MorphGlyphScale.snap(screen, _devicePixelRatio) / screen;
-    if (!factor.isFinite || (factor - 1).abs() < 1e-6) {
+    if (!factor.isFinite || (factor - 1).abs() < _exactTolerance) {
       debugFactor = 1;
       context.paintChild(child, offset);
       return;
