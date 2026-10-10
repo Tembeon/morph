@@ -28,6 +28,8 @@ one tree per variant. Raw reports: tool/ios_reference/perf/2026-10-11-night/
 | MorphListSection paints in its own repaint boundary | 18a569b | home-scroll raster p95 19.4 -> 6.2-6.5 ms, over budget 131-142 -> 0-1; list build p95 5 -> 2.4 (`rb-*`) | neutral (`mrb-*`) |
 | tab bar labels snap their glyph scale while the bar swells (MorphGlyphSnap; bar items off Android too) | 52b84ac, a823499, 0387422 | tab-bar raster p95 14.0-15.7 -> 11.9-12.1, over budget 4-10 -> 0-1 (`gs-*`) | neutral (`mgs-*`) |
 | menu fusion workers only on >= 6 cores | 3715416 | menu raster p95 34-39 -> 28.5-29.4, p99 57-76 -> 44-49 (`fp-*`) | prefetch neutral either way (`mfp-*`) |
+| the flat menu fuses its silhouette's edge only (no shading field), contour bit-identical | 6cb91df | menu UI build p95 15.0-15.3 -> 11.0-11.2 ms, over budget 30-33 -> 27-28, warm cache (`fm-*`) | - (liquid keeps the field) |
+| list section cards shade their glass over the card's own color: one shader paint, no backdrop filter | e872d85, 30df6d8 | - (flat tier) | list raster p50 8.9-9.4 -> 4.4-4.8 ms, p95 13.7 -> 5.4, over budget 387-454 -> 5 (`sb-*`); device shots within base-vs-base noise; tab-bar / home-scroll / segmented unchanged by the new uniform (`su-*`) |
 
 Tonight's start (ab5b970) against the head (3715416), Redmi flat, all
 scenes (`rall-*`): home-scroll raster p95 19.3 -> 6.0-6.4 ms and over budget
@@ -57,17 +59,47 @@ cache serves it.
   p50 +1.7 ms, over budget 35 -> 55; `mb*-*`). The pyramid pays for small
   glyphs, not a large content layer. Rejected.
 
+- Redmi menu, the flat body filled as a plain rect instead of its traced
+  path (timing proxy): no change (`rf-b*` against `rf-a*`). The software
+  path mask is not the menu's cost.
+- Redmi menu, content blur off (timing proxy): raster p95 25-36 -> 18-21,
+  p99 41-152 -> 23-35 (`rf-c*`). Blurring the content at a half or quarter
+  resolution layer instead (render scaled down, blur, scale up, as Skia does
+  internally): no change on either phone (`rf-d*`, `mlow-*`): the cost is
+  the blur's passes and render-target switches, not its pixels. Rejected.
+- App glass containers over a known opaque page color
+  (`MorphGlassContainer(solidBackdrop:)`, opt-in, in review): Moto sheet
+  raster p50 10.5-11.8 -> 7.9-8.9, over budget 235-247 -> 158-176; menu
+  raster p95 19.3-19.8 -> 17.3, over budget 136-147 -> 118; controls over
+  budget 18-22 -> 14-18 (`sp-*`). Shots within noise except 51 rim pixels
+  up to 24 steps on the controls page (the glass no longer sees its own
+  drop shadow under the rim).
+
+## First use on Skia
+
+The Redmi's 200 - 1150 ms single frames in the menu scene are Skia
+compiling GL programs mid-animation (58 compiles a run, PowerVR driver
+compiles of 200 - 780 ms each); Skia keys its Gaussian blur program by the
+kernel radius, so every new content blur radius compiles. The engine keeps
+compiled programs in code_cache, which Android wipes on every install or
+update: a relaunch of the same build has none (menu raster worst 41 - 53
+ms, p99 32 - 34, `rf-t3`). Users meet them once per app update, on the
+first menu opens. Every run.py run reinstalls, so Redmi tails in earlier
+reports carry these spikes; steady-state Redmi numbers now come from a
+warm-up launch followed by a launch without installing. Open: fewer
+distinct radii (quantized blur) or a deferred warm-up, both visible or
+risky; not attempted.
+
 ## Diagnosed, next
 
-- Moto list scene is GPU-bound at the GPU's top clock (1047 MHz the whole
-  window): 4.6 backdrop flips a frame, two of them the list cards'
-  MorphGlassStage layers. Each Impeller flip ends the render pass and draws
-  the whole previous frame back into the new one. Upper bound with the row
-  glass buttons removed: raster p50 9.6 -> 3.5 ms, p95 13.8 -> 4.5, over
-  budget 450-500 -> 2-3 (`lb-*`); stages off (one small filter per button)
-  costs the same as stages on. In progress: a stage over a known opaque
-  fill (a list card's cell color, nothing painted between) draws its glass
-  as an ordinary shader paint with a solid backdrop, no flip.
+- Moto list scene (done above): it was GPU-bound at the GPU's top clock
+  with 4.6 backdrop flips a frame, two of them the list cards' stages; each
+  Impeller flip ends the render pass and draws the whole previous frame
+  back into the new one (upper bound with the row buttons removed: raster
+  p95 13.8 -> 4.5, `lb-*`; the solid stages reach 5.4).
+- Moto tab-bar is now its worst scene: raster p50 11.4 ms, about 640
+  frames over budget a run, 4.85 flips (edge effect seed + blur, nav bar,
+  tab bar, lifted lens), all over live content.
 - Moto sheet (raster p95 25 ms) and tab-bar (15 ms) are GPU-bound too:
   4.4 and 4.85 flips a frame (census `maud-census-all.json`).
 - Redmi menu tail frames: Skia's multi-pass blur of the fading content
