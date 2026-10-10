@@ -63,8 +63,12 @@ cache serves it.
 - Moto menu, content blur off (timing proxy): no change (raster p95
   18.5-18.7 -> 18.4-18.5, `mnb-*`); Impeller's menu cost is elsewhere.
 - Redmi menu, the flat body filled as a plain rect instead of its traced
-  path (timing proxy): no change (`rf-b*` against `rf-a*`). The software
-  path mask is not the menu's cost.
+  path (timing proxy): no change in cold-cache runs (`rf-b*` against
+  `rf-a*`, buried under shader compiles), but warm: raster p95 19.7 / 20.0
+  -> 17.7 / 18.6, over budget 29 / 32 -> 16 / 16 (`rw-*`). Skia rasterizes
+  that concave, per-frame path in software and uploads its mask every
+  frame. A GPU fill from the fusion's own field (a vertex mesh, alpha from
+  the distance) is in progress.
 - Redmi menu, content blur off (timing proxy): raster p95 25-36 -> 18-21,
   p99 41-152 -> 23-35 (`rf-c*`). Blurring the content at a half or quarter
   resolution layer instead (render scaled down, blur, scale up, as Skia does
