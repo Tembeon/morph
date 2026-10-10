@@ -170,6 +170,20 @@ At 120 Hz a push drops about a third of its frames (uneven cadence); at
 screen or per transition is an app decision (Flutter has no frame-rate
 API; it takes a platform call like the gallery's MainActivity).
 
+## Follow-up options (2026-10-10, code only, not yet measured on devices)
+
+| define / change | default | what it does | host evidence | device plan |
+|---|---|---|---|---|
+| analytic flat face (a0aff80) | on (pixel-identical) | analytic frames skip the superellipse SDF solve where box depth minus corner radius is past the flat-face depth | max channel difference 0 on 28 host scenes, analytic and capsule on/off | GPU ms on the Moto with analytic on (sheet, controls) |
+| `MORPH_NAV_SNAPSHOT` (4047b54, 885abf7) | off | slide transitions draw pages from a `SnapshotWidget` while moving, flat glass tier only (on fake/liquid the renderer's shader filters would be placed by the slide offset) | widget tests: snapshots only while animating, tree never changes shape, state kept | Redmi pop raster p95 and worst frame, real input; watch the capture frame (two offscreen passes) |
+| `MORPH_SHADER_SHADOWS` (f03b7d6, f93e73d, b577acc) | off | rounded-superellipse glass shadows drawn by one fragment shader (Impeller's analytic blur x outside-glass coverage), no clip path | mean <= 0.04, max 9 at single corner pixels (28 for a spread pair) against the clip path, every larger difference within 1 device px of the cut | Moto push UI time with analytic on (shadow was ~15 percent) |
+| gallery frame-rate switch (4bfe07d) | Auto | Auto / 60 / 120 Hz on the Glass renderer page via a MethodChannel | example widget tests | by hand on the Moto |
+
+Researched and not implemented: prebuild on pointer-down (needs an
+app-facing API), ADPF GPU durations (Flutter exposes no GPU time), GC
+and allocation work (needs a device allocation profile), title glyph
+prewarm (spike seen once), `MORPH_ANALYTIC_CAPSULE` (measurement only).
+
 ## Tried and rejected
 
 - Reduce-shader early-out (identical output): no Redmi change; reverted.
