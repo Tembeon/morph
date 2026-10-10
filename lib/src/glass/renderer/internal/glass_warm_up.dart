@@ -22,15 +22,26 @@ const double _cell = 24;
 /// glass blurs reach: unscaled, half, quarter and eighth.
 const List<double> _frostSigmas = [1, 2, 8, 14];
 
+/// The draws the last completed [morphWarmLiquidPipelines] rasterized, or
+/// null before one completed.
+///
+/// `filters` counts the backdrop filters of one row, `solidPaints` the
+/// final shaders painted over a declared solid backdrop.
+@visibleForTesting
+({int filters, int solidPaints})? debugMorphLiquidWarmUpDraws;
+
 /// Draws once with every Flutter GPU pipeline of the geometry passes, then
 /// rasterizes an offscreen scene with every liquid glass filter the layer
-/// builds, so the pipelines the first glass frame needs already exist.
+/// builds and every final shader painted as a layer over a solid backdrop
+/// paints it, so the pipelines the first glass frame needs already exist.
 ///
 /// Flutter GPU creates a pipeline at its first draw, on the UI thread, and
 /// Impeller creates the variant a backdrop filter needs (its subpass's
 /// sample count and stencil) at the filter's first draw, on the raster
-/// thread. Nothing reaches the screen. A failure leaves the capability
-/// untouched: the real frame then pays the cost it would have paid anyway.
+/// thread. A final shader painted as an ordinary rect (source over, into
+/// the current pass) is a pipeline of its own. Nothing reaches the screen.
+/// A failure leaves the capability untouched: the real frame then pays the
+/// cost it would have paid anyway.
 @internal
 Future<void> morphWarmLiquidPipelines(
   FlutterGpuGeometryRenderer geometry,
@@ -109,18 +120,34 @@ Future<void> morphWarmLiquidPipelines(
       ShaderKeys.liquidGlassTintRender,
       ShaderKeys.liquidGlassTintIos27Render,
     };
+    final solids = <ui.FragmentShader>[];
     for (final (index, program) in programs.indexed) {
       final key = warmedKeys[index];
-      final shader = program.fragmentShader();
-      shader.setImageSampler(0, matte, filterQuality: FilterQuality.low);
-      // The analytic variants read no matte and no material map.
-      if (!analyticKeys.contains(key)) shader.setImageSampler(1, matte);
-      if (key == ShaderKeys.liquidGlassMaterialRender) {
-        shader.setImageSampler(2, material);
-        shader.setImageSampler(3, material, filterQuality: FilterQuality.low);
-      } else if (tintKeys.contains(key)) {
-        shader.setImageSampler(2, tint, filterQuality: FilterQuality.low);
+      void bind(ui.FragmentShader shader) {
+        shader.setImageSampler(0, matte, filterQuality: FilterQuality.low);
+        // The analytic variants read no matte and no material map.
+        if (!analyticKeys.contains(key)) shader.setImageSampler(1, matte);
+        if (key == ShaderKeys.liquidGlassMaterialRender) {
+          shader.setImageSampler(2, material);
+          shader.setImageSampler(3, material, filterQuality: FilterQuality.low);
+        } else if (tintKeys.contains(key)) {
+          shader.setImageSampler(2, tint, filterQuality: FilterQuality.low);
+        }
       }
+
+      final shader = program.fragmentShader();
+      bind(shader);
+      // A layer over a solid backdrop paints the same variant with an
+      // opaque uSolidBackdrop. Its own instance: the filter below keeps the
+      // uniforms it is created with, and no layer's shader is touched.
+      final solid = program.fragmentShader();
+      bind(solid);
+      solid.setFloat(0, _cell);
+      solid.setFloat(1, _cell);
+      for (var i = 0; i < 4; i++) {
+        solid.setFloat(RenderLiquidGlassLayer.solidBackdropUniform + i, 1);
+      }
+      solids.add(solid);
       final filter = morphGlassShaderFilter(shader);
       filters.add(filter);
       for (final sigma in _frostSigmas) {
@@ -139,15 +166,35 @@ Future<void> morphWarmLiquidPipelines(
     for (final sigma in _frostSigmas) {
       filters.add(ui.ImageFilter.blur(sigmaX: sigma, sigmaY: sigma));
     }
-    await _rasterize((row, cell) {
-      final layers = <Layer>[];
-      for (final filter in filters) {
-        final clip = ClipRectLayer(clipRect: cell(layers.length));
-        clip.append(_backdrop(filter, row));
-        layers.add(clip);
+    try {
+      await _rasterize((row, cell) {
+        final layers = <Layer>[];
+        for (final filter in filters) {
+          final clip = ClipRectLayer(clipRect: cell(layers.length));
+          clip.append(_backdrop(filter, row));
+          layers.add(clip);
+        }
+        // A paint reads no backdrop key: the first row alone draws them.
+        if (row == null) {
+          for (final solid in solids) {
+            layers.add(_solidPaint(solid, cell(layers.length)));
+          }
+        }
+        return layers;
+      }, filters.length + solids.length);
+      debugMorphLiquidWarmUpDraws = (
+        filters: filters.length,
+        solidPaints: solids.length,
+      );
+    } finally {
+      // A new shader's uniform buffer is not zeroed: leave no opaque
+      // backdrop behind in memory a later shader may be given.
+      for (final solid in solids) {
+        for (var i = 0; i < 4; i++) {
+          solid.setFloat(RenderLiquidGlassLayer.solidBackdropUniform + i, 0);
+        }
       }
-      return layers;
-    }, filters.length);
+    }
   } on Object catch (error) {
     _report(error);
   } finally {
@@ -155,6 +202,20 @@ Future<void> morphWarmLiquidPipelines(
       image.dispose();
     }
   }
+}
+
+/// The final shader's draw as a layer over a solid backdrop records it: one
+/// hard-edged rect, source over, into the current pass.
+PictureLayer _solidPaint(ui.FragmentShader shader, Rect bounds) {
+  final recorder = ui.PictureRecorder();
+  final canvas = Canvas(recorder, bounds);
+  final paint = Paint();
+  paint.shader = shader;
+  paint.isAntiAlias = false;
+  canvas.drawRect(bounds, paint);
+  final layer = PictureLayer(bounds);
+  layer.picture = recorder.endRecording();
+  return layer;
 }
 
 /// Rasterizes an offscreen scene with the fake glass layers: the

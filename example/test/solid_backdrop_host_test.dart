@@ -11,7 +11,13 @@ import 'package:material_ui/material_ui.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/internal/glass_warm_up.dart';
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/shaders.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show AnalyticGeometryMode, RenderLiquidGlassLayer;
@@ -31,8 +37,9 @@ import '../integration_test/support/shader_harness.dart';
 /// paint shaded over that color instead of a backdrop filter. Over an
 /// opaque fill of the same color both must draw the same pixels. Prints
 /// one line per case: the largest channel difference, the mean over the
-/// pixels the shapes cover and the pixels over 2 and over 8. Without
-/// Impeller the test does nothing.
+/// pixels the shapes cover and the pixels over 2 and over 8. The liquid
+/// pipeline warm-up paints every final variant over a solid backdrop too.
+/// Without Impeller the test does nothing.
 const double _dpr = 2.625;
 
 /// `--dart-define=AUDIT_OUT=<dir>` keeps both shots of every case as PNGs.
@@ -341,6 +348,75 @@ Iterable<RenderLiquidGlassLayer> _layers(WidgetTester tester) =>
 
 void main() {
   tearDown(() => debugMorphGlassStageSolidBackdrops = true);
+
+  testWidgets('the liquid warm-up paints every final variant over a solid '
+      'backdrop and leaves the layers drawing as before', (
+    WidgetTester tester,
+  ) async {
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+    tester.view.physicalSize = const ui.Size(1080, 2400);
+    tester.view.devicePixelRatio = _dpr;
+    addTearDown(tester.view.reset);
+    await tester.runAsync(MorphGlassRenderer.precache);
+    await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+    RenderLiquidGlassLayer.debugAnalyticMode = AnalyticGeometryMode.always;
+    RenderLiquidGlassLayer.debugAnalyticGeometry = true;
+    addTearDown(() {
+      RenderLiquidGlassLayer.debugAnalyticGeometry = null;
+      RenderLiquidGlassLayer.debugAnalyticMode = null;
+    });
+
+    final reports = <String>[];
+    final previous = debugPrint;
+    debugPrint = (message, {wrapWidth}) {
+      if (message != null) reports.add(message);
+    };
+    addTearDown(() => debugPrint = previous);
+    debugMorphLiquidWarmUpDraws = null;
+    await tester.runAsync(() async {
+      final geometry = await FlutterGpuGeometryRenderer.fromAsset(
+        ShaderKeys.gpuGeometryShaderBundle,
+      );
+      try {
+        await morphWarmLiquidPipelines(geometry, ShaderKeys.liquidGlassRenders);
+      } finally {
+        geometry.dispose();
+      }
+    });
+    debugPrint = previous;
+    expect(reports, isEmpty);
+    // Every matte and analytic variant: once as a filter, alone and over
+    // each of the four frost sigmas, and once as a solid paint; then the
+    // four plain blurs.
+    final variants =
+        ShaderKeys.liquidGlassRenders.length +
+        ShaderKeys.liquidGlassAnalyticRenders.length +
+        ShaderKeys.liquidGlassAnalyticFusedRenders.length;
+    expect(debugMorphLiquidWarmUpDraws, (
+      filters: variants * 5 + 4,
+      solidPaints: variants,
+    ));
+
+    // The layers mounted after it draw both paths as before.
+    final glassCase = _cases[1];
+    final shots = <bool, HarnessShot>{};
+    for (final solid in [false, true]) {
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pumpWidget(_scene(glassCase, solid: solid));
+      await _settle(tester);
+      expect(_layers(tester).single.debugDrawsOverSolidBackdrop, solid);
+      expect(_filters(), solid ? 0 : 1);
+      shots[solid] = await _shoot(tester);
+    }
+    final compared = _compare(
+      shots[false]!,
+      shots[true]!,
+      _covered([for (final s in glassCase.shapes) s.$1]),
+    );
+    // ignore: avoid_print
+    print('SOLID after warm-up ${glassCase.name} $compared');
+    expect(compared['max'], lessThanOrEqualTo(2));
+  });
 
   for (final analytic in [true, false]) {
     testWidgets('glass over a solid backdrop draws what the filter draws over '

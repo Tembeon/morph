@@ -1196,7 +1196,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     // A new shader's uniforms are not zeroed: read the backdrop until a
     // solid frame writes its color.
     for (var i = 0; i < 4; i++) {
-      shader.setFloat(_solidBackdropIndex + i, 0);
+      shader.setFloat(solidBackdropUniform + i, 0);
     }
   }
 
@@ -2096,8 +2096,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     return color != null && color.a == 1 ? color : null;
   }
 
-  /// Float index of uSolidBackdrop, after uBackdropShrinkAxis.
-  static const int _solidBackdropIndex = 65;
+  /// Float index of uSolidBackdrop in every final shader, after
+  /// uBackdropShrinkAxis.
+  @internal
+  static const int solidBackdropUniform = 65;
 
   // The shaders whose uSolidBackdrop holds a color now; the others hold
   // the initial zero, which reads the backdrop.
@@ -2240,7 +2242,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     } else {
       syncCoordinateMapping();
       if (_solidShaders.remove(renderShader)) {
-        renderShader.setFloat(_solidBackdropIndex + 3, 0);
+        renderShader.setFloat(solidBackdropUniform + 3, 0);
       }
       final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
         ..filter = _updateShaderFilter()
@@ -2336,10 +2338,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       // The surface's encoding: sRGB components, extended where the color
       // lies outside sRGB (a Display P3 fill on a wide-gamut surface).
       final color = solid.withValues(colorSpace: ColorSpace.extendedSRGB);
-      shader.setFloat(_solidBackdropIndex, color.r);
-      shader.setFloat(_solidBackdropIndex + 1, color.g);
-      shader.setFloat(_solidBackdropIndex + 2, color.b);
-      shader.setFloat(_solidBackdropIndex + 3, 1);
+      shader.setFloat(solidBackdropUniform, color.r);
+      shader.setFloat(solidBackdropUniform + 1, color.g);
+      shader.setFloat(solidBackdropUniform + 2, color.b);
+      shader.setFloat(solidBackdropUniform + 3, 1);
       final paint = Paint();
       paint.shader = shader;
       // The filter path clips its output to this rect with a hard edge.

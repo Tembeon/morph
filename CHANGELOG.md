@@ -29,7 +29,9 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   backdrop filters fewer in the list scene. A held row's button still
   reads its backdrop in a layer of its own. Moto g86 liquid list raster
   p50 8.9 / 9.4 -> 4.4 / 4.8 ms, p95 13.7 -> 5.4, frames over budget
-  387 / 454 -> 5.
+  387 / 454 -> 5. `MorphGlassRenderer.precache` paints every final
+  shader variant this way once, so the first frame showing a section
+  compiles no pipeline.
 - Android navigation bar items and the inline title draw their blur and
   fade as one shader draw from a mip pyramid of their content, instead
   of a blur layer, an opacity layer and a raster each; flat container

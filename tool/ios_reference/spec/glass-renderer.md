@@ -884,7 +884,13 @@ needs, offscreen:
   bound to the warm-up mattes) a ClipRectLayer > BackdropFilterLayer with
   the shader alone and composed over a mirror blur at sigma 1 / 2 / 8 /
   14 (each downsample class), plus the bare blurs; one row without and
-  one sharing a BackdropKey. A snapshot renders through the same canvas
+  one sharing a BackdropKey. The first row also paints every final
+  variant (matte and analytic) once as the solid backdrop's hard-edged
+  drawRect with an opaque uSolidBackdrop (2026-10-11): an ordinary
+  source-over paint into the pass is a pipeline of its own, so a cold
+  device would compile it on the first frame showing a list section. The
+  paints use FragmentShader instances of their own, zeroed afterwards;
+  the filters are unchanged. A snapshot renders through the same canvas
   into an MSAA + stencil target like the screen, so the filter subpasses
   get the variants the screen uses; every clip is non-empty (a
   clipped-away filter is skipped).

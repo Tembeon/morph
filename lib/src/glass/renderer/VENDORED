@@ -445,4 +445,9 @@ Local patches (some commits include related package changes):
   (example/shader_audit/baseline) declares the uniform, unread, to keep
   the layout the layer writes. The fake layer ignores it. Host A/B
   against the filter over the same color:
-  example/test/solid_backdrop_host_test.dart.
+  example/test/solid_backdrop_host_test.dart. The pipeline warm-up also
+  paints every final variant it warms (matte and analytic) once as that
+  drawRect with an opaque uSolidBackdrop, from a FragmentShader instance
+  of its own that it zeroes afterwards (the solid paint is a pipeline of
+  its own on Impeller: source over into the current pass, not a filter);
+  RenderLiquidGlassLayer.solidBackdropUniform names float index 65.
