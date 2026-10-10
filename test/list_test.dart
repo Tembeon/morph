@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -22,6 +23,18 @@ Future<void> _pump(
       ),
     ),
   );
+}
+
+class _CountingPainter extends CustomPainter {
+  _CountingPainter(this.paints);
+
+  final List<int> paints;
+
+  @override
+  void paint(Canvas canvas, Size size) => paints.add(paints.length);
+
+  @override
+  bool shouldRepaint(_CountingPainter oldDelegate) => false;
 }
 
 void main() {
@@ -284,5 +297,67 @@ void main() {
     expect(style.fontSize, 17);
     expect(style.decoration, isNot(TextDecoration.underline));
     expect(style.color, MorphBarStyle.light.titleColor);
+  });
+
+  testWidgets('a section paints in its own repaint boundary', (tester) async {
+    final paints = <int>[];
+    final controller = ScrollController();
+    addTearDown(controller.dispose);
+    await _pump(
+      tester,
+      SizedBox(
+        height: 600,
+        child: CustomScrollView(
+          controller: controller,
+          slivers: [
+            SliverToBoxAdapter(
+              child: MorphListSection(
+                header: 'Controls',
+                children: [
+                  MorphListRow(
+                    key: const Key('counted'),
+                    title: CustomPaint(
+                      size: const Size(40, 20),
+                      painter: _CountingPainter(paints),
+                    ),
+                  ),
+                  const MorphListRow(title: Text('Second')),
+                ],
+              ),
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 2000)),
+          ],
+        ),
+      ),
+    );
+
+    final boundary = find.ancestor(
+      of: find.byKey(const Key('counted')),
+      matching: find.byType(RepaintBoundary),
+    );
+    final section = find.byType(MorphListSection);
+    expect(
+      find.descendant(of: section, matching: find.byType(RepaintBoundary)),
+      findsWidgets,
+    );
+    final sectionBoundary = tester.renderObject<RenderRepaintBoundary>(
+      find
+          .descendant(of: section, matching: find.byType(RepaintBoundary))
+          .first,
+    );
+    expect(boundary, findsWidgets);
+    expect(sectionBoundary.parent, isNotNull);
+
+    expect(paints, isNotEmpty);
+    final before = paints.length;
+    final top = tester.getTopLeft(find.byKey(const Key('counted'))).dy;
+    controller.jumpTo(30);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(
+      tester.getTopLeft(find.byKey(const Key('counted'))).dy,
+      lessThan(top),
+    );
+    expect(paints.length, before);
   });
 }

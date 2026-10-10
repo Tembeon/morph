@@ -213,6 +213,9 @@ class MorphListStyle {
 /// keep their own layers: their blur reads the rows around them. Content a
 /// row's child paints under its own glass belongs in a layer of its own:
 /// wrap it in its own [MorphGlassContainer].
+///
+/// The section paints in a layer of its own, so a scroll view moving it
+/// composites that layer instead of repainting its rows.
 class MorphListSection extends StatelessWidget {
   /// Creates a section.
   const MorphListSection({
@@ -240,78 +243,80 @@ class MorphListSection extends StatelessWidget {
     final look = MorphListStyle.resolve(context, style);
     final header = this.header;
     final footer = this.footer;
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: MorphListMetrics.sectionInset,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          if (header == null)
-            const SizedBox(height: MorphListMetrics.noHeaderTop)
-          else
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                MorphListMetrics.contentInset,
-                MorphListMetrics.headerTop,
-                MorphListMetrics.contentInset,
-                MorphListMetrics.headerBottom,
+    return RepaintBoundary(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: MorphListMetrics.sectionInset,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (header == null)
+              const SizedBox(height: MorphListMetrics.noHeaderTop)
+            else
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  MorphListMetrics.contentInset,
+                  MorphListMetrics.headerTop,
+                  MorphListMetrics.contentInset,
+                  MorphListMetrics.headerBottom,
+                ),
+                child: Semantics(
+                  header: true,
+                  child: Text(
+                    header,
+                    style: MorphTypography.resolve(
+                      MorphTypography.listHeader.copyWith(
+                        color: look.secondaryColor,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-              child: Semantics(
-                header: true,
+            ClipRRect(
+              borderRadius: const BorderRadius.all(
+                Radius.circular(MorphListMetrics.cornerRadius),
+              ),
+              child: ColoredBox(
+                color: look.cellColor,
+                child: MorphGlassStage(
+                  open: true,
+                  sharpOnly: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      for (var i = 0; i < children.length; i++)
+                        _RowPlace(
+                          last: i == children.length - 1,
+                          style: look,
+                          child: children[i],
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (footer == null)
+              const SizedBox(height: MorphListMetrics.noFooterBottom)
+            else
+              Padding(
+                padding: const EdgeInsetsDirectional.fromSTEB(
+                  MorphListMetrics.contentInset,
+                  MorphListMetrics.footerTop,
+                  MorphListMetrics.contentInset,
+                  MorphListMetrics.footerBottom,
+                ),
                 child: Text(
-                  header,
+                  footer,
                   style: MorphTypography.resolve(
-                    MorphTypography.listHeader.copyWith(
+                    MorphTypography.listFooter.copyWith(
                       color: look.secondaryColor,
                     ),
                   ),
                 ),
               ),
-            ),
-          ClipRRect(
-            borderRadius: const BorderRadius.all(
-              Radius.circular(MorphListMetrics.cornerRadius),
-            ),
-            child: ColoredBox(
-              color: look.cellColor,
-              child: MorphGlassStage(
-                open: true,
-                sharpOnly: true,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (var i = 0; i < children.length; i++)
-                      _RowPlace(
-                        last: i == children.length - 1,
-                        style: look,
-                        child: children[i],
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          if (footer == null)
-            const SizedBox(height: MorphListMetrics.noFooterBottom)
-          else
-            Padding(
-              padding: const EdgeInsetsDirectional.fromSTEB(
-                MorphListMetrics.contentInset,
-                MorphListMetrics.footerTop,
-                MorphListMetrics.contentInset,
-                MorphListMetrics.footerBottom,
-              ),
-              child: Text(
-                footer,
-                style: MorphTypography.resolve(
-                  MorphTypography.listFooter.copyWith(
-                    color: look.secondaryColor,
-                  ),
-                ),
-              ),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }

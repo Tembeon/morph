@@ -84,6 +84,23 @@ app content: option C applies (glass-renderer.md). Evidence:
 test/list_glass_stage_test.dart, the gallery's Lists page and the audit's
 `list` scene (glass-renderer.md "List sections").
 
+## Repaint boundary
+
+`MorphListSection` paints in a repaint boundary of its own (pixels
+unchanged). Under a sliver box adapter every scroll frame repainted the
+whole section, and on Skia its rounded shapes and paths were
+software-rasterized again each frame (a scrolled path never repeats its
+sub-pixel translation, so the path-mask cache misses); behind a boundary
+the picture is replayed and the raster cache serves it. Audit harness
+(example/integration_test/glass_audit_test.dart), A B B A, 3 runs per
+scene. Redmi 6A (Skia, flat, 60 Hz): home-scroll raster p95 19.4/19.4 ->
+6.5/6.2 ms, raster p50 14.0/14.5 -> 5.0/5.0, frames over budget 131/142 ->
+1/0, build p95 3.6/3.9 -> 2.0/1.9; list build p95 5.3/5.0 -> 2.6/2.4,
+raster p95 12.5/11.1 -> 10.2/10.2; tab bar unchanged. Moto g86 (Impeller,
+liquid, 120 Hz): home-scroll and list unchanged within run spread (list
+build p95 2.3 -> 2.0 ms). Evidence: test/list_test.dart (a scrolled
+section does not repaint its rows).
+
 ## Not reproduced / open
 
 - Highlight timing (UIKit delays the highlight inside a scroll view and
