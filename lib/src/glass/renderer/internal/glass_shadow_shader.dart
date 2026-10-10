@@ -43,6 +43,9 @@ abstract final class MorphGlassShadowShader {
   static ui.FragmentShader? _shader;
   static Future<void>? _loading;
 
+  // The paint every draw shares: a draw copies the shader's uniforms.
+  static final Paint _paint = Paint();
+
   /// Loads the shader; never fails (a shader that cannot load leaves every
   /// shadow on its clip path).
   static Future<void> precache() => _loading ??= ui.FragmentProgram.fromAsset(
@@ -205,9 +208,8 @@ abstract final class MorphGlassShadowShader {
       shader.setFloat(blurFloats + i, coverage[i]);
     }
     shader.setFloat(blurFloats + 5, screenScale);
-    final paint = Paint();
-    paint.shader = shader;
-    canvas.drawRect(rect, paint);
+    _paint.shader = shader;
+    canvas.drawRect(rect, _paint);
     return true;
   }
 

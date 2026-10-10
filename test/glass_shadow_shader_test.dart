@@ -102,12 +102,29 @@ Future<Uint8List> _shot(WidgetTester tester) async {
   }))!;
 }
 
+/// Whether [point] lies within [reach] of the outline of [path]: some
+/// point of the circle of that radius around it, or [point] itself, falls
+/// on the other side.
+bool _nearOutline(Path path, Offset point, double reach) {
+  final inside = path.contains(point);
+  for (var i = 0; i < 32; i++) {
+    final angle = i * math.pi / 16;
+    final probe =
+        point + Offset(math.cos(angle) * reach, math.sin(angle) * reach);
+    if (path.contains(probe) != inside) return true;
+  }
+  return false;
+}
+
 /// The largest and the mean channel difference of [a] and [b] over the
-/// device pixels of [region] (scene coordinates).
-({int max, double mean, int over}) _diff(
+/// device pixels of [region] (scene coordinates), the channels over 8, and
+/// how many of those lie farther than one device pixel from every outline
+/// of [cuts].
+({int max, double mean, int over, int farOver}) _diff(
   Uint8List a,
   Uint8List b,
   Rect region,
+  List<Path> cuts,
 ) {
   final width = (_scene.width * _ratio).round();
   final height = (_scene.height * _ratio).round();
@@ -119,6 +136,7 @@ Future<Uint8List> _shot(WidgetTester tester) async {
   var sum = 0;
   var count = 0;
   var over = 0;
+  var farOver = 0;
   for (var y = top; y < bottom; y++) {
     for (var x = left; x < right; x++) {
       final at = (y * width + x) * 4;
@@ -126,13 +144,24 @@ Future<Uint8List> _shot(WidgetTester tester) async {
       for (var k = 0; k < 3; k++) {
         final d = (a[at + k] - b[at + k]).abs();
         if (d > max) max = d;
-        if (d > 8) over++;
+        if (d > 8) {
+          over++;
+          final center = Offset((x + .5) / _ratio, (y + .5) / _ratio);
+          if (!cuts.any((cut) => _nearOutline(cut, center, 1 / _ratio))) {
+            farOver++;
+          }
+        }
         sum += d;
         count++;
       }
     }
   }
-  return (max: max, mean: count == 0 ? 0 : sum / count, over: over);
+  return (
+    max: max,
+    mean: count == 0 ? 0 : sum / count,
+    over: over,
+    farOver: farOver,
+  );
 }
 
 /// Runs [body] with blurred shadows, which flutter_test turns off.
@@ -189,12 +218,34 @@ void main() {
               final shaded = await _shot(tester);
               final box = tester.renderObject(find.byType(GlassShadow));
               final region = (box as RenderBox).paintBounds.shift(at);
-              final d = _diff(clipped, shaded, region);
+              // The outlines the shadows are cut at: the glass deflated by
+              // half a pixel when a shadow is offset, else each shadow's own
+              // shape (an outer blur).
+              final glass = at & size;
+              final cuts =
+                  [
+                    if (shadows.any((s) => s.offset != Offset.zero))
+                      glass.deflate(.5)
+                    else
+                      for (final s in shadows) glass.inflate(s.spreadRadius),
+                  ].map((rect) {
+                    final cut = Path();
+                    cut.addRSuperellipse(
+                      RSuperellipse.fromRectAndRadius(
+                        rect,
+                        Radius.circular(radius),
+                      ),
+                    );
+                    return cut;
+                  }).toList();
+              final d = _diff(clipped, shaded, region, cuts);
               debugPrint(
                 '$shapeName $shadowName at $at visibility $visibility: '
                 'max ${d.max} mean ${d.mean.toStringAsFixed(3)}, '
-                '${d.over} channels over 8',
+                '${d.over} channels over 8, ${d.farOver} off the cut',
               );
+              // Every larger difference is the cut itself.
+              expect(d.farOver, 0, reason: '$shapeName $shadowName');
               worstMax[shadowName] = math.max(worstMax[shadowName] ?? 0, d.max);
               worstMean = math.max(worstMean, d.mean);
             }
@@ -204,13 +255,14 @@ void main() {
     });
     debugPrint('worst max $worstMax mean ${worstMean.toStringAsFixed(3)}');
     expect(worstMean, lessThanOrEqualTo(0.5));
-    // The blur alone is exact (the test below); what is left is the cut.
-    // The clip path lies inside the exact rounded superellipse at its
-    // corners (its fill covers less than drawRSuperellipse's) and Impeller
-    // covers it by multisampling, so corner pixels next to the glass keep
-    // more shadow than the shader's exact edge: a channel step over 8 at
-    // one pixel for the floating shadow, and more where a spread shadow is
-    // darkest right at the cut.
+    // The blur alone is exact (the test below); what is left is the cut,
+    // and every difference over 8 lies within one device pixel of it
+    // (asserted per case above). The clip path lies inside the exact
+    // rounded superellipse at its corners (its fill covers less than
+    // drawRSuperellipse's) and Impeller covers it by multisampling, so
+    // corner pixels next to the glass keep more shadow than the shader's
+    // exact edge: a channel step over 8 at one pixel for the floating
+    // shadow, and more where a spread shadow is darkest right at the cut.
     for (final name in ['body', 'floating', 'floating lifted', 'outer']) {
       expect(worstMax[name], lessThanOrEqualTo(9), reason: name);
     }

@@ -327,6 +327,9 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
     final coverages = geometry.coverages(radius);
     final root = owner?.rootNode;
     // The transform to the root leaves out the view's device pixel ratio.
+    // The scale sets only the width of the one-device-pixel ramp at the
+    // cut: under a transform that changes without repainting this box, a
+    // stale scale changes that width, not where the edge lies.
     final screenScale =
         MorphGlyphScale.of(getTransformTo(null)) *
         (root is RenderView ? root.configuration.devicePixelRatio : 1);
