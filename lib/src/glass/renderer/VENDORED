@@ -403,6 +403,16 @@ Local patches (some commits include related package changes):
   production) moves uFusedBoxes to 306 and uShapeTints to 338 (fused) /
   306 (separate). Host A/B on vs off: max channel difference 0
   (example/test/analytic_flat_face_host_test.dart); sdf.glsl unchanged.
+- 2026-10-10 analytic tint selection: the separate-shape tint variants take
+  the nearest shape's tint inside nearestShape's loop instead of a
+  constant-index chain after it; the fused tint variants pick it from
+  shape distances alone (nearestShapeTint: no gradients, the same cull,
+  order and tie rule) and skip the distance solves for a pixel inside one
+  shape's box alone and more than a device pixel inside the rhombus through
+  that box's side midpoints. No uniform or arithmetic change; Mali-G78
+  Vulkan fused tint 55.0 -> 46.0 total cycles, stack spill 8 -> 0 bytes.
+  Host: every analytic case of example/test/analytic_geometry_host_test
+  .dart byte-identical before and after.
 - 2026-10-10 shader glass shadows: with MORPH_SHADER_SHADOWS
   (MorphGlassShadowShader in internal/glass_shadow_shader.dart, off by
   default) a GlassShadow of a LiquidRoundedSuperellipse whose shadows all

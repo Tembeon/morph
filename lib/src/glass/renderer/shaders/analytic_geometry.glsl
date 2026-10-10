@@ -223,6 +223,9 @@ SceneSample nearestShape(
     float reach,
     bool flatFace,
     out int index
+    #if SHAPE_TINT
+    , out vec4 tint
+    #endif
 ) {
     SceneSample best;
     best.distance = 1e9;
@@ -231,6 +234,9 @@ SceneSample nearestShape(
     best.normal = vec2(0.0);
     best.opticalNormal = vec2(0.0);
     index = 0;
+    #if SHAPE_TINT
+    tint = uShapeTints[0];
+    #endif
     float nearestBox = 1e18;
     int containing = 0;
     int container = -1;
@@ -260,10 +266,71 @@ SceneSample nearestShape(
         if (nearer) {
             best = shape;
             index = i;
+            #if SHAPE_TINT
+            tint = uShapeTints[i];
+            #endif
         }
     }
     return best;
 }
+
+#if ANALYTIC_FUSED && SHAPE_TINT
+// The tint of nearestShape(p, count, 1e9, false) at p, from the shapes'
+// distances alone: the same culling, order and tie rule, and shape 0's tint
+// when every shape's box is farther than 1e9. A pixel inside the box of one
+// shape alone and more than a device pixel inside the rhombus through the
+// midpoints of that box's sides takes that shape's tint without a distance
+// solve: every primitive is convex and touches its box at those midpoints,
+// so the rhombus lies inside it and its distance is below minus a pixel,
+// while the pixel lies outside every other shape's box, where that shape's
+// distance is positive: nearestShape picks it whatever the order.
+vec4 nearestShapeTint(vec2 p, int count) {
+    int containing = 0;
+    bool inRhombus = false;
+    vec4 rhombusTint = vec4(0.0);
+    for (int i = 0; i < MAX_SHAPES; i++) {
+        if (i >= count) break;
+        if (shapeBoundsDistanceSquared(uShapeBounds[i], p) <= 0.0) {
+            containing++;
+            vec4 primitive = uShapeData[i * 3];
+            vec4 inverseBasis = uShapeData[i * 3 + 1];
+            vec4 placement = uShapeData[i * 3 + 2];
+            vec2 delta = p - placement.xy;
+            vec2 localPoint = vec2(
+                inverseBasis.x * delta.x + inverseBasis.y * delta.y,
+                inverseBasis.z * delta.x + inverseBasis.w * delta.y
+            );
+            vec2 halfSize = primitive.yz * 0.5;
+            vec2 local = abs(localPoint);
+            float depth = (halfSize.x * halfSize.y - halfSize.y * local.x -
+                halfSize.x * local.y) / length(halfSize) * placement.z;
+            inRhombus = primitive.x >= 1.0 && primitive.x <= 3.0 &&
+                depth > 1.0;
+            rhombusTint = uShapeTints[i];
+        }
+    }
+    if (containing == 1 && inRhombus) return rhombusTint;
+    float bestDistance = 1e9;
+    float nearestBox = 1e18;
+    vec4 tint = uShapeTints[0];
+    for (int i = 0; i < MAX_SHAPES; i++) {
+        if (i >= count) break;
+        float boxDistance = shapeBoundsDistanceSquared(uShapeBounds[i], p);
+        nearestBox = min(nearestBox, boxDistance);
+        float bound = sqrt(boxDistance) * uShapeCull[i / 4][i - (i / 4) * 4];
+        if (bound > bestDistance) continue;
+        float distance = getShapeDistanceFromArray(i, p);
+        bool nearer = i == count - 1
+            ? distance < bestDistance
+            : distance <= bestDistance;
+        if (nearer) {
+            bestDistance = distance;
+            tint = uShapeTints[i];
+        }
+    }
+    return nearestBox > 1e18 ? uShapeTints[0] : tint;
+}
+#endif
 
 AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange) {
     AnalyticGeometry result;
@@ -306,29 +373,28 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
     }
     #if SHAPE_TINT
     // The material map's tint: the nearest of the layer's shapes.
-    int tinted;
-    nearestShape(p, count, 1e9, false, tinted);
-    for (int i = 0; i < MAX_SHAPES; i++) {
-        if (i == tinted) result.tint = uShapeTints[i];
-    }
+    result.tint = nearestShapeTint(p, count);
     #endif
     #else
     int nearest;
+    #if SHAPE_TINT
+    vec4 nearestTint;
+    #endif
     SceneSample scene = nearestShape(
         p,
         count,
         uAnalyticRanges.x + 2.0,
         uAnalyticFlatFace > 0.5,
         nearest
+        #if SHAPE_TINT
+        , nearestTint
+        #endif
     );
     if (scene.distance >= 1e9) {
         return result;
     }
     #if SHAPE_TINT
-    // A constant-index chain: the index selects a uniform array element.
-    for (int i = 0; i < MAX_SHAPES; i++) {
-        if (i == nearest) result.tint = uShapeTints[i];
-    }
+    result.tint = nearestTint;
     #endif
     sd = scene.distance;
     opticalGradient = scene.opticalNormal;
