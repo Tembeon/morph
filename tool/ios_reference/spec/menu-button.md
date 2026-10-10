@@ -212,7 +212,11 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   its own rounded rectangle; glass-renderer.md). The motion exposes `fusionRadius` and `silhouette`; the
   vessel AND the button after the latch hand it to the flat painter and to
   `buildLayer(outline:)`. Shading depth: see glass-renderer.md
-  (`MorphMenuFusion.shadedDepth`).
+  (`MorphMenuFusion.shadedDepth`). A host whose glass only fills the body
+  (`MorphGlassRenderer` on the flat tier, or no painter) asks for the edge
+  alone (`silhouetteFor(withField: false)`): the same crossings bit for
+  bit, without the shaded depth, optics or field samples (2026-10-11,
+  JIT host 7 - 24 percent less per fusion, more at small radii).
 - CONTENT UNFOLDS OUT OF THE DROP (second film, the owner's slow-mo report:
   ours showed nothing until p 0.53, then a near-final menu): content rides
   G at G's scale plus a kick swell, k = s_G + 1.45 kick / H, alpha = p on

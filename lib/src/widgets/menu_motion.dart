@@ -1566,12 +1566,23 @@ class MorphMenuMotion {
   /// The silhouette of [rootBlob] and [buttonBlob] fused at
   /// [fusionRadius], in the motion's coordinates. Below 1 pixel it is
   /// the exact plain union of the two; null only while idle.
-  MorphGlassOutline? get silhouette {
+  MorphGlassOutline? get silhouette => silhouetteFor(withField: true);
+
+  /// The [silhouette], with the fused field a renderer shades the body
+  /// from only when [withField] is true; false gives the same edge alone,
+  /// for a host whose glass only fills the body (the flat tier, or no
+  /// glass painter).
+  MorphGlassOutline? silhouetteFor({required bool withField}) {
     if (_phase == _Phase.idle) return null;
     final radius = fusionRadius;
     final MorphGlassOutline outline = radius < MorphMenuFusion.minimumRadius
         ? morphGlassContainerOutline([rootBlob.rrect, buttonBlob.rrect], 0)
-        : _fusion.outline(rootBlob.rrect, buttonBlob.rrect, radius)!;
+        : _fusion.outline(
+            rootBlob.rrect,
+            buttonBlob.rrect,
+            radius,
+            withField: withField,
+          )!;
     _prefetchSilhouette();
     return outline;
   }

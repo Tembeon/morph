@@ -16,6 +16,7 @@ import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
@@ -595,7 +596,12 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
       source: source.rrect.shift(origin),
       sourceRect: source.rect.shift(origin),
       sourceScale: source.scale,
-      outline: _silhouetteAt(motion.silhouette, origin),
+      outline: _silhouetteAt(
+        motion.silhouetteFor(
+          withField: morphGlassShadesOutlines(MorphGlass.maybeOf(context)),
+        ),
+        origin,
+      ),
     );
   }
 
@@ -1002,6 +1008,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           builder: (BuildContext context, Widget? _) {
             final motion = host.menuMotion;
             if (motion == null) return const SizedBox.shrink();
+            final painter = host.menuGlass;
             final menu = motion.menuBlob;
             final source = motion.buttonBlob;
             final size = motion.menuRect.size;
@@ -1024,7 +1031,11 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                   source: source.rrect,
                   sourceRect: source.rect,
                   sourceScale: source.scale,
-                  outline: motion.silhouette,
+                  outline: motion.silhouetteFor(
+                    withField: morphGlassShadesOutlines(
+                      painter ?? MorphGlass.maybeOf(context),
+                    ),
+                  ),
                   menuBlur: motion.tuning.cardBlur,
                   lookStretch: motion.buttonLookStretch,
                   look: (
@@ -1077,7 +1088,6 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                 ),
               ),
             );
-            final painter = host.menuGlass;
             return painter == null
                 ? layer
                 : MorphGlass(painter: painter, child: layer);

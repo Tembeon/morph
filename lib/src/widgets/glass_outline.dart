@@ -355,8 +355,24 @@ final class MorphGlassOutlineParts {
     required this.loops,
   });
 
-  /// The field samples, four per node, row-major (`GlassField.samples`).
+  /// Creates the parts of an outline that is its edge alone, without
+  /// field samples, for a flat fill.
+  MorphGlassOutlineParts.edge({required this.points, required this.loops})
+    : samples = _noSamples,
+      cols = 0,
+      rows = 0,
+      left = 0,
+      top = 0,
+      step = 0;
+
+  static final Float32List _noSamples = Float32List(0);
+
+  /// The field samples, four per node, row-major (`GlassField.samples`);
+  /// empty for an edge alone.
   final Float32List samples;
+
+  /// Whether the parts carry field samples; false for an edge alone.
+  bool get hasField => samples.isNotEmpty;
 
   /// The field nodes along x.
   final int cols;
@@ -398,10 +414,6 @@ MorphGlassOutlineParts morphGlassOutlinePartsFromFields({
   required double top,
   required double step,
 }) {
-  assert(() {
-    morphGlassOutlineDebugTraces++;
-    return true;
-  }());
   final fieldCols = (cols - 1) ~/ stride + 1;
   final fieldRows = (rows - 1) ~/ stride + 1;
   final fieldStep = step * stride;
@@ -428,10 +440,10 @@ MorphGlassOutlineParts morphGlassOutlinePartsFromFields({
       samples[out + 3] = halfMinor[at];
     }
   }
-  final (points, loops) = _OutlineTracer.trace(
-    trace,
-    cols,
-    rows,
+  final edge = morphGlassOutlineEdgeParts(
+    trace: trace,
+    cols: cols,
+    rows: rows,
     near: near,
     blockCols: blockCols,
     block: block,
@@ -446,13 +458,47 @@ MorphGlassOutlineParts morphGlassOutlinePartsFromFields({
     left: left,
     top: top,
     step: fieldStep,
-    points: points,
-    loops: loops,
+    points: edge.points,
+    loops: edge.loops,
   );
 }
 
+/// The edge of a trace grid alone, without field samples: the contour
+/// crossings [morphGlassOutlinePartsFromFields] traces from the same
+/// [trace] grid and [near] blocks, for a body that is only filled.
+@internal
+MorphGlassOutlineParts morphGlassOutlineEdgeParts({
+  required Float64List trace,
+  required int cols,
+  required int rows,
+  required Uint8List near,
+  required int blockCols,
+  required int block,
+  required double left,
+  required double top,
+  required double step,
+}) {
+  assert(() {
+    morphGlassOutlineDebugTraces++;
+    return true;
+  }());
+  final (points, loops) = _OutlineTracer.trace(
+    trace,
+    cols,
+    rows,
+    near: near,
+    blockCols: blockCols,
+    block: block,
+    left: left,
+    top: top,
+    step: step,
+  );
+  return MorphGlassOutlineParts.edge(points: points, loops: loops);
+}
+
 /// The outline [parts] describe: the quadratic B-spline through each loop
-/// of crossings as one even-odd path, shaded from the field samples.
+/// of crossings as one even-odd path, shaded from the field samples, or
+/// its edge alone when the parts carry no samples.
 ///
 /// A run of crossings along one grid row or column, where the spline is
 /// straight, becomes one line.
@@ -460,6 +506,7 @@ MorphGlassOutlineParts morphGlassOutlinePartsFromFields({
 @pragma('vm:unsafe:no-bounds-checks')
 MorphGlassOutline morphGlassOutlineFromParts(MorphGlassOutlineParts parts) {
   final path = _outlinePath(parts.points, parts.loops);
+  if (!parts.hasField) return MorphGlassOutline(path);
   return MorphGlassOutline._(
     path,
     GlassField(
@@ -1309,22 +1356,19 @@ MorphGlassOutline _fuseContainer(
     }
   }
   if (!withField) {
-    assert(() {
-      morphGlassOutlineDebugTraces++;
-      return true;
-    }());
-    final (points, loops) = _OutlineTracer.trace(
-      trace,
-      cols,
-      rows,
-      near: near,
-      blockCols: blockCols,
-      block: b,
-      left: area.left,
-      top: area.top,
-      step: step,
+    return morphGlassOutlineFromParts(
+      morphGlassOutlineEdgeParts(
+        trace: trace,
+        cols: cols,
+        rows: rows,
+        near: near,
+        blockCols: blockCols,
+        block: b,
+        left: area.left,
+        top: area.top,
+        step: step,
+      ),
     );
-    return MorphGlassOutline(_outlinePath(points, loops));
   }
   return morphGlassOutlineFromFields(
     trace: trace,

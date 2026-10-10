@@ -7,8 +7,9 @@ import 'package:morph/src/widgets/menu_fusion.dart';
 
 /// Microbenchmarks for the fused glass outlines: the menu's blurred
 /// silhouette (a ten-row menu over its button, the shapes the device
-/// audit in example/integration_test/glass_audit_test.dart times) and a
-/// bar's fused capsules.
+/// audit in example/integration_test/glass_audit_test.dart times), with
+/// its field and as the edge alone the flat tier fills, and a bar's fused
+/// capsules.
 ///
 /// Not part of the regular test suite - run explicitly:
 ///
@@ -19,9 +20,14 @@ import 'package:morph/src/widgets/menu_fusion.dart';
 /// The shapes move a little every call, so no outline is reused. JIT
 /// numbers: relative only; the audit gives the device's.
 class _MenuBench extends BenchmarkBase {
-  _MenuBench(this.radius) : super('menu10-r${radius.round()}');
+  _MenuBench(this.radius, {this.withField = true})
+    : super('menu10-r${radius.round()}${withField ? '' : '-edge'}');
 
   final double radius;
+
+  /// Whether the fusion keeps its field (liquid and fake glass) or only
+  /// its edge (the flat tier).
+  final bool withField;
   int _frame = 0;
 
   @override
@@ -31,6 +37,7 @@ class _MenuBench extends BenchmarkBase {
       RRect.fromLTRBXY(70, 200 + (_frame % 100) * 0.01, 330, 640, 32, 32),
       const RRect.fromLTRBXY(177, 652, 225, 700, 24, 24),
       radius,
+      withField: withField,
     );
   }
 }
@@ -53,9 +60,10 @@ class _BarBench extends BenchmarkBase {
 void main() {
   test('glass outline microbenchmarks', () {
     final benches = <BenchmarkBase>[
-      _MenuBench(4),
-      _MenuBench(10),
-      _MenuBench(20),
+      for (final radius in [2.0, 4.0, 6.0, 10.0, 20.0]) ...[
+        _MenuBench(radius),
+        _MenuBench(radius, withField: false),
+      ],
       _BarBench(),
     ];
     for (final bench in benches) {

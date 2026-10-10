@@ -24,7 +24,10 @@ import 'package:morph/src/widgets/menu_fusion_worker.dart';
 /// moves a distance field by at most `1.26 s`, so farther from the edge
 /// the sign, all the trace needs, is the unblurred one; inside the body
 /// the blur reaches [shadedDepth] deeper, as far as a renderer shades
-/// it. The last outline is reused while its inputs do not change.
+/// it. A body that is only filled (the flat tier, or no glass painter)
+/// asks for the edge alone, which skips that deeper blur and the field a
+/// renderer shades from. The last outline is reused while its inputs do
+/// not change.
 ///
 /// In profile and release builds that have isolates, a motion fuses its
 /// next frame's silhouette ahead on a background isolate ([prefetch],
@@ -78,17 +81,31 @@ class MorphMenuFusion {
   RRect? _source;
   double _radius = 0;
   MorphGlassOutline? _outline;
+  bool _shaded = false;
   final Float64List _inputs = Float64List(11);
 
   /// The fused outline of [menu] and [source] blurred by [radius], or
   /// null when [radius] is under [minimumRadius] and the silhouette is
   /// their plain union.
   ///
+  /// With [withField] false the outline may be the edge alone
+  /// ([morphMenuSilhouette]), for a body that is only filled; the edge is
+  /// the same either way. An outline with its field answers both kinds of
+  /// request, an edge alone only those without.
+  ///
   /// When the fusion was computed ahead ([prefetch]) for inputs within
   /// [prefetchTolerance] of these, that outline is the one returned.
-  MorphGlassOutline? outline(RRect menu, RRect source, double radius) {
+  MorphGlassOutline? outline(
+    RRect menu,
+    RRect source,
+    double radius, {
+    bool withField = true,
+  }) {
     if (radius < minimumRadius) return null;
-    if (menu == _menu && source == _source && radius == _radius) {
+    if (menu == _menu &&
+        source == _source &&
+        radius == _radius &&
+        (_shaded || !withField)) {
       return _outline;
     }
     _menu = menu;
@@ -111,8 +128,10 @@ class MorphMenuFusion {
       ahead != null ? MorphFusionWorker.debugTakenInputs : ready,
       served: ahead != null,
     );
+    _shaded = withField || ahead != null;
     return _outline = morphGlassOutlineFromParts(
-      ahead ?? morphMenuSilhouetteParts(menu, source, radius),
+      ahead ??
+          morphMenuSilhouetteParts(menu, source, radius, withField: withField),
     );
   }
 
@@ -201,21 +220,32 @@ class MorphMenuFusion {
 /// within reach. A node whose blur window sees one straight side of one
 /// shape takes its unblurred distance: the kernel is symmetric, so it
 /// leaves a linear field unchanged.
+///
+/// With [withField] false the outline is its edge alone, for a body that
+/// is only filled: the same contour, crossing for crossing, without the
+/// field. The blur then reaches inside the body only as far as the trace
+/// and its choice of blocks need, not [MorphMenuFusion.shadedDepth], and
+/// no half thickness, optical turn or field sample is computed.
 @internal
 MorphGlassOutline morphMenuSilhouette(
   RRect menu,
   RRect source,
-  double radius,
-) => morphGlassOutlineFromParts(morphMenuSilhouetteParts(menu, source, radius));
+  double radius, {
+  bool withField = true,
+}) => morphGlassOutlineFromParts(
+  morphMenuSilhouetteParts(menu, source, radius, withField: withField),
+);
 
-/// The parts of [morphMenuSilhouette]'s outline, computable on any isolate.
+/// The parts of [morphMenuSilhouette]'s outline, computable on any
+/// isolate; with [withField] false the edge alone, without samples.
 @internal
 @pragma('vm:unsafe:no-bounds-checks')
 MorphGlassOutlineParts morphMenuSilhouetteParts(
   RRect menu,
   RRect source,
-  double radius,
-) {
+  double radius, {
+  bool withField = true,
+}) {
   final double step = MorphMenuFusion.stepOf(radius);
   final int stride = step < 4 ? 2 : 1;
   const int b = 2;
@@ -237,47 +267,40 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
     kernel[k] /= sum;
   }
   final f = _BlurredUnion(menu, source, area, step, cols, rows, kernel);
-  final boxes = MorphOutlineBoxes([menu, source]);
   final double shift = 1.26 * radius;
   final double band = shift + 1.5 * step;
-  final double depth = math.max(band, MorphMenuFusion.shadedDepth);
-  final double halfMenu = menu.outerRect.shortestSide / 2;
-  final double halfSource = source.outerRect.shortestSide / 2;
-  final double blend = math.max(radius, step);
   final int fieldCols = (cols - 1) ~/ stride + 1;
   final int fieldRows = (rows - 1) ~/ stride + 1;
   final Float64List trace = _Scratch.trace(cols * rows);
-  final int nodes = fieldCols * fieldRows;
-  final Float64List distance = _Scratch.field(0, nodes);
-  final Float64List halfMinor = _Scratch.field(1, nodes);
-  final Float64List clearance = _Scratch.field(2, nodes);
-  final Float64List turn = _Scratch.field(3, 2 * nodes);
-  final Float64List sourceTurn = Float64List(2);
-  sourceTurn[0] = 1;
-  final bool menuTurns = boxes.turns(0);
-  final bool sourceTurns = boxes.turns(1);
-  final Uint8List cornerColumns = _Scratch.columns(fieldCols);
-  final menuOptics = _OpticalCorners(menu, 0, fieldCols, fieldRows);
-  final sourceOptics = _OpticalCorners(source, 1, fieldCols, fieldRows);
-  for (var fi = 0; fi < fieldCols; fi++) {
-    final double x = area.left + fi * stride * step;
-    cornerColumns[fi] =
-        (menuTurns && boxes.inOpticalCornerColumns(0, x) ? 1 : 0) |
-        (sourceTurns && boxes.inOpticalCornerColumns(1, x) ? 2 : 0);
-    menuOptics.column(fi, x);
-    sourceOptics.column(fi, x);
-  }
+  final Float64List clearance = _Scratch.field(2, fieldCols * fieldRows);
+  final _MenuOptics? optics = withField
+      ? _MenuOptics(
+          menu,
+          source,
+          area,
+          step,
+          radius,
+          stride,
+          fieldCols,
+          fieldRows,
+        )
+      : null;
+  final double reachOfEdge = step * math.sqrt2 + b * step * math.sqrt1_2;
+  // The field is blurred as deep as a renderer that shades the body reads
+  // it; for the edge alone, only as deep as decides which blocks can hold
+  // the edge (no deeper than the full fusion), so both trace the same
+  // blocks.
+  final double depth = math.max(
+    band,
+    optics == null
+        ? math.min(MorphMenuFusion.shadedDepth, shift + reachOfEdge)
+        : MorphMenuFusion.shadedDepth,
+  );
   for (var fj = 0; fj < fieldRows; fj++) {
     final int j = fj * stride;
-    final double y = area.top + j * step;
-    final int cornerRow =
-        (menuTurns && boxes.inOpticalCornerRows(0, y) ? 1 : 0) |
-        (sourceTurns && boxes.inOpticalCornerRows(1, y) ? 2 : 0);
-    menuOptics.row(fj, y);
-    sourceOptics.row(fj, y);
+    optics?.row(fj, area.top + j * step);
     for (var fi = 0; fi < fieldCols; fi++) {
       final int i = fi * stride;
-      final int corner = cornerRow & cornerColumns[fi];
       final int at = fj * fieldCols + fi;
       final double dg = f.menuDistance(i, j);
       final double ds = f.sourceDistance(i, j);
@@ -285,43 +308,20 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
       f.remember(i, j, raw);
       final bool exact = raw <= band && raw >= -depth;
       final double value = exact ? f.smoothed(i, j, dg, ds) : raw;
-      distance[at] = value;
+      // The blur moves the field by at most `shift`, so where it is not
+      // evaluated the unblurred distance less `shift` bounds the clearance
+      // from below: no block that holds the edge is left out, and below
+      // `depth` the bound and the blurred clearance both exceed
+      // `reachOfEdge`, so the edge alone and the full fusion flag the same
+      // blocks.
       clearance[at] = exact ? value.abs() : raw.abs() - shift;
       trace[j * cols + i] = value;
-      final double share = 0.5 + (ds - dg) / (2 * blend);
-      final double towardMenu = share < 0
-          ? 0
-          : share > 1
-          ? 1
-          : share;
-      halfMinor[at] = halfSource + (halfMenu - halfSource) * towardMenu;
-      final bool menuCorner = corner & 1 != 0;
-      final bool sourceCorner = corner & 2 != 0;
-      if (menuCorner) {
-        menuOptics.turn(fi, fj, turn, at * 2);
-      } else {
-        turn[at * 2] = 1;
-        turn[at * 2 + 1] = 0;
-      }
-      if (sourceCorner) {
-        sourceOptics.turn(fi, fj, sourceTurn, 0);
-      } else {
-        sourceTurn[0] = 1;
-        sourceTurn[1] = 0;
-      }
-      if ((menuCorner || sourceCorner) && towardMenu < 1) {
-        turn[at * 2] =
-            sourceTurn[0] + (turn[at * 2] - sourceTurn[0]) * towardMenu;
-        turn[at * 2 + 1] =
-            sourceTurn[1] + (turn[at * 2 + 1] - sourceTurn[1]) * towardMenu;
-        morphNormalizeTurn(turn, at * 2);
-      }
+      optics?.node(fi, at, value, dg, ds);
     }
   }
   final int blockCols = (cols - 1) ~/ b;
   final int blockRows = (rows - 1) ~/ b;
   final Uint8List near = Uint8List(blockCols * blockRows);
-  final double reachOfEdge = step * math.sqrt2 + b * step * math.sqrt1_2;
   final int span = b ~/ stride;
   for (var bj = 0; bj < blockRows; bj++) {
     for (var bi = 0; bi < blockCols; bi++) {
@@ -354,6 +354,19 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
       }
     }
   }
+  if (optics == null) {
+    return morphGlassOutlineEdgeParts(
+      trace: trace,
+      cols: cols,
+      rows: rows,
+      near: near,
+      blockCols: blockCols,
+      block: b,
+      left: area.left,
+      top: area.top,
+      step: step,
+    );
+  }
   return morphGlassOutlinePartsFromFields(
     trace: trace,
     cols: cols,
@@ -361,14 +374,125 @@ MorphGlassOutlineParts morphMenuSilhouetteParts(
     near: near,
     blockCols: blockCols,
     block: b,
-    distance: distance,
-    halfMinor: halfMinor,
-    turn: turn,
+    distance: optics.distance,
+    halfMinor: optics.halfMinor,
+    turn: optics.turn,
     stride: stride,
     left: area.left,
     top: area.top,
     step: step,
   );
+}
+
+/// What a renderer shades a menu fusion from, per node of its field grid:
+/// the blurred distance, the half thickness of the shape the node belongs
+/// to and the turn of its normal toward the shapes' optical corners.
+class _MenuOptics {
+  _MenuOptics(
+    RRect menu,
+    RRect source,
+    Rect area,
+    double step,
+    double radius,
+    int stride,
+    int fieldCols,
+    int fieldRows,
+  ) : _boxes = MorphOutlineBoxes([menu, source]),
+      _halfMenu = menu.outerRect.shortestSide / 2,
+      _halfSource = source.outerRect.shortestSide / 2,
+      _blend = math.max(radius, step),
+      distance = _Scratch.field(0, fieldCols * fieldRows),
+      halfMinor = _Scratch.field(1, fieldCols * fieldRows),
+      turn = _Scratch.field(3, 2 * fieldCols * fieldRows),
+      _cornerColumns = _Scratch.columns(fieldCols),
+      _menuOptics = _OpticalCorners(menu, 0, fieldCols, fieldRows),
+      _sourceOptics = _OpticalCorners(source, 1, fieldCols, fieldRows) {
+    _menuTurns = _boxes.turns(0);
+    _sourceTurns = _boxes.turns(1);
+    _sourceTurn[0] = 1;
+    for (var fi = 0; fi < fieldCols; fi++) {
+      final double x = area.left + fi * stride * step;
+      _cornerColumns[fi] =
+          (_menuTurns && _boxes.inOpticalCornerColumns(0, x) ? 1 : 0) |
+          (_sourceTurns && _boxes.inOpticalCornerColumns(1, x) ? 2 : 0);
+      _menuOptics.column(fi, x);
+      _sourceOptics.column(fi, x);
+    }
+  }
+
+  final MorphOutlineBoxes _boxes;
+  final double _halfMenu;
+  final double _halfSource;
+  final double _blend;
+
+  /// The blurred distance at each field node.
+  final Float64List distance;
+
+  /// The half thickness of the shape each field node belongs to.
+  final Float64List halfMinor;
+
+  /// The optical turn of the normal at each field node, (cos, sin).
+  final Float64List turn;
+
+  final Uint8List _cornerColumns;
+  final _OpticalCorners _menuOptics;
+  final _OpticalCorners _sourceOptics;
+  final Float64List _sourceTurn = Float64List(2);
+  bool _menuTurns = false;
+  bool _sourceTurns = false;
+  int _fj = 0;
+  int _cornerRow = 0;
+
+  /// Starts field row [fj] at [y].
+  @pragma('vm:prefer-inline')
+  void row(int fj, double y) {
+    _fj = fj;
+    _cornerRow =
+        (_menuTurns && _boxes.inOpticalCornerRows(0, y) ? 1 : 0) |
+        (_sourceTurns && _boxes.inOpticalCornerRows(1, y) ? 2 : 0);
+    _menuOptics.row(fj, y);
+    _sourceOptics.row(fj, y);
+  }
+
+  /// Records field node [at], column [fi] of the current row, whose
+  /// blurred distance is [value], the menu's distance [dg] and the
+  /// button's [ds].
+  @pragma('vm:prefer-inline')
+  @pragma('vm:unsafe:no-bounds-checks')
+  void node(int fi, int at, double value, double dg, double ds) {
+    final Float64List turn = this.turn;
+    final Float64List sourceTurn = _sourceTurn;
+    final int corner = _cornerRow & _cornerColumns[fi];
+    distance[at] = value;
+    final double share = 0.5 + (ds - dg) / (2 * _blend);
+    final double towardMenu = share < 0
+        ? 0
+        : share > 1
+        ? 1
+        : share;
+    halfMinor[at] = _halfSource + (_halfMenu - _halfSource) * towardMenu;
+    final bool menuCorner = corner & 1 != 0;
+    final bool sourceCorner = corner & 2 != 0;
+    if (menuCorner) {
+      _menuOptics.turn(fi, _fj, turn, at * 2);
+    } else {
+      turn[at * 2] = 1;
+      turn[at * 2 + 1] = 0;
+    }
+    if (sourceCorner) {
+      _sourceOptics.turn(fi, _fj, sourceTurn, 0);
+    } else {
+      sourceTurn[0] = 1;
+      sourceTurn[1] = 0;
+    }
+    if ((menuCorner || sourceCorner) && towardMenu < 1) {
+      turn[at * 2] =
+          sourceTurn[0] + (turn[at * 2] - sourceTurn[0]) * towardMenu;
+      turn[at * 2 + 1] =
+          sourceTurn[1] + (turn[at * 2 + 1] - sourceTurn[1]) * towardMenu;
+      morphNormalizeTurn(turn, at * 2);
+    }
+  }
 }
 
 /// The optical turn of one rounded box (`MorphOutlineBoxes.opticalTurn`)

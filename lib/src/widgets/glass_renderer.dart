@@ -602,6 +602,21 @@ class MorphGlassRenderer extends MorphGlassPainter {
       Object.hash(tier, material, blur, refraction, light, tint, frostControls);
 }
 
+/// Whether a control drawing with [painter] needs the field of the
+/// outlines it fuses, or their edge alone.
+///
+/// Only the package's own [MorphGlassRenderer] on the flat tier, which
+/// fills a fused body's path, and no painter at all, where the control
+/// fills it itself, need the edge alone; any other painter may shade the
+/// body from its field.
+@internal
+bool morphGlassShadesOutlines(MorphGlassPainter? painter) => switch (painter) {
+  null => false,
+  final MorphGlassRenderer renderer when renderer._exact =>
+    renderer.effectiveTier != MorphGlassTier.flat,
+  _ => true,
+};
+
 /// The surfaces of one [MorphGlassPainter.buildLayer] call, sorted by how
 /// a tier draws them, with the glass bodies the package fused.
 @internal
