@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
@@ -509,12 +510,12 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
           onPointerMove: handleMove,
           onPointerUp: handleUp,
           onPointerCancel: handleCancel,
-          child: AnimatedBuilder(
-            animation: frames,
-            builder: (BuildContext context, Widget? child) {
+          child: GlassLiveTransform(
+            live: frames,
+            writeInto: (Matrix4 into) {
               final grow =
                   (geometry.width + motion.chromeGrowth) / geometry.width;
-              return Transform.scale(scale: grow, child: child);
+              into.scaleByDouble(grow, grow, 1.0, 1.0);
             },
             child: MorphFocusRing(
               visible: controlFocused,

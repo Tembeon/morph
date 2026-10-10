@@ -151,6 +151,52 @@ class _RenderLiveOpacity extends RenderOpacity with GlassLiveBinding {
   _RenderLiveOpacity({super.opacity});
 }
 
+/// A [Transform] whose matrix follows a live source.
+@internal
+class GlassLiveTransform extends SingleChildRenderObjectWidget {
+  /// Transforms [child] about its center by the matrix [writeInto] fills,
+  /// read again on every notification of [live].
+  const GlassLiveTransform({
+    required this.live,
+    required this.writeInto,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the matrix, or null for a fixed one.
+  final Listenable? live;
+
+  /// Writes the current matrix into the identity matrix it is given.
+  final void Function(Matrix4 into) writeInto;
+
+  @override
+  RenderTransform createRenderObject(BuildContext context) {
+    final render = _RenderLiveTransform();
+    render.bind(live, writeInto);
+    return render;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderTransform renderObject) {
+    (renderObject as _RenderLiveTransform).bind(live, writeInto);
+  }
+}
+
+class _RenderLiveTransform extends RenderTransform with GlassLiveBinding {
+  _RenderLiveTransform()
+    : super(transform: Matrix4.identity(), alignment: Alignment.center);
+
+  final Matrix4 _scratch = Matrix4.identity();
+
+  void bind(Listenable? live, void Function(Matrix4 into) writeInto) {
+    bindLive(live, () {
+      _scratch.setIdentity();
+      writeInto(_scratch);
+      transform = _scratch;
+    });
+  }
+}
+
 /// A clipper computed from a live source, reclipping only when its key
 /// changes.
 @internal

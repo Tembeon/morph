@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/menu.dart';
@@ -594,18 +595,15 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     }
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     final page = _EdgePop(route: this, child: child);
-    return AnimatedBuilder(
-      animation: Listenable.merge([animation, secondaryAnimation]),
-      builder: (BuildContext context, Widget? child) {
-        final width = MediaQuery.maybeSizeOf(context)?.width ?? 0;
+    final width = MediaQuery.maybeSizeOf(context)?.width ?? 0;
+    return GlassLiveTransform(
+      live: Listenable.merge([animation, secondaryAnimation]),
+      writeInto: (Matrix4 into) {
         final x =
             width *
             ((1 - animation.value) -
                 MorphNavigationTransition.parallax * secondaryAnimation.value);
-        return Transform.translate(
-          offset: Offset(rtl ? -x : x, 0),
-          child: child,
-        );
+        into.setTranslationRaw(rtl ? -x : x, 0, 0);
       },
       child: MorphNavigationSnapshot.enabled
           ? MorphNavigationSnapshotHost(
