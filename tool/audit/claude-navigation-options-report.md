@@ -179,6 +179,18 @@ API; it takes a platform call like the gallery's MainActivity).
 | `MORPH_SHADER_SHADOWS` (f03b7d6, f93e73d, b577acc) | off | rounded-superellipse glass shadows drawn by one fragment shader (Impeller's analytic blur x outside-glass coverage), no clip path | mean <= 0.04, max 9 at single corner pixels (28 for a spread pair) against the clip path, every larger difference within 1 device px of the cut | Moto push UI time with analytic on (shadow was ~15 percent) |
 | gallery frame-rate switch (4bfe07d) | Auto | Auto / 60 / 120 Hz on the Glass renderer page via a MethodChannel | example widget tests | by hand on the Moto |
 
+Redmi 6A, `MORPH_NAV_SNAPSHOT` from real input (55e2cdb, A B B A plus a
+third off launch, `snap-*`): push raster p95 12.5 - 15.8 -> 12.5 - 14.3 ms,
+missed 3 - 4 -> 3; pop raster p95 12.6 - 14.6 -> 14.5 - 14.9, worst frame
+19 - 24 -> 25 - 27 ms (the capture frame: two offscreen passes). During a
+push the incoming page repaints, so the snapshot is retaken every frame
+(raster 11 - 20 ms against 6 - 10); snapshotting only the covered,
+revealed or popping page (experiment) leaves push and pop within the off
+range and the capture spike in place. Skia's raster cache already draws
+an unchanged page from its cached picture, so a snapshot only adds the
+capture. Rejected for the Redmi; the option stays off (no fake/liquid
+use, see above).
+
 Researched and not implemented: prebuild on pointer-down (needs an
 app-facing API), ADPF GPU durations (Flutter exposes no GPU time), GC
 and allocation work (needs a device allocation profile), title glyph
