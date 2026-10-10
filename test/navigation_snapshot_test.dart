@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
+import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/navigation_snapshot.dart';
 import 'package:morph/widgets.dart';
 
@@ -32,19 +34,25 @@ Widget _page(String title, {Widget? body}) => MorphNavigationScaffold(
   slivers: [SliverToBoxAdapter(child: body ?? const SizedBox(height: 2000))],
 );
 
-Future<NavigatorState> _pumpStack(WidgetTester tester) async {
+Future<NavigatorState> _pumpStack(
+  WidgetTester tester, {
+  MorphGlassTier tier = .flat,
+}) async {
   tester.view.physicalSize = _screen * 3;
   tester.view.devicePixelRatio = 3;
   addTearDown(tester.view.reset);
   late BuildContext context;
   await tester.pumpWidget(
     MaterialApp(
-      home: MorphNavigationStack(
-        home: Builder(
-          builder: (BuildContext c) {
-            context = c;
-            return _page('Inbox', body: const _Counter());
-          },
+      home: MorphGlass(
+        painter: MorphGlassRenderer(tier: tier),
+        child: MorphNavigationStack(
+          home: Builder(
+            builder: (BuildContext c) {
+              context = c;
+              return _page('Inbox', body: const _Counter());
+            },
+          ),
         ),
       ),
     ),
@@ -65,6 +73,14 @@ List<bool> _allowed(WidgetTester tester) => [
 ];
 
 void main() {
+  setUpAll(() async {
+    isLocalTest = true;
+    await MultiShaderBuilder.precacheShaders([
+      ShaderKeys.fakeGlassSurface,
+      ...ShaderKeys.liquidGlassRenders,
+    ]);
+  });
+  tearDownAll(() => isLocalTest = false);
   tearDown(() => MorphNavigationSnapshot.debugEnabled = null);
 
   group('with the option on', () {
@@ -82,6 +98,13 @@ void main() {
       await tester.pump(const Duration(milliseconds: 48));
       expect(_snapshots, findsNWidgets(2));
       expect(_allowed(tester), [true, true]);
+      expect(
+        find.ancestor(
+          of: find.byType(SnapshotWidget),
+          matching: find.byType(Transform),
+        ),
+        findsWidgets,
+      );
 
       await tester.pumpAndSettle();
       expect(_snapshots, findsNWidgets(2));
@@ -142,9 +165,63 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('count 2'), findsOneWidget);
     });
+
+    for (final tier in [MorphGlassTier.fake, MorphGlassTier.liquid]) {
+      testWidgets('the $tier tier keeps every page live', (tester) async {
+        final navigator = await _pumpStack(tester, tier: tier);
+        expect(_snapshots, findsOneWidget);
+        expect(_allowed(tester), [false]);
+
+        navigator.push(
+          MorphNavigationRoute<void>(builder: (_) => _page('Next')),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 48));
+        expect(_snapshots, findsNWidgets(2));
+        expect(_allowed(tester), [false, false]);
+
+        await tester.pumpAndSettle();
+        navigator.pop();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 48));
+        expect(_allowed(tester), [false, false]);
+        await tester.pumpAndSettle();
+      });
+    }
+
+    testWidgets('no renderer above the stack keeps every page live', (
+      tester,
+    ) async {
+      tester.view.physicalSize = _screen * 3;
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      late BuildContext context;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: MorphNavigationStack(
+            home: Builder(
+              builder: (BuildContext c) {
+                context = c;
+                return _page('Inbox');
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      Navigator.of(
+        context,
+      ).push(MorphNavigationRoute<void>(builder: (_) => _page('Next')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 48));
+      expect(_snapshots, findsNWidgets(2));
+      expect(_allowed(tester), [false, false]);
+      await tester.pumpAndSettle();
+    });
   });
 
   testWidgets('with the option off no page is wrapped', (tester) async {
+    MorphNavigationSnapshot.debugEnabled = false;
     final navigator = await _pumpStack(tester);
     navigator.push(MorphNavigationRoute<void>(builder: (_) => _page('Next')));
     await tester.pump();

@@ -130,12 +130,29 @@ NavigatorPopHandler (the enclosing route is doNotPop while it can pop).
   instead of re-rasterizing two full pages. The snapshot is allowed exactly
   while the page's own animation or the secondary animation of the page
   pushed over it is running or held by a finger (status forward / reverse,
-  so an edge drag counts), and not on the web; at rest the controller is
-  off and the page is live. With the option on the widget is mounted
-  for the page's whole life and only its controller toggles, so page state
-  never remounts. What
-  freezes while it moves: the page's scrolling, animations, text input
-  and anything under a backdrop filter (glass inside the page reads an
-  empty backdrop in the snapshot). The bars are not part of the page and
-  stay live. Pinned by test/navigation_snapshot_test.dart; no device
-  numbers yet - the Redmi 6A pop raster measurement is pending.
+  so an edge drag counts), not on the web, and only under a
+  `MorphGlassRenderer` whose effective tier is flat; at rest the controller
+  is off and the page is live. FLAT TIER ONLY: on fake / liquid (and with
+  no renderer above the page) every page stays live. SnapshotWidget
+  renders the page through toImageSync in a pass of its own whose origin
+  is the page, while the renderer maps its shader-filter coordinates with
+  getTransformTo(null) (filter_pass_transform.dart), which includes the
+  slide's translate - backdrop shaders, glass containers and raster-phase
+  anchors inside a snapshot would shade offset by the captured slide
+  offset (a pushed page by about the full width, the page under a pop by
+  parallax x width). Snapshots on those tiers would need the renderer to
+  treat a snapshot as its own pass (as GlassCompositionProbe.seededPassOrigin
+  does) - not implemented. With the option on the widget is mounted for
+  the page's whole life and only its controller toggles (the tier is read
+  in didChangeDependencies), so page state never remounts. What freezes
+  while it moves: the page's scrolling, animations, text input and
+  anything under a backdrop filter (glass inside the page reads an empty
+  backdrop in the snapshot). The capture happens on the FIRST MOVING
+  FRAME, so whatever the page shows then stays for the whole slide:
+  content that settles in a post-frame callback, images still decoding,
+  and a tag a flight launched mid-slide hides keep their first-frame
+  state. Each snapshot adds an offscreen pass on that frame (a push or pop
+  takes two toImageSync calls, one per page) - a raster spike to look for
+  on the device. The bars are not part of the page and stay live. Pinned
+  by test/navigation_snapshot_test.dart; no device numbers yet - the
+  Redmi 6A pop raster measurement is pending.
