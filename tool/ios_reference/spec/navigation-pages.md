@@ -122,3 +122,20 @@ NavigatorPopHandler (the enclosing route is doNotPop while it can pop).
   flicks show the page 2-3 frames behind the logged touches (synthesizer
   bursts - those two replays are loose); the edge drag from x 2 replays at
   9 pt rms.
+- PAGE SNAPSHOTS (option, off by default: `--dart-define=MORPH_NAV_SNAPSHOT=true`,
+  `MorphNavigationSnapshot` in lib/src/widgets/navigation_snapshot.dart):
+  on the slide path of `MorphNavigationRoute` (not the zoom, not reduced
+  motion) each page sits in a `SnapshotWidget` (permissive) inside the
+  slide's `Transform.translate`, so a frame of the slide moves an image
+  instead of re-rasterizing two full pages. The snapshot is allowed exactly
+  while the page's own animation or the secondary animation of the page
+  pushed over it is running or held by a finger (status forward / reverse,
+  so an edge drag counts), and not on the web; at rest the controller is
+  off and the page is live. With the option on the widget is mounted
+  for the page's whole life and only its controller toggles, so page state
+  never remounts. What
+  freezes while it moves: the page's scrolling, animations, text input
+  and anything under a backdrop filter (glass inside the page reads an
+  empty backdrop in the snapshot). The bars are not part of the page and
+  stay live. Pinned by test/navigation_snapshot_test.dart; no device
+  numbers yet - the Redmi 6A pop raster measurement is pending.

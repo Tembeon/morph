@@ -13,6 +13,7 @@ import 'package:morph/src/widgets/navigation_bar.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
+import 'package:morph/src/widgets/navigation_snapshot.dart';
 import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/push_zoom.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
@@ -592,6 +593,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
       );
     }
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
+    final page = _EdgePop(route: this, child: child);
     return AnimatedBuilder(
       animation: Listenable.merge([animation, secondaryAnimation]),
       builder: (BuildContext context, Widget? child) {
@@ -605,7 +607,13 @@ class MorphNavigationRoute<T> extends PageRoute<T>
           child: child,
         );
       },
-      child: _EdgePop(route: this, child: child),
+      child: MorphNavigationSnapshot.enabled
+          ? MorphNavigationSnapshotHost(
+              animation: animation,
+              secondaryAnimation: secondaryAnimation,
+              child: page,
+            )
+          : page,
     );
   }
 }
