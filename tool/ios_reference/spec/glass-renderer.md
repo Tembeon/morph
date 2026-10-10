@@ -864,6 +864,28 @@ timed runs per launch, A B B A against 2453328 (perf/2026-10-11-night
 p99 15.4 / 16.0 -> 6.5 / 7.8, frames over budget 387 / 454 -> 5 / 5; build
 p95 1.5 -> 1.2.
 
+App containers opt in the same way: `MorphGlassContainer(solidBackdrop:)`
+passes an opaque color to the container's layer (option C: the package
+cannot see what is painted under a container, so the app declares what
+it knows). The precondition is the stage's: the container sits straight
+on a fill of that color and its members are inset from the fill's edges
+by more than their refraction reaches; glass over anything else shows the
+color instead. A member that leaves the container (pressed, faded,
+clipped) reads its backdrop in its own layer as before; translucent
+colors, null, the fake tier and the flat tier keep their paths. The
+gallery's sheet, controls and menu pages declare their page background
+(`MorphListStyle.resolve(context, null).backgroundColor`). Host A/B
+(solid_backdrop_host_test, four buttons on the page color, whole shot
+against the container without a color): light max 1, dark 0, filters
+1 -> 0; a translucent color keeps the filter, max 0. Moto g86 (liquid,
+glass audit, A B B A, perf/2026-10-11-night `sp-*`): sheet raster p50
+10.5 / 11.8 -> 7.9 / 8.9 ms, frames over budget 235 / 247 -> 158 / 176;
+menu raster p95 19.3 / 19.8 -> 17.3 / 17.3, over budget 136 / 147 ->
+118 / 118; controls raster p50 3.84 / 3.90 -> 3.52 / 3.56, over budget
+18 / 22 -> 14 / 18. Device screenshots base vs solid are within
+base-vs-base noise except controls-resting (max 24 on 0.0001 percent of
+pixels; base vs base 0).
+
 ## First use: pipeline warm-up (2026-10-05, glass_warm_up.dart)
 
 `MorphGlassRenderer.precache()` (morphPrecacheLiquidGlass), after the

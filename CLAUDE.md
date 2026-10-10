@@ -288,7 +288,10 @@ Cross-cutting policy:
   paint with uSolidBackdrop replacing every backdrop read: no backdrop
   filter (host A/B against the filter max 1; a member that leaves the
   stage reads its backdrop as before). Declare it only where the color
-  really is all the glass would read. The navigation stack's chrome is
+  really is all the glass would read. `MorphGlassContainer.solidBackdrop`
+  is the app's opt-in for its own containers (option C: the app declares
+  what it knows; the gallery's sheet, controls and menu pages pass their
+  page background). The navigation stack's chrome is
   NOT (measured:
   one screen-high layer costs the GPU more than the raster saves); the
   scaffold body gets no flag (a container above its scroll view joins

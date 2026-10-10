@@ -14,6 +14,7 @@ Widget _page(
   int count, {
   required bool container,
   MorphGlassTier tier = MorphGlassTier.liquid,
+  Color? solidBackdrop,
 }) {
   final buttons = Stack(
     children: [
@@ -35,7 +36,9 @@ Widget _page(
       tier: tier,
       child: ColoredBox(
         color: const Color(0xFF203040),
-        child: container ? MorphGlassContainer(child: buttons) : buttons,
+        child: container
+            ? MorphGlassContainer(solidBackdrop: solidBackdrop, child: buttons)
+            : buttons,
       ),
     ),
   );
@@ -270,6 +273,45 @@ void main() {
     );
     await tester.pump(const Duration(milliseconds: 100));
     expect(shared, lessThan(_filters()));
+  });
+
+  testWidgets('a container hands its solid backdrop to its glass layer', (
+    WidgetTester tester,
+  ) async {
+    for (final color in [
+      const Color(0xFF203040),
+      const Color(0x80203040),
+      null,
+    ]) {
+      await tester.pumpWidget(_page(4, container: true, solidBackdrop: color));
+      await tester.pump(const Duration(milliseconds: 100));
+      final layer = tester.widget<LiquidGlassLayer>(
+        find.byType(LiquidGlassLayer),
+      );
+      expect(layer.solidBackdrop, color);
+      expect(find.byType(LiquidGlass), findsNWidgets(4));
+    }
+  });
+
+  testWidgets('on the fake tier a solid backdrop changes nothing', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _page(8, container: true, tier: MorphGlassTier.fake),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    final reading = _filters();
+    expect(reading, greaterThan(0));
+    await tester.pumpWidget(
+      _page(
+        8,
+        container: true,
+        tier: MorphGlassTier.fake,
+        solidBackdrop: const Color(0xFF203040),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(_filters(), reading);
   });
 
   testWidgets('a tinted button joins the container of plain ones', (

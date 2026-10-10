@@ -37,8 +37,10 @@ import '../integration_test/support/shader_harness.dart';
 /// paint shaded over that color instead of a backdrop filter. Over an
 /// opaque fill of the same color both must draw the same pixels. Prints
 /// one line per case: the largest channel difference, the mean over the
-/// pixels the shapes cover and the pixels over 2 and over 8. The liquid
-/// pipeline warm-up paints every final variant over a solid backdrop too.
+/// pixels the shapes cover and the pixels over 2 and over 8. List section
+/// cards and an app's MorphGlassContainer declaring its page color draw
+/// the same way, and the liquid pipeline warm-up paints every final
+/// variant over a solid backdrop too.
 /// Without Impeller the test does nothing.
 const double _dpr = 2.625;
 
@@ -330,9 +332,13 @@ Widget _section({
   ),
 );
 
-Future<HarnessShot> _shootSection(WidgetTester tester) async {
+Future<HarnessShot> _shootSection(
+  WidgetTester tester, [
+  GlobalKey? boundary,
+]) async {
   final render =
-      _sectionShot.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      (boundary ?? _sectionShot).currentContext!.findRenderObject()!
+          as RenderRepaintBoundary;
   final image = (await tester.runAsync(
     () => render.toImage(pixelRatio: _dpr),
   ))!;
@@ -342,6 +348,57 @@ Future<HarnessShot> _shootSection(WidgetTester tester) async {
   image.dispose();
   return HarnessShot(image.width, image.height, data!.buffer.asUint8List());
 }
+
+final GlobalKey _clusterShot = GlobalKey();
+
+/// Four resting glass buttons in an app's [MorphGlassContainer] on the
+/// page's own background, the container declaring [solidBackdrop].
+Widget _cluster({
+  required Brightness brightness,
+  required Color? Function(Color page) solidBackdrop,
+}) => MaterialApp(
+  debugShowCheckedModeBanner: false,
+  theme: ThemeData(platform: TargetPlatform.iOS, brightness: brightness),
+  home: MorphAdaptiveGlass(
+    renderer: const MorphGlassRenderer(),
+    tier: MorphGlassTier.liquid,
+    child: Builder(
+      builder: (BuildContext context) {
+        final page = MorphListStyle.resolve(context, null).backgroundColor;
+        return RepaintBoundary(
+          key: _clusterShot,
+          child: ColoredBox(
+            color: page,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20.3, 60.6, 20, 0),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: MorphGlassContainer(
+                  solidBackdrop: solidBackdrop(page),
+                  child: Wrap(
+                    spacing: 16,
+                    runSpacing: 16,
+                    children: [
+                      for (var i = 0; i < 4; i++)
+                        SizedBox(
+                          width: 96,
+                          height: 44,
+                          child: MorphGlassButton(
+                            onPressed: () {},
+                            child: Text('Go $i'),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    ),
+  ),
+);
 
 Iterable<RenderLiquidGlassLayer> _layers(WidgetTester tester) =>
     tester.allRenderObjects.whereType<RenderLiquidGlassLayer>().toSet();
@@ -632,6 +689,55 @@ void main() {
       }
       // The two stages' filters go; nothing else in the scene reads.
       expect(filters[false]! - filters[true]!, 2);
+    });
+  }
+
+  for (final brightness in Brightness.values) {
+    testWidgets('an app container on its page color shades its buttons over '
+        'it (${brightness.name})', (WidgetTester tester) async {
+      if (!ui.ImageFilter.isShaderFilterSupported) return;
+      tester.view.physicalSize = const ui.Size(1080, 2400);
+      tester.view.devicePixelRatio = _dpr;
+      addTearDown(tester.view.reset);
+      await tester.runAsync(MorphGlassRenderer.precache);
+      await tester.runAsync(RenderLiquidGlassLayer.precacheAnalyticShaders);
+
+      final variants = <String, Color? Function(Color page)>{
+        'none': (page) => null,
+        'translucent': (page) => page.withValues(alpha: 0.5),
+        'solid': (page) => page,
+      };
+      final shots = <String, HarnessShot>{};
+      for (final MapEntry(key: name, value: solidBackdrop)
+          in variants.entries) {
+        await tester.pumpWidget(const SizedBox.shrink());
+        await tester.pumpWidget(
+          _cluster(brightness: brightness, solidBackdrop: solidBackdrop),
+        );
+        await _settle(tester, 10);
+        final container = _layers(tester).single;
+        expect(container.shapesWithGeometry, hasLength(4), reason: name);
+        expect(
+          container.debugDrawsOverSolidBackdrop,
+          name == 'solid',
+          reason: name,
+        );
+        expect(_filters(), name == 'solid' ? 0 : 1, reason: name);
+        shots[name] = await _shootSection(tester, _clusterShot);
+      }
+      for (final name in ['translucent', 'solid']) {
+        final compared = _compare(shots['none']!, shots[name]!, (x, y) => true);
+        if (_out.isNotEmpty) {
+          Directory(_out).createSync(recursive: true);
+          final harness = ShaderHarness(tester);
+          File(
+            '$_out/cluster-${brightness.name}-$name.png',
+          ).writeAsBytesSync(await harness.png(shots[name]!));
+        }
+        // ignore: avoid_print
+        print('SOLID cluster ${brightness.name} $name $compared');
+        expect(compared['max'], lessThanOrEqualTo(2), reason: name);
+      }
     });
   }
 }

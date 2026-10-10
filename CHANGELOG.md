@@ -32,6 +32,16 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   387 / 454 -> 5. `MorphGlassRenderer.precache` paints every final
   shader variant this way once, so the first frame showing a section
   compiles no pipeline.
+- New public parameter `MorphGlassContainer.solidBackdrop`: an app
+  container that sits straight on an opaque fill, its buttons inset from
+  the fill's edges, declares the fill's color and shades its members over
+  it with no backdrop filter, as list section cards do. Translucent
+  colors and null keep the filter; the fake and flat tiers ignore it. The
+  gallery's sheet, controls and menu pages declare their page background.
+  Moto g86 liquid sheet raster p50 10.5 / 11.8 -> 7.9 / 8.9 ms, frames
+  over budget 235 / 247 -> 158 / 176; menu raster p95 19.3 / 19.8 ->
+  17.3, over budget 136 / 147 -> 118; controls raster p50 3.84 / 3.90 ->
+  3.52 / 3.56.
 - Android navigation bar items and the inline title draw their blur and
   fade as one shader draw from a mip pyramid of their content, instead
   of a blur layer, an opacity layer and a raster each; flat container

@@ -57,10 +57,28 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// neighbouring glass that a container would join.
 class MorphGlassContainer extends StatefulWidget {
   /// Shades the resting glass of the controls in [child] together.
-  const MorphGlassContainer({required this.child, super.key});
+  const MorphGlassContainer({
+    required this.child,
+    this.solidBackdrop,
+    super.key,
+  });
 
   /// The controls whose resting glass the container shades.
   final Widget child;
+
+  /// The opaque color the container is painted directly over, or null.
+  ///
+  /// Declare it when the container sits on a fill of this color with
+  /// nothing painted between, and its members are inset from the fill's
+  /// edges by more than their refraction reaches - typically a cluster of
+  /// buttons on a page's own background. The container then shades its
+  /// members over the color itself instead of reading the backdrop: no
+  /// backdrop filter at all, the most expensive part of glass on a phone's
+  /// GPU. The container trusts the color: glass over anything else shows
+  /// this color instead. A member that leaves the container reads its
+  /// backdrop in its own layer as before. Ignored unless the color is
+  /// fully opaque.
+  final Color? solidBackdrop;
 
   @override
   State<MorphGlassContainer> createState() => _MorphGlassContainerState();
@@ -70,8 +88,13 @@ class _MorphGlassContainerState extends State<MorphGlassContainer> {
   final MorphGlassContainerLink _link = MorphGlassContainerLink();
 
   @override
-  Widget build(BuildContext context) =>
-      _containerLayer(context, _link, open: true, child: widget.child);
+  Widget build(BuildContext context) => _containerLayer(
+    context,
+    _link,
+    open: true,
+    solidBackdrop: widget.solidBackdrop,
+    child: widget.child,
+  );
 }
 
 /// A glass container a package widget owns: [open] while nothing it does
