@@ -322,8 +322,10 @@ Cross-cutting policy:
   cards) carries its boxes instead of a field - path union for the edge,
   each box shaded as its own circular rounded rectangle - exact, and no
   per-frame trace or upload.
-  ANALYTIC GEOMETRY (2026-10-09, owner-approved, behind
-  `MORPH_ANALYTIC_GEOMETRY`, default off until device-qualified): an
+  ANALYTIC GEOMETRY (2026-10-09, owner-approved; on by default since
+  2026-10-10, `MORPH_ANALYTIC_GEOMETRY=false` restores the matte, mode
+  `changes`: analytic only while geometry changes, the matte at rest;
+  qualified on the Moto g86, tool/audit/claude-navigation-options-report.md): an
   eligible liquid layer (<= 8 shapes, uniform or tint-only appearance;
   a container body of <= 4 uniform-radius boxes as a `GlassBoxField`)
   is evaluated in the final shader itself (analytic_geometry.glsl) - no
@@ -335,6 +337,12 @@ Cross-cutting policy:
   mean < 0.75 per channel). The body shadow is the plain union of the
   boxes clipped outside a neck-covering path (NEAR). Menus (blurred
   SDF), bodies of 5+ boxes and mixed appearances keep the matte path.
+- FLAT SHADER BODIES (2026-10-10, on by default,
+  `MORPH_FLAT_SHADER_BODIES=false` restores the traced path): a flat
+  fused body of <= 4 boxes is filled by the same merge law in a fragment
+  shader (lib/src/widgets/shaders/flat_fused_body.frag, shared
+  fused_law.glsl) instead of a CPU-traced silhouette; its path is traced
+  only if something reads it. Qualified on the Redmi 6A (Skia).
 - Glass shadows clip to outside the glass (an even-odd path), never a
   saveLayer + dstOut per surface: no offscreen pass, no shadow under the
   translucent body (GlassShadow, MorphGlassBodyShadow).

@@ -195,9 +195,14 @@ prewarm (spike seen once), `MORPH_ANALYTIC_CAPSULE` (measurement only).
 
 ## Open
 
-- Decide `exp/navigation-defaults` (both options on, area cap): rechecked
-  from real input on the Moto after the cap, push missed 4 - 6, pop 3 - 6
-  (`rem-def*`), the same as before it.
+- `exp/navigation-defaults` (both options on, area cap) is MERGED into
+  this branch by owner decision (2026-10-10): approved, working, not an
+  open question. Pixel 6a (liquid, 60 Hz, real input, two launches each,
+  handover / baseline / defaults): nested push missed 9 - 10 / 2 - 5 / 0,
+  build p95 15 - 17 / 12 - 15 / 8 - 9 ms, worst frame 36 / 20 - 21 /
+  13 - 16 ms; nested pop missed 5 - 6 / 2 - 4 / 2, build p95 8 / 8 - 9 /
+  5 - 6 ms; raster p95 unchanged between baseline and defaults. Moto
+  after the cap: push missed 4 - 6, pop 3 - 6 (`rem-def*`), as before it.
 - The Moto with analytic on: glass shadows of resizing bar buttons are
   about 15 percent of the remaining push UI time (their clip path is
   rebuilt for every new size); moving lenses cost +0.5 ms raster p95 in
@@ -205,6 +210,8 @@ prewarm (spike seen once), `MORPH_ANALYTIC_CAPSULE` (measurement only).
 - Redmi: the route's first build frame (one 20 - 27 ms frame per push)
   and pop's first frames (detail page disposal, about 10 percent of UI);
   pop raster p95 sits near the 16.5 ms budget (GPU fill of two pages).
-- Pixel 6a: none of these were measured on it this round.
-- `MORPH_ANALYTIC_CAPSULE` and the scroll edge branch stay unmeasured /
-  owner decisions.
+- Pixel 6a: frame cadence measured (above); energy, pixels and scroll are not.
+- `MORPH_ANALYTIC_CAPSULE` stays unmeasured / an owner decision. The
+  scroll edge branch (`exp/edge-effect`, blur off on glass tiers) gave no
+  navigation gain on the Pixel 6a (nested pop build p95 12 - 16 ms against
+  8 - 9) and reduces visual fidelity: not merged.

@@ -8,6 +8,7 @@ import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
@@ -80,6 +81,9 @@ void main() {
       'fake and flat outlines are the package fusion, analytic $analytic',
       () {
         RenderLiquidGlassLayer.debugAnalyticGeometry = analytic;
+        // The traced flat silhouette; shader bodies are pinned elsewhere.
+        MorphFlatBodyShader.debugEnabled = false;
+        addTearDown(() => MorphFlatBodyShader.debugEnabled = null);
         final frame = _frame(pair);
         final fake = frame.partsFor(MorphGlassTier.fake).fused.single.$2;
         final flat = frame.partsFor(MorphGlassTier.flat).fused.single.$2;

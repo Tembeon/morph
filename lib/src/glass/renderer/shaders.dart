@@ -40,9 +40,11 @@ abstract class ShaderKeys {
   /// instead of rendering a geometry matte: up to eight separate shapes,
   /// and a glass container's fused body of up to four boxes (merged by the
   /// container's law, never fused on the CPU). Set at compile time with
-  /// `--dart-define=MORPH_ANALYTIC_GEOMETRY=true`; off by default.
+  /// `--dart-define=MORPH_ANALYTIC_GEOMETRY=false` to always render the
+  /// matte; on by default.
   static const bool analyticGeometry = bool.fromEnvironment(
     'MORPH_ANALYTIC_GEOMETRY',
+    defaultValue: true,
   );
 
   /// When liquid layers shade analytically, with [analyticGeometry] on:
