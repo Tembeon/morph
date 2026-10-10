@@ -56,6 +56,17 @@ RUNTIME = [
     'liquid_glass_final_render_tint_ios27.frag',
     'liquid_glass_final_render_material.frag',
     'fake_glass_surface.frag',
+    'liquid_glass_final_render_analytic.frag',
+    'liquid_glass_final_render_analytic_ios27.frag',
+    'liquid_glass_final_render_analytic_tint.frag',
+    'liquid_glass_final_render_analytic_tint_ios27.frag',
+    'liquid_glass_final_render_analytic_fused.frag',
+    'liquid_glass_final_render_analytic_fused_ios27.frag',
+    'liquid_glass_final_render_analytic_fused_tint.frag',
+    'liquid_glass_final_render_analytic_fused_tint_ios27.frag',
+    'flat_fused_body.frag',
+    'glyph_reduce.frag',
+    'glyph_blur.frag',
 ]
 BUNDLE = [
     'gpu/geometry_fragment.glsl',

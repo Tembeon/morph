@@ -231,15 +231,14 @@ SceneSample nearestShape(
     best.normal = vec2(0.0);
     best.opticalNormal = vec2(0.0);
     index = 0;
-    float boxDistance[MAX_SHAPES];
     float nearestBox = 1e18;
     int containing = 0;
     int container = -1;
     for (int i = 0; i < MAX_SHAPES; i++) {
         if (i >= count) break;
-        boxDistance[i] = shapeBoundsDistanceSquared(uShapeBounds[i], p);
-        nearestBox = min(nearestBox, boxDistance[i]);
-        if (boxDistance[i] <= 0.0) {
+        float boxDistance = shapeBoundsDistanceSquared(uShapeBounds[i], p);
+        nearestBox = min(nearestBox, boxDistance);
+        if (boxDistance <= 0.0) {
             containing++;
             container = i;
         }
@@ -250,7 +249,7 @@ SceneSample nearestShape(
         if (i >= count) break;
         // A lower bound of the shape's distance that cannot beat the
         // nearest so far: the shape cannot win, not even a tie.
-        float bound = sqrt(boxDistance[i]) * uShapeCull[i / 4][i - (i / 4) * 4];
+        float bound = sqrt(shapeBoundsDistanceSquared(uShapeBounds[i], p)) * uShapeCull[i / 4][i - (i / 4) * 4];
         if (bound > best.distance) continue;
         SceneSample shape = i == container
             ? flatFaceSample(i, p)
