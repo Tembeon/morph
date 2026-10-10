@@ -6,7 +6,6 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
-import 'package:morph/src/widgets/glyph_scale.dart' show MorphGlyphScale;
 
 /// Conservative pixel support of Flutter's Gaussian shadow mask.
 ///
@@ -121,6 +120,20 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
     required this._shadows,
     required double visibility,
   }) : _visibility = visibility.clamp(0, 1);
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    // The shader loads itself for an app that never ran the renderer's
+    // precache; shadows draw on their clip path until it has loaded.
+    if (MorphGlassShadowShader.enabled && !MorphGlassShadowShader.ready) {
+      MorphGlassShadowShader.precache().then(_shaderLoaded).ignore();
+    }
+  }
+
+  void _shaderLoaded(void _) {
+    if (attached && MorphGlassShadowShader.active) markNeedsPaint();
+  }
 
   LiquidShape get shape => _shape;
   LiquidShape _shape;
@@ -331,7 +344,7 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
     // cut: under a transform that changes without repainting this box, a
     // stale scale changes that width, not where the edge lies.
     final screenScale =
-        MorphGlyphScale.of(getTransformTo(null)) *
+        _largestAxisScale(getTransformTo(null)) *
         (root is RenderView ? root.configuration.devicePixelRatio : 1);
     final base = Offset.zero & size;
     canvas.save();
@@ -458,4 +471,13 @@ class _ShadowGeometry {
     }
     return true;
   }
+}
+
+// The largest axis scale of [transform]: the longest of the first two
+// columns of its linear part.
+double _largestAxisScale(Matrix4 transform) {
+  final s = transform.storage;
+  final x = math.sqrt(s[0] * s[0] + s[1] * s[1] + s[2] * s[2]);
+  final y = math.sqrt(s[4] * s[4] + s[5] * s[5] + s[6] * s[6]);
+  return math.max(x, y);
 }

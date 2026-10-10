@@ -24,8 +24,9 @@ import 'package:morph/src/glass/renderer/shaders.dart';
 /// Impeller draws (see [active]).
 ///
 /// Off by default: `--dart-define=MORPH_SHADER_SHADOWS=true`, or
-/// [debugEnabled] in tests. While the shader has not loaded, shadows draw
-/// as before.
+/// [debugEnabled] in tests. A glass shadow that attaches with the option on
+/// loads the shader itself; while it has not loaded, shadows draw as
+/// before.
 @internal
 abstract final class MorphGlassShadowShader {
   /// Whether the build enables the shader shadows.

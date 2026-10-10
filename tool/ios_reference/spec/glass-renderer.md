@@ -3019,7 +3019,10 @@ coverage outside the glass shape, `clamp(0.5 + sd * device px per pt)` of
 `sdfSquircle` (the exact rounded superellipse the liquid tier draws). The
 clip path is built only when the old path draws. Skia (whose blur differs),
 ovals, rounded rectangles, unblurred shadows and an unloaded shader keep the
-clip path; `MorphGlassRenderer.precache` loads the shader when enabled.
+clip path; `MorphGlassRenderer.precache` loads the shader when enabled,
+and a shadow that attaches while it has not loaded starts the load itself
+and repaints once it is ready (test/glass_shadow_shader_load_test.dart), so
+an app that skips precache still draws shader shadows.
 
 Host fidelity (test/glass_shadow_shader_test.dart, flutter_tester Impeller,
 3x, white scene; channel difference against the clip path over the
