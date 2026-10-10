@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Install a nav bench APK, run it, pull the report; optional Dart CPU samples.
-usage: run.py SERIAL APK OUTBASE [--cpu] [--gpu] [--skia] [--hz | --60] [--real]"""
+usage: run.py SERIAL APK OUTBASE [--cpu] [--gpu] [--skia] [--hz | --60] [--real] [--endless]"""
 import json, re, subprocess, sys, time, urllib.parse, urllib.request, os
 serial, apk, out = sys.argv[1:4]
 cpu = '--cpu' in sys.argv
@@ -41,7 +41,7 @@ if '--real' in sys.argv:
             elif len(parts) == 2 and parts[0] == 'NAVKEY':
                 subprocess.run(['adb', 'shell', 'input', 'keyevent', parts[1]], env=env)
     threading.Thread(target=answer, daemon=True).start()
-adb('shell', 'am', 'start', '-W', '-n', f'{PKG}/.MainActivity', *(['--ez', 'trace-skia', 'true'] if '--skia' in sys.argv else []), *(['--ez', 'morph-max-refresh', 'true'] if '--hz' in sys.argv else []), *(['--ef', 'morph-frame-rate', '60'] if '--60' in sys.argv else []))
+adb('shell', 'am', 'start', '-W', '-n', f'{PKG}/.MainActivity', *(['--ez', 'trace-skia', 'true'] if '--skia' in sys.argv else []), *(['--ez', 'endless-trace-buffer', 'true'] if '--endless' in sys.argv else []), *(['--ez', 'morph-max-refresh', 'true'] if '--hz' in sys.argv else []), *(['--ef', 'morph-frame-rate', '60'] if '--60' in sys.argv else []))
 time.sleep(2)
 pid = adb('shell', 'pidof', PKG).split()[0]
 base = None; port = None
