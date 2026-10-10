@@ -72,7 +72,8 @@ cache serves it.
 - Redmi menu, content blur off (timing proxy): raster p95 25-36 -> 18-21,
   p99 41-152 -> 23-35 (`rf-c*`). Blurring the content at a half or quarter
   resolution layer instead (render scaled down, blur, scale up, as Skia does
-  internally): no change on either phone (`rf-d*`, `mlow-*`): the cost is
+  internally): no change on either phone (`rf-d*`, `mlow-*`), confirmed warm
+  on the Redmi (raster p95 19.7 / 20.2 -> 19.9 / 20.1, `rl-*`): the cost is
   the blur's passes and render-target switches, not its pixels. Rejected.
 - App glass containers over a known opaque page color
   (`MorphGlassContainer(solidBackdrop:)`, opt-in, in review): Moto sheet
