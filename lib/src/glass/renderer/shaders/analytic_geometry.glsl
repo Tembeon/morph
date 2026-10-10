@@ -50,6 +50,10 @@ uniform vec4 uShapeBounds[MAX_SHAPES];
 // value of its basis, over sqrt 2 for the corner solvers' Chebyshev
 // branches).
 uniform vec4 uShapeCull[MAX_SHAPES / 4];
+// 1 lets the separate shapes skip a continuous-corner shape's distance
+// solve on its flat face (flatFaceSample), 0 solves every pixel. The two
+// draw the same pixels.
+uniform float uAnalyticFlatFace;
 #if ANALYTIC_FUSED
 // Per fused box: (center, half extents), then (corner radius, 0, 0, 0),
 // the radius already clamped to the half extents.
@@ -73,6 +77,26 @@ struct AnalyticGeometry {
     // it.
     vec4 tint;
 };
+
+// How deep inside a body the final pass stops reading its normal and its
+// half thickness: past the deepest refraction bevel (no displacement),
+// the glint and its bleed, the inner border and the bevel shadow band at
+// its largest offset (applySpecularHighlights returns the face unlit), plus
+// a pixel.
+float analyticFlatDepth() {
+    float glintWidth = max(
+        uHighlightWidth > 0.0 ? uHighlightWidth : uEdgeWidth,
+        0.001
+    );
+    return max(
+        max(uAnalyticOptics.x, glintWidth * kGlintBleedReach),
+        max(
+            abs(uContourOffset) + uEdgeWidth + 0.5,
+            max(uBevelShadowDepth, 0.001) * 1.0001 +
+                max(uBevelShadowOffset, 0.0)
+        )
+    ) + 1.0;
+}
 
 #if ANALYTIC_FUSED
 #define FUSED_MAX_BOXES ANALYTIC_MAX_BOXES
@@ -136,34 +160,70 @@ vec3 fusedOptics(vec2 p, int count) {
     return vec3(halfMinor, len < 1e-9 ? vec2(1.0, 0.0) : turn / len);
 }
 
-// How deep inside a body the final pass stops reading its normal and its
-// half thickness: past the deepest refraction bevel (no displacement),
-// the glint and its bleed, the inner border and the bevel shadow band at
-// its largest offset (applySpecularHighlights returns the face unlit), plus
-// a pixel.
-float analyticFlatDepth() {
-    float glintWidth = max(
-        uHighlightWidth > 0.0 ? uHighlightWidth : uEdgeWidth,
-        0.001
-    );
-    return max(
-        max(uAnalyticOptics.x, glintWidth * kGlintBleedReach),
-        max(
-            abs(uContourOffset) + uEdgeWidth + 0.5,
-            max(uBevelShadowDepth, 0.001) * 1.0001 +
-                max(uBevelShadowOffset, 0.0)
-        )
-    ) + 1.0;
-}
-
 #endif
+
+// Shape [index]'s sample at p as getShapeSampleFromArray returns it,
+// except that a continuous-corner shape deeper inside than
+// analyticFlatDepth by a bound skips its distance solve and takes the
+// bound for its distance: p's depth inside the shape's box less the
+// corner radius, in the distance's own scale. The shape lies inside its box
+// and its outline (each octant's superellipse and corner arc) within the
+// corner radius of the box's, so by the triangle inequality the solved
+// depth is at least the bound. Past analyticFlatDepth the displacement is
+// zero and every reader of the signed edge distance (coverage, border,
+// glint, bevel shadow) is saturated, so the pixel is the same; the normal
+// and the half thickness are the solve's own.
+SceneSample flatFaceSample(int index, vec2 p) {
+    int baseIndex = index * 3;
+    vec4 primitive = uShapeData[baseIndex];
+    if (primitive.x == 1.0) {
+        vec4 inverseBasis = uShapeData[baseIndex + 1];
+        vec4 placement = uShapeData[baseIndex + 2];
+        vec2 delta = p - placement.xy;
+        vec2 localPoint = vec2(
+            inverseBasis.x * delta.x + inverseBasis.y * delta.y,
+            inverseBasis.z * delta.x + inverseBasis.w * delta.y
+        );
+        vec2 halfSize = primitive.yz * 0.5;
+        vec2 inside = halfSize - abs(localPoint);
+        float radius = min(primitive.w, min(halfSize.x, halfSize.y));
+        float depth = (min(inside.x, inside.y) - radius) * placement.z;
+        if (depth > analyticFlatDepth()) {
+            SceneSample face;
+            face.distance = -depth;
+            face.halfMinor = 0.5 * min(primitive.y, primitive.z) * placement.z;
+            face.curvatureFactor = 0.0;
+            vec4 gradients = getShapeGradients(
+                primitive,
+                inverseBasis,
+                placement.z,
+                localPoint,
+                false
+            );
+            face.normal = gradients.xy;
+            face.opticalNormal = gradients.zw;
+            return face;
+        }
+    }
+    return getShapeSampleFromArray(index, p, false);
+}
 
 // The nearest shape at p, in sceneSample's order and tie rule for shapes
 // that never blend (each its own group: the later of equal shapes wins
 // until the last, which must be strictly nearer), with its index; null
 // distance 1e9 when every shape is farther than [reach] from its box (the
 // geometry pass's empty-pixel rejection, before any SDF is evaluated).
-SceneSample nearestShape(vec2 p, int count, float reach, out int index) {
+// With [flatFace], a pixel inside the box of one shape alone takes that
+// shape's flatFaceSample: every other shape's distance is then positive
+// and the shape's flat-face distance negative, so the winner and the
+// shapes evaluated are the same.
+SceneSample nearestShape(
+    vec2 p,
+    int count,
+    float reach,
+    bool flatFace,
+    out int index
+) {
     SceneSample best;
     best.distance = 1e9;
     best.halfMinor = 0.0;
@@ -173,19 +233,28 @@ SceneSample nearestShape(vec2 p, int count, float reach, out int index) {
     index = 0;
     float boxDistance[MAX_SHAPES];
     float nearestBox = 1e18;
+    int containing = 0;
+    int container = -1;
     for (int i = 0; i < MAX_SHAPES; i++) {
         if (i >= count) break;
         boxDistance[i] = shapeBoundsDistanceSquared(uShapeBounds[i], p);
         nearestBox = min(nearestBox, boxDistance[i]);
+        if (boxDistance[i] <= 0.0) {
+            containing++;
+            container = i;
+        }
     }
     if (nearestBox > reach * reach) return best;
+    if (!flatFace || containing != 1) container = -1;
     for (int i = 0; i < MAX_SHAPES; i++) {
         if (i >= count) break;
         // A lower bound of the shape's distance that cannot beat the
         // nearest so far: the shape cannot win, not even a tie.
         float bound = sqrt(boxDistance[i]) * uShapeCull[i / 4][i - (i / 4) * 4];
         if (bound > best.distance) continue;
-        SceneSample shape = getShapeSampleFromArray(i, p, false);
+        SceneSample shape = i == container
+            ? flatFaceSample(i, p)
+            : getShapeSampleFromArray(i, p, false);
         bool nearer = i == count - 1
             ? shape.distance < best.distance
             : shape.distance <= best.distance;
@@ -239,7 +308,7 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
     #if SHAPE_TINT
     // The material map's tint: the nearest of the layer's shapes.
     int tinted;
-    nearestShape(p, count, 1e9, tinted);
+    nearestShape(p, count, 1e9, false, tinted);
     for (int i = 0; i < MAX_SHAPES; i++) {
         if (i == tinted) result.tint = uShapeTints[i];
     }
@@ -250,6 +319,7 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
         p,
         count,
         uAnalyticRanges.x + 2.0,
+        uAnalyticFlatFace > 0.5,
         nearest
     );
     if (scene.distance >= 1e9) {

@@ -2930,6 +2930,28 @@ analytic geometry itself stays off by default until native pixels are
 checked. Runner: tool/ios_reference/perf/nav_quick (run.py --gpu,
 gpu.py).
 
+Flat face (2026-10-10): separate shapes skip a rounded superellipse's
+distance solve (six-step bisection per pixel) where a cheap bound proves
+the pixel lies deeper than `analyticFlatDepth` - its depth inside the
+shape's box less the corner radius, in the distance's own scale - and the
+pixel is inside no other shape's box, so the nearest shape cannot change.
+The skipped sample keeps the solve's normal and half thickness; past the
+flat depth nothing else reads the distance. A CPU port of `sdfSquircle`
+(1512 shapes, 2.56 M points with box depth over the radius) never solves
+shallower than box depth less 1.7 percent of the radius, so the bound
+holds with the radius as slack. Host A/B (example/test/
+analytic_flat_face_host_test.dart, skip on vs off): max channel difference
+0 on every liquid harness case plus stretched, rotated, overlapping,
+nested, square-cornered and full-radius scenes, with and without
+MORPH_ANALYTIC_CAPSULE (28 scenes); the analytic and matte shots of the
+geometry oracle are byte-identical to the shader before the skip. Pixels
+taking the skip (a marker build, lower bounds): big-sheet 750893 of its
+1.41 M box pixels, menu-frosted 340641 of 0.72 M, the trio's 200 x 150 card 13002
+(its refraction bevel sets the flat depth); capsules never (radius =
+half height), nor small lenses. Test toggle:
+RenderLiquidGlassLayer.debugAnalyticFlatFace (uniform uAnalyticFlatFace).
+Open: device GPU time on large moving surfaces.
+
 ## Flat shader bodies (2026-10-09, behind MORPH_FLAT_SHADER_BODIES)
 
 On the flat tier a glass container body of at most four boxes can skip the

@@ -173,12 +173,17 @@ void main() {
             max,
           ));
           expect(RenderLiquidGlassLayer.analyticCullIndex, 297);
+          expect(layout['uAnalyticFlatFace'], (
+            RenderLiquidGlassLayer.analyticFlatFaceIndex,
+            1,
+          ));
+          expect(RenderLiquidGlassLayer.analyticFlatFaceIndex, 305);
           if (fused) {
             expect(layout['uFusedBoxes'], (
               RenderLiquidGlassLayer.analyticFusedBoxesIndex,
               boxes * 8,
             ));
-            expect(RenderLiquidGlassLayer.analyticFusedBoxesIndex, 305);
+            expect(RenderLiquidGlassLayer.analyticFusedBoxesIndex, 306);
           } else {
             expect(layout.containsKey('uFusedBoxes'), isFalse);
           }
@@ -187,7 +192,7 @@ void main() {
                 ? RenderLiquidGlassLayer.analyticFusedTintsIndex
                 : RenderLiquidGlassLayer.analyticTintsIndex;
             expect(layout['uShapeTints'], (at, max * 4));
-            expect(at, fused ? 337 : 305);
+            expect(at, fused ? 338 : 306);
           } else {
             expect(layout.containsKey('uShapeTints'), isFalse);
           }
@@ -198,6 +203,7 @@ void main() {
             'uRseData',
             'uShapeBounds',
             'uShapeCull',
+            'uAnalyticFlatFace',
             if (fused) 'uFusedBoxes',
             if (tint) 'uShapeTints',
           ]);

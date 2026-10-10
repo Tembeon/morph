@@ -391,3 +391,15 @@ Local patches (some commits include related package changes):
   body shader (lib/src/widgets/shaders/flat_fused_body.frag,
   MORPH_FLAT_SHADER_BODIES) evaluates the same law. The fold indexes
   uFusedBoxes only with loop indices, which SkSL accepts.
+- 2026-10-10 analytic flat face: the separate-shape analytic variants skip
+  a rounded superellipse's distance solve (sdfSquircle) for a pixel inside
+  no other shape's box whose depth inside the shape's box less its corner
+  radius, scaled by the shape's distance scale, exceeds analyticFlatDepth
+  (moved out of the fused block); the sample takes that bound for its
+  distance and getShapeGradients' normals and the half thickness as
+  getShapeSampleFromArray computes them (flatFaceSample, nearestShape's
+  flatFace argument; the fused variants pass false). uAnalyticFlatFace
+  (float index 305, RenderLiquidGlassLayer.debugAnalyticFlatFace, 1 in
+  production) moves uFusedBoxes to 306 and uShapeTints to 338 (fused) /
+  306 (separate). Host A/B on vs off: max channel difference 0
+  (example/test/analytic_flat_face_host_test.dart); sdf.glsl unchanged.

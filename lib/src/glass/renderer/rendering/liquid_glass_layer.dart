@@ -654,6 +654,22 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _invalidateAttachedLayers();
   }
 
+  static bool _debugAnalyticFlatFace = true;
+
+  /// Whether analytic frames of separate shapes skip a rounded
+  /// superellipse's distance solve where a pixel lies provably deeper than
+  /// any bevel, glint, border or bevel shadow reaches; the pixels are the
+  /// same either way. Setting it asks every attached layer for a new
+  /// geometry frame.
+  @visibleForTesting
+  static bool get debugAnalyticFlatFace => _debugAnalyticFlatFace;
+  @visibleForTesting
+  static set debugAnalyticFlatFace(bool value) {
+    if (_debugAnalyticFlatFace == value) return;
+    _debugAnalyticFlatFace = value;
+    _invalidateAttachedLayers();
+  }
+
   /// Whether analytic frames shade full-radius rounded superellipses as
   /// stadiums: [debugAnalyticCapsule], else [ShaderKeys.analyticCapsule].
   static bool get analyticCapsuleEnabled =>
@@ -1711,16 +1727,20 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   static const int analyticCullIndex =
       analyticBoundsIndex + analyticMaxShapes * 4;
 
-  /// Float index of uFusedBoxes, after uShapeCull; only the fused variants
-  /// declare it.
+  /// Float index of uAnalyticFlatFace, after uShapeCull.
   @visibleForTesting
-  static const int analyticFusedBoxesIndex =
+  static const int analyticFlatFaceIndex =
       analyticCullIndex + analyticMaxShapes;
 
-  /// Float index of uShapeTints in the separate-shape tint variants,
-  /// after uShapeCull.
+  /// Float index of uFusedBoxes, after uAnalyticFlatFace; only the fused
+  /// variants declare it.
   @visibleForTesting
-  static const int analyticTintsIndex = analyticCullIndex + analyticMaxShapes;
+  static const int analyticFusedBoxesIndex = analyticFlatFaceIndex + 1;
+
+  /// Float index of uShapeTints in the separate-shape tint variants,
+  /// after uAnalyticFlatFace.
+  @visibleForTesting
+  static const int analyticTintsIndex = analyticFlatFaceIndex + 1;
 
   /// Float index of uShapeTints in the fused tint variants, after 2 vec4
   /// of uFusedBoxes per fused box.
@@ -1766,6 +1786,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     for (var i = 0; i < _cullData.length && i < analyticMaxShapes; i++) {
       shader.setFloat(analyticCullIndex + i, _cullData[i]);
     }
+    shader.setFloat(analyticFlatFaceIndex, _debugAnalyticFlatFace ? 1 : 0);
     for (var i = 0; i < _shapeData.length; i++) {
       shader.setFloat(analyticShapeDataIndex + i, _shapeData[i]);
     }
