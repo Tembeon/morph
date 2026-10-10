@@ -41,6 +41,15 @@ import 'package:meta/meta.dart';
   return (n, 1.0 - 1.0 / kXj);
 }
 
+/// The degree n of the superellipse in the octant of a rounded superellipse
+/// whose half extent along that octant's axis is [axis], with corner
+/// [radius] (already clamped to the half extents): zero for a corner Flutter
+/// treats as sharp. Flutter's `ComputeOctant` `se_n`, which its blurred
+/// rounded superellipse also reads.
+@internal
+double roundedSuperellipseDegree(double axis, double radius) =>
+    radius <= 1e-3 ? 0.0 : _rseNAndXj(2.0 * axis / radius).$1;
+
 (double, double, Offset, double) _rseOctant(double axis, double radius) {
   if (radius <= 1e-3) return (0.0, 0.0, Offset.zero, 0.0);
   final (n, xJOverA) = _rseNAndXj(2.0 * axis / radius);

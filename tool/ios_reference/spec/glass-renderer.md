@@ -3000,3 +3000,46 @@ A B B A, build / raster ms, off -> on, pairs (off-1, on-1) and (off-2, on-2):
 Frames over budget and missed slots do not change repeatably (0 - 4 per
 window both ways). Open: Moto/Pixel (Impeller) timing, native pixels on a
 device, per-pixel shader cost on a large static body.
+
+## Shader glass shadows (2026-10-10, behind MORPH_SHADER_SHADOWS)
+
+A `GlassShadow` (the button and menu body shadow, the lens / knob / thumb
+floating shadow) clipped each offset shadow to outside the glass with an
+even-odd path (the shadow bounds minus the shape deflated by half a pixel)
+and drew it as a mask-blurred `drawRSuperellipse`. With analytic geometry
+on, a bar button that resizes during a push rebuilt that path
+(`addRSuperellipse`) for every new size and the GPU stenciled it: about 15
+percent of the remaining UI-thread time on the Moto g86. With
+`--dart-define=MORPH_SHADER_SHADOWS=true` (or
+`MorphGlassShadowShader.debugEnabled`) a rounded superellipse's shadows
+are drawn on Impeller as one rect each by `glass_shadow.frag`: Impeller's
+analytic blurred rounded superellipse (`rsuperellipse_blur.frag`, its pass
+context computed on the CPU once per geometry and visibility) times the
+coverage outside the glass shape, `clamp(0.5 + sd * device px per pt)` of
+`sdfSquircle` (the exact rounded superellipse the liquid tier draws). The
+clip path is built only when the old path draws. Skia (whose blur differs),
+ovals, rounded rectangles, unblurred shadows and an unloaded shader keep the
+clip path; `MorphGlassRenderer.precache` loads the shader when enabled.
+
+Host fidelity (test/glass_shadow_shader_test.dart, flutter_tester Impeller,
+3x, white scene; channel difference against the clip path over the
+shadow's paint bounds; capsule 96 x 44 and card 200 x 120, corner 22;
+offsets (60, 50) and (60.3, 50.7); visibility 1 and 0.4):
+
+| shadows                          | max (worst case) | mean (worst case) |
+|----------------------------------|------------------|-------------------|
+| body (0x14, y 4, blur 16)        | 5                | 0.006             |
+| floating (0x1A, y 1.5, blur 3)   | 9 (one pixel)    | 0.018             |
+| floating lifted (y 3.5, blur 9)  | 8                | 0.012             |
+| outer (0x1F, blur 4, spread 1)   | 4                | 0.016             |
+| pair (y 3 blur 12 + outer)       | 28               | 0.038             |
+
+The blur alone (no cut, opaque, against `drawRSuperellipse` under
+`MaskFilter.blur`) differs by at most 1. Every larger difference sits at
+the cut in the corners: the clip path's `addRSuperellipse` lies inside the
+exact rounded superellipse there (its fill covers about 4.5 pt^2 less than
+`drawRSuperellipse`'s on a 95 x 43 shape) and is covered by multisampling,
+so the old path leaves slightly more shadow just inside the glass corners;
+the pair's spread shadow is darkest right at the cut, hence its 28. The
+shader cuts at the glass's own edge. Open: device timing on the Moto g86
+(Impeller Vulkan) and native pixels on a device.

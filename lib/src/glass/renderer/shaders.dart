@@ -137,6 +137,10 @@ abstract class ShaderKeys {
   static String get glyphReduce =>
       '${_shadersRoot}lib/src/widgets/shaders/glyph_reduce.frag';
 
+  /// A glass shadow of a rounded superellipse drawn as one rect.
+  static String get glassShadow =>
+      '${_shadersRoot}lib/src/glass/renderer/shaders/glass_shadow.frag';
+
   /// The flat tier's fill of a glass container body of merged boxes.
   static String get flatFusedBody =>
       '${_shadersRoot}lib/src/widgets/shaders/flat_fused_body.frag';

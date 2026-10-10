@@ -403,3 +403,21 @@ Local patches (some commits include related package changes):
   production) moves uFusedBoxes to 306 and uShapeTints to 338 (fused) /
   306 (separate). Host A/B on vs off: max channel difference 0
   (example/test/analytic_flat_face_host_test.dart); sdf.glsl unchanged.
+- 2026-10-10 shader glass shadows: with MORPH_SHADER_SHADOWS
+  (MorphGlassShadowShader in internal/glass_shadow_shader.dart, off by
+  default) a GlassShadow of a LiquidRoundedSuperellipse whose shadows all
+  blur draws each shadow as one drawRect with shaders/glass_shadow.frag on
+  Impeller once the shader has loaded: Impeller's own blurred rounded
+  superellipse (rsuperellipse_blur.frag with the pass context of
+  SolidRRectLikeBlurContents / SolidRSuperellipseBlurContents, ported, the
+  parameters computed on the CPU per geometry and visibility) times the
+  coverage outside the glass shape (sdf.glsl's sdfSquircle at the shape
+  deflated by half a pixel, or each shadow's own shape for an outer blur)
+  over one device pixel (the box's scale to the root times the view's
+  device pixel ratio). No clip path, no mask filter; the drawn rect is
+  Impeller's blur reach kept inside paintBounds. The clip path is now
+  built on first use, so the shader path never builds it; ovals, rounded
+  rectangles, a sharp shadow, Skia and debugDisableShadows keep the clip
+  path. roundedSuperellipseDegree exposes the octant degree n. The blur
+  alone matches drawRSuperellipse's mask blur within one channel step
+  (test/glass_shadow_shader_test.dart, --enable-impeller).

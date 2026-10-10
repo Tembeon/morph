@@ -6,6 +6,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
+import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 
@@ -173,11 +174,13 @@ class MorphGlassRenderer extends MorphGlassPainter {
   /// On Android, calling before `runApp` can wait for the engine's GPU
   /// context initialization; it does not wait for an application frame.
   /// With the flat tier's shader bodies enabled
-  /// (`MORPH_FLAT_SHADER_BODIES`) it also loads their shader.
+  /// (`MORPH_FLAT_SHADER_BODIES`) it also loads their shader, and with
+  /// shader shadows enabled (`MORPH_SHADER_SHADOWS`) the glass shadows'.
   static Future<void> precache() async {
     await Future.wait([
       morphPrecacheLiquidGlass(),
       if (MorphFlatBodyShader.enabled) MorphFlatBodyShader.precache(),
+      if (MorphGlassShadowShader.enabled) MorphGlassShadowShader.precache(),
     ]);
   }
 

@@ -4,7 +4,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
+import 'package:morph/src/widgets/glyph_scale.dart' show MorphGlyphScale;
 
 /// Conservative pixel support of Flutter's Gaussian shadow mask.
 ///
@@ -189,35 +191,38 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
     }
     final rect = Offset.zero & size;
     final needsCutout = shadows.any((s) => s.offset != Offset.zero);
-    Path? outside;
-    if (needsCutout) {
-      // The clip reaches past the support of every shadow at full
-      // visibility; a fading shadow reaches less far, so the same clip
-      // cuts the same pixels.
-      var bounds = rect;
-      for (final shadow in shadows) {
-        bounds = bounds.expandToInclude(
-          rect
-              .shift(shadow.offset)
-              .inflate(
-                math.max(
-                  shadow.spreadRadius +
-                      glassShadowBlurSupport(shadow.blurRadius),
-                  0,
-                ),
-              ),
-        );
-      }
-      outside = Path();
-      outside.fillType = PathFillType.evenOdd;
-      outside.addRect(bounds.inflate(1));
-      _addShape(outside, rect.deflate(.5));
-    }
+    final shadowsNow = shadows;
+    final shapeNow = shape;
     return _geometry = _ShadowGeometry(
       size: size,
       shape: shape,
       shadows: shadows,
-      outside: outside,
+      needsCutout: needsCutout,
+      // Built on first use: a shadow the shader draws needs no path.
+      outsideOf: () {
+        // The clip reaches past the support of every shadow at full
+        // visibility; a fading shadow reaches less far, so the same clip
+        // cuts the same pixels.
+        var bounds = rect;
+        for (final shadow in shadowsNow) {
+          bounds = bounds.expandToInclude(
+            rect
+                .shift(shadow.offset)
+                .inflate(
+                  math.max(
+                    shadow.spreadRadius +
+                        glassShadowBlurSupport(shadow.blurRadius),
+                    0,
+                  ),
+                ),
+          );
+        }
+        final outside = Path();
+        outside.fillType = PathFillType.evenOdd;
+        outside.addRect(bounds.inflate(1));
+        _addShape(outside, shapeNow, rect.deflate(.5));
+        return outside;
+      },
       rects: [
         for (final shadow in shadows)
           rect.shift(shadow.offset).inflate(shadow.spreadRadius),
@@ -252,22 +257,109 @@ class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
   void paint(PaintingContext context, Offset offset) {
     if (shadows.isNotEmpty) {
       final geometry = _geometryFor(size);
-      final outside = geometry.outside;
-      final paints = _paintsFor(outside != null);
-      final canvas = context.canvas;
-      canvas.save();
-      canvas.translate(offset.dx, offset.dy);
-      if (outside != null) canvas.clipPath(outside);
-      for (var i = 0; i < paints.length; i++) {
-        _drawShape(canvas, geometry.rects[i], paints[i]);
+      if (!_paintShaded(context.canvas, offset, geometry)) {
+        final outside = geometry.outside;
+        final paints = _paintsFor(outside != null);
+        final canvas = context.canvas;
+        canvas.save();
+        canvas.translate(offset.dx, offset.dy);
+        if (outside != null) canvas.clipPath(outside);
+        for (var i = 0; i < paints.length; i++) {
+          _drawShape(canvas, geometry.rects[i], paints[i]);
+        }
+        canvas.restore();
       }
-      canvas.restore();
     }
 
     super.paint(context, offset);
   }
 
-  void _addShape(Path path, Rect rect) {
+  // The shader uniforms of each shadow's blur for the geometry, shadows and
+  // visibility they were made for.
+  List<Float32List>? _blurs;
+  _ShadowGeometry? _blurGeometry;
+  List<BoxShadow>? _blurShadows;
+  double? _blurVisibility;
+
+  List<Float32List> _blursFor(_ShadowGeometry geometry, double radius) {
+    final blurs = _blurs;
+    if (blurs != null &&
+        identical(_blurGeometry, geometry) &&
+        _blurVisibility == visibility &&
+        listEquals(_blurShadows, shadows)) {
+      return blurs;
+    }
+    _blurGeometry = geometry;
+    _blurShadows = shadows;
+    _blurVisibility = visibility;
+    return _blurs = [
+      for (var i = 0; i < shadows.length; i++)
+        MorphGlassShadowShader.blur(
+          geometry.rects[i],
+          radius,
+          Shadow.convertRadiusToSigma(shadows[i].blurRadius * visibility),
+          shadows[i].color.withValues(alpha: shadows[i].color.a * visibility),
+        ),
+    ];
+  }
+
+  // Draws the shadows of a rounded superellipse with
+  // MorphGlassShadowShader, one rect each, when it is active; returns
+  // whether it did. Every shadow must blur: a sharp one is a plain fill.
+  bool _paintShaded(Canvas canvas, Offset offset, _ShadowGeometry geometry) {
+    final shape = this.shape;
+    if (shape is! LiquidRoundedSuperellipse ||
+        !MorphGlassShadowShader.active ||
+        shadows.any((s) => !(s.blurRadius > 0))) {
+      return false;
+    }
+    // debugDisableShadows draws shadows unblurred, as BoxShadow.toPaint.
+    var sharp = false;
+    assert(() {
+      sharp = debugDisableShadows;
+      return true;
+    }());
+    if (sharp) return false;
+    // Fully faded shadows draw nothing.
+    if (visibility <= 0) return true;
+    final radius = shape.borderRadius;
+    final blurs = _blursFor(geometry, radius);
+    final coverages = geometry.coverages(radius);
+    final root = owner?.rootNode;
+    // The transform to the root leaves out the view's device pixel ratio.
+    final screenScale =
+        MorphGlyphScale.of(getTransformTo(null)) *
+        (root is RenderView ? root.configuration.devicePixelRatio : 1);
+    final base = Offset.zero & size;
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    for (var i = 0; i < shadows.length; i++) {
+      final shadow = shadows[i];
+      final sigma = Shadow.convertRadiusToSigma(shadow.blurRadius * visibility);
+      // Impeller's reach of the blur, kept inside paintBounds.
+      final extent = math.min(
+        shadow.spreadRadius + MorphGlassShadowShader.reach(sigma),
+        math.max(
+          shadow.spreadRadius +
+              glassShadowBlurSupport(shadow.blurRadius * visibility),
+          0.0,
+        ),
+      );
+      final rect = base.shift(shadow.offset).inflate(extent);
+      if (rect.isEmpty) continue;
+      MorphGlassShadowShader.paint(
+        canvas,
+        rect,
+        blurs[i],
+        coverages[i],
+        screenScale,
+      );
+    }
+    canvas.restore();
+    return true;
+  }
+
+  static void _addShape(Path path, LiquidShape shape, Rect rect) {
     switch (shape) {
       case LiquidRoundedSuperellipse(:final borderRadius):
         path.addRSuperellipse(
@@ -305,7 +397,8 @@ class _ShadowGeometry {
     required this.size,
     required this.shape,
     required List<BoxShadow> shadows,
-    required this.outside,
+    required this.needsCutout,
+    required this._outsideOf,
     required this.rects,
   }) : _offsets = [for (final s in shadows) s.offset],
        _spreads = [for (final s in shadows) s.spreadRadius],
@@ -317,12 +410,37 @@ class _ShadowGeometry {
   final List<double> _spreads;
   final List<double> _blurs;
 
+  // Whether a shadow is offset: the shadows then stay outside the glass
+  // shape deflated by half a pixel, else each outside its own shape (an
+  // outer blur).
+  final bool needsCutout;
+
+  final Path Function() _outsideOf;
+
   // The region outside the glass the shadows are clipped to, or null when
   // no shadow is offset.
-  final Path? outside;
+  late final Path? outside = needsCutout ? _outsideOf() : null;
 
   // Each shadow's shape before its blur.
   final List<Rect> rects;
+
+  List<Float32List>? _coverages;
+
+  // The shader uniforms of the shape each shadow stays outside of, for a
+  // rounded superellipse of corner [radius].
+  List<Float32List> coverages(double radius) {
+    if (_coverages case final coverages?) return coverages;
+    if (needsCutout) {
+      final glass = MorphGlassShadowShader.coverage(
+        (Offset.zero & size).deflate(.5),
+        radius,
+      );
+      return _coverages = List.filled(rects.length, glass);
+    }
+    return _coverages = [
+      for (final rect in rects) MorphGlassShadowShader.coverage(rect, radius),
+    ];
+  }
 
   // Whether [shadows] have the geometry this was made for.
   bool fits(List<BoxShadow> shadows) {
