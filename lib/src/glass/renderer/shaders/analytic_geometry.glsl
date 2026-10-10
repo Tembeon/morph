@@ -24,7 +24,7 @@
 // difference over one device pixel, turned like the field's.
 //
 // Included by liquid_glass_final_render_core.glsl after its uniforms, so
-// these uniforms follow its float uniforms (from float index 65).
+// these uniforms follow its float uniforms (from float index 69).
 
 #ifndef ANALYTIC_FUSED
 #define ANALYTIC_FUSED 0

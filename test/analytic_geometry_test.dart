@@ -125,9 +125,9 @@ String? _ineligibility({
 
 void main() {
   group('analytic uniform layout', () {
-    test('the core ends its float uniforms at 65', () {
+    test('the core ends its float uniforms at 69', () {
       expect(_coreFloats(), RenderLiquidGlassLayer.analyticUniformIndex);
-      expect(RenderLiquidGlassLayer.analyticUniformIndex, 65);
+      expect(RenderLiquidGlassLayer.analyticUniformIndex, 69);
     });
 
     test('the shape cap matches the shader', () {
@@ -152,38 +152,38 @@ void main() {
             RenderLiquidGlassLayer.analyticUniformIndex,
             4,
           ));
-          expect(layout['uAnalyticRanges'], (69, 4));
+          expect(layout['uAnalyticRanges'], (73, 4));
           expect(layout['uShapeData'], (
             RenderLiquidGlassLayer.analyticShapeDataIndex,
             max * 12,
           ));
-          expect(RenderLiquidGlassLayer.analyticShapeDataIndex, 73);
+          expect(RenderLiquidGlassLayer.analyticShapeDataIndex, 77);
           expect(layout['uRseData'], (
             RenderLiquidGlassLayer.analyticRseDataIndex,
             max * 12,
           ));
-          expect(RenderLiquidGlassLayer.analyticRseDataIndex, 169);
+          expect(RenderLiquidGlassLayer.analyticRseDataIndex, 173);
           expect(layout['uShapeBounds'], (
             RenderLiquidGlassLayer.analyticBoundsIndex,
             max * 4,
           ));
-          expect(RenderLiquidGlassLayer.analyticBoundsIndex, 265);
+          expect(RenderLiquidGlassLayer.analyticBoundsIndex, 269);
           expect(layout['uShapeCull'], (
             RenderLiquidGlassLayer.analyticCullIndex,
             max,
           ));
-          expect(RenderLiquidGlassLayer.analyticCullIndex, 297);
+          expect(RenderLiquidGlassLayer.analyticCullIndex, 301);
           expect(layout['uAnalyticFlatFace'], (
             RenderLiquidGlassLayer.analyticFlatFaceIndex,
             1,
           ));
-          expect(RenderLiquidGlassLayer.analyticFlatFaceIndex, 305);
+          expect(RenderLiquidGlassLayer.analyticFlatFaceIndex, 309);
           if (fused) {
             expect(layout['uFusedBoxes'], (
               RenderLiquidGlassLayer.analyticFusedBoxesIndex,
               boxes * 8,
             ));
-            expect(RenderLiquidGlassLayer.analyticFusedBoxesIndex, 306);
+            expect(RenderLiquidGlassLayer.analyticFusedBoxesIndex, 310);
           } else {
             expect(layout.containsKey('uFusedBoxes'), isFalse);
           }
@@ -192,7 +192,7 @@ void main() {
                 ? RenderLiquidGlassLayer.analyticFusedTintsIndex
                 : RenderLiquidGlassLayer.analyticTintsIndex;
             expect(layout['uShapeTints'], (at, max * 4));
-            expect(at, fused ? 338 : 306);
+            expect(at, fused ? 342 : 310);
           } else {
             expect(layout.containsKey('uShapeTints'), isFalse);
           }

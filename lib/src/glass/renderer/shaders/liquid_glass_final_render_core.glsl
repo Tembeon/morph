@@ -59,6 +59,12 @@ uniform vec2 uMaterialTextureSize;
 // Half the line backdropShrink is about, matte device px from the material
 // center. Zero shrinks about the center itself.
 uniform vec2 uBackdropShrinkAxis;
+// An opaque uniform backdrop the layer declared (straight RGB, alpha 1),
+// or alpha 0 to read the backdrop texture. Refraction, dispersion and
+// softening of a uniform color are that color, so with alpha 1 no read
+// touches uBackgroundTexture: the pass draws as a plain paint whose
+// fragment coordinates are the layer's own canvas coordinates.
+uniform vec4 uSolidBackdrop;
 
 float uDisplacementScale = uOpticalProps.x;
 float uDispersion = uOpticalProps.y;
@@ -781,7 +787,11 @@ void main() {
     // Skip two texture reads only when the maximum channel separation is
     // subpixel. The uniform predicate stays coherent across the layer and the
     // displacement bound keeps this optimization valid for either CA sign.
-    if (
+    if (uSolidBackdrop.a > 0.5) {
+        // Every displaced, dispersed or softened read of a uniform backdrop
+        // returns its color; the branch is uniform across the draw.
+        refractColor = vec4(uSolidBackdrop.rgb, 1.0);
+    } else if (
         abs(uDispersion) * maxDisplacement <=
         kDispersionSubpixelThreshold
     ) {

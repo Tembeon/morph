@@ -421,3 +421,28 @@ Local patches (some commits include related package changes):
   path. roundedSuperellipseDegree exposes the octant degree n. The blur
   alone matches drawRSuperellipse's mask blur within one channel step
   (test/glass_shadow_shader_test.dart, --enable-impeller).
+- 2026-10-11 solid backdrop: LiquidGlassLayer.solidBackdrop (an opaque
+  Color, null by default = the filter path, unchanged in layers and
+  pixels). A layer that declares one draws its glass as one drawRect of
+  the final shader into a picture of its own (a ContainerLayer slot a
+  retained geometry refresh re-records) instead of the ClipRect +
+  BackdropFilterLayer (and the frost seed); no capture is registered.
+  New uniform uSolidBackdrop (vec4, float indices 65-68, after
+  uBackdropShrinkAxis): with alpha 1 every backdrop read (refraction,
+  dispersion, softening, the undisplaced texel fetch) returns its color,
+  a branch uniform across the draw. The analytic uniforms move by 4
+  (uAnalyticOptics 69, uAnalyticFlatFace 309, uFusedBoxes 310,
+  uShapeTints 342 fused / 310 separate). Over a solid backdrop the
+  fragment coordinates are the picture's canvas coordinates, so
+  syncCoordinateMapping writes basis dpr and offset -paintOffset x dpr
+  (the matte is layer-local device pixels), constant under compositor
+  motion; uSize gets the drawn rect's device size (only reads divide by
+  it). The common uniforms write uSolidBackdrop as zero (a new
+  FragmentShader's uniform buffer is NOT zeroed - SkData::MakeUninitialized
+  - and a freed solid shader's color showed up in the next layer's filter
+  on the host), and a layer leaving solid mode zeroes it again in the
+  shader it wrote. The frozen baseline core
+  (example/shader_audit/baseline) declares the uniform, unread, to keep
+  the layout the layer writes. The fake layer ignores it. Host A/B
+  against the filter over the same color:
+  example/test/solid_backdrop_host_test.dart.

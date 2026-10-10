@@ -53,6 +53,9 @@ uniform vec2 uMaterialTextureSize;
 // Half the line backdropShrink is about, matte device px from the material
 // center. Zero shrinks about the center itself.
 uniform vec2 uBackdropShrinkAxis;
+// The live shaders' solid backdrop; declared for the uniform layout the
+// layer writes, never read here (the baseline always reads the backdrop).
+uniform vec4 uSolidBackdrop;
 
 float uDisplacementScale = uOpticalProps.x;
 float uDispersion = uOpticalProps.y;

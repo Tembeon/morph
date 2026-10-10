@@ -46,6 +46,7 @@ class LiquidGlassLayer extends StatefulWidget {
     this.useBackdropGroup = false,
     this.backdropKey,
     this.blursOwnBackdrop = false,
+    this.solidBackdrop,
     this._field,
     super.key,
   }) : live = null,
@@ -69,6 +70,7 @@ class LiquidGlassLayer extends StatefulWidget {
     this.useBackdropGroup = false,
     this.backdropKey,
     this.blursOwnBackdrop = false,
+    this.solidBackdrop,
     super.key,
   }) : _settings = const LiquidGlassSettings(),
        _field = null;
@@ -168,6 +170,21 @@ class LiquidGlassLayer extends StatefulWidget {
   /// menu, a sheet) blurs cheaper without it. Ignored inside a backdrop
   /// group.
   final bool blursOwnBackdrop;
+
+  /// The opaque color that fills everything this layer's glass would read,
+  /// or null to read the backdrop.
+  ///
+  /// When the layer is painted directly over one opaque color - a card its
+  /// glass sits on, with nothing painted between the card and the layer -
+  /// refraction, dispersion and frost of that backdrop are that color. The
+  /// layer then draws its glass as an ordinary paint shaded over this
+  /// color instead of a backdrop filter: no backdrop read, no filter pass,
+  /// and the pixels match the filter's over that color. A color that is
+  /// not fully opaque is ignored. The color must really be what lies under
+  /// the glass: the layer cannot tell, and anything else painted under its
+  /// shapes (an image, text, a second fill) would not show through the
+  /// glass. Fake glass ignores it.
+  final Color? solidBackdrop;
 
   /// Whether there is a [LiquidGlassLayer] in the widget tree above the given
   /// [context].
@@ -359,6 +376,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer>
               tintIos27RenderShader: shaders[4],
               backdropKey: backdropKey,
               blursOwnBackdrop: widget.blursOwnBackdrop,
+              solidBackdrop: widget.solidBackdrop,
               live: live,
               settingsOf: () => widget.settings,
               defaultAppearance: defaultAppearance,
@@ -428,6 +446,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.tintIos27RenderShader,
     required this.backdropKey,
     required this.blursOwnBackdrop,
+    required this.solidBackdrop,
     required this.live,
     required this.settingsOf,
     required this.defaultAppearance,
@@ -444,6 +463,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final FragmentShader tintIos27RenderShader;
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
+  final Color? solidBackdrop;
   final Listenable? live;
   final LiquidGlassSettings Function() settingsOf;
   final LiquidGlassAppearance defaultAppearance;
@@ -468,6 +488,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
       gpuGeometryRenderer: gpuGeometryRenderer,
     );
     layer.blursOwnBackdrop = blursOwnBackdrop;
+    layer.solidBackdrop = solidBackdrop;
     layer.bindLive(live, () => _apply(layer));
     return layer;
   }
@@ -488,6 +509,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     renderObject.backdropKey = backdropKey;
     renderObject.gpuGeometryRenderer = gpuGeometryRenderer;
     renderObject.blursOwnBackdrop = blursOwnBackdrop;
+    renderObject.solidBackdrop = solidBackdrop;
     renderObject.bindLive(live, () => _apply(renderObject));
   }
 }
@@ -1171,6 +1193,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       ..setFloat(53, blurPassSigma > 0 ? 1 : 0)
       ..setFloat(54, softensInShader ? 1 : 0);
     _writeBackdropShrinkAxis(shader);
+    // A new shader's uniforms are not zeroed: read the backdrop until a
+    // solid frame writes its color.
+    for (var i = 0; i < 4; i++) {
+      shader.setFloat(_solidBackdropIndex + i, 0);
+    }
   }
 
   /// Writes uBackdropShrinkAxis (float indices 63 and 64): half the line the
@@ -1703,9 +1730,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   static bool get debugHasBlankImage => _blankImage != null;
 
   /// Float index of uAnalyticOptics, the first analytic uniform, after the
-  /// 65 common floats (shaders/analytic_geometry.glsl).
+  /// 69 common floats (shaders/analytic_geometry.glsl).
   @visibleForTesting
-  static const int analyticUniformIndex = 65;
+  static const int analyticUniformIndex = 69;
 
   /// Float index of uShapeData, after uAnalyticOptics and uAnalyticRanges.
   @visibleForTesting
@@ -1763,7 +1790,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   double _analyticSpacing = 0;
 
   // Writes the analytic frame's shapes and the geometry pass's optical
-  // inputs into [shader], from float index 65.
+  // inputs into [shader], from float index [analyticUniformIndex].
   void _writeAnalyticUniforms(FragmentShader shader) {
     shader.setFloat(analyticUniformIndex, _analyticRefractionHeight);
     shader.setFloat(analyticUniformIndex + 1, _analyticRefractionAmount);
@@ -1940,8 +1967,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @protected
   bool syncCoordinateMapping() {
-    final mapping = _currentCoordinateMapping();
-    final backdropBounds = backdropSampleBounds;
+    final solid = _solid != null;
+    final mapping = solid
+        ? _solidCoordinateMapping()
+        : _currentCoordinateMapping();
+    final backdropBounds = solid ? null : backdropSampleBounds;
     final changed =
         mapping != _coordinateMapping || backdropBounds != _backdropBounds;
     _coordinateMapping = mapping;
@@ -1971,6 +2001,23 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _mappedY(m, 0, 1) - originY,
       originX * devicePixelRatio,
       originY * devicePixelRatio,
+    );
+  }
+
+  // Over a solid backdrop the glass is a paint, whose fragment coordinates
+  // are the logical canvas coordinates it is recorded in: the layer's own
+  // coordinates shifted by its paint offset. The matte is the layer's own
+  // coordinates in device pixels, so neither the pass nor any ancestor
+  // transform enters, and compositor motion never changes the mapping.
+  (double, double, double, double, double, double) _solidCoordinateMapping() {
+    final offset = retainedPaintOffset;
+    return (
+      devicePixelRatio,
+      0,
+      0,
+      devicePixelRatio,
+      -offset.dx * devicePixelRatio,
+      -offset.dy * devicePixelRatio,
     );
   }
 
@@ -2030,6 +2077,40 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _shaderInputsChanged = true;
     markNeedsPaint();
   }
+
+  Color? _solidBackdrop;
+
+  /// See [LiquidGlassLayer.solidBackdrop].
+  Color? get solidBackdrop => _solidBackdrop;
+  set solidBackdrop(Color? value) {
+    if (_solidBackdrop == value) return;
+    _solidBackdrop = value;
+    _shaderInputsChanged = true;
+    markNeedsPaint();
+  }
+
+  /// The opaque color the glass is shaded over without a backdrop read, or
+  /// null when the layer reads its backdrop.
+  Color? get _solid {
+    final color = _solidBackdrop;
+    return color != null && color.a == 1 ? color : null;
+  }
+
+  /// Float index of uSolidBackdrop, after uBackdropShrinkAxis.
+  static const int _solidBackdropIndex = 65;
+
+  // The shaders whose uSolidBackdrop holds a color now; the others hold
+  // the initial zero, which reads the backdrop.
+  final Set<FragmentShader> _solidShaders = {};
+
+  // The slot of the picture the glass is recorded into over a solid
+  // backdrop; a retained geometry refresh replaces the picture in it.
+  final _solidHandle = LayerHandle<ContainerLayer>();
+
+  /// Whether the layer drew its glass as a paint over [solidBackdrop] in
+  /// its last frame.
+  @visibleForTesting
+  bool get debugDrawsOverSolidBackdrop => _solidHandle.layer != null;
 
   bool get _seedsBlur =>
       _blursOwnBackdrop &&
@@ -2140,6 +2221,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _filterMaterialBounds = materialBounds;
     _filterPaintOffset = offset;
     debugFilterBounds = filterBounds;
+    if (_solid case final solid?) {
+      _recordSolidMaterial(solid, filterBounds, offset);
+      return filterBounds;
+    }
     _clipRectLayerHandle.layer?.clipRect = filterBounds.shift(offset);
     if (_seedClipHandle.layer case final seedClip?) {
       if (_seedClip case final seed?) seedClip.clipRect = seed.shift(offset);
@@ -2154,6 +2239,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _cachedFilter = null;
     } else {
       syncCoordinateMapping();
+      if (_solidShaders.remove(renderShader)) {
+        renderShader.setFloat(_solidBackdropIndex + 3, 0);
+      }
       final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
         ..filter = _updateShaderFilter()
         ..backdropKey = backdropKey;
@@ -2174,6 +2262,13 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     Rect materialBounds,
   ) {
     if (!attached) return;
+    if (_solid != null) {
+      _releaseBackdropFilter();
+      _syncMaterialFilter(materialBounds, offset);
+      context.addLayer(_solidHandle.layer!);
+      return;
+    }
+    _solidHandle.layer = null;
     // The engine snapshots this shader's uniforms into the native image
     // filter at creation, so the composed filter can only be reused while
     // every snapshotted input is unchanged. Repaints with identical shader
@@ -2221,8 +2316,50 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     );
   }
 
+  // Records the glass as one rect painted with the final shader over
+  // [solid], into the layer's own picture so a retained geometry refresh
+  // can replace it without painting. The shader snapshots its uniforms and
+  // samplers when the rect is recorded, as the filter does when it is
+  // created. The background sampler keeps whatever image is bound to it
+  // (the matte or the blank image); the shader never reads it.
+  void _recordSolidMaterial(Color solid, Rect filterBounds, Offset offset) {
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final rect = filterBounds.shift(offset);
+    if (!drawableEmpty) {
+      syncCoordinateMapping();
+      final shader = renderShader;
+      _solidShaders.add(shader);
+      // uSize: only the backdrop reads divide by it.
+      shader.setFloat(0, max(filterBounds.width * devicePixelRatio, 1));
+      shader.setFloat(1, max(filterBounds.height * devicePixelRatio, 1));
+      // The surface's encoding: sRGB components, extended where the color
+      // lies outside sRGB (a Display P3 fill on a wide-gamut surface).
+      final color = solid.withValues(colorSpace: ColorSpace.extendedSRGB);
+      shader.setFloat(_solidBackdropIndex, color.r);
+      shader.setFloat(_solidBackdropIndex + 1, color.g);
+      shader.setFloat(_solidBackdropIndex + 2, color.b);
+      shader.setFloat(_solidBackdropIndex + 3, 1);
+      final paint = Paint();
+      paint.shader = shader;
+      // The filter path clips its output to this rect with a hard edge.
+      paint.isAntiAlias = false;
+      canvas.drawRect(rect, paint);
+    }
+    final slot = _solidHandle.layer ??= ContainerLayer();
+    slot.removeAllChildren();
+    final picture = PictureLayer(rect);
+    picture.picture = recorder.endRecording();
+    slot.append(picture);
+  }
+
   /// Drops native backdrop-filter state while this sample is idle.
   void _releaseCompositorFilter() {
+    _releaseBackdropFilter();
+    _solidHandle.layer = null;
+  }
+
+  void _releaseBackdropFilter() {
     _shaderHandle.layer = null;
     _clipRectLayerHandle.layer = null;
     _seedClipHandle.layer = null;
@@ -2285,9 +2422,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         markNeedsPaint();
       }
     }
+    final retained = _solid != null
+        ? _solidHandle.layer != null
+        : (_shaderHandle.layer != null || drawableEmpty) &&
+              _clipRectLayerHandle.layer != null;
     if (motion.needsRepaint &&
-        (_shaderHandle.layer != null || drawableEmpty) &&
-        _clipRectLayerHandle.layer != null &&
+        retained &&
         refreshRetainedGeometry((shapes, bounds, offset) {
           _syncMaterialFilter(bounds, offset, retained: true);
         })) {
@@ -2302,6 +2442,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _clipRectLayerHandle.layer = null;
     _seedClipHandle.layer = null;
     _seedHandle.layer = null;
+    _solidHandle.layer = null;
     _cachedFilter = null;
     _clearGeometryImage();
     _gpuGeometryRenderer = null;
