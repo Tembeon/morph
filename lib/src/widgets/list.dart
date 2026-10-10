@@ -207,12 +207,17 @@ class MorphListStyle {
 /// The card shades the resting glass in its rows - glass buttons in their
 /// trailing or leading slots, say - in one glass layer, as a
 /// [MorphGlassContainer] would, and since that glass can read nothing but
-/// the card's opaque color, it shades it over that color without reading
-/// the backdrop: no backdrop filter at all, instead of one per button. A
+/// the card's opaque color, on the liquid tier it shades it over that
+/// color without reading the backdrop: no backdrop filter at all, instead
+/// of one per button. The fake tier keeps one backdrop-reading layer for
+/// the card. A custom child's glass must be inset from the card's rounded
+/// edge by more than its refraction reaches: nearer, it shows the card's
+/// color where it would refract the page around the card. A
 /// [MorphListRow] whose highlight shows draws its glass
 /// in a layer of its own until the highlight goes, so the glass reads the
 /// highlight under it. Frosted controls ([MorphGlassRenderer.frostControls])
-/// keep their own layers: their blur reads the rows around them. Content a
+/// keep their own backdrop-reading layers: their blur reads the rows
+/// around them. Content a
 /// row's child paints under its own glass belongs in a layer of its own:
 /// wrap it in its own [MorphGlassContainer].
 ///

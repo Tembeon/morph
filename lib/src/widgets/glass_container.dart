@@ -77,7 +77,8 @@ class MorphGlassContainer extends StatefulWidget {
   /// GPU. The container trusts the color: glass over anything else shows
   /// this color instead. A member that leaves the container reads its
   /// backdrop in its own layer as before. Ignored unless the color is
-  /// fully opaque.
+  /// fully opaque, and ignored on the fake tier, whose container reads its
+  /// backdrop as before.
   final Color? solidBackdrop;
 
   @override
@@ -127,7 +128,7 @@ class MorphGlassStage extends StatefulWidget {
   /// - the stage shades its members over the color itself instead of
   /// reading the backdrop: no backdrop filter at all. A member that leaves
   /// the stage reads its backdrop in its own layer as before. Ignored
-  /// unless the color is fully opaque.
+  /// unless the color is fully opaque, and ignored on the fake tier.
   final Color? solidBackdrop;
 
   /// Whether the stage closes while its glass would blur: for a stage

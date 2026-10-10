@@ -856,7 +856,11 @@ reads the backdrop as it stood at the first stage, before its own card
 was painted, and its buttons draw over the page color (dark: 41 instead
 of 52 on the button face, max 12 against solid; light: max 4). Solid mode
 draws both sections as the first one, so the stacked-sections case of the
-shared-group rule disappears for list cards.
+shared-group rule disappears for list cards. With the stages gone from the
+root backdrop group, on iOS a resting glass surface painted after the list
+cards in that group reads the pass as it stood at the last backdrop flip
+before it, which may now precede the cards (option C, CLAUDE.md BACKDROP
+GROUPS: wrap such a section in its own BackdropGroup).
 
 Moto g86 (Impeller Vulkan, 120 Hz, liquid), glass audit list scene, three
 timed runs per launch, A B B A against 2453328 (perf/2026-10-11-night
