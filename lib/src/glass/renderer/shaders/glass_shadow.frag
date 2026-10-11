@@ -130,16 +130,31 @@ float blurAlpha(vec2 p) {
 
 void main() {
     vec2 p = FlutterFragCoord().xy;
+    vec2 local = p - uGlass.xy;
+    vec2 box = abs(local) - uGlass.zw;
+    float scale = uGlassCorner.y;
     // Outside the glass shape by its signed distance, over one device pixel.
-    float outside = sdfSquircle(
-        p - uGlass.xy,
-        uGlass.zw,
-        uGlassCorner.x,
-        uRseData[0],
-        uRseData[1],
-        uRseData[2]
-    );
-    float coverage = clamp(0.5 + outside * uGlassCorner.y, 0.0, 1.0);
+    // The shape lies inside its box and its outline within the corner
+    // radius of the box's, so a pixel more than a device pixel and a half
+    // outside the box, or inside it by the corner radius and that much,
+    // has its coverage saturated (with a pixel of margin for the solve's
+    // own error) and skips the solve.
+    float coverage;
+    if (length(max(box, 0.0)) * scale >= 1.5) {
+        coverage = 1.0;
+    } else if ((-max(box.x, box.y) - uGlassCorner.x) * scale >= 1.5) {
+        coverage = 0.0;
+    } else {
+        float outside = sdfSquircle(
+            local,
+            uGlass.zw,
+            uGlassCorner.x,
+            uRseData[0],
+            uRseData[1],
+            uRseData[2]
+        );
+        coverage = clamp(0.5 + outside * scale, 0.0, 1.0);
+    }
     vec4 color = vec4(0.0);
     if (coverage > 0.0) {
         color = uColor * (blurAlpha(p) * coverage);
