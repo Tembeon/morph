@@ -190,7 +190,12 @@ class _ClipEntry {
       _ => throw StateError('Unsupported retained clip'),
     };
     layer.enabled = behavior != Clip.none;
-    if (!layer.enabled) return;
+    if (!layer.enabled) {
+      // A path made while disabled is never stored, so the kept one no
+      // longer matches the clipper's state: rebuild it once re-enabled.
+      _geometry = null;
+      return;
+    }
     layer.clipBehavior = behavior;
     final transform = source.getTransformTo(owner);
     if (_sameGeometry(_geometry, geometry) &&

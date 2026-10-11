@@ -28,7 +28,11 @@ void main() {
     final shape = GlobalKey();
     final reclip = ValueNotifier(0);
     addTearDown(reclip.dispose);
-    Widget scene(_CountingClipper clipper, double width) => Directionality(
+    Widget scene(
+      _CountingClipper clipper,
+      double width, {
+      Clip behavior = Clip.antiAlias,
+    }) => Directionality(
       textDirection: TextDirection.ltr,
       child: Align(
         alignment: Alignment.topLeft,
@@ -40,6 +44,7 @@ void main() {
             alignment: Alignment.topLeft,
             child: ClipPath(
               clipper: clipper,
+              clipBehavior: behavior,
               child: SizedBox(key: shape, width: width, height: 50),
             ),
           ),
@@ -78,5 +83,16 @@ void main() {
     await tester.pumpWidget(scene(clipper, 120));
     expect(calls(clip.sync), 1);
     expect(calls(clip.sync), 0);
+
+    await tester.pumpWidget(scene(clipper, 150, behavior: Clip.none));
+    clip.sync();
+    expect(clip.ownerBounds, isNull);
+    await tester.pumpWidget(scene(clipper, 150));
+    clip.sync();
+    expect(
+      clip.ownerBounds,
+      const Rect.fromLTWH(0, 0, 150, 50),
+      reason: 'a resize while the clip was off must not leave the old path',
+    );
   });
 }
