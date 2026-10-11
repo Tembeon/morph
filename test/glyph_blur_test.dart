@@ -200,6 +200,31 @@ void main() {
     expect(MorphGlyphBlur.debugRasterCount, greaterThan(0));
   });
 
+  testWidgets('a magnified fade with a tiny blur keeps every texel finite', (
+    tester,
+  ) async {
+    await tester.runAsync(MorphGlyphBlur.precache);
+    const ratio = 2.0;
+    tester.view.devicePixelRatio = ratio;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    // Four times magnified, the kernel's floor of 0.4 screen pixels is a
+    // tenth of a texel: weights of exp(i^2 / 2s^2) times exp(i f / s^2)
+    // underflow and overflow at once there unless the sigma is bounded.
+    const scale = 4.0;
+    const opacity = 0.6;
+    MorphGlyphScale.debugExact = true;
+    await tester.pumpWidget(_glyphs(0, 1, scale));
+    final sharp = await _frame(tester, ratio);
+    final truth = _truth(sharp, 480, 0, opacity);
+    MorphGlyphScale.debugExact = false;
+    await tester.pumpWidget(const SizedBox());
+    await tester.pumpWidget(_glyphs(0.01, opacity, scale));
+    final now = _diff(truth, await _frame(tester, ratio));
+    debugPrint('magnified tiny blur vs sharp (max/mean/over15): $now');
+    expect(now.over, lessThan(1));
+    expect(now.mean, lessThan(3));
+  });
+
   testWidgets('the pyramids one frame needs are taken together, once', (
     tester,
   ) async {

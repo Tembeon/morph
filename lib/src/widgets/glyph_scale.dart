@@ -371,6 +371,13 @@ class _RenderGlyphBlur extends RenderProxyBox {
   /// The largest blur in texels the shader's taps cover.
   static const double _maxSigma = 2;
 
+  /// The smallest blur in texels the shader is given. Its weights are a
+  /// Gaussian factor that underflows times a factor that overflows as the
+  /// sigma shrinks; under about 0.15 texel their product is 0 times
+  /// infinity, NaN, on part of every texel. At 0.2 both stay finite with
+  /// margin, and the kernel is still a near-delta.
+  static const double _minSigma = 0.2;
+
   /// The largest blur, in logical pixels, drawn sharp.
   static const double minBlur = 0.05;
 
@@ -686,9 +693,9 @@ class _RenderGlyphBlur extends RenderProxyBox {
     final slot = _slots[level];
     // The texels are already a box filter of one texel; the kernel adds
     // the rest, and never less than 0.4 screen pixels, so texels finer or
-    // coarser than the screen never show.
+    // coarser than the screen never show, nor less than [_minSigma].
     final target = math.min(_blur * ratio, _maxSigma);
-    final least = 0.4 * ratio / screenScale;
+    final least = math.max(0.4 * ratio / screenScale, _minSigma);
     final sigma = math.sqrt(math.max(target * target - 1 / 12, least * least));
     final shader = _shader ??= MorphGlyphBlur._program!.fragmentShader();
     shader.setFloat(0, ratio);
