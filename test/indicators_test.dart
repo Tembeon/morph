@@ -426,6 +426,39 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('page control: a resting finger lets the ticker sleep, a '
+      'scrub wakes it', (WidgetTester tester) async {
+    var page = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) => Center(
+            child: MorphPageControl(
+              count: 5,
+              page: page,
+              onChanged: (int p) => setState(() => page = p),
+            ),
+          ),
+        ),
+      ),
+    );
+    final box = tester.getRect(find.byType(MorphPageControl));
+    final first = box.centerLeft + const Offset(14 + 9.67 / 2, 0);
+    final touch = await tester.startGesture(first);
+    for (var i = 0; i < 40; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(tester.hasRunningAnimations, isFalse);
+    for (var i = 0; i < 4; i++) {
+      await touch.moveBy(const Offset(12, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(page, greaterThan(0));
+    await touch.up();
+    await tester.pumpAndSettle();
+    expect(tester.hasRunningAnimations, isFalse);
+  });
+
   testWidgets('page control in RTL steps the other way; disabled ignores', (
     WidgetTester tester,
   ) async {

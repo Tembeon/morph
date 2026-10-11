@@ -190,9 +190,10 @@ class MorphPageControlMotion {
   /// The time the motion was last advanced to.
   double get time => _now;
 
-  /// Whether nothing moves.
+  /// Whether nothing moves. A resting finger does not count: the
+  /// control's moves and lift arrive as stamped pointer events, which wake
+  /// the clock.
   bool get isSettled =>
-      _downX == null &&
       _timeline.isEmpty &&
       _platter.isAtRest(_now, 0.002) &&
       _widths.every((MorphSpringState w) => w.isAtRest(_now, 0.01)) &&
@@ -595,9 +596,11 @@ class _PageControlPainter extends CustomPainter {
     const dot = MorphPageControlTuning.dotSize;
     const inset = (MorphPageControlTuning.indicatorSize - dot) / 2;
     final cy = size.height / 2;
+    var x = 0.0;
     for (var i = 0; i < motion.count; i++) {
       final w = motion.width(i, t);
-      var cx = MorphPageControlTuning.padding + motion.center(i, t);
+      var cx = MorphPageControlTuning.padding + (x + w / 2);
+      x += w + MorphPageControlTuning.spacing;
       if (rtl) cx = size.width - cx;
       final shape = RRect.fromRectAndRadius(
         Rect.fromCenter(
