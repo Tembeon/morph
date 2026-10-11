@@ -404,13 +404,20 @@ class FlutterGpuGeometryRenderer {
       materialMapHeight: writeMaterials ? materialMapHeight.toDouble() : 1.0,
       geometryAaHalfWidth: _geometryAaHalfWidth,
       numShapes: numShapes.toDouble(),
-      shapeData: shapeData,
-      rseData: rseData,
-      appearanceData: appearanceData,
-      boundsData: boundsData,
     );
-
-    final uniformView = _emplaceUniforms(_uniformData, _uniformSize);
+    // A field pass reads only the header, copied into its own block; the
+    // shape rows matter only to the shape pass and the material pass.
+    final readsShapeRows = field == null || writeMaterials;
+    gpu.BufferView? uniformView;
+    if (readsShapeRows) {
+      _packShapeRows(
+        shapeData: shapeData,
+        rseData: rseData,
+        appearanceData: appearanceData,
+        boundsData: boundsData,
+      );
+      uniformView = _emplaceUniforms(_uniformData, _uniformSize);
+    }
 
     final geometryCommandBuffer = gpu.gpuContext.createCommandBuffer();
     gpu.Texture? fieldTexture;
@@ -436,7 +443,7 @@ class FlutterGpuGeometryRenderer {
       geometryPass
         ..bindPipeline(_pipeline)
         ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
-        ..bindUniform(_uniformSlot, uniformView)
+        ..bindUniform(_uniformSlot, uniformView!)
         ..bindVertexBuffer(_vertexBufferView);
     } else {
       geometryPass.bindPipeline(_fieldPipeline);
@@ -458,7 +465,7 @@ class FlutterGpuGeometryRenderer {
                   : _materialGradientPipeline,
             )
             ..setPrimitiveType(gpu.PrimitiveType.triangleStrip)
-            ..bindUniform(_uniformSlot, uniformView)
+            ..bindUniform(_uniformSlot, uniformView!)
             ..bindVertexBuffer(_vertexBufferView);
       _restrictTo(
         materialPass,
@@ -749,10 +756,6 @@ class FlutterGpuGeometryRenderer {
     required double materialMapHeight,
     required double geometryAaHalfWidth,
     required double numShapes,
-    required List<double> shapeData,
-    required List<double> rseData,
-    required List<double> appearanceData,
-    required List<double> boundsData,
   }) {
     final floatData = _uniformData.buffer.asFloat32List();
 
@@ -779,7 +782,17 @@ class FlutterGpuGeometryRenderer {
     floatData[contourPropsIndex + 1] = materialScale;
     floatData[contourPropsIndex + 2] = materialMapWidth;
     floatData[contourPropsIndex + 3] = materialMapHeight;
+  }
 
+  /// Writes the per-shape rows after the header [_packUniformData] wrote:
+  /// shapes, superellipse parameters, appearances and cull bounds.
+  void _packShapeRows({
+    required List<double> shapeData,
+    required List<double> rseData,
+    required List<double> appearanceData,
+    required List<double> boundsData,
+  }) {
+    final floatData = _uniformData.buffer.asFloat32List();
     final shapeDataStartIndex = _offsetShapeData ~/ 4;
     const shapeLimit = maxShapes * 12;
     final shapeFloats = shapeData.length < shapeLimit
