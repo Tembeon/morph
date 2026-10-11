@@ -1027,6 +1027,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             final size = motion.menuRect.size;
             final scale = motion.contentScale;
             final at = motion.contentRect.topLeft - menu.rect.topLeft;
+            final cards = motion.cards;
             host.menuRowsRaster.value =
                 motion.contentBlur >= MorphGlyphRaster.minBlur;
             final layer = IgnorePointer(
@@ -1059,9 +1060,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                     rect: menu.rect,
                     child: ClipRRect(
                       borderRadius: .circular(menu.radius),
-                      clipBehavior: motion.cards.length > 1
-                          ? .none
-                          : .antiAlias,
+                      clipBehavior: cards.length > 1 ? .none : .antiAlias,
                       child: Stack(
                         clipBehavior: .none,
                         children: [
@@ -1085,11 +1084,16 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                                       clipBehavior: .none,
                                       children: [
                                         ..._glow(motion, style),
-                                        ..._cards(motion, style, top: false),
+                                        ..._cards(
+                                          motion,
+                                          style,
+                                          cards,
+                                          top: false,
+                                        ),
                                       ],
                                     ),
                                   ),
-                                  ..._cards(motion, style, top: true),
+                                  ..._cards(motion, style, cards, top: true),
                                 ],
                               ),
                             ),
@@ -1112,10 +1116,10 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
 
   List<Widget> _cards(
     MorphMenuMotion motion,
-    MorphMenuStyle style, {
+    MorphMenuStyle style,
+    List<MorphMenuCard> cards, {
     required bool top,
   }) {
-    final cards = motion.cards;
     final width = motion.tuning.menuWidth;
     final radius = motion.tuning.cornerRadius;
     if (top) {

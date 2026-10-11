@@ -1286,17 +1286,22 @@ class MorphMenuMotion {
   /// Whether a submenu card is open or opening.
   bool get hasSubmenu => _cards.any((_Card card) => !card.backing);
 
+  double _scaleUnder(int card, double t) {
+    var scale = 1.0;
+    for (var k = card; k < _cards.length; k++) {
+      final q = _cards[k].progress.value(t);
+      scale *= 1 - (1 - tuning.parentScale) * q;
+    }
+    return scale;
+  }
+
   /// The cards of the menu, the root list first.
   List<MorphMenuCard> get cards {
     final t = _now;
     final result = <MorphMenuCard>[];
     final count = _cards.length;
     for (var i = 0; i <= count; i++) {
-      var scale = 1.0;
-      for (var k = i; k < count; k++) {
-        final q = _cards[k].progress.value(t);
-        scale *= 1 - (1 - tuning.parentScale) * q;
-      }
+      final scale = _scaleUnder(i, t);
       final above = i < count ? _cards[i].progress.value(t) : 0.0;
       final opacity = (1 - (1 - tuning.parentRowOpacity) * above).clamp(
         0.0,
@@ -1755,7 +1760,7 @@ class MorphMenuMotion {
   MorphMenuBlob get rootBlob {
     if (_cards.isEmpty) return menuBlob;
     final frame = _menu;
-    final parentScale = cards.first.scale;
+    final parentScale = _scaleUnder(0, _now);
     final root = Rect.fromLTWH(
       frame.left + frame.width * (1 - parentScale) / 2,
       frame.top,
