@@ -22,6 +22,10 @@ python3 $D/compare.py a=a1.json,a2.json b=b1.json,b2.json                # varia
 ```
 
 - `ARCH` is `arm` for 32-bit-only devices (Redmi 6A), `arm64` otherwise.
+- Skia (Redmi): an install wipes the engine's compiled GL programs
+  (code_cache), so the first run after it compiles every program it meets
+  (200 - 1150 ms frames on the PowerVR). For steady-state numbers run once
+  to install and warm, then again with `--no-install`.
 - `NAV_MODES=flat` is required where liquid glass is unavailable (Skia).
 - `slots_missed` in `summ.py` counts vsync slots between consecutive frames
   inside each window (gaps over 200 ms excluded): an estimate of dropped

@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 """Install a nav bench APK, run it, pull the report; optional Dart CPU samples.
-usage: run.py SERIAL APK OUTBASE [--cpu] [--gpu] [--skia] [--hz | --60] [--real] [--endless]"""
+usage: run.py SERIAL APK OUTBASE [--cpu] [--gpu] [--skia] [--hz | --60] [--real] [--endless] [--no-install]
+
+--no-install launches the APK already on the device: on Skia an install
+wipes the engine's compiled-program cache (code_cache), so a warm-cache run
+is one run.py that installs followed by one with --no-install."""
 import json, re, subprocess, sys, time, urllib.parse, urllib.request, os
 serial, apk, out = sys.argv[1:4]
 cpu = '--cpu' in sys.argv
@@ -11,7 +15,8 @@ def adb(*a, check=True):
     r = subprocess.run(['adb', *a], env=env, capture_output=True, text=True, timeout=120)
     if check and r.returncode: raise RuntimeError(f'{a}: {r.stderr}')
     return r.stdout
-adb('install', '-r', '-d', apk)
+if '--no-install' not in sys.argv:
+    adb('install', '-r', '-d', apk)
 adb('shell', 'am', 'force-stop', PKG)
 adb('shell', 'rm', '-f', f'{DEV}/report.json', f'{DEV}/error.json')
 adb('logcat', '-c')
