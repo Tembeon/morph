@@ -1044,9 +1044,12 @@ class _OverlayViewState extends State<_OverlayView>
       rect.width,
       math.max(0, h),
     );
-    final transform = Matrix4.translationValues(anchor.dx, anchor.dy, 0);
-    transform.multiply(Matrix4.diagonal3Values(s, s, 1));
-    transform.multiply(Matrix4.translationValues(-anchor.dx, -anchor.dy, 0));
+    final transform = Matrix4.diagonal3Values(s, s, 1);
+    transform.setTranslationRaw(
+      anchor.dx - s * anchor.dx,
+      anchor.dy - s * anchor.dy,
+      0,
+    );
     final shape = RRect.fromRectAndRadius(
       Offset.zero & box.size,
       const Radius.circular(MorphDatePickerTuning.cornerRadius),
@@ -1098,7 +1101,9 @@ class _OverlayViewState extends State<_OverlayView>
                           maxWidth: double.infinity,
                           minHeight: 0,
                           maxHeight: double.infinity,
-                          child: child,
+                          // The content keeps its size while the scale, clip
+                          // and opacity above it change every frame.
+                          child: RepaintBoundary(child: child),
                         ),
                       ),
                     ),
