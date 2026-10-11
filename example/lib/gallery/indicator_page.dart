@@ -71,21 +71,27 @@ class _IndicatorPageState extends State<IndicatorPage>
                 viewStyle: MorphProgressViewStyle.bar,
               ),
               const SizedBox(height: 16),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  for (final v in const [0.0, 0.05, 0.3, 0.8, 1.0])
-                    SizedBox(
-                      width: 72,
-                      height: 40,
-                      child: MorphGlassButton(
-                        padding: .zero,
-                        onPressed: () => setState(() => _progress = v),
-                        child: Text('${(v * 100).round()}%'),
+              MorphGlassContainer(
+                solidBackdrop: MorphListStyle.resolve(
+                  context,
+                  null,
+                ).backgroundColor,
+                child: Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    for (final v in const [0.0, 0.05, 0.3, 0.8, 1.0])
+                      SizedBox(
+                        width: 72,
+                        height: 40,
+                        child: MorphGlassButton(
+                          padding: .zero,
+                          onPressed: () => setState(() => _progress = v),
+                          child: Text('${(v * 100).round()}%'),
+                        ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
               GalleryCaption('Page control: page ${_page + 1} of 5'),
               Center(
@@ -121,25 +127,31 @@ class _IndicatorPageState extends State<IndicatorPage>
                 ),
               ),
               const GalleryCaption('Activity indicators'),
-              Row(
-                children: [
-                  MorphActivityIndicator(animating: _spinning),
-                  const SizedBox(width: 32),
-                  MorphActivityIndicator(
-                    animating: _spinning,
-                    size: MorphActivityIndicatorSize.large,
-                  ),
-                  const SizedBox(width: 32),
-                  SizedBox(
-                    width: 100,
-                    height: 40,
-                    child: MorphGlassButton(
-                      padding: .zero,
-                      onPressed: _toggle,
-                      child: Text(_spinning ? 'Stop' : 'Start'),
+              MorphGlassContainer(
+                solidBackdrop: MorphListStyle.resolve(
+                  context,
+                  null,
+                ).backgroundColor,
+                child: Row(
+                  children: [
+                    MorphActivityIndicator(animating: _spinning),
+                    const SizedBox(width: 32),
+                    MorphActivityIndicator(
+                      animating: _spinning,
+                      size: MorphActivityIndicatorSize.large,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 32),
+                    SizedBox(
+                      width: 100,
+                      height: 40,
+                      child: MorphGlassButton(
+                        padding: .zero,
+                        onPressed: _toggle,
+                        child: Text(_spinning ? 'Stop' : 'Start'),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
