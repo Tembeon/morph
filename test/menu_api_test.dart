@@ -634,6 +634,63 @@ void main() {
       );
     });
   });
+  group('continuous resize', () {
+    List<MorphMenuEntry> rows(int count) => [
+      for (var i = 0; i < count; i++)
+        MorphMenuItem(title: 'Row $i', keepsMenuOpen: true),
+    ];
+
+    MorphMenuMotion open(MorphMenuContent content) {
+      final motion = MorphMenuMotion(
+        button: Rect.fromCenter(
+          center: const Offset(201, 150),
+          width: 48,
+          height: 48,
+        ),
+        layout: content.root,
+        bounds: const Size(402, 874),
+        padding: const EdgeInsets.only(top: 62, bottom: 34),
+      );
+      morphConnectMenu(motion, content);
+      motion.open(0, sourceScale: 1);
+      motion.advance(1);
+      return motion;
+    }
+
+    test('content that grows every frame grows the menu while it grows', () {
+      final content = MorphMenuContent(onChanged: ({required bool animate}) {});
+      content.entries = rows(2);
+      final motion = open(content);
+      final start = motion.visibleRootHeight;
+      var t = 1.0;
+      for (var count = 3; count <= 7; count++) {
+        t += 1 / 60;
+        content.entries = rows(count);
+        motion.updateLayout(t);
+      }
+      expect(motion.visibleRootHeight, greaterThan(start));
+      motion.advance(t + 2);
+      expect(
+        motion.visibleRootHeight,
+        moreOrLessEquals(content.root(reversed: false).height, epsilon: 0.01),
+      );
+    });
+
+    test('a change taken back before its delay resizes nothing', () {
+      final content = MorphMenuContent(onChanged: ({required bool animate}) {});
+      content.entries = rows(3);
+      final motion = open(content);
+      final start = motion.visibleRootHeight;
+      content.entries = rows(4);
+      motion.updateLayout(1.001);
+      content.entries = rows(3);
+      motion.updateLayout(1.002);
+      for (var t = 1.01; t < 2; t += 0.01) {
+        motion.advance(t);
+        expect(motion.visibleRootHeight, moreOrLessEquals(start));
+      }
+    });
+  });
   group('idle frames', () {
     test('a finger resting on a submenu row lets the clock doze until the '
         'card opens', () {

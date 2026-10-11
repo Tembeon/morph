@@ -990,6 +990,9 @@ class MorphMenuMotion {
   final List<_Card> _cards = [];
   final _Fade _cardFade = _Fade();
   int _resizeGeneration = 0;
+  int _resizePending = -1;
+  double _resizeTo = 0;
+  bool _resizeGrows = false;
   int _dwellGeneration = 0;
 
   final _DrivenKick _menuKick = _DrivenKick();
@@ -1141,8 +1144,11 @@ class MorphMenuMotion {
   /// With [animate] the menu grows on [MorphMenuTuning.growSpring] or
   /// shrinks on [MorphMenuTuning.shrinkSpring] after their delays, the
   /// way an open UIKit menu takes `updateVisibleMenu`; otherwise the new
-  /// height applies at once. Open cards are laid out again from the
-  /// targets that opened them; a card whose target is gone closes.
+  /// height applies at once. A change in the same direction while a
+  /// resize waits for its delay joins it: the resize takes the latest
+  /// height, so content that changes every frame still resizes the menu.
+  /// Open cards are laid out again from the targets that opened them; a
+  /// card whose target is gone closes.
   void updateLayout(double t, {bool animate = true}) {
     advance(t);
     _root = _build(reversed: _reversed);
@@ -1174,16 +1180,31 @@ class MorphMenuMotion {
       if (_phase == _Phase.idle) _place(_press.value(t));
       return;
     }
-    if ((height - _rootHeight.target).abs() < 1e-6) return;
+    final unchanged = (height - _rootHeight.target).abs() < 1e-6;
     final grow = height > _rootHeight.target;
+    if (_resizePending == _resizeGeneration) {
+      if (unchanged) {
+        _resizeGeneration++;
+        return;
+      }
+      if (grow == _resizeGrows) {
+        _resizeTo = height;
+        return;
+      }
+    }
+    if (unchanged) return;
     final generation = ++_resizeGeneration;
+    _resizePending = generation;
+    _resizeTo = height;
+    _resizeGrows = grow;
     _timeline.at(t + (grow ? tuning.growDelay : tuning.shrinkDelay), (
       double s,
     ) {
       if (generation != _resizeGeneration) return;
+      _resizePending = -1;
       _rootHeight.retarget(
         s,
-        height,
+        _resizeTo,
         spring: grow ? tuning.growSpring : tuning.shrinkSpring,
       );
     });
@@ -1912,6 +1933,7 @@ class MorphMenuMotion {
   void close(double t) {
     _openPending = false;
     _timeline.clear();
+    _resizeGeneration++;
     _pointer = null;
     advance(t);
     _close(t);
