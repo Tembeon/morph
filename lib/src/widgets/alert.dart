@@ -1092,9 +1092,7 @@ class _AlertCard extends StatelessWidget {
           if (buttons.isNotEmpty)
             Padding(
               padding: EdgeInsets.only(
-                top: fieldWidgets.isEmpty && hasHeader
-                    ? MorphAlertTuning.buttonInset
-                    : fieldWidgets.isEmpty
+                top: fieldWidgets.isEmpty
                     ? MorphAlertTuning.buttonInset
                     : MorphAlertTuning.fieldBottom,
                 left: MorphAlertTuning.buttonInset,
