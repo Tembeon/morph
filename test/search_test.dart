@@ -933,6 +933,57 @@ void main() {
       expect(tester.getRect(field).bottom, closeTo(_h - 28, 0.2));
     });
 
+    testWidgets('keyboard frames and transition frames reuse the parts', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(_w, _h));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      var keyboard = 0.0;
+      late StateSetter update;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              update = setState;
+              return MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(viewInsets: EdgeInsets.only(bottom: keyboard)),
+                child: const Stack(
+                  children: [
+                    Positioned.fill(
+                      child: MorphSearchToolbar(
+                        leading: [MorphBarButton(id: 'edit', label: 'Edit')],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+      Widget field() => tester.widget(find.byType(MorphSearchField));
+      Widget button() => tester.widget(find.byType(MorphGlassButton).first);
+      final shownField = field();
+      await tester.tap(find.byType(MorphSearchField));
+      await tester.pump();
+      for (var i = 1; i <= 4; i++) {
+        update(() => keyboard = 80.0 * i);
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(identical(field(), shownField), isTrue);
+      }
+      await tester.pump(const Duration(milliseconds: 60));
+      final shownButton = button();
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(identical(button(), shownButton), isTrue);
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+    });
+
     testWidgets('Escape ends the search', (tester) async {
       final active = <bool>[];
       await pump(tester, onActive: active.add);
@@ -1207,6 +1258,56 @@ void main() {
           const Rect.fromLTWH(88, 880, 324, 48),
           epsilon: 0.05,
         ),
+      );
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+    });
+
+    testWidgets('keyboard frames reuse the field', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(_w, _h));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      var keyboard = 0.0;
+      late StateSetter update;
+      final bar = Stack(
+        children: [
+          Positioned.fill(
+            child: MorphSearchTabBar(
+              items: const [
+                MorphTabItem(icon: Icons.home, label: 'Home'),
+                MorphTabItem(icon: Icons.book, label: 'Library'),
+              ],
+              selected: 0,
+              onChanged: (_) {},
+              searching: true,
+              onSearchingChanged: (_) {},
+            ),
+          ),
+        ],
+      );
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              update = setState;
+              return MediaQuery(
+                data: MediaQuery.of(
+                  context,
+                ).copyWith(viewInsets: EdgeInsets.only(bottom: keyboard)),
+                child: bar,
+              );
+            },
+          ),
+        ),
+      );
+      final shown = tester.widget(find.byType(MorphSearchField));
+      update(() => keyboard = 120);
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(
+        identical(tester.widget(find.byType(MorphSearchField)), shown),
+        isTrue,
       );
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),

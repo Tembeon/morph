@@ -248,6 +248,16 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     return MorphTabBarMetrics.geometry(count, 0).width;
   }
 
+  MorphSearchTabBar? _partsFor;
+  late MorphTabBar _tabBar;
+  late MorphSearchField _field;
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    _partsFor = null;
+  }
+
   void _measureBar() {
     final box = _bar.currentContext?.findRenderObject();
     if (box is RenderBox && box.hasSize && box.size.width != _barWidth) {
@@ -278,21 +288,29 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _measureBar();
     });
-    final bar = MorphTabBar(
-      key: _bar,
-      items: widget.items,
-      selected: selected,
-      onChanged: widget.onChanged,
-      style: widget.style,
-    );
-    final field = MorphSearchField(
-      controller: _controller,
-      focusNode: _focus,
-      placeholder: widget.placeholder,
-      onChanged: widget.onQueryChanged,
-      onSubmitted: widget.onSubmitted,
-      style: widget.searchStyle,
-    );
+    // The keyboard's inset rebuilds this on every frame of its rise and
+    // fall; the bar and the field depend only on the widget, so those
+    // rebuilds reuse them and Flutter skips their subtrees.
+    if (!identical(_partsFor, widget)) {
+      _partsFor = widget;
+      _tabBar = MorphTabBar(
+        key: _bar,
+        items: widget.items,
+        selected: selected,
+        onChanged: widget.onChanged,
+        style: widget.style,
+      );
+      _field = MorphSearchField(
+        controller: _controller,
+        focusNode: _focus,
+        placeholder: widget.placeholder,
+        onChanged: widget.onQueryChanged,
+        onSubmitted: widget.onSubmitted,
+        style: widget.searchStyle,
+      );
+    }
+    final bar = _tabBar;
+    final field = _field;
     final shortcuts = CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
         const SingleActivator(LogicalKeyboardKey.escape): _close,

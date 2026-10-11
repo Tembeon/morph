@@ -720,16 +720,87 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
     widget.onActiveChanged?.call(false);
   }
 
-  double _buttonWidth(MorphBarButton button, TextDirection direction) =>
-      math.max(
-        MorphSearchTuning.height,
-        morphBarContentWidth(
-          button,
-          MorphBarMetrics.toolbar,
-          MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.25),
-          direction,
-        ),
+  // The keyboard's inset rebuilds the bar on every frame of its rise and
+  // fall; the parts below depend only on the widget (and the text scale
+  // and direction for the widths), so those rebuilds reuse them and
+  // Flutter skips their subtrees.
+  MorphSearchToolbar? _partsFor;
+  late MorphSearchField _field;
+  late List<_GlassItem> _leadItems;
+  late List<_GlassItem> _trailItems;
+  _GlassItem? _close;
+  Color? _closeColor;
+  (TextScaler, TextDirection)? _widthsFor;
+  List<double> _leadWidths = const [];
+  List<double> _trailWidths = const [];
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    _partsFor = null;
+  }
+
+  double _buttonWidth(
+    MorphBarButton button,
+    TextScaler scaler,
+    TextDirection direction,
+  ) => math.max(
+    MorphSearchTuning.height,
+    morphBarContentWidth(button, MorphBarMetrics.toolbar, scaler, direction),
+  );
+
+  void _buildParts(TextDirection direction) {
+    if (!identical(_partsFor, widget)) {
+      _partsFor = widget;
+      _widthsFor = null;
+      _close = null;
+      _field = MorphSearchField(
+        controller: _controller,
+        focusNode: _focus,
+        placeholder: widget.placeholder,
+        onChanged: widget.onChanged,
+        onSubmitted: widget.onSubmitted,
+        style: widget.style,
       );
+      _leadItems = [
+        for (final b in widget.leading)
+          _GlassItem(button: b, style: widget.buttonStyle),
+      ];
+      _trailItems = [
+        for (final b in widget.trailing)
+          _GlassItem(button: b, style: widget.buttonStyle),
+      ];
+    }
+    final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.25);
+    if (_widthsFor != (scaler, direction)) {
+      _widthsFor = (scaler, direction);
+      _leadWidths = [
+        for (final b in widget.leading) _buttonWidth(b, scaler, direction),
+      ];
+      _trailWidths = [
+        for (final b in widget.trailing) _buttonWidth(b, scaler, direction),
+      ];
+    }
+    final glyph = MorphSearchFieldStyle.resolve(
+      context,
+      widget.style,
+    ).glyphColor;
+    if (_close == null || _closeColor != glyph) {
+      _closeColor = glyph;
+      _close = _GlassItem(
+        button: MorphBarButton(
+          id: 'morph.search.close',
+          icon: SizedBox.fromSize(
+            size: MorphSearchTuning.closeGlyphSize,
+            child: CustomPaint(painter: _CrossPainter(color: glyph)),
+          ),
+          onPressed: _end,
+          semanticLabel: widget.closeLabel,
+        ),
+        style: widget.buttonStyle,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -741,39 +812,13 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
       _motion.focus(clock, delay: MorphSearchTuning.keyboardLag);
       wake();
     }
-    final leadWidths = [
-      for (final b in widget.leading) _buttonWidth(b, direction),
-    ];
-    final trailWidths = [
-      for (final b in widget.trailing) _buttonWidth(b, direction),
-    ];
-    final field = MorphSearchField(
-      controller: _controller,
-      focusNode: _focus,
-      placeholder: widget.placeholder,
-      onChanged: widget.onChanged,
-      onSubmitted: widget.onSubmitted,
-      style: widget.style,
-    );
-    final close = _GlassItem(
-      button: MorphBarButton(
-        id: 'morph.search.close',
-        icon: SizedBox.fromSize(
-          size: MorphSearchTuning.closeGlyphSize,
-          child: CustomPaint(
-            painter: _CrossPainter(
-              color: MorphSearchFieldStyle.resolve(
-                context,
-                widget.style,
-              ).glyphColor,
-            ),
-          ),
-        ),
-        onPressed: _end,
-        semanticLabel: widget.closeLabel,
-      ),
-      style: widget.buttonStyle,
-    );
+    _buildParts(direction);
+    final leadWidths = _leadWidths;
+    final trailWidths = _trailWidths;
+    final field = _field;
+    final close = _close!;
+    final leadItems = _leadItems;
+    final trailItems = _trailItems;
     return CallbackShortcuts(
       bindings: <ShortcutActivator, VoidCallback>{
         const SingleActivator(LogicalKeyboardKey.escape): _end,
@@ -820,26 +865,20 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
               Rect side(Rect atRest, Rect atFocus) =>
                   focusing ? atRest : Rect.lerp(atFocus, atRest, 1 - p)!;
               final items = <Widget>[
-                for (var i = 0; i < widget.leading.length; i++)
+                for (var i = 0; i < leadItems.length; i++)
                   _placed(
                     side(rest.leading[i], virtual.leading[i]),
                     1 - p,
-                    _GlassItem(
-                      button: widget.leading[i],
-                      style: widget.buttonStyle,
-                    ),
-                    key: ValueKey<Object>(('lead', widget.leading[i].id)),
+                    leadItems[i],
+                    key: ValueKey<Object>(('lead', leadItems[i].button.id)),
                     interactive: !focusing,
                   ),
-                for (var i = 0; i < widget.trailing.length; i++)
+                for (var i = 0; i < trailItems.length; i++)
                   _placed(
                     side(rest.trailing[i], virtual.trailing[i]),
                     1 - p,
-                    _GlassItem(
-                      button: widget.trailing[i],
-                      style: widget.buttonStyle,
-                    ),
-                    key: ValueKey<Object>(('trail', widget.trailing[i].id)),
+                    trailItems[i],
+                    key: ValueKey<Object>(('trail', trailItems[i].button.id)),
                     interactive: !focusing,
                   ),
                 if (p > 0.001 || focusing)
