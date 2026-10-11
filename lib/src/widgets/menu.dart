@@ -1,7 +1,7 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:flutter/foundation.dart' show ValueListenable;
+import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -2413,7 +2413,8 @@ class _CardBackdropClipper extends CustomClipper<Path> {
   }
 
   @override
-  bool shouldReclip(_CardBackdropClipper oldClipper) => true;
+  bool shouldReclip(_CardBackdropClipper oldClipper) =>
+      !listEquals(oldClipper.under, under);
 }
 
 class _CardBasePainter extends CustomPainter {
@@ -2485,7 +2486,13 @@ class _CardPlatterPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CardPlatterPainter oldDelegate) => true;
+  bool shouldRepaint(_CardPlatterPainter oldDelegate) =>
+      oldDelegate.radius != radius ||
+      oldDelegate.tint != tint ||
+      oldDelegate.rim != rim ||
+      oldDelegate.blur != blur ||
+      oldDelegate.opacity != opacity ||
+      !listEquals(oldDelegate.under, under);
 }
 
 class _ChevronPainter extends CustomPainter {
