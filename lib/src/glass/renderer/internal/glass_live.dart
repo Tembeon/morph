@@ -158,27 +158,45 @@ class GlassLiveTransform extends SingleChildRenderObjectWidget {
   /// read again on every notification of [live].
   const GlassLiveTransform({
     required this.live,
-    required this.writeInto,
+    required void Function(Matrix4 into) this.writeInto,
     super.child,
     super.key,
-  });
+  }) : writeSizedInto = null;
+
+  /// Transforms [child] about its center by the matrix [writeSizedInto]
+  /// fills from the child's laid-out size, read again on every
+  /// notification of [live] and whenever that size changes.
+  const GlassLiveTransform.sized({
+    required this.live,
+    required void Function(Matrix4 into, Size size) this.writeSizedInto,
+    super.child,
+    super.key,
+  }) : writeInto = null;
 
   /// The source of the matrix, or null for a fixed one.
   final Listenable? live;
 
   /// Writes the current matrix into the identity matrix it is given.
-  final void Function(Matrix4 into) writeInto;
+  final void Function(Matrix4 into)? writeInto;
+
+  /// Writes the current matrix for a child of the given size into the
+  /// identity matrix it is given.
+  final void Function(Matrix4 into, Size size)? writeSizedInto;
 
   @override
   RenderTransform createRenderObject(BuildContext context) {
     final render = _RenderLiveTransform();
-    render.bind(live, writeInto);
+    render.bind(live, writeInto, writeSizedInto);
     return render;
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderTransform renderObject) {
-    (renderObject as _RenderLiveTransform).bind(live, writeInto);
+    (renderObject as _RenderLiveTransform).bind(
+      live,
+      writeInto,
+      writeSizedInto,
+    );
   }
 }
 
@@ -187,13 +205,37 @@ class _RenderLiveTransform extends RenderTransform with GlassLiveBinding {
     : super(transform: Matrix4.identity(), alignment: Alignment.center);
 
   final Matrix4 _scratch = Matrix4.identity();
+  void Function(Matrix4 into, Size size)? _sized;
+  Size? _writtenFor;
 
-  void bind(Listenable? live, void Function(Matrix4 into) writeInto) {
+  void bind(
+    Listenable? live,
+    void Function(Matrix4 into)? writeInto,
+    void Function(Matrix4 into, Size size)? writeSizedInto,
+  ) {
+    _sized = writeSizedInto;
     bindLive(live, () {
       _scratch.setIdentity();
-      writeInto(_scratch);
+      if (writeSizedInto != null) {
+        final size = hasSize ? this.size : Size.zero;
+        _writtenFor = size;
+        writeSizedInto(_scratch, size);
+      } else {
+        writeInto?.call(_scratch);
+      }
       transform = _scratch;
     });
+  }
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final sized = _sized;
+    if (sized == null || size == _writtenFor) return;
+    _writtenFor = size;
+    _scratch.setIdentity();
+    sized(_scratch, size);
+    transform = _scratch;
   }
 }
 
