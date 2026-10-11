@@ -2336,9 +2336,19 @@ class _WheelGeometry {
     return fade.last.$2;
   }
 
+  static final Map<_WheelGeometry, (Rect, Shader)> _shades = {};
+
   /// The mask that darkens the rows toward the cylinder's edges, over the
   /// wheels' box: opaque inside the band.
   Shader shade(Rect rect) {
+    final cached = _shades[this];
+    if (cached != null && cached.$1 == rect) return cached.$2;
+    final shader = _shadeFor(rect);
+    _shades[this] = (rect, shader);
+    return shader;
+  }
+
+  Shader _shadeFor(Rect rect) {
     final half = rect.height / 2;
     final steps = (half).ceil();
     final stops = <double>[];
