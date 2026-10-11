@@ -96,6 +96,10 @@ class MorphSlider extends StatefulWidget {
   final int ticks;
 
   /// The current value, 0 to 1.
+  ///
+  /// While the user drags or the value glides, the gesture leads: a value
+  /// that differs from the one last reported, such as a rounded or a
+  /// rejected one, moves the thumb once the drag and its glide end.
   final double value;
 
   /// Called with the new value while the user drags or the value glides;
@@ -136,7 +140,6 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   MorphSliderStyle _style = MorphSliderStyle.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
-  bool _reconcilePending = false;
 
   MorphSliderMotion _create() {
     final motion = MorphSliderMotion(
@@ -152,15 +155,16 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
 
   void _changed(double value) {
     widget.onChanged?.call(value);
-    if (_reconcilePending) return;
-    _reconcilePending = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _reconcilePending = false;
-      if (!mounted || widget.value == _motion.reportedValue) return;
-      _motion.setValue(clock, widget.value);
-      wake();
-    });
+    _reconcile();
   }
+
+  bool get _leading => _motion.isDragging || _motion.isGliding;
+
+  void _reconcile() => reconcileAfterFrame(() {
+    if (widget.value == _motion.reportedValue) return false;
+    _motion.setValue(clock, widget.value);
+    return true;
+  }, defer: () => _leading);
 
   void _ended(double value) => widget.onChangeEnd?.call(value);
 
@@ -174,10 +178,13 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   void didUpdateWidget(MorphSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
     _motion.ticks = widget.ticks;
-    if (widget.value != _motion.reportedValue && !_motion.isDragging) {
-      _motion.setValue(clock, widget.value);
-      wake();
+    if (widget.value == _motion.reportedValue) return;
+    if (_leading) {
+      _reconcile();
+      return;
     }
+    _motion.setValue(clock, widget.value);
+    wake();
   }
 
   bool get _enabled => widget.onChanged != null;

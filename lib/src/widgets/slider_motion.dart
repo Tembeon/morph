@@ -186,6 +186,9 @@ class MorphSliderMotion {
   /// Whether the finger is dragging the thumb.
   bool get isDragging => _press?.dragging ?? false;
 
+  /// Whether the value glides on after a release.
+  bool get isGliding => _glide != null;
+
   /// How far the stretched track's near end has moved: positive past the
   /// maximum end, negative past the minimum end.
   double get stretch => _stretch.value(_now);

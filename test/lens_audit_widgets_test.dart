@@ -114,6 +114,64 @@ void main() {
     );
   });
 
+  testWidgets('C4 slider keeps its drag and glide under a rounding parent', (
+    tester,
+  ) async {
+    final glass = _Glass();
+    var value = 0.3;
+    final ended = <double>[];
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          width: 300,
+          child: StatefulBuilder(
+            builder: (context, update) => MorphSlider(
+              value: value,
+              onChanged: (v) => update(() => value = (v * 100).round() / 100),
+              onChangeEnd: ended.add,
+            ),
+          ),
+        ),
+        glass: glass,
+      ),
+    );
+    final rect = tester.getRect(find.byType(MorphSlider));
+    final thumb = glass.surfaces[MorphGlassKind.thumb]!.shape.outerRect;
+    final gesture = await tester.startGesture(rect.topLeft + thumb.center);
+    for (var i = 0; i < 8; i++) {
+      await gesture.moveBy(const Offset(40, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(
+      glass.surfaces[MorphGlassKind.thumb]!.shape.outerRect.right,
+      greaterThan(rect.width + 0.5),
+      reason: 'dragging past the end stretches the track',
+    );
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(ended, [1.0]);
+    expect(value, 1.0);
+
+    await tester.flingFrom(
+      rect.topLeft + glass.surfaces[MorphGlassKind.thumb]!.shape.center,
+      const Offset(-90, 0),
+      1000,
+    );
+    final atRelease = value;
+    await tester.pumpAndSettle();
+    expect(
+      value,
+      lessThan(atRelease - 0.1),
+      reason: 'the glide runs on after the release',
+    );
+    expect(ended.last, closeTo(value, 0.005));
+    expect(
+      glass.surfaces[MorphGlassKind.thumb]!.shape.center.dx,
+      closeTo(18.5 + value * (rect.width - 37), 0.01),
+      reason: 'the thumb lands on the parent value',
+    );
+  });
+
   testWidgets('C5 segmented ignores second finger cancel and movement', (
     tester,
   ) async {

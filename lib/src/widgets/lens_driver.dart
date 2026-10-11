@@ -54,23 +54,15 @@ mixin MorphLensDriver<T extends StatefulWidget> on MorphControlHost<T> {
   @override
   bool get motionSettled => motion.isSettled;
 
-  bool _reconcilePending = false;
-
   /// Reconciles a user selection with the parent's current [selected]
   /// after callbacks and the resulting rebuild have finished.
-  void reconcileSelection(int Function() selected) {
-    if (_reconcilePending) return;
-    _reconcilePending = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _reconcilePending = false;
-      if (!mounted) return;
-      final index = selected();
-      if (motion.selected == index) return;
-      motion.select(clock, index, notify: false);
-      setState(() {});
-      wake();
-    });
-  }
+  void reconcileSelection(int Function() selected) => reconcileAfterFrame(() {
+    final index = selected();
+    if (motion.selected == index) return false;
+    motion.select(clock, index, notify: false);
+    setState(() {});
+    return true;
+  });
 
   @override
   void onControlDown(double t, PointerDownEvent event) =>

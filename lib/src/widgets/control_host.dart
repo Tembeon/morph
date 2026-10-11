@@ -101,6 +101,38 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   double _eventTime(PointerEvent event) =>
       stampPointerUpdates ? stamp(event) : clock;
 
+  bool Function()? _reconcile;
+  bool Function()? _reconcileDefer;
+
+  /// Calls [apply] after the current frame, once however often this is
+  /// called before then, so the parent's callbacks and the rebuild they
+  /// cause have run: a parent that rejects or adjusts a reported value is
+  /// reconciled with the motion. The latest [apply] and [defer] win.
+  ///
+  /// While [defer] answers true, the call moves to the end of the next
+  /// frame; a control defers while its gesture leads the value. [apply]
+  /// returns whether it changed the motion, which then wakes the clock.
+  void reconcileAfterFrame(bool Function() apply, {bool Function()? defer}) {
+    final pending = _reconcile != null;
+    _reconcile = apply;
+    _reconcileDefer = defer;
+    if (!pending) _scheduleReconcile();
+  }
+
+  void _scheduleReconcile() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_reconcileDefer?.call() ?? false) {
+        _scheduleReconcile();
+        return;
+      }
+      final apply = _reconcile;
+      _reconcile = null;
+      _reconcileDefer = null;
+      if (apply != null && apply()) wake();
+    });
+  }
+
   Widget? _built;
   bool _stale = true;
   Object? _builtFrom;

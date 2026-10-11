@@ -110,7 +110,6 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
   MorphSwitchStyle _style = MorphSwitchStyle.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
-  bool _reconcilePending = false;
 
   MorphSwitchMotion _create() {
     final motion = MorphSwitchMotion(
@@ -123,13 +122,10 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
 
   void _changed(bool value) {
     if (value != widget.value) widget.onChanged?.call(value);
-    if (_reconcilePending) return;
-    _reconcilePending = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _reconcilePending = false;
-      if (!mounted || widget.value == _motion.value) return;
+    reconcileAfterFrame(() {
+      if (widget.value == _motion.value) return false;
       _motion.setValue(clock, value: widget.value);
-      wake();
+      return true;
     });
   }
 
