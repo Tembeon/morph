@@ -713,7 +713,22 @@ const List<List<List<int>>> _kEdgeTable = <List<List<int>>>[
   <List<int>>[],
 ];
 
-Offset _zeroCrossing(
+/// The two marching-squares segments of a saddle cell, by whether its
+/// center joins the two inside corners or splits them.
+const List<List<int>> _kSaddleJoined = <List<int>>[
+  <int>[3, 0],
+  <int>[2, 1],
+];
+const List<List<int>> _kSaddleSplit = <List<int>>[
+  <int>[3, 2],
+  <int>[0, 1],
+];
+
+/// Writes the zero crossing between (x0, y0) valued v0 and (x1, y1)
+/// valued v1 into [out] at [at] (x, then y).
+void _zeroCrossingInto(
+  Float64List out,
+  int at,
   double x0,
   double y0,
   double v0,
@@ -723,7 +738,38 @@ Offset _zeroCrossing(
 ) {
   final double denom = v0 - v1;
   final double t = denom.abs() < 1e-6 ? 0.5 : (v0 / denom).clamp(0.0, 1.0);
-  return Offset(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t);
+  out[at] = x0 + (x1 - x0) * t;
+  out[at + 1] = y0 + (y1 - y0) * t;
+}
+
+/// Grid and segment buffers shared by every trace: a moving piece
+/// re-traces its cluster each frame, and a fresh grid per miss is up to
+/// megabytes of old-generation garbage. Tracing is synchronous and never
+/// re-entrant, so one set serves the whole process.
+abstract final class _TraceScratch {
+  static Float64List _grid = Float64List(0);
+
+  /// Segment endpoints, four doubles per segment (ax, ay, bx, by).
+  static Float64List segments = Float64List(256);
+
+  /// A sample grid with room for at least [values] values.
+  static Float64List grid(int values) {
+    if (_grid.length < values) {
+      _grid = Float64List(values + values ~/ 2);
+    }
+    return _grid;
+  }
+
+  /// [segments] with room for at least [count] segments, the first
+  /// [used] of them kept.
+  static Float64List reserveSegments(int count, int used) {
+    if (segments.length < count * 4) {
+      final Float64List grown = Float64List(count * 8);
+      grown.setRange(0, used * 4, segments);
+      segments = grown;
+    }
+    return segments;
+  }
 }
 
 /// The finest outline grid step in px: a smaller `cell` traces at this
@@ -800,8 +846,8 @@ List<List<Offset>> _tracedAndSmoothed(
 }
 
 /// A stateful tracer with a per-cluster cache: only clusters whose
-/// geometry actually changed are re-traced; the rest reuse their loops
-/// from the previous call. This is what keeps a mostly-static group
+/// geometry actually changed are re-traced; the rest reuse their built
+/// paths from the previous call. This is what keeps a mostly-static group
 /// cheap while one piece animates (a flight blob crossing the canvas
 /// re-traces its own cluster, not the whole scene).
 ///
@@ -832,7 +878,8 @@ class LiquidTracer {
     int? evalBudget = liquidDefaultEvalBudget,
   }) {
     final double step = math.max(liquidMinCell, cell);
-    final Path path = Path()..fillType = .evenOdd;
+    final Path path = Path();
+    path.fillType = .evenOdd;
     final Map<int, List<_ClusterCacheEntry>> next =
         <int, List<_ClusterCacheEntry>>{};
     final List<List<MorphMass>> clusters = _clusterShapes(
@@ -850,34 +897,33 @@ class LiquidTracer {
         evalBudget,
       );
       final int hash = Object.hashAll(signature);
-      List<List<Offset>>? loops = _lookup(_cache[hash], signature);
-      if (loops == null) {
+      _ClusterCacheEntry? entry = _lookup(_cache[hash], signature);
+      if (entry == null) {
         misses++;
-        loops = _tracedAndSmoothed(
-          cluster,
-          field.k,
-          step,
-          smoothPasses,
-          evalBudget,
+        entry = _ClusterCacheEntry(
+          signature,
+          _loopsPath(
+            _tracedAndSmoothed(
+              cluster,
+              field.k,
+              step,
+              smoothPasses,
+              evalBudget,
+            ),
+          ),
         );
       }
-      (next[hash] ??= <_ClusterCacheEntry>[]).add(
-        _ClusterCacheEntry(signature, loops),
-      );
-      for (final List<Offset> loop in loops) {
-        path.moveTo(loop.first.dx, loop.first.dy);
-        for (int i = 1; i < loop.length; i++) {
-          path.lineTo(loop[i].dx, loop[i].dy);
-        }
-        path.close();
-      }
+      (next[hash] ??= <_ClusterCacheEntry>[]).add(entry);
+      // A cached cluster joins the frame path as one native append, not
+      // its points again.
+      path.addPath(entry.path, Offset.zero);
     }
     lastMissCount = misses;
     _cache = next;
     return path;
   }
 
-  static List<List<Offset>>? _lookup(
+  static _ClusterCacheEntry? _lookup(
     List<_ClusterCacheEntry>? entries,
     Float64List signature,
   ) {
@@ -886,7 +932,7 @@ class LiquidTracer {
     }
     for (final _ClusterCacheEntry entry in entries) {
       if (_signaturesEqual(entry.signature, signature)) {
-        return entry.loops;
+        return entry;
       }
     }
     return null;
@@ -929,10 +975,25 @@ class LiquidTracer {
 }
 
 class _ClusterCacheEntry {
-  const _ClusterCacheEntry(this.signature, this.loops);
+  const _ClusterCacheEntry(this.signature, this.path);
 
   final Float64List signature;
-  final List<List<Offset>> loops;
+
+  /// The cluster's loops, built into a path once on the miss.
+  final Path path;
+}
+
+/// The closed subpaths of [loops], one per loop.
+Path _loopsPath(List<List<Offset>> loops) {
+  final Path path = Path();
+  for (final List<Offset> loop in loops) {
+    path.moveTo(loop.first.dx, loop.first.dy);
+    for (int i = 1; i < loop.length; i++) {
+      path.lineTo(loop[i].dx, loop[i].dy);
+    }
+    path.close();
+  }
+  return path;
 }
 
 class _ClusterTrace {
@@ -1007,7 +1068,7 @@ _ClusterTrace _traceCluster(
   }
 
   final _FieldSampler sampler = _FieldSampler(shapes, k);
-  final Float64List values = Float64List(cols * rows);
+  final Float64List values = _TraceScratch.grid(cols * rows);
   for (int j = 0; j < rows; j++) {
     final double y = b.top + j.toDouble() * step;
     final int rowBase = j * cols;
@@ -1016,33 +1077,37 @@ _ClusterTrace _traceCluster(
     }
   }
 
-  final List<(Offset, Offset)> segments = _marchGrid(
+  final int count = _marchGrid(
     values,
     cols,
     rows,
     b.left,
     b.top,
     step,
-    sampler.eval,
+    sampler,
   );
 
-  return _ClusterTrace(_stitch(segments, step), extraSmoothPasses);
+  return _ClusterTrace(
+    _stitch(_TraceScratch.segments, count, step),
+    extraSmoothPasses,
+  );
 }
 
 /// Marching squares over a sampled grid: the segments of the zero
 /// iso-contour of [values] ([cols] x [rows], row-major, vertex (i, j) at
-/// ([left] + i [step], [top] + j [step])). [centerAt] resolves the two
-/// saddle cases by the field at a cell's center.
-List<(Offset, Offset)> _marchGrid(
+/// ([left] + i [step], [top] + j [step])), written into
+/// [_TraceScratch.segments]; returns their count. [sampler] resolves the
+/// two saddle cases by the field at a cell's center.
+int _marchGrid(
   Float64List values,
   int cols,
   int rows,
   double left,
   double top,
   double step,
-  double Function(double x, double y) centerAt,
+  _FieldSampler sampler,
 ) {
-  final List<(Offset, Offset)> segments = <(Offset, Offset)>[];
+  int count = 0;
   for (int j = 0; j < rows - 1; j++) {
     for (int i = 0; i < cols - 1; i++) {
       final double vTL = values[j * cols + i];
@@ -1071,38 +1136,40 @@ List<(Offset, Offset)> _marchGrid(
       final double x1 = x0 + step;
       final double y1 = y0 + step;
 
-      Offset edgePoint(int edge) => switch (edge) {
-        0 => _zeroCrossing(x0, y0, vTL, x1, y0, vTR),
-        1 => _zeroCrossing(x1, y0, vTR, x1, y1, vBR),
-        2 => _zeroCrossing(x0, y1, vBL, x1, y1, vBR),
-        _ => _zeroCrossing(x0, y0, vTL, x0, y1, vBL),
-      };
-
       List<List<int>> cases = _kEdgeTable[mask];
       if (mask == 5 || mask == 10) {
-        final double center = centerAt((x0 + x1) / 2, (y0 + y1) / 2);
+        final double center = sampler.eval((x0 + x1) / 2, (y0 + y1) / 2);
         final bool insideCenter = center < 0;
-        final List<List<int>> joined = <List<int>>[
-          <int>[3, 0],
-          <int>[2, 1],
-        ];
-        final List<List<int>> split = <List<int>>[
-          <int>[3, 2],
-          <int>[0, 1],
-        ];
         if (mask == 5) {
-          cases = insideCenter ? joined : split;
+          cases = insideCenter ? _kSaddleJoined : _kSaddleSplit;
         } else {
-          cases = insideCenter ? split : joined;
+          cases = insideCenter ? _kSaddleSplit : _kSaddleJoined;
         }
       }
+      final Float64List out = _TraceScratch.reserveSegments(
+        count + cases.length,
+        count,
+      );
       for (final List<int> pair in cases) {
-        segments.add((edgePoint(pair[0]), edgePoint(pair[1])));
+        for (int end = 0; end < 2; end++) {
+          final int at = count * 4 + end * 2;
+          switch (pair[end]) {
+            case 0:
+              _zeroCrossingInto(out, at, x0, y0, vTL, x1, y0, vTR);
+            case 1:
+              _zeroCrossingInto(out, at, x1, y0, vTR, x1, y1, vBR);
+            case 2:
+              _zeroCrossingInto(out, at, x0, y1, vBL, x1, y1, vBR);
+            default:
+              _zeroCrossingInto(out, at, x0, y0, vTL, x0, y1, vBL);
+          }
+        }
+        count++;
       }
     }
   }
 
-  return segments;
+  return count;
 }
 
 /// The evaluator of [field] for a sampling loop: the merge law at (x, y)
@@ -1136,28 +1203,48 @@ final class LiquidFieldSampler {
 
 /// Stitches loose segments into closed loops: endpoints snap together
 /// with half-grid-step precision - on thin necks numerically identical
-/// points drift slightly apart.
-List<List<Offset>> _stitch(List<(Offset, Offset)> segments, double cell) {
+/// points drift slightly apart. [segments] holds [count] segments, four
+/// doubles each (ax, ay, bx, by); endpoint e of segment i is index
+/// 2 i + e.
+List<List<Offset>> _stitch(Float64List segments, int count, double cell) {
   final double eps = cell * 0.5;
-  (int, int) key(Offset p) => ((p.dx / eps).round(), (p.dy / eps).round());
-
-  final Map<(int, int), List<(int, int)>> byEndpoint =
-      <(int, int), List<(int, int)>>{};
-  for (int i = 0; i < segments.length; i++) {
-    byEndpoint.putIfAbsent(key(segments[i].$1), () => <(int, int)>[]).add((
-      i,
-      0,
-    ));
-    byEndpoint.putIfAbsent(key(segments[i].$2), () => <(int, int)>[]).add((
-      i,
-      1,
-    ));
+  final int endpoints = count * 2;
+  final List<int> kx = List<int>.filled(endpoints, 0);
+  final List<int> ky = List<int>.filled(endpoints, 0);
+  int minX = 0;
+  int minY = 0;
+  int maxY = 0;
+  for (int e = 0; e < endpoints; e++) {
+    final int x = (segments[e * 2] / eps).round();
+    final int y = (segments[e * 2 + 1] / eps).round();
+    kx[e] = x;
+    ky[e] = y;
+    if (e == 0 || x < minX) {
+      minX = x;
+    }
+    if (e == 0 || y < minY) {
+      minY = y;
+    }
+    if (e == 0 || y > maxY) {
+      maxY = y;
+    }
+  }
+  // One int per snapped point instead of an (int, int) record: each
+  // axis spans at most twice the grid it was traced on (the cell cap
+  // bounds it), so the packing is injective and cannot overflow.
+  final int span = maxY - minY + 1;
+  final List<int> key = List<int>.filled(endpoints, 0);
+  final Map<int, List<int>> byEndpoint = <int, List<int>>{};
+  for (int e = 0; e < endpoints; e++) {
+    final int packed = (kx[e] - minX) * span + (ky[e] - minY);
+    key[e] = packed;
+    (byEndpoint[packed] ??= <int>[]).add(e);
   }
 
-  final List<bool> used = .filled(segments.length, false);
+  final List<bool> used = .filled(count, false);
   final List<List<Offset>> loops = <List<Offset>>[];
 
-  for (int start = 0; start < segments.length; start++) {
+  for (int start = 0; start < count; start++) {
     if (used[start]) {
       continue;
     }
@@ -1165,19 +1252,17 @@ List<List<Offset>> _stitch(List<(Offset, Offset)> segments, double cell) {
     int current = start;
     int end = 0;
     int guard = 0;
-    while (!used[current] && guard++ < segments.length + 2) {
+    while (!used[current] && guard++ < count + 2) {
       used[current] = true;
-      final (Offset, Offset) seg = segments[current];
-      final Offset a = end == 0 ? seg.$1 : seg.$2;
-      final Offset b = end == 0 ? seg.$2 : seg.$1;
-      loop.add(a);
-      final List<(int, int)> candidates = byEndpoint[key(b)] ?? <(int, int)>[];
+      final int a = current * 2 + end;
+      final int b = current * 2 + 1 - end;
+      loop.add(Offset(segments[a * 2], segments[a * 2 + 1]));
       int next = -1;
       int nextEnd = 0;
-      for (final (int seg, int segEnd) in candidates) {
-        if (!used[seg]) {
-          next = seg;
-          nextEnd = segEnd;
+      for (final int candidate in byEndpoint[key[b]]!) {
+        if (!used[candidate >> 1]) {
+          next = candidate >> 1;
+          nextEnd = candidate & 1;
           break;
         }
       }
