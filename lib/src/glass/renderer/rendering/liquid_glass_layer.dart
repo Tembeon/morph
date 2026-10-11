@@ -1023,8 +1023,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   /// The final shader the current appearances draw with: each variant
   /// compiles only the color models it can meet, which keeps the
-  /// one-appearance and tint-only variants inside the register budget of
-  /// full thread occupancy on a Mali-G78.
+  /// one-appearance and tint-only matte variants inside the register
+  /// budget of full thread occupancy on a Mali-G78. The analytic variants,
+  /// built for [analyticMaxShapes] shapes, run at half occupancy there.
   FragmentShader get renderShader {
     final ios27 =
         (_uniformAppearance ?? defaultAppearance).colorModel
