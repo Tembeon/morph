@@ -168,6 +168,7 @@ void main() {
     WidgetTester tester,
   ) async {
     int counter = 0;
+    int placements = 0;
     late StateSetter rebuild;
     await tester.pumpWidget(
       MaterialApp(
@@ -181,7 +182,12 @@ void main() {
                 child: MorphAnchor(
                   isOpen: true,
                   onDismiss: () {},
-                  target: MorphTargetSpec.sheet(),
+                  target: MorphTargetSpec(
+                    rectFor: (Size overlay, EdgeInsets padding) {
+                      placements++;
+                      return Rect.fromLTWH(20, 200, overlay.width - 40, 300);
+                    },
+                  ),
                   closedBuilder: (BuildContext context) =>
                       const Text('anchor-btn'),
                   openBuilder: (BuildContext context, MorphFlight flight) =>
@@ -197,6 +203,7 @@ void main() {
     await settle(tester);
     expect(find.text('count-0'), findsOneWidget);
 
+    final int placementsBefore = placements;
     rebuild(() => counter = 7);
     await tester.pump();
     await tester.pump();
@@ -206,6 +213,13 @@ void main() {
       reason:
           'overlay content derives from the owner state like the '
           'inline widget does - it must rebuild with the anchor',
+    );
+    expect(
+      placements,
+      placementsBefore,
+      reason:
+          'only the content follows the owner; the shuttle frame chain '
+          'and its placement do not rebuild',
     );
   });
 

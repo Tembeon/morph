@@ -726,9 +726,27 @@ class MorphFlight {
   /// Rebuilds the shuttle's content subtree from the current builder
   /// closure. Overlay content does not follow its owner's build on its
   /// own (an OverlayEntry is an island): a state owner whose open
-  /// content derives from that state calls this after setState -
-  /// [MorphAnchor] does it on every rebuild.
+  /// content derives from that state calls this after setState.
+  /// [MorphAnchor] refreshes its content on every rebuild through a
+  /// narrower seam that leaves the shuttle's frame chain alone.
   void markNeedsBuild() => _entry?.markNeedsBuild();
+
+  /// Bumped to rebuild only the target content (the builder closure),
+  /// not the shuttle or the settled route page around it.
+  @internal
+  Listenable get contentRevision => _contentRevision;
+  final ValueNotifier<int> _contentRevision = ValueNotifier<int>(0);
+
+  /// Rebuilds the target content from the current builder closure,
+  /// wherever it is mounted, without rebuilding the frame chain, the
+  /// layout or the placement around it.
+  @internal
+  void markContentNeedsBuild() {
+    if (_controllerDisposed) {
+      return;
+    }
+    _contentRevision.value++;
+  }
 
   /// Routes a dismissal through [onDismissRequested] when set,
   /// otherwise calls [close] - the single funnel for scrim taps, Esc
@@ -1020,6 +1038,7 @@ class MorphFlight {
       _contentSize.dispose();
       _scrim?.dispose();
       routeOwnsContent.dispose();
+      _contentRevision.dispose();
       sourceThemes.dispose();
     }
   }
@@ -1414,8 +1433,10 @@ Widget buildMorphTargetContent({
         flight: flight,
         isTarget: true,
         anchorKey: anchorKey,
-        child: Builder(
-          builder: (BuildContext context) => flight.builder(context, flight),
+        child: ListenableBuilder(
+          listenable: flight.contentRevision,
+          builder: (BuildContext context, Widget? _) =>
+              flight.builder(context, flight),
         ),
       ),
     ),

@@ -336,7 +336,9 @@ What is where:
   with its live state. This is the one sanctioned GlobalKey move; the
   wrapper chain under the key must stay identical on both sides:
   KeyedSubtree > MorphFlightScope > MorphSurfaceSpecScope >
-  SharedSideScope > Builder.
+  SharedSideScope > ListenableBuilder (the flight's content revision:
+  MorphAnchor's rebuilds refresh only the builder, not the frame chain
+  or the layout around it).
 - A pop hands the content back the same way and plays the ordinary
   close; a close launched from the flight side retires the route via
   the route's controller listener.

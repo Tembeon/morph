@@ -199,14 +199,15 @@ class _MorphAnchorState extends State<MorphAnchor> {
       // The anchor rebuilt while open: the overlay content derives from
       // the owner's state exactly like the inline widget does, so it
       // rebuilds with the anchor - an OverlayEntry does not follow the
-      // owner's build on its own. The entry is no ancestor of this
+      // owner's build on its own. The content is no descendant of this
       // subtree, so marking it during build is illegal - defer, like
-      // the isOpen sync above.
+      // the isOpen sync above. Only the content rebuilds: the shuttle's
+      // frame chain and layout do not depend on the owner.
       if (_flight != null && !_flight!.isFinished) {
         WidgetsBinding.instance.addPostFrameCallback((Duration _) {
           final MorphFlight? flight = _flight;
           if (mounted && flight != null && !flight.isFinished) {
-            flight.markNeedsBuild();
+            flight.markContentNeedsBuild();
           }
         });
       }
