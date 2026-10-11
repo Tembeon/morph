@@ -1033,6 +1033,41 @@ void main() {
     image.dispose();
   });
 
+  testWidgets('tints and the stroke share one silhouette clip', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      host(
+        const MorphSkin(
+          blend: 8,
+          color: Color(0xFF000000),
+          stroke: MorphStroke(color: Color(0xFF00FF00), width: 2),
+          pieces: <MorphPiece>[
+            MorphPiece(
+              id: 'a',
+              rect: .fromLTWH(20, 20, 100, 60),
+              tint: Color(0x80FF0000),
+            ),
+            MorphPiece(
+              id: 'b',
+              rect: .fromLTWH(160, 20, 100, 60),
+              tint: Color(0x800000FF),
+            ),
+            MorphPiece(
+              id: 'c',
+              rect: .fromLTWH(20, 120, 100, 60),
+              tint: Color(0x8000FF00),
+            ),
+          ],
+        ),
+      ),
+    );
+    expect(
+      tester.renderObject(find.byType(MorphSkin)),
+      paintsExactlyCountTimes(#clipPath, 1),
+    );
+  });
+
   testWidgets('stroke: inner contour over the tint, nothing outside', (
     WidgetTester tester,
   ) async {

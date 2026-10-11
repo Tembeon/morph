@@ -1300,24 +1300,33 @@ class RenderMorphSkin extends RenderBox
       canvas.drawShadow(_path, _shadowColor, _elevation, _color.a < 1);
     }
     canvas.drawPath(_path, _fillPaint());
-    _paintTints(canvas, resolved);
-    // The stroke goes LAST: a tint clips itself by the same path, and
+    // One silhouette clip serves every tint and the stroke: a path clip
+    // costs a stencil pass per use on Impeller, and all of them draw
+    // inside the same traced path anyway.
+    bool clipped = _paintTints(canvas, resolved);
+    // The stroke goes LAST: a tint is clipped by the same path, and
     // painting it over the contour would eat the edge - a tinted piece
     // would lose its outline exactly while pressed. The clip is what
     // makes the line inner, so the mass geometry does not change.
     final MorphStroke? stroke = _stroke;
     if (stroke != null) {
-      canvas.save();
-      canvas.clipPath(_path);
+      if (!clipped) {
+        canvas.save();
+        canvas.clipPath(_path);
+        clipped = true;
+      }
       // The airborne companion is the shuttle's own surface mirrored
       // into the mass; the shuttle draws that surface's contour
       // itself, so stroking the blob here would lay a second line over
       // the first. Clip its box out and let the home body keep its
-      // outline.
+      // outline. The tints are already down, so the cut-outs never
+      // reach them.
       for (final Rect blob in lastFlightBlobRects) {
         canvas.clipRect(blob, clipOp: ui.ClipOp.difference);
       }
       canvas.drawPath(_path, _strokePaint(stroke));
+    }
+    if (clipped) {
       canvas.restore();
     }
     canvas.restore();
@@ -1421,7 +1430,11 @@ class RenderMorphSkin extends RenderBox
   /// contour cannot peek out along the rim (the clip guarantees the ink
   /// never exceeds the mass); necks stay untinted - ink soaks the body,
   /// not the bond.
-  void _paintTints(Canvas canvas, List<_ResolvedPiece> resolved) {
+  ///
+  /// The silhouette clip opens with the first tint and stays open for
+  /// the caller to restore; returns whether it was opened.
+  bool _paintTints(Canvas canvas, List<_ResolvedPiece> resolved) {
+    bool clipped = false;
     for (final _ResolvedPiece r in resolved) {
       final Color? tint = r.piece.tint;
       if (tint == null || !r.solid) {
@@ -1436,14 +1449,17 @@ class RenderMorphSkin extends RenderBox
       final double radius =
           (r.piece.radius > half ? half : r.piece.radius) + pad;
       _tintPaint.color = tint;
-      canvas.save();
-      canvas.clipPath(_path);
+      if (!clipped) {
+        canvas.save();
+        canvas.clipPath(_path);
+        clipped = true;
+      }
       canvas.drawRRect(
         RRect.fromRectAndRadius(rect.inflate(pad), Radius.circular(radius)),
         _tintPaint,
       );
-      canvas.restore();
     }
+    return clipped;
   }
 
   bool _signaturesMatch(Float64List signature) {
