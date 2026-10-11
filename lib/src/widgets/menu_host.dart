@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -10,6 +12,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
+import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 
 /// Owns the gesture, motion, content and flight of a button or bar menu.
@@ -104,9 +107,10 @@ class MorphMenuController implements MorphMenuHost {
   /// nothing is.
   ///
   /// While a touch may open the menu and no flight carries it, each
-  /// advance of the motion adds [prebuildStep] elements, so the rows the
-  /// first frame of the menu would build are built over the frames of the
-  /// press and the tap's opening delay instead, out of sight.
+  /// advance of the motion adds [prebuildStep] elements, up to all of the
+  /// root's, so the rows the first frame of the menu would build are built
+  /// over the frames of the press and the tap's opening delay instead, out
+  /// of sight.
   int get prebuildCount => _prebuildCount;
   int _prebuildCount = 0;
 
@@ -119,6 +123,8 @@ class MorphMenuController implements MorphMenuHost {
   static bool debugPrebuild = true;
 
   OverlayEntry? _prebuildEntry;
+  final ValueNotifier<(int, MorphMenuLayout?)> _prebuilt =
+      ValueNotifier<(int, MorphMenuLayout?)>((0, null));
 
   void _syncPrebuild() {
     final entry = _prebuildEntry;
@@ -134,7 +140,7 @@ class MorphMenuController implements MorphMenuHost {
     menuRowsRaster.value = false;
     final created = OverlayEntry(
       builder: (BuildContext context) => ListenableBuilder(
-        listenable: _repaint,
+        listenable: _prebuilt,
         builder: (BuildContext context, Widget? _) =>
             _prebuildCount == 0 || _motion == null
             ? const SizedBox.shrink()
@@ -306,9 +312,11 @@ class MorphMenuController implements MorphMenuHost {
     if (motion == null || _repaintDisposed) return;
     motion.advance(t);
     if (_early == null && !motion.isOpenPending) _unroute();
+    final layout = motion.layout;
     _prebuildCount = debugPrebuild && _flight == null && motion.isArming
-        ? _prebuildCount + prebuildStep
+        ? math.min(_prebuildCount + prebuildStep, layout.elements.length)
         : 0;
+    _prebuilt.value = (_prebuildCount, _prebuildCount == 0 ? null : layout);
     _syncPrebuild();
     _repaint.value++;
   }
@@ -425,6 +433,7 @@ class MorphMenuController implements MorphMenuHost {
     if (_repaintDisposed) return;
     _repaintDisposed = true;
     _repaint.dispose();
+    _prebuilt.dispose();
     prebuildHidden.dispose();
     menuRowsRaster.dispose();
   }

@@ -1338,6 +1338,34 @@ void main() {
     expect(find.text('Sub two'), findsOneWidget);
   });
 
+  testWidgets('rows built ahead of the opening are built once per press', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(_app(_button(<String>[])));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(MorphMenuButton)),
+    );
+    final row = find.ancestor(
+      of: find.text('Copy', skipOffstage: false),
+      matching: find.byType(Offstage, skipOffstage: false),
+    );
+    await tester.pump(const Duration(milliseconds: 8));
+    await tester.pump(const Duration(milliseconds: 8));
+    expect(row, findsOneWidget);
+    final built = tester.widget(row);
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      expect(identical(tester.widget(row), built), isTrue, reason: 'tick $i');
+    }
+    await gesture.up();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('Copy'), findsOneWidget);
+  });
+
   testWidgets('a parent rebuild keeps the resting face', (
     WidgetTester tester,
   ) async {
