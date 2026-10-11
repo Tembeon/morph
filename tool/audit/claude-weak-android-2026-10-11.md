@@ -60,6 +60,13 @@ cache serves it.
   p50 +1.7 ms, over budget 35 -> 55; `mb*-*`). The pyramid pays for small
   glyphs, not a large content layer. Rejected.
 
+- Moto sheet, the floating sheet's frost seeded like the lifted lens's
+  (`blursOwnBackdrop` on menu-kind surfaces, so its blur reads a copy of
+  its own region instead of the whole pass): raster p50 8.5 / 8.8 -> 6.5 /
+  6.8, over budget 167 / 168 -> 141 / 151, but p95 unchanged (23.5 / 23.7)
+  and p99 worse (25 -> 30 / 32); 111 rim pixels at the sheet's top corners
+  up to 57 steps off (`ss-*`, the seed's pass origin, as on the bars). Not
+  landed.
 - Moto menu, content blur off (timing proxy): no change (raster p95
   18.5-18.7 -> 18.4-18.5, `mnb-*`); Impeller's menu cost is elsewhere.
 - Redmi menu, the flat body filled as a plain rect instead of its traced
