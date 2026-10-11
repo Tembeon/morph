@@ -470,3 +470,8 @@ Local patches (some commits include related package changes):
   starts only on a frame that moved the layer on screen, changed the
   compositor translation or changed the coordinate mapping
   (example/test/raster_phase_idle_host_test.dart).
+- 2026-10-12 dead code: the liquid layer's own shadow picture
+  (_recordOriginalShadows and its slot) is gone. Liquid shapes register
+  `const []` layer shadows (GlassShadow draws them outside the layer), so
+  it only scanned shapes to find nothing; the consolidated fake layer
+  keeps drawGlassShadows.

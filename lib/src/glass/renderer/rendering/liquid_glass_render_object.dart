@@ -733,11 +733,6 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
     settings,
   );
 
-  /// Grows [bounds] by the committed shapes' exterior shadows only.
-  @protected
-  Rect expandBoundsForShadows(Rect bounds) =>
-      expandForGlassShadows(bounds, _shadowSources(), settings);
-
   Iterable<(List<ShapeGeometry>, Matrix4)> _shadowSources() =>
       shapesWithGeometry.map((entry) => (entry.$2.shapes, entry.$3));
 

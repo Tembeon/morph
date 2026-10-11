@@ -1371,8 +1371,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @visibleForTesting
   Rect get debugGeometryMatteBounds => _geometryMatteBounds;
 
-  final _originalShadows = LayerHandle<ContainerLayer>();
-
   /// Refreshes already recorded contributors before layer-tree descent.
   /// No child painting occurs here, and the unchanged/translation paths do
   /// not call this method or evaluate geometry.
@@ -1435,14 +1433,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     link
       ..updateAllGeometries()
       ..markClean();
-    _recordOriginalShadows(retainedPaintOffset);
     updateMaterial(shapesWithGeometry, materialBounds, retainedPaintOffset);
     syncAncestorClips();
     return true;
   }
 
   void _clearGeometryImage() {
-    _originalShadows.layer = null;
     _releaseGeometryImageHandles();
     clearFrameInputs();
   }
@@ -1503,10 +1499,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         needsGeometryUpdate = false;
         link.markClean();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {
-          _recordOriginalShadows(effectOffset);
-          if (_originalShadows.layer case final shadows?) {
-            effectContext.addLayer(shadows);
-          }
           _paintMaterialFilter(
             effectContext,
             effectOffset,
@@ -1566,10 +1558,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {
           if (hasReusableGeometry) {
             _bindGeometryShader(_geometryImage);
-            _recordOriginalShadows(effectOffset);
-            if (_originalShadows.layer case final shadows?) {
-              effectContext.addLayer(shadows);
-            }
             _paintMaterialFilter(
               effectContext,
               effectOffset,
@@ -1601,7 +1589,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _geometryInputsChanged = true;
     }
     final materialBounds = boundingBox.inflate(_contourOutset);
-    effectPaintBounds = expandBoundsForShadows(materialBounds);
+    // Liquid shapes register no layer shadows: GlassShadow draws them
+    // outside the layer.
+    effectPaintBounds = materialBounds;
     return materialBounds;
   }
 
@@ -1885,27 +1875,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       ],
       fallback: defaultAppearance,
     );
-  }
-
-  // Own a replaceable picture rather than recording shadows together with
-  // unrelated foreground. Geometry refresh may replace this before submission
-  // without asking any child render object to paint outside the paint phase.
-  void _recordOriginalShadows(Offset offset) {
-    final hasShadows = shapesWithGeometry.any(
-      (entry) => entry.$2.shapes.any((shape) => shape.shadows.isNotEmpty),
-    );
-    if (!hasShadows) {
-      _originalShadows.layer = null;
-      return;
-    }
-    final slot = _originalShadows.layer ??= ContainerLayer();
-    slot.removeAllChildren();
-    if (drawableEmpty) return;
-    final recorder = ui.PictureRecorder();
-    drawGlassShadows(Canvas(recorder), offset);
-    final picture = PictureLayer(effectPaintBounds.shift(offset))
-      ..picture = recorder.endRecording();
-    slot.append(picture);
   }
 
   // MARK: Coordinate mapping
