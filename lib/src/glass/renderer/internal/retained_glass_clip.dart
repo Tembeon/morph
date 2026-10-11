@@ -122,6 +122,33 @@ class _ClipEntry {
   Object? _geometry;
   Matrix4? _transform;
   Offset? _offset;
+  CustomClipper<Path>? _pathClipper;
+  Size? _pathSize;
+  bool _reclipped = false;
+
+  void _reclip() => _reclipped = true;
+
+  void _watchClipper(CustomClipper<Path>? clipper) {
+    if (identical(clipper, _pathClipper)) return;
+    _pathClipper?.removeListener(_reclip);
+    _pathClipper = clipper;
+    _reclipped = true;
+    clipper?.addListener(_reclip);
+  }
+
+  // A clipper builds a new Path on every call, so the path is kept until
+  // what RenderClipPath itself re-clips on changes: the clipper, the size,
+  // or the clipper's reclip notification.
+  Object _pathClip(RenderClipPath clip) {
+    final clipper = clip.clipper;
+    _watchClipper(clipper);
+    if (clipper == null) return Offset.zero & clip.size;
+    final kept = _geometry;
+    if (kept is Path && !_reclipped && _pathSize == clip.size) return kept;
+    _reclipped = false;
+    _pathSize = clip.size;
+    return clipper.getClip(clip.size);
+  }
 
   void sync(RenderBox owner, Offset offset) {
     final layer = handle.layer!;
@@ -152,10 +179,7 @@ class _ClipEntry {
         clip.clipper?.getClip(clip.size) ?? Offset.zero & clip.size,
         clip.clipBehavior,
       ),
-      final RenderClipPath clip => (
-        clip.clipper?.getClip(clip.size) ?? Offset.zero & clip.size,
-        clip.clipBehavior,
-      ),
+      final RenderClipPath clip => (_pathClip(clip), clip.clipBehavior),
       final RenderViewportBase viewport => (
         Offset.zero & viewport.size,
         // Mirror RenderViewportBase.paint exactly. Its approximate clip API
@@ -169,8 +193,7 @@ class _ClipEntry {
     if (!layer.enabled) return;
     layer.clipBehavior = behavior;
     final transform = source.getTransformTo(owner);
-    if (geometry is! Path &&
-        _geometry == geometry &&
+    if (_sameGeometry(_geometry, geometry) &&
         _offset == offset &&
         MatrixUtils.matrixEquals(_transform, transform)) {
       return;
@@ -216,17 +239,22 @@ class _ClipEntry {
   }
 
   void dispose() {
+    _watchClipper(null);
     forward.layer = null;
     handle.layer = null;
     inverse.layer = null;
   }
 }
 
+// Paths compare by identity: a kept path is the same object, a new one is
+// never assumed equal.
+bool _sameGeometry(Object? a, Object b) => b is Path ? identical(a, b) : a == b;
+
 class _NativeClipLayer extends ContainerLayer {
   Object? _geometry;
   Object? get geometry => _geometry;
   set geometry(Object value) {
-    if (value is! Path && _geometry == value) return;
+    if (_sameGeometry(_geometry, value)) return;
     _geometry = value;
     markNeedsAddToScene();
   }

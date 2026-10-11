@@ -482,3 +482,9 @@ Local patches (some commits include related package changes):
   paintTrackedChild (and the tracking layer's onDetached), and the unused
   ticker mixin of the layer state. LiquidGlassLayerRenderObject stays as
   the marker GlassCompositionProbe stops at.
+- 2026-10-12 retained Path clip: a RenderClipPath with a clipper between
+  a layer and its shapes was re-clipped on every composited frame (a new
+  Path from getClip, two matrices, an inversion and a re-pushed clip
+  layer). RetainedGlassClip keeps the path until the clipper, the size or
+  the clipper's reclip notification changes it, as RenderClipPath does
+  (test/retained_glass_clip_test.dart).
