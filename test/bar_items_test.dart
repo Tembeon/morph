@@ -140,6 +140,32 @@ void main() {
     }
   });
 
+  testWidgets('a press on a trailing button does not lean on a tiny move', (
+    tester,
+  ) async {
+    await _toolbar(
+      tester,
+      () => [
+        MorphBarButtonGroup([_icon('a')], id: 'A'),
+        MorphBarButtonGroup([_icon('b')], id: 'B'),
+      ],
+    );
+    final item = find.byKey(const ValueKey<Object>('b'));
+    final rest = tester.getCenter(item);
+    final gesture = await tester.startGesture(rest);
+    await tester.pump(const Duration(milliseconds: 16));
+    await gesture.moveBy(const Offset(0.1, 0));
+    var drift = 0.0;
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+      final d = (tester.getCenter(item) - rest).distance;
+      if (d > drift) drift = d;
+    }
+    expect(drift, lessThan(1));
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('ids are compared as values, not by their text', (tester) async {
     Object id = 1;
     final set = await _toolbar(

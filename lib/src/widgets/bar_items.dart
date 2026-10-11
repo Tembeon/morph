@@ -1112,7 +1112,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     _pressedButton = button.id;
     final press = _press(capsuleId!, capsule.rect.size);
     final t = stamp(event);
-    press.pointerDown(t, event.localPosition - capsule.rect.topLeft);
+    press.pointerDown(t, _local(capsuleId, event.position));
     if (button.opensMenuOnTap) {
       final current = _menu;
       final menu = current == null
