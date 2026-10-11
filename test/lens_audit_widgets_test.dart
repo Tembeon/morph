@@ -228,6 +228,63 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('a tab bar rebuilt alike by its parent keeps its build', (
+    tester,
+  ) async {
+    var selected = 0;
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      _host(
+        StatefulBuilder(
+          builder: (context, update) {
+            rebuild = update;
+            return MorphTabBar(
+              items: [
+                for (final item in _items)
+                  MorphTabItem(icon: item.icon, label: item.label),
+              ],
+              selected: selected,
+              onChanged: (i) => update(() => selected = i),
+            );
+          },
+        ),
+      ),
+    );
+    Widget listener() => tester.widget(
+      find.descendant(
+        of: find.byType(MorphTabBar),
+        matching: find.byType(MorphTouchListener),
+      ),
+    );
+    final before = listener();
+    rebuild(() {});
+    await tester.pump();
+    expect(identical(listener(), before), isTrue);
+    rebuild(() => selected = 2);
+    await tester.pumpAndSettle();
+    expect(identical(listener(), before), isFalse);
+  });
+
+  test('label widths are measured again only when an input changes', () {
+    final widths = MorphLabelWidths();
+    const style = TextStyle(fontSize: 13);
+    final first = widths.of(['One', 'Two'], [style], TextScaler.noScaling);
+    expect(
+      identical(
+        widths.of(['One', 'Two'], [style], TextScaler.noScaling),
+        first,
+      ),
+      isTrue,
+    );
+    final scaled = widths.of(
+      ['One', 'Two'],
+      [style],
+      const TextScaler.linear(2),
+    );
+    expect(identical(scaled, first), isFalse);
+    expect(scaled[0], greaterThan(first[0]));
+  });
+
   testWidgets('C5 segmented ignores second finger cancel and movement', (
     tester,
   ) async {

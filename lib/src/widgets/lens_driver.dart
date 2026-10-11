@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/control_host.dart';
@@ -37,6 +38,46 @@ double morphLensLabelWidth(String text, TextStyle style, TextScaler scaler) {
   final width = painter.width;
   painter.dispose();
   return width;
+}
+
+/// The measured widths of a control's labels, kept until an input
+/// changes.
+@internal
+class MorphLabelWidths {
+  List<String> _labels = const [];
+  List<TextStyle> _styles = const [];
+  TextScaler? _scaler;
+  bool? _apple;
+  List<double> _widths = const [];
+
+  /// The width of each of [labels] at [scaler], the widest over [styles];
+  /// measured again only when a label, a style, the scaler or the
+  /// platform's system font changes.
+  List<double> of(
+    List<String> labels,
+    List<TextStyle> styles,
+    TextScaler scaler,
+  ) {
+    final apple = MorphTypography.usesAppleSystemFont;
+    if (_scaler == scaler &&
+        _apple == apple &&
+        listEquals(_labels, labels) &&
+        listEquals(_styles, styles)) {
+      return _widths;
+    }
+    _labels = List.of(labels);
+    _styles = List.of(styles);
+    _scaler = scaler;
+    _apple = apple;
+    return _widths = [
+      for (final label in labels)
+        styles.fold<double>(
+          0,
+          (widest, style) =>
+              math.max(widest, morphLensLabelWidth(label, style, scaler)),
+        ),
+    ];
+  }
 }
 
 /// Drives a [MorphLensMotion] from a [MorphControlHost].

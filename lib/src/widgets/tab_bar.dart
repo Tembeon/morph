@@ -337,20 +337,15 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
     if (next >= 0 && next < widget.items.length) _select(next);
   }
 
-  double _widestLabel(TextScaler scaler) {
-    var widest = 0.0;
-    for (final item in widget.items) {
-      widest = math.max(
-        widest,
-        morphLensLabelWidth(
-          item.label,
-          MorphTypography.tabLabelSelected,
-          scaler,
-        ),
-      );
-    }
-    return widest;
-  }
+  final MorphLabelWidths _labelWidths = MorphLabelWidths();
+
+  double _widestLabel(TextScaler scaler) => _labelWidths
+      .of(
+        [for (final item in widget.items) item.label],
+        const [MorphTypography.tabLabelSelected],
+        scaler,
+      )
+      .fold(0.0, math.max);
 
   RRect _lensShape(Size size) => morphLensShape(motion, size, rtl: _rtl);
 
@@ -430,6 +425,30 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
         ),
     ],
   );
+
+  @override
+  bool buildsLike(MorphTabBar oldWidget) =>
+      _sameItems(oldWidget.items, widget.items) &&
+      oldWidget.selected == widget.selected &&
+      (oldWidget.onChanged == null) == (widget.onChanged == null) &&
+      oldWidget.style == widget.style;
+
+  static bool _sameItems(List<MorphTabItem> a, List<MorphTabItem> b) {
+    if (identical(a, b)) return true;
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      final x = a[i];
+      final y = b[i];
+      if (identical(x, y)) continue;
+      if (x.icon != y.icon || x.label != y.label || x.enabled != y.enabled) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  @override
+  Object? get buildInputs => _motion?.selected;
 
   @override
   Widget buildControl(BuildContext context) {
@@ -732,15 +751,27 @@ class _GlowPainter extends CustomPainter {
   bool shouldRepaint(_GlowPainter oldDelegate) => true;
 }
 
-class _LensClipper extends CustomClipper<Path> {
-  _LensClipper(this.state, {required this.inside})
-    : super(reclip: state.frames);
+class _LensClipper extends GlassLiveClipper<Path> {
+  // The swell rides in the key although it does not move the clip: the
+  // labels below snap their glyphs to the screen scale at paint, and a
+  // reclip is what repaints them while the bar swells around a still lens.
+  _LensClipper(_MorphTabBarState state, {required bool inside})
+    : super(
+        live: state.frames,
+        keyOf: () => (
+          state._lensShape(
+            Size(state._layout.width, _MorphTabBarState._barHeight),
+          ),
+          state.motion.chromeGrowth,
+        ),
+        clipOf: (Size size) => _clip(state, size, inside: inside),
+      );
 
-  final _MorphTabBarState state;
-  final bool inside;
-
-  @override
-  Path getClip(Size size) {
+  static Path _clip(
+    _MorphTabBarState state,
+    Size size, {
+    required bool inside,
+  }) {
     final bar = Size(
       size.width + 2 * MorphTabBarMetrics.sideInset,
       _MorphTabBarState._barHeight,
@@ -756,8 +787,4 @@ class _LensClipper extends CustomClipper<Path> {
     lens.addRect(Offset.zero & size);
     return lens;
   }
-
-  @override
-  bool shouldReclip(_LensClipper oldDelegate) =>
-      oldDelegate.state != state || oldDelegate.inside != inside;
 }

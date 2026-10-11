@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_host.dart';
@@ -178,18 +176,20 @@ class _MorphSegmentedControlState
 
   bool get _enabled => widget.onChanged != null;
 
+  final MorphLabelWidths _labelWidths = MorphLabelWidths();
+
+  List<double> _labelSpans() => _labelWidths.of(widget.segments, [
+    _style.textStyle,
+    _style.selectedTextStyle,
+  ], _scaler);
+
   List<MorphLensSlot> _layout(double width) {
     final style = _style;
     final count = widget.segments.length;
     final List<double> widths;
     if (widget.sizeByContent) {
       final natural = [
-        for (final label in widget.segments)
-          math.max(
-                _measure(label, style.textStyle),
-                _measure(label, style.selectedTextStyle),
-              ) +
-              2 * style.contentPadding,
+        for (final w in _labelSpans()) w + 2 * style.contentPadding,
       ];
       final total = natural.fold<double>(0, (a, b) => a + b);
       widths = [for (final w in natural) w * width / total];
@@ -205,18 +205,9 @@ class _MorphSegmentedControlState
     return slots;
   }
 
-  double _measure(String text, TextStyle style) =>
-      morphLensLabelWidth(text, style, _scaler);
-
-  double _naturalWidth() => widget.segments.fold<double>(
+  double _naturalWidth() => _labelSpans().fold<double>(
     0,
-    (total, label) =>
-        total +
-        math.max(
-          _measure(label, _style.textStyle),
-          _measure(label, _style.selectedTextStyle),
-        ) +
-        2 * _style.contentPadding,
+    (total, w) => total + w + 2 * _style.contentPadding,
   );
 
   void _sync(double width) {

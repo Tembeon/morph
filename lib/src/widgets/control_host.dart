@@ -145,7 +145,8 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   bool buildsLike(T oldWidget) => false;
 
   /// The state the build reads besides the widget, the dependencies and
-  /// what changes through [setState]; the last build is reused only while
+  /// what changes through [setState], read after [buildControl] so state
+  /// the build itself settles counts; the last build is reused only while
   /// it compares equal.
   @protected
   Object? get buildInputs => null;
@@ -181,8 +182,9 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
     final inputs = buildInputs;
     if (built != null && !_stale && inputs == _builtFrom) return built;
     _stale = false;
-    _builtFrom = inputs;
-    return _built = buildControl(context);
+    final control = buildControl(context);
+    _builtFrom = buildInputs;
+    return _built = control;
   }
 
   @override
