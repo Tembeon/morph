@@ -185,6 +185,9 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
   @override
   bool get motionSettled => _repeats.isEmpty;
 
+  @override
+  double? get motionWakeTime => _repeats.nextDue;
+
   bool _canStep(_Half half) => switch (half) {
     _Half.minus => _value > _minimum,
     _Half.plus => _value < _maximum,

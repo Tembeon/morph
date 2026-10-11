@@ -882,7 +882,13 @@ void main() {
 
       final hold = await tester.startGesture(plus);
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 499));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(
+        tester.binding.hasScheduledFrame,
+        isFalse,
+        reason: 'a held stepper sleeps until its next repeat',
+      );
+      await tester.pump(const Duration(milliseconds: 399));
       expect(value, 6);
       await tester.pump(const Duration(milliseconds: 2));
       expect(value, 7, reason: 'the first repeat comes after 0.5 s');
