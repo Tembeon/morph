@@ -21,6 +21,18 @@ one tree per variant. Raw reports: tool/ios_reference/perf/2026-10-11-night/
   changes nothing measurable (`nl-*`: push / pop identical), its color
   matrix runs in the display hardware. Left off. The Redmi had none.
 
+## Owner decisions
+
+- Skia tier: pre-Impeller Android now draws flat instead of fake frosted
+  glass (59b6ed6): the look changes on those devices, in line with the
+  cheap-tier policy for fallback runtimes.
+- `MorphGlassContainer.solidBackdrop` is new public API (1ad68fd).
+- Redmi menu content blur: the remaining Redmi menu cost (raster p95 19 ->
+  13 without it, `nb-*`); every invisible cheaper blur tried tonight fails.
+- Moto large glass surfaces (sheet, menu): the surface's own glass is
+  most of the frame (`go-*`, `fmn-*`); a cheaper path would change pixels.
+- Scroll edge blur off on the Moto (`ne-*`), unchanged from earlier.
+
 ## Landed (pushed to wip/measured-liquid-glass)
 
 | change | commit | Redmi 6A flat | Moto g86 liquid |
@@ -29,10 +41,12 @@ one tree per variant. Raw reports: tool/ios_reference/perf/2026-10-11-night/
 | tab bar labels snap their glyph scale while the bar swells (MorphGlyphSnap; bar items off Android too) | 52b84ac, a823499, 0387422 | tab-bar raster p95 14.0-15.7 -> 11.9-12.1, over budget 4-10 -> 0-1 (`gs-*`) | neutral (`mgs-*`) |
 | menu fusion workers only on >= 6 cores | 3715416 | menu raster p95 34-39 -> 28.5-29.4, p99 57-76 -> 44-49 (`fp-*`) | prefetch neutral either way (`mfp-*`) |
 | the flat menu fuses its silhouette's edge only (no shading field), contour bit-identical | 6cb91df | menu UI build p95 15.0-15.3 -> 11.0-11.2 ms, over budget 30-33 -> 27-28, warm cache (`fm-*`) | - (liquid keeps the field) |
-| `MorphAdaptiveGlass` draws flat on Skia (new device class `skia`); it drew fake glass, Skia's multi-pass blurs | (this commit) | the default gallery, every page (autodemo sweep, warm): raster p95 30-125 -> 6-17 ms, over budget 44-101 -> 0-15 a page (`ad-*`) | - |
-| gallery: the Alerts and Indicators pages group their glass buttons in containers over the page color | (this commit) | - | autodemo Indicators raster p95 9.8 -> 7.1-7.3, over budget 51-64 -> 15-18; Alerts 21 -> 18-19.4, 274-282 -> 213-215 (`adm-*`) |
-| the gallery asks Skia for a 128 MB GPU resource cache (app setting) | (this commit) | menu raster p95 23.3-23.6 -> 21.5-21.6, over budget 33 -> 27; texture creations in menu windows 419 -> 25 (`sc-*`, warm cache) | - (Impeller ignores it) |
+| `MorphAdaptiveGlass` draws flat on Skia (new device class `skia`); it drew fake glass, Skia's multi-pass blurs | 59b6ed6 | the default gallery, every page (autodemo sweep, warm): raster p95 30-125 -> 6-17 ms, over budget 44-101 -> 0-15 a page (`ad-*`) | - |
+| gallery: the Alerts and Indicators pages group their glass buttons in containers over the page color | fabf458 | - | autodemo Indicators raster p95 9.8 -> 7.1-7.3, over budget 51-64 -> 15-18; Alerts 21 -> 18-19.4, 274-282 -> 213-215 (`adm-*`) |
+| the gallery asks Skia for a 128 MB GPU resource cache (app setting) | aaf2f04 | menu raster p95 23.3-23.6 -> 21.5-21.6, over budget 33 -> 27; texture creations in menu windows 419 -> 25 (`sc-*`, warm cache) | - (Impeller ignores it) |
 | list section cards shade their glass over the card's own color: one shader paint, no backdrop filter | e872d85, 30df6d8 | - (flat tier) | list raster p50 8.9-9.4 -> 4.4-4.8 ms, p95 13.7 -> 5.4, over budget 387-454 -> 5 (`sb-*`); device shots within base-vs-base noise; tab-bar / home-scroll / segmented unchanged by the new uniform (`su-*`) |
+| the solid paint pipeline is warmed with the glass filters | d62a462 | - | precache and first use of the list page unchanged (`sw-*`) |
+| `MorphGlassContainer(solidBackdrop:)`, a new public opt-in, used by the gallery's sheet, controls and menu pages | 1ad68fd | - | sheet raster p50 10.5-11.8 -> 7.9-8.9, over budget 235-247 -> 158-176; menu p95 19.3-19.8 -> 17.3, 136-147 -> 118; controls 18-22 -> 14-18 (`sp-*`); 51 rim pixels up to 24 steps on the controls page |
 
 Tonight's start (ab5b970) against the head (3715416), Redmi flat, all
 scenes (`rall-*`): home-scroll raster p95 19.3 -> 6.0-6.4 ms and over budget
@@ -41,12 +55,9 @@ scenes (`rall-*`): home-scroll raster p95 19.3 -> 6.0-6.4 ms and over budget
 unchanged; menu within its (large) run spread.
 
 Why the scroll fix works: the gallery's sections sit under a
-SliverToBoxAdapter, so every scroll frame repainted every row, card and
-separator; on Skia each rounded superellipse is a fresh path that the
-software path renderer rasterizes again (Skia caches a path mask only for
-the same scale and sub-pixel translation, which a scrolling list never
-repeats). Behind a boundary the picture is replayed and Flutter's raster
-cache serves it.
+SliverToBoxAdapter, so every scroll frame repainted and re-rasterized
+every row, card, icon and separator. Behind a boundary the section's
+picture is replayed and Flutter's raster cache serves it as an image.
 
 ## Measured, not landed
 
