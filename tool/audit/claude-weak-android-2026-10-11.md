@@ -121,9 +121,11 @@ update: a relaunch of the same build has none (menu raster worst 41 - 53
 ms, p99 32 - 34, `rf-t3`). Users meet them once per app update, on the
 first menu opens. Every run.py run reinstalls, so Redmi tails in earlier
 reports carry these spikes; steady-state Redmi numbers now come from a
-warm-up launch followed by a launch without installing. Open: fewer
-distinct radii (quantized blur) or a deferred warm-up, both visible or
-risky; not attempted.
+warm-up launch followed by a launch without installing. Drawing the
+menu content scaled so Skia always blurs at a device sigma of 4 (one kernel
+radius) cuts a cold run's compiles only from 60 - 62 to 54 - 55 (`os-*`):
+most first-use programs are not the blur's. Open: an app-wide warm-up of
+Skia programs; not attempted.
 
 ## Diagnosed, next
 
