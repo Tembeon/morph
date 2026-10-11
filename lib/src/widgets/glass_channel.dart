@@ -6,6 +6,7 @@ import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_container.dart';
+import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
@@ -495,6 +496,12 @@ class _MorphGlassHostElement extends ComponentElement {
   @override
   void mount(Element? parent, Object? newSlot) {
     _host.frames?.addListener(markNeedsBuild);
+    // A renderer asking for liquid draws fake until the capability
+    // resolves, and its == does not see that; a resting host would keep
+    // the fake tree until its next frame.
+    if (!morphLiquidGlassCapability.value) {
+      morphLiquidGlassCapability.addListener(_capabilityResolved);
+    }
     if (_followsAnalytic) {
       RenderLiquidGlassLayer.analyticGeometryChanges.addListener(
         markNeedsBuild,
@@ -503,9 +510,16 @@ class _MorphGlassHostElement extends ComponentElement {
     super.mount(parent, newSlot);
   }
 
+  void _capabilityResolved() {
+    if (!morphLiquidGlassCapability.value) return;
+    morphLiquidGlassCapability.removeListener(_capabilityResolved);
+    markNeedsBuild();
+  }
+
   @override
   void unmount() {
     _host.frames?.removeListener(markNeedsBuild);
+    morphLiquidGlassCapability.removeListener(_capabilityResolved);
     if (_followsAnalytic) {
       RenderLiquidGlassLayer.analyticGeometryChanges.removeListener(
         markNeedsBuild,
@@ -552,7 +566,9 @@ class _MorphGlassHostElement extends ComponentElement {
       newWidget.frames?.addListener(markNeedsBuild);
     }
     if (old.mode != newWidget.mode) _structure = null;
-    if (!_push()) rebuild(force: true);
+    // A host its frames already marked builds once; a push here would read
+    // and push the frame again in the build that follows.
+    if (dirty || !_push()) rebuild(force: true);
   }
 
   @override

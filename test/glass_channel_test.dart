@@ -6,6 +6,7 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/widgets.dart';
 
 /// The glass channel: a frame that keeps a layer's structure reaches the
@@ -198,6 +199,96 @@ void main() {
       tester.getRect(find.byType(LiquidGlass).last).left -
           tester.getRect(find.byType(MorphGlassHost)).left,
       40,
+    );
+  });
+  testWidgets('a host its parent rebuilds while its frames tick reads the '
+      'frame once', (tester) async {
+    final frames = ValueNotifier<int>(0);
+    addTearDown(frames.dispose);
+    var left = 10.0;
+    var reads = 0;
+    late StateSetter update;
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 300,
+            height: 60,
+            child: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                update = setState;
+                return MorphGlassHost(
+                  painter: const MorphGlassRenderer(),
+                  mode: MorphGlassMode.layer,
+                  frames: frames,
+                  frame: () {
+                    reads++;
+                    return MorphGlassFrame([track(), lens(left, 1)]);
+                  },
+                );
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+    reads = 0;
+    frames.value = 1;
+    update(() => left = 40);
+    await tester.pump();
+    expect(reads, 1);
+    expect(
+      tester.getRect(find.byType(LiquidGlass).last).left -
+          tester.getRect(find.byType(MorphGlassHost)).left,
+      40,
+    );
+  });
+
+  testWidgets('a resting host leaves fake glass once liquid glass is ready', (
+    tester,
+  ) async {
+    final capability = morphLiquidGlassCapability as ValueNotifier<bool>;
+    final previous = FlutterError.onError;
+    FlutterError.onError = (FlutterErrorDetails details) {
+      if (details.library != 'morph glass') previous?.call(details);
+    };
+    isLocalTest = false;
+    addTearDown(() {
+      isLocalTest = true;
+      FlutterError.onError = previous;
+    });
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Center(
+          child: SizedBox(
+            width: 300,
+            height: 60,
+            child: MorphGlassHost(
+              painter: const MorphGlassRenderer(),
+              mode: MorphGlassMode.layer,
+              frame: () => MorphGlassFrame([track(), lens(10, 1)]),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    expect(
+      tester
+          .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
+          .map((LiquidGlassLayer layer) => layer.fake),
+      everyElement(isTrue),
+    );
+    capability.value = true;
+    await tester.pump();
+    expect(find.byType(LiquidGlassLayer), findsWidgets);
+    expect(
+      tester
+          .widgetList<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
+          .map((LiquidGlassLayer layer) => layer.fake),
+      everyElement(isFalse),
     );
   });
 }
