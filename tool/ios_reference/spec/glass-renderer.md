@@ -2869,7 +2869,7 @@ perf/2026-10-08-beta-sdk. Production blur remains the stock path.
 
 
 2026-10-09 handoff: experimental paths and evidence are published separately.
-See docs/optimization-handoff.md for branches, dependencies and admission state.
+See docs/performance.md (experiment branches) for branches, dependencies and admission state.
 
 ## Navigation glyph blur in one pass, decided fusion blocks (2026-10-09)
 

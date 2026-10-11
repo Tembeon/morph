@@ -1,0 +1,219 @@
+# Performance
+
+morph is meant for mass use by developers who should not have to
+optimize anything themselves: the measured controls and the glass must
+be fast by default. The reference weak device is the Pixel 6a (Mali-G78,
+Vulkan, 60 Hz, 16.67 ms budget): the gallery must hold 60+ fps
+everywhere on it, ideally with headroom toward 120 fps so weaker devices
+still hold 60. Fidelity may be traded for performance where the eye does
+not notice, and every trade is stated as IDENTICAL, NEAR or an
+approximation. Both renderers - glass (liquid / fake) and flat - stay
+supported.
+
+## 1. Targets and admission policy
+
+- Smoothness on weak Android devices is the primary objective. Modest
+  measured energy increases are acceptable for meaningful frame-time
+  improvements; energy is still measured on every candidate.
+- Fidelity stays IDENTICAL or stated NEAR. A visible quality reduction
+  needs an owner decision.
+- A change is admitted on frame time AND energy measured on the device,
+  never on CPU or raster timing alone. Also verify: the path actually
+  activates, native pixels (device readback, not only Flutter toImage),
+  real presentation (missed slots, not only profile windows) and
+  sustained resource use (RSS, retained textures).
+- Compare like with like: repeats and separate launches (ABBA where
+  possible), same binary for A/B when feasible, cooled starts for energy.
+  Baseline variation is often larger than the effect; a single launch
+  proves nothing.
+- Current SDK for optimization work: `flutter-beta` / `dart-beta`
+  (3.49.0-0.2.pre); normal commands stay on 3.47.2 stable. The native
+  shader-filter factory requests low quality when its typed signature
+  exposes filterQuality (fixes beta's nearest-sampling regression; liquid
+  chrome max error 27 -> 1/255 against stable).
+- Experimental paths live on branches off `wip/measured-liquid-glass`
+  (section 5b). Every prototype there may be wrong or incomplete: a
+  measured failure rejects that implementation, not the idea.
+
+## 2. Harnesses
+
+- Device frame cost (iPhone): `tool/ios_reference/perf/audit.sh` builds
+  example/integration_test/glass_audit_test.dart as a profile app per
+  tier (`AUDIT_SOURCE=` a git worktree at a fixed commit, `AUDIT_RUNS=5`),
+  takes the phone lock, writes `tool/ios_reference/perf/<date>-<label>/<tier>.json`;
+  `summarize.py <dir> [<dir>]` prints medians of percentiles over active
+  frames (build or raster > 0.3 ms) and the delta; `shotdiff.py` diffs
+  screenshots.
+- Device frame cost (Android): `audit_android.sh` with the glass_phases
+  collection (dirs pixel6a-cpu-*, -gpu-*, -retain-*).
+- Navigation quick runs: `tool/ios_reference/perf/nav_quick`.
+- Real gallery navigation: navigation_stage_bench (actual
+  GalleryApp/Inbox/detail callbacks: first enter, nested push/pop,
+  toolbar morph, scrolling, a repeated five-action workflow).
+- Stage stand: example/lib/perf/glass_stage_bench.dart compares
+  bare/capture/blur/optics/glass with shuffled windows and separate
+  GPU/energy launches; usage in tool/ios_reference/perf/stage_bench/README.md.
+- Work per frame (deterministic, every `flutter test`):
+  test/perf_counts_test.dart counts rebuilds, paints, re-recorded
+  pictures, backdrop captures, offscreen layers, traced outlines,
+  snapshot fallbacks and idle frames for eleven scenes x three tiers,
+  pinned as ceilings in test/fixtures/perf/counts.json
+  (`PERF_COUNTS_UPDATE=true` rewrites it after a change that lowers a
+  count). flutter_test has no Impeller: liquid builds its real tree but
+  paints the fallback.
+- Pixel identity across frames: test/glass_frames_test.dart hashes.
+- Skin / flight (AOT): `cd example && flutter build macos --release
+  --dart-define=MORPH_BENCH=true`, run the binary, grep BENCH.
+- Tracing microbenchmarks: `flutter test benchmark/liquid_benchmark_test.dart`
+  (JIT, relative only).
+- Energy (Pixel 6a ODPM rails): `perf/energy_android.sh` + `energy.py`
+  (ABBA, cooled starts). energy.py sums duplicate raster threads; the
+  runner cleans its recorder on failure.
+
+## 3. What ships, and its switches
+
+| optimization | what it does | switch / fidelity |
+|---|---|---|
+| Analytic geometry | eligible liquid layer (<= 8 shapes, uniform or tint-only; container body <= 4 uniform-radius boxes) evaluated in the final shader: no matte, material pass, field upload or CPU fusion | on; `MORPH_ANALYTIC_GEOMETRY=false` restores the matte, mode `changes` = analytic only while geometry changes; host oracles pin the shader to liquid_field.dart (mean < 0.75/channel); body shadow NEAR |
+| Flat shader bodies | flat fused body of <= 4 boxes filled by the merge law in flat_fused_body.frag; path traced only if read | on; `MORPH_FLAT_SHADER_BODIES=false` restores the traced path |
+| Flat sparse silhouette | flat fused bodies trace their exact silhouette without unused optical fields (fake/liquid keep full fields) | IDENTICAL (silhouette hashes match all 63 collections) |
+| Menu fusion workers | `MorphFusionWorker`: fuse the next three predicted frames on up to four isolates, served within 0.02 pt per input | profile/release only; IDENTICAL law |
+| Menu fusion core | plain-union field from box distances, grids kept across calls, menu face built once | IDENTICAL |
+| Field uploads | fewer per-frame field uploads (07bb27d) | IDENTICAL |
+| Retained glass layers | `MorphGlassChannel` builds once per structure, pushes values (e2f9c4e) | IDENTICAL |
+| Glyph scale snapping | `MorphGlyphScale`: lens screen scale snapped to 64/octave while lifting | <= 0.54 percent, exact at rest |
+| Glyph raster | `MorphGlyphRaster`: menu root rows (and Android bar glyphs) drawn from one device-resolution raster while content blur >= 0.5 pt; iOS/web stay live | NEAR |
+| Glyph blur pyramid | `MorphGlyphBlur`: Android bar items and inline title draw blur and fade in one shader draw from a per-child mip pyramid (glyph_blur.frag / glyph_reduce.frag) | NEAR (within a channel step of mean error) |
+| Small-blur rules | scroll edge blurs a copy of its band (`morphBackdropSeed` under a clip grown by `morphBlurReach`); a frost just below half resolution is raised to it by <= 12 percent (`morphHalfResolutionSigma`) | NEAR (1 - 6 steps on real content) |
+| Flat edge effect | flat scroll edge = fade/hairline only, zero backdrop filters on flat | approved visible change on flat only |
+| Glass container | `MorphGlassContainer` shades resting glass of joined hosts in one layer; list cards and the search toolbar are stages | IDENTICAL within 1 - 3 channel steps |
+| Pipeline warm-up | `MorphGlassRenderer.precache` | first-frame worst UI/raster: Pixel liquid 102/74 -> 5/11 ms, iPhone 69/362 -> 2/42; costs 0.33 - 0.85 s precache |
+| Skin eval budget | `MorphSkin.defaultEvalBudget` coarsens the grid by the overshoot factor | 64-piece worst case 1.9 ms (8.2 unbounded) |
+
+## 4. Standing lessons
+
+- Backdrop filters are the raster cost. Each glass layer is one
+  BackdropFilterLayer (liquid menu 10 saveLayers vs flat 1); full liquid
+  costs 3.9 - 6.2x flat GPU cycles. The levers left change pixels.
+- A blur whose kernel-grown clip leaves the pass makes Impeller blur the
+  WHOLE pass, and below 5.66 device px of sigma at full resolution.
+  Keep blur clips inside the pass.
+- Impeller keys glyphs by screen scale (1/200): text under a sweeping
+  scale re-rasterizes glyphs nearly every frame. Snap or raster it.
+- On the Pixel the nested-navigation raster tail is the bar button
+  glyphs and their blur, not page painting or glass (hiding glyphs cut
+  nested raster p95 24-33 -> 7-8 ms in ablation).
+- The CPU fusion's 4 - 12x device-over-loop gap is core placement and
+  DVFS (paced calls land on A55/A76), not the algorithm.
+- A lighter load can raise p50 (the CPU clocks down); read p50 rises
+  next to an unchanged workload as DVFS, not cost.
+- First use is pipeline compilation; the Vulkan disk cache does not help
+  second launches.
+- Reference bytes alone do not bound native memory (a texture cap halved
+  retained capacity but raised RSS).
+- Old-generation GC mid-frame came from reallocated grids: keep grids
+  across calls.
+- Never compare an old nearest/duplicate-source/full-viewport graph with
+  a fused calibrated kernel when judging an algorithm.
+- Profile windows with framework phase collection are not presentation
+  latency; isolated body-pixel errors up to 64/255 also occur in
+  same-variant repeats, so compare against a stock/stock repeat.
+- Flutter GPU `Texture.fromImage` wraps a ready ui.Image without copying
+  but cannot see the private current backdrop.
+
+## 5. Rejected and inconclusive experiments
+
+| experiment | result | evidence |
+|---|---|---|
+| ADPF hint sessions | menu over-budget 16 -> 4 but +9 percent energy menu, +3 sheet; rejected (branch exp/adpf) | perf/2026-10-06-pixel6a-energy |
+| Fusion one frame ahead | costs nothing, gains nothing (three ahead kept) | perf/2026-10-06-fusion-ab |
+| Coordinate-uniform / translation-inverse renderer | raster p95 11.64 -> 12.49, GPU within noise; rejected | tool/audit/codex-round3-report.md |
+| Field-only preparation | identical pixels, GPU unchanged, no repeatable power gain; reverted | tool/audit/codex-round5-optimization.md |
+| Released-texture 16 MiB cap | retained 24.375 -> 12.188 MiB but RSS 387.45 -> 467.04 MiB; reverted | tool/audit/codex-round5-optimization.md |
+| Haze 0.5.0 blur | GPU 11.05/24.26 ms vs stock 2.13/2.16; ClipRect changes pixels | perf/2026-10-07-round5 |
+| Full-DPR cached image input | visibly incorrect native pixels; rejected | tool/audit/codex-round5-optimization.md |
+| Same-frame known picture replay | saves capture GPU; moving-coordinate fidelity unresolved | tool/audit/codex-round5-optimization.md |
+| Matrix/runtime-effect native backdrop chain | GPU 4.007/4.541 vs stock 2.555/2.596, error 50/35, sigma 10 power 718 -> 873 mW | tool/audit/codex-backdrop-input-review.md |
+| Merged cluster surfaces (synthetic) | GPU 9.716 -> 4.057, power 1155 -> 841 mW, raster p95 +1.8 ms; synthetic, not gallery-wide | perf/2026-10-07-round5 |
+| Dual Kawase direct | sigma 2 GPU 2.030 -> 1.492 but UI p95 1.685 -> 8.569, power flat; sigma 10 power up | tool/audit/codex-dual-kawase-followup.md, perf/2026-10-07-dual-kawase |
+| Dual Kawase translation cache | GPU halves, power 573 -> 500 / 611 -> 518 mW, but immutable fixture only; source invalidation not built | tool/audit/codex-dual-kawase-followup.md |
+| Combined current-frame source (exp/same-frame-backdrop a34b9d0) | static GPU 4.073 -> 1.900 but periodic power +3.8 percent; fixture only | tool/audit/codex-combined-source-report.md, perf/2026-10-07-combined-source |
+| Paired runtime Gaussian | graph 3.1 - 3.5x stock, 20/255 off; research only | tool/audit/codex-beta-sdk-report.md, perf/2026-10-08-beta-sdk |
+| Content-channel and exact two-box sampler (navigation) | power 704 - 712 mW all variants; no repeatable win, unmerged | tool/audit/codex-navigation-report.md, perf/2026-10-07-navigation |
+| Plain contour / glyph ablations (flat navigation) | diagnostic only, visible changes | tool/audit/codex-navigation-flat-report.md, perf/2026-10-07-navigation-flat |
+| Navigation snapshots (Redmi) | no gain, capture spike | commit ab5b970 |
+| Redmi menu content blur through the one-pass glyph shader | raster p50 +1.7 ms; the pyramid pays only for small glyphs | claude-weak-android-2026-10-11.md |
+| Moto sheet frost seeded from its own region | p50 better, p95 unchanged, p99 worse, rim off up to 57 steps | same |
+| Analytic blurred union for the menu (Clark) | exact only up to 6 pt radius; most fused frames are 10 pt+ (branch menu-blur-analytic-oracle) | same |
+| Optical batch (one filter for disconnected chrome) | pilot never activated in 40 frames: no evidence | codex-optical-batch-report.md |
+| Dependent GPU pass batching | crashes both tested SDKs; keep separate command buffers | codex-gpu-pass-lifecycle-report.md |
+| Flat sparse field + Android glyph raster | push raster p95 improves, power 556/534 -> 542/547 mW (no saving), other actions mixed; shipped for frame time | tool/audit/codex-navigation-stable-report.md, perf/2026-10-08-navigation-stable |
+
+Open owner decisions (pixel-changing levers with device numbers): Redmi
+menu content blur, large glass surfaces at reduced interior resolution
+(Moto sheet / menu), scroll edge blur off on Impeller (branch
+exp/edge-effect); details in tool/audit/claude-weak-android-2026-10-11.md.
+
+Research notes: tool/audit/codex-round4-resource-study.md
+(perf/2026-10-06-round4-*), tool/audit/codex-stage-bench-report.md,
+tool/audit/perf-research-2026-10-05.md, glass-renderer.md.
+
+## 5b. Experiment branches
+
+Default-off prototypes, each with an `EXPERIMENT.md` (intent, activation,
+result, report locations). Compare an experiment only with its parent,
+same SDK, flags, warm-up and action protocol; never merge the integration
+snapshot as a shortcut.
+
+| branch | parent | state |
+|---|---|---|
+| `codex/exp-glyph-atlas` | baseline | retained foreground blur atlas; cadence not admitted |
+| `codex/exp-glyph-cohorts` | glyph atlas | foreground filter grouping; not admitted |
+| `codex/exp-direct-field` | baseline | direct primitive and sampled-field optics |
+| `codex/exp-gpu-optical-grid` | direct field | GPU optical nodes; no robust native win |
+| `codex/exp-owned-mip` | GPU optical grid | owned source / pyramid; source acquisition unresolved |
+| `codex/exp-dependent-pass-batching` | owned mip | archived; known Vulkan crash |
+| `codex/exp-direct-field-material` | owned mip | tint/mixed-field consumer; no repeatable win |
+| `codex/exp-optical-batch` | direct field material | pilot inactive |
+| `codex/optimization-evidence` | baseline | raw evidence, no renderer changes |
+| `codex/optimization-integration` | baseline | every experiment together, defaults off |
+| `exp/adpf`, `exp/fake-tier`, `exp/glass-container`, `exp/same-frame-backdrop`, `codex/exp-dual-kawase`, `codex/exp-same-frame-source` | older | checkpoints without the beta SDK fixes |
+
+Compile-time flags on those branches (default false): `MORPH_GLYPH_BLUR_ATLAS`,
+`MORPH_GLYPH_ATLAS_REDUCED`, `MORPH_GLYPH_ATLAS_DENSE`, `MORPH_BAR_GLYPH_BATCH`,
+`MORPH_BAR_GLYPH_BOUNDS`, `MORPH_DIRECT_GEOMETRY`, `MORPH_DIRECT_FIELD`,
+`MORPH_GPU_FUSION_FIELD`, `MORPH_DIRECT_FIELD_MATERIAL`, `MORPH_OPTICAL_BATCH`.
+Architecture background: tool/audit/codex-rendering-architecture-research.md,
+codex-gpu-research-reconciliation.md, codex-navigation-transition-report.md.
+Where to aim next: encoding, submission, allocation and foreground work; do
+not swap blur kernels without counting acquisition, producer and consumer
+costs.
+
+## 6. Latest known device figures
+
+Profile builds, ms unless stated; most recent measurement per scene.
+
+| device / tier / scene | figure | source |
+|---|---|---|
+| Pixel 6a liquid nested push (beta) | UI p95 21.641/19.984, raster p95 29.419/26.456, GPU 6.228/6.202 ms/frame; still over 16.667 | perf/2026-10-08-beta-sdk |
+| Pixel 6a liquid push / pop (stable, raster glyphs) | raster p95 25.341 / 26.671; UI over budget | perf/2026-10-08-navigation-stable |
+| Pixel 6a flat push (stable) | raster p95 19.916/21.350, GPU 2.574/2.625 ms/frame | perf/2026-10-08-navigation-stable |
+| Pixel 6a liquid first enter | raster p99 64.712 after precache | perf/2026-10-07-navigation |
+| Pixel 6a flat home-scroll / tab bar / list | raster p95 9.19 / 8.47 / 8.45; power 465 / 519 / 447 mW | perf/2026-10-06-round3-* |
+| Pixel 6a liquid tab bar | raster p95 17.32 | perf/2026-10-06-*-glyph-after |
+| Pixel 6a liquid / flat menu | build p95 13.4 / 11.1; raster p95 16.69 / 9.70 | perf/2026-10-06-fusion-ab, -glyph-after |
+| Pixel 6a GPU Mcycles/frame flat/liquid | tab 1.050/4.142, controls 0.434/2.153, menu 0.687/3.289, sheet 0.971/6.002 | perf/2026-10-06-round4-* |
+| Pixel 6a 16 resting liquid buttons | COMPOSITING 1.24 (flat 0.49); build p50/p95 1.48/3.28 | pixel6a-retain-* |
+| Pixel 6a idle home | 286 mW whole phone (display 133) | perf/2026-10-06-pixel6a-energy |
+| Moto g86 liquid push / pop | raster p95 9.4 / 10.6 | glass-renderer.md "Navigation glyph blur in one pass" |
+| Redmi 6A flat push / pop | missed slots per window 2-4 / 3 | same |
+| iPhone 16 Pro liquid segmented / tab bar / controls | build p95 1.32 / 1.56 / 2.56; raster p95 1.68 / 2.82 / 2.25 | perf/2026-10-05-apple-verify |
+| iPhone 16 Pro liquid menu / home scroll / sheet | build p95 2.12 / 1.39 / 1.33; raster p95 3.05 / 2.32 / 2.76 | perf/2026-10-05-apple-verify |
+| iPhone 16 Pro fake controls / menu / sheet | raster p95 3.93 / 3.37 / 3.08 | perf/2026-10-05-apple-verify |
+| iPhone 16 Pro flat menu | build p95 1.55 (fusion ahead); raster p95 1.76 | perf/2026-10-06-fusion-ab, 2026-10-05-apple-verify |
+| iPhone 16 Pro liquid buttons, raster p50 | 16: 2.50 -> 1.19 in a container; 32: 3.53 -> 1.46 | perf/2026-10-05-apple-verify |
+| macOS AOT release bench | oneMoving/cached 57 us/op, manyPieces 436, megaCluster64 1 939 (8 239 unbounded); glacial flight raster p95 1.33 | release bench |
+
+All iPhone scenes fit the 8.3 ms (120 Hz) budget at p95 on every tier.
+On the Pixel, scroll and resting scenes fit 16.67 ms; nested navigation
+and the liquid menu / tab bar do not yet.
