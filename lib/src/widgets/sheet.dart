@@ -497,7 +497,20 @@ class _SheetViewState extends State<_SheetView>
     }
   }
 
-  void _stampEvent(PointerEvent event) => _stamp = stamp(event);
+  void _stampEvent(PointerEvent event) {
+    _unstampedMove = null;
+    _stamp = stamp(event);
+  }
+
+  // A move wakes the clock only when a drag consumes it, within the same
+  // event dispatch, so a finger moving over a resting sheet (a list
+  // scrolling inside it) costs no motion frames.
+  PointerMoveEvent? _unstampedMove;
+
+  void _stampMove() {
+    final move = _unstampedMove;
+    if (move != null) _stampEvent(move);
+  }
 
   int? _touch;
   Offset _touchFrom = Offset.zero;
@@ -515,7 +528,7 @@ class _SheetViewState extends State<_SheetView>
   }
 
   void _move(PointerMoveEvent event) {
-    _stampEvent(event);
+    _unstampedMove = event;
     if (event.pointer != _touch) return;
     if ((event.localPosition - _touchFrom).distance > kTouchSlop) {
       _touchDragged = true;
@@ -539,6 +552,7 @@ class _SheetViewState extends State<_SheetView>
   }
 
   void _dragStart(DragStartDetails details) {
+    _stampMove();
     final motion = _motion;
     if (motion == null || _leaving) return;
     _dragY = details.globalPosition.dy;
@@ -547,6 +561,7 @@ class _SheetViewState extends State<_SheetView>
   }
 
   void _dragUpdate(DragUpdateDetails details) {
+    _stampMove();
     final y = details.globalPosition.dy;
     final from = _scrubFrom;
     if (from != null) {
@@ -574,6 +589,7 @@ class _SheetViewState extends State<_SheetView>
       _release(details.velocity.pixelsPerSecond.dy);
 
   void _release(double velocity) {
+    _stampMove();
     if (_scrubFrom != null) {
       _endScrub(velocity);
       return;
@@ -606,6 +622,7 @@ class _SheetViewState extends State<_SheetView>
   }
 
   void _scrollDragStart() {
+    _stampMove();
     final motion = _motion;
     if (motion == null || _leaving || motion.isDragging) return;
     _stamp = math.max(_stamp, clock);
@@ -615,6 +632,7 @@ class _SheetViewState extends State<_SheetView>
   }
 
   void _scrollDragBy(double delta) {
+    _stampMove();
     final motion = _motion;
     if (motion == null) return;
     if (!motion.isDragging) _scrollDragStart();

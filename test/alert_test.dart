@@ -805,6 +805,54 @@ void main() {
       expect(find.text('OK'), findsNothing);
     });
 
+    testWidgets('a finger moving on a resting popover schedules no frames', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(440, 956));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Builder(
+            builder: (BuildContext context) => Stack(
+              children: [
+                Positioned(
+                  left: 160,
+                  top: 576,
+                  width: 120,
+                  height: 48,
+                  child: Builder(
+                    builder: (BuildContext anchor) => GestureDetector(
+                      key: const ValueKey('source'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => showMorphActionSheet(
+                        context,
+                        anchor: anchor,
+                        title: 'Title',
+                        actions: const [MorphAlertAction(title: 'OK')],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(const ValueKey('source')));
+      await tester.pumpAndSettle();
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Title')),
+      );
+      await tester.pumpAndSettle();
+      for (var i = 0; i < 3; i++) {
+        await gesture.moveBy(const Offset(2, 0));
+        expect(tester.binding.hasScheduledFrame, isFalse);
+      }
+      await gesture.up();
+      expect(tester.binding.hasScheduledFrame, isFalse);
+      expect(find.text('OK'), findsOneWidget);
+    });
+
     testWidgets('without a source it is an alert with cancel at the bottom', (
       tester,
     ) async {

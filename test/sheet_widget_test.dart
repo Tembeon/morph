@@ -191,6 +191,47 @@ void main() {
     expect(tester.binding.hasScheduledFrame, isFalse);
   });
 
+  testWidgets('a finger moving on a resting sheet schedules no frames', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => presentMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+          builder: (BuildContext context) => GestureDetector(
+            onHorizontalDragUpdate: (DragUpdateDetails details) {},
+            child: _content(context),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final rest = tester.getRect(find.byKey(_contentKey));
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('sheet')),
+    );
+    await _settle(tester);
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    for (var i = 0; i < 3; i++) {
+      await gesture.moveBy(const Offset(4, 0));
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    }
+    await gesture.moveBy(const Offset(20, 0));
+    await _settle(tester);
+    for (var i = 0; i < 6; i++) {
+      await gesture.moveBy(const Offset(4, 0));
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    }
+    await gesture.up();
+    await _settle(tester);
+    expect(
+      tester.getRect(find.byKey(_contentKey)).top,
+      moreOrLessEquals(rest.top, epsilon: 0.05),
+    );
+  });
+
   testWidgets('a sheet that is not dismissible stays on a drag down', (
     WidgetTester tester,
   ) async {

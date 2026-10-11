@@ -568,7 +568,7 @@ class _AlertViewState extends State<_AlertView>
     if (event.pointer != _pointer) return;
     final local = _cardLocal(event.position);
     if (local == null) return;
-    _press.pointerMove(stamp(event), local);
+    if (!_route.isPopover) _press.pointerMove(stamp(event), local);
     final over = _buttonAt(event.position);
     if (over != _highlighted) setState(() => _highlighted = over);
   }
@@ -576,18 +576,20 @@ class _AlertViewState extends State<_AlertView>
   void _up(PointerUpEvent event) {
     if (event.pointer != _pointer) return;
     _pointer = null;
-    final local = _cardLocal(event.position) ?? Offset.zero;
-    _press.pointerUp(stamp(event), local);
+    if (!_route.isPopover) {
+      final local = _cardLocal(event.position) ?? Offset.zero;
+      _press.pointerUp(stamp(event), local);
+    }
     final chosen = _buttonAt(event.position);
-    setState(() => _highlighted = null);
+    if (_highlighted != null) setState(() => _highlighted = null);
     if (chosen != null) _choose(_shown[chosen]);
   }
 
   void _cancel(PointerCancelEvent event) {
     if (event.pointer != _pointer) return;
     _pointer = null;
-    _press.pointerCancel(stamp(event));
-    setState(() => _highlighted = null);
+    if (!_route.isPopover) _press.pointerCancel(stamp(event));
+    if (_highlighted != null) setState(() => _highlighted = null);
   }
 
   @override
