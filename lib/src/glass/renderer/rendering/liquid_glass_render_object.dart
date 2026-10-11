@@ -384,16 +384,18 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   /// can refresh contributors without crossing an idle boundary.
   /// [shapesWithGeometry] is also the compositor-translation poll's
   /// baseline: it always reflects the last painted frame, including idle
-  /// and drawable-empty ones.
+  /// and drawable-empty ones. [structure], when given, is
+  /// [geometryStructure] of [candidate], already built by the caller.
   @protected
   void commitFrameGeometry(
-    List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> candidate,
-  ) {
+    List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> candidate, {
+    List<Object>? structure,
+  }) {
     setCompositorTranslation(Offset.zero);
     shapesWithGeometry
       ..clear()
       ..addAll(candidate);
-    _retainedStructure = geometryStructure(candidate);
+    _retainedStructure = structure ?? geometryStructure(candidate);
     _ancestorClips.update(this, shapeRenderObjects);
   }
 
