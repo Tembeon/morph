@@ -69,6 +69,16 @@ cache serves it.
   and p99 worse (25 -> 30 / 32); 111 rim pixels at the sheet's top corners
   up to 57 steps off (`ss-*`, the seed's pass origin, as on the bars). Not
   landed.
+- Moto sheet, where its time goes (audit sheet scene, `go-*`): keeping
+  the sheet content's glass container open while the sheet moves (it
+  closes under the sheet's scale, `MorphGlassContainerGate`) changes
+  nothing (raster p95 23.4 both ways); the floating sheet's own glass
+  replaced by its flat fill (timing proxy) takes raster p50 6.3 / 8.7 ->
+  3.3, p95 23.5 -> 14.5. The large glass surface itself (about 1.6 M pixels
+  at the medium detent, shaded and frosted every frame) is the cost; its
+  frost alone is not (the seeded frost above). A cheaper large-surface
+  path (interior at reduced resolution, rim at full) would change pixels:
+  owner decision.
 - Moto menu, content blur off (timing proxy): no change (raster p95
   18.5-18.7 -> 18.4-18.5, `mnb-*`); Impeller's menu cost is elsewhere.
 - Redmi menu, the flat body filled as a plain rect instead of its traced
