@@ -600,6 +600,34 @@ void main() {
       expect(Focus.of(tester.element(find.text('Remove'))), same(remove));
     });
 
+    testWidgets('the keyboard moves the alert without rebuilding its card', (
+      tester,
+    ) async {
+      await open(
+        tester,
+        (c) => showMorphAlert(
+          c,
+          title: 'Title',
+          actions: const [
+            MorphAlertAction(title: 'OK'),
+            MorphAlertAction(title: 'Cancel', style: .cancel),
+          ],
+        ),
+      );
+      final before = tester.getCenter(find.text('Title'));
+      final rebuilt = <String>[];
+      debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
+        rebuilt.add(element.widget.runtimeType.toString());
+      };
+      addTearDown(() => debugOnRebuildDirtyWidget = null);
+      tester.view.viewInsets = const FakeViewPadding(bottom: 600);
+      addTearDown(tester.view.resetViewInsets);
+      await tester.pumpAndSettle();
+      debugOnRebuildDirtyWidget = null;
+      expect(tester.getCenter(find.text('Title')).dy, lessThan(before.dy - 50));
+      expect(rebuilt, isNot(contains('_AlertCard')));
+    });
+
     testWidgets('mirrors the row in right-to-left', (tester) async {
       await open(
         tester,

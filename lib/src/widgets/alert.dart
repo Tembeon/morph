@@ -600,17 +600,17 @@ class _AlertViewState extends State<_AlertView>
   @override
   Widget build(BuildContext context) {
     final style = MorphAlertStyle.resolve(context, _route.style);
-    final media = MediaQuery.of(context);
     final popover = _route.isPopover;
     final rowCandidate =
         !popover && _route.actions.length == 2 && !_route.actionSheet;
-    final scaler = media.textScaler;
+    final scaler = MediaQuery.textScalerOf(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final width = popover
         ? MorphAlertTuning.popoverWidth
         : math.min(
             MorphAlertTuning.width,
-            media.size.width - 2 * MorphAlertTuning.screenMargin,
+            MediaQuery.sizeOf(context).width -
+                2 * MorphAlertTuning.screenMargin,
           );
     final row = rowCandidate && _fitsInRow(width, style, scaler, direction);
     final order = _ordered(_route.actions, row: row, popover: popover);
@@ -672,16 +672,10 @@ class _AlertViewState extends State<_AlertView>
       },
       child: FocusScope(autofocus: true, child: semantic),
     );
-    final padding = EdgeInsets.fromLTRB(
-      media.padding.left,
-      media.padding.top,
-      media.padding.right,
-      math.max(media.padding.bottom, media.viewInsets.bottom),
-    );
-    return MediaQuery(
-      data: media.copyWith(
-        textScaler: scaler.clamp(maxScaleFactor: MorphAlertTuning.maxTextScale),
-      ),
+    // Only the layout reads the safe area and the keyboard, so a keyboard
+    // animating in rebuilds the layout and leaves the card alone.
+    return MediaQuery.withClampedTextScaling(
+      maxScaleFactor: MorphAlertTuning.maxTextScale,
       child: DefaultTextStyle(
         style: MorphTypography.resolve(
           TextStyle(
@@ -689,9 +683,20 @@ class _AlertViewState extends State<_AlertView>
             color: style.labelColor,
           ),
         ),
-        child: popover
-            ? _popoverLayout(context, keyed, style, padding, direction)
-            : _alertLayout(context, keyed, style, padding),
+        child: Builder(
+          builder: (BuildContext context) {
+            final safe = MediaQuery.paddingOf(context);
+            final padding = EdgeInsets.fromLTRB(
+              safe.left,
+              safe.top,
+              safe.right,
+              math.max(safe.bottom, MediaQuery.viewInsetsOf(context).bottom),
+            );
+            return popover
+                ? _popoverLayout(context, keyed, style, padding, direction)
+                : _alertLayout(context, keyed, style, padding);
+          },
+        ),
       ),
     );
   }
@@ -701,7 +706,28 @@ class _AlertViewState extends State<_AlertView>
     return (_alert?.opacity(t) ?? _popover?.opacity(t) ?? 1).clamp(0.0, 1.0);
   }
 
+  (double, MorphAlertStyle, TextScaler, TextDirection, bool)? _rowKey;
+  bool _rowFits = false;
+
   bool _fitsInRow(
+    double width,
+    MorphAlertStyle style,
+    TextScaler scaler,
+    TextDirection direction,
+  ) {
+    final key = (
+      width,
+      style,
+      scaler,
+      direction,
+      MorphTypography.usesAppleSystemFont,
+    );
+    if (key == _rowKey) return _rowFits;
+    _rowKey = key;
+    return _rowFits = _measureRow(width, style, scaler, direction);
+  }
+
+  bool _measureRow(
     double width,
     MorphAlertStyle style,
     TextScaler scaler,
