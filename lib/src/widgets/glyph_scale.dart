@@ -52,15 +52,21 @@ abstract final class MorphGlyphScale {
 }
 
 /// Paints with [painter] and passes it the screen scale of its box: the
-/// largest axis scale of the transform from the box to the screen, device
-/// pixel ratio included.
+/// largest axis scale of the transform from the box to the root render
+/// object, in logical pixels.
+///
+/// The view's device pixel ratio is not included (the transform to the
+/// root stops before the view's own scale); multiply by
+/// `MediaQuery.devicePixelRatioOf` for device pixels, which
+/// [MorphGlyphScale.snap] expects.
 @internal
 class MorphScreenScalePaint extends LeafRenderObjectWidget {
   /// Paints [painter] over the whole box, again whenever [repaint]
   /// notifies.
   const MorphScreenScalePaint({required this.painter, this.repaint, super.key});
 
-  /// Paints into the box of [Size] whose screen scale is the [double].
+  /// Paints into the box of [Size] whose scale to the root, without the
+  /// device pixel ratio, is the [double].
   final void Function(Canvas canvas, Size size, double screenScale) painter;
 
   /// Repaints the box when it notifies.
@@ -135,6 +141,12 @@ class _RenderScreenScalePaint extends RenderBox {
 /// instead of having its glyphs rasterized at that scale. Meant for text
 /// under a blur, which hides the resampling: an unblurred label stays
 /// live.
+///
+/// A repaint of the child reaches this box only when it is not stopped by
+/// a repaint boundary inside the child: content under its own boundary
+/// that repaints by itself (a spinning activity indicator) stays as the
+/// raster caught it until this box or the child above that boundary
+/// repaints.
 @internal
 class MorphGlyphRaster extends SingleChildRenderObjectWidget {
   /// Draws [child] from its raster while [active] is true.
@@ -302,6 +314,10 @@ class _RenderGlyphRaster extends RenderProxyBox {
 /// needs is taken together, in two passes. A fading child is drawn by the
 /// shader at any blur, the smallest at its finest kernel, so a fade never
 /// needs a layer of its own; an opaque child blurred less paints sharp.
+///
+/// Like [MorphGlyphRaster], the pyramid is taken again only for a repaint
+/// that reaches this box: content under its own repaint boundary inside
+/// the child that repaints by itself is drawn as the pyramid caught it.
 @internal
 class MorphGlyphBlur extends SingleChildRenderObjectWidget {
   /// Paints [child] blurred by [blur] logical pixels and faded to
