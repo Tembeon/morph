@@ -582,37 +582,28 @@ class _Platter extends StatelessWidget {
   final MorphGlassSurface Function(MorphGlassFrame frame) select;
 
   @override
-  Widget build(BuildContext context) {
-    final surface = source.pick(select);
-    return GlassLiveOpacity(
-      live: source.live,
-      opacityOf: () => MorphGlassRenderer.glassness(surface.value) >= 1 ? 0 : 1,
-      child: MorphLiveDecoratedBox(
-        live: source.pick((f) {
-          final surface = select(f);
-          final shape = surface.localShape;
-          final opacity = 1 - MorphGlassRenderer.glassness(surface);
-          return BoxDecoration(
-            color: surface.color.withValues(alpha: surface.color.a * opacity),
-            borderRadius: BorderRadius.only(
-              topLeft: shape.tlRadius,
-              topRight: shape.trRadius,
-              bottomLeft: shape.blRadius,
-              bottomRight: shape.brRadius,
+  Widget build(BuildContext context) => MorphLiveDecoratedBox(
+    live: source.pick((f) {
+      final surface = select(f);
+      final shape = surface.localShape;
+      final opacity = 1 - MorphGlassRenderer.glassness(surface);
+      return BoxDecoration(
+        color: surface.color.withValues(alpha: surface.color.a * opacity),
+        borderRadius: BorderRadius.only(
+          topLeft: shape.tlRadius,
+          topRight: shape.trRadius,
+          bottomLeft: shape.blRadius,
+          bottomRight: shape.brRadius,
+        ),
+        boxShadow: [
+          for (final shadow in _shadows(surface))
+            shadow.copyWith(
+              color: shadow.color.withValues(alpha: shadow.color.a * opacity),
             ),
-            boxShadow: [
-              for (final shadow in _shadows(surface))
-                shadow.copyWith(
-                  color: shadow.color.withValues(
-                    alpha: shadow.color.a * opacity,
-                  ),
-                ),
-            ],
-          );
-        }),
-      ),
-    );
-  }
+        ],
+      );
+    }),
+  );
 }
 
 /// What a lens's content copy shows in one frame.
