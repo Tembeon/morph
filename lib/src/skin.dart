@@ -912,21 +912,29 @@ class RenderMorphSkin extends RenderBox
   }
 
   /// What the last paint drew for each subscribed flight: whether it
-  /// was airborne and whether its companion blob was poured in.
-  final Map<MorphFlight, ({bool airborne, bool blob})> _flightPainted =
-      <MorphFlight, ({bool airborne, bool blob})>{};
+  /// was airborne, whether its companion blob was poured in, and the
+  /// flight's source and target rects it was drawn from.
+  final Map<MorphFlight, _FlightPainted> _flightPainted =
+      <MorphFlight, _FlightPainted>{};
 
   /// A geometry tick repaints only when the picture can change: the
-  /// flight latched or took off since the last paint, or its blob was
-  /// in the mass or would be now. A flight that is far from every
-  /// fellow is not in the mass at all (see [_flightBlob]), so its
-  /// frames leave the picture as it is.
+  /// flight latched or took off since the last paint, its blob was in
+  /// the mass or would be now, or its source or target rect moved. A
+  /// flight that is far from every fellow is not in the mass at all (see
+  /// [_flightBlob]), so its frames leave the picture as it is.
+  ///
+  /// The tick runs before the frame's build refreshes the flight's rects,
+  /// so the blob test sees the previous frame's rects; a rect that moved
+  /// since the last paint repaints anyway, so a moving source or a
+  /// springing target never waits a frame for its neck.
   void _onFlightTick(MorphFlight flight) {
-    final ({bool airborne, bool blob})? painted = _flightPainted[flight];
+    final _FlightPainted? painted = _flightPainted[flight];
     final bool airborne = flight.isAirborne;
     if (painted == null ||
         painted.airborne != airborne ||
         painted.blob ||
+        painted.source != flight.sourceRect ||
+        painted.target != flight.lastTargetRect ||
         (airborne && _flightBlobNow(flight) != null)) {
       markNeedsPaint();
     }
@@ -1177,7 +1185,12 @@ class RenderMorphSkin extends RenderBox
       final MorphMass? blob = airborne
           ? _flightBlob(flight, r.piece, r.rect)
           : null;
-      _flightPainted[flight] = (airborne: airborne, blob: blob != null);
+      _flightPainted[flight] = (
+        airborne: airborne,
+        blob: blob != null,
+        source: flight.sourceRect,
+        target: flight.lastTargetRect,
+      );
       if (blob != null) {
         blobs.add(blob);
       }
@@ -1627,3 +1640,10 @@ class RenderMorphSkin extends RenderBox
     return false;
   }
 }
+
+typedef _FlightPainted = ({
+  bool airborne,
+  bool blob,
+  Rect? source,
+  Rect? target,
+});
