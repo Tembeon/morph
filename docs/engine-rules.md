@@ -48,6 +48,14 @@ and the approaches that are rejected on purpose.
   `cupertino_ui` is transitive only: morph uses no SDK Cupertino
   (`CupertinoMotion` comes from motor). Icons resolve through
   `uses-material-design: true`.
+  One deliberate exception: `lib/src/widgets/widgets_theme.dart` also
+  imports the in-SDK library (`as sdk`) so `MorphWidgetsTheme` is a
+  ThemeExtension of both families and `MorphWidgetsTheme.maybeOf` /
+  `morphBrightnessOf` honour the nearest Theme of either one. A consumer
+  still on the in-SDK Material gets the measured controls' extension and
+  brightness without the bridge; the rest of morph (the engine's
+  Theme.of reads) still needs the migration or the bridge. No other file
+  imports the in-SDK library.
 - Engine-to-Material debt: the core still touches Material in four
   places, so foundation.dart pulls material_ui onto every consumer:
   - `theme.dart`: MorphTheme extends ThemeExtension, read via
