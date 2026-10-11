@@ -1129,7 +1129,7 @@ class MorphMenuMotion {
     _itemCount = itemCount ?? _itemCount;
     _sourceHeight = sourceHeight ?? button.height;
     _flex = MorphFlexSpec.forSize(button.size);
-    _root = _build(reversed: false);
+    _root = _build(reversed: _reversed);
     _rootHeight.snap(_now, _visibleRoot(_root));
     _place(_press.value(_now));
   }

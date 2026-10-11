@@ -1287,6 +1287,31 @@ void main() {
     expect(first.dy, lessThan(button.bottom));
   });
 
+  testWidgets('an upward menu keeps its rows reversed on every opening', (
+    WidgetTester tester,
+  ) async {
+    final log = <String>[];
+    await tester.pumpWidget(_app(_button(log), alignment: .bottomCenter));
+    for (var opening = 0; opening < 2; opening++) {
+      await tester.tap(find.byType(MorphMenuButton));
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      final first = tester.getCenter(find.text('Copy'));
+      final last = tester.getCenter(find.text('Rename'));
+      expect(first.dy, greaterThan(last.dy), reason: 'opening $opening');
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      expect(find.text('Copy'), findsNothing);
+    }
+  });
+
   testWidgets('the menu flies on an engine flight and reports its moments', (
     WidgetTester tester,
   ) async {
