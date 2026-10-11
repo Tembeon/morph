@@ -90,7 +90,14 @@ cache serves it.
   over budget 114 / 137 -> 23 (`fmn-*`): the blurred-SDF matte path (CPU
   fusion, field upload, material pass, shading). An analytic law for the
   blurred union (Clark's expected minimum of two Gaussians, exact for
-  linear fields) is being checked against the grid law on the host.
+  linear fields, with Rice-fitted rounded-box fields; host oracle on branch
+  menu-blur-analytic-oracle, 85543b5) holds the contour within 0.25 pt of
+  a 4x finer grid only up to a 6 pt radius; at 10 - 20 pt it is off by 1.7
+  - 16 pt (best variant), and 52 of 97 fused frames of real opens and
+  closes sit at 10 pt or more. Not pursued: a hybrid would leave the
+  expensive frames on the matte path. Side finding: at a 1 pt radius the
+  production fusion's 2 pt trace step joins a button 2 pt from the card
+  into one loop (contour off by up to 25 pt against the finer grid).
 - Moto menu, content blur off (timing proxy): no change (raster p95
   18.5-18.7 -> 18.4-18.5, `mnb-*`); Impeller's menu cost is elsewhere.
 - Redmi menu, the flat body filled as a plain rect instead of its traced
