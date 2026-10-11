@@ -383,10 +383,15 @@ class MorphSkin extends StatelessWidget {
   /// letters visibly shuffle against each other.
   ///
   /// A non-null value paints content into an [ImageFilterLayer]
-  /// instead: it is rasterized ONCE in its own unchanging local space
-  /// and the channel transform only resamples that raster, so the
-  /// shuffling cannot happen. Text is a little softer while deformed -
-  /// the trade this knob exists to let the caller make.
+  /// instead: it is rasterized in its own unchanging local space and
+  /// the channel transform only resamples that raster, so glyphs snap
+  /// in one place and the shuffling cannot happen. Text is a little
+  /// softer while deformed - the trade this knob exists to let the
+  /// caller make.
+  ///
+  /// It is not a raster cache: content is re-recorded on every skin
+  /// paint, and on Impeller each displaced piece costs one offscreen
+  /// pass plus the matrix filter per frame while it moves.
   final FilterQuality? contentFilterQuality;
 
   @override
@@ -530,8 +535,8 @@ class _LiquidChildParentData extends ContainerBoxParentData<RenderBox> {
   MorphPiece? piece;
 
   /// The child's own filter layer under
-  /// [MorphSkin.contentFilterQuality], kept across paints so its raster
-  /// survives them; disposed with the child.
+  /// [MorphSkin.contentFilterQuality], kept across paints so its
+  /// identity is stable; disposed with the child.
   final LayerHandle<ImageFilterLayer> filterLayer =
       LayerHandle<ImageFilterLayer>();
 
@@ -1362,10 +1367,11 @@ class RenderMorphSkin extends RenderBox
           final Matrix4 local = Matrix4.translationValues(o.dx, o.dy, 0);
           local.multiply(transform);
           local.translateByDouble(-o.dx, -o.dy, 0, 1);
-          // The layer is RETAINED per child: a fresh one each paint
-          // gives the engine a new layer identity every frame, and the
-          // raster keyed on it can never be reused - which is exactly
-          // the saving this knob is here to buy.
+          // The layer is retained per child so its identity is stable
+          // across paints (no layer churn, and a backend with a layer
+          // raster cache may key on it). Impeller has no such cache and
+          // the child is re-recorded every paint, so there the knob
+          // buys stable glyph snapping, not a saved raster.
           final ImageFilterLayer layer =
               pd.filterLayer.layer ?? ImageFilterLayer();
           layer.imageFilter = ui.ImageFilter.matrix(
