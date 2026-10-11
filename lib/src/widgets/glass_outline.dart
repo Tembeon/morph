@@ -1510,20 +1510,3 @@ void _requireUniform(RRect shape) {
     'Glass distance fields require uniform circular corner radii.',
   );
 }
-
-/// Clips a shaded body to the package's outline path.
-@internal
-class MorphGlassOutlineClip extends CustomClipper<Path> {
-  /// Creates a clip for [path].
-  const MorphGlassOutlineClip(this.path);
-
-  /// The body outline in the layer's coordinates.
-  final Path path;
-
-  @override
-  Path getClip(Size size) => path;
-
-  @override
-  bool shouldReclip(MorphGlassOutlineClip oldClipper) =>
-      oldClipper.path != path;
-}
