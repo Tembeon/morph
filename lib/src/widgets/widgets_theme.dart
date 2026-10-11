@@ -110,13 +110,8 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
 
   /// The extension from the ambient [Theme], or null when there is no
   /// [Theme] above [context] or it has no such extension.
-  static MorphWidgetsTheme? maybeOf(BuildContext context) {
-    return switch (_themeHost(context)) {
-      Theme() => Theme.of(context).extension<MorphWidgetsTheme>(),
-      sdk.Theme() => sdk.Theme.of(context).extension<MorphWidgetsTheme>(),
-      _ => null,
-    };
-  }
+  static MorphWidgetsTheme? maybeOf(BuildContext context) =>
+      _extensionOf(context, _themeHost(context));
 
   /// Copies this extension with the supplied non-null control styles.
   @override
@@ -170,13 +165,21 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
 /// ambient [Theme]'s when there is one, otherwise the platform's from
 /// [MediaQuery], otherwise light.
 @internal
-Brightness morphBrightnessOf(BuildContext context) {
-  return switch (_themeHost(context)) {
-    Theme() => Theme.of(context).brightness,
-    sdk.Theme() => sdk.Theme.of(context).brightness,
-    _ => MediaQuery.maybePlatformBrightnessOf(context) ?? Brightness.light,
-  };
-}
+Brightness morphBrightnessOf(BuildContext context) =>
+    _brightnessOf(context, _themeHost(context));
+
+MorphWidgetsTheme? _extensionOf(BuildContext context, Widget? host) =>
+    switch (host) {
+      Theme() => Theme.of(context).extension<MorphWidgetsTheme>(),
+      sdk.Theme() => sdk.Theme.of(context).extension<MorphWidgetsTheme>(),
+      _ => null,
+    };
+
+Brightness _brightnessOf(BuildContext context, Widget? host) => switch (host) {
+  Theme() => Theme.of(context).brightness,
+  sdk.Theme() => sdk.Theme.of(context).brightness,
+  _ => MediaQuery.maybePlatformBrightnessOf(context) ?? Brightness.light,
+};
 
 /// Whether the platform asks for reduced motion above [context].
 @internal
@@ -207,7 +210,8 @@ T morphResolveStyle<T>(
   required T dark,
 }) {
   if (explicit != null) return explicit;
-  final theme = MorphWidgetsTheme.maybeOf(context);
+  final host = _themeHost(context);
+  final theme = _extensionOf(context, host);
   return (theme == null ? null : themed(theme)) ??
-      (morphBrightnessOf(context) == Brightness.dark ? dark : light);
+      (_brightnessOf(context, host) == Brightness.dark ? dark : light);
 }
