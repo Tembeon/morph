@@ -375,20 +375,20 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
   }
 }
 
-/// The actions in the order they show: the cancel action first in a row,
-/// last in a column, and left out of a popover.
-List<MorphAlertAction> _ordered(
+/// The indices of the actions in the order they show: the cancel action
+/// first in a row, last in a column, and left out of a popover.
+List<int> _ordered(
   List<MorphAlertAction> actions, {
   required bool row,
   required bool popover,
 }) {
   final cancel = [
-    for (final a in actions)
-      if (a.style == MorphAlertActionStyle.cancel) a,
+    for (var i = 0; i < actions.length; i++)
+      if (actions[i].style == MorphAlertActionStyle.cancel) i,
   ];
   final rest = [
-    for (final a in actions)
-      if (a.style != MorphAlertActionStyle.cancel) a,
+    for (var i = 0; i < actions.length; i++)
+      if (actions[i].style != MorphAlertActionStyle.cancel) i,
   ];
   if (popover) return rest;
   return row ? [...cancel, ...rest] : [...rest, ...cancel];
@@ -437,7 +437,12 @@ class _AlertViewState extends State<_AlertView>
       : null;
   final MorphGlassButtonMotion _press = _platterPress();
   final GlobalKey _card = GlobalKey();
-  final List<GlobalKey> _buttonKeys = [];
+  // One key per action, not per slot: when the row turns into a column the
+  // cancel action moves, and its button state and focus move with it.
+  late final List<GlobalKey> _actionKeys = [
+    for (final _ in widget.route.actions) GlobalKey(),
+  ];
+  List<GlobalKey> _buttonKeys = const [];
   late final List<TextEditingController> _ownControllers = [
     for (final f in widget.route.textFields)
       if (f.controller == null) TextEditingController(),
@@ -608,10 +613,9 @@ class _AlertViewState extends State<_AlertView>
             media.size.width - 2 * MorphAlertTuning.screenMargin,
           );
     final row = rowCandidate && _fitsInRow(width, style, scaler, direction);
-    _shown = _ordered(_route.actions, row: row, popover: popover);
-    while (_buttonKeys.length < _shown.length) {
-      _buttonKeys.add(GlobalKey());
-    }
+    final order = _ordered(_route.actions, row: row, popover: popover);
+    _shown = [for (final i in order) _route.actions[i]];
+    _buttonKeys = [for (final i in order) _actionKeys[i]];
     final card = _AlertCard(
       key: _card,
       title: _route.title,

@@ -540,6 +540,66 @@ void main() {
       expect(cancel.dx, lessThan(ok.dx));
     });
 
+    testWidgets('a button keeps its focus when the row turns into a column', (
+      tester,
+    ) async {
+      await tester.binding.setSurfaceSize(const Size(440, 956));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      final scale = ValueNotifier<double>(1);
+      addTearDown(scale.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (BuildContext context, Widget? child) =>
+              ValueListenableBuilder<double>(
+                valueListenable: scale,
+                builder: (BuildContext context, double s, Widget? _) =>
+                    MediaQuery(
+                      data: MediaQuery.of(
+                        context,
+                      ).copyWith(textScaler: TextScaler.linear(s)),
+                      child: child!,
+                    ),
+              ),
+          home: Builder(
+            builder: (BuildContext context) => Center(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => showMorphAlert(
+                  context,
+                  title: 'Title',
+                  actions: const [
+                    MorphAlertAction(title: 'Remove'),
+                    MorphAlertAction(title: 'Cancel', style: .cancel),
+                  ],
+                ),
+                child: const SizedBox(
+                  key: ValueKey('source'),
+                  width: 120,
+                  height: 48,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.byKey(const ValueKey('source')));
+      await tester.pumpAndSettle();
+      expect(
+        tester.getCenter(find.text('Cancel')).dy,
+        closeTo(tester.getCenter(find.text('Remove')).dy, 0.5),
+      );
+      final cancel = Focus.of(tester.element(find.text('Cancel')));
+      final remove = Focus.of(tester.element(find.text('Remove')));
+      scale.value = 3;
+      await tester.pumpAndSettle();
+      expect(
+        tester.getCenter(find.text('Cancel')).dy,
+        greaterThan(tester.getCenter(find.text('Remove')).dy + 10),
+      );
+      expect(Focus.of(tester.element(find.text('Cancel'))), same(cancel));
+      expect(Focus.of(tester.element(find.text('Remove'))), same(remove));
+    });
+
     testWidgets('mirrors the row in right-to-left', (tester) async {
       await open(
         tester,
