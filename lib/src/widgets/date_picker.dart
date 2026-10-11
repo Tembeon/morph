@@ -186,6 +186,19 @@ int _daysIn(DateTime month) => DateTime(month.year, month.month + 1, 0).day;
 
 DateTime _dateOnly(DateTime d) => DateTime(d.year, d.month, d.day);
 
+/// Whether the calendar may turn from [month] by [direction] months: the
+/// next month must not start before [first]'s month or after [last]'s.
+bool _canTurnMonth(
+  DateTime month,
+  int direction,
+  DateTime? first,
+  DateTime? last,
+) {
+  final next = DateTime(month.year, month.month + direction);
+  return !(first != null && next.isBefore(DateTime(first.year, first.month))) &&
+      !(last != null && next.isAfter(DateTime(last.year, last.month)));
+}
+
 bool _sameDay(DateTime a, DateTime b) =>
     a.year == b.year && a.month == b.month && a.day == b.day;
 
@@ -833,16 +846,17 @@ class _OverlayViewState extends State<_OverlayView>
       wake();
       return;
     }
-    final next = DateTime(_month.year, _month.month + direction);
-    final first = _picker.firstDate;
-    final last = _picker.lastDate;
-    if ((first != null && next.isBefore(DateTime(first.year, first.month))) ||
-        (last != null && next.isAfter(DateTime(last.year, last.month)))) {
+    if (!_canTurnMonth(
+      _month,
+      direction,
+      _picker.firstDate,
+      _picker.lastDate,
+    )) {
       return;
     }
     setState(() {
       _previousMonth = _month;
-      _month = next;
+      _month = DateTime(_month.year, _month.month + direction);
     });
     _motion.turnPage(clock, direction);
     wake();
@@ -1298,19 +1312,8 @@ class _Calendar extends StatelessWidget {
   String _text(String value) => localize?.call(value) ?? value;
   String _number(int value) => numberFormatter?.call(value) ?? '$value';
 
-  bool _canTurn(int direction) {
-    final next = DateTime(month.year, month.month + direction);
-    if (direction < 0) {
-      final first = firstDate;
-      return first == null ||
-          !DateTime(
-            next.year,
-            next.month + 1,
-          ).isBefore(DateTime(first.year, first.month, 2));
-    }
-    final last = lastDate;
-    return last == null || !next.isAfter(last);
-  }
+  bool _canTurn(int direction) =>
+      _canTurnMonth(month, direction, firstDate, lastDate);
 
   double _years() => motion.yearPicker(motion.time);
 
