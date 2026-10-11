@@ -236,38 +236,12 @@ class _SpinnerPainter extends CustomPainter {
     required this.state,
     required this.color,
     required this.size,
-  }) : super(repaint: state._image) {
-    final metrics = MorphActivityIndicator.metrics(size);
-    _paints = [
-      for (
-        var frame = 0;
-        frame < MorphActivityIndicatorFrames.frameCount;
-        frame++
-      )
-        [
-          for (var i = 0; i < MorphActivityIndicatorFrames.spokes; i++)
-            _paint(
-              color,
-              metrics.width,
-              MorphActivityIndicatorFrames.strength(i, frame),
-            ),
-        ],
-    ];
-  }
-
-  static Paint _paint(Color color, double width, double strength) {
-    final paint = Paint();
-    paint.color = color.withValues(alpha: color.a * strength);
-    paint.strokeWidth = width;
-    paint.strokeCap = StrokeCap.round;
-    return paint;
-  }
-
-  late final List<List<Paint>> _paints;
+  }) : super(repaint: state._image);
 
   final _MorphActivityIndicatorState state;
   final Color color;
   final MorphActivityIndicatorSize size;
+  final Paint _paint = Paint();
 
   @override
   void paint(Canvas canvas, Size box) {
@@ -275,10 +249,15 @@ class _SpinnerPainter extends CustomPainter {
     final frame = state.widget.animating ? state._image.value : 0;
     final center = box.center(Offset.zero);
     final half = m.width / 2;
+    final paint = _paint;
+    paint.strokeWidth = m.width;
+    paint.strokeCap = StrokeCap.round;
     for (var i = 0; i < MorphActivityIndicatorFrames.spokes; i++) {
       final angle = i * 2 * math.pi / MorphActivityIndicatorFrames.spokes;
       final dir = Offset(math.sin(angle), -math.cos(angle));
-      final paint = _paints[frame][i];
+      paint.color = color.withValues(
+        alpha: color.a * MorphActivityIndicatorFrames.strength(i, frame),
+      );
       canvas.drawLine(
         center + dir * (m.inner + half),
         center + dir * (m.outer - half),
