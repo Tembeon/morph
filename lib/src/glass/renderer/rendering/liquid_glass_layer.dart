@@ -1388,11 +1388,11 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
     final candidate = <(RenderLiquidGlassGeometry, GeometryCache, Matrix4)>[];
     final bounds = collectFrameGeometry(candidate);
-    if (bounds == null) return false;
-    final structure = geometryStructure(candidate);
     // Topology changes need normal painting to rebuild clip ancestry.
-    if (!listEquals(retainedStructure, structure)) return false;
-    commitFrameGeometry(candidate, structure: structure);
+    if (bounds == null || !matchesRetainedStructure(candidate)) {
+      return false;
+    }
+    commitFrameGeometry(candidate, sameStructure: true);
     final unchanged = encodedMatteDelta(bounds) != null;
     final materialBounds = _prepareGeometryAppearance(bounds);
     // A drawable-empty refresh encodes nothing; the committed list alone

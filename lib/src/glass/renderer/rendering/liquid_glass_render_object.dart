@@ -119,7 +119,7 @@ bool debugCheckOpacityBetweenShapesAndLayer(
 /// The base owns shape registration via [GeometryRenderLink], transform
 /// polling ([FramePollMarker] and the compositor-translation poll), the
 /// retained [GlassFrameState] with its encoded input snapshot, layer
-/// shadows, effect bounds, retained ancestor clips ([RetainedGlassClip])
+/// shadows, retained ancestor clips ([RetainedGlassClip])
 /// and compositor translation. Subclasses implement only their effect in
 /// [paintFrame]: real glass renders a GPU matte plus the final shader
 /// filter; fake glass draws a blur plus a surface shader.
@@ -347,18 +347,20 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   /// can refresh contributors without crossing an idle boundary.
   /// [shapesWithGeometry] is also the compositor-translation poll's
   /// baseline: it always reflects the last painted frame, including idle
-  /// and drawable-empty ones. [structure], when given, is
-  /// [geometryStructure] of [candidate], already built by the caller.
+  /// and drawable-empty ones.
+  ///
+  /// [sameStructure] says the caller already matched [candidate] against
+  /// [retainedStructure], which then stays as it is.
   @protected
   void commitFrameGeometry(
     List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> candidate, {
-    List<Object>? structure,
+    bool sameStructure = false,
   }) {
     setCompositorTranslation(Offset.zero);
     shapesWithGeometry
       ..clear()
       ..addAll(candidate);
-    _retainedStructure = structure ?? geometryStructure(candidate);
+    if (!sameStructure) _retainedStructure = geometryStructure(candidate);
     _ancestorClips.update(this, shapeRenderObjects);
   }
 
@@ -381,6 +383,37 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
           node,
       ],
   ];
+
+  /// Whether [geometries] has the [geometryStructure] of the last committed
+  /// frame, compared in place without building it.
+  @protected
+  bool matchesRetainedStructure(
+    List<(RenderLiquidGlassGeometry, GeometryCache, Matrix4)> geometries,
+  ) {
+    final retained = _retainedStructure;
+    var index = 0;
+    for (final entry in geometries) {
+      for (final shape in entry.$2.shapes) {
+        if (index + 2 > retained.length ||
+            retained[index] != shape.renderObject ||
+            retained[index + 1] != shape.shadows.isNotEmpty) {
+          return false;
+        }
+        index += 2;
+        for (
+          var node = shape.renderObject.parent;
+          node != null && !identical(node, this);
+          node = node.parent
+        ) {
+          if (index >= retained.length || retained[index] != node) {
+            return false;
+          }
+          index += 1;
+        }
+      }
+    }
+    return index == retained.length;
+  }
 
   /// The state a frame that collected [geometries] commits: empty when
   /// nothing drawable remains, [hiddenFrameState] when every shape is
