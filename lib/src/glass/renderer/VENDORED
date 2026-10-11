@@ -461,3 +461,12 @@ Local patches (some commits include related package changes):
   of its own that it zeroes afterwards (the solid paint is a pipeline of
   its own on Impeller: source over into the current pass, not a filter);
   RenderLiquidGlassLayer.solidBackdropUniform names float index 65.
+- 2026-10-12 raster-phase watch: RenderLiquidGlassLayer watched the pass
+  phase on every composited frame, because the compositor poll reports
+  Offset.zero (not null) when nothing moved; with a matte held (every
+  resting layer in analytic mode `changes`) the post-frame check found
+  the stamp from its own frame and scheduled the next one, so the app
+  never went idle and the stale-phase repaint never ran. The watch now
+  starts only on a frame that moved the layer on screen, changed the
+  compositor translation or changed the coordinate mapping
+  (example/test/raster_phase_idle_host_test.dart).

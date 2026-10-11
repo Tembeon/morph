@@ -1483,6 +1483,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     Offset offset,
     Rect? geometryBounds,
   ) {
+    // The commit rebased the compositor translation onto the shapes'
+    // painted transforms; that moves no pass phase.
+    _phaseMoved = false;
     if (geometryBounds == null) {
       _clearGeometryImage();
       _releaseCompositorFilter();
@@ -2373,6 +2376,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @override
   void onTransformChanged() {
+    _phaseMoved = true;
     // A layer without shapes has no mapping to synchronize; a shape that
     // registers repaints through it.
     if (link.shapes.isEmpty) return;
@@ -2388,11 +2392,18 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
     runCompositorPoll();
     _compositingScreen = null;
+    _phaseMoved = false;
+  }
+
+  @override
+  bool setCompositorTranslation(Offset value) {
+    final changed = super.setCompositorTranslation(value);
+    if (changed) _phaseMoved = true;
+    return changed;
   }
 
   @override
   void onCompositorTranslated(Offset translation) {
-    _watchRasterPhase();
     final clip = _filterClip;
     if (clip != null && _clipRectLayerHandle.layer != null) {
       _clipRectLayerHandle.layer!.clipRect = clip.shift(_filterPaintOffset);
@@ -2402,9 +2413,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         seedClip.clipRect = seed.shift(_filterPaintOffset);
       }
     }
-    if (!drawableEmpty && hasReusableGeometry && syncCoordinateMapping()) {
-      _shaderHandle.layer?.filter = _updateShaderFilter();
-    }
+    final mapped =
+        !drawableEmpty && hasReusableGeometry && syncCoordinateMapping();
+    if (mapped) _shaderHandle.layer?.filter = _updateShaderFilter();
+    // The poll reaches here on every composited frame, moved or not; a
+    // watch on a still frame would ask for the next frame forever.
+    if (mapped || _phaseMoved) _watchRasterPhase();
   }
 
   @override
@@ -2570,6 +2584,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   Duration? _movedAt;
   bool _phaseWatched = false;
+  // Whether this frame moved the layer on screen or changed the compositor
+  // translation, either of which moves the pass phase.
+  bool _phaseMoved = false;
 
   // Compositor motion moves the pass phase without a paint, so the shifts
   // baked into the matte go stale. A paint re-encodes them; it is asked for
