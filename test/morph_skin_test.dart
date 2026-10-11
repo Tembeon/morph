@@ -904,6 +904,40 @@ void main() {
     entry.dispose();
   });
 
+  testWidgets('an equal extraMasses list does not repaint the skin', (
+    WidgetTester tester,
+  ) async {
+    List<MorphMass> masses() => <MorphMass>[
+      const .box(Rect.fromLTWH(20, 100, 60, 40), radius: 8),
+      const .bridge(Offset(40, 120), Offset(160, 50), radius: 6),
+    ];
+    await tester.pumpWidget(
+      host(
+        MorphSkin(
+          blend: 10,
+          color: const Color(0xFF000000),
+          extraMasses: masses(),
+          pieces: const <MorphPiece>[
+            MorphPiece(id: 'a', rect: .fromLTWH(20, 20, 100, 60)),
+          ],
+        ),
+      ),
+    );
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    expect(skin.debugNeedsPaint, isFalse);
+
+    skin.extraMasses = masses();
+    expect(skin.debugNeedsPaint, isFalse);
+
+    skin.extraMasses = <MorphMass>[
+      const .box(Rect.fromLTWH(20, 100, 60, 40), radius: 8),
+      const .bridge(Offset(40, 120), Offset(160, 51), radius: 6),
+    ];
+    expect(skin.debugNeedsPaint, isTrue);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('tint-only update is paint-only: no relayout, no resync', (
     WidgetTester tester,
   ) async {

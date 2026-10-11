@@ -699,9 +699,39 @@ class RenderMorphSkin extends RenderBox
   /// The live extra mass shapes; changes re-trace the skin.
   List<MorphMass> get extraMasses => _extraMasses;
   set extraMasses(List<MorphMass> value) {
+    final bool same = _sameMasses(_extraMasses, value);
     _extraMasses = value;
-    markNeedsPaint();
+    if (!same) {
+      markNeedsPaint();
+    }
   }
+
+  /// Equal canonical encodings mean an equal paint: the skin reuses its
+  /// traced path on exactly this signature, so an unrelated parent
+  /// rebuild passing an equal list must not repaint the whole mass.
+  static bool _sameMasses(List<MorphMass> a, List<MorphMass> b) {
+    if (identical(a, b)) {
+      return true;
+    }
+    if (a.length != b.length) {
+      return false;
+    }
+    final Float64List scratch = _massScratch;
+    for (int i = 0; i < a.length; i++) {
+      liquidMassSignature(a[i], scratch, 0);
+      liquidMassSignature(b[i], scratch, liquidMassSignatureStride);
+      for (int j = 0; j < liquidMassSignatureStride; j++) {
+        if (scratch[j] != scratch[liquidMassSignatureStride + j]) {
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+
+  static final Float64List _massScratch = Float64List(
+    2 * liquidMassSignatureStride,
+  );
 
   double _k;
 
