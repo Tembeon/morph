@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Offline gate for the glass shaders: no device, no GPU.
 
-Compiles every runtime .frag of the package (and the frozen baseline in
-example/shader_audit/baseline) with the SDK's impellerc for the three
+Compiles every runtime .frag of the package (the glass renderer's and the
+widgets' shaders, and the frozen baseline in example/shader_audit/baseline) with the SDK's impellerc for the three
 runtime stages the engine loads - Vulkan (SPIR-V), Metal (MSL) and GLES 3
 (GLSL ES) - and the Flutter GPU bundle fragments (geometry, field, material)
 for Vulkan and GLES 3.00 as the build hook does, then reports:
@@ -48,6 +48,7 @@ SHADER_LIB = os.path.join(ENGINE, 'shader_lib')
 NDK = os.path.expanduser('~/Library/Android/sdk/ndk')
 TREES = {
     'live': os.path.join(ROOT, 'lib/src/glass/renderer/shaders'),
+    'widgets': os.path.join(ROOT, 'lib/src/widgets/shaders'),
     'baseline': os.path.join(ROOT, 'example/shader_audit/baseline'),
 }
 RUNTIME = [
@@ -57,6 +58,7 @@ RUNTIME = [
     'liquid_glass_final_render_tint_ios27.frag',
     'liquid_glass_final_render_material.frag',
     'fake_glass_surface.frag',
+    'glass_shadow.frag',
     'liquid_glass_final_render_analytic.frag',
     'liquid_glass_final_render_analytic_ios27.frag',
     'liquid_glass_final_render_analytic_tint.frag',
@@ -311,9 +313,11 @@ def main():
         else:
             print(__doc__)
             return 2
+    default_trees = not trees
     trees = trees or TREES
     dis = spirv_dis()
     report = {}
+    found = set()
     with tempfile.TemporaryDirectory() as out:
         for tree_name, tree in trees.items():
             if not os.path.isdir(tree):
@@ -323,11 +327,19 @@ def main():
                     continue
                 if not os.path.exists(os.path.join(tree, entry)):
                     continue
+                found.add(entry)
                 analyze = analyze_bundle if entry in BUNDLE else analyze_runtime
                 report[f'{tree_name}/{entry}'] = analyze(tree, entry, out, defines, dis)
     if json_out:
         json.dump(report, open(json_out, 'w'), indent=2)
     print_tables(report)
+    missing = [e for e in RUNTIME + BUNDLE if (not only or only in e) and e not in found]
+    if missing:
+        print(f'\nnot found in any tree: {", ".join(missing)}', file=sys.stderr)
+        # Custom trees may hold only part of the package; the default ones
+        # must hold every shader the package ships.
+        if default_trees:
+            return 1
     return 0
 
 
