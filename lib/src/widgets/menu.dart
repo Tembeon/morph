@@ -452,7 +452,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     stamp: stamp,
     wake: wake,
     style: () => _style,
-    glyph: () => widget.child ?? _Ellipsis(color: _style.iconColor),
+    glyph: () => _glyphFor(_style, true),
     semanticLabel: () => _semanticLabel,
     onOpen: (MorphFlight flight) => widget.onOpen?.call(flight),
   );
@@ -608,6 +608,32 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     );
   }
 
+  ({Widget? child, Color color, bool enabled, Widget glyph})? _glyph;
+
+  // The same glyph instance across parent rebuilds keeps the resting face
+  // cached in _face.
+  Widget _glyphFor(MorphMenuStyle style, bool enabled) {
+    final custom = widget.child;
+    final color = enabled ? style.iconColor : style.disabledIconColor;
+    final last = _glyph;
+    if (last != null &&
+        identical(last.child, custom) &&
+        last.color == color &&
+        last.enabled == enabled) {
+      return last.glyph;
+    }
+    final glyph = custom == null
+        ? _Ellipsis(color: color)
+        : enabled
+        ? custom
+        : IconTheme.merge(
+            data: IconThemeData(color: color),
+            child: custom,
+          );
+    _glyph = (child: custom, color: color, enabled: enabled, glyph: glyph);
+    return glyph;
+  }
+
   @override
   Widget build(BuildContext context) {
     final style = MorphMenuStyle.resolve(context, widget.style);
@@ -619,16 +645,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
       });
     }
     final enabled = widget.enabled;
-    final iconColor = enabled ? style.iconColor : style.disabledIconColor;
-    final custom = widget.child;
-    final glyph = custom == null
-        ? _Ellipsis(color: iconColor)
-        : enabled
-        ? custom
-        : IconTheme.merge(
-            data: IconThemeData(color: iconColor),
-            child: custom,
-          );
+    final glyph = _glyphFor(style, enabled);
     final Widget button = ListenableBuilder(
       listenable: frames,
       builder: (BuildContext context, Widget? child) => Semantics(

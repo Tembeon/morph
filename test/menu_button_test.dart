@@ -1287,6 +1287,30 @@ void main() {
     expect(first.dy, lessThan(button.bottom));
   });
 
+  testWidgets('a parent rebuild keeps the resting face', (
+    WidgetTester tester,
+  ) async {
+    late StateSetter rebuild;
+    final items = <MorphMenuEntry>[const MorphMenuItem(title: 'Copy')];
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            rebuild = setState;
+            return MorphMenuButton(items: items);
+          },
+        ),
+      ),
+    );
+    final face = find.byWidgetPredicate(
+      (Widget widget) => widget.runtimeType.toString() == '_MenuShapes',
+    );
+    final before = tester.widget(face);
+    rebuild(() {});
+    await tester.pump();
+    expect(identical(tester.widget(face), before), isTrue);
+  });
+
   testWidgets('a closed menu does not lay out or load on parent rebuilds', (
     WidgetTester tester,
   ) async {
