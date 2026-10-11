@@ -123,10 +123,10 @@ class LiquidGlassLayer extends StatefulWidget {
   /// platform brightness.
   final LiquidGlassAppearance? defaultAppearance;
 
-  /// Whether to replace all liquid glass effects in this layer with
-  /// [FakeGlass] effects.
+  /// Whether to replace all liquid glass effects in this layer with the
+  /// fake tier, which the layer paints in one consolidated pass.
   ///
-  /// The layer also uses [FakeGlass] when Impeller shader filters or Flutter
+  /// The layer also uses the fake tier when Impeller shader filters or Flutter
   /// GPU are unavailable, for example on Skia.
   final bool fake;
 

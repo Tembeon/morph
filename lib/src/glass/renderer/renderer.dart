@@ -1,7 +1,6 @@
 /// Liquid Glass Effect for Flutter
 library;
 
-export 'package:morph/src/glass/renderer/fake_glass.dart' show FakeGlass;
 export 'package:morph/src/glass/renderer/liquid_glass.dart' show LiquidGlass;
 export 'package:morph/src/glass/renderer/liquid_glass_appearance.dart'
     show LiquidGlassAppearance;

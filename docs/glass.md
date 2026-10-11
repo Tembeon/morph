@@ -191,8 +191,8 @@ and settings, and hosts inside a container kept out by a blocker.
   from whynotmake-it (Apache-2.0); VENDORED lists the local patches.
 - Public entry: `MorphGlassRenderer` with `MorphGlassTier`:
   - flat;
-  - fake - the liquid layers through the renderer's FakeGlass: no
-    refraction, no Flutter GPU. The fallback before the liquid
+  - fake - the liquid layers through the renderer's consolidated fake
+    layer: no refraction, no Flutter GPU. The fallback before the liquid
     capability resolves, and the web's tier;
   - liquid.
 - `MorphAdaptiveGlass` picks the tier once per session, never at runtime.

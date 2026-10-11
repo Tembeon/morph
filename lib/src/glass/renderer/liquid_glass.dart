@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -34,8 +32,8 @@ class LiquidGlassShapeFrame {
 class LiquidGlass extends StatefulWidget {
   /// Creates a shape registered with the nearest layer.
   const LiquidGlass({
-    required this.child,
     required LiquidShape this._shape,
+    this.child,
     this.clipBehavior = Clip.hardEdge,
     this._shadows = const [],
     this._appearance,
@@ -48,16 +46,18 @@ class LiquidGlass extends StatefulWidget {
   /// shape's render objects; the widget rebuilds only when the kind of
   /// shape changes or its shadows appear or vanish.
   const LiquidGlass.live({
-    required this.child,
     required ValueListenable<LiquidGlassShapeFrame> this.live,
+    this.child,
     this.clipBehavior = Clip.hardEdge,
     super.key,
   }) : _shape = null,
        _shadows = const [],
        _appearance = null;
 
-  /// Content painted above the shape.
-  final Widget child;
+  /// Content painted above the shape, clipped to it and faded by its
+  /// visibility; null for a shape without content, which fills the space
+  /// it is given and carries no clip or fade.
+  final Widget? child;
 
   /// The frames of a live shape, or null for a fixed one.
   final ValueListenable<LiquidGlassShapeFrame>? live;
@@ -89,7 +89,6 @@ class _LiquidGlassState extends State<LiquidGlass> {
   final _childKey = GlobalKey(debugLabel: 'LiquidGlass.child');
 
   (Type, bool)? _form;
-  bool _rebuildsOnFrame = false;
 
   LiquidGlassShapeFrame? _resolvedFrame;
   LiquidGlassAppearance? _resolvedBase;
@@ -120,7 +119,7 @@ class _LiquidGlassState extends State<LiquidGlass> {
   }
 
   void _frameChanged() {
-    if (_rebuildsOnFrame || _formOf() != _form) setState(() {});
+    if (_formOf() != _form) setState(() {});
   }
 
   LiquidGlassAppearance _appearanceOf(
@@ -158,36 +157,21 @@ class _LiquidGlassState extends State<LiquidGlass> {
         : Listenable.merge([?frame, ?settingsLive]);
     LiquidShape shape() => widget.shape;
     LiquidGlassSettings settings() => scope.currentSettings;
-    final child = KeyedSubtree(key: _childKey, child: widget.child);
-    _rebuildsOnFrame = false;
-    if (scope.useFake ||
-        (!ImageFilter.isShaderFilterSupported &&
-            !scope.consolidatesFakeBackdrop)) {
-      _rebuildsOnFrame = frame != null;
-      return FakeGlass.inLayerResolved(
-        shape: widget.shape,
-        appearance: appearance(),
-        shadows: widget.shadows,
-        child: child,
-      );
-    }
+    final child = widget.child;
     final Widget registered;
-    if (scope.consolidatesFakeBackdrop) {
-      registered = FakeGlass.inLayerLive(
-        live: live,
-        shapeOf: shape,
-        appearanceOf: appearance,
-        child: child,
-      );
+    if (child == null) {
+      registered = const SizedBox.expand();
     } else {
       registered = GlassLiveShapeClip(
         live: live,
         shapeOf: shape,
-        clipBehavior: widget.clipBehavior,
+        clipBehavior: scope.consolidatesFakeBackdrop
+            ? Clip.antiAlias
+            : widget.clipBehavior,
         child: GlassLiveOpacity(
           live: live,
           opacityOf: () => appearance().visibility.clamp(0.0, 1.0),
-          child: child,
+          child: KeyedSubtree(key: _childKey, child: child),
         ),
       );
     }

@@ -253,7 +253,6 @@ Widget _shapes(
               exact: exact,
             ),
           ),
-          child: const SizedBox.expand(),
         ),
       ),
   ],

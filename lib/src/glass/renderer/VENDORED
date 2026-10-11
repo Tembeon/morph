@@ -488,3 +488,14 @@ Local patches (some commits include related package changes):
   layer). RetainedGlassClip keeps the path until the clipper, the size or
   the clipper's reclip notification changes it, as RenderClipPath does
   (test/retained_glass_clip_test.dart).
+- 2026-10-12 standalone FakeGlass removed: FakeGlass, RawFakeGlass,
+  RenderFakeGlass, GlassRebuildOn and LiquidGlassRenderScope.useFake are
+  gone. The fake tier is only the consolidated layer
+  (RenderConsolidatedFakeGlassLayer), which paints every backdrop,
+  surface and shadow itself, so a LiquidGlass under it registers its
+  geometry with no per-shape fake render object. LiquidGlass.child is
+  optional: a shape without content (morph's glass draw) fills its
+  space with a SizedBox and skips the shape clip and visibility
+  opacity, so each shape no longer carries an OpacityLayer and a clip
+  layer around empty content. Content, when given, is clipped and faded
+  as before.

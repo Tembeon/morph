@@ -9,7 +9,6 @@ class LiquidGlassRenderScope extends InheritedWidget {
     required this.settings,
     required this.defaultAppearance,
     required super.child,
-    this.useFake = false,
     this.consolidatesFakeBackdrop = false,
     this.consolidatesFakeSurface = false,
     this.backdropKey,
@@ -27,8 +26,6 @@ class LiquidGlassRenderScope extends InheritedWidget {
   LiquidGlassSettings get currentSettings => settingsLive?.value ?? settings;
 
   final LiquidGlassAppearance defaultAppearance;
-
-  final bool useFake;
 
   /// Whether fake shapes register with the parent layer while omitting their
   /// individual backdrop filters.
@@ -71,7 +68,6 @@ class LiquidGlassRenderScope extends InheritedWidget {
         oldWidget.settings != settings ||
         !identical(oldWidget.settingsLive, settingsLive) ||
         oldWidget.defaultAppearance != defaultAppearance ||
-        oldWidget.useFake != useFake ||
         oldWidget.consolidatesFakeBackdrop != consolidatesFakeBackdrop ||
         oldWidget.consolidatesFakeSurface != consolidatesFakeSurface ||
         oldWidget.backdropKey != backdropKey;
