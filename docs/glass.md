@@ -41,8 +41,11 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   repaint on a key of what they read, `LiquidGlass.live` /
   `LiquidGlassLayer.live`.
 - A host rebuilt by its parent pushes from `update` without building (a
-  custom element). A frames-driven host builds once per frame and returns
-  the same tree. `keep` hands back the same glass widgets when only the
+  custom element); one its frames already marked builds once instead. A
+  frames-driven host builds once per frame and returns the same tree.
+  Until the liquid capability resolves, a host listens to it and builds
+  once when it does: a renderer asking for liquid draws fake before that
+  and compares equal across the change. `keep` hands back the same glass widgets when only the
   content changed.
 - Other painters are asked every frame.
 - MorphGlassRenderer's buildLayer / buildSurface / buildBody build the
