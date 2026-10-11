@@ -793,6 +793,32 @@ class MorphFlight {
   @internal
   RenderBox? get overlayBox => _overlayBox;
 
+  /// [overlayBox] for a reader in the paint phase, where neither the
+  /// abort's setState nor a throw may run: null while the overlay is
+  /// being removed (deactivated this frame, its box already detached)
+  /// and once it has been unmounted; an unmounted overlay aborts the
+  /// flight after the frame instead.
+  @internal
+  RenderBox? get overlayBoxOrNull {
+    if (!_overlay.mounted) {
+      if (!_finished && !_lostOverlayAbortScheduled) {
+        _lostOverlayAbortScheduled = true;
+        WidgetsBinding.instance.addPostFrameCallback((Duration _) {
+          _lostOverlayAbortScheduled = false;
+          _abortForLostOverlay();
+        });
+      }
+      return null;
+    }
+    // Element.renderObject, not findRenderObject: the latter asserts on
+    // an element deactivated earlier in this frame, which is exactly
+    // the state a skin outside the removed overlay paints against.
+    final RenderObject? box = (_overlay.context as Element).renderObject;
+    return box is RenderBox && box.attached ? box : null;
+  }
+
+  bool _lostOverlayAbortScheduled = false;
+
   void _insertEntry() {
     refreshSourceRect();
     _entry = OverlayEntry(

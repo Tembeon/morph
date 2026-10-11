@@ -1099,7 +1099,7 @@ class RenderMorphSkin extends RenderBox
       // spaces differ by the overlay's own offset, and a skin below a
       // paint transform (a scaled card) sees them scaled too - the whole
       // transform maps them, not just its translation.
-      final RenderBox? overlayBox = flight.overlayBox;
+      final RenderBox? overlayBox = flight.overlayBoxOrNull;
       final Matrix4 toLocal;
       if (overlayBox != null && overlayBox.attached) {
         toLocal = overlayBox.getTransformTo(this);

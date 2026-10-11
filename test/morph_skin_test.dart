@@ -805,6 +805,105 @@ void main() {
     }
   });
 
+  testWidgets('a flight whose overlay unmounts does not throw from paint', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final GlobalKey<OverlayState> overlayKey = GlobalKey<OverlayState>();
+    late StateSetter rebuild;
+    bool nested = true;
+    final OverlayEntry entry = OverlayEntry(
+      builder: (BuildContext context) => const SizedBox.expand(),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              rebuild = setState;
+              return Stack(
+                children: <Widget>[
+                  Positioned.fill(
+                    child: MorphSkin(
+                      blend: 24,
+                      color: const Color(0xFF2A2440),
+                      pieces: <MorphPiece>[
+                        const MorphPiece(
+                          id: 'bystander',
+                          rect: Rect.fromLTWH(170, 380, 110, 50),
+                        ),
+                        MorphPiece.morphable(
+                          id: 'hero',
+                          rect: const Rect.fromLTWH(170, 310, 110, 50),
+                          child: Builder(
+                            builder: (BuildContext context) => TextButton(
+                              onPressed: () => showMorphDialog(
+                                context,
+                                from: 'hero',
+                                overlay: overlayKey.currentState,
+                                builder:
+                                    (
+                                      BuildContext context,
+                                      MorphFlight flight,
+                                    ) => const Text('dialog'),
+                              ),
+                              child: const Text('fly'),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (nested)
+                    Positioned.fill(
+                      child: Overlay(
+                        key: overlayKey,
+                        initialEntries: <OverlayEntry>[entry],
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    await tester.tap(find.text('fly'), warnIfMissed: false);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 8));
+    expect(skin.lastFlightBlobCount, 1);
+    final MorphFlight flight = tester
+        .state<MorphScopeState>(find.byType(MorphScope))
+        .flightOf('hero')!;
+
+    final List<FlutterErrorDetails> errors = <FlutterErrorDetails>[];
+    final void Function(FlutterErrorDetails)? previous = FlutterError.onError;
+    FlutterError.onError = errors.add;
+    try {
+      rebuild(() => nested = false);
+      await tester.pump(const Duration(milliseconds: 8));
+      await tester.pump(const Duration(milliseconds: 8));
+    } finally {
+      FlutterError.onError = previous;
+    }
+    expect(
+      errors.map((FlutterErrorDetails d) => d.library),
+      everyElement('morph'),
+      reason:
+          'the lost overlay is reported by the flight, never thrown '
+          'out of the skin paint',
+    );
+    expect(flight.isFinished, isTrue);
+    entry.remove();
+    entry.dispose();
+  });
+
   testWidgets('tint-only update is paint-only: no relayout, no resync', (
     WidgetTester tester,
   ) async {
