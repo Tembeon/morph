@@ -50,16 +50,26 @@ void pairs(float f, out vec3 oa, out vec3 wa, out vec4 ob, out vec4 wb) {
   float q = exp(f * uKernel.x);
   float r = 1.0 / q;
   float r2 = r * r;
-  float r4 = r2 * r2;
   float q2 = q * q;
-  float q4 = q2 * q2;
-  vec2 p6 = pair(-6.0, uGaussB.z * r4 * r2, uGaussB.y * r4 * r);
-  vec2 p4 = pair(-4.0, uGaussB.x * r4, uGaussA.w * r2 * r);
   vec2 p2 = pair(-2.0, uGaussA.z * r2, uGaussA.y * r);
   vec2 n0 = pair(0.0, uGaussA.x, uGaussA.y * q);
   vec2 n2 = pair(2.0, uGaussA.z * q2, uGaussA.w * q2 * q);
-  vec2 n4 = pair(4.0, uGaussB.x * q4, uGaussB.y * q4 * q);
-  vec2 n6 = pair(6.0, uGaussB.z * q4 * q2, uGaussB.w * q4 * q2 * q);
+  // The compiler does not sink the outer pairs into the uniform branches
+  // that read them, so the narrower kernels skip them here.
+  vec2 p4 = vec2(0.0);
+  vec2 n4 = vec2(0.0);
+  vec2 p6 = vec2(0.0);
+  vec2 n6 = vec2(0.0);
+  if (uKernel.z > 3.5) {
+    float r4 = r2 * r2;
+    float q4 = q2 * q2;
+    p4 = pair(-4.0, uGaussB.x * r4, uGaussA.w * r2 * r);
+    n4 = pair(4.0, uGaussB.x * q4, uGaussB.y * q4 * q);
+    if (uKernel.z > 5.5) {
+      p6 = pair(-6.0, uGaussB.z * r4 * r2, uGaussB.y * r4 * r);
+      n6 = pair(6.0, uGaussB.z * q4 * q2, uGaussB.w * q4 * q2 * q);
+    }
+  }
   oa = vec3(p6.x, p4.x, p2.x);
   wa = vec3(p6.y, p4.y, p2.y);
   ob = vec4(n0.x, n2.x, n4.x, n6.x);
