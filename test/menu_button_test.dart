@@ -1287,6 +1287,61 @@ void main() {
     expect(first.dy, lessThan(button.bottom));
   });
 
+  testWidgets('a closed menu does not lay out or load on parent rebuilds', (
+    WidgetTester tester,
+  ) async {
+    var loads = 0;
+    late StateSetter rebuild;
+    await tester.pumpWidget(
+      _app(
+        StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            rebuild = setState;
+            return MorphMenuButton(
+              items: [
+                const MorphMenuItem(title: 'Copy'),
+                MorphMenuDeferred(() {
+                  loads++;
+                  return Future.value(const <MorphMenuEntry>[
+                    MorphMenuItem(title: 'Later'),
+                  ]);
+                }),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphMenuButton));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    await tester.tapAt(const Offset(10, 10));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('Copy'), findsNothing);
+    final opened = loads;
+    for (var i = 0; i < 3; i++) {
+      rebuild(() {});
+      await tester.pump();
+    }
+    expect(loads, opened);
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    await tester.tap(find.byType(MorphMenuButton));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('Copy'), findsOneWidget);
+    expect(find.text('Later'), findsOneWidget);
+  });
+
   testWidgets('a finger resting on a submenu row draws no frames until the '
       'card opens', (WidgetTester tester) async {
     await tester.pumpWidget(

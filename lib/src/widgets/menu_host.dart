@@ -205,7 +205,8 @@ class MorphMenuController implements MorphMenuHost {
     return motion;
   }
 
-  /// Applies declarative entries and resizes an already presented menu.
+  /// Applies declarative entries and resizes an already presented menu; a
+  /// closed one takes them when it opens next.
   void updateEntries(
     List<MorphMenuEntry> entries, {
     MorphMenuOrder order = MorphMenuOrder.automatic,
@@ -222,7 +223,8 @@ class MorphMenuController implements MorphMenuHost {
   void _contentChanged({required bool animate}) {
     if (_disposed) return;
     final motion = _motion;
-    if (motion == null) return;
+    // A closed menu lays its root out again in prepare, before it opens.
+    if (motion == null || !(motion.isPresented || motion.isArming)) return;
     motion.updateLayout(menuClock, animate: animate && motion.isPresented);
     menuWake();
   }
