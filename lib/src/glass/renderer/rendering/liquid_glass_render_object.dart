@@ -15,15 +15,10 @@ import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.d
 import 'package:morph/src/glass/renderer/internal/retained_glass_clip.dart';
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
 
+/// Marks a render object that paints one glass effect for the shapes
+/// registered with it; an ancestor walk stops at it.
 @internal
-abstract interface class LiquidGlassLayerRenderObject {
-  /// Everything this layer paints or samples, in its own coordinates, or
-  /// `null` while it has no shapes: the material plus contour, the backdrop
-  /// reach of its blur and refraction, and its exterior shadows. A
-  /// backdrop group sizes itself to the union of these. Reads layout and
-  /// cached shape data only; it never polls or rebuilds geometry.
-  Rect? get effectBounds;
-}
+abstract interface class LiquidGlassLayerRenderObject {}
 
 /// What a glass layer's last painted frame committed to the retained layer
 /// tree.
@@ -80,28 +75,6 @@ Rect expandForGlassShadows(
   return result;
 }
 
-/// Union of the geometry bounds registered with [link], in layer space, with
-/// the shapes and transforms needed to grow it. Pure: no polling, no rebuild.
-@internal
-(Rect, List<(List<ShapeGeometry>, Matrix4)>)? gatherGlassGeometryBounds(
-  GeometryRenderLink link,
-  RenderObject layer,
-) {
-  Rect? bounds;
-  final shapes = <(List<ShapeGeometry>, Matrix4)>[];
-  for (final geometryRo in link.shapes) {
-    if (!geometryRo.attached || !geometryRo.hasSize) continue;
-    final (geometryBounds, geometryShapes, _) = geometryRo.gatherShapeData();
-    if (geometryShapes.isEmpty) continue;
-    final toLayer = geometryRo.getTransformTo(layer);
-    final inLayer = MatrixUtils.transformRect(toLayer, geometryBounds);
-    bounds = bounds?.expandToInclude(inLayer) ?? inLayer;
-    shapes.add((geometryShapes, toLayer));
-  }
-  if (bounds == null) return null;
-  return (bounds, shapes);
-}
-
 bool _debugWarnedOpacityBetweenShapeAndLayer = false;
 
 /// Warns once per app when an [RenderOpacity] or [RenderAnimatedOpacity] sits
@@ -138,16 +111,6 @@ bool debugCheckOpacityBetweenShapesAndLayer(
     }
   }
   return true;
-}
-
-@internal
-bool hasLiquidGlassLayerAncestor(RenderObject renderObject) {
-  var ancestor = renderObject.parent;
-  while (ancestor != null) {
-    if (ancestor is LiquidGlassLayerRenderObject) return true;
-    ancestor = ancestor.parent;
-  }
-  return false;
 }
 
 /// Shared base for render objects that assemble [RenderLiquidGlassGeometry]
@@ -720,10 +683,6 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   @protected
   double get materialOutset;
 
-  /// How far outside the material the composed effect reads the backdrop.
-  @protected
-  double effectSamplingReach(Rect material);
-
   /// Grows [bounds] by this layer's [materialOutset] and the committed
   /// shapes' exterior shadows, in layer coordinates.
   @protected
@@ -735,19 +694,6 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
 
   Iterable<(List<ShapeGeometry>, Matrix4)> _shadowSources() =>
       shapesWithGeometry.map((entry) => (entry.$2.shapes, entry.$3));
-
-  @override
-  Rect? get effectBounds {
-    final gathered = gatherGlassGeometryBounds(link, this);
-    if (gathered == null) return null;
-    final (bounds, shapes) = gathered;
-    final material = bounds.inflate(materialOutset);
-    return expandForGlassShadows(
-      material.inflate(effectSamplingReach(material)),
-      shapes,
-      settings,
-    );
-  }
 
   /// Draws every committed shape's exterior shadows into [canvas] at
   /// [offset], then cuts the shape silhouettes back out so interior fills

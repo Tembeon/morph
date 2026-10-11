@@ -475,3 +475,10 @@ Local patches (some commits include related package changes):
   `const []` layer shadows (GlassShadow draws them outside the layer), so
   it only scanned shapes to find nothing; the consolidated fake layer
   keeps drawGlassShadows.
+- 2026-10-12 dead code: removed with no caller - effectBounds and its
+  chain (gatherGlassGeometryBounds, effectSamplingReach,
+  backdropSamplingReach), hasLiquidGlassLayerAncestor,
+  TransformTrackingRepaintBoundaryMixin, onTrackingLayerDetached /
+  paintTrackedChild (and the tracking layer's onDetached), and the unused
+  ticker mixin of the layer state. LiquidGlassLayerRenderObject stays as
+  the marker GlassCompositionProbe stops at.

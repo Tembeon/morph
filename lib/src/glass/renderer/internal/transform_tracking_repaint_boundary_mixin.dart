@@ -6,57 +6,6 @@ import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.
 import 'package:meta/meta.dart';
 
 @internal
-mixin TransformTrackingRepaintBoundaryMixin on RenderProxyBox {
-  @override
-  GeometryTransformTrackingLayer? get layer =>
-      super.layer as GeometryTransformTrackingLayer?;
-
-  @override
-  bool get isRepaintBoundary => true;
-
-  /// Transform compared across frames to decide whether [onTransformChanged]
-  /// should fire. Defaults to the world transform.
-  Matrix4 trackedTransform() => getTransformTo(null);
-
-  @override
-  OffsetLayer updateCompositedLayer({
-    covariant GeometryTransformTrackingLayer? oldLayer,
-  }) {
-    final layer = oldLayer ??= GeometryTransformTrackingLayer();
-
-    // ignore: cascade_invocations
-    layer
-      ..renderObject = this
-      ..trackedTransform = trackedTransform
-      ..onTransformChanged = () {
-        if (attached) {
-          onTransformChanged();
-        }
-      }
-      ..onCompositing = () {
-        if (attached) {
-          onCompositing();
-        }
-      };
-
-    return layer;
-  }
-
-  @mustCallSuper
-  @override
-  void paint(PaintingContext context, ui.Offset offset) {
-    layer!.offset = offset;
-    super.paint(context, offset);
-  }
-
-  void onTransformChanged();
-
-  /// Runs every time this tracking layer is composited, including frames where
-  /// the tracked transform is unchanged.
-  void onCompositing() {}
-}
-
-@internal
 mixin TransformTrackingRenderObjectMixin on RenderProxyBox {
   @override
   GeometryTransformTrackingLayer? get layer =>
@@ -84,7 +33,6 @@ mixin TransformTrackingRenderObjectMixin on RenderProxyBox {
   GeometryTransformTrackingLayer setUpLayer(Offset offset) {
     return (layer ??= GeometryTransformTrackingLayer())
       ..renderObject = this
-      ..onDetached = onTrackingLayerDetached
       ..trackedTransform = trackedTransform
       ..onTransformChanged = () {
         if (attached) {
@@ -97,17 +45,6 @@ mixin TransformTrackingRenderObjectMixin on RenderProxyBox {
         }
       };
   }
-
-  /// Paints normal children after an override has inserted its tracker.
-  /// Calling this mixin's paint again would move that same tracker behind
-  /// the effect whose retained-rendering dirtiness it must update first.
-  @protected
-  void paintTrackedChild(PaintingContext context, Offset offset) {
-    super.paint(context, offset);
-  }
-
-  /// Also runs when a mounted subtree stops being painted by its ancestor.
-  void onTrackingLayerDetached() {}
 
   void onTransformChanged();
 
@@ -124,14 +61,7 @@ class GeometryTransformTrackingLayer extends OffsetLayer {
   Matrix4 Function()? trackedTransform;
   VoidCallback? onTransformChanged;
   VoidCallback? onCompositing;
-  VoidCallback? onDetached;
   Matrix4? _lastTransform;
-
-  @override
-  void detach() {
-    super.detach();
-    onDetached?.call();
-  }
 
   @override
   void updateSubtreeNeedsAddToScene() {

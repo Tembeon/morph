@@ -196,8 +196,7 @@ class LiquidGlassLayer extends StatefulWidget {
   State<LiquidGlassLayer> createState() => _LiquidGlassLayerState();
 }
 
-class _LiquidGlassLayerState extends State<LiquidGlassLayer>
-    with SingleTickerProviderStateMixin {
+class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
   static List<String> get _fakeSurfaceShaderAssets => [
     ShaderKeys.fakeGlassSurface,
   ];
@@ -2466,26 +2465,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       settings.contourWidth + 1.0 / devicePixelRatio,
     );
   }
-
-  /// How far outside the material the composed filter reads the backdrop:
-  /// the blur kernel (3 sigma), the peak edge displacement including its
-  /// dispersion, and, with [LiquidGlassSettings.backdropShrink], the extra
-  /// content revealed on the face. A backdrop group must contain this
-  /// reach or the filter samples its own edge.
-  double backdropSamplingReach(Rect material) {
-    final blur = blurPassSigma > 0
-        ? blurPassSigma * 3 + 1 / devicePixelRatio
-        : (softensInShader ? 1 / devicePixelRatio : 0.0);
-    final displacement =
-        settings.effectiveDisplacementScale *
-        (1 + settings.dispersion.abs() * 0.5);
-    final scale = 1 - settings.effectiveBackdropShrink;
-    final revealed = (1 / scale - 1) * max(material.width, material.height) / 2;
-    return blur + displacement + revealed;
-  }
-
-  @override
-  double effectSamplingReach(Rect material) => backdropSamplingReach(material);
 
   /// Half-extents along the matte axes of a shape with local half-size
   /// [halfSize] mapped by the affine basis ([axisX], [axisY]). The geometry

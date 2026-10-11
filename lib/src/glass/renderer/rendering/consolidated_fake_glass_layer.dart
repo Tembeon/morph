@@ -211,11 +211,6 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
   @override
   double get materialOutset => fakeGlassSurfaceOutset(settings);
 
-  // One extra logical pixel covers the kernel's rounding at any DPR.
-  @override
-  double effectSamplingReach(Rect material) =>
-      _hasBlur ? settings.effectiveFrost * 3 + 1 : 0.0;
-
   @override
   void onSettingsChanged(LiquidGlassSettings old) {
     _cachedFilter = null;
