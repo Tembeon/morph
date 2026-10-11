@@ -320,6 +320,38 @@ void main() {
       expect(mid.shadowColor, Color.lerp(a.shadowColor, b.shadowColor, 0.5));
     });
 
+    test('lerp reads an unset side as the builtin, not as zero', () {
+      const MorphTheme unset = MorphTheme(motion: MorphMotion.glacial);
+      const MorphTheme dark = MorphTheme(
+        motion: MorphMotion.glacial,
+        maxScrimOpacity: 0.6,
+        scrimColor: Color(0xFF203040),
+        shadowColor: Color(0xFF000000),
+      );
+      final MorphTheme early = unset.lerp(dark, 0.1);
+      expect(
+        early.maxScrimOpacity,
+        closeTo(MorphTheme.defaultMaxScrimOpacity * 0.9 + 0.6 * 0.1, 1e-9),
+      );
+      expect(
+        early.scrimColor,
+        Color.lerp(MorphTheme.defaultScrimColor, dark.scrimColor, 0.1),
+      );
+      expect(
+        early.shadowColor,
+        Color.lerp(MorphTheme.defaultShadowColor, dark.shadowColor, 0.1),
+      );
+      final MorphTheme back = dark.lerp(unset, 0.9);
+      expect(
+        back.maxScrimOpacity,
+        closeTo(0.6 * 0.1 + MorphTheme.defaultMaxScrimOpacity * 0.9, 1e-9),
+      );
+      final MorphTheme bothUnset = unset.lerp(unset, 0.5);
+      expect(bothUnset.maxScrimOpacity, isNull);
+      expect(bothUnset.scrimColor, isNull);
+      expect(bothUnset.shadowColor, isNull);
+    });
+
     testWidgets('theme scrim and shadow colors reach the shuttle', (
       WidgetTester tester,
     ) async {

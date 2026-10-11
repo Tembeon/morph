@@ -115,15 +115,40 @@ class MorphTheme extends ThemeExtension<MorphTheme> {
       return this;
     }
     // Discrete values (a motion profile, a named style) switch at the
-    // midpoint; the numeric knobs interpolate.
+    // midpoint; the numeric knobs interpolate. An unset side means the
+    // builtin, not zero or transparent: a flight launched mid theme
+    // animation reads the lerped value once and keeps it for its life.
     return MorphTheme(
       motion: t < 0.5 ? motion : other.motion,
-      maxScrimOpacity: lerpDouble(maxScrimOpacity, other.maxScrimOpacity, t),
-      scrimColor: Color.lerp(scrimColor, other.scrimColor, t),
-      shadowColor: Color.lerp(shadowColor, other.shadowColor, t),
+      maxScrimOpacity: maxScrimOpacity == null && other.maxScrimOpacity == null
+          ? null
+          : lerpDouble(
+              maxScrimOpacity ?? defaultMaxScrimOpacity,
+              other.maxScrimOpacity ?? defaultMaxScrimOpacity,
+              t,
+            ),
+      scrimColor: _lerpColorOver(
+        scrimColor,
+        other.scrimColor,
+        defaultScrimColor,
+        t,
+      ),
+      shadowColor: _lerpColorOver(
+        shadowColor,
+        other.shadowColor,
+        defaultShadowColor,
+        t,
+      ),
       skinStyle: t < 0.5 ? skinStyle : other.skinStyle,
       scrimMotion: t < 0.5 ? scrimMotion : other.scrimMotion,
     );
+  }
+
+  static Color? _lerpColorOver(Color? a, Color? b, Color builtin, double t) {
+    if (a == null && b == null) {
+      return null;
+    }
+    return Color.lerp(a ?? builtin, b ?? builtin, t);
   }
 
   @override
