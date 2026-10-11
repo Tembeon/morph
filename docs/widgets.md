@@ -104,6 +104,11 @@ restored) and up to four isolates fuse them while frames render.
   every test and the web never start it.
 - Workers send plain parts (`MorphGlassOutlineParts`: samples + contour
   loops) because dart:ui's `Path` exists only on the root isolate.
+- A motion that has only filled its body asks for the edge alone (no
+  samples; it serves only a frame without the field); a field fusion
+  serves both. When the motion's last fusion envelope ends,
+  `MorphMenuFusion.settle` drops waiting requests and untaken fusions, and
+  fusions still on a worker are dropped as they arrive.
 - Rationale: glass-renderer.md "Menu fusion: the device gap".
 
 ## Public controls
