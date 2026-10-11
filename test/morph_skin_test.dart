@@ -383,6 +383,108 @@ void main() {
     expect(await maxBlobsDuringFlight(tester), 0);
   });
 
+  testWidgets('frames of a flight with no fellow nearby leave the skin', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      fellowshipHost(neighbor: const Rect.fromLTWH(200, 100, 120, 70)),
+    );
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    await tester.tap(find.text('fly'));
+    await tester.pump();
+    final MorphFlight flight = tester
+        .state<MorphScopeState>(find.byType(MorphScope))
+        .flightOf('hero')!;
+    int ticks = 0;
+    int dirty = 0;
+    // Registered after the skin's own subscription, so it observes the
+    // verdict of the skin's tick on the same notification.
+    void probe() {
+      ticks++;
+      if (skin.debugNeedsPaint) {
+        dirty++;
+      }
+    }
+
+    flight.controller.addListener(probe);
+    for (int i = 0; i < 200; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+    flight.controller.removeListener(probe);
+    expect(skin.lastFlightBlobCount, 0);
+    expect(ticks, greaterThan(20));
+    expect(
+      dirty,
+      lessThan(3),
+      reason:
+          'the airborne piece is not in the mass and no blob can form, so '
+          'its frames cannot change the picture',
+    );
+    flight.close();
+    for (int i = 0; i < 400; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      if (!tester.binding.hasScheduledFrame) {
+        break;
+      }
+    }
+    expect(flight.isFinished, isTrue);
+  });
+
+  testWidgets('a launch outside the skin does not repaint it', (
+    WidgetTester tester,
+  ) async {
+    late BuildContext outside;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Column(
+            children: <Widget>[
+              const SizedBox(
+                width: 300,
+                height: 200,
+                child: MorphSkin(
+                  blend: 10,
+                  color: Color(0xFF2A2440),
+                  pieces: <MorphPiece>[
+                    MorphPiece(id: 'a', rect: .fromLTWH(20, 20, 100, 60)),
+                  ],
+                ),
+              ),
+              MorphTag(
+                id: 'elsewhere',
+                child: Builder(
+                  builder: (BuildContext context) {
+                    outside = context;
+                    return const Text('elsewhere');
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    final RenderMorphSkin skin = tester.renderObject(find.byType(MorphSkin));
+    expect(skin.debugNeedsPaint, isFalse);
+    final MorphFlight flight = showMorphDialog(
+      outside,
+      builder: (BuildContext context, MorphFlight flight) =>
+          const Text('dialog'),
+    );
+    expect(skin.debugNeedsPaint, isFalse);
+    flight.abort();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('flight blob keeps the neck to a fused launch fellowship', (
     WidgetTester tester,
   ) async {

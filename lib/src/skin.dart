@@ -894,6 +894,7 @@ class RenderMorphSkin extends RenderBox
     }
     _flightSubs.clear();
     _flightFellowship.clear();
+    _flightPainted.clear();
     for (final MorphPieceChannel channel in _channelSubs) {
       channel.removeListener(_onChannelTick);
     }
@@ -901,9 +902,43 @@ class RenderMorphSkin extends RenderBox
     super.detach();
   }
 
+  /// A launch elsewhere in the scope (a menu, another skin's piece)
+  /// leaves this skin's picture as it is; only a change of its own
+  /// subscriptions can change what it paints.
   void _onFlightLaunched() {
-    _syncFlightSubscriptions();
-    markNeedsPaint();
+    if (_syncFlightSubscriptions()) {
+      markNeedsPaint();
+    }
+  }
+
+  /// What the last paint drew for each subscribed flight: whether it
+  /// was airborne and whether its companion blob was poured in.
+  final Map<MorphFlight, ({bool airborne, bool blob})> _flightPainted =
+      <MorphFlight, ({bool airborne, bool blob})>{};
+
+  /// A geometry tick repaints only when the picture can change: the
+  /// flight latched or took off since the last paint, or its blob was
+  /// in the mass or would be now. A flight that is far from every
+  /// fellow is not in the mass at all (see [_flightBlob]), so its
+  /// frames leave the picture as it is.
+  void _onFlightTick(MorphFlight flight) {
+    final ({bool airborne, bool blob})? painted = _flightPainted[flight];
+    final bool airborne = flight.isAirborne;
+    if (painted == null ||
+        painted.airborne != airborne ||
+        painted.blob ||
+        (airborne && _flightBlobNow(flight) != null)) {
+      markNeedsPaint();
+    }
+  }
+
+  MorphMass? _flightBlobNow(MorphFlight flight) {
+    for (final MorphPiece piece in _pieces) {
+      if (identical(_flightFor(piece), flight)) {
+        return _flightBlob(flight, piece, _effectiveRect(piece));
+      }
+    }
+    return null;
   }
 
   final Set<MorphPieceChannel> _channelSubs = <MorphPieceChannel>{};
@@ -962,13 +997,16 @@ class RenderMorphSkin extends RenderBox
   }
 
   /// Subscriptions to the frame streams of active flights (value spring
-  /// plus displacement channel): the skin repaints on every frame tick
-  /// with no widget rebuild involved.
+  /// plus displacement channel): the skin repaints on the frame ticks
+  /// that change its picture (see [_onFlightTick]) with no widget
+  /// rebuild involved.
   /// Unsubscription happens on flight completion (closed runs before
-  /// the controller's deferred dispose) or on detach.
-  void _syncFlightSubscriptions() {
+  /// the controller's deferred dispose) or on detach. Returns whether a
+  /// subscription was added or removed.
+  bool _syncFlightSubscriptions() {
     // Runs on every geometry change (the pieces setter fires per frame
     // of an app-driven drag): allocate nothing until a flight exists.
+    bool changed = false;
     Set<MorphFlight>? active;
     for (final MorphPiece piece in _pieces) {
       final MorphFlight? flight = _flightFor(piece);
@@ -979,8 +1017,9 @@ class RenderMorphSkin extends RenderBox
       if (_flightSubs.containsKey(flight)) {
         continue;
       }
+      changed = true;
       _flightFellowship.putIfAbsent(flight, () => _launchFellowship(piece));
-      void tick() => markNeedsPaint();
+      void tick() => _onFlightTick(flight);
       _flightSubs[flight] = tick;
       flight.geometryTicks.addListener(tick);
       flight.closed.then((Object? _) {
@@ -989,6 +1028,7 @@ class RenderMorphSkin extends RenderBox
           flight.geometryTicks.removeListener(sub);
         }
         _flightFellowship.remove(flight);
+        _flightPainted.remove(flight);
         if (attached) {
           markNeedsPaint();
         }
@@ -998,9 +1038,12 @@ class RenderMorphSkin extends RenderBox
       for (final MorphFlight flight in _flightSubs.keys.toList()) {
         if (!(active?.contains(flight) ?? false)) {
           flight.geometryTicks.removeListener(_flightSubs.remove(flight)!);
+          _flightPainted.remove(flight);
+          changed = true;
         }
       }
     }
+    return changed;
   }
 
   /// The pieces forming one body with [origin] at this moment: the
@@ -1120,66 +1163,23 @@ class RenderMorphSkin extends RenderBox
   /// when it took off; a dialog flying past an unrelated piece must not
   /// goo onto it. Perf gate: when the gap to every fellow piece exceeds
   /// k, the neck provably cannot exist and the blob is not poured in (a
-  /// pure function of geometry, not of time).
+  /// pure function of geometry, not of time). Records each flight's
+  /// verdict for the tick gate.
   List<MorphMass> _flightBlobs(List<_ResolvedPiece> resolved) {
     final List<MorphMass> blobs = <MorphMass>[];
     lastFlightBlobRects = const <Rect>[];
     for (final _ResolvedPiece r in resolved) {
       final MorphFlight? flight = r.flight;
-      if (flight == null || !flight.isAirborne) {
+      if (flight == null) {
         continue;
       }
-      // The flight rects live in ITS overlay's coordinates, not global
-      // ones: under a nested Overlay (an embedded device frame) the two
-      // spaces differ by the overlay's own offset, and a skin below a
-      // paint transform (a scaled card) sees them scaled too - the whole
-      // transform maps them, not just its translation.
-      final RenderBox? overlayBox = flight.overlayBoxOrNull;
-      final Matrix4 toLocal;
-      if (overlayBox != null && overlayBox.attached) {
-        toLocal = overlayBox.getTransformTo(this);
-      } else {
-        toLocal = getTransformTo(null);
-        toLocal.invert();
-      }
-      final Rect source = flight.sourceRect == .zero
-          ? r.rect
-          : MatrixUtils.transformRect(toLocal, flight.sourceRect);
-      final Rect target = flight.lastTargetRect == .zero
-          ? source
-          : MatrixUtils.transformRect(toLocal, flight.lastTargetRect);
-      final Offset drag =
-          MatrixUtils.transformPoint(toLocal, flight.appliedDragOffset) -
-          MatrixUtils.transformPoint(toLocal, Offset.zero);
-      // The SAME geometry the shuttle renders (morphFlightGeometry),
-      // shifted by the displacement channel - the mirror blob cannot
-      // drift from the visible container by construction. An offset
-      // delta needs no origin translation.
-      final ({Rect rect, double? sourceRadius, double? targetRadius}) g =
-          morphFlightGeometry(
-            value: flight.controller.value,
-            sourceRect: source,
-            targetRect: target,
-            sourceShape: flight.tag.shape,
-            targetShape: flight.target.shape,
-          );
-      final Rect flying = g.rect.shift(drag);
-      final double r0 = g.sourceRadius ?? r.piece.radius;
-      final double radius = morphConcentricRadius(
-        r0,
-        g.targetRadius ?? r0,
-        flight.controller.value,
-        flying,
-      );
-      final Set<Object> fellow = _flightFellowship[flight] ?? const <Object>{};
-      final bool nearFellow = resolved.any(
-        (_ResolvedPiece other) =>
-            other.solid &&
-            fellow.contains(other.piece.id) &&
-            liquidRectGap(flying, other.rect) <= _k,
-      );
-      if (nearFellow) {
-        blobs.add(.box(flying, radius: radius));
+      final bool airborne = flight.isAirborne;
+      final MorphMass? blob = airborne
+          ? _flightBlob(flight, r.piece, r.rect)
+          : null;
+      _flightPainted[flight] = (airborne: airborne, blob: blob != null);
+      if (blob != null) {
+        blobs.add(blob);
       }
     }
     if (blobs.isNotEmpty) {
@@ -1188,6 +1188,75 @@ class RenderMorphSkin extends RenderBox
       ];
     }
     return blobs;
+  }
+
+  /// The companion blob of the airborne [flight] launched from [piece]
+  /// (whose resolved rect is [home]), or null when no solid fellow sits
+  /// within k of it. Paint and the tick gate both decide through here.
+  MorphMass? _flightBlob(MorphFlight flight, MorphPiece piece, Rect home) {
+    // The flight rects live in ITS overlay's coordinates, not global
+    // ones: under a nested Overlay (an embedded device frame) the two
+    // spaces differ by the overlay's own offset, and a skin below a
+    // paint transform (a scaled card) sees them scaled too - the whole
+    // transform maps them, not just its translation.
+    final RenderBox? overlayBox = flight.overlayBoxOrNull;
+    final Matrix4 toLocal;
+    if (overlayBox != null && overlayBox.attached) {
+      toLocal = overlayBox.getTransformTo(this);
+    } else {
+      toLocal = getTransformTo(null);
+      toLocal.invert();
+    }
+    final Rect source = flight.sourceRect == .zero
+        ? home
+        : MatrixUtils.transformRect(toLocal, flight.sourceRect);
+    final Rect target = flight.lastTargetRect == .zero
+        ? source
+        : MatrixUtils.transformRect(toLocal, flight.lastTargetRect);
+    final Offset drag =
+        MatrixUtils.transformPoint(toLocal, flight.appliedDragOffset) -
+        MatrixUtils.transformPoint(toLocal, Offset.zero);
+    // The SAME geometry the shuttle renders (morphFlightGeometry),
+    // shifted by the displacement channel - the mirror blob cannot
+    // drift from the visible container by construction. An offset
+    // delta needs no origin translation.
+    final ({Rect rect, double? sourceRadius, double? targetRadius}) g =
+        morphFlightGeometry(
+          value: flight.controller.value,
+          sourceRect: source,
+          targetRect: target,
+          sourceShape: flight.tag.shape,
+          targetShape: flight.target.shape,
+        );
+    final Rect flying = g.rect.shift(drag);
+    final Set<Object>? fellow = _flightFellowship[flight];
+    if (fellow == null || !_nearFellow(flying, fellow)) {
+      return null;
+    }
+    final double r0 = g.sourceRadius ?? piece.radius;
+    final double radius = morphConcentricRadius(
+      r0,
+      g.targetRadius ?? r0,
+      flight.controller.value,
+      flying,
+    );
+    return .box(flying, radius: radius);
+  }
+
+  /// Whether a solid piece of [fellow] sits within k of [flying], with
+  /// the same solidity and displaced rect [_resolvePieces] gives it.
+  bool _nearFellow(Rect flying, Set<Object> fellow) {
+    for (final MorphPiece other in _pieces) {
+      if (!fellow.contains(other.id)) {
+        continue;
+      }
+      final MorphFlight? flight = _flightFor(other);
+      final bool solid = (flight == null || !flight.isAirborne) && other.solid;
+      if (solid && liquidRectGap(flying, _effectiveRect(other)) <= _k) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /// Writes this paint's input signature into the spare buffer (grown

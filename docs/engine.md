@@ -544,7 +544,11 @@ What is where:
   detach.
 - Perf gate: if `liquidRectGap` to every fellow exceeds k the neck
   cannot exist and the blob is skipped (exact, k' <= k). Instrumented
-  via `lastFlightBlobCount`.
+  via `lastFlightBlobCount`. The same gate decides whether a geometry
+  tick repaints at all: only when the flight took off or latched since
+  the last paint, or its blob was in the last paint or would be now. A
+  launch elsewhere in the scope repaints the skin only when its own
+  flight subscriptions change.
 
 ### Layer-1 API
 - `MorphPiece.morphable(...)` - an auto-MorphTag (piece id, shape from
