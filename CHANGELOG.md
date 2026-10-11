@@ -14,6 +14,12 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- `MorphAdaptiveGlass` draws the cheap tier (flat) on Skia, a native
+  runtime without Impeller (Android before API 29, or Impeller turned
+  off), new device class `MorphGlassDeviceClass.skia`. It drew fake glass
+  there, whose blurs run through Skia's multi-pass blur: Redmi 6A gallery
+  raster p95 per page 30 - 125 -> 6 - 17 ms, frames over budget 44 - 101
+  -> 0 - 15. The web keeps fake glass.
 - Tab bar labels draw at the glyph grid scale nearest their animated
   screen scale (within 0.54 percent, exact at rest), so a swelling bar no
   longer strikes its glyphs again every frame. Redmi 6A flat tab bar raster p50 11.3 / 11.6 ->

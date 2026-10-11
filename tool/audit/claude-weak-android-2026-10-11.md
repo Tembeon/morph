@@ -29,6 +29,7 @@ one tree per variant. Raw reports: tool/ios_reference/perf/2026-10-11-night/
 | tab bar labels snap their glyph scale while the bar swells (MorphGlyphSnap; bar items off Android too) | 52b84ac, a823499, 0387422 | tab-bar raster p95 14.0-15.7 -> 11.9-12.1, over budget 4-10 -> 0-1 (`gs-*`) | neutral (`mgs-*`) |
 | menu fusion workers only on >= 6 cores | 3715416 | menu raster p95 34-39 -> 28.5-29.4, p99 57-76 -> 44-49 (`fp-*`) | prefetch neutral either way (`mfp-*`) |
 | the flat menu fuses its silhouette's edge only (no shading field), contour bit-identical | 6cb91df | menu UI build p95 15.0-15.3 -> 11.0-11.2 ms, over budget 30-33 -> 27-28, warm cache (`fm-*`) | - (liquid keeps the field) |
+| `MorphAdaptiveGlass` draws flat on Skia (new device class `skia`); it drew fake glass, Skia's multi-pass blurs | (this commit) | the default gallery, every page (autodemo sweep, warm): raster p95 30-125 -> 6-17 ms, over budget 44-101 -> 0-15 a page (`ad-*`) | - |
 | the gallery asks Skia for a 128 MB GPU resource cache (app setting) | (this commit) | menu raster p95 23.3-23.6 -> 21.5-21.6, over budget 33 -> 27; texture creations in menu windows 419 -> 25 (`sc-*`, warm cache) | - (Impeller ignores it) |
 | list section cards shade their glass over the card's own color: one shader paint, no backdrop filter | e872d85, 30df6d8 | - (flat tier) | list raster p50 8.9-9.4 -> 4.4-4.8 ms, p95 13.7 -> 5.4, over budget 387-454 -> 5 (`sb-*`); device shots within base-vs-base noise; tab-bar / home-scroll / segmented unchanged by the new uniform (`su-*`) |
 

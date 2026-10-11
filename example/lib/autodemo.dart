@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
@@ -15,15 +16,23 @@ import 'package:morph_example/gallery/gallery.dart';
 /// build, its springs and its route transitions. Framework errors land in
 /// the log as usual; the run itself never stops on them. The web build
 /// stays on the home page at the end instead of exiting.
+///
+/// With `--dart-define=AUTODEMO_TIMES=true` (a profile build) each page
+/// also reports its frames: `AUTODEMO times PAGE n build_p95 raster_p95
+/// over`, over counting frames whose build or raster exceeds the display's
+/// frame budget.
 Future<void> runAutodemo(GlobalKey<NavigatorState> navigatorKey) async {
   await _pause(800);
   var pointer = 1;
+  final frames = <FrameTiming>[];
+  if (_times) SchedulerBinding.instance.addTimingsCallback(frames.addAll);
   for (final entry in galleryEntries) {
     final navigator = navigatorKey.currentState;
     if (navigator == null) {
       break;
     }
     _report('page ${entry.title}');
+    frames.clear();
     navigator.push(MorphNavigationRoute<void>(builder: entry.builder));
     await _pause(900);
     final size = _viewSize();
@@ -43,11 +52,36 @@ Future<void> runAutodemo(GlobalKey<NavigatorState> navigatorKey) async {
     await _pause(900);
     navigator.popUntil((Route<Object?> route) => route.isFirst);
     await _pause(700);
+    if (_times) _reportTimes(entry.title, frames);
   }
   _report('done');
   if (!kIsWeb) {
     exit(0);
   }
+}
+
+const bool _times = bool.fromEnvironment('AUTODEMO_TIMES');
+
+void _reportTimes(String page, List<FrameTiming> frames) {
+  double p95(Iterable<Duration> values) {
+    final sorted = values.map((d) => d.inMicroseconds / 1000).toList()..sort();
+    return sorted.isEmpty ? 0 : sorted[(sorted.length * 0.95).floor()];
+  }
+
+  final view = WidgetsBinding.instance.platformDispatcher.views.first;
+  final budget = 1000 / view.display.refreshRate;
+  final over = frames
+      .where(
+        (f) =>
+            f.buildDuration.inMicroseconds / 1000 > budget ||
+            f.rasterDuration.inMicroseconds / 1000 > budget,
+      )
+      .length;
+  _report(
+    'times ${page.replaceAll(' ', '_')} ${frames.length} '
+    '${p95(frames.map((f) => f.buildDuration)).toStringAsFixed(2)} '
+    '${p95(frames.map((f) => f.rasterDuration)).toStringAsFixed(2)} $over',
+  );
 }
 
 void _report(String line) {

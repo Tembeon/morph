@@ -208,6 +208,16 @@ best)`, a pure function, decides once the liquid capability resolves
 (`MorphGlassRenderer.precache` before `runApp` makes that the first
 frame; without it the first frames draw the fake glass fallback):
 
+- `skia` (a native runtime without Impeller: Android before API 29, or
+  Impeller turned off; `ImageFilter.isShaderFilterSupported` false, known
+  at once) -> `MorphAdaptiveGlass.cheapTier`, whatever `best` is. Before
+  2026-10-11 Skia fell through to `best`, which is fake glass there (the
+  liquid tier never initializes), and fake glass blurs through Skia's
+  multi-pass blur: Redmi 6A (Android 9, PowerVR GE8320), the gallery's
+  autodemo with per-page timing (`AUTODEMO_TIMES`), warm cache, two runs,
+  raster p95 per page 30 - 125 ms -> 6 - 17 ms, frames over budget 44 -
+  101 -> 0 - 15 per page, delivered frames up 25 - 300 percent
+  (perf/2026-10-11-night `ad-*`).
 - `best` below liquid (no Flutter GPU, the web, a renderer pinned lower)
   -> `best`.
 - `MorphGlassDeviceClass.capable` (Vulkan / Metal, Apple A13+) and

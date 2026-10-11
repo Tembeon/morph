@@ -324,7 +324,10 @@ Cross-cutting policy:
   glass costs about what liquid costs on the GLES Pixel, measured in
   glass-renderer.md) on the GLES fallback and Apple GPUs before
   the A13, probed from Flutter GPU (glass_device_native.dart) once the
-  liquid capability resolved.
+  liquid capability resolved, and on Skia (a native runtime without
+  Impeller, known at once from `ImageFilter.isShaderFilterSupported`;
+  fake glass there is Skia's multi-pass blur, 30 - 125 ms raster p95 a
+  page on the Redmi 6A). Only the web keeps fake glass as its tier.
 - OUTLINE IS TRUTH: the package computes every shape once and fuses
   (skin merge law, the menu's blurred SDF) into a `MorphGlassOutline`;
   the renderer only SHADES the outline it is given and never fuses on its

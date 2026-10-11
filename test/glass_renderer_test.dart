@@ -578,11 +578,22 @@ void main() {
       expect(MorphAdaptiveGlass.cheapTier, MorphGlassTier.flat);
     });
 
+    test('Skia, where the best tier is fake glass, gets the cheap tier', () {
+      for (final best in MorphGlassTier.values) {
+        expect(
+          MorphAdaptiveGlass.tierFor(MorphGlassDeviceClass.skia, best),
+          MorphAdaptiveGlass.cheapTier,
+        );
+      }
+    });
+
     test('never goes above the tier the renderer can draw', () {
       for (final deviceClass in MorphGlassDeviceClass.values) {
         expect(
           MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.fake),
-          MorphGlassTier.fake,
+          deviceClass == MorphGlassDeviceClass.skia
+              ? MorphAdaptiveGlass.cheapTier
+              : MorphGlassTier.fake,
         );
         expect(
           MorphAdaptiveGlass.tierFor(deviceClass, MorphGlassTier.flat),
@@ -618,6 +629,13 @@ void main() {
       for (var i = 0; i < 120; i++) {
         await tester.pump(const Duration(milliseconds: 50));
       }
+      expect(await drawn(tester), MorphAdaptiveGlass.cheapTier);
+    });
+
+    testWidgets('a Skia runtime starts and stays on the cheap tier', (
+      tester,
+    ) async {
+      morphGlassDeviceClassProbe = () => MorphGlassDeviceClass.skia;
       expect(await drawn(tester), MorphAdaptiveGlass.cheapTier);
     });
 

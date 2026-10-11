@@ -29,6 +29,17 @@ enum MorphGlassDeviceClass {
   /// [MorphAdaptiveGlass.cheapTier].
   appleBeforeA13,
 
+  /// Skia, a native runtime without Impeller (Android before API 29, or an
+  /// app that turns Impeller off), told by `ImageFilter.isShaderFilterSupported`,
+  /// which only Impeller supports.
+  ///
+  /// There is no liquid tier, and fake glass blurs its backdrop through
+  /// Skia's multi-pass blur: on a Redmi 6A (Android 9, PowerVR GE8320,
+  /// 2026-10-11, profile, the gallery's autodemo) every page drew raster
+  /// p95 30 - 265 ms with fake glass, so the device gets
+  /// [MorphAdaptiveGlass.cheapTier].
+  skia,
+
   /// The class is not known: no Flutter GPU, the web, or the liquid tier
   /// not initialized yet.
   unknown,
@@ -45,8 +56,9 @@ MorphGlassDeviceClass Function() morphGlassDeviceClassProbe =
 /// The automatic choice is made once from the GPU's capabilities
 /// ([deviceClass]), never from frame timings, so the glass never changes
 /// its look while the app runs: liquid on a capable GPU, [cheapTier] on
-/// the OpenGL ES fallback and on Apple GPUs older than the A13, and the
-/// [renderer]'s own tier when it is lower or the build has no liquid tier.
+/// the OpenGL ES fallback, on Skia and on Apple GPUs older than the A13,
+/// and the [renderer]'s own tier when it is lower or the build has no
+/// liquid tier.
 /// The device class is known once the liquid tier is initialized; call
 /// [MorphGlassRenderer.precache] before `runApp` so the first frame
 /// already draws the chosen tier instead of the fake fallback. The
@@ -110,12 +122,14 @@ class MorphAdaptiveGlass extends StatefulWidget {
     MorphGlassDeviceClass deviceClass,
     MorphGlassTier best,
   ) {
+    if (deviceClass == MorphGlassDeviceClass.skia) return cheapTier;
     if (best != MorphGlassTier.liquid) return best;
     return switch (deviceClass) {
       MorphGlassDeviceClass.capable ||
       MorphGlassDeviceClass.unknown => MorphGlassTier.liquid,
       MorphGlassDeviceClass.gles ||
-      MorphGlassDeviceClass.appleBeforeA13 => cheapTier,
+      MorphGlassDeviceClass.appleBeforeA13 ||
+      MorphGlassDeviceClass.skia => cheapTier,
     };
   }
 

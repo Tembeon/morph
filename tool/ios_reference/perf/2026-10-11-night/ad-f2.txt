@@ -1,0 +1,27 @@
+10-11 05:50:22.936 32603 32603 I flutter : AUTODEMO page Segmented control
+10-11 05:50:27.509 32603 32603 I flutter : AUTODEMO times Segmented_control 192 3.06 6.41 3
+10-11 05:50:27.509 32603 32603 I flutter : AUTODEMO page Tab bar
+10-11 05:50:32.090 32603 32603 I flutter : AUTODEMO times Tab_bar 147 3.83 14.82 5
+10-11 05:50:32.090 32603 32603 I flutter : AUTODEMO page Controls
+10-11 05:50:36.668 32603 32603 I flutter : AUTODEMO times Controls 133 3.63 7.15 1
+10-11 05:50:36.669 32603 32603 I flutter : AUTODEMO page Menu
+10-11 05:50:41.246 32603 32603 I flutter : AUTODEMO times Menu 188 3.93 6.98 0
+10-11 05:50:41.247 32603 32603 I flutter : AUTODEMO page Sheets
+10-11 05:50:45.824 32603 32603 I flutter : AUTODEMO times Sheets 215 3.72 12.24 3
+10-11 05:50:45.825 32603 32603 I flutter : AUTODEMO page Indicators
+10-11 05:50:50.405 32603 32603 I flutter : AUTODEMO times Indicators 220 3.85 13.23 2
+10-11 05:50:50.405 32603 32603 I flutter : AUTODEMO page Glass renderer
+10-11 05:50:54.983 32603 32603 I flutter : AUTODEMO times Glass_renderer 161 4.10 12.85 3
+10-11 05:50:54.983 32603 32603 I flutter : AUTODEMO page Size to physics
+10-11 05:50:59.557 32603 32603 I flutter : AUTODEMO times Size_to_physics 164 3.98 10.49 5
+10-11 05:50:59.557 32603 32603 I flutter : AUTODEMO page Navigation
+10-11 05:51:04.157 32603 32603 I flutter : AUTODEMO times Navigation 184 5.53 17.20 12
+10-11 05:51:04.158 32603 32603 I flutter : AUTODEMO page Alerts
+10-11 05:51:08.752 32603 32603 I flutter : AUTODEMO times Alerts 168 5.14 10.74 3
+10-11 05:51:08.753 32603 32603 I flutter : AUTODEMO page Search
+10-11 05:51:13.342 32603 32603 I flutter : AUTODEMO times Search 164 4.85 10.49 3
+10-11 05:51:13.342 32603 32603 I flutter : AUTODEMO page Date picker
+10-11 05:51:17.943 32603 32603 I flutter : AUTODEMO times Date_picker 162 4.88 10.98 3
+10-11 05:51:17.943 32603 32603 I flutter : AUTODEMO page Lists
+10-11 05:51:22.533 32603 32603 I flutter : AUTODEMO times Lists 164 4.28 11.36 2
+10-11 05:51:22.533 32603 32603 I flutter : AUTODEMO done
