@@ -154,4 +154,52 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  testWidgets('a retarget that renames a settled vessel updates its label', (
+    WidgetTester tester,
+  ) async {
+    final SemanticsHandle semantics = tester.ensureSemantics();
+    late BuildContext sourceContext;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Center(
+            child: MorphTag(
+              id: 'source',
+              child: Builder(
+                builder: (BuildContext context) {
+                  sourceContext = context;
+                  return const SizedBox(width: 80, height: 40);
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    MorphFlight launch(String label) => showMorph(
+      sourceContext,
+      maxScrimOpacity: 0,
+      semanticLabel: label,
+      target: MorphTargetSpec.vessel(
+        rectFor: (Size size, EdgeInsets padding) =>
+            const Rect.fromLTWH(100, 100, 300, 200),
+      ),
+      builder: (BuildContext context, MorphFlight flight) =>
+          const Text('vessel content'),
+    );
+    final MorphFlight flight = launch('First');
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel('First'), findsOneWidget);
+    launch('Second');
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(find.bySemanticsLabel('Second'), findsOneWidget);
+    expect(find.bySemanticsLabel('First'), findsNothing);
+    flight.close();
+    await tester.pumpAndSettle();
+    semantics.dispose();
+  });
 }

@@ -2017,6 +2017,7 @@ class _VesselFrameState extends State<_VesselFrame> {
       flight.controller.target < 1,
       flight.dissolveOpacity,
       flight.modal ? flight.scrimOpacity : 0.0,
+      flight.semanticLabel,
     );
   }
 
