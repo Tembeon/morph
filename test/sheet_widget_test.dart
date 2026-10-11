@@ -378,6 +378,36 @@ void main() {
     );
     expect(tester.getRect(find.byKey(_contentKey)).width, 800);
   });
+  testWidgets('the keyboard does not rerun a builder that ignores it', (
+    WidgetTester tester,
+  ) async {
+    var builds = 0;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => presentMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium],
+          builder: (BuildContext context) {
+            builds++;
+            return _content(context);
+          },
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final settled = builds;
+    final rest = tester.getRect(find.byKey(_contentKey));
+    for (var i = 1; i <= 5; i++) {
+      tester.view.viewInsets = FakeViewPadding(bottom: 60.0 * i);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await _settle(tester);
+    expect(builds, settled);
+    expect(tester.getRect(find.byKey(_contentKey)).top, lessThan(rest.top));
+  });
+
   testWidgets('with the keyboard up the content pads above it', (
     WidgetTester tester,
   ) async {

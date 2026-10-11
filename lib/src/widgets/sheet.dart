@@ -648,6 +648,40 @@ class _SheetViewState extends State<_SheetView>
 
   bool get _scrollDragging => _motion?.isDragging ?? false;
 
+  // The content widget is reused while its inputs hold, so a rebuild of
+  // the chrome (each keyboard-inset frame) leaves the app's builder alone;
+  // content that reads the MediaQuery still rebuilds through its own
+  // dependency.
+  Widget? _builtContent;
+  (MorphSheetDetent, Color, bool)? _builtFor;
+
+  Widget _contentFor(MorphSheetStyle style) {
+    final inputs = (
+      detent,
+      style.textColor,
+      MorphTypography.usesAppleSystemFont,
+    );
+    final built = _builtContent;
+    if (built != null && inputs == _builtFor) return built;
+    _builtFor = inputs;
+    return _builtContent = _SheetScope(
+      state: this,
+      detent: detent,
+      child: DefaultTextStyle(
+        style: MorphTypography.resolve(
+          MorphTypography.body.copyWith(color: style.textColor),
+        ),
+        child: Builder(builder: _route.builder),
+      ),
+    );
+  }
+
+  @override
+  void didUpdateWidget(_SheetView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _builtContent = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final style = MorphSheetStyle.resolve(context, _route.style);
@@ -661,16 +695,7 @@ class _SheetViewState extends State<_SheetView>
         (reported ?? MorphSheetTuning.fallbackDisplayRadius) -
         MorphSheetTuning.floatingInset;
     final dockedRadius = reported ?? 0;
-    final content = _SheetScope(
-      state: this,
-      detent: detent,
-      child: DefaultTextStyle(
-        style: MorphTypography.resolve(
-          MorphTypography.body.copyWith(color: style.textColor),
-        ),
-        child: Builder(builder: _route.builder),
-      ),
-    );
+    final content = _contentFor(style);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final size = constraints.biggest;
