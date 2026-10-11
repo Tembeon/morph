@@ -844,6 +844,9 @@ class RenderMorphGlyphSnap extends RenderProxyBox {
 
   final Matrix4 _transform = Matrix4.identity();
 
+  final LayerHandle<TransformLayer> _transformLayer =
+      LayerHandle<TransformLayer>();
+
   /// The factor within which the child paints untransformed: a spring that
   /// has come to rest within a pixel still leaves a scale off one by about
   /// 1e-5, which the glyph cache keys identically anyway.
@@ -857,6 +860,7 @@ class RenderMorphGlyphSnap extends RenderProxyBox {
     final factor = MorphGlyphScale.snap(screen, _devicePixelRatio) / screen;
     if (!factor.isFinite || (factor - 1).abs() < _exactTolerance) {
       debugFactor = 1;
+      _transformLayer.layer = null;
       context.paintChild(child, offset);
       return;
     }
@@ -866,11 +870,18 @@ class RenderMorphGlyphSnap extends RenderProxyBox {
     _transform.translateByDouble(center.dx, center.dy, 0, 1);
     _transform.scaleByDouble(factor, factor, 1, 1);
     _transform.translateByDouble(-center.dx, -center.dy, 0, 1);
-    context.pushTransform(
+    _transformLayer.layer = context.pushTransform(
       needsCompositing,
       Offset.zero,
       _transform,
       (PaintingContext context, Offset _) => context.paintChild(child, offset),
+      oldLayer: _transformLayer.layer,
     );
+  }
+
+  @override
+  void dispose() {
+    _transformLayer.layer = null;
+    super.dispose();
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
@@ -107,6 +108,44 @@ void main() {
     // About the center of the box: it stays where the plain label's is.
     expect(snapped.center.dx, closeTo(plain.center.dx, 1e-4));
     expect(snapped.center.dy, closeTo(plain.center.dy, 1e-4));
+  });
+
+  testWidgets('a composited label keeps its transform layer across paints', (
+    tester,
+  ) async {
+    final scale = math.pow(2, 4.5 / MorphGlyphScale.stepsPerOctave).toDouble();
+    const key = ValueKey<String>('boundary');
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Align(
+          alignment: Alignment.topLeft,
+          child: Transform.scale(
+            scale: scale,
+            alignment: Alignment.topLeft,
+            child: const MorphGlyphSnap(
+              child: RepaintBoundary(
+                key: key,
+                child: SizedBox(width: 100, height: 40),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    final snap = tester.renderObject<RenderMorphGlyphSnap>(
+      find.byType(MorphGlyphSnap),
+    );
+    final boundary = tester.renderObject(find.byKey(key));
+    Layer? transform() => boundary.debugLayer!.parent;
+    expect(snap.debugFactor, isNot(1));
+    final first = transform();
+    expect(first, isA<TransformLayer>());
+    for (var frame = 0; frame < 3; frame++) {
+      snap.markNeedsPaint();
+      await tester.pump();
+      expect(transform(), same(first));
+    }
   });
 
   testWidgets('a sweep of scales visits a few grid scales', (tester) async {
