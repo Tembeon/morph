@@ -1287,6 +1287,50 @@ void main() {
     expect(first.dy, lessThan(button.bottom));
   });
 
+  testWidgets('a finger resting on a submenu row draws no frames until the '
+      'card opens', (WidgetTester tester) async {
+    await tester.pumpWidget(
+      _app(
+        const MorphMenuButton(
+          items: [
+            MorphMenuItem(title: 'Copy'),
+            MorphSubmenu(
+              title: 'More',
+              children: [MorphMenuItem(title: 'Sub one')],
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphMenuButton));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('More')),
+    );
+    for (var i = 0; i < 30; i++) {
+      await tester.pump(const Duration(milliseconds: 10));
+    }
+    expect(find.text('Sub one'), findsNothing);
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 16),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(find.text('Sub one'), findsOneWidget);
+    await gesture.up();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+  });
+
   testWidgets('an upward menu keeps its rows reversed on every opening', (
     WidgetTester tester,
   ) async {

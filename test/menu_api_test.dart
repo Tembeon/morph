@@ -634,6 +634,29 @@ void main() {
       );
     });
   });
+  group('idle frames', () {
+    test('a finger resting on a submenu row lets the clock doze until the '
+        'card opens', () {
+      final motion = _motion(_sub);
+      motion.open(0, sourceScale: 1);
+      motion.advance(1);
+      expect(motion.isSettled, isTrue);
+      expect(motion.wakeTime, isNull);
+      final more = _element(motion.layout, 'More');
+      motion.pointerDown(1, motion.menuRect.topLeft + more.center);
+      motion.advance(1.01);
+      expect(motion.wakeTime, isNull, reason: 'the glow still moves');
+      motion.advance(1.4);
+      expect(motion.isSettled, isFalse);
+      expect(
+        motion.wakeTime,
+        moreOrLessEquals(1 + MorphMenuTuning.standard.hoverOpenDelay),
+      );
+      motion.advance(motion.wakeTime!);
+      expect(motion.cards, hasLength(2));
+      expect(motion.wakeTime, isNull);
+    });
+  });
   group('submenu close and hand-back (device frames + film)', () {
     test(
       'a closing card reverses continuously, including its pending start',

@@ -539,6 +539,9 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   @override
   bool get motionSettled => _motion?.isSettled ?? true;
 
+  @override
+  double? get motionWakeTime => _host.wakeTime;
+
   void _buttonDown(PointerDownEvent event) {
     if (!widget.enabled ||
         event.buttons != kPrimaryButton ||

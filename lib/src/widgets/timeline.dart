@@ -23,6 +23,10 @@ class MorphTimeline {
   /// Whether no action is pending.
   bool get isEmpty => _events.isEmpty;
 
+  /// The time the earliest pending action comes due, or null when none is
+  /// pending.
+  double? get nextDue => _events.isEmpty ? null : _events.first.$1;
+
   /// Schedules [action] for time [t], after every action already
   /// scheduled for [t] or earlier.
   void insert(double t, void Function(double t) action) {

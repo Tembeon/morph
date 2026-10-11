@@ -288,6 +288,16 @@ class MorphMenuController implements MorphMenuHost {
     if (!_disposed) wake();
   }
 
+  /// The motion time before which the menu draws nothing new, or null when
+  /// it changes on the next frame; the source clock dozes until then.
+  ///
+  /// Rows still being built ahead of the opening keep it awake.
+  double? get wakeTime {
+    final motion = _motion;
+    if (motion == null || _prebuildCount > 0) return null;
+    return motion.wakeTime;
+  }
+
   /// Advances the measured motion and notifies its layer.
   void advance(double t) {
     final motion = _motion;

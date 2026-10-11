@@ -1791,9 +1791,25 @@ class MorphMenuMotion {
   /// A finger resting on the menu or its button does not keep it awake once
   /// the glow under it has faded in: its next move or release wakes it. A
   /// finger scrolling the content does.
-  bool get isSettled {
+  bool get isSettled => _timeline.isEmpty && _still;
+
+  /// The motion time of the next pending event while a finger rests and
+  /// nothing else moves, or null otherwise.
+  ///
+  /// Until that time every frame shows the same picture, so the clock
+  /// driving the motion may doze until then instead of advancing it. Only
+  /// a resting finger waits long (a submenu opens after
+  /// [MorphMenuTuning.hoverOpenDelay]); the reactions to a release come
+  /// due within a few frames, which keep coming, so a test's
+  /// `pumpAndSettle` still sees them through.
+  double? get wakeTime {
+    final due = _timeline.nextDue;
+    return due != null && _pointer != null && _still ? due : null;
+  }
+
+  bool get _still {
     final t = _now;
-    if ((_pointer?.scrolled ?? false) || !_timeline.isEmpty) return false;
+    if (_pointer?.scrolled ?? false) return false;
     if (_phase == _Phase.closing) return false;
     if (!_press.isAtRest(t, 1e-3) ||
         !_leanX.isAtRest(t) ||

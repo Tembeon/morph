@@ -838,6 +838,14 @@ class _MorphBarItemsState extends State<MorphBarItems>
       (_menu?.motion.isSettled ?? true);
 
   @override
+  double? get motionWakeTime =>
+      _motion.isSettled &&
+          _presses.values.every((p) => p.isSettled) &&
+          _holdStart == null
+      ? _menu?.host.wakeTime
+      : null;
+
+  @override
   void dispose() {
     final menu = _menu;
     _menu = null;
