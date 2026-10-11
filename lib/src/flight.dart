@@ -1815,11 +1815,18 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                                         shadowColor: flight.shadowColor,
                                         child: Stack(
                                           fit: .expand,
-                                          // The Material clips to its
-                                          // shape; the Stack's rect clip
-                                          // only matters when the target
-                                          // asked for none - then content
-                                          // may overflow the vessel.
+                                          // The Material already clips to
+                                          // its shape, inside this rect
+                                          // for every built-in border.
+                                          // The rect clip only bites for
+                                          // a custom shape reaching past
+                                          // the rect, and on hard-edge
+                                          // edge pixels of overflowing
+                                          // shared layers on a renderer
+                                          // that honours Clip.hardEdge.
+                                          // A target that asked for no
+                                          // clip gets none at either
+                                          // level.
                                           clipBehavior:
                                               target.clipBehavior == Clip.none
                                               ? Clip.none
