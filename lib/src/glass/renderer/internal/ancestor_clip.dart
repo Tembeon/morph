@@ -59,21 +59,23 @@ Rect? localPaintClipAbove(
   bool Function(RenderObject ancestor)? stopAt,
 }) {
   Rect? result;
-  var toAncestor = Matrix4.identity();
+  final toAncestor = _toAncestor;
+  final step = _step;
+  toAncestor.setIdentity();
   var child = node;
   for (
     var ancestor = child.parent;
     ancestor != null && ancestor.parent != null;
     child = ancestor, ancestor = ancestor.parent
   ) {
-    final step = Matrix4.identity();
+    step.setIdentity();
     ancestor.applyPaintTransform(child, step);
-    toAncestor = step..multiply(toAncestor);
+    step.multiply(toAncestor);
+    toAncestor.setFrom(step);
     final clip = paintClipOfAncestor(ancestor, child);
     if (clip != null && _isRectilinear(toAncestor)) {
-      final toNode = Matrix4.tryInvert(toAncestor);
-      if (toNode != null) {
-        final local = MatrixUtils.transformRect(toNode, clip);
+      if (_toNode.copyInverse(toAncestor) != 0) {
+        final local = MatrixUtils.transformRect(_toNode, clip);
         result = result?.intersect(local) ?? local;
       }
     }
@@ -81,6 +83,14 @@ Rect? localPaintClipAbove(
   }
   return result;
 }
+
+// Scratch for the per-frame clip walks, which run synchronously and never
+// nest, so one set serves every caller without allocating per ancestor.
+final _toAncestor = Matrix4.zero();
+final _step = Matrix4.zero();
+final _toNode = Matrix4.zero();
+final _toScreen = Matrix4.zero();
+final _chain = <RenderObject>[];
 
 bool _isRectilinear(Matrix4 transform) {
   final m = transform.storage;
@@ -93,21 +103,38 @@ bool _isRectilinear(Matrix4 transform) {
 
 /// Intersection of every ancestor clip of [node] in screen coordinates, or
 /// `null` when nothing above [node] clips.
+///
+/// Each clip maps to the screen with the same product, in the same order, as
+/// [RenderObject.getTransformTo] with a null target, accumulated once from
+/// the root down instead of once per clipping ancestor.
 Rect? screenClipAbove(RenderObject node) {
-  Rect? result;
-  var child = node;
+  final chain = _chain;
   for (
-    var ancestor = child.parent;
+    var ancestor = node.parent;
     ancestor != null;
-    child = ancestor, ancestor = ancestor.parent
+    ancestor = ancestor.parent
   ) {
-    final clip = clipOfAncestor(ancestor, child);
-    if (clip == null) continue;
-    final screenClip = MatrixUtils.transformRect(
-      ancestor.getTransformTo(null),
-      clip,
-    );
-    result = result?.intersect(screenClip) ?? screenClip;
+    chain.add(ancestor);
   }
-  return result;
+  try {
+    Rect? result;
+    final toScreen = _toScreen;
+    toScreen.setIdentity();
+    for (var index = chain.length - 1; index >= 0; index -= 1) {
+      final ancestor = chain[index];
+      if (index < chain.length - 2) {
+        chain[index + 1].applyPaintTransform(ancestor, toScreen);
+      }
+      final clip = clipOfAncestor(
+        ancestor,
+        index == 0 ? node : chain[index - 1],
+      );
+      if (clip == null) continue;
+      final screenClip = MatrixUtils.transformRect(toScreen, clip);
+      result = result?.intersect(screenClip) ?? screenClip;
+    }
+    return result;
+  } finally {
+    chain.clear();
+  }
 }
