@@ -636,6 +636,61 @@ void main() {
       );
     });
 
+    testWidgets('a stack narrower than the screen follows the finger 1:1', (
+      tester,
+    ) async {
+      await _setScreen(tester);
+      late BuildContext context;
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Align(
+            alignment: Alignment.topLeft,
+            child: SizedBox(
+              width: _screen.width / 2,
+              child: MorphNavigationStack(
+                home: Builder(
+                  builder: (BuildContext c) {
+                    context = c;
+                    return page('Inbox');
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      Navigator.of(
+        context,
+      ).push(MorphNavigationRoute<void>(builder: (_) => page('Message')));
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      final message = find.byWidgetPredicate(
+        (w) => w is MorphNavigationScaffold && w.title == 'Message',
+      );
+      expect(tester.getTopLeft(message).dx, closeTo(0, 0.5));
+      final gesture = await tester.startGesture(const Offset(4, 500));
+      for (var i = 0; i < 6; i++) {
+        await gesture.moveBy(const Offset(10, 0));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      final out = tester.getTopLeft(message).dx;
+      expect(out, inInclusiveRange(30, 61));
+      await gesture.up();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+    });
+
     testWidgets('reduced motion fades a pushed page in place', (tester) async {
       await _setScreen(tester);
       late BuildContext context;

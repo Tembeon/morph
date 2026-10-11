@@ -616,23 +616,31 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     }
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     final page = _EdgePop(route: this, child: child);
-    final width = MediaQuery.maybeSizeOf(context)?.width ?? 0;
-    return GlassLiveTransform(
-      live: _slideOf(animation, secondaryAnimation),
-      writeInto: (Matrix4 into) {
-        final x =
-            width *
-            ((1 - animation.value) -
-                MorphNavigationTransition.parallax * secondaryAnimation.value);
-        into.setTranslationRaw(rtl ? -x : x, 0, 0);
+    final slid = MorphNavigationSnapshot.enabled
+        ? MorphNavigationSnapshotHost(
+            animation: animation,
+            secondaryAnimation: secondaryAnimation,
+            child: page,
+          )
+        : page;
+    // The page's own width, the unit the edge swipe measures the finger
+    // in, so a stack narrower than the screen still tracks it 1:1.
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final width = constraints.maxWidth;
+        return GlassLiveTransform(
+          live: _slideOf(animation, secondaryAnimation),
+          writeInto: (Matrix4 into) {
+            final x =
+                width *
+                ((1 - animation.value) -
+                    MorphNavigationTransition.parallax *
+                        secondaryAnimation.value);
+            into.setTranslationRaw(rtl ? -x : x, 0, 0);
+          },
+          child: slid,
+        );
       },
-      child: MorphNavigationSnapshot.enabled
-          ? MorphNavigationSnapshotHost(
-              animation: animation,
-              secondaryAnimation: secondaryAnimation,
-              child: page,
-            )
-          : page,
     );
   }
 }
