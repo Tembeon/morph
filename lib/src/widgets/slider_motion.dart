@@ -279,10 +279,10 @@ class MorphSliderMotion {
       press.dragging = true;
       press.anchor = x;
       press.from = _value;
-      press.samples.add((t, x));
+      press.sample(t, x);
       return;
     }
-    press.samples.add((t, x));
+    press.sample(t, x);
     final raw = press.from + (x - press.anchor) / width;
     _stretch.snap(t, _stretchFor(raw));
     final clamped = raw.clamp(0.0, 1.0);
@@ -491,4 +491,14 @@ class _Press {
   double anchor = 0;
   double from = 0;
   final List<(double, double)> samples = [];
+
+  void sample(double t, double x) {
+    var stale = 0;
+    final from = t - MorphSliderMotion.velocityWindow;
+    while (stale < samples.length && samples[stale].$1 < from) {
+      stale++;
+    }
+    samples.removeRange(0, stale);
+    samples.add((t, x));
+  }
 }
