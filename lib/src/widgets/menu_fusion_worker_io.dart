@@ -43,20 +43,21 @@ abstract final class MorphFusionWorker {
   static final List<_Worker> _workers = [];
   static ReceivePort? _port;
   static bool _failed = false;
-  static final List<Float64List> _waiting = [];
-  static final List<(Float64List, MorphGlassOutlineParts)> _ready = [];
+  static final List<(Float64List, Object?)> _waiting = [];
+  static final List<(Float64List, MorphGlassOutlineParts, Object?)> _ready = [];
 
-  /// Asks a worker for the fusion of [inputs].
-  static void request(Float64List inputs) {
+  /// Asks a worker for the fusion of [inputs] on behalf of [owner], the
+  /// requester a later [reset] can drop alone.
+  static void request(Float64List inputs, {Object? owner}) {
     if (_failed) return;
     final port = _port ??= _listen();
     for (final worker in _workers) {
       if (!worker.busy && worker.send != null) {
-        worker.dispatch(inputs);
+        worker.dispatch(inputs, owner);
         return;
       }
     }
-    _waiting.add(inputs);
+    _waiting.add((inputs, owner));
     if (_waiting.length > waitingLimit) _waiting.removeAt(0);
     if (_workers.length < poolSize &&
         _workers.every((_Worker worker) => worker.send != null)) {
@@ -72,7 +73,7 @@ abstract final class MorphFusionWorker {
   /// serves a request for the edge alone too.
   static MorphGlassOutlineParts? take(Float64List inputs, double tolerance) {
     for (var k = _ready.length - 1; k >= 0; k--) {
-      final (ready, parts) = _ready[k];
+      final (ready, parts, _) = _ready[k];
       if (_matches(ready, inputs, tolerance)) {
         _ready.removeRange(0, k + 1);
         debugTakenInputs = ready;
@@ -102,13 +103,17 @@ abstract final class MorphFusionWorker {
   @visibleForTesting
   static bool get debugHasReady => _ready.isNotEmpty;
 
-  /// Drops the fusions and the requests not yet handed out; the fusions
-  /// the workers are computing now are dropped when they arrive.
-  static void reset() {
-    _ready.clear();
-    _waiting.clear();
+  /// Drops the fusions and the requests not yet handed out, those of
+  /// [owner] alone when it is given; the fusions the workers are computing
+  /// for them now are dropped when they arrive.
+  static void reset({Object? owner}) {
+    bool mine(Object? of) => owner == null || identical(of, owner);
+    _ready.removeWhere(
+      ((Float64List, MorphGlassOutlineParts, Object?) ready) => mine(ready.$3),
+    );
+    _waiting.removeWhere(((Float64List, Object?) waiting) => mine(waiting.$2));
     for (final worker in _workers) {
-      if (worker.busy) worker.stale = true;
+      if (worker.busy && mine(worker.owner)) worker.stale = true;
     }
   }
 
@@ -178,6 +183,7 @@ abstract final class MorphFusionWorker {
                     points: points,
                     loops: loops,
                   ),
+            worker.owner,
           ));
           if (_ready.length > keep) _ready.removeAt(0);
         }
@@ -191,7 +197,8 @@ abstract final class MorphFusionWorker {
 
   static void _next(_Worker worker) {
     if (_waiting.isEmpty) return;
-    worker.dispatch(_waiting.removeAt(0));
+    final (inputs, owner) = _waiting.removeAt(0);
+    worker.dispatch(inputs, owner);
   }
 
   static void _main((SendPort, int) start) {
@@ -231,10 +238,12 @@ class _Worker {
   Isolate? isolate;
   bool busy = false;
   bool stale = false;
+  Object? owner;
 
-  void dispatch(Float64List inputs) {
+  void dispatch(Float64List inputs, Object? owner) {
     busy = true;
     stale = false;
+    this.owner = owner;
     send!.send(inputs);
   }
 }

@@ -528,6 +528,19 @@ void main() {
       expect(MorphFusionWorker.debugHasReady, isFalse);
     });
 
+    test('settling one fusion keeps another fusion\'s prefetch', () async {
+      MorphFusionWorker.reset();
+      final other = MorphMenuFusion();
+      other.prefetch(menu, button, 6.5);
+      await ready();
+      final settling = MorphMenuFusion();
+      settling.prefetch(menu, button, 9);
+      settling.settle();
+      expect(MorphFusionWorker.debugHasReady, isTrue);
+      other.settle();
+      expect(MorphFusionWorker.debugHasReady, isFalse);
+    });
+
     test('a motion that comes to rest leaves no fusion behind', () async {
       final motion = MorphMenuMotion(
         button: Rect.fromCenter(

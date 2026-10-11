@@ -190,17 +190,19 @@ class MorphMenuFusion {
         Float64List(inputCount),
         withField: withField,
       ),
+      owner: this,
     );
   }
 
-  /// Drops the fusions computed ahead that no frame has taken yet, and
-  /// the requests still waiting, once this fusion's motion stops fusing:
-  /// no worker then computes a silhouette nobody reads. Does nothing when
-  /// this fusion requested none since the last call.
+  /// Drops the fusions this fusion computed ahead that no frame has taken
+  /// yet, and its requests still waiting, once its motion stops fusing: no
+  /// worker then computes a silhouette nobody reads. Another menu's
+  /// fusions stay. Does nothing when this fusion requested none since the
+  /// last call.
   void settle() {
     if (!_prefetched) return;
     _prefetched = false;
-    MorphFusionWorker.reset();
+    MorphFusionWorker.reset(owner: this);
   }
 
   /// The grid step of the fusion at [radius], in logical pixels: a third

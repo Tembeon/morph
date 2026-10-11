@@ -11,7 +11,7 @@ abstract final class MorphFusionWorker {
   static final bool supported = false;
 
   /// Does nothing.
-  static void request(Float64List inputs) {}
+  static void request(Float64List inputs, {Object? owner}) {}
 
   /// Always null.
   static MorphGlassOutlineParts? take(Float64List inputs, double tolerance) =>
@@ -30,5 +30,5 @@ abstract final class MorphFusionWorker {
   static bool get debugHasReady => false;
 
   /// Does nothing.
-  static void reset() {}
+  static void reset({Object? owner}) {}
 }
