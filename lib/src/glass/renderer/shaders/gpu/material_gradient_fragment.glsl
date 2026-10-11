@@ -36,39 +36,11 @@ layout(std140) uniform GeometryUniforms {
 
 out vec4 fragColor;
 
+// Any index past the last shape, or negative, reads the last shape's tint.
 vec4 materialShapeTint(int index) {
-    if (index == 0) return geometryUniforms.uShapeTints[0];
-    if (index == 1) return geometryUniforms.uShapeTints[1];
-    if (index == 2) return geometryUniforms.uShapeTints[2];
-    if (index == 3) return geometryUniforms.uShapeTints[3];
-    if (index == 4) return geometryUniforms.uShapeTints[4];
-    if (index == 5) return geometryUniforms.uShapeTints[5];
-    if (index == 6) return geometryUniforms.uShapeTints[6];
-    if (index == 7) return geometryUniforms.uShapeTints[7];
-    if (index == 8) return geometryUniforms.uShapeTints[8];
-    if (index == 9) return geometryUniforms.uShapeTints[9];
-    if (index == 10) return geometryUniforms.uShapeTints[10];
-    if (index == 11) return geometryUniforms.uShapeTints[11];
-    if (index == 12) return geometryUniforms.uShapeTints[12];
-    if (index == 13) return geometryUniforms.uShapeTints[13];
-    if (index == 14) return geometryUniforms.uShapeTints[14];
-    if (index == 15) return geometryUniforms.uShapeTints[15];
-    if (index == 16) return geometryUniforms.uShapeTints[16];
-    if (index == 17) return geometryUniforms.uShapeTints[17];
-    if (index == 18) return geometryUniforms.uShapeTints[18];
-    if (index == 19) return geometryUniforms.uShapeTints[19];
-    if (index == 20) return geometryUniforms.uShapeTints[20];
-    if (index == 21) return geometryUniforms.uShapeTints[21];
-    if (index == 22) return geometryUniforms.uShapeTints[22];
-    if (index == 23) return geometryUniforms.uShapeTints[23];
-    if (index == 24) return geometryUniforms.uShapeTints[24];
-    if (index == 25) return geometryUniforms.uShapeTints[25];
-    if (index == 26) return geometryUniforms.uShapeTints[26];
-    if (index == 27) return geometryUniforms.uShapeTints[27];
-    if (index == 28) return geometryUniforms.uShapeTints[28];
-    if (index == 29) return geometryUniforms.uShapeTints[29];
-    if (index == 30) return geometryUniforms.uShapeTints[30];
-    return geometryUniforms.uShapeTints[31];
+    return geometryUniforms.uShapeTints[
+        min(uint(index), uint(MAX_SHAPES - 1))
+    ];
 }
 
 void main() {
