@@ -1523,7 +1523,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         _releaseCompositorFilter();
         paintRetainedEffect(context, offset, (effectContext, effectOffset) {});
       case GlassFrameState.active:
+        // Analytic shapes have no raster grid; test that before walking
+        // the tree for the pass transform.
         if (hasReusableGeometry &&
+            !_analytic &&
             _rasterGridStale(shaderCoordinateTransform)) {
           needsGeometryUpdate = true;
         }
