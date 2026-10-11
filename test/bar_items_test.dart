@@ -107,6 +107,40 @@ void main() {
     });
   });
 
+  group('a second change inside the content delay', () {
+    test('keeps a removed newborn item from growing', () {
+      final motion = MorphBarMotion();
+      final delay = motion.spec.contentDelay;
+      motion.setLayout(0, [
+        _capsule('L', 50, ['a']),
+      ]);
+      motion.setLayout(1, [
+        _capsule('L', 50, ['a', 'b']),
+      ]);
+      motion.setLayout(1.01, [
+        _capsule('L', 50, ['a']),
+      ]);
+      motion.advance(1 + delay + 0.008);
+      expect(motion.itemFrame('b')?.presence ?? 0, closeTo(0, 1e-9));
+    });
+
+    test('keeps a moved item off its superseded target', () {
+      final motion = MorphBarMotion();
+      final delay = motion.spec.contentDelay;
+      motion.setLayout(0, [
+        _capsule('L', 50, ['a']),
+      ]);
+      motion.setLayout(1, [
+        _capsule('L', 100, ['a']),
+      ]);
+      motion.setLayout(1.01, [
+        _capsule('L', 50, ['a']),
+      ]);
+      motion.advance(1 + delay + 0.008);
+      expect(motion.itemFrame('a')!.center.dx, closeTo(50, 1e-6));
+    });
+  });
+
   testWidgets('a released bar item returns its content to exact scale', (
     tester,
   ) async {

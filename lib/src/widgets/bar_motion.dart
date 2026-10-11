@@ -822,7 +822,9 @@ class MorphBarMotion {
         if (existing != null) {
           existing.capsule = capsule;
           existing.size = item.rect.size;
+          final generation = ++existing.generation;
           _timeline.at(t + spec.contentDelay, (double at) {
+            if (existing.generation != generation) return;
             existing.cx.retarget(at, item.rect.center.dx, spring: content);
             existing.cy.retarget(at, item.rect.center.dy, spring: content);
             existing.presence.retarget(at, 1, spring: content);
@@ -840,7 +842,9 @@ class MorphBarMotion {
         final born = _Item(item.id, capsule, start, item.rect.size, content);
         born.presence.snap(t, 0);
         _items.add(born);
+        final generation = born.generation;
         _timeline.at(t + spec.contentDelay, (double at) {
+          if (born.generation != generation) return;
           born.cx.retarget(at, item.rect.center.dx, spring: content);
           born.cy.retarget(at, item.rect.center.dy, spring: content);
           born.presence.retarget(at, 1, spring: content);
