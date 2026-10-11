@@ -74,8 +74,14 @@ cache serves it.
   `rf-a*`, buried under shader compiles), but warm: raster p95 19.7 / 20.0
   -> 17.7 / 18.6, over budget 29 / 32 -> 16 / 16 (`rw-*`). Skia rasterizes
   that concave, per-frame path in software and uploads its mask every
-  frame. A GPU fill from the fusion's own field (a vertex mesh, alpha from
-  the distance) is in progress.
+  frame. A GPU fill from the fusion's own field (branch flat-menu-mesh,
+  0d5f42f: a triangle mesh split along the trace's own marching-squares
+  segments, coverage from a one-pixel gradient over the distance; Skia
+  only, off by default) does not pay: UI build p95 11.1 / 11.2 -> 15.4 /
+  15.5 ms (building the mesh on the A53s), raster p95 19.2 / 19.5 -> 18.9 /
+  19.4, over budget 22 / 24 -> 25 / 28 (`mm-*`, warm); host pixels within
+  1 - 5 steps on the edge on average but 60 - 205 in tight necks at large
+  radii. Not merged.
 - Redmi menu, content blur off (timing proxy): raster p95 25-36 -> 18-21,
   p99 41-152 -> 23-35 (`rf-c*`). Blurring the content at a half or quarter
   resolution layer instead (render scaled down, blur, scale up, as Skia does
