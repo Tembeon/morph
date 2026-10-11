@@ -1194,6 +1194,27 @@ void main() {
       expect(asked, [true, false, true]);
     });
 
+    testWidgets('the hidden field waits at its place through the morph', (
+      tester,
+    ) async {
+      await pumpTabs(tester);
+      await tester.tapAt(const Offset(388, 904));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 120));
+      expect(
+        tester.getRect(find.byType(MorphSearchField)),
+        rectMoreOrLessEquals(
+          const Rect.fromLTWH(88, 880, 324, 48),
+          epsilon: 0.05,
+        ),
+      );
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+    });
+
     testWidgets('ending the search reports the cleared query', (tester) async {
       await tester.binding.setSurfaceSize(const Size(_w, _h));
       addTearDown(() => tester.binding.setSurfaceSize(null));

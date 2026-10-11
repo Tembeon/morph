@@ -315,11 +315,12 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
               final resting = q.abs() < 0.001 && !widget.searching;
               final settled = (q - 1).abs() < 0.001 && widget.searching;
               final barRect = Rect.lerp(geometry.bar, geometry.tab, q)!;
-              final searchRect = Rect.lerp(
-                geometry.search,
-                Rect.lerp(geometry.field, geometry.focusedField, p),
-                q,
+              final fieldRect = Rect.lerp(
+                geometry.field,
+                geometry.focusedField,
+                p,
               )!;
+              final searchRect = Rect.lerp(geometry.search, fieldRect, q)!;
               final closeRect = Rect.lerp(
                 Rect.fromLTWH(
                   geometry.field.right - MorphSearchTuning.height,
@@ -395,7 +396,9 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                 children.add(
                   Positioned.fromRect(
                     key: const ValueKey<String>('field'),
-                    rect: searchRect,
+                    // Hidden, the field only holds the focus; parking it at
+                    // its settled rect spares a relayout per morph frame.
+                    rect: settled ? searchRect : fieldRect,
                     child: IgnorePointer(
                       ignoring: !settled,
                       child: Opacity(
