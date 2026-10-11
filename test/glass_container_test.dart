@@ -103,6 +103,29 @@ void main() {
     });
   }
 
+  testWidgets('a resting button outside a container takes the new '
+      'brightness into its layer', (WidgetTester tester) async {
+    LiquidGlassAppearance? appearance() => tester
+        .widget<LiquidGlassLayer>(find.byType(LiquidGlassLayer))
+        .defaultAppearance;
+    await tester.pumpWidget(
+      _page(1, container: false, tier: MorphGlassTier.fake, brightness: .light),
+    );
+    await tester.pumpAndSettle();
+    final light = appearance();
+    await tester.pumpWidget(
+      _page(1, container: false, tier: MorphGlassTier.fake),
+    );
+    await tester.pumpAndSettle();
+    final dark = appearance();
+    expect(dark, isNot(light));
+    await tester.pumpWidget(
+      _page(1, container: false, tier: MorphGlassTier.fake, brightness: .light),
+    );
+    await tester.pumpAndSettle();
+    expect(appearance(), light);
+  });
+
   testWidgets('a pressed button leaves the container and comes back', (
     WidgetTester tester,
   ) async {

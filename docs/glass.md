@@ -32,8 +32,8 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   closure (`MorphGlassFrame`: surfaces, outline, contentSlots, spacing).
   Code: glass_channel.dart.
 - With `MorphGlassRenderer` the host builds its tree once per structure
-  (`MorphGlassRenderer.structureOf`: tier, roles and counts, glows,
-  lifted lenses, platters, outline kind) over a `MorphGlassChannel`.
+  (`MorphGlassRenderer.structureOf`: tier, roles and counts, brightness,
+  glows, lifted lenses, platters, outline kind) over a `MorphGlassChannel`.
   Every later frame is pushed: render objects bound by
   `GlassLiveBinding` (renderer internal/glass_live.dart) write new values
   through their own setters - `MorphLiveStack` / `MorphLivePositioned`

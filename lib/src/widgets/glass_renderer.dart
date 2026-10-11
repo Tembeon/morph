@@ -421,6 +421,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
     MorphGlassSurface surface,
   ) => [
     surface.kind,
+    surface.brightness,
     _visible(surface),
     surface.glass,
     glassness(surface) == 0,
@@ -433,6 +434,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
   ) => [
     surfaces.length,
     for (final s in surfaces) s.kind,
+    surfaces.first.brightness,
     morphGlassOutlineField(outline) != null,
     morphGlassOutlineShapes(outline) != null,
     morphGlassOutlineMergedBoxes(outline) != null,
