@@ -1313,6 +1313,13 @@ class _Calendar extends StatelessWidget {
     final titleText =
         titleFormatter?.call(month) ??
         '${_text(_months[month.month - 1])} ${_number(month.year)}';
+    // Built once per calendar build: the frame builders below only move
+    // them, so a tick of any overlay motion leaves the days untouched.
+    final monthGrid = _month(month);
+    final previous = previousMonth;
+    final previousGrid = previous == null
+        ? null
+        : ExcludeSemantics(child: _month(previous));
     final calendar = Padding(
       padding: const EdgeInsets.only(top: _CalendarMetrics.top),
       child: Column(
@@ -1365,26 +1372,28 @@ class _Calendar extends StatelessWidget {
                                     ListenableBuilder(
                                       listenable: frames,
                                       builder:
-                                          (BuildContext context, Widget? _) =>
-                                              Transform.rotate(
-                                                angle:
-                                                    (rtl ? -1 : 1) *
-                                                    motion.yearPickerTurn(
-                                                      motion.time,
-                                                    ) *
-                                                    math.pi /
-                                                    2,
-                                                child: CustomPaint(
-                                                  size: _CalendarMetrics
-                                                      .titleChevron,
-                                                  painter: _ChevronPainter(
-                                                    color: style.accentColor,
-                                                    forward: !rtl,
-                                                    stroke: _CalendarMetrics
-                                                        .titleChevronStroke,
-                                                  ),
-                                                ),
-                                              ),
+                                          (
+                                            BuildContext context,
+                                            Widget? child,
+                                          ) => Transform.rotate(
+                                            angle:
+                                                (rtl ? -1 : 1) *
+                                                motion.yearPickerTurn(
+                                                  motion.time,
+                                                ) *
+                                                math.pi /
+                                                2,
+                                            child: child,
+                                          ),
+                                      child: CustomPaint(
+                                        size: _CalendarMetrics.titleChevron,
+                                        painter: _ChevronPainter(
+                                          color: style.accentColor,
+                                          forward: !rtl,
+                                          stroke: _CalendarMetrics
+                                              .titleChevronStroke,
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1477,26 +1486,23 @@ class _Calendar extends StatelessWidget {
                                 final p = motion.page(motion.time);
                                 final dir =
                                     motion.pageDirection * (rtl ? -1 : 1);
-                                final previous = previousMonth;
                                 return Stack(
                                   clipBehavior: Clip.none,
                                   children: [
-                                    if (previous != null && p < 1)
+                                    if (previousGrid != null && p < 1)
                                       Positioned(
                                         left: -dir * grid * p,
                                         top: 0,
                                         width: grid,
-                                        child: ExcludeSemantics(
-                                          child: _month(previous),
-                                        ),
+                                        child: previousGrid,
                                       ),
                                     Positioned(
-                                      left: previous != null && p < 1
+                                      left: previousGrid != null && p < 1
                                           ? dir * grid * (1 - p)
                                           : 0,
                                       top: 0,
                                       width: grid,
-                                      child: _month(month),
+                                      child: monthGrid,
                                     ),
                                   ],
                                 );

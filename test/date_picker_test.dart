@@ -501,6 +501,23 @@ void main() {
       expect(find.text('October 2026'), findsNothing);
     });
 
+    testWidgets('the open spring leaves the days unbuilt', (tester) async {
+      await pump(tester, onChanged: (_) {});
+      await tester.tap(find.text('Oct 3, 2026'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 200));
+      final day = find.text('15');
+      expect(day, findsOneWidget);
+      final before = tester.widget(day);
+      await tester.pump(const Duration(milliseconds: 16));
+      expect(identical(tester.widget(day), before), isTrue);
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+    });
+
     testWidgets('a tap outside while it opens closes it', (tester) async {
       await pump(tester, onChanged: (_) {});
       await tester.tap(find.text('Oct 3, 2026'));
