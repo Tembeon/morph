@@ -43,7 +43,7 @@ class MorphSliderMotion {
     required this._width,
     required double value,
     this.frameRate = 120,
-    this.ticks = 0,
+    this._ticks = 0,
   }) : _value = value.clamp(0.0, 1.0),
        _reported = value.clamp(0.0, 1.0),
        _settle = MorphSpringState(tickReleaseSpring, value.clamp(0.0, 1.0)),
@@ -135,7 +135,20 @@ class MorphSliderMotion {
 
   /// The number of tick marks the value snaps to; below two the slider is
   /// continuous.
-  int ticks;
+  ///
+  /// A slider made stepped shows its thumb at the current value until the
+  /// next touch snaps it to a stop.
+  int get ticks => _ticks;
+  int _ticks;
+
+  set ticks(int value) {
+    if (_ticks == value) return;
+    final wasStepped = _stepped;
+    _ticks = value;
+    if (wasStepped || !_stepped) return;
+    _settle.snap(_now, this.value);
+    lens.resetFlex(_now, _thumbAt(_now));
+  }
 
   bool get _stepped => ticks >= 2;
 
