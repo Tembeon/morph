@@ -797,6 +797,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   final Map<Object, (Object, Widget)> _contents = {};
   Object? _pressedCapsule;
   Object? _pressedButton;
+  int? _pressPointer;
 
   @override
   void advanceMotion(double t) {
@@ -1104,10 +1105,15 @@ class _MorphBarItemsState extends State<MorphBarItems>
   }
 
   void _down(MorphBarButton button, PointerDownEvent event) {
-    if (!button.interactive || event.buttons != kPrimaryButton) return;
+    if (!button.interactive ||
+        event.buttons != kPrimaryButton ||
+        _pressPointer != null) {
+      return;
+    }
     final capsuleId = _capsuleOf[button.id];
     final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
     if (capsule == null) return;
+    _pressPointer = event.pointer;
     _pressedCapsule = capsuleId;
     _pressedButton = button.id;
     final press = _press(capsuleId!, capsule.rect.size);
@@ -1144,14 +1150,15 @@ class _MorphBarItemsState extends State<MorphBarItems>
   void _move(PointerMoveEvent event) {
     if (event.pointer == _menuFinger) _menu?.host.menuPointerMove(event);
     final id = _pressedCapsule;
-    if (id == null) return;
+    if (id == null || event.pointer != _pressPointer) return;
     _presses[id]?.pointerMove(stamp(event), _local(id, event.position));
   }
 
   void _up(PointerUpEvent event) {
     final id = _pressedCapsule;
     final buttonId = _pressedButton;
-    if (id == null) return;
+    if (id == null || event.pointer != _pressPointer) return;
+    _pressPointer = null;
     _pressedCapsule = null;
     _pressedButton = null;
     final t = stamp(event);
@@ -1190,7 +1197,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
       _menu?.host.menuPointerCancel(event);
     }
     final id = _pressedCapsule;
-    if (id == null) return;
+    if (id == null || event.pointer != _pressPointer) return;
+    _pressPointer = null;
     _pressedCapsule = null;
     _pressedButton = null;
     _holdStart = null;

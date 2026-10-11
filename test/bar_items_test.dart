@@ -166,6 +166,42 @@ void main() {
     await tester.pumpAndSettle();
   });
 
+  testWidgets('a second finger neither steals the press nor strands it', (
+    tester,
+  ) async {
+    final pressed = <String>[];
+    MorphBarButton counted(String id) => MorphBarButton(
+      id: id,
+      icon: const SizedBox.square(dimension: 24),
+      semanticLabel: id,
+      onPressed: () => pressed.add(id),
+    );
+    await _toolbar(
+      tester,
+      () => [
+        MorphBarButtonGroup([counted('x')], id: 'X'),
+        MorphBarButtonGroup([counted('y')], id: 'Y'),
+      ],
+    );
+    final a = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey<Object>('x'))),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+    final b = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey<Object>('y'))),
+      pointer: 7,
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+    await a.up();
+    await tester.pump(const Duration(milliseconds: 16));
+    await b.up();
+    for (var i = 0; i < 180; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(pressed, ['x']);
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
   testWidgets('ids are compared as values, not by their text', (tester) async {
     Object id = 1;
     final set = await _toolbar(
