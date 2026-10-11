@@ -1321,6 +1321,7 @@ void main() {
       addTearDown(() => tester.binding.setSurfaceSize(null));
       var searching = true;
       var shown = '';
+      var listening = false;
       final queries = <String>[];
       final controller = TextEditingController();
       addTearDown(controller.dispose);
@@ -1330,7 +1331,8 @@ void main() {
         MaterialApp(
           home: StatefulBuilder(
             builder: (BuildContext context, StateSetter setState) {
-              if (!controller.hasListeners) {
+              if (!listening) {
+                listening = true;
                 controller.addListener(
                   () => setState(() => shown = controller.text),
                 );
