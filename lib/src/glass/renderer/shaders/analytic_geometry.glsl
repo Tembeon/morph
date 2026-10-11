@@ -210,7 +210,7 @@ SceneSample flatFaceSample(int index, vec2 p) {
 
 // The nearest shape at p, in sceneSample's order and tie rule for shapes
 // that never blend (each its own group: the later of equal shapes wins
-// until the last, which must be strictly nearer), with its index; null
+// until the last, which must be strictly nearer); null
 // distance 1e9 when every shape is farther than [reach] from its box (the
 // geometry pass's empty-pixel rejection, before any SDF is evaluated).
 // With [flatFace], a pixel inside the box of one shape alone takes that
@@ -221,8 +221,7 @@ SceneSample nearestShape(
     vec2 p,
     int count,
     float reach,
-    bool flatFace,
-    out int index
+    bool flatFace
     #if SHAPE_TINT
     , out vec4 tint
     #endif
@@ -233,7 +232,6 @@ SceneSample nearestShape(
     best.curvatureFactor = 0.0;
     best.normal = vec2(0.0);
     best.opticalNormal = vec2(0.0);
-    index = 0;
     #if SHAPE_TINT
     tint = uShapeTints[0];
     #endif
@@ -265,7 +263,6 @@ SceneSample nearestShape(
             : shape.distance <= best.distance;
         if (nearer) {
             best = shape;
-            index = i;
             #if SHAPE_TINT
             tint = uShapeTints[i];
             #endif
@@ -376,7 +373,6 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
     result.tint = nearestShapeTint(p, count);
     #endif
     #else
-    int nearest;
     #if SHAPE_TINT
     vec4 nearestTint;
     #endif
@@ -384,8 +380,7 @@ AnalyticGeometry analyticGeometry(vec2 p, float inwardRange, float exteriorRange
         p,
         count,
         uAnalyticRanges.x + 2.0,
-        uAnalyticFlatFace > 0.5,
-        nearest
+        uAnalyticFlatFace > 0.5
         #if SHAPE_TINT
         , nearestTint
         #endif
