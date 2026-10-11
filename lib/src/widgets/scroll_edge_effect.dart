@@ -570,7 +570,7 @@ class _RenderEdge extends RenderBox {
       case MorphScrollEdgeEffectStyle.hard:
         paint.color = fade;
         canvas.drawRect(box, paint);
-        final separator = _look.separatorColor;
+        paint.color = _look.separatorColor;
         canvas.drawRect(
           _top
               ? Rect.fromLTRB(
@@ -585,7 +585,7 @@ class _RenderEdge extends RenderBox {
                   box.right,
                   box.top + _hairline,
                 ),
-          Paint()..color = separator,
+          paint,
         );
     }
   }
