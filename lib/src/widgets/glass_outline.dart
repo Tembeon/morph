@@ -1132,14 +1132,8 @@ Path _unionPath(List<RRect> shapes) {
     _requireUniform(shape);
   }
   final kept = [
-    for (final (i, shape) in shapes.indexed)
-      if (!shapes.indexed.any(
-        ((int, RRect) other) =>
-            other.$1 != i &&
-            _encloses(other.$2, shape) &&
-            (!_encloses(shape, other.$2) || other.$1 < i),
-      ))
-        shape,
+    for (var i = 0; i < shapes.length; i++)
+      if (!_covered(shapes, i)) shapes[i],
   ];
   var union = _rrectPath(kept.first);
   for (final shape in kept.skip(1)) {
@@ -1154,6 +1148,20 @@ Path _rrectPath(RRect shape) {
   return path;
 }
 
+/// Whether shape [i] of [shapes] adds nothing to their union: another
+/// shape encloses it, and of two that enclose each other the first stays.
+bool _covered(List<RRect> shapes, int i) {
+  final shape = shapes[i];
+  for (var j = 0; j < shapes.length; j++) {
+    if (j == i) continue;
+    final other = shapes[j];
+    if (_encloses(other, shape) && (j < i || !_encloses(shape, other))) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Whether rounded box [outer] covers rounded box [inner]: every corner
 /// circle of [inner] lies inside it, and with them, [outer] being convex,
 /// all of [inner].
@@ -1162,16 +1170,21 @@ bool _encloses(RRect outer, RRect inner) {
   final hx = inner.width / 2 - r;
   final hy = inner.height / 2 - r;
   final center = inner.center;
-  final boxes = MorphOutlineBoxes([outer]);
+  _requireUniform(outer);
+  final ohx = outer.width / 2;
+  final ohy = outer.height / 2;
+  final outerRadius = math.min(outer.tlRadiusX, math.min(ohx, ohy));
+  final ocx = outer.center.dx;
+  final ocy = outer.center.dy;
   for (final (sx, sy) in const [
     (-1.0, -1.0),
     (1.0, -1.0),
     (-1.0, 1.0),
     (1.0, 1.0),
   ]) {
-    if (boxes.distance(0, center.dx + sx * hx, center.dy + sy * hy) > -r) {
-      return false;
-    }
+    final qx = (center.dx + sx * hx - ocx).abs() - ohx + outerRadius;
+    final qy = (center.dy + sy * hy - ocy).abs() - ohy + outerRadius;
+    if (morphBoxDistance(qx, qy, outerRadius) > -r) return false;
   }
   return true;
 }
