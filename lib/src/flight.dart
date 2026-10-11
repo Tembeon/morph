@@ -1685,6 +1685,17 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                 overlayBox: flight.overlayBox,
               );
               final MorphTargetSpec target = flight.target;
+              if (target.isVessel) {
+                return _VesselFrame(
+                  flight: flight,
+                  ticks: _frameTicks,
+                  overlaySize: overlaySize,
+                  padding: padding,
+                  lingeringScrim: _lingeringScrim,
+                  buildVessel: _buildVessel,
+                  content: content,
+                );
+              }
               return ListenableBuilder(
                 listenable: _frameTicks,
                 child: content,
@@ -1706,9 +1717,6 @@ class _MorphShuttleState extends State<_MorphShuttle> {
                     flight.contentSize,
                   );
                   flight.updateTargetRect(targetRect);
-                  if (target.isVessel) {
-                    return _buildVessel(content!);
-                  }
                   // A measured target lays its content out under the
                   // content constraints and measures it; a fixed one
                   // lays it out tight at the rect. Either way the box
@@ -1898,6 +1906,102 @@ class _MorphShuttleState extends State<_MorphShuttle> {
         ),
       ),
     );
+  }
+}
+
+/// A vessel's frame chain, rebuilt only when something it shows
+/// changes: content ownership, the lingering scrim, the pointer gate,
+/// the dissolve or the scrim opacity. Every other tick (the progress
+/// spring, a vessel's own geometry signal) only advances the flight's
+/// source and target rects - the vessel content draws the motion
+/// itself.
+class _VesselFrame extends StatefulWidget {
+  const _VesselFrame({
+    required this.flight,
+    required this.ticks,
+    required this.overlaySize,
+    required this.padding,
+    required this.lingeringScrim,
+    required this.buildVessel,
+    required this.content,
+  });
+
+  final MorphFlight flight;
+  final Listenable ticks;
+  final Size overlaySize;
+  final EdgeInsets padding;
+  final Widget Function() lingeringScrim;
+  final Widget Function(Widget content) buildVessel;
+  final Widget content;
+
+  @override
+  State<_VesselFrame> createState() => _VesselFrameState();
+}
+
+class _VesselFrameState extends State<_VesselFrame> {
+  Object? _built;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.ticks.addListener(_onTick);
+  }
+
+  @override
+  void didUpdateWidget(_VesselFrame oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(widget.ticks, oldWidget.ticks)) {
+      oldWidget.ticks.removeListener(_onTick);
+      widget.ticks.addListener(_onTick);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.ticks.removeListener(_onTick);
+    super.dispose();
+  }
+
+  /// Advances the rect bookkeeping and returns what the built chain
+  /// depends on.
+  Object? _advance() {
+    final MorphFlight flight = widget.flight;
+    if (flight.routeOwnsContent.value) {
+      return null;
+    }
+    if (flight._scrimOnly) {
+      return (flight.scrimOpacity,);
+    }
+    flight.refreshSourceRect();
+    flight.updateTargetRect(
+      flight.target.resolveRect(
+        widget.overlaySize,
+        widget.padding,
+        flight.contentSize,
+      ),
+    );
+    return (
+      flight.controller.target < 1,
+      flight.dissolveOpacity,
+      flight.modal ? flight.scrimOpacity : 0.0,
+    );
+  }
+
+  void _onTick() {
+    if (_advance() != _built) {
+      setState(() {});
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Object? built = _advance();
+    _built = built;
+    return switch (built) {
+      null => const SizedBox.shrink(),
+      (double _,) => widget.lingeringScrim(),
+      _ => widget.buildVessel(widget.content),
+    };
   }
 }
 

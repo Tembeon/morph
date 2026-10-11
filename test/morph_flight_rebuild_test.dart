@@ -83,4 +83,75 @@ void main() {
       await tester.pumpAndSettle();
     },
   );
+
+  testWidgets(
+    'a vessel tick advances the rects without rebuilding the vessel chain',
+    (WidgetTester tester) async {
+      late BuildContext sourceContext;
+      await tester.pumpWidget(
+        MaterialApp(
+          builder: (BuildContext context, Widget? child) =>
+              MorphScope(child: child!),
+          home: Scaffold(
+            body: Center(
+              child: MorphTag(
+                id: 'source',
+                child: Builder(
+                  builder: (BuildContext context) {
+                    sourceContext = context;
+                    return const SizedBox(width: 80, height: 40);
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      int placements = 0;
+      final MorphFlight flight = showMorph(
+        sourceContext,
+        maxScrimOpacity: 0,
+        target: MorphTargetSpec.vessel(
+          rectFor: (Size size, EdgeInsets padding) {
+            placements++;
+            return const Rect.fromLTWH(100, 100, 300, 200);
+          },
+        ),
+        builder: (BuildContext context, MorphFlight flight) =>
+            const Text('vessel content'),
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 16));
+      final Element content = tester.element(find.text('vessel content'));
+      final List<Element> rebuiltAbove = <Element>[];
+      debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
+        bool above = false;
+        content.visitAncestorElements((Element ancestor) {
+          above = identical(ancestor, element);
+          return !above;
+        });
+        if (above) {
+          rebuiltAbove.add(element);
+        }
+      };
+      addTearDown(() => debugOnRebuildDirtyWidget = null);
+      final int placementsBefore = placements;
+      for (int i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      debugOnRebuildDirtyWidget = null;
+      expect(flight.controller.isAnimating, isTrue);
+      expect(placements - placementsBefore, greaterThanOrEqualTo(5));
+      expect(flight.lastTargetRect, const Rect.fromLTWH(100, 100, 300, 200));
+      expect(
+        rebuiltAbove,
+        isEmpty,
+        reason:
+            'a vessel draws the motion itself; a tick that changes no '
+            'pointer gate, dissolve or scrim leaves its chain alone',
+      );
+      flight.close();
+      await tester.pumpAndSettle();
+    },
+  );
 }

@@ -282,6 +282,9 @@ What is where:
 - It takes pointers while the flight is open or opening, and so does its
   scrim; a closing vessel lets touches through so its source can re-open
   it.
+- Its frame chain rebuilds only when the pointer gate, the dissolve,
+  the scrim opacity or content ownership changes; every other tick
+  only advances the source and target rects.
 - Everything else still applies: overlay choice, modal barrier, pop
   layering, focus trap, events, source-lost dissolve. MorphMenuButton is
   its consumer.

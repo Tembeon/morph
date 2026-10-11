@@ -67,7 +67,7 @@
   },
   "menu-card/flat": {
     "frames": 289,
-    "builds": 20.7,
+    "builds": 18.1,
     "paints": 45.4,
     "pictures": 2.6,
     "captures": 0.0,
@@ -78,7 +78,7 @@
   },
   "menu-held/flat": {
     "frames": 262,
-    "builds": 15.1,
+    "builds": 12.3,
     "paints": 38.5,
     "pictures": 2.1,
     "captures": 0.0,
@@ -298,7 +298,7 @@
   },
   "menu-card/fake": {
     "frames": 289,
-    "builds": 22.7,
+    "builds": 20.2,
     "paints": 62.5,
     "pictures": 7.9,
     "captures": 3.0,
@@ -309,7 +309,7 @@
   },
   "menu-held/fake": {
     "frames": 262,
-    "builds": 16.9,
+    "builds": 14.1,
     "paints": 51.8,
     "pictures": 6.1,
     "captures": 2.0,
@@ -529,7 +529,7 @@
   },
   "menu-card/liquid": {
     "frames": 289,
-    "builds": 22.7,
+    "builds": 20.2,
     "paints": 62.5,
     "pictures": 7.9,
     "captures": 3.0,
@@ -540,7 +540,7 @@
   },
   "menu-held/liquid": {
     "frames": 262,
-    "builds": 16.9,
+    "builds": 14.1,
     "paints": 51.8,
     "pictures": 6.1,
     "captures": 2.0,
