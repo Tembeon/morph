@@ -92,13 +92,12 @@ class MorphToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final keyboard = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
-    final below = keyboard > 0 ? keyboard + keyboardInset : bottomInset;
     return Semantics(
       container: true,
       explicitChildNodes: true,
-      child: Padding(
-        padding: EdgeInsets.only(bottom: below),
+      child: _KeyboardPadding(
+        keyboardInset: keyboardInset,
+        bottomInset: bottomInset,
         child: SizedBox(
           height: capsuleHeight,
           width: double.infinity,
@@ -120,6 +119,30 @@ class MorphToolbar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The space under the toolbar, read on its own so that a keyboard inset
+/// changing every frame relays out the padding and leaves the bar alone.
+class _KeyboardPadding extends StatelessWidget {
+  const _KeyboardPadding({
+    required this.keyboardInset,
+    required this.bottomInset,
+    required this.child,
+  });
+
+  final double keyboardInset;
+  final double bottomInset;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final keyboard = MediaQuery.maybeViewInsetsOf(context)?.bottom ?? 0;
+    final below = keyboard > 0 ? keyboard + keyboardInset : bottomInset;
+    return Padding(
+      padding: EdgeInsets.only(bottom: below),
+      child: child,
     );
   }
 }

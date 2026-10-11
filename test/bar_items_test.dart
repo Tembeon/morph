@@ -286,6 +286,103 @@ void main() {
     handle.dispose();
   });
 
+  testWidgets('a parent rebuild with new callbacks keeps the bar as built', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    final calls = <int>[];
+    var round = 0;
+    final set = await _toolbar(
+      tester,
+      () => [
+        MorphBarButtonGroup([
+          MorphBarButton(
+            id: 'go',
+            label: 'Go',
+            onPressed: () => calls.add(round),
+          ),
+        ], id: 'G'),
+      ],
+    );
+    Listener listener() => tester.widget<Listener>(
+      find
+          .descendant(
+            of: find.byKey(const ValueKey<Object>('go')),
+            matching: find.byType(Listener),
+          )
+          .first,
+    );
+    final before = listener();
+    set(() => round = 1);
+    await tester.pump();
+    expect(identical(listener(), before), isTrue);
+    await tester.tap(find.text('Go'));
+    await tester.pumpAndSettle();
+    tester.semantics.tap(find.semantics.byLabel('Go'));
+    await tester.pumpAndSettle();
+    expect(calls, [1, 1]);
+    handle.dispose();
+  });
+
+  testWidgets('a keyboard inset moves the toolbar without rebuilding it', (
+    tester,
+  ) async {
+    var inset = 0.0;
+    late StateSetter set;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            set = setState;
+            return MediaQuery(
+              data: MediaQuery.of(
+                context,
+              ).copyWith(viewInsets: EdgeInsets.only(bottom: inset)),
+              child: Stack(
+                children: [
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: MorphToolbar(
+                      trailing: [
+                        MorphBarButtonGroup([_icon('a')], id: 'A'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    Listener listener() => tester.widget<Listener>(
+      find
+          .descendant(
+            of: find.byKey(const ValueKey<Object>('a')),
+            matching: find.byType(Listener),
+          )
+          .first,
+    );
+    final before = listener();
+    final rest = tester.getCenter(find.byKey(const ValueKey<Object>('a')));
+    set(() => inset = 300);
+    await tester.pump();
+    expect(identical(listener(), before), isTrue);
+    expect(
+      tester.getCenter(find.byKey(const ValueKey<Object>('a'))).dy,
+      closeTo(
+        rest.dy -
+            300 -
+            MorphToolbarMetrics.keyboardInset +
+            MorphToolbarMetrics.bottomInset,
+        0.01,
+      ),
+    );
+  });
+
   testWidgets('ids are compared as values, not by their text', (tester) async {
     Object id = 1;
     final set = await _toolbar(

@@ -854,6 +854,93 @@ class _MorphBarItemsState extends State<MorphBarItems>
     super.dispose();
   }
 
+  Widget? _built;
+  bool _stale = true;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _stale = true;
+  }
+
+  @override
+  void reassemble() {
+    _stale = true;
+    super.reassemble();
+  }
+
+  @override
+  void didUpdateWidget(MorphBarItems oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!_buildsLike(oldWidget)) {
+      _stale = true;
+      return;
+    }
+    // The kept tree reads buttons through [_buttons] at event time, so the
+    // new callbacks take over without a rebuild.
+    for (final g in widget.groups) {
+      for (final b in g.group.buttons) {
+        _buttons[b.id] = b;
+      }
+    }
+    _refreshMenu();
+  }
+
+  /// Whether the row built from [old] is the one the current widget
+  /// builds: every field the build reads compares equal, and callbacks
+  /// count only by whether they are set.
+  bool _buildsLike(MorphBarItems old) {
+    final w = widget;
+    return _sameGroups(old.groups, w.groups) &&
+        _sameGroups(old.driftGroups, w.driftGroups) &&
+        old.metrics == w.metrics &&
+        old.top == w.top &&
+        old.leadingInset == w.leadingInset &&
+        old.trailingInset == w.trailingInset &&
+        old.style == w.style &&
+        old.menuStyle == w.menuStyle &&
+        old.menuTuning == w.menuTuning &&
+        identical(old.menuOverlay, w.menuOverlay) &&
+        (old.onLayout == null) == (w.onLayout == null) &&
+        identical(old.driftProgress, w.driftProgress) &&
+        old.driftFactor == w.driftFactor &&
+        old.transition == w.transition;
+  }
+
+  static bool _sameGroups(
+    List<MorphPlacedGroup>? a,
+    List<MorphPlacedGroup>? b,
+  ) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null || a.length != b.length) return false;
+    for (var k = 0; k < a.length; k++) {
+      final x = a[k];
+      final y = b[k];
+      if (x.side != y.side ||
+          x.group.id != y.group.id ||
+          x.group.prominent != y.group.prominent ||
+          x.group.buttons.length != y.group.buttons.length) {
+        return false;
+      }
+      for (var n = 0; n < x.group.buttons.length; n++) {
+        if (!_sameButton(x.group.buttons[n], y.group.buttons[n])) return false;
+      }
+    }
+    return true;
+  }
+
+  static bool _sameButton(MorphBarButton a, MorphBarButton b) =>
+      a.id == b.id &&
+      a.label == b.label &&
+      a.icon == b.icon &&
+      (a.onPressed == null) == (b.onPressed == null) &&
+      a.semanticLabel == b.semanticLabel &&
+      a.back == b.back &&
+      a.enabled == b.enabled &&
+      listEquals(a.menu, b.menu);
+
+  void _activate(Object buttonId) => _buttons[buttonId]?.onPressed?.call();
+
   /// Whether the capsule [id] is drawn by an open menu instead of the bar.
   bool _carried(Object id) {
     final menu = _menu;
@@ -1208,6 +1295,13 @@ class _MorphBarItemsState extends State<MorphBarItems>
 
   @override
   Widget build(BuildContext context) {
+    final built = _built;
+    if (built != null && !_stale) return built;
+    _stale = false;
+    return _built = _buildRow(context);
+  }
+
+  Widget _buildRow(BuildContext context) {
     final style = MorphBarStyle.resolve(context, widget.style);
     final glass = MorphGlass.maybeOf(context);
     final brightness = morphBrightnessOf(context);
@@ -1493,7 +1587,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
             ? null
             : button.opensMenuOnTap
             ? (_menu == null ? () => _openMenu(clock, button.id) : null)
-            : button.onPressed,
+            : button.onPressed == null
+            ? null
+            : () => _activate(button.id),
         onLongPress:
             button.interactive &&
                 !button.opensMenuOnTap &&
