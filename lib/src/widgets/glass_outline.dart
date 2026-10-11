@@ -953,20 +953,57 @@ bool _fuses(List<RRect> group, double spacing) {
   return false;
 }
 
-/// The last four outlines retained by the isolate, newest last.
+// Each cache below keeps the four outlines used last, the most recent
+// last: a hit moves its entry to the end ([_used]), so an outline one host
+// reads every frame outlives the outlines another host keeps adding.
+
+/// The outlines retained by the isolate.
 final List<(List<RRect>, double, MorphGlassOutline)> _recentOutlines = [];
 
-/// The last four silhouettes retained separately from optical outlines.
+/// The silhouettes retained separately from optical outlines.
 final List<(List<RRect>, double, MorphGlassOutline)> _recentSilhouettes = [];
 
-/// The last four plain unions retained by the isolate, newest last.
+/// The plain unions retained by the isolate.
 final List<(List<RRect>, MorphGlassOutline)> _recentUnions = [];
 
-/// The last four merged-box outlines retained by the isolate, newest last.
+/// The merged-box outlines retained by the isolate.
 final List<(List<RRect>, double, MorphGlassOutline)> _recentBoxOutlines = [];
 
-/// The last four outlines merged per pixel, newest last.
+/// The outlines merged per pixel.
 final List<(List<RRect>, double, MorphGlassOutline)> _recentMerged = [];
+
+/// The most outlines each cache keeps.
+const int _recentLimit = 4;
+
+/// Moves entry [k] of [recent] to the end, as the one used last.
+void _used<T>(List<T> recent, int k) {
+  if (k == recent.length - 1) return;
+  recent.add(recent.removeAt(k));
+}
+
+/// Adds [entry] to [recent] as the one used last, dropping the one used
+/// longest ago past [_recentLimit].
+void _remember<T>(List<T> recent, T entry) {
+  recent.add(entry);
+  if (recent.length > _recentLimit) recent.removeAt(0);
+}
+
+/// The outline of the entry of [recent] with [shapes] and [spacing], moved
+/// to the end as the one used last, or null.
+MorphGlassOutline? _recentHit(
+  List<(List<RRect>, double, MorphGlassOutline)> recent,
+  List<RRect> shapes,
+  double spacing,
+) {
+  for (var k = 0; k < recent.length; k++) {
+    final (kept, keptSpacing, outline) = recent[k];
+    if (keptSpacing == spacing && listEquals(kept, shapes)) {
+      _used(recent, k);
+      return outline;
+    }
+  }
+  return null;
+}
 
 /// The outline of [shapes] merged by a glass container with [spacing] for
 /// a liquid layer that evaluates the merge law itself: its field is a
@@ -986,9 +1023,8 @@ MorphGlassOutline morphGlassContainerBoxOutline(
   if (spacing <= 0 || shapes.length > GlassBoxField.maxBoxes) {
     return morphGlassContainerOutline(shapes, spacing);
   }
-  for (final (recent, recentSpacing, outline) in _recentBoxOutlines) {
-    if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
-  }
+  final hit = _recentHit(_recentBoxOutlines, shapes, spacing);
+  if (hit != null) return hit;
   MorphGlassOutline? outline;
   for (final (recent, recentSpacing, kept) in _recentBoxOutlines) {
     if (recentSpacing != spacing) continue;
@@ -1011,8 +1047,7 @@ MorphGlassOutline morphGlassContainerBoxOutline(
       _neckCover(union, kept, spacing),
     );
   }
-  _recentBoxOutlines.add((List.of(shapes), spacing, outline));
-  if (_recentBoxOutlines.length > 4) _recentBoxOutlines.removeAt(0);
+  _remember(_recentBoxOutlines, (List.of(shapes), spacing, outline));
   return outline;
 }
 
@@ -1029,17 +1064,15 @@ MorphGlassOutline morphGlassContainerMergedOutline(
   List<RRect> shapes,
   double spacing,
 ) {
-  for (final (recent, recentSpacing, outline) in _recentMerged) {
-    if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
-  }
+  final hit = _recentHit(_recentMerged, shapes, spacing);
+  if (hit != null) return hit;
   assert(() {
     shapes.forEach(_requireUniform);
     return true;
   }());
   final kept = List<RRect>.unmodifiable(shapes);
   final outline = MorphGlassOutline._merged(kept, spacing);
-  _recentMerged.add((kept, spacing, outline));
-  if (_recentMerged.length > 4) _recentMerged.removeAt(0);
+  _remember(_recentMerged, (kept, spacing, outline));
   return outline;
 }
 
@@ -1066,32 +1099,32 @@ MorphGlassOutline morphGlassContainerOutline(
 }) {
   if (spacing <= 0) return _plainUnion(shapes);
   final outlines = withField ? _recentOutlines : _recentSilhouettes;
-  for (final (recent, recentSpacing, outline) in outlines) {
-    if (recentSpacing == spacing && listEquals(recent, shapes)) return outline;
-  }
+  final hit = _recentHit(outlines, shapes, spacing);
+  if (hit != null) return hit;
   for (final (recent, recentSpacing, outline) in outlines) {
     if (recentSpacing != spacing) continue;
     final offset = _translation(recent, shapes);
     if (offset == null) continue;
     final moved = outline.shift(offset);
-    outlines.add((List.of(shapes), spacing, moved));
-    if (outlines.length > 4) outlines.removeAt(0);
+    _remember(outlines, (List.of(shapes), spacing, moved));
     return moved;
   }
   final outline = _fuseContainer(shapes, spacing, withField: withField);
-  outlines.add((List.of(shapes), spacing, outline));
-  if (outlines.length > 4) outlines.removeAt(0);
+  _remember(outlines, (List.of(shapes), spacing, outline));
   return outline;
 }
 
 MorphGlassOutline _plainUnion(List<RRect> shapes) {
-  for (final (recent, outline) in _recentUnions) {
-    if (listEquals(recent, shapes)) return outline;
+  for (var k = 0; k < _recentUnions.length; k++) {
+    final (recent, outline) = _recentUnions[k];
+    if (listEquals(recent, shapes)) {
+      _used(_recentUnions, k);
+      return outline;
+    }
   }
   final kept = List<RRect>.unmodifiable(shapes);
   final outline = MorphGlassOutline._union(_unionPath(kept), kept);
-  _recentUnions.add((kept, outline));
-  if (_recentUnions.length > 4) _recentUnions.removeAt(0);
+  _remember(_recentUnions, (kept, outline));
   return outline;
 }
 

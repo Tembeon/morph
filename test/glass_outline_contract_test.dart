@@ -264,4 +264,30 @@ void main() {
     expect(pa.right, closeTo(pb.right, 1e-4));
     expect(pa.bottom, closeTo(pb.bottom, 1e-4));
   });
+
+  test('an outline read every frame outlives the outlines other hosts add', () {
+    RRect box(double x, double width) => RRect.fromRectAndRadius(
+      Rect.fromLTWH(x, 0, width, 40),
+      const Radius.circular(12),
+    );
+    final stable = [box(0, 60), box(70, 60)];
+    final plain = morphGlassContainerOutline(stable, 0);
+    final fused = morphGlassContainerOutline(stable, 12, withField: false);
+    final boxes = morphGlassContainerBoxOutline(stable, 12);
+    final merged = morphGlassContainerMergedOutline(stable, 12);
+    for (var frame = 0; frame < 8; frame++) {
+      final moving = [box(0, 50 + frame * 3.5), box(90, 44 + frame * 2.25)];
+      morphGlassContainerOutline(moving, 0);
+      morphGlassContainerOutline(moving, 12, withField: false);
+      morphGlassContainerBoxOutline(moving, 12);
+      morphGlassContainerMergedOutline(moving, 12);
+      expect(morphGlassContainerOutline(stable, 0), same(plain));
+      expect(
+        morphGlassContainerOutline(stable, 12, withField: false),
+        same(fused),
+      );
+      expect(morphGlassContainerBoxOutline(stable, 12), same(boxes));
+      expect(morphGlassContainerMergedOutline(stable, 12), same(merged));
+    }
+  });
 }
