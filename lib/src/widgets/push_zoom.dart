@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
@@ -21,8 +22,14 @@ abstract interface class MorphPushZoomHost {
   /// Whether the page is the navigator's top route.
   bool get zoomIsCurrent;
 
-  /// Asks the navigator to pop the page.
-  void zoomPop();
+  /// Whether a finger may drag the page toward a pop: false while the
+  /// route would veto it ([PopScope] that cannot pop) or handles the pop
+  /// internally.
+  bool get zoomCanPop;
+
+  /// Asks the navigator to pop the page; completes once it has decided,
+  /// whether or not the page left.
+  Future<void> zoomPop();
 
   /// Called once the zoom back into the source has come to rest.
   void zoomClosed();
@@ -152,7 +159,12 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
   void _pointerDown(PointerDownEvent event) {
     stamp(event);
     final motion = _motion;
-    if (motion == null || _leaving || !_host.zoomIsCurrent) return;
+    if (motion == null ||
+        _leaving ||
+        !_host.zoomIsCurrent ||
+        !_host.zoomCanPop) {
+      return;
+    }
     _pan.addPointer(event);
   }
 
@@ -174,7 +186,22 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
     final motion = _motion;
     if (motion == null || !motion.isDragging) return;
     final velocity = details.velocity.pixelsPerSecond;
-    if (motion.dragEnd(clock, velocity)) _host.zoomPop();
+    if (motion.dragEnd(clock, velocity)) {
+      unawaited(_host.zoomPop().then((_) => _stayed()));
+    }
+    wake();
+  }
+
+  /// Returns the page from the frame the finger left it in when the
+  /// navigator vetoed the pop the drag asked for; otherwise the page would
+  /// hold that frame and the clock would never settle.
+  void _stayed() {
+    final motion = _motion;
+    if (!mounted || _leaving || motion == null || !motion.isDragging) return;
+    // A drag restarted with zero travel ends on the return path, from where
+    // the springs were snapped by the last move.
+    motion.dragStart(clock, Offset.zero);
+    motion.dragEnd(clock, Offset.zero);
     wake();
   }
 

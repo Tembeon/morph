@@ -22,11 +22,14 @@ mixin MorphMotionRouteMixin<T> on TransitionRoute<T> {
   void motionRouteDidFinish() {}
 
   /// Dismisses this route, preserving routes pushed above it.
-  void popMotionRoute([T? result]) {
+  ///
+  /// Completes once the navigator has decided: a route that is current
+  /// may veto the pop (a [PopScope] that cannot pop) and stays.
+  Future<void> popMotionRoute([T? result]) async {
     final nav = navigator;
     if (nav == null || !isActive) return;
     if (isCurrent) {
-      nav.maybePop<T>(result);
+      await nav.maybePop<T>(result);
     } else {
       final resolved = motionRouteResult(result);
       motionRouteDidPop(resolved);

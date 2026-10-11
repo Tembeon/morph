@@ -333,5 +333,59 @@ void main() {
       await tester.pumpAndSettle();
       expect(page, findsNothing);
     });
+
+    Future<void> dragDown(WidgetTester tester, {VoidCallback? midway}) async {
+      final drag = await tester.startGesture(const Offset(201, 400));
+      for (var i = 0; i < 20; i++) {
+        await drag.moveBy(const Offset(0, 12));
+        await tester.pump(const Duration(milliseconds: 16));
+        if (i == 10) midway?.call();
+      }
+      await tester.pump(const Duration(milliseconds: 300));
+      await drag.up();
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('a page that cannot pop does not follow a dismissing drag', (
+      WidgetTester tester,
+    ) async {
+      final home = await pumpStack(tester);
+      unawaited(
+        pushMorphZoom<void>(
+          home,
+          builder: (BuildContext context) =>
+              PopScope<void>(canPop: false, child: detail(context)),
+          from: 'card',
+        ),
+      );
+      await tester.pumpAndSettle();
+      final page = find.byKey(const ValueKey<String>('detail'));
+      await dragDown(tester);
+      expect(tester.getRect(page), const Rect.fromLTWH(0, 0, 402, 874));
+    });
+
+    testWidgets('a pop vetoed after the drag began returns the page and '
+        'lets the clock settle', (WidgetTester tester) async {
+      final home = await pumpStack(tester);
+      final canPop = ValueNotifier<bool>(true);
+      addTearDown(canPop.dispose);
+      unawaited(
+        pushMorphZoom<void>(
+          home,
+          builder: (BuildContext context) => ValueListenableBuilder<bool>(
+            valueListenable: canPop,
+            builder: (BuildContext context, bool value, Widget? child) =>
+                PopScope<void>(canPop: value, child: child!),
+            child: detail(context),
+          ),
+          from: 'card',
+        ),
+      );
+      await tester.pumpAndSettle();
+      final page = find.byKey(const ValueKey<String>('detail'));
+      await dragDown(tester, midway: () => canPop.value = false);
+      expect(page, findsOneWidget);
+      expect(tester.getRect(page), const Rect.fromLTWH(0, 0, 402, 874));
+    });
   });
 }

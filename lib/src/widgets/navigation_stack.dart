@@ -679,7 +679,10 @@ class _NavigationZoomHost<T> implements MorphPushZoomHost {
   bool get zoomIsCurrent => route.isCurrent;
 
   @override
-  void zoomPop() => route.popMotionRoute();
+  bool get zoomCanPop => route.popGestureEnabled;
+
+  @override
+  Future<void> zoomPop() => route.popMotionRoute();
 
   @override
   void zoomClosed() => route.finishMotionRoute();
