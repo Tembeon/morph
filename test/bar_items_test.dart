@@ -107,6 +107,30 @@ void main() {
     });
   });
 
+  test('a drift keeps its pairing until the layout changes', () {
+    final motion = MorphBarMotion();
+    final toward = [
+      _capsule('A', 100, ['a']),
+      _capsule('C', 400, ['c']),
+    ];
+    motion.setLayout(0, [
+      _capsule('A', 50, ['a']),
+    ]);
+    motion.setDrift(toward, 0.5);
+    expect(motion.capsuleFrame('A')!.rect.center.dx, closeTo(75, 1e-9));
+    motion.setDrift(toward, 1);
+    expect(motion.capsuleFrame('A')!.rect.center.dx, closeTo(100, 1e-9));
+    motion.setLayout(1, [
+      _capsule('A', 50, ['a']),
+      _capsule('C', 300, ['c']),
+    ]);
+    motion.advance(4);
+    expect(motion.isSettled, isTrue);
+    motion.setDrift(toward, 0.5);
+    expect(motion.capsuleFrame('A')!.rect.center.dx, closeTo(75, 1e-6));
+    expect(motion.capsuleFrame('C')!.rect.center.dx, closeTo(350, 1e-6));
+  });
+
   group('a second change inside the content delay', () {
     test('keeps a removed newborn item from growing', () {
       final motion = MorphBarMotion();

@@ -382,6 +382,7 @@ class MorphBarMotion {
   double _now = 0;
   bool _hasLayout = false;
   Map<_Capsule, Rect> _driftTo = const {};
+  List<MorphBarCapsuleLayout>? _driftPaired;
   double _drift = 0;
 
   /// Whether the platform asks for reduced motion: changes then snap.
@@ -558,13 +559,22 @@ class MorphBarMotion {
   /// its items riding along; null or 0 removes the lean at once.
   ///
   /// The lean is drawn on top of the motion, a pure function of [amount];
-  /// a [setLayout] while leaning starts from the leaning capsules.
+  /// a [setLayout] while leaning starts from the leaning capsules. The
+  /// pairing is kept while [toward] is the same list and the layout has
+  /// not changed, so a lean that follows a gesture costs one field write
+  /// per frame.
   void setDrift(List<MorphBarCapsuleLayout>? toward, double amount) {
     if (toward == null || amount == 0) {
       _driftTo = const {};
+      _driftPaired = null;
       _drift = 0;
       return;
     }
+    if (identical(toward, _driftPaired)) {
+      _drift = amount;
+      return;
+    }
+    _driftPaired = toward;
     final live = [
       for (final c in _capsules)
         if (!c.leaving) c,
@@ -591,6 +601,7 @@ class MorphBarMotion {
   }
 
   void _keepDrift(double t, {required bool rest}) {
+    _driftPaired = null;
     if (!isDrifting) return;
     void put(MorphSpringState s, double v) {
       if (rest) {
@@ -901,6 +912,7 @@ class MorphBarMotion {
 
   void _snap(double t, List<MorphBarCapsuleLayout> layout) {
     _driftTo = const {};
+    _driftPaired = null;
     _drift = 0;
     _timeline.clear();
     _capsules.clear();
