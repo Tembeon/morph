@@ -34,7 +34,7 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// focus and clears the text, and the field falls straight back to its
 /// place above the tab circle as the keyboard leaves; tapping the tab
 /// circle asks to stop searching, and the field turns back into the
-/// circle. The tab circle takes the tap while the morph into the field
+/// circle; the query clears at the end of that frame. The tab circle takes the tap while the morph into the field
 /// still runs (the morph turns around with its velocity, as UIKit's does)
 /// until the keyboard covers it; the search circle ignores taps until the
 /// morph back to the bar has settled, as UIKit's does.
@@ -95,7 +95,8 @@ class MorphSearchTabBar extends StatefulWidget {
   /// The text shown while the field is empty.
   final String placeholder;
 
-  /// Called whenever the query changes.
+  /// Called whenever the query changes, including the empty query when
+  /// the close button or the end of the search clears it.
   final ValueChanged<String>? onQueryChanged;
 
   /// Called when the keyboard's search key is pressed.
@@ -188,8 +189,12 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
           ? clock + MorphSearchTuning.tabActivationDelay
           : null;
       if (!widget.searching) {
-        _controller.clear();
         _focus.unfocus();
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || _controller.text.isEmpty) return;
+          _controller.clear();
+          widget.onQueryChanged?.call('');
+        });
       }
       wake();
     }

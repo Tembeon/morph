@@ -1194,6 +1194,81 @@ void main() {
       expect(asked, [true, false, true]);
     });
 
+    testWidgets('ending the search reports the cleared query', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(_w, _h));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+      var searching = true;
+      var shown = '';
+      final queries = <String>[];
+      final controller = TextEditingController();
+      addTearDown(controller.dispose);
+      final focus = FocusNode();
+      addTearDown(focus.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              if (!controller.hasListeners) {
+                controller.addListener(
+                  () => setState(() => shown = controller.text),
+                );
+              }
+              return Stack(
+                children: [
+                  Text('shown: $shown'),
+                  Positioned.fill(
+                    child: MorphSearchTabBar(
+                      items: const [
+                        MorphTabItem(icon: Icons.home, label: 'Home'),
+                        MorphTabItem(icon: Icons.book, label: 'Library'),
+                      ],
+                      selected: 0,
+                      onChanged: (_) {},
+                      controller: controller,
+                      focusNode: focus,
+                      onQueryChanged: queries.add,
+                      searching: searching,
+                      onSearchingChanged: (bool v) =>
+                          setState(() => searching = v),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      );
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      await tester.enterText(find.byType(EditableText), 'foo');
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      expect(queries.last, 'foo');
+      focus.unfocus();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      await tester.tapAt(const Offset(52, 904));
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      expect(tester.takeException(), isNull);
+      expect(searching, isFalse);
+      expect(controller.text, isEmpty);
+      expect(queries.last, '');
+      expect(find.text('shown: '), findsOneWidget);
+    });
+
     testWidgets('an activating search tab takes the focus mid-morph', (
       tester,
     ) async {
