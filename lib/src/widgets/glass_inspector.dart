@@ -3,10 +3,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
-import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
-import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 
 /// Shows, over [child], how many glass layers the last frame drew, who
@@ -403,26 +401,6 @@ MorphGlassCensus _takeCensus() {
   );
 }
 
-bool _resting(MorphGlassRenderer renderer, MorphGlassFrame frame) {
-  final parts = frame.partsFor(renderer.effectiveTier);
-  if (!frame.still ||
-      parts.separate.isEmpty ||
-      parts.fused.isNotEmpty ||
-      parts.floating.isNotEmpty) {
-    return false;
-  }
-  for (final surface in parts.separate) {
-    if (surface.lift != 0 ||
-        surface.kind == MorphGlassKind.bar ||
-        surface.kind == MorphGlassKind.menu ||
-        morphLiquidSettings(renderer, surface) !=
-            morphLiquidSettings(renderer, parts.separate.first)) {
-      return false;
-    }
-  }
-  return true;
-}
-
 String _nameOf(Element element, Map<Element, String> named) {
   final own = element.widget.runtimeType.toString();
   final context = named[element];
@@ -439,11 +417,8 @@ List<MorphGlassHint> _hints(List<Element> hosts, Map<Element, String> named) {
     }
     final painter = state.painter;
     if (painter.runtimeType != MorphGlassRenderer) continue;
-    final renderer = painter as MorphGlassRenderer;
-    if (renderer.effectiveTier == MorphGlassTier.flat ||
-        !_resting(renderer, state.frame)) {
-      continue;
-    }
+    final look = morphGlassJoinLook(painter as MorphGlassRenderer, state.frame);
+    if (look == null) continue;
     final scope = host
         .getElementForInheritedWidgetOfExactType<MorphGlassContainerScope>();
     if (scope != null && (scope.widget as MorphGlassContainerScope).open) {
@@ -453,11 +428,11 @@ List<MorphGlassHint> _hints(List<Element> hosts, Map<Element, String> named) {
       }
       continue;
     }
-    final settings = morphLiquidSettings(
-      renderer,
-      state.frame.partsFor(renderer.effectiveTier).separate.first,
+    final plane = (
+      morphGlassContainerBlocker(host),
+      (look.settings, look.appearance),
     );
-    (planes[(morphGlassContainerBlocker(host), settings)] ??= []).add(host);
+    (planes[plane] ??= []).add(host);
   }
   final hints = <MorphGlassHint>[];
   for (final MapEntry(key: (plane, _), value: group) in planes.entries) {

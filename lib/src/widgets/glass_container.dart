@@ -511,31 +511,54 @@ class MorphGlassContainerLink {
 
   int _joinable(MorphGlassRenderer renderer, MorphGlassFrame frame) {
     final settings = _settings;
-    if (settings == null ||
-        renderer != _renderer ||
-        renderer.effectiveTier == MorphGlassTier.flat) {
-      return 0;
-    }
-    final parts = frame.partsFor(renderer.effectiveTier);
-    if (!frame.still ||
-        parts.separate.isEmpty ||
-        parts.fused.isNotEmpty ||
-        parts.floating.isNotEmpty) {
-      return 0;
-    }
-    var appearance = _appearance;
-    for (final surface in parts.separate) {
-      final own = morphLiquidAppearance(renderer, surface);
-      appearance ??= own;
-      if (surface.lift != 0 ||
-          surface.kind == MorphGlassKind.bar ||
-          surface.kind == MorphGlassKind.menu ||
-          own.copyWith(tint: appearance.tint) != appearance ||
-          morphLiquidSettings(renderer, surface) != settings) {
-        return 0;
-      }
-    }
+    if (settings == null || renderer != _renderer) return 0;
+    final look = morphGlassJoinLook(renderer, frame);
+    if (look == null || look.settings != settings) return 0;
+    final appearance = _appearance ?? look.appearance;
+    if (look.appearance != appearance) return 0;
     _appearance = appearance;
-    return parts.separate.length;
+    return look.shapes;
   }
+}
+
+/// What a glass container compares [frame], drawn by [renderer], against
+/// its other members: the layer settings and the appearance, tint aside,
+/// that all of the frame's shapes share, and how many shapes there are.
+///
+/// Null when no container takes the frame: on the flat tier, while
+/// anything of it moves or lifts, when it fuses or floats glass, holds a
+/// bar or a menu, or mixes looks.
+@internal
+({LiquidGlassSettings settings, LiquidGlassAppearance appearance, int shapes})?
+morphGlassJoinLook(MorphGlassRenderer renderer, MorphGlassFrame frame) {
+  final tier = renderer.effectiveTier;
+  if (tier == MorphGlassTier.flat || !frame.still) return null;
+  final parts = frame.partsFor(tier);
+  if (parts.separate.isEmpty ||
+      parts.fused.isNotEmpty ||
+      parts.floating.isNotEmpty) {
+    return null;
+  }
+  LiquidGlassSettings? settings;
+  LiquidGlassAppearance? appearance;
+  for (final surface in parts.separate) {
+    if (surface.lift != 0 ||
+        surface.kind == MorphGlassKind.bar ||
+        surface.kind == MorphGlassKind.menu) {
+      return null;
+    }
+    final own = morphLiquidSettings(renderer, surface);
+    final look = morphLiquidAppearance(
+      renderer,
+      surface,
+    ).copyWith(tint: const Color(0x00000000));
+    settings ??= own;
+    appearance ??= look;
+    if (own != settings || look != appearance) return null;
+  }
+  return (
+    settings: settings!,
+    appearance: appearance!,
+    shapes: parts.separate.length,
+  );
 }

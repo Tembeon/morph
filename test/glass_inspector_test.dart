@@ -56,6 +56,26 @@ void main() {
     expect(census.hints.single.where, startsWith('Stack'));
   });
 
+  testWidgets('buttons of different brightness get no hint: a container '
+      'would not join them', (WidgetTester tester) async {
+    Widget themed(Brightness brightness, Widget child) => Theme(
+      data: ThemeData(platform: TargetPlatform.iOS, brightness: brightness),
+      child: child,
+    );
+    await tester.pumpWidget(
+      _app(
+        Stack(
+          children: [
+            themed(.dark, _button(20, 'D')),
+            themed(.light, _button(110, 'L')),
+          ],
+        ),
+      ),
+    );
+    await _settle(tester);
+    expect(MorphGlassInspector.census().hints, isEmpty);
+  });
+
   testWidgets('the same buttons in a container: one filter, no hint', (
     WidgetTester tester,
   ) async {
