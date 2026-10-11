@@ -137,4 +137,40 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('December 2026'), findsOneWidget);
   });
+
+  testWidgets('a parent rebuild without changes leaves the open calendar', (
+    tester,
+  ) async {
+    var title = 'Plain';
+    late StateSetter update;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: StatefulBuilder(
+          builder: (context, setState) {
+            update = setState;
+            final shown = title;
+            return Center(
+              child: MorphDatePicker(
+                value: DateTime(2026, 10, 3, 7, 41),
+                today: DateTime(2026, 10, 3),
+                onChanged: (_) {},
+                calendarTitleFormatter: title == 'Plain'
+                    ? null
+                    : (DateTime month) => '$shown ${month.month}',
+              ),
+            );
+          },
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphDatePicker));
+    await tester.pumpAndSettle();
+    final day = tester.widget(find.text('15'));
+    update(() {});
+    await tester.pumpAndSettle();
+    expect(identical(tester.widget(find.text('15')), day), isTrue);
+    update(() => title = 'Month');
+    await tester.pumpAndSettle();
+    expect(find.text('Month 10'), findsOneWidget);
+  });
 }

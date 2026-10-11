@@ -795,6 +795,14 @@ class _OverlayViewState extends State<_OverlayView>
       return;
     }
     final value = _bounded(_picker.value);
+    final shown = _shown;
+    final twentyFour = _route.picker._twentyFour;
+    if (_value == value &&
+        twentyFour == _shownTwentyFour &&
+        shown != null &&
+        _showsAlike(shown, _picker)) {
+      return;
+    }
     setState(() {
       if (_value != value) {
         _month = DateTime(value.year, value.month);
@@ -803,6 +811,21 @@ class _OverlayViewState extends State<_OverlayView>
       _value = value;
     });
   }
+
+  MorphDatePicker? _shown;
+  bool? _shownTwentyFour;
+
+  static bool _showsAlike(MorphDatePicker a, MorphDatePicker b) =>
+      a.mode == b.mode &&
+      a.firstDate == b.firstDate &&
+      a.lastDate == b.lastDate &&
+      a.firstDayOfWeek == b.firstDayOfWeek &&
+      a.today == b.today &&
+      a.style == b.style &&
+      a.localize == b.localize &&
+      a.numberFormatter == b.numberFormatter &&
+      a.calendarTitleFormatter == b.calendarTitleFormatter &&
+      a.daySemanticFormatter == b.daySemanticFormatter;
 
   void _turn(int direction) {
     if (_motion.page(clock) < 1) {
@@ -862,6 +885,8 @@ class _OverlayViewState extends State<_OverlayView>
 
   @override
   Widget build(BuildContext context) {
+    _shown = _picker;
+    _shownTwentyFour = _route.picker._twentyFour;
     final style = MorphDatePickerStyle.resolve(context, _picker.style);
     final media = MediaQuery.of(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
