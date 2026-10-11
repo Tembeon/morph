@@ -758,6 +758,7 @@ class _SheetViewState extends State<_SheetView>
               children: [
                 if (dim > 0)
                   Positioned.fill(
+                    key: const ValueKey('dim'),
                     child: Semantics(
                       onTap: _route.dismissible ? _requestDismiss : null,
                       child: GestureDetector(
@@ -771,7 +772,10 @@ class _SheetViewState extends State<_SheetView>
                       ),
                     ),
                   ),
+                // Keyed so the dimming appearing mid-drag does not
+                // re-inflate the sheet and dispose its drag recognizer.
                 Positioned.fill(
+                  key: const ValueKey('sheet'),
                   child: Transform(
                     transform: transform,
                     child: Align(

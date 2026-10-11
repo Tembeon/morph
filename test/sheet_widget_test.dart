@@ -159,6 +159,38 @@ void main() {
     expect(find.byKey(_contentKey), findsOneWidget);
   });
 
+  testWidgets('a drag up from an undimmed detent follows and docks', (
+    WidgetTester tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => presentMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+          largestUndimmedDetent: MorphSheetDetent.medium,
+          builder: _content,
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final before = tester.getRect(find.byKey(_contentKey)).top;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.text('sheet')),
+    );
+    for (var i = 0; i < 15; i++) {
+      await gesture.moveBy(const Offset(0, -20));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    final dragged = tester.getRect(find.byKey(_contentKey)).top;
+    expect(dragged, lessThan(before - 100));
+    await gesture.up();
+    await _settle(tester);
+    final sheet = MorphSheet.of(tester.element(find.byKey(_contentKey)));
+    expect(sheet.detent, MorphSheetDetent.large);
+    expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
   testWidgets('a sheet that is not dismissible stays on a drag down', (
     WidgetTester tester,
   ) async {
