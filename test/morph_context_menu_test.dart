@@ -607,6 +607,25 @@ void main() {
     );
   });
 
+  testWidgets('a finger resting after a scroll took it schedules no frames', (
+    WidgetTester tester,
+  ) async {
+    frame(tester);
+    await tester.pumpWidget(const _Host());
+    final TestGesture gesture = await tester.startGesture(
+      tester.getCenter(find.text('hero')),
+    );
+    await tester.pump(const Duration(milliseconds: 40));
+    await gesture.moveBy(const Offset(0, -30));
+    await tester.pump();
+    await gesture.moveBy(const Offset(0, -30));
+    await settle(tester);
+    expect(tester.binding.hasScheduledFrame, isFalse);
+    await gesture.up();
+    await settle(tester);
+    expect(_host(tester).holds, 0);
+  });
+
   testWidgets('a secondary click opens; a hero near the bottom shifts up so '
       'the menu fits', (WidgetTester tester) async {
     frame(tester);

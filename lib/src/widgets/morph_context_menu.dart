@@ -568,6 +568,15 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
       _press.value = MorphContextMenuRegion.measuredHoldGrowth(held);
     }
     if (!widget.enabled || _clockPointer == null) return;
+    // A hold that lost the arena (a scroll took the touch before the tap
+    // went down) can never commit, and nothing else ends the clock until
+    // the finger lifts: stop it rather than tick an unchanged scene.
+    if (!_committed &&
+        !_growing &&
+        _hold.state != GestureRecognizerState.possible) {
+      _stopGrowth();
+      return;
+    }
     if (!_committed && held >= _commitDuration) _hold.commit();
     if (_committed && held >= widget.holdDuration) _onHold();
   }
