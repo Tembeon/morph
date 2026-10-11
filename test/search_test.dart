@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/search_motion.dart';
 import 'package:morph/src/widgets/spring_state.dart';
+import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/widgets.dart';
 
 const _dir = 'test/fixtures/ios27/search';
@@ -705,6 +706,31 @@ void main() {
         EnginePhase.sendSemanticsUpdate,
         const Duration(seconds: 10),
       );
+    });
+
+    testWidgets('a standalone field leaves a focused touch to the text', (
+      tester,
+    ) async {
+      final focus = FocusNode();
+      addTearDown(focus.dispose);
+      await pump(tester, MorphSearchField(focusNode: focus));
+      bool arena() => tester
+          .widget<MorphTouchListener>(find.byType(MorphTouchListener))
+          .enabled;
+      expect(arena(), isTrue);
+      await tester.tap(find.byType(MorphSearchField));
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      expect(focus.hasFocus, isTrue);
+      expect(arena(), isFalse);
+      focus.unfocus();
+      await tester.pump();
+      await tester.pump();
+      expect(focus.hasFocus, isFalse);
+      expect(arena(), isTrue);
     });
 
     testWidgets('a disabled field takes no focus', (tester) async {

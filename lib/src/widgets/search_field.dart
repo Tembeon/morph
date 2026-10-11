@@ -383,12 +383,16 @@ class _MorphSearchFieldState extends State<MorphSearchField>
     );
     return DefaultTextStyle(
       style: text,
-      child: MorphTouchListener(
-        enabled: widget.enabled && !_focus.hasFocus,
-        delaysInScrollable: true,
-        onPointerDown: _down,
-        onPointerUp: _up,
-        onPointerCancel: _up,
+      child: ListenableBuilder(
+        listenable: _focus,
+        builder: (BuildContext context, Widget? child) => MorphTouchListener(
+          enabled: widget.enabled && !_focus.hasFocus,
+          delaysInScrollable: true,
+          onPointerDown: _down,
+          onPointerUp: _up,
+          onPointerCancel: _up,
+          child: child!,
+        ),
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.enabled ? _focus.requestFocus : null,
