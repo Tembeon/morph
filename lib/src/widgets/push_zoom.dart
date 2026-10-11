@@ -104,9 +104,9 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
     final motion = _motion;
     if (motion == null) return;
     motion.advance(t);
-    if (!motion.isDragging) {
+    if (!motion.isDragging && !motion.isOpening) {
       final source = _source.capture(context);
-      if (source != null && source != motion.source && !motion.isOpening) {
+      if (source != null && source != motion.source) {
         motion.retargetEnds(t, source: source);
       }
     }
@@ -157,7 +157,6 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
   }
 
   void _pointerDown(PointerDownEvent event) {
-    stamp(event);
     final motion = _motion;
     if (motion == null ||
         _leaving ||

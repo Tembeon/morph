@@ -334,6 +334,25 @@ void main() {
       expect(page, findsNothing);
     });
 
+    testWidgets('a tap on a resting page schedules no frame', (
+      WidgetTester tester,
+    ) async {
+      final home = await pumpStack(tester);
+      unawaited(
+        pushMorphZoom<void>(
+          home,
+          builder: (BuildContext context) =>
+              GestureDetector(onTap: () {}, child: detail(context)),
+          from: 'card',
+        ),
+      );
+      await tester.pumpAndSettle();
+      final touch = await tester.startGesture(const Offset(201, 400));
+      expect(tester.binding.hasScheduledFrame, isFalse);
+      await touch.up();
+      await tester.pumpAndSettle();
+    });
+
     Future<void> dragDown(WidgetTester tester, {VoidCallback? midway}) async {
       final drag = await tester.startGesture(const Offset(201, 400));
       for (var i = 0; i < 20; i++) {
