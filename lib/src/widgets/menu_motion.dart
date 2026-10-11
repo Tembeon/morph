@@ -1064,6 +1064,7 @@ class MorphMenuMotion {
   final Float64List _silhouetteTimes = Float64List(8);
   final Float64List _silhouetteSteps = Float64List(7);
   int _silhouetteFrames = 0;
+  bool _prefetchField = false;
 
   /// The time the motion was last advanced to.
   double get time => _now;
@@ -1583,6 +1584,7 @@ class MorphMenuMotion {
             radius,
             withField: withField,
           )!;
+    _prefetchField |= withField;
     _prefetchSilhouette();
     return outline;
   }
@@ -1591,7 +1593,8 @@ class MorphMenuMotion {
   /// shapes and radius at the next [MorphMenuFusion.prefetchFrames]
   /// frames' times as the motion stands, the kicks integrated up to each.
   /// A fusion that comes back after the next frame started still serves
-  /// the frame after it.
+  /// the frame after it. The fusions carry the field once any frame of
+  /// the motion asked for it, and are the edge alone before.
   ///
   /// The coming frames' times continue the least-squares line through the
   /// last frames whose steps are within a quarter of the median step (of
@@ -1669,7 +1672,12 @@ class MorphMenuMotion {
     try {
       final radius = fusionRadius;
       if (radius >= MorphMenuFusion.minimumRadius) {
-        _fusion.prefetch(rootBlob.rrect, buttonBlob.rrect, radius);
+        _fusion.prefetch(
+          rootBlob.rrect,
+          buttonBlob.rrect,
+          radius,
+          withField: _prefetchField,
+        );
       }
     } finally {
       _peekTime = null;
@@ -1698,7 +1706,9 @@ class MorphMenuMotion {
       (({double start, bool opening}) fusion) =>
           tuning.fusionEnded(t - fusion.start, opening: fusion.opening),
     );
-    return _fusions.isEmpty;
+    if (_fusions.isNotEmpty) return false;
+    _fusion.settle();
+    return true;
   }
 
   /// The vertical kick of the menu shape, positive toward the side the

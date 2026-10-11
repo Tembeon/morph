@@ -82,7 +82,8 @@ class MorphMenuFusion {
   double _radius = 0;
   MorphGlassOutline? _outline;
   bool _shaded = false;
-  final Float64List _inputs = Float64List(11);
+  bool _prefetched = false;
+  final Float64List _inputs = Float64List(inputCount);
 
   /// The fused outline of [menu] and [source] blurred by [radius], or
   /// null when [radius] is under [minimumRadius] and the silhouette is
@@ -111,7 +112,13 @@ class MorphMenuFusion {
     _menu = menu;
     _source = source;
     _radius = radius;
-    final Float64List frame = encode(menu, source, radius, _inputs);
+    final Float64List frame = encode(
+      menu,
+      source,
+      radius,
+      _inputs,
+      withField: withField,
+    );
     final Float64List? ready = debugOnFuse == null
         ? null
         : MorphFusionWorker.debugReadyInputs;
@@ -123,12 +130,17 @@ class MorphMenuFusion {
     } else {
       debugFusedHere++;
     }
+    final Float64List? matched = ahead != null
+        ? MorphFusionWorker.debugTakenInputs
+        : ready;
     debugOnFuse?.call(
-      Float64List.fromList(frame),
-      ahead != null ? MorphFusionWorker.debugTakenInputs : ready,
+      Float64List.fromList(Float64List.sublistView(frame, 0, 11)),
+      matched == null
+          ? null
+          : Float64List.fromList(Float64List.sublistView(matched, 0, 11)),
       served: ahead != null,
     );
-    _shaded = withField || ahead != null;
+    _shaded = ahead?.hasField ?? withField;
     return _outline = morphGlassOutlineFromParts(
       ahead ??
           morphMenuSilhouetteParts(menu, source, radius, withField: withField),
@@ -140,7 +152,8 @@ class MorphMenuFusion {
   @visibleForTesting
   static int debugServedAhead = 0;
 
-  /// Called with the inputs of every fusion [outline] makes, the inputs
+  /// Called with the geometric inputs (the first eleven of [encode]) of
+  /// every fusion [outline] makes, those
   /// of the fusion computed ahead that served it or else of the newest
   /// one waiting (null when none was), and whether one served.
   @visibleForTesting
@@ -158,9 +171,36 @@ class MorphMenuFusion {
 
   /// Starts fusing [menu] and [source] blurred by [radius] on a
   /// background isolate, for a later [outline] call to pick up.
-  void prefetch(RRect menu, RRect source, double radius) {
+  ///
+  /// With [withField] false the worker fuses the edge alone, which serves
+  /// only an [outline] call without the field.
+  void prefetch(
+    RRect menu,
+    RRect source,
+    double radius, {
+    bool withField = true,
+  }) {
     if (!prefetches || radius < minimumRadius) return;
-    MorphFusionWorker.request(encode(menu, source, radius, Float64List(11)));
+    _prefetched = true;
+    MorphFusionWorker.request(
+      encode(
+        menu,
+        source,
+        radius,
+        Float64List(inputCount),
+        withField: withField,
+      ),
+    );
+  }
+
+  /// Drops the fusions computed ahead that no frame has taken yet, and
+  /// the requests still waiting, once this fusion's motion stops fusing:
+  /// no worker then computes a silhouette nobody reads. Does nothing when
+  /// this fusion requested none since the last call.
+  void settle() {
+    if (!_prefetched) return;
+    _prefetched = false;
+    MorphFusionWorker.reset();
   }
 
   /// The grid step of the fusion at [radius], in logical pixels: a third
@@ -181,15 +221,20 @@ class MorphMenuFusion {
   static bool sameGrid(double a, double b) =>
       (stepOf(a) < 4) == (stepOf(b) < 4) && reachOf(a) == reachOf(b);
 
+  /// The length of [encode]'s inputs.
+  static const int inputCount = 12;
+
   /// The inputs of a fusion as the worker receives them, written into
-  /// [out]: each shape's left, top, right, bottom and corner radius, then
-  /// the fusion radius.
+  /// [out] ([inputCount] long): each shape's left, top, right, bottom and
+  /// corner radius, the fusion radius, then 1 when the fusion carries its
+  /// field and 0 for the edge alone.
   static Float64List encode(
     RRect menu,
     RRect source,
     double radius,
-    Float64List out,
-  ) {
+    Float64List out, {
+    bool withField = true,
+  }) {
     out[0] = menu.left;
     out[1] = menu.top;
     out[2] = menu.right;
@@ -201,6 +246,7 @@ class MorphMenuFusion {
     out[8] = source.bottom;
     out[9] = source.tlRadiusX;
     out[10] = radius;
+    out[11] = withField ? 1 : 0;
     return out;
   }
 }

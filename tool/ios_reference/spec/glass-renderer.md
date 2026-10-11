@@ -1882,10 +1882,17 @@ a pool of up to four background isolates. A worker computes the
 outline's parts - field samples (sent without a copy) and the contour
 loops; dart:ui's Path cannot be built off the root isolate - and the
 frame builds the Path from the loops. The frame serves the newest
-arrived fusion whose eleven inputs are each within
-`MorphMenuFusion.prefetchTolerance` (0.02 pt) of its own and whose radius
-samples the same grid with the same kernel (`sameGrid`); otherwise it
-fuses its own, exactly as before.
+arrived fusion whose eleven geometric inputs are each within
+`MorphMenuFusion.prefetchTolerance` (0.02 pt) of its own, whose radius
+samples the same grid with the same kernel (`sameGrid`) and that carries
+the field when the frame shades one; otherwise it fuses its own, exactly
+as before. A motion that has only filled its body so far (the flat tier,
+no glass painter) asks the workers for the edge alone, which skips the
+deep blur, the optics and the samples a flat frame never reads; the edge
+is the same crossing for crossing. When the motion's last fusion envelope
+ends, the requests still waiting and the fusions not taken are dropped
+(`MorphMenuFusion.settle`), and the ones the workers are still computing
+are dropped as they arrive.
 - NEAR, bounded by construction: a served outline is the exact fused
   outline of the motion at the predicted time, a fraction of a
   millisecond from the frame's. Every served frame of one final launch

@@ -432,7 +432,12 @@ void main() {
       MorphMenuFusion().prefetch(menu, button, 6.5);
       await ready();
       final ahead = MorphFusionWorker.take(
-        MorphMenuFusion.encode(menu, button, 6.5, Float64List(11)),
+        MorphMenuFusion.encode(
+          menu,
+          button,
+          6.5,
+          Float64List(MorphMenuFusion.inputCount),
+        ),
         0,
       )!;
       final here = morphMenuSilhouetteParts(menu, button, 6.5);
@@ -476,6 +481,77 @@ void main() {
         lessThanOrEqualTo(3),
         reason: '$served served, $fused fused',
       );
+    });
+
+    test('fuses the edge alone for a flat body, and serves only a flat '
+        'frame with it', () async {
+      MorphMenuFusion().prefetch(menu, button, 6.5, withField: false);
+      await ready();
+      Float64List inputs({required bool withField}) => MorphMenuFusion.encode(
+        menu,
+        button,
+        6.5,
+        Float64List(MorphMenuFusion.inputCount),
+        withField: withField,
+      );
+      expect(MorphFusionWorker.take(inputs(withField: true), 0), isNull);
+      final ahead = MorphFusionWorker.take(inputs(withField: false), 0)!;
+      final here = morphMenuSilhouetteParts(
+        menu,
+        button,
+        6.5,
+        withField: false,
+      );
+      expect(ahead.hasField, isFalse);
+      expect(ahead.points, here.points);
+      expect(ahead.loops, here.loops);
+    });
+
+    test('a field fusion serves a flat frame too', () async {
+      MorphMenuFusion().prefetch(menu, button, 6.5);
+      await ready();
+      final fusion = MorphMenuFusion();
+      final outline = fusion.outline(menu, button, 6.5, withField: false)!;
+      expect(MorphFusionWorker.debugHasReady, isFalse);
+      expect(morphGlassOutlineField(outline), isNotNull);
+      expect(fusion.outline(menu, button, 6.5), same(outline));
+    });
+
+    test('settling drops the fusions still on their way', () async {
+      final fusion = MorphMenuFusion();
+      fusion.prefetch(menu, button, 6.5);
+      await ready();
+      MorphFusionWorker.reset();
+      fusion.prefetch(menu, button, 6.5);
+      fusion.settle();
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      expect(MorphFusionWorker.debugHasReady, isFalse);
+    });
+
+    test('a motion that comes to rest leaves no fusion behind', () async {
+      final motion = MorphMenuMotion(
+        button: Rect.fromCenter(
+          center: const Offset(201, 120),
+          width: 48,
+          height: 48,
+        ),
+        itemCount: 10,
+        bounds: const Size(402, 874),
+        padding: const EdgeInsets.only(top: 62, bottom: 34),
+      );
+      motion.open(0, sourceScale: 1);
+      for (var frame = 1; frame < 20; frame++) {
+        motion.advance(frame / 60);
+        expect(motion.silhouette, isNotNull);
+      }
+      motion.close(20 / 60);
+      for (var frame = 21; motion.isPresented && frame < 600; frame++) {
+        motion.advance(frame / 60);
+        if (motion.isPresented) motion.silhouetteFor(withField: false);
+      }
+      expect(motion.isPresented, isFalse);
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+      expect(MorphFusionWorker.debugHasReady, isFalse);
     });
 
     test('serves a frame within the tolerance and no other', () async {

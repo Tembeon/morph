@@ -11,14 +11,15 @@ import 'package:morph/src/widgets/menu_fusion.dart';
 /// that show them.
 ///
 /// The UI isolate posts, once a frame, the inputs it expects a coming
-/// frame to fuse ([request]: the menu shape, the button shape and the
-/// fusion radius as eleven numbers, `MorphMenuFusion.encode`); a worker
-/// computes `morphMenuSilhouetteParts` and sends the parts back, the
-/// field samples without a copy. Up to [poolSize] workers run, one
+/// frame to fuse ([request]: the menu shape, the button shape, the
+/// fusion radius and whether the field is wanted, `MorphMenuFusion.encode`);
+/// a worker computes `morphMenuSilhouetteParts` and sends the parts back,
+/// the field samples without a copy, or the edge alone when the request
+/// asks for no field. Up to [poolSize] workers run, one
 /// request each; requests made while every worker runs wait, the
 /// [waitingLimit] newest of them, for the first worker that returns. [take] hands
 /// out an arrived fusion whose inputs are within a tolerance of the
-/// inputs the frame fuses.
+/// inputs the frame fuses; [reset] drops what no frame will read.
 ///
 /// The workers spawn on demand and live for the isolate's lifetime; they
 /// fail closed - any error stops them, and every fusion is then computed
@@ -63,10 +64,12 @@ abstract final class MorphFusionWorker {
     }
   }
 
-  /// An arrived fusion whose every input is within [tolerance] of
-  /// [inputs] and whose fusion radius samples the same grid with the same
-  /// kernel (`MorphMenuFusion.sameGrid`), the newest such; it is handed
-  /// out once, and the fusions that arrived before it are dropped.
+  /// An arrived fusion whose every geometric input is within [tolerance]
+  /// of [inputs], whose fusion radius samples the same grid with the same
+  /// kernel (`MorphMenuFusion.sameGrid`) and that carries the field when
+  /// [inputs] ask for it, the newest such; it is handed out once, and the
+  /// fusions that arrived before it are dropped. A fusion with its field
+  /// serves a request for the edge alone too.
   static MorphGlassOutlineParts? take(Float64List inputs, double tolerance) {
     for (var k = _ready.length - 1; k >= 0; k--) {
       final (ready, parts) = _ready[k];
@@ -80,10 +83,10 @@ abstract final class MorphFusionWorker {
   }
 
   static bool _matches(Float64List a, Float64List b, double tolerance) {
-    for (var i = 0; i < b.length; i++) {
+    for (var i = 0; i < 11; i++) {
       if (!((a[i] - b[i]).abs() <= tolerance)) return false;
     }
-    return MorphMenuFusion.sameGrid(a[10], b[10]);
+    return (a[11] != 0 || b[11] == 0) && MorphMenuFusion.sameGrid(a[10], b[10]);
   }
 
   /// The inputs of the fusion [take] handed out last.
@@ -99,10 +102,14 @@ abstract final class MorphFusionWorker {
   @visibleForTesting
   static bool get debugHasReady => _ready.isNotEmpty;
 
-  /// Drops the fusions and the request not yet handed out.
+  /// Drops the fusions and the requests not yet handed out; the fusions
+  /// the workers are computing now are dropped when they arrive.
   static void reset() {
     _ready.clear();
     _waiting.clear();
+    for (final worker in _workers) {
+      if (worker.busy) worker.stale = true;
+    }
   }
 
   static ReceivePort _listen() {
@@ -120,6 +127,11 @@ abstract final class MorphFusionWorker {
       debugName: 'morph menu fusion ${worker.index}',
       errorsAreFatal: true,
     ).then<void>((Isolate isolate) {
+      if (_failed) {
+        isolate.kill(priority: Isolate.immediate);
+        return;
+      }
+      worker.isolate = isolate;
       isolate.addOnExitListener(port.sendPort, response: false);
     }, onError: (Object _) => _fail());
   }
@@ -128,6 +140,8 @@ abstract final class MorphFusionWorker {
     _failed = true;
     for (final worker in _workers) {
       worker.send = null;
+      worker.isolate?.kill(priority: Isolate.immediate);
+      worker.isolate = null;
     }
     reset();
     _port?.close();
@@ -142,28 +156,33 @@ abstract final class MorphFusionWorker {
       case [
         final int index,
         final Float64List inputs,
-        final TransferableTypedData samples,
+        final TransferableTypedData? samples,
         final Float64List points,
         final Int32List loops,
         final Float64List place,
         final Int32List size,
       ]:
-        _ready.add((
-          inputs,
-          MorphGlassOutlineParts(
-            samples: samples.materialize().asFloat32List(),
-            cols: size[0],
-            rows: size[1],
-            left: place[0],
-            top: place[1],
-            step: place[2],
-            points: points,
-            loops: loops,
-          ),
-        ));
-        if (_ready.length > keep) _ready.removeAt(0);
         final worker = _workers[index];
+        if (!worker.stale) {
+          _ready.add((
+            inputs,
+            samples == null
+                ? MorphGlassOutlineParts.edge(points: points, loops: loops)
+                : MorphGlassOutlineParts(
+                    samples: samples.materialize().asFloat32List(),
+                    cols: size[0],
+                    rows: size[1],
+                    left: place[0],
+                    top: place[1],
+                    step: place[2],
+                    points: points,
+                    loops: loops,
+                  ),
+          ));
+          if (_ready.length > keep) _ready.removeAt(0);
+        }
         worker.busy = false;
+        worker.stale = false;
         _next(worker);
       default:
         _fail();
@@ -185,11 +204,15 @@ abstract final class MorphFusionWorker {
         RRect.fromLTRBXY(v[0], v[1], v[2], v[3], v[4], v[4]),
         RRect.fromLTRBXY(v[5], v[6], v[7], v[8], v[9], v[9]),
         v[10],
+        withField: v[11] != 0,
       );
       reply.send([
         index,
         v,
-        TransferableTypedData.fromList([parts.samples]),
+        if (parts.hasField)
+          TransferableTypedData.fromList([parts.samples])
+        else
+          null,
         Float64List.fromList(parts.points),
         parts.loops,
         Float64List.fromList([parts.left, parts.top, parts.step]),
@@ -205,10 +228,13 @@ class _Worker {
 
   final int index;
   SendPort? send;
+  Isolate? isolate;
   bool busy = false;
+  bool stale = false;
 
   void dispatch(Float64List inputs) {
     busy = true;
+    stale = false;
     send!.send(inputs);
   }
 }
