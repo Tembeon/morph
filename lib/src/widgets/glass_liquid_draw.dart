@@ -779,26 +779,54 @@ class _ContentCopyPainter {
             Rect.fromLTRB(reach.left, end.dy, reach.right, reach.bottom),
           ];
     final slots = copy.slots.isEmpty ? [Offset.zero & size] : copy.slots;
+    final grow = copy.grow;
     canvas.save();
     canvas.clipRRect(copy.surface.shape);
     for (final (strip, clip) in strips.indexed) {
       canvas.save();
       canvas.clipRect(clip);
-      canvas.transform(copy._growth(strip).storage);
+      if (axis == Offset.zero) {
+        _scaleAbout(canvas, center, grow, grow);
+      } else if (strip == 0) {
+        _scaleAbout(canvas, start, grow, grow);
+      } else if (strip == 2) {
+        _scaleAbout(canvas, end, grow, grow);
+      } else {
+        _scaleAbout(
+          canvas,
+          center,
+          axis.dx == 0 ? grow : 1,
+          axis.dy == 0 ? grow : 1,
+        );
+      }
       for (final slot in slots) {
         if (!slot.overlaps(bounds)) continue;
         canvas.save();
         canvas.clipRRect(copy.surface.shape);
         canvas.clipRect(slot);
-        canvas.transform(
-          MorphGlassContentCopy._about(slot.center, magnification).storage,
-        );
+        _scaleAbout(canvas, slot.center, magnification, magnification);
         copy.snapshot.paint(canvas);
         canvas.restore();
       }
       canvas.restore();
     }
     canvas.restore();
+  }
+
+  static final Float64List _matrix = Float64List(16);
+
+  // The entries MorphGlassContentCopy._about composes, in the same double
+  // arithmetic, without its three Matrix4 per call.
+  static void _scaleAbout(Canvas canvas, Offset center, double sx, double sy) {
+    final m = _matrix;
+    m.fillRange(0, 16, 0);
+    m[0] = sx;
+    m[5] = sy;
+    m[10] = 1;
+    m[12] = sx * -center.dx + center.dx;
+    m[13] = sy * -center.dy + center.dy;
+    m[15] = 1;
+    canvas.transform(m);
   }
 }
 
