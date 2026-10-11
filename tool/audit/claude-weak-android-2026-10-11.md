@@ -79,6 +79,18 @@ cache serves it.
   frost alone is not (the seeded frost above). A cheaper large-surface
   path (interior at reduced resolution, rim at full) would change pixels:
   owner decision.
+- Redmi menu, content blur off, warm (timing proxy): raster p95 19.1 /
+  19.4 -> 12.8 / 13.2, over budget 25 / 27 -> 4 / 8 (`nb-*`). With the
+  fusion now cheap on flat, the content blur is the Redmi menu's
+  remaining cost. The blur-preserving variants tried tonight (one-pass
+  glyph shader, reduced resolution, one sigma) do not pay; dropping or
+  approximating it on Skia is visible: owner decision.
+- Moto menu, the fused menu glass replaced by its flat fill (timing
+  proxy): raster p95 16.9 -> 8.0 / 8.2, UI build p95 4.5 / 5.5 -> 2.1 / 2.2,
+  over budget 114 / 137 -> 23 (`fmn-*`): the blurred-SDF matte path (CPU
+  fusion, field upload, material pass, shading). An analytic law for the
+  blurred union (Clark's expected minimum of two Gaussians, exact for
+  linear fields) is being checked against the grid law on the host.
 - Moto menu, content blur off (timing proxy): no change (raster p95
   18.5-18.7 -> 18.4-18.5, `mnb-*`); Impeller's menu cost is elsewhere.
 - Redmi menu, the flat body filled as a plain rect instead of its traced
