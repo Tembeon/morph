@@ -474,6 +474,27 @@ class MorphNavigationRoute<T> extends PageRoute<T>
 
   bool _interactivePop = false;
   MorphPushZoomPageState? _zoomView;
+  Listenable? _slide;
+  Animation<double>? _slideAnimation;
+  Animation<double>? _slideSecondary;
+
+  /// The one merged source of the slide for the route's two animations:
+  /// a fresh merge per transition build would rebind the live transform's
+  /// listeners on every frame.
+  Listenable _slideOf(
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+  ) {
+    final slide = _slide;
+    if (slide != null &&
+        identical(animation, _slideAnimation) &&
+        identical(secondaryAnimation, _slideSecondary)) {
+      return slide;
+    }
+    _slideAnimation = animation;
+    _slideSecondary = secondaryAnimation;
+    return _slide = Listenable.merge([animation, secondaryAnimation]);
+  }
 
   bool get _zooms => zoomSource != null;
 
@@ -597,7 +618,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     final page = _EdgePop(route: this, child: child);
     final width = MediaQuery.maybeSizeOf(context)?.width ?? 0;
     return GlassLiveTransform(
-      live: Listenable.merge([animation, secondaryAnimation]),
+      live: _slideOf(animation, secondaryAnimation),
       writeInto: (Matrix4 into) {
         final x =
             width *

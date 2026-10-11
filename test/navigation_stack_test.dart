@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/widgets/glyph_scale.dart' show MorphGlyphBlur;
 import 'package:morph/widgets.dart';
 
@@ -599,6 +600,40 @@ void main() {
       );
       expect(find.byType(MorphNavigationBar), findsNWidgets(2));
       expect(find.text('Nested'), findsOneWidget);
+    });
+
+    testWidgets('a push slides on one merged source for every frame', (
+      tester,
+    ) async {
+      final navigator = await pumpStack(tester, page('Inbox'));
+      navigator.push(
+        MorphNavigationRoute<void>(builder: (_) => page('Message')),
+      );
+      await tester.pump();
+      final message = find.byWidgetPredicate(
+        (w) => w is MorphNavigationScaffold && w.title == 'Message',
+      );
+      Listenable? live() => tester
+          .widget<GlassLiveTransform>(
+            find
+                .ancestor(
+                  of: message,
+                  matching: find.byType(GlassLiveTransform),
+                )
+                .first,
+          )
+          .live;
+      final first = live();
+      expect(first, isNotNull);
+      for (var i = 0; i < 5; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(identical(live(), first), isTrue);
+      }
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
     });
 
     testWidgets('reduced motion fades a pushed page in place', (tester) async {
