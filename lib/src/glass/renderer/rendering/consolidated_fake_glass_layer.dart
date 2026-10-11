@@ -223,6 +223,11 @@ class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
     markNeedsCompositingBitsUpdate();
   }
 
+  @override
+  void onDevicePixelRatioChanged() {
+    _cachedFilter = null;
+  }
+
   // MARK: Painting
 
   @override

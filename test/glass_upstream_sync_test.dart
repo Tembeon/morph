@@ -1,6 +1,9 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/glass/renderer/internal/fake_glass_color.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -207,5 +210,49 @@ void main() {
 
     expect(await wrappersUnder(null), isEmpty);
     expect(await wrappersUnder(const SizedBox.expand()), isNotEmpty);
+  });
+  testWidgets('the shared backdrop filter follows the device pixel ratio', (
+    tester,
+  ) async {
+    const settings = LiquidGlassSettings(frost: 2.6);
+    const appearance = LiquidGlassAppearance(saturation: 1.4);
+    Future<void> pumpAt(double devicePixelRatio) async {
+      await tester.pumpWidget(
+        MediaQuery(
+          data: MediaQueryData(devicePixelRatio: devicePixelRatio),
+          child: const Directionality(
+            textDirection: TextDirection.ltr,
+            child: LiquidGlassLayer(
+              fake: true,
+              settings: settings,
+              defaultAppearance: appearance,
+              child: Center(
+                child: LiquidGlass(
+                  shape: LiquidOval(),
+                  child: SizedBox.square(dimension: 80),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    ImageFilter? expected(double devicePixelRatio) => fakeGlassBackdropFilter(
+      settings,
+      appearance,
+      devicePixelRatio: devicePixelRatio,
+      shortSide: 80,
+    );
+
+    expect(expected(2), isNot(expected(3)));
+    await pumpAt(2);
+    final layer = tester.allRenderObjects
+        .whereType<RenderConsolidatedFakeGlassLayer>()
+        .last;
+    expect(layer.debugBackdropFilterLayer!.filter, expected(2));
+    await pumpAt(3);
+    expect(layer.debugBackdropFilterLayer!.filter, expected(3));
   });
 }

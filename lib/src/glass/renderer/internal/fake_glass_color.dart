@@ -131,8 +131,7 @@ List<double> fakeGlassFaceMatrix({
   return result..addAll([0, 0, 0, opacity.clamp(0.0, 1.0), 0]);
 }
 
-/// Builds the backdrop-only portion shared by standalone and consolidated
-/// fake glass. Tint remains in the analytic surface pass so contour
+/// Builds the backdrop-only portion of the consolidated fake glass layer. Tint remains in the analytic surface pass so contour
 /// transmittance can treat tint and backdrop energy independently. A
 /// frost just below Impeller's half resolution blur is raised to it
 /// ([morphHalfResolutionSigma]).
