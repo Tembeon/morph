@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'dart:ui';
 
-import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 
 /// Interpolates linearly between the Liquid Glass slider keyframes: Clear
@@ -25,7 +24,8 @@ double sliderKeyframes(
 /// [LiquidGlassColorModel.direct] for unrestricted manual color controls or
 /// [LiquidGlassColorModel.ios27] or [LiquidGlassColorModel.ios27Clear] for
 /// Apple's backdrop-adaptive behavior.
-sealed class LiquidGlassColorModel with Equatable {
+@immutable
+sealed class LiquidGlassColorModel {
   const LiquidGlassColorModel();
 
   /// Applies tint, gamma, saturation, and vibrancy directly.
@@ -118,7 +118,14 @@ final class DirectLiquidGlassColorModel extends LiquidGlassColorModel {
   Color approximateSurfaceTint(Color tint) => tint;
 
   @override
-  List<Object?> get props => const [];
+  bool operator ==(Object other) => other is DirectLiquidGlassColorModel;
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() =>
+      '${objectRuntimeType(this, 'DirectLiquidGlassColorModel')}()';
 }
 
 /// Apple's luminance-conditioned iOS 27 tint model.
@@ -228,7 +235,15 @@ final class Ios27LiquidGlassColorModel extends LiquidGlassColorModel {
   }
 
   @override
-  List<Object?> get props => [brightness];
+  bool operator ==(Object other) =>
+      other is Ios27LiquidGlassColorModel && other.brightness == brightness;
+
+  @override
+  int get hashCode => Object.hash(runtimeType, brightness);
+
+  @override
+  String toString() =>
+      '${objectRuntimeType(this, 'Ios27LiquidGlassColorModel')}($brightness)';
 }
 
 /// iOS 27 `Glass.clear`.
@@ -271,5 +286,12 @@ final class Ios27ClearLiquidGlassColorModel extends LiquidGlassColorModel {
   }
 
   @override
-  List<Object?> get props => const [];
+  bool operator ==(Object other) => other is Ios27ClearLiquidGlassColorModel;
+
+  @override
+  int get hashCode => runtimeType.hashCode;
+
+  @override
+  String toString() =>
+      '${objectRuntimeType(this, 'Ios27ClearLiquidGlassColorModel')}()';
 }

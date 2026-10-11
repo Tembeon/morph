@@ -1,9 +1,8 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/snap_rect_to_pixels.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart';
-import 'package:meta/meta.dart';
 
 /// Refreshes source order during owner paint, walking only source ancestry.
 /// Retained compositor ticks never call this traversal.
@@ -387,7 +386,8 @@ enum RawShapeType {
 /// Can be part of multiple blended shapes in [RenderLiquidGlassGeometry], or on
 /// its own.
 @internal
-class ShapeGeometry extends Equatable {
+@immutable
+class ShapeGeometry {
   ShapeGeometry({
     required this.renderObject,
     required this.shape,
@@ -427,12 +427,30 @@ class ShapeGeometry extends Equatable {
   final Matrix4? shapeToGeometry;
 
   @override
-  List<Object?> get props => [
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other.runtimeType == runtimeType &&
+          other is ShapeGeometry &&
+          other.renderObject == renderObject &&
+          other.shape == shape &&
+          other.appearance == appearance &&
+          other.shapeBounds == shapeBounds &&
+          listEquals(other.shadows, shadows) &&
+          other.shapeToGeometry == shapeToGeometry;
+
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
     renderObject,
     shape,
     appearance,
     shapeBounds,
-    shadows,
+    Object.hashAll(shadows),
     shapeToGeometry,
-  ];
+  );
+
+  @override
+  String toString() =>
+      '${objectRuntimeType(this, 'ShapeGeometry')}($renderObject, $shape, $appearance, $shapeBounds, '
+      '$shadows, $shapeToGeometry)';
 }

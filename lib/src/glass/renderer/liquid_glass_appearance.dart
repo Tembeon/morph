@@ -1,4 +1,4 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_color_model.dart';
 
@@ -7,7 +7,8 @@ import 'package:morph/src/glass/renderer/liquid_glass_color_model.dart';
 /// Optical geometry and surface lighting belong to the containing
 /// `LiquidGlassLayer`. These values may vary between shapes without requiring
 /// another backdrop capture.
-class LiquidGlassAppearance with Equatable {
+@immutable
+class LiquidGlassAppearance {
   /// Creates a per-shape glass appearance.
   const LiquidGlassAppearance({
     this.tint = const Color.fromARGB(0, 255, 255, 255),
@@ -173,12 +174,29 @@ class LiquidGlassAppearance with Equatable {
   };
 
   @override
-  List<Object?> get props => [
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other.runtimeType == runtimeType &&
+          other is LiquidGlassAppearance &&
+          other.tint == tint &&
+          other.saturation == saturation &&
+          other.transmissionGamma == transmissionGamma &&
+          other.vibrancy == vibrancy &&
+          other.visibility == visibility &&
+          other.colorModel == colorModel;
+
+  @override
+  int get hashCode => Object.hash(
+    runtimeType,
     tint,
     saturation,
     transmissionGamma,
     vibrancy,
     visibility,
     colorModel,
-  ];
+  );
+
+  @override
+  String toString() =>
+      '${objectRuntimeType(this, 'LiquidGlassAppearance')}(${[tint, saturation, transmissionGamma, vibrancy, visibility, colorModel].join(', ')})';
 }

@@ -1,9 +1,9 @@
-import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 
 /// Represents a shape that can be used by a [LiquidGlass] widget.
-sealed class LiquidShape extends OutlinedBorder with Equatable {
+sealed class LiquidShape extends OutlinedBorder {
   const LiquidShape({super.side = BorderSide.none});
 
   @protected
@@ -31,7 +31,22 @@ sealed class LiquidShape extends OutlinedBorder with Equatable {
   }
 
   @override
-  List<Object?> get props => [side];
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other.runtimeType == runtimeType &&
+          other is LiquidShape &&
+          other.side == side &&
+          other._radius == _radius;
+
+  @override
+  int get hashCode => Object.hash(runtimeType, side, _radius);
+
+  @override
+  String toString() => _radius == null
+      ? '${objectRuntimeType(this, 'LiquidShape')}($side)'
+      : '${objectRuntimeType(this, 'LiquidShape')}($side, $_radius)';
+
+  double? get _radius => null;
 }
 
 /// Represents a squircle shape that can be used by a [LiquidGlass] widget.
@@ -72,7 +87,7 @@ class LiquidRoundedSuperellipse extends LiquidShape {
   }
 
   @override
-  List<Object?> get props => [...super.props, borderRadius];
+  double get _radius => borderRadius;
 }
 
 /// Represents an ellipse shape that can be used by a [LiquidGlass] widget.
@@ -135,5 +150,5 @@ class LiquidRoundedRectangle extends LiquidShape {
   }
 
   @override
-  List<Object?> get props => [...super.props, borderRadius];
+  double get _radius => borderRadius;
 }
