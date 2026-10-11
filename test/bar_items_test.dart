@@ -1,3 +1,5 @@
+import 'dart:ui' show SemanticsAction;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -200,6 +202,30 @@ void main() {
     }
     expect(pressed, ['x']);
     expect(tester.binding.hasScheduledFrame, isFalse);
+  });
+
+  testWidgets('a disabled bar button offers screen readers no tap', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    var saved = 0;
+    await _toolbar(
+      tester,
+      () => [
+        MorphBarButtonGroup([
+          MorphBarButton(
+            id: 'save',
+            label: 'Save',
+            enabled: false,
+            onPressed: () => saved++,
+          ),
+        ], id: 'G'),
+      ],
+    );
+    final node = tester.getSemantics(find.bySemanticsLabel('Save'));
+    expect(node.getSemanticsData().hasAction(SemanticsAction.tap), isFalse);
+    expect(saved, 0);
+    handle.dispose();
   });
 
   testWidgets('ids are compared as values, not by their text', (tester) async {

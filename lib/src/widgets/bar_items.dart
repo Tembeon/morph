@@ -1489,7 +1489,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
         expanded: (button.menu?.isNotEmpty ?? false)
             ? _menu?.button.id == button.id && (_menu?.motion.isOpen ?? false)
             : null,
-        onTap: button.opensMenuOnTap
+        onTap: !button.interactive
+            ? null
+            : button.opensMenuOnTap
             ? (_menu == null ? () => _openMenu(clock, button.id) : null)
             : button.onPressed,
         onLongPress:
