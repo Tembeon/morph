@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 
 import 'package:flutter/painting.dart';
+import 'package:meta/meta.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -1802,6 +1803,7 @@ class MorphMenuMotion {
   /// [MorphMenuTuning.hoverOpenDelay]); the reactions to a release come
   /// due within a few frames, which keep coming, so a test's
   /// `pumpAndSettle` still sees them through.
+  @internal
   double? get wakeTime {
     final due = _timeline.nextDue;
     return due != null && _pointer != null && _still ? due : null;
@@ -1874,6 +1876,11 @@ class MorphMenuMotion {
           element.rect.contains(at),
     );
   }
+
+  /// The index in [cards] of the card that takes the highlight and the
+  /// choice: the newest one that is not on its way back.
+  @internal
+  int get topCard => _topCard;
 
   int get _topCard {
     var top = _cards.length;

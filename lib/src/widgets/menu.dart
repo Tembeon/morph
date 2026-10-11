@@ -934,12 +934,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     final host = widget.host;
     final motion = host.menuMotion;
     if (motion == null || !motion.isOpen) return;
-    final cards = motion.cards;
-    var top = cards.length - 1;
-    while (top > 0 && cards[top].progress < 0.5) {
-      top--;
-    }
-    if (!identical(cards[top].layout, layout)) return;
+    if (!identical(motion.cards[motion.topCard].layout, layout)) return;
     motion.select(host.menuClock, target);
     host.menuWake();
   }
@@ -950,8 +945,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     final motion = host.menuMotion;
     if (motion == null || !motion.isOpen) return KeyEventResult.ignored;
     final t = host.menuClock;
-    final cards = motion.cards;
-    final layout = cards[motion.hasSubmenu ? cards.length - 1 : 0].layout;
+    final top = motion.topCard;
+    final layout = motion.cards[top].layout;
     final order = [for (var i = 0; i < layout.targets.length; i++) i];
     order.sort((int a, int b) {
       final ra = layout.targets[a].rect;
@@ -959,9 +954,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       final dy = ra.top.compareTo(rb.top);
       return dy != 0 ? dy : ra.left.compareTo(rb.left);
     });
-    final current = motion.highlightedCard == cards.length - 1
-        ? motion.highlighted
-        : null;
+    final current = motion.highlightedCard == top ? motion.highlighted : null;
     final rtl = host.menuContent.rtl;
     final key = event.logicalKey;
     void move(int step) {

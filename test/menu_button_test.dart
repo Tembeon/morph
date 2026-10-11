@@ -1287,6 +1287,57 @@ void main() {
     expect(first.dy, lessThan(button.bottom));
   });
 
+  testWidgets('a semantic tap on a parent row while a card grows chooses '
+      'nothing in the card', (WidgetTester tester) async {
+    final log = <String>[];
+    await tester.pumpWidget(
+      _app(
+        MorphMenuButton(
+          items: [
+            MorphMenuItem(title: 'Copy', onSelected: () => log.add('Copy')),
+            MorphSubmenu(
+              title: 'More',
+              children: [
+                MorphMenuItem(
+                  title: 'Sub one',
+                  onSelected: () => log.add('Sub one'),
+                ),
+                MorphMenuItem(
+                  title: 'Sub two',
+                  onSelected: () => log.add('Sub two'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphMenuButton));
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    await tester.tap(find.text('More'));
+    for (var i = 0; i < 12; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+    }
+    expect(find.text('Sub one'), findsOneWidget);
+    final copy = tester.widget<Semantics>(
+      find
+          .ancestor(of: find.text('Copy'), matching: find.byType(Semantics))
+          .first,
+    );
+    copy.properties.onTap!();
+    await tester.pumpAndSettle(
+      const Duration(milliseconds: 100),
+      EnginePhase.sendSemanticsUpdate,
+      const Duration(seconds: 10),
+    );
+    expect(log, isEmpty);
+    expect(find.text('Sub two'), findsOneWidget);
+  });
+
   testWidgets('a parent rebuild keeps the resting face', (
     WidgetTester tester,
   ) async {
