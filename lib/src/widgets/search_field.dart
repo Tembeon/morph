@@ -219,7 +219,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   @override
   void didUpdateWidget(MorphSearchField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!widget.enabled) {
+    if (!widget.enabled && (oldWidget.enabled || _motion.isPressed)) {
       if (_focus.hasFocus) _focus.unfocus();
       _downAt = null;
       _motion.pointerCancel(clock);

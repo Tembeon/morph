@@ -742,6 +742,15 @@ void main() {
       expect(focus.hasFocus, isFalse);
     });
 
+    testWidgets('a disabled field stays idle when its parent rebuilds', (
+      tester,
+    ) async {
+      await pump(tester, const MorphSearchField(enabled: false));
+      await tester.pumpAndSettle();
+      await pump(tester, const MorphSearchField(enabled: false));
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    });
+
     testWidgets('mirrors in right-to-left, dark, large text', (tester) async {
       await pump(
         tester,
