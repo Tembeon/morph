@@ -282,18 +282,19 @@ Widget _containerLayer(
           brightness: morphBrightnessOf(context),
         ),
       );
-      link.configure(painter, settings);
+      final appearance = morphLiquidAppearance(
+        painter,
+        MorphGlassSurface(
+          kind: MorphGlassKind.button,
+          shape: RRect.zero,
+          color: const Color(0x00000000),
+          brightness: morphBrightnessOf(context),
+        ),
+      );
+      link.configure(painter, settings, appearance);
       return LiquidGlassLayer(
         settings: settings,
-        defaultAppearance: morphLiquidAppearance(
-          painter,
-          MorphGlassSurface(
-            kind: MorphGlassKind.button,
-            shape: RRect.zero,
-            color: const Color(0x00000000),
-            brightness: morphBrightnessOf(context),
-          ),
-        ),
+        defaultAppearance: appearance,
         fake: tier == MorphGlassTier.fake,
         useBackdropGroup: true,
         solidBackdrop: solidBackdrop,
@@ -453,6 +454,7 @@ class MorphGlassContainerScope extends InheritedWidget {
 class MorphGlassContainerLink {
   MorphGlassRenderer? _renderer;
   LiquidGlassSettings? _settings;
+  LiquidGlassAppearance? _default;
   LiquidGlassAppearance? _appearance;
   final Map<Object, int> _members = {};
   int _shapes = 0;
@@ -463,10 +465,24 @@ class MorphGlassContainerLink {
   /// The shapes the container shades now.
   int get shapes => _shapes;
 
-  /// Sets the renderer and the layer settings members must match.
-  void configure(MorphGlassRenderer renderer, LiquidGlassSettings settings) {
+  /// Sets the renderer and the layer settings members must match, and the
+  /// layer's own [appearance]; when any of them changes, the next member
+  /// admitted sets the appearance the others must match.
+  void configure(
+    MorphGlassRenderer renderer,
+    LiquidGlassSettings settings,
+    LiquidGlassAppearance appearance,
+  ) {
+    if (renderer != _renderer ||
+        settings != _settings ||
+        appearance != _default) {
+      // A brightness flip changes every member's appearance at once; the
+      // old reference would turn each of them away.
+      _appearance = null;
+    }
     _renderer = renderer;
     _settings = settings;
+    _default = appearance;
   }
 
   /// Whether [host], drawing [frame] with [renderer], is shaded by the

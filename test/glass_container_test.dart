@@ -15,6 +15,7 @@ Widget _page(
   required bool container,
   MorphGlassTier tier = MorphGlassTier.liquid,
   Color? solidBackdrop,
+  Brightness brightness = .dark,
 }) {
   final buttons = Stack(
     children: [
@@ -31,7 +32,8 @@ Widget _page(
   );
   return MaterialApp(
     debugShowCheckedModeBanner: false,
-    theme: ThemeData(platform: TargetPlatform.iOS, brightness: .dark),
+    themeAnimationDuration: Duration.zero,
+    theme: ThemeData(platform: TargetPlatform.iOS, brightness: brightness),
     home: MorphAdaptiveGlass(
       tier: tier,
       child: ColoredBox(
@@ -80,6 +82,24 @@ void main() {
       await tester.pumpWidget(_page(8, container: false, tier: tier));
       await tester.pump(const Duration(milliseconds: 100));
       expect(find.byType(LiquidGlassLayer), findsNWidgets(8));
+    });
+  }
+
+  for (final tier in [MorphGlassTier.liquid, MorphGlassTier.fake]) {
+    testWidgets('resting buttons stay in the container across a brightness '
+        'flip (${tier.name})', (WidgetTester tester) async {
+      await tester.pumpWidget(_page(4, container: true, tier: tier));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(LiquidGlassLayer), findsOneWidget);
+      await tester.pumpWidget(
+        _page(4, container: true, tier: tier, brightness: .light),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(LiquidGlassLayer), findsOneWidget);
+      expect(find.byType(LiquidGlass), findsNWidgets(4));
+      await tester.pumpWidget(_page(4, container: true, tier: tier));
+      await tester.pumpAndSettle();
+      expect(find.byType(LiquidGlassLayer), findsOneWidget);
     });
   }
 
