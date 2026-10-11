@@ -136,6 +136,7 @@ class MorphSlider extends StatefulWidget {
 
 class _MorphSliderState extends MorphControlHost<MorphSlider> {
   late final MorphSliderMotion _motion = _create();
+  late final ValueNotifier<double> _semanticValue = ValueNotifier(widget.value);
   VelocityTracker? _tracker;
   MorphSliderStyle _style = MorphSliderStyle.light;
   Brightness _brightness = Brightness.light;
@@ -177,6 +178,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   @override
   void didUpdateWidget(MorphSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _semanticValue.value = widget.value;
     _motion.ticks = widget.ticks;
     if (widget.value == _motion.reportedValue) return;
     if (_leading) {
@@ -185,6 +187,12 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
     }
     _motion.setValue(clock, widget.value);
     wake();
+  }
+
+  @override
+  void dispose() {
+    _semanticValue.dispose();
+    super.dispose();
   }
 
   bool get _enabled => widget.onChanged != null;
@@ -323,7 +331,8 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
 
   @override
   bool buildsLike(MorphSlider oldWidget) =>
-      oldWidget.value == widget.value &&
+      (oldWidget.value == widget.value ||
+          widget.value == _motion.reportedValue) &&
       oldWidget.ticks == widget.ticks &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
       oldWidget.activeColor == widget.activeColor &&
@@ -380,7 +389,6 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
             ),
           );
         }
-        final value = widget.value;
         String percent(double v) => '${(v.clamp(0.0, 1.0) * 100).round()}%';
         return MorphDisabled(
           enabled: _enabled,
@@ -392,16 +400,25 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
             verticalSteps: true,
             child: MorphFocusRing(
               visible: controlFocused,
-              child: Semantics(
-                container: true,
-                slider: true,
-                enabled: _enabled,
-                label: widget.semanticLabel,
-                value: percent(value),
-                increasedValue: percent(value + widget._step),
-                decreasedValue: percent(value - widget._step),
-                onIncrease: _enabled && value < 1 ? () => _nudge(1) : null,
-                onDecrease: _enabled && value > 0 ? () => _nudge(-1) : null,
+              child: ValueListenableBuilder<double>(
+                valueListenable: _semanticValue,
+                builder: (BuildContext context, double value, Widget? child) =>
+                    Semantics(
+                      container: true,
+                      slider: true,
+                      enabled: _enabled,
+                      label: widget.semanticLabel,
+                      value: percent(value),
+                      increasedValue: percent(value + widget._step),
+                      decreasedValue: percent(value - widget._step),
+                      onIncrease: _enabled && value < 1
+                          ? () => _nudge(1)
+                          : null,
+                      onDecrease: _enabled && value > 0
+                          ? () => _nudge(-1)
+                          : null,
+                      child: child,
+                    ),
                 child: MorphTouchListener(
                   enabled: _enabled,
                   dragAxis: .horizontal,

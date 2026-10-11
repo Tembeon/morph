@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
+import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/widgets.dart';
 
 const _items = [
@@ -170,6 +171,61 @@ void main() {
       closeTo(18.5 + value * (rect.width - 37), 0.01),
       reason: 'the thumb lands on the parent value',
     );
+  });
+
+  testWidgets('an echoed slider value rebuilds only its semantics', (
+    tester,
+  ) async {
+    final handle = tester.ensureSemantics();
+    var value = 0.3;
+    await tester.pumpWidget(
+      _host(
+        SizedBox(
+          width: 300,
+          child: StatefulBuilder(
+            builder: (context, update) => MorphSlider(
+              value: value,
+              semanticLabel: 'Volume',
+              onChanged: (v) => update(() => value = v),
+            ),
+          ),
+        ),
+      ),
+    );
+    Widget listener() => tester.widget(
+      find.descendant(
+        of: find.byType(MorphSlider),
+        matching: find.byType(MorphTouchListener),
+      ),
+    );
+    final before = listener();
+    final rect = tester.getRect(find.byType(MorphSlider));
+    final gesture = await tester.startGesture(
+      Offset(rect.left + 18.5 + 0.3 * 263, rect.center.dy),
+    );
+    for (var i = 0; i < 4; i++) {
+      await gesture.moveBy(const Offset(20, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(value, greaterThan(0.4));
+    expect(identical(listener(), before), isTrue);
+    expect(
+      tester.getSemantics(find.bySemanticsLabel('Volume')),
+      matchesSemantics(
+        label: 'Volume',
+        isSlider: true,
+        isEnabled: true,
+        hasEnabledState: true,
+        value: '${(value * 100).round()}%',
+        increasedValue: '${(value * 100).round() + 10}%',
+        decreasedValue: '${(value * 100).round() - 10}%',
+        hasIncreaseAction: true,
+        hasDecreaseAction: true,
+      ),
+    );
+    await gesture.up();
+    await tester.pumpAndSettle();
+    handle.dispose();
   });
 
   testWidgets('C5 segmented ignores second finger cancel and movement', (
