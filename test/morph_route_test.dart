@@ -749,4 +749,66 @@ void main() {
     await settle(tester);
     expect(flight.isFinished, isTrue);
   });
+
+  testWidgets('an inset frame on the settled page does not rerun the builder', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(900, 700);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    int builds = 0;
+    await tester.pumpWidget(
+      MaterialApp(
+        builder: (BuildContext context, Widget? child) =>
+            MorphScope(child: child!),
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.bottomCenter,
+            child: MorphTag(
+              id: 'card',
+              child: Builder(
+                builder: (BuildContext context) => TextButton(
+                  onPressed: () => showMorphRoute<void>(
+                    context,
+                    from: 'card',
+                    semanticLabel: 'Card',
+                    builder: (BuildContext context, MorphFlight flight) {
+                      builds++;
+                      return const Center(child: Text('page'));
+                    },
+                  ),
+                  child: const Text('go'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('go'));
+    await tester.pump();
+    final MorphFlight flight = tester
+        .state<MorphScopeState>(find.byType(MorphScope))
+        .flightOf('card')!;
+    await settle(tester);
+    expect(flight.routeOwnsContent.value, isTrue);
+
+    final int settled = builds;
+    for (int i = 1; i <= 5; i++) {
+      tester.view.viewInsets = FakeViewPadding(bottom: i * 40.0);
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(find.text('page'), findsOneWidget);
+    expect(
+      builds,
+      settled,
+      reason:
+          'keyboard frames move the wrappers only; the content does not '
+          'depend on the page constraints',
+    );
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await settle(tester);
+  });
 }

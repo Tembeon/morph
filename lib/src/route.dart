@@ -470,6 +470,19 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
           flight,
           Theme.of(context).colorScheme,
         );
+        // The SAME chain the shuttle mounts, from the one shared
+        // builder: the route-mode reparent preserves state only while
+        // the chains match, and now they cannot drift. A measured
+        // target keeps measuring on the settled page, so a live size
+        // change springs here exactly as in the shuttle. Built outside
+        // the LayoutBuilder, like the shuttle does: an inset or resize
+        // frame relays the wrappers without re-running the user's
+        // builder.
+        final Widget content = buildMorphTargetContent(
+          flight: flight,
+          spec: spec,
+          anchorKey: _anchorKey,
+        );
         return LayoutBuilder(
           builder: (BuildContext context, BoxConstraints constraints) {
             final Size overlaySize = constraints.biggest;
@@ -487,17 +500,6 @@ class _MorphRoutePageState<T> extends State<_MorphRoutePage<T>> {
               overlayBox: flight.overlayBox,
             );
             final MorphTargetSpec target = flight.target;
-            // The SAME chain the shuttle mounts, from the one shared
-            // builder: the route-mode reparent preserves state only
-            // while the chains match, and now they cannot drift. A
-            // measured target keeps measuring on the settled page, so
-            // a live size change springs here exactly as in the
-            // shuttle.
-            final Widget content = buildMorphTargetContent(
-              flight: flight,
-              spec: spec,
-              anchorKey: _anchorKey,
-            );
             final BoxConstraints Function(Size, EdgeInsets)? constraintsFor =
                 target.constraintsFor;
             final Widget measured = constraintsFor == null
