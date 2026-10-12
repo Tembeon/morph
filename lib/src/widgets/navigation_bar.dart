@@ -1,7 +1,9 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
@@ -422,7 +424,9 @@ bool _listEquals(List<double> a, List<double> b) {
   return true;
 }
 
-class _InlineTitle extends StatelessWidget {
+typedef _TitleStructure = ({bool shown, bool blurred});
+
+class _InlineTitle extends StatefulWidget {
   const _InlineTitle({
     required this.title,
     required this.size,
@@ -450,11 +454,55 @@ class _InlineTitle extends StatelessWidget {
   final TextDirection direction;
 
   @override
+  State<_InlineTitle> createState() => _InlineTitleState();
+}
+
+class _InlineTitleState extends State<_InlineTitle> {
+  _TitleStructure? _structure;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.frames.addListener(_sync);
+  }
+
+  @override
+  void didUpdateWidget(_InlineTitle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.frames, widget.frames)) {
+      oldWidget.frames.removeListener(_sync);
+      widget.frames.addListener(_sync);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.frames.removeListener(_sync);
+    super.dispose();
+  }
+
+  double get _opacity => (widget.motion?.titleOpacity ?? 1) * widget.opacity();
+
+  double get _blur => widget.motion?.titleBlur ?? 0;
+
+  _TitleStructure _structureNow() => (
+    shown: _opacity > 0.001,
+    blurred: !MorphGlyphs.shades && _blur > MorphGlyphs.minBlur,
+  );
+
+  void _sync() {
+    if (_structureNow() != _structure) setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final style = morphInlineTitleStyle(color);
-    final textWidth = size.width;
-    final textHeight = size.height;
+    final structure = _structure = _structureNow();
+    final style = morphInlineTitleStyle(widget.color);
+    final textWidth = widget.size.width;
+    final textHeight = widget.size.height;
     const pad = MorphNavigationBarMetrics.titlePadding;
+    final width = widget.width;
+    final edges = widget.edges;
     final center = width / 2;
     var lo = 0.0;
     var hi = width;
@@ -470,47 +518,63 @@ class _InlineTitle extends StatelessWidget {
     if (left < lo) left = lo;
     if (left + w > hi) left = math.max(lo, hi - w);
     final capsuleCenter = MorphBarMetrics.navigation.capsuleHeight / 2;
+    Widget out;
+    if (!structure.shown) {
+      out = const ExcludeSemantics(child: SizedBox.shrink());
+    } else {
+      final frames = widget.frames;
+      final rtl = widget.direction == TextDirection.rtl;
+      out = Text(
+        widget.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        textAlign: TextAlign.center,
+        textScaler: widget.scaler,
+        style: style,
+      );
+      if (widget.motion == null) out = ExcludeSemantics(child: out);
+      if (structure.blurred) {
+        out = MorphLiveImageFiltered(
+          live: frames,
+          filterOf: () => ui.ImageFilter.blur(
+            sigmaX: _blur,
+            sigmaY: _blur,
+            tileMode: TileMode.decal,
+          ),
+          child: out,
+        );
+      }
+      out = MorphLiveTemplate(
+        live: frames,
+        template: () =>
+            morphVeiledGlyphs(
+                  blur: _blur,
+                  opacity: _opacity.clamp(0.0, 1.0),
+                  child: morphLiveSlot,
+                )
+                as RenderObjectWidget,
+        child: out,
+      );
+      out = MorphLiveTransform.matrix(
+        live: frames,
+        alignment: null,
+        matrixOf: () {
+          final shift = widget.shift();
+          return Matrix4.translationValues(
+            rtl ? -shift : shift,
+            widget.motion?.titleOffset ?? 0,
+            0,
+          );
+        },
+        child: out,
+      );
+    }
     return Positioned(
       left: left,
       width: w,
       top: capsuleCenter - textHeight / 2,
       height: textHeight,
-      child: Semantics(
-        header: true,
-        child: ListenableBuilder(
-          listenable: frames,
-          builder: (BuildContext context, Widget? child) {
-            final m = motion;
-            final opacity = (m?.titleOpacity ?? 1) * this.opacity();
-            if (opacity <= 0.001) {
-              return const ExcludeSemantics(child: SizedBox.shrink());
-            }
-            Widget out = child!;
-            if (m == null) out = ExcludeSemantics(child: out);
-            final blur = m?.titleBlur ?? 0;
-            final offset = Offset(
-              direction == TextDirection.rtl ? -shift() : shift(),
-              m?.titleOffset ?? 0,
-            );
-            return Transform.translate(
-              offset: offset,
-              child: morphVeiledGlyphs(
-                blur: blur,
-                opacity: opacity.clamp(0.0, 1.0),
-                child: out,
-              ),
-            );
-          },
-          child: Text(
-            title,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
-            textScaler: scaler,
-            style: style,
-          ),
-        ),
-      ),
+      child: Semantics(header: true, child: out),
     );
   }
 }

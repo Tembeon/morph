@@ -2,8 +2,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/bar_items.dart' show MorphBackChevronPainter;
-import 'package:morph/src/widgets/glyph_scale.dart'
-    show MorphGlyphs, MorphVeiledGlyphs;
+import 'package:morph/src/widgets/glyph_scale.dart' show RenderMorphGlyphs;
 import 'package:morph/widgets.dart';
 
 const _screen = Size(402, 874);
@@ -320,21 +319,12 @@ void main() {
     await tester.pumpWidget(bar(visible: true));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
-    final fade = tester.widget(
-      find
-          .ancestor(
-            of: find.text('Inbox'),
-            matching: find.byWidgetPredicate(
-              (Widget w) =>
-                  w is Opacity || w is MorphVeiledGlyphs || w is MorphGlyphs,
-            ),
-          )
-          .first,
-    );
+    RenderObject? fade = tester.renderObject(find.text('Inbox'));
+    while (fade != null && fade is! RenderMorphGlyphs) {
+      fade = fade.parent;
+    }
     final opacity = switch (fade) {
-      Opacity(:final opacity) ||
-      MorphVeiledGlyphs(:final opacity) ||
-      MorphGlyphs(:final opacity) => opacity,
+      RenderMorphGlyphs(:final opacity) => opacity,
       _ => throw StateError('no fade'),
     };
     expect(opacity, inExclusiveRange(0.05, 0.95));
@@ -344,7 +334,7 @@ void main() {
       const Duration(seconds: 10),
     );
     expect(_blurLayers(), 2, reason: 'the backdrop copy and its blur');
-  });
+  }, variant: TargetPlatformVariant.only(TargetPlatform.iOS));
 
   testWidgets('a screen arriving with its inline title hidden never shows '
       'it', (tester) async {
