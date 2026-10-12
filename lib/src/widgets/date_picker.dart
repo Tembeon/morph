@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
@@ -459,7 +461,10 @@ class _CompactLabelState extends State<_CompactLabel>
         SingleTickerProviderStateMixin<_CompactLabel>,
         MorphClock<_CompactLabel> {
   final MorphDatePickerMotion _motion = MorphDatePickerMotion();
-  late final Animation<double> _highlight = _LabelHighlight(_motion, frames);
+  late final Animation<double> _highlight = _FrameValue(
+    frames,
+    () => _motion.highlight(_motion.time),
+  );
   bool _focused = false;
   int? _pointer;
 
@@ -568,14 +573,16 @@ class _CompactLabelState extends State<_CompactLabel>
   }
 }
 
-class _LabelHighlight extends Animation<double> {
-  _LabelHighlight(this.motion, this.frames);
+/// A value read from a motion on every frame of [frames], for render
+/// objects that follow an animation without a rebuild.
+class _FrameValue extends Animation<double> {
+  _FrameValue(this.frames, this.read);
 
-  final MorphDatePickerMotion motion;
   final Listenable frames;
+  final double Function() read;
 
   @override
-  double get value => motion.highlight(motion.time);
+  double get value => read();
 
   @override
   AnimationStatus get status => AnimationStatus.forward;
@@ -702,6 +709,27 @@ class _OverlayViewState extends State<_OverlayView>
     1,
   );
 
+  // The tree rebuilds only when one of these flips; every other frame
+  // reads the motion through render objects.
+  final ValueNotifier<bool> _pageTurning = ValueNotifier(false);
+  final ValueNotifier<bool> _yearsVisible = ValueNotifier(false);
+
+  // Ticks only on the frames that move the overlay's box: a page turn or
+  // the year wheels leave the box's layers alone.
+  final ValueNotifier<int> _boxFrames = ValueNotifier(0);
+  (double, double)? _boxState;
+
+  void _syncStructure() {
+    final t = _motion.time;
+    _pageTurning.value = _motion.page(t) < 1;
+    _yearsVisible.value = _motion.yearPicker(t).clamp(0.0, 1.0) > 0;
+    final box = (_motion.progress(t), _swap.value(t));
+    if (box != _boxState) {
+      _boxState = box;
+      _boxFrames.value++;
+    }
+  }
+
   _DatePickerRoute get _route => widget.route;
 
   MorphDatePicker get _picker => _route.picker.widget;
@@ -717,11 +745,15 @@ class _OverlayViewState extends State<_OverlayView>
           ? MorphDatePickerTuning.reopenDelay
           : MorphDatePickerTuning.openDelay,
     );
+    _syncStructure();
     wake();
   }
 
   @override
   void dispose() {
+    _pageTurning.dispose();
+    _yearsVisible.dispose();
+    _boxFrames.dispose();
     if (_route._view == this) _route._view = null;
     if (_route.picker._routeView == this) _route.picker._routeView = null;
     super.dispose();
@@ -738,6 +770,7 @@ class _OverlayViewState extends State<_OverlayView>
     if (_fromPart != null && _swap.isAtRest(t, 0.001)) {
       setState(() => _fromPart = null);
     }
+    _syncStructure();
     if (_leaving && _motion.isClosed) _route._finished();
   }
 
@@ -775,6 +808,7 @@ class _OverlayViewState extends State<_OverlayView>
       _label = label;
     });
     _swap.retarget(t + MorphDatePickerTuning.switchDelay, 1);
+    _syncStructure();
     _route.picker._switched(part);
     wake();
   }
@@ -783,6 +817,7 @@ class _OverlayViewState extends State<_OverlayView>
     if (_leaving) return;
     setState(() => _leaving = true);
     _motion.close(clock);
+    _syncStructure();
     wake();
   }
 
@@ -866,6 +901,7 @@ class _OverlayViewState extends State<_OverlayView>
       _month = DateTime(_month.year, _month.month + direction);
     });
     _motion.turnPage(clock, direction);
+    _syncStructure();
     wake();
   }
 
@@ -873,6 +909,7 @@ class _OverlayViewState extends State<_OverlayView>
     if (_leaving) return;
     setState(() {});
     _motion.showYearPicker(clock, show: !_motion.showsYearPicker);
+    _syncStructure();
     wake();
   }
 
@@ -935,6 +972,8 @@ class _OverlayViewState extends State<_OverlayView>
             previousMonth: _previousMonth,
             motion: _motion,
             frames: frames,
+            pageTurning: _pageTurning,
+            yearsVisible: _yearsVisible,
             firstDayOfWeek: _picker.firstDayOfWeek,
             localize: _picker.localize,
             numberFormatter: _picker.numberFormatter,
@@ -1034,32 +1073,13 @@ class _OverlayViewState extends State<_OverlayView>
                     ),
                   ),
                 ),
-                ListenableBuilder(
-                  listenable: frames,
+                _box(
+                  target: target,
+                  source: source,
+                  style: style,
+                  glass: glass,
+                  brightness: brightness,
                   child: overlayFor(below: target.below),
-                  builder: (BuildContext context, Widget? child) {
-                    final q = _swap.value(_motion.time);
-                    final placement = source == null
-                        ? target
-                        : MorphDatePickerPlacement(
-                            rect: Rect.lerp(source.rect, target.rect, q)!,
-                            anchor: Offset.lerp(
-                              source.anchor,
-                              target.anchor,
-                              q,
-                            )!,
-                          );
-                    return _frame(
-                      context,
-                      placement,
-                      placement.rect.size,
-                      target.below,
-                      style,
-                      glass,
-                      brightness,
-                      child!,
-                    );
-                  },
                 ),
               ],
             );
@@ -1069,21 +1089,127 @@ class _OverlayViewState extends State<_OverlayView>
     );
   }
 
-  Widget _frame(
-    BuildContext context,
-    MorphDatePickerPlacement placement,
-    Size size,
-    bool below,
-    MorphDatePickerStyle style,
-    MorphGlassPainter? glass,
-    Brightness brightness,
-    Widget child,
-  ) {
+  // The overlay's box: placed, scaled, faded and clipped per frame from the
+  // motion, around content built once.
+  Widget _box({
+    required MorphDatePickerPlacement target,
+    required MorphDatePickerPlacement? source,
+    required MorphDatePickerStyle style,
+    required MorphGlassPainter? glass,
+    required Brightness brightness,
+    required Widget child,
+  }) {
+    final below = target.below;
+    _BoxFrame? cached;
+    double? cachedAt;
+    _BoxFrame frame() {
+      final t = _motion.time;
+      final hit = cached;
+      if (hit != null && cachedAt == t) return hit;
+      final q = _swap.value(t);
+      final placement = source == null
+          ? target
+          : MorphDatePickerPlacement(
+              rect: Rect.lerp(source.rect, target.rect, q)!,
+              anchor: Offset.lerp(source.anchor, target.anchor, q)!,
+            );
+      final next = _BoxFrame.of(_motion, placement, below: below);
+      cached = next;
+      cachedAt = t;
+      return next;
+    }
+
+    return Positioned.fill(
+      child: IgnorePointer(
+        ignoring: _leaving,
+        child: _FrameTransform(
+          frames: _boxFrames,
+          transform: () => frame().transform,
+          child: _FramePlacement(
+            frames: _boxFrames,
+            box: () => frame().box,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (glass != null)
+                  MorphGlassHost(
+                    painter: glass,
+                    mode: MorphGlassMode.surface,
+                    frames: _boxFrames,
+                    frame: () {
+                      final f = frame();
+                      return MorphGlassFrame([
+                        MorphGlassSurface(
+                          kind: MorphGlassKind.menu,
+                          shape: f.shape,
+                          color: style.platterColor,
+                          brightness: brightness,
+                          opacity: f.opacity,
+                        ),
+                      ]);
+                    },
+                  )
+                else
+                  CustomPaint(
+                    painter: _OverlayPainter(
+                      repaint: _boxFrames,
+                      frame: frame,
+                      style: style,
+                    ),
+                  ),
+                FadeTransition(
+                  opacity: _FrameValue(frames, () => frame().opacity),
+                  child: ClipRRect(
+                    clipper: _OverlayClipper(_boxFrames, () => frame().shape),
+                    child: OverflowBox(
+                      alignment: below
+                          ? AlignmentDirectional.topStart
+                          : AlignmentDirectional.bottomStart,
+                      minWidth: 0,
+                      maxWidth: double.infinity,
+                      minHeight: 0,
+                      maxHeight: double.infinity,
+                      // The content keeps its size while the scale, clip
+                      // and opacity above it change every frame.
+                      child: RepaintBoundary(child: child),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Offset _origin(BuildContext context) {
+    final box = context.findRenderObject();
+    if (box is RenderBox && box.hasSize) return box.localToGlobal(Offset.zero);
+    return Offset.zero;
+  }
+}
+
+/// The overlay's box at one time: where it sits, how it scales about its
+/// anchor and how far it shows.
+class _BoxFrame {
+  _BoxFrame({
+    required this.box,
+    required this.transform,
+    required this.shape,
+    required this.opacity,
+  });
+
+  factory _BoxFrame.of(
+    MorphDatePickerMotion motion,
+    MorphDatePickerPlacement placement, {
+    required bool below,
+  }) {
     final rect = placement.rect;
     final anchor = placement.anchor;
-    final t = _motion.time;
-    final s = _motion.scale(t);
-    final h = math.min(size.height, _motion.height(t, size.height));
+    final t = motion.time;
+    final s = motion.scale(t);
+    final h = math.min(rect.height, motion.height(t, rect.height));
     final box = Rect.fromLTWH(
       rect.left,
       below ? rect.top : rect.bottom - h,
@@ -1096,78 +1222,28 @@ class _OverlayViewState extends State<_OverlayView>
       anchor.dy - s * anchor.dy,
       0,
     );
-    final shape = RRect.fromRectAndRadius(
-      Offset.zero & box.size,
-      const Radius.circular(MorphDatePickerTuning.cornerRadius),
-    );
-    final opacity = _motion.opacity(t);
-    return Positioned.fill(
-      child: IgnorePointer(
-        ignoring: _leaving,
-        child: Transform(
-          transform: transform,
-          child: Stack(
-            children: [
-              Positioned.fromRect(
-                rect: box,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    if (glass != null)
-                      MorphGlassHost(
-                        painter: glass,
-                        mode: MorphGlassMode.surface,
-                        frame: () => MorphGlassFrame([
-                          MorphGlassSurface(
-                            kind: MorphGlassKind.menu,
-                            shape: shape,
-                            color: style.platterColor,
-                            brightness: brightness,
-                            opacity: opacity,
-                          ),
-                        ]),
-                      )
-                    else
-                      CustomPaint(
-                        painter: _OverlayPainter(
-                          shape: shape,
-                          style: style,
-                          opacity: opacity,
-                        ),
-                      ),
-                    Opacity(
-                      opacity: opacity,
-                      child: ClipRRect(
-                        clipper: _OverlayClipper(shape),
-                        child: OverflowBox(
-                          alignment: below
-                              ? AlignmentDirectional.topStart
-                              : AlignmentDirectional.bottomStart,
-                          minWidth: 0,
-                          maxWidth: double.infinity,
-                          minHeight: 0,
-                          maxHeight: double.infinity,
-                          // The content keeps its size while the scale, clip
-                          // and opacity above it change every frame.
-                          child: RepaintBoundary(child: child),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+    return _BoxFrame(
+      box: box,
+      transform: transform,
+      shape: RRect.fromRectAndRadius(
+        Offset.zero & box.size,
+        const Radius.circular(MorphDatePickerTuning.cornerRadius),
       ),
+      opacity: motion.opacity(t),
     );
   }
 
-  Offset _origin(BuildContext context) {
-    final box = context.findRenderObject();
-    if (box is RenderBox && box.hasSize) return box.localToGlobal(Offset.zero);
-    return Offset.zero;
-  }
+  /// The box before the scale, in the overlay's coordinates.
+  final Rect box;
+
+  /// The scale about the anchor, in the overlay's coordinates.
+  final Matrix4 transform;
+
+  /// The platter's shape in the box's coordinates.
+  final RRect shape;
+
+  /// The platter's and the content's opacity.
+  final double opacity;
 }
 
 class _Crossfade extends StatelessWidget {
@@ -1189,66 +1265,400 @@ class _Crossfade extends StatelessWidget {
   Widget build(BuildContext context) {
     final old = from;
     if (old == null) return to;
-    return ListenableBuilder(
-      listenable: frames,
-      builder: (BuildContext context, Widget? _) {
-        final q = fade().clamp(0.0, 1.0);
-        return Stack(
-          alignment: alignment,
-          clipBehavior: Clip.none,
-          children: [
-            IgnorePointer(
-              child: Opacity(opacity: 1 - q, child: old),
-            ),
-            Opacity(opacity: q, child: to),
-          ],
-        );
-      },
+    return Stack(
+      alignment: alignment,
+      clipBehavior: Clip.none,
+      children: [
+        IgnorePointer(
+          child: FadeTransition(
+            opacity: _FrameValue(frames, () => 1 - fade().clamp(0.0, 1.0)),
+            child: old,
+          ),
+        ),
+        FadeTransition(
+          opacity: _FrameValue(frames, () => fade().clamp(0.0, 1.0)),
+          child: to,
+        ),
+      ],
     );
   }
 }
 
 class _OverlayPainter extends CustomPainter {
-  const _OverlayPainter({
-    required this.shape,
+  _OverlayPainter({
+    required Listenable repaint,
+    required this.frame,
     required this.style,
-    required this.opacity,
-  });
+  }) : super(repaint: repaint);
 
-  final RRect shape;
+  final _BoxFrame Function() frame;
   final MorphDatePickerStyle style;
-  final double opacity;
-
-  Color _faded(Color c) => c.withValues(alpha: c.a * opacity.clamp(0.0, 1.0));
 
   @override
   void paint(Canvas canvas, Size size) {
+    final now = frame();
+    final shape = now.shape;
+    final opacity = now.opacity.clamp(0.0, 1.0);
+    Color faded(Color c) => c.withValues(alpha: c.a * opacity);
     final shadow = Paint();
-    shadow.color = _faded(style.shadowColor);
+    shadow.color = faded(style.shadowColor);
     shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, 20);
     canvas.drawRRect(shape.shift(const Offset(0, 6)), shadow);
     final fill = Paint();
-    fill.color = _faded(style.platterColor);
+    fill.color = faded(style.platterColor);
     canvas.drawRRect(shape, fill);
   }
 
   @override
   bool shouldRepaint(_OverlayPainter oldDelegate) =>
-      oldDelegate.shape != shape ||
-      oldDelegate.style != style ||
-      oldDelegate.opacity != opacity;
+      !identical(oldDelegate.frame, frame) || oldDelegate.style != style;
 }
 
 class _OverlayClipper extends CustomClipper<RRect> {
-  _OverlayClipper(this.shape);
+  _OverlayClipper(Listenable reclip, this.shape) : super(reclip: reclip);
 
-  final RRect shape;
-
-  @override
-  RRect getClip(Size size) => shape;
+  final RRect Function() shape;
 
   @override
-  bool shouldReclip(_OverlayClipper oldClipper) => oldClipper.shape != shape;
+  RRect getClip(Size size) => shape();
+
+  @override
+  bool shouldReclip(_OverlayClipper oldClipper) =>
+      !identical(oldClipper.shape, shape);
+}
+
+/// Places its child [dx] points along the x axis at paint, read again on
+/// every frame of [frames] without a layout.
+class _FrameShift extends SingleChildRenderObjectWidget {
+  const _FrameShift({required this.frames, required this.dx, super.child});
+
+  final Listenable frames;
+  final double Function() dx;
+
+  @override
+  _RenderFrameShift createRenderObject(BuildContext context) =>
+      _RenderFrameShift(frames, dx);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderFrameShift renderObject,
+  ) {
+    renderObject.frames = frames;
+    renderObject.dxOf = dx;
+  }
+}
+
+class _RenderFrameShift extends RenderProxyBox {
+  _RenderFrameShift(this._frames, this._dxOf) : _dx = _dxOf();
+
+  Listenable _frames;
+  Listenable get frames => _frames;
+  set frames(Listenable value) {
+    if (identical(value, _frames)) return;
+    if (attached) {
+      _frames.removeListener(_tick);
+      value.addListener(_tick);
+    }
+    _frames = value;
+  }
+
+  double Function() _dxOf;
+  double Function() get dxOf => _dxOf;
+  set dxOf(double Function() value) {
+    if (identical(value, _dxOf)) return;
+    _dxOf = value;
+    _tick();
+  }
+
+  double _dx;
+
+  void _tick() {
+    final dx = _dxOf();
+    if (dx == _dx) return;
+    _dx = dx;
+    markNeedsPaint();
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _frames.addListener(_tick);
+    _tick();
+  }
+
+  @override
+  void detach() {
+    _frames.removeListener(_tick);
+    super.detach();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final child = this.child;
+    if (child != null) context.paintChild(child, offset + Offset(_dx, 0));
+  }
+
+  // The child stands where it paints, outside this box's own bounds.
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
+      hitTestChildren(result, position: position);
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final child = this.child;
+    if (child == null) return false;
+    return result.addWithPaintOffset(
+      offset: Offset(_dx, 0),
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset position) =>
+          child.hitTest(result, position: position),
+    );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.translateByDouble(_dx, 0, 0, 1);
+  }
+}
+
+/// A [Transform] whose matrix is read again on every frame of [frames];
+/// it repaints only when the matrix changes.
+class _FrameTransform extends SingleChildRenderObjectWidget {
+  const _FrameTransform({
+    required this.frames,
+    required this.transform,
+    this.alignment,
+    super.child,
+  });
+
+  final Listenable frames;
+  final Matrix4 Function() transform;
+  final AlignmentGeometry? alignment;
+
+  @override
+  _RenderFrameTransform createRenderObject(BuildContext context) =>
+      _RenderFrameTransform(
+        frames,
+        transform,
+        alignment: alignment,
+        textDirection: Directionality.maybeOf(context),
+      );
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderFrameTransform renderObject,
+  ) {
+    renderObject.alignment = alignment;
+    renderObject.textDirection = Directionality.maybeOf(context);
+    renderObject.frames = frames;
+    renderObject.transformOf = transform;
+  }
+}
+
+class _RenderFrameTransform extends RenderTransform {
+  _RenderFrameTransform(
+    this._frames,
+    this._transformOf, {
+    super.alignment,
+    super.textDirection,
+  }) : super(transform: _transformOf());
+
+  Listenable _frames;
+  Listenable get frames => _frames;
+  set frames(Listenable value) {
+    if (identical(value, _frames)) return;
+    if (attached) {
+      _frames.removeListener(_tick);
+      value.addListener(_tick);
+    }
+    _frames = value;
+  }
+
+  Matrix4 Function() _transformOf;
+  Matrix4 Function() get transformOf => _transformOf;
+  set transformOf(Matrix4 Function() value) {
+    if (identical(value, _transformOf)) return;
+    _transformOf = value;
+    _tick();
+  }
+
+  void _tick() => transform = _transformOf();
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _frames.addListener(_tick);
+    _tick();
+  }
+
+  @override
+  void detach() {
+    _frames.removeListener(_tick);
+    super.detach();
+  }
+}
+
+/// Lays its child out at the size of [box] and paints it at [box]'s
+/// offset, as a [Positioned.fromRect] in a [Stack] does, reading [box]
+/// again on every frame of [frames].
+class _FramePlacement extends SingleChildRenderObjectWidget {
+  const _FramePlacement({required this.frames, required this.box, super.child});
+
+  final Listenable frames;
+  final Rect Function() box;
+
+  @override
+  _RenderFramePlacement createRenderObject(BuildContext context) =>
+      _RenderFramePlacement(frames, box);
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderFramePlacement renderObject,
+  ) {
+    renderObject.frames = frames;
+    renderObject.boxOf = box;
+  }
+}
+
+class _RenderFramePlacement extends RenderProxyBox {
+  _RenderFramePlacement(this._frames, this._boxOf) : _box = _boxOf();
+
+  Listenable _frames;
+  Listenable get frames => _frames;
+  set frames(Listenable value) {
+    if (identical(value, _frames)) return;
+    if (attached) {
+      _frames.removeListener(_tick);
+      value.addListener(_tick);
+    }
+    _frames = value;
+  }
+
+  Rect Function() _boxOf;
+  Rect Function() get boxOf => _boxOf;
+  set boxOf(Rect Function() value) {
+    if (identical(value, _boxOf)) return;
+    _boxOf = value;
+    _tick();
+  }
+
+  Rect _box;
+
+  void _tick() {
+    final box = _boxOf();
+    if (box == _box) return;
+    final resized = box.size != _box.size;
+    _box = box;
+    if (resized) {
+      markNeedsLayout();
+    } else {
+      markNeedsPaint();
+    }
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _frames.addListener(_tick);
+    _tick();
+  }
+
+  @override
+  void detach() {
+    _frames.removeListener(_tick);
+    super.detach();
+  }
+
+  @override
+  void performLayout() {
+    child?.layout(
+      BoxConstraints.tightFor(width: _box.width, height: _box.height),
+      parentUsesSize: true,
+    );
+    size = constraints.biggest;
+  }
+
+  bool get _overflows =>
+      _box.left < 0 ||
+      _box.left + _box.width > size.width ||
+      _box.top < 0 ||
+      _box.top + _box.height > size.height;
+
+  final _clip = LayerHandle<ClipRectLayer>();
+
+  @override
+  void dispose() {
+    _clip.layer = null;
+    super.dispose();
+  }
+
+  // A box out of bounds is clipped to them, as a Stack clips its overflow.
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final child = this.child;
+    if (child == null) return;
+    if (!_overflows) {
+      _clip.layer = null;
+      context.paintChild(child, _box.topLeft + offset);
+      return;
+    }
+    _clip.layer = context.pushClipRect(
+      needsCompositing,
+      offset,
+      Offset.zero & size,
+      (PaintingContext context, Offset offset) =>
+          context.paintChild(child, _box.topLeft + offset),
+      oldLayer: _clip.layer,
+    );
+  }
+
+  @override
+  Rect? describeApproximatePaintClip(RenderObject child) =>
+      _overflows ? Offset.zero & size : null;
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final child = this.child;
+    if (child == null) return false;
+    return result.addWithPaintOffset(
+      offset: _box.topLeft,
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset position) =>
+          child.hitTest(result, position: position),
+    );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.translateByDouble(_box.left, _box.top, 0, 1);
+  }
+}
+
+/// The rotation [Transform.rotate] builds for [radians], bit for bit.
+Matrix4 _rotationZ(double radians) {
+  if (radians == 0.0) return Matrix4.identity();
+  final sin = math.sin(radians);
+  if (sin == 1.0) return _zRotation(1, 0);
+  if (sin == -1.0) return _zRotation(-1, 0);
+  final cos = math.cos(radians);
+  if (cos == -1.0) return _zRotation(0, -1);
+  return _zRotation(sin, cos);
+}
+
+Matrix4 _zRotation(double sin, double cos) {
+  final result = Matrix4.zero();
+  result.storage[0] = cos;
+  result.storage[1] = sin;
+  result.storage[4] = -sin;
+  result.storage[5] = cos;
+  result.storage[10] = 1.0;
+  result.storage[15] = 1.0;
+  return result;
 }
 
 /// The layout of the calendar, read from UIKit's views at 320 points wide.
@@ -1282,6 +1692,8 @@ class _Calendar extends StatelessWidget {
     required this.previousMonth,
     required this.motion,
     required this.frames,
+    required this.pageTurning,
+    required this.yearsVisible,
     required this.firstDayOfWeek,
     required this.firstDate,
     required this.lastDate,
@@ -1302,6 +1714,13 @@ class _Calendar extends StatelessWidget {
   final DateTime? previousMonth;
   final MorphDatePickerMotion motion;
   final Listenable frames;
+
+  /// Whether a page turn runs: the old month is on screen.
+  final ValueListenable<bool> pageTurning;
+
+  /// Whether the month and year wheels show at all.
+  final ValueListenable<bool> yearsVisible;
+
   final int firstDayOfWeek;
   final DateTime? firstDate;
   final DateTime? lastDate;
@@ -1324,13 +1743,12 @@ class _Calendar extends StatelessWidget {
 
   double _years() => motion.yearPicker(motion.time);
 
-  Widget _fading(Widget child, {required bool out}) => ListenableBuilder(
-    listenable: frames,
-    child: child,
-    builder: (BuildContext context, Widget? child) {
+  Widget _fading(Widget child, {required bool out}) => FadeTransition(
+    opacity: _FrameValue(frames, () {
       final q = _years().clamp(0.0, 1.0);
-      return Opacity(opacity: out ? 1 - q : q, child: child);
-    },
+      return out ? 1 - q : q;
+    }),
+    child: child,
   );
 
   @override
@@ -1409,22 +1827,15 @@ class _Calendar extends StatelessWidget {
                                     const SizedBox(
                                       width: _CalendarMetrics.titleChevronGap,
                                     ),
-                                    ListenableBuilder(
-                                      listenable: frames,
-                                      builder:
-                                          (
-                                            BuildContext context,
-                                            Widget? child,
-                                          ) => Transform.rotate(
-                                            angle:
-                                                (rtl ? -1 : 1) *
-                                                motion.yearPickerTurn(
-                                                  motion.time,
-                                                ) *
-                                                math.pi /
-                                                2,
-                                            child: child,
-                                          ),
+                                    _FrameTransform(
+                                      frames: frames,
+                                      alignment: Alignment.center,
+                                      transform: () => _rotationZ(
+                                        (rtl ? -1 : 1) *
+                                            motion.yearPickerTurn(motion.time) *
+                                            math.pi /
+                                            2,
+                                      ),
                                       child: CustomPaint(
                                         size: _CalendarMetrics.titleChevron,
                                         painter: _ChevronPainter(
@@ -1520,33 +1931,51 @@ class _Calendar extends StatelessWidget {
                             0,
                           ),
                           child: ClipRect(
-                            child: ListenableBuilder(
-                              listenable: frames,
-                              builder: (BuildContext context, Widget? _) {
-                                final p = motion.page(motion.time);
-                                final dir =
-                                    motion.pageDirection * (rtl ? -1 : 1);
-                                return Stack(
-                                  clipBehavior: Clip.none,
-                                  children: [
-                                    if (previousGrid != null && p < 1)
-                                      Positioned(
-                                        left: -dir * grid * p,
-                                        top: 0,
-                                        width: grid,
-                                        child: previousGrid,
-                                      ),
-                                    Positioned(
-                                      left: previousGrid != null && p < 1
-                                          ? dir * grid * (1 - p)
-                                          : 0,
-                                      top: 0,
-                                      width: grid,
-                                      child: monthGrid,
-                                    ),
-                                  ],
-                                );
-                              },
+                            child: ValueListenableBuilder<bool>(
+                              valueListenable: pageTurning,
+                              builder:
+                                  (
+                                    BuildContext context,
+                                    bool turning,
+                                    Widget? _,
+                                  ) {
+                                    double p() => motion.page(motion.time);
+                                    double dir() =>
+                                        motion.pageDirection *
+                                        (rtl ? -1.0 : 1.0);
+                                    return Stack(
+                                      clipBehavior: Clip.none,
+                                      children: [
+                                        if (previousGrid != null && turning)
+                                          Positioned(
+                                            left: 0,
+                                            top: 0,
+                                            width: grid,
+                                            child: _FrameShift(
+                                              frames: frames,
+                                              dx: () => -dir() * grid * p(),
+                                              child: previousGrid,
+                                            ),
+                                          ),
+                                        Positioned(
+                                          left: 0,
+                                          top: 0,
+                                          width: grid,
+                                          child: _FrameShift(
+                                            frames: frames,
+                                            dx: () {
+                                              final q = p();
+                                              return previousGrid != null &&
+                                                      q < 1
+                                                  ? dir() * grid * (1 - q)
+                                                  : 0;
+                                            },
+                                            child: monthGrid,
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
                             ),
                           ),
                         ),
@@ -1577,17 +2006,22 @@ class _Calendar extends StatelessWidget {
           top: _MonthYearMetrics.top,
           width: _MonthYearMetrics.width,
           height: _MonthYearMetrics.height,
-          child: ListenableBuilder(
-            listenable: frames,
+          child: ValueListenableBuilder<bool>(
+            valueListenable: yearsVisible,
             child: wheels,
-            builder: (BuildContext context, Widget? child) {
-              final q = _years().clamp(0.0, 1.0);
-              if (!years && q <= 0) return const SizedBox.shrink();
+            builder: (BuildContext context, bool visible, Widget? child) {
+              if (!years && !visible) return const SizedBox.shrink();
               return IgnorePointer(
                 ignoring: !years,
                 child: ExcludeSemantics(
                   excluding: !years,
-                  child: Opacity(opacity: q, child: child),
+                  child: FadeTransition(
+                    opacity: _FrameValue(
+                      frames,
+                      () => _years().clamp(0.0, 1.0),
+                    ),
+                    child: child,
+                  ),
                 ),
               );
             },

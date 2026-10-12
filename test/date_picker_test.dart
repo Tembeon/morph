@@ -780,25 +780,25 @@ void main() {
       await tester.tap(find.text('Oct 3, 2026'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 120));
-      final opacity = tester.widget<Opacity>(
+      final opacity = tester.widget<FadeTransition>(
         find
             .ancestor(
               of: find.text('October 2026'),
-              matching: find.byType(Opacity),
+              matching: find.byType(FadeTransition),
             )
             .first,
       );
-      expect(opacity.opacity, 0);
+      expect(opacity.opacity.value, 0);
       await tester.pump(const Duration(milliseconds: 100));
-      final later = tester.widget<Opacity>(
+      final later = tester.widget<FadeTransition>(
         find
             .ancestor(
               of: find.text('October 2026'),
-              matching: find.byType(Opacity),
+              matching: find.byType(FadeTransition),
             )
             .first,
       );
-      expect(later.opacity, greaterThan(0.1));
+      expect(later.opacity.value, greaterThan(0.1));
     });
 
     testWidgets('the other label turns the open overlay into its picker', (
@@ -1169,15 +1169,16 @@ void main() {
       );
       expect(changes, isEmpty);
       // The chevron points down.
-      final turn = tester
-          .widgetList<Transform>(
-            find.descendant(
-              of: find.bySemanticsLabel('Hide year picker'),
-              matching: find.byType(Transform),
-            ),
+      final m = tester
+          .renderObject(
+            find
+                .descendant(
+                  of: find.bySemanticsLabel('Hide year picker'),
+                  matching: find.byType(CustomPaint),
+                )
+                .first,
           )
-          .first;
-      final m = turn.transform;
+          .getTransformTo(null);
       expect(
         math.atan2(m.entry(1, 0), m.entry(0, 0)),
         closeTo(math.pi / 2, 1e-6),
@@ -1199,15 +1200,16 @@ void main() {
       await tester.tap(find.text('October 2026'));
       await tester.pump();
       double wheels() => tester
-          .widget<Opacity>(
+          .widget<FadeTransition>(
             find
                 .ancestor(
                   of: find.byType(ListWheelScrollView).first,
-                  matching: find.byType(Opacity),
+                  matching: find.byType(FadeTransition),
                 )
                 .first,
           )
-          .opacity;
+          .opacity
+          .value;
       await tester.pump(const Duration(milliseconds: 60));
       expect(wheels(), 0);
       await tester.pump(const Duration(milliseconds: 134));
