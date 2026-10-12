@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -487,6 +488,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   // the press scale and the landing shapes into its render objects.
   final ValueNotifier<_ButtonStructure> _structure =
       ValueNotifier<_ButtonStructure>((landing: false, still: true));
+  final ValueNotifier<bool> _expanded = ValueNotifier<bool>(false);
   final _Ticks _ticks = _Ticks();
   bool _syncing = false;
   double _pressScale = 1;
@@ -504,6 +506,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
       _syncValues();
       _ticks.notify();
     });
+    _ticks.queued();
   }
 
   void _syncValues() {
@@ -511,6 +514,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     final landing = motion != null && _landing;
     final still = _still();
     _structure.value = (landing: landing, still: still);
+    _expanded.value = motion?.isOpen ?? false;
     _pressScale = landing || still ? 1 : motion?.pressScale ?? 1;
     if (landing) _landingShapes = _landingNow(motion);
   }
@@ -568,6 +572,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     frames.removeListener(_scheduleSync);
     _host.dispose();
     _structure.dispose();
+    _expanded.dispose();
     _ticks.dispose();
     super.dispose();
   }
@@ -727,16 +732,17 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     _syncValues();
     final enabled = widget.enabled;
     final glyph = _glyphFor(style, enabled);
-    final Widget button = ListenableBuilder(
-      listenable: frames,
-      builder: (BuildContext context, Widget? child) => Semantics(
-        button: true,
-        enabled: enabled,
-        expanded: _motion?.isOpen ?? false,
-        label: _semanticLabel,
-        onTap: enabled ? _openFromSemantics : null,
-        child: child,
-      ),
+    final Widget button = ValueListenableBuilder<bool>(
+      valueListenable: _expanded,
+      builder: (BuildContext context, bool expanded, Widget? child) =>
+          Semantics(
+            button: true,
+            enabled: enabled,
+            expanded: expanded,
+            label: _semanticLabel,
+            onTap: enabled ? _openFromSemantics : null,
+            child: child,
+          ),
       child: MorphTouchListener(
         enabled: enabled,
         behavior: .opaque,
@@ -825,7 +831,7 @@ class _MenuShapes extends StatelessWidget {
   final MorphMenuStyle style;
   final Widget glyph;
   final _Shapes Function() shapes;
-  final Listenable? frames;
+  final _Ticks? frames;
   final bool menu;
   final bool look;
   final Widget? content;
@@ -871,7 +877,7 @@ class _MenuShapes extends StatelessWidget {
       surfaces = MorphGlassHost(
         painter: glass,
         mode: MorphGlassMode.layer,
-        frames: frames,
+        frames: frames?.hosts,
         frame: () {
           final now = shapes();
           final menu = now.menu;
@@ -1064,11 +1070,13 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       if (!mounted) return;
       final structure = _update();
       if (structure != _built) {
+        _ticks.rebuilt();
         setState(() {});
       } else {
         _ticks.notify();
       }
     });
+    _ticks.queued();
   }
 
   /// Reads the motion's frame and returns the structure it shows.
@@ -1328,9 +1336,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       role: ui.SemanticsRole.menu,
       child: Focus(autofocus: true, onKeyEvent: _key, child: body),
     );
-    // The glass hosts build on every frame of the motion. In a build scope
-    // and a repaint boundary of the menu's own, such a frame lays out and
-    // repaints the menu, not the overlay it shows in.
+    // In a build scope and a repaint boundary of the menu's own, a frame
+    // that changes the structure lays out and repaints the menu, not the
+    // overlay it shows in.
     return RepaintBoundary(
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) => menu,
@@ -1574,7 +1582,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                   child: MorphGlassHost(
                     painter: glass,
                     mode: MorphGlassMode.body,
-                    frames: _ticks,
+                    frames: _ticks.hosts,
                     frame: () {
                       final surface = now().surface;
                       return MorphGlassFrame(
@@ -2256,8 +2264,47 @@ class _CardHeader extends StatelessWidget {
   }
 }
 
-/// Notifies the render objects of a menu that its motion advanced.
+/// Notifies the render objects of a menu that its motion advanced, once
+/// per frame after every ticker ran.
+///
+/// The menu's glass hosts follow [hosts] instead. A host told after the
+/// tickers builds to read its frame; told on the ticker itself, right
+/// after the menu queued its sync, it queues its own sync behind the
+/// menu's and pushes the frame the menu computed without a build.
 class _Ticks extends ChangeNotifier {
+  final _Ping hosts = _Ping();
+  bool _hostsTold = false;
+
+  /// The menu queued its sync for a notification of its source.
+  void queued() {
+    if (_hostsTold ||
+        SchedulerBinding.instance.schedulerPhase !=
+            SchedulerPhase.transientCallbacks) {
+      return;
+    }
+    _hostsTold = true;
+    hosts.notify();
+  }
+
+  /// The menu synced its values and keeps its structure.
+  void notify() {
+    notifyListeners();
+    if (!_hostsTold) hosts.notify();
+    _hostsTold = false;
+  }
+
+  /// The menu synced its values and builds a new structure, which hands
+  /// its hosts their frames.
+  void rebuilt() => _hostsTold = false;
+
+  @override
+  void dispose() {
+    hosts.dispose();
+    super.dispose();
+  }
+}
+
+class _Ping extends ChangeNotifier {
   void notify() => notifyListeners();
 }
 

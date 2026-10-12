@@ -66,25 +66,25 @@
     "idle": 0
   },
   "menu-card/flat": {
-    "frames": 289,
-    "builds": 3.7,
-    "paints": 26.7,
-    "pictures": 2.1,
+    "frames": 277,
+    "builds": 1.5,
+    "paints": 27.8,
+    "pictures": 2.2,
     "captures": 0.0,
-    "offscreen": 0.7,
+    "offscreen": 0.8,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
   },
   "menu-held/flat": {
-    "frames": 262,
-    "builds": 3.1,
-    "paints": 19.9,
-    "pictures": 1.7,
+    "frames": 250,
+    "builds": 1.2,
+    "paints": 20.8,
+    "pictures": 1.8,
     "captures": 0.0,
     "offscreen": 0.3,
     "snapshotImages": 0.0,
-    "traces": 0.4,
+    "traces": 0.5,
     "idle": 0
   },
   "nav-scroll/flat": {
@@ -297,25 +297,25 @@
     "idle": 0
   },
   "menu-card/fake": {
-    "frames": 289,
-    "builds": 4.3,
-    "paints": 36.9,
-    "pictures": 5.0,
-    "captures": 2.8,
+    "frames": 277,
+    "builds": 2.1,
+    "paints": 38.4,
+    "pictures": 5.2,
+    "captures": 2.9,
     "offscreen": 3.6,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
   },
   "menu-held/fake": {
-    "frames": 262,
-    "builds": 3.6,
-    "paints": 27.4,
-    "pictures": 3.9,
+    "frames": 250,
+    "builds": 1.8,
+    "paints": 28.7,
+    "pictures": 4.0,
     "captures": 2.0,
     "offscreen": 2.3,
     "snapshotImages": 0.0,
-    "traces": 0.4,
+    "traces": 0.5,
     "idle": 0
   },
   "nav-scroll/fake": {
@@ -528,25 +528,25 @@
     "idle": 0
   },
   "menu-card/liquid": {
-    "frames": 289,
-    "builds": 4.3,
-    "paints": 36.9,
-    "pictures": 5.0,
-    "captures": 2.8,
+    "frames": 277,
+    "builds": 2.1,
+    "paints": 38.4,
+    "pictures": 5.2,
+    "captures": 2.9,
     "offscreen": 3.6,
     "snapshotImages": 0.0,
     "traces": 0.4,
     "idle": 0
   },
   "menu-held/liquid": {
-    "frames": 262,
-    "builds": 3.6,
-    "paints": 27.4,
-    "pictures": 3.9,
+    "frames": 250,
+    "builds": 1.8,
+    "paints": 28.7,
+    "pictures": 4.0,
     "captures": 2.0,
     "offscreen": 2.3,
     "snapshotImages": 0.0,
-    "traces": 0.4,
+    "traces": 0.5,
     "idle": 0
   },
   "nav-scroll/liquid": {

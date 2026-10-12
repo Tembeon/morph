@@ -8,6 +8,7 @@ import 'package:motor/motor.dart';
 
 import 'package:morph/foundation.dart';
 import 'package:morph/src/frame.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/measure.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
@@ -961,15 +962,15 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
     // tag's live rect is the lifted one, so the flight takes off from
     // exactly the pixels under the finger, and the wrapper chain is
     // identical at rest - no remount across the press.
-    final Widget lifted = ListenableBuilder(
-      listenable: _heroScale,
-      child: tagged,
-      builder: (BuildContext context, Widget? child) => Transform.scale(
-        scale:
+    final Widget lifted = MorphLiveTransform(
+      live: _heroScale,
+      writeInto: (Matrix4 into) {
+        final double scale =
             (_size.isEmpty ? 1 : 1 + _press.value / _size.longestSide) +
-            _landing.value,
-        child: child,
-      ),
+            _landing.value;
+        into.scaleByDouble(scale, scale, 1, 1);
+      },
+      child: tagged,
     );
     return Semantics(
       onLongPress: widget.enabled ? _open : null,
