@@ -15,11 +15,13 @@
                      tab-bar,controls,menu,sheet,list
   --motions M        navigation motions (default enter,nested-push,
                      nested-pop,toolbar,steady)
-  --runs N           repeats of every timed scene (default 3)
+  --runs N           repeats of every timed scene (default 3; 5 with --scenes)
   --idle S           seconds of the audit's resting home with no frames
                      scheduled (default 8; 0 skips it)
-  --fixed            fixed performance mode (steady clocks: less noise,
-                     not a user's clocks); restored after the run
+  --fixed            fixed performance mode, restored after the run. On the
+                     Pixel 6a it pins high clocks: UI and raster halve and
+                     frames over budget vanish, so it compares work, never
+                     smoothness
   --label L          result directory name (default the short sha)
   --no-build         reuse the APKs of the last build of this source
   --no-cpu           skip the Dart CPU pass
@@ -309,37 +311,40 @@ def fmt(v, digits=1):
 
 def table(results, baseline):
     head = (f'{"scene":34} {"fr":>4} {"ui50":>5} {"ui95":>5} {"ra50":>5} {"ra95":>5} '
-            f'{"gpu95":>5} {"over":>4} {"drop":>4} {"mW":>5}  causes / where')
+            f'{"gpu95":>5} {"over%":>5} {"drop":>4} {"mW":>5}  causes / where')
     lines = [head, '-' * len(head)]
     for key, s in results.items():
         base = baseline.get(key)
         delta = ''
         if base:
             parts = []
-            for m in ('ui_p95', 'raster_p95', 'gpu_p95', 'over', 'dropped', 'power_mw'):
+            for m in ('ui_p95', 'raster_p95', 'gpu_p95', 'over_pct', 'power_mw'):
                 a, b = base.get(m), s.get(m)
+                if m == 'over_pct' and a is None and base.get('frames'):
+                    a = round(100 * base['over'] / base['frames'], 1)
                 if a is None or b is None:
                     continue
                 d = b - a
                 rel = d / a if a else 0
-                if (m == 'power_mw' and abs(d) >= 0.05 * a) or (m in ('over', 'dropped') and abs(d) >= 2) or (
-                        m not in ('power_mw', 'over', 'dropped') and abs(d) >= 0.5 and abs(rel) >= 0.1):
+                if (m == 'power_mw' and abs(d) >= 0.05 * a) or (m == 'over_pct' and abs(d) >= 1) or (
+                        m not in ('power_mw', 'over_pct') and abs(d) >= 0.5 and abs(rel) >= 0.1):
                     parts.append(f'{m.replace("_p95", "")} {a:.4g}->{b:.4g}')
             delta = '  [' + ', '.join(parts) + ']' if parts else '  [=]'
         causes = ' '.join(f'{k}:{v}' for k, v in s['causes'].items())
         top = ''
         if s['causes']:
             first = next(iter(s['causes']))
-            if first.startswith('ui') and s['ui_phase_ms_per_frame']:
-                top = ' ui: ' + ', '.join(f'{k} {v:.2f}' for k, v in
-                                         list(s['ui_phase_ms_per_frame'].items())[:3])
-            elif s['raster_self_ms_per_frame']:
-                top = ' raster: ' + ', '.join(f'{k} {v:.2f}' for k, v in
-                                             list(s['raster_self_ms_per_frame'].items())[:3])
+            ui = s.get('bad_ui_phase_ms_per_frame') or s['ui_phase_ms_per_frame']
+            raster = s.get('bad_raster_self_ms_per_frame') or s['raster_self_ms_per_frame']
+            if first.startswith('ui') and ui:
+                top = ' bad ui: ' + ', '.join(f'{k} {v:.1f}' for k, v in list(ui.items())[:3])
+            elif raster:
+                top = ' bad raster: ' + ', '.join(f'{k} {v:.1f}' for k, v in
+                                                 list(raster.items())[:3])
         warm = ' WARM' if s.get('thermal_status') else ''
         lines.append(f'{key[:34]:34} {s["frames"]:>4} {fmt(s["ui_p50"]):>5} {fmt(s["ui_p95"]):>5} '
                      f'{fmt(s["raster_p50"]):>5} {fmt(s["raster_p95"]):>5} {fmt(s["gpu_p95"]):>5} '
-                     f'{s["over"]:>4} {s["dropped"]:>4} {fmt(s["power_mw"], 0):>5}  '
+                     f'{s.get("over_pct", 0):>5.1f} {s["dropped"]:>4} {fmt(s["power_mw"], 0):>5}  '
                      f'{causes}{top}{warm}{delta}')
         if s.get('dart', {}).get('morph_inclusive_ms'):
             d = s['dart']
@@ -358,7 +363,7 @@ def main():
     p.add_argument('--tiers', default='liquid,flat')
     p.add_argument('--scenes', default='')
     p.add_argument('--motions', default='enter,nested-push,nested-pop,toolbar,steady')
-    p.add_argument('--runs', type=int, default=3)
+    p.add_argument('--runs', type=int)
     p.add_argument('--idle', type=int, default=8)
     p.add_argument('--fixed', action='store_true')
     p.add_argument('--label')
@@ -369,6 +374,8 @@ def main():
     p.add_argument('--cool-wait', type=int, default=300)
     p.add_argument('--timeout', type=int, default=900)
     o = p.parse_args()
+    if o.runs is None:
+        o.runs = 5 if o.scenes else 3
     state['serial'] = o.serial
     suites = [s for s in o.suite.split(',') if s]
     tiers = [t for t in o.tiers.split(',') if t]

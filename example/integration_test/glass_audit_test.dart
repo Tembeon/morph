@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/scheduler.dart';
@@ -23,6 +24,8 @@ import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/menu_fusion.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/menu_fusion_worker.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/scroll_edge_effect.dart'
     show debugMorphEdgeEffectBoundsBlur;
@@ -173,6 +176,8 @@ void main() {
         'FUSION_PREFETCH',
       );
     }
+    // ignore: invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
+    MorphMenuFusion.debugOnFuse = audit.fusion.add;
     await audit.run();
     File('${_Audit.outDir.path}/report.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(audit.report()),
@@ -199,6 +204,8 @@ class _Audit {
   int _pointer = 300;
 
   final Map<String, int> _idleFrames = {};
+
+  final _FusionLog fusion = _FusionLog();
 
   Future<void> settle([int ms = 900]) =>
       tester.pump(Duration(milliseconds: ms));
@@ -870,6 +877,20 @@ class _Audit {
       if (_idleSeconds > 0) 'idle_frames': _idleFrames,
       // ignore: invalid_use_of_internal_member
       'fusion_served_ahead': MorphMenuFusion.debugServedAhead,
+      'fusion_misses': fusion.report(),
+      // ignore: invalid_use_of_internal_member
+      'fusion_dropped': MorphFusionWorker.debugDropped,
+      'fusion_latency_ms': () {
+        // ignore: invalid_use_of_internal_member
+        final v = [...MorphFusionWorker.debugLatencyUs];
+        v.sort();
+        if (v.isEmpty) return null;
+        return {
+          'n': v.length,
+          for (final q in [0.1, 0.5, 0.9, 0.99])
+            'p${(q * 100).round()}': v[(v.length * q).floor()] / 1000,
+        };
+      }(),
       // ignore: invalid_use_of_internal_member
       'fusion_fused_here': MorphMenuFusion.debugFusedHere,
       if (_layerCensus case final census?) 'census': census.report(),
@@ -912,6 +933,54 @@ class _Audit {
             'runs': runs,
           };
         }(),
+    };
+  }
+}
+
+/// Why the menu's fusions were or were not served from the ones computed
+/// ahead: the position of every fusion in its motion (a gap over 50 ms
+/// starts a motion) and, for one fused in the frame, how far the newest
+/// fusion waiting was from the frame's inputs.
+class _FusionLog {
+  final List<(int, bool, double?)> _events = [];
+
+  void add(Float64List frame, Float64List? ready, {required bool served}) {
+    double? gap;
+    if (!served && ready != null) {
+      gap = 0;
+      for (var i = 0; i < frame.length; i++) {
+        gap = math.max(gap!, (frame[i] - ready[i]).abs());
+      }
+    }
+    _events.add((developer.Timeline.now, served, gap));
+  }
+
+  Map<String, Object?> report() {
+    final byIndex = <int, List<int>>{};
+    final gaps = <String, int>{};
+    var index = 0;
+    var last = 0;
+    for (final (t, served, gap) in _events) {
+      index = t - last > 50000 ? 0 : index + 1;
+      last = t;
+      final slot = byIndex[index < 6 ? index : 6] ??= [0, 0];
+      slot[served ? 0 : 1]++;
+      if (!served) {
+        final key = switch (gap) {
+          null => 'none ready',
+          < 0.1 => '<0.1',
+          < 1 => '<1',
+          < 10 => '<10',
+          _ => '>=10',
+        };
+        gaps[key] = (gaps[key] ?? 0) + 1;
+      }
+    }
+    return {
+      'served_fused_by_frame_of_motion': {
+        for (final MapEntry(:key, :value) in byIndex.entries) '$key': value,
+      },
+      'missed_by_nearest_ready_gap': gaps,
     };
   }
 }

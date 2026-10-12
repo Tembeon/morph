@@ -403,6 +403,7 @@ def analyze(path, cpu=None, report=None):
         rself = collections.Counter()
         ui_wait = ra_wait = ui_total = ra_total = 0
         ui_all, ui_bad = [], []
+        bad_raster, bad_ui, n_bad_raster, n_bad_ui = collections.Counter(), collections.Counter(), 0, 0
         for ui, d in frames:
             r0, r1 = d.ts, d.ts + d.dur
             g = gpu_of(d)
@@ -425,6 +426,12 @@ def analyze(path, cpu=None, report=None):
                 ui_total += ui.dur
             if not (ra > budget_ms or (u or 0) > budget_ms or g > budget_ms):
                 continue
+            if ra > budget_ms:
+                bad_raster.update(raster_self(d))
+                n_bad_raster += 1
+            if ui is not None and u > budget_ms:
+                bad_ui.update(ph)
+                n_bad_ui += 1
             if g > 0.9 * budget_ms:
                 causes['gpu'] += 1
             elif ra > budget_ms:
@@ -486,11 +493,16 @@ def analyze(path, cpu=None, report=None):
             'gpu_ms_per_s': round(sum(gpu_active(periods, a, b) for a, b in wins)
                                   / 1e6 / seconds, 2) if seconds else None,
             'over': sum(causes.values()),
+            'over_pct': round(100 * sum(causes.values()) / n_frames, 1) if n_frames else 0,
             'causes': dict(causes.most_common()),
             'ui_phase_ms_per_frame': {k: round(v / 1e6 / max(1, len(ui_ms)), 3)
                                       for k, v in phases.most_common()},
             'raster_self_ms_per_frame': {k: round(v / 1e6 / max(1, n_frames), 3)
                                          for k, v in rself.most_common(8)},
+            'bad_raster_self_ms_per_frame': {k: round(v / 1e6 / n_bad_raster, 2)
+                                             for k, v in bad_raster.most_common(8)},
+            'bad_ui_phase_ms_per_frame': {k: round(v / 1e6 / n_bad_ui, 2)
+                                          for k, v in bad_ui.most_common()},
             'ui_runnable_share': round(ui_wait / ui_total, 3) if ui_total else None,
             'raster_runnable_share': round(ra_wait / ra_total, 3) if ra_total else None,
             'dropped': dropped,
