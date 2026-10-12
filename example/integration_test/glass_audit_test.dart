@@ -40,6 +40,7 @@ import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/perf/bench_args.dart';
 
+import 'support/control_matrix.dart';
 import 'support/layer_census.dart';
 
 /// The glass audit on a device: the gallery in dark mode, the states the
@@ -152,6 +153,13 @@ final int _idleSeconds = BenchArgs.integer(
 
 const bool _stagesOff = bool.fromEnvironment('AUDIT_STAGES_OFF');
 
+/// Whether the launch times the control matrix alone (`AUDIT_MATRIX=true`):
+/// every cell, no gallery scene.
+final bool _matrixOnly = BenchArgs.flag(
+  'AUDIT_MATRIX',
+  fallback: const bool.fromEnvironment('AUDIT_MATRIX'),
+);
+
 /// The glass cost probe of the launch (`MORPH_GLASS_PROBE`: off, copy,
 /// skip, shared, solid); see [debugGlassCostProbe].
 final GlassCostProbe _probe = GlassCostProbe.values.byName(
@@ -216,7 +224,7 @@ void main() {
   });
 }
 
-class _Audit {
+class _Audit implements MatrixDriver {
   _Audit(this.binding, this.tester);
 
   static final Directory outDir = Directory(
@@ -226,6 +234,7 @@ class _Audit {
   );
 
   final IntegrationTestWidgetsFlutterBinding binding;
+  @override
   final WidgetTester tester;
   final List<ui.FrameTiming> timings = [];
   final Map<String, List<(int, int)>> _scenes = {};
@@ -236,6 +245,7 @@ class _Audit {
 
   final _FusionLog fusion = _FusionLog();
 
+  @override
   Future<void> settle([int ms = 900]) =>
       tester.pump(Duration(milliseconds: ms));
 
@@ -306,6 +316,7 @@ class _Audit {
     if (_atlas) _marks.add((developer.Timeline.now, what));
   }
 
+  @override
   Future<void> measure(String scene, Future<void> Function() body) async {
     for (var run = 0; run < _runs; run++) {
       _semanticsWhileTimed.add(SemanticsBinding.instance.semanticsEnabled);
@@ -409,6 +420,7 @@ class _Audit {
     };
   }
 
+  @override
   Future<void> finger(
     Offset from,
     List<Offset> path, {
@@ -503,12 +515,34 @@ class _Audit {
       ('sheet', _sheet),
       ('list', _list),
     ]) {
-      if (_scenesOnly.isEmpty || _scenesOnly.split(',').contains(name)) {
+      if (_scenesOnly.isEmpty ? !_matrixOnly : _selected(name)) {
         await scene();
       }
     }
+    if (_matrix) {
+      _enteredAt = timings.length;
+      runApp(const GalleryApp(key: ValueKey('matrix'), home: MatrixStage()));
+      await settle(1500);
+      await runControlMatrix(this, (String scene) {
+        return _scenesOnly.isEmpty || _selected(scene);
+      });
+    }
     _outlines();
   }
+
+  // Whether the matrix runs: asked for by a scene filter that names a
+  // matrix cell, or by AUDIT_MATRIX.
+  bool get _matrix =>
+      _matrixOnly || _scenesOnly.split(',').any((s) => s.startsWith('m/'));
+
+  // A scene filter entry is a name, or a prefix ending in `*`.
+  bool _selected(String scene) => _scenesOnly
+      .split(',')
+      .any(
+        (String entry) => entry.endsWith('*')
+            ? scene.startsWith(entry.substring(0, entry.length - 1))
+            : entry == scene,
+      );
 
   final Map<String, double> _outlineMicros = {};
 
@@ -645,6 +679,7 @@ class _Audit {
     await back();
   }
 
+  @override
   Future<void> tap(Offset at) =>
       finger(at, const [], holdBefore: const Duration(milliseconds: 60));
 

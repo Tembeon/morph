@@ -24,6 +24,15 @@
                      smoothness
   --sdk S            stable (flutter) or beta (flutter-beta)
   --label L          result directory name (default the short sha)
+  --matrix           the control matrix: every control alone on one page,
+                     every action its own scene (m/<control>/<action>), the
+                     empty page (m/empty/frames) as the floor; no gallery
+                     scenes. Narrow it with --scenes m/sheet/*,m/empty/*
+  --affected [BASE]  the matrix cells the changes since BASE (default
+                     audit/2026-10-12, working tree included) can touch,
+                     plus the floor: a control's own files select its
+                     cells, anything shared (renderer, glass seam, clock,
+                     engine) selects every cell
   --arg K=V          one more launch setting for every launch (repeatable),
                      for example --arg MORPH_GLASS_PROBE=shared
   --no-build         reuse the APKs of the last build of this source
@@ -162,6 +171,36 @@ def source(rev):
         subprocess.run(['git', '-C', ROOT, 'worktree', 'add', '--detach', src, sha], check=True,
                        capture_output=True)
     return src, sha
+
+
+# The matrix cells a file of the package can touch; a file that matches no
+# rule touches every cell.
+MATRIX_RULES = [
+    ('lib/src/widgets/sheet', ['sheet']),
+    ('lib/src/widgets/alert', ['alert']),
+    ('lib/src/widgets/menu', ['menu']),
+    ('lib/src/widgets/date_picker', ['date-picker']),
+    ('lib/src/widgets/segmented', ['segmented']),
+    ('lib/src/widgets/switch', ['switch']),
+    ('lib/src/widgets/slider', ['slider']),
+    ('lib/src/widgets/stepper', ['stepper']),
+    ('lib/src/widgets/tab_bar', ['tab-bar']),
+    ('lib/src/widgets/glass_button', ['glass-button']),
+    ('lib/src/widgets/lens', ['segmented', 'switch', 'slider', 'tab-bar']),
+]
+
+
+def affected_cells(base):
+    out = subprocess.run(['git', '-C', ROOT, 'diff', '--name-only', base, '--', 'lib', 'hook',
+                          'pubspec.yaml'], capture_output=True, text=True, check=True).stdout
+    files = [f for f in out.split() if f]
+    controls = set()
+    for f in files:
+        rule = next((cells for prefix, cells in MATRIX_RULES if f.startswith(prefix)), None)
+        if rule is None:
+            return 'm/*'
+        controls.update(rule)
+    return ','.join(['m/empty/*'] + [f'm/{c}/*' for c in sorted(controls)])
 
 
 def build(src, suite, apk, sdk):
@@ -397,6 +436,8 @@ def main():
     p.add_argument('--fixed', action='store_true')
     p.add_argument('--label')
     p.add_argument('--arg', action='append', default=[])
+    p.add_argument('--matrix', action='store_true')
+    p.add_argument('--affected', nargs='?', const='audit/2026-10-12')
     p.add_argument('--sdk', default='stable', choices=['stable', 'beta'])
     p.add_argument('--no-build', action='store_true')
     p.add_argument('--no-cpu', action='store_true')
@@ -406,6 +447,13 @@ def main():
     p.add_argument('--timeout', type=int, default=900)
     p.add_argument('--lock-wait', type=int, default=7200)
     o = p.parse_args()
+    if o.affected:
+        o.scenes = affected_cells(o.affected)
+        log('affected cells:', o.scenes)
+    if o.matrix and not o.scenes:
+        o.arg.append('AUDIT_MATRIX=true')
+    if o.matrix or (o.scenes and all(x.startswith('m/') for x in o.scenes.split(','))):
+        o.idle = 0
     if o.runs is None:
         o.runs = 5 if o.scenes else 3
     state['serial'] = o.serial

@@ -26,11 +26,15 @@ import 'package:morph_example/gallery/spec_inspector.dart';
 /// select, or the one [MorphAdaptiveGlass] picks by the device's GPU.
 class GalleryApp extends StatefulWidget {
   /// Creates the app.
-  const GalleryApp({this.navigatorKey, super.key});
+  const GalleryApp({this.navigatorKey, this.home, super.key});
 
   /// The key of the gallery's page navigator (the navigation stack's),
   /// for a driver that walks the pages.
   final GlobalKey<NavigatorState>? navigatorKey;
+
+  /// A page shown instead of the gallery, with the gallery's theme, glass
+  /// renderer and tier: a bench stage.
+  final Widget? home;
 
   @override
   State<GalleryApp> createState() => _GalleryAppState();
@@ -120,10 +124,12 @@ class _GalleryAppState extends State<GalleryApp> {
               ),
             );
           },
-          home: MorphNavigationStack(
-            navigatorKey: widget.navigatorKey,
-            home: const GalleryHome(),
-          ),
+          home:
+              widget.home ??
+              MorphNavigationStack(
+                navigatorKey: widget.navigatorKey,
+                home: const GalleryHome(),
+              ),
         );
       },
     );
