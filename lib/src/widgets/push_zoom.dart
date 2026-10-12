@@ -359,9 +359,10 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
   }
 }
 
-/// The page's content crossfaded with its source's look: the content
-/// follows the motion on live render objects, and the crossfade builds
-/// again only while the source's look shows.
+/// The page's content crossfaded with its source's look: the content and
+/// the look's fade follow the motion on live render objects, and the
+/// crossfade builds again only when the look appears, leaves or changes
+/// size.
 class _ZoomCrossfade extends StatefulWidget {
   const _ZoomCrossfade({
     required this.frames,
@@ -417,15 +418,9 @@ class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
 
   bool get _closing => !widget.motion.isOpening;
 
-  // The crossfade's own opacity for the source's look is a plain value, so
-  // it builds again whenever that look shows and its fade moves.
   Object? _inputsNow() {
-    final source = widget.source;
-    final lost = source.isLost;
     final size = widget.motion.source.size;
-    final fade = _fade;
-    final shows = !lost && source.tag != null && fade < 1 && !size.isEmpty;
-    return (lost, _closing, size, shows ? fade : null);
+    return (size, widget.source.showsLook(_fade, size));
   }
 
   @override
@@ -435,10 +430,10 @@ class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
     final motion = widget.motion;
     final size = widget.size;
     return widget.source.crossfade(
-      fade: _fade,
+      live: frames,
+      fadeOf: () => _fade,
       size: motion.source.size,
-      closing: _closing,
-      content: (double _) => MorphLivePositionedTemplate(
+      content: MorphLivePositionedTemplate(
         live: frames,
         template: () => Positioned(
           left: (widget.rect().width - size.width) / 2,

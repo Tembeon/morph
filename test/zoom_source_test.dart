@@ -206,4 +206,70 @@ void main() {
     expect(fades, everyElement(1.0));
     expect(tester.takeException(), isNull);
   });
+
+  for (final sheet in [true, false]) {
+    testWidgets(
+      '${sheet ? 'sheet' : 'page'} zoom fades its source look without '
+      'rebuilding the crossfade',
+      (tester) async {
+        late BuildContext context;
+        await tester.pumpWidget(
+          MorphScope(
+            child: MaterialApp(
+              home: Builder(
+                builder: (c) {
+                  context = c;
+                  return const Center(
+                    child: MorphTag(
+                      id: 'source',
+                      child: SizedBox(
+                        width: 100,
+                        height: 80,
+                        child: Text('look'),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+        final crossfade = sheet ? '_SheetZoomCrossfade' : '_ZoomCrossfade';
+        var builds = 0;
+        final previous = debugOnRebuildDirtyWidget;
+        debugOnRebuildDirtyWidget = (Element e, bool _) {
+          if (e.widget.runtimeType.toString() == crossfade) builds++;
+        };
+        addTearDown(() => debugOnRebuildDirtyWidget = previous);
+        if (sheet) {
+          unawaited(
+            presentMorphSheet<void>(
+              context,
+              from: 'source',
+              detents: const [MorphSheetDetent.medium],
+              builder: (_) => const Text('content'),
+            ),
+          );
+        } else {
+          pushMorphZoom<void>(
+            context,
+            from: 'source',
+            builder: (_) => const SizedBox.expand(child: Text('content')),
+          ).ignore();
+        }
+        await tester.pump();
+        final looks = <double>{};
+        for (var i = 0; i < 40; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          for (final r in tester.allRenderObjects.whereType<RenderOpacity>()) {
+            if (r.opacity > 0 && r.opacity < 1) looks.add(r.opacity);
+          }
+        }
+        await tester.pumpAndSettle();
+        expect(looks.length, greaterThan(5));
+        expect(builds, lessThanOrEqualTo(4));
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }

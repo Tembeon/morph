@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/themes.dart';
 
@@ -103,24 +104,36 @@ class MorphZoomSource {
     return ((progress / start - 0.5) * 2).clamp(0.0, 1.0);
   }
 
-  /// Crossfades source pixels with content laid out by [content].
+  /// Whether [crossfade] shows the source's look at [fade] in a container
+  /// of [size].
+  ///
+  /// A caller rebuilds the crossfade when this flips; between flips the
+  /// look's opacity follows the motion without a build.
+  bool showsLook(double fade, Size size) =>
+      !isLost && tag != null && fade < 1 && !size.isEmpty;
+
+  /// Crossfades the source's look over [content].
+  ///
+  /// The look fills a container of [size] and fades by `1 - fadeOf()`,
+  /// read again on every notification of [live], so the result builds
+  /// again only when [showsLook] or [size] changes.
   Widget crossfade({
-    required Widget Function(double opacity) content,
-    required double fade,
+    required Listenable? live,
+    required double Function() fadeOf,
     required Size size,
-    required bool closing,
+    required Widget content,
   }) {
     final source = tag;
-    final lost = isLost;
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        content(lost && closing ? 1 : fade),
-        if (!lost && source != null && fade < 1 && !size.isEmpty)
+        content,
+        if (source != null && showsLook(fadeOf(), size))
           Positioned.fill(
             child: IgnorePointer(
-              child: Opacity(
-                opacity: 1 - fade,
+              child: MorphLiveOpacity(
+                live: live,
+                opacityOf: () => (1 - fadeOf()).clamp(0.0, 1.0),
                 child: ExcludeFocus(
                   child: ExcludeSemantics(
                     child: FittedBox(

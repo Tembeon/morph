@@ -1116,9 +1116,9 @@ extension on _SheetViewState {
   }
 }
 
-/// The sheet crossfaded with its source's look: the sheet follows the
-/// zoom on live render objects, and the crossfade builds again only when
-/// what it is built from changes.
+/// The sheet crossfaded with its source's look: the sheet and the look's
+/// fade follow the zoom on live render objects, and the crossfade builds
+/// again only when the look appears, leaves or changes size.
 class _SheetZoomCrossfade extends StatefulWidget {
   const _SheetZoomCrossfade({
     required this.frames,
@@ -1160,32 +1160,22 @@ class _SheetZoomCrossfadeState extends State<_SheetZoomCrossfade> {
     super.dispose();
   }
 
-  // The source's look fades by a plain value, so the crossfade builds
-  // again on every frame that look shows and its fade moves.
   Object? _inputsNow() {
     final frame = widget.frame();
-    final shows =
-        !frame.lost &&
-        widget.source.tag != null &&
-        frame.fade < 1 &&
-        !frame.sourceSize.isEmpty;
     return (
-      frame.lost,
-      frame.closing,
       frame.sourceSize,
-      shows ? frame.fade : null,
+      widget.source.showsLook(frame.fade, frame.sourceSize),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     _sync.read();
-    final frame = widget.frame();
     return widget.source.crossfade(
-      fade: frame.fade,
-      size: frame.sourceSize,
-      closing: frame.closing,
-      content: (double _) => widget.content,
+      live: widget.frames,
+      fadeOf: () => widget.frame().fade,
+      size: widget.frame().sourceSize,
+      content: widget.content,
     );
   }
 }
