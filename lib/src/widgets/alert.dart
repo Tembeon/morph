@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
@@ -271,7 +272,9 @@ Future<MorphAlertAction?> showMorphActionSheet(
 /// as a real navigator route, so the back button, `Navigator.pop` and pop
 /// scopes work as on any route.
 class MorphAlertRoute extends PopupRoute<MorphAlertAction>
-    with MorphMotionRouteMixin<MorphAlertAction> {
+    with
+        MorphMotionRouteMixin<MorphAlertAction>,
+        GlassBackdropCacheRoute<MorphAlertAction> {
   /// Creates the route.
   MorphAlertRoute({
     this.title,
@@ -337,7 +340,10 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
     Animation<double> animation,
     Animation<double> secondaryAnimation,
   ) {
-    final view = _AlertView(route: this);
+    final view = GlassBackdropCacheScope(
+      cache: backdropCache,
+      child: _AlertView(route: this),
+    );
     return _themes?.install(view) ?? view;
   }
 
@@ -769,6 +775,9 @@ class _AlertViewState extends State<_AlertView>
             style.dimmingColor.a *
             MorphAlertTuning.dimmingOpacity *
             motion.dimming(t);
+        _route.backdropCache.overlay = style.dimmingColor.withValues(
+          alpha: dim,
+        );
         return Stack(
           children: [
             Positioned.fill(

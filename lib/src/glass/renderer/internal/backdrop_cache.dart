@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 
@@ -13,16 +14,19 @@ bool debugMorphBackdropCache = const bool.fromEnvironment(
 /// How many copies every [GlassBackdropCache] took, for a bench report.
 int debugMorphBackdropCacheCaptures = 0;
 
-/// A copy of what lies under a glass surface, taken in the frame it is
-/// drawn, and reused while nothing under the surface changes.
+/// A copy of what lies under a glass surface, reused while nothing the
+/// surface samples has changed since it was taken.
 ///
 /// [source] names the repaint boundary that holds everything under the
-/// surface (the page below a sheet). While its layers stay the same, the
-/// frosted copy is still exact and the glass paints over it with no
-/// backdrop read; when they change, the copy is taken again before the
-/// frame composites, so the glass never shows an older frame. [overlay] is
-/// a uniform color painted between the source and the glass (a dimming),
-/// which the glass shader composites itself.
+/// surface (the page below a sheet). The copy is taken after a frame, from
+/// that frame's layers, and serves a later frame only while the source's
+/// layers that reach the surface are the same ones: the copy is then
+/// exactly what the backdrop would hold. A frame whose source changed reads
+/// its backdrop as before; a copy is taken after the source has stayed the
+/// same for a frame, so continuous motion under the surface costs no
+/// copies. The glass never shows an older frame. [overlay] is a uniform
+/// color painted between the source and the glass (a dimming), which the
+/// glass shader composites itself.
 @internal
 class GlassBackdropCache {
   /// Creates a cache over [source].
@@ -37,17 +41,32 @@ class GlassBackdropCache {
   ui.Image? _image;
   List<Object?> _signature = const [];
   double _sigma = -1;
+  List<Object?>? _previous;
+  bool _capturing = false;
 
   /// How many copies the cache has taken.
   @visibleForTesting
   int debugCaptures = 0;
 
-  /// The frosted copy of the source for this frame, aligned to the screen
-  /// at [devicePixelRatio], or null when the source cannot be copied (it
-  /// is missing, not a composited boundary, or not at the screen origin).
+  /// Whether the source can be copied: built, composited and at the
+  /// screen origin. Glass reads its backdrop as before while it cannot.
+  bool get ready => _boundary() != null;
+
+  RenderBox? _boundary() {
+    final boundary = source();
+    if (boundary == null || !boundary.attached || boundary is! RenderBox) {
+      return null;
+    }
+    // ignore: invalid_use_of_protected_member
+    if (boundary.layer is! OffsetLayer) return null;
+    return _isOrigin(boundary.getTransformTo(null)) ? boundary : null;
+  }
+
+  /// The frosted copy of the source if it is still exact for this frame,
+  /// aligned to the screen at [devicePixelRatio]; else null, and the glass
+  /// reads its backdrop this frame.
   ///
   /// Call it while the frame composites: the source's layers are final.
-  ///
   /// Only what the source draws inside [region] (screen logical pixels:
   /// everything the glass may sample, frost and refraction included) can
   /// invalidate the copy; the copy itself is the whole source.
@@ -56,23 +75,43 @@ class GlassBackdropCache {
     required double devicePixelRatio,
     required Rect region,
   }) {
-    final boundary = source();
-    if (boundary == null || !boundary.attached || boundary is! RenderBox) {
-      return null;
-    }
+    final boundary = _boundary();
+    if (boundary == null) return null;
     // ignore: invalid_use_of_protected_member
-    final layer = boundary.layer;
-    if (layer is! OffsetLayer) return null;
-    final screen = boundary.getTransformTo(null);
-    if (!_isOrigin(screen)) return null;
+    final layer = boundary.layer! as OffsetLayer;
     final signature = <Object?>[];
     _sign(layer, region, signature);
     if (_image != null && sigma == _sigma && _same(signature, _signature)) {
+      _previous = signature;
       return _image;
     }
-    final size = boundary.size;
+    final previous = _previous;
+    _previous = signature;
+    if (previous != null && _same(signature, previous) && !_capturing) {
+      _capturing = true;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        _capturing = false;
+        _capture(signature, sigma, devicePixelRatio);
+      });
+    }
+    return null;
+  }
+
+  // Copies the source as the frame that just composited left it; nothing
+  // paints between compositing and the post-frame callbacks.
+  void _capture(
+    List<Object?> signature,
+    double sigma,
+    double devicePixelRatio,
+  ) {
+    // Released since the request: the surface is gone.
+    if (_previous == null) return;
+    final boundary = _boundary();
+    if (boundary == null) return;
+    // ignore: invalid_use_of_protected_member
+    final layer = boundary.layer! as OffsetLayer;
     final raw = layer.toImageSync(
-      Offset.zero & size,
+      Offset.zero & boundary.size,
       pixelRatio: devicePixelRatio,
     );
     var image = raw;
@@ -97,7 +136,6 @@ class GlassBackdropCache {
     _sigma = sigma;
     debugCaptures++;
     debugMorphBackdropCacheCaptures++;
-    return image;
   }
 
   /// Releases the copy.
@@ -105,6 +143,7 @@ class GlassBackdropCache {
     _image?.dispose();
     _image = null;
     _signature = const [];
+    _previous = null;
   }
 
   static bool _isOrigin(Matrix4 m) {
@@ -248,6 +287,74 @@ class GlassBackdropCache {
     }
 
     walk(root, Matrix4.identity(), null, const []);
+  }
+}
+
+/// The repaint boundary that holds [route]'s page, or null when [route] is
+/// not a modal route or is not built.
+///
+/// A presentation over a page names the page's route (the route below a
+/// sheet or an alert, the route of the control a menu opens from); the
+/// boundary is the source of its [GlassBackdropCache].
+@internal
+RenderObject? glassRouteBoundary(Route<Object?>? route) {
+  if (route is! ModalRoute<Object?>) return null;
+  RenderObject? node = route.subtreeContext?.findRenderObject();
+  while (node != null && !node.isRepaintBoundary) {
+    node = node.parent;
+  }
+  return node;
+}
+
+/// The route of [overlay]'s navigator that [context] lies in: the page an
+/// overlay presentation opened from [context] floats over, with everything
+/// that navigator's page draws (nested navigators and their bars), or null.
+@internal
+ModalRoute<Object?>? glassRouteUnder(
+  BuildContext context,
+  OverlayState overlay,
+) {
+  var at = context;
+  while (true) {
+    final route = ModalRoute.of(at);
+    final navigator = route?.navigator;
+    if (route == null || navigator == null) return null;
+    if (identical(navigator.overlay, overlay)) return route;
+    at = navigator.context;
+  }
+}
+
+/// A presentation route whose glass reads a [GlassBackdropCache] of the
+/// page below it.
+///
+/// The cache's source is the route below while that route is opaque: a
+/// translucent route below (another presentation, still closing) shows a
+/// page of its own under it, which its boundary does not hold, and the
+/// glass then reads its backdrop as before.
+@internal
+mixin GlassBackdropCacheRoute<T> on ModalRoute<T> {
+  Route<Object?>? _below;
+
+  /// The cache of the page below; hand it to the route's glass with a
+  /// [GlassBackdropCacheScope].
+  late final GlassBackdropCache backdropCache = GlassBackdropCache(
+    source: () {
+      final below = _below;
+      if (below is! ModalRoute<Object?> || !below.opaque) return null;
+      return glassRouteBoundary(below);
+    },
+  );
+
+  @override
+  void didChangePrevious(Route<Object?>? previousRoute) {
+    super.didChangePrevious(previousRoute);
+    _below = previousRoute;
+  }
+
+  @override
+  void dispose() {
+    backdropCache.dispose();
+    super.dispose();
   }
 }
 

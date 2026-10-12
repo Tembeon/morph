@@ -153,7 +153,8 @@ Future<T?> presentMorphSheet<T>(
 /// The route [presentMorphSheet] pushes: the sheet as a real navigator
 /// route, so the back button, `Navigator.pop` and pop scopes work as on
 /// any route.
-class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T> {
+class MorphSheetRoute<T> extends PopupRoute<T>
+    with MorphMotionRouteMixin<T>, GlassBackdropCacheRoute<T> {
   /// Creates the route.
   MorphSheetRoute({
     required this.builder,
@@ -206,36 +207,6 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T> {
   final String? semanticLabel;
 
   _SheetViewState? _view;
-
-  Route<Object?>? _below;
-
-  @override
-  void didChangePrevious(Route<Object?>? previousRoute) {
-    super.didChangePrevious(previousRoute);
-    _below = previousRoute;
-  }
-
-  // The repaint boundary of the page under the sheet: everything the
-  // sheet's glass reads besides the dimming.
-  RenderObject? _belowBoundary() {
-    final below = _below;
-    if (below is! ModalRoute<Object?>) return null;
-    RenderObject? node = below.subtreeContext?.findRenderObject();
-    while (node != null && !node.isRepaintBoundary) {
-      node = node.parent;
-    }
-    return node;
-  }
-
-  late final GlassBackdropCache _backdropCache = GlassBackdropCache(
-    source: _belowBoundary,
-  );
-
-  @override
-  void dispose() {
-    _backdropCache.dispose();
-    super.dispose();
-  }
 
   @override
   Color? get barrierColor => null;
@@ -737,7 +708,7 @@ class _SheetViewState extends State<_SheetView>
         _layout(size, padding);
         final motion = _motion!;
         return GlassBackdropCacheScope(
-          cache: _route._backdropCache,
+          cache: _route.backdropCache,
           child: ListenableBuilder(
             listenable: frames,
             child: GlassBackdropCacheScope(
@@ -780,7 +751,7 @@ class _SheetViewState extends State<_SheetView>
               );
               final dimOpacity =
                   style.dimmingColor.a * MorphSheetTuning.dimmingOpacity * dim;
-              _route._backdropCache.overlay = style.dimmingColor.withValues(
+              _route.backdropCache.overlay = style.dimmingColor.withValues(
                 alpha: dim > 0 ? dimOpacity : 0,
               );
               final scrub = _zooming ? null : _scrubAt(t);

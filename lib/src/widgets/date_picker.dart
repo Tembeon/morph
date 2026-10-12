@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -592,7 +593,8 @@ class _LabelHighlight extends Animation<double> {
   void removeStatusListener(AnimationStatusListener listener) {}
 }
 
-class _DatePickerRoute extends PopupRoute<void> {
+class _DatePickerRoute extends PopupRoute<void>
+    with GlassBackdropCacheRoute<void> {
   _DatePickerRoute({
     required this.picker,
     required this.part,
@@ -634,7 +636,12 @@ class _DatePickerRoute extends PopupRoute<void> {
     BuildContext context,
     Animation<double> animation,
     Animation<double> secondaryAnimation,
-  ) => themes.install(_OverlayView(route: this));
+  ) => themes.install(
+    GlassBackdropCacheScope(
+      cache: backdropCache,
+      child: _OverlayView(route: this),
+    ),
+  );
 
   @override
   bool didPop(void result) {

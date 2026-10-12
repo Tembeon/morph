@@ -377,7 +377,11 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
               backdropKey: backdropKey,
               blursOwnBackdrop: widget.blursOwnBackdrop,
               solidBackdrop: widget.solidBackdrop,
-              backdropCache: GlassBackdropCacheScope.maybeOf(context),
+              // A keyed group reads its own copy on purpose (glass painted
+              // in between belongs in it); only an unkeyed read is cached.
+              backdropCache: backdropKey == null
+                  ? GlassBackdropCacheScope.maybeOf(context)
+                  : null,
               live: live,
               settingsOf: () => widget.settings,
               defaultAppearance: defaultAppearance,
@@ -2073,10 +2077,15 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     markNeedsPaint();
   }
 
-  bool get _cachesBackdrop =>
+  // Decided when the layer paints; the copy itself is taken while the
+  // frame composites.
+  bool _cachesBackdrop = false;
+
+  bool get _wantsCachedBackdrop =>
       _backdropCache != null &&
       debugMorphBackdropCache &&
-      debugGlassCostProbe == GlassCostProbe.off;
+      debugGlassCostProbe == GlassCostProbe.off &&
+      _backdropCache!.ready;
 
   Color? _solidBackdrop;
 
@@ -2243,7 +2252,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _filterMaterialBounds = materialBounds;
     _filterPaintOffset = offset;
     debugFilterBounds = filterBounds;
-    if (_cachesBackdrop) return filterBounds;
     if (_solid case final solid?) {
       _recordSolidMaterial(solid, filterBounds, offset);
       return filterBounds;
@@ -2292,8 +2300,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       _releaseCompositorFilter();
       return;
     }
+    _cachesBackdrop = _wantsCachedBackdrop;
     if (_cachesBackdrop) {
-      _releaseBackdropFilter();
+      // The filter stays ready: a frame whose copy is not exact reads the
+      // backdrop through it. Compositing picks the path.
+      _seedClipHandle.layer = null;
+      _seedHandle.layer = null;
       _syncMaterialFilter(materialBounds, offset);
       context.addLayer(_solidHandle.layer ??= ContainerLayer());
       return;
@@ -2422,7 +2434,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       return;
     }
     runCompositorPoll();
-    if (_cachesBackdrop) _recordCachedMaterial();
+    if (_backdropCache != null && _cachesBackdrop != _wantsCachedBackdrop) {
+      // The source came or went: paint picks the path again next frame.
+      markNeedsPaint();
+    } else if (_cachesBackdrop) {
+      _composeCachedBackdrop();
+    }
     _compositingScreen = null;
     _phaseMoved = false;
   }
@@ -2432,12 +2449,30 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // (the canvas undoes the layer's transform), so the shader's fragment
   // coordinates are the screen coordinates its filter mapping expects and
   // the copy is sampled where the backdrop filter would have read.
-  void _recordCachedMaterial() {
+  void _composeCachedBackdrop() {
     final slot = _solidHandle.layer;
     final bounds = _filterMaterialBounds;
     if (slot == null || bounds == null) return;
     slot.removeAllChildren();
     if (drawableEmpty) return;
+    if (_recordCachedMaterial(slot, bounds)) return;
+    // No exact copy this frame: the backdrop filter, its mapping synced to
+    // this frame's transform.
+    final offset = _filterPaintOffset;
+    final filterBounds = _syncMaterialFilter(bounds, offset);
+    final shaderLayer = _shaderHandle.layer;
+    if (shaderLayer == null) return;
+    final clip = _clipRectLayerHandle.layer ??= ClipRectLayer();
+    clip.clipRect = filterBounds.shift(offset);
+    clip.clipBehavior = Clip.hardEdge;
+    if (!identical(shaderLayer.parent, clip)) {
+      shaderLayer.remove();
+      clip.append(shaderLayer);
+    }
+    slot.append(clip);
+  }
+
+  bool _recordCachedMaterial(ContainerLayer slot, Rect bounds) {
     final cache = _backdropCache!;
     final dpr = devicePixelRatio;
     final translation = compositorTranslation;
@@ -2457,7 +2492,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         3 * sigma + settings.effectiveRefractionAmount + 2,
       ),
     );
-    if (image == null) return;
+    if (image == null) return false;
     syncCoordinateMapping();
     final shader = renderShader;
     shader.setFloat(0, image.width.toDouble());
@@ -2488,7 +2523,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       ),
     );
     final screenToCanvas = Matrix4.zero();
-    if (screenToCanvas.copyInverse(canvasToScreen) == 0) return;
+    if (screenToCanvas.copyInverse(canvasToScreen) == 0) return false;
     screenToCanvas.multiply(Matrix4.diagonal3Values(1 / dpr, 1 / dpr, 1));
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
@@ -2502,6 +2537,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     );
     picture.picture = recorder.endRecording();
     slot.append(picture);
+    return true;
   }
 
   @override

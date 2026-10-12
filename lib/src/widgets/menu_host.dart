@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/flight.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/motion.dart';
 import 'package:morph/src/show.dart';
 import 'package:morph/src/target.dart';
@@ -65,6 +66,17 @@ class MorphMenuController implements MorphMenuHost {
   final ValueChanged<MorphFlight>? onOpen;
   final ValueNotifier<int> _repaint = ValueNotifier<int>(0);
   OverlayState? _overlay;
+
+  // The page the menu floats over, for the menu face's glass.
+  late final GlassBackdropCache _backdropCache = GlassBackdropCache(
+    source: () {
+      final context = scopeContext();
+      final overlay = _overlay;
+      if (context == null || !context.mounted || overlay == null) return null;
+      final route = glassRouteUnder(context, overlay);
+      return route != null && route.opaque ? glassRouteBoundary(route) : null;
+    },
+  );
   MorphMenuMotion? _motion;
   MorphFlight? _flight;
   int? _pointer;
@@ -253,7 +265,10 @@ class MorphMenuController implements MorphMenuHost {
         rectFor: (Size size, EdgeInsets padding) => motion.menuRect,
       ),
       builder: (BuildContext context, MorphFlight flight) =>
-          MorphMenuLayer(host: this, flight: flight),
+          GlassBackdropCacheScope(
+            cache: _backdropCache,
+            child: MorphMenuLayer(host: this, flight: flight),
+          ),
       motion: MorphMotion.springs(
         name: 'menu',
         open: tuning.openSpring,
@@ -268,7 +283,10 @@ class MorphMenuController implements MorphMenuHost {
     _flight = flight;
     flight.closed.whenComplete(() {
       flight.frameTicks.removeListener(_advanceDetached);
-      if (identical(_flight, flight)) _flight = null;
+      if (identical(_flight, flight)) {
+        _flight = null;
+        _backdropCache.dispose();
+      }
       if (_disposed && _flight == null) _disposeRepaint();
     });
     onOpen?.call(flight);
@@ -438,6 +456,7 @@ class MorphMenuController implements MorphMenuHost {
   }
 
   void _disposeRepaint() {
+    _backdropCache.dispose();
     if (_repaintDisposed) return;
     _repaintDisposed = true;
     _repaint.dispose();
