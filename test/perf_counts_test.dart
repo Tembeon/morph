@@ -23,6 +23,8 @@ import 'support/glass_scenes.dart';
 /// an optimization may lower them, nothing may raise them. Rewrite the
 /// fixture with `PERF_COUNTS_UPDATE=true flutter test
 /// test/perf_counts_test.dart` after a change that lowers a count.
+/// `PERF_COUNTS_OWNERS=true` also prints, per scene, the widgets that
+/// built during the run and how often.
 ///
 /// flutter_test has no Impeller, so the liquid tier builds its real widget
 /// and render tree but paints through the renderer's fallback: captures
@@ -30,6 +32,7 @@ import 'support/glass_scenes.dart';
 void main() {
   final fixture = File('test/fixtures/perf/counts.json');
   final update = Platform.environment['PERF_COUNTS_UPDATE'] == 'true';
+  final owners = Platform.environment['PERF_COUNTS_OWNERS'] == 'true';
   final pinned = fixture.existsSync()
       ? (jsonDecode(fixture.readAsStringSync()) as Map<String, Object?>)
       : <String, Object?>{};
@@ -83,6 +86,14 @@ void main() {
         counter.start();
         await scene.run(tester);
         counter.stop();
+        if (owners) {
+          final built = counter.owners.entries.toList();
+          built.sort((a, b) => b.value.compareTo(a.value));
+          debugPrint(
+            '$name builds: '
+            '${[for (final e in built.take(8)) '${e.key} ${e.value}'].join(', ')}',
+          );
+        }
         await _settle(tester);
         final idle = await _idleFrames(tester);
         final result = counter.result(idle);
@@ -138,6 +149,9 @@ class _Counter {
   final WidgetTester tester;
   int _frames = 0;
   int _builds = 0;
+
+  /// How often each widget type built while counting.
+  final Map<String, int> owners = {};
   int _paints = 0;
   int _pictures = 0;
   int _captures = 0;
@@ -153,6 +167,8 @@ class _Counter {
     _traceStart = morphGlassOutlineDebugTraces;
     debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
       _frameBuilds++;
+      final type = element.widget.runtimeType.toString();
+      owners[type] = (owners[type] ?? 0) + 1;
     };
     debugOnProfilePaint = (RenderObject object) {
       _framePaints++;
