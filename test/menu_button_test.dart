@@ -1565,10 +1565,8 @@ void main() {
     final filters = <String>[];
     for (var i = 0; i < 24; i++) {
       await tester.pump(const Duration(microseconds: 8333));
-      for (final widget in tester.widgetList<ImageFiltered>(
-        find.byType(ImageFiltered),
-      )) {
-        if (widget.enabled) filters.add('${widget.imageFilter}');
+      for (final layer in _layers<ImageFilterLayer>(tester)) {
+        filters.add('${layer.imageFilter}');
       }
     }
     expect(filters, isNotEmpty);
@@ -1591,8 +1589,19 @@ void main() {
       await tester.pump(const Duration(microseconds: 8333));
       final copy = find.text('Copy');
       if (copy.evaluate().isEmpty) continue;
-      final clip = find.ancestor(of: copy, matching: find.byType(ClipRRect));
-      heights.add(tester.getRect(clip.last).height);
+      Element? clip;
+      tester.element(copy).visitAncestorElements((Element element) {
+        if (element is RenderObjectElement &&
+            element.renderObject is RenderClipRRect) {
+          clip = element;
+        }
+        return true;
+      });
+      heights.add(
+        tester
+            .getRect(find.byElementPredicate((Element e) => identical(e, clip)))
+            .height,
+      );
     }
     expect(heights, hasLength(3));
     expect(heights[0], greaterThan(24), reason: 'no held first frame');
@@ -1919,3 +1928,23 @@ const List<double> _closeSourceKickOracle = [
   0.005,
   0,
 ];
+
+/// The layers of type [T] in the tree the last frame painted.
+List<T> _layers<T extends Layer>(WidgetTester tester) {
+  final found = <T>[];
+  void walk(Layer layer) {
+    if (layer is T) found.add(layer);
+    if (layer is ContainerLayer) {
+      for (
+        var child = layer.firstChild;
+        child != null;
+        child = child.nextSibling
+      ) {
+        walk(child);
+      }
+    }
+  }
+
+  walk(tester.binding.renderViews.first.debugLayer!);
+  return found;
+}

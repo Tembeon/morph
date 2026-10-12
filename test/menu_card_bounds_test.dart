@@ -41,10 +41,7 @@ Finder _card(int index) => find.descendant(
 );
 
 Rect _rect(WidgetTester tester, int index) {
-  final transform = find
-      .descendant(of: _card(index), matching: find.byType(Transform))
-      .first;
-  final render = tester.renderObject<RenderTransform>(transform);
+  final render = tester.renderObject<RenderTransform>(_card(index));
   final child = render.child!;
   return MatrixUtils.transformRect(
     child.getTransformTo(null),

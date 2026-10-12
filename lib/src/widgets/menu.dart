@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -477,11 +478,61 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
 
   MorphFlight? get _flight => _host.flight;
 
+  // The button's tree is built from this; every other frame only pushes
+  // the press scale and the landing shapes into its render objects.
+  final ValueNotifier<_ButtonStructure> _structure =
+      ValueNotifier<_ButtonStructure>((landing: false, still: true));
+  final _Ticks _ticks = _Ticks();
+  bool _syncing = false;
+  double _pressScale = 1;
+  _Shapes? _landingShapes;
+  bool _faceWithField = false;
+
+  // Synced once per frame after every ticker ran, as a build would read
+  // them: the flight hands the source back on its own ticker.
+  void _scheduleSync() {
+    if (_syncing) return;
+    _syncing = true;
+    scheduleMicrotask(() {
+      _syncing = false;
+      if (!mounted) return;
+      _syncValues();
+      _ticks.notify();
+    });
+  }
+
+  void _syncValues() {
+    final motion = _motion;
+    final landing = motion != null && _landing;
+    final still = _still();
+    _structure.value = (landing: landing, still: still);
+    _pressScale = landing || still ? 1 : motion?.pressScale ?? 1;
+    if (landing) _landingShapes = _landingNow(motion);
+  }
+
+  _Shapes _landingNow(MorphMenuMotion motion) {
+    final origin = -motion.button.topLeft;
+    final source = motion.buttonBlob;
+    return (
+      menu: motion.menuBlob.rrect.shift(origin),
+      source: source.rrect.shift(origin),
+      sourceRect: source.rect.shift(origin),
+      sourceScale: source.scale,
+      lookStretch: 1,
+      look: (opacity: 1, blur: 0),
+      outline: _silhouetteAt(
+        motion.silhouetteFor(withField: _faceWithField),
+        origin,
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
     _content.entries = widget.items;
     _content.order = widget.order;
+    frames.addListener(_scheduleSync);
   }
 
   @override
@@ -509,7 +560,10 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
 
   @override
   void dispose() {
+    frames.removeListener(_scheduleSync);
     _host.dispose();
+    _structure.dispose();
+    _ticks.dispose();
     super.dispose();
   }
 
@@ -580,11 +634,16 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
 
   ({MorphMenuStyle style, Widget glyph, bool still, Widget face})? _resting;
 
-  Widget _face(BuildContext context, MorphMenuStyle style, Widget glyph) {
+  Widget _face(
+    BuildContext context,
+    MorphMenuStyle style,
+    Widget glyph,
+    _ButtonStructure structure,
+  ) {
     final motion = _motion;
-    if (motion == null || !_landing) {
+    if (motion == null || !structure.landing) {
       final resting = _resting;
-      final still = _still();
+      final still = structure.still;
       if (resting != null &&
           identical(resting.style, style) &&
           identical(resting.glyph, glyph) &&
@@ -592,31 +651,35 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         return resting.face;
       }
       final box = Offset.zero & Size.square(style.buttonSize);
+      final _Shapes shapes = (
+        menu: null,
+        source: RRect.fromRectAndRadius(box, Radius.circular(box.width / 2)),
+        sourceRect: box,
+        sourceScale: 1,
+        lookStretch: 1,
+        look: (opacity: 1, blur: 0),
+        outline: null,
+      );
       final face = _MenuShapes(
         style: style,
         glyph: glyph,
-        source: RRect.fromRectAndRadius(box, Radius.circular(box.width / 2)),
-        sourceRect: box,
+        shapes: () => shapes,
         still: still,
       );
       _resting = (style: style, glyph: glyph, still: still, face: face);
       return face;
     }
-    final origin = -motion.button.topLeft;
-    final source = motion.buttonBlob;
+    final withField = morphGlassShadesOutlines(MorphGlass.maybeOf(context));
+    if (withField != _faceWithField || _landingShapes == null) {
+      _faceWithField = withField;
+      _landingShapes = _landingNow(motion);
+    }
     return _MenuShapes(
       style: style,
       glyph: glyph,
-      menu: motion.menuBlob.rrect.shift(origin),
-      source: source.rrect.shift(origin),
-      sourceRect: source.rect.shift(origin),
-      sourceScale: source.scale,
-      outline: _silhouetteAt(
-        motion.silhouetteFor(
-          withField: morphGlassShadesOutlines(MorphGlass.maybeOf(context)),
-        ),
-        origin,
-      ),
+      frames: _ticks,
+      shapes: () => _landingShapes!,
+      menu: true,
     );
   }
 
@@ -656,6 +719,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         if (!flight.isFinished) flight.markNeedsBuild();
       });
     }
+    _syncValues();
     final enabled = widget.enabled;
     final glyph = _glyphFor(style, enabled);
     final Widget button = ListenableBuilder(
@@ -677,12 +741,9 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         onPointerCancel: _host.menuPointerCancel,
         child: SizedBox.square(
           dimension: style.buttonSize,
-          child: ListenableBuilder(
-            listenable: frames,
-            builder: (BuildContext context, Widget? child) => Transform.scale(
-              scale: _landing || _still() ? 1 : _motion?.pressScale ?? 1,
-              child: child,
-            ),
+          child: _Driven(
+            frames: _ticks,
+            template: () => Transform.scale(scale: _pressScale),
             child: Builder(
               builder: (BuildContext context) {
                 _scopeContext = context;
@@ -690,10 +751,14 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
                   id: _tagId,
                   shape: const CircleBorder(),
                   surfaceColor: style.glassColor,
-                  child: ListenableBuilder(
-                    listenable: frames,
-                    builder: (BuildContext context, Widget? _) =>
-                        _face(context, style, glyph),
+                  child: ValueListenableBuilder<_ButtonStructure>(
+                    valueListenable: _structure,
+                    builder:
+                        (
+                          BuildContext context,
+                          _ButtonStructure structure,
+                          Widget? _,
+                        ) => _face(context, style, glyph, structure),
                   ),
                 );
               },
@@ -707,10 +772,33 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   }
 }
 
+/// What a menu button's tree is built from; it rebuilds only when this
+/// changes.
+typedef _ButtonStructure = ({bool landing, bool still});
+
+/// The opacity and blur of the button's look inside the shrinking source.
+typedef _Look = ({double opacity, double blur});
+
+/// Both shapes of the morph at one frame, in the coordinates of the box
+/// they are drawn in; [menu] is null for the resting button.
+typedef _Shapes = ({
+  RRect? menu,
+  RRect source,
+  Rect sourceRect,
+  double sourceScale,
+  double lookStretch,
+  _Look look,
+  MorphGlassOutline? outline,
+});
+
 /// Both shapes of the morph and the button's look inside the shrinking
-/// one, in the coordinates of the box this is laid out in; with no [menu]
-/// it is the resting button. An [outline] is the silhouette the two
-/// shapes fuse into; without one they are drawn as their union.
+/// one, in the coordinates of the box this is laid out in; without a
+/// [menu] it is the resting button. A silhouette in the [shapes] is the
+/// outline the two shapes fuse into; without one they are drawn as their
+/// union.
+///
+/// The [shapes] are read again on every notification of [frames]
+/// without a build; the tree changes only with the widget.
 ///
 /// The look fades only with a [look]: on the button (resting, or after
 /// the latch, where the progress is at or under zero) it is drawn
@@ -720,82 +808,92 @@ class _MenuShapes extends StatelessWidget {
   const _MenuShapes({
     required this.style,
     required this.glyph,
-    required this.source,
-    required this.sourceRect,
-    this.menu,
-    this.sourceScale = 1,
-    this.lookStretch = 1,
-    this.look,
+    required this.shapes,
+    this.frames,
+    this.menu = false,
+    this.look = false,
     this.content,
-    this.outline,
     this.menuBlur,
     this.still = false,
   });
 
   final MorphMenuStyle style;
   final Widget glyph;
-  final RRect? menu;
-  final RRect source;
-  final Rect sourceRect;
-  final double sourceScale;
-  final double lookStretch;
-  final ({double opacity, double blur})? look;
+  final _Shapes Function() shapes;
+  final Listenable? frames;
+  final bool menu;
+  final bool look;
   final Widget? content;
-  final MorphGlassOutline? outline;
   final double? menuBlur;
   final bool still;
 
   @override
   Widget build(BuildContext context) {
     final glass = MorphGlass.maybeOf(context);
-    final menu = this.menu;
     final content = this.content;
-    final look = this.look;
+    final frames = this.frames;
     final Widget glyph = Center(
-      child: Transform.scale(
-        scaleX: sourceScale * lookStretch,
-        scaleY: sourceScale,
+      child: _Driven(
+        frames: frames,
+        template: () {
+          final now = shapes();
+          return Transform.scale(
+            scaleX: now.sourceScale * now.lookStretch,
+            scaleY: now.sourceScale,
+          );
+        },
         child: MorphGlyphs(child: this.glyph),
       ),
     );
     final Widget surfaces;
     if (glass == null) {
-      surfaces = CustomPaint(
-        painter: _GlassPainter(
-          style: style,
-          menu: menu,
-          source: source,
-          outline: outline,
-        ),
+      surfaces = _Driven(
+        frames: frames,
+        template: () {
+          final now = shapes();
+          return CustomPaint(
+            painter: _GlassPainter(
+              style: style,
+              menu: now.menu,
+              source: now.source,
+              outline: now.outline,
+            ),
+          );
+        },
       );
     } else {
       final brightness = morphBrightnessOf(context);
       surfaces = MorphGlassHost(
         painter: glass,
         mode: MorphGlassMode.layer,
-        frame: () => MorphGlassFrame(
-          [
-            MorphGlassSurface(
-              kind: MorphGlassKind.button,
-              shape: source,
-              color: style.glassColor,
-              tint: style.glassTint,
-              blurRadius: menu == null ? null : menuBlur,
-              brightness: brightness,
-            ),
-            if (menu != null)
+        frames: frames,
+        frame: () {
+          final now = shapes();
+          final menu = now.menu;
+          return MorphGlassFrame(
+            [
               MorphGlassSurface(
-                kind: MorphGlassKind.menu,
-                shape: menu,
+                kind: MorphGlassKind.button,
+                shape: now.source,
                 color: style.glassColor,
                 tint: style.glassTint,
-                blurRadius: menuBlur,
+                blurRadius: menu == null ? null : menuBlur,
                 brightness: brightness,
               ),
-          ],
-          outline: menu == null ? null : outline,
-          still: still,
-        ),
+              if (menu != null)
+                MorphGlassSurface(
+                  kind: MorphGlassKind.menu,
+                  shape: menu,
+                  color: style.glassColor,
+                  tint: style.glassTint,
+                  blurRadius: menuBlur,
+                  brightness: brightness,
+                ),
+            ],
+            outline: menu == null ? null : now.outline,
+            still: still,
+          );
+        },
       );
     }
     return Stack(
@@ -803,12 +901,18 @@ class _MenuShapes extends StatelessWidget {
       children: [
         Positioned.fill(child: surfaces),
         ?content,
-        Positioned.fromRect(
-          rect: sourceRect,
+        _DrivenPositioned(
+          frames: frames,
+          template: () =>
+              Positioned.fromRect(rect: shapes().sourceRect, child: _slot),
           child: IgnorePointer(
-            child: look == null
-                ? glyph
-                : _Faded(opacity: look.opacity, blur: look.blur, child: glyph),
+            child: look
+                ? _Faded(
+                    frames: frames,
+                    look: () => shapes().look,
+                    child: glyph,
+                  )
+                : glyph,
           ),
         ),
       ],
@@ -816,45 +920,57 @@ class _MenuShapes extends StatelessWidget {
   }
 }
 
-/// [child] at [opacity] and blurred by [blur], drawn through one layer.
+/// [child] at the opacity of [look] and blurred by its blur, drawn
+/// through one layer, both read again on every notification of [frames].
 class _Faded extends StatelessWidget {
-  const _Faded({
-    required this.opacity,
-    required this.blur,
-    required this.child,
-  });
+  const _Faded({required this.frames, required this.look, required this.child});
 
-  final double opacity;
-  final double blur;
+  final Listenable? frames;
+  final _Look Function() look;
   final Widget child;
 
   static final ui.ImageFilter _none = ui.ImageFilter.blur(
     tileMode: TileMode.decal,
   );
 
+  static bool _blurred(_Look look) =>
+      look.blur > MorphMenuTuning.blurThreshold && look.opacity > 0;
+
   @override
   Widget build(BuildContext context) {
-    final blurred = blur > MorphMenuTuning.blurThreshold && opacity > 0;
-    return Opacity(
-      alwaysIncludeSemantics: true,
-      opacity: blurred ? 1 : opacity,
-      child: ImageFiltered(
-        enabled: blurred,
-        imageFilter: blurred
-            ? ui.ImageFilter.compose(
-                outer: ui.ColorFilter.matrix(<double>[
-                  1, 0, 0, 0, 0, //
-                  0, 1, 0, 0, 0, //
-                  0, 0, 1, 0, 0, //
-                  0, 0, 0, opacity, 0,
-                ]),
-                inner: ui.ImageFilter.blur(
-                  sigmaX: blur,
-                  sigmaY: blur,
-                  tileMode: TileMode.decal,
-                ),
-              )
-            : _none,
+    return _Driven(
+      frames: frames,
+      template: () {
+        final now = look();
+        return Opacity(
+          alwaysIncludeSemantics: true,
+          opacity: _blurred(now) ? 1 : now.opacity,
+        );
+      },
+      child: _Driven(
+        frames: frames,
+        template: () {
+          final now = look();
+          final blurred = _blurred(now);
+          return ImageFiltered(
+            enabled: blurred,
+            imageFilter: blurred
+                ? ui.ImageFilter.compose(
+                    outer: ui.ColorFilter.matrix(<double>[
+                      1, 0, 0, 0, 0, //
+                      0, 1, 0, 0, 0, //
+                      0, 0, 1, 0, 0, //
+                      0, 0, 0, now.opacity, 0,
+                    ]),
+                    inner: ui.ImageFilter.blur(
+                      sigmaX: now.blur,
+                      sigmaY: now.blur,
+                      tileMode: TileMode.decal,
+                    ),
+                  )
+                : _none,
+          );
+        },
         child: child,
       ),
     );
@@ -863,8 +979,10 @@ class _Faded extends StatelessWidget {
 
 /// The menu inside the vessel: both shapes, the content and the button's
 /// look, laid out over the whole overlay and drawn from the motion. The
-/// rows of each card are built once per layout of that card; every frame
-/// moves only the wrappers around them.
+/// rows of each card are built once per layout of that card, and the
+/// layer builds only when what it shows changes (cards, highlight, glow,
+/// whether the menu takes touches); every other frame pushes the motion's
+/// geometry into the render objects around them.
 @internal
 class MorphMenuLayer extends StatefulWidget {
   /// Creates the layer of [host]'s menu carried by [flight].
@@ -886,17 +1004,103 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   Expando<Widget> _rows = Expando<Widget>();
   final Expando<ValueNotifier<int?>> _hidden = Expando<ValueNotifier<int?>>();
   MorphMenuStyle? _rowsStyle;
+  final _Ticks _ticks = _Ticks();
+  Listenable? _source;
+  bool _syncing = false;
+  _LayerFrame? _frame;
+  _LayerStructure? _built;
+  bool _withField = false;
+  Brightness _brightness = Brightness.light;
 
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_scrolled);
+    _listen();
+  }
+
+  @override
+  void didUpdateWidget(MorphMenuLayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.host, widget.host) ||
+        !identical(oldWidget.flight, widget.flight)) {
+      _source?.removeListener(_scheduleSync);
+      _listen();
+    }
   }
 
   @override
   void dispose() {
+    _source?.removeListener(_scheduleSync);
+    _ticks.dispose();
     _scroll.dispose();
     super.dispose();
+  }
+
+  void _listen() {
+    final source = Listenable.merge([
+      widget.host.menuRepaint,
+      widget.flight.frameTicks,
+    ]);
+    _source = source;
+    source.addListener(_scheduleSync);
+  }
+
+  // Synced once per frame after every ticker ran, where a build would
+  // read the motion: a frame that changes the structure builds, every
+  // other one only pushes its geometry.
+  void _scheduleSync() {
+    if (_syncing) return;
+    _syncing = true;
+    scheduleMicrotask(() {
+      _syncing = false;
+      if (!mounted) return;
+      final structure = _update();
+      if (structure != _built) {
+        setState(() {});
+      } else {
+        _ticks.notify();
+      }
+    });
+  }
+
+  /// Reads the motion's frame and returns the structure it shows.
+  _LayerStructure? _update() {
+    final host = widget.host;
+    final motion = host.menuMotion;
+    if (motion == null) {
+      _frame = null;
+      return null;
+    }
+    final style = host.menuStyle;
+    final frame = _LayerFrame(
+      motion,
+      style: style,
+      brightness: _brightness,
+      withField: _withField,
+    );
+    _frame = frame;
+    host.menuRowsBlur.value = motion.contentBlur;
+    final cards = frame.cards;
+    for (var i = 0; i < cards.length; i++) {
+      _hiddenOf(cards[i].layout).value = i + 1 < cards.length
+          ? cards[i + 1].source
+          : null;
+    }
+    final visible = frame.visible;
+    return _LayerStructure(
+      motion: motion,
+      painter: host.menuGlass,
+      style: style,
+      open: motion.isOpen,
+      layouts: [for (final card in cards) card.layout],
+      faces: [for (var i = 1; i < cards.length; i++) frame.cardAt(i).faces],
+      highlighted: motion.highlighted,
+      highlightedCard: motion.highlightedCard,
+      sliding: motion.isSliding,
+      glow: frame.glow != null,
+      scrolls: cards.isNotEmpty && cards[0].layout.height > visible + 0.5,
+    );
   }
 
   void _scrolled() {
@@ -1016,111 +1220,110 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   @override
   Widget build(BuildContext context) {
     final host = widget.host;
-    final style = host.menuStyle;
     final glyph = host.menuGlyph;
-    return Semantics(
-      container: true,
-      explicitChildNodes: true,
-      role: ui.SemanticsRole.menu,
-      child: Focus(
-        autofocus: true,
-        onKeyEvent: _key,
-        child: ListenableBuilder(
-          listenable: Listenable.merge([
-            host.menuRepaint,
-            widget.flight.frameTicks,
-          ]),
-          builder: (BuildContext context, Widget? _) {
-            final motion = host.menuMotion;
-            if (motion == null) return const SizedBox.shrink();
-            final painter = host.menuGlass;
-            final menu = motion.menuBlob;
-            final source = motion.buttonBlob;
-            final size = motion.menuRect.size;
-            final scale = motion.contentScale;
-            final at = motion.contentRect.topLeft - menu.rect.topLeft;
-            final cards = motion.cards;
-            host.menuRowsBlur.value = motion.contentBlur;
-            final layer = IgnorePointer(
-              ignoring: !motion.isOpen,
-              child: Listener(
-                behavior: .opaque,
-                onPointerDown: host.menuPointerDown,
-                onPointerMove: host.menuPointerMove,
-                onPointerUp: host.menuPointerUp,
-                onPointerCancel: host.menuPointerCancel,
-                child: _MenuShapes(
-                  style: style,
-                  glyph: glyph,
-                  menu: motion.rootBlob.rrect,
-                  source: source.rrect,
-                  sourceRect: source.rect,
-                  sourceScale: source.scale,
-                  outline: motion.silhouetteFor(
-                    withField: morphGlassShadesOutlines(
-                      painter ?? MorphGlass.maybeOf(context),
-                    ),
-                  ),
-                  menuBlur: motion.tuning.cardBlur,
-                  lookStretch: motion.buttonLookStretch,
-                  look: (
-                    opacity: motion.buttonLookOpacity,
-                    blur: motion.buttonLookBlur,
-                  ),
-                  content: Positioned.fromRect(
-                    rect: menu.rect,
-                    child: ClipRRect(
-                      borderRadius: .circular(menu.radius),
-                      clipBehavior: cards.length > 1 ? .none : .antiAlias,
-                      child: Stack(
-                        clipBehavior: .none,
-                        children: [
-                          Positioned(
-                            left: at.dx,
-                            top: at.dy,
-                            width: size.width,
-                            height: size.height,
-                            child: Transform.scale(
-                              scale: scale,
-                              alignment: .topLeft,
+    final painter = host.menuGlass;
+    _withField = morphGlassShadesOutlines(
+      painter ?? MorphGlass.maybeOf(context),
+    );
+    _brightness = morphBrightnessOf(context);
+    final structure = _built = _update();
+    final frame = _frame;
+    final Widget body;
+    if (structure == null || frame == null) {
+      body = const SizedBox.shrink();
+    } else {
+      final motion = structure.motion;
+      final style = structure.style;
+      final cards = frame.cards;
+      final layer = IgnorePointer(
+        ignoring: !structure.open,
+        child: Listener(
+          behavior: .opaque,
+          onPointerDown: host.menuPointerDown,
+          onPointerMove: host.menuPointerMove,
+          onPointerUp: host.menuPointerUp,
+          onPointerCancel: host.menuPointerCancel,
+          child: _MenuShapes(
+            style: style,
+            glyph: glyph,
+            frames: _ticks,
+            shapes: () => _frame!.shapes,
+            menu: true,
+            look: true,
+            menuBlur: motion.tuning.cardBlur,
+            content: _DrivenPositioned(
+              frames: _ticks,
+              template: () =>
+                  Positioned.fromRect(rect: _frame!.menu.rect, child: _slot),
+              child: _Driven(
+                frames: _ticks,
+                template: () => ClipRRect(
+                  borderRadius: .circular(_frame!.menu.radius),
+                  clipBehavior: cards.length > 1 ? .none : .antiAlias,
+                ),
+                child: Stack(
+                  clipBehavior: .none,
+                  children: [
+                    _DrivenPositioned(
+                      frames: _ticks,
+                      template: () {
+                        final now = _frame!;
+                        return Positioned(
+                          left: now.at.dx,
+                          top: now.at.dy,
+                          width: now.size.width,
+                          height: now.size.height,
+                          child: _slot,
+                        );
+                      },
+                      child: _Driven(
+                        frames: _ticks,
+                        template: () => Transform.scale(
+                          scale: _frame!.scale,
+                          alignment: .topLeft,
+                        ),
+                        child: Stack(
+                          clipBehavior: .none,
+                          children: [
+                            _Faded(
+                              frames: _ticks,
+                              look: () => _frame!.faded,
                               child: Stack(
                                 clipBehavior: .none,
                                 children: [
-                                  _Faded(
-                                    opacity: motion.cardGlassTransferred
-                                        ? 0
-                                        : motion.contentOpacity,
-                                    blur: motion.contentBlur / scale,
-                                    child: Stack(
-                                      clipBehavior: .none,
-                                      children: [
-                                        ..._glow(motion, style),
-                                        ..._cards(
-                                          motion,
-                                          style,
-                                          cards,
-                                          top: false,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  ..._cards(motion, style, cards, top: true),
+                                  ..._glow(structure, style),
+                                  ..._cards(motion, style, cards, top: false),
                                 ],
                               ),
                             ),
-                          ),
-                        ],
+                            ..._cards(motion, style, cards, top: true),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-            );
-            return painter == null
-                ? layer
-                : MorphGlass(painter: painter, child: layer);
-          },
+            ),
+          ),
         ),
+      );
+      body = painter == null
+          ? layer
+          : MorphGlass(painter: painter, child: layer);
+    }
+    final Widget menu = Semantics(
+      container: true,
+      explicitChildNodes: true,
+      role: ui.SemanticsRole.menu,
+      child: Focus(autofocus: true, onKeyEvent: _key, child: body),
+    );
+    // The glass hosts build on every frame of the motion. In a build scope
+    // and a repaint boundary of the menu's own, such a frame lays out and
+    // repaints the menu, not the overlay it shows in.
+    return RepaintBoundary(
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) => menu,
       ),
     );
   }
@@ -1145,18 +1348,17 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     ];
   }
 
-  /// The frame card [index] shows at in the content, scale included.
+  /// The frame card [index] shows at in the content, scale included, with
+  /// the root list [visible] high.
   static Rect _shown(
-    MorphMenuMotion motion,
     List<MorphMenuCard> cards,
     int index,
     double width,
+    double visible,
   ) {
     final card = cards[index];
     final s = card.scale;
-    final rect = index == 0
-        ? Rect.fromLTWH(0, 0, width, motion.visibleRootHeight)
-        : card.rect;
+    final rect = index == 0 ? Rect.fromLTWH(0, 0, width, visible) : card.rect;
     return Rect.fromLTWH(
       width / 2 + (rect.left - width / 2) * s,
       rect.top * s,
@@ -1268,19 +1470,14 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     double radius,
   ) {
     final card = cards[index];
-    final s = card.scale;
     final layout = card.layout;
-    _hiddenOf(layout).value = index + 1 < cards.length
-        ? cards[index + 1].source
-        : null;
     if (index == 0) {
       final locked = cards.length > 1;
       if (locked && !_parentScrollLocked && _scroll.hasClients) {
         (_scroll.position as ScrollPositionWithSingleContext).goIdle();
       }
       _parentScrollLocked = locked;
-      final visible = motion.visibleRootHeight;
-      final scrolls = layout.height > visible + 0.5;
+      final scrolls = _built!.scrolls;
       final rootKey = (
         layout: layout,
         style: style,
@@ -1306,72 +1503,58 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
               radius: radius,
             ),
           );
-      return Positioned(
+      return _DrivenPositioned(
         key: const ValueKey<int>(0),
-        left: width / 2 * (1 - s),
-        top: 0,
-        width: width,
-        height: visible,
-        child: Transform.scale(
-          scale: s,
-          alignment: .topLeft,
-          child: Opacity(opacity: card.rowOpacity, child: root),
+        frames: _ticks,
+        template: () {
+          final now = _frame!;
+          return Positioned(
+            left: width / 2 * (1 - now.cards[0].scale),
+            top: 0,
+            width: width,
+            height: now.visible,
+            child: _slot,
+          );
+        },
+        child: _Driven(
+          frames: _ticks,
+          template: () => Transform.scale(
+            scale: _frame!.cards[0].scale,
+            alignment: .topLeft,
+          ),
+          child: _Driven(
+            frames: _ticks,
+            template: () => Opacity(opacity: _frame!.cards[0].rowOpacity),
+            child: root,
+          ),
         ),
       );
     }
-    final rect = card.rect;
-    final shown = _shown(motion, cards, index, width);
-    final k = s == 0 ? 1.0 : 1 / s;
-    final under = <RRect>[
-      for (var j = index - 1; j >= 0; j--)
-        RRect.fromRectAndRadius(
-          _local(_shown(motion, cards, j, width), shown.topLeft, k),
-          Radius.circular(radius * cards[j].scale * k),
-        ),
-    ];
-    final cardRadius = math.min(radius, rect.height / 2);
-    final alpha = card.closeOpacity;
-    final platter = card.platterOpacity * motion.cardMaterialOpacity;
-    final rowsAlpha = card.rowOpacity * alpha;
     MorphMenuPlaced? header;
     for (final element in layout.elements) {
       if (element.kind == MorphMenuPlacedKind.cardHeader) header = element;
     }
-    final blur = motion.tuning.cardBlur * platter;
-    final shape = BorderRadius.circular(cardRadius);
     final glass = widget.host.menuGlass ?? MorphGlass.maybeOf(context);
-    final surface = MorphGlassSurface(
-      kind: MorphGlassKind.menu,
-      shape: RRect.fromRectAndRadius(
-        Offset.zero & rect.size,
-        Radius.circular(cardRadius),
-      ),
-      color: style.glassColor,
-      tint: style.glassTint,
-      transmissionGamma: motion.tuning.cardTransmissionGamma,
-      blurRadius: motion.tuning.cardBlur,
-      optics: MorphGlassOptics(
-        unliftedDisplacement: motion.tuning.cardDisplacement,
-      ),
-      brightness: morphBrightnessOf(context),
-      opacity: platter,
-      shadows: [
-        BoxShadow(
-          color: style.submenuShadowColor,
-          offset: const Offset(0, MorphMenuTuning.cardShadowOffset),
-          blurRadius: MorphMenuTuning.cardShadowRadius,
-        ),
-      ],
-    );
-    return Positioned(
+    _CardFrame now() => _frame!.cardAt(index);
+    final shadowColor = style.submenuShadowColor;
+    final cardBlur = motion.tuning.cardBlur;
+    return _DrivenPositioned(
       key: ValueKey<int>(index),
-      left: shown.left,
-      top: shown.top,
-      width: rect.width,
-      height: rect.height,
-      child: Transform.scale(
-        scale: s,
-        alignment: .topLeft,
+      frames: _ticks,
+      template: () {
+        final card = now();
+        return Positioned(
+          left: card.shown.left,
+          top: card.shown.top,
+          width: card.size.width,
+          height: card.size.height,
+          child: _slot,
+        );
+      },
+      child: _Driven(
+        frames: _ticks,
+        template: () =>
+            Transform.scale(scale: now().scale, alignment: .topLeft),
         child: Stack(
           clipBehavior: .none,
           children: [
@@ -1381,54 +1564,86 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                   child: MorphGlassHost(
                     painter: glass,
                     mode: MorphGlassMode.body,
-                    frame: () => MorphGlassFrame([
-                      surface,
-                    ], outline: morphGlassContainerOutline([surface.shape], 0)),
+                    frames: _ticks,
+                    frame: () {
+                      final surface = now().surface;
+                      return MorphGlassFrame(
+                        [surface],
+                        outline: morphGlassContainerOutline([surface.shape], 0),
+                      );
+                    },
                   ),
                 ),
               ),
             if (glass == null)
               Positioned.fill(
-                child: CustomPaint(
-                  painter: _CardShadowPainter(
-                    radius: cardRadius,
-                    color: style.submenuShadowColor,
-                    opacity: platter,
-                  ),
+                child: _Driven(
+                  frames: _ticks,
+                  template: () {
+                    final card = now();
+                    return CustomPaint(
+                      painter: _CardShadowPainter(
+                        radius: card.radius,
+                        color: shadowColor,
+                        opacity: card.platter,
+                      ),
+                    );
+                  },
                 ),
               ),
             if (glass == null)
               Positioned.fill(
-                child: ClipRRect(
-                  borderRadius: shape,
-                  child: BackdropFilter(
-                    enabled: blur > MorphMenuTuning.blurThreshold,
-                    filter: ui.ImageFilter.blur(
-                      sigmaX: blur,
-                      sigmaY: blur,
-                      tileMode: TileMode.clamp,
-                    ),
+                child: _Driven(
+                  frames: _ticks,
+                  template: () => ClipRRect(
+                    borderRadius: BorderRadius.circular(now().radius),
+                  ),
+                  child: _Driven(
+                    frames: _ticks,
+                    template: () {
+                      final blur = now().blur;
+                      return BackdropFilter(
+                        enabled: blur > MorphMenuTuning.blurThreshold,
+                        filter: ui.ImageFilter.blur(
+                          sigmaX: blur,
+                          sigmaY: blur,
+                          tileMode: TileMode.clamp,
+                        ),
+                      );
+                    },
                     child: Stack(
                       clipBehavior: .none,
                       children: [
                         Positioned.fill(
-                          child: ClipPath(
-                            clipper: _CardBackdropClipper(under),
-                            child: CustomPaint(
-                              painter: _CardBasePainter(surface),
+                          child: _Driven(
+                            frames: _ticks,
+                            template: () => ClipPath(
+                              clipper: _CardBackdropClipper(now().under),
+                            ),
+                            child: _Driven(
+                              frames: _ticks,
+                              template: () => CustomPaint(
+                                painter: _CardBasePainter(now().surface),
+                              ),
                             ),
                           ),
                         ),
                         Positioned.fill(
-                          child: CustomPaint(
-                            painter: _CardPlatterPainter(
-                              radius: cardRadius,
-                              under: under,
-                              tint: style.submenuColor,
-                              rim: style.submenuRimColor,
-                              blur: motion.tuning.cardBlur,
-                              opacity: platter,
-                            ),
+                          child: _Driven(
+                            frames: _ticks,
+                            template: () {
+                              final card = now();
+                              return CustomPaint(
+                                painter: _CardPlatterPainter(
+                                  radius: card.radius,
+                                  under: card.under,
+                                  tint: style.submenuColor,
+                                  rim: style.submenuRimColor,
+                                  blur: cardBlur,
+                                  opacity: card.platter,
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
@@ -1437,16 +1652,21 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                 ),
               ),
             Positioned.fill(
-              child: ClipRRect(
-                borderRadius: shape,
+              child: _Driven(
+                frames: _ticks,
+                template: () => ClipRRect(
+                  borderRadius: BorderRadius.circular(now().radius),
+                ),
                 child: OverflowBox(
                   alignment: .topLeft,
                   minWidth: width,
                   maxWidth: width,
                   minHeight: layout.height,
                   maxHeight: layout.height,
-                  child: Transform.translate(
-                    offset: Offset(-rect.left, card.contentTop),
+                  child: _Driven(
+                    frames: _ticks,
+                    template: () =>
+                        Transform.translate(offset: now().contentOffset),
                     child: SizedBox(
                       width: width,
                       height: layout.height,
@@ -1454,14 +1674,17 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                         clipBehavior: .none,
                         children: [
                           ?_highlight(motion, style, layout, index),
-                          Opacity(
-                            opacity: card.rowsOpacity * rowsAlpha,
+                          _Driven(
+                            frames: _ticks,
+                            template: () => Opacity(opacity: now().rowsOpacity),
                             child: _rowsOf(layout, style),
                           ),
                           if (header != null)
                             Positioned.fill(
-                              child: Opacity(
-                                opacity: rowsAlpha,
+                              child: _Driven(
+                                frames: _ticks,
+                                template: () =>
+                                    Opacity(opacity: now().rowsAlpha),
                                 child: Stack(
                                   clipBehavior: .none,
                                   children: [
@@ -1469,20 +1692,17 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                                       style: MorphTypography.resolve(
                                         style.textStyle,
                                       ),
-                                      child: _MenuElement(
-                                        element: _headerAt(
-                                          cards,
-                                          index,
-                                          header,
-                                        ),
+                                      child: _CardHeader(
+                                        frames: _ticks,
+                                        header: header,
+                                        placed: () => now().header!,
+                                        values: () => now().headerValues,
+                                        faces: _built!.faces[index - 1],
                                         style: style,
                                         width: layout.width,
                                         content: widget.host.menuContent,
                                         onSelect: (int target) =>
                                             _select(layout, target),
-                                        headerBold: card.headerBold,
-                                        chevronTurn: card.chevronTurn,
-                                        separatorOpacity: card.platterOpacity,
                                       ),
                                     ),
                                   ],
@@ -1578,29 +1798,30 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     );
   }
 
-  List<Widget> _glow(MorphMenuMotion motion, MorphMenuStyle style) {
-    final glow = motion.glowCenter;
-    final glowOpacity = motion.glowOpacity;
-    if (glow == null || glowOpacity <= 0) return const [];
-    final tuning = motion.tuning;
+  List<Widget> _glow(_LayerStructure structure, MorphMenuStyle style) {
+    if (!structure.glow) return const [];
     return [
-      Positioned.fromRect(
-        rect: Rect.fromCenter(
-          center: _contentLocal(motion, glow),
-          width: tuning.glowDiameter,
-          height: tuning.glowDiameter,
-        ),
+      _DrivenPositioned(
+        frames: _ticks,
+        template: () =>
+            Positioned.fromRect(rect: _frame!.glow!.rect, child: _slot),
         child: IgnorePointer(
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              shape: .circle,
-              gradient: RadialGradient(
-                colors: [
-                  style.glowColor.withValues(alpha: glowOpacity),
-                  style.glowColor.withValues(alpha: 0),
-                ],
-              ),
-            ),
+          child: _Driven(
+            frames: _ticks,
+            template: () {
+              final opacity = _frame!.glow!.opacity;
+              return DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: .circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      style.glowColor.withValues(alpha: opacity),
+                      style.glowColor.withValues(alpha: 0),
+                    ],
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -1624,6 +1845,541 @@ typedef _RootKey = ({
 extension on Rect {
   Rect inflateHorizontal(double delta) =>
       Rect.fromLTRB(left - delta, top, right + delta, bottom);
+}
+
+/// What a menu layer's tree is built from; the layer builds only when
+/// this changes.
+class _LayerStructure {
+  _LayerStructure({
+    required this.motion,
+    required this.painter,
+    required this.style,
+    required this.open,
+    required this.layouts,
+    required this.faces,
+    required this.highlighted,
+    required this.highlightedCard,
+    required this.sliding,
+    required this.glow,
+    required this.scrolls,
+  });
+
+  final MorphMenuMotion motion;
+  final MorphGlassPainter? painter;
+  final MorphMenuStyle style;
+  final bool open;
+  final List<MorphMenuLayout> layouts;
+  final List<_HeaderFaces> faces;
+  final int? highlighted;
+  final int highlightedCard;
+  final bool sliding;
+  final bool glow;
+  final bool scrolls;
+
+  static bool _same<T>(List<T> a, List<T> b) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (!identical(a[i], b[i]) && a[i] != b[i]) return false;
+    }
+    return true;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      other is _LayerStructure &&
+      identical(other.motion, motion) &&
+      identical(other.painter, painter) &&
+      identical(other.style, style) &&
+      other.open == open &&
+      _same(other.layouts, layouts) &&
+      _same(other.faces, faces) &&
+      other.highlighted == highlighted &&
+      other.highlightedCard == highlightedCard &&
+      other.sliding == sliding &&
+      other.glow == glow &&
+      other.scrolls == scrolls;
+
+  @override
+  int get hashCode => Object.hash(
+    motion,
+    painter,
+    style,
+    open,
+    layouts.length,
+    highlighted,
+    highlightedCard,
+    sliding,
+    glow,
+    scrolls,
+  );
+}
+
+/// Which titles a card header draws: the row's weight while it is not
+/// fully bold, the header's while it is at all.
+typedef _HeaderFaces = ({bool regular, bool bold});
+
+/// A menu layer's geometry at one frame of its motion.
+class _LayerFrame {
+  _LayerFrame(
+    MorphMenuMotion motion, {
+    required MorphMenuStyle style,
+    required Brightness brightness,
+    required bool withField,
+  }) : menu = motion.menuBlob,
+       cards = motion.cards,
+       visible = motion.visibleRootHeight {
+    final source = motion.buttonBlob;
+    final scale = motion.contentScale;
+    final content = motion.contentRect;
+    this.scale = scale;
+    at = content.topLeft - menu.rect.topLeft;
+    size = motion.menuRect.size;
+    shapes = (
+      menu: motion.rootBlob.rrect,
+      source: source.rrect,
+      sourceRect: source.rect,
+      sourceScale: source.scale,
+      lookStretch: motion.buttonLookStretch,
+      look: (opacity: motion.buttonLookOpacity, blur: motion.buttonLookBlur),
+      outline: motion.silhouetteFor(withField: withField),
+    );
+    faded = (
+      opacity: motion.cardGlassTransferred ? 0 : motion.contentOpacity,
+      blur: motion.contentBlur / scale,
+    );
+    final center = motion.glowCenter;
+    final glowOpacity = motion.glowOpacity;
+    final tuning = motion.tuning;
+    glow = center == null || glowOpacity <= 0
+        ? null
+        : (
+            rect: Rect.fromCenter(
+              center: _contentLocal(motion, center),
+              width: tuning.glowDiameter,
+              height: tuning.glowDiameter,
+            ),
+            opacity: glowOpacity,
+          );
+    _cards = [
+      for (var i = 1; i < cards.length; i++)
+        _CardFrame(
+          motion,
+          cards,
+          i,
+          visible: visible,
+          style: style,
+          brightness: brightness,
+        ),
+    ];
+  }
+
+  /// The blob of the menu's content.
+  final MorphMenuBlob menu;
+
+  /// The cards shown, the root list first.
+  final List<MorphMenuCard> cards;
+
+  /// The visible height of the root list.
+  final double visible;
+
+  /// The button's and the menu's shapes.
+  late final _Shapes shapes;
+
+  /// The content's top-left in the menu's frame.
+  late final Offset at;
+
+  /// The size the content is laid out at.
+  late final Size size;
+
+  /// The content's scale.
+  late final double scale;
+
+  /// The fade of everything under the top card.
+  late final _Look faded;
+
+  /// The glow under a finger, null while it does not show.
+  late final ({Rect rect, double opacity})? glow;
+
+  late final List<_CardFrame> _cards;
+
+  /// The geometry of card [index], one or above.
+  _CardFrame cardAt(int index) => _cards[index - 1];
+}
+
+/// The geometry of a card over the root list at one frame.
+class _CardFrame {
+  _CardFrame(
+    MorphMenuMotion motion,
+    List<MorphMenuCard> cards,
+    int index, {
+    required double visible,
+    required MorphMenuStyle style,
+    required Brightness brightness,
+  }) {
+    final tuning = motion.tuning;
+    final width = tuning.menuWidth;
+    final cornerRadius = tuning.cornerRadius;
+    final card = cards[index];
+    final s = card.scale;
+    final rect = card.rect;
+    scale = s;
+    size = rect.size;
+    shown = _MorphMenuLayerState._shown(cards, index, width, visible);
+    final k = s == 0 ? 1.0 : 1 / s;
+    under = [
+      for (var j = index - 1; j >= 0; j--)
+        RRect.fromRectAndRadius(
+          _MorphMenuLayerState._local(
+            _MorphMenuLayerState._shown(cards, j, width, visible),
+            shown.topLeft,
+            k,
+          ),
+          Radius.circular(cornerRadius * cards[j].scale * k),
+        ),
+    ];
+    radius = math.min(cornerRadius, rect.height / 2);
+    platter = card.platterOpacity * motion.cardMaterialOpacity;
+    rowsAlpha = card.rowOpacity * card.closeOpacity;
+    rowsOpacity = card.rowsOpacity * rowsAlpha;
+    blur = tuning.cardBlur * platter;
+    contentOffset = Offset(-rect.left, card.contentTop);
+    surface = MorphGlassSurface(
+      kind: MorphGlassKind.menu,
+      shape: RRect.fromRectAndRadius(
+        Offset.zero & rect.size,
+        Radius.circular(radius),
+      ),
+      color: style.glassColor,
+      tint: style.glassTint,
+      transmissionGamma: tuning.cardTransmissionGamma,
+      blurRadius: tuning.cardBlur,
+      optics: MorphGlassOptics(unliftedDisplacement: tuning.cardDisplacement),
+      brightness: brightness,
+      opacity: platter,
+      shadows: [
+        BoxShadow(
+          color: style.submenuShadowColor,
+          offset: const Offset(0, MorphMenuTuning.cardShadowOffset),
+          blurRadius: MorphMenuTuning.cardShadowRadius,
+        ),
+      ],
+    );
+    MorphMenuPlaced? header;
+    for (final element in card.layout.elements) {
+      if (element.kind == MorphMenuPlacedKind.cardHeader) header = element;
+    }
+    this.header = header == null
+        ? null
+        : _MorphMenuLayerState._headerAt(cards, index, header);
+    final bold = card.headerBold.clamp(0.0, 1.0);
+    headerValues = (
+      bold: bold,
+      turn: card.chevronTurn.clamp(0.0, 1.0),
+      separator: card.platterOpacity.clamp(0.0, 1.0),
+    );
+    faces = (regular: bold < 1, bold: bold > 0);
+  }
+
+  late final double scale;
+  late final Size size;
+  late final Rect shown;
+  late final List<RRect> under;
+  late final double radius;
+  late final double platter;
+  late final double rowsAlpha;
+  late final double rowsOpacity;
+  late final double blur;
+  late final Offset contentOffset;
+  late final MorphGlassSurface surface;
+  late final MorphMenuPlaced? header;
+  late final _HeaderValues headerValues;
+  late final _HeaderFaces faces;
+}
+
+/// How bold a card header's title is, how far its chevron has turned and
+/// the opacity of its separator, each from 0 to 1.
+typedef _HeaderValues = ({double bold, double turn, double separator});
+
+/// The header of a submenu card: the row it grew out of, its title
+/// turning bold and its chevron turning down as the card opens.
+///
+/// Its columns and the turn are read again on every notification of
+/// [frames] without a build; which titles it draws ([faces]) is part of
+/// the widget.
+class _CardHeader extends StatelessWidget {
+  const _CardHeader({
+    required this.frames,
+    required this.header,
+    required this.placed,
+    required this.values,
+    required this.faces,
+    required this.style,
+    required this.width,
+    required this.content,
+    required this.onSelect,
+  });
+
+  final Listenable frames;
+  final MorphMenuPlaced header;
+  final MorphMenuPlaced Function() placed;
+  final _HeaderValues Function() values;
+  final _HeaderFaces faces;
+  final MorphMenuStyle style;
+  final double width;
+  final MorphMenuContent content;
+  final ValueChanged<int> onSelect;
+
+  Color get _title => style.textStyle.color ?? style.iconColor;
+
+  Widget _text(TextStyle base) => Text(
+    header.title ?? '',
+    maxLines: 1,
+    overflow: TextOverflow.ellipsis,
+    style: MorphTypography.resolve(base).copyWith(color: _title),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final header = this.header;
+    final entry = header.entry;
+    final icon = entry is MorphSubmenu ? entry.icon : null;
+    final target = header.target;
+    final direction = Directionality.of(context);
+    final metrics = content.metrics;
+    return Positioned.fromRect(
+      rect: header.rect,
+      child: Semantics(
+        button: true,
+        role: ui.SemanticsRole.menuItem,
+        expanded: true,
+        label: header.title,
+        onTap: target < 0 ? null : () => onSelect(target),
+        excludeSemantics: true,
+        child: Stack(
+          children: [
+            if (header.imageCenter != null && icon != null)
+              _DrivenPositioned(
+                frames: frames,
+                template: () => Positioned.directional(
+                  textDirection: direction,
+                  start: placed().imageCenter! - MorphMenuTuning.imageSlot / 2,
+                  width: MorphMenuTuning.imageSlot,
+                  top: 0,
+                  bottom: 0,
+                  child: _slot,
+                ),
+                child: Center(
+                  child: Icon(icon, size: style.iconSize, color: _title),
+                ),
+              ),
+            _DrivenPositioned(
+              frames: frames,
+              template: () {
+                final now = placed();
+                return Positioned.directional(
+                  textDirection: direction,
+                  start: now.titleStart,
+                  end: width - now.titleEnd,
+                  top: 0,
+                  bottom: 0,
+                  child: _slot,
+                );
+              },
+              child: Stack(
+                alignment: AlignmentDirectional.centerStart,
+                children: [
+                  if (faces.regular)
+                    _Driven(
+                      frames: frames,
+                      template: () => Opacity(opacity: 1 - values().bold),
+                      child: _text(style.textStyle),
+                    ),
+                  if (faces.bold)
+                    _Driven(
+                      frames: frames,
+                      template: () => Opacity(opacity: values().bold),
+                      child: _text(
+                        style.textStyle.merge(MorphTypography.title),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            PositionedDirectional(
+              start: metrics.chevronCenter - MorphMenuTuning.markSlot / 2,
+              width: MorphMenuTuning.markSlot,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Transform.flip(
+                  flipX: content.rtl,
+                  child: _Driven(
+                    frames: frames,
+                    template: () =>
+                        Transform.rotate(angle: values().turn * math.pi / 2),
+                    child: CustomPaint(
+                      size: MorphMenuTuning.chevronSize,
+                      painter: _ChevronPainter(color: _title, down: false),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              left: metrics.separatorInset,
+              right: metrics.separatorInset,
+              bottom: 0,
+              height: 1,
+              child: _Driven(
+                frames: frames,
+                template: () => Opacity(opacity: values().separator),
+                child: ColoredBox(color: style.separatorColor),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Notifies the render objects of a menu that its motion advanced.
+class _Ticks extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
+
+/// The child a [_DrivenPositioned] template carries; never built.
+const Widget _slot = SizedBox.shrink();
+
+/// The render object [template] makes, configured again from a fresh
+/// [template] on every notification of [frames] without a build.
+///
+/// The template is a render object widget whose own child is ignored;
+/// [child] is this widget's. Each notification applies what its
+/// `updateRenderObject` would, so the render object marks itself for
+/// paint, layout or compositing exactly as a rebuild with the same values
+/// would. A template must make the same render object type every time.
+class _Driven extends SingleChildRenderObjectWidget {
+  const _Driven({required this.template, this.frames, super.child});
+
+  final Listenable? frames;
+  final RenderObjectWidget Function() template;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      template().createRenderObject(context);
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) =>
+      template().updateRenderObject(context, renderObject);
+
+  @override
+  SingleChildRenderObjectElement createElement() => _DrivenElement(this);
+}
+
+class _DrivenElement extends SingleChildRenderObjectElement {
+  _DrivenElement(_Driven super.widget);
+
+  Listenable? get _frames => (widget as _Driven).frames;
+
+  void _drive() => (widget as _Driven).updateRenderObject(this, renderObject);
+
+  @override
+  void mount(Element? parent, Object? newSlot) {
+    super.mount(parent, newSlot);
+    _frames?.addListener(_drive);
+  }
+
+  @override
+  void update(_Driven newWidget) {
+    final old = _frames;
+    super.update(newWidget);
+    if (!identical(old, _frames)) {
+      old?.removeListener(_drive);
+      _frames?.addListener(_drive);
+    }
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _frames?.addListener(_drive);
+  }
+
+  @override
+  void deactivate() {
+    _frames?.removeListener(_drive);
+    super.deactivate();
+  }
+}
+
+/// A child of a [Stack] placed by the [Positioned] [template] returns,
+/// read again on every notification of [frames] without a build.
+class _DrivenPositioned extends ParentDataWidget<StackParentData> {
+  const _DrivenPositioned({
+    required this.template,
+    required super.child,
+    this.frames,
+    super.key,
+  });
+
+  final Listenable? frames;
+  final Positioned Function() template;
+
+  @override
+  void applyParentData(RenderObject renderObject) =>
+      template().applyParentData(renderObject);
+
+  @override
+  Type get debugTypicalAncestorWidgetClass => Stack;
+
+  @override
+  ParentDataElement<StackParentData> createElement() =>
+      _DrivenPositionedElement(this);
+}
+
+class _DrivenPositionedElement extends ParentDataElement<StackParentData> {
+  _DrivenPositionedElement(_DrivenPositioned super.widget);
+
+  Listenable? get _frames => (widget as _DrivenPositioned).frames;
+
+  void _drive() {
+    var child = renderObjectAttachingChild;
+    while (child != null && child is! RenderObjectElement) {
+      child = child.renderObjectAttachingChild;
+    }
+    if (child is RenderObjectElement) {
+      (widget as _DrivenPositioned).applyParentData(child.renderObject);
+    }
+  }
+
+  @override
+  void mount(Element? parent, Object? newSlot) {
+    super.mount(parent, newSlot);
+    _frames?.addListener(_drive);
+  }
+
+  @override
+  void update(_DrivenPositioned newWidget) {
+    final old = _frames;
+    super.update(newWidget);
+    if (!identical(old, _frames)) {
+      old?.removeListener(_drive);
+      _frames?.addListener(_drive);
+    }
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _frames?.addListener(_drive);
+  }
+
+  @override
+  void deactivate() {
+    _frames?.removeListener(_drive);
+    super.deactivate();
+  }
 }
 
 /// [position] in the coordinates of the content laid out at its final
@@ -1844,18 +2600,11 @@ class _MenuElement extends StatelessWidget {
     required this.width,
     required this.content,
     required this.onSelect,
-    this.headerBold = 1,
-    this.chevronTurn = 1,
-    this.separatorOpacity = 1,
     this.hidden = false,
     super.key,
   });
 
   final bool hidden;
-
-  final double headerBold;
-  final double chevronTurn;
-  final double separatorOpacity;
 
   final MorphMenuPlaced element;
   final MorphMenuStyle style;
@@ -1914,7 +2663,7 @@ class _MenuElement extends StatelessWidget {
         MorphMenuPlacedKind.medium => _cell(),
         MorphMenuPlacedKind.loading => _loading(),
         MorphMenuPlacedKind.widget => _widget(),
-        MorphMenuPlacedKind.cardHeader => _cardHeader(),
+        MorphMenuPlacedKind.cardHeader => const SizedBox.shrink(),
       },
     );
   }
@@ -2052,81 +2801,6 @@ class _MenuElement extends StatelessWidget {
               element.title ?? '',
               _subtitleStyle,
               style.secondaryColor,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _cardHeader() {
-    final entry = element.entry;
-    final icon = entry is MorphSubmenu ? entry.icon : null;
-    final image = element.imageCenter;
-    final title = element.title ?? '';
-    final bold = headerBold.clamp(0.0, 1.0);
-    return Semantics(
-      button: true,
-      role: ui.SemanticsRole.menuItem,
-      expanded: true,
-      label: element.title,
-      onTap: _tap,
-      excludeSemantics: true,
-      child: Stack(
-        children: [
-          if (image != null && icon != null)
-            _at(
-              image,
-              MorphMenuTuning.imageSlot,
-              Icon(icon, size: style.iconSize, color: _title),
-            ),
-          PositionedDirectional(
-            start: element.titleStart,
-            end: width - element.titleEnd,
-            top: 0,
-            bottom: 0,
-            child: Stack(
-              alignment: AlignmentDirectional.centerStart,
-              children: [
-                if (bold < 1)
-                  Opacity(
-                    opacity: 1 - bold,
-                    child: _text(title, style.textStyle, _title),
-                  ),
-                if (bold > 0)
-                  Opacity(
-                    opacity: bold,
-                    child: _text(
-                      title,
-                      style.textStyle.merge(MorphTypography.title),
-                      _title,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          _at(
-            _metrics.chevronCenter,
-            MorphMenuTuning.markSlot,
-            Transform.flip(
-              flipX: content.rtl,
-              child: Transform.rotate(
-                angle: chevronTurn.clamp(0.0, 1.0) * math.pi / 2,
-                child: CustomPaint(
-                  size: MorphMenuTuning.chevronSize,
-                  painter: _ChevronPainter(color: _title, down: false),
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            left: _metrics.separatorInset,
-            right: _metrics.separatorInset,
-            bottom: 0,
-            height: 1,
-            child: Opacity(
-              opacity: separatorOpacity.clamp(0.0, 1.0),
-              child: ColoredBox(color: style.separatorColor),
             ),
           ),
         ],

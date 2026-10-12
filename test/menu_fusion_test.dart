@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -362,9 +363,8 @@ void main() {
     var tallest = 0.0;
     for (var i = 0; i < 90; i++) {
       await tester.pump(const Duration(microseconds: 8333));
-      for (final paint in tester.widgetList<CustomPaint>(
-        find.byType(CustomPaint),
-      )) {
+      for (final paint
+          in tester.allRenderObjects.whereType<RenderCustomPaint>().toSet()) {
         final painter = paint.painter;
         if (painter == null ||
             painter.runtimeType.toString() != '_GlassPainter') {
