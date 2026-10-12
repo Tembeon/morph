@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/push_zoom_motion.dart';
 import 'package:morph/src/widgets/sheet_motion.dart';
@@ -80,6 +81,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
     _pan.onUpdate = _dragUpdate;
     _pan.onEnd = _dragEnd;
     _pan.onCancel = _dragCancel;
+    frames.addListener(_sync);
   }
 
   @override
@@ -93,6 +95,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
 
   @override
   void dispose() {
+    frames.removeListener(_sync);
     _host.attachZoomView(null);
     _pan.dispose();
     _source.reveal();
@@ -233,6 +236,13 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
 
   bool get _rtl => Directionality.maybeOf(context) == TextDirection.rtl;
 
+  bool? _open;
+
+  void _sync() {
+    final open = _motion?.isOpen;
+    if (open != _open) setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     final displayRadius =
@@ -243,65 +253,64 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
       builder: (BuildContext context, BoxConstraints constraints) {
         final size = constraints.biggest;
         _layout(size);
+        final motion = _motion!;
+        final open = _open = motion.isOpen;
+        double t() => motion.time;
+        Rect rect() => motion.isOpen ? Offset.zero & size : motion.rect(t());
+        double radius() => motion.isOpen
+            ? 0.0
+            : math.max(
+                0.0,
+                motion.radius(
+                  t(),
+                  _source.radius(motion.source.size),
+                  displayRadius,
+                ),
+              );
         return Listener(
           onPointerDown: _pointerDown,
           behavior: HitTestBehavior.translucent,
-          child: ListenableBuilder(
-            listenable: frames,
-            child: SizedBox.fromSize(size: size, child: widget.child),
-            builder: (BuildContext context, Widget? child) {
-              final motion = _motion!;
-              final t = motion.time;
-              final open = motion.isOpen;
-              final rect = open ? Offset.zero & size : motion.rect(t);
-              final radius = open
-                  ? 0.0
-                  : math.max(
-                      0.0,
-                      motion.radius(
-                        t,
-                        _source.radius(motion.source.size),
-                        displayRadius,
-                      ),
-                    );
-              final scale = open ? 1.0 : motion.contentScale(t);
-              final fade = open ? 1.0 : motion.fade(t);
-              final dim = motion.dimming(t);
-              final shape = RRect.fromRectAndRadius(
-                Offset.zero & rect.size,
-                Radius.circular(radius),
-              );
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: ColoredBox(
-                        color: Color.fromRGBO(
-                          0,
-                          0,
-                          0,
-                          open ? 0 : tuning.dimmingOpacity * dim,
-                        ),
-                      ),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: MorphLiveColoredBox(
+                    live: frames,
+                    colorOf: () => Color.fromRGBO(
+                      0,
+                      0,
+                      0,
+                      motion.isOpen
+                          ? 0
+                          : tuning.dimmingOpacity * motion.dimming(t()),
                     ),
                   ),
-                  Positioned.fromRect(
-                    rect: rect,
-                    child: Opacity(
-                      opacity: _source.opacity(
-                        motion.source == motion.page
-                            ? motion.fade(t)
-                            : motion.reach(t),
-                        closing: !motion.isOpening,
-                      ),
-                      child: DecoratedBox(
+                ),
+              ),
+              MorphLivePositionedTemplate(
+                live: frames,
+                template: () =>
+                    Positioned.fromRect(rect: rect(), child: morphLiveSlot),
+                child: MorphLiveOpacity(
+                  live: frames,
+                  opacityOf: () => _source.opacity(
+                    motion.source == motion.page
+                        ? motion.fade(t())
+                        : motion.reach(t()),
+                    closing: !motion.isOpening,
+                  ),
+                  child: MorphLiveTemplate(
+                    live: frames,
+                    template: () {
+                      final dim = motion.dimming(t());
+                      return DecoratedBox(
                         decoration: ShapeDecoration(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(radius),
+                            borderRadius: BorderRadius.circular(radius()),
                           ),
                           shadows: [
-                            if (!open && dim > 0)
+                            if (!motion.isOpen && dim > 0)
                               BoxShadow(
                                 color: Color.fromRGBO(
                                   0,
@@ -314,41 +323,150 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
                               ),
                           ],
                         ),
-                        child: ClipRRect(
-                          clipper: MorphZoomShapeClipper(shape),
-                          clipBehavior: open ? Clip.none : Clip.antiAlias,
-                          child: _source.crossfade(
-                            fade: fade,
-                            size: motion.source.size,
-                            closing: !motion.isOpening,
-                            content: (double opacity) => Positioned(
-                              left: (rect.width - size.width) / 2,
-                              top: 0,
-                              width: size.width,
-                              height: size.height,
-                              child: Transform.scale(
-                                scale: scale,
-                                alignment: Alignment.topCenter,
-                                child: IgnorePointer(
-                                  ignoring: !open,
-                                  child: Opacity(
-                                    opacity: opacity,
-                                    child: child,
-                                  ),
-                                ),
-                              ),
-                            ),
+                      );
+                    },
+                    child: MorphLiveTemplate(
+                      live: frames,
+                      template: () => ClipRRect(
+                        clipper: MorphZoomShapeClipper(
+                          RRect.fromRectAndRadius(
+                            Offset.zero & rect().size,
+                            Radius.circular(radius()),
                           ),
+                        ),
+                        clipBehavior: open ? Clip.none : Clip.antiAlias,
+                      ),
+                      child: _ZoomCrossfade(
+                        frames: frames,
+                        source: _source,
+                        motion: motion,
+                        open: open,
+                        size: size,
+                        rect: rect,
+                        child: SizedBox.fromSize(
+                          size: size,
+                          child: widget.child,
                         ),
                       ),
                     ),
                   ),
-                ],
-              );
-            },
+                ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+}
+
+/// The page's content crossfaded with its source's look: the content
+/// follows the motion on live render objects, and the crossfade builds
+/// again only while the source's look shows.
+class _ZoomCrossfade extends StatefulWidget {
+  const _ZoomCrossfade({
+    required this.frames,
+    required this.source,
+    required this.motion,
+    required this.open,
+    required this.size,
+    required this.rect,
+    required this.child,
+  });
+
+  final Listenable frames;
+  final MorphZoomSource source;
+  final MorphPushZoomMotion motion;
+  final bool open;
+  final Size size;
+  final Rect Function() rect;
+  final Widget child;
+
+  @override
+  State<_ZoomCrossfade> createState() => _ZoomCrossfadeState();
+}
+
+class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
+  Object? _inputs;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.frames.addListener(_sync);
+  }
+
+  @override
+  void didUpdateWidget(_ZoomCrossfade oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.frames, widget.frames)) {
+      oldWidget.frames.removeListener(_sync);
+      widget.frames.addListener(_sync);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.frames.removeListener(_sync);
+    super.dispose();
+  }
+
+  double get _fade => widget.motion.fade(widget.motion.time);
+
+  bool get _closing => !widget.motion.isOpening;
+
+  // The crossfade's own opacity for the source's look is a plain value, so
+  // it builds again whenever that look shows and its fade moves.
+  Object? _inputsNow() {
+    final source = widget.source;
+    final lost = source.isLost;
+    final size = widget.motion.source.size;
+    final fade = _fade;
+    final shows = !lost && source.tag != null && fade < 1 && !size.isEmpty;
+    return (lost, _closing, size, shows ? fade : null);
+  }
+
+  void _sync() {
+    if (_inputsNow() != _inputs) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _inputs = _inputsNow();
+    final frames = widget.frames;
+    final motion = widget.motion;
+    final size = widget.size;
+    return widget.source.crossfade(
+      fade: _fade,
+      size: motion.source.size,
+      closing: _closing,
+      content: (double _) => MorphLivePositionedTemplate(
+        live: frames,
+        template: () => Positioned(
+          left: (widget.rect().width - size.width) / 2,
+          top: 0,
+          width: size.width,
+          height: size.height,
+          child: morphLiveSlot,
+        ),
+        child: MorphLiveTransform.matrix(
+          live: frames,
+          alignment: Alignment.topCenter,
+          matrixOf: () {
+            final scale = motion.isOpen
+                ? 1.0
+                : motion.contentScale(motion.time);
+            return Matrix4.diagonal3Values(scale, scale, 1);
+          },
+          child: IgnorePointer(
+            ignoring: !widget.open,
+            child: MorphLiveOpacity(
+              live: frames,
+              opacityOf: () => widget.source.isLost && _closing ? 1 : _fade,
+              child: widget.child,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
