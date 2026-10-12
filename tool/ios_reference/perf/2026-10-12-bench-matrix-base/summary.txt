@@ -1,0 +1,36 @@
+bb20ab8  runs 3  fixed-perf False  2026-10-12 21:57
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/empty/frames         337   0.9   1.7   5.8   8.1   1.2   0.0    1   599  
+audit/liquid/m/glass-button/tap     191   2.3   3.8   8.8  11.7   3.6   0.0    0   490  
+audit/liquid/m/glass-button/press-  274   2.1   3.9   8.5  11.5   3.7   0.0    1   699  
+audit/liquid/m/segmented/tap        446   4.0   7.5   7.7  11.0   2.6   0.0    3   532  
+audit/liquid/m/segmented/drag       696   4.3   7.4   7.7  10.6   2.7   0.0    5   543  
+audit/liquid/m/switch/tap           425   2.0   4.5   7.9  12.0   3.5   0.5    4   517  raster-cpu:2 bad raster: SurfaceFrame::Encode 7.1, Canvas::saveLayer 5.9, QueueSubmit 3.0
+audit/liquid/m/switch/drag          591   2.0   4.1   8.6  12.7   3.5   0.3    4   514  raster-cpu:1 raster-sched:1 bad raster: Canvas::saveLayer 9.7, SurfaceFrame::Encode 5.2, QueueSubmit 2.7
+audit/liquid/m/slider/drag          686   3.9   7.0   8.0  12.1   3.4   0.4    6   563  raster-cpu:2 raster-sched:1 bad raster: QueueSubmit 7.1, Canvas::saveLayer 4.5, SurfaceFrame::Encode 4.1
+audit/liquid/m/stepper/tap          225   1.0   2.7   7.3   9.3   1.5   0.0    0   413  
+audit/liquid/m/tab-bar/tap          444   3.8   6.6  10.3  17.4  12.6   7.7   12   733  raster-cpu:25 gpu:9 bad raster: UpdateAtlasBitmap 7.7, SurfaceFrame::Encode 3.7, QueueSubmit 2.3
+audit/liquid/m/tab-bar/drag         611   3.1   6.1   9.8  14.9  10.8   2.3    6   815  raster-cpu:12 gpu:2 bad raster: UpdateAtlasBitmap 4.7, SurfaceFrame::Encode 4.1, Canvas::saveLayer 2.2
+audit/liquid/m/menu/open-close      420   5.0  10.7   9.0  13.2   5.5   1.7   11   619  raster-cpu:5 raster-sched:1 ui-layout:1 bad raster: SurfaceFrame::Encode 7.2, QueueSubmit 3.5, Canvas::saveLayer 2.3
+audit/liquid/m/sheet/open-close     352   1.9   4.0   8.3  11.3  14.9   2.0    3   837  gpu:6 raster-cpu:1 bad raster: Canvas::saveLayer 10.6, SurfaceFrame::Encode 8.3, QueueSubmit 3.6
+audit/liquid/m/sheet/drag           901   2.7   6.8   8.1  11.2  15.4   2.4   11  1188  gpu:14 raster-cpu:5 raster-wait:3 bad raster: SurfaceFrame::Encode 9.9, Canvas::saveLayer 4.4, QueueSubmit 3.5
+audit/liquid/m/alert/open-close     354   1.6   4.2   8.1  13.5   6.1   1.7    5   566  raster-cpu:6 bad raster: UpdateAtlasBitmap 5.5, SurfaceFrame::Encode 4.6, Canvas::saveLayer 4.4
+audit/liquid/m/date-picker/open-cl  360   1.5   6.1   8.8  19.0  11.3   9.4   27   638  raster-cpu:29 ui-layout:3 gpu:2 bad raster: Canvas::saveLayer 9.2, UpdateAtlasBitmap 4.2, SurfaceFrame::Encode 3.1
+audit/flat/m/empty/frames           337   1.0   2.4   6.8   8.1   1.4   0.0    0   470  
+audit/flat/m/glass-button/tap       190   1.4   2.6   7.3   9.8   2.4   0.0    0   435  
+audit/flat/m/glass-button/press-dr  275   1.5   2.5   7.7  10.3   2.5   0.0    1   513  
+audit/flat/m/segmented/tap          447   3.3   5.0   7.2   8.3   1.4   0.0    1   514  
+audit/flat/m/segmented/drag         673   4.2   5.2   7.3   8.5   1.3   0.0    2   514  
+audit/flat/m/switch/tap             424   1.3   3.0   6.9   8.2   1.3   0.0    0   529  
+audit/flat/m/switch/drag            590   1.4   2.8   7.0   8.1   1.3   0.0    0   486  
+audit/flat/m/slider/drag            655   4.1   5.3   7.2   8.3   1.3   0.0    0   492  
+audit/flat/m/stepper/tap            222   1.0   2.2   7.1   9.2   1.5   0.0    0   421  
+audit/flat/m/tab-bar/tap            446   2.1   3.5   7.4   9.9   2.6   0.0    3   504  
+audit/flat/m/tab-bar/drag           608   2.0   3.6   9.0  13.6   2.6   0.8    2   520  raster-cpu:3 raster-wait:2 bad raster: waitForBufferRelease 4.7, SurfaceFrame::Encode 4.5, QueueSubmit 2.8
+audit/flat/m/menu/open-close        369   3.6   7.8   7.4  10.9   2.4   0.3    7   480  ui-layout:1 bad ui: layout 13.4, paint 2.4, build 1.4
+audit/flat/m/sheet/open-close       351   1.3   2.6   7.1   8.1   2.5   0.0    0   479  
+audit/flat/m/sheet/drag             881   1.4   2.5   7.1  11.2   3.6   0.0    0   466  
+audit/flat/m/alert/open-close       354   1.1   2.9   7.4  12.8   2.3   0.8    4   458  raster-cpu:3 bad raster: UpdateAtlasBitmap 7.5, SurfaceFrame::Encode 4.3, QueueSubmit 2.8
+audit/flat/m/date-picker/open-clos  368   1.1   2.6   7.8  15.8   2.1   4.9   15   478  raster-cpu:13 ui-layout:3 raster-wait:1 ui-finalize:1 bad raster: UpdateAtlasBitmap 6.7, SurfaceFrame::Encode 4.0, QueueSubmit 2.6
