@@ -1341,6 +1341,21 @@ class _AlertField extends StatefulWidget {
 class _AlertFieldState extends State<_AlertField> {
   final FocusNode _focus = FocusNode(debugLabel: 'MorphAlertTextField');
 
+  // The placeholder builds again only when the field turns empty or stops
+  // being empty, not on every keystroke, caret move or composing change.
+  late MorphChanges<bool> _emptiness = _emptinessOf(widget.controller);
+
+  static MorphChanges<bool> _emptinessOf(TextEditingController controller) =>
+      MorphChanges(controller, () => controller.text.isEmpty);
+
+  @override
+  void didUpdateWidget(_AlertField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.controller, widget.controller)) {
+      _emptiness = _emptinessOf(widget.controller);
+    }
+  }
+
   @override
   void dispose() {
     _focus.dispose();
@@ -1374,7 +1389,7 @@ class _AlertFieldState extends State<_AlertField> {
         children: [
           if (placeholder != null)
             ListenableBuilder(
-              listenable: controller,
+              listenable: _emptiness,
               builder: (BuildContext context, Widget? child) =>
                   controller.text.isEmpty ? child! : const SizedBox.shrink(),
               child: ExcludeSemantics(

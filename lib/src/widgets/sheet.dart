@@ -315,6 +315,7 @@ class _SheetViewState extends State<_SheetView>
   MorphZoomMotion? _zoom;
   Rect? _zoomTarget;
   Size? _zoomContent;
+  _ZoomFrame? _zoomFrame;
   late final MorphZoomSource _source = _route._zoomSource!;
   final GlobalKey _contentKey = GlobalKey();
   late final _SheetScrollController _scroll = _SheetScrollController(this);
@@ -335,6 +336,7 @@ class _SheetViewState extends State<_SheetView>
   // reads its geometry through frame boxes.
   final ValueNotifier<_SheetStructure> _structure = ValueNotifier((
     zooming: false,
+    zoomOpening: false,
     gateOpen: false,
     docked: false,
     docking: false,
@@ -346,6 +348,7 @@ class _SheetViewState extends State<_SheetView>
     final frame = _frame(_size);
     _structure.value = (
       zooming: _zooming,
+      zoomOpening: _zoom?.isOpening ?? false,
       gateOpen: frame.gateOpen,
       docked: frame.docked,
       docking: frame.docking,
@@ -386,6 +389,7 @@ class _SheetViewState extends State<_SheetView>
   void advanceMotion(double t) {
     final motion = _motion;
     if (motion == null) return;
+    _zoomFrame = null;
     motion.advance(t);
     final back = _scrubBack;
     if (back != null && back.isAtRest(t, 0.05)) _scrubBack = null;
@@ -466,6 +470,7 @@ class _SheetViewState extends State<_SheetView>
       _scrubBack = null;
       motion.dragCancel(clock);
       zoom.close(clock);
+      _zoomFrame = null;
       wake();
       return;
     }
@@ -726,6 +731,7 @@ class _SheetViewState extends State<_SheetView>
       context,
     )?.bottomLeft.x;
     _style = style;
+    _zoomFrame = null;
     _floatingRadius =
         (reported ?? MorphSheetTuning.fallbackDisplayRadius) -
         MorphSheetTuning.floatingInset;
@@ -785,20 +791,11 @@ class _SheetViewState extends State<_SheetView>
                     child: _gate(open: structure.gateOpen, child: child!),
                   );
                   if (structure.zooming) {
-                    return ListenableBuilder(
-                      listenable: frames,
-                      builder: (BuildContext context, Widget? _) {
-                        final frame = _frame(size);
-                        return _buildZoom(
-                          size: size,
-                          style: style,
-                          sheet: sheet,
-                          height: frame.height,
-                          scale: frame.scale,
-                          bottomRadius: frame.bottomRadius,
-                          dimOpacity: frame.dimOpacity,
-                        );
-                      },
+                    return _buildZoom(
+                      size: size,
+                      style: style,
+                      sheet: sheet,
+                      opening: structure.zoomOpening,
                     );
                   }
                   return Stack(
@@ -812,13 +809,10 @@ class _SheetViewState extends State<_SheetView>
                               behavior: HitTestBehavior.opaque,
                               onTap: _requestDismiss,
                               child: RepaintBoundary(
-                                child: CustomPaint(
-                                  size: Size.infinite,
-                                  painter: _FillPainter(
-                                    frames,
-                                    () => style.dimmingColor.withValues(
-                                      alpha: _frame(size).dimOpacity,
-                                    ),
+                                child: MorphLiveColoredBox(
+                                  live: frames,
+                                  colorOf: () => style.dimmingColor.withValues(
+                                    alpha: _frame(size).dimOpacity,
                                   ),
                                 ),
                               ),
@@ -926,6 +920,7 @@ class _SheetViewState extends State<_SheetView>
 /// What the sheet's tree is built from; it rebuilds only when this changes.
 typedef _SheetStructure = ({
   bool zooming,
+  bool zoomOpening,
   bool gateOpen,
   bool docked,
   bool docking,
@@ -959,60 +954,88 @@ class _SheetFrame {
   final bool docking;
 }
 
-/// Fills its box with [color], read again on every frame of [frames].
-class _FillPainter extends CustomPainter {
-  _FillPainter(Listenable frames, this.color) : super(repaint: frames);
+/// The zoom's geometry at one time.
+class _ZoomFrame {
+  const _ZoomFrame({
+    required this.size,
+    required this.rect,
+    required this.shape,
+    required this.fit,
+    required this.dimOpacity,
+    required this.opacity,
+    required this.sourceSize,
+    required this.height,
+    required this.fade,
+    required this.closing,
+    required this.lost,
+  });
 
-  final Color Function() color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final fill = color();
-    if (fill.a <= 0) return;
-    final paint = Paint();
-    paint.color = fill;
-    canvas.drawRect(Offset.zero & size, paint);
-  }
-
-  @override
-  bool shouldRepaint(_FillPainter oldDelegate) =>
-      !identical(oldDelegate.color, color);
+  final Size size;
+  final Rect rect;
+  final RRect shape;
+  final double fit;
+  final double dimOpacity;
+  final double opacity;
+  final Size sourceSize;
+  final double height;
+  final double fade;
+  final bool closing;
+  final bool lost;
 }
 
 extension on _SheetViewState {
-  Widget _buildZoom({
-    required Size size,
-    required MorphSheetStyle style,
-    required Widget sheet,
-    required double height,
-    required double scale,
-    required double bottomRadius,
-    required double dimOpacity,
-  }) {
+  // Computed once per frame of the motion: every live read of the zoom
+  // asks here, so the source is captured and its dissolve sampled once.
+  _ZoomFrame _zoomAt(Size size) {
+    final cached = _zoomFrame;
+    if (cached != null && cached.size == size) return cached;
     final zoom = _zoom!;
     final motion = _motion!;
     final t = motion.time;
+    final frame = _frame(size);
     final natural = motion.visibleRect(t, size.height);
     final destination = _zoomTarget ?? natural;
     final source = _source.capture(context) ?? destination;
     final rect = zoom.rect(t, source, destination);
-    final p = zoom.sizeProgress(t).clamp(0.0, 1.0);
+    final progress = zoom.sizeProgress(t);
+    final p = progress.clamp(0.0, 1.0);
     final from = _source.radius(source.size);
     Radius corner(double to) =>
         Radius.circular(math.max(0, from + (to - from) * p));
-    final top = corner(MorphSheetTuning.topRadius * scale);
-    final bottom = corner(bottomRadius * scale);
-    final shape = RRect.fromRectAndCorners(
-      Offset.zero & rect.size,
-      topLeft: top,
-      topRight: top,
-      bottomLeft: bottom,
-      bottomRight: bottom,
+    final top = corner(MorphSheetTuning.topRadius * frame.scale);
+    final bottom = corner(frame.bottomRadius * frame.scale);
+    final closing = !zoom.isOpening;
+    final opacity = _source.opacity(progress, closing: closing);
+    return _zoomFrame = _ZoomFrame(
+      size: size,
+      rect: rect,
+      shape: RRect.fromRectAndCorners(
+        Offset.zero & rect.size,
+        topLeft: top,
+        topRight: top,
+        bottomLeft: bottom,
+        bottomRight: bottom,
+      ),
+      fit:
+          frame.scale *
+          MorphZoomMotion.contentScale(rect, _zoomContent ?? natural.size),
+      dimOpacity: frame.dimOpacity * zoom.dimming(t),
+      opacity: opacity,
+      sourceSize: source.size,
+      height: frame.height,
+      fade: zoom.fade(t),
+      closing: closing,
+      lost: _source.isLost,
     );
-    final fit =
-        scale *
-        MorphZoomMotion.contentScale(rect, _zoomContent ?? natural.size);
-    final fade = zoom.fade(t);
+  }
+
+  Widget _buildZoom({
+    required Size size,
+    required MorphSheetStyle style,
+    required Widget sheet,
+    required bool opening,
+  }) {
+    _ZoomFrame now() => _zoomAt(size);
     return Stack(
       children: [
         Positioned.fill(
@@ -1020,38 +1043,55 @@ extension on _SheetViewState {
             onTap: _route.dismissible ? _requestDismiss : null,
             child: GestureDetector(
               behavior: HitTestBehavior.opaque,
-              onTap: zoom.isOpening ? _requestDismiss : null,
-              child: ColoredBox(
-                color: style.dimmingColor.withValues(
-                  alpha: dimOpacity * zoom.dimming(t),
-                ),
+              onTap: opening ? _requestDismiss : null,
+              child: MorphLiveColoredBox(
+                live: frames,
+                colorOf: () =>
+                    style.dimmingColor.withValues(alpha: now().dimOpacity),
               ),
             ),
           ),
         ),
-        Positioned.fromRect(
-          rect: rect,
+        MorphLivePositionedTemplate(
+          live: frames,
+          template: () =>
+              Positioned.fromRect(rect: now().rect, child: morphLiveSlot),
           child: IgnorePointer(
-            child: ClipRRect(
-              clipper: MorphZoomShapeClipper(shape),
-              child: Opacity(
-                opacity: _source.opacity(
-                  zoom.sizeProgress(t),
-                  closing: !zoom.isOpening,
-                ),
-                child: _source.crossfade(
-                  fade: fade,
-                  size: source.size,
-                  closing: !zoom.isOpening,
-                  content: (double opacity) => Positioned(
-                    left: 0,
-                    top: 0,
-                    width: size.width,
-                    height: height,
-                    child: Transform.scale(
-                      scale: fit,
+            child: MorphLiveTemplate(
+              live: frames,
+              template: () =>
+                  ClipRRect(clipper: MorphZoomShapeClipper(now().shape)),
+              child: MorphLiveOpacity(
+                live: frames,
+                opacityOf: () => now().opacity,
+                child: _SheetZoomCrossfade(
+                  frames: frames,
+                  source: _source,
+                  frame: now,
+                  content: MorphLivePositionedTemplate(
+                    live: frames,
+                    template: () => Positioned(
+                      left: 0,
+                      top: 0,
+                      width: size.width,
+                      height: now().height,
+                      child: morphLiveSlot,
+                    ),
+                    child: MorphLiveTransform.matrix(
+                      live: frames,
                       alignment: Alignment.topLeft,
-                      child: Opacity(opacity: opacity, child: sheet),
+                      matrixOf: () {
+                        final fit = now().fit;
+                        return Matrix4.diagonal3Values(fit, fit, 1);
+                      },
+                      child: MorphLiveOpacity(
+                        live: frames,
+                        opacityOf: () {
+                          final frame = now();
+                          return frame.lost && frame.closing ? 1 : frame.fade;
+                        },
+                        child: sheet,
+                      ),
                     ),
                   ),
                 ),
@@ -1060,6 +1100,84 @@ extension on _SheetViewState {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// The sheet crossfaded with its source's look: the sheet follows the
+/// zoom on live render objects, and the crossfade builds again only when
+/// what it is built from changes.
+class _SheetZoomCrossfade extends StatefulWidget {
+  const _SheetZoomCrossfade({
+    required this.frames,
+    required this.source,
+    required this.frame,
+    required this.content,
+  });
+
+  final Listenable frames;
+  final MorphZoomSource source;
+  final _ZoomFrame Function() frame;
+  final Widget content;
+
+  @override
+  State<_SheetZoomCrossfade> createState() => _SheetZoomCrossfadeState();
+}
+
+class _SheetZoomCrossfadeState extends State<_SheetZoomCrossfade> {
+  Object? _inputs;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.frames.addListener(_sync);
+  }
+
+  @override
+  void didUpdateWidget(_SheetZoomCrossfade oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.frames, widget.frames)) {
+      oldWidget.frames.removeListener(_sync);
+      widget.frames.addListener(_sync);
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.frames.removeListener(_sync);
+    super.dispose();
+  }
+
+  // The source's look fades by a plain value, so the crossfade builds
+  // again on every frame that look shows and its fade moves.
+  Object? _inputsNow() {
+    final frame = widget.frame();
+    final shows =
+        !frame.lost &&
+        widget.source.tag != null &&
+        frame.fade < 1 &&
+        !frame.sourceSize.isEmpty;
+    return (
+      frame.lost,
+      frame.closing,
+      frame.sourceSize,
+      shows ? frame.fade : null,
+    );
+  }
+
+  void _sync() {
+    if (_inputsNow() != _inputs) setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _inputs = _inputsNow();
+    final frame = widget.frame();
+    return widget.source.crossfade(
+      fade: frame.fade,
+      size: frame.sourceSize,
+      closing: frame.closing,
+      content: (double _) => widget.content,
     );
   }
 }
@@ -1131,13 +1249,10 @@ class _SheetBody extends StatelessWidget {
           ColoredBox(color: style.dockedColor)
         else if (docking)
           RepaintBoundary(
-            child: CustomPaint(
-              size: Size.infinite,
-              painter: _FillPainter(
-                frames,
-                () => style.dockedColor.withValues(
-                  alpha: style.dockedColor.a * dock(),
-                ),
+            child: MorphLiveColoredBox(
+              live: frames,
+              colorOf: () => style.dockedColor.withValues(
+                alpha: style.dockedColor.a * dock(),
               ),
             ),
           ),
