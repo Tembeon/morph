@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/scope.dart';
@@ -147,9 +148,9 @@ void main() {
         nav.currentState!.pop();
         await tester.pump();
         await tester.pump(const Duration(milliseconds: 30));
-        final fades = tester
-            .widgetList<Opacity>(find.byType(Opacity))
-            .map((w) => w.opacity);
+        final fades = tester.allRenderObjects.whereType<RenderOpacity>().map(
+          (r) => r.opacity,
+        );
         expect(fades.any((v) => v > 0 && v < 1), isTrue);
         expect(find.text('replica'), findsNothing);
         await tester.pumpAndSettle();
