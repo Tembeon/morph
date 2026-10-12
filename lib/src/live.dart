@@ -1195,16 +1195,68 @@ class MorphLiveTemplate extends SingleChildRenderObjectWidget {
       template().updateRenderObject(context, renderObject);
 
   @override
-  SingleChildRenderObjectElement createElement() => _LiveTemplateElement(this);
+  SingleChildRenderObjectElement createElement() => _LiveDrivenElement(
+    this,
+    (Widget widget) => (widget as MorphLiveTemplate).live,
+    (Widget widget, BuildContext context, RenderObject renderObject) =>
+        (widget as MorphLiveTemplate).updateRenderObject(context, renderObject),
+  );
 }
 
-class _LiveTemplateElement extends SingleChildRenderObjectElement {
-  _LiveTemplateElement(MorphLiveTemplate super.widget);
+/// An [ImageFiltered] whose filter follows a live source.
+///
+/// It stays an [ImageFiltered], so whatever looks for one above a widget
+/// (a glass container deciding whether it reaches its members) still
+/// finds it.
+@internal
+class MorphLiveImageFiltered extends ImageFiltered {
+  /// Filters [child] by [filterOf], read again on every notification of
+  /// [live].
+  MorphLiveImageFiltered({
+    required this.live,
+    required this.filterOf,
+    super.enabled,
+    super.child,
+    super.key,
+  }) : super(imageFilter: filterOf());
 
-  Listenable? get _live => (widget as MorphLiveTemplate).live;
+  /// The source of the filter, or null for a fixed one.
+  final Listenable? live;
 
-  void _drive() =>
-      (widget as MorphLiveTemplate).updateRenderObject(this, renderObject);
+  /// The filter now.
+  final ui.ImageFilter Function() filterOf;
+
+  @override
+  ui.ImageFilter get imageFilter => filterOf();
+
+  @override
+  SingleChildRenderObjectElement createElement() => _LiveDrivenElement(
+    this,
+    (Widget widget) => (widget as MorphLiveImageFiltered).live,
+    (Widget widget, BuildContext context, RenderObject renderObject) =>
+        (widget as MorphLiveImageFiltered).updateRenderObject(
+          context,
+          renderObject,
+        ),
+  );
+}
+
+/// Applies its widget's `updateRenderObject` again on every notification
+/// of the source its widget names.
+class _LiveDrivenElement extends SingleChildRenderObjectElement {
+  _LiveDrivenElement(super.widget, this._liveOf, this._update);
+
+  final Listenable? Function(Widget widget) _liveOf;
+  final void Function(
+    Widget widget,
+    BuildContext context,
+    RenderObject renderObject,
+  )
+  _update;
+
+  Listenable? get _live => _liveOf(widget);
+
+  void _drive() => _update(widget, this, renderObject);
 
   @override
   void mount(Element? parent, Object? newSlot) {
@@ -1213,7 +1265,7 @@ class _LiveTemplateElement extends SingleChildRenderObjectElement {
   }
 
   @override
-  void update(MorphLiveTemplate newWidget) {
+  void update(SingleChildRenderObjectWidget newWidget) {
     final old = _live;
     super.update(newWidget);
     if (!identical(old, _live)) {

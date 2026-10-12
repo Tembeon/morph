@@ -5,6 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -396,12 +397,13 @@ class _MorphSearchFieldState extends State<MorphSearchField>
         child: GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: widget.enabled ? _focus.requestFocus : null,
-          child: ListenableBuilder(
-            listenable: frames,
-            builder: (BuildContext context, Widget? child) => Transform.scale(
-              scale: widget.enabled ? _motion.pressScale(_motion.time) : 1,
-              child: child,
-            ),
+          child: MorphLiveTransform(
+            live: frames,
+            writeInto: (Matrix4 into) {
+              if (!widget.enabled) return;
+              final scale = _motion.pressScale(_motion.time);
+              into.scaleByDouble(scale, scale, 1, 1);
+            },
             child: SizedBox(
               height: MorphSearchTuning.height,
               child: widget.enabled
@@ -666,6 +668,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
   void initState() {
     super.initState();
     _listen();
+    frames.addListener(_framed);
   }
 
   @override
@@ -684,6 +687,8 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
 
   @override
   void dispose() {
+    frames.removeListener(_framed);
+    _ticks.dispose();
     _listening?.removeListener(_focusChanged);
     _ownController?.dispose();
     _ownFocus?.dispose();
@@ -826,121 +831,240 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final size = constraints.biggest;
-          final rest = morphSearchBarLayout(
-            width: size.width,
-            bottom: size.height - MorphSearchTuning.restInset,
-            focused: false,
-            leading: leadWidths,
-            trailing: trailWidths,
-            rtl: rtl,
+          _layouts = (
+            rest: morphSearchBarLayout(
+              width: size.width,
+              bottom: size.height - MorphSearchTuning.restInset,
+              focused: false,
+              leading: leadWidths,
+              trailing: trailWidths,
+              rtl: rtl,
+            ),
+            focused: morphSearchBarLayout(
+              width: size.width,
+              bottom:
+                  size.height -
+                  (_motion.isFocused ? keyboard : _frozenKeyboard ?? keyboard) -
+                  MorphSearchTuning.keyboardGap,
+              focused: true,
+              leading: leadWidths,
+              trailing: trailWidths,
+              rtl: rtl,
+            ),
+            virtual: morphSearchBarLayout(
+              width: size.width,
+              bottom: size.height - MorphSearchTuning.keyboardGap,
+              focused: true,
+              leading: leadWidths,
+              trailing: trailWidths,
+              rtl: rtl,
+            ),
           );
-          final focused = morphSearchBarLayout(
-            width: size.width,
-            bottom:
-                size.height -
-                (_motion.isFocused ? keyboard : _frozenKeyboard ?? keyboard) -
-                MorphSearchTuning.keyboardGap,
-            focused: true,
-            leading: leadWidths,
-            trailing: trailWidths,
-            rtl: rtl,
-          );
-          final virtual = morphSearchBarLayout(
-            width: size.width,
-            bottom: size.height - MorphSearchTuning.keyboardGap,
-            focused: true,
-            leading: leadWidths,
-            trailing: trailWidths,
-            rtl: rtl,
-          );
-          return ListenableBuilder(
-            listenable: frames,
-            builder: (BuildContext context, Widget? _) {
-              final p = _motion.progress(_motion.time);
-              final focusing = _motion.isFocused;
-              final fieldRect = Rect.lerp(rest.field, focused.field, p)!;
-              final closeRect =
-                  _frozenClose ?? Rect.lerp(rest.close, focused.close, p)!;
-              _lastClose = closeRect;
-              Rect side(Rect atRest, Rect atFocus) =>
-                  focusing ? atRest : Rect.lerp(atFocus, atRest, 1 - p)!;
-              final items = <Widget>[
+          final structure = _readFrame();
+          _built = structure;
+          final side = structure.side;
+          final shut = structure.close;
+          return MorphGlassStage(
+            open: structure.open,
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                MorphLivePositionedTemplate(
+                  key: const ValueKey<String>('field'),
+                  live: _ticks,
+                  template: () => Positioned.fromRect(
+                    rect: _frame.field,
+                    child: morphLiveSlot,
+                  ),
+                  child: field,
+                ),
                 for (var i = 0; i < leadItems.length; i++)
                   _placed(
-                    side(rest.leading[i], virtual.leading[i]),
-                    1 - p,
+                    () => _frame.leading[i],
+                    () => 1 - _frame.p,
+                    side,
                     leadItems[i],
                     key: ValueKey<Object>(('lead', leadItems[i].button.id)),
-                    interactive: !focusing,
                   ),
                 for (var i = 0; i < trailItems.length; i++)
                   _placed(
-                    side(rest.trailing[i], virtual.trailing[i]),
-                    1 - p,
+                    () => _frame.trailing[i],
+                    () => 1 - _frame.p,
+                    side,
                     trailItems[i],
                     key: ValueKey<Object>(('trail', trailItems[i].button.id)),
-                    interactive: !focusing,
                   ),
-                if (p > 0.001 || focusing)
+                if (shut != null)
                   _placed(
-                    closeRect,
-                    p,
+                    () => _frame.close,
+                    () => _frame.p,
+                    shut,
                     close,
                     key: const ValueKey<String>('close'),
-                    interactive: focusing,
                   ),
-              ];
-              return MorphGlassStage(
-                open: p <= 0 && !focusing,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Positioned.fromRect(
-                      key: const ValueKey<String>('field'),
-                      rect: fieldRect,
-                      child: field,
-                    ),
-                    ...items,
-                  ],
-                ),
-              );
-            },
+              ],
+            ),
           );
         },
       ),
     );
   }
 
+  ({
+    MorphSearchBarGeometry rest,
+    MorphSearchBarGeometry focused,
+    MorphSearchBarGeometry virtual,
+  })?
+  _layouts;
+  _ToolbarFrame _frame = _ToolbarFrame.zero;
+  _ToolbarStructure? _built;
+  final ValueNotifier<int> _ticks = ValueNotifier<int>(0);
+
+  // Read on the motion's own tick, after it advanced: nothing else moves
+  // the bar's motion within a frame. A keyboard frame rebuilds and reads
+  // again with the new layouts.
+  void _framed() {
+    if (_layouts == null) return;
+    if (_readFrame() != _built) setState(() {});
+    _ticks.value++;
+  }
+
+  _ToolbarStructure _readFrame() {
+    final layouts = _layouts!;
+    final rest = layouts.rest;
+    final focused = layouts.focused;
+    final virtual = layouts.virtual;
+    final p = _motion.progress(_motion.time);
+    final focusing = _motion.isFocused;
+    final closeRect = _frozenClose ?? Rect.lerp(rest.close, focused.close, p)!;
+    _lastClose = closeRect;
+    Rect side(Rect atRest, Rect atFocus) =>
+        focusing ? atRest : Rect.lerp(atFocus, atRest, 1 - p)!;
+    _frame = _ToolbarFrame(
+      p: p,
+      field: Rect.lerp(rest.field, focused.field, p)!,
+      close: closeRect,
+      leading: [
+        for (var i = 0; i < rest.leading.length; i++)
+          side(rest.leading[i], virtual.leading[i]),
+      ],
+      trailing: [
+        for (var i = 0; i < rest.trailing.length; i++)
+          side(rest.trailing[i], virtual.trailing[i]),
+      ],
+    );
+    return (
+      open: p <= 0 && !focusing,
+      side: _ItemStructure.at(1 - p, interactive: !focusing),
+      close: p > 0.001 || focusing
+          ? _ItemStructure.at(p, interactive: focusing)
+          : null,
+    );
+  }
+
   Widget _placed(
-    Rect rect,
-    double presence,
+    Rect Function() rect,
+    double Function() presence,
+    _ItemStructure structure,
     Widget child, {
     required Key key,
-    required bool interactive,
   }) {
-    final p = presence.clamp(0.0, 1.0);
-    Widget out = Transform.scale(
-      scale: MorphSearchMotion.appearScaleFor(p),
+    double p() => presence().clamp(0.0, 1.0);
+    Widget out = MorphLiveTransform(
+      live: _ticks,
+      writeInto: (Matrix4 into) {
+        final scale = MorphSearchMotion.appearScaleFor(p());
+        into.scaleByDouble(scale, scale, 1, 1);
+      },
       child: child,
     );
-    final blur = MorphSearchMotion.appearBlurFor(p);
-    if (blur > 0.05) {
-      out = ImageFiltered(
-        imageFilter: ui.ImageFilter.blur(
-          sigmaX: blur / 2,
-          sigmaY: blur / 2,
-          tileMode: TileMode.decal,
-        ),
+    if (structure.blurred) {
+      out = MorphLiveImageFiltered(
+        live: _ticks,
+        filterOf: () {
+          final blur = MorphSearchMotion.appearBlurFor(p());
+          return ui.ImageFilter.blur(
+            sigmaX: blur / 2,
+            sigmaY: blur / 2,
+            tileMode: TileMode.decal,
+          );
+        },
         child: out,
       );
     }
-    out = MorphGlassStageFade(opacity: p, child: out);
-    if (!interactive || p < 0.01) {
+    out = MorphLiveTemplate(
+      live: _ticks,
+      template: () => MorphGlassStageFade(opacity: p()),
+      child: out,
+    );
+    if (structure.ignored) {
       out = IgnorePointer(child: ExcludeSemantics(child: out));
     }
-    return Positioned.fromRect(key: key, rect: rect, child: out);
+    return MorphLivePositionedTemplate(
+      key: key,
+      live: _ticks,
+      template: () => Positioned.fromRect(rect: rect(), child: morphLiveSlot),
+      child: out,
+    );
   }
 }
+
+class _ToolbarFrame {
+  const _ToolbarFrame({
+    required this.p,
+    required this.field,
+    required this.close,
+    required this.leading,
+    required this.trailing,
+  });
+
+  static const zero = _ToolbarFrame(
+    p: 0,
+    field: Rect.zero,
+    close: Rect.zero,
+    leading: [],
+    trailing: [],
+  );
+
+  final double p;
+  final Rect field;
+  final Rect close;
+  final List<Rect> leading;
+  final List<Rect> trailing;
+}
+
+/// Whether a toolbar item is drawn blurred and whether it ignores touches:
+/// what decides the shape of its tree.
+@immutable
+class _ItemStructure {
+  const _ItemStructure({required this.blurred, required this.ignored});
+
+  factory _ItemStructure.at(double presence, {required bool interactive}) {
+    final p = presence.clamp(0.0, 1.0);
+    return _ItemStructure(
+      blurred: MorphSearchMotion.appearBlurFor(p) > 0.05,
+      ignored: !interactive || p < 0.01,
+    );
+  }
+
+  final bool blurred;
+  final bool ignored;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _ItemStructure &&
+      other.blurred == blurred &&
+      other.ignored == ignored;
+
+  @override
+  int get hashCode => Object.hash(blurred, ignored);
+}
+
+typedef _ToolbarStructure = ({
+  bool open,
+  _ItemStructure side,
+  _ItemStructure? close,
+});
 
 class _GlassItem extends StatelessWidget {
   const _GlassItem({required this.button, required this.style});

@@ -1,3 +1,4 @@
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/date_picker.dart';
@@ -61,10 +62,20 @@ void main() {
     await tester.pump();
     await gesture.moveBy(const Offset(0, -30));
     await tester.pump(const Duration(milliseconds: 100));
-    final transform = tester.widget<Transform>(
-      find.descendant(of: field, matching: find.byType(Transform)).first,
-    );
-    expect(transform.transform.getMaxScaleOnAxis(), 1);
+    RenderTransform? lift;
+    void visit(RenderObject child) {
+      if (lift != null) return;
+      if (child is RenderTransform) {
+        lift = child;
+        return;
+      }
+      child.visitChildren(visit);
+    }
+
+    tester.renderObject(field).visitChildren(visit);
+    final transform = Matrix4.identity();
+    lift!.applyPaintTransform(lift!.child!, transform);
+    expect(transform.getMaxScaleOnAxis(), 1);
     expect(focus.hasFocus, isFalse);
     await gesture.up();
     await tester.pumpAndSettle();
