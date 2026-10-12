@@ -408,6 +408,9 @@ def table(results, baseline):
             d = s['dart']
             lines.append(f'{"":34}   dart ({d["samples"]} samples): ' + ', '.join(
                 f'{k} {v:.0f}' for k, v in list(d['morph_inclusive_ms'].items())[:4]) + ' ms')
+        if owners := s.get('ui_owners'):
+            lines.append(f'{"":34}   ui by owner (self ms/frame): ' + ', '.join(
+                f'{k[:40]} {v:.2f}' for k, v in list(owners.items())[:6]))
         if layers := s.get('layers'):
             lines.append(f'{"":34}   passes/frame: {s.get("save_layers_per_frame", 0):.1f} '
                          f'({layers["backdrops_per_frame"]:.1f} backdrop, '
@@ -529,7 +532,8 @@ def main():
         args = dict(args)
         if suite == 'audit':
             args.update(AUDIT_SCENES=','.join(scenes), AUDIT_IDLE_S='0',
-                        AUDIT_CENSUS='true', AUDIT_CENSUS_OWNERS='true')
+                        AUDIT_CENSUS='true', AUDIT_CENSUS_OWNERS='true',
+                        AUDIT_PROFILE_WIDGETS='true')
         else:
             parts = [x.split('-', 2)[2].rsplit('-', 1) for x in scenes if x.count('-') >= 3]
             if not parts:
@@ -557,6 +561,8 @@ def main():
                 continue
             if 'dart' in s:
                 results[key]['dart'] = s['dart']
+            if s.get('ui_owner_ms_per_frame'):
+                results[key]['ui_owners'] = s['ui_owner_ms_per_frame']
             if scene in census:
                 c = census[scene]
                 results[key]['layers'] = {

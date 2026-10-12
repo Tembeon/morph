@@ -49,6 +49,7 @@ RASTER_ROOTS = ('GPURasterizer::Draw', 'Rasterizer::DoDraw')
 # frame's glyphs (a floor of ~0.15 ms on the Pixel 6a); UpdateAtlasBitmap
 # appears only in frames that strike new glyphs.
 GLYPH_ATLAS = ('UpdateAtlasBitmap', 'CreateGlyphAtlas')
+OWNER = re.compile(r'^_?[A-Z][A-Za-z0-9_]*(<.*>)?$')
 PHASES = {
     'BUILD': 'build',
     'LAYOUT (root)': 'layout',
@@ -367,6 +368,18 @@ def analyze(path, cpu=None, report=None):
         out['other'] = max(0, f.dur - sum(out.values()))
         return out
 
+    # Widget and render object events (the framework's profile flags name
+    # every build, layout and paint by its runtime type): self time by
+    # name, so a frame's UI work is split by owner.
+    def ui_owners(f):
+        out = collections.Counter()
+        for s in descendants(ui_kids, f):
+            if not OWNER.match(s.name) or s.name in PHASES:
+                continue
+            kids = ui_kids.get(s.id, [])
+            out[s.name] += max(0, s.dur - sum(k.dur for k in kids))
+        return out
+
     def raster_self(f):
         out = collections.Counter()
         for s in [f] + descendants(raster_kids, f):
@@ -413,6 +426,7 @@ def analyze(path, cpu=None, report=None):
         ui_ms, ra_ms, gpu_ms = [], [], []
         causes = collections.Counter()
         phases = collections.Counter()
+        owners = collections.Counter()
         rself = collections.Counter()
         atlas_frames = 0
         ui_wait = ra_wait = ui_total = ra_total = 0
@@ -437,6 +451,7 @@ def analyze(path, cpu=None, report=None):
                 ui_ms.append(u)
                 ph = ui_phases(ui)
                 phases.update(ph)
+                owners.update(ui_owners(ui))
                 ui_all.append((ui.ts, ui.ts + ui.dur))
                 urun, urunnable = state_split(ui_states, ui.ts, ui.ts + ui.dur)
                 ui_wait += urunnable
@@ -526,6 +541,8 @@ def analyze(path, cpu=None, report=None):
             'causes': dict(causes.most_common()),
             'ui_phase_ms_per_frame': {k: round(v / 1e6 / max(1, len(ui_ms)), 3)
                                       for k, v in phases.most_common()},
+            'ui_owner_ms_per_frame': {k: round(v / 1e6 / max(1, len(ui_ms)), 3)
+                                      for k, v in owners.most_common(10) if v > 0},
             'raster_self_ms_per_frame': {k: round(v / 1e6 / max(1, n_frames), 3)
                                          for k, v in rself.most_common(8)},
             'glyph_atlas_ms_per_frame': round(

@@ -5,6 +5,8 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart'
+    show debugProfileLayoutsEnabled, debugProfilePaintsEnabled;
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
@@ -189,6 +191,16 @@ void main() {
     if (_stagesOff) debugMorphGlassStagesOpen = false;
     // ignore: invalid_use_of_visible_for_testing_member
     debugGlassCostProbe = _probe;
+    if (BenchArgs.flag(
+      'AUDIT_PROFILE_WIDGETS',
+      fallback: const bool.fromEnvironment('AUDIT_PROFILE_WIDGETS'),
+    )) {
+      // Every build, layout and paint as a timeline event named by its
+      // type, for the bench's UI time by owner (diagnostic pass only).
+      debugProfileBuildsEnabled = true;
+      debugProfileLayoutsEnabled = true;
+      debugProfilePaintsEnabled = true;
+    }
     debugMorphShaderFrost = BenchArgs.flag(
       'MORPH_SHADER_FROST',
       fallback: debugMorphShaderFrost,
