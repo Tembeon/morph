@@ -1,0 +1,56 @@
+{
+ "sha": "6c10a6b-dirty",
+ "source": "/Users/tembeon/IdeaProjects/morph",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-12 11:25:27.124297",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8"
+   },
+   "thermal_before": [
+    1,
+    37.4529
+   ],
+   "thermal_after": [
+    1,
+    38.342304
+   ]
+  },
+  "audit-flat": {
+   "args": {
+    "GALLERY_GLASS": "flat",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8"
+   },
+   "thermal_before": [
+    1,
+    37.568707
+   ],
+   "thermal_after": [
+    1,
+    38.2005
+   ]
+  },
+  "nav": {
+   "args": {
+    "NAV_MODES": "liquid,flat",
+    "NAV_MOTIONS": "enter,nested-push,nested-pop,toolbar,steady",
+    "NAV_RUNS": "3"
+   },
+   "thermal_before": [
+    1,
+    38.1244
+   ],
+   "thermal_after": [
+    1,
+    38.353207
+   ]
+  }
+ }
+}

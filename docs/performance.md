@@ -22,10 +22,11 @@ supported.
   activates, native pixels (device readback, not only Flutter toImage),
   real presentation (missed slots, not only profile windows) and
   sustained resource use (RSS, retained textures).
-- Compare like with like: repeats and separate launches (ABBA where
-  possible), same binary for A/B when feasible, cooled starts for energy.
-  Baseline variation is often larger than the effect; a single launch
-  proves nothing.
+- Working runs: one `tool/bench/bench.py` run of the candidate against
+  `tool/bench/baseline.json` (frame anatomy and power per scene, one
+  launch per tier, 3 repeats per scene). ABBA over separate cooled
+  launches only when a delta is within the noise and the decision hangs
+  on it; then use `--fixed` (steady clocks) or `energy_android.sh`.
 - Current SDK for optimization work: `flutter-beta` / `dart-beta`
   (3.49.0-0.2.pre); normal commands stay on 3.47.2 stable. The native
   shader-filter factory requests low quality when its typed signature
@@ -37,6 +38,23 @@ supported.
 
 ## 2. Harnesses
 
+- Pixel bench, the default for every Android check: `tool/bench/bench.py`
+  (`--help`). Builds the working tree or `--rev` once per suite (the
+  glass audit and the navigation bench; tier, scenes and repeats are
+  launch settings, not builds), takes the Pixel lock, waits for Thermal
+  Status 0, runs every launch under one Perfetto trace
+  (`tool/bench/trace.cfg`: Flutter/Dart events via the profile manifest's
+  TraceSystrace, sched, CPU/GPU clocks, GPU work periods, ODPM rails) and
+  prints per scene: UI / raster / GPU p50 and p95, frames over budget with
+  the first limiter of each (gpu, raster-wait, raster-sched, raster-cpu,
+  ui-sched, ui-<phase>), the UI phases and the raster thread's self time
+  by slice, dropped vsync slots, clocks and power; deltas against
+  `tool/bench/baseline.json` (`--save-baseline` replaces it once a change
+  is admitted). `tool/bench/analyze.py <trace>` reads any trace whose
+  bench marks `scene:<name>:<run>:begin|end`. Results:
+  `tool/ios_reference/perf/<date>-bench-<label>/` (traces stay in
+  /tmp/morph-perf/bench). The scripts below remain for what bench.py does
+  not cover (iPhone, shader parity, layer census, Skia devices).
 - Device frame cost (iPhone): `tool/ios_reference/perf/audit.sh` builds
   example/integration_test/glass_audit_test.dart as a profile app per
   tier (`AUDIT_SOURCE=` a git worktree at a fixed commit, `AUDIT_RUNS=5`),

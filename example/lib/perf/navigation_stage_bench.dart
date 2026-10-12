@@ -22,8 +22,12 @@ import 'package:morph_example/gallery/glass_settings.dart';
 import 'package:morph_example/gallery/navigation_page.dart';
 import 'package:morph_example/perf/glass_stage_bench.dart' show stageBenchStats;
 import 'package:morph_example/perf/adpf.dart';
+import 'package:morph_example/perf/bench_args.dart';
 
-const _runs = int.fromEnvironment('NAV_RUNS', defaultValue: 3);
+final _runs = BenchArgs.integer(
+  'NAV_RUNS',
+  const int.fromEnvironment('NAV_RUNS', defaultValue: 3),
+);
 const _warmMs = int.fromEnvironment('NAV_WARM_MS', defaultValue: 800);
 const _sampleMs = int.fromEnvironment('NAV_SAMPLE_MS', defaultValue: 2400);
 const _seed = int.fromEnvironment('NAV_SEED', defaultValue: 202610078);
@@ -65,13 +69,20 @@ const _pageSelection = String.fromEnvironment(
   'NAV_PAGES',
   defaultValue: 'navigation',
 );
-const _modeSelection = String.fromEnvironment(
+final _modeSelection = BenchArgs.string(
   'NAV_MODES',
-  defaultValue: 'liquid,flat',
+  const String.fromEnvironment('NAV_MODES', defaultValue: 'liquid,flat'),
 );
-const _motionSelection = String.fromEnvironment(
+final _motionSelection = BenchArgs.string(
   'NAV_MOTIONS',
-  defaultValue: 'enter,nested-push,nested-pop,toolbar,steady,title',
+  const String.fromEnvironment(
+    'NAV_MOTIONS',
+    defaultValue: 'enter,nested-push,nested-pop,toolbar,steady,title',
+  ),
+);
+const _out = String.fromEnvironment(
+  'AUDIT_OUT',
+  defaultValue: '/tmp/morph-navigation',
 );
 const _offsetSelection = String.fromEnvironment(
   'NAV_SHOT_OFFSETS',
@@ -80,6 +91,7 @@ const _offsetSelection = String.fromEnvironment(
 
 /// Runs the real gallery navigation page in the restoring native stage runner.
 void main() async {
+  BenchArgs.load(_out);
   _BenchBinding();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const _Bench());
@@ -714,12 +726,7 @@ class _BenchState extends State<_Bench> {
   }
 
   Future<void> _run() async {
-    final out = Directory(
-      const String.fromEnvironment(
-        'AUDIT_OUT',
-        defaultValue: '/tmp/morph-navigation',
-      ),
-    );
+    final out = Directory(_out);
     try {
       if (kDebugMode || _runs < 1 || _warmMs < 100 || _sampleMs < 800) {
         throw StateError('Native bounded collection windows required');
@@ -942,6 +949,7 @@ class _BenchState extends State<_Bench> {
       final temporary = File('${out.path}/report.tmp');
       temporary.writeAsStringSync(jsonEncode(report));
       temporary.renameSync('${out.path}/report.json');
+      BenchArgs.done('${out.path}/report.json');
       setState(() => _current = null);
     } on Object catch (error, stack) {
       _generation++;
@@ -950,6 +958,7 @@ class _BenchState extends State<_Bench> {
       File(
         '${out.path}/error.json',
       ).writeAsStringSync(jsonEncode({'error': '$error', 'stack': '$stack'}));
+      BenchArgs.done('${out.path}/error.json');
     } finally {
       _hints?.dispose();
     }

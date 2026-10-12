@@ -4,4 +4,12 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <application>
+        <!-- Profile builds forward Flutter's and Dart's trace events to
+             systrace, so one Perfetto capture of tool/bench/bench.py holds
+             the frame phases next to the scheduler, GPU and power tracks. -->
+        <meta-data
+            android:name="io.flutter.embedding.android.TraceSystrace"
+            android:value="true" />
+    </application>
 </manifest>

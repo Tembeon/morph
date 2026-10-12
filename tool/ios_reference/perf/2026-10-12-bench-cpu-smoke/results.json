@@ -1,0 +1,92 @@
+{
+ "audit/liquid/menu": {
+  "runs": 2,
+  "seconds": 9.02,
+  "frames": 507,
+  "fps": 56.2,
+  "ui_p50": 5.625122,
+  "ui_p95": 13.029948,
+  "ui_max": 34.731567,
+  "raster_p50": 9.12146,
+  "raster_p95": 14.824422,
+  "raster_max": 34.450481,
+  "gpu_p50": 5.136354,
+  "gpu_p95": 12.283854,
+  "gpu_ms_per_s": 370.13,
+  "over": 22,
+  "causes": {
+   "raster-cpu": 15,
+   "ui-layout": 6,
+   "gpu": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.949,
+   "compositing": 1.66,
+   "layout": 1.496,
+   "other": 0.625,
+   "build": 0.403,
+   "finalize": 0.038
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.84,
+   "QueueSubmit": 2.228,
+   "Canvas::saveLayer": 1.116,
+   "UpdateAtlasBitmap": 0.384,
+   "acquireNextBufferLocked": 0.241,
+   "LayerTree::Paint": 0.227,
+   "Rasterizer::DrawToSurfaces": 0.198,
+   "CreateGlyphAtlas": 0.185
+  },
+  "ui_runnable_share": 0.013,
+  "raster_runnable_share": 0.027,
+  "dropped": 33,
+  "cpu_mhz": {
+   "little": 784,
+   "mid": 570,
+   "big": 558
+  },
+  "gpu_mhz": 252,
+  "power_mw": 781,
+  "rails_mw": {
+   "gpu": 213,
+   "display": 126,
+   "cpu.little": 118,
+   "memory.interface": 78,
+   "ddr.c": 70,
+   "cpu.big": 52,
+   "cpu.mid": 45,
+   "system.fabric": 38,
+   "tpu": 12,
+   "ddr.a": 10,
+   "ddr.b": 9,
+   "aoc.logic": 7,
+   "aoc.memory": 3,
+   "gps": 1
+  },
+  "thermal_status": 1,
+  "dart": {
+   "samples": 1619,
+   "morph_inclusive_ms": {
+    "_MixinApplication359&LiquidGlassRenderObject&TransformTrackingRenderObjectMixin.paint": 275.2,
+    "LiquidGlassRenderObject.paint": 275.0,
+    "GlassCompositionProbe.paint": 275.0,
+    "LiquidGlassRenderObject._paintGlass": 274.8,
+    "RenderLiquidGlassLayer.paintFrame": 267.8,
+    "RenderLiquidGlassLayer._buildGpuGeometryImage": 263.5,
+    "FlutterGpuGeometryRenderer.render": 262.2,
+    "build.<anonymous closure>": 54.8
+   },
+   "self_ms": {
+    "dart.ui._wrapImage": 252.0,
+    "_BlurredUnion.blurred": 16.2,
+    "CommandBuffer.__submit$Method$FfiNative": 13.2,
+    "_NativeParagraph.__paint$Method$FfiNative": 6.2,
+    "morphMenuSilhouetteParts": 5.0,
+    "_MenuOptics.node": 4.2,
+    "morphBoxDistance": 4.0,
+    "dart.developer._reportTaskEvent": 3.2
+   },
+   "over": true
+  }
+ }
+}

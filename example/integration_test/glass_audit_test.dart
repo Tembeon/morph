@@ -28,6 +28,8 @@ import 'package:morph/src/widgets/scroll_edge_effect.dart'
     show debugMorphEdgeEffectBoundsBlur;
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph_example/gallery/glass_settings.dart';
+import 'package:morph_example/perf/bench_args.dart';
 
 import 'support/layer_census.dart';
 
@@ -105,27 +107,47 @@ import 'support/layer_census.dart';
 /// landscape, where the later rows are off screen.
 const bool _light = bool.fromEnvironment('AUDIT_LIGHT');
 
-const int _runs = int.fromEnvironment('AUDIT_RUNS', defaultValue: 1);
+final int _runs = BenchArgs.integer(
+  'AUDIT_RUNS',
+  const int.fromEnvironment('AUDIT_RUNS', defaultValue: 1),
+);
 
 const bool _semantics = bool.fromEnvironment('AUDIT_SEMANTICS');
 
-const bool _shots = bool.fromEnvironment('AUDIT_SHOTS', defaultValue: true);
+final bool _shots = BenchArgs.flag(
+  'AUDIT_SHOTS',
+  fallback: const bool.fromEnvironment('AUDIT_SHOTS', defaultValue: true),
+);
 
-const String _scenesOnly = String.fromEnvironment('AUDIT_SCENES');
+final String _scenesOnly = BenchArgs.string(
+  'AUDIT_SCENES',
+  const String.fromEnvironment('AUDIT_SCENES'),
+);
 
-const bool _census = bool.fromEnvironment('AUDIT_CENSUS');
+final bool _census = BenchArgs.flag(
+  'AUDIT_CENSUS',
+  fallback: const bool.fromEnvironment('AUDIT_CENSUS'),
+);
 
 const bool _censusOwners = bool.fromEnvironment('AUDIT_CENSUS_OWNERS');
 
 const bool _atlas = bool.fromEnvironment('AUDIT_ATLAS');
 
-const int _idleSeconds = int.fromEnvironment('AUDIT_IDLE_S');
+final int _idleSeconds = BenchArgs.integer(
+  'AUDIT_IDLE_S',
+  const int.fromEnvironment('AUDIT_IDLE_S'),
+);
 
 const bool _stagesOff = bool.fromEnvironment('AUDIT_STAGES_OFF');
 
 const bool _legacyBlurs = bool.fromEnvironment('AUDIT_LEGACY_BLURS');
 
 void main() {
+  BenchArgs.load(_Audit.outDir.path);
+  GalleryGlassSettings.initialTier = BenchArgs.string(
+    'GALLERY_GLASS',
+    GalleryGlassSettings.initialTier,
+  );
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   binding.framePolicy = LiveTestWidgetsFlutterBindingFramePolicy.fullyLive;
 
@@ -155,6 +177,7 @@ void main() {
     File('${_Audit.outDir.path}/report.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(audit.report()),
     );
+    BenchArgs.done('${_Audit.outDir.path}/report.json');
     binding.platformDispatcher.clearPlatformBrightnessTestValue();
   });
 }
@@ -423,8 +446,7 @@ class _Audit {
       await Future<void>.delayed(const Duration(seconds: 2));
       var before = timings.length;
       _sceneMark('idle', 0, 'begin');
-      // ignore: use_named_constants
-      await Future<void>.delayed(const Duration(seconds: _idleSeconds));
+      await Future<void>.delayed(Duration(seconds: _idleSeconds));
       _sceneMark('idle', 0, 'end');
       binding.framePolicy = policy;
       await tester.pump();
@@ -826,10 +848,7 @@ class _Audit {
     }
 
     return {
-      'tier': const String.fromEnvironment(
-        'GALLERY_GLASS',
-        defaultValue: 'auto',
-      ),
+      'tier': GalleryGlassSettings.initialTier,
       'liquid_available': MorphGlassRenderer.liquidAvailable,
       'liquid_unavailable_reason': MorphGlassRenderer.liquidUnavailableReason,
       'platform': Platform.operatingSystem,

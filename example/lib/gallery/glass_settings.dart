@@ -38,10 +38,14 @@ const MethodChannel galleryDisplayChannel = MethodChannel(
 /// GPU), liquid, fake or flat. A build without the liquid tier
 /// (the web) draws fake glass in its place.
 class GalleryGlassSettings extends ChangeNotifier {
-  MorphGlassTier? _tier = switch (const String.fromEnvironment(
+  /// The tier name a new settings object starts with; the device benches
+  /// set it at launch so one build serves every tier.
+  static String initialTier = const String.fromEnvironment(
     'GALLERY_GLASS',
     defaultValue: 'auto',
-  )) {
+  );
+
+  MorphGlassTier? _tier = switch (initialTier) {
     'auto' => null,
     final String name => MorphGlassTier.values.byName(name),
   };
