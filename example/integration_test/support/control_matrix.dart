@@ -492,7 +492,11 @@ final List<MatrixControl> matrixControls = [
     'date-picker',
     () => _Holder<DateTime>(
       DateTime(2026, 10, 12),
-      (v, set) => MorphDatePicker(value: v, onChanged: set),
+      (v, set) => MorphDatePicker(
+        value: v,
+        today: DateTime(2026, 10, 12),
+        onChanged: set,
+      ),
     ),
     {
       'open-close': (d) async {
