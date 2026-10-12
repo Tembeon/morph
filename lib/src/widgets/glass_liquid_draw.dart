@@ -744,7 +744,12 @@ class _ContentCopyPainter {
     if (copy.surface.lift >= _settledLift) return magnification;
     final base = screenScale * copy.grow;
     if (base <= 0) return magnification;
-    return MorphGlyphScale.snap(base * magnification, devicePixelRatio) / base;
+    return MorphGlyphScale.snap(
+          base * magnification,
+          devicePixelRatio,
+          perOctave: MorphGlyphScale.sweepStepsPerOctave,
+        ) /
+        base;
   }
 
   void paint(Canvas canvas, Size size, double screenScale) {

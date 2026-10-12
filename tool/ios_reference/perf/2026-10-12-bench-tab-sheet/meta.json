@@ -1,0 +1,27 @@
+{
+ "sdk": "stable",
+ "sha": "fac51e7-dirty",
+ "source": "/Users/tembeon/IdeaProjects/morph",
+ "fixed": false,
+ "runs": 5,
+ "date": "2026-10-12 13:00:13.049152",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "5",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "0",
+    "AUDIT_SCENES": "tab-bar,sheet"
+   },
+   "thermal_before": [
+    0,
+    33.602
+   ],
+   "thermal_after": [
+    0,
+    34.976604
+   ]
+  }
+ }
+}

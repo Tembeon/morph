@@ -25,6 +25,13 @@ abstract final class MorphGlyphScale {
   /// size about its anchor.
   static const int stepsPerOctave = 64;
 
+  /// The coarser grid of text that sweeps through scales within a short
+  /// motion and is drawn exact once it settles (a lens lifting): 4.4
+  /// percent apart, at most 2.2 percent off, so a lift strikes its glyphs
+  /// about three times instead of ten (5 ms atlas updates a frame on the
+  /// Pixel 6a). Fidelity: NEAR while the scale moves.
+  static const int sweepStepsPerOctave = 16;
+
   /// Draws every label at its exact scale and live: no snapping and no
   /// rasters, for comparing frames against the exact drawing.
   @visibleForTesting
@@ -33,12 +40,16 @@ abstract final class MorphGlyphScale {
   /// The nearest grid scale to [scale], a screen scale (logical to device
   /// pixels). The grid passes through [devicePixelRatio], so text at its
   /// layout size stays exact.
-  static double snap(double scale, double devicePixelRatio) {
+  /// [perOctave] is the grid's density, [stepsPerOctave] unless given.
+  static double snap(
+    double scale,
+    double devicePixelRatio, {
+    int perOctave = stepsPerOctave,
+  }) {
     if (debugExact || scale <= 0 || devicePixelRatio <= 0) return scale;
-    final steps =
-        (math.log(scale / devicePixelRatio) / math.ln2 * stepsPerOctave)
-            .roundToDouble();
-    return devicePixelRatio * math.pow(2, steps / stepsPerOctave);
+    final steps = (math.log(scale / devicePixelRatio) / math.ln2 * perOctave)
+        .roundToDouble();
+    return devicePixelRatio * math.pow(2, steps / perOctave);
   }
 
   /// The largest axis scale of [transform], the scale the glyph atlas

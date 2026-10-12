@@ -134,6 +134,15 @@ over budget 4 / 10 -> 1 / 0 (the scene had spent 8.3 ms a frame drawing
 21 text blobs and 6.3 glyph-atlas uploads); the segmented and controls
 scenes are unchanged within their spread.
 
+The lens's magnified copy of the labels sweeps through its magnification
+in the ~10 frames of a lift; on the 64-per-octave grid that still struck
+the glyphs every frame of it (Pixel 6a, bursts of UpdateAtlasBitmap, 5 ms
+in the frames over budget). While the lens lifts the copy snaps to
+`MorphGlyphScale.sweepStepsPerOctave` (16: at most 2.2 percent off, NEAR,
+exact once lifted): tab-bar scene atlas time per frame -59 percent,
+frames over budget 3.3 -> 1.8 percent (tool/bench,
+perf/2026-10-12-bench-tab-sheet against -passes).
+
 ## Not reproduced / open
 
 - Slow lift (above). Bar-local glitch (deliberate).
