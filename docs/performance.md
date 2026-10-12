@@ -99,9 +99,7 @@ supported.
 | Menu fusion core | plain-union field from box distances, grids kept across calls, menu face built once | IDENTICAL |
 | Field uploads | fewer per-frame field uploads (07bb27d) | IDENTICAL |
 | Retained glass layers | `MorphGlassChannel` builds once per structure, pushes values (e2f9c4e) | IDENTICAL |
-| Glyph scale snapping | `MorphGlyphScale`: lens screen scale snapped to 64/octave while lifting | <= 0.54 percent, exact at rest |
-| Glyph raster | `MorphGlyphRaster`: menu root rows (and Android bar glyphs) drawn from one device-resolution raster while content blur >= 0.5 pt; iOS/web stay live | NEAR |
-| Glyph blur pyramid | `MorphGlyphBlur`: Android bar items and inline title draw blur and fade in one shader draw from a per-child mip pyramid (glyph_blur.frag / glyph_reduce.frag) | NEAR (within a channel step of mean error) |
+| Glyph policy | `MorphGlyphPolicy` + `MorphGlyphs` (glyph_scale.dart): text under an animated transform decides per frame from its observed scale velocity, cover blur and content stability: live at rest, snapped to a 64/32/16-per-octave grid while slow (or when its content re-records every frame: the lens copy), one batched raster (mipmapped, at the device pixel ratio up to 1.09x) while fast or under a blur >= 0.5 pt; `morphVeiledGlyphs` blurs and fades through the pyramid shader on Android. Wraps tab bar labels, bar items, inline title, menu rows and glyph, every `MorphControlCapsule` child; the lens copy uses the same tracker. Pixel 6a liquid tab bar: strike frames 6.5 -> 2.9 percent, atlas 0.33 -> 0.22 ms/frame (3.8 -> 0.9 in frames over budget); menu 9.7 -> 4.4 percent; sheet 3.0 -> 0.2; over budget within run spread; power without display liquid +2.1 / flat -1.6 / nav -1.8 percent (glass-renderer.md "One glyph policy") | exact at rest; snapped NEAR (<= 0.54 / 1.1 / 2.2 percent); raster NEAR (resampled); shader NEAR (within a channel step of mean error) |
 | Small-blur rules | scroll edge blurs a copy of its band (`morphBackdropSeed` under a clip grown by `morphBlurReach`); a frost just below half resolution is raised to it by <= 12 percent (`morphHalfResolutionSigma`) | NEAR (1 - 6 steps on real content) |
 | Flat edge effect | flat scroll edge = fade/hairline only, zero backdrop filters on flat | approved visible change on flat only |
 | Glass container | `MorphGlassContainer` shades resting glass of joined hosts in one layer; list cards and the search toolbar are stages | IDENTICAL within 1 - 3 channel steps |
@@ -117,7 +115,10 @@ supported.
   WHOLE pass, and below 5.66 device px of sigma at full resolution.
   Keep blur clips inside the pass.
 - Impeller keys glyphs by screen scale (1/200): text under a sweeping
-  scale re-rasterizes glyphs nearly every frame. Snap or raster it.
+  scale re-rasterizes glyphs nearly every frame. Wrap it in `MorphGlyphs`
+  (the policy chooses); a raster pays an offscreen pass every time,
+  while a repeated sweep's strikes are partly cached, so rasters win only
+  for fast sweeps of still content.
 - On the Pixel the nested-navigation raster tail is the bar button
   glyphs and their blur, not page painting or glass (hiding glyphs cut
   nested raster p95 24-33 -> 7-8 ms in ablation).

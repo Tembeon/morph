@@ -1,0 +1,11 @@
+ec4abb7  runs 5  fixed-perf False  2026-10-12 16:02
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   313    [=]
+audit/liquid/idle-frames              0     -     -     -     -     -   0.0    0   274    [=]
+audit/liquid/segmented             1968   3.1   5.5   8.5  11.7   3.6   0.2   14   546  raster-wait:2 raster-sched:1 bad raster: waitForBufferRelease 5.7, QueueSubmit 5.5, SurfaceFrame::Encode 4.1  [raster 13.7->11.69]
+audit/liquid/tab-bar               2520   4.5   7.0  11.3  16.1  15.1   4.5   12   912  raster-cpu:79 gpu:28 raster-wait:6 bad raster: QueueSubmit 4.3, SurfaceFrame::Encode 3.6, waitForBufferRelease 3.4  [raster 14.19->16.06, over_pct 2.6->4.5, power_mw 1046->912]
+audit/liquid/controls              1966   3.2  10.6   9.5  13.8   5.6   0.6   46   581  raster-cpu:7 raster-wait:3 ui-build:1 raster-sched:1 bad raster: waitForBufferRelease 5.6, QueueSubmit 4.5, SurfaceFrame::Encode 3.8  [raster 12.02->13.83]
+audit/liquid/menu                  1281   5.6  11.7   8.7  14.4  12.4   3.8   67   731  raster-cpu:29 ui-layout:17 gpu:2 ui-paint:1 bad raster: SurfaceFrame::Encode 9.3, Canvas::saveLayer 4.1, QueueSubmit 3.8  [ui 14.04->11.72, over_pct 5.3->3.8]
+audit/liquid/sheet                 1209   3.0   6.9   9.6  14.1  16.7   6.5   35  1110  gpu:65 raster-cpu:13 ui-layout:1 bad raster: Canvas::saveLayer 9.0, SurfaceFrame::Encode 4.9, QueueSubmit 2.7  [over_pct 8.7->6.5]

@@ -45,6 +45,10 @@ from perfetto.trace_processor import TraceProcessor
 PKG = 'dev.tembeon.morph_example'
 UI_ROOTS = ('Animator::BeginFrame',)
 RASTER_ROOTS = ('GPURasterizer::Draw', 'Rasterizer::DoDraw')
+# Raster-thread slices of the glyph atlas. CreateGlyphAtlas looks up every
+# frame's glyphs (a floor of ~0.15 ms on the Pixel 6a); UpdateAtlasBitmap
+# appears only in frames that strike new glyphs.
+GLYPH_ATLAS = ('UpdateAtlasBitmap', 'CreateGlyphAtlas')
 PHASES = {
     'BUILD': 'build',
     'LAYOUT (root)': 'layout',
@@ -404,6 +408,7 @@ def analyze(path, cpu=None, report=None):
         causes = collections.Counter()
         phases = collections.Counter()
         rself = collections.Counter()
+        atlas_frames = 0
         ui_wait = ra_wait = ui_total = ra_total = 0
         ui_all, ui_bad = [], []
         bad_raster, bad_ui, n_bad_raster, n_bad_ui = collections.Counter(), collections.Counter(), 0, 0
@@ -413,7 +418,10 @@ def analyze(path, cpu=None, report=None):
             ra = d.dur / 1e6
             ra_ms.append(ra)
             gpu_ms.append(g)
-            rself.update(raster_self(d))
+            own = raster_self(d)
+            rself.update(own)
+            if own['UpdateAtlasBitmap'] > 0:
+                atlas_frames += 1
             run, runnable = state_split(raster_states, r0, r1)
             ra_wait += runnable
             ra_total += d.dur
@@ -509,6 +517,11 @@ def analyze(path, cpu=None, report=None):
                                       for k, v in phases.most_common()},
             'raster_self_ms_per_frame': {k: round(v / 1e6 / max(1, n_frames), 3)
                                          for k, v in rself.most_common(8)},
+            'glyph_atlas_ms_per_frame': round(
+                sum(rself[k] for k in GLYPH_ATLAS) / 1e6 / max(1, n_frames), 3),
+            'glyph_strike_frames_pct': round(100 * atlas_frames / n_frames, 1) if n_frames else 0,
+            'bad_glyph_atlas_ms_per_frame': round(
+                sum(bad_raster[k] for k in GLYPH_ATLAS) / 1e6 / max(1, n_bad_raster), 2),
             'bad_raster_self_ms_per_frame': {k: round(v / 1e6 / n_bad_raster, 2)
                                              for k, v in bad_raster.most_common(8)},
             'bad_ui_phase_ms_per_frame': {k: round(v / 1e6 / n_bad_ui, 2)

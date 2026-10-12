@@ -412,9 +412,9 @@ abstract interface class MorphMenuHost {
   /// wherever they were built ahead of it.
   GlobalKey get menuRowsKey;
 
-  /// Whether the root card's rows draw their glyphs from one raster, while
-  /// the content is blurred.
-  ValueNotifier<bool> get menuRowsRaster;
+  /// The blur drawn over the root card's rows (the content blur), which
+  /// their glyph drawing reads as its cover ([MorphGlyphs]).
+  ValueNotifier<double> get menuRowsBlur;
 
   /// The motion, or null before the menu first opens.
   MorphMenuMotion? get menuMotion;
@@ -743,7 +743,7 @@ class _MenuShapes extends StatelessWidget {
       child: Transform.scale(
         scaleX: sourceScale * lookStretch,
         scaleY: sourceScale,
-        child: this.glyph,
+        child: MorphGlyphs(child: this.glyph),
       ),
     );
     final Widget surfaces;
@@ -911,7 +911,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   Widget _rowsOf(
     MorphMenuLayout layout,
     MorphMenuStyle style, {
-    ValueListenable<bool>? raster,
+    ValueListenable<double>? cover,
   }) {
     if (!identical(style, _rowsStyle)) {
       _rows = Expando<Widget>();
@@ -923,7 +923,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       hidden: _hiddenOf(layout),
       content: widget.host.menuContent,
       onSelect: (int target) => _select(layout, target),
-      raster: raster,
+      cover: cover,
     );
   }
 
@@ -1028,13 +1028,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             final scale = motion.contentScale;
             final at = motion.contentRect.topLeft - menu.rect.topLeft;
             final cards = motion.cards;
-            // Rows under a moving scale draw from their raster too: a
-            // live label strikes its glyphs at every scale it passes
-            // (15 ms atlas updates on the Pixel 6a). NEAR: resampled by
-            // up to the scale's distance from 1, live again at rest.
-            host.menuRowsRaster.value =
-                motion.contentBlur >= MorphGlyphRaster.minBlur ||
-                (scale - 1).abs() > 0.002;
+            host.menuRowsBlur.value = motion.contentBlur;
             final layer = IgnorePointer(
               ignoring: !motion.isOpen,
               child: Listener(
@@ -1211,7 +1205,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           ?_highlight(motion, style, layout, 0),
           KeyedSubtree(
             key: widget.host.menuRowsKey,
-            child: _rowsOf(layout, style, raster: widget.host.menuRowsRaster),
+            child: _rowsOf(layout, style, cover: widget.host.menuRowsBlur),
           ),
         ],
       ),
@@ -1636,7 +1630,7 @@ Widget _menuRows({
   required ValueListenable<int?> hidden,
   required MorphMenuContent content,
   required ValueChanged<int> onSelect,
-  ValueListenable<bool>? raster,
+  ValueListenable<double>? cover,
   int? limit,
 }) {
   final Widget rows = DefaultTextStyle(
@@ -1650,11 +1644,8 @@ Widget _menuRows({
       limit: limit,
     ),
   );
-  return RepaintBoundary(
-    child: raster == null
-        ? rows
-        : MorphGlyphRaster(active: raster, child: rows),
-  );
+  final Widget layer = RepaintBoundary(child: rows);
+  return cover == null ? layer : MorphGlyphs(cover: cover, child: layer);
 }
 
 /// The root rows of [host]'s menu built ahead of its opening, out of
@@ -1683,7 +1674,7 @@ Widget morphMenuPrebuiltRows(MorphMenuController host, int count) {
                   hidden: host.prebuildHidden,
                   content: host.menuContent,
                   onSelect: _ignoreSelect,
-                  raster: host.menuRowsRaster,
+                  cover: host.menuRowsBlur,
                   limit: count,
                 ),
               ),

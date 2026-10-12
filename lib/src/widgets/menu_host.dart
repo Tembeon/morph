@@ -138,7 +138,7 @@ class MorphMenuController implements MorphMenuHost {
     }
     final overlay = _overlay;
     if (entry != null || overlay == null || !overlay.mounted) return;
-    menuRowsRaster.value = false;
+    menuRowsBlur.value = 0;
     final created = OverlayEntry(
       builder: (BuildContext context) => ListenableBuilder(
         listenable: _prebuilt,
@@ -156,7 +156,7 @@ class MorphMenuController implements MorphMenuHost {
   final ValueNotifier<int?> prebuildHidden = ValueNotifier<int?>(null);
 
   @override
-  final ValueNotifier<bool> menuRowsRaster = ValueNotifier<bool>(false);
+  final ValueNotifier<double> menuRowsBlur = ValueNotifier<double>(0);
 
   @override
   MorphMenuMotion? get menuMotion => _motion;
@@ -443,7 +443,7 @@ class MorphMenuController implements MorphMenuHost {
     _repaint.dispose();
     _prebuilt.dispose();
     prebuildHidden.dispose();
-    menuRowsRaster.dispose();
+    menuRowsBlur.dispose();
   }
 }
 

@@ -2,7 +2,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/bar_items.dart' show MorphBackChevronPainter;
-import 'package:morph/src/widgets/glyph_scale.dart' show MorphGlyphBlur;
+import 'package:morph/src/widgets/glyph_scale.dart'
+    show MorphGlyphs, MorphVeiledGlyphs;
 import 'package:morph/widgets.dart';
 
 const _screen = Size(402, 874);
@@ -324,13 +325,16 @@ void main() {
           .ancestor(
             of: find.text('Inbox'),
             matching: find.byWidgetPredicate(
-              (Widget w) => w is Opacity || w is MorphGlyphBlur,
+              (Widget w) =>
+                  w is Opacity || w is MorphVeiledGlyphs || w is MorphGlyphs,
             ),
           )
           .first,
     );
     final opacity = switch (fade) {
-      Opacity(:final opacity) || MorphGlyphBlur(:final opacity) => opacity,
+      Opacity(:final opacity) ||
+      MorphVeiledGlyphs(:final opacity) ||
+      MorphGlyphs(:final opacity) => opacity,
       _ => throw StateError('no fade'),
     };
     expect(opacity, inExclusiveRange(0.05, 0.95));

@@ -3188,3 +3188,69 @@ so the old path leaves slightly more shadow just inside the glass corners;
 the pair's spread shadow is darkest right at the cut, hence its 28. The
 shader cuts at the glass's own edge. Open: device timing on the Moto g86
 (Impeller Vulkan) and native pixels on a device.
+
+## One glyph policy (2026-10-12)
+
+Four mechanisms each widget opted into - `MorphGlyphSnap` (64-per-octave
+grid; tab bar labels, bar items off Android), `MorphGlyphRaster` (menu
+rows from one raster under the content blur or a scale off 1), the copy's
+16-per-octave grid while a lens lifted (bd4c4a7) and `MorphGlyphBlur`
+(Android bar items and inline title) - are one policy now
+(`MorphGlyphPolicy`, lib/src/widgets/glyph_scale.dart) and one render
+object (`RenderMorphGlyphs`, behind `MorphGlyphs` / `morphVeiledGlyphs`).
+A drawing observes, each paint: its screen scale against the last frame's
+(finest-grid steps per frame), a cover blur drawn over it from above, and
+whether its content repainted in both of the last two paints. Then:
+
+- under 0.02 steps a frame: live, exact (the atlas rounds to ~0.2 steps);
+- still content moving 0.5 steps a frame or more (held to 0.1 once
+  rastering), or moving at all under a cover of 0.5 pt or more: one
+  raster, taken at the device pixel ratio (up to 1.09x above it, beyond on
+  a 4-per-octave grid) and drawn mipmapped; every raster one frame needs
+  is taken in one batched pass;
+- any other motion: snapped about the drawing's center to the 64 / 32 /
+  16-per-octave grid crossed at most every fourth frame (content that
+  re-records every frame - the lens copy - ends up here when fast);
+- a veiled drawing on Android blurs and fades through the pyramid shader
+  at any scale, as before.
+
+A drawing outside the live mode paints itself once more in the next
+frame, so a transform that stops returns it to exact. Fidelity: exact at
+rest; snapped NEAR (<= 0.54 / 1.1 / 2.2 percent); raster NEAR
+(resampled); shader NEAR as before. Host pixels (glyph_scale_test, exact
+vs policy every frame): tab bar 120 frames, 46 differ, worst mean 0.06,
+0.09 percent over 15, first and last identical; menu 120 frames, 100 off
+live, worst mean 0.07, 0.13 percent over 15; glyph_blur_test unchanged.
+
+Tried and dropped inside the change: a reduced pyramid for every raster
+(two passes per raster event; menu frames over budget +1.3 points in
+A B B A) - plain rasters read one mipmapped raster, only the shader reads
+a pyramid; a raster never magnified (a second raster with new strikes at
+the menu's 1.07 overshoot); the 0.5-crossing grid rule (segmented strikes
+up). Rasters cost an offscreen pass every time while a repeated sweep's
+strikes are partly cached in the atlas, so the policy rasters only fast
+sweeps of still content.
+
+Pixel 6a, stable SDK, tool/bench with the new glyph-atlas fields
+(`glyph_atlas_ms_per_frame`, `glyph_strike_frames_pct`: frames with
+UpdateAtlasBitmap), ec4abb7 vs this change, A B B A, 5 runs a launch
+(perf/2026-10-12-bench-abba2-*, -abba3-*), means:
+
+| scene | strike frames % | atlas ms/frame | over budget % |
+|---|---|---|---|
+| liquid tab bar | 6.5 -> 2.9 | 0.33 -> 0.22 | 2.5 -> 2.8 (spread 1.6 - 4.5) |
+| liquid menu | 9.7 -> 4.4 | 0.15 -> 0.14 | 3.4 -> 3.8 (spread 2.9 - 3.8) |
+| liquid sheet | 3.0 -> 0.2 | 0.21 -> 0.19 | 8.1 -> 8.0 |
+| flat menu | 9.9 -> 4.5 | 0.17 -> 0.12 | 1.2 -> 1.3 |
+| flat sheet | 3.2 -> 0.2 | 0.24 -> 0.20 | 0.1 -> 0.2 |
+
+Atlas time inside frames over budget, liquid tab bar: 3.8 -> 0.9 ms.
+Segmented, controls and the navigation bench (2 + 2 launches,
+perf/2026-10-12-bench-glyph-base-*, -nav-final-*): within their spread.
+Power without the display rail (it moved 171 -> 254 mW between sessions
+with the phone's brightness): liquid +2.1 percent over three A B B A sets
+(segmented +6.7 with identical raster-thread work per frame: clock
+residency), flat -1.6, navigation -1.8. Perf counts: +3.6 paints per
+frame in the menu scenes (one paint per drawing, each a transform walk),
++0.1 - 0.5 pictures.
+

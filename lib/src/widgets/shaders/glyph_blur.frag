@@ -1,5 +1,5 @@
 // Draws a raster of glyphs blurred by a Gaussian and faded, in one pass
-// without an offscreen layer (MorphGlyphBlur in glyph_scale.dart).
+// without an offscreen layer (MorphVeiledGlyphs in glyph_scale.dart).
 //
 // The value at a point is the Gaussian-weighted sum of the texel centers
 // around it, normalized: the continuous Gaussian convolved with the

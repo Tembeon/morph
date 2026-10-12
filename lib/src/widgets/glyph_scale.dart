@@ -1,11 +1,18 @@
-/// Text under a scale that animates, drawn without new glyph rasters on
-/// every frame.
+/// Text under a transform that animates, drawn without new glyph rasters
+/// on every frame.
 ///
 /// Impeller rasterizes each glyph once per font and screen scale (the
 /// largest axis of the transform the text is drawn with, rounded to
 /// 1/200) into its glyph atlas. A label whose scale sweeps continuously
 /// meets a new scale nearly every frame, and each one rasterizes and
 /// uploads the label's glyphs again on the raster thread.
+///
+/// One policy decides, per frame and per drawing, how such text is drawn
+/// ([MorphGlyphPolicy]), from what the drawing observes: how fast its
+/// screen scale moves, whether a blur above it hides resampling, whether
+/// its content holds still, and the blur and fade it applies itself.
+/// [MorphGlyphs] carries it out for a child; a widget only wraps its
+/// labels and never chooses.
 library;
 
 import 'dart:math' as math;
@@ -20,20 +27,24 @@ import 'package:morph/src/glass/renderer/shaders.dart';
 /// The screen scales text moving through a scale animation is drawn at.
 @internal
 abstract final class MorphGlyphScale {
-  /// The grid steps per doubling of the scale: neighbors are 1.1 percent
-  /// apart, so a snapped label is drawn at most 0.54 percent off its exact
-  /// size about its anchor.
+  /// The finest grid's steps per doubling of the scale: neighbors are 1.1
+  /// percent apart, so a snapped label is drawn at most 0.54 percent off
+  /// its exact size about its anchor.
   static const int stepsPerOctave = 64;
 
-  /// The coarser grid of text that sweeps through scales within a short
-  /// motion and is drawn exact once it settles (a lens lifting): 4.4
-  /// percent apart, at most 2.2 percent off, so a lift strikes its glyphs
-  /// about three times instead of ten (5 ms atlas updates a frame on the
-  /// Pixel 6a). Fidelity: NEAR while the scale moves.
-  static const int sweepStepsPerOctave = 16;
+  /// The steps per octave of the grid a raster above the device pixel
+  /// ratio is taken on: a raster is drawn at most 16 percent smaller than
+  /// it was taken, or up to [rasterStretch] larger.
+  static const int rasterStepsPerOctave = 4;
 
-  /// Draws every label at its exact scale and live: no snapping and no
-  /// rasters, for comparing frames against the exact drawing.
+  /// How much larger than the device pixel ratio a raster taken at it is
+  /// still drawn (2^(1/8), 9 percent): an overshoot past the rest scale
+  /// (a menu card's 1.07) magnifies the rest raster instead of taking
+  /// another one, with new glyph strikes, for a few frames.
+  static const double rasterStretch = 1.0905077326652577;
+
+  /// Draws every label at its exact scale and live: no snapping, rasters
+  /// or shader blur, for comparing frames against the exact drawing.
   @visibleForTesting
   static bool debugExact = false;
 
@@ -52,6 +63,25 @@ abstract final class MorphGlyphScale {
     return devicePixelRatio * math.pow(2, steps / perOctave);
   }
 
+  /// The distance from [from] to [to], screen scales, in steps of the
+  /// finest grid.
+  static double steps(double from, double to) =>
+      (math.log(to / from) / math.ln2 * stepsPerOctave).abs();
+
+  /// The resolution, device pixels per logical pixel, a raster of text
+  /// shown at the screen scale [screen] is taken at: [devicePixelRatio]
+  /// up to [rasterStretch] times that scale (the scale the text's glyphs
+  /// are struck at already; smaller scales read a reduced level of the
+  /// raster), above it the next scale up on the [rasterStepsPerOctave]
+  /// grid.
+  static double rasterRatio(double screen, double devicePixelRatio) {
+    if (screen <= devicePixelRatio * rasterStretch) return devicePixelRatio;
+    final steps =
+        (math.log(screen / devicePixelRatio) / math.ln2 * rasterStepsPerOctave)
+            .ceilToDouble();
+    return devicePixelRatio * math.pow(2, steps / rasterStepsPerOctave);
+  }
+
   /// The largest axis scale of [transform], the scale the glyph atlas
   /// keys text by.
   static double of(Matrix4 transform) {
@@ -59,6 +89,222 @@ abstract final class MorphGlyphScale {
     final x = math.sqrt(s[0] * s[0] + s[1] * s[1] + s[2] * s[2]);
     final y = math.sqrt(s[4] * s[4] + s[5] * s[5] + s[6] * s[6]);
     return math.max(x, y);
+  }
+}
+
+/// How one frame of text under an animated transform is drawn.
+@internal
+enum MorphGlyphMode {
+  /// Drawn as it is, at its exact screen scale: at rest, and in every
+  /// frame that would not strike glyphs anyway. IDENTICAL.
+  live,
+
+  /// Drawn at the nearest grid scale about its center
+  /// ([MorphGlyphPolicy.gridFor]): crisp glyphs, struck once per grid
+  /// scale. NEAR: at most 0.54 percent off its size on the finest grid,
+  /// 2.2 percent on the coarsest.
+  snapped,
+
+  /// Drawn from one raster of the child taken at
+  /// [MorphGlyphScale.rasterRatio], mipmapped (a veiled drawing reads the
+  /// level of its pyramid nearest the screen). NEAR: resampled, at most 9
+  /// percent magnified; while it moves fast or under a blur only.
+  raster,
+
+  /// Blurred and faded by the drawing itself through one shader from the
+  /// raster's pyramid ([MorphVeiledGlyphs] on Android). NEAR: within a
+  /// channel step of mean error of a true Gaussian.
+  shaded,
+}
+
+/// Decides how text under an animated transform draws each frame, from
+/// what its drawing observes.
+///
+/// The cost being avoided is a glyph strike: rasterizing and uploading
+/// the glyphs of every new screen scale. The choices, cheapest fidelity
+/// first:
+///
+/// - at rest (the scale moved less than [restSteps] of the finest grid
+///   since the last frame) the text is live and exact;
+/// - while the scale moves fast ([fastSteps] or more a frame, held down to
+///   [holdSteps] once rastering), or moves at all under a blur of
+///   [coverBlur] or more that hides resampling, text whose content holds
+///   still draws from one raster: no strike for the whole sweep;
+/// - any other motion snaps to a grid of scales, coarser the faster the
+///   scale moves ([gridFor]), so a strike is reused for four frames or
+///   more: slow settles, and content that repaints every frame, where a
+///   raster would be taken again every frame.
+///
+/// A drawing that blurs or fades its child itself draws it through the
+/// pyramid shader where it is available ([MorphGlyphMode.shaded]), at
+/// any scale.
+@internal
+abstract final class MorphGlyphPolicy {
+  /// The finest-grid steps per frame under which the scale is at rest.
+  /// The glyph atlas rounds scales to 1/200, about 0.2 steps at a device
+  /// pixel ratio of 2.6, so slower drift strikes no more often than once
+  /// in ten frames even live.
+  static const double restSteps = 0.02;
+
+  /// The finest-grid steps per frame from which a scale moves fast: a
+  /// grid of any density useful for crisp text would strike every other
+  /// frame or more.
+  static const double fastSteps = 0.5;
+
+  /// The finest-grid steps per frame down to which a drawing that already
+  /// rasters keeps rastering, so a sweep decelerating through
+  /// [fastSteps] does not flicker between a raster and crisp glyphs.
+  static const double holdSteps = 0.1;
+
+  /// The smallest blur, in logical pixels on screen, that hides the
+  /// resampling of a raster drawn under it.
+  static const double coverBlur = 0.5;
+
+  /// The densities, in steps per octave, a snapped label is drawn on:
+  /// each grid is a subset of the finer ones, so a strike on a coarse
+  /// grid serves the finer grids too.
+  static const List<int> grids = [64, 32, 16];
+
+  /// The mode for a frame whose scale moved [steps] finest-grid steps
+  /// since the last frame (null for the drawing's first frame, whose
+  /// motion is unknown), drawn last frame in [previous].
+  ///
+  /// [canRaster] is whether the drawing can raster its content (the
+  /// reduction shader has loaded and the content is not recorded again
+  /// every frame); [stable] whether the content held still between the
+  /// last two frames; [cover] the blur, in logical pixels, drawn over the
+  /// text by something above it.
+  static MorphGlyphMode decide({
+    required double? steps,
+    MorphGlyphMode previous = MorphGlyphMode.live,
+    bool canRaster = true,
+    bool stable = true,
+    double cover = 0,
+  }) {
+    final rasters = canRaster && stable;
+    final hidden = cover >= coverBlur;
+    if (steps == null) {
+      return rasters && hidden ? MorphGlyphMode.raster : MorphGlyphMode.live;
+    }
+    if (steps < restSteps) return MorphGlyphMode.live;
+    if (rasters &&
+        (hidden ||
+            steps >= fastSteps ||
+            (previous == MorphGlyphMode.raster && steps >= holdSteps))) {
+      return MorphGlyphMode.raster;
+    }
+    return MorphGlyphMode.snapped;
+  }
+
+  /// The grid, in steps per octave, a snapped label moving [steps]
+  /// finest-grid steps a frame is drawn on: the finest of [grids] it
+  /// crosses at most every fourth frame of, down to the coarsest.
+  static int gridFor(double steps) {
+    for (final grid in grids) {
+      if (steps * grid / MorphGlyphScale.stepsPerOctave < 0.25) return grid;
+    }
+    return grids.last;
+  }
+}
+
+/// The observation of one drawing of text under an animated transform:
+/// its screen scale across frames and the mode [MorphGlyphPolicy] chose.
+///
+/// While a frame is not [MorphGlyphMode.live] the tracker asks for one
+/// more paint at the start of the next frame ([onRepaint]), so a drawing
+/// whose transform stops is painted once more, sees its scale at rest and
+/// returns to exact.
+@internal
+class MorphGlyphTracker {
+  /// Observes a drawing that repaints through [onRepaint].
+  MorphGlyphTracker(this.onRepaint);
+
+  /// Marks the drawing for a paint.
+  VoidCallback onRepaint;
+
+  double? _scale;
+  double _steps = 0;
+  MorphGlyphMode _mode = MorphGlyphMode.live;
+  int? _callback;
+
+  /// The mode of the last observed frame.
+  MorphGlyphMode get mode => _mode;
+
+  /// Whether no frame has been observed since the last [reset].
+  bool get isFirst => _scale == null;
+
+  /// The finest-grid steps the scale moved into the last observed frame.
+  double get steps => _steps;
+
+  /// The grid a snapped frame is drawn on.
+  int get perOctave => MorphGlyphPolicy.gridFor(_steps);
+
+  double? _stepsTo(double screen) {
+    final from = _scale;
+    if (from == null || from <= 0 || screen <= 0) return null;
+    return MorphGlyphScale.steps(from, screen);
+  }
+
+  /// Records a frame drawn at the screen scale [screen] (device pixels per
+  /// logical pixel) and returns its mode; the arguments are
+  /// [MorphGlyphPolicy.decide]'s. With [settle] false a mode other than
+  /// live does not ask for the next frame's paint.
+  MorphGlyphMode observe(
+    double screen, {
+    bool canRaster = true,
+    bool stable = true,
+    double cover = 0,
+    bool settle = true,
+  }) {
+    final steps = _stepsTo(screen);
+    _scale = screen;
+    _steps = steps ?? 0;
+    _mode = MorphGlyphScale.debugExact
+        ? MorphGlyphMode.live
+        : MorphGlyphPolicy.decide(
+            steps: steps,
+            previous: _mode,
+            canRaster: canRaster,
+            stable: stable,
+            cover: cover,
+          );
+    if (_mode != MorphGlyphMode.live && settle) _settle();
+    return _mode;
+  }
+
+  /// The mode [observe] would return for [screen], without recording it.
+  MorphGlyphMode peek(
+    double screen, {
+    bool canRaster = true,
+    bool stable = true,
+    double cover = 0,
+  }) => MorphGlyphScale.debugExact
+      ? MorphGlyphMode.live
+      : MorphGlyphPolicy.decide(
+          steps: _stepsTo(screen),
+          previous: _mode,
+          canRaster: canRaster,
+          stable: stable,
+          cover: cover,
+        );
+
+  void _settle() {
+    if (_callback != null) return;
+    _callback = SchedulerBinding.instance.scheduleFrameCallback((_) {
+      _callback = null;
+      onRepaint();
+    });
+  }
+
+  /// Forgets the observed frames: the next one is a first frame.
+  void reset() {
+    if (_callback case final id?) {
+      SchedulerBinding.instance.cancelFrameCallbackWithId(id);
+    }
+    _callback = null;
+    _scale = null;
+    _steps = 0;
+    _mode = MorphGlyphMode.live;
   }
 }
 
@@ -144,214 +390,63 @@ class _RenderScreenScalePaint extends RenderBox {
   }
 }
 
-/// Paints [child] from one raster of it at the device pixel ratio while
-/// [active] is true, and live otherwise.
+/// Text (or any child holding text) whose screen scale animates, drawn
+/// as [MorphGlyphPolicy] decides each frame: live and exact at rest,
+/// snapped to a grid of scales while it moves slowly, from one raster of
+/// itself while it moves fast or under a blur.
 ///
-/// The raster is taken when [active] turns on and again whenever the
-/// child repaints; drawn under a scale it is resampled with mipmaps
-/// instead of having its glyphs rasterized at that scale. Meant for text
-/// under a blur, which hides the resampling: an unblurred label stays
-/// live.
+/// The drawing observes its own screen scale when it paints, so it must
+/// be painted whenever the transform above it changes: no repaint
+/// boundary between it and the animating transform (a boundary BELOW it,
+/// inside the child, is fine: its repaints are seen by its layer). Once it
+/// leaves the live mode it paints itself every frame until its scale
+/// rests. Hit testing, semantics and layout always use the child's own
+/// layout. A drawing at rest adds no layer and no picture of its own.
 ///
-/// A repaint of the child reaches this box only when it is not stopped by
-/// a repaint boundary inside the child: content under its own boundary
-/// that repaints by itself (a spinning activity indicator) stays as the
-/// raster caught it until this box or the child above that boundary
-/// repaints.
+/// A raster is taken again when the child repaints. Rasters of every
+/// drawing that needs one in a frame are taken together in one pass (a
+/// second draws the pyramids veiled drawings read).
+/// [morphVeiledGlyphs] blurs and fades as well.
 @internal
-class MorphGlyphRaster extends SingleChildRenderObjectWidget {
-  /// Draws [child] from its raster while [active] is true.
-  const MorphGlyphRaster({
-    required this.active,
+class MorphGlyphs extends SingleChildRenderObjectWidget {
+  /// Draws [child], whose screen scale may animate; [cover] is the blur,
+  /// in logical pixels, something above draws over it (a fading menu
+  /// card), which hides a raster's resampling.
+  const MorphGlyphs({required super.child, this.cover, super.key})
+    : coverBlur = 0,
+      opacity = 1;
+
+  const MorphGlyphs._veiled({
     required super.child,
-    this.sampleLogicalBounds = false,
-    super.key,
-  });
-
-  /// Whether the child is drawn from its raster.
-  final ValueListenable<bool> active;
-
-  /// Samples the child's logical extent instead of stretching the rounded
-  /// pixel dimensions of its raster over that extent.
-  final bool sampleLogicalBounds;
-
-  /// The smallest blur, in logical pixels on screen, that hides the
-  /// resampling of a raster drawn under it.
-  static const double minBlur = 0.5;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) => _RenderGlyphRaster(
-    active,
-    MediaQuery.devicePixelRatioOf(context),
-    sampleLogicalBounds: sampleLogicalBounds,
-  );
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    covariant RenderObject renderObject,
-  ) {
-    (renderObject as _RenderGlyphRaster).update(
-      active,
-      MediaQuery.devicePixelRatioOf(context),
-      sampleLogicalBounds: sampleLogicalBounds,
-    );
-  }
-}
-
-class _RenderGlyphRaster extends RenderProxyBox {
-  _RenderGlyphRaster(
-    this._active,
-    this._devicePixelRatio, {
-    required bool sampleLogicalBounds,
-    // ignore: prefer_initializing_formals
-  }) : _sampleLogicalBounds = sampleLogicalBounds;
-
-  ValueListenable<bool> _active;
-
-  double _devicePixelRatio;
-
-  bool _sampleLogicalBounds;
-
-  void update(
-    ValueListenable<bool> active,
-    double devicePixelRatio, {
-    required bool sampleLogicalBounds,
-  }) {
-    if (identical(active, _active) &&
-        devicePixelRatio == _devicePixelRatio &&
-        sampleLogicalBounds == _sampleLogicalBounds) {
-      return;
-    }
-    if (attached) _active.removeListener(_changed);
-    _active = active;
-    _devicePixelRatio = devicePixelRatio;
-    _sampleLogicalBounds = sampleLogicalBounds;
-    if (attached) _active.addListener(_changed);
-    _changed();
-  }
-
-  ui.Image? _raster;
-
-  void _drop() {
-    _raster?.dispose();
-    _raster = null;
-  }
-
-  void _changed() {
-    _drop();
-    markNeedsPaint();
-  }
-
-  @override
-  void markNeedsPaint() {
-    _drop();
-    super.markNeedsPaint();
-  }
-
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _active.addListener(_changed);
-  }
-
-  @override
-  void detach() {
-    _active.removeListener(_changed);
-    _drop();
-    super.detach();
-  }
-
-  @override
-  void dispose() {
-    _drop();
-    super.dispose();
-  }
-
-  ui.Image _rasterize() {
-    final layer = OffsetLayer();
-    final context = PaintingContext(layer, Offset.zero & size);
-    super.paint(context, Offset.zero);
-    // ignore: invalid_use_of_protected_member
-    context.stopRecordingIfNeeded();
-    final image = layer.toImageSync(
-      Offset.zero & size,
-      pixelRatio: _devicePixelRatio,
-    );
-    layer.dispose();
-    return image;
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    if (!_active.value ||
-        size.isEmpty ||
-        child == null ||
-        MorphGlyphScale.debugExact) {
-      _drop();
-      super.paint(context, offset);
-      return;
-    }
-    final raster = _raster ??= _rasterize();
-    final paint = Paint();
-    paint.filterQuality = FilterQuality.medium;
-    context.canvas.drawImageRect(
-      raster,
-      Rect.fromLTWH(
-        0,
-        0,
-        _sampleLogicalBounds
-            ? size.width * _devicePixelRatio
-            : raster.width.toDouble(),
-        _sampleLogicalBounds
-            ? size.height * _devicePixelRatio
-            : raster.height.toDouble(),
-      ),
-      offset & size,
-      paint,
-    );
-  }
-}
-
-/// Paints [child] blurred by [blur] and faded to [opacity] as one draw
-/// in the pass it belongs to, without an offscreen layer.
-///
-/// While it is blurred by half a device pixel or more, or fades, the child
-/// is drawn through a single-pass Gaussian shader that also applies the opacity,
-/// from a mip pyramid of one raster of it at the device pixel ratio: each
-/// frame reads the finest level the blur spans at most two texels of, so
-/// the pyramid lasts while the blur and the scale animate and is taken
-/// again only when the child repaints or resizes. Every pyramid one frame
-/// needs is taken together, in two passes. A fading child is drawn by the
-/// shader at any blur, the smallest at its finest kernel, so a fade never
-/// needs a layer of its own; an opaque child blurred less paints sharp.
-///
-/// Like [MorphGlyphRaster], the pyramid is taken again only for a repaint
-/// that reaches this box: content under its own repaint boundary inside
-/// the child that repaints by itself is drawn as the pyramid caught it.
-@internal
-class MorphGlyphBlur extends SingleChildRenderObjectWidget {
-  /// Paints [child] blurred by [blur] logical pixels and faded to
-  /// [opacity].
-  const MorphGlyphBlur({
-    required this.blur,
+    required this.coverBlur,
     required this.opacity,
-    required super.child,
-    super.key,
-  });
+  }) : cover = null;
 
-  /// The Gaussian blur's sigma in the child's logical pixels.
-  final double blur;
+  /// The blur drawn over the child from above, in logical pixels.
+  final ValueListenable<double>? cover;
 
-  /// The opacity, from 0 to 1.
+  /// A fixed blur drawn over the child from above, in logical pixels.
+  final double coverBlur;
+
+  /// The opacity the child is drawn with, from 0 to 1.
   final double opacity;
+
+  /// The largest blur, in logical pixels, drawn sharp.
+  static const double minBlur = 0.05;
+
+  /// Whether a veiled drawing blurs and fades through the shader:
+  /// Android, where the blur and opacity layers it replaces cost a render
+  /// pass each (glass-renderer.md "Navigation glyph blur in one pass").
+  static bool get shades =>
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
   static ui.FragmentProgram? _program;
   static ui.FragmentProgram? _reduce;
   static Future<void>? _loading;
 
-  /// Loads the blur shaders; until they have loaded every blur paints as
-  /// a blur layer.
+  /// Loads the raster shaders; until they have loaded no drawing rasters
+  /// (a fast sweep snaps instead) and a veiled one blurs through a blur
+  /// layer.
   static Future<void> precache() => _loading ??=
       Future.wait([
         ui.FragmentProgram.fromAsset(ShaderKeys.glyphReduce),
@@ -370,13 +465,91 @@ class MorphGlyphBlur extends SingleChildRenderObjectWidget {
   static int debugAtlasCount = 0;
 
   @override
-  RenderObject createRenderObject(BuildContext context) {
+  RenderMorphGlyphs createRenderObject(BuildContext context) {
     precache().ignore();
-    return _RenderGlyphBlur(
-      blur,
-      opacity,
-      MediaQuery.devicePixelRatioOf(context),
-    );
+    final glyphs = RenderMorphGlyphs(MediaQuery.devicePixelRatioOf(context));
+    glyphs.cover = cover;
+    glyphs.coverBlur = coverBlur;
+    glyphs.opacity = opacity;
+    return glyphs;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderMorphGlyphs renderObject,
+  ) {
+    renderObject.devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
+    renderObject.cover = cover;
+    renderObject.coverBlur = coverBlur;
+    renderObject.opacity = opacity;
+  }
+}
+
+/// [child] blurred by [blur] logical pixels and faded to [opacity],
+/// drawn through [MorphGlyphPolicy]; the structure stays the same at any
+/// blur and opacity, so [blur] 0 and [opacity] 1 cost nothing extra.
+///
+/// On Android ([MorphGlyphs.shades]) the blur and fade are one shader
+/// draw in the pass the child belongs to ([MorphVeiledGlyphs]);
+/// elsewhere they are a [MorphGlyphs] fading through its own opacity
+/// layer over a blur layer (while [blur] is over [MorphGlyphs.minBlur]):
+/// no repaint boundary between the animating transform above and the
+/// drawing that observes it.
+@internal
+Widget morphVeiledGlyphs({
+  required double blur,
+  required double opacity,
+  required Widget child,
+}) {
+  if (MorphGlyphs.shades) {
+    return MorphVeiledGlyphs(blur: blur, opacity: opacity, child: child);
+  }
+  final blurred = blur > MorphGlyphs.minBlur;
+  return MorphGlyphs._veiled(
+    coverBlur: blurred ? blur : 0,
+    opacity: opacity.clamp(0.0, 1.0),
+    child: blurred
+        ? ImageFiltered(
+            imageFilter: ui.ImageFilter.blur(
+              sigmaX: blur,
+              sigmaY: blur,
+              tileMode: TileMode.decal,
+            ),
+            child: child,
+          )
+        : child,
+  );
+}
+
+/// [morphVeiledGlyphs] on Android: blurs and fades its child as one
+/// shader draw from the drawing's raster pyramid
+/// ([MorphGlyphMode.shaded]), and draws it sharp through the policy
+/// otherwise.
+@internal
+class MorphVeiledGlyphs extends SingleChildRenderObjectWidget {
+  /// Paints [child] blurred by [blur] logical pixels and faded to
+  /// [opacity].
+  const MorphVeiledGlyphs({
+    required this.blur,
+    required this.opacity,
+    required super.child,
+    super.key,
+  });
+
+  /// The Gaussian blur's sigma in the child's logical pixels.
+  final double blur;
+
+  /// The opacity, from 0 to 1.
+  final double opacity;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    MorphGlyphs.precache().ignore();
+    final ratio = MediaQuery.devicePixelRatioOf(context);
+    final glyphs = _RenderShadedGlyphs(ratio);
+    glyphs.update(blur, opacity, ratio);
+    return glyphs;
   }
 
   @override
@@ -384,7 +557,7 @@ class MorphGlyphBlur extends SingleChildRenderObjectWidget {
     BuildContext context,
     covariant RenderObject renderObject,
   ) {
-    (renderObject as _RenderGlyphBlur).update(
+    (renderObject as _RenderShadedGlyphs).update(
       blur,
       opacity,
       MediaQuery.devicePixelRatioOf(context),
@@ -392,27 +565,113 @@ class MorphGlyphBlur extends SingleChildRenderObjectWidget {
   }
 }
 
-class _RenderGlyphBlur extends RenderProxyBox {
-  _RenderGlyphBlur(this._blur, this._opacity, this._devicePixelRatio);
+/// The render object of [MorphGlyphs]: draws its child live, snapped or
+/// from a raster as [MorphGlyphPolicy] decides each paint.
+@internal
+class RenderMorphGlyphs extends RenderProxyBox {
+  /// Draws through the grid and rasters anchored at [devicePixelRatio].
+  RenderMorphGlyphs(this._devicePixelRatio) {
+    _tracker = MorphGlyphTracker(_repaint);
+  }
 
-  /// The largest blur in texels the shader's taps cover.
-  static const double _maxSigma = 2;
+  late final MorphGlyphTracker _tracker;
 
-  /// The smallest blur in texels the shader is given. Its weights are a
-  /// Gaussian factor that underflows times a factor that overflows as the
-  /// sigma shrinks; under about 0.15 texel their product is 0 times
-  /// infinity, NaN, on part of every texel. At 0.2 both stay finite with
-  /// margin, and the kernel is still a near-delta.
-  static const double _minSigma = 0.2;
+  /// The policy's observation of this drawing.
+  @visibleForTesting
+  MorphGlyphTracker get tracker => _tracker;
 
-  /// The largest blur, in logical pixels, drawn sharp.
-  static const double minBlur = 0.05;
+  double _devicePixelRatio;
 
-  /// The smallest blur, in device pixels, the shader draws on an opaque
-  /// child; a smaller one paints sharp, within about a channel step of a
-  /// true Gaussian on average. A fading child draws through the shader at
-  /// any blur.
-  static const double minScreenSigma = 0.5;
+  /// The pixel ratio of the view, the grid's anchor: the screen scale of
+  /// the box is its transform to the root, which stops before the view's
+  /// own scale.
+  double get devicePixelRatio => _devicePixelRatio;
+
+  set devicePixelRatio(double value) {
+    if (value == _devicePixelRatio) return;
+    _devicePixelRatio = value;
+    markNeedsPaint();
+  }
+
+  ValueListenable<double>? _cover;
+
+  /// The blur drawn over this box from above, in logical pixels.
+  ValueListenable<double>? get cover => _cover;
+
+  set cover(ValueListenable<double>? value) {
+    if (identical(value, _cover)) return;
+    if (attached) _cover?.removeListener(_repaint);
+    _cover = value;
+    if (attached) _cover?.addListener(_repaint);
+    _repaint();
+  }
+
+  double _coverBlur = 0;
+
+  /// A fixed blur drawn over this box from above, in logical pixels.
+  double get coverBlur => _coverBlur;
+
+  set coverBlur(double value) {
+    if (value == _coverBlur) return;
+    _coverBlur = value;
+    _repaint();
+  }
+
+  double get _coverNow => math.max(_coverBlur, _cover?.value ?? 0);
+
+  int _alpha = 255;
+
+  /// The opacity the child is drawn with, from 0 to 1, through an
+  /// opacity layer of this box's own while it is between them (unlike
+  /// [RenderOpacity], this box is no repaint boundary).
+  double get opacity => _alpha / 255;
+
+  set opacity(double value) {
+    final alpha = ui.Color.getAlphaFromOpacity(value);
+    if (alpha == _alpha) return;
+    final composited = alwaysNeedsCompositing;
+    final visible = _alpha > 0;
+    _alpha = alpha;
+    if (composited != alwaysNeedsCompositing) {
+      markNeedsCompositingBitsUpdate();
+    }
+    _repaint();
+    if (visible != (_alpha > 0)) markNeedsSemanticsUpdate();
+  }
+
+  final LayerHandle<OpacityLayer> _opacityLayer = LayerHandle<OpacityLayer>();
+
+  @override
+  bool get alwaysNeedsCompositing =>
+      child != null && _alpha > 0 && _alpha < 255;
+
+  @override
+  void visitChildrenForSemantics(RenderObjectVisitor visitor) {
+    if (child != null && _alpha > 0) visitor(child!);
+  }
+
+  /// The factor the last paint applied, 1 when it did not snap.
+  @visibleForTesting
+  double debugFactor = 1;
+
+  /// The mode of the last paint.
+  @visibleForTesting
+  MorphGlyphMode get debugMode => _tracker.mode;
+
+  final Matrix4 _transform = Matrix4.identity();
+
+  final LayerHandle<TransformLayer> _transformLayer =
+      LayerHandle<TransformLayer>();
+
+  /// The factor within which a snapped child paints untransformed: a
+  /// scale off a grid scale by 1e-5 is keyed identically anyway.
+  static const double _exactTolerance = 1e-4;
+
+  /// Every attached drawing, for batching the rasters one frame needs.
+  static final Set<RenderMorphGlyphs> _attached = <RenderMorphGlyphs>{};
+
+  /// Whether this frame's paint already took every raster it needs.
+  static bool _batched = false;
 
   /// The pyramid's levels below the raster: the coarsest is 1/32 of it,
   /// which a 10 point blur still spans under two texels of at a device
@@ -432,84 +691,71 @@ class _RenderGlyphBlur extends RenderProxyBox {
   /// The widest atlas row, in texels.
   static const double _atlasWidth = 2048;
 
-  /// Every attached blur, for batching the pyramids one frame needs.
-  static final Set<_RenderGlyphBlur> _attached = <_RenderGlyphBlur>{};
-
-  /// Whether this frame's paint already took every pyramid it needs.
-  static bool _batched = false;
-
-  double _blur;
-  double _opacity;
-  double _devicePixelRatio;
-
-  void update(double blur, double opacity, double devicePixelRatio) {
-    if (devicePixelRatio != _devicePixelRatio) {
-      _devicePixelRatio = devicePixelRatio;
-      _blur = blur;
-      _opacity = opacity;
-      markNeedsPaint();
-      return;
-    }
-    if (blur == _blur && opacity == _opacity) return;
-    final repaint = blur != _blur || _shaderScale() != null || _layerBlur;
-    _blur = blur;
-    _opacity = opacity;
-    // A sharp child only fades: its opacity layer updates without a
-    // repaint, as under [Opacity].
-    if (repaint || _shaderScale() != null) {
-      super.markNeedsPaint();
-    } else {
-      markNeedsCompositedLayerUpdate();
-    }
-  }
-
-  /// The atlas holding this blur's pyramid (a clone this object owns),
-  /// each level's slot in it (border included) and the size it was taken
-  /// at.
+  /// The atlas holding this drawing's raster or pyramid (a clone this
+  /// object owns), each level's origin in it, the size and the ratio it
+  /// was taken at.
   ui.Image? _atlas;
-  List<Rect> _slots = const [];
-  Size _pyramidSize = Size.zero;
-  ui.FragmentShader? _shader;
+  List<Offset> _levelOrigins = const [];
 
-  final LayerHandle<ImageFilterLayer> _filterLayer =
-      LayerHandle<ImageFilterLayer>();
+  /// Whether this drawing reads a pyramid of reduced levels (the blur
+  /// shader does) rather than its raster alone, which is drawn
+  /// mipmapped.
+  bool get _wantsPyramid => false;
+  Size _pyramidSize = Size.zero;
+  double _pyramidRatio = 0;
+
+  /// The ratio the next raster of this drawing is taken at.
+  double _wantRatio = 1;
+
+  /// Whether the child repainted since the last paint, and whether it had
+  /// before that paint too.
+  bool _changed = false;
+  bool _changedBefore = false;
+
+  /// The first layer a child that is a repaint boundary held when the
+  /// raster was taken: the boundary repaints without marking this box, and
+  /// a repaint replaces its layer's children.
+  Layer? _childContent;
+
+  /// Notes a repaint of a child that is a repaint boundary since the
+  /// raster was taken.
+  void _checkChildContent() {
+    final child = this.child;
+    if (child == null || !child.isRepaintBoundary || _atlas == null) return;
+    // ignore: invalid_use_of_protected_member
+    if (identical(child.layer?.firstChild, _childContent)) return;
+    _changed = true;
+    _drop();
+  }
 
   void _drop() {
     _atlas?.dispose();
     _atlas = null;
   }
 
+  /// Paints again, keeping the raster: the child has not changed.
+  void _repaint() => super.markNeedsPaint();
+
   @override
   void markNeedsPaint() {
+    _changed = true;
     _drop();
     super.markNeedsPaint();
-  }
-
-  @override
-  bool get isRepaintBoundary => true;
-
-  /// Whether the last paint drew the shader, which applies the opacity
-  /// itself.
-  bool _shaded = false;
-
-  @override
-  OffsetLayer updateCompositedLayer({
-    required covariant OpacityLayer? oldLayer,
-  }) {
-    final layer = oldLayer ?? OpacityLayer();
-    layer.alpha = _shaded ? 255 : ui.Color.getAlphaFromOpacity(_opacity);
-    return layer;
   }
 
   @override
   void attach(PipelineOwner owner) {
     super.attach(owner);
     _attached.add(this);
+    _cover?.addListener(_repaint);
+    _tracker.reset();
   }
 
   @override
   void detach() {
     _attached.remove(this);
+    _cover?.removeListener(_repaint);
+    _tracker.reset();
     _drop();
     super.detach();
   }
@@ -517,38 +763,58 @@ class _RenderGlyphBlur extends RenderProxyBox {
   @override
   void dispose() {
     _drop();
-    _shader?.dispose();
-    _shader = null;
-    _filterLayer.layer = null;
+    _transformLayer.layer = null;
+    _opacityLayer.layer = null;
     super.dispose();
   }
 
-  /// The screen scale of this box (device pixels per logical pixel), or
-  /// null when it paints live: no shader yet, nothing to draw, or an
-  /// opaque child blurred under [minScreenSigma].
-  double? _shaderScale() {
-    if (MorphGlyphBlur._program == null ||
-        MorphGlyphScale.debugExact ||
-        child == null ||
-        _opacity <= 0 ||
-        !hasSize ||
-        size.isEmpty ||
-        (_blur <= minBlur && _opacity >= 1)) {
-      return null;
+  /// The screen scale of this box, device pixels per logical pixel.
+  double _screenScale() =>
+      MorphGlyphScale.of(getTransformTo(null)) * _devicePixelRatio;
+
+  bool get _canRaster =>
+      MorphGlyphs._reduce != null && child != null && !size.isEmpty;
+
+  bool get _stable => !(_changed && _changedBefore);
+
+  /// Moves the content-change record on by one paint and returns whether
+  /// the content held still: it changed at most once in the last two
+  /// paints. The first paint after attaching (its own first layout marks
+  /// it) is no change.
+  bool _advanceStable() {
+    if (_tracker.isFirst) {
+      _changed = false;
+      _changedBefore = false;
+      return true;
     }
-    final scale = MorphGlyphScale.of(getTransformTo(null)) * _devicePixelRatio;
-    if (_blur * scale < minScreenSigma && _opacity >= 1) return null;
-    return scale;
+    final stable = _stable;
+    _changedBefore = _changed;
+    _changed = false;
+    return stable;
   }
 
-  /// Whether the blur paints as a blur layer: only where no shader draws
-  /// it (before the shader loads, or when drawing exactly). With the
-  /// shader, a blur under [minScreenSigma] paints sharp.
-  bool get _layerBlur =>
-      _blur > minBlur &&
-      (MorphGlyphBlur._program == null || MorphGlyphScale.debugExact);
+  bool _hasPyramid(double ratio) =>
+      _atlas != null && size == _pyramidSize && ratio == _pyramidRatio;
 
-  bool get _hasPyramid => _atlas != null && size == _pyramidSize;
+  /// Whether this drawing will need a raster at [_wantRatio] this frame
+  /// that it does not have; sets [_wantRatio].
+  bool _needsRaster() {
+    if (!attached || !hasSize || child == null || size.isEmpty) return false;
+    final screen = _screenScale();
+    if (!_rastersAt(screen)) return false;
+    _wantRatio = MorphGlyphScale.rasterRatio(screen, _devicePixelRatio);
+    return !_hasPyramid(_wantRatio);
+  }
+
+  /// Whether a frame at [screen] would draw from the raster.
+  bool _rastersAt(double screen) =>
+      _tracker.peek(
+        screen,
+        canRaster: _canRaster,
+        stable: _stable,
+        cover: _coverNow,
+      ) ==
+      MorphGlyphMode.raster;
 
   /// Shelf-packs boxes of [sizes] texels into rows at most [_atlasWidth]
   /// wide, each box starting on a multiple of [align]: their slots and
@@ -574,40 +840,45 @@ class _RenderGlyphBlur extends RenderProxyBox {
     return (slots, Rect.fromLTWH(0, 0, width, up(y + row)));
   }
 
-  /// Takes the pyramids of [jobs] together: every child paints once into
-  /// one atlas at its device pixel ratio, and every level of every
-  /// pyramid is drawn down from those, with mipmaps, into a second.
-  static void _rasterize(List<_RenderGlyphBlur> jobs) {
-    MorphGlyphBlur.debugRasterCount += jobs.length;
-    MorphGlyphBlur.debugAtlasCount += 2;
+  /// Takes the rasters of [jobs] together: every child paints once into
+  /// one atlas at its raster ratio. The jobs that read a pyramid
+  /// ([_wantsPyramid]) then have every level drawn down from that atlas,
+  /// without mipmaps, into a second; the others read the first atlas.
+  static void _rasterize(List<RenderMorphGlyphs> jobs) {
+    MorphGlyphs.debugRasterCount += jobs.length;
+    MorphGlyphs.debugAtlasCount += 1;
     double aligned(double v) =>
         (v / _rasterAlign).ceilToDouble() * _rasterAlign;
+    // A clear margin of [_rasterAlign] texels around each raster: a
+    // mipmapped read stays inside its own raster, and the raster's origin
+    // stays aligned for the reduction.
+    const margin = _rasterAlign;
     final (rasterSlots, rasterBounds) = _pack([
-      for (final blur in jobs)
+      for (final job in jobs)
         Size(
-          aligned(blur.size.width * blur._devicePixelRatio),
-          aligned(blur.size.height * blur._devicePixelRatio),
+          aligned(job.size.width * job._wantRatio) + 2 * margin,
+          aligned(job.size.height * job._wantRatio) + 2 * margin,
         ),
     ], align: _rasterAlign);
+    final origins = [
+      for (final slot in rasterSlots)
+        slot.topLeft + const Offset(margin * 1.0, margin * 1.0),
+    ];
     final layer = OffsetLayer();
     final context = PaintingContext(layer, rasterBounds);
     for (var i = 0; i < jobs.length; i++) {
-      final blur = jobs[i];
-      final child = blur.child!;
+      final job = jobs[i];
+      final child = job.child!;
       // Clipped to its slot, so a child painting beyond its box never
       // reaches a neighbor's.
       context.pushClipRect(
         child.needsCompositing,
         Offset.zero,
-        rasterSlots[i],
+        rasterSlots[i].deflate(margin / 2),
         (PaintingContext context, Offset offset) => context.pushTransform(
           child.needsCompositing,
-          rasterSlots[i].topLeft,
-          Matrix4.diagonal3Values(
-            blur._devicePixelRatio,
-            blur._devicePixelRatio,
-            1,
-          ),
+          origins[i],
+          Matrix4.diagonal3Values(job._wantRatio, job._wantRatio, 1),
           (PaintingContext context, Offset offset) =>
               context.paintChild(child, offset),
         ),
@@ -617,75 +888,321 @@ class _RenderGlyphBlur extends RenderProxyBox {
     context.stopRecordingIfNeeded();
     final raster = layer.toImageSync(rasterBounds);
     layer.dispose();
-    final sizes = <Size>[];
-    for (final blur in jobs) {
-      for (var k = 0; k <= _levels; k++) {
-        final ratio = blur._devicePixelRatio / (1 << k);
-        sizes.add(
-          Size(
-            (blur.size.width * ratio).ceilToDouble() + 2 * _border,
-            (blur.size.height * ratio).ceilToDouble() + 2 * _border,
-          ),
-        );
+    final pyramids = [
+      for (final job in jobs)
+        if (job._wantsPyramid) job,
+    ];
+    ui.Image? atlas;
+    final levelOrigins = <RenderMorphGlyphs, List<Offset>>{};
+    if (pyramids.isNotEmpty) {
+      MorphGlyphs.debugAtlasCount += 1;
+      final sizes = <Size>[];
+      for (final job in pyramids) {
+        for (var k = 0; k <= _levels; k++) {
+          final ratio = job._wantRatio / (1 << k);
+          sizes.add(
+            Size(
+              (job.size.width * ratio).ceilToDouble() + 2 * _border,
+              (job.size.height * ratio).ceilToDouble() + 2 * _border,
+            ),
+          );
+        }
       }
+      final (slots, bounds) = _pack(sizes);
+      final recorder = ui.PictureRecorder();
+      final canvas = Canvas(recorder, bounds);
+      final paint = Paint();
+      final reduce = MorphGlyphs._reduce!.fragmentShader();
+      for (var i = 0; i < pyramids.length; i++) {
+        final from = origins[jobs.indexOf(pyramids[i])];
+        final levels = <Offset>[];
+        for (var k = 0; k <= _levels; k++) {
+          final slot = slots[i * (_levels + 1) + k];
+          final factor = 1 << k;
+          reduce.setFloat(0, raster.width.toDouble());
+          reduce.setFloat(1, raster.height.toDouble());
+          reduce.setFloat(2, factor.toDouble());
+          reduce.setFloat(3, slot.left + _border);
+          reduce.setFloat(4, slot.top + _border);
+          reduce.setFloat(5, from.dx);
+          reduce.setFloat(6, from.dy);
+          reduce.setImageSampler(0, raster, filterQuality: FilterQuality.low);
+          paint.shader = reduce;
+          canvas.drawRect(slot.deflate(_border.toDouble()), paint);
+          levels.add(slot.topLeft + const Offset(_border * 1.0, _border * 1.0));
+        }
+        levelOrigins[pyramids[i]] = levels;
+      }
+      final picture = recorder.endRecording();
+      reduce.dispose();
+      atlas = picture.toImageSync(bounds.width.ceil(), bounds.height.ceil());
+      picture.dispose();
     }
-    final (slots, bounds) = _pack(sizes);
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder, bounds);
-    final paint = Paint();
-    final reduce = MorphGlyphBlur._reduce!.fragmentShader();
     for (var i = 0; i < jobs.length; i++) {
-      final from = rasterSlots[i].topLeft;
-      for (var k = 0; k <= _levels; k++) {
-        final slot = slots[i * (_levels + 1) + k];
-        final factor = 1 << k;
-        reduce.setFloat(0, raster.width.toDouble());
-        reduce.setFloat(1, raster.height.toDouble());
-        reduce.setFloat(2, factor.toDouble());
-        reduce.setFloat(3, slot.left + _border);
-        reduce.setFloat(4, slot.top + _border);
-        reduce.setFloat(5, from.dx);
-        reduce.setFloat(6, from.dy);
-        reduce.setImageSampler(0, raster, filterQuality: FilterQuality.low);
-        paint.shader = reduce;
-        canvas.drawRect(slot.deflate(_border.toDouble()), paint);
-      }
+      final job = jobs[i];
+      job._drop();
+      final levels = levelOrigins[job];
+      job._atlas = levels == null ? raster.clone() : atlas!.clone();
+      job._levelOrigins = levels ?? [origins[i]];
+      job._pyramidSize = job.size;
+      job._pyramidRatio = job._wantRatio;
+      final child = job.child!;
+      // ignore: invalid_use_of_protected_member
+      job._childContent = child.isRepaintBoundary
+          ? child.layer?.firstChild
+          : null;
     }
-    final picture = recorder.endRecording();
-    reduce.dispose();
-    final atlas = picture.toImageSync(
-      bounds.width.ceil(),
-      bounds.height.ceil(),
-    );
-    picture.dispose();
     raster.dispose();
-    for (var i = 0; i < jobs.length; i++) {
-      final blur = jobs[i];
-      blur._drop();
-      blur._atlas = atlas.clone();
-      blur._slots = slots.sublist(i * (_levels + 1), (i + 1) * (_levels + 1));
-      blur._pyramidSize = blur.size;
-    }
-    atlas.dispose();
+    atlas?.dispose();
   }
 
-  /// Takes a pyramid for every attached blur that needs one this frame,
-  /// together, once per frame.
-  void _rasterizeFrame() {
-    final jobs = <_RenderGlyphBlur>[];
+  /// Takes this drawing's pyramid at [ratio], together with every other
+  /// attached drawing that needs one this frame, once per frame.
+  void _rasterizeAt(double ratio) {
+    _wantRatio = ratio;
+    final jobs = <RenderMorphGlyphs>[];
     if (!_batched) {
       _batched = true;
       SchedulerBinding.instance.addPostFrameCallback((_) => _batched = false);
       for (final other in _attached) {
-        if (identical(other, this) || !other.attached) continue;
-        if (!other._hasPyramid && other._shaderScale() != null) {
-          jobs.add(other);
-        }
+        if (identical(other, this)) continue;
+        if (other._needsRaster()) jobs.add(other);
       }
     }
     jobs.add(this);
     _rasterize(jobs);
   }
+
+  /// Whether a frame drawn without the pyramid keeps it for frames to
+  /// come.
+  bool get _keepsPyramid => false;
+
+  /// The level of the pyramid to read for [screen], and its ratio: the
+  /// finest no more than 1.41 times finer than the screen, so a bilinear
+  /// read never skips a texel.
+  (int, double) _levelFor(double screen, {double blur = 0}) {
+    var level = 0;
+    var ratio = _pyramidRatio;
+    while (level < _levelOrigins.length - 1 &&
+        (blur * ratio > _RenderShadedGlyphs._maxSigma ||
+            ratio > screen * math.sqrt2)) {
+      level++;
+      ratio /= 2;
+    }
+    return (level, ratio);
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (child == null) return;
+    _checkChildContent();
+    final stable = _advanceStable();
+    final screen = _screenScale();
+    final mode = _tracker.observe(
+      screen,
+      canRaster: _canRaster,
+      stable: stable,
+      cover: _coverNow,
+    );
+    if (_alpha == 0) {
+      _opacityLayer.layer = null;
+      return;
+    }
+    if (_alpha == 255) {
+      _opacityLayer.layer = null;
+      _paintSharp(context, offset, screen, mode);
+      return;
+    }
+    _opacityLayer.layer = context.pushOpacity(
+      offset,
+      _alpha,
+      (PaintingContext context, Offset offset) =>
+          _paintSharp(context, offset, screen, mode),
+      oldLayer: _opacityLayer.layer,
+    );
+  }
+
+  /// Paints the child unblurred and opaque in [mode] at [screen].
+  void _paintSharp(
+    PaintingContext context,
+    Offset offset,
+    double screen,
+    MorphGlyphMode mode,
+  ) {
+    final child = this.child!;
+    debugFactor = 1;
+    if (mode != MorphGlyphMode.raster && !_keepsPyramid) _drop();
+    switch (mode) {
+      case MorphGlyphMode.raster:
+        _transformLayer.layer = null;
+        final ratio = MorphGlyphScale.rasterRatio(screen, _devicePixelRatio);
+        if (!_hasPyramid(ratio)) _rasterizeAt(ratio);
+        final (level, at) = _levelFor(screen);
+        final origin = _levelOrigins[level];
+        final paint = Paint();
+        paint.filterQuality = _wantsPyramid
+            ? FilterQuality.low
+            : FilterQuality.medium;
+        context.canvas.drawImageRect(
+          _atlas!,
+          Rect.fromLTWH(
+            origin.dx,
+            origin.dy,
+            size.width * at,
+            size.height * at,
+          ),
+          offset & size,
+          paint,
+        );
+      case MorphGlyphMode.snapped:
+        final factor =
+            MorphGlyphScale.snap(
+              screen,
+              _devicePixelRatio,
+              perOctave: _tracker.perOctave,
+            ) /
+            screen;
+        if (!factor.isFinite || (factor - 1).abs() < _exactTolerance) {
+          _transformLayer.layer = null;
+          context.paintChild(child, offset);
+          return;
+        }
+        debugFactor = factor;
+        final center = size.center(offset);
+        _transform.setIdentity();
+        _transform.translateByDouble(center.dx, center.dy, 0, 1);
+        _transform.scaleByDouble(factor, factor, 1, 1);
+        _transform.translateByDouble(-center.dx, -center.dy, 0, 1);
+        _transformLayer.layer = context.pushTransform(
+          needsCompositing,
+          Offset.zero,
+          _transform,
+          (PaintingContext context, Offset _) =>
+              context.paintChild(child, offset),
+          oldLayer: _transformLayer.layer,
+        );
+      case MorphGlyphMode.live || MorphGlyphMode.shaded:
+        _transformLayer.layer = null;
+        context.paintChild(child, offset);
+    }
+  }
+}
+
+/// The render object of [MorphVeiledGlyphs]: blurs and fades its child as one
+/// draw in the pass it belongs to, without an offscreen layer.
+///
+/// While it is blurred by half a device pixel or more, or fades, the
+/// child is drawn through a single-pass Gaussian shader that also applies
+/// the opacity, from the drawing's raster pyramid: each frame reads the
+/// finest level the blur spans at most two texels of, so the pyramid
+/// lasts while the blur and the scale animate and is taken again only
+/// when the child repaints or resizes. A fading child is drawn by the
+/// shader at any blur, the smallest at its finest kernel, so a fade never
+/// needs a layer of its own; an opaque child blurred less paints sharp as
+/// the policy decides.
+class _RenderShadedGlyphs extends RenderMorphGlyphs {
+  _RenderShadedGlyphs(super.devicePixelRatio);
+
+  /// The largest blur in texels the shader's taps cover.
+  static const double _maxSigma = 2;
+
+  /// The smallest blur in texels the shader is given. Its weights are a
+  /// Gaussian factor that underflows times a factor that overflows as the
+  /// sigma shrinks; under about 0.15 texel their product is 0 times
+  /// infinity, NaN, on part of every texel. At 0.2 both stay finite with
+  /// margin, and the kernel is still a near-delta.
+  static const double _minSigma = 0.2;
+
+  /// The smallest blur, in device pixels, the shader draws on an opaque
+  /// child; a smaller one paints sharp, within about a channel step of a
+  /// true Gaussian on average. A fading child draws through the shader at
+  /// any blur.
+  static const double minScreenSigma = 0.5;
+
+  double _blur = 0;
+  double _opacity = 1;
+
+  void update(double blur, double opacity, double devicePixelRatio) {
+    if (devicePixelRatio != _devicePixelRatio) {
+      _devicePixelRatio = devicePixelRatio;
+      _blur = blur;
+      _opacity = opacity;
+      markNeedsPaint();
+      return;
+    }
+    if (blur == _blur && opacity == _opacity) return;
+    final repaint = blur != _blur || _shades() || _layerBlur;
+    _blur = blur;
+    _opacity = opacity;
+    // A sharp child only fades: its opacity layer updates without a
+    // repaint, as under [Opacity].
+    if (repaint || _shades()) {
+      _repaint();
+    } else {
+      markNeedsCompositedLayerUpdate();
+    }
+  }
+
+  ui.FragmentShader? _shader;
+
+  final LayerHandle<ImageFilterLayer> _filterLayer =
+      LayerHandle<ImageFilterLayer>();
+
+  @override
+  bool get isRepaintBoundary => true;
+
+  /// Whether the last paint drew the shader, which applies the opacity
+  /// itself.
+  bool _shaded = false;
+
+  @override
+  OffsetLayer updateCompositedLayer({
+    required covariant OpacityLayer? oldLayer,
+  }) {
+    final layer = oldLayer ?? OpacityLayer();
+    layer.alpha = _shaded ? 255 : ui.Color.getAlphaFromOpacity(_opacity);
+    return layer;
+  }
+
+  @override
+  void dispose() {
+    _shader?.dispose();
+    _shader = null;
+    _filterLayer.layer = null;
+    super.dispose();
+  }
+
+  /// Whether the child draws through the shader at the screen scale
+  /// [screen] (computed when not given).
+  bool _shades([double? screen]) {
+    if (MorphGlyphs._program == null ||
+        MorphGlyphScale.debugExact ||
+        child == null ||
+        _opacity <= 0 ||
+        !hasSize ||
+        size.isEmpty ||
+        (_blur <= MorphGlyphs.minBlur && _opacity >= 1)) {
+      return false;
+    }
+    if (_opacity < 1) return true;
+    return _blur * (screen ?? _screenScale()) >= minScreenSigma;
+  }
+
+  /// Whether the blur paints as a blur layer: only where no shader draws
+  /// it (before the shader loads, or when drawing exactly).
+  bool get _layerBlur =>
+      _blur > MorphGlyphs.minBlur &&
+      (MorphGlyphs._program == null || MorphGlyphScale.debugExact);
+
+  /// A blur too small to draw may grow again: its pyramid stays.
+  @override
+  bool get _keepsPyramid => _blur > MorphGlyphs.minBlur;
+
+  @override
+  bool get _wantsPyramid => true;
+
+  @override
+  bool _rastersAt(double screen) => _shades(screen) || super._rastersAt(screen);
 
   @override
   void paint(PaintingContext context, Offset offset) {
@@ -694,40 +1211,57 @@ class _RenderGlyphBlur extends RenderProxyBox {
       _setShaded(false);
       return;
     }
-    final screenScale = _shaderScale();
-    if (screenScale == null) {
-      // A settled child lets its pyramid go; a fading one keeps it for a
-      // blur that may come back.
-      if (_blur <= minBlur) _drop();
+    _checkChildContent();
+    final stable = _advanceStable();
+    final screen = _screenScale();
+    if (!_shades(screen)) {
       _setShaded(false);
-      _paintLive(context, offset);
+      if (_layerBlur) {
+        _tracker.observe(screen, settle: false);
+        final layer = _filterLayer.layer ??= ImageFilterLayer();
+        layer.imageFilter = ui.ImageFilter.blur(
+          sigmaX: _blur,
+          sigmaY: _blur,
+          tileMode: TileMode.decal,
+        );
+        context.pushLayer(
+          layer,
+          (PaintingContext context, Offset offset) =>
+              context.paintChild(child!, offset),
+          offset,
+        );
+        return;
+      }
+      _filterLayer.layer = null;
+      final mode = _tracker.observe(
+        screen,
+        canRaster: _canRaster,
+        stable: stable,
+      );
+      _paintSharp(context, offset, screen, mode);
       return;
     }
+    _tracker.observe(screen, settle: false);
     _setShaded(true);
     _filterLayer.layer = null;
-    if (!_hasPyramid) _rasterizeFrame();
+    final ratio = MorphGlyphScale.rasterRatio(screen, _devicePixelRatio);
+    if (!_hasPyramid(ratio)) _rasterizeAt(ratio);
     final atlas = _atlas!;
     // The finest level the blur spans at most [_maxSigma] texels of, and
     // no finer than about the screen: a coarser level would lose detail
     // the blur keeps, a finer one alias.
-    var level = 0;
-    var ratio = _devicePixelRatio;
-    while (level < _levels &&
-        (_blur * ratio > _maxSigma || ratio > screenScale * math.sqrt2)) {
-      level++;
-      ratio /= 2;
-    }
-    final slot = _slots[level];
+    final (level, at) = _levelFor(screen, blur: _blur);
+    final origin = _levelOrigins[level];
     // The texels are already a box filter of one texel; the kernel adds
     // the rest, and never less than 0.4 screen pixels, so texels finer or
     // coarser than the screen never show, nor less than [_minSigma].
-    final target = math.min(_blur * ratio, _maxSigma);
-    final least = math.max(0.4 * ratio / screenScale, _minSigma);
+    final target = math.min(_blur * at, _maxSigma);
+    final least = math.max(0.4 * at / screen, _minSigma);
     final sigma = math.sqrt(math.max(target * target - 1 / 12, least * least));
-    final shader = _shader ??= MorphGlyphBlur._program!.fragmentShader();
-    shader.setFloat(0, ratio);
-    shader.setFloat(1, slot.left + _border);
-    shader.setFloat(2, slot.top + _border);
+    final shader = _shader ??= MorphGlyphs._program!.fragmentShader();
+    shader.setFloat(0, at);
+    shader.setFloat(1, origin.dx);
+    shader.setFloat(2, origin.dy);
     shader.setFloat(3, atlas.width.toDouble());
     shader.setFloat(4, atlas.height.toDouble());
     shader.setFloat(5, 1 / (sigma * sigma));
@@ -746,7 +1280,7 @@ class _RenderGlyphBlur extends RenderProxyBox {
       shader.setFloat(8 + i, math.exp(-i * i / (2 * sigma * sigma)));
     }
     shader.setImageSampler(0, atlas, filterQuality: FilterQuality.low);
-    final reach = 3 * _blur + 1 / ratio;
+    final reach = 3 * _blur + 1 / at;
     final canvas = context.canvas;
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
@@ -772,127 +1306,5 @@ class _RenderGlyphBlur extends RenderProxyBox {
   @override
   void visitChildrenForSemantics(RenderObjectVisitor visitor) {
     if (child != null && _opacity > 0) visitor(child!);
-  }
-
-  /// Paints the child itself, under a blur layer where [_layerBlur]; this
-  /// box's own opacity layer fades it.
-  void _paintLive(PaintingContext context, Offset offset) {
-    if (_layerBlur) {
-      final layer = _filterLayer.layer ??= ImageFilterLayer();
-      layer.imageFilter = ui.ImageFilter.blur(
-        sigmaX: _blur,
-        sigmaY: _blur,
-        tileMode: TileMode.decal,
-      );
-      context.pushLayer(layer, super.paint, offset);
-    } else {
-      _filterLayer.layer = null;
-      super.paint(context, offset);
-    }
-  }
-}
-
-/// Paints [child] at the nearest [MorphGlyphScale] grid scale of its
-/// screen scale, about the center of its box.
-///
-/// Text under a transform whose scale sweeps continuously (a tab bar
-/// swelling under a finger, a button lifting) meets a new screen scale
-/// every frame and each one strikes the glyphs again. Here the child is
-/// drawn at one of 64 scales per octave instead, so a sweep reuses a few
-/// strikes. At a grid scale, which includes the device pixel ratio and so
-/// every control at rest (to within 0.01 percent), the child paints with
-/// no transform at all.
-///
-/// The painted child is within 0.54 percent of its layout size about the
-/// center of its box; hit testing, semantics and layout use the layout
-/// size and are unchanged.
-///
-/// The screen scale is read at paint, with a transform walk to the root on
-/// every paint, so this fits a handful of labels that repaint with their
-/// animating transform; it does not suit long lists, nor a label behind a
-/// repaint boundary that does not repaint when the transform above it
-/// changes.
-@internal
-class MorphGlyphSnap extends SingleChildRenderObjectWidget {
-  /// Snaps the screen scale [child] is drawn at.
-  const MorphGlyphSnap({required super.child, super.key});
-
-  @override
-  RenderMorphGlyphSnap createRenderObject(BuildContext context) =>
-      RenderMorphGlyphSnap(MediaQuery.devicePixelRatioOf(context));
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    RenderMorphGlyphSnap renderObject,
-  ) {
-    renderObject.devicePixelRatio = MediaQuery.devicePixelRatioOf(context);
-  }
-}
-
-/// The render object of [MorphGlyphSnap].
-@internal
-class RenderMorphGlyphSnap extends RenderProxyBox {
-  /// Snaps to the grid through [devicePixelRatio].
-  RenderMorphGlyphSnap(this._devicePixelRatio);
-
-  double _devicePixelRatio;
-
-  /// The pixel ratio of the view, the grid's anchor: the screen scale of
-  /// the box is its transform to the root, which stops before the view's
-  /// own scale.
-  double get devicePixelRatio => _devicePixelRatio;
-
-  set devicePixelRatio(double value) {
-    if (value == _devicePixelRatio) return;
-    _devicePixelRatio = value;
-    markNeedsPaint();
-  }
-
-  /// The factor the last paint applied, 1 when it painted untransformed.
-  @visibleForTesting
-  double debugFactor = 1;
-
-  final Matrix4 _transform = Matrix4.identity();
-
-  final LayerHandle<TransformLayer> _transformLayer =
-      LayerHandle<TransformLayer>();
-
-  /// The factor within which the child paints untransformed: a spring that
-  /// has come to rest within a pixel still leaves a scale off one by about
-  /// 1e-5, which the glyph cache keys identically anyway.
-  static const double _exactTolerance = 1e-4;
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    final child = this.child;
-    if (child == null) return;
-    final screen = MorphGlyphScale.of(getTransformTo(null)) * _devicePixelRatio;
-    final factor = MorphGlyphScale.snap(screen, _devicePixelRatio) / screen;
-    if (!factor.isFinite || (factor - 1).abs() < _exactTolerance) {
-      debugFactor = 1;
-      _transformLayer.layer = null;
-      context.paintChild(child, offset);
-      return;
-    }
-    debugFactor = factor;
-    final center = size.center(offset);
-    _transform.setIdentity();
-    _transform.translateByDouble(center.dx, center.dy, 0, 1);
-    _transform.scaleByDouble(factor, factor, 1, 1);
-    _transform.translateByDouble(-center.dx, -center.dy, 0, 1);
-    _transformLayer.layer = context.pushTransform(
-      needsCompositing,
-      Offset.zero,
-      _transform,
-      (PaintingContext context, Offset _) => context.paintChild(child, offset),
-      oldLayer: _transformLayer.layer,
-    );
-  }
-
-  @override
-  void dispose() {
-    _transformLayer.layer = null;
-    super.dispose();
   }
 }

@@ -119,29 +119,28 @@ Scene `tabbar<N>` (N 2..5); env `PROBE_DARK`, `PROBE_TABLAYERS=1`,
 (glass_glow.dart), touch_listener.dart (`delaysInScrollable`). Tests:
 lens_test (tab bar on the undeformed frame only), lens_scrub_test,
 tab_bar_glow_test (rms bound 0.03 / 0.012), tab_bar_slow_lift_test,
-controls_scroll_test, glyph_snap_test.
+controls_scroll_test, glyph_policy_test, glyph_scale_test.
 
 Labels under the swell: the whole bar scales by `grow` (1 -> 1.04) under a
-finger, so every label met a new screen scale per frame and the glyph
-cache struck it again. Each label (both rows, outside and inside the lens)
-sits in `MorphGlyphSnap` (glyph_scale.dart), which paints it at the
-`MorphGlyphScale` grid scale nearest its screen scale, about its own
-center: at most 0.54 percent off its layout size, exact at rest; layout,
-hit testing and semantics are unchanged. Redmi 6A (Skia, flat), audit
-A B B A, 3 runs, tab-bar scene: raster p50 11.3 / 11.6 -> 10.2 / 10.3 ms,
-p95 14.0 / 15.7 -> 11.9 / 12.1, p99 16.0 / 16.7 -> 13.2 / 12.9, frames
-over budget 4 / 10 -> 1 / 0 (the scene had spent 8.3 ms a frame drawing
-21 text blobs and 6.3 glyph-atlas uploads); the segmented and controls
-scenes are unchanged within their spread.
-
-The lens's magnified copy of the labels sweeps through its magnification
-in the ~10 frames of a lift; on the 64-per-octave grid that still struck
-the glyphs every frame of it (Pixel 6a, bursts of UpdateAtlasBitmap, 5 ms
-in the frames over budget). While the lens lifts the copy snaps to
-`MorphGlyphScale.sweepStepsPerOctave` (16: at most 2.2 percent off, NEAR,
-exact once lifted): tab-bar scene atlas time per frame -59 percent,
-frames over budget 3.3 -> 1.8 percent (tool/bench,
-perf/2026-10-12-bench-tab-sheet against -passes).
+finger, and the lens's magnified copy sweeps through its magnification in
+the ~10 frames of a lift; a label meeting a new screen scale per frame
+strikes its glyphs again. Each label (both rows, outside and inside the
+lens) sits in `MorphGlyphs` and the copy painter observes its scale
+through the same `MorphGlyphTracker` (glyph_scale.dart,
+`MorphGlyphPolicy`): exact at rest; snapped to the 64-per-octave grid
+about the label's center while slow (at most 0.54 percent off its layout
+size); from one raster while the swell moves fast; the copy, recorded
+again every frame of a live lens, snaps to 32 or 16 per octave when fast
+(at most 1.1 / 2.2 percent, NEAR). Layout, hit testing and semantics are
+unchanged. History: the fixed 64 grid (Redmi 6A flat, audit A B B A,
+raster p95 14.0 / 15.7 -> 11.9 / 12.1 ms) and the copy's fixed 16 grid
+while lift < 0.99 (bd4c4a7) were the special cases the policy replaced.
+Pixel 6a liquid tab-bar scene, A B B A, 5 runs a launch (tool/bench,
+perf/2026-10-12-bench-abba2-*): frames striking glyphs 6.5 -> 2.9 percent,
+atlas 0.33 -> 0.22 ms per frame and 3.8 -> 0.9 ms in frames over budget;
+frames over budget and power within the run spread. Host pixels
+(glyph_scale_test, exact vs policy, 120 frames): 46 differ, worst mean
+0.06, 0.09 percent of pixels over 15; first and last frames identical.
 
 ## Not reproduced / open
 

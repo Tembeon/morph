@@ -117,11 +117,8 @@ Widget _glyphs(double blur, double opacity, double scale, {bool old = false}) {
                 sigmaY: blur,
                 tileMode: TileMode.decal,
               ),
-              child: MorphGlyphRaster(
-                active: AlwaysStoppedAnimation(
-                  blur * scale >= MorphGlyphRaster.minBlur,
-                ),
-                sampleLogicalBounds: true,
+              child: MorphGlyphs(
+                cover: AlwaysStoppedAnimation(blur * scale),
                 child: glyphs,
               ),
             ),
@@ -129,7 +126,7 @@ Widget _glyphs(double blur, double opacity, double scale, {bool old = false}) {
         )
       : Transform.scale(
           scale: scale,
-          child: MorphGlyphBlur(blur: blur, opacity: opacity, child: glyphs),
+          child: MorphVeiledGlyphs(blur: blur, opacity: opacity, child: glyphs),
         );
   return Directionality(
     textDirection: TextDirection.ltr,
@@ -148,7 +145,7 @@ void main() {
   testWidgets('the one-pass blur matches a blur layer under an opacity layer', (
     tester,
   ) async {
-    await tester.runAsync(MorphGlyphBlur.precache);
+    await tester.runAsync(MorphGlyphs.precache);
     const ratio = 2.0;
     tester.view.devicePixelRatio = ratio;
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -197,13 +194,13 @@ void main() {
       );
     }
     debugPrint('$cases cases, $worse worse than the previous path');
-    expect(MorphGlyphBlur.debugRasterCount, greaterThan(0));
+    expect(MorphGlyphs.debugRasterCount, greaterThan(0));
   });
 
   testWidgets('a magnified fade with a tiny blur keeps every texel finite', (
     tester,
   ) async {
-    await tester.runAsync(MorphGlyphBlur.precache);
+    await tester.runAsync(MorphGlyphs.precache);
     const ratio = 2.0;
     tester.view.devicePixelRatio = ratio;
     addTearDown(tester.view.resetDevicePixelRatio);
@@ -228,14 +225,14 @@ void main() {
   testWidgets('the pyramids one frame needs are taken together, once', (
     tester,
   ) async {
-    await tester.runAsync(MorphGlyphBlur.precache);
+    await tester.runAsync(MorphGlyphs.precache);
     final created = <int>[];
     Widget row(double blur) => Directionality(
       textDirection: TextDirection.ltr,
       child: Row(
         children: [
           for (var i = 0; i < 6; i++)
-            MorphGlyphBlur(
+            MorphVeiledGlyphs(
               blur: blur,
               opacity: 0.8,
               child: SizedBox(width: 40, height: 40, child: Text('$i')),
@@ -243,17 +240,17 @@ void main() {
         ],
       ),
     );
-    MorphGlyphBlur.debugRasterCount = 0;
-    MorphGlyphBlur.debugAtlasCount = 0;
+    MorphGlyphs.debugRasterCount = 0;
+    MorphGlyphs.debugAtlasCount = 0;
     await tester.pumpWidget(row(3));
-    created.add(MorphGlyphBlur.debugRasterCount);
+    created.add(MorphGlyphs.debugRasterCount);
     await tester.pumpWidget(row(2.9));
-    created.add(MorphGlyphBlur.debugRasterCount);
+    created.add(MorphGlyphs.debugRasterCount);
     // A blur that changes reads another level of the same pyramids.
     await tester.pumpWidget(row(1.4));
-    created.add(MorphGlyphBlur.debugRasterCount);
+    created.add(MorphGlyphs.debugRasterCount);
     expect(created, [6, 6, 6]);
     // The first frame draws one raster atlas and one pyramid atlas.
-    expect(MorphGlyphBlur.debugAtlasCount, 2);
+    expect(MorphGlyphs.debugAtlasCount, 2);
   });
 }

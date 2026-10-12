@@ -39,15 +39,19 @@ tracking from the `trak` table, wght medium 510 / semibold 590.
   (every overlay of the widget layer in a bare WidgetsApp whose ambient
   style is that fallback).
 
-- Text under an ANIMATING scale (2026-10-06, glass-renderer.md "Glyph
-  atlas"): at rest every label is drawn exactly as above (resolve,
-  layout, raster). While a lens copy lifts or sets down, its labels'
-  screen scale snaps to a 64-steps-per-octave grid through the device
-  pixel ratio (`MorphGlyphScale`, at most 0.54 percent of the distance
-  from the slot center, crisp glyphs); while the menu's content blur is
-  >= 0.5 pt its root rows draw from one raster at the device pixel
-  ratio (`MorphGlyphRaster`, mipmapped). Neither touches opsz / wght /
-  tracking: the style and its layout are the rest style throughout.
+- Text under an ANIMATING transform (glass-renderer.md "One glyph
+  policy", 2026-10-12): at rest every label is drawn exactly as above
+  (resolve, layout, raster). While its screen scale moves, one policy
+  (`MorphGlyphPolicy`, carried out by `MorphGlyphs`) draws it from what
+  it observes each frame: snapped to a grid of scales through the device
+  pixel ratio while slow (64 steps per octave, 32 or 16 when the content
+  is re-recorded every frame and the scale moves faster: at most 0.54 /
+  1.1 / 2.2 percent off about the label's center, crisp glyphs; NEAR);
+  from one raster of itself while it moves fast or under a blur >= 0.5
+  pt (mipmapped, taken at the device pixel ratio up to 1.09x magnified;
+  NEAR); blurred and faded through the pyramid shader on Android
+  (`morphVeiledGlyphs`). None touches opsz / wght / tracking: the style
+  and its layout are the rest style throughout.
 
 ## Fixtures / recordings
 

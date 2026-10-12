@@ -1,0 +1,18 @@
+ec4abb7-dirty  runs 5  fixed-perf False  2026-10-12 16:10
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   322    [=]
+audit/liquid/idle-frames              1     -     -   6.1   6.1   2.0   0.0    0   317    [power_mw 286->317]
+audit/liquid/segmented             1956   3.0   5.3   9.5  13.0   3.6   1.0    9   591  raster-wait:13 raster-cpu:5 raster-sched:2 bad raster: waitForBufferRelease 7.4, SurfaceFrame::Encode 3.9, QueueSubmit 3.2  [power_mw 541->591]
+audit/liquid/tab-bar               2474   4.5   7.0  11.5  15.7  14.5   4.0   10   898  raster-cpu:58 gpu:32 raster-wait:7 raster-sched:1 bad raster: QueueSubmit 4.4, waitForBufferRelease 4.3, SurfaceFrame::Encode 3.7  [raster 14.19->15.69, over_pct 2.6->4, power_mw 1046->898]
+audit/liquid/controls              1966   3.2  10.2   8.8  11.8   5.3   0.2  103   608  raster-wait:1 ui-build:1 raster-sched:1 raster-cpu:1 bad raster: SurfaceFrame::Encode 6.6, QueueSubmit 3.4, waitForBufferRelease 2.8  [=]
+audit/liquid/menu                  1284   6.1  11.9   9.0  14.1  12.6   3.7   80   724  raster-cpu:23 ui-layout:17 ui-paint:4 gpu:2 raster-wait:1 raster-sched:1 bad raster: SurfaceFrame::Encode 8.7, Canvas::saveLayer 4.0, QueueSubmit 3.5  [ui 14.04->11.88, over_pct 5.3->3.7]
+audit/liquid/sheet                 1210   3.0   7.0   9.5  13.7  17.0   7.1   32  1139  gpu:72 raster-cpu:13 ui-layout:1 bad raster: Canvas::saveLayer 9.4, SurfaceFrame::Encode 4.5, QueueSubmit 3.4  [over_pct 8.7->7.1]
+audit/flat/idle                       0     -     -     -     -     -   0.0    0   263    [power_mw 284->263]
+audit/flat/idle-frames                0     -     -     -     -     -   0.0    0   259    [=]
+audit/flat/segmented               1940   1.9   3.1   5.9   6.9   1.2   0.0    1   425    [power_mw 453->425]
+audit/flat/tab-bar                 2278   2.5   3.9   6.6   8.3   2.8   0.0    3   506    [power_mw 634->506]
+audit/flat/controls                1964   1.7   7.5   6.9  16.5   1.3   4.4   13   455  raster-wait:87 bad raster: waitForBufferRelease 12.7, SurfaceFrame::Encode 2.1, QueueSubmit 1.6  [ui 8.656->7.531, raster 6.992->16.47, over_pct 0->4.4]
+audit/flat/menu                    1293   3.0   8.7   5.9   9.6   3.3   1.4   42   444  ui-layout:18 bad ui: layout 15.3, paint 4.6, build 1.4  [ui 10.27->8.73, raster 11.19->9.598, power_mw 553->444]
+audit/flat/sheet                   1213   1.8   4.1   5.6   7.9   3.4   0.2   13   430  ui-build:2 bad ui: build 9.0, paint 3.9, other 2.6  [power_mw 501->430]
