@@ -89,7 +89,7 @@
   },
   "nav-scroll/flat": {
     "frames": 94,
-    "builds": 1.6,
+    "builds": 0.7,
     "paints": 74.7,
     "pictures": 3.0,
     "captures": 0.0,
@@ -320,7 +320,7 @@
   },
   "nav-scroll/fake": {
     "frames": 94,
-    "builds": 1.6,
+    "builds": 0.7,
     "paints": 59.1,
     "pictures": 1.1,
     "captures": 4.8,
@@ -551,7 +551,7 @@
   },
   "nav-scroll/liquid": {
     "frames": 94,
-    "builds": 1.6,
+    "builds": 0.7,
     "paints": 59.1,
     "pictures": 1.1,
     "captures": 4.8,
