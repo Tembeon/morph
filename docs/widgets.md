@@ -91,7 +91,7 @@ notification queues one microtask, one already in that phase reads at
 once), hands a changed record to `rebuild` and otherwise notifies the
 `MorphLive*` render objects and glass hosts that follow it. The build
 reads its record through `read`. Menu button and layer, bar row, search
-toolbar and tab bar, sheet, push zoom use it.
+toolbar and tab bar, sheet and its zoom crossfade, push zoom use it.
 
 `flex_integrator.dart` - `MorphFlexIntegrator` ports UIKit's
 `_UIVelocityIntegrator` (alpha 0.3 per frame). `MorphSubClock` is a

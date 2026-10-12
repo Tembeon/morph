@@ -1137,26 +1137,26 @@ class _SheetZoomCrossfade extends StatefulWidget {
 }
 
 class _SheetZoomCrossfadeState extends State<_SheetZoomCrossfade> {
-  Object? _inputs;
+  late final MorphFrameSync<Object?> _sync = MorphFrameSync<Object?>(
+    structure: _inputsNow,
+    rebuild: (Object? _) => setState(() {}),
+  );
 
   @override
   void initState() {
     super.initState();
-    widget.frames.addListener(_sync);
+    _sync.follow(widget.frames);
   }
 
   @override
   void didUpdateWidget(_SheetZoomCrossfade oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.frames, widget.frames)) {
-      oldWidget.frames.removeListener(_sync);
-      widget.frames.addListener(_sync);
-    }
+    _sync.follow(widget.frames);
   }
 
   @override
   void dispose() {
-    widget.frames.removeListener(_sync);
+    _sync.dispose();
     super.dispose();
   }
 
@@ -1177,13 +1177,9 @@ class _SheetZoomCrossfadeState extends State<_SheetZoomCrossfade> {
     );
   }
 
-  void _sync() {
-    if (_inputsNow() != _inputs) setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
-    _inputs = _inputsNow();
+    _sync.read();
     final frame = widget.frame();
     return widget.source.crossfade(
       fade: frame.fade,
