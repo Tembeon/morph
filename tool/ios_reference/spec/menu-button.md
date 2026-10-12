@@ -318,8 +318,8 @@ deferred and live content) is measured in [menu-api](menu-api.md).
 - Frame grid and row raster (2026-10-12, tool/bench, Pixel 6a liquid
   menu, perf/2026-10-12-bench-menu-*): frame times are put on the
   display's frame grid before the motion samples them
-  (`MorphFrameGrid`, menu_host.dart; NEAR: up to 1 ms, typically tens of
-  us). The predictions then hit their frames: served 62 -> 86 - 93
+  (`MorphFrameGrid`, now in clock.dart; NEAR: up to 1 ms, typically
+  tens of us). The predictions then hit their frames: served 62 -> 86 - 93
   percent; the misses left are a motion's first two frames, whose time
   is set by the tap. The motion's frame period carries over to the next
   motion, and requests within 0.0004 pt of one in flight are not sent
@@ -330,6 +330,18 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   frames). Menu scene: UI p95 14.0 -> 11.0 ms, frames over budget 5.3 ->
   3.0 percent, glyph atlas 380 -> 54 ms per scene. Left: encode and
   saveLayer on the raster thread, and the first frames' fusions.
+- The frame grid in the clock (2026-10-12, tool/bench, Pixel 6a,
+  perf/2026-10-12-bench-clockgrid-*, A B A B): `MorphFrameGrid` moved
+  from the menu host into `MorphClock` (clock.dart), so every measured
+  motion samples its frames on the grid (NEAR, up to 1 ms) and the clock
+  offers `frameTime` / `framePeriod`. The menu predicts its coming
+  frames as the grid's next nodes; its own least-squares period estimate
+  and step limit are gone. Served ahead liquid 90 / 88 -> 90 / 88
+  percent, flat 83 / 90 -> 88 / 87; menu UI p95 liquid 12.0 / 11.0 ->
+  12.5 / 10.6 ms, flat 6.9 / 7.3 -> 7.6 / 6.8; power and frames over
+  budget within the run-to-run spread on every scene (the one outlier,
+  liquid controls 6.9 percent over in grid-2, is a waitForBufferRelease
+  episode on the raster thread, seen before on unchanged code).
 - One glyph policy (2026-10-12, glass-renderer.md "One glyph policy"):
   the rows' raster switch (blur >= 0.5 pt or scale off 1 by 0.002) and
   the button glyph's live drawing gave way to `MorphGlyphs`: the rows
