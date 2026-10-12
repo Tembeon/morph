@@ -313,6 +313,12 @@ def analyze(path, cpu=None, report=None):
         raise SystemExit(f'UI or raster thread missing: {th}')
     ui_slices = slices_of(tp, th['ui'])
     raster_slices = slices_of(tp, th['raster'])
+    encodes = [(x.ts, x.ts + x.dur) for x in raster_slices if x.name == 'SurfaceFrame::Encode']
+    encode_starts = [a for a, _ in encodes]
+
+    def encoding(ts):
+        i = bisect.bisect_right(encode_starts, ts) - 1
+        return i >= 0 and ts < encodes[i][1]
     windows = scene_windows(tp, upid)
     ui_states = thread_states(tp, th['ui'])
     raster_states = thread_states(tp, th['raster'])
@@ -496,8 +502,13 @@ def analyze(path, cpu=None, report=None):
             'gpu_p50': pct(gpu_ms, .5), 'gpu_p95': pct(gpu_ms, .95),
             'gpu_ms_per_s': round(sum(gpu_active(periods, a, b) for a, b in wins)
                                   / 1e6 / seconds, 2) if seconds else None,
+            # Every layer-tree saveLayer is traced twice under this name: once
+            # by flow while LayerTree::Paint records the frame, once by
+            # Impeller while SurfaceFrame::Encode executes it. Only the
+            # second is a pass.
             'save_layers_per_frame': round(sum(
                 1 for x in raster_slices if x.name == 'Canvas::saveLayer'
+                and encoding(x.ts)
                 and any(a <= x.ts < b for a, b in wins)) / n_frames, 2) if n_frames else 0,
             'submits_per_frame': round(sum(
                 1 for x in raster_slices if x.name == 'QueueSubmit'

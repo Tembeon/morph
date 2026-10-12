@@ -19,6 +19,9 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
     show debugMorphHalfResolutionBlur;
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
+    show GlassCostProbe, debugGlassCostProbe;
+// ignore: implementation_imports
 import 'package:morph/src/widgets/glass_container.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -146,6 +149,12 @@ final int _idleSeconds = BenchArgs.integer(
 
 const bool _stagesOff = bool.fromEnvironment('AUDIT_STAGES_OFF');
 
+/// The glass cost probe of the launch (`MORPH_GLASS_PROBE`: off, copy,
+/// skip, shared, solid); see [debugGlassCostProbe].
+final GlassCostProbe _probe = GlassCostProbe.values.byName(
+  BenchArgs.string('MORPH_GLASS_PROBE', 'off'),
+);
+
 const bool _legacyBlurs = bool.fromEnvironment('AUDIT_LEGACY_BLURS');
 
 void main() {
@@ -167,6 +176,8 @@ void main() {
     SchedulerBinding.instance.addTimingsCallback(audit.timings.addAll);
     // ignore: invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
     if (_stagesOff) debugMorphGlassStagesOpen = false;
+    // ignore: invalid_use_of_visible_for_testing_member
+    debugGlassCostProbe = _probe;
     if (_legacyBlurs) {
       // ignore: invalid_use_of_visible_for_testing_member
       debugMorphEdgeEffectBoundsBlur = false;

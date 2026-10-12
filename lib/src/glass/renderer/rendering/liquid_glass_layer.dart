@@ -2041,6 +2041,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @visibleForTesting
   static bool debugSeedsBlur = true;
 
+  static final BackdropKey _probeKey = BackdropKey();
+
   bool _blursOwnBackdrop = false;
 
   /// See [LiquidGlassLayer.blursOwnBackdrop].
@@ -2066,6 +2068,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   /// The opaque color the glass is shaded over without a backdrop read, or
   /// null when the layer reads its backdrop.
   Color? get _solid {
+    if (debugGlassCostProbe == GlassCostProbe.solid) {
+      return const Color(0xFF000000);
+    }
     final color = _solidBackdrop;
     return color != null && color.a == 1 ? color : null;
   }
@@ -2161,6 +2166,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   ImageFilter _updateShaderFilter() {
     final inputsChanged = takeShaderInputsChanged();
     if (_cachedFilter != null && !inputsChanged) return _cachedFilter!;
+    if (debugGlassCostProbe == GlassCostProbe.copy) {
+      return _cachedFilter = morphBackdropSeed;
+    }
     final shader = morphGlassShaderFilter(renderShader);
     final frostSigma = blurPassSigma;
     final filter = frostSigma > 0
@@ -2220,7 +2228,9 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       }
       final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
         ..filter = _updateShaderFilter()
-        ..backdropKey = backdropKey;
+        ..backdropKey = debugGlassCostProbe == GlassCostProbe.shared
+            ? _probeKey
+            : backdropKey;
       GlassLayerOwners.note(shader, this);
       if (_clipRectLayerHandle.layer case final clip?) {
         if (!identical(shader.parent, clip)) {
@@ -2238,6 +2248,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     Rect materialBounds,
   ) {
     if (!attached) return;
+    if (debugGlassCostProbe == GlassCostProbe.skip) {
+      _releaseCompositorFilter();
+      return;
+    }
     if (_solid != null) {
       _releaseBackdropFilter();
       _syncMaterialFilter(materialBounds, offset);
@@ -2932,4 +2946,37 @@ enum AnalyticGeometryMode {
   /// Only frames whose geometry changed: at rest it encodes a matte once
   /// and shades from it until the geometry changes again.
   changes,
+}
+
+/// A device timing probe that replaces one part of every liquid layer's
+/// composition; [GlassCostProbe.off] draws the glass as it is.
+///
+/// The probes change pixels: they exist to split the cost of a glass
+/// surface on the device (tool/audit/2026-10-12-glass-composition.md).
+@visibleForTesting
+GlassCostProbe debugGlassCostProbe = GlassCostProbe.off;
+
+/// The part of a liquid layer's composition that [debugGlassCostProbe]
+/// replaces, to time it on a device.
+@visibleForTesting
+enum GlassCostProbe {
+  /// The glass as it is.
+  off,
+
+  /// The glass filter is an identity color matrix: the backdrop read, the
+  /// layer's offscreen pass and its composite stay, the frost blur and the
+  /// glass shader go.
+  copy,
+
+  /// No backdrop filter at all: the floor the other probes are read from.
+  skip,
+
+  /// Every liquid layer reads one backdrop key: a single backdrop read per
+  /// frame, each layer still filtered in its own offscreen pass.
+  shared,
+
+  /// Every liquid layer draws its glass as a paint over opaque black: the
+  /// glass shader over the layer's area without a backdrop read or an
+  /// offscreen pass.
+  solid,
 }

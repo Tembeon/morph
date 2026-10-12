@@ -8,9 +8,11 @@
 /// counted too, and among them the glass shadow pictures - the
 /// renderer's shadow slot, a container of one picture right before the
 /// clip of the layer's backdrop filter. A saveLayer recorded INSIDE a
-/// picture is invisible to the layer tree: the raster trace's
-/// Canvas::saveLayer count per frame minus the census's offscreen count
-/// is that number (tool/ios_reference/perf/atrace_slices.py --scenes).
+/// picture is invisible to the layer tree: the raster trace's Impeller
+/// Canvas::saveLayer count per frame (the ones inside SurfaceFrame::Encode;
+/// flow traces every layer saveLayer once more under the same name while
+/// LayerTree::Paint records it) minus the census's offscreen count is that
+/// number (tool/bench/analyze.py).
 ///
 /// With `owners` every offscreen layer (as `<kind> <owner>`) and every
 /// backdrop filter is also named by its owner: the

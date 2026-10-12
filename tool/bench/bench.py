@@ -24,6 +24,8 @@
                      smoothness
   --sdk S            stable (flutter) or beta (flutter-beta)
   --label L          result directory name (default the short sha)
+  --arg K=V          one more launch setting for every launch (repeatable),
+                     for example --arg MORPH_GLASS_PROBE=shared
   --no-build         reuse the APKs of the last build of this source
   --no-cpu           skip the Dart CPU pass
   --save-baseline    make this run tool/bench/baseline.json
@@ -366,7 +368,8 @@ def table(results, baseline):
             lines.append(f'{"":34}   passes/frame: {s.get("save_layers_per_frame", 0):.1f} '
                          f'({layers["backdrops_per_frame"]:.1f} backdrop, '
                          f'{layers["offscreen_per_frame"] - layers["backdrops_per_frame"]:.1f} '
-                         f'other layers, {layers["in_picture_save_layers"]:.1f} inside pictures): '
+                         f'other layers, {layers["in_picture_save_layers"]:.1f} inside pictures, '
+                         f'{layers.get("captures_per_frame", 0):.1f} backdrop reads): '
                          + ', '.join(f'{k[:60]} {v:.1f}' for k, v in
                                      list(layers['owners_per_frame'].items())[:4]))
         # A stall only the profiled launch shows is the sampler's.
@@ -388,6 +391,7 @@ def main():
     p.add_argument('--idle', type=int, default=8)
     p.add_argument('--fixed', action='store_true')
     p.add_argument('--label')
+    p.add_argument('--arg', action='append', default=[])
     p.add_argument('--sdk', default='stable', choices=['stable', 'beta'])
     p.add_argument('--no-build', action='store_true')
     p.add_argument('--no-cpu', action='store_true')
@@ -432,10 +436,12 @@ def main():
                     'AUDIT_IDLE_S': str(o.idle)}
             if o.scenes:
                 args['AUDIT_SCENES'] = o.scenes
+            args.update(a.split('=', 1) for a in o.arg)
             plan.append((f'audit-{tier}', 'audit', args, f'audit/{tier}'))
     if 'nav' in suites:
         plan.append(('nav', 'nav', {'NAV_MODES': ','.join(tiers), 'NAV_MOTIONS': o.motions,
-                                    'NAV_RUNS': str(o.runs)}, 'nav'))
+                                    'NAV_RUNS': str(o.runs), **dict(a.split('=', 1) for a in o.arg)},
+                     'nav'))
 
     results = {}
     meta = {'sdk': o.sdk, 'sha': sha, 'source': src, 'fixed': o.fixed, 'runs': o.runs,
@@ -505,6 +511,7 @@ def main():
                     'backdrops_per_frame': round(c['mean']['backdrop'], 2),
                     'in_picture_save_layers': round(
                         max(0.0, s.get('save_layers_per_frame', 0) - c['mean']['offscreen']), 2),
+                    'captures_per_frame': round(c['mean'].get('captures', 0), 2),
                     'owners_per_frame': {k: round(v, 2) for k, v in
                                          list(c.get('owners', {}).items())[:12]},
                 }
