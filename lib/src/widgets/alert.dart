@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
@@ -490,6 +491,7 @@ class _AlertViewState extends State<_AlertView>
     _alert?.advance(t);
     _popover?.advance(t);
     _press.advance(t);
+    _syncOverlay();
     final gone = _alert?.isDismissed ?? _popover?.isDismissed ?? false;
     if (_leaving && gone) _route.finishMotionRoute();
   }
@@ -647,20 +649,9 @@ class _AlertViewState extends State<_AlertView>
       onPointerMove: _move,
       onPointerUp: _up,
       onPointerCancel: _cancel,
-      child: ListenableBuilder(
-        listenable: frames,
-        builder: (BuildContext context, Widget? child) {
-          final lean = _press.lean;
-          final transform = Matrix4.translationValues(lean.dx, lean.dy, 0);
-          transform.multiply(
-            Matrix4.diagonal3Values(_press.scaleX, _press.scaleY, 1),
-          );
-          return Transform(
-            transform: transform,
-            alignment: Alignment.center,
-            child: child,
-          );
-        },
+      child: _FrameTransform(
+        frames: frames,
+        transform: _pressTransform,
         child: card,
       ),
     );
@@ -704,6 +695,34 @@ class _AlertViewState extends State<_AlertView>
           },
         ),
       ),
+    );
+  }
+
+  Matrix4 _pressTransform() {
+    final lean = _press.lean;
+    final transform = Matrix4.translationValues(lean.dx, lean.dy, 0);
+    transform.multiply(
+      Matrix4.diagonal3Values(_press.scaleX, _press.scaleY, 1),
+    );
+    return transform;
+  }
+
+  MorphAlertStyle? _style;
+
+  double _dimming(MorphAlertStyle style) {
+    final motion = _alert!;
+    return style.dimmingColor.a *
+        MorphAlertTuning.dimmingOpacity *
+        motion.dimming(motion.time);
+  }
+
+  // The glass reads the dimming from the backdrop cache, so the cache
+  // follows the motion on every frame, not only on a build.
+  void _syncOverlay() {
+    final style = _style;
+    if (_alert == null || style == null) return;
+    _route.backdropCache.overlay = style.dimmingColor.withValues(
+      alpha: _dimming(style),
     );
   }
 
@@ -766,46 +785,41 @@ class _AlertViewState extends State<_AlertView>
     EdgeInsets padding,
   ) {
     final motion = _alert!;
-    return ListenableBuilder(
-      listenable: frames,
-      child: card,
-      builder: (BuildContext context, Widget? child) {
-        final t = motion.time;
-        final dim =
-            style.dimmingColor.a *
-            MorphAlertTuning.dimmingOpacity *
-            motion.dimming(t);
-        _route.backdropCache.overlay = style.dimmingColor.withValues(
-          alpha: dim,
-        );
-        return Stack(
-          children: [
-            Positioned.fill(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _cancelOutside,
-                child: ColoredBox(
-                  color: style.dimmingColor.withValues(alpha: dim),
+    _style = style;
+    _syncOverlay();
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _cancelOutside,
+            child: _FrameFill(
+              frames: frames,
+              color: () =>
+                  style.dimmingColor.withValues(alpha: _dimming(style)),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: Padding(
+            padding: padding,
+            child: Center(
+              child: _FrameTransform(
+                frames: frames,
+                transform: () {
+                  final s = motion.scale(motion.time);
+                  return Matrix4.diagonal3Values(s, s, 1);
+                },
+                child: IgnorePointer(
+                  // Flips only in dismiss, which _leave follows with a build.
+                  ignoring: motion.isDismissing,
+                  child: card,
                 ),
               ),
             ),
-            Positioned.fill(
-              child: Padding(
-                padding: padding,
-                child: Center(
-                  child: Transform.scale(
-                    scale: motion.scale(t),
-                    child: IgnorePointer(
-                      ignoring: motion.isDismissing,
-                      child: child,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 
@@ -1144,10 +1158,9 @@ class _AlertCard extends StatelessWidget {
       physics: const ClampingScrollPhysics(),
       children: [content],
     );
-    final clipped = ListenableBuilder(
-      listenable: frames,
-      builder: (BuildContext context, Widget? child) =>
-          Opacity(opacity: opacity(), child: child),
+    final clipped = _FrameOpacity(
+      frames: frames,
+      opacity: opacity,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(radius),
         child: scroll,
@@ -1165,14 +1178,12 @@ class _AlertCard extends StatelessWidget {
                   Radius.circular(radius),
                 );
                 if (glass == null) {
-                  return ListenableBuilder(
-                    listenable: frames,
-                    builder: (BuildContext context, Widget? _) => CustomPaint(
-                      painter: _PlatterPainter(
-                        style: style,
-                        shape: shape,
-                        opacity: opacity(),
-                      ),
+                  return CustomPaint(
+                    painter: _PlatterPainter(
+                      style: style,
+                      shape: shape,
+                      opacity: opacity,
+                      frames: frames,
                     ),
                   );
                 }
@@ -1201,22 +1212,23 @@ class _AlertCard extends StatelessWidget {
 }
 
 class _PlatterPainter extends CustomPainter {
-  const _PlatterPainter({
+  _PlatterPainter({
     required this.style,
     required this.shape,
     required this.opacity,
-  });
+    required Listenable frames,
+  }) : super(repaint: frames);
 
   final MorphAlertStyle style;
   final RRect shape;
-  final double opacity;
-
-  Color _faded(Color c) => c.withValues(alpha: c.a * opacity);
+  final double Function() opacity;
 
   @override
   void paint(Canvas canvas, Size size) {
+    final opacity = this.opacity();
+    Color faded(Color c) => c.withValues(alpha: c.a * opacity);
     final shadow = Paint();
-    shadow.color = _faded(style.shadowColor);
+    shadow.color = faded(style.shadowColor);
     shadow.maskFilter = const MaskFilter.blur(
       BlurStyle.normal,
       MorphAlertTuning.flatShadowSigma,
@@ -1226,7 +1238,7 @@ class _PlatterPainter extends CustomPainter {
       shadow,
     );
     final fill = Paint();
-    fill.color = _faded(style.platterColor);
+    fill.color = faded(style.platterColor);
     canvas.drawRRect(shape, fill);
   }
 
@@ -1235,6 +1247,166 @@ class _PlatterPainter extends CustomPainter {
       oldDelegate.style != style ||
       oldDelegate.shape != shape ||
       oldDelegate.opacity != opacity;
+}
+
+/// A render object that reads its state from a motion on every frame of
+/// its frames listenable, without a rebuild.
+mixin _FrameDriven on RenderObject {
+  Listenable? _frames;
+
+  set frames(Listenable value) {
+    if (identical(value, _frames)) return;
+    if (attached) {
+      _frames?.removeListener(_frame);
+      value.addListener(_frame);
+    }
+    _frames = value;
+  }
+
+  void _frame();
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _frames?.addListener(_frame);
+  }
+
+  @override
+  void detach() {
+    _frames?.removeListener(_frame);
+    super.detach();
+  }
+}
+
+/// A [Transform] about the child's center whose matrix is read on every
+/// frame.
+class _FrameTransform extends SingleChildRenderObjectWidget {
+  const _FrameTransform({
+    required this.frames,
+    required this.transform,
+    required Widget super.child,
+  });
+
+  final Listenable frames;
+  final Matrix4 Function() transform;
+
+  @override
+  _RenderFrameTransform createRenderObject(BuildContext context) {
+    final box = _RenderFrameTransform(
+      transformOf: transform,
+      textDirection: Directionality.maybeOf(context),
+    );
+    box.frames = frames;
+    return box;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderFrameTransform renderObject,
+  ) {
+    renderObject.textDirection = Directionality.maybeOf(context);
+    renderObject.transformOf = transform;
+    renderObject.frames = frames;
+    renderObject._frame();
+  }
+}
+
+class _RenderFrameTransform extends RenderTransform with _FrameDriven {
+  _RenderFrameTransform({required this.transformOf, super.textDirection})
+    : super(transform: transformOf(), alignment: Alignment.center);
+
+  Matrix4 Function() transformOf;
+
+  @override
+  void _frame() => transform = transformOf();
+}
+
+/// An [Opacity] whose opacity is read on every frame.
+class _FrameOpacity extends SingleChildRenderObjectWidget {
+  const _FrameOpacity({
+    required this.frames,
+    required this.opacity,
+    required Widget super.child,
+  });
+
+  final Listenable frames;
+  final double Function() opacity;
+
+  @override
+  _RenderFrameOpacity createRenderObject(BuildContext context) {
+    final box = _RenderFrameOpacity(opacityOf: opacity);
+    box.frames = frames;
+    return box;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderFrameOpacity renderObject,
+  ) {
+    renderObject.opacityOf = opacity;
+    renderObject.frames = frames;
+    renderObject._frame();
+  }
+}
+
+class _RenderFrameOpacity extends RenderOpacity with _FrameDriven {
+  _RenderFrameOpacity({required this.opacityOf}) : super(opacity: opacityOf());
+
+  double Function() opacityOf;
+
+  @override
+  void _frame() => opacity = opacityOf();
+}
+
+/// A [ColoredBox] whose color is read on every frame.
+class _FrameFill extends LeafRenderObjectWidget {
+  const _FrameFill({required this.frames, required this.color});
+
+  final Listenable frames;
+  final Color Function() color;
+
+  @override
+  _RenderFrameFill createRenderObject(BuildContext context) {
+    final box = _RenderFrameFill(colorOf: color);
+    box.frames = frames;
+    return box;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, _RenderFrameFill renderObject) {
+    renderObject.colorOf = color;
+    renderObject.frames = frames;
+    renderObject._frame();
+  }
+}
+
+class _RenderFrameFill extends RenderProxyBoxWithHitTestBehavior
+    with _FrameDriven {
+  _RenderFrameFill({required this.colorOf})
+    : _color = colorOf(),
+      super(behavior: HitTestBehavior.opaque);
+
+  Color Function() colorOf;
+  Color _color;
+
+  @override
+  void _frame() {
+    final color = colorOf();
+    if (color == _color) return;
+    _color = color;
+    markNeedsPaint();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (size > Size.zero) {
+      final paint = Paint();
+      paint.color = _color;
+      context.canvas.drawRect(offset & size, paint);
+    }
+  }
 }
 
 class _AlertButton extends StatefulWidget {
