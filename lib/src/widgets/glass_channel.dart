@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
@@ -433,9 +436,8 @@ class _RenderLiveColoredBox extends RenderProxyBoxWithHitTestBehavior
 /// same lenses lifted, the same tier), a new frame is pushed into a
 /// [MorphGlassChannel] and the host keeps the tree it built before; the
 /// render objects of that tree follow the channel. A host its parent
-/// rebuilds with a new frame pushes it without building at all; a host
-/// driven by [frames] builds once per frame, as a `ListenableBuilder`
-/// does, and returns the same tree. A painter other than
+/// rebuilds with a new frame pushes it without building at all, and so
+/// does a host driven by [frames]. A painter other than
 /// [MorphGlassRenderer] itself is called every frame, as before.
 @internal
 class MorphGlassHost extends Widget {
@@ -495,7 +497,7 @@ class _MorphGlassHostElement extends ComponentElement {
 
   @override
   void mount(Element? parent, Object? newSlot) {
-    _host.frames?.addListener(markNeedsBuild);
+    _host.frames?.addListener(_framed);
     // A renderer asking for liquid draws fake until the capability
     // resolves, and its == does not see that; a resting host would keep
     // the fake tree until its next frame.
@@ -510,6 +512,33 @@ class _MorphGlassHostElement extends ComponentElement {
     super.mount(parent, newSlot);
   }
 
+  bool _syncing = false;
+  bool _active = true;
+
+  // A frame from a ticker syncs once after every ticker ran, before the
+  // frame builds; anything else builds, so the frame is read after every
+  // listener of the notification ran. An ancestor about to build may hand
+  // this host a new frame function, so the host then builds with it
+  // instead of reading twice.
+  void _framed() {
+    if (_syncing || dirty) return;
+    if (SchedulerBinding.instance.schedulerPhase !=
+        SchedulerPhase.transientCallbacks) {
+      markNeedsBuild();
+      return;
+    }
+    _syncing = true;
+    scheduleMicrotask(_sync);
+  }
+
+  void _sync() {
+    _syncing = false;
+    if (!_active || dirty) return;
+    var settled = true;
+    visitAncestorElements((Element element) => settled = !element.dirty);
+    if (!settled || !_push()) markNeedsBuild();
+  }
+
   void _capabilityResolved() {
     if (!morphLiquidGlassCapability.value) return;
     morphLiquidGlassCapability.removeListener(_capabilityResolved);
@@ -518,7 +547,8 @@ class _MorphGlassHostElement extends ComponentElement {
 
   @override
   void unmount() {
-    _host.frames?.removeListener(markNeedsBuild);
+    _active = false;
+    _host.frames?.removeListener(_framed);
     morphLiquidGlassCapability.removeListener(_capabilityResolved);
     if (_followsAnalytic) {
       RenderLiquidGlassLayer.analyticGeometryChanges.removeListener(
@@ -530,8 +560,15 @@ class _MorphGlassHostElement extends ComponentElement {
   }
 
   @override
+  void deactivate() {
+    _active = false;
+    super.deactivate();
+  }
+
+  @override
   void activate() {
     super.activate();
+    _active = true;
     _clearPath = null;
     _structure = null;
   }
@@ -562,8 +599,8 @@ class _MorphGlassHostElement extends ComponentElement {
     final old = _host;
     super.update(newWidget);
     if (!identical(old.frames, newWidget.frames)) {
-      old.frames?.removeListener(markNeedsBuild);
-      newWidget.frames?.addListener(markNeedsBuild);
+      old.frames?.removeListener(_framed);
+      newWidget.frames?.addListener(_framed);
     }
     if (old.mode != newWidget.mode) _structure = null;
     // A host its frames already marked builds once; a push here would read

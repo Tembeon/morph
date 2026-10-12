@@ -79,13 +79,15 @@ void main() {
       };
       addTearDown(() => debugOnRebuildDirtyWidget = null);
       for (var i = 1; i <= 5; i++) {
-        frames.value = i;
+        tester.binding.scheduleFrameCallback((Duration _) => frames.value = i);
         await tester.pump();
       }
       debugOnRebuildDirtyWidget = null;
-      expect(elements.map((Element e) => e.widget.runtimeType).toSet(), {
-        MorphGlassHost,
-      }, reason: '${[for (final e in elements) e.widget]}');
+      expect(
+        elements,
+        isEmpty,
+        reason: '${[for (final e in elements) e.widget]}',
+      );
       final layer = tester.getRect(find.byType(MorphGlassLayer));
       final placed = find
           .descendant(
