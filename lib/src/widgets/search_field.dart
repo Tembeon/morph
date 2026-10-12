@@ -668,7 +668,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
   void initState() {
     super.initState();
     _listen();
-    frames.addListener(_framed);
+    _ticks.follow(frames);
   }
 
   @override
@@ -687,7 +687,6 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
 
   @override
   void dispose() {
-    frames.removeListener(_framed);
     _ticks.dispose();
     _listening?.removeListener(_focusChanged);
     _ownController?.dispose();
@@ -860,8 +859,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
               rtl: rtl,
             ),
           );
-          final structure = _readFrame();
-          _built = structure;
+          final structure = _ticks.read()!;
           final side = structure.side;
           final shut = structure.close;
           return MorphGlassStage(
@@ -917,17 +915,12 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
   })?
   _layouts;
   _ToolbarFrame _frame = _ToolbarFrame.zero;
-  _ToolbarStructure? _built;
-  final ValueNotifier<int> _ticks = ValueNotifier<int>(0);
-
-  // Read on the motion's own tick, after it advanced: nothing else moves
-  // the bar's motion within a frame. A keyboard frame rebuilds and reads
-  // again with the new layouts.
-  void _framed() {
-    if (_layouts == null) return;
-    if (_readFrame() != _built) setState(() {});
-    _ticks.value++;
-  }
+  // A keyboard frame rebuilds and reads again with the new layouts.
+  late final MorphFrameSync<_ToolbarStructure?> _ticks =
+      MorphFrameSync<_ToolbarStructure?>(
+        structure: () => _layouts == null ? null : _readFrame(),
+        rebuild: (_ToolbarStructure? _) => setState(() {}),
+      );
 
   _ToolbarStructure _readFrame() {
     final layouts = _layouts!;

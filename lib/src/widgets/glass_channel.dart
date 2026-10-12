@@ -299,19 +299,22 @@ class _MorphGlassHostElement extends ComponentElement {
   bool _active = true;
 
   // A frame from a ticker syncs once after every ticker ran, before the
-  // frame builds; anything else builds, so the frame is read after every
-  // listener of the notification ran. An ancestor about to build may hand
-  // this host a new frame function, so the host then builds with it
-  // instead of reading twice.
+  // frame builds; a frame told in the mid-frame microtasks, where every
+  // ticker already ran, syncs at once. Anything else builds, so the frame
+  // is read after every listener of the notification ran. An ancestor
+  // about to build may hand this host a new frame function, so the host
+  // then builds with it instead of reading twice.
   void _framed() {
     if (_syncing || dirty) return;
-    if (SchedulerBinding.instance.schedulerPhase !=
-        SchedulerPhase.transientCallbacks) {
-      markNeedsBuild();
-      return;
+    switch (SchedulerBinding.instance.schedulerPhase) {
+      case SchedulerPhase.transientCallbacks:
+        _syncing = true;
+        scheduleMicrotask(_sync);
+      case SchedulerPhase.midFrameMicrotasks:
+        _sync();
+      case _:
+        markNeedsBuild();
     }
-    _syncing = true;
-    scheduleMicrotask(_sync);
   }
 
   void _sync() {

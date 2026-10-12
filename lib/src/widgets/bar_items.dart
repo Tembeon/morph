@@ -800,20 +800,30 @@ class _MorphBarItemsState extends State<MorphBarItems>
   Object? _pressedCapsule;
   Object? _pressedButton;
   int? _pressPointer;
-  final _Ticks _ticks = _Ticks();
+  // Synced where a build would read the motion: the drift comes from the
+  // navigation's own ticker. A frame whose structure changed builds the
+  // row; every other one only pushes its geometry into the render objects.
+  late final MorphFrameSync<List<Object?>?> _ticks =
+      MorphFrameSync<List<Object?>?>(
+        structure: () {
+          if (!_hasLayout) return null;
+          _sync();
+          return _row.structure;
+        },
+        rebuild: (List<Object?>? _) => _rebuilds.notify(),
+        same: listEquals,
+      );
   final _Ticks _rebuilds = _Ticks();
-  bool _syncing = false;
   ValueListenable<double>? _driftSource;
   Listenable? _hostFrames;
   MorphBarStyle? _rowStyle;
   Brightness? _rowBrightness;
   _RowFrame _row = _RowFrame.empty;
-  List<Object?>? _builtStructure;
 
   @override
   void initState() {
     super.initState();
-    frames.addListener(_scheduleSync);
+    _ticks.follow(frames);
   }
 
   @override
@@ -880,8 +890,6 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final menu = _menu;
     _menu = null;
     menu?.host.dispose();
-    frames.removeListener(_scheduleSync);
-    _driftSource?.removeListener(_scheduleSync);
     _ticks.dispose();
     _rebuilds.dispose();
     super.dispose();
@@ -1334,30 +1342,14 @@ class _MorphBarItemsState extends State<MorphBarItems>
     return _built = _buildRow(context);
   }
 
-  // Synced once per frame after every ticker ran, where a build would
-  // read the motion: the drift comes from the navigation's own ticker. A
-  // frame whose structure changed builds; every other one only pushes its
-  // geometry into the render objects.
-  void _scheduleSync() {
-    if (_syncing) return;
-    _syncing = true;
-    scheduleMicrotask(() {
-      _syncing = false;
-      if (!mounted || !_hasLayout) return;
-      _sync();
-      if (!listEquals(_row.structure, _builtStructure)) _rebuilds.notify();
-      _ticks.notify();
-    });
-  }
-
   void _followDrift(ValueListenable<double>? progress) {
     if (identical(progress, _driftSource) && _hostFrames != null) return;
-    _driftSource?.removeListener(_scheduleSync);
-    progress?.addListener(_scheduleSync);
     _driftSource = progress;
-    _hostFrames = progress == null
+    final source = progress == null
         ? frames
         : Listenable.merge([frames, progress]);
+    _hostFrames = source;
+    _ticks.follow(source);
   }
 
   void _sync() {
@@ -1512,9 +1504,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
         return ListenableBuilder(
           listenable: _rebuilds,
           builder: (BuildContext context, Widget? _) {
-            _sync();
+            _ticks.read();
             final row = _row;
-            _builtStructure = row.structure;
             final content = Stack(
               key: _contentKey,
               clipBehavior: Clip.none,
@@ -1570,7 +1561,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
                   : MorphGlassHost(
                       painter: glass,
                       mode: MorphGlassMode.layer,
-                      frames: _hostFrames,
+                      frames: _ticks,
                       frame: () {
                         final row = _row;
                         return MorphGlassFrame(
@@ -1597,7 +1588,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
                                     child: MorphGlassHost(
                                       painter: glass,
                                       mode: MorphGlassMode.layer,
-                                      frames: _hostFrames,
+                                      frames: _ticks,
                                       frame: () => MorphGlassFrame(
                                         _row.apart,
                                         spacing: spacing,

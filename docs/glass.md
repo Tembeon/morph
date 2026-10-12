@@ -42,7 +42,10 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   `LiquidGlassLayer.live`.
 - A host rebuilt by its parent pushes from `update` without building (a
   custom element); one its frames already marked builds once instead. A
-  frames-driven host builds once per frame and returns the same tree.
+  host whose frames notify from a ticker pushes once after every ticker
+  ran (a microtask); frames notified in the mid-frame microtasks (a
+  `MorphFrameSync`) push at once; anywhere else, or under a dirty
+  ancestor, the host builds.
   Until the liquid capability resolves, a host listens to it and builds
   once when it does: a renderer asking for liquid draws fake before that
   and compares equal across the change. `keep` hands back the same glass widgets when only the

@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 /// A render object whose properties follow a live source.
@@ -47,6 +49,98 @@ mixin MorphLiveBinding on RenderObject {
   void detach() {
     _liveSource?.removeListener(_onLive);
     super.detach();
+  }
+}
+
+/// Syncs a widget with its motion once per frame, after every ticker of
+/// the frame ran, and builds the widget only when the structure its tree
+/// is built from changes.
+///
+/// A notification of the source it [follow]s reads [structure] in the
+/// frame's mid-frame microtasks, where every ticker has advanced its
+/// motion and nothing has built yet: a notification from a ticker, a
+/// gesture or a build queues the read as one microtask, a notification
+/// during the mid-frame microtasks (another sync, a flight handing back
+/// its source) reads at once. A structure that differs from the built one
+/// goes to [rebuild]; otherwise this notifies its listeners, the live
+/// render objects that follow the motion without a build. With
+/// [notifiesOnRebuild] it notifies them on a rebuilding frame too, for
+/// listeners that sit outside the subtree the rebuild builds.
+///
+/// The build reads its structure through [read], which records it as
+/// the built one. Before the first build the built structure counts as
+/// null.
+@internal
+class MorphFrameSync<S> extends ChangeNotifier {
+  /// Reads [structure] on every frame and hands a changed one to
+  /// [rebuild].
+  MorphFrameSync({
+    required this.structure,
+    required this.rebuild,
+    this.same,
+    this.notifiesOnRebuild = false,
+  });
+
+  /// Reads the motion's frame and returns the structure it shows.
+  final S Function() structure;
+
+  /// Builds the widget for a structure that differs from the built one.
+  final void Function(S structure) rebuild;
+
+  /// Whether two structures build the same tree; `==` when null.
+  final bool Function(S a, S b)? same;
+
+  /// Whether the listeners hear a frame that rebuilds as well.
+  final bool notifiesOnRebuild;
+
+  Listenable? _source;
+  bool _queued = false;
+  bool _disposed = false;
+  S? _built;
+
+  /// Reads the structure now and records it as the built one.
+  S read() => _built = structure();
+
+  /// Follows [source] instead of the source followed before.
+  void follow(Listenable? source) {
+    if (identical(source, _source)) return;
+    _source?.removeListener(_framed);
+    _source = source;
+    source?.addListener(_framed);
+  }
+
+  void _framed() {
+    if (_queued || _disposed) return;
+    if (SchedulerBinding.instance.schedulerPhase ==
+        SchedulerPhase.midFrameMicrotasks) {
+      _sync();
+      return;
+    }
+    _queued = true;
+    scheduleMicrotask(() {
+      _queued = false;
+      if (!_disposed) _sync();
+    });
+  }
+
+  void _sync() {
+    final now = structure();
+    final built = _built;
+    final kept = built is S && (same?.call(now, built) ?? now == built);
+    if (!kept) {
+      _built = now;
+      rebuild(now);
+      if (!notifiesOnRebuild) return;
+    }
+    notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _source?.removeListener(_framed);
+    _source = null;
+    super.dispose();
   }
 }
 

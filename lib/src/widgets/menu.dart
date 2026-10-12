@@ -1,11 +1,9 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart' show ValueListenable, listEquals;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
@@ -489,34 +487,27 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   final ValueNotifier<_ButtonStructure> _structure =
       ValueNotifier<_ButtonStructure>((landing: false, still: true));
   final ValueNotifier<bool> _expanded = ValueNotifier<bool>(false);
-  final _Ticks _ticks = _Ticks();
-  bool _syncing = false;
+  // Synced as a build would read them: the flight hands the source back
+  // on its own ticker. The press scale sits outside the structure's
+  // subtree, so it hears the rebuilding frames too.
+  late final MorphFrameSync<_ButtonStructure> _ticks =
+      MorphFrameSync<_ButtonStructure>(
+        structure: _syncValues,
+        rebuild: (_ButtonStructure structure) => _structure.value = structure,
+        notifiesOnRebuild: true,
+      );
   double _pressScale = 1;
   _Shapes? _landingShapes;
   bool _faceWithField = false;
 
-  // Synced once per frame after every ticker ran, as a build would read
-  // them: the flight hands the source back on its own ticker.
-  void _scheduleSync() {
-    if (_syncing) return;
-    _syncing = true;
-    scheduleMicrotask(() {
-      _syncing = false;
-      if (!mounted) return;
-      _syncValues();
-      _ticks.notify();
-    });
-    _ticks.queued();
-  }
-
-  void _syncValues() {
+  _ButtonStructure _syncValues() {
     final motion = _motion;
     final landing = motion != null && _landing;
     final still = _still();
-    _structure.value = (landing: landing, still: still);
     _expanded.value = motion?.isOpen ?? false;
     _pressScale = landing || still ? 1 : motion?.pressScale ?? 1;
     if (landing) _landingShapes = _landingNow(motion);
+    return (landing: landing, still: still);
   }
 
   _Shapes _landingNow(MorphMenuMotion motion) {
@@ -541,7 +532,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
     super.initState();
     _content.entries = widget.items;
     _content.order = widget.order;
-    frames.addListener(_scheduleSync);
+    _ticks.follow(frames);
   }
 
   @override
@@ -569,7 +560,6 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
 
   @override
   void dispose() {
-    frames.removeListener(_scheduleSync);
     _host.dispose();
     _structure.dispose();
     _expanded.dispose();
@@ -729,7 +719,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         if (!flight.isFinished) flight.markNeedsBuild();
       });
     }
-    _syncValues();
+    _structure.value = _ticks.read();
     final enabled = widget.enabled;
     final glyph = _glyphFor(style, enabled);
     final Widget button = ValueListenableBuilder<bool>(
@@ -831,7 +821,7 @@ class _MenuShapes extends StatelessWidget {
   final MorphMenuStyle style;
   final Widget glyph;
   final _Shapes Function() shapes;
-  final _Ticks? frames;
+  final Listenable? frames;
   final bool menu;
   final bool look;
   final Widget? content;
@@ -877,7 +867,7 @@ class _MenuShapes extends StatelessWidget {
       surfaces = MorphGlassHost(
         painter: glass,
         mode: MorphGlassMode.layer,
-        frames: frames?.hosts,
+        frames: frames,
         frame: () {
           final now = shapes();
           final menu = now.menu;
@@ -1017,9 +1007,13 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   Expando<Widget> _rows = Expando<Widget>();
   final Expando<ValueNotifier<int?>> _hidden = Expando<ValueNotifier<int?>>();
   MorphMenuStyle? _rowsStyle;
-  final _Ticks _ticks = _Ticks();
-  Listenable? _source;
-  bool _syncing = false;
+  // Synced where a build would read the motion: a frame that changes the
+  // structure builds, every other one only pushes its geometry.
+  late final MorphFrameSync<_LayerStructure?> _ticks =
+      MorphFrameSync<_LayerStructure?>(
+        structure: _update,
+        rebuild: (_LayerStructure? _) => setState(() {}),
+      );
   _LayerFrame? _frame;
   _LayerStructure? _built;
   bool _withField = false;
@@ -1037,46 +1031,21 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     super.didUpdateWidget(oldWidget);
     if (!identical(oldWidget.host, widget.host) ||
         !identical(oldWidget.flight, widget.flight)) {
-      _source?.removeListener(_scheduleSync);
       _listen();
     }
   }
 
   @override
   void dispose() {
-    _source?.removeListener(_scheduleSync);
     _ticks.dispose();
     _scroll.dispose();
     super.dispose();
   }
 
   void _listen() {
-    final source = Listenable.merge([
-      widget.host.menuRepaint,
-      widget.flight.frameTicks,
-    ]);
-    _source = source;
-    source.addListener(_scheduleSync);
-  }
-
-  // Synced once per frame after every ticker ran, where a build would
-  // read the motion: a frame that changes the structure builds, every
-  // other one only pushes its geometry.
-  void _scheduleSync() {
-    if (_syncing) return;
-    _syncing = true;
-    scheduleMicrotask(() {
-      _syncing = false;
-      if (!mounted) return;
-      final structure = _update();
-      if (structure != _built) {
-        _ticks.rebuilt();
-        setState(() {});
-      } else {
-        _ticks.notify();
-      }
-    });
-    _ticks.queued();
+    _ticks.follow(
+      Listenable.merge([widget.host.menuRepaint, widget.flight.frameTicks]),
+    );
   }
 
   /// Reads the motion's frame and returns the structure it shows.
@@ -1242,7 +1211,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       painter ?? MorphGlass.maybeOf(context),
     );
     _brightness = morphBrightnessOf(context);
-    final structure = _built = _update();
+    final structure = _built = _ticks.read();
     final frame = _frame;
     final Widget body;
     if (structure == null || frame == null) {
@@ -1582,7 +1551,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                   child: MorphGlassHost(
                     painter: glass,
                     mode: MorphGlassMode.body,
-                    frames: _ticks.hosts,
+                    frames: _ticks,
                     frame: () {
                       final surface = now().surface;
                       return MorphGlassFrame(
@@ -2262,50 +2231,6 @@ class _CardHeader extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Notifies the render objects of a menu that its motion advanced, once
-/// per frame after every ticker ran.
-///
-/// The menu's glass hosts follow [hosts] instead. A host told after the
-/// tickers builds to read its frame; told on the ticker itself, right
-/// after the menu queued its sync, it queues its own sync behind the
-/// menu's and pushes the frame the menu computed without a build.
-class _Ticks extends ChangeNotifier {
-  final _Ping hosts = _Ping();
-  bool _hostsTold = false;
-
-  /// The menu queued its sync for a notification of its source.
-  void queued() {
-    if (_hostsTold ||
-        SchedulerBinding.instance.schedulerPhase !=
-            SchedulerPhase.transientCallbacks) {
-      return;
-    }
-    _hostsTold = true;
-    hosts.notify();
-  }
-
-  /// The menu synced its values and keeps its structure.
-  void notify() {
-    notifyListeners();
-    if (!_hostsTold) hosts.notify();
-    _hostsTold = false;
-  }
-
-  /// The menu synced its values and builds a new structure, which hands
-  /// its hosts their frames.
-  void rebuilt() => _hostsTold = false;
-
-  @override
-  void dispose() {
-    hosts.dispose();
-    super.dispose();
-  }
-}
-
-class _Ping extends ChangeNotifier {
-  void notify() => notifyListeners();
 }
 
 /// [position] in the coordinates of the content laid out at its final

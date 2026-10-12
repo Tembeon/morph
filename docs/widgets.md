@@ -83,6 +83,16 @@ latency). Stamping rules:
 
 Evidence: spec/README.md "Clocks".
 
+`live.dart` - `MorphFrameSync`: the one way a control follows its motion
+without building every frame. It follows a source (`frames`, a flight's
+ticks, a drift), reads a structure record once per frame in the mid-frame
+microtasks (after every ticker ran, before anything builds; a ticker's
+notification queues one microtask, one already in that phase reads at
+once), hands a changed record to `rebuild` and otherwise notifies the
+`MorphLive*` render objects and glass hosts that follow it. The build
+reads its record through `read`. Menu button and layer, bar row, search
+toolbar and tab bar, sheet, push zoom use it.
+
 `flex_integrator.dart` - `MorphFlexIntegrator` ports UIKit's
 `_UIVelocityIntegrator` (alpha 0.3 per frame). `MorphSubClock` is a
 fixed-rate frame clock in motion time at `motionFrameRate`: every

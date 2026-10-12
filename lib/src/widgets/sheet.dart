@@ -343,10 +343,21 @@ class _SheetViewState extends State<_SheetView>
     dimmed: false,
   ));
 
-  void _syncStructure() {
-    if (_motion == null) return;
+  // Synced where a build would read the motion, after every ticker ran.
+  late final MorphFrameSync<_SheetStructure?> _sync =
+      MorphFrameSync<_SheetStructure?>(
+        structure: _readStructure,
+        rebuild: _show,
+      );
+
+  void _show(_SheetStructure? structure) {
+    if (structure != null) _structure.value = structure;
+  }
+
+  _SheetStructure? _readStructure() {
+    if (_motion == null) return null;
     final frame = _frame(_size);
-    _structure.value = (
+    final structure = (
       zooming: _zooming,
       zoomOpening: _zoom?.isOpening ?? false,
       gateOpen: frame.gateOpen,
@@ -357,6 +368,7 @@ class _SheetViewState extends State<_SheetView>
     _route.backdropCache.overlay = _style.dimmingColor.withValues(
       alpha: frame.dimmed ? frame.dimOpacity : 0,
     );
+    return structure;
   }
 
   MorphSheetRoute<Object?> get _route => widget.route;
@@ -371,6 +383,7 @@ class _SheetViewState extends State<_SheetView>
   void initState() {
     super.initState();
     _route._view = this;
+    _sync.follow(frames);
     final initial = _route.initialDetent;
     final i = initial == null ? 0 : detents.indexOf(initial);
     _index = i < 0 ? 0 : i;
@@ -378,6 +391,7 @@ class _SheetViewState extends State<_SheetView>
 
   @override
   void dispose() {
+    _sync.dispose();
     _structure.dispose();
     if (_route._view == this) _route._view = null;
     _source.reveal();
@@ -396,14 +410,12 @@ class _SheetViewState extends State<_SheetView>
     final zoom = _zoom;
     if (zoom != null) {
       zoom.advance(t);
-      _syncStructure();
       if (_leaving && zoom.isClosed) {
         _source.reveal();
         _route.finishMotionRoute();
       }
       return;
     }
-    _syncStructure();
     if (_leaving && motion.isDismissed) _route.finishMotionRoute();
   }
 
@@ -746,7 +758,7 @@ class _SheetViewState extends State<_SheetView>
         );
         _layout(size, padding);
         final motion = _motion!;
-        _syncStructure();
+        _show(_sync.read());
         return GlassBackdropCacheScope(
           cache: _route.backdropCache,
           child: ValueListenableBuilder<_SheetStructure>(

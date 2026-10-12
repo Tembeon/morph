@@ -81,7 +81,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
     _pan.onUpdate = _dragUpdate;
     _pan.onEnd = _dragEnd;
     _pan.onCancel = _dragCancel;
-    frames.addListener(_sync);
+    _sync.follow(frames);
   }
 
   @override
@@ -95,7 +95,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
 
   @override
   void dispose() {
-    frames.removeListener(_sync);
+    _sync.dispose();
     _host.attachZoomView(null);
     _pan.dispose();
     _source.reveal();
@@ -236,12 +236,11 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
 
   bool get _rtl => Directionality.maybeOf(context) == TextDirection.rtl;
 
-  bool? _open;
-
-  void _sync() {
-    final open = _motion?.isOpen;
-    if (open != _open) setState(() {});
-  }
+  // The page builds only when it opens or leaves the open state.
+  late final MorphFrameSync<bool?> _sync = MorphFrameSync<bool?>(
+    structure: () => _motion?.isOpen,
+    rebuild: (bool? _) => setState(() {}),
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -254,7 +253,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
         final size = constraints.biggest;
         _layout(size);
         final motion = _motion!;
-        final open = _open = motion.isOpen;
+        final open = _sync.read()!;
         double t() => motion.time;
         Rect rect() => motion.isOpen ? Offset.zero & size : motion.rect(t());
         double radius() => motion.isOpen
@@ -387,26 +386,26 @@ class _ZoomCrossfade extends StatefulWidget {
 }
 
 class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
-  Object? _inputs;
+  late final MorphFrameSync<Object?> _sync = MorphFrameSync<Object?>(
+    structure: _inputsNow,
+    rebuild: (Object? _) => setState(() {}),
+  );
 
   @override
   void initState() {
     super.initState();
-    widget.frames.addListener(_sync);
+    _sync.follow(widget.frames);
   }
 
   @override
   void didUpdateWidget(_ZoomCrossfade oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!identical(oldWidget.frames, widget.frames)) {
-      oldWidget.frames.removeListener(_sync);
-      widget.frames.addListener(_sync);
-    }
+    _sync.follow(widget.frames);
   }
 
   @override
   void dispose() {
-    widget.frames.removeListener(_sync);
+    _sync.dispose();
     super.dispose();
   }
 
@@ -429,13 +428,9 @@ class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
     return (lost, _closing, size, shows ? fade : null);
   }
 
-  void _sync() {
-    if (_inputsNow() != _inputs) setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
-    _inputs = _inputsNow();
+    _sync.read();
     final frames = widget.frames;
     final motion = widget.motion;
     final size = widget.size;

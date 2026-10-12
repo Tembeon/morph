@@ -178,7 +178,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     super.initState();
     if (widget.searching) _morph.snap(0, 1);
     _listen();
-    frames.addListener(_framed);
+    _ticks.follow(frames);
   }
 
   @override
@@ -212,7 +212,6 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
 
   @override
   void dispose() {
-    frames.removeListener(_framed);
     _ticks.dispose();
     _listening?.removeListener(_focusChanged);
     _ownController?.dispose();
@@ -249,17 +248,12 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
 
   MorphSearchTabGeometry? _geometry;
   _TabFrame _frame = _TabFrame.zero;
-  _TabStructure? _built;
-  final ValueNotifier<int> _ticks = ValueNotifier<int>(0);
-
-  // Read on the bar's own tick, after both of its motions advanced:
-  // nothing else moves them within a frame. A keyboard frame rebuilds and
-  // reads again with the new geometry.
-  void _framed() {
-    if (_geometry == null) return;
-    if (_readFrame() != _built) setState(() {});
-    _ticks.value++;
-  }
+  // A keyboard frame rebuilds and reads again with the new geometry.
+  late final MorphFrameSync<_TabStructure?> _ticks =
+      MorphFrameSync<_TabStructure?>(
+        structure: () => _geometry == null ? null : _readFrame(),
+        rebuild: (_TabStructure? _) => setState(() {}),
+      );
 
   _TabStructure _readFrame() {
     final geometry = _geometry!;
@@ -380,8 +374,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
             rtl: rtl,
           );
           _geometry = geometry;
-          final structure = _readFrame();
-          _built = structure;
+          final structure = _ticks.read()!;
           final settled = structure.settled;
           final children = <Widget>[];
           if (structure.resting) {
