@@ -12,7 +12,8 @@
 /// Canvas::saveLayer count per frame minus the census's offscreen count
 /// is that number (tool/ios_reference/perf/atrace_slices.py --scenes).
 ///
-/// With `owners` every backdrop filter is also named by its owner: the
+/// With `owners` every offscreen layer (as `<kind> <owner>`) and every
+/// backdrop filter is also named by its owner: the
 /// Morph widgets above the render object that paints it (the innermost
 /// last), the nearest value key between them (the glass host's role:
 /// body, separate, a lens's glass), and the painter's type. Captures
@@ -157,7 +158,7 @@ class LayerCensus {
         _labels[object] = '${tail.join(' > ')} [$here] ${object.runtimeType}';
         // ignore: invalid_use_of_protected_member
         final own = object.layer;
-        if (own is BackdropFilterLayer) _layerOwners[own] = object;
+        if (own != null && own is! OffsetLayer) _layerOwners[own] = object;
       }
       element.visitChildren((Element child) => visit(child, inner, here));
     }
@@ -221,6 +222,9 @@ class LayerCensus {
     if (offscreen != null) {
       _add(counts, offscreen);
       _add(counts, 'offscreen');
+      if (named != null && offscreen != 'backdrop') {
+        _add(named, '$offscreen ${_labelOf(layer)}');
+      }
     }
     if (layer is PictureLayer) _add(counts, 'pictures');
     if (_isGlassShadowSlot(layer)) _add(counts, 'glass_shadow_pictures');

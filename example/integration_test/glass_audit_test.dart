@@ -132,7 +132,10 @@ final bool _census = BenchArgs.flag(
   fallback: const bool.fromEnvironment('AUDIT_CENSUS'),
 );
 
-const bool _censusOwners = bool.fromEnvironment('AUDIT_CENSUS_OWNERS');
+final bool _censusOwners = BenchArgs.flag(
+  'AUDIT_CENSUS_OWNERS',
+  fallback: const bool.fromEnvironment('AUDIT_CENSUS_OWNERS'),
+);
 
 const bool _atlas = bool.fromEnvironment('AUDIT_ATLAS');
 

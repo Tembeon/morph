@@ -377,7 +377,10 @@ def analyze(path, cpu=None, report=None):
         pairs.append((ui, d))
 
     offset = clock_offset(windows, report) if cpu and report else None
-    queued = sorted(s.ts for s in raster_slices if s.name == 'queueBuffer')
+    # Presented buffers; SDKs that present off the raster thread leave the
+    # raster frames' ends as the closest mark.
+    queued = sorted(s.ts for s in raster_slices if s.name == 'queueBuffer') or sorted(
+        f.ts + f.dur for f in raster_frames)
 
     starts = [d.ts for d in raster_frames]
 
@@ -482,6 +485,7 @@ def analyze(path, cpu=None, report=None):
                 for a, b in us if b - a > 4 * budget_ms * 1000]
         seconds = span / 1e9
         out['scenes'][scene] = {
+            'budget_ms': budget_ms,
             'runs': len(wins),
             'seconds': round(seconds, 2),
             'frames': n_frames,
@@ -492,6 +496,12 @@ def analyze(path, cpu=None, report=None):
             'gpu_p50': pct(gpu_ms, .5), 'gpu_p95': pct(gpu_ms, .95),
             'gpu_ms_per_s': round(sum(gpu_active(periods, a, b) for a, b in wins)
                                   / 1e6 / seconds, 2) if seconds else None,
+            'save_layers_per_frame': round(sum(
+                1 for x in raster_slices if x.name == 'Canvas::saveLayer'
+                and any(a <= x.ts < b for a, b in wins)) / n_frames, 2) if n_frames else 0,
+            'submits_per_frame': round(sum(
+                1 for x in raster_slices if x.name == 'QueueSubmit'
+                and any(a <= x.ts < b for a, b in wins)) / n_frames, 2) if n_frames else 0,
             'over': sum(causes.values()),
             'over_pct': round(100 * sum(causes.values()) / n_frames, 1) if n_frames else 0,
             'causes': dict(causes.most_common()),

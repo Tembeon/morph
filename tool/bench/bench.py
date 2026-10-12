@@ -22,6 +22,7 @@
                      Pixel 6a it pins high clocks: UI and raster halve and
                      frames over budget vanish, so it compares work, never
                      smoothness
+  --sdk S            stable (flutter) or beta (flutter-beta)
   --label L          result directory name (default the short sha)
   --no-build         reuse the APKs of the last build of this source
   --no-cpu           skip the Dart CPU pass
@@ -150,9 +151,9 @@ def source(rev):
     return src, sha
 
 
-def build(src, suite, apk):
+def build(src, suite, apk, sdk):
     target, report, defines = SUITES[suite]
-    cmd = ['nice', '-n', '10', 'flutter', 'build', 'apk', '--profile',
+    cmd = ['nice', '-n', '10', 'flutter-beta' if sdk == 'beta' else 'flutter', 'build', 'apk', '--profile',
            '--target-platform', 'android-arm64', '-t', target,
            f'--dart-define=AUDIT_OUT={FILES}/{report}', *defines]
     log('build', suite, 'from', src)
@@ -350,7 +351,16 @@ def table(results, baseline):
             d = s['dart']
             lines.append(f'{"":34}   dart ({d["samples"]} samples): ' + ', '.join(
                 f'{k} {v:.0f}' for k, v in list(d['morph_inclusive_ms'].items())[:4]) + ' ms')
-        for stall in s.get('dart', {}).get('stalls', [])[:2]:
+        if layers := s.get('layers'):
+            lines.append(f'{"":34}   passes/frame: {s.get("save_layers_per_frame", 0):.1f} '
+                         f'({layers["backdrops_per_frame"]:.1f} backdrop, '
+                         f'{layers["offscreen_per_frame"] - layers["backdrops_per_frame"]:.1f} '
+                         f'other layers, {layers["in_picture_save_layers"]:.1f} inside pictures): '
+                         + ', '.join(f'{k[:60]} {v:.1f}' for k, v in
+                                     list(layers['owners_per_frame'].items())[:4]))
+        # A stall only the profiled launch shows is the sampler's.
+        stalls = s.get('dart', {}).get('stalls', []) if (s.get('ui_max') or 0) > 4 * s['budget_ms'] else []
+        for stall in stalls[:2]:
             lines.append(f'{"":34}   stall {stall["ms"]:.0f} ms: ' + ', '.join(
                 f'{k} {v:.0f}' for k, v in list(stall['self_ms'].items())[:3]))
     return '\n'.join(lines)
@@ -367,6 +377,7 @@ def main():
     p.add_argument('--idle', type=int, default=8)
     p.add_argument('--fixed', action='store_true')
     p.add_argument('--label')
+    p.add_argument('--sdk', default='stable', choices=['stable', 'beta'])
     p.add_argument('--no-build', action='store_true')
     p.add_argument('--no-cpu', action='store_true')
     p.add_argument('--save-baseline', action='store_true')
@@ -383,7 +394,7 @@ def main():
     src, sha = source(o.rev)
     label = o.label or sha
     trace_dir = f'/tmp/morph-perf/bench/{label}'
-    apk_dir = f'/tmp/morph-perf/bench/apk/{sha}'
+    apk_dir = f'/tmp/morph-perf/bench/apk/{sha}-{o.sdk}'
     out_dir = os.path.join(ROOT, 'tool/ios_reference/perf',
                            f'{datetime.date.today()}-bench-{label}')
     os.makedirs(trace_dir, exist_ok=True)
@@ -392,7 +403,7 @@ def main():
     for suite in suites:
         apk = f'{apk_dir}/{suite}.apk'
         if not (o.no_build and os.path.exists(apk)):
-            build(src, suite, apk)
+            build(src, suite, apk, o.sdk)
 
     atexit.register(cleanup)
     for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
@@ -415,7 +426,7 @@ def main():
                                     'NAV_RUNS': str(o.runs)}, 'nav'))
 
     results = {}
-    meta = {'sha': sha, 'source': src, 'fixed': o.fixed, 'runs': o.runs,
+    meta = {'sdk': o.sdk, 'sha': sha, 'source': src, 'fixed': o.fixed, 'runs': o.runs,
             'date': str(datetime.datetime.now()), 'launches': {}}
     installed = None
     for name, suite, args, prefix in plan:
@@ -435,19 +446,19 @@ def main():
             s['thermal_status'] = status
             results[f'{prefix}/{scene}'] = s
 
-    def ui_bound(key):
-        s = results[key]
-        return sum(v for k, v in s['causes'].items() if k.startswith('ui')) >= 2
+    def needs_diagnosis(key):
+        return sum(results[key]['causes'].values()) >= 2
 
     for name, suite, args, prefix in ([] if o.no_cpu else plan):
-        keys = [k for k in results if k.startswith(prefix + '/') and ui_bound(k)]
+        keys = [k for k in results if k.startswith(prefix + '/') and needs_diagnosis(k)]
         scenes = [k[len(prefix) + 1:] for k in keys]
         scenes = [x for x in scenes if not x.startswith('idle') and x != 'first-enter']
         if not scenes:
             continue
         args = dict(args)
         if suite == 'audit':
-            args.update(AUDIT_SCENES=','.join(scenes), AUDIT_IDLE_S='0')
+            args.update(AUDIT_SCENES=','.join(scenes), AUDIT_IDLE_S='0',
+                        AUDIT_CENSUS='true', AUDIT_CENSUS_OWNERS='true')
         else:
             parts = [x.split('-', 2)[2].rsplit('-', 1) for x in scenes if x.count('-') >= 3]
             if not parts:
@@ -457,7 +468,7 @@ def main():
         if installed != suite:
             adb('install', '-r', '-d', f'{apk_dir}/{suite}.apk', timeout=300)
             installed = suite
-        log(f'{name}: Dart CPU pass over', ', '.join(scenes))
+        log(f'{name}: diagnostic pass (Dart CPU, layer owners) over', ', '.join(scenes))
         cname = f'{name}-cpu'
         trace = launch(cname, suite, args, out_dir, trace_dir, o.timeout, cpu=True)
         samples = os.path.join(trace_dir, f'{cname}.cpu.json')
@@ -468,10 +479,23 @@ def main():
         subprocess.run([py, os.path.join(HERE, 'analyze.py'), trace, '--json', analysis,
                         '--cpu', samples, '--report', os.path.join(out_dir, f'{cname}.report.json')],
                        check=True, stdout=subprocess.DEVNULL)
+        census = json.load(open(os.path.join(out_dir, f'{cname}.report.json'))).get('census', {})
         for scene, s in json.load(open(analysis))['scenes'].items():
             key = f'{prefix}/{scene}'
-            if key in keys and 'dart' in s:
+            if key not in keys:
+                continue
+            if 'dart' in s:
                 results[key]['dart'] = s['dart']
+            if scene in census:
+                c = census[scene]
+                results[key]['layers'] = {
+                    'offscreen_per_frame': round(c['mean']['offscreen'], 2),
+                    'backdrops_per_frame': round(c['mean']['backdrop'], 2),
+                    'in_picture_save_layers': round(
+                        max(0.0, s.get('save_layers_per_frame', 0) - c['mean']['offscreen']), 2),
+                    'owners_per_frame': {k: round(v, 2) for k, v in
+                                         list(c.get('owners', {}).items())[:12]},
+                }
     json.dump(meta, open(os.path.join(out_dir, 'meta.json'), 'w'), indent=1)
     json.dump(results, open(os.path.join(out_dir, 'results.json'), 'w'), indent=1)
 

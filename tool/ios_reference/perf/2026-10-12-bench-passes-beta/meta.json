@@ -1,0 +1,42 @@
+{
+ "sdk": "beta",
+ "sha": "fac51e7-dirty",
+ "source": "/Users/tembeon/IdeaProjects/morph",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-12 12:51:46.182030",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8"
+   },
+   "thermal_before": [
+    0,
+    33.684605
+   ],
+   "thermal_after": [
+    0,
+    34.94065
+   ]
+  },
+  "audit-flat": {
+   "args": {
+    "GALLERY_GLASS": "flat",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8"
+   },
+   "thermal_before": [
+    0,
+    34.6769
+   ],
+   "thermal_after": [
+    0,
+    34.071552
+   ]
+  }
+ }
+}
