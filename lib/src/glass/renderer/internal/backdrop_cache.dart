@@ -14,6 +14,12 @@ bool debugMorphBackdropCache = const bool.fromEnvironment(
 /// How many copies every [GlassBackdropCache] took, for a bench report.
 int debugMorphBackdropCacheCaptures = 0;
 
+/// How many glass frames were drawn over a copy, for a bench report.
+int debugMorphBackdropCacheHits = 0;
+
+/// Why the last miss of each cache missed, counted, for a bench report.
+final Map<String, int> debugMorphBackdropCacheMisses = {};
+
 /// A copy of what lies under a glass surface, reused while nothing the
 /// surface samples has changed since it was taken.
 ///
@@ -38,10 +44,19 @@ class GlassBackdropCache {
   /// The uniform color between [source] and the glass, straight alpha.
   ui.Color overlay = const ui.Color(0x00000000);
 
+  // How far the band a copy is checked over reaches past the region it was
+  // taken for, as a share of the source's height: room for the glass to
+  // move without a new copy, little enough that a control animating
+  // elsewhere on the page (the button that opened the surface) does not
+  // invalidate it.
+  static const double _bandMargin = 0.15;
+
   ui.Image? _image;
+  Rect _copied = Rect.zero;
   List<Object?> _signature = const [];
   double _sigma = -1;
-  List<Object?>? _previous;
+  List<Object?>? _previousPage;
+  double _previousSigma = -1;
   bool _capturing = false;
 
   /// How many copies the cache has taken.
@@ -62,15 +77,19 @@ class GlassBackdropCache {
     return _isOrigin(boundary.getTransformTo(null)) ? boundary : null;
   }
 
-  /// The frosted copy of the source if it is still exact for this frame,
-  /// aligned to the screen at [devicePixelRatio]; else null, and the glass
-  /// reads its backdrop this frame.
+  /// The frosted copy of the source that is still exact for this frame
+  /// inside [region] (screen logical pixels: everything the glass may
+  /// sample, frost and refraction included), with the screen position of
+  /// its top-left corner; else null, and the glass reads its backdrop this
+  /// frame.
   ///
   /// Call it while the frame composites: the source's layers are final.
-  /// Only what the source draws inside [region] (screen logical pixels:
-  /// everything the glass may sample, frost and refraction included) can
-  /// invalidate the copy; the copy itself is the whole source.
-  ui.Image? imageFor({
+  /// The copy is checked over a band around the region it was taken for,
+  /// and only what the source draws inside that band can invalidate it. A new copy
+  /// is taken after a frame in which neither the source nor [sigma]
+  /// changed since the frame before: motion under the glass, or a frost
+  /// that animates, costs no copies.
+  (ui.Image, Offset)? imageFor({
     required double sigma,
     required double devicePixelRatio,
     required Rect region,
@@ -79,37 +98,79 @@ class GlassBackdropCache {
     if (boundary == null) return null;
     // ignore: invalid_use_of_protected_member
     final layer = boundary.layer! as OffsetLayer;
-    final signature = <Object?>[];
-    _sign(layer, region, signature);
-    if (_image != null && sigma == _sigma && _same(signature, _signature)) {
-      _previous = signature;
-      return _image;
+    // Past the source's edges there is nothing to copy or to change.
+    final reach = region.intersect(Offset.zero & boundary.size);
+    final page = <Object?>[];
+    _sign(layer, Rect.largest, page);
+    final previousPage = _previousPage;
+    final stable =
+        previousPage != null &&
+        sigma == _previousSigma &&
+        _same(page, previousPage);
+    _previousPage = page;
+    _previousSigma = sigma;
+    final image = _image;
+    if (image != null &&
+        sigma == _sigma &&
+        _copied.left <= reach.left &&
+        _copied.top <= reach.top &&
+        _copied.right >= reach.right &&
+        _copied.bottom >= reach.bottom) {
+      final band = <Object?>[];
+      _sign(layer, _copied, band);
+      if (_same(band, _signature)) {
+        debugMorphBackdropCacheHits++;
+        return (image, Offset.zero);
+      }
+      _miss('band changed');
+    } else {
+      _miss(
+        image == null
+            ? 'no copy'
+            : sigma != _sigma
+            ? 'sigma'
+            : 'region left the band',
+      );
     }
-    final previous = _previous;
-    _previous = signature;
-    if (previous != null && _same(signature, previous) && !_capturing) {
+    if (stable && !_capturing) {
       _capturing = true;
+      final size = boundary.size;
+      final top =
+          ((reach.top - size.height * _bandMargin) * devicePixelRatio)
+              .floorToDouble() /
+          devicePixelRatio;
+      final band = Rect.fromLTRB(
+        0,
+        top,
+        size.width,
+        reach.bottom + size.height * _bandMargin,
+      ).intersect(Offset.zero & size);
       SchedulerBinding.instance.addPostFrameCallback((_) {
         _capturing = false;
-        _capture(signature, sigma, devicePixelRatio);
+        _capture(band, sigma, devicePixelRatio);
       });
     }
     return null;
   }
 
-  // Copies the source as the frame that just composited left it; nothing
-  // paints between compositing and the post-frame callbacks.
-  void _capture(
-    List<Object?> signature,
-    double sigma,
-    double devicePixelRatio,
-  ) {
+  static void _miss(String why) => debugMorphBackdropCacheMisses[why] =
+      (debugMorphBackdropCacheMisses[why] ?? 0) + 1;
+
+  // Copies the source as the frame that just composited left it, valid
+  // while [band] stays the same; nothing paints between compositing and
+  // the post-frame callbacks.
+  void _capture(Rect band, double sigma, double devicePixelRatio) {
     // Released since the request: the surface is gone.
-    if (_previous == null) return;
+    if (_previousPage == null || band.isEmpty) return;
     final boundary = _boundary();
     if (boundary == null) return;
     // ignore: invalid_use_of_protected_member
     final layer = boundary.layer! as OffsetLayer;
+    final signature = <Object?>[];
+    _sign(layer, band, signature);
+    // The whole source, at its own origin: a copy of a part would composite
+    // the glass inside the source under another transform, and glass
+    // layers keep what their compositing hook computed.
     final raw = layer.toImageSync(
       Offset.zero & boundary.size,
       pixelRatio: devicePixelRatio,
@@ -132,6 +193,7 @@ class GlassBackdropCache {
     }
     _image?.dispose();
     _image = image;
+    _copied = band;
     _signature = signature;
     _sigma = sigma;
     debugCaptures++;
@@ -143,7 +205,7 @@ class GlassBackdropCache {
     _image?.dispose();
     _image = null;
     _signature = const [];
-    _previous = null;
+    _previousPage = null;
   }
 
   static bool _isOrigin(Matrix4 m) {
@@ -260,8 +322,6 @@ class GlassBackdropCache {
           final bounds = clip ?? Rect.largest;
           if (bounds.overlaps(region)) {
             out.add(layer.blendMode);
-            // ignore: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
-            out.add(layer.engineLayer == null);
             leaf(layer.filter);
           }
           nextState = [...state, layer.filter];

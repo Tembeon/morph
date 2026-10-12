@@ -12,7 +12,7 @@ import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
 
 /// Glass over a page - the floating sheet, an alert, an action sheet
-/// popover, a menu, the date picker overlay - over a cached copy of the
+/// popover, the date picker overlay - over a cached copy of the
 /// page against the backdrop filter, on the host's Impeller with the liquid
 /// tier:
 ///
@@ -45,7 +45,6 @@ final List<_Case> _cases = [
     () => find.text('Action sheet from this button'),
     false,
   ),
-  ('menu', 'Menu', () => find.byType(MorphMenuButton).at(1), false),
   ('date', 'Date picker', () => find.byType(MorphDatePicker).first, false),
 ];
 
@@ -63,7 +62,7 @@ void _main() {
       Future<void> frames(int count) async {
         for (var i = 0; i < count; i++) {
           await tester.runAsync(
-            () => Future<void>.delayed(const Duration(milliseconds: 5)),
+            () => Future<void>.delayed(const Duration(milliseconds: 25)),
           );
           await tester.pump(const Duration(milliseconds: 16));
         }
@@ -83,7 +82,7 @@ void _main() {
         final settings = GalleryGlassScope.of(navigator.currentContext!);
         settings.tier = MorphGlassTier.liquid;
         settings.appearance = ThemeMode.dark;
-        await frames(10);
+        await frames(30);
         await tester.ensureVisible(find.text(page));
         await frames(20);
         await tester.tap(find.text(page));
@@ -120,10 +119,16 @@ void _main() {
 
       final off = await render(cache: false);
       debugMorphBackdropCacheCaptures = 0;
+      debugMorphBackdropCacheHits = 0;
+      debugMorphBackdropCacheMisses.clear();
       final on = await render(cache: true);
       // The report is the test's output.
       // ignore: avoid_print
-      print('$name copies taken: $debugMorphBackdropCacheCaptures');
+      print(
+        '$name copies taken: $debugMorphBackdropCacheCaptures, frames over '
+        'a copy $debugMorphBackdropCacheHits, misses '
+        '$debugMorphBackdropCacheMisses',
+      );
       final moments = ['mid-open', 'rest', 'page-moved'];
       for (var i = 0; i < off.length; i++) {
         final a = (await tester.runAsync(

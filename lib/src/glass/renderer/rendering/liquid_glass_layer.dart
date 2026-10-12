@@ -2522,16 +2522,25 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final sigma = blurPassSigma;
     // Everything the glass may sample: its bounds, the frost's kernel and
     // the refraction's reach (dispersion stays inside it).
-    final image = cache.imageFor(
+    final copy = cache.imageFor(
       sigma: sigma,
       devicePixelRatio: dpr,
       region: logical.inflate(
         3 * sigma + settings.effectiveRefractionAmount + 2,
       ),
     );
-    if (image == null) return false;
+    if (copy == null) return false;
+    final (image, corner) = copy;
     syncCoordinateMapping();
     final shader = renderShader;
+    // The copy starts at [corner]: fragment coordinates are taken from
+    // there, so the filter->matte offset moves by the basis times it.
+    final origin = corner * dpr;
+    if (_coordinateMapping
+        case (final b0, final b1, final b2, final b3, final ox, final oy)?) {
+      shader.setFloat(51, ox + b0 * origin.dx + b1 * origin.dy);
+      shader.setFloat(52, oy + b2 * origin.dx + b3 * origin.dy);
+    }
     shader.setFloat(0, image.width.toDouble());
     shader.setFloat(1, image.height.toDouble());
     final overlay = cache.overlay.withValues(
@@ -2562,15 +2571,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     final screenToCanvas = Matrix4.zero();
     if (screenToCanvas.copyInverse(canvasToScreen) == 0) return false;
     screenToCanvas.multiply(Matrix4.diagonal3Values(1 / dpr, 1 / dpr, 1));
+    screenToCanvas.multiply(Matrix4.translationValues(origin.dx, origin.dy, 0));
+    final drawn = device.shift(-origin);
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     canvas.transform(screenToCanvas.storage);
     final paint = Paint();
     paint.shader = shader;
     paint.isAntiAlias = false;
-    canvas.drawRect(device, paint);
+    canvas.drawRect(drawn, paint);
     final picture = PictureLayer(
-      MatrixUtils.transformRect(screenToCanvas, device),
+      MatrixUtils.transformRect(screenToCanvas, drawn),
     );
     picture.picture = recorder.endRecording();
     slot.append(picture);
