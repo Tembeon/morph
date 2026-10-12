@@ -38,7 +38,8 @@ one APK per suite serves every tier and scene selection.
 
 Before every launch the runner waits up to --cool-wait seconds (default
 300) for Thermal Status 0; a launch that starts warmer is marked in the
-table. It holds /tmp/morph-native/pixel.lock for the whole run and on any
+table. It holds /tmp/morph-native/pixel.lock for the whole run (waiting up to
+--lock-wait seconds, default 2 h, while another run holds it) and on any
 exit (including Ctrl-C) stops the app and the trace, removes the launch
 settings and turns fixed performance mode back off.
 
@@ -113,14 +114,24 @@ def cleanup():
         state['lock'] = False
 
 
-def take_lock():
+def take_lock(wait):
+    """Takes the Pixel lock, waiting up to [wait] seconds for another run
+    (another session's bench) to release it."""
     os.makedirs(os.path.dirname(LOCK), exist_ok=True)
-    try:
-        os.mkdir(LOCK)
-    except FileExistsError:
-        owner = open(os.path.join(LOCK, 'owner')).read() if os.path.exists(
-            os.path.join(LOCK, 'owner')) else '?'
-        raise SystemExit(f'Pixel is locked: {owner.strip()}')
+    started, told = time.time(), False
+    while True:
+        try:
+            os.mkdir(LOCK)
+            break
+        except FileExistsError:
+            path = os.path.join(LOCK, 'owner')
+            owner = open(path).read().strip() if os.path.exists(path) else '?'
+            if time.time() - started > wait:
+                raise SystemExit(f'Pixel is locked: {owner}')
+            if not told:
+                log(f'waiting for the Pixel lock ({owner})')
+                told = True
+            time.sleep(15)
     with open(os.path.join(LOCK, 'owner'), 'w') as f:
         f.write(f'tool/bench/bench.py pid {os.getpid()} {datetime.datetime.now()}\n')
     state['lock'] = True
@@ -384,6 +395,7 @@ def main():
     p.add_argument('--serial', default='26221JEGR12737')
     p.add_argument('--cool-wait', type=int, default=300)
     p.add_argument('--timeout', type=int, default=900)
+    p.add_argument('--lock-wait', type=int, default=7200)
     o = p.parse_args()
     if o.runs is None:
         o.runs = 5 if o.scenes else 3
@@ -408,7 +420,7 @@ def main():
     atexit.register(cleanup)
     for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
         signal.signal(sig, lambda *_: sys.exit(130))
-    take_lock()
+    take_lock(o.lock_wait)
     if o.fixed:
         sh('cmd power set-fixed-performance-mode-enabled true')
         state['fixed'] = True
