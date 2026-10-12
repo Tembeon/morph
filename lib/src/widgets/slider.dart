@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -137,6 +139,10 @@ class MorphSlider extends StatefulWidget {
 class _MorphSliderState extends MorphControlHost<MorphSlider> {
   late final MorphSliderMotion _motion = _create();
   late final ValueNotifier<double> _semanticValue = ValueNotifier(widget.value);
+  late final _TrackFrames _trackFrames = _TrackFrames(
+    frames,
+    () => _visual(_frame(_size).track),
+  );
   VelocityTracker? _tracker;
   MorphSliderStyle _style = MorphSliderStyle.light;
   Brightness _brightness = Brightness.light;
@@ -192,6 +198,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   @override
   void dispose() {
     _semanticValue.dispose();
+    _trackFrames.dispose();
     super.dispose();
   }
 
@@ -302,7 +309,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   List<MorphGlassSurface> _trackSurface() => [
     MorphGlassSurface(
       kind: MorphGlassKind.track,
-      shape: _visual(_frame(_size).track),
+      shape: _trackFrames.read(),
       color: widget.trackColor ?? _style.trackColor,
       brightness: _brightness,
       enabled: _enabled,
@@ -369,7 +376,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
                 Positioned.fill(
                   child: MorphGlassLayer(
                     painter: glass,
-                    frames: frames,
+                    frames: _trackFrames,
                     surfaces: _trackSurface,
                   ),
                 ),
@@ -400,25 +407,18 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
             verticalSteps: true,
             child: MorphFocusRing(
               visible: controlFocused,
-              child: ValueListenableBuilder<double>(
-                valueListenable: _semanticValue,
-                builder: (BuildContext context, double value, Widget? child) =>
-                    Semantics(
-                      container: true,
-                      slider: true,
-                      enabled: _enabled,
-                      label: widget.semanticLabel,
-                      value: percent(value),
-                      increasedValue: percent(value + widget._step),
-                      decreasedValue: percent(value - widget._step),
-                      onIncrease: _enabled && value < 1
-                          ? () => _nudge(1)
-                          : null,
-                      onDecrease: _enabled && value > 0
-                          ? () => _nudge(-1)
-                          : null,
-                      child: child,
-                    ),
+              child: _SliderSemantics(
+                value: _semanticValue,
+                properties: (double value) => SemanticsProperties(
+                  slider: true,
+                  enabled: _enabled,
+                  label: widget.semanticLabel,
+                  value: percent(value),
+                  increasedValue: percent(value + widget._step),
+                  decreasedValue: percent(value - widget._step),
+                  onIncrease: _enabled && value < 1 ? () => _nudge(1) : null,
+                  onDecrease: _enabled && value > 0 ? () => _nudge(-1) : null,
+                ),
                 child: MorphTouchListener(
                   enabled: _enabled,
                   dragAxis: .horizontal,
@@ -436,6 +436,107 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
         );
       },
     );
+  }
+}
+
+// The motion's frames on which the track's shape differs from the one its
+// glass host last read: the track rests through most of a drag, and its
+// host then neither rebuilds nor pushes.
+class _TrackFrames extends ChangeNotifier {
+  _TrackFrames(this._frames, this._shape) {
+    _frames.addListener(_tick);
+  }
+
+  final Listenable _frames;
+  final RRect Function() _shape;
+  RRect? _read;
+
+  RRect read() => _read = _shape();
+
+  void _tick() {
+    if (hasListeners && _shape() != _read) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _frames.removeListener(_tick);
+    super.dispose();
+  }
+}
+
+// A Semantics container whose properties follow [value] in the render
+// object: a value the parent changes on every frame of a drag updates the
+// semantics node without a widget rebuild.
+class _SliderSemantics extends SingleChildRenderObjectWidget {
+  const _SliderSemantics({
+    required this.value,
+    required this.properties,
+    required super.child,
+  });
+
+  final ValueListenable<double> value;
+  final SemanticsProperties Function(double value) properties;
+
+  @override
+  _RenderSliderSemantics createRenderObject(BuildContext context) =>
+      _RenderSliderSemantics(
+        value: value,
+        propertiesOf: properties,
+        textDirection: Directionality.maybeOf(context),
+      );
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderSliderSemantics renderObject,
+  ) {
+    renderObject.value = value;
+    renderObject.propertiesOf = properties;
+    renderObject.textDirection = Directionality.maybeOf(context);
+  }
+}
+
+class _RenderSliderSemantics extends RenderSemanticsAnnotations {
+  _RenderSliderSemantics({
+    required ValueListenable<double> value,
+    required SemanticsProperties Function(double value) propertiesOf,
+    super.textDirection,
+  }) : _value = value,
+       _propertiesOf = propertiesOf,
+       super(properties: propertiesOf(value.value), container: true);
+
+  ValueListenable<double> _value;
+  ValueListenable<double> get value => _value;
+  set value(ValueListenable<double> value) {
+    if (identical(value, _value)) return;
+    if (attached) {
+      _value.removeListener(_changed);
+      value.addListener(_changed);
+    }
+    _value = value;
+    _changed();
+  }
+
+  SemanticsProperties Function(double value) _propertiesOf;
+  SemanticsProperties Function(double value) get propertiesOf => _propertiesOf;
+  set propertiesOf(SemanticsProperties Function(double value) value) {
+    if (identical(value, _propertiesOf)) return;
+    _propertiesOf = value;
+    _changed();
+  }
+
+  void _changed() => properties = _propertiesOf(_value.value);
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _value.addListener(_changed);
+  }
+
+  @override
+  void detach() {
+    _value.removeListener(_changed);
+    super.detach();
   }
 }
 
