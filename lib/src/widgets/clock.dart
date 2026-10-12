@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:developer' show Timeline;
+import 'dart:math' as math;
+import 'dart:typed_data';
 
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
@@ -68,12 +70,23 @@ Duration? Function() morphPointerClockOffset = pointerClockOffset;
 /// doze counts: the frame that ends it reads the clock from the frame
 /// time stamps, exactly as an uninterrupted ticker would, and the doze ends
 /// half a frame early so the frame that shows the change is never missed.
+///
+/// A frame's time is put on the display's frame grid ([MorphFrameGrid])
+/// before the motion samples it, so the motion's frames are spaced by
+/// exactly the display's period and a motion can compute its coming
+/// frames ahead ([frameTime], [framePeriod]). Fidelity: NEAR, a frame is
+/// sampled up to [MorphFrameGrid.reach] (1 ms) from its vsync time stamp,
+/// typically tens of microseconds, and shown at the same vsync. Pointer
+/// stamps keep their own times, measured from the frame's time stamp.
 @internal
 mixin MorphClock<T extends StatefulWidget>
     on State<T>, SingleTickerProviderStateMixin<T> {
   late final Ticker _ticker = createTicker(_onTick);
   double _base = 0;
   double _clock = 0;
+  double _tickClock = 0;
+  double _frameTime = 0;
+  final MorphFrameGrid _grid = MorphFrameGrid();
   bool _ticking = false;
   Duration? _stampFrom;
   double _stampClock = 0;
@@ -111,6 +124,15 @@ mixin MorphClock<T extends StatefulWidget>
   /// The current time on the motion's clock, in seconds.
   double get clock => _clock;
 
+  /// The time of the latest frame, in seconds on the motion's clock: a
+  /// node of the frame grid while frames run steadily.
+  double get frameTime => _frameTime;
+
+  /// The period of the display's frames in motion time, in seconds, or
+  /// null before the first steady frames; the coming frames fall at
+  /// [frameTime] plus its multiples while the grid holds.
+  double? get framePeriod => _grid.period;
+
   /// The frame rate measured motions created by this state filter at: 60
   /// when the display refreshes at 60 Hz, 120 otherwise.
   double get motionFrameRate => _frameRate;
@@ -140,7 +162,7 @@ mixin MorphClock<T extends StatefulWidget>
       if (!_stampsAgree || tick == null) return _clock;
       final since = (_occurred(event, now) - tick).inMicroseconds / 1e6;
       if (since < -maxEventAge) return _clock;
-      return _clock + since / timeDilation;
+      return _tickClock + since / timeDilation;
     }
     _wakeFrom = _occurred(event, now);
     final from = _stampFrom;
@@ -180,7 +202,10 @@ mixin MorphClock<T extends StatefulWidget>
       _dozeStamp = null;
     }
     if (_base + seconds < _clock) _base = _clock - seconds;
-    _clock = _base + seconds;
+    _tickClock = _base + seconds;
+    final snapped = _grid.snap(_tickClock);
+    _clock = snapped >= _clock ? snapped : _tickClock;
+    _frameTime = _clock;
     _ticking = true;
     _stampFrom = null;
     advanceMotion(_clock);
@@ -232,5 +257,78 @@ mixin MorphClock<T extends StatefulWidget>
     _ticker.dispose();
     _frames.dispose();
     super.dispose();
+  }
+}
+
+/// Puts frame times on the display's frame grid.
+///
+/// A frame's time is the vsync timestamp, which jitters by tens of
+/// microseconds around the display's period. A motion that computes its
+/// coming frames ahead (the menu fuses their silhouettes on background
+/// isolates and serves one only within 0.02 pt, about 10 us at the
+/// morph's peak speed) needs those frames' times exactly: the jitter alone
+/// made a third of the menu's frames fuse their own. On the grid the
+/// coming frames' times are exact and the prediction is the frame.
+///
+/// A grid starts at a frame and is spaced by the median step of the last
+/// steady frames (steps of 4 - 50 ms), fixed for the grid's life; it
+/// carries over to the next grid until new steps replace it, so a motion
+/// after a pause predicts from its first frame. [snap] moves a time to
+/// the nearest node within [reach], so a dropped frame lands on a node a
+/// multiple of the period later; otherwise (a pause, a changed or
+/// variable rate, a drift, a test's arbitrary pump) the time stays as it
+/// is and starts a new grid.
+///
+/// Fidelity: NEAR. The motion is sampled up to [reach] (1 ms) from the
+/// vsync timestamp, typically tens of microseconds; the frame is shown at
+/// the same vsync either way.
+@internal
+class MorphFrameGrid {
+  /// How far, in seconds, a time may move onto the grid.
+  static const double reach = 0.001;
+
+  final Float64List _steps = Float64List(8);
+  int _count = 0;
+  double? _raw;
+  double? _anchor;
+  double? _period;
+  double _last = 0;
+
+  /// The grid's spacing in seconds, or null before three steady steps.
+  double? get period => _period;
+
+  /// [t] on the frame grid, or [t] itself when no node is within [reach].
+  double snap(double t) {
+    final raw = _raw;
+    _raw = t;
+    if (raw != null) {
+      final step = t - raw;
+      if (step > 0.004 && step < 0.05) {
+        _steps[_count % _steps.length] = step;
+        _count++;
+      } else if (step != 0) {
+        _count = 0;
+      }
+    }
+    final anchor = _anchor;
+    final period = _period;
+    if (anchor == null || period == null) return _restart(t);
+    final k = ((t - anchor) / period).round();
+    final node = anchor + k * period;
+    if (k < 1 || (node - t).abs() >= reach || node < _last) return _restart(t);
+    return _last = (node - t).abs() < 1e-9 ? t : node;
+  }
+
+  double _restart(double t) {
+    final n = math.min(_count, _steps.length);
+    if (n >= 3) {
+      final sorted = Float64List.fromList(
+        Float64List.sublistView(_steps, 0, n),
+      );
+      sorted.sort();
+      _period = sorted[n ~/ 2];
+    }
+    _anchor = t;
+    return _last = t;
   }
 }

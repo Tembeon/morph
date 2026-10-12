@@ -58,10 +58,6 @@ class MorphMenuFusion {
   /// of a pixel on a 3x screen.
   static const double prefetchTolerance = 0.02;
 
-  /// The longest step, in seconds, a motion predicts its next frame
-  /// across ([prefetch]): a longer one is a pause, not a frame.
-  static const double prefetchStepLimit = 0.05;
-
   /// Whether motions fuse their next frame's silhouette ahead, on a
   /// background isolate: in profile and release builds where isolates
   /// exist, and where [debugPrefetch] says so.

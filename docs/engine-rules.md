@@ -124,6 +124,22 @@ and the approaches that are rejected on purpose.
   delay, `MorphSubClock` for every per-frame filter. A widget host owns
   only the MorphClock, the Listener, focus/semantics and painting. A
   control's ticker sleeps when its motion settles.
+- One frame clock: `MorphClock` puts every frame on the display's frame
+  grid (`MorphFrameGrid`, NEAR: up to 1 ms from the vsync stamp) and
+  offers the grid as `frameTime` / `framePeriod`. A motion that needs its
+  coming frames' times reads them there and never estimates its own
+  period; pointer stamps keep their own times.
+- Computing ahead stays with the motion that needs it (today only the
+  menu's fusion, `MorphFusionWorker`), not a facility of the clock. A
+  general one would ask every motion for a pure peek at a future time
+  (the menu saves and restores its sample and kicks around each one),
+  sendable inputs and its own serving tolerance (0.02 pt per outline
+  input), and no other motion's per-frame geometry costs enough to pay
+  for that: in the Pixel 6a bench's Dart CPU samples every other scene
+  is led by glass paint, the menu by `silhouetteFor` /
+  `MorphMenuFusion.outline` (perf/2026-10-12-bench-passes). The shared
+  part, where the coming frames fall, is the clock's grid. Revisit when a
+  second motion's geometry leads a scene's samples.
 - `MorphControlHost` hosts build in `buildControl`; `build` returns the
   last result while `buildsLike(oldWidget)` holds (every field the build
   reads equal, callbacks compared only by nullness), no dependency

@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:typed_data';
 
 import 'package:flutter/painting.dart';
 import 'package:meta/meta.dart';
@@ -1065,14 +1064,18 @@ class MorphMenuMotion {
   double get _now => _peekTime ?? _timeline.now;
 
   double? _peekTime;
-  final Float64List _silhouetteTimes = Float64List(8);
-  final Float64List _silhouetteSteps = Float64List(7);
-  int _silhouetteFrames = 0;
+  double? _prefetchedFrom;
   bool _prefetchField = false;
 
-  /// The frame period the last regular frames showed; it carries over to
-  /// the next motion, whose first frames have no steps of their own yet.
-  double? _framePeriod;
+  /// The time of the latest frame on the source clock's frame grid
+  /// (`MorphClock.frameTime`); the coming frames follow it at multiples
+  /// of [framePeriod].
+  double frameTime = 0;
+
+  /// The period of the source clock's frame grid
+  /// (`MorphClock.framePeriod`), or null while it has seen no steady
+  /// frames; the motion fuses nothing ahead without it.
+  double? framePeriod;
 
   /// The time the motion was last advanced to.
   double get time => _now;
@@ -1627,79 +1630,21 @@ class MorphMenuMotion {
   /// the frame after it. The fusions carry the field once any frame of
   /// the motion asked for it, and are the edge alone before.
   ///
-  /// The coming frames' times continue the least-squares line through the
-  /// last frames whose steps are within a quarter of the median step (of
-  /// up to the last eight frames): frame times jitter around the
-  /// display's period, and the line predicts them about two and a half
-  /// times closer than the last step repeated, while a dropped frame or a
-  /// silhouette read at an event's time does not bend it. Fewer than
-  /// three such frames step on from the newest frame by the period the
-  /// last regular frames showed (of this motion or an earlier one), else
-  /// by the median, so a motion fuses ahead from its first frame. A step
-  /// longer than [MorphMenuFusion.prefetchStepLimit] starts over.
+  /// The coming frames are the nodes of the source clock's frame grid
+  /// after the motion's time ([frameTime] plus multiples of
+  /// [framePeriod]), so a frame on the grid asks for exactly the time it
+  /// was fused for, and a silhouette read at an event's time between
+  /// frames still predicts the frames.
   void _prefetchSilhouette() {
-    final t = _timeline.now;
     if (!MorphMenuFusion.prefetches) return;
-    final times = _silhouetteTimes;
-    final n = _silhouetteFrames;
-    if (n > 0) {
-      final last = times[(n - 1) % times.length];
-      if (t == last) return;
-      if (!(t > last && t - last < MorphMenuFusion.prefetchStepLimit)) {
-        _silhouetteFrames = 0;
-      }
-    }
-    times[_silhouetteFrames % times.length] = t;
-    _silhouetteFrames++;
-    final count = math.min(_silhouetteFrames, times.length);
-    if (count < 2) {
-      if (_framePeriod case final period?) {
-        for (var frame = 1; frame <= MorphMenuFusion.prefetchFrames; frame++) {
-          _prefetchAt(t + period * frame);
-        }
-      }
-      return;
-    }
-    final first = _silhouetteFrames - count;
-    double at(int k) => times[(first + k) % times.length] - t;
-    final steps = _silhouetteSteps;
-    for (var k = 1; k < count; k++) {
-      steps[k - 1] = at(k) - at(k - 1);
-    }
-    final sorted = Float64List.sublistView(steps, 0, count - 1);
-    sorted.sort();
-    final period = sorted[(count - 2) ~/ 2];
-    var start = count - 1;
-    while (start > 0 &&
-        (at(start) - at(start - 1) - period).abs() <= 0.25 * period) {
-      start--;
-    }
-    final points = count - start;
-    var meanI = 0.0;
-    var meanT = 0.0;
-    var slope = period;
-    if (points >= 3) {
-      for (var k = start; k < count; k++) {
-        meanI += k;
-        meanT += at(k);
-      }
-      meanI /= points;
-      meanT /= points;
-      var cross = 0.0;
-      var spread = 0.0;
-      for (var k = start; k < count; k++) {
-        cross += (k - meanI) * (at(k) - meanT);
-        spread += (k - meanI) * (k - meanI);
-      }
-      slope = cross / spread;
-      _framePeriod = slope;
-    } else {
-      meanI = count - 1.0;
-      slope = _framePeriod ?? period;
-    }
-    for (var frame = 1; frame <= MorphMenuFusion.prefetchFrames; frame++) {
-      final ahead = t + meanT + slope * (count - 1 + frame - meanI);
-      if (ahead > t) _prefetchAt(ahead);
+    final period = framePeriod;
+    final t = _timeline.now;
+    if (period == null || t == _prefetchedFrom) return;
+    _prefetchedFrom = t;
+    var ahead = frameTime + period * ((t - frameTime) / period + 1).floor();
+    if (ahead <= t) ahead += period;
+    for (var frame = 0; frame < MorphMenuFusion.prefetchFrames; frame++) {
+      _prefetchAt(ahead + period * frame);
     }
   }
 

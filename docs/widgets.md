@@ -57,6 +57,10 @@ keep insert order; `now` reads the running action's time.
 across restarts (time asleep does not count; the ticker stops when the
 motion settles). `frames` is the painter's repaint `Listenable`.
 `motionFrameRate` is 60 when the display reports 60 Hz, 120 otherwise.
+A frame's time is put on the display's frame grid (`MorphFrameGrid`:
+the median of the last steady steps, a node within 1 ms or else a new
+grid; NEAR) before the motion samples it, so frames are spaced exactly
+and `frameTime` + k `framePeriod` are the coming frames.
 `stamp(event)` puts the event's own time stamp on the motion clock - the
 reference every device-fitted delay and every replay uses
 (UITouch.timestamp to native start, which includes UIKit's delivery
@@ -105,8 +109,9 @@ uses `MorphGlyphTracker` (the lens copy does).
 
 `menu_fusion_worker*.dart` - `MorphFusionWorker`, the one background
 isolate pool in the package. The menu motion peeks its silhouette inputs
-at the next three predicted frame times (a pure peek: time and kicks are
-restored) and up to four isolates fuse them while frames render.
+at the next three nodes of the clock's frame grid (a pure peek: time and
+kicks are restored) and up to four isolates fuse them while frames
+render.
 
 - `MorphMenuFusion.outline` serves an arrived fusion only within
   `prefetchTolerance` (0.02 pt per input) and with the same grid and

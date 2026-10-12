@@ -1,4 +1,3 @@
-import 'dart:typed_data';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
@@ -164,8 +163,6 @@ class MorphMenuController implements MorphMenuHost {
   @override
   double get menuClock => _disposed ? _detachedTime : clock();
 
-  final MorphFrameGrid _grid = MorphFrameGrid();
-
   /// The flight carrying this menu, or null after its landing.
   MorphFlight? get flight => _flight;
 
@@ -309,16 +306,19 @@ class MorphMenuController implements MorphMenuHost {
     return motion.wakeTime;
   }
 
-  /// Advances the measured motion and notifies its layer.
+  /// Advances the measured motion to the frame at [t] and notifies its
+  /// layer.
   ///
-  /// The frame's time is put on the display's frame grid first
-  /// ([MorphFrameGrid]), so the silhouettes the motion fuses ahead for its
-  /// coming frames are the ones those frames ask for.
-  void advance(double t) {
+  /// [framePeriod] is the source clock's frame grid
+  /// (`MorphClock.framePeriod`), from which the motion fuses its coming
+  /// frames' silhouettes ahead; null fuses nothing ahead.
+  void advance(double t, {double? framePeriod}) {
     final motion = _motion;
     if (motion == null || _repaintDisposed) return;
-    // A pointer event may have advanced the motion past the node already.
-    motion.advance(math.max(_grid.snap(t), motion.time));
+    motion.frameTime = t;
+    motion.framePeriod = framePeriod;
+    // A pointer event may have advanced the motion past the frame already.
+    motion.advance(math.max(t, motion.time));
     if (_early == null && !motion.isOpenPending) _unroute();
     final layout = motion.layout;
     _prebuildCount = debugPrebuild && _flight == null && motion.isArming
@@ -444,73 +444,5 @@ class MorphMenuController implements MorphMenuHost {
     _prebuilt.dispose();
     prebuildHidden.dispose();
     menuRowsBlur.dispose();
-  }
-}
-
-/// Puts frame times on the display's frame grid.
-///
-/// A frame's time is the vsync timestamp, which jitters by tens of
-/// microseconds around the display's period. A menu fuses its coming
-/// frames' silhouettes ahead from predicted times and serves one only
-/// when the frame's shapes are within `MorphMenuFusion.prefetchTolerance`
-/// (0.02 pt) of the prediction, which at the morph's peak speed is about
-/// 10 us: the jitter alone made a third of the frames fuse their own. On
-/// the grid the coming frames' times are exact and the prediction is the
-/// frame.
-///
-/// A grid starts at a frame and is spaced by the median step of the last
-/// steady frames, fixed for the grid's life (it carries over to the next
-/// grid until new steps replace it). [snap] moves a time to the nearest
-/// later node within [reach]; otherwise (a pause, a changed rate, a drift)
-/// the time stays as it is and starts a new grid.
-///
-/// Fidelity: NEAR. The motion is sampled up to [reach] (1 ms) from the
-/// vsync timestamp, typically tens of microseconds; the frame is shown at
-/// the same vsync either way.
-@internal
-class MorphFrameGrid {
-  /// How far, in seconds, a time may move onto the grid.
-  static const double reach = 0.001;
-
-  final Float64List _steps = Float64List(8);
-  int _count = 0;
-  double? _raw;
-  double? _anchor;
-  double? _period;
-  double _last = 0;
-
-  /// [t] on the frame grid, or [t] itself when no node is within [reach].
-  double snap(double t) {
-    final raw = _raw;
-    _raw = t;
-    if (raw != null) {
-      final step = t - raw;
-      if (step > 0.004 && step < 0.05) {
-        _steps[_count % _steps.length] = step;
-        _count++;
-      } else if (step != 0) {
-        _count = 0;
-      }
-    }
-    final anchor = _anchor;
-    final period = _period;
-    if (anchor == null || period == null) return _restart(t);
-    final k = ((t - anchor) / period).round();
-    final node = anchor + k * period;
-    if (k < 1 || (node - t).abs() >= reach || node < _last) return _restart(t);
-    return _last = (node - t).abs() < 1e-9 ? t : node;
-  }
-
-  double _restart(double t) {
-    final n = math.min(_count, _steps.length);
-    if (n >= 3) {
-      final sorted = Float64List.fromList(
-        Float64List.sublistView(_steps, 0, n),
-      );
-      sorted.sort();
-      _period = sorted[n ~/ 2];
-    }
-    _anchor = t;
-    return _last = t;
   }
 }
