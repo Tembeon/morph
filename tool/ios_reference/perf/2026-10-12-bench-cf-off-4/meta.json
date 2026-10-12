@@ -1,0 +1,28 @@
+{
+ "sdk": "stable",
+ "sha": "61a05d3",
+ "source": "/tmp/morph-perf/src/bench-61a05d3",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-12 20:43:25.654847",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8",
+    "MORPH_BACKDROP_CACHE": "false",
+    "MORPH_SHADER_FROST": "false"
+   },
+   "thermal_before": [
+    0,
+    32.68145
+   ],
+   "thermal_after": [
+    0,
+    33.041
+   ]
+  }
+ }
+}

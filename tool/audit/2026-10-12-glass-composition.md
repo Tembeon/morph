@@ -385,6 +385,58 @@ action sheets, popovers, the date picker overlay - and for a lifted lens
 over its own control; bars over a scrolling list keep the live filter (their
 backdrop changes every frame), and pay nothing extra there.
 
+## 7. The cache for every presentation, and frost in the final pass (evening)
+
+Cache, final form (3bc02d4, 61a05d3; `MORPH_BACKDROP_CACHE`, default off):
+
+- Sources: `GlassBackdropCacheRoute` gives a presentation route the opaque
+  route below it (sheet, alert and action sheet, date picker). Only an
+  unkeyed read is cached; glass in a backdrop group (a sheet's buttons,
+  submenu cards, a context menu's hero) reads its own copy as before.
+- The copy is taken AFTER a frame (`OffsetLayer.toImageSync` while the
+  frame composited reused the page's engine layers, which debug builds
+  assert on), only after a frame in which neither the page nor the frost
+  sigma changed, and serves a later frame only while the page's layers in
+  a band around the glass (its sample region + 15 percent of the page
+  height) are the same ones. Any other frame reads through the filter,
+  synced to that frame: never an older frame on screen.
+- Menus: OFF. The menu face fuses the source button's blob and animates
+  its frost; a cached mid-open frame showed the hidden source button
+  through the face on the host (max 128 on ~7000 pixels). Open.
+- Host (example/test/backdrop_cache_host_test.dart, cache off vs on): sheet,
+  alert, popover, date picker within max 45 (sheet's top corners when the
+  page scrolls); the frame the page moves under the sheet reads the
+  filter (0). An alert opened by a button under it rarely hits the cache:
+  that button is still releasing under the alert, a real change.
+
+Frost in the final pass (8d8030a; `MORPH_SHADER_FROST`, default off): a
+frost up to 8 device px on a layer without dispersion skips Impeller's
+blur pass; the shader takes 24 bilinear taps importance-sampled from the
+Gaussian on a golden-angle spiral, and the filter clip grows by three
+sigma so the taps read real backdrop past the rim. Host: tab bar max 29
+along the rim. NEAR.
+
+Pixel 6a, A/B per lever (2 + 2 launches, off on on off, full liquid
+audit, GPU ms/s / power mW / raster p50 / p95 ms / frames over budget):
+
+| lever | scene | off | on |
+|---|---|---|---|
+| shader frost (8d8030a) | tab-bar | 560 / 904 / 10.5 / 13.9 / 2.1 % | 514 / 798 / 10.0 / 12.6 / 0.3 % |
+| | sheet | 523 / 1128 / 9.6 / 14.4 / 7.6 % | 465 / 921 / 9.1 / 13.3 / 5.2 % |
+| cache + shader frost (61a05d3) | sheet | 526 / 1122 / 9.9 / 14.6 / 8.7 % | 432 / 902 / 8.6 / 12.9 / 6.3 % |
+| | tab-bar | 560 / 981 / 10.3 / 13.0 / 1.5 % | 513 / 811 / 10.3 / 14.4 / 0.9 % |
+
+Every other scene within its launch spread, except one `on` launch of the
+combined run whose segmented and list scenes (untouched by either lever)
+fell to raster p95 18.5 / 15.6 ms while the other `on` launch read 10.3 /
+13.1 - an interfered launch, not the levers. The cache took 14 copies a
+launch.
+
+Next (owner, 2026-10-12): move the widget layer's controls onto their own
+RenderObjects (no per-frame rebuilds), shared base first, then agents per
+control on host gates only (pixel goldens IDENTICAL, perf_counts ratchet,
+replay, semantics), one batched device run at the end.
+
 ## 5. Files
 
 - Probes: `debugGlassCostProbe` / `GlassCostProbe`

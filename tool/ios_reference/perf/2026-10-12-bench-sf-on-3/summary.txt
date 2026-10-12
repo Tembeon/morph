@@ -1,0 +1,13 @@
+8d8030a  runs 3  fixed-perf False  2026-10-12 19:49
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   276    [power_mw 320->276]
+audit/liquid/idle-frames              1     -     -  15.3  15.3   1.8   0.0    0   259    [power_mw 286->259]
+audit/liquid/home-scroll           1243   1.7   3.4   8.8  13.1   5.5   0.2   10   604  raster-cpu:1 raster-wait:1 bad raster: Canvas::saveLayer 7.5, PipelineVK::Create 7.1, SurfaceFrame::Encode 4.7  [raster 11.34->13.09]
+audit/liquid/segmented             1186   3.3   5.4   8.7  11.1   3.7   0.0    5   521    [raster 13.7->11.1]
+audit/liquid/tab-bar               1508   4.7   6.9  10.1  12.8  13.5   0.5   11   796  raster-cpu:6 gpu:1 bad raster: QueueSubmit 5.5, SurfaceFrame::Encode 4.6, UpdateAtlasBitmap 3.8  [raster 14.19->12.76, over_pct 2.6->0.5, power_mw 1046->796]
+audit/liquid/controls              1179   3.3  10.7   9.3  12.6   5.9   0.4   60   568  raster-cpu:3 raster-wait:1 raster-sched:1 bad raster: QueueSubmit 5.8, SurfaceFrame::Encode 4.1, Canvas::saveLayer 3.1  [gpu 5.319->5.884]
+audit/liquid/menu                   763   6.0  12.7   9.0  14.1  12.3   4.1   48   702  raster-cpu:18 ui-layout:7 gpu:4 raster-wait:1 raster-sched:1 bad raster: SurfaceFrame::Encode 7.8, QueueSubmit 4.2, Canvas::saveLayer 3.9  [over_pct 5.3->4.1, power_mw 748->702]
+audit/liquid/sheet                  729   2.8   6.9   9.3  13.5  16.5   5.6   18   919  gpu:33 raster-cpu:4 ui-layout:3 raster-wait:1 bad raster: SurfaceFrame::Encode 5.0, waitForBufferRelease 4.6, QueueSubmit 2.9  [over_pct 8.7->5.6, power_mw 1118->919]
+audit/liquid/list                  1196   2.0   4.6   9.3  11.9   7.9   0.3   24   612  raster-cpu:4 bad raster: Canvas::saveLayer 6.5, SurfaceFrame::Encode 6.2, QueueSubmit 3.5  [power_mw 700->612]
