@@ -1906,6 +1906,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       seeding: seeding,
       devicePixelRatio: devicePixelRatio,
       translation: translation,
+      passOrigin: backdropRegion?.passOrigin(devicePixelRatio),
     );
     if (ownPass) {
       final origin = _seedPassOrigin(transform);
@@ -2166,7 +2167,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   ImageFilter _updateShaderFilter() {
     final inputsChanged = takeShaderInputsChanged();
     if (_cachedFilter != null && !inputsChanged) return _cachedFilter!;
-    if (debugGlassCostProbe == GlassCostProbe.copy) {
+    if (debugGlassCostProbe case GlassCostProbe.copy || GlassCostProbe.pooled) {
       return _cachedFilter = morphBackdropSeed;
     }
     final shader = morphGlassShaderFilter(renderShader);
@@ -2228,9 +2229,13 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       }
       final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
         ..filter = _updateShaderFilter()
-        ..backdropKey = debugGlassCostProbe == GlassCostProbe.shared
-            ? _probeKey
-            : backdropKey;
+        ..backdropKey =
+            switch (debugGlassCostProbe) {
+              GlassCostProbe.shared || GlassCostProbe.pooled => _probeKey,
+              _ => null,
+            } ??
+            (backdropRegion == null ? backdropKey : null);
+
       GlassLayerOwners.note(shader, this);
       if (_clipRectLayerHandle.layer case final clip?) {
         if (!identical(shader.parent, clip)) {
@@ -2974,6 +2979,11 @@ enum GlassCostProbe {
   /// Every liquid layer reads one backdrop key: a single backdrop read per
   /// frame, each layer still filtered in its own offscreen pass.
   shared,
+
+  /// Every liquid layer reads one backdrop key through one identity color
+  /// filter: Impeller filters the read once and draws each layer's rect of
+  /// it straight into the pass, with no offscreen pass per layer.
+  pooled,
 
   /// Every liquid layer draws its glass as a paint over opaque black: the
   /// glass shader over the layer's area without a backdrop read or an

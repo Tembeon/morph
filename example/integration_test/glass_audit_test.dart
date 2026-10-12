@@ -16,6 +16,9 @@ import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 // The audit times the package's outline fusion on the device.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/internal/backdrop_region.dart'
+    show debugMorphBackdropRegions;
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
     show debugMorphHalfResolutionBlur;
 // ignore: implementation_imports
@@ -178,6 +181,10 @@ void main() {
     if (_stagesOff) debugMorphGlassStagesOpen = false;
     // ignore: invalid_use_of_visible_for_testing_member
     debugGlassCostProbe = _probe;
+    debugMorphBackdropRegions = BenchArgs.flag(
+      'MORPH_BACKDROP_REGIONS',
+      fallback: debugMorphBackdropRegions,
+    );
     if (_legacyBlurs) {
       // ignore: invalid_use_of_visible_for_testing_member
       debugMorphEdgeEffectBoundsBlur = false;

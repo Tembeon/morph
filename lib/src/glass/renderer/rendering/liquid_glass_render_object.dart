@@ -10,6 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter/rendering.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/glass_shadow.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_region.dart';
 import 'package:morph/src/glass/renderer/internal/glass_composition_probe.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/retained_glass_clip.dart';
@@ -281,9 +282,18 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   @protected
   void syncCompositionOpacity() => _compositionProbe.syncOpacity(this);
 
-  /// Whether this layer paints inside a seeded fractional-opacity pass.
+  /// Whether this layer paints inside a seeded pass: a fractional-opacity
+  /// pass or a [GlassBackdropRegion] that takes its read.
   @protected
-  bool get compositionProbeSeeding => _compositionProbe.seeding;
+  bool get compositionProbeSeeding =>
+      _compositionProbe.seeding || backdropRegion != null;
+
+  /// The [GlassBackdropRegion] whose pass this layer's filter reads, or
+  /// null; a seeded opacity pass inside it takes precedence.
+  @protected
+  RenderGlassBackdropRegion? get backdropRegion => _compositionProbe.seeding
+      ? null
+      : RenderGlassBackdropRegion.seededAbove(this);
 
   // MARK: Painting
 

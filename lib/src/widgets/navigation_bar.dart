@@ -3,10 +3,13 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_region.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/glass_renderer.dart';
+import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
@@ -378,21 +381,19 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
     );
     if (edge == null) return bar;
     final extent = MorphNavigationBar.heightFor(top);
-    return Stack(
+    final look = MorphScrollEdgeEffectThemeData.resolve(
+      context,
+      widget.edgeEffectTheme,
+    );
+    final band = MorphScrollEdgeEffect.bandExtent(edge, extent, look);
+    final stack = Stack(
       clipBehavior: Clip.none,
       children: [
         Positioned(
           left: 0,
           right: 0,
           top: 0,
-          height: MorphScrollEdgeEffect.bandExtent(
-            edge,
-            extent,
-            MorphScrollEdgeEffectThemeData.resolve(
-              context,
-              widget.edgeEffectTheme,
-            ),
-          ),
+          height: band,
           child: MorphScrollEdgeEffect.driven(
             extent: extent,
             style: edge,
@@ -403,6 +404,24 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
         ),
         bar,
       ],
+    );
+    if (!debugMorphBackdropRegions ||
+        MorphAdaptiveGlass.tierOf(context) == MorphGlassTier.flat) {
+      return stack;
+    }
+    // The edge effect's blur and the bar's glass read one copy of the band:
+    // the blur needs its own pass anyway, and the bar then reads the band's
+    // pass instead of the screen.
+    final reach = MorphScrollEdgeEffect.blurReach(
+      edge,
+      look,
+      MediaQuery.maybeDevicePixelRatioOf(context) ?? 1,
+    );
+    return GlassBackdropRegion(
+      clip: (size) => Rect.fromLTWH(0, 0, size.width, band).inflate(reach),
+      seeded: () => _motion.edgeOpacity > 0.001,
+      repaint: frames,
+      child: stack,
     );
   }
 }
