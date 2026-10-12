@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
+import 'package:morph/src/widgets/frame_box.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/themes.dart';
@@ -326,6 +327,34 @@ class _SheetViewState extends State<_SheetView>
   int _index = 0;
   Size _size = Size.zero;
   EdgeInsets _padding = EdgeInsets.zero;
+  MorphSheetStyle _style = MorphSheetStyle.light;
+  double _floatingRadius = 0;
+  double _dockedRadius = 0;
+
+  // The sheet's tree rebuilds only when this changes; every other frame
+  // reads its geometry through frame boxes.
+  final ValueNotifier<_SheetStructure> _structure = ValueNotifier((
+    zooming: false,
+    gateOpen: false,
+    docked: false,
+    docking: false,
+    dimmed: false,
+  ));
+
+  void _syncStructure() {
+    if (_motion == null) return;
+    final frame = _frame(_size);
+    _structure.value = (
+      zooming: _zooming,
+      gateOpen: frame.gateOpen,
+      docked: frame.docked,
+      docking: frame.docking,
+      dimmed: frame.dimmed,
+    );
+    _route.backdropCache.overlay = _style.dimmingColor.withValues(
+      alpha: frame.dimmed ? frame.dimOpacity : 0,
+    );
+  }
 
   MorphSheetRoute<Object?> get _route => widget.route;
 
@@ -346,6 +375,7 @@ class _SheetViewState extends State<_SheetView>
 
   @override
   void dispose() {
+    _structure.dispose();
     if (_route._view == this) _route._view = null;
     _source.reveal();
     _scroll.dispose();
@@ -362,12 +392,14 @@ class _SheetViewState extends State<_SheetView>
     final zoom = _zoom;
     if (zoom != null) {
       zoom.advance(t);
+      _syncStructure();
       if (_leaving && zoom.isClosed) {
         _source.reveal();
         _route.finishMotionRoute();
       }
       return;
     }
+    _syncStructure();
     if (_leaving && motion.isDismissed) _route.finishMotionRoute();
   }
 
@@ -693,10 +725,11 @@ class _SheetViewState extends State<_SheetView>
     final reported = MediaQuery.maybeDisplayCornerRadiiOf(
       context,
     )?.bottomLeft.x;
-    final floatingRadius =
+    _style = style;
+    _floatingRadius =
         (reported ?? MorphSheetTuning.fallbackDisplayRadius) -
         MorphSheetTuning.floatingInset;
-    final dockedRadius = reported ?? 0;
+    _dockedRadius = reported ?? 0;
     final content = _contentFor(style);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
@@ -707,10 +740,11 @@ class _SheetViewState extends State<_SheetView>
         );
         _layout(size, padding);
         final motion = _motion!;
+        _syncStructure();
         return GlassBackdropCacheScope(
           cache: _route.backdropCache,
-          child: ListenableBuilder(
-            listenable: frames,
+          child: ValueListenableBuilder<_SheetStructure>(
+            valueListenable: _structure,
             child: GlassBackdropCacheScope(
               cache: null,
               child: MediaQuery(
@@ -731,114 +765,75 @@ class _SheetViewState extends State<_SheetView>
                 ),
               ),
             ),
-            builder: (BuildContext context, Widget? child) {
-              final t = motion.time;
-              final h = motion.height(t);
-              final dock = motion.dock(t);
-              final s = motion.scale(t);
-              final dim = motion.dimming(t);
-              final bottomRadius =
-                  floatingRadius + (dockedRadius - floatingRadius) * dock;
-              final shape = RRect.fromLTRBAndCorners(
-                0,
-                0,
-                size.width,
-                h,
-                topLeft: const Radius.circular(MorphSheetTuning.topRadius),
-                topRight: const Radius.circular(MorphSheetTuning.topRadius),
-                bottomLeft: Radius.circular(math.max(0, bottomRadius)),
-                bottomRight: Radius.circular(math.max(0, bottomRadius)),
-              );
-              final dimOpacity =
-                  style.dimmingColor.a * MorphSheetTuning.dimmingOpacity * dim;
-              _route.backdropCache.overlay = style.dimmingColor.withValues(
-                alpha: dim > 0 ? dimOpacity : 0,
-              );
-              final scrub = _zooming ? null : _scrubAt(t);
-              final content = _gate(
-                open: !_zooming && scrub == null && s == 1,
-                child: child!,
-              );
-              final sheet = _SheetBody(
-                shape: shape,
-                dock: dock,
-                style: style,
-                glass: glass,
-                brightness: brightness,
-                grabber: _route.grabberVisible,
-                child: content,
-              );
-              if (_zooming) {
-                return _buildZoom(
-                  size: size,
-                  style: style,
-                  sheet: sheet,
-                  height: h,
-                  scale: s,
-                  bottomRadius: math.max(0, bottomRadius),
-                  dimOpacity: dimOpacity,
-                );
-              }
-              final natural = motion.visibleRect(t, size.height);
-              final drawn = scrub == null
-                  ? natural
-                  : _route.zoom.scrubFrame(natural, scrub);
-              final k = size.width <= 0 ? 1.0 : drawn.width / size.width;
-              final transform = Matrix4.translationValues(
-                drawn.left,
-                drawn.top,
-                0,
-              );
-              transform.multiply(Matrix4.diagonal3Values(k, k, 1));
-              final body = scrub == null
-                  ? sheet
-                  : _SheetBody(
-                      shape: RRect.fromLTRBAndCorners(
-                        0,
-                        0,
-                        size.width,
-                        math.min(h, drawn.height / k),
-                        topLeft: shape.tlRadius,
-                        topRight: shape.trRadius,
-                        bottomLeft: shape.blRadius,
-                        bottomRight: shape.brRadius,
-                      ),
-                      dock: dock,
-                      style: style,
-                      glass: glass,
-                      brightness: brightness,
-                      grabber: _route.grabberVisible,
-                      child: content,
+            builder:
+                (
+                  BuildContext context,
+                  _SheetStructure structure,
+                  Widget? child,
+                ) {
+                  final sheet = _SheetBody(
+                    frames: frames,
+                    dock: () => motion.dock(motion.time),
+                    docked: structure.docked,
+                    docking: structure.docking,
+                    clipped: structure.zooming,
+                    style: style,
+                    glass: glass,
+                    brightness: brightness,
+                    grabber: _route.grabberVisible,
+                    shape: () => _frame(size).bodyShape,
+                    child: _gate(open: structure.gateOpen, child: child!),
+                  );
+                  if (structure.zooming) {
+                    return ListenableBuilder(
+                      listenable: frames,
+                      builder: (BuildContext context, Widget? _) {
+                        final frame = _frame(size);
+                        return _buildZoom(
+                          size: size,
+                          style: style,
+                          sheet: sheet,
+                          height: frame.height,
+                          scale: frame.scale,
+                          bottomRadius: frame.bottomRadius,
+                          dimOpacity: frame.dimOpacity,
+                        );
+                      },
                     );
-              return Stack(
-                children: [
-                  if (dim > 0)
-                    Positioned.fill(
-                      key: const ValueKey('dim'),
-                      child: Semantics(
-                        onTap: _route.dismissible ? _requestDismiss : null,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: _requestDismiss,
-                          child: ColoredBox(
-                            color: style.dimmingColor.withValues(
-                              alpha: dimOpacity,
+                  }
+                  return Stack(
+                    children: [
+                      if (structure.dimmed)
+                        Positioned.fill(
+                          key: const ValueKey('dim'),
+                          child: Semantics(
+                            onTap: _route.dismissible ? _requestDismiss : null,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: _requestDismiss,
+                              child: RepaintBoundary(
+                                child: CustomPaint(
+                                  size: Size.infinite,
+                                  painter: _FillPainter(
+                                    frames,
+                                    () => style.dimmingColor.withValues(
+                                      alpha: _frame(size).dimOpacity,
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    ),
-                  // Keyed so the dimming appearing mid-drag does not
-                  // re-inflate the sheet and dispose its drag recognizer.
-                  Positioned.fill(
-                    key: const ValueKey('sheet'),
-                    child: Transform(
-                      transform: transform,
-                      child: Align(
-                        alignment: Alignment.topLeft,
-                        child: SizedBox(
-                          width: size.width,
-                          height: h,
+                      // Keyed so the dimming appearing mid-drag does not
+                      // re-inflate the sheet and dispose its drag recognizer.
+                      Positioned.fill(
+                        key: const ValueKey('sheet'),
+                        child: MorphFrameBox(
+                          frames: frames,
+                          size: () => Size(size.width, _frame(size).height),
+                          transform: () => _frame(size).transform,
+                          clip: () => _frame(size).bodyShape,
                           child: Semantics(
                             scopesRoute: true,
                             namesRoute: _route.semanticLabel != null,
@@ -864,22 +859,124 @@ class _SheetViewState extends State<_SheetView>
                                   _motion?.dragCancel(clock);
                                   wake();
                                 },
-                                child: body,
+                                child: sheet,
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              );
-            },
+                    ],
+                  );
+                },
           ),
         );
       },
     );
   }
+
+  // The sheet's geometry at the motion's current time in a view of [size],
+  // computed once per frame: every frame-driven read in the tree asks here.
+  _SheetFrame _frame(Size size) {
+    final motion = _motion!;
+    final t = motion.time;
+    final h = motion.height(t);
+    final dock = motion.dock(t);
+    final s = motion.scale(t);
+    final dim = motion.dimming(t);
+    final floating = _floatingRadius;
+    final bottomRadius = math.max(
+      0.0,
+      floating + (_dockedRadius - floating) * dock,
+    );
+    final dimOpacity =
+        _style.dimmingColor.a * MorphSheetTuning.dimmingOpacity * dim;
+    final scrub = _zooming ? null : _scrubAt(t);
+    final natural = motion.visibleRect(t, size.height);
+    final drawn = scrub == null
+        ? natural
+        : _route.zoom.scrubFrame(natural, scrub);
+    final k = size.width <= 0 ? 1.0 : drawn.width / size.width;
+    final transform = Matrix4.translationValues(drawn.left, drawn.top, 0);
+    transform.multiply(Matrix4.diagonal3Values(k, k, 1));
+    final frame = _SheetFrame(
+      height: h,
+      scale: s,
+      dimmed: dim > 0,
+      dimOpacity: dimOpacity,
+      bottomRadius: bottomRadius,
+      transform: transform,
+      bodyShape: RRect.fromLTRBAndCorners(
+        0,
+        0,
+        size.width,
+        scrub == null ? h : math.min(h, drawn.height / k),
+        topLeft: const Radius.circular(MorphSheetTuning.topRadius),
+        topRight: const Radius.circular(MorphSheetTuning.topRadius),
+        bottomLeft: Radius.circular(bottomRadius),
+        bottomRight: Radius.circular(bottomRadius),
+      ),
+      gateOpen: !_zooming && scrub == null && s == 1,
+      docked: dock >= 1,
+      docking: dock > 0,
+    );
+    return frame;
+  }
+}
+
+/// What the sheet's tree is built from; it rebuilds only when this changes.
+typedef _SheetStructure = ({
+  bool zooming,
+  bool gateOpen,
+  bool docked,
+  bool docking,
+  bool dimmed,
+});
+
+/// The sheet's geometry at one time.
+class _SheetFrame {
+  const _SheetFrame({
+    required this.height,
+    required this.scale,
+    required this.dimmed,
+    required this.dimOpacity,
+    required this.bottomRadius,
+    required this.transform,
+    required this.bodyShape,
+    required this.gateOpen,
+    required this.docked,
+    required this.docking,
+  });
+
+  final double height;
+  final double scale;
+  final bool dimmed;
+  final double dimOpacity;
+  final double bottomRadius;
+  final Matrix4 transform;
+  final RRect bodyShape;
+  final bool gateOpen;
+  final bool docked;
+  final bool docking;
+}
+
+/// Fills its box with [color], read again on every frame of [frames].
+class _FillPainter extends CustomPainter {
+  _FillPainter(Listenable frames, this.color) : super(repaint: frames);
+
+  final Color Function() color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final fill = color();
+    if (fill.a <= 0) return;
+    final paint = Paint();
+    paint.color = fill;
+    canvas.drawRect(Offset.zero & size, paint);
+  }
+
+  @override
+  bool shouldRepaint(_FillPainter oldDelegate) =>
+      !identical(oldDelegate.color, color);
 }
 
 extension on _SheetViewState {
@@ -969,8 +1066,12 @@ extension on _SheetViewState {
 
 class _SheetBody extends StatelessWidget {
   const _SheetBody({
+    required this.frames,
     required this.shape,
     required this.dock,
+    required this.docked,
+    required this.docking,
+    required this.clipped,
     required this.style,
     required this.glass,
     required this.brightness,
@@ -978,8 +1079,26 @@ class _SheetBody extends StatelessWidget {
     required this.child,
   });
 
-  final RRect shape;
-  final double dock;
+  /// Notifies once per frame the sheet's motion advanced.
+  final Listenable frames;
+
+  /// The body's shape now, in its own coordinates.
+  final RRect Function() shape;
+
+  /// How docked the sheet is now, 0 to 1.
+  final double Function() dock;
+
+  /// Whether the sheet is fully docked: the glass gives way to the docked
+  /// fill.
+  final bool docked;
+
+  /// Whether the sheet is docking: the docked fill fades in over the glass.
+  final bool docking;
+
+  /// Whether the body clips itself to [shape]; a frame box above it clips
+  /// otherwise.
+  final bool clipped;
+
   final MorphSheetStyle style;
   final MorphGlassPainter? glass;
   final Brightness brightness;
@@ -989,54 +1108,64 @@ class _SheetBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final painter = glass;
-    final docked = style.dockedColor.withValues(
-      alpha: style.dockedColor.a * dock,
-    );
-    return ClipRRect(
-      clipper: MorphZoomShapeClipper(shape),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          if (painter != null && dock < 1)
-            MorphGlassHost(
-              painter: painter,
-              mode: MorphGlassMode.surface,
-              frame: () => MorphGlassFrame([
-                MorphGlassSurface(
-                  kind: MorphGlassKind.menu,
-                  shape: shape,
-                  color: style.floatingColor,
-                  brightness: brightness,
+    final body = Stack(
+      fit: StackFit.expand,
+      children: [
+        if (painter != null && !docked)
+          MorphGlassHost(
+            painter: painter,
+            mode: MorphGlassMode.surface,
+            frames: frames,
+            frame: () => MorphGlassFrame([
+              MorphGlassSurface(
+                kind: MorphGlassKind.menu,
+                shape: shape(),
+                color: style.floatingColor,
+                brightness: brightness,
+              ),
+            ]),
+          )
+        else if (!docked)
+          ColoredBox(color: style.floatingColor),
+        if (docked)
+          ColoredBox(color: style.dockedColor)
+        else if (docking)
+          RepaintBoundary(
+            child: CustomPaint(
+              size: Size.infinite,
+              painter: _FillPainter(
+                frames,
+                () => style.dockedColor.withValues(
+                  alpha: style.dockedColor.a * dock(),
                 ),
-              ]),
-            )
-          else if (dock < 1)
-            ColoredBox(color: style.floatingColor),
-          if (dock > 0) ColoredBox(color: docked),
-          child,
-          if (grabber)
-            Positioned(
-              top:
-                  MorphSheetTuning.grabberOffset -
-                  MorphSheetTuning.grabberSize.height / 2,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: Container(
-                  width: MorphSheetTuning.grabberSize.width,
-                  height: MorphSheetTuning.grabberSize.height,
-                  decoration: BoxDecoration(
-                    color: style.grabberColor,
-                    borderRadius: BorderRadius.circular(
-                      MorphSheetTuning.grabberSize.height / 2,
-                    ),
+              ),
+            ),
+          ),
+        child,
+        if (grabber)
+          Positioned(
+            top:
+                MorphSheetTuning.grabberOffset -
+                MorphSheetTuning.grabberSize.height / 2,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: Container(
+                width: MorphSheetTuning.grabberSize.width,
+                height: MorphSheetTuning.grabberSize.height,
+                decoration: BoxDecoration(
+                  color: style.grabberColor,
+                  borderRadius: BorderRadius.circular(
+                    MorphSheetTuning.grabberSize.height / 2,
                   ),
                 ),
               ),
             ),
-        ],
-      ),
+          ),
+      ],
     );
+    if (!clipped) return body;
+    return ClipRRect(clipper: MorphZoomShapeClipper(shape()), child: body);
   }
 }
 
