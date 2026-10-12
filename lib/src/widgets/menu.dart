@@ -496,6 +496,18 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   }
 
   @override
+  void deactivate() {
+    _host.sourceActive = false;
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _host.sourceActive = true;
+  }
+
+  @override
   void dispose() {
     _host.dispose();
     super.dispose();

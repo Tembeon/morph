@@ -81,13 +81,20 @@ class MorphMenuController implements MorphMenuHost {
   @override
   late final MorphMenuContent menuContent;
 
+  /// Whether the source's element is in the tree. Set false while it is
+  /// deactivated: a deactivated element still reads as mounted, but looking
+  /// up its ancestors asserts, so the menu serves what it read last.
+  bool sourceActive = true;
+
+  bool get _sourceGone => _disposed || !sourceActive;
+
   @override
   MorphMenuStyle get menuStyle =>
-      _disposed ? _lastStyle ?? MorphMenuStyle.light : _lastStyle = style();
+      _sourceGone ? _lastStyle ?? MorphMenuStyle.light : _lastStyle = style();
 
   @override
   MorphGlassPainter? get menuGlass {
-    final context = _disposed ? null : scopeContext();
+    final context = _sourceGone ? null : scopeContext();
     if (context != null && context.mounted) {
       _lastGlass = morphGlassAbove(context);
     }
@@ -95,8 +102,9 @@ class MorphMenuController implements MorphMenuHost {
   }
 
   @override
-  Widget get menuGlyph =>
-      _disposed ? _lastGlyph ?? const SizedBox.shrink() : _lastGlyph = glyph();
+  Widget get menuGlyph => _sourceGone
+      ? _lastGlyph ?? const SizedBox.shrink()
+      : _lastGlyph = glyph();
 
   @override
   Listenable get menuRepaint => _repaint;

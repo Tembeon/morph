@@ -847,6 +847,18 @@ class _MorphBarItemsState extends State<MorphBarItems>
       : null;
 
   @override
+  void deactivate() {
+    _menu?.host.sourceActive = false;
+    super.deactivate();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _menu?.host.sourceActive = true;
+  }
+
+  @override
   void dispose() {
     final menu = _menu;
     _menu = null;
