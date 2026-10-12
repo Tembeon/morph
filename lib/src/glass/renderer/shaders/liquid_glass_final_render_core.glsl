@@ -867,7 +867,17 @@ void main() {
         
         refractColor = vec4(red, greenSample.g, blue, greenSample.a);
     }
-    
+    // A cached backdrop carries the uniform color painted between it and
+    // the glass (a dimming) as an alpha in (0, 0.5]; the filter path and a
+    // solid backdrop never land in that range.
+    if (uSolidBackdrop.a > 0.0 && uSolidBackdrop.a <= 0.5) {
+        refractColor.rgb = mix(
+            refractColor.rgb,
+            uSolidBackdrop.rgb * refractColor.a,
+            uSolidBackdrop.a * 2.0
+        );
+    }
+
     vec3 transmittedColor = vec3(0.0);
     vec3 baseColor = vec3(0.0);
     float directShare = colorModelShares.x;

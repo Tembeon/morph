@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/themes.dart';
@@ -205,6 +206,36 @@ class MorphSheetRoute<T> extends PopupRoute<T> with MorphMotionRouteMixin<T> {
   final String? semanticLabel;
 
   _SheetViewState? _view;
+
+  Route<Object?>? _below;
+
+  @override
+  void didChangePrevious(Route<Object?>? previousRoute) {
+    super.didChangePrevious(previousRoute);
+    _below = previousRoute;
+  }
+
+  // The repaint boundary of the page under the sheet: everything the
+  // sheet's glass reads besides the dimming.
+  RenderObject? _belowBoundary() {
+    final below = _below;
+    if (below is! ModalRoute<Object?>) return null;
+    RenderObject? node = below.subtreeContext?.findRenderObject();
+    while (node != null && !node.isRepaintBoundary) {
+      node = node.parent;
+    }
+    return node;
+  }
+
+  late final GlassBackdropCache _backdropCache = GlassBackdropCache(
+    source: _belowBoundary,
+  );
+
+  @override
+  void dispose() {
+    _backdropCache.dispose();
+    super.dispose();
+  }
 
   @override
   Color? get barrierColor => null;
@@ -741,6 +772,9 @@ class _SheetViewState extends State<_SheetView>
             );
             final dimOpacity =
                 style.dimmingColor.a * MorphSheetTuning.dimmingOpacity * dim;
+            _route._backdropCache.overlay = style.dimmingColor.withValues(
+              alpha: dim > 0 ? dimOpacity : 0,
+            );
             final scrub = _zooming ? null : _scrubAt(t);
             final content = _gate(
               open: !_zooming && scrub == null && s == 1,
@@ -753,6 +787,7 @@ class _SheetViewState extends State<_SheetView>
               glass: glass,
               brightness: brightness,
               grabber: _route.grabberVisible,
+              backdropCache: _route._backdropCache,
               child: content,
             );
             if (_zooming) {
@@ -795,6 +830,7 @@ class _SheetViewState extends State<_SheetView>
                     glass: glass,
                     brightness: brightness,
                     grabber: _route.grabberVisible,
+                    backdropCache: _route._backdropCache,
                     child: content,
                   );
             return Stack(
@@ -962,6 +998,7 @@ class _SheetBody extends StatelessWidget {
     required this.brightness,
     required this.grabber,
     required this.child,
+    this.backdropCache,
   });
 
   final RRect shape;
@@ -971,6 +1008,7 @@ class _SheetBody extends StatelessWidget {
   final Brightness brightness;
   final bool grabber;
   final Widget child;
+  final GlassBackdropCache? backdropCache;
 
   @override
   Widget build(BuildContext context) {
@@ -984,17 +1022,20 @@ class _SheetBody extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           if (painter != null && dock < 1)
-            MorphGlassHost(
-              painter: painter,
-              mode: MorphGlassMode.surface,
-              frame: () => MorphGlassFrame([
-                MorphGlassSurface(
-                  kind: MorphGlassKind.menu,
-                  shape: shape,
-                  color: style.floatingColor,
-                  brightness: brightness,
-                ),
-              ]),
+            GlassBackdropCacheScope(
+              cache: backdropCache,
+              child: MorphGlassHost(
+                painter: painter,
+                mode: MorphGlassMode.surface,
+                frame: () => MorphGlassFrame([
+                  MorphGlassSurface(
+                    kind: MorphGlassKind.menu,
+                    shape: shape,
+                    color: style.floatingColor,
+                    brightness: brightness,
+                  ),
+                ]),
+              ),
             )
           else if (dock < 1)
             ColoredBox(color: style.floatingColor),

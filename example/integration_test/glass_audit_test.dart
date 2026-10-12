@@ -16,6 +16,9 @@ import 'package:integration_test/src/channel.dart';
 import 'package:material_ui/material_ui.dart';
 // The audit times the package's outline fusion on the device.
 // ignore: implementation_imports
+import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart'
+    show debugMorphBackdropCache, debugMorphBackdropCacheCaptures;
+// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
     show debugMorphHalfResolutionBlur;
 // ignore: implementation_imports
@@ -178,6 +181,10 @@ void main() {
     if (_stagesOff) debugMorphGlassStagesOpen = false;
     // ignore: invalid_use_of_visible_for_testing_member
     debugGlassCostProbe = _probe;
+    debugMorphBackdropCache = BenchArgs.flag(
+      'MORPH_BACKDROP_CACHE',
+      fallback: debugMorphBackdropCache,
+    );
     if (_legacyBlurs) {
       // ignore: invalid_use_of_visible_for_testing_member
       debugMorphEdgeEffectBoundsBlur = false;
@@ -193,6 +200,10 @@ void main() {
     // ignore: invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member
     MorphMenuFusion.debugOnFuse = audit.fusion.add;
     await audit.run();
+    debugPrint(
+      'MORPH_GLASS_LAYER backdrop cache captures '
+      '$debugMorphBackdropCacheCaptures',
+    );
     File('${_Audit.outDir.path}/report.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(audit.report()),
     );

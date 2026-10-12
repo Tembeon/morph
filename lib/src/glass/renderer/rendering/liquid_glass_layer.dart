@@ -11,6 +11,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_shaders/flutter_shaders.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
+import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
 import 'package:morph/src/liquid_field.dart' show liquidMinMergeWidth;
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/ancestor_clip.dart';
@@ -376,6 +377,7 @@ class _LiquidGlassLayerState extends State<LiquidGlassLayer> {
               backdropKey: backdropKey,
               blursOwnBackdrop: widget.blursOwnBackdrop,
               solidBackdrop: widget.solidBackdrop,
+              backdropCache: GlassBackdropCacheScope.maybeOf(context),
               live: live,
               settingsOf: () => widget.settings,
               defaultAppearance: defaultAppearance,
@@ -446,6 +448,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     required this.backdropKey,
     required this.blursOwnBackdrop,
     required this.solidBackdrop,
+    required this.backdropCache,
     required this.live,
     required this.settingsOf,
     required this.defaultAppearance,
@@ -463,6 +466,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
   final BackdropKey? backdropKey;
   final bool blursOwnBackdrop;
   final Color? solidBackdrop;
+  final GlassBackdropCache? backdropCache;
   final Listenable? live;
   final LiquidGlassSettings Function() settingsOf;
   final LiquidGlassAppearance defaultAppearance;
@@ -488,6 +492,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     );
     layer.blursOwnBackdrop = blursOwnBackdrop;
     layer.solidBackdrop = solidBackdrop;
+    layer.backdropCache = backdropCache;
     layer.bindLive(live, () => _apply(layer));
     return layer;
   }
@@ -509,6 +514,7 @@ class _RawShapes extends SingleChildRenderObjectWidget {
     renderObject.gpuGeometryRenderer = gpuGeometryRenderer;
     renderObject.blursOwnBackdrop = blursOwnBackdrop;
     renderObject.solidBackdrop = solidBackdrop;
+    renderObject.backdropCache = backdropCache;
     renderObject.bindLive(live, () => _apply(renderObject));
   }
 }
@@ -2055,6 +2061,23 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     markNeedsPaint();
   }
 
+  GlassBackdropCache? _backdropCache;
+
+  /// The cached backdrop the glass paints over instead of reading its
+  /// backdrop, while [debugMorphBackdropCache] is on.
+  GlassBackdropCache? get backdropCache => _backdropCache;
+  set backdropCache(GlassBackdropCache? value) {
+    if (identical(value, _backdropCache)) return;
+    _backdropCache = value;
+    _shaderInputsChanged = true;
+    markNeedsPaint();
+  }
+
+  bool get _cachesBackdrop =>
+      _backdropCache != null &&
+      debugMorphBackdropCache &&
+      debugGlassCostProbe == GlassCostProbe.off;
+
   Color? _solidBackdrop;
 
   /// See [LiquidGlassLayer.solidBackdrop].
@@ -2220,6 +2243,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     _filterMaterialBounds = materialBounds;
     _filterPaintOffset = offset;
     debugFilterBounds = filterBounds;
+    if (_cachesBackdrop) return filterBounds;
     if (_solid case final solid?) {
       _recordSolidMaterial(solid, filterBounds, offset);
       return filterBounds;
@@ -2266,6 +2290,12 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     if (!attached) return;
     if (debugGlassCostProbe == GlassCostProbe.skip) {
       _releaseCompositorFilter();
+      return;
+    }
+    if (_cachesBackdrop) {
+      _releaseBackdropFilter();
+      _syncMaterialFilter(materialBounds, offset);
+      context.addLayer(_solidHandle.layer ??= ContainerLayer());
       return;
     }
     if (_solid != null) {
@@ -2392,8 +2422,80 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       return;
     }
     runCompositorPoll();
+    if (_cachesBackdrop) _recordCachedMaterial();
     _compositingScreen = null;
     _phaseMoved = false;
+  }
+
+  // Records the glass as one rect painted with the final shader over the
+  // cache's copy of the backdrop. The rect is drawn in screen device pixels
+  // (the canvas undoes the layer's transform), so the shader's fragment
+  // coordinates are the screen coordinates its filter mapping expects and
+  // the copy is sampled where the backdrop filter would have read.
+  void _recordCachedMaterial() {
+    final slot = _solidHandle.layer;
+    final bounds = _filterMaterialBounds;
+    if (slot == null || bounds == null) return;
+    slot.removeAllChildren();
+    if (drawableEmpty) return;
+    final cache = _backdropCache!;
+    final image = cache.imageFor(
+      sigma: blurPassSigma,
+      devicePixelRatio: devicePixelRatio,
+    );
+    if (image == null) return;
+    syncCoordinateMapping();
+    final shader = renderShader;
+    shader.setFloat(0, image.width.toDouble());
+    shader.setFloat(1, image.height.toDouble());
+    final overlay = cache.overlay.withValues(
+      colorSpace: ColorSpace.extendedSRGB,
+    );
+    shader.setFloat(solidBackdropUniform, overlay.r);
+    shader.setFloat(solidBackdropUniform + 1, overlay.g);
+    shader.setFloat(solidBackdropUniform + 2, overlay.b);
+    // An alpha in (0, 0.5] composites the color over the read backdrop;
+    // above 0.5 it would replace the backdrop (solid).
+    shader.setFloat(solidBackdropUniform + 3, overlay.a * 0.5);
+    _solidShaders.add(shader);
+    shader.setImageSampler(0, image, filterQuality: FilterQuality.low);
+    final dpr = devicePixelRatio;
+    final translation = compositorTranslation;
+    final screen = getTransformTo(null);
+    screen.multiply(
+      Matrix4.translationValues(translation.dx, translation.dy, 0),
+    );
+    final filterBounds = bounds.expandToPixelBuckets(dpr);
+    final logical = MatrixUtils.transformRect(screen, filterBounds);
+    final device = Rect.fromLTRB(
+      logical.left * dpr,
+      logical.top * dpr,
+      logical.right * dpr,
+      logical.bottom * dpr,
+    );
+    final canvasToScreen = screen.clone();
+    canvasToScreen.multiply(
+      Matrix4.translationValues(
+        -_filterPaintOffset.dx,
+        -_filterPaintOffset.dy,
+        0,
+      ),
+    );
+    final screenToCanvas = Matrix4.zero();
+    if (screenToCanvas.copyInverse(canvasToScreen) == 0) return;
+    screenToCanvas.multiply(Matrix4.diagonal3Values(1 / dpr, 1 / dpr, 1));
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    canvas.transform(screenToCanvas.storage);
+    final paint = Paint();
+    paint.shader = shader;
+    paint.isAntiAlias = false;
+    canvas.drawRect(device, paint);
+    final picture = PictureLayer(
+      MatrixUtils.transformRect(screenToCanvas, device),
+    );
+    picture.picture = recorder.endRecording();
+    slot.append(picture);
   }
 
   @override
@@ -2405,6 +2507,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
 
   @override
   void onCompositorTranslated(Offset translation) {
+    if (_cachesBackdrop) return;
     final clip = _filterClip;
     if (clip != null && _clipRectLayerHandle.layer != null) {
       _clipRectLayerHandle.layer!.clipRect = clip.shift(_filterPaintOffset);
@@ -2426,6 +2529,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   void onCompositorTranslationMissed(
     ({bool needsRepaint, Offset? translation}) motion,
   ) {
+    if (_cachesBackdrop) return;
     // A pass-origin change - the probe enabling, or a capture's clip moving
     // with paint-only changes inside it - moves no tracked transform, so the
     // translation poll misses it. Re-sync the coordinate mapping into the
