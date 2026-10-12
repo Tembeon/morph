@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -330,7 +331,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
   Widget buildSurface(BuildContext context, MorphGlassSurface surface) =>
       _surface(
         context,
-        MorphGlassFixedSource(MorphGlassFrame([surface])),
+        MorphMorphFixedSource(MorphGlassFrame([surface])),
         (f) => f.surfaces.single,
       );
 
@@ -341,7 +342,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
     List<MorphGlassSurface> surfaces,
   ) => _body(
     context,
-    MorphGlassFixedSource(MorphGlassFrame(surfaces, outline: outline)),
+    MorphMorphFixedSource(MorphGlassFrame(surfaces, outline: outline)),
     (f) => (f.surfaces, f.outline!),
   );
 
@@ -355,7 +356,7 @@ class MorphGlassRenderer extends MorphGlassPainter {
     MorphGlassOutline? outline,
   }) => _layer(
     context,
-    MorphGlassFixedSource(
+    MorphMorphFixedSource(
       MorphGlassFrame(
         surfaces,
         outline: outline,

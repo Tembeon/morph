@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 
@@ -114,7 +114,7 @@ class GlassShadow extends SingleChildRenderObjectWidget {
   }
 }
 
-class _RenderGlassShadow extends RenderProxyBox with GlassLiveBinding {
+class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
   _RenderGlassShadow({
     required this._shape,
     required this._shadows,

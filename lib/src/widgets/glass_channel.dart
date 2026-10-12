@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -101,9 +100,9 @@ abstract class MorphGlassSource {
 /// A source of one fixed frame: the tree is rebuilt for every new frame,
 /// as a painter's per-frame widget path is.
 @internal
-class MorphGlassFixedSource implements MorphGlassSource {
+class MorphMorphFixedSource implements MorphGlassSource {
   /// Holds [frame].
-  MorphGlassFixedSource(this.frame);
+  MorphMorphFixedSource(this.frame);
 
   @override
   final MorphGlassFrame frame;
@@ -113,7 +112,7 @@ class MorphGlassFixedSource implements MorphGlassSource {
 
   @override
   ValueListenable<T> pick<T>(T Function(MorphGlassFrame frame) select) =>
-      GlassFixed<T>(select(frame));
+      MorphFixed<T>(select(frame));
 
   @override
   T keep<T extends Object>(Object slot, T Function() build) => build();
@@ -209,225 +208,9 @@ class MorphListKey<T> {
 Listenable? morphRepaintOn<T>(
   ValueListenable<T> data, [
   Object? Function()? key,
-]) => data is GlassFixed<T>
+]) => data is MorphFixed<T>
     ? null
-    : GlassChanges<Object?>(data, key ?? () => data.value);
-
-/// A [Stack] whose [MorphLivePositioned] children follow a live source.
-///
-/// Every notification of [live] reads the boxes of the live children
-/// again and lays the stack out when one moved, as a rebuild with new
-/// `Positioned.fromRect` children would; no widget rebuilds.
-@internal
-class MorphLiveStack extends Stack {
-  /// Stacks [children], without clipping them.
-  const MorphLiveStack({
-    required this.live,
-    super.children,
-    super.clipBehavior = Clip.none,
-    super.key,
-  });
-
-  /// The source the live children's boxes follow, or null for fixed boxes.
-  final Listenable? live;
-
-  @override
-  RenderStack createRenderObject(BuildContext context) {
-    final stack = _RenderLiveStack(
-      alignment: alignment,
-      textDirection: textDirection ?? Directionality.maybeOf(context),
-      fit: fit,
-      clipBehavior: clipBehavior,
-    );
-    stack.bindLive(live, stack.follow, now: false);
-    return stack;
-  }
-
-  @override
-  void updateRenderObject(BuildContext context, RenderStack renderObject) {
-    super.updateRenderObject(context, renderObject);
-    final stack = renderObject as _RenderLiveStack;
-    stack.bindLive(live, stack.follow, now: false);
-  }
-}
-
-/// Places a child of a [MorphLiveStack] at a box that follows the stack's
-/// source, as `Positioned.fromRect` places it at a fixed one.
-@internal
-class MorphLivePositioned extends ParentDataWidget<StackParentData> {
-  /// Places [child] at [rect].
-  const MorphLivePositioned({
-    required this.rect,
-    required super.child,
-    super.key,
-  });
-
-  /// The box of the child in the stack's coordinates.
-  final ValueListenable<Rect> rect;
-
-  @override
-  void applyParentData(RenderObject renderObject) {
-    final data = renderObject.parentData! as _LiveStackParentData;
-    data.live = rect;
-    if (data.place(rect.value)) {
-      final stack = renderObject.parent;
-      if (stack is RenderObject) stack.markNeedsLayout();
-    }
-  }
-
-  @override
-  Type get debugTypicalAncestorWidgetClass => MorphLiveStack;
-}
-
-class _LiveStackParentData extends StackParentData {
-  ValueListenable<Rect>? live;
-
-  bool place(Rect value) {
-    if (left == value.left &&
-        top == value.top &&
-        width == value.width &&
-        height == value.height &&
-        right == null &&
-        bottom == null) {
-      return false;
-    }
-    left = value.left;
-    top = value.top;
-    width = value.width;
-    height = value.height;
-    right = null;
-    bottom = null;
-    return true;
-  }
-}
-
-class _RenderLiveStack extends RenderStack with GlassLiveBinding {
-  _RenderLiveStack({
-    super.alignment,
-    super.textDirection,
-    super.fit,
-    super.clipBehavior,
-  });
-
-  @override
-  void setupParentData(RenderBox child) {
-    if (child.parentData is! _LiveStackParentData) {
-      child.parentData = _LiveStackParentData();
-    }
-  }
-
-  void follow() {
-    var moved = false;
-    var child = firstChild;
-    while (child != null) {
-      final data = child.parentData! as _LiveStackParentData;
-      final rect = data.live;
-      if (rect != null && data.place(rect.value)) moved = true;
-      child = data.nextSibling;
-    }
-    if (moved) markNeedsLayout();
-  }
-}
-
-/// A [DecoratedBox] whose decoration follows a live source.
-@internal
-class MorphLiveDecoratedBox extends DecoratedBox {
-  /// Paints [live]'s decoration behind [child].
-  MorphLiveDecoratedBox({required this.live, super.child, super.key})
-    : super(decoration: live.value);
-
-  /// The decoration now.
-  final ValueListenable<Decoration> live;
-
-  @override
-  Decoration get decoration => live.value;
-
-  @override
-  RenderDecoratedBox createRenderObject(BuildContext context) {
-    final box = _RenderLiveDecoratedBox(
-      decoration: live.value,
-      configuration: createLocalImageConfiguration(context),
-    );
-    box.bindLive(
-      live is GlassFixed<Decoration> ? null : live,
-      () => box.decoration = live.value,
-    );
-    return box;
-  }
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    RenderDecoratedBox renderObject,
-  ) {
-    renderObject.configuration = createLocalImageConfiguration(context);
-    renderObject.position = position;
-    (renderObject as _RenderLiveDecoratedBox).bindLive(
-      live is GlassFixed<Decoration> ? null : live,
-      () => renderObject.decoration = live.value,
-    );
-  }
-}
-
-class _RenderLiveDecoratedBox extends RenderDecoratedBox with GlassLiveBinding {
-  _RenderLiveDecoratedBox({required super.decoration, super.configuration});
-}
-
-/// A [ColoredBox] whose color follows a live source.
-@internal
-class MorphLiveColoredBox extends SingleChildRenderObjectWidget {
-  /// Fills its box with [color].
-  const MorphLiveColoredBox({required this.color, super.child, super.key});
-
-  /// The color now.
-  final ValueListenable<Color> color;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) {
-    final box = _RenderLiveColoredBox(color.value);
-    box.bindLive(
-      color is GlassFixed<Color> ? null : color,
-      () => box.color = color.value,
-    );
-    return box;
-  }
-
-  @override
-  void updateRenderObject(BuildContext context, RenderObject renderObject) {
-    final box = renderObject as _RenderLiveColoredBox;
-    box.bindLive(
-      color is GlassFixed<Color> ? null : color,
-      () => box.color = color.value,
-    );
-  }
-}
-
-class _RenderLiveColoredBox extends RenderProxyBoxWithHitTestBehavior
-    with GlassLiveBinding {
-  _RenderLiveColoredBox(this._color) : super(behavior: HitTestBehavior.opaque);
-
-  Color _color;
-
-  Color get color => _color;
-
-  set color(Color value) {
-    if (value == _color) return;
-    _color = value;
-    markNeedsPaint();
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    if (size > Size.zero) {
-      final paint = Paint();
-      paint.isAntiAlias = true;
-      paint.color = _color;
-      context.canvas.drawRect(offset & size, paint);
-    }
-    final child = this.child;
-    if (child != null) context.paintChild(child, offset);
-  }
-}
+    : MorphChanges<Object?>(data, key ?? () => data.value);
 
 /// Turns the per-frame values of a glass host into widget builds only
 /// when the structure of its glass changes.

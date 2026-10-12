@@ -5,7 +5,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/physics.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/menu.dart';
@@ -625,7 +625,7 @@ class MorphNavigationRoute<T> extends PageRoute<T>
         : page;
     // The page's own width, the unit the edge swipe measures the finger
     // in, so a stack narrower than the screen still tracks it 1:1.
-    return GlassLiveTransform.sized(
+    return MorphLiveTransform.sized(
       live: _slideOf(animation, secondaryAnimation),
       writeSizedInto: (Matrix4 into, Size size) {
         final x =

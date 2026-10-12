@@ -19,7 +19,7 @@ import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
 import 'package:morph/src/glass/renderer/internal/filter_pass_transform.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
@@ -560,7 +560,7 @@ class _LayerSettings extends ChangeNotifier
 /// [LiquidGlassRenderObject]; this class implements only the effect.
 @internal
 class RenderLiquidGlassLayer extends LiquidGlassRenderObject
-    with TransformTrackingRenderObjectMixin, GlassLiveBinding
+    with TransformTrackingRenderObjectMixin, MorphLiveBinding
     implements LiquidGlassLayerRenderObject {
   RenderLiquidGlassLayer({
     required this.defaultRenderShader,

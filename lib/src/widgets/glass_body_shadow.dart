@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/glass_shadow.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 
 /// The exterior shadow of one fused glass body, clipped to outside its
@@ -15,7 +15,7 @@ class MorphGlassBodyShadow extends CustomPainter {
     List<BoxShadow> shadows,
     double opacity, [
     Path? cover,
-  ]) : this.live(GlassFixed((outline, shadows, opacity, cover)));
+  ]) : this.live(MorphFixed((outline, shadows, opacity, cover)));
 
   /// Paints the shadows of [data] outside its cover, repainting when a
   /// live [data] changes.
@@ -94,7 +94,7 @@ class MorphGlassBodyShadow extends CustomPainter {
 
   @override
   bool shouldRepaint(MorphGlassBodyShadow oldDelegate) =>
-      data is! GlassFixed<(Path, List<BoxShadow>, double, Path?)> ||
+      data is! MorphFixed<(Path, List<BoxShadow>, double, Path?)> ||
       oldDelegate.outline != outline ||
       oldDelegate.cover != cover ||
       !listEquals(oldDelegate.shadows, shadows) ||

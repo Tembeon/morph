@@ -4,7 +4,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
@@ -529,7 +529,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
           onPointerMove: handleMove,
           onPointerUp: handleUp,
           onPointerCancel: handleCancel,
-          child: GlassLiveTransform(
+          child: MorphLiveTransform(
             live: frames,
             writeInto: (Matrix4 into) {
               final grow =
@@ -751,7 +751,7 @@ class _GlowPainter extends CustomPainter {
   bool shouldRepaint(_GlowPainter oldDelegate) => true;
 }
 
-class _LensClipper extends GlassLiveClipper<Path> {
+class _LensClipper extends MorphLiveClipper<Path> {
   // The swell rides in the key although it does not move the clip: the
   // labels below snap their glyphs to the screen scale at paint, and a
   // reclip is what repaints them while the bar swells around a still lens.

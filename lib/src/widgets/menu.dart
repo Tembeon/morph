@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/flight.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/target.dart';
@@ -745,8 +746,8 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
         onPointerCancel: _host.menuPointerCancel,
         child: SizedBox.square(
           dimension: style.buttonSize,
-          child: _Driven(
-            frames: _ticks,
+          child: MorphLiveTemplate(
+            live: _ticks,
             template: () => Transform.scale(scale: _pressScale),
             child: Builder(
               builder: (BuildContext context) {
@@ -837,8 +838,8 @@ class _MenuShapes extends StatelessWidget {
     final content = this.content;
     final frames = this.frames;
     final Widget glyph = Center(
-      child: _Driven(
-        frames: frames,
+      child: MorphLiveTemplate(
+        live: frames,
         template: () {
           final now = shapes();
           return Transform.scale(
@@ -851,8 +852,8 @@ class _MenuShapes extends StatelessWidget {
     );
     final Widget surfaces;
     if (glass == null) {
-      surfaces = _Driven(
-        frames: frames,
+      surfaces = MorphLiveTemplate(
+        live: frames,
         template: () {
           final now = shapes();
           return CustomPaint(
@@ -905,10 +906,12 @@ class _MenuShapes extends StatelessWidget {
       children: [
         Positioned.fill(child: surfaces),
         ?content,
-        _DrivenPositioned(
-          frames: frames,
-          template: () =>
-              Positioned.fromRect(rect: shapes().sourceRect, child: _slot),
+        MorphLivePositionedTemplate(
+          live: frames,
+          template: () => Positioned.fromRect(
+            rect: shapes().sourceRect,
+            child: morphLiveSlot,
+          ),
           child: IgnorePointer(
             child: look
                 ? _Faded(
@@ -942,8 +945,8 @@ class _Faded extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return _Driven(
-      frames: frames,
+    return MorphLiveTemplate(
+      live: frames,
       template: () {
         final now = look();
         return Opacity(
@@ -951,8 +954,8 @@ class _Faded extends StatelessWidget {
           opacity: _blurred(now) ? 1 : now.opacity,
         );
       },
-      child: _Driven(
-        frames: frames,
+      child: MorphLiveTemplate(
+        live: frames,
         template: () {
           final now = look();
           final blurred = _blurred(now);
@@ -1256,12 +1259,14 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             menu: true,
             look: true,
             menuBlur: motion.tuning.cardBlur,
-            content: _DrivenPositioned(
-              frames: _ticks,
-              template: () =>
-                  Positioned.fromRect(rect: _frame!.menu.rect, child: _slot),
-              child: _Driven(
-                frames: _ticks,
+            content: MorphLivePositionedTemplate(
+              live: _ticks,
+              template: () => Positioned.fromRect(
+                rect: _frame!.menu.rect,
+                child: morphLiveSlot,
+              ),
+              child: MorphLiveTemplate(
+                live: _ticks,
                 template: () => ClipRRect(
                   borderRadius: .circular(_frame!.menu.radius),
                   clipBehavior: cards.length > 1 ? .none : .antiAlias,
@@ -1269,8 +1274,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                 child: Stack(
                   clipBehavior: .none,
                   children: [
-                    _DrivenPositioned(
-                      frames: _ticks,
+                    MorphLivePositionedTemplate(
+                      live: _ticks,
                       template: () {
                         final now = _frame!;
                         return Positioned(
@@ -1278,11 +1283,11 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                           top: now.at.dy,
                           width: now.size.width,
                           height: now.size.height,
-                          child: _slot,
+                          child: morphLiveSlot,
                         );
                       },
-                      child: _Driven(
-                        frames: _ticks,
+                      child: MorphLiveTemplate(
+                        live: _ticks,
                         template: () => Transform.scale(
                           scale: _frame!.scale,
                           alignment: .topLeft,
@@ -1508,9 +1513,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
               radius: radius,
             ),
           );
-      return _DrivenPositioned(
+      return MorphLivePositionedTemplate(
         key: const ValueKey<int>(0),
-        frames: _ticks,
+        live: _ticks,
         template: () {
           final now = _frame!;
           return Positioned(
@@ -1518,17 +1523,17 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             top: 0,
             width: width,
             height: now.visible,
-            child: _slot,
+            child: morphLiveSlot,
           );
         },
-        child: _Driven(
-          frames: _ticks,
+        child: MorphLiveTemplate(
+          live: _ticks,
           template: () => Transform.scale(
             scale: _frame!.cards[0].scale,
             alignment: .topLeft,
           ),
-          child: _Driven(
-            frames: _ticks,
+          child: MorphLiveTemplate(
+            live: _ticks,
             template: () => Opacity(opacity: _frame!.cards[0].rowOpacity),
             child: root,
           ),
@@ -1543,9 +1548,9 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     _CardFrame now() => _frame!.cardAt(index);
     final shadowColor = style.submenuShadowColor;
     final cardBlur = motion.tuning.cardBlur;
-    return _DrivenPositioned(
+    return MorphLivePositionedTemplate(
       key: ValueKey<int>(index),
-      frames: _ticks,
+      live: _ticks,
       template: () {
         final card = now();
         return Positioned(
@@ -1553,11 +1558,11 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
           top: card.shown.top,
           width: card.size.width,
           height: card.size.height,
-          child: _slot,
+          child: morphLiveSlot,
         );
       },
-      child: _Driven(
-        frames: _ticks,
+      child: MorphLiveTemplate(
+        live: _ticks,
         template: () =>
             Transform.scale(scale: now().scale, alignment: .topLeft),
         child: Stack(
@@ -1582,8 +1587,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
               ),
             if (glass == null)
               Positioned.fill(
-                child: _Driven(
-                  frames: _ticks,
+                child: MorphLiveTemplate(
+                  live: _ticks,
                   template: () {
                     final card = now();
                     return CustomPaint(
@@ -1598,13 +1603,13 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
               ),
             if (glass == null)
               Positioned.fill(
-                child: _Driven(
-                  frames: _ticks,
+                child: MorphLiveTemplate(
+                  live: _ticks,
                   template: () => ClipRRect(
                     borderRadius: BorderRadius.circular(now().radius),
                   ),
-                  child: _Driven(
-                    frames: _ticks,
+                  child: MorphLiveTemplate(
+                    live: _ticks,
                     template: () {
                       final blur = now().blur;
                       return BackdropFilter(
@@ -1620,13 +1625,13 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                       clipBehavior: .none,
                       children: [
                         Positioned.fill(
-                          child: _Driven(
-                            frames: _ticks,
+                          child: MorphLiveTemplate(
+                            live: _ticks,
                             template: () => ClipPath(
                               clipper: _CardBackdropClipper(now().under),
                             ),
-                            child: _Driven(
-                              frames: _ticks,
+                            child: MorphLiveTemplate(
+                              live: _ticks,
                               template: () => CustomPaint(
                                 painter: _CardBasePainter(now().surface),
                               ),
@@ -1634,8 +1639,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                           ),
                         ),
                         Positioned.fill(
-                          child: _Driven(
-                            frames: _ticks,
+                          child: MorphLiveTemplate(
+                            live: _ticks,
                             template: () {
                               final card = now();
                               return CustomPaint(
@@ -1657,8 +1662,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                 ),
               ),
             Positioned.fill(
-              child: _Driven(
-                frames: _ticks,
+              child: MorphLiveTemplate(
+                live: _ticks,
                 template: () => ClipRRect(
                   borderRadius: BorderRadius.circular(now().radius),
                 ),
@@ -1668,8 +1673,8 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                   maxWidth: width,
                   minHeight: layout.height,
                   maxHeight: layout.height,
-                  child: _Driven(
-                    frames: _ticks,
+                  child: MorphLiveTemplate(
+                    live: _ticks,
                     template: () =>
                         Transform.translate(offset: now().contentOffset),
                     child: SizedBox(
@@ -1679,15 +1684,15 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
                         clipBehavior: .none,
                         children: [
                           ?_highlight(motion, style, layout, index),
-                          _Driven(
-                            frames: _ticks,
+                          MorphLiveTemplate(
+                            live: _ticks,
                             template: () => Opacity(opacity: now().rowsOpacity),
                             child: _rowsOf(layout, style),
                           ),
                           if (header != null)
                             Positioned.fill(
-                              child: _Driven(
-                                frames: _ticks,
+                              child: MorphLiveTemplate(
+                                live: _ticks,
                                 template: () =>
                                     Opacity(opacity: now().rowsAlpha),
                                 child: Stack(
@@ -1806,13 +1811,13 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   List<Widget> _glow(_LayerStructure structure, MorphMenuStyle style) {
     if (!structure.glow) return const [];
     return [
-      _DrivenPositioned(
-        frames: _ticks,
+      MorphLivePositionedTemplate(
+        live: _ticks,
         template: () =>
-            Positioned.fromRect(rect: _frame!.glow!.rect, child: _slot),
+            Positioned.fromRect(rect: _frame!.glow!.rect, child: morphLiveSlot),
         child: IgnorePointer(
-          child: _Driven(
-            frames: _ticks,
+          child: MorphLiveTemplate(
+            live: _ticks,
             template: () {
               final opacity = _frame!.glow!.opacity;
               return DecoratedBox(
@@ -2166,22 +2171,22 @@ class _CardHeader extends StatelessWidget {
         child: Stack(
           children: [
             if (header.imageCenter != null && icon != null)
-              _DrivenPositioned(
-                frames: frames,
+              MorphLivePositionedTemplate(
+                live: frames,
                 template: () => Positioned.directional(
                   textDirection: direction,
                   start: placed().imageCenter! - MorphMenuTuning.imageSlot / 2,
                   width: MorphMenuTuning.imageSlot,
                   top: 0,
                   bottom: 0,
-                  child: _slot,
+                  child: morphLiveSlot,
                 ),
                 child: Center(
                   child: Icon(icon, size: style.iconSize, color: _title),
                 ),
               ),
-            _DrivenPositioned(
-              frames: frames,
+            MorphLivePositionedTemplate(
+              live: frames,
               template: () {
                 final now = placed();
                 return Positioned.directional(
@@ -2190,21 +2195,21 @@ class _CardHeader extends StatelessWidget {
                   end: width - now.titleEnd,
                   top: 0,
                   bottom: 0,
-                  child: _slot,
+                  child: morphLiveSlot,
                 );
               },
               child: Stack(
                 alignment: AlignmentDirectional.centerStart,
                 children: [
                   if (faces.regular)
-                    _Driven(
-                      frames: frames,
+                    MorphLiveTemplate(
+                      live: frames,
                       template: () => Opacity(opacity: 1 - values().bold),
                       child: _text(style.textStyle),
                     ),
                   if (faces.bold)
-                    _Driven(
-                      frames: frames,
+                    MorphLiveTemplate(
+                      live: frames,
                       template: () => Opacity(opacity: values().bold),
                       child: _text(
                         style.textStyle.merge(MorphTypography.title),
@@ -2221,8 +2226,8 @@ class _CardHeader extends StatelessWidget {
               child: Center(
                 child: Transform.flip(
                   flipX: content.rtl,
-                  child: _Driven(
-                    frames: frames,
+                  child: MorphLiveTemplate(
+                    live: frames,
                     template: () =>
                         Transform.rotate(angle: values().turn * math.pi / 2),
                     child: CustomPaint(
@@ -2238,8 +2243,8 @@ class _CardHeader extends StatelessWidget {
               right: metrics.separatorInset,
               bottom: 0,
               height: 1,
-              child: _Driven(
-                frames: frames,
+              child: MorphLiveTemplate(
+                live: frames,
                 template: () => Opacity(opacity: values().separator),
                 child: ColoredBox(color: style.separatorColor),
               ),
@@ -2254,140 +2259,6 @@ class _CardHeader extends StatelessWidget {
 /// Notifies the render objects of a menu that its motion advanced.
 class _Ticks extends ChangeNotifier {
   void notify() => notifyListeners();
-}
-
-/// The child a [_DrivenPositioned] template carries; never built.
-const Widget _slot = SizedBox.shrink();
-
-/// The render object [template] makes, configured again from a fresh
-/// [template] on every notification of [frames] without a build.
-///
-/// The template is a render object widget whose own child is ignored;
-/// [child] is this widget's. Each notification applies what its
-/// `updateRenderObject` would, so the render object marks itself for
-/// paint, layout or compositing exactly as a rebuild with the same values
-/// would. A template must make the same render object type every time.
-class _Driven extends SingleChildRenderObjectWidget {
-  const _Driven({required this.template, this.frames, super.child});
-
-  final Listenable? frames;
-  final RenderObjectWidget Function() template;
-
-  @override
-  RenderObject createRenderObject(BuildContext context) =>
-      template().createRenderObject(context);
-
-  @override
-  void updateRenderObject(BuildContext context, RenderObject renderObject) =>
-      template().updateRenderObject(context, renderObject);
-
-  @override
-  SingleChildRenderObjectElement createElement() => _DrivenElement(this);
-}
-
-class _DrivenElement extends SingleChildRenderObjectElement {
-  _DrivenElement(_Driven super.widget);
-
-  Listenable? get _frames => (widget as _Driven).frames;
-
-  void _drive() => (widget as _Driven).updateRenderObject(this, renderObject);
-
-  @override
-  void mount(Element? parent, Object? newSlot) {
-    super.mount(parent, newSlot);
-    _frames?.addListener(_drive);
-  }
-
-  @override
-  void update(_Driven newWidget) {
-    final old = _frames;
-    super.update(newWidget);
-    if (!identical(old, _frames)) {
-      old?.removeListener(_drive);
-      _frames?.addListener(_drive);
-    }
-  }
-
-  @override
-  void activate() {
-    super.activate();
-    _frames?.addListener(_drive);
-  }
-
-  @override
-  void deactivate() {
-    _frames?.removeListener(_drive);
-    super.deactivate();
-  }
-}
-
-/// A child of a [Stack] placed by the [Positioned] [template] returns,
-/// read again on every notification of [frames] without a build.
-class _DrivenPositioned extends ParentDataWidget<StackParentData> {
-  const _DrivenPositioned({
-    required this.template,
-    required super.child,
-    this.frames,
-    super.key,
-  });
-
-  final Listenable? frames;
-  final Positioned Function() template;
-
-  @override
-  void applyParentData(RenderObject renderObject) =>
-      template().applyParentData(renderObject);
-
-  @override
-  Type get debugTypicalAncestorWidgetClass => Stack;
-
-  @override
-  ParentDataElement<StackParentData> createElement() =>
-      _DrivenPositionedElement(this);
-}
-
-class _DrivenPositionedElement extends ParentDataElement<StackParentData> {
-  _DrivenPositionedElement(_DrivenPositioned super.widget);
-
-  Listenable? get _frames => (widget as _DrivenPositioned).frames;
-
-  void _drive() {
-    var child = renderObjectAttachingChild;
-    while (child != null && child is! RenderObjectElement) {
-      child = child.renderObjectAttachingChild;
-    }
-    if (child is RenderObjectElement) {
-      (widget as _DrivenPositioned).applyParentData(child.renderObject);
-    }
-  }
-
-  @override
-  void mount(Element? parent, Object? newSlot) {
-    super.mount(parent, newSlot);
-    _frames?.addListener(_drive);
-  }
-
-  @override
-  void update(_DrivenPositioned newWidget) {
-    final old = _frames;
-    super.update(newWidget);
-    if (!identical(old, _frames)) {
-      old?.removeListener(_drive);
-      _frames?.addListener(_drive);
-    }
-  }
-
-  @override
-  void activate() {
-    super.activate();
-    _frames?.addListener(_drive);
-  }
-
-  @override
-  void deactivate() {
-    _frames?.removeListener(_drive);
-    super.deactivate();
-  }
 }
 
 /// [position] in the coordinates of the content laid out at its final

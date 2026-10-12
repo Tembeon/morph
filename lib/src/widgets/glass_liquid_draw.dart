@@ -10,7 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
 import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/raster_phase.dart';
 import 'package:morph/src/glass/renderer/liquid_glass.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
@@ -511,7 +511,7 @@ Widget morphLiquidLayer(
                 ? _LensClip(lenses(source.frame), outside: true)
                 : source.keep('lens clip', () {
                     final picked = source.pick(lenses);
-                    return GlassLiveClipper<Path>(
+                    return MorphLiveClipper<Path>(
                       live: live,
                       keyOf: () => _LensRects(picked.value),
                       clipOf: (Size size) =>
@@ -745,7 +745,7 @@ class _ContentCopyState extends State<MorphGlassContentCopy> {
     return IgnorePointer(
       child: ExcludeSemantics(
         child: MorphScreenScalePaint(
-          repaint: frame is GlassFixed<MorphGlassCopyFrame>
+          repaint: frame is MorphFixed<MorphGlassCopyFrame>
               ? _settle
               : Listenable.merge([frame, _settle]),
           painter: _ContentCopyPainter(

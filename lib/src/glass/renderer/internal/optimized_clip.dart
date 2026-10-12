@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/liquid_shape.dart';
 
 /// Clips its child using the given [shape].
@@ -131,13 +131,13 @@ class GlassLiveShapeClip extends StatelessWidget {
   Widget build(BuildContext context) {
     if (clipBehavior == Clip.none) return child;
     return switch (shapeOf()) {
-      LiquidRoundedSuperellipse() => GlassLiveClipRSuperellipse(
+      LiquidRoundedSuperellipse() => MorphLiveClipRSuperellipse(
         live: live,
         borderRadiusOf: _radius,
         clipBehavior: clipBehavior,
         child: child,
       ),
-      LiquidRoundedRectangle() => GlassLiveClipRRect(
+      LiquidRoundedRectangle() => MorphLiveClipRRect(
         live: live,
         borderRadiusOf: _radius,
         clipBehavior: clipBehavior,

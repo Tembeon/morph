@@ -3,7 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
-import 'package:morph/src/widgets/frame_box.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/themes.dart';
@@ -829,8 +829,8 @@ class _SheetViewState extends State<_SheetView>
                       // re-inflate the sheet and dispose its drag recognizer.
                       Positioned.fill(
                         key: const ValueKey('sheet'),
-                        child: MorphFrameBox(
-                          frames: frames,
+                        child: MorphLiveBox(
+                          live: frames,
                           size: () => Size(size.width, _frame(size).height),
                           transform: () => _frame(size).transform,
                           clip: () => _frame(size).bodyShape,

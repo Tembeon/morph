@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -128,9 +128,9 @@ class MorphGlassGlowPainter extends CustomPainter {
   /// painted box, repainting when a live [data] changes.
   MorphGlassGlowPainter(this.data)
     : super(
-        repaint: data is GlassFixed<(RRect, MorphGlassGlow)>
+        repaint: data is MorphFixed<(RRect, MorphGlassGlow)>
             ? null
-            : GlassChanges<Object?>(data, () => data.value),
+            : MorphChanges<Object?>(data, () => data.value),
       );
 
   /// The outline and the glow, relative to the painted box.
@@ -150,7 +150,7 @@ class MorphGlassGlowPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(MorphGlassGlowPainter oldDelegate) =>
-      data is! GlassFixed<(RRect, MorphGlassGlow)> ||
+      data is! MorphFixed<(RRect, MorphGlassGlow)> ||
       oldDelegate.data.value != data.value;
 }
 

@@ -8,7 +8,7 @@ import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
 import 'package:morph/src/glass/renderer/internal/fake_glass_color.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/paint_fake_glass_surface.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/internal/transform_tracking_repaint_boundary_mixin.dart';
@@ -88,7 +88,7 @@ class ConsolidatedFakeGlassLayer extends SingleChildRenderObjectWidget {
 @visibleForTesting
 @internal
 class RenderConsolidatedFakeGlassLayer extends LiquidGlassRenderObject
-    with TransformTrackingRenderObjectMixin, GlassLiveBinding
+    with TransformTrackingRenderObjectMixin, MorphLiveBinding
     implements LiquidGlassLayerRenderObject {
   RenderConsolidatedFakeGlassLayer({
     required super.devicePixelRatio,

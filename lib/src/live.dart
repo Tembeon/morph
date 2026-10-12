@@ -1,0 +1,1320 @@
+import 'dart:ui' as ui;
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart';
+import 'package:flutter/widgets.dart';
+
+/// A render object whose properties follow a live source.
+///
+/// [bindLive] installs the source and the callback that writes the
+/// source's current values into the render object's setters; the callback
+/// runs at once, on every notification of the source while the render
+/// object is attached, and again when it attaches. The setters decide what
+/// a change costs (a paint, a layout, nothing when the value is equal), so
+/// a source that notifies every frame never rebuilds a widget.
+///
+/// Sources notify outside layout and paint (from a ticker, the mid-frame
+/// microtasks or a build), where a render object may mark itself dirty.
+@internal
+mixin MorphLiveBinding on RenderObject {
+  Listenable? _liveSource;
+  VoidCallback? _liveApply;
+
+  /// Follows [source], writing its values through [apply], at once unless
+  /// [now] is false.
+  void bindLive(Listenable? source, VoidCallback apply, {bool now = true}) {
+    if (!identical(source, _liveSource)) {
+      if (attached) {
+        _liveSource?.removeListener(_onLive);
+        source?.addListener(_onLive);
+      }
+      _liveSource = source;
+    }
+    _liveApply = apply;
+    if (now) apply();
+  }
+
+  void _onLive() => _liveApply?.call();
+
+  @override
+  void attach(PipelineOwner owner) {
+    super.attach(owner);
+    _liveSource?.addListener(_onLive);
+    _liveApply?.call();
+  }
+
+  @override
+  void detach() {
+    _liveSource?.removeListener(_onLive);
+    super.detach();
+  }
+}
+
+/// A value that never changes and never notifies.
+@internal
+class MorphFixed<T> implements ValueListenable<T> {
+  /// Holds [value].
+  const MorphFixed(this.value);
+
+  @override
+  final T value;
+
+  @override
+  void addListener(VoidCallback listener) {}
+
+  @override
+  void removeListener(VoidCallback listener) {}
+}
+
+/// Notifies its listeners when the key [of] reads from [source] changes.
+///
+/// It listens to [source] only while it has listeners itself, so a
+/// clipper or painter holding it costs nothing once its render object
+/// detaches.
+@internal
+class MorphChanges<K> implements Listenable {
+  /// Watches [of] over the notifications of [source].
+  MorphChanges(this.source, this.of);
+
+  /// The source that may change the key.
+  final Listenable source;
+
+  /// The key; a notification whose key equals the last one is dropped.
+  final K Function() of;
+
+  final List<VoidCallback> _listeners = [];
+  K? _last;
+
+  void _changed() {
+    final key = of();
+    if (key == _last) return;
+    _last = key;
+    for (final listener in List<VoidCallback>.of(_listeners)) {
+      listener();
+    }
+  }
+
+  @override
+  void addListener(VoidCallback listener) {
+    if (_listeners.isEmpty) {
+      _last = of();
+      source.addListener(_changed);
+    }
+    _listeners.add(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    _listeners.remove(listener);
+    if (_listeners.isEmpty) source.removeListener(_changed);
+  }
+}
+
+/// An [Opacity] whose opacity follows a live source.
+@internal
+class MorphLiveOpacity extends SingleChildRenderObjectWidget {
+  /// Fades [child] by [opacity], read again on every notification of
+  /// [live].
+  const MorphLiveOpacity({
+    required this.live,
+    required this.opacityOf,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the opacity, or null for a fixed one.
+  final Listenable? live;
+
+  /// The opacity now, 0 to 1.
+  final double Function() opacityOf;
+
+  /// The opacity now.
+  double get opacity => opacityOf();
+
+  @override
+  RenderOpacity createRenderObject(BuildContext context) {
+    final opacity = _RenderLiveOpacity(opacity: opacityOf());
+    opacity.bindLive(live, () => opacity.opacity = opacityOf());
+    return opacity;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderOpacity renderObject) {
+    (renderObject as _RenderLiveOpacity).bindLive(
+      live,
+      () => renderObject.opacity = opacityOf(),
+    );
+  }
+}
+
+class _RenderLiveOpacity extends RenderOpacity with MorphLiveBinding {
+  _RenderLiveOpacity({super.opacity});
+}
+
+/// A [Transform] whose matrix follows a live source.
+@internal
+class MorphLiveTransform extends SingleChildRenderObjectWidget {
+  /// Transforms [child] about its center by the matrix [writeInto] fills,
+  /// read again on every notification of [live].
+  const MorphLiveTransform({
+    required this.live,
+    required void Function(Matrix4 into) this.writeInto,
+    super.child,
+    super.key,
+  }) : writeSizedInto = null,
+       matrixOf = null,
+       alignment = Alignment.center;
+
+  /// Transforms [child] about [alignment] by [matrixOf], read again on
+  /// every notification of [live]; null [alignment] transforms about the
+  /// child's origin.
+  const MorphLiveTransform.matrix({
+    required this.live,
+    required Matrix4 Function() this.matrixOf,
+    this.alignment = Alignment.center,
+    super.child,
+    super.key,
+  }) : writeInto = null,
+       writeSizedInto = null;
+
+  /// Transforms [child] about its center by the matrix [writeSizedInto]
+  /// fills from the child's laid-out size, read again on every
+  /// notification of [live] and whenever that size changes.
+  const MorphLiveTransform.sized({
+    required this.live,
+    required void Function(Matrix4 into, Size size) this.writeSizedInto,
+    super.child,
+    super.key,
+  }) : writeInto = null,
+       matrixOf = null,
+       alignment = Alignment.center;
+
+  /// The source of the matrix, or null for a fixed one.
+  final Listenable? live;
+
+  /// Writes the current matrix into the identity matrix it is given.
+  final void Function(Matrix4 into)? writeInto;
+
+  /// Writes the current matrix for a child of the given size into the
+  /// identity matrix it is given.
+  final void Function(Matrix4 into, Size size)? writeSizedInto;
+
+  /// Returns the current matrix.
+  final Matrix4 Function()? matrixOf;
+
+  /// The point the matrix is applied about.
+  final AlignmentGeometry? alignment;
+
+  @override
+  RenderTransform createRenderObject(BuildContext context) {
+    final render = _RenderLiveTransform(
+      alignment: alignment,
+      textDirection: Directionality.maybeOf(context),
+    );
+    render.bind(live, writeInto, writeSizedInto, matrixOf);
+    return render;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderTransform renderObject) {
+    renderObject.alignment = alignment;
+    renderObject.textDirection = Directionality.maybeOf(context);
+    (renderObject as _RenderLiveTransform).bind(
+      live,
+      writeInto,
+      writeSizedInto,
+      matrixOf,
+    );
+  }
+}
+
+class _RenderLiveTransform extends RenderTransform with MorphLiveBinding {
+  _RenderLiveTransform({super.alignment, super.textDirection})
+    : super(transform: Matrix4.identity());
+
+  final Matrix4 _scratch = Matrix4.identity();
+  void Function(Matrix4 into, Size size)? _sized;
+  Size? _writtenFor;
+
+  void bind(
+    Listenable? live,
+    void Function(Matrix4 into)? writeInto,
+    void Function(Matrix4 into, Size size)? writeSizedInto,
+    Matrix4 Function()? matrixOf,
+  ) {
+    _sized = writeSizedInto;
+    if (matrixOf != null) {
+      bindLive(live, () => transform = matrixOf());
+      return;
+    }
+    bindLive(live, () {
+      _scratch.setIdentity();
+      if (writeSizedInto != null) {
+        final size = hasSize ? this.size : Size.zero;
+        _writtenFor = size;
+        writeSizedInto(_scratch, size);
+      } else {
+        writeInto?.call(_scratch);
+      }
+      transform = _scratch;
+    });
+  }
+
+  @override
+  void performLayout() {
+    super.performLayout();
+    final sized = _sized;
+    if (sized == null || size == _writtenFor) return;
+    _writtenFor = size;
+    _scratch.setIdentity();
+    sized(_scratch, size);
+    transform = _scratch;
+  }
+}
+
+/// A clipper computed from a live source, reclipping only when its key
+/// changes.
+@internal
+class MorphLiveClipper<T> extends CustomClipper<T> {
+  /// Clips to [clipOf], reclipping when [keyOf] over [live] changes.
+  MorphLiveClipper({
+    required Listenable live,
+    required Object? Function() keyOf,
+    required this.clipOf,
+  }) : super(reclip: MorphChanges<Object?>(live, keyOf));
+
+  /// The clip for a box of the given size.
+  final T Function(Size size) clipOf;
+
+  @override
+  T getClip(Size size) => clipOf(size);
+
+  @override
+  bool shouldReclip(MorphLiveClipper<T> oldClipper) =>
+      !identical(oldClipper, this);
+}
+
+/// A [BackdropFilter] whose filter follows a live source.
+@internal
+class MorphLiveBackdropFilter extends BackdropFilter {
+  /// Filters the backdrop by [filterOf], read again on every notification
+  /// of [live].
+  MorphLiveBackdropFilter({
+    required this.live,
+    required this.filterOf,
+    super.backdropGroupKey,
+    super.child,
+    super.key,
+  }) : super(filter: filterOf());
+
+  /// The source of the filter.
+  final Listenable? live;
+
+  /// The filter now.
+  final ui.ImageFilter Function() filterOf;
+
+  @override
+  ui.ImageFilter get filter => filterOf();
+
+  @override
+  RenderBackdropFilter createRenderObject(BuildContext context) {
+    final filter = _RenderLiveBackdropFilter(
+      filterConfig: ImageFilterConfig(filterOf()),
+      backdropKey: backdropGroupKey,
+    );
+    filter.bindLive(live, () => filter.filter = filterOf());
+    return filter;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderBackdropFilter renderObject,
+  ) {
+    renderObject.enabled = enabled;
+    renderObject.blendMode = blendMode;
+    renderObject.backdropKey = backdropGroupKey;
+    (renderObject as _RenderLiveBackdropFilter).bindLive(
+      live,
+      () => renderObject.filter = filterOf(),
+    );
+  }
+}
+
+class _RenderLiveBackdropFilter extends RenderBackdropFilter
+    with MorphLiveBinding {
+  _RenderLiveBackdropFilter({required super.filterConfig, super.backdropKey});
+}
+
+/// A [ClipRRect] whose border radius follows a live source.
+@internal
+class MorphLiveClipRRect extends SingleChildRenderObjectWidget {
+  /// Clips [child] to [borderRadiusOf], read again on every notification
+  /// of [live].
+  const MorphLiveClipRRect({
+    required this.live,
+    required this.borderRadiusOf,
+    this.clipBehavior = Clip.antiAlias,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the radius.
+  final Listenable? live;
+
+  /// The border radius now.
+  final BorderRadiusGeometry Function() borderRadiusOf;
+
+  /// How the clip is antialiased.
+  final Clip clipBehavior;
+
+  @override
+  RenderClipRRect createRenderObject(BuildContext context) {
+    final clip = _RenderLiveClipRRect(
+      borderRadius: borderRadiusOf(),
+      clipBehavior: clipBehavior,
+      textDirection: Directionality.maybeOf(context),
+    );
+    clip.bindLive(live, () => clip.borderRadius = borderRadiusOf());
+    return clip;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderClipRRect renderObject) {
+    renderObject.clipBehavior = clipBehavior;
+    renderObject.textDirection = Directionality.maybeOf(context);
+    (renderObject as _RenderLiveClipRRect).bindLive(
+      live,
+      () => renderObject.borderRadius = borderRadiusOf(),
+    );
+  }
+}
+
+class _RenderLiveClipRRect extends RenderClipRRect with MorphLiveBinding {
+  _RenderLiveClipRRect({
+    super.borderRadius,
+    super.clipBehavior,
+    super.textDirection,
+  });
+}
+
+/// A [ClipRSuperellipse] whose border radius follows a live source.
+@internal
+class MorphLiveClipRSuperellipse extends SingleChildRenderObjectWidget {
+  /// Clips [child] to [borderRadiusOf], read again on every notification
+  /// of [live].
+  const MorphLiveClipRSuperellipse({
+    required this.live,
+    required this.borderRadiusOf,
+    this.clipBehavior = Clip.antiAlias,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the radius.
+  final Listenable? live;
+
+  /// The border radius now.
+  final BorderRadiusGeometry Function() borderRadiusOf;
+
+  /// How the clip is antialiased.
+  final Clip clipBehavior;
+
+  @override
+  RenderClipRSuperellipse createRenderObject(BuildContext context) {
+    final clip = _RenderLiveClipRSuperellipse(
+      borderRadius: borderRadiusOf(),
+      clipBehavior: clipBehavior,
+      textDirection: Directionality.maybeOf(context),
+    );
+    clip.bindLive(live, () => clip.borderRadius = borderRadiusOf());
+    return clip;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderClipRSuperellipse renderObject,
+  ) {
+    renderObject.clipBehavior = clipBehavior;
+    renderObject.textDirection = Directionality.maybeOf(context);
+    (renderObject as _RenderLiveClipRSuperellipse).bindLive(
+      live,
+      () => renderObject.borderRadius = borderRadiusOf(),
+    );
+  }
+}
+
+class _RenderLiveClipRSuperellipse extends RenderClipRSuperellipse
+    with MorphLiveBinding {
+  _RenderLiveClipRSuperellipse({
+    super.borderRadius,
+    super.clipBehavior,
+    super.textDirection,
+  });
+}
+
+/// A [Stack] whose [MorphLivePositioned] children follow a live source.
+///
+/// Every notification of [live] reads the boxes of the live children
+/// again and lays the stack out when one moved, as a rebuild with new
+/// `Positioned.fromRect` children would; no widget rebuilds.
+@internal
+class MorphLiveStack extends Stack {
+  /// Stacks [children], without clipping them.
+  const MorphLiveStack({
+    required this.live,
+    super.children,
+    super.clipBehavior = Clip.none,
+    super.key,
+  });
+
+  /// The source the live children's boxes follow, or null for fixed boxes.
+  final Listenable? live;
+
+  @override
+  RenderStack createRenderObject(BuildContext context) {
+    final stack = _RenderLiveStack(
+      alignment: alignment,
+      textDirection: textDirection ?? Directionality.maybeOf(context),
+      fit: fit,
+      clipBehavior: clipBehavior,
+    );
+    stack.bindLive(live, stack.follow, now: false);
+    return stack;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderStack renderObject) {
+    super.updateRenderObject(context, renderObject);
+    final stack = renderObject as _RenderLiveStack;
+    stack.bindLive(live, stack.follow, now: false);
+  }
+}
+
+/// Places a child of a [MorphLiveStack] at a box that follows the stack's
+/// source, as `Positioned.fromRect` places it at a fixed one.
+@internal
+class MorphLivePositioned extends ParentDataWidget<StackParentData> {
+  /// Places [child] at [rect].
+  const MorphLivePositioned({
+    required this.rect,
+    required super.child,
+    super.key,
+  });
+
+  /// The box of the child in the stack's coordinates.
+  final ValueListenable<Rect> rect;
+
+  @override
+  void applyParentData(RenderObject renderObject) {
+    final data = renderObject.parentData! as _LiveStackParentData;
+    data.live = rect;
+    if (data.place(rect.value)) {
+      final stack = renderObject.parent;
+      if (stack is RenderObject) stack.markNeedsLayout();
+    }
+  }
+
+  @override
+  Type get debugTypicalAncestorWidgetClass => MorphLiveStack;
+}
+
+class _LiveStackParentData extends StackParentData {
+  ValueListenable<Rect>? live;
+
+  bool place(Rect value) {
+    if (left == value.left &&
+        top == value.top &&
+        width == value.width &&
+        height == value.height &&
+        right == null &&
+        bottom == null) {
+      return false;
+    }
+    left = value.left;
+    top = value.top;
+    width = value.width;
+    height = value.height;
+    right = null;
+    bottom = null;
+    return true;
+  }
+}
+
+class _RenderLiveStack extends RenderStack with MorphLiveBinding {
+  _RenderLiveStack({
+    super.alignment,
+    super.textDirection,
+    super.fit,
+    super.clipBehavior,
+  });
+
+  @override
+  void setupParentData(RenderBox child) {
+    if (child.parentData is! _LiveStackParentData) {
+      child.parentData = _LiveStackParentData();
+    }
+  }
+
+  void follow() {
+    var moved = false;
+    var child = firstChild;
+    while (child != null) {
+      final data = child.parentData! as _LiveStackParentData;
+      final rect = data.live;
+      if (rect != null && data.place(rect.value)) moved = true;
+      child = data.nextSibling;
+    }
+    if (moved) markNeedsLayout();
+  }
+}
+
+/// A [DecoratedBox] whose decoration follows a live source.
+@internal
+class MorphLiveDecoratedBox extends DecoratedBox {
+  /// Paints [live]'s decoration behind [child].
+  MorphLiveDecoratedBox({required this.live, super.child, super.key})
+    : super(decoration: live.value);
+
+  /// The decoration now.
+  final ValueListenable<Decoration> live;
+
+  @override
+  Decoration get decoration => live.value;
+
+  @override
+  RenderDecoratedBox createRenderObject(BuildContext context) {
+    final box = _RenderLiveDecoratedBox(
+      decoration: live.value,
+      configuration: createLocalImageConfiguration(context),
+    );
+    box.bindLive(
+      live is MorphFixed<Decoration> ? null : live,
+      () => box.decoration = live.value,
+    );
+    return box;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderDecoratedBox renderObject,
+  ) {
+    renderObject.configuration = createLocalImageConfiguration(context);
+    renderObject.position = position;
+    (renderObject as _RenderLiveDecoratedBox).bindLive(
+      live is MorphFixed<Decoration> ? null : live,
+      () => renderObject.decoration = live.value,
+    );
+  }
+}
+
+class _RenderLiveDecoratedBox extends RenderDecoratedBox with MorphLiveBinding {
+  _RenderLiveDecoratedBox({required super.decoration, super.configuration});
+}
+
+/// A [ColoredBox] whose color follows a live source; it takes every hit
+/// in its box.
+@internal
+class MorphLiveColoredBox extends SingleChildRenderObjectWidget {
+  /// Fills its box with [colorOf], read again on every notification of
+  /// [live].
+  const MorphLiveColoredBox({
+    required this.live,
+    required this.colorOf,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the color, or null for a fixed one.
+  final Listenable? live;
+
+  /// The color now.
+  final Color Function() colorOf;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    final box = _RenderLiveColoredBox(colorOf());
+    box.bindLive(live, () => box.color = colorOf());
+    return box;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) {
+    final box = renderObject as _RenderLiveColoredBox;
+    box.bindLive(live, () => box.color = colorOf());
+  }
+}
+
+class _RenderLiveColoredBox extends RenderProxyBoxWithHitTestBehavior
+    with MorphLiveBinding {
+  _RenderLiveColoredBox(this._color) : super(behavior: HitTestBehavior.opaque);
+
+  Color _color;
+
+  Color get color => _color;
+
+  set color(Color value) {
+    if (value == _color) return;
+    _color = value;
+    markNeedsPaint();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    if (size > Size.zero) {
+      final paint = Paint();
+      paint.isAntiAlias = true;
+      paint.color = _color;
+      context.canvas.drawRect(offset & size, paint);
+    }
+    final child = this.child;
+    if (child != null) context.paintChild(child, offset);
+  }
+}
+
+/// A child placed, transformed, faded and clipped from state a motion holds,
+/// read again on every notification of [live] without a rebuild.
+///
+/// The child is built once and sits in a repaint boundary of its own: a
+/// notification re-records only this box's layers (opacity, transform, clip) and
+/// keeps the child's pictures. A frame whose [size] changed lays the child
+/// out again; every other one only repaints.
+///
+/// Each callback is read during layout or paint, so it must be a pure
+/// read of the source's current state.
+@internal
+class MorphLiveBox extends SingleChildRenderObjectWidget {
+  /// Creates a box driven by [live].
+  MorphLiveBox({
+    required this.live,
+    this.size,
+    this.offset,
+    this.transform,
+    this.opacity,
+    this.clip,
+    Widget? child,
+    super.key,
+  }) : super(child: child == null ? null : RepaintBoundary(child: child));
+
+  /// Notifies whenever what the callbacks read changed.
+  final Listenable live;
+
+  /// The child's size; null gives the child this box's constraints.
+  final Size Function()? size;
+
+  /// Where the child's top-left corner sits in this box; null for the
+  /// origin.
+  final Offset Function()? offset;
+
+  /// A transform applied about the child's top-left corner after [offset];
+  /// null for none.
+  final Matrix4 Function()? transform;
+
+  /// The child's opacity, 0 to 1; at 0 the child neither paints nor takes
+  /// hits. Null for 1.
+  final double Function()? opacity;
+
+  /// A rounded rect the child is clipped to, in the child's coordinates;
+  /// null for no clip.
+  final RRect Function()? clip;
+
+  @override
+  RenderMorphLiveBox createRenderObject(BuildContext context) =>
+      RenderMorphLiveBox(
+        live: live,
+        size: size,
+        offset: offset,
+        transform: transform,
+        opacity: opacity,
+        clip: clip,
+      );
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderMorphLiveBox renderObject,
+  ) {
+    renderObject.bindLive(live, renderObject._tick, now: false);
+    renderObject.sizeOf = size;
+    renderObject.offsetOf = offset;
+    renderObject.transformOf = transform;
+    renderObject.opacityOf = opacity;
+    renderObject.clipOf = clip;
+  }
+}
+
+/// The render object of [MorphLiveBox].
+@internal
+class RenderMorphLiveBox extends RenderProxyBox with MorphLiveBinding {
+  /// Creates the box.
+  RenderMorphLiveBox({
+    required Listenable live,
+    Size Function()? size,
+    Offset Function()? offset,
+    Matrix4 Function()? transform,
+    double Function()? opacity,
+    RRect Function()? clip,
+  }) : _sizeOf = size,
+       _offsetOf = offset,
+       _transformOf = transform,
+       _opacityOf = opacity,
+       _clipOf = clip {
+    bindLive(live, _tick, now: false);
+  }
+
+  Size Function()? _sizeOf;
+
+  /// See [MorphLiveBox.size].
+  Size Function()? get sizeOf => _sizeOf;
+  set sizeOf(Size Function()? value) {
+    if (identical(value, _sizeOf)) return;
+    _sizeOf = value;
+    markNeedsLayout();
+  }
+
+  Offset Function()? _offsetOf;
+
+  /// See [MorphLiveBox.offset].
+  Offset Function()? get offsetOf => _offsetOf;
+  set offsetOf(Offset Function()? value) {
+    if (identical(value, _offsetOf)) return;
+    _offsetOf = value;
+    markNeedsPaint();
+  }
+
+  Matrix4 Function()? _transformOf;
+
+  /// See [MorphLiveBox.transform].
+  Matrix4 Function()? get transformOf => _transformOf;
+  set transformOf(Matrix4 Function()? value) {
+    if (identical(value, _transformOf)) return;
+    _transformOf = value;
+    markNeedsPaint();
+  }
+
+  double Function()? _opacityOf;
+
+  /// See [MorphLiveBox.opacity].
+  double Function()? get opacityOf => _opacityOf;
+  set opacityOf(double Function()? value) {
+    if (identical(value, _opacityOf)) return;
+    _opacityOf = value;
+    markNeedsPaint();
+  }
+
+  RRect Function()? _clipOf;
+
+  /// See [MorphLiveBox.clip].
+  RRect Function()? get clipOf => _clipOf;
+  set clipOf(RRect Function()? value) {
+    if (identical(value, _clipOf)) return;
+    _clipOf = value;
+    markNeedsPaint();
+  }
+
+  Size? _laidOut;
+  bool? _shown;
+
+  void _tick() {
+    final size = _sizeOf?.call();
+    if (size != null && size != _laidOut) {
+      markNeedsLayout();
+    } else {
+      markNeedsPaint();
+    }
+    final shown = _opacity > 0;
+    if (shown != _shown) {
+      _shown = shown;
+      markNeedsSemanticsUpdate();
+    }
+  }
+
+  @override
+  void visitChildrenForSemantics(RenderObjectVisitor visitor) {
+    if (_opacity > 0) super.visitChildrenForSemantics(visitor);
+  }
+
+  @override
+  void dispose() {
+    _opacityLayer.layer = null;
+    _transformLayer.layer = null;
+    _clipLayer.layer = null;
+    super.dispose();
+  }
+
+  @override
+  bool get isRepaintBoundary => true;
+
+  @override
+  bool get alwaysNeedsCompositing => true;
+
+  @override
+  void performLayout() {
+    final child = this.child;
+    final size = _sizeOf?.call();
+    _laidOut = size;
+    if (child != null) {
+      child.layout(
+        size == null ? constraints : BoxConstraints.tight(size),
+        parentUsesSize: size == null,
+      );
+    }
+    this.size = size == null && child != null
+        ? constraints.constrain(child.size)
+        : constraints.biggest;
+  }
+
+  // This box's coordinates to the child's: offset, then transform.
+  Matrix4 _childTransform() {
+    final offset = _offsetOf?.call() ?? Offset.zero;
+    final matrix = Matrix4.translationValues(offset.dx, offset.dy, 0);
+    final transform = _transformOf?.call();
+    if (transform != null) matrix.multiply(transform);
+    return matrix;
+  }
+
+  double get _opacity => (_opacityOf?.call() ?? 1).clamp(0.0, 1.0);
+
+  final _opacityLayer = LayerHandle<OpacityLayer>();
+  final _transformLayer = LayerHandle<TransformLayer>();
+  final _clipLayer = LayerHandle<ClipRRectLayer>();
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final child = this.child;
+    if (child == null) return;
+    final alpha = Color.getAlphaFromOpacity(_opacity);
+    if (alpha == 0) {
+      _opacityLayer.layer = null;
+      _transformLayer.layer = null;
+      _clipLayer.layer = null;
+      return;
+    }
+    void clipped(PaintingContext context, Offset offset) {
+      final clip = _clipOf?.call();
+      if (clip == null) {
+        _clipLayer.layer = null;
+        context.paintChild(child, offset);
+        return;
+      }
+      _clipLayer.layer = context.pushClipRRect(
+        true,
+        offset,
+        clip.outerRect,
+        clip,
+        (PaintingContext context, Offset offset) =>
+            context.paintChild(child, offset),
+        oldLayer: _clipLayer.layer,
+      );
+    }
+
+    void transformed(PaintingContext context, Offset offset) {
+      _transformLayer.layer = context.pushTransform(
+        true,
+        offset,
+        _childTransform(),
+        clipped,
+        oldLayer: _transformLayer.layer,
+      );
+    }
+
+    if (alpha == 255) {
+      _opacityLayer.layer = null;
+      transformed(context, offset);
+      return;
+    }
+    _opacityLayer.layer = context.pushOpacity(
+      offset,
+      alpha,
+      transformed,
+      oldLayer: _opacityLayer.layer,
+    );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.multiply(_childTransform());
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) {
+    if (_opacity == 0) return false;
+    return super.hitTest(result, position: position);
+  }
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final child = this.child;
+    if (child == null) return false;
+    return result.addWithPaintTransform(
+      transform: _childTransform(),
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset position) {
+        final clip = _clipOf?.call();
+        if (clip != null && !clip.contains(position)) return false;
+        return child.hitTest(result, position: position);
+      },
+    );
+  }
+
+  @override
+  Rect? describeApproximatePaintClip(RenderObject child) =>
+      _clipOf?.call().outerRect;
+}
+
+/// Paints its child shifted by [offsetOf], read again on every
+/// notification of [live], without a layout.
+///
+/// The child takes hits where it paints, also outside this box's bounds.
+@internal
+class MorphLiveShift extends SingleChildRenderObjectWidget {
+  /// Shifts [child] by [offsetOf].
+  const MorphLiveShift({
+    required this.live,
+    required this.offsetOf,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the offset.
+  final Listenable? live;
+
+  /// The offset now.
+  final Offset Function() offsetOf;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    final box = _RenderLiveShift(offsetOf());
+    box.bindLive(live, () => box.shift = offsetOf());
+    return box;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) {
+    final box = renderObject as _RenderLiveShift;
+    box.bindLive(live, () => box.shift = offsetOf());
+  }
+}
+
+class _RenderLiveShift extends RenderProxyBox with MorphLiveBinding {
+  _RenderLiveShift(this._shift);
+
+  Offset _shift;
+
+  Offset get shift => _shift;
+
+  set shift(Offset value) {
+    if (value == _shift) return;
+    _shift = value;
+    markNeedsPaint();
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final child = this.child;
+    if (child != null) context.paintChild(child, offset + _shift);
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
+      hitTestChildren(result, position: position);
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final child = this.child;
+    if (child == null) return false;
+    return result.addWithPaintOffset(
+      offset: _shift,
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset position) =>
+          child.hitTest(result, position: position),
+    );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.translateByDouble(_shift.dx, _shift.dy, 0, 1);
+  }
+}
+
+/// Lays its child out at the size of [rectOf] and paints it at its
+/// offset, as `Positioned.fromRect` in a [Stack] does, reading [rectOf]
+/// again on every notification of [live].
+///
+/// A move only repaints; a resize lays the child out again. A box out of
+/// this one's bounds is clipped to them, as a [Stack] clips its overflow.
+@internal
+class MorphLivePlacement extends SingleChildRenderObjectWidget {
+  /// Places [child] at [rectOf].
+  const MorphLivePlacement({
+    required this.live,
+    required this.rectOf,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the box.
+  final Listenable? live;
+
+  /// The child's box in this one's coordinates now.
+  final Rect Function() rectOf;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) {
+    final box = _RenderLivePlacement(rectOf());
+    box.bindLive(live, () => box.rect = rectOf());
+    return box;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) {
+    final box = renderObject as _RenderLivePlacement;
+    box.bindLive(live, () => box.rect = rectOf());
+  }
+}
+
+class _RenderLivePlacement extends RenderProxyBox with MorphLiveBinding {
+  _RenderLivePlacement(this._rect);
+
+  Rect _rect;
+
+  Rect get rect => _rect;
+
+  set rect(Rect value) {
+    if (value == _rect) return;
+    final resized = value.size != _rect.size;
+    _rect = value;
+    if (resized) {
+      markNeedsLayout();
+    } else {
+      markNeedsPaint();
+    }
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  void performLayout() {
+    child?.layout(
+      BoxConstraints.tightFor(width: _rect.width, height: _rect.height),
+      parentUsesSize: true,
+    );
+    size = constraints.biggest;
+  }
+
+  bool get _overflows =>
+      _rect.left < 0 ||
+      _rect.left + _rect.width > size.width ||
+      _rect.top < 0 ||
+      _rect.top + _rect.height > size.height;
+
+  final _clip = LayerHandle<ClipRectLayer>();
+
+  @override
+  void dispose() {
+    _clip.layer = null;
+    super.dispose();
+  }
+
+  @override
+  void paint(PaintingContext context, Offset offset) {
+    final child = this.child;
+    if (child == null) return;
+    if (!_overflows) {
+      _clip.layer = null;
+      context.paintChild(child, _rect.topLeft + offset);
+      return;
+    }
+    _clip.layer = context.pushClipRect(
+      needsCompositing,
+      offset,
+      Offset.zero & size,
+      (PaintingContext context, Offset offset) =>
+          context.paintChild(child, _rect.topLeft + offset),
+      oldLayer: _clip.layer,
+    );
+  }
+
+  @override
+  Rect? describeApproximatePaintClip(RenderObject child) =>
+      _overflows ? Offset.zero & size : null;
+
+  @override
+  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
+    final child = this.child;
+    if (child == null) return false;
+    return result.addWithPaintOffset(
+      offset: _rect.topLeft,
+      position: position,
+      hitTest: (BoxHitTestResult result, Offset position) =>
+          child.hitTest(result, position: position),
+    );
+  }
+
+  @override
+  void applyPaintTransform(RenderBox child, Matrix4 transform) {
+    transform.translateByDouble(_rect.left, _rect.top, 0, 1);
+  }
+}
+
+/// The render object [template] makes, configured again from a fresh
+/// [template] on every notification of [live] without a build.
+///
+/// The template is a render object widget whose own child is ignored;
+/// [child] is this widget's. Each notification applies what its
+/// `updateRenderObject` would, so the render object marks itself for
+/// paint, layout or compositing exactly as a rebuild with the same values
+/// would. A template must make the same render object type every time.
+///
+/// It fits any stock render object without a live twin, at the price of
+/// one template widget per notification.
+@internal
+class MorphLiveTemplate extends SingleChildRenderObjectWidget {
+  /// Drives the render object of [template].
+  const MorphLiveTemplate({
+    required this.template,
+    this.live,
+    super.child,
+    super.key,
+  });
+
+  /// The source the template follows, or null for a fixed one.
+  final Listenable? live;
+
+  /// Returns the render object widget for the source's current state.
+  final RenderObjectWidget Function() template;
+
+  @override
+  RenderObject createRenderObject(BuildContext context) =>
+      template().createRenderObject(context);
+
+  @override
+  void updateRenderObject(BuildContext context, RenderObject renderObject) =>
+      template().updateRenderObject(context, renderObject);
+
+  @override
+  SingleChildRenderObjectElement createElement() => _LiveTemplateElement(this);
+}
+
+class _LiveTemplateElement extends SingleChildRenderObjectElement {
+  _LiveTemplateElement(MorphLiveTemplate super.widget);
+
+  Listenable? get _live => (widget as MorphLiveTemplate).live;
+
+  void _drive() =>
+      (widget as MorphLiveTemplate).updateRenderObject(this, renderObject);
+
+  @override
+  void mount(Element? parent, Object? newSlot) {
+    super.mount(parent, newSlot);
+    _live?.addListener(_drive);
+  }
+
+  @override
+  void update(MorphLiveTemplate newWidget) {
+    final old = _live;
+    super.update(newWidget);
+    if (!identical(old, _live)) {
+      old?.removeListener(_drive);
+      _live?.addListener(_drive);
+    }
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _live?.addListener(_drive);
+  }
+
+  @override
+  void deactivate() {
+    _live?.removeListener(_drive);
+    super.deactivate();
+  }
+}
+
+/// A child of a plain [Stack] placed by the [Positioned] [template]
+/// returns, read again on every notification of [live] without a build.
+///
+/// The template's own child is ignored; pass [morphLiveSlot].
+@internal
+class MorphLivePositionedTemplate extends ParentDataWidget<StackParentData> {
+  /// Places [child] where [template] says.
+  const MorphLivePositionedTemplate({
+    required this.template,
+    required super.child,
+    this.live,
+    super.key,
+  });
+
+  /// The source the placement follows, or null for a fixed one.
+  final Listenable? live;
+
+  /// Returns the placement for the source's current state.
+  final Positioned Function() template;
+
+  @override
+  void applyParentData(RenderObject renderObject) =>
+      template().applyParentData(renderObject);
+
+  @override
+  Type get debugTypicalAncestorWidgetClass => Stack;
+
+  @override
+  ParentDataElement<StackParentData> createElement() =>
+      _LivePositionedTemplateElement(this);
+}
+
+/// The child a [MorphLivePositionedTemplate]'s template carries; never
+/// built.
+@internal
+const Widget morphLiveSlot = SizedBox.shrink();
+
+class _LivePositionedTemplateElement
+    extends ParentDataElement<StackParentData> {
+  _LivePositionedTemplateElement(MorphLivePositionedTemplate super.widget);
+
+  Listenable? get _live => (widget as MorphLivePositionedTemplate).live;
+
+  void _drive() {
+    var child = renderObjectAttachingChild;
+    while (child != null && child is! RenderObjectElement) {
+      child = child.renderObjectAttachingChild;
+    }
+    if (child is RenderObjectElement) {
+      (widget as MorphLivePositionedTemplate).applyParentData(
+        child.renderObject,
+      );
+    }
+  }
+
+  @override
+  void mount(Element? parent, Object? newSlot) {
+    super.mount(parent, newSlot);
+    _live?.addListener(_drive);
+  }
+
+  @override
+  void update(MorphLivePositionedTemplate newWidget) {
+    final old = _live;
+    super.update(newWidget);
+    if (!identical(old, _live)) {
+      old?.removeListener(_drive);
+      _live?.addListener(_drive);
+    }
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _live?.addListener(_drive);
+  }
+
+  @override
+  void deactivate() {
+    _live?.removeListener(_drive);
+    super.deactivate();
+  }
+}

@@ -2,7 +2,7 @@ import 'dart:ui' show lerpDouble;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
@@ -236,7 +236,7 @@ abstract class MorphGlassPainter {
   /// The default fills [MorphGlassSurface.localShape] with
   /// [MorphGlassSurface.color], as the control does without a painter.
   Widget buildFill(BuildContext context, MorphGlassSurface surface) =>
-      CustomPaint(painter: _FillPainter(GlassFixed(_fillOf(surface))));
+      CustomPaint(painter: _FillPainter(MorphFixed(_fillOf(surface))));
 
   /// Builds the widget that draws one glass body: the [surfaces] a control
   /// fused into one silhouette, filling the box of their layer, with
@@ -251,7 +251,7 @@ abstract class MorphGlassPainter {
     List<MorphGlassSurface> surfaces,
   ) {
     return CustomPaint(
-      painter: _BodyPainter(GlassFixed(_bodyOf(outline, surfaces))),
+      painter: _BodyPainter(MorphFixed(_bodyOf(outline, surfaces))),
     );
   }
 
@@ -264,7 +264,7 @@ abstract class MorphGlassPainter {
   Widget buildGlow(BuildContext context, MorphGlassSurface surface) {
     if (surface.glow == null) return const SizedBox.expand();
     return CustomPaint(
-      painter: MorphGlassGlowPainter(GlassFixed(_glowOf(surface))),
+      painter: MorphGlassGlowPainter(MorphFixed(_glowOf(surface))),
     );
   }
 
@@ -474,7 +474,7 @@ class _FillPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_FillPainter oldDelegate) =>
-      data is! GlassFixed<(RRect, Color)> ||
+      data is! MorphFixed<(RRect, Color)> ||
       oldDelegate.data.value != data.value;
 }
 
@@ -488,7 +488,7 @@ class _BodyPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_BodyPainter oldDelegate) =>
-      data is! GlassFixed<(MorphGlassOutline, Color)> ||
+      data is! MorphFixed<(MorphGlassOutline, Color)> ||
       oldDelegate.data.value != data.value;
 }
 

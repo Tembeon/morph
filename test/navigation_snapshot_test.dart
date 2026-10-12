@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/navigation_snapshot.dart';
@@ -102,7 +102,7 @@ void main() {
       expect(
         find.ancestor(
           of: find.byType(SnapshotWidget),
-          matching: find.byType(GlassLiveTransform),
+          matching: find.byType(MorphLiveTransform),
         ),
         findsWidgets,
       );

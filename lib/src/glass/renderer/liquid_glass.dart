@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/glass_shadow.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/optimized_clip.dart';
 import 'package:morph/src/glass/renderer/internal/render_liquid_glass_geometry.dart';
 import 'package:morph/src/glass/renderer/liquid_glass_render_scope.dart';
@@ -168,7 +168,7 @@ class _LiquidGlassState extends State<LiquidGlass> {
         clipBehavior: scope.consolidatesFakeBackdrop
             ? Clip.antiAlias
             : widget.clipBehavior,
-        child: GlassLiveOpacity(
+        child: MorphLiveOpacity(
           live: live,
           opacityOf: () => appearance().visibility.clamp(0.0, 1.0),
           child: KeyedSubtree(key: _childKey, child: child),
@@ -256,7 +256,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
 /// Geometry of one independently registered shape.
 @internal
 class RenderLiquidGlass extends RenderLiquidGlassGeometry
-    with LiquidGlassShapeRenderObject, GlassLiveBinding {
+    with LiquidGlassShapeRenderObject, MorphLiveBinding {
   /// Creates the geometry and material registration for a shape.
   RenderLiquidGlass({
     required this._shape,

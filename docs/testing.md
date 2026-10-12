@@ -75,7 +75,7 @@ it.
 - `MorphMotion.instant` is a 281 ms critically damped spring, not a cut.
 - A live widget that replaces a stock one subclasses it; tests find it with
   `find.bySubtype`, or by the live type when it is a new widget (for example
-  `GlassLiveTransform`). A test that looks for `Transform` or `AnimatedBuilder` breaks
+  `MorphLiveTransform`). A test that looks for `Transform` or `AnimatedBuilder` breaks
   when a build-per-tick widget becomes a live render object.
 - Widget-layer hosts pick their sub-clock rate from the test display's refresh rate (60 in
   flutter_test), while device replays pass 120 explicitly to the pure motion; a widget

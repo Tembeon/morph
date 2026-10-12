@@ -3,7 +3,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 
 /// A painted content source shared by the lens copies in one control.
 @internal
@@ -150,7 +150,7 @@ class GlassContentSource extends SingleChildRenderObjectWidget {
   }
 }
 
-class _RenderContentSource extends RenderProxyBox with GlassLiveBinding {
+class _RenderContentSource extends RenderProxyBox with MorphLiveBinding {
   _RenderContentSource(this.snapshot, this.pixelRatio, {required this.capture});
 
   void _frame() {

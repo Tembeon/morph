@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
@@ -509,7 +509,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
             onPointerMove: handleMove,
             onPointerUp: handleUp,
             onPointerCancel: handleCancel,
-            child: GlassLiveTransform(
+            child: MorphLiveTransform(
               live: frames,
               writeInto: (Matrix4 into) {
                 if (_motion.isSettled) return;

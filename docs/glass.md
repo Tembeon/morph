@@ -35,7 +35,7 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
   (`MorphGlassRenderer.structureOf`: tier, roles and counts, brightness,
   glows, lifted lenses, platters, outline kind) over a `MorphGlassChannel`.
   Every later frame is pushed: render objects bound by
-  `GlassLiveBinding` (renderer internal/glass_live.dart) write new values
+  `MorphLiveBinding` (lib/src/live.dart) write new values
   through their own setters - `MorphLiveStack` / `MorphLivePositioned`
   boxes, live clips, backdrop filters, decorations, painters that
   repaint on a key of what they read, `LiquidGlass.live` /

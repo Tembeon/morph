@@ -152,7 +152,7 @@ Local patches (some commits include related package changes):
   new frame straight into their render objects (RenderLiquidGlass, the
   glass shadow, the shape clip and visibility opacity, RenderFakeGlass,
   RenderLiquidGlassLayer, RenderConsolidatedFakeGlassLayer) through the
-  GlassLiveBinding mixin (internal/glass_live.dart): the setters decide
+  MorphLiveBinding mixin (lib/src/live.dart): the setters decide
   what changed, no widget rebuilds. The layer's scope carries the live
   settings (LiquidGlassRenderScope.settingsLive / currentSettings) for the
   shapes below it. A live shape rebuilds only when its kind of shape

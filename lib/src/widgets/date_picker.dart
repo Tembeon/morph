@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_cache.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -1122,12 +1122,13 @@ class _OverlayViewState extends State<_OverlayView>
     return Positioned.fill(
       child: IgnorePointer(
         ignoring: _leaving,
-        child: _FrameTransform(
-          frames: _boxFrames,
-          transform: () => frame().transform,
-          child: _FramePlacement(
-            frames: _boxFrames,
-            box: () => frame().box,
+        child: MorphLiveTransform.matrix(
+          live: _boxFrames,
+          matrixOf: () => frame().transform,
+          alignment: null,
+          child: MorphLivePlacement(
+            live: _boxFrames,
+            rectOf: () => frame().box,
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -1327,318 +1328,6 @@ class _OverlayClipper extends CustomClipper<RRect> {
       !identical(oldClipper.shape, shape);
 }
 
-/// Places its child [dx] points along the x axis at paint, read again on
-/// every frame of [frames] without a layout.
-class _FrameShift extends SingleChildRenderObjectWidget {
-  const _FrameShift({required this.frames, required this.dx, super.child});
-
-  final Listenable frames;
-  final double Function() dx;
-
-  @override
-  _RenderFrameShift createRenderObject(BuildContext context) =>
-      _RenderFrameShift(frames, dx);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderFrameShift renderObject,
-  ) {
-    renderObject.frames = frames;
-    renderObject.dxOf = dx;
-  }
-}
-
-class _RenderFrameShift extends RenderProxyBox {
-  _RenderFrameShift(this._frames, this._dxOf) : _dx = _dxOf();
-
-  Listenable _frames;
-  Listenable get frames => _frames;
-  set frames(Listenable value) {
-    if (identical(value, _frames)) return;
-    if (attached) {
-      _frames.removeListener(_tick);
-      value.addListener(_tick);
-    }
-    _frames = value;
-  }
-
-  double Function() _dxOf;
-  double Function() get dxOf => _dxOf;
-  set dxOf(double Function() value) {
-    if (identical(value, _dxOf)) return;
-    _dxOf = value;
-    _tick();
-  }
-
-  double _dx;
-
-  void _tick() {
-    final dx = _dxOf();
-    if (dx == _dx) return;
-    _dx = dx;
-    markNeedsPaint();
-    markNeedsSemanticsUpdate();
-  }
-
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _frames.addListener(_tick);
-    _tick();
-  }
-
-  @override
-  void detach() {
-    _frames.removeListener(_tick);
-    super.detach();
-  }
-
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    final child = this.child;
-    if (child != null) context.paintChild(child, offset + Offset(_dx, 0));
-  }
-
-  // The child stands where it paints, outside this box's own bounds.
-  @override
-  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
-      hitTestChildren(result, position: position);
-
-  @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    final child = this.child;
-    if (child == null) return false;
-    return result.addWithPaintOffset(
-      offset: Offset(_dx, 0),
-      position: position,
-      hitTest: (BoxHitTestResult result, Offset position) =>
-          child.hitTest(result, position: position),
-    );
-  }
-
-  @override
-  void applyPaintTransform(RenderBox child, Matrix4 transform) {
-    transform.translateByDouble(_dx, 0, 0, 1);
-  }
-}
-
-/// A [Transform] whose matrix is read again on every frame of [frames];
-/// it repaints only when the matrix changes.
-class _FrameTransform extends SingleChildRenderObjectWidget {
-  const _FrameTransform({
-    required this.frames,
-    required this.transform,
-    this.alignment,
-    super.child,
-  });
-
-  final Listenable frames;
-  final Matrix4 Function() transform;
-  final AlignmentGeometry? alignment;
-
-  @override
-  _RenderFrameTransform createRenderObject(BuildContext context) =>
-      _RenderFrameTransform(
-        frames,
-        transform,
-        alignment: alignment,
-        textDirection: Directionality.maybeOf(context),
-      );
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderFrameTransform renderObject,
-  ) {
-    renderObject.alignment = alignment;
-    renderObject.textDirection = Directionality.maybeOf(context);
-    renderObject.frames = frames;
-    renderObject.transformOf = transform;
-  }
-}
-
-class _RenderFrameTransform extends RenderTransform {
-  _RenderFrameTransform(
-    this._frames,
-    this._transformOf, {
-    super.alignment,
-    super.textDirection,
-  }) : super(transform: _transformOf());
-
-  Listenable _frames;
-  Listenable get frames => _frames;
-  set frames(Listenable value) {
-    if (identical(value, _frames)) return;
-    if (attached) {
-      _frames.removeListener(_tick);
-      value.addListener(_tick);
-    }
-    _frames = value;
-  }
-
-  Matrix4 Function() _transformOf;
-  Matrix4 Function() get transformOf => _transformOf;
-  set transformOf(Matrix4 Function() value) {
-    if (identical(value, _transformOf)) return;
-    _transformOf = value;
-    _tick();
-  }
-
-  void _tick() => transform = _transformOf();
-
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _frames.addListener(_tick);
-    _tick();
-  }
-
-  @override
-  void detach() {
-    _frames.removeListener(_tick);
-    super.detach();
-  }
-}
-
-/// Lays its child out at the size of [box] and paints it at [box]'s
-/// offset, as a [Positioned.fromRect] in a [Stack] does, reading [box]
-/// again on every frame of [frames].
-class _FramePlacement extends SingleChildRenderObjectWidget {
-  const _FramePlacement({required this.frames, required this.box, super.child});
-
-  final Listenable frames;
-  final Rect Function() box;
-
-  @override
-  _RenderFramePlacement createRenderObject(BuildContext context) =>
-      _RenderFramePlacement(frames, box);
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderFramePlacement renderObject,
-  ) {
-    renderObject.frames = frames;
-    renderObject.boxOf = box;
-  }
-}
-
-class _RenderFramePlacement extends RenderProxyBox {
-  _RenderFramePlacement(this._frames, this._boxOf) : _box = _boxOf();
-
-  Listenable _frames;
-  Listenable get frames => _frames;
-  set frames(Listenable value) {
-    if (identical(value, _frames)) return;
-    if (attached) {
-      _frames.removeListener(_tick);
-      value.addListener(_tick);
-    }
-    _frames = value;
-  }
-
-  Rect Function() _boxOf;
-  Rect Function() get boxOf => _boxOf;
-  set boxOf(Rect Function() value) {
-    if (identical(value, _boxOf)) return;
-    _boxOf = value;
-    _tick();
-  }
-
-  Rect _box;
-
-  void _tick() {
-    final box = _boxOf();
-    if (box == _box) return;
-    final resized = box.size != _box.size;
-    _box = box;
-    if (resized) {
-      markNeedsLayout();
-    } else {
-      markNeedsPaint();
-    }
-    markNeedsSemanticsUpdate();
-  }
-
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _frames.addListener(_tick);
-    _tick();
-  }
-
-  @override
-  void detach() {
-    _frames.removeListener(_tick);
-    super.detach();
-  }
-
-  @override
-  void performLayout() {
-    child?.layout(
-      BoxConstraints.tightFor(width: _box.width, height: _box.height),
-      parentUsesSize: true,
-    );
-    size = constraints.biggest;
-  }
-
-  bool get _overflows =>
-      _box.left < 0 ||
-      _box.left + _box.width > size.width ||
-      _box.top < 0 ||
-      _box.top + _box.height > size.height;
-
-  final _clip = LayerHandle<ClipRectLayer>();
-
-  @override
-  void dispose() {
-    _clip.layer = null;
-    super.dispose();
-  }
-
-  // A box out of bounds is clipped to them, as a Stack clips its overflow.
-  @override
-  void paint(PaintingContext context, Offset offset) {
-    final child = this.child;
-    if (child == null) return;
-    if (!_overflows) {
-      _clip.layer = null;
-      context.paintChild(child, _box.topLeft + offset);
-      return;
-    }
-    _clip.layer = context.pushClipRect(
-      needsCompositing,
-      offset,
-      Offset.zero & size,
-      (PaintingContext context, Offset offset) =>
-          context.paintChild(child, _box.topLeft + offset),
-      oldLayer: _clip.layer,
-    );
-  }
-
-  @override
-  Rect? describeApproximatePaintClip(RenderObject child) =>
-      _overflows ? Offset.zero & size : null;
-
-  @override
-  bool hitTestChildren(BoxHitTestResult result, {required Offset position}) {
-    final child = this.child;
-    if (child == null) return false;
-    return result.addWithPaintOffset(
-      offset: _box.topLeft,
-      position: position,
-      hitTest: (BoxHitTestResult result, Offset position) =>
-          child.hitTest(result, position: position),
-    );
-  }
-
-  @override
-  void applyPaintTransform(RenderBox child, Matrix4 transform) {
-    transform.translateByDouble(_box.left, _box.top, 0, 1);
-  }
-}
-
 /// The rotation [Transform.rotate] builds for [radians], bit for bit.
 Matrix4 _rotationZ(double radians) {
   if (radians == 0.0) return Matrix4.identity();
@@ -1827,10 +1516,9 @@ class _Calendar extends StatelessWidget {
                                     const SizedBox(
                                       width: _CalendarMetrics.titleChevronGap,
                                     ),
-                                    _FrameTransform(
-                                      frames: frames,
-                                      alignment: Alignment.center,
-                                      transform: () => _rotationZ(
+                                    MorphLiveTransform.matrix(
+                                      live: frames,
+                                      matrixOf: () => _rotationZ(
                                         (rtl ? -1 : 1) *
                                             motion.yearPickerTurn(motion.time) *
                                             math.pi /
@@ -1951,9 +1639,12 @@ class _Calendar extends StatelessWidget {
                                             left: 0,
                                             top: 0,
                                             width: grid,
-                                            child: _FrameShift(
-                                              frames: frames,
-                                              dx: () => -dir() * grid * p(),
+                                            child: MorphLiveShift(
+                                              live: frames,
+                                              offsetOf: () => Offset(
+                                                -dir() * grid * p(),
+                                                0,
+                                              ),
                                               child: previousGrid,
                                             ),
                                           ),
@@ -1961,14 +1652,16 @@ class _Calendar extends StatelessWidget {
                                           left: 0,
                                           top: 0,
                                           width: grid,
-                                          child: _FrameShift(
-                                            frames: frames,
-                                            dx: () {
+                                          child: MorphLiveShift(
+                                            live: frames,
+                                            offsetOf: () {
                                               final q = p();
-                                              return previousGrid != null &&
-                                                      q < 1
-                                                  ? dir() * grid * (1 - q)
-                                                  : 0;
+                                              return Offset(
+                                                previousGrid != null && q < 1
+                                                    ? dir() * grid * (1 - q)
+                                                    : 0,
+                                                0,
+                                              );
                                             },
                                             child: monthGrid,
                                           ),

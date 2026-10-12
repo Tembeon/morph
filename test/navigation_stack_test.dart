@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/src/glass/renderer/internal/glass_live.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/glyph_scale.dart'
     show MorphGlyphs, MorphVeiledGlyphs;
 import 'package:morph/widgets.dart';
@@ -618,11 +618,11 @@ void main() {
         (w) => w is MorphNavigationScaffold && w.title == 'Message',
       );
       Listenable? live() => tester
-          .widget<GlassLiveTransform>(
+          .widget<MorphLiveTransform>(
             find
                 .ancestor(
                   of: message,
-                  matching: find.byType(GlassLiveTransform),
+                  matching: find.byType(MorphLiveTransform),
                 )
                 .first,
           )
