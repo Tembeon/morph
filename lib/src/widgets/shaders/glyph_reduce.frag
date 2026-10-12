@@ -1,5 +1,5 @@
 // Draws one level of a glyph raster's pyramid: each texel the mean of the
-// [uFactor] x [uFactor] raster texels it covers (MorphGlyphBlur in
+// [uFactor] x [uFactor] raster texels it covers (MorphGlyphs in
 // glyph_scale.dart). Every level of every raster draws in one pass, with
 // no mipmaps: each bilinear tap reads the exact mean of a 2 x 2 block.
 #version 460 core

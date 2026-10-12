@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/glass/renderer/internal/glass_live.dart';
-import 'package:morph/src/widgets/glyph_scale.dart' show MorphGlyphBlur;
+import 'package:morph/src/widgets/glyph_scale.dart'
+    show MorphGlyphs, MorphVeiledGlyphs;
 import 'package:morph/widgets.dart';
 
 const _screen = Size(402, 874);
@@ -112,18 +113,21 @@ Finder _key(String id) => find.byKey(ValueKey<Object>(id));
 Offset _item(WidgetTester tester, String id) => tester.getCenter(_key(id));
 
 /// The opacity an item fades with: an [Opacity], or on Android the
-/// [MorphGlyphBlur] that draws its blur and fade in one.
+/// [MorphVeiledGlyphs] that draws its blur and fade in one.
 double _opacity(WidgetTester tester, String id) => switch (tester.widget(
   find
       .descendant(
         of: _key(id),
         matching: find.byWidgetPredicate(
-          (Widget w) => w is Opacity || w is MorphGlyphBlur,
+          (Widget w) =>
+              w is Opacity || w is MorphVeiledGlyphs || w is MorphGlyphs,
         ),
       )
       .first,
 )) {
-  Opacity(:final opacity) || MorphGlyphBlur(:final opacity) => opacity,
+  Opacity(:final opacity) ||
+  MorphVeiledGlyphs(:final opacity) ||
+  MorphGlyphs(:final opacity) => opacity,
   _ => throw StateError('no fade'),
 };
 

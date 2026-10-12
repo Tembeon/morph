@@ -276,8 +276,8 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   moves them into the vessel (one GlobalKey move, state and layout kept).
   Loading rows and `MorphMenuWidget` rows are left to the opening: their
   state has to start with the menu. The prebuilt rows never rasterize
-  their glyphs offscreen (`menuRowsRaster` is false until the vessel sets
-  it): an early offscreen raster moved icon and check-mark edges by a few
+  their glyphs offscreen (they are offstage, and their cover
+  `menuRowsBlur` is 0 until the vessel sets it): an early offscreen raster moved icon and check-mark edges by a few
   device pixels on the iPhone, so the picture is recorded at the opening
   as before. The root card's list below its moving frame is one
   remembered widget while nothing it shows changes, and a card's element
@@ -330,6 +330,15 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   frames). Menu scene: UI p95 14.0 -> 11.0 ms, frames over budget 5.3 ->
   3.0 percent, glyph atlas 380 -> 54 ms per scene. Left: encode and
   saveLayer on the raster thread, and the first frames' fusions.
+- One glyph policy (2026-10-12, glass-renderer.md "One glyph policy"):
+  the rows' raster switch (blur >= 0.5 pt or scale off 1 by 0.002) and
+  the button glyph's live drawing gave way to `MorphGlyphs`: the rows
+  read the content blur as their cover (`menuRowsBlur`) and draw live at
+  rest, from one raster while the card moves fast or under the blur,
+  snapped while it settles; the glyph follows its morph scale the same
+  way. Pixel 6a menu scene, A B B A: frames striking glyphs liquid 9.7 ->
+  4.4 percent, flat 9.9 -> 4.5; atlas flat 0.17 -> 0.12 ms per frame;
+  frames over budget within the spread (liquid 2.9 / 3.8 -> 3.7 / 3.8).
 - Device trace tool: example/integration_test/menu_trace_test.dart
   (profile build, `--dart-define=TRACE_SCENE=center|gallery`,
   `TRACE_RUN=<id>`, writes `<app tmp>/menu_trace_<id>.json`: FrameTimings,

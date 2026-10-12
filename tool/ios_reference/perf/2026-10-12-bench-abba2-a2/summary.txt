@@ -1,0 +1,18 @@
+ec4abb7  runs 5  fixed-perf False  2026-10-12 16:26
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   359    [power_mw 320->359]
+audit/liquid/idle-frames              1   4.1   4.1  16.5  16.5   2.9   0.0    0   537    [power_mw 286->537]
+audit/liquid/segmented             1972   3.0   5.7  10.1  14.9   3.6   2.7    5   543  raster-wait:48 raster-cpu:5 bad raster: waitForBufferRelease 10.2, SurfaceFrame::Encode 3.1, QueueSubmit 2.4  [over_pct 0.3->2.7]
+audit/liquid/tab-bar               2507   4.6   7.3  10.7  15.1  14.6   3.0   20   901  raster-cpu:45 gpu:23 raster-sched:4 raster-wait:2 bad raster: QueueSubmit 4.5, SurfaceFrame::Encode 3.7, Canvas::saveLayer 3.2  [power_mw 1046->901]
+audit/liquid/controls              1970   3.4  10.9   9.2  13.3   5.5   0.9  119   582  raster-wait:14 raster-cpu:4 bad raster: waitForBufferRelease 7.7, SurfaceFrame::Encode 3.6, QueueSubmit 3.5  [raster 12.02->13.3]
+audit/liquid/menu                  1275   5.9  13.1   8.8  14.3  12.3   3.8   77   738  raster-cpu:22 ui-layout:17 ui-paint:6 ui-compositing:2 gpu:1 ui-sched:1 bad raster: SurfaceFrame::Encode 9.6, Canvas::saveLayer 4.2, QueueSubmit 3.5  [over_pct 5.3->3.8]
+audit/liquid/sheet                 1210   3.2   7.2   9.7  14.4  17.2   8.2   27  1116  gpu:81 raster-cpu:13 ui-layout:3 ui-build:1 raster-wait:1 bad raster: Canvas::saveLayer 9.1, SurfaceFrame::Encode 4.7, QueueSubmit 3.2  [=]
+audit/flat/idle                       0     -     -     -     -     -   0.0    0   274    [=]
+audit/flat/idle-frames                1   1.3   1.3  10.6  10.6   1.7   0.0    0   333    [power_mw 270->333]
+audit/flat/segmented               1945   1.9   3.0   5.9   7.0   1.3   0.0    1   424    [power_mw 453->424]
+audit/flat/tab-bar                 2277   2.9   3.9   6.7   8.4   2.6   0.0    1   631    [=]
+audit/flat/controls                1963   1.9   8.7   5.8   7.5   1.2   0.0   49   463    [=]
+audit/flat/menu                    1294   2.9   8.3   6.2  10.2   3.3   1.1   45   455  ui-layout:11 ui-paint:1 raster-wait:1 raster-sched:1 bad ui: layout 13.4, paint 4.6, compositing 1.3  [ui 10.27->8.309, power_mw 553->455]
+audit/flat/sheet                   1215   1.8   3.9   5.7   8.0   3.4   0.0   11   451    [power_mw 501->451]

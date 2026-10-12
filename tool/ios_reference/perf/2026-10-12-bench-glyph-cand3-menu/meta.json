@@ -1,0 +1,27 @@
+{
+ "sdk": "stable",
+ "sha": "ec4abb7-dirty",
+ "source": "/Users/tembeon/IdeaProjects/morph/.claude/worktrees/vigorous-turing-1eeac3",
+ "fixed": false,
+ "runs": 5,
+ "date": "2026-10-12 15:45:31.016412",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "5",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8",
+    "AUDIT_SCENES": "menu,controls"
+   },
+   "thermal_before": [
+    0,
+    35.191402
+   ],
+   "thermal_after": [
+    0,
+    35.4282
+   ]
+  }
+ }
+}

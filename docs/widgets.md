@@ -86,6 +86,19 @@ boundary crossed is reported (at most 600 per advance), so the
 deformation is identical on a 60 or 120 Hz host, under `timeDilation`
 and under coarse test pumps.
 
+`glyph_scale.dart` - text under an animated transform. Wrap a label (or
+any child holding text) whose scale, blur or fade animates in
+`MorphGlyphs` (`morphVeiledGlyphs` when the control blurs and fades it);
+never pick a drawing mode in a widget. `MorphGlyphPolicy` decides each
+frame from what the drawing observes - its screen-scale velocity, a
+cover blur from above, whether its content held still - between live
+(rest, exact), snapped (slow, NEAR), raster (fast or covered, NEAR) and
+the Android pyramid shader (veiled). The drawing reads its scale at
+paint: keep it below the animating transform with no repaint boundary in
+between (a boundary inside its child is fine). `MorphControlCapsule`
+wraps its content, so capsule controls get it for free; a custom painter
+uses `MorphGlyphTracker` (the lens copy does).
+
 `lens_driver.dart`, `lens_spec.dart`, `control_focus.dart`
 (`MorphControlFocus`, `MorphFocusRing` in systemBlue, `MorphDisabled`),
 `touch_listener.dart` (`delaysInScrollable`).

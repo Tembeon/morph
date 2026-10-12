@@ -400,7 +400,7 @@ class _BenchState extends State<_Bench> {
 
   Future<void> _perform(_Case c) async {
     _callbackUs = 0;
-    MorphGlyphBlur.debugRasterCount = 0;
+    MorphGlyphs.debugRasterCount = 0;
     void trigger(VoidCallback action) {
       final start = developer.Timeline.now;
       action();
@@ -855,7 +855,7 @@ class _BenchState extends State<_Bench> {
           window[1] = developer.Timeline.now;
           (_work[c.name] ??= []).add({
             'callback_us': _callbackUs,
-            'glyph_rasters': MorphGlyphBlur.debugRasterCount,
+            'glyph_rasters': MorphGlyphs.debugRasterCount,
           });
           if (_phases) {
             final collected = FlutterTimeline.debugCollect();

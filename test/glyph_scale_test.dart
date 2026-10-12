@@ -92,45 +92,53 @@ Future<List<(Uint8List, Uint8List, bool)>> _twice(
 }
 
 void main() {
-  setUpAll(() => isLocalTest = true);
+  setUpAll(() async {
+    isLocalTest = true;
+    await MorphGlyphs.precache();
+  });
 
-  testWidgets('a retained raster refreshes and releases its source image', (
+  testWidgets('a raster refreshes with its child and is released at rest', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 2.625;
     addTearDown(tester.view.resetDevicePixelRatio);
-    final created = <ui.Image>{};
-    final disposed = <ui.Image>{};
+    final live = <ui.Image>{};
+    var counting = true;
     final oldCreate = ui.Image.onCreate;
     final oldDispose = ui.Image.onDispose;
     ui.Image.onCreate = (image) {
       oldCreate?.call(image);
-      if (image.width == 98 && image.height == 59) created.add(image);
+      if (counting) live.add(image);
     };
     ui.Image.onDispose = (image) {
       oldDispose?.call(image);
-      if (created.contains(image)) disposed.add(image);
+      live.remove(image);
     };
     addTearDown(() {
       ui.Image.onCreate = oldCreate;
       ui.Image.onDispose = oldDispose;
     });
-    final active = ValueNotifier(true);
-    addTearDown(active.dispose);
+    final cover = ValueNotifier<double>(1);
+    addTearDown(cover.dispose);
     const key = ValueKey<String>('retained');
-    Widget app(Color color) => _app(
-      MorphGlyphRaster(
-        active: active,
-        sampleLogicalBounds: true,
-        child: SizedBox(
-          key: key,
-          width: 37.125,
-          height: 22.25,
-          child: ColoredBox(color: color),
+    Widget app(Color color, double scale) => _app(
+      Transform.scale(
+        scale: scale,
+        child: MorphGlyphs(
+          cover: cover,
+          child: SizedBox(
+            key: key,
+            width: 37.125,
+            height: 22.25,
+            child: ColoredBox(color: color),
+          ),
         ),
       ),
     );
+    RenderMorphGlyphs glyphs() =>
+        tester.renderObject<RenderMorphGlyphs>(find.byType(MorphGlyphs));
     Future<List<int>> center() async {
+      counting = false;
       final rect = tester.getRect(find.byKey(key));
       final boundary =
           tester.renderObject(find.byKey(_frameKey)) as RenderRepaintBoundary;
@@ -139,26 +147,31 @@ void main() {
           ((rect.center.dy * 3).floor() * width +
               (rect.center.dx * 3).floor()) *
           4;
-      return (await _frame(tester)).sublist(offset, offset + 4);
+      final pixel = (await _frame(tester)).sublist(offset, offset + 4);
+      counting = true;
+      return pixel;
     }
 
-    await tester.pumpWidget(app(const Color(0xFFFF0000)));
+    // Covered on its first frame: drawn from a raster.
+    await tester.pumpWidget(app(const Color(0xFFFF0000), 0.8));
+    expect(glyphs().debugMode, MorphGlyphMode.raster);
     expect(await center(), [255, 0, 0, 255]);
-    expect(created.difference(disposed), hasLength(1));
-    final first = created.single;
-    await tester.pumpWidget(app(const Color(0xFF0000FF)));
+    expect(live, isNotEmpty);
+    final first = {...live};
+    // The child repaints while it moves: the raster is taken again, the
+    // old one let go.
+    await tester.pumpWidget(app(const Color(0xFF0000FF), 0.85));
+    expect(glyphs().debugMode, MorphGlyphMode.raster);
     expect(await center(), [0, 0, 255, 255]);
-    expect(disposed, contains(first));
-    expect(created.difference(disposed), hasLength(1));
-    active.value = false;
+    expect(live.intersection(first), isEmpty);
+    // At rest the label is live and the raster released.
+    cover.value = 0;
     await tester.pump();
+    expect(glyphs().debugMode, MorphGlyphMode.live);
     expect(await center(), [0, 0, 255, 255]);
-    expect(created.difference(disposed), isEmpty);
-    active.value = true;
-    await tester.pump();
-    expect(created.difference(disposed), hasLength(1));
+    expect(live, isEmpty);
     await tester.pumpWidget(const SizedBox());
-    expect(created.difference(disposed), isEmpty);
+    expect(live, isEmpty);
   });
 
   test('the grid passes through the device pixel ratio', () {
@@ -176,7 +189,7 @@ void main() {
     expect(grid.length, lessThanOrEqualTo(35));
   });
 
-  testWidgets('a tab bar lens draws its copy on the grid only while lifting', (
+  testWidgets('a tab bar draws exact at rest and near while it moves', (
     tester,
   ) async {
     var selected = 0;
@@ -235,7 +248,7 @@ void main() {
     expect(worst.over, lessThan(0.2));
   });
 
-  testWidgets('menu rows draw from one raster only under the content blur', (
+  testWidgets('menu rows draw from one raster only while they move', (
     tester,
   ) async {
     Widget app() => _app(
@@ -264,11 +277,9 @@ void main() {
           await frame();
         }
       },
-      () {
-        final raster = find.byType(MorphGlyphRaster);
-        if (raster.evaluate().isEmpty) return false;
-        return tester.widget<MorphGlyphRaster>(raster.first).active.value;
-      },
+      () => tester
+          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
+          .any((g) => g.debugMode != MorphGlyphMode.live),
     );
     var rastered = 0;
     var worst = (max: 0, mean: 0.0, over: 0.0);

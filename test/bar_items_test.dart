@@ -176,8 +176,8 @@ void main() {
           MorphBarButtonGroup([_icon('a')], id: 'A'),
         ],
       );
-      List<RenderMorphGlyphSnap> snaps() => tester
-          .renderObjectList<RenderMorphGlyphSnap>(find.byType(MorphGlyphSnap))
+      List<RenderMorphGlyphs> snaps() => tester
+          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
           .toList();
       expect(snaps(), isNotEmpty);
       final gesture = await tester.startGesture(
@@ -186,13 +186,15 @@ void main() {
       var swelled = false;
       for (var i = 0; i < 30; i++) {
         await tester.pump(const Duration(milliseconds: 16));
-        swelled = swelled || snaps().any((s) => s.debugFactor != 1);
+        swelled =
+            swelled || snaps().any((s) => s.debugMode != MorphGlyphMode.live);
       }
-      // The press scales the item: some frame drew it off its layout size.
+      // The press scales the item: some frame left the live drawing.
       expect(swelled, isTrue);
       await gesture.up();
       await tester.pumpAndSettle();
       for (final snap in snaps()) {
+        expect(snap.debugMode, MorphGlyphMode.live);
         expect(snap.debugFactor, 1);
       }
     } finally {

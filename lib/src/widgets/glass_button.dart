@@ -7,6 +7,7 @@ import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
@@ -590,12 +591,14 @@ class MorphControlCapsule extends StatelessWidget {
   /// The current glow, or null for an unlit surface.
   final MorphGlassGlow? Function()? glow;
 
-  /// The content above the surface.
+  /// The content above the surface, drawn through [MorphGlyphs]: the
+  /// control's press and lift scale it.
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
     final glass = painter;
+    final child = MorphGlyphs(child: this.child);
     if (glass == null) {
       return CustomPaint(
         painter: _CapsulePainter(

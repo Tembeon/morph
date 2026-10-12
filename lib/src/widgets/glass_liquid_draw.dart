@@ -649,8 +649,12 @@ class MorphGlassCopyFrame {
 /// line first - across it beside the line, radially about each end beyond
 /// it, each part exact in its own strip - and through the glass each item
 /// still shows on its slot.
+///
+/// The copy's text is drawn as [MorphGlyphPolicy] decides from its screen
+/// scale (render transform x [grow] x [magnification]): exact at rest,
+/// on a grid of scales while a lift or set-down sweeps it.
 @internal
-class MorphGlassContentCopy extends StatelessWidget {
+class MorphGlassContentCopy extends StatefulWidget {
   /// Replays one source through the slot and rim transforms of a lens,
   /// repainting on every frame of [frame].
   const MorphGlassContentCopy({
@@ -717,37 +721,66 @@ class MorphGlassContentCopy extends StatelessWidget {
       MatrixUtils.transformRect(transformFor(slot, strip), rect);
 
   @override
-  Widget build(BuildContext context) => IgnorePointer(
-    child: ExcludeSemantics(
-      child: MorphScreenScalePaint(
-        repaint: frame is GlassFixed<MorphGlassCopyFrame> ? null : frame,
-        painter: _ContentCopyPainter(
-          this,
-          MediaQuery.devicePixelRatioOf(context),
-        ).paint,
-      ),
-    ),
+  State<MorphGlassContentCopy> createState() => _ContentCopyState();
+}
+
+class _ContentCopyState extends State<MorphGlassContentCopy> {
+  /// Ticks when the glyph policy asks for one more paint.
+  final ValueNotifier<int> _settle = ValueNotifier<int>(0);
+
+  late final MorphGlyphTracker _glyphs = MorphGlyphTracker(
+    () => _settle.value++,
   );
+
+  @override
+  void dispose() {
+    _glyphs.reset();
+    _settle.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final frame = widget.frame;
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: MorphScreenScalePaint(
+          repaint: frame is GlassFixed<MorphGlassCopyFrame>
+              ? _settle
+              : Listenable.merge([frame, _settle]),
+          painter: _ContentCopyPainter(
+            widget,
+            _glyphs,
+            MediaQuery.devicePixelRatioOf(context),
+          ).paint,
+        ),
+      ),
+    );
+  }
 }
 
 class _ContentCopyPainter {
-  _ContentCopyPainter(this.copy, this.devicePixelRatio);
-
-  static const double _settledLift = 0.99;
+  _ContentCopyPainter(this.copy, this.glyphs, this.devicePixelRatio);
 
   final MorphGlassContentCopy copy;
+
+  final MorphGlyphTracker glyphs;
 
   final double devicePixelRatio;
 
   double _glyphMagnification(double screenScale) {
     final magnification = copy.magnification;
-    if (copy.surface.lift >= _settledLift) return magnification;
-    final base = screenScale * copy.grow;
+    final base = screenScale * devicePixelRatio * copy.grow;
     if (base <= 0) return magnification;
+    final screen = base * magnification;
+    // No raster: a live lens records its source again every frame, so a
+    // raster of the copy would be taken again every frame.
+    final mode = glyphs.observe(screen, canRaster: false);
+    if (mode == MorphGlyphMode.live) return magnification;
     return MorphGlyphScale.snap(
-          base * magnification,
+          screen,
           devicePixelRatio,
-          perOctave: MorphGlyphScale.sweepStepsPerOctave,
+          perOctave: glyphs.perOctave,
         ) /
         base;
   }

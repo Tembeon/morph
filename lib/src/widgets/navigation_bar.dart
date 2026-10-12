@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -493,29 +492,13 @@ class _InlineTitle extends StatelessWidget {
               direction == TextDirection.rtl ? -shift() : shift(),
               m?.titleOffset ?? 0,
             );
-            if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-              return Transform.translate(
-                offset: offset,
-                child: MorphGlyphBlur(
-                  blur: blur,
-                  opacity: opacity.clamp(0.0, 1.0),
-                  child: out,
-                ),
-              );
-            }
-            if (blur > 0.05) {
-              out = ImageFiltered(
-                imageFilter: ui.ImageFilter.blur(
-                  sigmaX: blur,
-                  sigmaY: blur,
-                  tileMode: TileMode.decal,
-                ),
+            return Transform.translate(
+              offset: offset,
+              child: morphVeiledGlyphs(
+                blur: blur,
+                opacity: opacity.clamp(0.0, 1.0),
                 child: out,
-              );
-            }
-            return Opacity(
-              opacity: opacity,
-              child: Transform.translate(offset: offset, child: out),
+              ),
             );
           },
           child: Text(
