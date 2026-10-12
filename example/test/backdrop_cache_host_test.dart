@@ -76,13 +76,22 @@ void _main() {
       final mid = await shoot();
       await frames(80);
       final rest = await shoot();
+      // The page under the sheet moves for one frame: a copy from the frame
+      // before would show the old page through the glass.
+      final page = tester.state<ScrollableState>(find.byType(Scrollable).first);
+      page.position.jumpTo(page.position.pixels + 120);
+      await tester.pump(const Duration(milliseconds: 16));
+      final moved = await shoot();
       await tester.pumpWidget(const SizedBox());
-      return [mid, rest];
+      return [mid, rest, moved];
     }
 
     final off = await render(cache: false);
+    debugMorphBackdropCacheCaptures = 0;
     final on = await render(cache: true);
-    for (final (i, moment) in ['mid-open', 'rest'].indexed) {
+    // ignore: avoid_print
+    print('copies taken: $debugMorphBackdropCacheCaptures');
+    for (final (i, moment) in ['mid-open', 'rest', 'page-moved'].indexed) {
       final a = (await tester.runAsync(
         off[i].toByteData,
       ))!.buffer.asUint8List();

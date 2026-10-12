@@ -2439,9 +2439,23 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     slot.removeAllChildren();
     if (drawableEmpty) return;
     final cache = _backdropCache!;
+    final dpr = devicePixelRatio;
+    final translation = compositorTranslation;
+    final screen = getTransformTo(null);
+    screen.multiply(
+      Matrix4.translationValues(translation.dx, translation.dy, 0),
+    );
+    final filterBounds = bounds.expandToPixelBuckets(dpr);
+    final logical = MatrixUtils.transformRect(screen, filterBounds);
+    final sigma = blurPassSigma;
+    // Everything the glass may sample: its bounds, the frost's kernel and
+    // the refraction's reach (dispersion stays inside it).
     final image = cache.imageFor(
-      sigma: blurPassSigma,
-      devicePixelRatio: devicePixelRatio,
+      sigma: sigma,
+      devicePixelRatio: dpr,
+      region: logical.inflate(
+        3 * sigma + settings.effectiveRefractionAmount + 2,
+      ),
     );
     if (image == null) return;
     syncCoordinateMapping();
@@ -2459,14 +2473,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     shader.setFloat(solidBackdropUniform + 3, overlay.a * 0.5);
     _solidShaders.add(shader);
     shader.setImageSampler(0, image, filterQuality: FilterQuality.low);
-    final dpr = devicePixelRatio;
-    final translation = compositorTranslation;
-    final screen = getTransformTo(null);
-    screen.multiply(
-      Matrix4.translationValues(translation.dx, translation.dy, 0),
-    );
-    final filterBounds = bounds.expandToPixelBuckets(dpr);
-    final logical = MatrixUtils.transformRect(screen, filterBounds);
     final device = Rect.fromLTRB(
       logical.left * dpr,
       logical.top * dpr,
