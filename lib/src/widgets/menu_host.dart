@@ -30,6 +30,7 @@ class MorphMenuController implements MorphMenuHost {
     required this.wake,
     required this.style,
     required this.glyph,
+    this.glyphKey,
     required this.semanticLabel,
     this.onOpen,
   }) {
@@ -57,6 +58,10 @@ class MorphMenuController implements MorphMenuHost {
   /// Builds the source content carried by the menu.
   final Widget Function() glyph;
 
+  /// Reads a value that changes whenever [glyph] would build differently
+  /// for the same [style]; null when it never does.
+  final Object? Function()? glyphKey;
+
   /// Resolves the caller's localized menu label.
   final String? Function() semanticLabel;
 
@@ -75,6 +80,7 @@ class MorphMenuController implements MorphMenuHost {
   MorphMenuStyle? _lastStyle;
   MorphGlassPainter? _lastGlass;
   Widget? _lastGlyph;
+  Object? _lastGlyphKey;
   double _detachedTime = 0;
   Duration _detachedFrame = Duration.zero;
 
@@ -105,6 +111,10 @@ class MorphMenuController implements MorphMenuHost {
   Widget get menuGlyph => _sourceGone
       ? _lastGlyph ?? const SizedBox.shrink()
       : _lastGlyph = glyph();
+
+  @override
+  Object? get menuGlyphKey =>
+      _sourceGone ? _lastGlyphKey : _lastGlyphKey = glyphKey?.call();
 
   @override
   Listenable get menuRepaint => _repaint;

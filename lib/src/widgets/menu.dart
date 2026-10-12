@@ -396,6 +396,10 @@ abstract interface class MorphMenuHost {
   /// The look of the source, shown inside the shrinking source shape.
   Widget get menuGlyph;
 
+  /// A value equal between two frames whose [menuGlyph] looks the same,
+  /// or null when the glyph changes only with [menuStyle].
+  Object? get menuGlyphKey;
+
   /// The content of the menu.
   MorphMenuContent get menuContent;
 
@@ -1092,6 +1096,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       motion: motion,
       painter: host.menuGlass,
       style: style,
+      glyph: host.menuGlyphKey,
       open: motion.isOpen,
       layouts: [for (final card in cards) card.layout],
       faces: [for (var i = 1; i < cards.length; i++) frame.cardAt(i).faces],
@@ -1854,6 +1859,7 @@ class _LayerStructure {
     required this.motion,
     required this.painter,
     required this.style,
+    required this.glyph,
     required this.open,
     required this.layouts,
     required this.faces,
@@ -1867,6 +1873,7 @@ class _LayerStructure {
   final MorphMenuMotion motion;
   final MorphGlassPainter? painter;
   final MorphMenuStyle style;
+  final Object? glyph;
   final bool open;
   final List<MorphMenuLayout> layouts;
   final List<_HeaderFaces> faces;
@@ -1890,6 +1897,7 @@ class _LayerStructure {
       identical(other.motion, motion) &&
       identical(other.painter, painter) &&
       identical(other.style, style) &&
+      other.glyph == glyph &&
       other.open == open &&
       _same(other.layouts, layouts) &&
       _same(other.faces, faces) &&

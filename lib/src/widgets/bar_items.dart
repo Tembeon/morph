@@ -1639,6 +1639,8 @@ class _BarMenu {
     wake: state.wake,
     style: () => style,
     glyph: () => glyph,
+    glyphKey: () =>
+        (state._capsuleLayout(capsule)?.rect.size, _color, _direction),
     semanticLabel: () => button.semanticLabel ?? button.label,
   );
   MorphMenuContent get content => host.menuContent;
@@ -1653,16 +1655,19 @@ class _BarMenu {
         child: _ButtonContent(
           button: button,
           metrics: state.widget.metrics,
-          color: MorphBarStyle.resolve(
-            state.context,
-            state.widget.style,
-          ).foregroundColor,
+          color: _color,
           bold: false,
-          direction: Directionality.maybeOf(state.context) ?? TextDirection.ltr,
+          direction: _direction,
         ),
       ),
     );
   }
+
+  Color get _color =>
+      MorphBarStyle.resolve(state.context, state.widget.style).foregroundColor;
+
+  TextDirection get _direction =>
+      Directionality.maybeOf(state.context) ?? TextDirection.ltr;
 }
 
 class _ButtonContent extends StatelessWidget {
