@@ -180,6 +180,13 @@ class _HolderState<T> extends State<_Holder<T>> {
       widget.build(_value, (T v) => setState(() => _value = v));
 }
 
+MorphBarButton _barIcon(String id) => MorphBarButton(
+  id: id,
+  icon: const SizedBox.square(dimension: 24),
+  semanticLabel: id,
+  onPressed: () {},
+);
+
 Rect _rectOf(MatrixDriver d, Finder finder) => d.tester.getRect(finder.first);
 
 List<Offset> _line(Offset a, Offset b, int n) => [
@@ -357,6 +364,74 @@ final List<MatrixControl> matrixControls = [
         await d.tap(d.tester.getCenter(find.byType(MorphMenuButton)));
         await d.settle(900);
         await d.tap(const Offset(20, 120));
+        await d.settle(900);
+      },
+      'held': (d) async {
+        await d.tap(d.tester.getCenter(find.byType(MorphMenuButton)));
+        await d.settle(900);
+        final row = d.tester.getCenter(find.text('Share').last);
+        final rename = d.tester.getCenter(find.text('Rename').last);
+        await d.finger(
+          row,
+          _line(row, rename, 20),
+          holdBefore: const Duration(milliseconds: 600),
+        );
+        await d.settle(900);
+        await d.tap(const Offset(20, 120));
+        await d.settle(900);
+      },
+    },
+  ),
+  MatrixControl(
+    'search',
+    () => const SizedBox(width: 360, child: MorphSearchField()),
+    {
+      'press': (d) async {
+        final field = d.tester.getCenter(find.byType(MorphSearchField));
+        await d.finger(field, [
+          for (var i = 0; i < 30; i++) field,
+        ], holdBefore: const Duration(milliseconds: 16));
+        await d.settle(900);
+      },
+    },
+  ),
+  MatrixControl(
+    'nav-bar',
+    () => SizedBox.expand(
+      child: MorphNavigationStack(
+        home: MorphNavigationScaffold(
+          title: 'Inbox',
+          largeTitle: true,
+          trailing: [
+            MorphBarButtonGroup([_barIcon('add'), _barIcon('more')]),
+          ],
+          toolbarLeading: [
+            MorphBarButtonGroup([_barIcon('filter')], id: 'tbL'),
+          ],
+          slivers: [
+            SliverList.builder(
+              itemCount: 60,
+              itemBuilder: (BuildContext context, int i) => SizedBox(
+                height: 44,
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Row $i'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+    {
+      'scroll': (d) async {
+        final size =
+            d.tester.view.physicalSize / d.tester.view.devicePixelRatio;
+        final a = Offset(size.width / 2, size.height * 0.7);
+        final b = Offset(size.width / 2, size.height * 0.35);
+        await d.finger(a, _line(a, b, 40));
+        await d.settle(900);
+        await d.finger(b, _line(b, a, 40));
         await d.settle(900);
       },
     },

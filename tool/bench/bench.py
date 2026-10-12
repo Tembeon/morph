@@ -187,6 +187,11 @@ MATRIX_RULES = [
     ('lib/src/widgets/tab_bar', ['tab-bar']),
     ('lib/src/widgets/glass_button', ['glass-button']),
     ('lib/src/widgets/lens', ['segmented', 'switch', 'slider', 'tab-bar']),
+    ('lib/src/widgets/search_field', ['search']),
+    ('lib/src/widgets/navigation_bar', ['nav-bar']),
+    ('lib/src/widgets/push_zoom', ['nav-bar']),
+    ('lib/src/widgets/bar_items', ['nav-bar', 'menu']),
+    ('lib/src/widgets/morph_context_menu', ['menu']),
 ]
 
 

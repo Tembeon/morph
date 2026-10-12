@@ -80,11 +80,12 @@ class _HostDriver implements MatrixDriver {
   @override
   Future<void> measure(String name, Future<void> Function() body) async {
     measured.add(name);
-    await body();
     final routes = find.byType(ModalBarrier);
+    final before = routes.evaluate().length;
+    await body();
     expect(
       routes.evaluate().length,
-      lessThanOrEqualTo(1),
+      lessThanOrEqualTo(before),
       reason: '$name left a presentation open',
     );
   }
