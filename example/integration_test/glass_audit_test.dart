@@ -23,7 +23,7 @@ import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
     show debugMorphHalfResolutionBlur;
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show GlassCostProbe, debugGlassCostProbe;
+    show GlassCostProbe, debugGlassCostProbe, debugMorphShaderFrost;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/glass_container.dart';
 // ignore: implementation_imports
@@ -181,6 +181,10 @@ void main() {
     if (_stagesOff) debugMorphGlassStagesOpen = false;
     // ignore: invalid_use_of_visible_for_testing_member
     debugGlassCostProbe = _probe;
+    debugMorphShaderFrost = BenchArgs.flag(
+      'MORPH_SHADER_FROST',
+      fallback: debugMorphShaderFrost,
+    );
     debugMorphBackdropCache = BenchArgs.flag(
       'MORPH_BACKDROP_CACHE',
       fallback: debugMorphBackdropCache,

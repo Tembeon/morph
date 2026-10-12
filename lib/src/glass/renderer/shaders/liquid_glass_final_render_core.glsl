@@ -354,7 +354,7 @@ vec2 mirrorIntoBackdrop(vec2 sourceOffset, vec2 matteCoord) {
     );
     // Keep bilinear footprints, and the softening taps one texel out, off
     // the uncaptured side of the edge.
-    float margin = 0.5 + uSoften;
+    float margin = 0.5 + (uSoften > 1.5 ? 1.0 : uSoften);
     vec2 lo = uBackdropBounds.xy + margin;
     vec2 hi = uBackdropBounds.zw - margin;
     if (all(greaterThanEqual(sampleMatte, lo)) &&
@@ -823,7 +823,25 @@ void main() {
                 mirrorBackgroundUV(refractedUV, invUSize)
             );
         }
-        if (uSoften > 0.5) {
+        if (uSoften > 1.5) {
+            // A frost folded into this pass (sigma uSoften - 2 device px):
+            // 24 bilinear taps importance-sampled from the Gaussian on a
+            // golden-angle spiral, equal weights. The filter's clip is grown
+            // by three sigma, so the taps read real backdrop past the rim.
+            float sigmaPx = (uSoften - 2.0) * appearanceVisibility;
+            vec4 frost = vec4(0.0);
+            for (int i = 0; i < 24; i++) {
+                float u = (float(i) + 0.5) / 24.0;
+                float r = sigmaPx * sqrt(-2.0 * log(1.0 - u));
+                float a = float(i) * 2.39996323;
+                vec2 tap = refractedUV + vec2(cos(a), sin(a)) * r * invUSize;
+                frost += texture(
+                    uBackgroundTexture,
+                    mirrorBackgroundUV(tap, invUSize)
+                );
+            }
+            refractColor = frost / 24.0;
+        } else if (uSoften > 0.5) {
             // The offset scales with visibility, so hidden glass collapses
             // the kernel onto the unfiltered backdrop.
             vec2 softenTap = vec2(appearanceVisibility) * invUSize;

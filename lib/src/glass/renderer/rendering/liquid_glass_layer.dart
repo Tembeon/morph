@@ -1199,9 +1199,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     // 6-float filter->matte mapping: frosted glass cross-fades its blur away,
     // while unfrosted glass stays alpha-1 and cross-fades its material in the
     // shader, so both match the backdrop exactly at visibility 0.
+    final shaderFrost = shaderFrostDeviceSigma;
     shader
-      ..setFloat(53, blurPassSigma > 0 ? 1 : 0)
-      ..setFloat(54, softensInShader ? 1 : 0);
+      ..setFloat(53, blurPassSigma > 0 || shaderFrost > 0 ? 1 : 0)
+      ..setFloat(
+        54,
+        shaderFrost > 0
+            ? 2 + shaderFrost
+            : softensInShader
+            ? 1
+            : 0,
+      );
     _writeBackdropShrinkAxis(shader);
     // A new shader's uniforms are not zeroed: read the backdrop until a
     // solid frame writes its color.
@@ -1235,13 +1243,34 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
         frost * devicePixelRatio <= shaderSofteningMaxDeviceSigma;
   }
 
+  /// Largest frost, in device pixels, the final pass blurs itself when
+  /// [debugMorphShaderFrost] is on.
+  static const double shaderFrostMaxDeviceSigma = 8;
+
+  /// The frost the final pass blurs itself, in device pixels, instead of a
+  /// separate blur pass (prototype, `MORPH_SHADER_FROST`); `0` when it
+  /// does not: off, no frost, a frost the softening kernel covers, a
+  /// dispersed lens (its taps would split the channels), a layer that blurs
+  /// a copy of its own backdrop.
+  double get shaderFrostDeviceSigma {
+    if (!debugMorphShaderFrost || softensInShader || _blursOwnBackdrop) {
+      return 0;
+    }
+    if (settings.dispersion != 0) return 0;
+    final frost = _frostSigma;
+    if (frost <= 0) return 0;
+    final sigma =
+        morphHalfResolutionSigma(frost, devicePixelRatio) * devicePixelRatio;
+    return sigma <= shaderFrostMaxDeviceSigma ? sigma : 0;
+  }
+
   /// Sigma of the separate backdrop blur pass; `0` when there is none.
   ///
   /// A frost just below the sigma Impeller blurs at half resolution is
   /// raised to it ([morphHalfResolutionSigma]), unless the layer blurs its
   /// own backdrop: that blur is already small, and its frost animates.
   double get blurPassSigma {
-    if (softensInShader) return 0;
+    if (softensInShader || shaderFrostDeviceSigma > 0) return 0;
     final frost = _frostSigma;
     if (_blursOwnBackdrop) return frost;
     return morphHalfResolutionSigma(frost, devicePixelRatio);
@@ -2175,6 +2204,8 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @visibleForTesting
   Rect? debugFilterBounds;
   Rect? _filterMaterialBounds;
+  // The bounds the last sync was given, before a shader frost grew them.
+  Rect? _filterGlassBounds;
   Offset _filterPaintOffset = Offset.zero;
 
   // The native filter clip, kept on stable pixel buckets in the translated
@@ -2244,11 +2275,17 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // Both painting and retained geometry updates need the same native filter
   // bounds. This only updates existing handles; it never paints children.
   Rect _syncMaterialFilter(
-    Rect materialBounds,
+    Rect glassBounds,
     Offset offset, {
     bool retained = false,
   }) {
+    // A frost the final pass blurs reads three sigma past the rim.
+    final shaderFrost = shaderFrostDeviceSigma;
+    final materialBounds = shaderFrost > 0
+        ? glassBounds.inflate(3 * shaderFrost / devicePixelRatio)
+        : glassBounds;
     final filterBounds = materialBounds.expandToPixelBuckets(devicePixelRatio);
+    _filterGlassBounds = glassBounds;
     _filterMaterialBounds = materialBounds;
     _filterPaintOffset = offset;
     debugFilterBounds = filterBounds;
@@ -2451,7 +2488,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   // the copy is sampled where the backdrop filter would have read.
   void _composeCachedBackdrop() {
     final slot = _solidHandle.layer;
-    final bounds = _filterMaterialBounds;
+    final bounds = _filterGlassBounds;
     if (slot == null || bounds == null) return;
     slot.removeAllChildren();
     if (drawableEmpty) return;
@@ -3117,6 +3154,10 @@ enum AnalyticGeometryMode {
 /// surface on the device (tool/audit/2026-10-12-glass-composition.md).
 @visibleForTesting
 GlassCostProbe debugGlassCostProbe = GlassCostProbe.off;
+
+/// Whether a frost up to [RenderLiquidGlassLayer.shaderFrostMaxDeviceSigma]
+/// is blurred by the final pass itself (prototype, `MORPH_SHADER_FROST`).
+bool debugMorphShaderFrost = const bool.fromEnvironment('MORPH_SHADER_FROST');
 
 /// The part of a liquid layer's composition that [debugGlassCostProbe]
 /// replaces, to time it on a device.
