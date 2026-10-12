@@ -105,54 +105,57 @@ class _MatrixStageState extends State<MatrixStage>
   @override
   Widget build(BuildContext context) {
     MatrixStage.context = context;
-    return ColoredBox(
-      color: const Color(0xFF000000),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Column(
-            children: [
-              for (var i = 0; i < 24; i++)
-                Expanded(
-                  child: ColoredBox(
-                    color: _stripes[i % _stripes.length],
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 16),
-                        child: Text(
-                          'Row $i - the page under the control',
-                          style: const TextStyle(
-                            color: Color(0xFF000000),
-                            fontSize: 15,
-                          ),
+    // The page sits straight under the app, with no Material: its text
+    // takes an explicit style instead of the framework's fallback.
+    return DefaultTextStyle(
+      style: const TextStyle(
+        color: Color(0xFF000000),
+        fontSize: 15,
+        decoration: TextDecoration.none,
+      ),
+      child: ColoredBox(
+        color: const Color(0xFF000000),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Column(
+              children: [
+                for (var i = 0; i < 24; i++)
+                  Expanded(
+                    child: ColoredBox(
+                      color: _stripes[i % _stripes.length],
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 16),
+                          child: Text('Row $i - the page under the control'),
                         ),
                       ),
                     ),
                   ),
-                ),
-            ],
-          ),
-          // One device pixel the floor ticker repaints: frames with nothing
-          // else on them.
-          Positioned(
-            left: 0,
-            top: 0,
-            width: 1,
-            height: 1,
-            child: FadeTransition(
-              opacity: _floor,
-              child: const ColoredBox(color: Color(0xFF000000)),
+              ],
             ),
-          ),
-          Center(
-            child: ValueListenableBuilder<Widget?>(
-              valueListenable: MatrixStage.control,
-              builder: (BuildContext context, Widget? control, Widget? _) =>
-                  control ?? const SizedBox.shrink(),
+            // One device pixel the floor ticker repaints: frames with nothing
+            // else on them.
+            Positioned(
+              left: 0,
+              top: 0,
+              width: 1,
+              height: 1,
+              child: FadeTransition(
+                opacity: _floor,
+                child: const ColoredBox(color: Color(0xFF000000)),
+              ),
             ),
-          ),
-        ],
+            Center(
+              child: ValueListenableBuilder<Widget?>(
+                valueListenable: MatrixStage.control,
+                builder: (BuildContext context, Widget? control, Widget? _) =>
+                    control ?? const SizedBox.shrink(),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
