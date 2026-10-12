@@ -1,0 +1,13 @@
+7eaea98  runs 3  fixed-perf False  2026-10-12 16:46
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   325    [=]
+audit/liquid/idle-frames              0     -     -     -     -     -   0.0    0   306    [power_mw 286->306]
+audit/liquid/home-scroll           1240   1.7   3.4   8.9  13.6   5.5   0.8    8   594  raster-cpu:6 raster-wait:4 bad raster: waitForBufferRelease 5.3, SurfaceFrame::Encode 4.0, Canvas::saveLayer 3.2  [raster 11.34->13.56]
+audit/liquid/segmented             1189   3.1   5.6  10.2  13.6   3.6   0.1    2   532  raster-wait:1 bad raster: waitForBufferRelease 10.5, QueueSubmit 2.9, SurfaceFrame::Encode 1.8  [=]
+audit/liquid/tab-bar               1507   4.5   7.0  10.8  15.7  12.4   2.9    8   870  raster-cpu:41 raster-wait:3 bad raster: SurfaceFrame::Encode 3.9, QueueSubmit 3.7, waitForBufferRelease 3.2  [raster 14.19->15.7, gpu 14.83->12.45, power_mw 1046->870]
+audit/liquid/controls              1181   3.2  10.3   9.0  11.2   5.3   0.1   63   570  raster-cpu:1 bad raster: QueueSubmit 5.5, SurfaceFrame::Encode 4.9, Canvas::saveLayer 3.4  [=]
+audit/liquid/menu                   769   5.6  10.7   8.6  13.5  11.1   3.0   35   699  raster-cpu:12 ui-layout:10 raster-wait:1 bad raster: SurfaceFrame::Encode 9.4, QueueSubmit 4.6, Canvas::saveLayer 2.8  [ui 14.04->10.67, over_pct 5.3->3, power_mw 748->699]
+audit/liquid/sheet                  729   2.8   6.9   9.0  12.9  16.0   4.4   20   784  gpu:28 ui-layout:3 raster-cpu:1 bad raster: SurfaceFrame::Encode 5.9, Canvas::saveLayer 5.7, QueueSubmit 3.1  [over_pct 8.7->4.4, power_mw 1118->784]
+audit/liquid/list                  1192   2.1   4.4   9.4  11.8   7.2   0.3   22   620  raster-cpu:3 ui-paint:1 bad raster: SurfaceFrame::Encode 8.6, QueueSubmit 3.8, Canvas::saveLayer 3.5  [ui 5.029->4.375, gpu 8.212->7.187, power_mw 700->620]

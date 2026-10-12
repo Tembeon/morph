@@ -35,6 +35,18 @@ Evidence: tool/ios_reference/perf/2026-10-12-bench-gc-* (probes),
   groups with one plane mechanism. Expected: -1.5 to -2.9 ms GPU and up to
   -450 mW on the Pixel's glass scenes at most (section 2).
 
+- UPDATE (same day, owner: near-invisible pixel changes are fine, a
+  backdrop one frame late is not): the frost blur is the largest bucket of
+  the big surfaces (`nofrost` probe: sheet -1.4, tab bar -1.3 ms GPU,
+  sheet -358 mW), and a SAME-FRAME BACKDROP CACHE wins where the backdrop
+  does not change: the floating sheet's glass paints over a frosted copy of
+  the page under it, copied again before the frame composites whenever
+  what the glass samples changed. Pixel, sheet: GPU 515 -> 393 ms/s (-2.3
+  ms a frame), power 1119 -> 833 mW, raster p50 / p95 10.2 / 15.6 -> 8.0 /
+  11.5 ms, frames over budget 9.6 -> 2.8 percent; NEAR (host max 26 - 45
+  channel steps on < 80 pixels, the frost kernel and the rim corners).
+  Section 6.
+
 ## 1. One glass surface, end to end
 
 A liquid surface (`RenderLiquidGlassLayer._paintMaterialFilter`,
@@ -309,6 +321,69 @@ step: a container whose members each draw their rect of one shared filter
 at their own paint position (same shader, same uniforms, a per-member
 clip), measured against the container it replaces on a screen with many
 separate glass surfaces (the density stand, glass_density_test.dart).
+
+## 6. Same-frame backdrop cache (prototype, the sheet)
+
+Probe first (`MORPH_GLASS_PROBE=nofrost`, 7eaea98, two launches): the frost
+blur alone is GPU ms/s sheet 518 -> 440, tab-bar 551 -> 475, menu 367 ->
+344, others unchanged; power sheet 1137 -> 779 mW. The bars' and menus' 2 pt
+frost already blurs at half resolution (Impeller's `CalculateScale` picks
+the scale from sigma alone), so a cheaper frost needs a different source,
+not a different sigma.
+
+Mechanism (`GlassBackdropCache`, lib/src/glass/renderer/internal/
+backdrop_cache.dart; `MORPH_BACKDROP_CACHE`, default off; 5bff563, f849a74,
+4e2962d):
+
+- The sheet route remembers the route below it; its repaint boundary is the
+  source. The sheet's glass (not its content) reads the cache through
+  `GlassBackdropCacheScope`.
+- While the frame composites (the glass layer's compositing hook, after
+  every paint of the frame, before the scene is built) the cache signs the
+  source's layers that reach what the glass samples (its bounds grown by
+  the frost kernel and the refraction): each leaf picture or filter with
+  the transform, clip, opacity and filters it is drawn under. Equal
+  signature: the copy is still exact. Different: `OffsetLayer.toImageSync`
+  copies the source in this frame and blurs it once with the layer's frost
+  sigma. No frame is ever shown over an older copy.
+- The glass records its final shader as a paint over that copy: the rect
+  is drawn in screen device pixels (the canvas undoes the layer's
+  transform, because a paint's `FlutterFragCoord` is local), so the
+  shader's filter mapping, refraction mirroring and texel fetches stay as
+  they are. The dimming between page and sheet is composited in the shader
+  (uSolidBackdrop alpha in (0, 0.5]; no uniform layout change).
+- No backdrop filter, layer pass, composite or frost pass for the sheet.
+
+Host Impeller (example/test/backdrop_cache_host_test.dart, gallery Sheets,
+cache off vs on): mid-open max 55 on the top corners (131 pixels over 8),
+rest max 26 (74 pixels over 8, the frost kernel over the page's buttons),
+page scrolled 120 px under the open sheet for one frame max 45 (78 over 8,
+top corners) - the copy is taken in that frame. 7 copies over the whole
+sequence.
+
+Pixel 6a (4e2962d, full liquid audit, off on on off, 3 runs per scene):
+
+| sheet | off | on |
+|---|---|---|
+| GPU ms/s | 515 (512 / 518) | 393 (394 / 393) |
+| power mW | 1119 (1114 / 1124) | 833 (805 / 861) |
+| raster p50 / p95 ms | 10.2 / 15.6 | 8.0 / 11.5 |
+| frames over budget | 9.6 % | 2.8 % |
+| page copies a launch | - | 77 |
+
+Every other scene within its launch spread (the cache only serves the
+sheet). The first version signed the whole page and copied 338 times a
+launch (a pressed button above the sheet): GPU 514 -> 422 ms/s but power
+unchanged; signing only what the glass samples took power down.
+
+Fidelity: NEAR. The copy is blurred by `ImageFilter.blur` on the image
+instead of inside the backdrop filter, and the paint has no filter clip at
+the rim corners. Owner check on the iPhone pending.
+
+Next: the same cache for every overlay over a page - menu faces, alerts,
+action sheets, popovers, the date picker overlay - and for a lifted lens
+over its own control; bars over a scrolling list keep the live filter (their
+backdrop changes every frame), and pay nothing extra there.
 
 ## 5. Files
 
