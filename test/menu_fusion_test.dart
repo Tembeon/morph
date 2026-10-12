@@ -467,8 +467,10 @@ void main() {
       final before = MorphMenuFusion.debugServedAhead;
       final beforeHere = MorphMenuFusion.debugFusedHere;
       motion.open(0, sourceScale: 1);
+      motion.framePeriod = 1 / 60;
       for (var frame = 1; frame < 48; frame++) {
         if (frame == 30) continue;
+        motion.frameTime = frame / 60;
         motion.advance(frame / 60);
         expect(motion.silhouette, isNotNull);
         await Future<void>.delayed(const Duration(milliseconds: 40));

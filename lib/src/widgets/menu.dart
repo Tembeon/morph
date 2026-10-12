@@ -534,7 +534,7 @@ class _MorphMenuButtonState extends State<MorphMenuButton>
   }
 
   @override
-  void advanceMotion(double t) => _host.advance(t);
+  void advanceMotion(double t) => _host.advance(t, framePeriod: framePeriod);
 
   @override
   bool get motionSettled => _motion?.isSettled ?? true;

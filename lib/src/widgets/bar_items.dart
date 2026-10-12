@@ -819,7 +819,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     }
     final menu = _menu;
     if (menu != null) {
-      menu.host.advance(t);
+      menu.host.advance(t, framePeriod: framePeriod);
       final flight = menu.flight;
       if (!menu.motion.isPresented &&
           !menu.motion.isOpenPending &&

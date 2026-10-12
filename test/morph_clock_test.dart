@@ -191,6 +191,55 @@ void main() {
     await gesture.up();
   });
 
+  testWidgets('jittered frames advance the motion on the frame grid', (
+    WidgetTester tester,
+  ) async {
+    final (key, _, advances) = await host(tester, running: true);
+    const jitter = [0, 30, -20, 45, -35, 10, -5, 25, -40, 15, 0, 35];
+    for (final us in jitter) {
+      await tester.pump(Duration(microseconds: 16667 + us));
+    }
+    final state = key.currentState!;
+    final period = state.framePeriod!;
+    expect(period, moreOrLessEquals(1 / 60, epsilon: 5e-5));
+    final last = advances.sublist(advances.length - 6);
+    for (var i = 1; i < last.length; i++) {
+      expect(last[i] - last[i - 1], moreOrLessEquals(period, epsilon: 1e-9));
+    }
+    expect(state.frameTime, last.last);
+    await tester.pump(const Duration(milliseconds: 40));
+    expect(
+      advances.last - last.last,
+      moreOrLessEquals(0.040, epsilon: MorphFrameGrid.reach),
+    );
+  });
+
+  test('the frame grid snaps within its reach and restarts outside it', () {
+    final grid = MorphFrameGrid();
+    var t = 1.0;
+    for (var i = 0; i < 4; i++) {
+      expect(grid.snap(t), t);
+      t += 0.016;
+    }
+    expect(grid.period, moreOrLessEquals(0.016, epsilon: 1e-12));
+    final anchor = t - 0.016;
+    expect(
+      grid.snap(t + 0.0004),
+      moreOrLessEquals(anchor + 0.016, epsilon: 1e-12),
+    );
+    expect(
+      grid.snap(t + 0.032 - 0.0003),
+      moreOrLessEquals(anchor + 0.048, epsilon: 1e-12),
+    );
+    expect(grid.snap(t + 0.032 + 0.016 + 0.004), t + 0.052);
+    expect(grid.snap(t + 0.5), t + 0.5);
+    final period = grid.period!;
+    expect(
+      grid.snap(t + 0.5 + period + 0.0002),
+      moreOrLessEquals(t + 0.5 + period, epsilon: 1e-12),
+    );
+  });
+
   test('a spring change never reaches back before the previous one', () {
     const spring = MorphSpring(0.4, 0.8);
     final a = MorphSpringState(spring, 0);
