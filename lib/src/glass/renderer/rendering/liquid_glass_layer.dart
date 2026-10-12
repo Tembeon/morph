@@ -2042,6 +2042,7 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   static bool debugSeedsBlur = true;
 
   static final BackdropKey _probeKey = BackdropKey();
+  static final Set<String> _probeLogged = {};
 
   bool _blursOwnBackdrop = false;
 
@@ -2171,6 +2172,20 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
     }
     final shader = morphGlassShaderFilter(renderShader);
     final frostSigma = blurPassSigma;
+    if (debugGlassCostProbe != GlassCostProbe.off && _probeLogged.length < 60) {
+      final bounds = debugFilterBounds;
+      final screen = bounds == null || !attached
+          ? null
+          : MatrixUtils.transformRect(getTransformTo(null), bounds);
+      final key =
+          'sigma ${frostSigma.toStringAsFixed(2)} '
+          '${(screen?.width ?? 0) ~/ 20 * 20}x${(screen?.height ?? 0) ~/ 20 * 20} '
+          'top ${(screen?.top ?? 0) ~/ 100 * 100}';
+      if (_probeLogged.add(key)) debugPrint('MORPH_GLASS_LAYER $key');
+    }
+    if (debugGlassCostProbe == GlassCostProbe.nofrost) {
+      return _cachedFilter = shader;
+    }
     final filter = frostSigma > 0
         ? ImageFilter.compose(inner: _frostBlur(frostSigma), outer: shader)
         : shader;
@@ -2975,6 +2990,9 @@ enum GlassCostProbe {
   /// Every liquid layer reads one backdrop key: a single backdrop read per
   /// frame, each layer still filtered in its own offscreen pass.
   shared,
+
+  /// The frost blur goes, the glass shader stays in the filter.
+  nofrost,
 
   /// Every liquid layer reads one backdrop key through one identity color
   /// filter: Impeller filters the read once and draws each layer's rect of

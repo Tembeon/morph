@@ -284,11 +284,14 @@ def launch(name, suite, args, out_dir, trace_dir, done_timeout, cpu=False):
     watcher = subprocess.Popen(['adb', '-s', state['serial'], 'logcat', '-v', 'raw', '-s',
                                 'flutter:I'], stdout=subprocess.PIPE, text=True)
     done = sampler = None
+    notes = []
     try:
         while time.time() - started < done_timeout:
             line = watcher.stdout.readline()
             if not line:
                 break
+            if 'MORPH_GLASS_LAYER' in line:
+                notes.append(line.strip())
             if cpu and sampler is None and 'VM service' in line and 'http://' in line:
                 sampler = DartSampler(re.search(r'(http://\S+)', line).group(1))
                 sampler.start()
@@ -299,6 +302,8 @@ def launch(name, suite, args, out_dir, trace_dir, done_timeout, cpu=False):
         watcher.kill()
     if sampler is not None:
         sampler.finish(os.path.join(trace_dir, f'{name}.cpu.json'))
+    if notes:
+        open(os.path.join(out_dir, f'{name}.layers.txt'), 'w').write('\n'.join(notes) + '\n')
     elapsed = time.time() - started
     sh(f'kill -TERM {pid}')
     for _ in range(60):
