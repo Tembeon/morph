@@ -48,8 +48,13 @@ abstract final class MorphFusionWorker {
 
   /// Asks a worker for the fusion of [inputs] on behalf of [owner], the
   /// requester a later [reset] can drop alone.
+  ///
+  /// A request whose inputs are within [_sameRequest] of one waiting,
+  /// being computed or arrived is dropped: a motion predicts each frame
+  /// from several frames before it, and the predictions agree.
   static void request(Float64List inputs, {Object? owner}) {
     if (_failed) return;
+    if (_known(inputs)) return;
     final port = _port ??= _listen();
     for (final worker in _workers) {
       if (!worker.busy && worker.send != null) {
@@ -58,7 +63,10 @@ abstract final class MorphFusionWorker {
       }
     }
     _waiting.add((inputs, owner));
-    if (_waiting.length > waitingLimit) _waiting.removeAt(0);
+    if (_waiting.length > waitingLimit) {
+      _waiting.removeAt(0);
+      debugDropped++;
+    }
     if (_workers.length < poolSize &&
         _workers.every((_Worker worker) => worker.send != null)) {
       _spawn(port);
@@ -83,12 +91,46 @@ abstract final class MorphFusionWorker {
     return null;
   }
 
+  /// How close, in logical pixels, two requests' inputs are for the later
+  /// to add nothing: a fiftieth of the tolerance a frame is served within.
+  static const double _sameRequest = 0.0004;
+
+  static bool _known(Float64List inputs) {
+    bool same(Float64List other) {
+      if (other[11] != inputs[11]) return false;
+      for (var i = 0; i < 11; i++) {
+        if (!((other[i] - inputs[i]).abs() <= _sameRequest)) return false;
+      }
+      return true;
+    }
+
+    for (final (waiting, _) in _waiting) {
+      if (same(waiting)) return true;
+    }
+    for (final worker in _workers) {
+      if (worker.busy && !worker.stale && same(worker.inputs!)) return true;
+    }
+    for (final (ready, _, _) in _ready) {
+      if (same(ready)) return true;
+    }
+    return false;
+  }
+
   static bool _matches(Float64List a, Float64List b, double tolerance) {
     for (var i = 0; i < 11; i++) {
       if (!((a[i] - b[i]).abs() <= tolerance)) return false;
     }
     return (a[11] != 0 || b[11] == 0) && MorphMenuFusion.sameGrid(a[10], b[10]);
   }
+
+  /// The requests dropped from a full waiting list, over the isolate's
+  /// life.
+  @internal
+  static int debugDropped = 0;
+
+  /// The time from every dispatch to its fusion's arrival, microseconds.
+  @internal
+  static final List<int> debugLatencyUs = [];
 
   /// The inputs of the fusion [take] handed out last.
   @internal
@@ -168,6 +210,7 @@ abstract final class MorphFusionWorker {
         final Int32List size,
       ]:
         final worker = _workers[index];
+        debugLatencyUs.add(worker.clock.elapsedMicroseconds);
         if (!worker.stale) {
           _ready.add((
             inputs,
@@ -239,11 +282,16 @@ class _Worker {
   bool busy = false;
   bool stale = false;
   Object? owner;
+  Float64List? inputs;
+  final Stopwatch clock = Stopwatch();
 
   void dispatch(Float64List inputs, Object? owner) {
     busy = true;
     stale = false;
     this.owner = owner;
+    this.inputs = inputs;
+    clock.reset();
+    clock.start();
     send!.send(inputs);
   }
 }

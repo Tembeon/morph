@@ -1,0 +1,90 @@
+{
+ "audit/liquid/menu": {
+  "runs": 5,
+  "seconds": 22.57,
+  "frames": 1284,
+  "fps": 56.9,
+  "ui_p50": 5.3007,
+  "ui_p95": 11.044963,
+  "ui_max": 37.23055,
+  "raster_p50": 8.809123,
+  "raster_p95": 13.603597,
+  "raster_max": 28.066284,
+  "gpu_p50": 5.092368,
+  "gpu_p95": 12.269978,
+  "gpu_ms_per_s": 368.34,
+  "over": 39,
+  "over_pct": 3.0,
+  "causes": {
+   "raster-cpu": 21,
+   "ui-layout": 15,
+   "ui-build": 1,
+   "ui-finalize": 1,
+   "gpu": 1
+  },
+  "ui_phase_ms_per_frame": {
+   "paint": 1.954,
+   "compositing": 1.661,
+   "layout": 1.157,
+   "other": 0.635,
+   "build": 0.362,
+   "finalize": 0.045,
+   "gc": 0.004
+  },
+  "raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 3.84,
+   "QueueSubmit": 2.247,
+   "Canvas::saveLayer": 1.132,
+   "acquireNextBufferLocked": 0.246,
+   "LayerTree::Paint": 0.211,
+   "Rasterizer::DrawToSurfaces": 0.195,
+   "QueuePresentKHR": 0.173,
+   "LayerTree::Preroll": 0.134
+  },
+  "bad_raster_self_ms_per_frame": {
+   "SurfaceFrame::Encode": 9.33,
+   "Canvas::saveLayer": 4.91,
+   "QueueSubmit": 3.54,
+   "acquireNextBufferLocked": 0.25,
+   "LayerTree::Paint": 0.24,
+   "Rasterizer::DrawToSurfaces": 0.22,
+   "SurfaceFrame::Submit": 0.2,
+   "QueuePresentKHR": 0.18
+  },
+  "bad_ui_phase_ms_per_frame": {
+   "layout": 11.48,
+   "paint": 5.34,
+   "compositing": 3.01,
+   "build": 1.51,
+   "other": 1.05,
+   "finalize": 0.4
+  },
+  "ui_runnable_share": 0.013,
+  "raster_runnable_share": 0.03,
+  "dropped": 56,
+  "cpu_mhz": {
+   "little": 860,
+   "mid": 660,
+   "big": 609
+  },
+  "gpu_mhz": 255,
+  "power_mw": 829,
+  "rails_mw": {
+   "gpu": 209,
+   "cpu.little": 146,
+   "display": 120,
+   "memory.interface": 82,
+   "cpu.big": 70,
+   "ddr.c": 70,
+   "cpu.mid": 56,
+   "system.fabric": 36,
+   "tpu": 12,
+   "ddr.a": 11,
+   "ddr.b": 9,
+   "aoc.logic": 6,
+   "aoc.memory": 2,
+   "gps": 1
+  },
+  "thermal_status": 0
+ }
+}

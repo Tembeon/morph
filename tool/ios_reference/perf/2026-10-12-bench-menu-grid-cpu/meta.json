@@ -1,0 +1,26 @@
+{
+ "sha": "70a6856-dirty",
+ "source": "/Users/tembeon/IdeaProjects/morph",
+ "fixed": false,
+ "runs": 5,
+ "date": "2026-10-12 12:15:00.379728",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "5",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "0",
+    "AUDIT_SCENES": "menu"
+   },
+   "thermal_before": [
+    0,
+    36.957603
+   ],
+   "thermal_after": [
+    0,
+    37.26715
+   ]
+  }
+ }
+}

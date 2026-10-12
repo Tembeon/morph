@@ -1070,6 +1070,10 @@ class MorphMenuMotion {
   int _silhouetteFrames = 0;
   bool _prefetchField = false;
 
+  /// The frame period the last regular frames showed; it carries over to
+  /// the next motion, whose first frames have no steps of their own yet.
+  double? _framePeriod;
+
   /// The time the motion was last advanced to.
   double get time => _now;
 
@@ -1629,8 +1633,10 @@ class MorphMenuMotion {
   /// display's period, and the line predicts them about two and a half
   /// times closer than the last step repeated, while a dropped frame or a
   /// silhouette read at an event's time does not bend it. Fewer than
-  /// three such frames step on by the median. A step longer than
-  /// [MorphMenuFusion.prefetchStepLimit] starts over.
+  /// three such frames step on from the newest frame by the period the
+  /// last regular frames showed (of this motion or an earlier one), else
+  /// by the median, so a motion fuses ahead from its first frame. A step
+  /// longer than [MorphMenuFusion.prefetchStepLimit] starts over.
   void _prefetchSilhouette() {
     final t = _timeline.now;
     if (!MorphMenuFusion.prefetches) return;
@@ -1646,7 +1652,14 @@ class MorphMenuMotion {
     times[_silhouetteFrames % times.length] = t;
     _silhouetteFrames++;
     final count = math.min(_silhouetteFrames, times.length);
-    if (count < 2) return;
+    if (count < 2) {
+      if (_framePeriod case final period?) {
+        for (var frame = 1; frame <= MorphMenuFusion.prefetchFrames; frame++) {
+          _prefetchAt(t + period * frame);
+        }
+      }
+      return;
+    }
     final first = _silhouetteFrames - count;
     double at(int k) => times[(first + k) % times.length] - t;
     final steps = _silhouetteSteps;
@@ -1679,8 +1692,10 @@ class MorphMenuMotion {
         spread += (k - meanI) * (k - meanI);
       }
       slope = cross / spread;
+      _framePeriod = slope;
     } else {
       meanI = count - 1.0;
+      slope = _framePeriod ?? period;
     }
     for (var frame = 1; frame <= MorphMenuFusion.prefetchFrames; frame++) {
       final ahead = t + meanT + slope * (count - 1 + frame - meanI);

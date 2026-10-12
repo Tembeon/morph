@@ -1028,8 +1028,13 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             final scale = motion.contentScale;
             final at = motion.contentRect.topLeft - menu.rect.topLeft;
             final cards = motion.cards;
+            // Rows under a moving scale draw from their raster too: a
+            // live label strikes its glyphs at every scale it passes
+            // (15 ms atlas updates on the Pixel 6a). NEAR: resampled by
+            // up to the scale's distance from 1, live again at rest.
             host.menuRowsRaster.value =
-                motion.contentBlur >= MorphGlyphRaster.minBlur;
+                motion.contentBlur >= MorphGlyphRaster.minBlur ||
+                (scale - 1).abs() > 0.002;
             final layer = IgnorePointer(
               ignoring: !motion.isOpen,
               child: Listener(

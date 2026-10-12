@@ -25,6 +25,14 @@ abstract final class MorphFusionWorker {
   @internal
   static Float64List? get debugTakenInputs => null;
 
+  /// Always 0.
+  @internal
+  static int get debugDropped => 0;
+
+  /// Always empty.
+  @internal
+  static const List<int> debugLatencyUs = [];
+
   /// Always false.
   @visibleForTesting
   static bool get debugHasReady => false;

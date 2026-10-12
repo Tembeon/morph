@@ -1,0 +1,5 @@
+70a6856-dirty  runs 5  fixed-perf False  2026-10-12 12:23
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/menu                  1284   5.3  11.0   8.8  13.6  12.3   3.0   56   829  raster-cpu:21 ui-layout:15 ui-build:1 ui-finalize:1 gpu:1 bad raster: SurfaceFrame::Encode 9.3, Canvas::saveLayer 4.9, QueueSubmit 3.5  [ui 14.04->11.04, over_pct 5.3->3, power_mw 748->829]

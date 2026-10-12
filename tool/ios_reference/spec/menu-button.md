@@ -315,6 +315,21 @@ deferred and live content) is measured in [menu-api](menu-api.md).
   1.5, liquid 2.7 -> 2.3, Pixel flat 12.0 / 12.4 -> 11.2 / 10.9, liquid
   14.0 / 15.1 -> 13.3 / 13.6 ms. The kernel reach no longer flips to ten
   taps a side on a rounding error (`MorphMenuFusion.reachOf`).
+- Frame grid and row raster (2026-10-12, tool/bench, Pixel 6a liquid
+  menu, perf/2026-10-12-bench-menu-*): frame times are put on the
+  display's frame grid before the motion samples them
+  (`MorphFrameGrid`, menu_host.dart; NEAR: up to 1 ms, typically tens of
+  us). The predictions then hit their frames: served 62 -> 86 - 93
+  percent; the misses left are a motion's first two frames, whose time
+  is set by the tap. The motion's frame period carries over to the next
+  motion, and requests within 0.0004 pt of one in flight are not sent
+  twice. The root card's rows also draw from their raster while the
+  content scale is more than 0.002 from 1, not only under the blur (NEAR:
+  resampled while the card scales, live at rest): a live label struck
+  its glyphs at every scale (UpdateAtlasBitmap 15 ms in the worst
+  frames). Menu scene: UI p95 14.0 -> 11.0 ms, frames over budget 5.3 ->
+  3.0 percent, glyph atlas 380 -> 54 ms per scene. Left: encode and
+  saveLayer on the raster thread, and the first frames' fusions.
 - Device trace tool: example/integration_test/menu_trace_test.dart
   (profile build, `--dart-define=TRACE_SCENE=center|gallery`,
   `TRACE_RUN=<id>`, writes `<app tmp>/menu_trace_<id>.json`: FrameTimings,
