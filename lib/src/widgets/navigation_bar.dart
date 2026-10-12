@@ -1,5 +1,4 @@
 import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
@@ -8,7 +7,6 @@ import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/bar_items.dart';
 import 'package:morph/src/widgets/bar_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
-import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/navigation_motion.dart';
 import 'package:morph/src/widgets/scroll_edge_effect.dart';
@@ -485,10 +483,8 @@ class _InlineTitleState extends State<_InlineTitle> {
 
   double get _blur => widget.motion?.titleBlur ?? 0;
 
-  _TitleStructure _structureNow() => (
-    shown: _opacity > 0.001,
-    blurred: !MorphGlyphs.shades && _blur > MorphGlyphs.minBlur,
-  );
+  _TitleStructure _structureNow() =>
+      (shown: _opacity > 0.001, blurred: morphVeiledGlyphsBlurred(_blur));
 
   void _sync() {
     if (_structureNow() != _structure) setState(() {});
@@ -533,26 +529,11 @@ class _InlineTitleState extends State<_InlineTitle> {
         style: style,
       );
       if (widget.motion == null) out = ExcludeSemantics(child: out);
-      if (structure.blurred) {
-        out = MorphLiveImageFiltered(
-          live: frames,
-          filterOf: () => ui.ImageFilter.blur(
-            sigmaX: _blur,
-            sigmaY: _blur,
-            tileMode: TileMode.decal,
-          ),
-          child: out,
-        );
-      }
-      out = MorphLiveTemplate(
+      out = morphLiveVeiledGlyphs(
         live: frames,
-        template: () =>
-            morphVeiledGlyphs(
-                  blur: _blur,
-                  opacity: _opacity.clamp(0.0, 1.0),
-                  child: morphLiveSlot,
-                )
-                as RenderObjectWidget,
+        blurred: structure.blurred,
+        blur: () => _blur,
+        opacity: () => _opacity,
         child: out,
       );
       out = MorphLiveTransform.matrix(

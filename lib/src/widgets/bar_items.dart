@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -5,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/flight.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/presentation.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/target.dart';
@@ -798,6 +800,21 @@ class _MorphBarItemsState extends State<MorphBarItems>
   Object? _pressedCapsule;
   Object? _pressedButton;
   int? _pressPointer;
+  final _Ticks _ticks = _Ticks();
+  final _Ticks _rebuilds = _Ticks();
+  bool _syncing = false;
+  ValueListenable<double>? _driftSource;
+  Listenable? _hostFrames;
+  MorphBarStyle? _rowStyle;
+  Brightness? _rowBrightness;
+  _RowFrame _row = _RowFrame.empty;
+  List<Object?>? _builtStructure;
+
+  @override
+  void initState() {
+    super.initState();
+    frames.addListener(_scheduleSync);
+  }
 
   @override
   void advanceMotion(double t) {
@@ -863,6 +880,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final menu = _menu;
     _menu = null;
     menu?.host.dispose();
+    frames.removeListener(_scheduleSync);
+    _driftSource?.removeListener(_scheduleSync);
+    _ticks.dispose();
+    _rebuilds.dispose();
     super.dispose();
   }
 
@@ -1313,98 +1334,193 @@ class _MorphBarItemsState extends State<MorphBarItems>
     return _built = _buildRow(context);
   }
 
+  // Synced once per frame after every ticker ran, where a build would
+  // read the motion: the drift comes from the navigation's own ticker. A
+  // frame whose structure changed builds; every other one only pushes its
+  // geometry into the render objects.
+  void _scheduleSync() {
+    if (_syncing) return;
+    _syncing = true;
+    scheduleMicrotask(() {
+      _syncing = false;
+      if (!mounted || !_hasLayout) return;
+      _sync();
+      if (!listEquals(_row.structure, _builtStructure)) _rebuilds.notify();
+      _ticks.notify();
+    });
+  }
+
+  void _followDrift(ValueListenable<double>? progress) {
+    if (identical(progress, _driftSource) && _hostFrames != null) return;
+    _driftSource?.removeListener(_scheduleSync);
+    progress?.addListener(_scheduleSync);
+    _driftSource = progress;
+    _hostFrames = progress == null
+        ? frames
+        : Listenable.merge([frames, progress]);
+  }
+
+  void _sync() {
+    final style = _rowStyle;
+    final brightness = _rowBrightness;
+    if (style == null || brightness == null) return;
+    final progress = widget.driftProgress;
+    if (progress != null) {
+      _motion.setDrift(
+        _driftLayout,
+        widget.driftFactor * progress.value.clamp(0.0, 1.0),
+      );
+    }
+    final capsules = _motion.capsules;
+    final items = _motion.items;
+    Rect lifted(Object id, Rect rect) {
+      final press = _presses[id];
+      if (press == null) return rect;
+      final lean = press.lean;
+      return Rect.fromCenter(
+        center: rect.center + lean,
+        width: rect.width * press.scaleX,
+        height: rect.height * press.scaleY,
+      );
+    }
+
+    final apart = [
+      for (final c in capsules)
+        if (c.apart)
+          MorphGlassSurface(
+            kind: MorphGlassKind.button,
+            shape: RRect.fromRectAndRadius(
+              c.rect,
+              Radius.circular(math.min(c.rect.width, c.rect.height) / 2),
+            ),
+            color: _capsuleColor(c.id, style),
+            brightness: brightness,
+            opacity: c.opacity,
+          ),
+    ];
+    final joined = [
+      for (final c in capsules)
+        if (c.apart)
+          ...const <MorphGlassSurface>[]
+        else if (_landingOn(c.id) case final landing?) ...[
+          MorphGlassSurface(
+            kind: MorphGlassKind.button,
+            shape: landing.motion.buttonBlob.rrect.shift(-landing.origin),
+            color: _capsuleColor(c.id, style),
+            brightness: brightness,
+          ),
+          MorphGlassSurface(
+            kind: MorphGlassKind.menu,
+            shape: landing.motion.menuBlob.rrect.shift(-landing.origin),
+            color: style.capsuleColor,
+            brightness: brightness,
+          ),
+        ] else if (!_carried(c.id))
+          MorphGlassSurface(
+            kind: MorphGlassKind.button,
+            shape: RRect.fromRectAndRadius(
+              lifted(c.id, c.rect),
+              Radius.circular(math.min(c.rect.width, c.rect.height) / 2),
+            ),
+            color: _capsuleColor(c.id, style),
+            brightness: brightness,
+          ),
+    ];
+    final menuCapsule = _menuCapsule();
+    final menu = _menu;
+    final shown = <MorphBarItemFrame>[];
+    final places = <Object, _ItemPlace>{};
+    final structure = <Object?>[
+      apart.isEmpty,
+      menuCapsule,
+      menu?.button.id,
+      menu?.motion.isOpen,
+    ];
+    for (final f in items) {
+      final button = _buttons[f.id];
+      final capsuleId = _capsuleOf[f.id];
+      if (button == null || _carried(capsuleId ?? f.id)) continue;
+      shown.add(f);
+      final place = _placeItem(f, capsuleId);
+      places[f.id] = place;
+      structure.add((
+        f.id,
+        button,
+        capsuleId,
+        capsuleId != null && (_prominent[capsuleId] ?? false),
+        f.leaving,
+        morphVeiledGlyphsBlurred(place.blur),
+      ));
+    }
+    _row = _RowFrame(
+      items: items,
+      shown: shown,
+      apart: apart,
+      joined: joined,
+      menuCapsule: menuCapsule,
+      places: places,
+      structure: structure,
+    );
+  }
+
+  _ItemPlace _placeItem(MorphBarItemFrame frame, Object? capsuleId) {
+    final press = capsuleId == null ? null : _presses[capsuleId];
+    final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
+    final landing = capsuleId == null ? null : _landingOn(capsuleId);
+    var center = frame.center;
+    var scale = frame.scale;
+    if (landing != null && capsule != null) {
+      final blob = landing.motion.buttonBlob;
+      center =
+          blob.rect.center -
+          landing.origin +
+          (center - capsule.rect.center) * blob.scale;
+      scale *= blob.scale;
+    } else if (press != null && capsule != null) {
+      final c = capsule.rect.center;
+      center = c + (center - c) * press.scaleX + press.lean;
+      scale *= press.scale;
+    }
+    return _ItemPlace(
+      left: center.dx - frame.size.width / 2,
+      top: center.dy - frame.size.height / 2,
+      width: frame.size.width,
+      height: frame.size.height,
+      scale: scale,
+      blur: frame.blur > MorphGlyphs.minBlur ? frame.blur : 0,
+      presence: frame.presence.clamp(0.0, 1.0),
+    );
+  }
+
+  _ItemPlace _placeOf(Object id) => _row.places[id] ?? _ItemPlace.gone;
+
   Widget _buildRow(BuildContext context) {
-    final style = MorphBarStyle.resolve(context, widget.style);
+    final style = _rowStyle = MorphBarStyle.resolve(context, widget.style);
     final glass = MorphGlass.maybeOf(context);
-    final brightness = morphBrightnessOf(context);
+    _rowBrightness = morphBrightnessOf(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
+    final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
     final items = LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         _relayout(constraints.maxWidth);
         final progress = widget.driftProgress;
+        _followDrift(progress);
         if (progress == null && _motion.isDrifting) {
           _motion.endDrift(clock);
           wake();
         }
         return ListenableBuilder(
-          listenable: progress == null
-              ? frames
-              : Listenable.merge([frames, progress]),
+          listenable: _rebuilds,
           builder: (BuildContext context, Widget? _) {
-            if (progress != null) {
-              _motion.setDrift(
-                _driftLayout,
-                widget.driftFactor * progress.value.clamp(0.0, 1.0),
-              );
-            }
-            final capsules = _motion.capsules;
-            final items = _motion.items;
-            Rect lifted(Object id, Rect rect) {
-              final press = _presses[id];
-              if (press == null) return rect;
-              final lean = press.lean;
-              return Rect.fromCenter(
-                center: rect.center + lean,
-                width: rect.width * press.scaleX,
-                height: rect.height * press.scaleY,
-              );
-            }
-
-            final apart = [
-              for (final c in capsules)
-                if (c.apart)
-                  MorphGlassSurface(
-                    kind: MorphGlassKind.button,
-                    shape: RRect.fromRectAndRadius(
-                      c.rect,
-                      Radius.circular(
-                        math.min(c.rect.width, c.rect.height) / 2,
-                      ),
-                    ),
-                    color: _capsuleColor(c.id, style),
-                    brightness: brightness,
-                    opacity: c.opacity,
-                  ),
-            ];
-            final joined = [
-              for (final c in capsules)
-                if (c.apart)
-                  ...const <MorphGlassSurface>[]
-                else if (_landingOn(c.id) case final landing?) ...[
-                  MorphGlassSurface(
-                    kind: MorphGlassKind.button,
-                    shape: landing.motion.buttonBlob.rrect.shift(
-                      -landing.origin,
-                    ),
-                    color: _capsuleColor(c.id, style),
-                    brightness: brightness,
-                  ),
-                  MorphGlassSurface(
-                    kind: MorphGlassKind.menu,
-                    shape: landing.motion.menuBlob.rrect.shift(-landing.origin),
-                    color: style.capsuleColor,
-                    brightness: brightness,
-                  ),
-                ] else if (!_carried(c.id))
-                  MorphGlassSurface(
-                    kind: MorphGlassKind.button,
-                    shape: RRect.fromRectAndRadius(
-                      lifted(c.id, c.rect),
-                      Radius.circular(
-                        math.min(c.rect.width, c.rect.height) / 2,
-                      ),
-                    ),
-                    color: _capsuleColor(c.id, style),
-                    brightness: brightness,
-                  ),
-            ];
-            final menuCapsule = _menuCapsule();
+            _sync();
+            final row = _row;
+            _builtStructure = row.structure;
             final content = Stack(
               key: _contentKey,
               clipBehavior: Clip.none,
               children: [
                 Positioned.fromRect(
-                  rect: menuCapsule ?? Rect.zero,
+                  rect: row.menuCapsule ?? Rect.zero,
                   child: IgnorePointer(
                     child: Builder(
                       builder: (BuildContext context) {
@@ -1418,51 +1534,60 @@ class _MorphBarItemsState extends State<MorphBarItems>
                     ),
                   ),
                 ),
-                for (final f in items)
-                  if (_buttons[f.id] case final button?)
-                    if (!_carried(_capsuleOf[f.id] ?? f.id))
-                      _buildItem(
-                        button,
-                        f,
-                        style,
-                        direction,
-                        capsuleId: _capsuleOf[f.id],
-                      ),
+                for (final f in row.shown)
+                  _buildItem(
+                    _buttons[f.id]!,
+                    f,
+                    style,
+                    direction,
+                    capsuleId: _capsuleOf[f.id],
+                  ),
               ],
             );
             final spacing = widget.metrics.containerSpacing;
-            final bar = SizedBox(
+            return SizedBox(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
               child: glass == null
                   ? CustomPaint(
                       painter: _CapsulePainter(
-                        [
-                          ..._flat.of(joined, spacing),
-                          ..._flatApart.of(apart, spacing),
+                        () => [
+                          ..._flat.of(_row.joined, spacing),
+                          ..._flatApart.of(_row.apart, spacing),
                         ],
                         style,
-                        MediaQuery.maybeDevicePixelRatioOf(context) ?? 1,
+                        dpr,
+                        repaint: MorphChanges<Object?>(
+                          _ticks,
+                          () => (
+                            _flat.of(_row.joined, spacing),
+                            _flatApart.of(_row.apart, spacing),
+                          ),
+                        ),
                       ),
                       child: content,
                     )
                   : MorphGlassHost(
                       painter: glass,
                       mode: MorphGlassMode.layer,
-                      frame: () => MorphGlassFrame(
-                        joined,
-                        spacing: spacing,
-                        still: progress == null && motionSettled,
-                        contentSlots: [
-                          for (final f in items)
-                            Rect.fromCenter(
-                              center: f.center,
-                              width: f.size.width,
-                              height: f.size.height,
-                            ),
-                        ],
-                      ),
-                      content: apart.isEmpty
+                      frames: _hostFrames,
+                      frame: () {
+                        final row = _row;
+                        return MorphGlassFrame(
+                          row.joined,
+                          spacing: spacing,
+                          still: widget.driftProgress == null && motionSettled,
+                          contentSlots: [
+                            for (final f in row.items)
+                              Rect.fromCenter(
+                                center: f.center,
+                                width: f.size.width,
+                                height: f.size.height,
+                              ),
+                          ],
+                        );
+                      },
+                      content: row.apart.isEmpty
                           ? content
                           : Stack(
                               clipBehavior: Clip.none,
@@ -1472,8 +1597,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
                                     child: MorphGlassHost(
                                       painter: glass,
                                       mode: MorphGlassMode.layer,
+                                      frames: _hostFrames,
                                       frame: () => MorphGlassFrame(
-                                        apart,
+                                        _row.apart,
                                         spacing: spacing,
                                       ),
                                     ),
@@ -1484,7 +1610,6 @@ class _MorphBarItemsState extends State<MorphBarItems>
                             ),
                     ),
             );
-            return bar;
           },
         );
       },
@@ -1525,23 +1650,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final iconColor = prominent || button.interactive
         ? color
         : style.disabledIconColor;
-    final press = capsuleId == null ? null : _presses[capsuleId];
-    final capsule = capsuleId == null ? null : _capsuleLayout(capsuleId);
-    final landing = capsuleId == null ? null : _landingOn(capsuleId);
-    var center = frame.center;
-    var scale = frame.scale;
-    if (landing != null && capsule != null) {
-      final blob = landing.motion.buttonBlob;
-      center =
-          blob.rect.center -
-          landing.origin +
-          (center - capsule.rect.center) * blob.scale;
-      scale *= blob.scale;
-    } else if (press != null && capsule != null) {
-      final c = capsule.rect.center;
-      center = c + (center - c) * press.scaleX + press.lean;
-      scale *= press.scale;
-    }
+    final id = frame.id;
     final metrics = widget.metrics;
     final inputs = (button, color, iconColor, prominent, direction, metrics);
     final cached = _contents[button.id];
@@ -1559,11 +1668,17 @@ class _MorphBarItemsState extends State<MorphBarItems>
       );
       _contents[button.id] = (inputs, content);
     }
-    content = Transform.scale(
-      scale: scale,
-      child: morphVeiledGlyphs(
-        blur: frame.blur > MorphGlyphs.minBlur ? frame.blur : 0,
-        opacity: frame.presence.clamp(0.0, 1.0),
+    content = MorphLiveTransform.matrix(
+      live: _ticks,
+      matrixOf: () {
+        final scale = _placeOf(id).scale;
+        return Matrix4.diagonal3Values(scale, scale, 1);
+      },
+      child: morphLiveVeiledGlyphs(
+        live: _ticks,
+        blurred: morphVeiledGlyphsBlurred(_placeOf(id).blur),
+        blur: () => _placeOf(id).blur,
+        opacity: () => _placeOf(id).presence,
         child: content,
       ),
     );
@@ -1601,15 +1716,140 @@ class _MorphBarItemsState extends State<MorphBarItems>
     } else {
       content = IgnorePointer(child: ExcludeSemantics(child: content));
     }
-    return Positioned(
+    return MorphLivePositionedTemplate(
       key: ValueKey<Object>(button.id),
-      left: center.dx - frame.size.width / 2,
-      top: center.dy - frame.size.height / 2,
-      width: frame.size.width,
-      height: frame.size.height,
+      live: _ticks,
+      template: () {
+        final place = _placeOf(id);
+        return Positioned(
+          left: place.left,
+          top: place.top,
+          width: place.width,
+          height: place.height,
+          child: morphLiveSlot,
+        );
+      },
       child: content,
     );
   }
+}
+
+/// Where a bar item stands in one frame and how it is drawn.
+class _ItemPlace {
+  const _ItemPlace({
+    required this.left,
+    required this.top,
+    required this.width,
+    required this.height,
+    required this.scale,
+    required this.blur,
+    required this.presence,
+  });
+
+  static const gone = _ItemPlace(
+    left: 0,
+    top: 0,
+    width: 0,
+    height: 0,
+    scale: 1,
+    blur: 0,
+    presence: 0,
+  );
+
+  final double left;
+  final double top;
+  final double width;
+  final double height;
+  final double scale;
+  final double blur;
+  final double presence;
+}
+
+/// One synced frame of a bar row: what its build and its live render
+/// objects read.
+class _RowFrame {
+  const _RowFrame({
+    required this.items,
+    required this.shown,
+    required this.apart,
+    required this.joined,
+    required this.menuCapsule,
+    required this.places,
+    required this.structure,
+  });
+
+  static const empty = _RowFrame(
+    items: [],
+    shown: [],
+    apart: [],
+    joined: [],
+    menuCapsule: null,
+    places: {},
+    structure: [],
+  );
+
+  final List<MorphBarItemFrame> items;
+  final List<MorphBarItemFrame> shown;
+  final List<MorphGlassSurface> apart;
+  final List<MorphGlassSurface> joined;
+  final Rect? menuCapsule;
+  final Map<Object, _ItemPlace> places;
+
+  /// What the row's tree is built from; a frame whose structure differs
+  /// from the built one builds.
+  final List<Object?> structure;
+}
+
+class _Ticks extends ChangeNotifier {
+  void notify() => notifyListeners();
+}
+
+/// Whether [morphVeiledGlyphs] draws a blur of [blur] logical pixels
+/// through a blur layer of its own.
+@internal
+bool morphVeiledGlyphsBlurred(double blur) =>
+    !MorphGlyphs.shades && blur > MorphGlyphs.minBlur;
+
+/// [morphVeiledGlyphs] whose [blur] and [opacity] follow [live] without a
+/// build.
+///
+/// [blurred] is [morphVeiledGlyphsBlurred] of the blur when it builds: a
+/// blur that crosses [MorphGlyphs.minBlur] changes the tree, so the caller
+/// builds again then.
+@internal
+Widget morphLiveVeiledGlyphs({
+  required Listenable live,
+  required bool blurred,
+  required double Function() blur,
+  required double Function() opacity,
+  required Widget child,
+}) {
+  var out = child;
+  if (blurred) {
+    out = MorphLiveImageFiltered(
+      live: live,
+      filterOf: () {
+        final sigma = blur();
+        return ui.ImageFilter.blur(
+          sigmaX: sigma,
+          sigmaY: sigma,
+          tileMode: TileMode.decal,
+        );
+      },
+      child: out,
+    );
+  }
+  return MorphLiveTemplate(
+    live: live,
+    template: () =>
+        morphVeiledGlyphs(
+              blur: blur(),
+              opacity: opacity().clamp(0.0, 1.0),
+              child: morphLiveSlot,
+            )
+            as RenderObjectWidget,
+    child: out,
+  );
 }
 
 /// The long-press menu of one bar button: the measured menu of
@@ -1856,7 +2096,12 @@ class _FlatBodies {
 /// sigma as the other shadows' mask blur; before the shader loads it draws
 /// as a traced outline.
 class _CapsulePainter extends CustomPainter {
-  _CapsulePainter(this.bodies, this.style, this.devicePixelRatio);
+  _CapsulePainter(
+    this.bodies,
+    this.style,
+    this.devicePixelRatio, {
+    super.repaint,
+  });
 
   /// The blur of the drop shadow under a flat capsule (an engineering
   /// default of the fallback, not measured).
@@ -1868,8 +2113,10 @@ class _CapsulePainter extends CustomPainter {
   /// The width of a flat capsule's rim (not measured).
   static const double rimWidth = 0.5;
 
-  final List<(Color, Object, double)> bodies;
+  /// The bodies now.
+  final List<(Color, Object, double)> Function() bodies;
   final MorphBarStyle style;
+  List<(Color, Object, double)>? _painted;
 
   /// The device pixels per logical pixel of the view.
   final double devicePixelRatio;
@@ -1882,6 +2129,7 @@ class _CapsulePainter extends CustomPainter {
     // The view's scale; a transform above the bar leaves the ramp of the
     // shaded bodies' edges a little sharper or softer than a device pixel.
     final screenScale = devicePixelRatio;
+    final bodies = _painted = this.bodies();
     final shadow = Paint();
     shadow.maskFilter = const MaskFilter.blur(BlurStyle.normal, shadowBlur);
     const down = Offset(0, shadowOffset);
@@ -1966,7 +2214,7 @@ class _CapsulePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_CapsulePainter oldDelegate) =>
-      !listEquals(oldDelegate.bodies, bodies) ||
+      !listEquals(oldDelegate._painted, bodies()) ||
       oldDelegate.style != style ||
       oldDelegate.devicePixelRatio != devicePixelRatio;
 }

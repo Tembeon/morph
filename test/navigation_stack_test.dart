@@ -112,24 +112,20 @@ Finder _key(String id) => find.byKey(ValueKey<Object>(id));
 
 Offset _item(WidgetTester tester, String id) => tester.getCenter(_key(id));
 
-/// The opacity an item fades with: an [Opacity], or on Android the
-/// [MorphVeiledGlyphs] that draws its blur and fade in one.
-double _opacity(WidgetTester tester, String id) => switch (tester.widget(
-  find
-      .descendant(
-        of: _key(id),
-        matching: find.byWidgetPredicate(
-          (Widget w) =>
-              w is Opacity || w is MorphVeiledGlyphs || w is MorphGlyphs,
-        ),
-      )
-      .first,
-)) {
-  Opacity(:final opacity) ||
-  MorphVeiledGlyphs(:final opacity) ||
-  MorphGlyphs(:final opacity) => opacity,
-  _ => throw StateError('no fade'),
-};
+/// The opacity an item fades with: the [MorphGlyphs], or on Android the
+/// [MorphVeiledGlyphs] that draws its blur and fade in one, that its live
+/// template makes now.
+double _opacity(WidgetTester tester, String id) {
+  final live = tester.widget<MorphLiveTemplate>(
+    find
+        .descendant(of: _key(id), matching: find.byType(MorphLiveTemplate))
+        .first,
+  );
+  return switch (live.template()) {
+    MorphVeiledGlyphs(:final opacity) || MorphGlyphs(:final opacity) => opacity,
+    _ => throw StateError('no fade'),
+  };
+}
 
 /// How far the detail page is out, as a share of the width.
 double _pageOut(WidgetTester tester) =>

@@ -165,6 +165,34 @@ void main() {
     });
   });
 
+  testWidgets('a held bar button swells without a build', (tester) async {
+    await _toolbar(
+      tester,
+      () => [
+        MorphBarButtonGroup([_icon('a'), _icon('b')], id: 'A'),
+      ],
+    );
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byKey(const ValueKey<Object>('a'))),
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+    final built = <Type>[];
+    debugOnRebuildDirtyWidget = (Element element, bool _) {
+      built.add(element.widget.runtimeType);
+    };
+    addTearDown(() => debugOnRebuildDirtyWidget = null);
+    final before = tester.getRect(find.byKey(const ValueKey<Object>('a')));
+    for (var i = 0; i < 20; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    debugOnRebuildDirtyWidget = null;
+    final after = tester.getRect(find.byKey(const ValueKey<Object>('a')));
+    expect(after, isNot(before), reason: 'the press moves the item');
+    expect(built, isEmpty);
+    await gesture.up();
+    await tester.pumpAndSettle();
+  });
+
   testWidgets('a released bar item returns its content to exact scale', (
     tester,
   ) async {
@@ -176,9 +204,8 @@ void main() {
           MorphBarButtonGroup([_icon('a')], id: 'A'),
         ],
       );
-      List<RenderMorphGlyphs> snaps() => tester
-          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
-          .toList();
+      List<RenderMorphGlyphs> snaps() =>
+          tester.allRenderObjects.whereType<RenderMorphGlyphs>().toList();
       expect(snaps(), isNotEmpty);
       final gesture = await tester.startGesture(
         tester.getCenter(find.byKey(const ValueKey<Object>('a'))),
