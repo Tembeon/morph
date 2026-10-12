@@ -1,0 +1,27 @@
+{
+ "sdk": "stable",
+ "sha": "9dacedc",
+ "source": "/tmp/morph-perf/src/bench-9dacedc",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-12 14:54:22.857955",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "8",
+    "MORPH_GLASS_PROBE": "copy"
+   },
+   "thermal_before": [
+    0,
+    34.83165
+   ],
+   "thermal_after": [
+    0,
+    35.27805
+   ]
+  }
+ }
+}

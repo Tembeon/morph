@@ -1,0 +1,13 @@
+e6ce856  runs 3  fixed-perf False  2026-10-12 15:41
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   317    [=]
+audit/liquid/idle-frames              2   4.1   4.1  14.8  14.8   2.0   0.0    0   259    [power_mw 286->259]
+audit/liquid/home-scroll           1240   1.7   3.3   8.2  10.9   5.3   0.1    7   625  raster-cpu:1 bad raster: Canvas::saveLayer 15.2, PipelineVK::Create 13.9, SurfaceFrame::Encode 5.0  [=]
+audit/liquid/segmented             1173   3.0   5.3   7.9   9.4   2.7   0.0    2   529    [raster 13.7->9.424, gpu 3.61->2.7]
+audit/liquid/tab-bar               1459   4.1   6.7  10.6  18.1  10.0  10.8   12   787  raster-wait:124 raster-cpu:32 raster-sched:1 bad raster: waitForBufferRelease 8.2, SurfaceFrame::Encode 3.3, QueueSubmit 2.6  [raster 14.19->18.09, gpu 14.83->9.959, over_pct 2.6->10.8, power_mw 1046->787]
+audit/liquid/controls              1184   3.2  10.2   8.0  10.1   4.0   0.1   62   591  raster-wait:1 bad raster: QueueSubmit 12.0, SurfaceFrame::Encode 2.8, Canvas::saveLayer 0.4  [raster 12.02->10.13, gpu 5.319->3.987]
+audit/liquid/menu                   765   5.9  11.7   8.0  12.0   8.2   2.6   39   673  ui-layout:13 raster-cpu:4 ui-paint:2 ui-compositing:1 bad ui: layout 12.9, paint 6.8, compositing 3.4  [ui 14.04->11.67, raster 14.75->11.98, gpu 11.85->8.243, over_pct 5.3->2.6, power_mw 748->673]
+audit/liquid/sheet                  726   2.6   6.3   8.1  10.8  12.6   1.1   13   648  ui-layout:6 gpu:2 bad ui: layout 9.4, paint 6.8, compositing 4.8  [ui 7.362->6.322, raster 14.01->10.79, gpu 16.98->12.61, over_pct 8.7->1.1, power_mw 1118->648]
+audit/liquid/list                  1189   2.1   4.6   9.1  11.6   6.8   0.4   21   607  raster-cpu:3 ui-paint:1 raster-sched:1 bad raster: QueueSubmit 5.7, SurfaceFrame::Encode 5.6, Canvas::saveLayer 3.8  [gpu 8.212->6.841, power_mw 700->607]

@@ -4,7 +4,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/glass/renderer/internal/backdrop_capture_debug.dart';
-import 'package:morph/src/glass/renderer/internal/backdrop_region.dart';
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
@@ -231,17 +230,6 @@ class MorphScrollEdgeEffect extends StatelessWidget {
     MorphScrollEdgeEffectStyle.soft => extent + theme.softOverhang,
     MorphScrollEdgeEffectStyle.hard => extent,
   };
-
-  /// How far around its band the effect's blur reads, in logical pixels.
-  @internal
-  static double blurReach(
-    MorphScrollEdgeEffectStyle style,
-    MorphScrollEdgeEffectThemeData look,
-    double devicePixelRatio,
-  ) => morphBlurReach(switch (style) {
-    MorphScrollEdgeEffectStyle.soft => look.softBlurRadius,
-    MorphScrollEdgeEffectStyle.hard => look.hardBlurRadius,
-  }, devicePixelRatio);
 
   @override
   Widget build(BuildContext context) {
@@ -539,18 +527,17 @@ class _RenderEdge extends RenderBox {
       }, oldLayer: _clip.layer);
     }
 
-    if (!debugMorphEdgeEffectBoundsBlur ||
-        RenderGlassBackdropRegion.seededAbove(this) != null) {
+    if (!debugMorphEdgeEffectBoundsBlur) {
       _seedClip.layer = null;
       _seed.layer = null;
       band(context, offset);
       return;
     }
-    final reach = MorphScrollEdgeEffect.blurReach(
-      _style,
-      _look,
-      _devicePixelRatio,
-    );
+    final sigma = switch (_style) {
+      MorphScrollEdgeEffectStyle.soft => _look.softBlurRadius,
+      MorphScrollEdgeEffectStyle.hard => _look.hardBlurRadius,
+    };
+    final reach = morphBlurReach(sigma, _devicePixelRatio);
     final seed = _seed.layer ??= BackdropFilterLayer(
       filter: morphBackdropSeed,
       blendMode: BlendMode.src,

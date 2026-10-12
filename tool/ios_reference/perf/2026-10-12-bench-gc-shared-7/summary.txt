@@ -1,0 +1,13 @@
+9dacedc  runs 3  fixed-perf False  2026-10-12 14:46
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   286    [power_mw 320->286]
+audit/liquid/idle-frames              1   3.0   3.0  14.0  14.0   2.2   0.0    0   256    [power_mw 286->256]
+audit/liquid/home-scroll           1242   1.6   3.4   8.6  13.9   5.5   0.4   10   708  raster-cpu:3 raster-wait:2 bad raster: waitForBufferRelease 4.9, Canvas::saveLayer 4.6, SurfaceFrame::Encode 4.3  [raster 11.34->13.91, power_mw 603->708]
+audit/liquid/segmented             1177   3.2   5.3   8.4  10.3   2.9   0.0    2   493    [raster 13.7->10.31, gpu 3.61->2.935, power_mw 541->493]
+audit/liquid/tab-bar               1445   4.2   6.7  10.6  15.5  13.4   3.5    9   914  raster-cpu:34 gpu:15 raster-sched:1 bad raster: QueueSubmit 4.2, SurfaceFrame::Encode 3.9, UpdateAtlasBitmap 2.9  [power_mw 1046->914]
+audit/liquid/controls              1181   3.3   9.9   8.8  13.0   4.5   0.3   49   553  raster-wait:2 raster-cpu:2 bad raster: waitForBufferRelease 5.3, QueueSubmit 4.2, SurfaceFrame::Encode 3.7  [gpu 5.319->4.49, power_mw 589->553]
+audit/liquid/menu                   771   5.6  11.4   8.7  13.6  11.7   2.6   38   688  raster-cpu:11 ui-layout:7 ui-build:1 ui-paint:1 bad raster: SurfaceFrame::Encode 8.8, QueueSubmit 4.2, Canvas::saveLayer 3.8  [ui 14.04->11.38, over_pct 5.3->2.6, power_mw 748->688]
+audit/liquid/sheet                  732   3.1   6.7  10.0  14.5  17.1   7.9   18  1036  gpu:44 raster-cpu:11 ui-layout:2 raster-wait:1 bad raster: SurfaceFrame::Encode 5.4, Canvas::saveLayer 4.8, QueueSubmit 4.0  [power_mw 1118->1036]
+audit/liquid/list                  1194   2.0   4.4   9.0  11.3   7.2   0.3   20   637  raster-cpu:2 raster-sched:1 bad raster: SurfaceFrame::Encode 5.4, QueueSubmit 5.1, Canvas::saveLayer 4.7  [ui 5.029->4.422, gpu 8.212->7.157, power_mw 700->637]

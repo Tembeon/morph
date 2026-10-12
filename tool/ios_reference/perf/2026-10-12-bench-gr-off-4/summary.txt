@@ -1,0 +1,13 @@
+e6ce856  runs 3  fixed-perf False  2026-10-12 15:37
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   281    [power_mw 320->281]
+audit/liquid/idle-frames              1   1.2   1.2   8.1   8.1   1.9   0.0    0   315    [power_mw 286->315]
+audit/liquid/home-scroll           1240   1.7   3.4   8.7  13.4   5.5   0.6    8   651  raster-cpu:5 raster-wait:2 bad raster: waitForBufferRelease 5.6, Canvas::saveLayer 3.5, SurfaceFrame::Encode 3.5  [raster 11.34->13.44, power_mw 603->651]
+audit/liquid/segmented             1181   2.9   5.5   8.3  12.4   3.6   1.7    8   621  raster-wait:19 raster-sched:1 bad raster: waitForBufferRelease 9.4, SurfaceFrame::Encode 3.7, QueueSubmit 2.3  [over_pct 0.3->1.7, power_mw 541->621]
+audit/liquid/tab-bar               1471   4.3   6.9  11.1  15.7  14.2   2.9    6   953  raster-cpu:28 gpu:10 raster-wait:4 raster-sched:1 bad raster: QueueSubmit 4.5, SurfaceFrame::Encode 3.5, waitForBufferRelease 3.4  [raster 14.19->15.67, power_mw 1046->953]
+audit/liquid/controls              1183   3.4  10.0   8.9  11.6   5.2   0.2   61   570  raster-sched:1 raster-cpu:1 bad raster: QueueSubmit 9.1, SurfaceFrame::Encode 4.4, Canvas::saveLayer 2.7  [=]
+audit/liquid/menu                   764   5.6  12.6   9.0  13.8  12.8   3.5   44   730  raster-cpu:18 ui-layout:6 ui-paint:2 raster-sched:1 bad raster: SurfaceFrame::Encode 9.2, QueueSubmit 4.5, Canvas::saveLayer 4.3  [ui 14.04->12.63, over_pct 5.3->3.5]
+audit/liquid/sheet                  725   3.2   6.7   9.8  14.0  17.5   8.7   21  1088  gpu:54 raster-cpu:6 ui-paint:1 raster-sched:1 ui-layout:1 bad raster: Canvas::saveLayer 9.4, SurfaceFrame::Encode 4.7, QueueSubmit 3.5  [=]
+audit/liquid/list                  1207   2.1   5.0   9.2  11.6   7.6   0.3   27   639  ui-paint:2 raster-sched:1 raster-cpu:1 bad ui: paint 11.1, compositing 5.2, other 0.7  [power_mw 700->639]

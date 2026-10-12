@@ -1,0 +1,13 @@
+9dacedc  runs 3  fixed-perf False  2026-10-12 14:27
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   302    [power_mw 320->302]
+audit/liquid/idle-frames              1   4.0   4.0  11.6  11.6   2.4   0.0    0   258    [power_mw 286->258]
+audit/liquid/home-scroll           1241   1.6   3.3  10.0  15.0   6.2   1.4    9   655  raster-wait:9 raster-cpu:8 bad raster: waitForBufferRelease 6.5, SurfaceFrame::Encode 4.0, QueueSubmit 3.0  [raster 11.34->15.04, gpu 5.425->6.234, over_pct 0.2->1.4, power_mw 603->655]
+audit/liquid/segmented             1176   3.0   5.3   7.9  10.2   3.0   0.1    4   523  raster-sched:1 bad raster: QueueSubmit 10.7, SurfaceFrame::Encode 3.5, Canvas::saveLayer 0.7  [raster 13.7->10.2, gpu 3.61->3.05]
+audit/liquid/tab-bar               1464   4.2   6.8   9.8  13.1  10.3   1.0   13   763  raster-cpu:15 bad raster: UpdateAtlasBitmap 6.5, SurfaceFrame::Encode 4.1, QueueSubmit 3.5  [gpu 14.83->10.33, over_pct 2.6->1, power_mw 1046->763]
+audit/liquid/controls              1180   3.2  10.5   9.1  13.5   4.7   2.0   41   554  raster-wait:22 raster-cpu:2 bad raster: waitForBufferRelease 9.1, SurfaceFrame::Encode 3.5, QueueSubmit 2.5  [raster 12.02->13.48, gpu 5.319->4.686, over_pct 0.1->2, power_mw 589->554]
+audit/liquid/menu                   767   5.4  11.3   8.6  13.2   9.1   2.2   41   675  ui-layout:8 raster-cpu:7 raster-wait:1 ui-paint:1 bad ui: layout 12.0, paint 6.9, compositing 3.2  [ui 14.04->11.33, raster 14.75->13.24, gpu 11.85->9.11, over_pct 5.3->2.2, power_mw 748->675]
+audit/liquid/sheet                  728   2.6   6.3   9.1  13.7  15.3   4.0   19   686  gpu:17 raster-cpu:5 raster-wait:4 ui-layout:2 ui-build:1 bad raster: QueueSubmit 4.5, SurfaceFrame::Encode 4.1, waitForBufferRelease 3.5  [ui 7.362->6.254, over_pct 8.7->4, power_mw 1118->686]
+audit/liquid/list                  1189   2.0   4.5   9.0  11.7   7.0   0.5   27   610  raster-cpu:3 ui-paint:2 raster-sched:1 bad raster: QueueSubmit 5.8, SurfaceFrame::Encode 5.6, Canvas::saveLayer 5.2  [ui 5.029->4.49, gpu 8.212->6.978, power_mw 700->610]

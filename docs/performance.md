@@ -113,6 +113,16 @@ supported.
 - Backdrop filters are the raster cost. Each glass layer is one
   BackdropFilterLayer (liquid menu 10 saveLayers vs flat 1); full liquid
   costs 3.9 - 6.2x flat GPU cycles. The levers left change pixels.
+- What a glass surface costs is the filter machinery, not the read or the
+  shader (Pixel, `MORPH_GLASS_PROBE`): the glass shader as a plain paint is
+  11 - 36 percent of what liquid adds; a frame with any live read pays
+  0.4 - 1.1 ms GPU once (frame rendered offscreen and copied out); each
+  separate surface two MSAA passes and a composite; the frost and shader
+  inside the filter 0.4 - 2.0 ms on the big frosted surfaces. One shared
+  read per frame saves only 0.2 - 0.5 ms (tool/audit/2026-10-12-glass-composition.md).
+- Every layer-tree saveLayer appears twice as `Canvas::saveLayer` in a
+  trace (flow records it, Impeller executes it); count the ones inside
+  SurfaceFrame::Encode.
 - A blur whose kernel-grown clip leaves the pass makes Impeller blur the
   WHOLE pass, and below 5.66 device px of sigma at full resolution.
   Keep blur clips inside the pass.
@@ -165,6 +175,7 @@ supported.
 | Analytic blurred union for the menu (Clark) | exact only up to 6 pt radius; most fused frames are 10 pt+ (branch menu-blur-analytic-oracle) | same |
 | Optical batch (one filter for disconnected chrome) | pilot never activated in 40 frames: no evidence | codex-optical-batch-report.md |
 | Dependent GPU pass batching | crashes both tested SDKs; keep separate command buffers | codex-gpu-pass-lifecycle-report.md |
+| Backdrop region (one read per bar band for the edge blur and the bar's glass, e6ce856) | GPU within +-2 percent in every audit scene, power and raster in launch spread: a saved full-screen read is worth about what the region's own pass costs; removed | tool/audit/2026-10-12-glass-composition.md, perf/2026-10-12-bench-gr-* |
 | Flat sparse field + Android glyph raster | push raster p95 improves, power 556/534 -> 542/547 mW (no saving), other actions mixed; shipped for frame time | tool/audit/codex-navigation-stable-report.md, perf/2026-10-08-navigation-stable |
 
 Open owner decisions (pixel-changing levers with device numbers): Redmi

@@ -1906,7 +1906,6 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       seeding: seeding,
       devicePixelRatio: devicePixelRatio,
       translation: translation,
-      passOrigin: backdropRegion?.passOrigin(devicePixelRatio),
     );
     if (ownPass) {
       final origin = _seedPassOrigin(transform);
@@ -2229,13 +2228,10 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
       }
       final shader = (_shaderHandle.layer ??= BackdropFilterLayer())
         ..filter = _updateShaderFilter()
-        ..backdropKey =
-            switch (debugGlassCostProbe) {
-              GlassCostProbe.shared || GlassCostProbe.pooled => _probeKey,
-              _ => null,
-            } ??
-            (backdropRegion == null ? backdropKey : null);
-
+        ..backdropKey = switch (debugGlassCostProbe) {
+          GlassCostProbe.shared || GlassCostProbe.pooled => _probeKey,
+          _ => backdropKey,
+        };
       GlassLayerOwners.note(shader, this);
       if (_clipRectLayerHandle.layer case final clip?) {
         if (!identical(shader.parent, clip)) {

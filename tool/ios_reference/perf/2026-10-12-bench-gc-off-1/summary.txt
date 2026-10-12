@@ -1,0 +1,13 @@
+9dacedc  runs 3  fixed-perf False  2026-10-12 14:23
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/idle                     0     -     -     -     -     -   0.0    0   343    [power_mw 320->343]
+audit/liquid/idle-frames              0     -     -     -     -     -   0.0    0   259    [power_mw 286->259]
+audit/liquid/home-scroll           1241   1.9   3.4   8.6  11.2   5.4   0.2    8   566  raster-cpu:3 bad raster: Canvas::saveLayer 7.6, SurfaceFrame::Encode 4.0, PipelineVK::Create 3.6  [power_mw 603->566]
+audit/liquid/segmented             1185   3.3   5.5   8.4  10.4   3.6   0.2   10   512  raster-cpu:1 raster-sched:1 bad raster: SurfaceFrame::Encode 7.2, QueueSubmit 3.9, LayerTree::Preroll 3.7  [raster 13.7->10.45, power_mw 541->512]
+audit/liquid/tab-bar               1467   4.3   6.8  10.3  13.0  14.6   1.9    9   953  raster-cpu:15 gpu:12 raster-sched:1 bad raster: QueueSubmit 4.5, UpdateAtlasBitmap 4.5, SurfaceFrame::Encode 3.6  [power_mw 1046->953]
+audit/liquid/controls              1180   3.4  10.6   8.7  11.5   5.3   0.1   70   589  raster-sched:1 bad raster: QueueSubmit 12.2, SurfaceFrame::Encode 3.4, Canvas::saveLayer 1.4  [=]
+audit/liquid/menu                   764   5.2  12.2   8.7  13.8  12.1   4.1   47   752  raster-cpu:18 ui-layout:12 ui-build:1 bad raster: SurfaceFrame::Encode 8.7, Canvas::saveLayer 4.0, QueueSubmit 3.8  [ui 14.04->12.21, over_pct 5.3->4.1]
+audit/liquid/sheet                  729   2.9   6.6   9.4  13.1  16.8   6.7   14  1164  gpu:41 raster-cpu:7 ui-layout:1 bad raster: Canvas::saveLayer 8.7, SurfaceFrame::Encode 5.0, QueueSubmit 3.4  [ui 7.362->6.562, over_pct 8.7->6.7]
+audit/liquid/list                  1211   2.1   5.3   9.1  11.5   7.8   0.6   27   620  raster-cpu:7 bad raster: SurfaceFrame::Encode 6.1, Canvas::saveLayer 5.3, QueueSubmit 3.7  [power_mw 700->620]

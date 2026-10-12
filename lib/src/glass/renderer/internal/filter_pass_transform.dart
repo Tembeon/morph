@@ -6,9 +6,8 @@ import 'package:meta/meta.dart';
 /// the render pass whose fragment coordinates its image filters see.
 ///
 /// Filter coordinates are local to the enclosing render pass. A seeded
-/// fractional-opacity pass uses its clipped origin, a seeded pass whose
-/// origin the caller knows uses [passOrigin]; otherwise the root screen
-/// coordinates apply. [translation] is retained compositor motion.
+/// fractional-opacity pass uses its clipped origin; otherwise the root
+/// screen coordinates apply. [translation] is retained compositor motion.
 @internal
 Matrix4 filterPassTransform(
   RenderObject owner, {
@@ -16,13 +15,13 @@ Matrix4 filterPassTransform(
   required double devicePixelRatio,
   Offset translation = Offset.zero,
   Matrix4? screen,
-  Offset? passOrigin,
 }) {
   final Matrix4 transform;
   if (seeding) {
-    final origin =
-        passOrigin ??
-        GlassCompositionProbe.seededPassOrigin(owner, devicePixelRatio);
+    final origin = GlassCompositionProbe.seededPassOrigin(
+      owner,
+      devicePixelRatio,
+    );
     transform = screen ?? owner.getTransformTo(null);
     transform.leftTranslateByDouble(-origin.dx, -origin.dy, 0, 1);
   } else {
