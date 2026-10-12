@@ -159,4 +159,51 @@ void main() {
       },
     );
   }
+
+  testWidgets('an open page drops its source replica and fades fully in', (
+    tester,
+  ) async {
+    late BuildContext context;
+    await tester.pumpWidget(
+      MorphScope(
+        child: MaterialApp(
+          home: Builder(
+            builder: (c) {
+              context = c;
+              return const Center(
+                child: MorphTag(
+                  id: 'source',
+                  child: SizedBox(width: 100, height: 80, child: Text('look')),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+    final result = pushMorphZoom<void>(
+      context,
+      from: 'source',
+      builder: (_) => const SizedBox.expand(child: Text('content')),
+    );
+    result.ignore();
+    await tester.pumpAndSettle();
+    expect(
+      find.ancestor(
+        of: find.text('look', skipOffstage: false),
+        matching: find.byType(FittedBox),
+      ),
+      findsNothing,
+    );
+    final fades = <double>[];
+    for (
+      RenderObject? r = tester.renderObject(find.text('content'));
+      r != null;
+      r = r.parent
+    ) {
+      if (r is RenderOpacity) fades.add(r.opacity);
+    }
+    expect(fades, everyElement(1.0));
+    expect(tester.takeException(), isNull);
+  });
 }

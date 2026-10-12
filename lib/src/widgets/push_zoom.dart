@@ -410,7 +410,11 @@ class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
     super.dispose();
   }
 
-  double get _fade => widget.motion.fade(widget.motion.time);
+  // The fade spring is critically damped and only nears 1, so an open page
+  // counts as fully faded in: the source's replica leaves and the content
+  // paints without an opacity layer.
+  double get _fade =>
+      widget.motion.isOpen ? 1.0 : widget.motion.fade(widget.motion.time);
 
   bool get _closing => !widget.motion.isOpening;
 
