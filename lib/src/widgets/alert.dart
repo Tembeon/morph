@@ -193,7 +193,8 @@ class MorphAlertStyle {
 /// platter like a glass button (a dragging finger pulls it a quarter as
 /// far, [MorphAlertTuning.platterPull]), the button under the finger
 /// highlights, and the finger may slide to another button before it
-/// lifts. The
+/// lifts. A finger that scrolls an alert taller than the screen chooses
+/// nothing: the highlight goes and the platter settles. The
 /// future completes when the alert starts to leave; the chosen action's
 /// [MorphAlertAction.onPressed] runs once it is gone. A tap outside does
 /// nothing, as in UIKit; Escape chooses the cancel action and Return the
@@ -463,6 +464,9 @@ class _AlertViewState extends State<_AlertView>
   }();
   bool _leaving = false;
   int? _pointer;
+  // The tracked finger scrolled the card's content: it chooses nothing
+  // and moves nothing until it lifts.
+  bool _scrolled = false;
   int? _highlighted;
   List<MorphAlertAction> _shown = const [];
 
@@ -572,13 +576,14 @@ class _AlertViewState extends State<_AlertView>
     final local = _cardLocal(event.position);
     if (local == null) return;
     _pointer = event.pointer;
+    _scrolled = false;
     _press.reducedMotion = morphReducedMotionOf(context);
     if (!_route.isPopover) _press.pointerDown(stamp(event), local);
     setState(() => _highlighted = _buttonAt(event.position));
   }
 
   void _move(PointerMoveEvent event) {
-    if (event.pointer != _pointer) return;
+    if (event.pointer != _pointer || _scrolled) return;
     final local = _cardLocal(event.position);
     if (local == null) return;
     if (!_route.isPopover) _press.pointerMove(stamp(event), local);
@@ -589,6 +594,7 @@ class _AlertViewState extends State<_AlertView>
   void _up(PointerUpEvent event) {
     if (event.pointer != _pointer) return;
     _pointer = null;
+    if (_scrolled) return;
     if (!_route.isPopover) {
       final local = _cardLocal(event.position) ?? Offset.zero;
       _press.pointerUp(stamp(event), local);
@@ -601,8 +607,25 @@ class _AlertViewState extends State<_AlertView>
   void _cancel(PointerCancelEvent event) {
     if (event.pointer != _pointer) return;
     _pointer = null;
+    if (_scrolled) return;
     if (!_route.isPopover) _press.pointerCancel(stamp(event));
     if (_highlighted != null) setState(() => _highlighted = null);
+  }
+
+  bool _contentScrolled(ScrollNotification notification) {
+    if (_pointer == null ||
+        _scrolled ||
+        notification.depth != 0 ||
+        notification is! ScrollUpdateNotification ||
+        notification.dragDetails == null ||
+        (notification.scrollDelta ?? 0) == 0) {
+      return false;
+    }
+    _scrolled = true;
+    if (!_route.isPopover) _press.pointerCancel(clock);
+    if (_highlighted != null) setState(() => _highlighted = null);
+    wake();
+    return false;
   }
 
   @override
@@ -652,7 +675,10 @@ class _AlertViewState extends State<_AlertView>
       child: MorphLiveTransform.matrix(
         live: frames,
         matrixOf: _pressTransform,
-        child: card,
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _contentScrolled,
+          child: card,
+        ),
       ),
     );
     final semantic = Semantics(

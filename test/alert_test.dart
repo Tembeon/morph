@@ -708,6 +708,48 @@ void main() {
       expect(result?.title, 'Three');
     });
 
+    testWidgets('scrolling the alert cancels the press and drops the lean', (
+      tester,
+    ) async {
+      var done = false;
+      await open(tester, (c) async {
+        await showMorphAlert(
+          c,
+          title: 'Title',
+          actions: [
+            for (var i = 0; i < 30; i++) MorphAlertAction(title: 'Action $i'),
+          ],
+        );
+        done = true;
+      });
+      final clip = find.ancestor(
+        of: find.text('Title'),
+        matching: find.byType(ClipRRect),
+      );
+      final rest = tester.getRect(clip.first);
+      final start = tester.getCenter(find.text('Action 2'));
+      expect(start.dy, lessThan(900), reason: 'the action is on screen');
+      final gesture = await tester.startGesture(start);
+      await tester.pump(const Duration(milliseconds: 50));
+      for (var i = 0; i < 12; i++) {
+        await gesture.moveBy(const Offset(0, -20));
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await tester.pump(const Duration(seconds: 1));
+      expect(
+        tester.getRect(clip.first).center.dy,
+        moreOrLessEquals(rest.center.dy, epsilon: 0.5),
+        reason: 'the platter no longer leans after the finger',
+      );
+      final under = tester.getCenter(find.text('Action 5'));
+      await gesture.moveTo(Offset(under.dx, under.dy));
+      await tester.pump(const Duration(milliseconds: 16));
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(done, isFalse, reason: 'a scroll chooses no action');
+      expect(find.text('Title'), findsOneWidget);
+    });
+
     testWidgets('a disabled action does not choose', (tester) async {
       var done = false;
       await open(tester, (c) async {
