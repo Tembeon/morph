@@ -59,6 +59,11 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   /// Releases the active gesture at motion time [t].
   void onControlUp(double t, PointerUpEvent event);
 
+  /// Releases the active gesture beyond [pressSlop] at motion time [t];
+  /// a release like any other unless the control overrides it.
+  void onControlUpOutside(double t, PointerUpEvent event) =>
+      onControlUp(t, event);
+
   /// Cancels the active gesture at motion time [t], including on disable.
   void onControlCancel(double t);
 
@@ -100,11 +105,18 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
     onControlMove(_eventTime(event), event);
   }
 
-  /// Releases ownership before dispatching the active pointer's lift.
+  /// Releases ownership before dispatching the active pointer's lift,
+  /// inside or beyond [pressSlop].
   @override
   void pressUp(PointerUpEvent event) {
-    if (_press.up(event.pointer, event.localPosition) == null) return;
-    onControlUp(_eventTime(event), event);
+    switch (_press.up(event.pointer, event.localPosition)) {
+      case null:
+        return;
+      case .inside:
+        onControlUp(_eventTime(event), event);
+      case .outside:
+        onControlUpOutside(_eventTime(event), event);
+    }
   }
 
   /// Releases ownership and cancels the active pointer.

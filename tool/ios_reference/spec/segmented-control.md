@@ -17,6 +17,15 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
 
 - Selects on touch-UP. A press on a non-selected segment does nothing
   until release [device].
+- Release outside [device, 2026-10-13, 300 x 32, press on a non-selected
+  segment, slide straight down, release]: 30, 50 and 60 pt below the
+  bottom edge select the pressed segment; 70, 80, 100 and 130 pt below
+  change nothing. morph `MorphSegmentedControl.releaseSlop` 70: within it
+  the release picks the slot nearest the finger, beyond it the touch ends
+  as a cancel (the lens settles back). 70 rather than 65 because one 70 pt
+  bound with the far edges excluded (`CGRectContainsPoint`) also gives
+  the glass button's four measured edges. A selected-segment drag that
+  leaves, and the other sides, are not measured.
 - Unlift anchored 0.25 s after the touch-up (`hangFromTouch`); the lift
   start varies with input latency, the touch-up anchor does not [device].
 - Press on the SELECTED segment lifts in place after `pressDelay` 40 ms and
@@ -51,7 +60,8 @@ ContentOffset/Enabled:forSegmentAtIndex:`, `selectedSegmentIndex`,
 
 Device `ios27-device/lens/segmented-*` (seg2/seg3 taps, tap-selected,
 seg5 drag slow from selected, release-choice rubberband, scrub overrun back,
-narrow content, seg5seg4 taps). Simulator `ios27/lens/segmented-*`.
+narrow content, seg5seg4 taps); `ios27-device/tracking/release-outside.jsonl`
+(lab scenario `tracking-bounds`, control at 51,600 300x32 A/B/C). Simulator `ios27/lens/segmented-*`.
 Reference: `references/dark/segmented-{resting,held-selected}.png`.
 
 ## Recapture
@@ -65,8 +75,9 @@ ProbeUITests.testLens / testRecapLens.
 `MorphSegmentedControl` (+`MorphSegmentedStyle`), segmented_control.dart,
 lens_motion.dart (`MorphLensTuning.segmented`). Tests: lens_test (sim 60 Hz
 and device 120 Hz), lens_scrub_test, lens_widgets_test,
-lifted_lens_look_test, controls_scroll_test (delaysContentTouches: control
-owns a touch after 150 ms or a horizontal drag past slop).
+lifted_lens_look_test, controls_scroll_test (the control owns a touch
+after 150 ms or a horizontal drag past slop), release_bounds_test (replays
+release-outside.jsonl).
 
 ## Not reproduced / open
 

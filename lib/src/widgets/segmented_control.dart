@@ -12,9 +12,10 @@ import 'package:morph/src/widgets/typography.dart';
 /// A segmented control whose selection lens moves exactly like
 /// UISegmentedControl's on iOS 27.
 ///
-/// The selection changes when the finger lifts; pressing the selected
-/// segment lifts the lens and lets the finger drag it, with a rubber band
-/// past the ends. The lens's travel, lift and deformation come from
+/// The selection changes when the finger lifts within [releaseSlop] of
+/// the control; pressing the selected segment lifts the lens and lets the
+/// finger drag it, with a rubber band past the ends. A finger that lifts
+/// farther away changes nothing. The lens's travel, lift and deformation come from
 /// [MorphLensTuning.segmented].
 ///
 /// The control is focusable and the arrow keys move the selection; screen
@@ -52,6 +53,19 @@ class MorphSegmentedControl extends StatefulWidget {
 
   /// The largest text scale the labels follow.
   static const double maxTextScale = 1.4;
+
+  /// How far outside the control a finger may lift and still select: a
+  /// release beyond it changes nothing and the lens settles back as after
+  /// a cancelled touch.
+  ///
+  /// UISegmentedControl selects on a release 60 pt below its bottom edge
+  /// but not 70 pt below (iPhone 16 Pro, iOS 27.0.1, fixture
+  /// `tracking/release-outside.jsonl`). 70 with the bottom and right edges
+  /// excluded, the way `CGRectContainsPoint` and [Rect.contains] test a
+  /// point, also gives the glass button's measured edges (in 70 above,
+  /// out 80 above; in 60 beside, out 70 beside): one UIKit bound fits all
+  /// six points.
+  static const double releaseSlop = 70;
 
   @override
   State<MorphSegmentedControl> createState() => _MorphSegmentedControlState();
@@ -319,6 +333,12 @@ class _MorphSegmentedControlState
 
   @override
   bool get controlEnabled => _enabled;
+
+  @override
+  double get pressSlop => MorphSegmentedControl.releaseSlop;
+
+  @override
+  void onControlUpOutside(double t, PointerUpEvent event) => onControlCancel(t);
 
   @override
   bool buildsLike(MorphSegmentedControl oldWidget) =>

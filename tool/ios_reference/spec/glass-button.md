@@ -25,6 +25,18 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
 - Stays lifted for the whole touch, even far outside.
 - Drag-off LEAN tx = d |d| / 10000 px plus a stretch along the drag;
   `onPressed` fires when the finger lifts within 70 px.
+- Release outside [device, 2026-10-13, 120 x 44, press at the center,
+  slide straight off, release]: activates 70 pt above the top edge, not
+  80; 60 pt beside the right edge, not 70 (30 and 50 activate too). One
+  70 pt bound with the far edges excluded, as `CGRectContainsPoint` and
+  `Rect.contains` test a point, gives all four; morph's `highlightSlop`
+  70 agrees (the top edge 70 is inside, the right edge 70 outside).
+  Below and left are not measured.
+- Inside a `UIScrollView` (default `delaysContentTouches`) [device,
+  2026-10-13]: a still hold lifts the button 41-45 ms after contact
+  (three runs, scale past 1.001, peak 1.144), so the scroll view holds
+  nothing back; a swipe that starts on the button lifts it to 1.02-1.09
+  and drops it when the scroll takes the touch, with no activation.
 - Glow: overlay 1 - exp(-t / 0.023 s) on press, little glow at the touch
   point to 0.3; on release both fade and the little glow scales 1 -> 4 on
   0.5/1.0.
@@ -53,7 +65,10 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
 
 Device `ios27-device/controls/button-glass-{44x44,60x44,120x44,200x44,
 300x44,200x100}-hold800.jsonl`, `button-glass-120x44-drag-off-back`,
-`button-glass-44x44-taps`, `button-prominent-120x44-hold800`. Simulator
+`button-glass-44x44-taps`, `button-prominent-120x44-hold800`;
+`ios27-device/tracking/release-outside.jsonl` (lab scenario
+`tracking-bounds`, button at 141,200 120x44) and `tracking/scroll-delay.jsonl`
+(scenario `scroll-delay`, button at 141,300 in a scroll view). Simulator
 `ios27/controls/button-*`. References
 `references/dark/glass-{44x44,120x44}-{resting,pressed}.png`.
 
@@ -66,7 +81,8 @@ Scenes `gb<W>x<H>`, `gbp<W>x<H>` (prominent); `PROBE_TINT`. Device plan
 
 `MorphGlassButton` (`tint`, `padding`, `minSize`), `MorphGlassButtonStyle`,
 `MorphGlassButtonMotion` (`pull`, `stretch`, `reducedMotion`)
-(glass_button.dart). Tests: controls_test.
+(glass_button.dart). Tests: controls_test, release_bounds_test (replays
+release-outside.jsonl through the widget).
 
 ## Not reproduced / open
 

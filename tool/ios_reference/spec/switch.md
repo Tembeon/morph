@@ -20,6 +20,10 @@ sliding).
   uncommit only when it returns to the starting end; color follows each
   change after `colorDelay` 90 ms; release keeps the committed state if the
   drag ever committed, else toggles like a tap; mid-travel decides nothing.
+- Release outside [device, 2026-10-13]: a tap dragged straight down off
+  the switch toggles at every distance tried, up to 128.7 pt below its
+  bottom edge (about 130 pt); a switch has no release bound. morph's
+  release anywhere agrees.
 - Dead zone 5 px only for a drag that starts moving within `deadZoneWindow`
   0.1 s of the touch. Rubber band (12, 0.54).
 - Knob lift/unlift/stretch: small lens (lift 0.27/0.625, min hang 0.22 s,
@@ -41,7 +45,9 @@ sliding).
 ## Fixtures
 
 Device `ios27-device/controls/switch-*` (off/on tap, hold800, drags right
-8/15/50/100, left50, there-back, fling40, taps, tb-a1..a3).
+8/15/50/100, left50, there-back, fling40, taps, tb-a1..a3);
+`ios27-device/tracking/release-outside.jsonl` (lab scenario
+`tracking-bounds`, switch at 176,420 51x31).
 Simulator `ios27/controls/switch-*`. References
 `references/dark/switch-{off,on,off-knob-held}.png`.
 
@@ -54,7 +60,7 @@ Scenes `sw`, `swOn` (control at y 400, knob off 210 / on 232 on the sim
 
 `MorphSwitch`, `MorphSwitchStyle`, `MorphSwitchMotion` (switch.dart,
 switch_motion.dart), small_lens.dart. Tests: switch_test, controls_test,
-controls_platform_test.
+controls_platform_test, release_bounds_test (replays release-outside.jsonl).
 
 ## Not reproduced / open
 
