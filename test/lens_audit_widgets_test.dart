@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/glass_painter.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/widgets.dart';
@@ -25,7 +26,9 @@ Widget _host(Widget child, {_Glass? glass}) => MediaQuery(
   child: Directionality(
     textDirection: TextDirection.ltr,
     child: Center(
-      child: glass == null ? child : MorphGlass(painter: glass, child: child),
+      child: glass == null
+          ? child
+          : MorphGlassScope(painter: glass, child: child),
     ),
   ),
 );

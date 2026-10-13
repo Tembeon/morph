@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
 import 'package:morph/src/liquid_field.dart';
 import 'package:morph/widgets.dart';
 
@@ -58,7 +59,9 @@ Widget _toolbar(List<MorphBarButtonGroup> leading, {MorphGlassPainter? glass}) {
       child: Stack(
         children: [
           Positioned.fill(
-            child: glass == null ? bar : MorphGlass(painter: glass, child: bar),
+            child: glass == null
+                ? bar
+                : MorphGlassScope(painter: glass, child: bar),
           ),
         ],
       ),

@@ -2,13 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
-import 'package:morph/src/widgets/switch_motion.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/small_lens.dart';
+import 'package:morph/src/widgets/switch_motion.dart';
+import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphSwitch].
 @immutable
@@ -248,7 +248,7 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     _motion.lens.reducedMotion = morphReducedMotionOf(context);
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     return MorphDisabled(
       enabled: _enabled,
       opacity: _style.disabledOpacity,

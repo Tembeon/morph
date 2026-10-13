@@ -7,6 +7,7 @@ import 'package:morph/widgets.dart';
 import 'package:morph_example/lab/lab_app.dart';
 
 import 'support/lab_replay.dart';
+import 'package:morph/src/widgets/menu_layout.dart';
 
 Map<String, Object?> scenario() =>
     jsonDecode(

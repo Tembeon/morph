@@ -16,13 +16,13 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 // ignore: implementation_imports
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
-// ignore: implementation_imports
 import 'package:morph/src/glass/renderer/internal/blur_reach.dart'
     show debugMorphHalfResolutionBlur;
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/renderer.dart';
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
+    show RenderLiquidGlassLayer;
 // ignore: implementation_imports
 import 'package:morph/src/widgets/scroll_edge_effect.dart'
     show debugMorphEdgeEffectBoundsBlur;
@@ -91,7 +91,7 @@ List<HarnessCase> get _frosted {
 final List<BlurCase> blurCases = [
   BlurCase(
     'tab-bar',
-    (BlurVariant variant) => MorphGlass(
+    (BlurVariant variant) => MorphGlassScope(
       painter: const MorphGlassRenderer(tier: MorphGlassTier.liquid),
       child: Align(
         alignment: const Alignment(0, 0.6),

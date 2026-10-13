@@ -46,7 +46,7 @@ void main() {
                           child: const Text('Button'),
                         ),
                         const SizedBox(height: 40),
-                        MorphGlassButton(
+                        MorphGlassButton.prominent(
                           key: const Key('prominent'),
                           onPressed: () {},
                           tint: const Color(0xFF007AFF),

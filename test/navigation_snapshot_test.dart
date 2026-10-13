@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/internal/multi_shader_builder.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/navigation_snapshot.dart';
 import 'package:morph/widgets.dart';
 
@@ -45,7 +45,7 @@ Future<NavigatorState> _pumpStack(
   late BuildContext context;
   await tester.pumpWidget(
     MaterialApp(
-      home: MorphGlass(
+      home: MorphGlassScope(
         painter: MorphGlassRenderer(tier: tier),
         child: MorphNavigationStack(
           home: Builder(

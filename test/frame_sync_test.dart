@@ -10,6 +10,7 @@ import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/glass_painter.dart';
 
 /// The frame timing of [MorphFrameSync] and of a [MorphGlassHost] that
 /// follows one: driven by tickers, the structure is read once per frame

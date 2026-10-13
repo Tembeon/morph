@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
+import 'package:morph/motion.dart';
 
 /// Shows the deformation and lift UIKit derives for a surface size.
 class SpecInspectorPage extends StatefulWidget {

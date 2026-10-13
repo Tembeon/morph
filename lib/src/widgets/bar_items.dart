@@ -16,8 +16,8 @@ import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass.dart';
-import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
@@ -26,8 +26,8 @@ import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/press.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/typography.dart';
+import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// One button of a glass bar: a label or an icon.
 ///
@@ -1685,7 +1685,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       context,
       widget.appearance,
     );
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     _rowBrightness = morphBrightnessOf(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final dpr = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
@@ -2455,7 +2455,7 @@ class _FlatBodies {
   }
 }
 
-/// The flat capsules (no [MorphGlass] installed): each one an RRect,
+/// The flat capsules (no [MorphGlassScope] installed): each one an RRect,
 /// except capsules the glass container fuses ([spacing]; see
 /// [_FlatBodies] for the rule every glass tier shares), which are drawn
 /// as their fused outline.

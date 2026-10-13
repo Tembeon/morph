@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
 import 'package:morph/widgets.dart';
 
 void main() {
@@ -11,7 +12,7 @@ void main() {
     final glass = _Recorder();
     await tester.pumpWidget(
       MaterialApp(
-        home: MorphGlass(
+        home: MorphGlassScope(
           painter: glass,
           child: Scaffold(body: Center(child: body)),
         ),
@@ -124,7 +125,7 @@ void main() {
       MaterialApp(
         builder: (BuildContext context, Widget? child) =>
             MorphScope(child: child!),
-        home: MorphGlass(
+        home: MorphGlassScope(
           painter: glass,
           child: Scaffold(
             body: Center(
@@ -166,7 +167,7 @@ void main() {
             home: Builder(
               builder: (BuildContext context) {
                 home = context;
-                return MorphGlass(
+                return MorphGlassScope(
                   painter: glass,
                   child: Stack(
                     children: [
@@ -230,7 +231,7 @@ class _Probe extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    seen.add(MorphGlass.maybeOf(context));
+    seen.add(MorphGlassScope.maybeOf(context));
     return const SizedBox.expand();
   }
 }

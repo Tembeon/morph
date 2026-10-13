@@ -8,6 +8,7 @@ import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/glass_painter.dart';
 
 void main() {
   test(

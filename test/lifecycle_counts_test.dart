@@ -506,13 +506,21 @@ final _scenes = <_Scene>[
       _page(
         _parent(
           state,
-          (s) => MorphGlassButton(
-            key: const ValueKey<String>('button'),
-            enabled: s.enabled,
-            tint: s.tint,
-            onPressed: () {},
-            child: Text(s.title),
-          ),
+          (s) => switch (s.tint) {
+            null => MorphGlassButton(
+              key: const ValueKey<String>('button'),
+              enabled: s.enabled,
+              onPressed: () {},
+              child: Text(s.title),
+            ),
+            final Color tint => MorphGlassButton.prominent(
+              key: const ValueKey<String>('button'),
+              enabled: s.enabled,
+              tint: tint,
+              onPressed: () {},
+              child: Text(s.title),
+            ),
+          },
         ),
       ),
       [

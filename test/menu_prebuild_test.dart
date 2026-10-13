@@ -29,7 +29,11 @@ final _items = [
     'Archive',
     'Print',
   ])
-    MorphMenuItem(title: title, icon: const Icon(Icons.copy), onSelected: () {}),
+    MorphMenuItem(
+      title: title,
+      icon: const Icon(Icons.copy),
+      onSelected: () {},
+    ),
   MorphMenuItem(title: 'Delete', destructive: true, onSelected: () {}),
 ];
 

@@ -389,7 +389,7 @@ void main() {
                     top: 20,
                     width: 80,
                     height: 44,
-                    child: MorphGlassButton(
+                    child: MorphGlassButton.prominent(
                       onPressed: () {},
                       tint: const Color(0xFF0A84FF),
                       child: const Text('b'),

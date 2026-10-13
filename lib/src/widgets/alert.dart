@@ -8,12 +8,12 @@ import 'package:morph/src/live.dart';
 import 'package:morph/src/themes.dart';
 import 'package:morph/src/widgets/alert_motion.dart';
 import 'package:morph/src/widgets/clock.dart';
-import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
-import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
+import 'package:morph/src/widgets/motion_route.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -1056,7 +1056,7 @@ class _AlertCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     final brightness = morphBrightnessOf(context);
     final title = this.title;
     final message = this.message;

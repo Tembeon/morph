@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/bar_items.dart' show MorphBarItemId;
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/motion.dart';
 
 MorphBarButton _icon(Object id) => MorphBarButton(
   id: id,

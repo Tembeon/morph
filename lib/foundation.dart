@@ -86,18 +86,18 @@ export 'src/flight.dart'
     show MorphContentBuilder, MorphFlight, MorphFlightEvent, MorphFlightScope;
 export 'src/frame.dart' show MorphFrame, computeMorphFrame, uniformMorphRadius;
 export 'src/gesture.dart';
-export 'src/skin.dart'
-    show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin, MorphStroke;
 export 'src/liquid_field.dart' show MorphMass, MorphSkinStyle;
+export 'src/motion.dart';
 export 'src/presentation.dart';
 export 'src/route.dart' show MorphPageRoute, showMorphRoute;
-export 'src/scrim.dart' show MorphScrimMotion;
-export 'src/shared.dart' show MorphSharedElement, MorphSharedFade;
-export 'src/spring.dart';
 export 'src/scope.dart'
     show MorphScope, MorphScopeState, MorphSurfaceSpec, MorphTag, MorphTagState;
+export 'src/scrim.dart' show MorphScrimMotion;
+export 'src/shared.dart' show MorphSharedElement, MorphSharedFade;
 export 'src/show.dart';
-export 'src/motion.dart';
-export 'src/theme.dart';
+export 'src/skin.dart'
+    show MorphLink, MorphPiece, MorphPieceChannel, MorphSkin, MorphStroke;
+export 'src/spring.dart';
 export 'src/target.dart'
     hide morphContentViewInsets, morphOverlayViewInsetsOf, morphTargetPaddingOf;
+export 'src/theme.dart';

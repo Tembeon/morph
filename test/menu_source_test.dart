@@ -2,6 +2,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/motion.dart';
 import 'package:morph/src/widgets/menu.dart' show MorphMenuLayer;
 import 'package:morph/widgets.dart';
 
@@ -371,7 +372,7 @@ void main() {
     final log = <String>[];
     await tester.pumpWidget(
       _app(
-        MorphGlassButton(
+        MorphGlassButton.prominent(
           onPressed: null,
           tint: tint,
           menu: _items(log),

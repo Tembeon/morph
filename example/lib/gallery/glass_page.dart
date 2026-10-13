@@ -88,7 +88,7 @@ class _GlassPageState extends State<GlassPage> {
                   onPressed: on(() {}),
                   child: const Text('Glass'),
                 ),
-                MorphGlassButton(
+                MorphGlassButton.prominent(
                   onPressed: on(() {}),
                   tint: const Color(0xFF0088FF),
                   child: const Text('Prominent'),

@@ -211,7 +211,7 @@ class MorphGlassSurface {
 /// Renders the glass surfaces of the measured controls.
 ///
 /// Without a painter the controls draw flat fills. Install one with
-/// [MorphGlass] and every control below it builds its surfaces from the
+/// [MorphGlassScope] and every control below it builds its surfaces from the
 /// painter instead, every frame, behind its content. A control with
 /// several surfaces hands them to [buildLayer] together; a control with
 /// one surface calls [buildSurface] for a glass surface and [buildFill]
@@ -580,29 +580,34 @@ class _BodyPainter extends CustomPainter {
 /// An inherited theme: a surface presented from below it (a morph flight
 /// and its content, an alert, a sheet, a popover) draws with this
 /// painter, whichever overlay or route it lives in.
-class MorphGlass extends InheritedTheme {
+class MorphGlassScope extends InheritedTheme {
   /// Installs [painter] for [child].
-  const MorphGlass({required this.painter, required super.child, super.key});
+  const MorphGlassScope({
+    required this.painter,
+    required super.child,
+    super.key,
+  });
 
   /// The painter the controls below use.
   final MorphGlassPainter painter;
 
   /// The nearest painter above [context], or null when none is installed.
   static MorphGlassPainter? maybeOf(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<MorphGlass>()?.painter;
+      context.dependOnInheritedWidgetOfExactType<MorphGlassScope>()?.painter;
 
   @override
   Widget wrap(BuildContext context, Widget child) =>
-      MorphGlass(painter: painter, child: child);
+      MorphGlassScope(painter: painter, child: child);
 
   @override
-  bool updateShouldNotify(MorphGlass oldWidget) => oldWidget.painter != painter;
+  bool updateShouldNotify(MorphGlassScope oldWidget) =>
+      oldWidget.painter != painter;
 }
 
 /// The painter installed above [context], read without depending on it.
 @internal
 MorphGlassPainter? morphGlassAbove(BuildContext context) =>
-    context.getInheritedWidgetOfExactType<MorphGlass>()?.painter;
+    context.getInheritedWidgetOfExactType<MorphGlassScope>()?.painter;
 
 /// Builds the surfaces a control hands to [painter] through
 /// [MorphGlassPainter.buildLayer], with [content] over them, for every

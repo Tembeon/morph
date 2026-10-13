@@ -3,16 +3,18 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
+import 'package:morph/motion.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_body_shadow.dart';
-import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/src/widgets/menu_fusion.dart';
-import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/glass_liquid_native.dart';
+import 'package:morph/src/widgets/glass_outline.dart';
+import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_content.dart';
+import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
-import 'package:material_ui/material_ui.dart';
 
 void main() {
   test('nested material replays the native dark face levels', () {
@@ -203,7 +205,7 @@ void main() {
     addTearDown(() => isLocalTest = false);
     await tester.pumpWidget(
       const MaterialApp(
-        home: MorphGlass(
+        home: MorphGlassScope(
           painter: MorphGlassRenderer(),
           child: Scaffold(
             body: Center(
@@ -224,7 +226,7 @@ void main() {
     await tester.pumpAndSettle();
     final layer = find.byType(MorphMenuLayer);
     expect(
-      MorphGlass.maybeOf(tester.element(layer)),
+      MorphGlassScope.maybeOf(tester.element(layer)),
       isA<MorphGlassRenderer>(),
     );
     expect(
@@ -248,7 +250,7 @@ void main() {
       isLocalTest = true;
       addTearDown(() => isLocalTest = false);
       await tester.pumpWidget(
-        MorphGlass(
+        MorphGlassScope(
           painter: const MorphGlassRenderer(),
           child: BackdropGroup(
             child: const MaterialApp(

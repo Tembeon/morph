@@ -321,7 +321,7 @@ const Set<String> _plumbing = {
   'MorphChromeBackdrop',
   'MorphChromeBackdropScope',
   'MorphBarItems',
-  'MorphGlass',
+  'MorphGlassScope',
   'MorphAdaptiveGlass',
   'MorphScope',
   'MorphControlFocus',

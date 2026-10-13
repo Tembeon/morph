@@ -136,7 +136,7 @@ class MorphAdaptiveGlass extends StatefulWidget {
   /// The effective tier of the [MorphGlassRenderer] installed above
   /// [context], or null when the painter above is not one.
   static MorphGlassTier? tierOf(BuildContext context) =>
-      switch (MorphGlass.maybeOf(context)) {
+      switch (MorphGlassScope.maybeOf(context)) {
         final MorphGlassRenderer renderer => renderer.effectiveTier,
         _ => null,
       };
@@ -175,7 +175,7 @@ class _MorphAdaptiveGlassState extends State<MorphAdaptiveGlass> {
     final tier =
         widget.tier ??
         MorphAdaptiveGlass.tierFor(_deviceClass, widget.renderer.effectiveTier);
-    final glass = MorphGlass(
+    final glass = MorphGlassScope(
       painter: widget.renderer.copyWith(tier: tier),
       child: widget.child,
     );

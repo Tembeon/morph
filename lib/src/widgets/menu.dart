@@ -21,8 +21,8 @@ import 'package:morph/src/widgets/glass_renderer.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
-import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_host.dart';
+import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
@@ -624,7 +624,7 @@ abstract interface class MorphMenuHost {
   /// source has none.
   ///
   /// The menu is the source's own glass carried into an overlay, which may
-  /// sit above the source's [MorphGlass]; the menu draws with this painter.
+  /// sit above the source's [MorphGlassScope]; the menu draws with this painter.
   MorphGlassPainter? get menuGlass;
 
   /// Notifies when the motion has advanced.
@@ -963,7 +963,9 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     Widget glyph,
     MorphMenuMotion motion,
   ) {
-    final withField = morphGlassShadesOutlines(MorphGlass.maybeOf(context));
+    final withField = morphGlassShadesOutlines(
+      MorphGlassScope.maybeOf(context),
+    );
     if (withField != _faceWithField || _landingShapes == null) {
       _faceWithField = withField;
       _landingShapes = _landingNow(motion);
@@ -1136,7 +1138,7 @@ class _MenuShapes extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     final content = this.content;
     final frames = this.frames;
     final Widget glyph = Center(
@@ -1519,7 +1521,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     final glyph = host.menuGlyph;
     final painter = host.menuGlass;
     _withField = morphGlassShadesOutlines(
-      painter ?? MorphGlass.maybeOf(context),
+      painter ?? MorphGlassScope.maybeOf(context),
     );
     _brightness = morphBrightnessOf(context);
     final structure = _built = _ticks.read();
@@ -1613,7 +1615,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       );
       body = painter == null
           ? layer
-          : MorphGlass(painter: painter, child: layer);
+          : MorphGlassScope(painter: painter, child: layer);
     }
     final Widget menu = Semantics(
       container: true,
@@ -1837,7 +1839,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     for (final element in layout.elements) {
       if (element.kind == MorphMenuPlacedKind.cardHeader) header = element;
     }
-    final glass = widget.host.menuGlass ?? MorphGlass.maybeOf(context);
+    final glass = widget.host.menuGlass ?? MorphGlassScope.maybeOf(context);
     _CardFrame now() => _frame!.cardAt(index);
     final shadowColor = style.submenuShadowColor;
     final cardBlur = motion.tuning.cardBlur;

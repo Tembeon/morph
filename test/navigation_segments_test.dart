@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/widgets.dart';
 
@@ -108,7 +109,7 @@ void main() {
       MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: ThemeData(platform: TargetPlatform.iOS),
-        home: MorphGlass(
+        home: MorphGlassScope(
           painter: glass,
           child: MorphNavigationStack(home: _root((c) => root = c)),
         ),

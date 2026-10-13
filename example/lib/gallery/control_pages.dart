@@ -129,7 +129,7 @@ class _ControlsPageState extends State<ControlsPage> {
                     SizedBox(
                       width: 120,
                       height: 44,
-                      child: MorphGlassButton(
+                      child: MorphGlassButton.prominent(
                         padding: .zero,
                         tint: const Color(0xFF007AFF),
                         onPressed: GalleryGlassScope.enabled(

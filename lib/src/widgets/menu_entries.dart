@@ -261,7 +261,7 @@ class MorphMenuDeferred extends MorphMenuEntry {
 /// UIKit and SwiftUI have no such element in iOS 27 (a SwiftUI `Slider`
 /// in a `Menu` turns into two buttons), so this is morph's extension:
 /// its look is the app's, its motion is the menu's. The row spans the
-/// menu width minus [MorphMenuMetrics.widgetInset] on each side and is as
+/// menu width minus 16 points on each side and is as
 /// tall as [builder]'s widget, measured after its first layout unless
 /// [height] is given. Touches go to the widget; the menu neither
 /// highlights nor closes on them.

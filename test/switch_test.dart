@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
 
 import 'support/trace.dart';
+import 'package:morph/motion.dart';
 
 const _dir = 'test/fixtures/ios27/controls';
 const _device = 'test/fixtures/ios27-device/controls';

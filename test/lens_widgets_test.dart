@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/motion.dart';
 
 Widget _host(Widget child) => Directionality(
   textDirection: TextDirection.ltr,

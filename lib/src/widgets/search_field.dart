@@ -12,8 +12,8 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_container.dart';
 import 'package:morph/src/widgets/search_motion.dart';
-import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphSearchField] and a [MorphSearchToolbar].
@@ -279,7 +279,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
       context,
       widget.appearance,
     );
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     final brightness = morphBrightnessOf(context);
     final scaler = MediaQuery.textScalerOf(
       context,

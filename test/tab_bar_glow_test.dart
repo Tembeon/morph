@@ -177,7 +177,7 @@ void main() {
     final painter = _Recorder();
     await tester.pumpWidget(
       _bar(
-        MorphGlass(
+        MorphGlassScope(
           painter: painter,
           child: MorphTabBar(items: _tabs, selected: 0, onChanged: (_) {}),
         ),

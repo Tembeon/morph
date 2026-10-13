@@ -16,8 +16,8 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/spring_state.dart';
-import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// What a [MorphDatePicker] picks.
@@ -1012,7 +1012,7 @@ class _OverlayViewState extends State<_OverlayView>
     );
     final media = MediaQuery.of(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     final brightness = morphBrightnessOf(context);
     final origin = _origin(context);
     final padding = EdgeInsets.only(

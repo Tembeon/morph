@@ -2,12 +2,13 @@ import 'dart:math' as math;
 
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/glass_painter.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/glass/renderer/rendering/consolidated_fake_glass_layer.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+import 'package:morph/src/widgets/glass_device_native.dart';
 import 'package:morph/src/widgets/glass_liquid_native.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
-import 'package:morph/src/widgets/glass_device_native.dart';
 import 'package:morph/src/widgets/glass_tier.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
 import 'package:morph/widgets.dart';
@@ -177,7 +178,7 @@ void main() {
         child: Center(
           child: SizedBox(
             width: 360,
-            child: MorphGlass(
+            child: MorphGlassScope(
               painter: const MorphGlassRenderer(),
               child: MorphSegmentedControl(
                 segments: const [MorphSegment('Day'), MorphSegment('Night')],

@@ -3,9 +3,9 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/activity_indicator.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/page_control.dart';
-import 'package:morph/src/widgets/glass_button.dart';
 
 class _PaintCounter extends SingleChildRenderObjectWidget {
   const _PaintCounter({required this.onPaint, required super.child});
@@ -133,7 +133,7 @@ void main() {
     final glass = _Glass();
     await tester.pumpWidget(
       _scene(
-        MorphGlass(
+        MorphGlassScope(
           painter: glass,
           child: MorphGlassButton(onPressed: () {}, child: const Text('Go')),
         ),

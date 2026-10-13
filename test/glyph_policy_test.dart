@@ -390,7 +390,7 @@ void main() {
           textDirection: TextDirection.ltr,
           child: MediaQuery(
             data: const MediaQueryData(devicePixelRatio: 3),
-            child: MorphGlass(
+            child: MorphGlassScope(
               painter: MorphGlassRenderer(tier: tier),
               child: Center(
                 child: MorphTabBar(

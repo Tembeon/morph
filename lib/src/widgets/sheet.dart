@@ -742,7 +742,7 @@ class _SheetViewState extends State<_SheetView>
   Widget build(BuildContext context) {
     final style = MorphSheetAppearance.resolve(context, _route.appearance);
     final media = MediaQuery.of(context);
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     final brightness = morphBrightnessOf(context);
     final reported = MediaQuery.maybeDisplayCornerRadiiOf(
       context,

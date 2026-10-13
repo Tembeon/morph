@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/live.dart';
 import 'package:morph/src/glass/renderer/glass_field.dart';
+import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
+import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/flat_body_shader.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_container.dart';
-import 'package:morph/src/glass/renderer/internal/glass_defaults.dart';
-import 'package:morph/src/glass/renderer/internal/glass_shadow_shader.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 
@@ -55,7 +55,7 @@ enum MorphGlassMaterial {
 /// The package's glass renderer: draws the surfaces of every measured
 /// control at a quality [tier].
 ///
-/// Install it with [MorphGlass], or with [MorphAdaptiveGlass], which picks
+/// Install it with [MorphGlassScope], or with [MorphAdaptiveGlass], which picks
 /// the tier once by the device's GPU. Only surfaces that are glass in iOS
 /// 27 become glass: a plain surface
 /// ([MorphGlassSurface.glass] false - the segmented, switch and slider

@@ -9,6 +9,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/glass_painter.dart';
 
 /// The glass channel: a frame that keeps a layer's structure reaches the
 /// render objects without a widget build below the host; a frame that

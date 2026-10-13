@@ -28,7 +28,7 @@ Widget glyphApp(Widget body) => WidgetsApp(
     key: glyphFrameKey,
     child: ColoredBox(color: const Color(0xFF000000), child: child),
   ),
-  home: MorphGlass(
+  home: MorphGlassScope(
     painter: const MorphGlassRenderer(tier: MorphGlassTier.liquid),
     child: Center(child: body),
   ),

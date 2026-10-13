@@ -4,18 +4,18 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
-import 'package:morph/src/widgets/glass_glow.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
+import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The motion of an iOS 27 glass button: the lift, the stretch and shift
 /// toward a finger that drags, and the touch glow.
@@ -273,11 +273,25 @@ class MorphGlassButtonAppearance {
 /// `UIButton` with a menu. The shape the menu grows out of and lands back
 /// into starts and ends in the button's own fill or tint.
 class MorphGlassButton extends StatefulWidget {
-  /// Creates a glass button.
+  /// Creates a regular glass button (`UIButton.Configuration.glass()`).
   const MorphGlassButton({
     required this.child,
     required this.onPressed,
-    this.tint,
+    this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
+    this.minSize = const Size(44, 44),
+    this.appearance,
+    this.menu,
+    this.enabled = true,
+    super.key,
+  }) : tint = null;
+
+  /// Creates a prominent glass button filled with [tint]
+  /// (`UIButton.Configuration.prominentGlass()`, its
+  /// `baseBackgroundColor`).
+  const MorphGlassButton.prominent({
+    required this.child,
+    required this.onPressed,
+    required Color this.tint,
     this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
     this.minSize = const Size(44, 44),
     this.appearance,
@@ -314,7 +328,8 @@ class MorphGlassButton extends StatefulWidget {
   /// primary action, or press a button with [onPressed].
   final List<MorphMenuEntry>? menu;
 
-  /// The fill of a prominent glass button; null for the regular glass.
+  /// The fill of a [MorphGlassButton.prominent] button; null for the
+  /// regular glass.
   final Color? tint;
 
   /// The space around [child].
@@ -401,7 +416,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
       widget.appearance,
     );
     final brightness = morphBrightnessOf(context);
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     _motion.reducedMotion = morphReducedMotionOf(context);
     final enabled = _enabled;
     final tint = widget.tint == null

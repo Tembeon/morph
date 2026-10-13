@@ -10,6 +10,8 @@ import 'package:flutter/scheduler.dart';
 import 'package:material_ui/material_ui.dart';
 // ignore: implementation_imports
 import 'package:morph/src/widgets/clock.dart';
+// ignore: implementation_imports
+import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/widgets.dart';
 import 'package:morph_example/lab/lab_clocks.dart';
 
@@ -527,7 +529,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
           color: dark ? const Color(0xFFFFFFFF) : const Color(0xFF000000),
         ),
         child: MorphScope(
-          child: MorphGlass(
+          child: MorphGlassScope(
             painter: MorphGlassRenderer(tier: widget.tier),
             child: Stack(
               fit: StackFit.expand,

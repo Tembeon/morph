@@ -3,15 +3,15 @@ import 'dart:math' as math;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
+import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
+import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/press.dart';
-import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/search_field.dart';
 import 'package:morph/src/widgets/search_motion.dart';
-import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/tab_bar.dart';
 import 'package:morph/src/widgets/typography.dart';
@@ -326,7 +326,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
       context,
       widget.searchAppearance,
     );
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     final brightness = morphBrightnessOf(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final rtl = direction == TextDirection.rtl;

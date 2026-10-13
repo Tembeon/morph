@@ -5,17 +5,17 @@ import 'package:flutter/semantics.dart' show SemanticsRole;
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
+import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// One item of a [MorphTabBar].
 class MorphTabItem {
@@ -466,7 +466,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
     motion.reducedMotion = morphReducedMotionOf(context);
     final style = _style;
     final geometry = _layout;
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     final Widget tabs = Stack(
       children: [
         Positioned.fill(

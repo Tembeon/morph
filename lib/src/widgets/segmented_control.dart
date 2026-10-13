@@ -1,13 +1,13 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
+import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// A segmented control whose selection lens moves exactly like
 /// UISegmentedControl's on iOS 27.
@@ -385,7 +385,7 @@ class _MorphSegmentedControlState
     _scaler = MediaQuery.textScalerOf(
       context,
     ).clamp(maxScaleFactor: MorphSegmentedControl.maxTextScale);
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     final style = _style;
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {

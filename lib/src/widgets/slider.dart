@@ -4,13 +4,13 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/live.dart';
-import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
-import 'package:morph/src/widgets/slider_motion.dart';
-import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/press.dart';
+import 'package:morph/src/widgets/slider_motion.dart';
 import 'package:morph/src/widgets/small_lens.dart';
+import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphSlider].
 @immutable
@@ -360,7 +360,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     _motion.lens.reducedMotion = morphReducedMotionOf(context);
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final width = constraints.hasBoundedWidth

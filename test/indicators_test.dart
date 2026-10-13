@@ -6,6 +6,7 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/motion.dart';
 
 const _progress = 'test/fixtures/ios27/progress';
 const _deviceProgress = 'test/fixtures/ios27-device/progress';

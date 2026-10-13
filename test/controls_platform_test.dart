@@ -2,6 +2,8 @@ import 'package:flutter/semantics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
+import 'package:morph/motion.dart';
 import 'package:morph/widgets.dart';
 
 Widget _host(
@@ -701,7 +703,7 @@ void main() {
     ) async {
       final recorder = _Recorder();
       await tester.pumpWidget(
-        MorphGlass(
+        MorphGlassScope(
           painter: recorder,
           child: _host(
             Column(
@@ -737,7 +739,7 @@ void main() {
       Future<_Recorder> record(Widget control) async {
         final recorder = _Recorder();
         await tester.pumpWidget(
-          MorphGlass(painter: recorder, child: _host(control)),
+          MorphGlassScope(painter: recorder, child: _host(control)),
         );
         return recorder;
       }
@@ -815,7 +817,7 @@ void main() {
         var on = false;
         var segment = 0;
         await tester.pumpWidget(
-          MorphGlass(
+          MorphGlassScope(
             painter: _Recorder(),
             child: _host(
               StatefulBuilder(
@@ -857,7 +859,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpWidget(
-        MorphGlass(
+        MorphGlassScope(
           painter: _Recorder(),
           child: _host(
             Center(
@@ -885,7 +887,7 @@ void main() {
     ) async {
       final recorder = _Recorder();
       await tester.pumpWidget(
-        MorphGlass(painter: recorder, child: _host(_segmented((_) {}))),
+        MorphGlassScope(painter: recorder, child: _host(_segmented((_) {}))),
       );
       final gesture = await tester.startGesture(
         tester.getCenter(find.text('A')),
@@ -915,7 +917,7 @@ void main() {
     testWidgets('dark brightness resolves the dark tables', (tester) async {
       final recorder = _Recorder();
       await tester.pumpWidget(
-        MorphGlass(
+        MorphGlassScope(
           painter: recorder,
           child: _host(
             Column(
@@ -947,7 +949,7 @@ void main() {
       await tester.pumpWidget(
         Theme(
           data: ThemeData(brightness: Brightness.light),
-          child: MorphGlass(
+          child: MorphGlassScope(
             painter: recorder,
             child: _host(
               _segmented((_) {}),
@@ -979,7 +981,7 @@ void main() {
             data: ThemeData(
               extensions: const [MorphWidgetsTheme(segmentedControl: themed)],
             ),
-            child: MorphGlass(
+            child: MorphGlassScope(
               painter: recorder,
               child: _host(_segmented((_) {}, style: style)),
             ),
@@ -995,7 +997,7 @@ void main() {
     testWidgets('an explicit switch color beats its style', (tester) async {
       final recorder = _Recorder();
       await tester.pumpWidget(
-        MorphGlass(
+        MorphGlassScope(
           painter: recorder,
           child: _host(
             MorphSwitch(

@@ -7,6 +7,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
 import 'package:morph/widgets.dart';
 
 final Map<String, Object?> _fixture =
@@ -76,7 +77,7 @@ Widget _scene(
       ),
     ),
   );
-  if (glass != null) content = MorphGlass(painter: glass, child: content);
+  if (glass != null) content = MorphGlassScope(painter: glass, child: content);
   return MediaQuery(
     data: MediaQueryData(platformBrightness: brightness),
     child: Directionality(textDirection: TextDirection.ltr, child: content),
@@ -361,7 +362,7 @@ void main() {
                     },
                   ),
                 ),
-                MorphGlassButton(
+                MorphGlassButton.prominent(
                   onPressed: null,
                   tint: const Color(0xFF0088FF),
                   child: Builder(
@@ -530,7 +531,7 @@ void main() {
       Color? icon;
       await tester.pumpWidget(
         MaterialApp(
-          home: MorphGlass(
+          home: MorphGlassScope(
             painter: recorder,
             child: Align(
               alignment: Alignment.topCenter,
@@ -790,7 +791,7 @@ void main() {
     ),
     (
       'prominent glass button',
-      const MorphGlassButton(
+      const MorphGlassButton.prominent(
         onPressed: null,
         tint: Color(0xFF0088FF),
         child: Text('Go'),

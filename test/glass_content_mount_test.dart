@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_liquid_native.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/glass_painter.dart';
 
 void main() {
   setUp(() => isLocalTest = true);

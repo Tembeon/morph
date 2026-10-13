@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -187,7 +188,7 @@ void main() {
       addTearDown(() => isLocalTest = false);
       await tester.pumpWidget(
         MaterialApp(
-          home: MorphGlass(
+          home: MorphGlassScope(
             painter: MorphGlassRenderer(tier: tier),
             child: const Scaffold(
               body: Center(

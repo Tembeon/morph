@@ -38,7 +38,7 @@ void main() {
       MorphScrollEdgeEffectStyle style,
       AxisDirection edge,
     ) => MaterialApp(
-      home: MorphGlass(
+      home: MorphGlassScope(
         painter: MorphGlassRenderer(tier: tier),
         child: RepaintBoundary(
           key: key,

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/widgets.dart';
+import 'package:morph/motion.dart';
 
 const _sim = 'test/fixtures/ios27/sheet';
 const _device = 'test/fixtures/ios27-device/sheet';

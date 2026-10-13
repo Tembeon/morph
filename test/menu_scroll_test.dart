@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
+import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/widgets.dart';
 
 final _entries = <MorphMenuEntry>[
@@ -50,7 +50,9 @@ Future<void> _open(WidgetTester tester, {bool liquid = false}) async {
     ),
   );
   await tester.pumpWidget(
-    liquid ? MorphGlass(painter: const MorphGlassRenderer(), child: app) : app,
+    liquid
+        ? MorphGlassScope(painter: const MorphGlassRenderer(), child: app)
+        : app,
   );
   await tester.tap(find.byType(MorphMenuButton));
   await _settle(tester);

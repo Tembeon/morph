@@ -187,7 +187,7 @@ void main() {
 
   testWidgets('the glass page settings reach every page', (tester) async {
     await _pumpGallery(tester);
-    expect(find.byType(MorphGlass), findsOneWidget);
+    expect(find.byType(MorphGlassScope), findsOneWidget);
     await tester.tap(find.text('Glass renderer'));
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),

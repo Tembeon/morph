@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
 import 'package:morph/widgets.dart';
 
 void main() {
@@ -21,7 +22,7 @@ void main() {
           valueListenable: painter,
           builder: (BuildContext context, MorphGlassPainter? glass, _) {
             if (glass == null) return const SizedBox.shrink();
-            return MorphGlass(
+            return MorphGlassScope(
               painter: glass,
               child: Scaffold(
                 body: Center(
@@ -259,7 +260,7 @@ class _Probe extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    seen.add(MorphGlass.maybeOf(context));
+    seen.add(MorphGlassScope.maybeOf(context));
     final size = this.size;
     return size == null
         ? const SizedBox.expand()

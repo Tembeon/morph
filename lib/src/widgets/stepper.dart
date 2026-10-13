@@ -1,12 +1,12 @@
 import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
-import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/timeline.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
-import 'package:morph/src/widgets/press.dart';
 
 /// The look of a [MorphStepper].
 ///
@@ -283,7 +283,7 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
     final enabled = widget.onChanged != null;
     final style = MorphStepperAppearance.resolve(context, widget.appearance);
     final background = widget.backgroundColor ?? style.backgroundColor;
-    final glass = MorphGlass.maybeOf(context);
+    final glass = MorphGlassScope.maybeOf(context);
     const size = MorphStepper.size;
     final value =
         widget.semanticFormatterCallback?.call(_value) ?? _format(_value);

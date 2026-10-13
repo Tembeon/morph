@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/motion.dart';
 
 Widget _app(Widget child) => MaterialApp(
   builder: (BuildContext context, Widget? child) => MorphScope(child: child!),

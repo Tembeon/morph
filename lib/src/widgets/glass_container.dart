@@ -6,9 +6,9 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/glass_inspector.dart';
 import 'package:morph/src/widgets/glass_liquid.dart';
 import 'package:morph/src/widgets/glass_renderer.dart';
-import 'package:morph/src/widgets/glass_inspector.dart';
 import 'package:morph/src/widgets/list.dart';
 import 'package:morph/src/widgets/search_field.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -263,7 +263,7 @@ Widget _containerLayer(
   bool sharpOnly = false,
   Color? solidBackdrop,
 }) {
-  final painter = MorphGlass.maybeOf(context);
+  final painter = MorphGlassScope.maybeOf(context);
   if (painter is! MorphGlassRenderer ||
       painter.runtimeType != MorphGlassRenderer) {
     return child;

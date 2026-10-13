@@ -1062,7 +1062,7 @@ void main() {
   ) async {
     final recorder = _Recorder();
     await tester.pumpWidget(
-      MorphGlass(painter: recorder, child: _app(_button(<String>[]))),
+      MorphGlassScope(painter: recorder, child: _app(_button(<String>[]))),
     );
     final resting = recorder.seen.single;
     expect(resting.kind, MorphGlassKind.button);
@@ -1086,7 +1086,7 @@ void main() {
     WidgetTester tester,
   ) async {
     await tester.pumpWidget(
-      MorphGlass(painter: _Recorder(), child: _app(_button(<String>[]))),
+      MorphGlassScope(painter: _Recorder(), child: _app(_button(<String>[]))),
     );
     final tagOnly = tester.layers.whereType<OpacityLayer>().length;
     expect(tagOnly, lessThanOrEqualTo(1), reason: 'only the tag fades');

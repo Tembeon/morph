@@ -6,6 +6,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:morph/glass_painter.dart';
+import 'package:morph/motion.dart';
 import 'package:morph/widgets.dart';
 
 const _dir = 'test/fixtures/ios27/alert';
@@ -1097,7 +1099,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           builder: (BuildContext context, Widget? child) =>
-              MorphGlass(painter: glass, child: child!),
+              MorphGlassScope(painter: glass, child: child!),
           home: Builder(
             builder: (BuildContext context) => Stack(
               children: [

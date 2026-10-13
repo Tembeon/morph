@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
+import 'package:morph/motion.dart';
 
 const _tuning = MorphMenuTuning(verticalPadding: 41);
 const _d = 0.023;

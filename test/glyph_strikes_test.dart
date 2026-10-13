@@ -201,7 +201,7 @@ Widget _app(Widget body, MorphGlassTier tier) => WidgetsApp(
               Animation<double> secondaryAnimation,
             ) => builder(context),
       ),
-  home: MorphGlass(
+  home: MorphGlassScope(
     painter: MorphGlassRenderer(tier: tier),
     child: Center(child: body),
   ),
