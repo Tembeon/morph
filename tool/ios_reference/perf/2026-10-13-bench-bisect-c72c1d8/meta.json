@@ -1,0 +1,27 @@
+{
+ "sdk": "stable",
+ "sha": "c72c1d8",
+ "source": "/tmp/morph-perf/src/bench-c72c1d8",
+ "fixed": false,
+ "runs": 5,
+ "date": "2026-10-13 03:25:52.015883",
+ "launches": {
+  "audit-flat": {
+   "args": {
+    "GALLERY_GLASS": "flat",
+    "AUDIT_RUNS": "5",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "0",
+    "AUDIT_SCENES": "m/empty/*,m/tab-bar/drag"
+   },
+   "thermal_before": [
+    0,
+    30.119549
+   ],
+   "thermal_after": [
+    0,
+    30.416552
+   ]
+  }
+ }
+}

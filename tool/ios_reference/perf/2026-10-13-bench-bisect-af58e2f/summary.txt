@@ -1,0 +1,6 @@
+af58e2f  runs 5  fixed-perf False  2026-10-13 03:27
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/flat/m/empty/frames           561   1.0   2.2   6.2   7.5   1.1   0.0    0   504  
+audit/flat/m/tab-bar/drag          1011   2.4   3.9   7.1   9.9   2.3   0.7    7   566  raster-cpu:7 bad raster: UpdateAtlasBitmap 7.0, SurfaceFrame::Encode 4.4, CreateGlyphAtlas 2.5

@@ -1,0 +1,167 @@
+{
+ "budget_ms": 16.666666666666668,
+ "gpu_uid": 10378,
+ "gpu_events": 5549,
+ "scenes": {
+  "m/empty/frames": {
+   "budget_ms": 16.666666666666668,
+   "runs": 5,
+   "seconds": 9.84,
+   "frames": 560,
+   "fps": 56.9,
+   "ui_p50": 1.07194,
+   "ui_p95": 2.114502,
+   "ui_max": 3.522827,
+   "raster_p50": 6.713867,
+   "raster_p95": 8.110352,
+   "raster_max": 12.334473,
+   "gpu_p50": 0.877969,
+   "gpu_p95": 1.077718,
+   "gpu_ms_per_s": 49.61,
+   "save_layers_per_frame": 0.99,
+   "submits_per_frame": 1.0,
+   "over": 0,
+   "over_pct": 0.0,
+   "causes": {},
+   "ui_phase_ms_per_frame": {
+    "other": 0.531,
+    "compositing": 0.494,
+    "paint": 0.052,
+    "layout": 0.038,
+    "finalize": 0.019
+   },
+   "ui_owner_ms_per_frame": {
+    "Dart_InvokeClosure": 0.376,
+    "Dart_NewInteger": 0.024,
+    "POST_FRAME": 0.014
+   },
+   "raster_self_ms_per_frame": {
+    "SurfaceFrame::Encode": 2.575,
+    "QueueSubmit": 1.644,
+    "CreateGlyphAtlas": 0.568,
+    "acquireNextBufferLocked": 0.263,
+    "QueuePresentKHR": 0.173,
+    "Rasterizer::DrawToSurfaces": 0.169,
+    "queueBuffer": 0.153,
+    "AcquireNextImageKHR": 0.092
+   },
+   "glyph_atlas_ms_per_frame": 0.568,
+   "glyph_strike_frames_pct": 0.0,
+   "bad_glyph_atlas_ms_per_frame": 0.0,
+   "bad_raster_self_ms_per_frame": {},
+   "bad_ui_phase_ms_per_frame": {},
+   "ui_runnable_share": 0.001,
+   "raster_runnable_share": 0.043,
+   "dropped": 0,
+   "cpu_mhz": {
+    "little": 624,
+    "mid": 510,
+    "big": 506
+   },
+   "gpu_mhz": 268,
+   "power_mw": 500,
+   "rails_mw": {
+    "display": 182,
+    "cpu.little": 71,
+    "memory.interface": 49,
+    "ddr.c": 47,
+    "cpu.mid": 40,
+    "system.fabric": 29,
+    "gpu": 23,
+    "cpu.big": 21,
+    "tpu": 12,
+    "ddr.b": 9,
+    "ddr.a": 7,
+    "aoc.logic": 6,
+    "aoc.memory": 2,
+    "gps": 1
+   }
+  },
+  "m/tab-bar/drag": {
+   "budget_ms": 16.666666666666668,
+   "runs": 5,
+   "seconds": 16.91,
+   "frames": 1011,
+   "fps": 59.8,
+   "ui_p50": 2.417521,
+   "ui_p95": 3.866048,
+   "ui_max": 7.444295,
+   "raster_p50": 7.550171,
+   "raster_p95": 9.999511,
+   "raster_max": 21.173665,
+   "gpu_p50": 2.064738,
+   "gpu_p95": 2.338378,
+   "gpu_ms_per_s": 101.96,
+   "save_layers_per_frame": 1.0,
+   "submits_per_frame": 1.59,
+   "over": 6,
+   "over_pct": 0.6,
+   "causes": {
+    "raster-cpu": 6
+   },
+   "ui_phase_ms_per_frame": {
+    "paint": 1.179,
+    "other": 0.788,
+    "compositing": 0.463,
+    "layout": 0.056,
+    "build": 0.034,
+    "finalize": 0.019
+   },
+   "ui_owner_ms_per_frame": {
+    "Dart_InvokeClosure": 0.623,
+    "Dart_NewInteger": 0.023,
+    "POST_FRAME": 0.013
+   },
+   "raster_self_ms_per_frame": {
+    "SurfaceFrame::Encode": 3.349,
+    "QueueSubmit": 1.818,
+    "CreateGlyphAtlas": 0.587,
+    "acquireNextBufferLocked": 0.251,
+    "Rasterizer::DrawToSurfaces": 0.194,
+    "QueuePresentKHR": 0.168,
+    "queueBuffer": 0.119,
+    "UpdateAtlasBitmap": 0.116
+   },
+   "glyph_atlas_ms_per_frame": 0.703,
+   "glyph_strike_frames_pct": 5.0,
+   "bad_glyph_atlas_ms_per_frame": 10.18,
+   "bad_raster_self_ms_per_frame": {
+    "UpdateAtlasBitmap": 7.56,
+    "SurfaceFrame::Encode": 4.58,
+    "QueueSubmit": 2.67,
+    "CreateGlyphAtlas": 2.62,
+    "AppendToExistingAtlas": 0.36,
+    "acquireNextBufferLocked": 0.27,
+    "Rasterizer::DrawToSurfaces": 0.2,
+    "QueuePresentKHR": 0.19
+   },
+   "bad_ui_phase_ms_per_frame": {},
+   "ui_runnable_share": 0.003,
+   "raster_runnable_share": 0.037,
+   "dropped": 6,
+   "cpu_mhz": {
+    "little": 677,
+    "mid": 556,
+    "big": 615
+   },
+   "gpu_mhz": 251,
+   "power_mw": 585,
+   "rails_mw": {
+    "display": 181,
+    "cpu.little": 87,
+    "cpu.big": 58,
+    "memory.interface": 55,
+    "ddr.c": 52,
+    "cpu.mid": 43,
+    "gpu": 37,
+    "system.fabric": 31,
+    "tpu": 12,
+    "ddr.b": 9,
+    "ddr.a": 8,
+    "aoc.logic": 7,
+    "aoc.memory": 2,
+    "gps": 1
+   }
+  }
+ }
+}
