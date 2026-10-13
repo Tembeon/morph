@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/flight.dart';
 import 'package:morph/src/live.dart';
@@ -799,6 +800,17 @@ class _MorphBarItemsState extends State<MorphBarItems>
   final _FlatBodies _flatApart = _FlatBodies();
   final GlobalKey _contentKey = GlobalKey();
   final Map<Object, (Object, Widget)> _contents = {};
+  // The item widgets last built, with what they were built from: a row
+  // that builds again hands an unchanged item the same widget, so its
+  // elements are left alone.
+  final Map<Object, (Object, Widget)> _itemWidgets = {};
+  // The items drawn while the motion runs, in drawing order: an item the
+  // motion drops stays (drawing nothing) until the motion settles, so the
+  // tree changes only when a change starts and once when it ends.
+  List<Object> _roster = const [];
+  // Whether a capsule of the running change appears or leaves in place,
+  // held until the change ends.
+  bool _hasApart = false;
   Object? _pressedCapsule;
   Object? _pressedButton;
   int? _pressPointer;
@@ -814,6 +826,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
         },
         rebuild: (List<Object?>? _) => _rebuilds.notify(),
         same: listEquals,
+        // An item the rebuild hands its widget again is not updated by
+        // the build: it follows the frame as on any other.
+        notifiesOnRebuild: true,
       );
   final _Ticks _rebuilds = _Ticks();
   ValueListenable<double>? _driftSource;
@@ -909,6 +924,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   @override
   void reassemble() {
     _stale = true;
+    _itemWidgets.clear();
     super.reassemble();
   }
 
@@ -1209,6 +1225,9 @@ class _MorphBarItemsState extends State<MorphBarItems>
     _contents.removeWhere(
       (Object id, (Object, Widget) _) => !items.contains(id),
     );
+    _itemWidgets.removeWhere(
+      (Object id, (Object, Widget) _) => !items.contains(id),
+    );
     _prominent.removeWhere((Object id, bool _) => !capsules.contains(id));
     _disabled.removeWhere((Object id, bool _) => !capsules.contains(id));
     _presses.removeWhere(
@@ -1422,28 +1441,30 @@ class _MorphBarItemsState extends State<MorphBarItems>
     ];
     final menuCapsule = _menuCapsule();
     final menu = _menu;
-    final shown = <MorphBarItemFrame>[];
+    final moving = !_motion.isSettled || _motion.isDrifting;
+    _hasApart = moving && (_hasApart || apart.isNotEmpty);
+    final frames = {for (final f in items) f.id: f};
+    final shown = <Object>[];
     final places = <Object, _ItemPlace>{};
     final structure = <Object?>[
-      apart.isEmpty,
-      menuCapsule,
+      _hasApart,
       menu?.button.id,
       menu?.motion.isOpen,
     ];
-    for (final f in items) {
-      final button = _buttons[f.id];
-      final capsuleId = _capsuleOf[f.id];
-      if (button == null || _carried(capsuleId ?? f.id)) continue;
-      shown.add(f);
-      final place = _placeItem(f, capsuleId);
-      places[f.id] = place;
+    for (final id in _rosterOf(items, frames, moving: moving)) {
+      final button = _buttons[id];
+      final capsuleId = _capsuleOf[id];
+      if (button == null || _carried(capsuleId ?? id)) continue;
+      shown.add(id);
+      final frame = frames[id];
+      places[id] = frame == null
+          ? _ItemPlace.gone
+          : _placeItem(frame, capsuleId);
       structure.add((
-        f.id,
-        button,
+        id,
+        _ButtonKey(button),
         capsuleId,
         capsuleId != null && (_prominent[capsuleId] ?? false),
-        f.leaving,
-        morphVeiledGlyphsBlurred(place.blur),
       ));
     }
     _row = _RowFrame(
@@ -1455,6 +1476,34 @@ class _MorphBarItemsState extends State<MorphBarItems>
       places: places,
       structure: structure,
     );
+  }
+
+  /// The items to draw: while the motion runs, the items drawn before
+  /// (those it dropped included) and its new ones, in its order; once it
+  /// settles, its items alone.
+  List<Object> _rosterOf(
+    List<MorphBarItemFrame> items,
+    Map<Object, MorphBarItemFrame> frames, {
+    required bool moving,
+  }) {
+    final order = [for (final f in items) f.id];
+    if (!moving) return _roster = order;
+    final roster = List<Object>.of(_roster);
+    final known = roster.toSet();
+    for (final id in order) {
+      if (known.add(id)) roster.add(id);
+    }
+    final present = [
+      for (final id in roster)
+        if (frames.containsKey(id)) id,
+    ];
+    if (listEquals(present, order)) return _roster = roster;
+    // An item the motion dropped came back as a new one, drawn last.
+    return _roster = [
+      ...order,
+      for (final id in _roster)
+        if (!frames.containsKey(id)) id,
+    ];
   }
 
   _ItemPlace _placeItem(MorphBarItemFrame frame, Object? capsuleId) {
@@ -1483,6 +1532,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       scale: scale,
       blur: frame.blur > MorphGlyphs.minBlur ? frame.blur : 0,
       presence: frame.presence.clamp(0.0, 1.0),
+      leaving: frame.leaving,
     );
   }
 
@@ -1508,12 +1558,31 @@ class _MorphBarItemsState extends State<MorphBarItems>
           builder: (BuildContext context, Widget? _) {
             _ticks.read();
             final row = _row;
+            final spacing = widget.metrics.containerSpacing;
             final content = Stack(
               key: _contentKey,
               clipBehavior: Clip.none,
               children: [
-                Positioned.fromRect(
-                  rect: row.menuCapsule ?? Rect.zero,
+                if (glass != null && _hasApart)
+                  Positioned.fill(
+                    key: const ValueKey<String>('apart'),
+                    child: IgnorePointer(
+                      child: MorphGlassHost(
+                        painter: glass,
+                        mode: MorphGlassMode.layer,
+                        frames: _ticks,
+                        frame: () =>
+                            MorphGlassFrame(_row.apart, spacing: spacing),
+                      ),
+                    ),
+                  ),
+                MorphLivePositionedTemplate(
+                  key: const ValueKey<String>('menu'),
+                  live: _ticks,
+                  template: () => Positioned.fromRect(
+                    rect: _row.menuCapsule ?? Rect.zero,
+                    child: morphLiveSlot,
+                  ),
                   child: IgnorePointer(
                     child: Builder(
                       builder: (BuildContext context) {
@@ -1527,17 +1596,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
                     ),
                   ),
                 ),
-                for (final f in row.shown)
-                  _buildItem(
-                    _buttons[f.id]!,
-                    f,
-                    style,
-                    direction,
-                    capsuleId: _capsuleOf[f.id],
-                  ),
+                for (final id in row.shown)
+                  _item(_buttons[id]!, id, style, direction),
               ],
             );
-            final spacing = widget.metrics.containerSpacing;
             return SizedBox(
               width: constraints.maxWidth,
               height: constraints.maxHeight,
@@ -1580,27 +1642,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
                           ],
                         );
                       },
-                      content: row.apart.isEmpty
-                          ? content
-                          : Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                Positioned.fill(
-                                  child: IgnorePointer(
-                                    child: MorphGlassHost(
-                                      painter: glass,
-                                      mode: MorphGlassMode.layer,
-                                      frames: _ticks,
-                                      frame: () => MorphGlassFrame(
-                                        _row.apart,
-                                        spacing: spacing,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Positioned.fill(child: content),
-                              ],
-                            ),
+                      content: content,
                     ),
             );
           },
@@ -1627,9 +1669,40 @@ class _MorphBarItemsState extends State<MorphBarItems>
     return _capsuleLayout(id)?.rect;
   }
 
+  Widget _item(
+    MorphBarButton button,
+    Object id,
+    MorphBarStyle style,
+    TextDirection direction,
+  ) {
+    final capsuleId = _capsuleOf[id];
+    final menu = _menu;
+    final inputs = (
+      _ButtonKey(button),
+      capsuleId,
+      capsuleId != null && (_prominent[capsuleId] ?? false),
+      style,
+      direction,
+      widget.metrics,
+      menu?.button.id,
+      menu?.motion.isOpen,
+    );
+    final kept = _itemWidgets[id];
+    if (kept != null && kept.$1 == inputs) return kept.$2;
+    final built = _buildItem(
+      button,
+      id,
+      style,
+      direction,
+      capsuleId: capsuleId,
+    );
+    _itemWidgets[id] = (inputs, built);
+    return built;
+  }
+
   Widget _buildItem(
     MorphBarButton button,
-    MorphBarItemFrame frame,
+    Object id,
     MorphBarStyle style,
     TextDirection direction, {
     required Object? capsuleId,
@@ -1643,9 +1716,15 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final iconColor = prominent || button.interactive
         ? color
         : style.disabledIconColor;
-    final id = frame.id;
     final metrics = widget.metrics;
-    final inputs = (button, color, iconColor, prominent, direction, metrics);
+    final inputs = (
+      _ButtonKey(button),
+      color,
+      iconColor,
+      prominent,
+      direction,
+      metrics,
+    );
     final cached = _contents[button.id];
     Widget content;
     if (cached != null && cached.$1 == inputs) {
@@ -1669,21 +1748,24 @@ class _MorphBarItemsState extends State<MorphBarItems>
       },
       child: morphLiveVeiledGlyphs(
         live: _ticks,
-        blurred: morphVeiledGlyphsBlurred(_placeOf(id).blur),
         blur: () => _placeOf(id).blur,
         opacity: () => _placeOf(id).presence,
         child: content,
       ),
     );
-    if (!frame.leaving) {
-      final VoidCallback? tap = !button.interactive
-          ? null
-          : button.opensMenuOnTap
-          ? (_menu == null ? () => _openMenu(clock, button.id) : null)
-          : button.onPressed == null
-          ? null
-          : () => _activate(button.id);
-      content = Semantics(
+    final VoidCallback? tap = !button.interactive
+        ? null
+        : button.opensMenuOnTap
+        ? (_menu == null ? () => _openMenu(clock, button.id) : null)
+        : button.onPressed == null
+        ? null
+        : () => _activate(button.id);
+    // A leaving item keeps this tree: it only stops taking touches, focus
+    // and the screen reader's attention, until the motion drops it.
+    content = _ItemSemantics(
+      live: _ticks,
+      withdrawnOf: () => _placeOf(id).leaving,
+      properties: SemanticsProperties(
         button: true,
         enabled: button.interactive,
         label: button.semanticLabel ?? button.label,
@@ -1698,24 +1780,23 @@ class _MorphBarItemsState extends State<MorphBarItems>
                 _menu == null
             ? () => _openMenu(clock, button.id)
             : null,
-        child: MorphPress(
-          enabled: button.interactive,
-          onActivate: tap,
-          focusRing: true,
-          focusSemantics: false,
-          child: Listener(
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: (PointerDownEvent e) => _down(button, e),
-            onPointerMove: _move,
-            onPointerUp: _up,
-            onPointerCancel: _cancel,
-            child: ExcludeSemantics(child: content),
-          ),
+      ),
+      child: MorphPress(
+        enabled: button.interactive,
+        onActivate: tap,
+        focusRing: true,
+        focusSemantics: false,
+        withdrawn: _Withdrawn(_ticks, () => _placeOf(id).leaving),
+        child: Listener(
+          behavior: HitTestBehavior.opaque,
+          onPointerDown: (PointerDownEvent e) => _down(button, e),
+          onPointerMove: _move,
+          onPointerUp: _up,
+          onPointerCancel: _cancel,
+          child: ExcludeSemantics(child: content),
         ),
-      );
-    } else {
-      content = IgnorePointer(child: ExcludeSemantics(child: content));
-    }
+      ),
+    );
     return MorphLivePositionedTemplate(
       key: ValueKey<Object>(button.id),
       live: _ticks,
@@ -1734,6 +1815,135 @@ class _MorphBarItemsState extends State<MorphBarItems>
   }
 }
 
+/// A [MorphBarButton] compared by what a bar builds from it: callbacks
+/// count only by whether they are set, as the row calls them through the
+/// latest button at event time.
+@immutable
+class _ButtonKey {
+  const _ButtonKey(this.button);
+
+  final MorphBarButton button;
+
+  @override
+  bool operator ==(Object other) =>
+      other is _ButtonKey &&
+      _MorphBarItemsState._sameButton(other.button, button);
+
+  @override
+  int get hashCode => Object.hash(
+    button.id,
+    button.label,
+    button.icon,
+    button.onPressed == null,
+    button.semanticLabel,
+    button.back,
+    button.enabled,
+  );
+}
+
+/// Whether a bar item is leaving, as a listenable that notifies only when
+/// that changes; it follows its source only while it has listeners.
+class _Withdrawn implements ValueListenable<bool> {
+  _Withdrawn(this._source, this._of);
+
+  final Listenable _source;
+  final bool Function() _of;
+  final List<VoidCallback> _listeners = [];
+  bool _last = false;
+
+  @override
+  bool get value => _of();
+
+  void _changed() {
+    final now = _of();
+    if (now == _last) return;
+    _last = now;
+    for (final listener in List<VoidCallback>.of(_listeners)) {
+      listener();
+    }
+  }
+
+  @override
+  void addListener(VoidCallback listener) {
+    if (_listeners.isEmpty) {
+      _last = _of();
+      _source.addListener(_changed);
+    }
+    _listeners.add(listener);
+  }
+
+  @override
+  void removeListener(VoidCallback listener) {
+    _listeners.remove(listener);
+    if (_listeners.isEmpty) _source.removeListener(_changed);
+  }
+}
+
+/// The semantics of a bar item, which take the item out of hit testing
+/// and semantics while [withdrawnOf] reads true, following [live] without
+/// a build.
+class _ItemSemantics extends SingleChildRenderObjectWidget {
+  const _ItemSemantics({
+    required this.live,
+    required this.withdrawnOf,
+    required this.properties,
+    super.child,
+  });
+
+  final Listenable live;
+  final bool Function() withdrawnOf;
+  final SemanticsProperties properties;
+
+  @override
+  _RenderItemSemantics createRenderObject(BuildContext context) {
+    final render = _RenderItemSemantics(
+      properties: properties,
+      textDirection: Directionality.maybeOf(context),
+    );
+    render.bindLive(live, () => render.withdrawn = withdrawnOf());
+    return render;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    _RenderItemSemantics renderObject,
+  ) {
+    renderObject.properties = properties;
+    renderObject.textDirection = Directionality.maybeOf(context);
+    renderObject.bindLive(live, () => renderObject.withdrawn = withdrawnOf());
+  }
+}
+
+class _RenderItemSemantics extends RenderSemanticsAnnotations
+    with MorphLiveBinding {
+  _RenderItemSemantics({required super.properties, super.textDirection});
+
+  bool _withdrawn = false;
+
+  bool get withdrawn => _withdrawn;
+
+  set withdrawn(bool value) {
+    if (value == _withdrawn) return;
+    _withdrawn = value;
+    markNeedsSemanticsUpdate();
+  }
+
+  @override
+  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
+      !_withdrawn && super.hitTest(result, position: position);
+
+  @override
+  void describeSemanticsConfiguration(SemanticsConfiguration config) {
+    if (!_withdrawn) super.describeSemanticsConfiguration(config);
+  }
+
+  @override
+  void visitChildrenForSemantics(RenderObjectVisitor visitor) {
+    if (!_withdrawn) super.visitChildrenForSemantics(visitor);
+  }
+}
+
 /// Where a bar item stands in one frame and how it is drawn.
 class _ItemPlace {
   const _ItemPlace({
@@ -1744,6 +1954,7 @@ class _ItemPlace {
     required this.scale,
     required this.blur,
     required this.presence,
+    required this.leaving,
   });
 
   static const gone = _ItemPlace(
@@ -1754,6 +1965,7 @@ class _ItemPlace {
     scale: 1,
     blur: 0,
     presence: 0,
+    leaving: true,
   );
 
   final double left;
@@ -1763,6 +1975,7 @@ class _ItemPlace {
   final double scale;
   final double blur;
   final double presence;
+  final bool leaving;
 }
 
 /// One synced frame of a bar row: what its build and its live render
@@ -1789,7 +2002,7 @@ class _RowFrame {
   );
 
   final List<MorphBarItemFrame> items;
-  final List<MorphBarItemFrame> shown;
+  final List<Object> shown;
   final List<MorphGlassSurface> apart;
   final List<MorphGlassSurface> joined;
   final Rect? menuCapsule;
@@ -1813,21 +2026,22 @@ bool morphVeiledGlyphsBlurred(double blur) =>
 /// [morphVeiledGlyphs] whose [blur] and [opacity] follow [live] without a
 /// build.
 ///
-/// [blurred] is [morphVeiledGlyphsBlurred] of the blur when it builds: a
-/// blur that crosses [MorphGlyphs.minBlur] changes the tree, so the caller
-/// builds again then.
+/// Where the glyphs blur through a layer of their own, the layer turns on
+/// and off as the blur crosses [MorphGlyphs.minBlur] at paint time
+/// ([morphVeiledGlyphsBlurred]): below it there is no filter layer, and
+/// crossing it builds nothing.
 @internal
 Widget morphLiveVeiledGlyphs({
   required Listenable live,
-  required bool blurred,
   required double Function() blur,
   required double Function() opacity,
   required Widget child,
 }) {
   var out = child;
-  if (blurred) {
+  if (!MorphGlyphs.shades) {
     out = MorphLiveImageFiltered(
       live: live,
+      enabledOf: () => morphVeiledGlyphsBlurred(blur()),
       filterOf: () {
         final sigma = blur();
         return ui.ImageFilter.blur(

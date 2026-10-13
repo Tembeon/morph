@@ -1534,6 +1534,11 @@ class MorphLiveTemplate extends SingleChildRenderObjectWidget {
 /// It stays an [ImageFiltered], so whatever looks for one above a widget
 /// (a glass container deciding whether it reaches its members) still
 /// finds it.
+///
+/// With [enabledOf] the filter also turns on and off with the source: a
+/// disabled filter adds no layer and paints its child as if it were not
+/// there, so a filter that applies only part of the time costs no build
+/// when it starts or stops.
 @internal
 class MorphLiveImageFiltered extends ImageFiltered {
   /// Filters [child] by [filterOf], read again on every notification of
@@ -1541,6 +1546,7 @@ class MorphLiveImageFiltered extends ImageFiltered {
   MorphLiveImageFiltered({
     required this.live,
     required this.filterOf,
+    this.enabledOf,
     super.enabled,
     super.child,
     super.key,
@@ -1552,8 +1558,14 @@ class MorphLiveImageFiltered extends ImageFiltered {
   /// The filter now.
   final ui.ImageFilter Function() filterOf;
 
+  /// Whether the filter applies now; null applies it while [enabled].
+  final bool Function()? enabledOf;
+
   @override
   ui.ImageFilter get imageFilter => filterOf();
+
+  @override
+  bool get enabled => enabledOf?.call() ?? super.enabled;
 
   @override
   SingleChildRenderObjectElement createElement() => _LiveDrivenElement(

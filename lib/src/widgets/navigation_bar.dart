@@ -422,8 +422,6 @@ bool _listEquals(List<double> a, List<double> b) {
   return true;
 }
 
-typedef _TitleStructure = ({bool shown, bool blurred});
-
 class _InlineTitle extends StatefulWidget {
   const _InlineTitle({
     required this.title,
@@ -456,7 +454,7 @@ class _InlineTitle extends StatefulWidget {
 }
 
 class _InlineTitleState extends State<_InlineTitle> {
-  _TitleStructure? _structure;
+  bool? _shown;
 
   @override
   void initState() {
@@ -483,16 +481,15 @@ class _InlineTitleState extends State<_InlineTitle> {
 
   double get _blur => widget.motion?.titleBlur ?? 0;
 
-  _TitleStructure _structureNow() =>
-      (shown: _opacity > 0.001, blurred: morphVeiledGlyphsBlurred(_blur));
+  bool _shownNow() => _opacity > 0.001;
 
   void _sync() {
-    if (_structureNow() != _structure) setState(() {});
+    if (_shownNow() != _shown) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    final structure = _structure = _structureNow();
+    final shown = _shown = _shownNow();
     final style = morphInlineTitleStyle(widget.color);
     final textWidth = widget.size.width;
     final textHeight = widget.size.height;
@@ -515,7 +512,7 @@ class _InlineTitleState extends State<_InlineTitle> {
     if (left + w > hi) left = math.max(lo, hi - w);
     final capsuleCenter = MorphBarMetrics.navigation.capsuleHeight / 2;
     Widget out;
-    if (!structure.shown) {
+    if (!shown) {
       out = const ExcludeSemantics(child: SizedBox.shrink());
     } else {
       final frames = widget.frames;
@@ -531,7 +528,6 @@ class _InlineTitleState extends State<_InlineTitle> {
       if (widget.motion == null) out = ExcludeSemantics(child: out);
       out = morphLiveVeiledGlyphs(
         live: frames,
-        blurred: structure.blurred,
         blur: () => _blur,
         opacity: () => _opacity,
         child: out,

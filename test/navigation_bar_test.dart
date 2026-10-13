@@ -82,6 +82,7 @@ void main() {
 
   testWidgets('a toolbar item change animates and settles', (tester) async {
     await _setScreen(tester);
+    final semantics = tester.ensureSemantics();
     Widget bar(List<MorphBarButtonGroup> leading) => _app(
       Align(
         alignment: Alignment.bottomCenter,
@@ -105,7 +106,9 @@ void main() {
     );
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 60));
-    expect(find.bySemanticsLabel('a'), findsNothing);
+    expect(find.semantics.byLabel('a'), findsNothing);
+    expect(find.semantics.byLabel('b'), findsOne);
+    semantics.dispose();
     expect(tester.binding.hasScheduledFrame, isTrue);
     await tester.pumpAndSettle(
       const Duration(milliseconds: 100),

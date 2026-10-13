@@ -211,8 +211,14 @@ class MorphPress extends StatefulWidget {
     this.dragAxis,
     this.delaysInScrollable = false,
     this.behavior = HitTestBehavior.deferToChild,
+    this.withdrawn,
     super.key,
   });
+
+  /// Whether the control is on its way out of the screen, or null for one
+  /// that stays: while it reads true the control takes no keyboard focus
+  /// and gives up the focus it has, without a build.
+  final ValueListenable<bool>? withdrawn;
 
   /// Where touches go, or null for a control that tracks them itself.
   final MorphPressTarget? target;
@@ -324,7 +330,10 @@ class _MorphPressState extends State<MorphPress> {
     super.initState();
     _node.addListener(_focusChanged);
     FocusManager.instance.addHighlightModeListener(_modeChanged);
+    widget.withdrawn?.addListener(_withdrawnChanged);
   }
+
+  void _withdrawnChanged() => _node.canRequestFocus = _canRequestFocus;
 
   @override
   void didChangeDependencies() {
@@ -340,6 +349,11 @@ class _MorphPressState extends State<MorphPress> {
   @override
   void didUpdateWidget(MorphPress oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (!identical(oldWidget.withdrawn, widget.withdrawn)) {
+      oldWidget.withdrawn?.removeListener(_withdrawnChanged);
+      widget.withdrawn?.addListener(_withdrawnChanged);
+      _node.canRequestFocus = _canRequestFocus;
+    }
     if (oldWidget.enabled != widget.enabled ||
         oldWidget.focusable != widget.focusable) {
       _node.canRequestFocus = _canRequestFocus;
@@ -357,6 +371,7 @@ class _MorphPressState extends State<MorphPress> {
 
   @override
   void dispose() {
+    widget.withdrawn?.removeListener(_withdrawnChanged);
     FocusManager.instance.removeHighlightModeListener(_modeChanged);
     _node.removeListener(_focusChanged);
     _attachment.detach();
@@ -412,6 +427,7 @@ class _MorphPressState extends State<MorphPress> {
 
   bool get _canRequestFocus =>
       widget.focusable &&
+      !(widget.withdrawn?.value ?? false) &&
       switch (MediaQuery.maybeNavigationModeOf(context)) {
         NavigationMode.directional => true,
         NavigationMode.traditional || null => widget.enabled,
