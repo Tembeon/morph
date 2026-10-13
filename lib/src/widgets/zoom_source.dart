@@ -112,11 +112,28 @@ class MorphZoomSource {
   bool showsLook(double fade, Size size) =>
       !isLost && tag != null && fade < 1 && !size.isEmpty;
 
+  /// What [crossfade] builds at [fade] in a container of [size]: whether
+  /// the look shows and, while it does, the source widget it replicates.
+  ///
+  /// A caller rebuilds the crossfade when this changes, including when the
+  /// source tag takes a new widget mid-zoom.
+  Object? look(double fade, Size size) {
+    final shows = showsLook(fade, size);
+    return (shows, shows ? tag?.widget : null);
+  }
+
+  /// Notifies when the source tag takes a new widget, or null without a
+  /// mounted source.
+  Listenable? get revisions {
+    final source = tag;
+    return source != null && source.mounted ? source.revisions : null;
+  }
+
   /// Crossfades the source's look over [content].
   ///
   /// The look fills a container of [size] and fades by `1 - fadeOf()`,
   /// read again on every notification of [live], so the result builds
-  /// again only when [showsLook] or [size] changes.
+  /// again only when [look] or [size] changes.
   Widget crossfade({
     required Listenable? live,
     required double Function() fadeOf,

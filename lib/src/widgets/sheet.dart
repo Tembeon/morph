@@ -1118,7 +1118,8 @@ extension on _SheetViewState {
 
 /// The sheet crossfaded with its source's look: the sheet and the look's
 /// fade follow the zoom on live render objects, and the crossfade builds
-/// again only when the look appears, leaves or changes size.
+/// again only when the look appears, leaves or changes size, or the source
+/// tag takes a new widget while the look shows.
 class _SheetZoomCrossfade extends StatefulWidget {
   const _SheetZoomCrossfade({
     required this.frames,
@@ -1142,16 +1143,31 @@ class _SheetZoomCrossfadeState extends State<_SheetZoomCrossfade> {
     rebuild: (Object? _) => setState(() {}),
   );
 
+  late Listenable _ticks = _ticksOf(widget);
+
+  // A tag rebuild notifies during build, so the sync hears it in a
+  // microtask and the replica takes the new widget on the next frame.
+  static Listenable _ticksOf(_SheetZoomCrossfade widget) {
+    final revisions = widget.source.revisions;
+    return revisions == null
+        ? widget.frames
+        : Listenable.merge(<Listenable>[widget.frames, revisions]);
+  }
+
   @override
   void initState() {
     super.initState();
-    _sync.follow(widget.frames);
+    _sync.follow(_ticks);
   }
 
   @override
   void didUpdateWidget(_SheetZoomCrossfade oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _sync.follow(widget.frames);
+    if (!identical(oldWidget.frames, widget.frames) ||
+        !identical(oldWidget.source, widget.source)) {
+      _ticks = _ticksOf(widget);
+      _sync.follow(_ticks);
+    }
   }
 
   @override
@@ -1162,10 +1178,7 @@ class _SheetZoomCrossfadeState extends State<_SheetZoomCrossfade> {
 
   Object? _inputsNow() {
     final frame = widget.frame();
-    return (
-      frame.sourceSize,
-      widget.source.showsLook(frame.fade, frame.sourceSize),
-    );
+    return (frame.sourceSize, widget.source.look(frame.fade, frame.sourceSize));
   }
 
   @override

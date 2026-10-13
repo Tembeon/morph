@@ -362,7 +362,7 @@ class MorphPushZoomPageState extends State<MorphPushZoomPage>
 /// The page's content crossfaded with its source's look: the content and
 /// the look's fade follow the motion on live render objects, and the
 /// crossfade builds again only when the look appears, leaves or changes
-/// size.
+/// size, or the source tag takes a new widget while the look shows.
 class _ZoomCrossfade extends StatefulWidget {
   const _ZoomCrossfade({
     required this.frames,
@@ -392,16 +392,31 @@ class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
     rebuild: (Object? _) => setState(() {}),
   );
 
+  late Listenable _ticks = _ticksOf(widget);
+
+  // A tag rebuild notifies during build, so the sync hears it in a
+  // microtask and the replica takes the new widget on the next frame.
+  static Listenable _ticksOf(_ZoomCrossfade widget) {
+    final revisions = widget.source.revisions;
+    return revisions == null
+        ? widget.frames
+        : Listenable.merge(<Listenable>[widget.frames, revisions]);
+  }
+
   @override
   void initState() {
     super.initState();
-    _sync.follow(widget.frames);
+    _sync.follow(_ticks);
   }
 
   @override
   void didUpdateWidget(_ZoomCrossfade oldWidget) {
     super.didUpdateWidget(oldWidget);
-    _sync.follow(widget.frames);
+    if (!identical(oldWidget.frames, widget.frames) ||
+        !identical(oldWidget.source, widget.source)) {
+      _ticks = _ticksOf(widget);
+      _sync.follow(_ticks);
+    }
   }
 
   @override
@@ -420,7 +435,7 @@ class _ZoomCrossfadeState extends State<_ZoomCrossfade> {
 
   Object? _inputsNow() {
     final size = widget.motion.source.size;
-    return (size, widget.source.showsLook(_fade, size));
+    return (size, widget.source.look(_fade, size));
   }
 
   @override

@@ -272,4 +272,72 @@ void main() {
       },
     );
   }
+
+  for (final sheet in [true, false]) {
+    testWidgets(
+      '${sheet ? 'sheet' : 'page'} zoom replica takes a source rebuilt '
+      'mid-close',
+      (tester) async {
+        final nav = GlobalKey<NavigatorState>();
+        late BuildContext context;
+        late StateSetter update;
+        var label = 'before';
+        await tester.pumpWidget(
+          MorphScope(
+            child: MaterialApp(
+              navigatorKey: nav,
+              home: StatefulBuilder(
+                builder: (c, setState) {
+                  context = c;
+                  update = setState;
+                  return Center(
+                    child: MorphTag(
+                      id: 'source',
+                      child: SizedBox(
+                        width: 100,
+                        height: 80,
+                        child: Text(label),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        );
+        if (sheet) {
+          unawaited(
+            presentMorphSheet<void>(
+              context,
+              from: 'source',
+              detents: const [MorphSheetDetent.medium],
+              builder: (_) => const Text('content'),
+            ),
+          );
+        } else {
+          pushMorphZoom<void>(
+            context,
+            from: 'source',
+            builder: (_) => const SizedBox.expand(child: Text('content')),
+          ).ignore();
+        }
+        await tester.pumpAndSettle();
+        nav.currentState!.pop();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 16));
+        Finder replica(String text) => find.descendant(
+          of: find.byType(FittedBox),
+          matching: find.text(text, skipOffstage: false),
+        );
+        expect(replica('before'), findsOneWidget);
+        update(() => label = 'after');
+        await tester.pump(const Duration(milliseconds: 16));
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(replica('after'), findsOneWidget);
+        expect(replica('before'), findsNothing);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 }

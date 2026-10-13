@@ -488,6 +488,7 @@ class MorphTagState extends State<MorphTag> {
   MorphScopeState? _scope;
   bool _hidden = false;
   GlobalKey? _boundaryKey;
+  ValueNotifier<int>? _revisions;
 
   /// mounted is not enough: in the dismantling frame the element is
   /// already deactivated (findRenderObject throws) but the State is not
@@ -534,6 +535,11 @@ class MorphTagState extends State<MorphTag> {
   /// what the shuttle republishes around the source replica.
   MorphSurfaceSpec get surfaceSpec => _effectiveSpec;
 
+  /// Notifies when the tag takes a new widget, so a [replica] or
+  /// [surfaceSpec] built elsewhere can build again.
+  @internal
+  Listenable get revisions => _revisions ??= ValueNotifier<int>(0);
+
   MorphSurfaceSpec get _effectiveSpec =>
       widget.spec ??
       MorphSurfaceSpec(
@@ -570,11 +576,14 @@ class MorphTagState extends State<MorphTag> {
       _scope?.registerTag(widget.id, this);
       _scope?.retagFlight(oldWidget.id, this);
     }
+    final revisions = _revisions;
+    if (revisions != null) revisions.value++;
   }
 
   @override
   void dispose() {
     _scope?.unregisterTag(widget.id, this);
+    _revisions?.dispose();
     super.dispose();
   }
 
