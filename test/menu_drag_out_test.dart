@@ -270,14 +270,14 @@ void main() {
 
   // Input-only replays: the touches in, the list view's frame out, no
   // recorded flex state used. The errors, pt rms over the four edges:
-  // drag-out-flex up 0.20, down 0.26, left 0.12, right 0.09 (0.19 in
-  // all); drag-out-upward-flex 0.26 and 0.16 (0.21); the animation tap
-  // capture 0.21 and 0.22 (0.21). UIKit's own recorded translationY
-  // velocity drives lab/menu_flex_model.py to 0.25, 0.26 and 0.28.
+  // drag-out-flex up 0.13, down 0.13, left 0.09, right 0.09;
+  // drag-out-upward-flex 0.12 and 0.11; the animation tap capture 0.15
+  // and 0.11. UIKit's own recorded translationY velocity drives
+  // lab/menu_flex_model.py to 0.25, 0.26 and 0.28.
   const bounds = {
-    'drag-out-flex': [0.22, 0.28, 0.14, 0.11],
-    'drag-out-upward-flex': [0.28, 0.17],
-    'drag-out-animation-tap': [0.23, 0.24],
+    'drag-out-flex': [0.15, 0.15, 0.1, 0.1],
+    'drag-out-upward-flex': [0.14, 0.13],
+    'drag-out-animation-tap': [0.17, 0.13],
   };
   for (final capture in _captures) {
     for (var i = 0; i < capture.gestures.length; i++) {
@@ -293,12 +293,11 @@ void main() {
   }
 
   test('the menu returns from a lift as UIKit does', () {
-    // The frames after each lift, pt rms: 0.24, 0.25 and 0.22 with the
-    // velocity the menu shows at the lift, 0.45, 0.48 and 0.49 from rest.
+    // The frames after each lift, pt rms: 0.17, 0.15 and 0.17.
     for (final (capture, bound) in [
-      (_captures[0], 0.26),
-      (_captures[1], 0.28),
-      (_captures[2], 0.25),
+      (_captures[0], 0.19),
+      (_captures[1], 0.17),
+      (_captures[2], 0.19),
     ]) {
       final errors = [
         for (final gesture in capture.gestures)
@@ -309,10 +308,10 @@ void main() {
   });
 
   test('the drawn frames of the older capture agree', () {
-    // Holdout: up 0.24, down 0.24, left 0.12, right 0.14 pt rms (the
+    // Holdout: up 0.16, down 0.12, left 0.06, right 0.06 pt rms (the
     // model fitted to this capture before reached 0.40, 0.36, 0.17, 0.17).
     final gestures = _drawn();
-    const drawn = [0.26, 0.26, 0.14, 0.16];
+    const drawn = [0.18, 0.14, 0.07, 0.07];
     for (var i = 0; i < gestures.length; i++) {
       final errors = _errors(_drawnCapture, gestures[i]);
       expect(_rms(errors), lessThan(drawn[i]), reason: names[i]);

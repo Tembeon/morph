@@ -31,6 +31,10 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   along their motion while they speed up or slow down
   (`MorphSmallLens.shift`), as UIKit's knob does (up to about 2 pt).
   BREAKING: `MorphSmallLens.stretchGain` is gone.
+- The open menu's stretch under a finger follows UIKit's channels: a
+  tracking spring with a push on every change while the finger is down,
+  the scale spring from what shows after the lift. The input-only drag
+  replays drop from 0.09 - 0.26 to 0.09 - 0.15 pt rms.
 - `MorphMenuSource` takes keyboard focus itself, draws the focus ring
   around its child and answers Enter or Space as a tap. An app whose
   child takes the focus itself and calls `MorphMenuSource.open`, as the

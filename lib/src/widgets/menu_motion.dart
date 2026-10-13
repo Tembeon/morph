@@ -588,13 +588,13 @@ class MorphMenuTuning {
   /// lifts. Read from UIKit, notes private; the numbers agree with the
   /// device's runtime reads (`tool/ios_reference/spec/menu-button.md`).
   ///
-  /// While the finger is down the menu shows the targets as they change,
-  /// as UIKit's does within a frame (APPROXIMATION of that frame, from
-  /// the recordings). The return starts from what shows with the rate
-  /// the targets last changed at, or from rest once they stood still for
-  /// half again as long as their last change took (APPROXIMATION of the
-  /// velocity UIKit's presentation carries: the frames after a lift
-  /// replay to 0.22 - 0.25 pt rms, 0.45 - 0.49 from rest).
+  /// The scales and drifts are four channels ([MorphChannel]): while the
+  /// finger is down they chase the targets on the spec's tracking spring
+  /// (0.15 / 0.5), after the lift they return on its scale spring from
+  /// what shows with its velocity, and every changed target pushes them
+  /// by the spec's retarget impulse (0.016 s). Read from UIKit, notes
+  /// private; the input-only replays of menu_drag_out_test land at 0.09 -
+  /// 0.15 pt rms while the finger is down and 0.15 - 0.17 after the lifts.
   final MorphFlexSpec flex;
 
   /// The points a finger moving inside the open menu adds to the stretch
@@ -854,8 +854,6 @@ typedef _Deformation = ({
   double driftY,
 });
 
-const _Deformation _noChange = (scaleX: 0, scaleY: 0, driftX: 0, driftY: 0);
-
 class _Pointer {
   _Pointer({
     required this.fromButton,
@@ -885,14 +883,6 @@ class _FlexTouch {
 
   /// Where the finger is.
   Offset position;
-
-  /// When the targets last changed, and over how long before that.
-  double changedAt = double.negativeInfinity;
-  double changeSpan = 0;
-
-  /// The rate the targets changed at, per second, in their latest change:
-  /// the velocity the menu shows them with.
-  _Deformation rate = _noChange;
 
   /// When the pulse channel steps next, or null while it rests.
   double? nextStep;
@@ -1141,10 +1131,16 @@ class MorphMenuMotion {
       activationDelay: tuning.pressDelay,
       timeline: _timeline,
     );
-    _flexScaleX = MorphSpringState(tuning.flex.scaleSpring, 1);
-    _flexScaleY = MorphSpringState(tuning.flex.scaleSpring, 1);
-    _flexDriftX = MorphSpringState(tuning.flex.scaleSpring, 0);
-    _flexDriftY = MorphSpringState(tuning.flex.scaleSpring, 0);
+    MorphChannel channel(double value) => MorphChannel(
+      value,
+      spring: tuning.flex.scaleSpring,
+      trackingSpring: tuning.flex.trackingSpring,
+      retargetImpulse: tuning.flex.retargetImpulse,
+    );
+    _flexScaleX = channel(1);
+    _flexScaleY = channel(1);
+    _flexDriftX = channel(0);
+    _flexDriftY = channel(0);
     _pulse = MorphChannel.stepped(
       0,
       spring: tuning.flexPulseSpring,
@@ -1171,10 +1167,10 @@ class MorphMenuMotion {
 
   late final MorphSpringState _radius;
   late final MorphFlexInteraction _press;
-  late final MorphSpringState _flexScaleX;
-  late final MorphSpringState _flexScaleY;
-  late final MorphSpringState _flexDriftX;
-  late final MorphSpringState _flexDriftY;
+  late final MorphChannel _flexScaleX;
+  late final MorphChannel _flexScaleY;
+  late final MorphChannel _flexDriftX;
+  late final MorphChannel _flexDriftY;
   late final MorphChannel _pulse;
   _FlexTouch? _flexTouch;
   int _flexGeneration = 0;
@@ -2024,15 +2020,15 @@ class MorphMenuMotion {
   }
 
   bool _flexAtRest(double t) {
-    if (_flexTouch != null) return true;
     final frame = _menu;
-    final scaleRest =
-        MorphMenuTuning.flexReturnRest /
-        math.max(1.0, math.max(frame.width, frame.height));
+    final rest = _flexTouch == null
+        ? MorphMenuTuning.flexReturnRest
+        : MorphMenuTuning.flexPulseRest;
+    final scaleRest = rest / math.max(1.0, math.max(frame.width, frame.height));
     return _flexScaleX.isAtRest(t, scaleRest) &&
         _flexScaleY.isAtRest(t, scaleRest) &&
-        _flexDriftX.isAtRest(t, MorphMenuTuning.flexReturnRest) &&
-        _flexDriftY.isAtRest(t, MorphMenuTuning.flexReturnRest);
+        _flexDriftX.isAtRest(t, rest) &&
+        _flexDriftY.isAtRest(t, rest);
   }
 
   /// What the flex's pulse channel ([MorphMenuTuning.flexPulseSpring])
@@ -2076,20 +2072,18 @@ class MorphMenuMotion {
     );
   }
 
-  /// The scales and drifts of the open menu's flex at time [t]: the
-  /// targets of the finger on it ([MorphMenuTuning.flexTargets]) while it
-  /// is down, which UIKit shows within a frame, and the return to rest on
-  /// the flex spec's scale spring after it lifts.
-  _Deformation _deformationAt(double t) {
-    final touch = _flexTouch;
-    if (touch != null) return _targetsOf(touch);
-    return (
-      scaleX: _flexScaleX.value(t),
-      scaleY: _flexScaleY.value(t),
-      driftX: _flexDriftX.value(t),
-      driftY: _flexDriftY.value(t),
-    );
-  }
+  /// The scales and drifts of the open menu's flex at time [t]: four
+  /// channels that chase the targets of the finger on it
+  /// ([MorphMenuTuning.flexTargets]) on the flex spec's tracking spring
+  /// while it is down and return to rest on its scale spring after it
+  /// lifts, each changed target pushing them by the spec's retarget
+  /// impulse ([MorphChannel]).
+  _Deformation _deformationAt(double t) => (
+    scaleX: _flexScaleX.value(t),
+    scaleY: _flexScaleY.value(t),
+    driftX: _flexDriftX.value(t),
+    driftY: _flexDriftY.value(t),
+  );
 
   _Deformation _targetsOf(_FlexTouch touch) {
     final frame = _menu;
@@ -2427,27 +2421,15 @@ class MorphMenuMotion {
 
   bool _flexPending = false;
 
-  /// Notes the change of the targets at time [t] from [before], so the
-  /// return after the lift starts with the velocity the menu shows.
+  /// Sends the targets of [touch] to the flex channels at time [t] on
+  /// their tracking spring when they changed from [before].
   void _noteChange(_FlexTouch touch, double t, _Deformation before) {
     final after = _targetsOf(touch);
     if (after == before) return;
-    final since = t - touch.changedAt;
-    if (since.isInfinite) {
-      touch.changedAt = t;
-      return;
-    }
-    final joins = since <= 0;
-    final span = joins ? touch.changeSpan : since;
-    final carried = joins ? touch.rate : _noChange;
-    touch.changedAt = t;
-    touch.changeSpan = span;
-    touch.rate = (
-      scaleX: carried.scaleX + (after.scaleX - before.scaleX) / span,
-      scaleY: carried.scaleY + (after.scaleY - before.scaleY) / span,
-      driftX: carried.driftX + (after.driftX - before.driftX) / span,
-      driftY: carried.driftY + (after.driftY - before.driftY) / span,
-    );
+    _flexScaleX.set(t, after.scaleX, tracking: true);
+    _flexScaleY.set(t, after.scaleY, tracking: true);
+    _flexDriftX.set(t, after.driftX, tracking: true);
+    _flexDriftY.set(t, after.driftY, tracking: true);
   }
 
   /// The flex starts under a finger that touched down at [position] at
@@ -2950,26 +2932,17 @@ class MorphMenuMotion {
   }
 
   /// The finger that flexed the menu lifted at time [t]: UIKit zeroes the
-  /// pulse channel's velocity and returns the stretch from where it shows
-  /// to rest on the flex spec's scale spring.
+  /// pulse channel's velocity and sends the flex channels to rest on the
+  /// flex spec's scale spring, from where they show with their velocity.
   void _flexUp(double t) {
     final touch = _flexTouch;
     if (touch == null) return;
-    final d = _targetsOf(touch);
     _flexTouch = null;
     _pulse.clearPublishedVelocity();
-    final rate = t - touch.changedAt < 1.5 * touch.changeSpan
-        ? touch.rate
-        : _noChange;
-    void release(MorphSpringState state, double from, double v, double to) {
-      state.setState(t, from, v);
-      state.retarget(t, to, spring: tuning.flex.scaleSpring);
-    }
-
-    release(_flexScaleX, d.scaleX, rate.scaleX, 1);
-    release(_flexScaleY, d.scaleY, rate.scaleY, 1);
-    release(_flexDriftX, d.driftX, rate.driftX, 0);
-    release(_flexDriftY, d.driftY, rate.driftY, 0);
+    _flexScaleX.set(t, 1);
+    _flexScaleY.set(t, 1);
+    _flexDriftX.set(t, 0);
+    _flexDriftY.set(t, 0);
   }
 
   void _glow(double t, Offset? position, {required bool on}) {
