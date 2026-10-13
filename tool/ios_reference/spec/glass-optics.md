@@ -91,6 +91,29 @@ glass.dart (seam: `MorphGlass`, `MorphGlassPainter` buildSurface / buildFill
 lib/src/glass/renderer (vendored whynotmake-it renderer, VENDORED + NOTICE).
 Tests: glass_renderer_test, lifted_lens_look_test.
 
+## Native face transfer [device, 2026-10-13]
+
+Native `UIGlassEffect` (regular) panels in a `UIVisualEffectView` over 16 gray
+stripes, iPhone 16 Pro, iOS 27.0.1, light and dark, read at the panel's center
+(lab captures; notes private). Backdrop gray in, glass out (sRGB 8-bit):
+
+| size | light | dark |
+|---|---|---|
+| 120x44 | 102>173 119>183 136>193 153>203 | 102>117 119>128 136>139 153>148 |
+| 160x64 | 102>174 119>183 136>193 153>203 | 102>118 119>128 136>139 153>148 |
+| 200x120 | 85>167 119>188 153>208 170>218 | 85>98 119>116 153>129 170>134 |
+| 300x260 | 85>170 119>191 153>212 170>221 | 85>96 118>115 152>129 169>133 |
+| 362x520 | 68>178 119>194 153>204 187>214 (center blurred) | 68>103 118>117 152>124 186>129 |
+
+- The face is linear in encoded values up to the size where the frost reaches
+  the center: slope ~0.6 light. The frost reaches about half the short side, so a
+  large panel's center is blurred.
+- The display's EDR state changes the isolated face (highlights compress
+  when the headroom is 1.0), but the full default material read the same in
+  both states.
+- morph's light face sits about 5 levels under these mid grays, the dark face
+  about 12 above: the fit is open (next).
+
 ## Open / gaps
 
 - Light audit (2026-10-03, simulator, liquid tier, glass_audit_test with
