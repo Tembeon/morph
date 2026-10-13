@@ -1,0 +1,13 @@
+3611bf0  runs 3  fixed-perf False  2026-10-13 20:33
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/controls              1181   2.8   7.7   7.5  10.9   4.8   0.3   42   784  ui-build:1 raster-cpu:1 ui-paint:1 bad ui: build 5.8, paint 5.3, layout 3.3  [ui 10.23->7.651, gpu 5.319->4.777, power_mw 589->784]
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 0.81, HandleOOBMessage 0.58, RenderLiquidGlassLayer 0.45, _RenderGlassShadow 0.29, RenderParagraph 0.17, RenderCustomPaint 0.13
+                                     passes/frame: 2.1 (2.1 backdrop, 0.0 other layers, 0.0 inside pictures, 2.1 backdrop reads): MorphNavigationStack > MorphPresentationBoundary > MorphNavi 1.0, MorphSlider > MorphDisabled > MorphPress [(glass, 0)] Render 0.6, MorphSwitch > MorphDisabled > MorphPress [(glass, 0)] Render 0.5
+audit/liquid/menu                   772   5.5  10.7   8.7  13.9  12.9   3.2   40   756  raster-cpu:13 ui-other:3 gpu:3 raster-wait:2 ui-layout:2 ui-paint:1 ui-finalize:1 bad raster: SurfaceFrame::Encode 8.3, QueueSubmit 4.7, Canvas::saveLayer 3.8  [ui 14.04->10.66, over_pct 5.3->3.2]
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 2.42, RenderLiquidGlassLayer 0.97, HandleOOBMessage 0.89, QueueSubmit 0.58, RenderParagraph 0.25, RenderCustomPaint 0.15
+                                     passes/frame: 2.1 (1.9 backdrop, 0.2 other layers, 0.0 inside pictures, 1.9 backdrop reads): MorphNavigationStack > MorphPresentationBoundary > MorphNavi 1.0, MorphGlassInspector > MorphMenuLayer [body] RenderLiquidGlas 0.6, MorphPress > MorphTag > MorphTagVisibility [body] RenderLiqu 0.3, image_filter unknown ImageFilterLayer 0.2
+audit/liquid/sheet                  727   2.4   6.3   8.2  12.5  16.5   5.5   13   995  gpu:36 ui-layout:3 ui-paint:1 bad raster: SurfaceFrame::Encode 3.0, QueueSubmit 2.1, Canvas::saveLayer 1.1  [ui 7.362->6.319, raster 14.01->12.46, over_pct 8.7->5.5, power_mw 1118->995]
+                                     ui by owner (self ms/frame): Dart_InvokeClosure 0.96, HandleOOBMessage 0.89, RenderLiquidGlassLayer 0.13, RenderCustomPaint 0.11, RenderParagraph 0.07, _RenderGlassShadow 0.05
+                                     passes/frame: 2.4 (2.7 backdrop, 0.0 other layers, 0.0 inside pictures, 2.7 backdrop reads): MorphNavigationStack > MorphPresentationBoundary > MorphNavi 1.0, MorphGlassInspector > MorphGlassContainerGate > MorphGlassCo 0.8, MorphGlassInspector [sheet] RenderLiquidGlassLayer 0.5, MorphGlassContainer > MorphGlassButton > MorphPress [body] R 0.5

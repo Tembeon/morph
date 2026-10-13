@@ -186,6 +186,7 @@ supported.
 | Optical batch (one filter for disconnected chrome) | pilot never activated in 40 frames: no evidence | codex-optical-batch-report.md |
 | Dependent GPU pass batching | crashes both tested SDKs; keep separate command buffers | codex-gpu-pass-lifecycle-report.md |
 | Backdrop region (one read per bar band for the edge blur and the bar's glass, e6ce856) | GPU within +-2 percent in every audit scene, power and raster in launch spread: a saved full-screen read is worth about what the region's own pass costs; removed | tool/audit/2026-10-12-glass-composition.md, perf/2026-10-12-bench-gr-* |
+| Analytic containers under a closed gate (3611bf0, reverted) | a scaled sheet's glass container keeps its members analytically: host backdrop filters per frame 9.84 -> 6.13, Pixel sheet saveLayers 3.5 -> 2.4 but GPU 8.04 -> 8.24 ms/frame, raster and power within launch noise: the one layer over the members' union costs what their passes did | perf/2026-10-13-bench-plane-gate, -plane-off |
 | Flat sparse field + Android glyph raster | push raster p95 improves, power 556/534 -> 542/547 mW (no saving), other actions mixed; shipped for frame time | tool/audit/codex-navigation-stable-report.md, perf/2026-10-08-navigation-stable |
 
 Open owner decisions (pixel-changing levers with device numbers): Redmi

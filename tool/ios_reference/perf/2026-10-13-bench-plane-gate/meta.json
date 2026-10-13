@@ -1,0 +1,27 @@
+{
+ "sdk": "stable",
+ "sha": "3611bf0",
+ "source": "/Users/tembeon/IdeaProjects/morph/.claude/worktrees/nifty-swanson-e3b33c",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-13 20:33:55.747682",
+ "launches": {
+  "audit-liquid": {
+   "args": {
+    "GALLERY_GLASS": "liquid",
+    "AUDIT_RUNS": "3",
+    "AUDIT_SHOTS": "false",
+    "AUDIT_IDLE_S": "0",
+    "AUDIT_SCENES": "controls,menu,sheet"
+   },
+   "thermal_before": [
+    0,
+    30.259651
+   ],
+   "thermal_after": [
+    0,
+    31.777851
+   ]
+  }
+ }
+}
