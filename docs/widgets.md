@@ -102,15 +102,27 @@ latency). Stamping rules:
 
 Evidence: spec/README.md "Clocks".
 
-`live.dart` - `MorphFrameSync`: the one way a control follows its motion
-without building every frame. It follows a source (`frames`, a flight's
-ticks, a drift), reads a structure record once per frame in the mid-frame
-microtasks (after every ticker ran, before anything builds; a ticker's
-notification queues one microtask, one already in that phase reads at
-once), hands a changed record to `rebuild` and otherwise notifies the
-`MorphLive*` render objects and glass hosts that follow it. The build
-reads its record through `read`. Menu button and layer, bar row, search
-toolbar and tab bar, sheet and its zoom crossfade, push zoom use it.
+`live.dart` - `MorphFrameSync`: how a control that reads a motion it does
+not advance itself follows it without building every frame. It follows a
+source (`frames`, a flight's ticks, a drift), reads a structure record
+once per frame in the mid-frame microtasks (after every ticker ran,
+before anything builds; a ticker's notification queues one microtask,
+one already in that phase reads at once), hands a changed record to
+`rebuild` and otherwise notifies the `MorphLive*` render objects and
+glass hosts that follow it. The build reads its record through `read`.
+Menu button and layer, bar row, search toolbar and tab bar, sheet and its
+zoom crossfade, push zoom use it; `test/frame_sync_test.dart` pins its
+timing and that of a glass host following it.
+
+Two other shapes stay correct without it. `MorphChanges` filters a
+source down to the frames on which a key changes, for listeners that
+only redraw (the slider's track: its glass host hears only the frames
+that move the track). A control that reads only the motion its own
+`MorphClock` advances may sync inside `advanceMotion`, which runs after
+that motion stepped: the date picker overlay sets its two structure
+flags (each rebuilds its own subtree) and ticks its box's live render
+objects only on frames that move the box, so a page turn or the year
+wheels repaint nothing of the box.
 
 `flex_integrator.dart` - `MorphFlexIntegrator` ports UIKit's
 `_UIVelocityIntegrator` (alpha 0.3 per frame). `MorphSubClock` is a

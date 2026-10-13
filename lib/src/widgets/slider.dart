@@ -139,9 +139,11 @@ class MorphSlider extends StatefulWidget {
 class _MorphSliderState extends MorphControlHost<MorphSlider> {
   late final MorphSliderMotion _motion = _create();
   late final ValueNotifier<double> _semanticValue = ValueNotifier(widget.value);
-  late final _TrackFrames _trackFrames = _TrackFrames(
+  // The track rests through most of a drag; its glass host then neither
+  // rebuilds nor pushes.
+  late final MorphChanges<RRect> _trackFrames = MorphChanges<RRect>(
     frames,
-    () => _visual(_frame(_size).track),
+    _trackShape,
   );
   VelocityTracker? _tracker;
   MorphSliderStyle _style = MorphSliderStyle.light;
@@ -198,7 +200,6 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   @override
   void dispose() {
     _semanticValue.dispose();
-    _trackFrames.dispose();
     super.dispose();
   }
 
@@ -306,10 +307,12 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
   RRect _visual(RRect shape) =>
       _rtl ? morphMirror(shape, _motion.width) : shape;
 
+  RRect _trackShape() => _visual(_frame(_size).track);
+
   List<MorphGlassSurface> _trackSurface() => [
     MorphGlassSurface(
       kind: MorphGlassKind.track,
-      shape: _trackFrames.read(),
+      shape: _trackShape(),
       color: widget.trackColor ?? _style.trackColor,
       brightness: _brightness,
       enabled: _enabled,
@@ -430,31 +433,6 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
         );
       },
     );
-  }
-}
-
-// The motion's frames on which the track's shape differs from the one its
-// glass host last read: the track rests through most of a drag, and its
-// host then neither rebuilds nor pushes.
-class _TrackFrames extends ChangeNotifier {
-  _TrackFrames(this._frames, this._shape) {
-    _frames.addListener(_tick);
-  }
-
-  final Listenable _frames;
-  final RRect Function() _shape;
-  RRect? _read;
-
-  RRect read() => _read = _shape();
-
-  void _tick() {
-    if (hasListeners && _shape() != _read) notifyListeners();
-  }
-
-  @override
-  void dispose() {
-    _frames.removeListener(_tick);
-    super.dispose();
   }
 }
 
