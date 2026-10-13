@@ -103,7 +103,7 @@ class _ControlsPageState extends State<ControlsPage> {
               ),
               GalleryCaption('Glass buttons, tapped $_taps times'),
               MorphGlassContainer(
-                solidBackdrop: MorphListStyle.resolve(
+                solidBackdrop: MorphListAppearance.resolve(
                   context,
                   null,
                 ).backgroundColor,

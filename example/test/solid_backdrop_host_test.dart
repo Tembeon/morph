@@ -364,7 +364,7 @@ Widget _cluster({
     tier: MorphGlassTier.liquid,
     child: Builder(
       builder: (BuildContext context) {
-        final page = MorphListStyle.resolve(context, null).backgroundColor;
+        final page = MorphListAppearance.resolve(context, null).backgroundColor;
         return RepaintBoundary(
           key: _clusterShot,
           child: ColoredBox(

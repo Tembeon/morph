@@ -49,7 +49,7 @@ class _SheetPageState extends State<SheetPage> {
           padding: const .all(20),
           sliver: SliverToBoxAdapter(
             child: MorphGlassContainer(
-              solidBackdrop: MorphListStyle.resolve(
+              solidBackdrop: MorphListAppearance.resolve(
                 context,
                 null,
               ).backgroundColor,

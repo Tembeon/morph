@@ -158,7 +158,7 @@ class _Page extends StatelessWidget {
 }
 
 Widget _nativeFooter(BuildContext context) {
-  final style = MorphMenuStyle.resolve(context, null);
+  final style = MorphMenuAppearance.resolve(context, null);
   return SizedBox(
     height: 62,
     child: Stack(

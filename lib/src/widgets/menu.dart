@@ -30,9 +30,9 @@ import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphMenuButton] and its menu.
-class MorphMenuStyle {
-  /// Creates a style; the defaults are the iOS 27 light appearance.
-  const MorphMenuStyle({
+class MorphMenuAppearance {
+  /// Creates an appearance; the defaults are the iOS 27 light appearance.
+  const MorphMenuAppearance({
     this.buttonSize = MorphMenuTuning.buttonDiameter,
     this.glassColor = const Color(0xF2F9F9FF),
     this.shadowColor = const Color(0x33000000),
@@ -134,10 +134,10 @@ class MorphMenuStyle {
   final Color paletteSelectionColor;
 
   /// The light appearance.
-  static const light = MorphMenuStyle();
+  static const light = MorphMenuAppearance();
 
   /// The dark appearance, sampled from the iOS 27 dark menu.
-  static const dark = MorphMenuStyle(
+  static const dark = MorphMenuAppearance(
     glassColor: Color(0xF2222222),
     shadowColor: Color(0x66000000),
     textStyle: TextStyle(fontSize: 17, color: Color(0xF5FFFFFF)),
@@ -157,9 +157,9 @@ class MorphMenuStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphMenuStyle resolve(
+  static MorphMenuAppearance resolve(
     BuildContext context,
-    MorphMenuStyle? explicit,
+    MorphMenuAppearance? explicit,
   ) =>
       explicit ??
       MorphWidgetsTheme.maybeOf(context)?.menu ??
@@ -168,8 +168,8 @@ class MorphMenuStyle {
         Brightness.light => light,
       };
 
-  /// A copy of this style with the given fields replaced.
-  MorphMenuStyle copyWith({
+  /// A copy of this appearance with the given fields replaced.
+  MorphMenuAppearance copyWith({
     double? buttonSize,
     Color? glassColor,
     Color? shadowColor,
@@ -189,7 +189,7 @@ class MorphMenuStyle {
     Color? submenuRimColor,
     Color? submenuShadowColor,
     Color? paletteSelectionColor,
-  }) => MorphMenuStyle(
+  }) => MorphMenuAppearance(
     buttonSize: buttonSize ?? this.buttonSize,
     glassColor: glassColor ?? this.glassColor,
     shadowColor: shadowColor ?? this.shadowColor,
@@ -235,7 +235,7 @@ enum MorphMenuTrigger {
 abstract class _MorphMenuSourceWidget extends StatefulWidget {
   const _MorphMenuSourceWidget({
     required this.items,
-    required this.style,
+    required this.appearance,
     required this.tuning,
     required this.overlay,
     required this.semanticLabel,
@@ -256,8 +256,8 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
   final List<MorphMenuEntry> items;
 
   /// The look of the menu; null resolves it through
-  /// [MorphMenuStyle.resolve].
-  final MorphMenuStyle? style;
+  /// [MorphMenuAppearance.resolve].
+  final MorphMenuAppearance? appearance;
 
   /// The measured motion.
   final MorphMenuTuning tuning;
@@ -352,7 +352,7 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
     this.color,
     this.rimColor,
     this.focusable = true,
-    super.style,
+    super.appearance,
     super.tuning = MorphMenuTuning.standard,
     super.overlay,
     super.semanticLabel,
@@ -479,13 +479,13 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
 /// dissolve instead.
 ///
 /// A disabled menu button keeps its glass and draws its glyph in
-/// [MorphMenuStyle.disabledIconColor], as UIKit's does.
+/// [MorphMenuAppearance.disabledIconColor], as UIKit's does.
 class MorphMenuButton extends _MorphMenuSourceWidget {
   /// Creates a menu button.
   const MorphMenuButton({
     required super.items,
     this.child,
-    super.style,
+    super.appearance,
     super.tuning = MorphMenuTuning.standard,
     super.overlay,
     super.semanticLabel,
@@ -600,7 +600,7 @@ void morphCheckOverlayAncestor(BuildContext context, OverlayState overlay) {
 @internal
 abstract interface class MorphMenuHost {
   /// The look of the menu.
-  MorphMenuStyle get menuStyle;
+  MorphMenuAppearance get menuStyle;
 
   /// The fill and flat rim of the source's own surface, which the source
   /// shape starts and ends in, or null for a source on the menu's glass.
@@ -663,7 +663,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     implements MorphPressTarget {
   final Object _tagId = Object();
   BuildContext? _scopeContext;
-  MorphMenuStyle _style = MorphMenuStyle.light;
+  MorphMenuAppearance _style = MorphMenuAppearance.light;
   late final MorphMenuController _host = MorphMenuController(
     tagId: _tagId,
     scopeContext: () => _scopeContext,
@@ -886,11 +886,12 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         (!motion.isPresented && !_landing && motion.isSettled);
   }
 
-  ({MorphMenuStyle style, Widget glyph, bool still, Widget face})? _resting;
+  ({MorphMenuAppearance style, Widget glyph, bool still, Widget face})?
+  _resting;
 
   Widget _face(
     BuildContext context,
-    MorphMenuStyle style,
+    MorphMenuAppearance style,
     Widget glyph,
     _ButtonStructure structure,
   ) {
@@ -941,7 +942,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
 
   Widget _landingFace(
     BuildContext context,
-    MorphMenuStyle style,
+    MorphMenuAppearance style,
     Widget glyph,
     MorphMenuMotion motion,
   ) {
@@ -964,7 +965,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
 
   // The same glyph instance across parent rebuilds keeps the resting face
   // cached in _face.
-  Widget _glyphFor(MorphMenuStyle style, bool enabled) {
+  Widget _glyphFor(MorphMenuAppearance style, bool enabled) {
     final custom = widget._look;
     if (widget._source != null) return custom!;
     final color = enabled ? style.iconColor : style.disabledIconColor;
@@ -989,7 +990,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphMenuStyle.resolve(context, widget.style);
+    final style = MorphMenuAppearance.resolve(context, widget.appearance);
     _style = style;
     final flight = _flight;
     if (flight != null && !flight.isFinished) {
@@ -1105,7 +1106,7 @@ class _MenuShapes extends StatelessWidget {
     this.still = false,
   });
 
-  final MorphMenuStyle style;
+  final MorphMenuAppearance style;
   final Widget glyph;
   final _Shapes Function() shapes;
   final ({Color color, Color? rim})? surface;
@@ -1302,7 +1303,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   bool _parentScrollLocked = false;
   Expando<Widget> _rows = Expando<Widget>();
   final Expando<ValueNotifier<int?>> _hidden = Expando<ValueNotifier<int?>>();
-  MorphMenuStyle? _rowsStyle;
+  MorphMenuAppearance? _rowsStyle;
   // Synced where a build would read the motion: a frame that changes the
   // structure builds, every other one only pushes its geometry.
   late final MorphFrameSync<_LayerStructure?> _ticks =
@@ -1404,7 +1405,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
 
   Widget _rowsOf(
     MorphMenuLayout layout,
-    MorphMenuStyle style, {
+    MorphMenuAppearance style, {
     ValueListenable<double>? cover,
   }) {
     if (!identical(style, _rowsStyle)) {
@@ -1615,7 +1616,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
 
   List<Widget> _cards(
     MorphMenuMotion motion,
-    MorphMenuStyle style,
+    MorphMenuAppearance style,
     List<MorphMenuCard> cards, {
     required bool top,
   }) {
@@ -1688,7 +1689,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   /// it.
   Widget _root(
     MorphMenuMotion motion,
-    MorphMenuStyle style,
+    MorphMenuAppearance style,
     MorphMenuLayout layout, {
     required bool locked,
     required bool scrolls,
@@ -1748,7 +1749,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
 
   Widget _card(
     MorphMenuMotion motion,
-    MorphMenuStyle style,
+    MorphMenuAppearance style,
     List<MorphMenuCard> cards,
     int index,
     double width,
@@ -2044,7 +2045,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
 
   Widget? _highlight(
     MorphMenuMotion motion,
-    MorphMenuStyle style,
+    MorphMenuAppearance style,
     MorphMenuLayout layout,
     int card,
   ) {
@@ -2083,7 +2084,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
     );
   }
 
-  List<Widget> _glow(_LayerStructure structure, MorphMenuStyle style) {
+  List<Widget> _glow(_LayerStructure structure, MorphMenuAppearance style) {
     if (!structure.glow) return const [];
     return [
       MorphLivePositionedTemplate(
@@ -2116,7 +2117,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
 
 typedef _RootKey = ({
   MorphMenuLayout layout,
-  MorphMenuStyle style,
+  MorphMenuAppearance style,
   MorphMenuTuning tuning,
   bool locked,
   bool scrolls,
@@ -2153,7 +2154,7 @@ class _LayerStructure {
 
   final MorphMenuMotion motion;
   final MorphGlassPainter? painter;
-  final MorphMenuStyle style;
+  final MorphMenuAppearance style;
   final ({Color color, Color? rim})? surface;
   final Object? glyph;
   final bool open;
@@ -2213,7 +2214,7 @@ typedef _HeaderFaces = ({bool regular, bool bold});
 class _LayerFrame {
   _LayerFrame(
     MorphMenuMotion motion, {
-    required MorphMenuStyle style,
+    required MorphMenuAppearance style,
     required Brightness brightness,
     required bool withField,
   }) : menu = motion.menuBlob,
@@ -2309,7 +2310,7 @@ class _CardFrame {
     List<MorphMenuCard> cards,
     int index, {
     required double visible,
-    required MorphMenuStyle style,
+    required MorphMenuAppearance style,
     required Brightness brightness,
   }) {
     final tuning = motion.tuning;
@@ -2420,7 +2421,7 @@ class _CardHeader extends StatelessWidget {
   final MorphMenuPlaced Function() placed;
   final _HeaderValues Function() values;
   final _HeaderFaces faces;
-  final MorphMenuStyle style;
+  final MorphMenuAppearance style;
   final double width;
   final MorphMenuContent content;
   final ValueChanged<int> onSelect;
@@ -2557,7 +2558,7 @@ Offset _contentLocal(MorphMenuMotion motion, Offset position) {
 /// built, leaving out loading rows and free-form widgets.
 Widget _menuRows({
   required MorphMenuLayout layout,
-  required MorphMenuStyle style,
+  required MorphMenuAppearance style,
   required ValueListenable<int?> hidden,
   required MorphMenuContent content,
   required ValueChanged<int> onSelect,
@@ -2648,7 +2649,7 @@ class _MenuRows extends StatefulWidget {
 
   final MorphMenuLayout layout;
   final ValueListenable<int?> hidden;
-  final MorphMenuStyle style;
+  final MorphMenuAppearance style;
   final MorphMenuContent content;
   final ValueChanged<int> onSelect;
   final int? limit;
@@ -2770,7 +2771,7 @@ class _MenuElement extends StatelessWidget {
   final bool hidden;
 
   final MorphMenuPlaced element;
-  final MorphMenuStyle style;
+  final MorphMenuAppearance style;
   final double width;
   final MorphMenuContent content;
   final ValueChanged<int> onSelect;
@@ -3386,7 +3387,7 @@ class _GlassPainter extends CustomPainter {
     this.glassShare = 1,
   });
 
-  final MorphMenuStyle style;
+  final MorphMenuAppearance style;
   final RRect source;
   final RRect? menu;
   final MorphGlassOutline? outline;

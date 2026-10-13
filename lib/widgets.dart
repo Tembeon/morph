@@ -21,7 +21,7 @@
 /// flat glass, and any other [MorphGlassPainter] can take its place. The
 /// package computes every shape once - fused silhouettes included - so
 /// each tier and each painter shades the same outlines. Their looks
-/// resolve from a `style` argument, then [MorphWidgetsTheme], then light
+/// resolve from an `appearance` argument, then [MorphWidgetsTheme], then light
 /// and dark tables.
 library;
 
@@ -31,13 +31,13 @@ export 'src/widgets/activity_indicator.dart'
         MorphActivityIndicator,
         MorphActivityIndicatorFrames,
         MorphActivityIndicatorSize,
-        MorphActivityIndicatorStyle;
+        MorphActivityIndicatorAppearance;
 export 'src/widgets/alert.dart'
     show
         MorphAlertAction,
         MorphAlertActionStyle,
         MorphAlertRoute,
-        MorphAlertStyle,
+        MorphAlertAppearance,
         MorphAlertTextField,
         showMorphActionSheet,
         showMorphAlert;
@@ -56,7 +56,7 @@ export 'src/widgets/bar_items.dart'
         MorphBarButtonGroup,
         MorphBarMenuTuning,
         MorphBarMetrics,
-        MorphBarStyle;
+        MorphBarAppearance;
 export 'src/widgets/bar_motion.dart'
     show
         MorphBarCapsuleFrame,
@@ -66,7 +66,7 @@ export 'src/widgets/bar_motion.dart'
         MorphBarMotion,
         MorphBarTransitionSpec;
 export 'src/widgets/date_picker.dart'
-    show MorphDatePicker, MorphDatePickerMode, MorphDatePickerStyle;
+    show MorphDatePicker, MorphDatePickerMode, MorphDatePickerAppearance;
 export 'src/widgets/date_picker_motion.dart'
     show
         MorphDatePickerMotion,
@@ -91,11 +91,15 @@ export 'src/widgets/glass_container.dart' show MorphGlassContainer;
 export 'src/widgets/glass_inspector.dart'
     show MorphGlassCensus, MorphGlassHint, MorphGlassInspector;
 export 'src/widgets/glass_button.dart'
-    show MorphGlassButton, MorphGlassButtonMotion, MorphGlassButtonStyle;
+    show MorphGlassButton, MorphGlassButtonMotion, MorphGlassButtonAppearance;
 export 'src/widgets/lens_motion.dart'
     show MorphLensMotion, MorphLensSlot, MorphLensTuning;
 export 'src/widgets/menu.dart'
-    show MorphMenuButton, MorphMenuSource, MorphMenuStyle, MorphMenuTrigger;
+    show
+        MorphMenuButton,
+        MorphMenuSource,
+        MorphMenuAppearance,
+        MorphMenuTrigger;
 export 'src/widgets/menu_entries.dart'
     show
         MorphMenuDeferred,
@@ -128,7 +132,7 @@ export 'src/widgets/menu_motion.dart'
 export 'src/widgets/morph_context_menu.dart'
     show MorphContextMenuRegion, MorphSatellite;
 export 'src/widgets/list.dart'
-    show MorphListMetrics, MorphListRow, MorphListSection, MorphListStyle;
+    show MorphListMetrics, MorphListRow, MorphListSection, MorphListAppearance;
 export 'src/widgets/navigation_bar.dart'
     show
         MorphLargeTitle,
@@ -147,14 +151,14 @@ export 'src/widgets/navigation_stack.dart'
 export 'src/widgets/page_control.dart'
     show
         MorphPageControl,
-        MorphPageControlBackground,
+        MorphPageControlBackgroundStyle,
         MorphPageControlMotion,
-        MorphPageControlStyle,
+        MorphPageControlAppearance,
         MorphPageControlTuning;
 export 'src/widgets/progress.dart'
     show
         MorphProgressMotion,
-        MorphProgressStyle,
+        MorphProgressViewAppearance,
         MorphProgressView,
         MorphProgressViewStyle;
 export 'src/widgets/push_zoom_motion.dart'
@@ -163,26 +167,26 @@ export 'src/widgets/scroll_edge_effect.dart'
     show
         MorphScrollEdgeEffect,
         MorphScrollEdgeEffectStyle,
-        MorphScrollEdgeEffectThemeData;
+        MorphScrollEdgeEffectAppearance;
 export 'src/widgets/search_field.dart'
-    show MorphSearchField, MorphSearchFieldStyle, MorphSearchToolbar;
+    show MorphSearchField, MorphSearchFieldAppearance, MorphSearchToolbar;
 export 'src/widgets/search_motion.dart'
     show MorphSearchMotion, MorphSearchTuning;
 export 'src/widgets/search_tab_bar.dart' show MorphSearchTabBar;
 export 'src/widgets/segmented_control.dart'
-    show MorphSegmentedControl, MorphSegmentedStyle;
+    show MorphSegmentedControl, MorphSegmentedControlAppearance;
 export 'src/widgets/sheet.dart'
-    show MorphSheet, MorphSheetRoute, MorphSheetStyle, presentMorphSheet;
+    show MorphSheet, MorphSheetRoute, MorphSheetAppearance, presentMorphSheet;
 export 'src/widgets/sheet_motion.dart'
     show MorphSheetDetent, MorphSheetMotion, MorphSheetTuning;
-export 'src/widgets/slider.dart' show MorphSlider, MorphSliderStyle;
+export 'src/widgets/slider.dart' show MorphSlider, MorphSliderAppearance;
 export 'src/widgets/slider_motion.dart' show MorphSliderMotion;
 export 'src/widgets/small_lens.dart' show MorphSmallLens;
-export 'src/widgets/stepper.dart' show MorphStepper, MorphStepperStyle;
-export 'src/widgets/switch.dart' show MorphSwitch, MorphSwitchStyle;
+export 'src/widgets/stepper.dart' show MorphStepper, MorphStepperAppearance;
+export 'src/widgets/switch.dart' show MorphSwitch, MorphSwitchAppearance;
 export 'src/widgets/switch_motion.dart' show MorphSwitchMotion;
 export 'src/widgets/tab_bar.dart'
-    show MorphTabBar, MorphTabBarStyle, MorphTabItem;
+    show MorphTabBar, MorphTabBarAppearance, MorphTabItem;
 export 'src/widgets/toolbar.dart' show MorphToolbar, MorphToolbarMetrics;
 export 'src/widgets/typography.dart' show MorphTypography;
 export 'src/widgets/widgets_theme.dart' show MorphWidgetsTheme;

@@ -18,9 +18,9 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphSearchField] and a [MorphSearchToolbar].
 @immutable
-class MorphSearchFieldStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphSearchFieldStyle({
+class MorphSearchFieldAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphSearchFieldAppearance({
     this.capsuleColor = const Color(0xD9FFFFFF),
     this.rimColor = const Color(0x1F000000),
     this.shadowColor = const Color(0x1A000000),
@@ -78,10 +78,10 @@ class MorphSearchFieldStyle {
   final Color disabledFillColor;
 
   /// The light appearance.
-  static const light = MorphSearchFieldStyle();
+  static const light = MorphSearchFieldAppearance();
 
   /// The dark appearance.
-  static const dark = MorphSearchFieldStyle(
+  static const dark = MorphSearchFieldAppearance(
     capsuleColor: Color(0xB82C2C2E),
     rimColor: Color(0x33FFFFFF),
     shadowColor: Color(0x40000000),
@@ -97,10 +97,10 @@ class MorphSearchFieldStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphSearchFieldStyle resolve(
+  static MorphSearchFieldAppearance resolve(
     BuildContext context,
-    MorphSearchFieldStyle? explicit,
-  ) => morphResolveStyle(
+    MorphSearchFieldAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.searchField,
@@ -123,7 +123,7 @@ class MorphSearchFieldStyle {
 /// a text field labelled [semanticLabel] (the placeholder by default).
 ///
 /// A disabled field ([enabled] false) is a flat fill without glass
-/// ([MorphSearchFieldStyle.disabledFillColor]); it neither lifts nor takes
+/// ([MorphSearchFieldAppearance.disabledFillColor]); it neither lifts nor takes
 /// the focus. The change shows in one frame.
 class MorphSearchField extends StatefulWidget {
   /// Creates a search field.
@@ -135,7 +135,7 @@ class MorphSearchField extends StatefulWidget {
     this.onSubmitted,
     this.enabled = true,
     this.autofocus = false,
-    this.style,
+    this.appearance,
     this.semanticLabel,
     this.clearLabel = 'Clear text',
     super.key,
@@ -163,7 +163,7 @@ class MorphSearchField extends StatefulWidget {
   final bool autofocus;
 
   /// The look; null resolves it from the theme.
-  final MorphSearchFieldStyle? style;
+  final MorphSearchFieldAppearance? appearance;
 
   /// The label screen readers announce; defaults to [placeholder].
   final String? semanticLabel;
@@ -275,7 +275,10 @@ class _MorphSearchFieldState extends State<MorphSearchField>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphSearchFieldStyle.resolve(context, widget.style);
+    final style = MorphSearchFieldAppearance.resolve(
+      context,
+      widget.appearance,
+    );
     final glass = MorphGlass.maybeOf(context);
     final brightness = morphBrightnessOf(context);
     final scaler = MediaQuery.textScalerOf(
@@ -595,8 +598,8 @@ class MorphSearchToolbar extends StatefulWidget {
     this.onChanged,
     this.onSubmitted,
     this.onActiveChanged,
-    this.style,
-    this.buttonStyle,
+    this.appearance,
+    this.buttonAppearance,
     this.closeLabel = 'Close',
     super.key,
   });
@@ -626,11 +629,11 @@ class MorphSearchToolbar extends StatefulWidget {
   final ValueChanged<bool>? onActiveChanged;
 
   /// The look of the field; null resolves it from the theme.
-  final MorphSearchFieldStyle? style;
+  final MorphSearchFieldAppearance? appearance;
 
   /// The look of the toolbar buttons and the close button; null resolves
   /// it from the theme.
-  final MorphGlassButtonStyle? buttonStyle;
+  final MorphGlassButtonAppearance? buttonAppearance;
 
   /// The label screen readers announce for the close button.
   final String closeLabel;
@@ -773,15 +776,15 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
         placeholder: widget.placeholder,
         onChanged: widget.onChanged,
         onSubmitted: widget.onSubmitted,
-        style: widget.style,
+        appearance: widget.appearance,
       );
       _leadItems = [
         for (final b in widget.leading)
-          _GlassItem(button: b, style: widget.buttonStyle),
+          _GlassItem(button: b, style: widget.buttonAppearance),
       ];
       _trailItems = [
         for (final b in widget.trailing)
-          _GlassItem(button: b, style: widget.buttonStyle),
+          _GlassItem(button: b, style: widget.buttonAppearance),
       ];
     }
     final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 1.25);
@@ -794,9 +797,9 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
         for (final b in widget.trailing) _buttonWidth(b, scaler, direction),
       ];
     }
-    final glyph = MorphSearchFieldStyle.resolve(
+    final glyph = MorphSearchFieldAppearance.resolve(
       context,
-      widget.style,
+      widget.appearance,
     ).glyphColor;
     if (_close == null || _closeColor != glyph) {
       _closeColor = glyph;
@@ -810,7 +813,7 @@ class _MorphSearchToolbarState extends State<MorphSearchToolbar>
           onPressed: _end,
           semanticLabel: widget.closeLabel,
         ),
-        style: widget.buttonStyle,
+        style: widget.buttonAppearance,
       );
     }
   }
@@ -1072,7 +1075,7 @@ class _GlassItem extends StatelessWidget {
   const _GlassItem({required this.button, required this.style});
 
   final MorphBarButton button;
-  final MorphGlassButtonStyle? style;
+  final MorphGlassButtonAppearance? style;
 
   @override
   Widget build(BuildContext context) {
@@ -1087,7 +1090,7 @@ class _GlassItem extends StatelessWidget {
         onPressed: button.enabled ? button.onPressed : null,
         padding: EdgeInsets.zero,
         minSize: const Size.square(MorphSearchTuning.height),
-        style: style,
+        appearance: style,
         child: label == null
             ? button.icon!
             : Padding(

@@ -61,7 +61,7 @@ class MorphAlertAction {
   /// Whether the button accepts taps.
   ///
   /// A disabled button keeps its fill and draws its title in
-  /// [MorphAlertStyle.disabledLabelColor]; a disabled preferred button
+  /// [MorphAlertAppearance.disabledLabelColor]; a disabled preferred button
   /// shows the plain fill instead of the accent and keeps its semibold
   /// title.
   final bool enabled;
@@ -93,9 +93,9 @@ class MorphAlertTextField {
 
 /// The look of an alert or an action sheet.
 @immutable
-class MorphAlertStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphAlertStyle({
+class MorphAlertAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphAlertAppearance({
     this.platterColor = const Color(0xA1FDFDFF),
     this.dimmingColor = const Color(0xFF000000),
     this.shadowColor = const Color(0x24000000),
@@ -154,10 +154,10 @@ class MorphAlertStyle {
   final Color disabledLabelColor;
 
   /// The light appearance, as UIKit renders it.
-  static const light = MorphAlertStyle();
+  static const light = MorphAlertAppearance();
 
   /// The dark appearance, as UIKit renders it.
-  static const dark = MorphAlertStyle(
+  static const dark = MorphAlertAppearance(
     platterColor: Color(0xCC282828),
     titleColor: Color(0xFFFFFFFF),
     messageColor: Color(0x99EBEBF5),
@@ -172,9 +172,9 @@ class MorphAlertStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphAlertStyle resolve(
+  static MorphAlertAppearance resolve(
     BuildContext context,
-    MorphAlertStyle? explicit,
+    MorphAlertAppearance? explicit,
   ) =>
       explicit ??
       MorphWidgetsTheme.maybeOf(context)?.alert ??
@@ -214,7 +214,7 @@ Future<MorphAlertAction?> showMorphAlert(
   String? message,
   List<MorphAlertAction> actions = const [],
   List<MorphAlertTextField> textFields = const [],
-  MorphAlertStyle? style,
+  MorphAlertAppearance? appearance,
   bool useRootNavigator = true,
 }) {
   final route = MorphAlertRoute(
@@ -222,7 +222,7 @@ Future<MorphAlertAction?> showMorphAlert(
     message: message,
     actions: actions,
     textFields: textFields,
-    style: style,
+    appearance: appearance,
   );
   final navigator = Navigator.of(context, rootNavigator: useRootNavigator);
   route._themes = MorphThemeCarrier(context, to: navigator.context);
@@ -249,7 +249,7 @@ Future<MorphAlertAction?> showMorphActionSheet(
   List<MorphAlertAction> actions = const [],
   BuildContext? anchor,
   Rect? anchorRect,
-  MorphAlertStyle? style,
+  MorphAlertAppearance? appearance,
   bool useRootNavigator = true,
 }) {
   Rect? source = anchorRect;
@@ -270,7 +270,7 @@ Future<MorphAlertAction?> showMorphActionSheet(
     title: title,
     message: message,
     actions: actions,
-    style: style,
+    appearance: appearance,
     actionSheet: true,
     source: source,
   );
@@ -292,7 +292,7 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
     this.message,
     this.actions = const [],
     this.textFields = const [],
-    this.style,
+    this.appearance,
     this.actionSheet = false,
     this.source,
     super.settings,
@@ -311,7 +311,7 @@ class MorphAlertRoute extends PopupRoute<MorphAlertAction>
   final List<MorphAlertTextField> textFields;
 
   /// The look; null resolves it from the theme.
-  final MorphAlertStyle? style;
+  final MorphAlertAppearance? appearance;
 
   /// Whether this is an action sheet: a tap outside cancels it.
   final bool actionSheet;
@@ -411,7 +411,7 @@ List<int> _ordered(
   return row ? [...cancel, ...rest] : [...rest, ...cancel];
 }
 
-TextStyle _buttonText(MorphAlertAction action, MorphAlertStyle style) =>
+TextStyle _buttonText(MorphAlertAction action, MorphAlertAppearance style) =>
     MorphTypography.resolve(
       MorphTypography.alertAction.copyWith(
         height: MorphAlertTuning.textHeight,
@@ -630,7 +630,7 @@ class _AlertViewState extends State<_AlertView>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphAlertStyle.resolve(context, _route.style);
+    final style = MorphAlertAppearance.resolve(context, _route.appearance);
     final popover = _route.isPopover;
     final rowCandidate =
         !popover && _route.actions.length == 2 && !_route.actionSheet;
@@ -733,9 +733,9 @@ class _AlertViewState extends State<_AlertView>
     return transform;
   }
 
-  MorphAlertStyle? _style;
+  MorphAlertAppearance? _style;
 
-  double _dimming(MorphAlertStyle style) {
+  double _dimming(MorphAlertAppearance style) {
     final motion = _alert!;
     return style.dimmingColor.a *
         MorphAlertTuning.dimmingOpacity *
@@ -757,12 +757,12 @@ class _AlertViewState extends State<_AlertView>
     return (_alert?.opacity(t) ?? _popover?.opacity(t) ?? 1).clamp(0.0, 1.0);
   }
 
-  (double, MorphAlertStyle, TextScaler, TextDirection, bool)? _rowKey;
+  (double, MorphAlertAppearance, TextScaler, TextDirection, bool)? _rowKey;
   bool _rowFits = false;
 
   bool _fitsInRow(
     double width,
-    MorphAlertStyle style,
+    MorphAlertAppearance style,
     TextScaler scaler,
     TextDirection direction,
   ) {
@@ -780,7 +780,7 @@ class _AlertViewState extends State<_AlertView>
 
   bool _measureRow(
     double width,
-    MorphAlertStyle style,
+    MorphAlertAppearance style,
     TextScaler scaler,
     TextDirection direction,
   ) {
@@ -807,7 +807,7 @@ class _AlertViewState extends State<_AlertView>
   Widget _alertLayout(
     BuildContext context,
     Widget card,
-    MorphAlertStyle style,
+    MorphAlertAppearance style,
     EdgeInsets padding,
   ) {
     final motion = _alert!;
@@ -852,7 +852,7 @@ class _AlertViewState extends State<_AlertView>
   Widget _popoverLayout(
     BuildContext context,
     Widget card,
-    MorphAlertStyle style,
+    MorphAlertAppearance style,
     EdgeInsets padding,
     TextDirection direction,
   ) {
@@ -1037,7 +1037,7 @@ class _AlertCard extends StatelessWidget {
   final bool row;
   final double width;
   final int? highlighted;
-  final MorphAlertStyle style;
+  final MorphAlertAppearance style;
   final double radius;
   final ValueChanged<MorphAlertAction> onChoose;
   final VoidCallback onSubmit;
@@ -1247,7 +1247,7 @@ class _PlatterPainter extends CustomPainter {
     required Listenable frames,
   }) : super(repaint: frames);
 
-  final MorphAlertStyle style;
+  final MorphAlertAppearance style;
   final RRect shape;
   final double Function() opacity;
 
@@ -1288,7 +1288,7 @@ class _AlertButton extends StatefulWidget {
 
   final MorphAlertAction action;
   final bool highlighted;
-  final MorphAlertStyle style;
+  final MorphAlertAppearance style;
   final ValueChanged<MorphAlertAction> onChoose;
 
   @override
@@ -1358,7 +1358,7 @@ class _AlertField extends StatefulWidget {
 
   final MorphAlertTextField field;
   final TextEditingController controller;
-  final MorphAlertStyle style;
+  final MorphAlertAppearance style;
   final bool autofocus;
   final VoidCallback onSubmit;
 

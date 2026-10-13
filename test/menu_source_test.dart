@@ -354,7 +354,7 @@ void main() {
     await tester.tap(find.byType(MorphGlassButton), warnIfMissed: false);
     await _settle(tester);
     expect(find.text('Copy'), findsNothing, reason: 'a disabled button');
-    final style = MorphGlassButtonStyle.resolve(
+    final style = MorphGlassButtonAppearance.resolve(
       tester.element(find.byType(_Counted)),
       null,
     );

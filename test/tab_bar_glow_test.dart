@@ -237,7 +237,7 @@ void main() {
         .where((TextSpan s) => s.text == 'Two');
     expect(
       copies.map((TextSpan s) => s.style?.color),
-      contains(MorphTabBarStyle.light.selectedColor),
+      contains(MorphTabBarAppearance.light.selectedColor),
     );
   });
 }

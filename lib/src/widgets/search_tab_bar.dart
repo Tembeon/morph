@@ -69,8 +69,8 @@ class MorphSearchTabBar extends StatefulWidget {
     this.onSubmitted,
     this.searchLabel = 'Search',
     this.closeLabel = 'Close',
-    this.style,
-    this.searchStyle,
+    this.appearance,
+    this.searchAppearance,
     super.key,
   });
 
@@ -113,10 +113,10 @@ class MorphSearchTabBar extends StatefulWidget {
   final String closeLabel;
 
   /// The look of the tab bar; null resolves it from the theme.
-  final MorphTabBarStyle? style;
+  final MorphTabBarAppearance? appearance;
 
   /// The look of the search field; null resolves it from the theme.
-  final MorphSearchFieldStyle? searchStyle;
+  final MorphSearchFieldAppearance? searchAppearance;
 
   @override
   State<MorphSearchTabBar> createState() => _MorphSearchTabBarState();
@@ -321,10 +321,10 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
     final selected = widget.items.isEmpty
         ? -1
         : widget.selected.clamp(0, widget.items.length - 1);
-    final tabStyle = MorphTabBarStyle.resolve(context, widget.style);
-    final searchStyle = MorphSearchFieldStyle.resolve(
+    final tabStyle = MorphTabBarAppearance.resolve(context, widget.appearance);
+    final searchStyle = MorphSearchFieldAppearance.resolve(
       context,
-      widget.searchStyle,
+      widget.searchAppearance,
     );
     final glass = MorphGlass.maybeOf(context);
     final brightness = morphBrightnessOf(context);
@@ -349,7 +349,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
         items: widget.items,
         selected: selected,
         onChanged: widget.onChanged,
-        style: widget.style,
+        appearance: widget.appearance,
       );
       _field = MorphSearchField(
         controller: _controller,
@@ -357,7 +357,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
         placeholder: widget.placeholder,
         onChanged: widget.onQueryChanged,
         onSubmitted: widget.onSubmitted,
-        style: widget.searchStyle,
+        appearance: widget.searchAppearance,
       );
     }
     final bar = _tabBar;
@@ -583,7 +583,7 @@ class _MorphingTabs extends StatelessWidget {
   final Rect restRect;
   final Rect Function() rect;
   final bool labelShown;
-  final MorphTabBarStyle style;
+  final MorphTabBarAppearance style;
   final MorphGlassPainter? glass;
   final Brightness brightness;
   final bool rtl;
@@ -941,8 +941,8 @@ class _SearchCircle extends StatelessWidget {
   final bool placeholderShown;
   final String placeholder;
   final String label;
-  final MorphSearchFieldStyle style;
-  final MorphTabBarStyle tabStyle;
+  final MorphSearchFieldAppearance style;
+  final MorphTabBarAppearance tabStyle;
   final MorphGlassPainter? glass;
   final Brightness brightness;
   final bool rtl;

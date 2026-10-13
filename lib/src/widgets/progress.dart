@@ -6,9 +6,9 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphProgressView].
 @immutable
-class MorphProgressStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphProgressStyle({
+class MorphProgressViewAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphProgressViewAppearance({
     this.trackColor = const Color(0x33787880),
     this.progressColor = const Color(0xFF0088FF),
   });
@@ -20,23 +20,23 @@ class MorphProgressStyle {
   final Color progressColor;
 
   /// The light appearance.
-  static const light = MorphProgressStyle();
+  static const light = MorphProgressViewAppearance();
 
   /// The dark appearance, from the iOS dark system colors.
-  static const dark = MorphProgressStyle(
+  static const dark = MorphProgressViewAppearance(
     trackColor: Color(0x5C787880),
     progressColor: Color(0xFF0091FF),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphProgressStyle resolve(
+  static MorphProgressViewAppearance resolve(
     BuildContext context,
-    MorphProgressStyle? explicit,
-  ) => morphResolveStyle(
+    MorphProgressViewAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.progress,
+    themed: (theme) => theme.progressView,
     light: light,
     dark: dark,
   );
@@ -179,10 +179,10 @@ class MorphProgressView extends StatefulWidget {
   const MorphProgressView({
     required this.value,
     this.animated = true,
-    this.viewStyle = MorphProgressViewStyle.standard,
+    this.style = MorphProgressViewStyle.standard,
     this.progressColor,
     this.trackColor,
-    this.style,
+    this.appearance,
     this.semanticLabel,
     super.key,
   });
@@ -194,16 +194,16 @@ class MorphProgressView extends StatefulWidget {
   final bool animated;
 
   /// The shape of the bar.
-  final MorphProgressViewStyle viewStyle;
+  final MorphProgressViewStyle style;
 
-  /// The fill of the filled part, overriding [style].
+  /// The fill of the filled part, overriding [appearance].
   final Color? progressColor;
 
-  /// The fill of the track, overriding [style].
+  /// The fill of the track, overriding [appearance].
   final Color? trackColor;
 
   /// The look of the bar; null resolves it from the theme.
-  final MorphProgressStyle? style;
+  final MorphProgressViewAppearance? appearance;
 
   /// The label screen readers announce for the bar.
   final String? semanticLabel;
@@ -244,8 +244,11 @@ class _MorphProgressViewState extends State<MorphProgressView>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphProgressStyle.resolve(context, widget.style);
-    final height = switch (widget.viewStyle) {
+    final style = MorphProgressViewAppearance.resolve(
+      context,
+      widget.appearance,
+    );
+    final height = switch (widget.style) {
       MorphProgressViewStyle.standard => MorphProgressView.standardHeight,
       MorphProgressViewStyle.bar => MorphProgressView.barHeight,
     };
@@ -262,7 +265,7 @@ class _MorphProgressViewState extends State<MorphProgressView>
           child: CustomPaint(
             painter: _ProgressPainter(
               state: this,
-              track: widget.viewStyle == MorphProgressViewStyle.standard
+              track: widget.style == MorphProgressViewStyle.standard
                   ? widget.trackColor ?? style.trackColor
                   : null,
               fill: widget.progressColor ?? style.progressColor,

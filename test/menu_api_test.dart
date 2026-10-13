@@ -1146,8 +1146,8 @@ void main() {
 
     test('the card tint lifts the list under it as on the device', () {
       for (final (name, style) in [
-        ('dark', MorphMenuStyle.dark),
-        ('light', MorphMenuStyle.light),
+        ('dark', MorphMenuAppearance.dark),
+        ('light', MorphMenuAppearance.light),
       ]) {
         final measured = card[name]! as Map<String, Object?>;
         final menu = (measured['menu']! as num).toDouble();

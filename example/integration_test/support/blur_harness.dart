@@ -143,7 +143,7 @@ final List<BlurCase> blurCases = [
         edge: edge,
         style: style,
         opacity: opacity,
-        theme: MorphScrollEdgeEffectThemeData.dark,
+        appearance: MorphScrollEdgeEffectAppearance.dark,
       ),
     ),
 ];

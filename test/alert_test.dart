@@ -922,7 +922,7 @@ void main() {
       );
       expect(tester.takeException(), isNull);
       final title = tester.widget<Text>(find.textContaining('A title'));
-      expect(title.style?.color, MorphAlertStyle.dark.titleColor);
+      expect(title.style?.color, MorphAlertAppearance.dark.titleColor);
     });
 
     testWidgets('a text field takes input', (tester) async {

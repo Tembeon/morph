@@ -12,9 +12,9 @@ import 'package:morph/src/widgets/small_lens.dart';
 
 /// The look of a [MorphSwitch].
 @immutable
-class MorphSwitchStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphSwitchStyle({
+class MorphSwitchAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphSwitchAppearance({
     this.activeColor = const Color(0xFF34C759),
     this.trackColor = const Color(0x29787880),
     this.knobColor = const Color(0xFFFFFFFF),
@@ -36,23 +36,23 @@ class MorphSwitchStyle {
   final double disabledOpacity;
 
   /// The light appearance.
-  static const light = MorphSwitchStyle();
+  static const light = MorphSwitchAppearance();
 
   /// The dark appearance, from the iOS dark system colors.
-  static const dark = MorphSwitchStyle(
+  static const dark = MorphSwitchAppearance(
     activeColor: Color(0xFF30D158),
     trackColor: Color(0x52787880),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphSwitchStyle resolve(
+  static MorphSwitchAppearance resolve(
     BuildContext context,
-    MorphSwitchStyle? explicit,
-  ) => morphResolveStyle(
+    MorphSwitchAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.switchStyle,
+    themed: (theme) => theme.switchAppearance,
     light: light,
     dark: dark,
   );
@@ -75,7 +75,7 @@ class MorphSwitch extends StatefulWidget {
     required this.onChanged,
     this.activeColor,
     this.trackColor,
-    this.style,
+    this.appearance,
     this.semanticLabel,
     super.key,
   });
@@ -87,14 +87,14 @@ class MorphSwitch extends StatefulWidget {
   /// disables the switch.
   final ValueChanged<bool>? onChanged;
 
-  /// The track color when on, overriding [style].
+  /// The track color when on, overriding [appearance].
   final Color? activeColor;
 
-  /// The track color when off, overriding [style].
+  /// The track color when off, overriding [appearance].
   final Color? trackColor;
 
   /// The look of the switch; null resolves it from the theme.
-  final MorphSwitchStyle? style;
+  final MorphSwitchAppearance? appearance;
 
   /// The label screen readers announce for the switch.
   final String? semanticLabel;
@@ -108,7 +108,7 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
   static const double _inset = MorphSwitchMotion.inset;
 
   late final MorphSwitchMotion _motion = _create();
-  MorphSwitchStyle _style = MorphSwitchStyle.light;
+  MorphSwitchAppearance _style = MorphSwitchAppearance.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
 
@@ -238,12 +238,12 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
       oldWidget.activeColor == widget.activeColor &&
       oldWidget.trackColor == widget.trackColor &&
-      oldWidget.style == widget.style &&
+      oldWidget.appearance == widget.appearance &&
       oldWidget.semanticLabel == widget.semanticLabel;
 
   @override
   Widget buildControl(BuildContext context) {
-    _style = MorphSwitchStyle.resolve(context, widget.style);
+    _style = MorphSwitchAppearance.resolve(context, widget.appearance);
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     _motion.lens.reducedMotion = morphReducedMotionOf(context);

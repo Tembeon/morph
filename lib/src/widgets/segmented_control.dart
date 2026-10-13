@@ -30,7 +30,7 @@ class MorphSegmentedControl extends StatefulWidget {
     required this.selected,
     required this.onChanged,
     this.sizeByContent = false,
-    this.style,
+    this.appearance,
     super.key,
   });
 
@@ -49,7 +49,7 @@ class MorphSegmentedControl extends StatefulWidget {
 
   /// The colors and metrics of the control; null resolves them from the
   /// theme.
-  final MorphSegmentedStyle? style;
+  final MorphSegmentedControlAppearance? appearance;
 
   /// The largest text scale the labels follow.
   static const double maxTextScale = 1.4;
@@ -73,9 +73,9 @@ class MorphSegmentedControl extends StatefulWidget {
 
 /// The look of a [MorphSegmentedControl].
 @immutable
-class MorphSegmentedStyle {
-  /// Creates a style; the defaults are the iOS 27 light appearance.
-  const MorphSegmentedStyle({
+class MorphSegmentedControlAppearance {
+  /// Creates an appearance; the defaults are the iOS 27 light appearance.
+  const MorphSegmentedControlAppearance({
     this.height = 32,
     this.inset = 2,
     this.trackColor = const Color(0x1F767680),
@@ -136,10 +136,10 @@ class MorphSegmentedStyle {
   final double disabledOpacity;
 
   /// The light appearance.
-  static const light = MorphSegmentedStyle();
+  static const light = MorphSegmentedControlAppearance();
 
   /// The dark appearance, from the iOS dark system colors.
-  static const dark = MorphSegmentedStyle(
+  static const dark = MorphSegmentedControlAppearance(
     trackColor: Color(0x3D767680),
     lensColor: Color(0xFF636366),
     liftedLensColor: Color(0x33FFFFFF),
@@ -159,13 +159,13 @@ class MorphSegmentedStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphSegmentedStyle resolve(
+  static MorphSegmentedControlAppearance resolve(
     BuildContext context,
-    MorphSegmentedStyle? explicit,
-  ) => morphResolveStyle(
+    MorphSegmentedControlAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
-    themed: (theme) => theme.segmented,
+    themed: (theme) => theme.segmentedControl,
     light: light,
     dark: dark,
   );
@@ -176,7 +176,8 @@ class _MorphSegmentedControlState
     with MorphLensDriver<MorphSegmentedControl> {
   MorphLensMotion? _motion;
   List<MorphLensSlot> _slots = const [];
-  MorphSegmentedStyle _style = MorphSegmentedStyle.light;
+  MorphSegmentedControlAppearance _style =
+      MorphSegmentedControlAppearance.light;
   Brightness _brightness = Brightness.light;
   TextScaler _scaler = TextScaler.noScaling;
   bool _rtl = false;
@@ -346,14 +347,17 @@ class _MorphSegmentedControlState
       oldWidget.selected == widget.selected &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
       oldWidget.sizeByContent == widget.sizeByContent &&
-      oldWidget.style == widget.style;
+      oldWidget.appearance == widget.appearance;
 
   @override
   Object? get buildInputs => _motion?.selected;
 
   @override
   Widget buildControl(BuildContext context) {
-    _style = MorphSegmentedStyle.resolve(context, widget.style);
+    _style = MorphSegmentedControlAppearance.resolve(
+      context,
+      widget.appearance,
+    );
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     _scaler = MediaQuery.textScalerOf(

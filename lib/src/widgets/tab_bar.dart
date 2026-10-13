@@ -78,7 +78,7 @@ class MorphTabBar extends StatefulWidget {
     required this.items,
     required this.selected,
     required this.onChanged,
-    this.style,
+    this.appearance,
     super.key,
   });
 
@@ -94,7 +94,7 @@ class MorphTabBar extends StatefulWidget {
   final ValueChanged<int>? onChanged;
 
   /// The colors of the bar; null resolves them from the theme.
-  final MorphTabBarStyle? style;
+  final MorphTabBarAppearance? appearance;
 
   /// The largest text scale the labels follow.
   static const double maxTextScale = 1.25;
@@ -105,14 +105,14 @@ class MorphTabBar extends StatefulWidget {
 
 /// The look of a [MorphTabBar].
 @immutable
-class MorphTabBarStyle {
-  /// Creates a style; the defaults are the iOS 27 light appearance.
+class MorphTabBarAppearance {
+  /// Creates an appearance; the defaults are the iOS 27 light appearance.
   ///
   /// The platter and the tab colors are what UIKit's color matrices make
   /// of the measured bar: the platter darkens the bar under the selection
   /// and the tab glyphs are vibrant, so their exact color follows the
   /// backdrop; these are their values over a bar on a plain page.
-  const MorphTabBarStyle({
+  const MorphTabBarAppearance({
     this.barColor = const Color(0xB8FFFFFF),
     this.shadowColor = const Color(0x24000000),
     this.platterColor = const Color(0x13000000),
@@ -148,10 +148,10 @@ class MorphTabBarStyle {
   final double blurSigma;
 
   /// The light appearance.
-  static const light = MorphTabBarStyle();
+  static const light = MorphTabBarAppearance();
 
   /// The dark appearance, from the iOS dark system colors.
-  static const dark = MorphTabBarStyle(
+  static const dark = MorphTabBarAppearance(
     barColor: Color(0xB81C1C1E),
     shadowColor: Color(0x66000000),
     platterColor: Color(0xAF000000),
@@ -163,10 +163,10 @@ class MorphTabBarStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphTabBarStyle resolve(
+  static MorphTabBarAppearance resolve(
     BuildContext context,
-    MorphTabBarStyle? explicit,
-  ) => morphResolveStyle(
+    MorphTabBarAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.tabBar,
@@ -237,7 +237,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
   _Geometry _layout = MorphTabBarMetrics.geometry(0, 0);
   MorphLensMotion? _motion;
   final MorphTouchGlowMotion _glow = _createGlow();
-  MorphTabBarStyle _style = MorphTabBarStyle.light;
+  MorphTabBarAppearance _style = MorphTabBarAppearance.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
 
@@ -432,7 +432,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
       _sameItems(oldWidget.items, widget.items) &&
       oldWidget.selected == widget.selected &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
-      oldWidget.style == widget.style;
+      oldWidget.appearance == widget.appearance;
 
   static bool _sameItems(List<MorphTabItem> a, List<MorphTabItem> b) {
     if (identical(a, b)) return true;
@@ -453,7 +453,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
 
   @override
   Widget buildControl(BuildContext context) {
-    _style = MorphTabBarStyle.resolve(context, widget.style);
+    _style = MorphTabBarAppearance.resolve(context, widget.appearance);
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     final scaler = MediaQuery.textScalerOf(
@@ -594,7 +594,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
 class _Glass extends StatelessWidget {
   const _Glass({required this.style});
 
-  final MorphTabBarStyle style;
+  final MorphTabBarAppearance style;
 
   @override
   Widget build(BuildContext context) {

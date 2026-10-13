@@ -25,25 +25,25 @@ import 'package:morph/src/widgets/tab_bar.dart';
 /// Compatible with both material_ui and Flutter's Material ThemeData;
 /// the nearest theme of either family owns the control's appearance.
 ///
-/// Each control resolves its look in this order: its own `style`
+/// Each control resolves its look in this order: its own `appearance`
 /// argument, then the matching field here, then its built-in table for
-/// the ambient brightness (`light` or `dark` on each style class). A
+/// the ambient brightness (`light` or `dark` on each appearance class). A
 /// [ThemeData] already stands for one brightness, so this extension holds
-/// one style per control; put a dark one in the dark theme.
+/// one appearance per control; put a dark one in the dark theme.
 @immutable
 class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
     implements sdk.ThemeExtension<MorphWidgetsTheme> {
   /// Creates the extension; null fields fall through to the built-ins.
   const MorphWidgetsTheme({
-    this.segmented,
+    this.segmentedControl,
     this.tabBar,
-    this.switchStyle,
+    this.switchAppearance,
     this.slider,
     this.stepper,
     this.glassButton,
     this.menu,
     this.sheet,
-    this.progress,
+    this.progressView,
     this.activityIndicator,
     this.pageControl,
     this.bar,
@@ -54,95 +54,95 @@ class MorphWidgetsTheme extends ThemeExtension<MorphWidgetsTheme>
     this.list,
   });
 
-  /// The look of every [MorphSegmentedControl] without its own style.
-  final MorphSegmentedStyle? segmented;
+  /// The look of every [MorphSegmentedControl] without its own appearance.
+  final MorphSegmentedControlAppearance? segmentedControl;
 
-  /// The look of every [MorphTabBar] without its own style.
-  final MorphTabBarStyle? tabBar;
+  /// The look of every [MorphTabBar] without its own appearance.
+  final MorphTabBarAppearance? tabBar;
 
-  /// The look of every [MorphSwitch] without its own style.
-  final MorphSwitchStyle? switchStyle;
+  /// The look of every [MorphSwitch] without its own appearance.
+  final MorphSwitchAppearance? switchAppearance;
 
-  /// The look of every [MorphSlider] without its own style.
-  final MorphSliderStyle? slider;
+  /// The look of every [MorphSlider] without its own appearance.
+  final MorphSliderAppearance? slider;
 
-  /// The look of every [MorphStepper] without its own style.
-  final MorphStepperStyle? stepper;
+  /// The look of every [MorphStepper] without its own appearance.
+  final MorphStepperAppearance? stepper;
 
-  /// The look of every [MorphGlassButton] without its own style.
-  final MorphGlassButtonStyle? glassButton;
+  /// The look of every [MorphGlassButton] without its own appearance.
+  final MorphGlassButtonAppearance? glassButton;
 
-  /// The look of every [MorphMenuButton] without its own style.
-  final MorphMenuStyle? menu;
+  /// The look of every [MorphMenuButton] without its own appearance.
+  final MorphMenuAppearance? menu;
 
   /// The look of every sheet presented with [presentMorphSheet] without
-  /// its own style.
-  final MorphSheetStyle? sheet;
+  /// its own appearance.
+  final MorphSheetAppearance? sheet;
 
-  /// The look of every [MorphProgressView] without its own style.
-  final MorphProgressStyle? progress;
+  /// The look of every [MorphProgressView] without its own appearance.
+  final MorphProgressViewAppearance? progressView;
 
-  /// The look of every [MorphActivityIndicator] without its own style.
-  final MorphActivityIndicatorStyle? activityIndicator;
+  /// The look of every [MorphActivityIndicator] without its own appearance.
+  final MorphActivityIndicatorAppearance? activityIndicator;
 
-  /// The look of every [MorphPageControl] without its own style.
-  final MorphPageControlStyle? pageControl;
+  /// The look of every [MorphPageControl] without its own appearance.
+  final MorphPageControlAppearance? pageControl;
 
-  /// The look of every navigation bar and toolbar without its own style.
-  final MorphBarStyle? bar;
+  /// The look of every navigation bar and toolbar without its own appearance.
+  final MorphBarAppearance? bar;
 
   /// The look of every [MorphScrollEdgeEffect] without its own theme.
-  final MorphScrollEdgeEffectThemeData? scrollEdgeEffect;
+  final MorphScrollEdgeEffectAppearance? scrollEdgeEffect;
 
-  /// The look of every alert and action sheet without its own style.
-  final MorphAlertStyle? alert;
+  /// The look of every alert and action sheet without its own appearance.
+  final MorphAlertAppearance? alert;
 
   /// The look of every [MorphSearchField] and [MorphSearchToolbar] without
-  /// its own style.
-  final MorphSearchFieldStyle? searchField;
+  /// its own appearance.
+  final MorphSearchFieldAppearance? searchField;
 
-  /// The look of every [MorphDatePicker] without its own style.
-  final MorphDatePickerStyle? datePicker;
+  /// The look of every [MorphDatePicker] without its own appearance.
+  final MorphDatePickerAppearance? datePicker;
 
   /// The look of every [MorphListSection] and [MorphListRow] without its
-  /// own style.
-  final MorphListStyle? list;
+  /// own appearance.
+  final MorphListAppearance? list;
 
   /// The extension from the ambient [Theme], or null when there is no
   /// [Theme] above [context] or it has no such extension.
   static MorphWidgetsTheme? maybeOf(BuildContext context) =>
       _extensionOf(context, _themeHost(context));
 
-  /// Copies this extension with the supplied non-null control styles.
+  /// Copies this extension with the supplied non-null control appearances.
   @override
   MorphWidgetsTheme copyWith({
-    MorphSegmentedStyle? segmented,
-    MorphTabBarStyle? tabBar,
-    MorphSwitchStyle? switchStyle,
-    MorphSliderStyle? slider,
-    MorphStepperStyle? stepper,
-    MorphGlassButtonStyle? glassButton,
-    MorphMenuStyle? menu,
-    MorphSheetStyle? sheet,
-    MorphProgressStyle? progress,
-    MorphActivityIndicatorStyle? activityIndicator,
-    MorphPageControlStyle? pageControl,
-    MorphBarStyle? bar,
-    MorphScrollEdgeEffectThemeData? scrollEdgeEffect,
-    MorphAlertStyle? alert,
-    MorphSearchFieldStyle? searchField,
-    MorphDatePickerStyle? datePicker,
-    MorphListStyle? list,
+    MorphSegmentedControlAppearance? segmentedControl,
+    MorphTabBarAppearance? tabBar,
+    MorphSwitchAppearance? switchAppearance,
+    MorphSliderAppearance? slider,
+    MorphStepperAppearance? stepper,
+    MorphGlassButtonAppearance? glassButton,
+    MorphMenuAppearance? menu,
+    MorphSheetAppearance? sheet,
+    MorphProgressViewAppearance? progressView,
+    MorphActivityIndicatorAppearance? activityIndicator,
+    MorphPageControlAppearance? pageControl,
+    MorphBarAppearance? bar,
+    MorphScrollEdgeEffectAppearance? scrollEdgeEffect,
+    MorphAlertAppearance? alert,
+    MorphSearchFieldAppearance? searchField,
+    MorphDatePickerAppearance? datePicker,
+    MorphListAppearance? list,
   }) => MorphWidgetsTheme(
-    segmented: segmented ?? this.segmented,
+    segmentedControl: segmentedControl ?? this.segmentedControl,
     tabBar: tabBar ?? this.tabBar,
-    switchStyle: switchStyle ?? this.switchStyle,
+    switchAppearance: switchAppearance ?? this.switchAppearance,
     slider: slider ?? this.slider,
     stepper: stepper ?? this.stepper,
     glassButton: glassButton ?? this.glassButton,
     menu: menu ?? this.menu,
     sheet: sheet ?? this.sheet,
-    progress: progress ?? this.progress,
+    progressView: progressView ?? this.progressView,
     activityIndicator: activityIndicator ?? this.activityIndicator,
     pageControl: pageControl ?? this.pageControl,
     bar: bar ?? this.bar,
@@ -199,10 +199,10 @@ Widget? _themeHost(BuildContext context) {
   return host;
 }
 
-/// Resolves a control style from an explicit value, the nearest supported
+/// Resolves a control appearance from an explicit value, the nearest supported
 /// Material theme extension, then the measured brightness table.
 @internal
-T morphResolveStyle<T>(
+T morphResolveAppearance<T>(
   BuildContext context,
   T? explicit, {
   required T? Function(MorphWidgetsTheme) themed,

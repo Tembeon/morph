@@ -54,7 +54,7 @@ class MorphMenuController implements MorphMenuHost {
   final VoidCallback wake;
 
   /// Resolves the current menu appearance.
-  final MorphMenuStyle Function() style;
+  final MorphMenuAppearance Function() style;
 
   /// Resolves the fill and flat rim of the source's own surface, or null
   /// for a source drawn on the menu's glass.
@@ -82,7 +82,7 @@ class MorphMenuController implements MorphMenuHost {
   bool _routing = false;
   bool _disposed = false;
   bool _repaintDisposed = false;
-  MorphMenuStyle? _lastStyle;
+  MorphMenuAppearance? _lastStyle;
   ({Color color, Color? rim})? _lastSurface;
   MorphGlassPainter? _lastGlass;
   Widget? _lastGlyph;
@@ -101,8 +101,9 @@ class MorphMenuController implements MorphMenuHost {
   bool get _sourceGone => _disposed || !sourceActive;
 
   @override
-  MorphMenuStyle get menuStyle =>
-      _sourceGone ? _lastStyle ?? MorphMenuStyle.light : _lastStyle = style();
+  MorphMenuAppearance get menuStyle => _sourceGone
+      ? _lastStyle ?? MorphMenuAppearance.light
+      : _lastStyle = style();
 
   @override
   ({Color color, Color? rim})? get menuSourceSurface =>

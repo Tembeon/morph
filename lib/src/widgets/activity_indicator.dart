@@ -6,27 +6,31 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphActivityIndicator].
 @immutable
-class MorphActivityIndicatorStyle {
-  /// Creates a style; the default is the iOS light appearance.
-  const MorphActivityIndicatorStyle({this.color = const Color(0x993C3C43)});
+class MorphActivityIndicatorAppearance {
+  /// Creates an appearance; the default is the iOS light appearance.
+  const MorphActivityIndicatorAppearance({
+    this.color = const Color(0x993C3C43),
+  });
 
   /// The color of the spokes at full strength: secondaryLabel.
   final Color color;
 
   /// The light appearance.
-  static const light = MorphActivityIndicatorStyle();
+  static const light = MorphActivityIndicatorAppearance();
 
   /// The dark appearance: the dark secondaryLabel. Measured on an iPhone
   /// 16 Pro (iOS 27.0.1): the head spoke renders 120, 120, 125 on black,
   /// the same coverage of 0xEBEBF5 as the light head's of 0x3C3C43.
-  static const dark = MorphActivityIndicatorStyle(color: Color(0x99EBEBF5));
+  static const dark = MorphActivityIndicatorAppearance(
+    color: Color(0x99EBEBF5),
+  );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphActivityIndicatorStyle resolve(
+  static MorphActivityIndicatorAppearance resolve(
     BuildContext context,
-    MorphActivityIndicatorStyle? explicit,
-  ) => morphResolveStyle(
+    MorphActivityIndicatorAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.activityIndicator,
@@ -110,7 +114,7 @@ class MorphActivityIndicator extends StatefulWidget {
     this.hidesWhenStopped = true,
     this.size = MorphActivityIndicatorSize.medium,
     this.color,
-    this.style,
+    this.appearance,
     this.semanticLabel = 'In progress',
     super.key,
   });
@@ -124,11 +128,11 @@ class MorphActivityIndicator extends StatefulWidget {
   /// The spinner's size.
   final MorphActivityIndicatorSize size;
 
-  /// The color of the spokes, overriding [style].
+  /// The color of the spokes, overriding [appearance].
   final Color? color;
 
   /// The look of the spinner; null resolves it from the theme.
-  final MorphActivityIndicatorStyle? style;
+  final MorphActivityIndicatorAppearance? appearance;
 
   /// The label screen readers announce while it turns.
   final String semanticLabel;
@@ -207,7 +211,10 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphActivityIndicatorStyle.resolve(context, widget.style);
+    final style = MorphActivityIndicatorAppearance.resolve(
+      context,
+      widget.appearance,
+    );
     final m = MorphActivityIndicator.metrics(widget.size);
     final hidden = !widget.animating && widget.hidesWhenStopped;
     return Semantics(

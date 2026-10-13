@@ -764,7 +764,10 @@ void main() {
       final text = tester.getRect(find.text('Search'));
       expect(text.right, closeTo(field.right - 40.67, 1));
       final style = tester.widget<Text>(find.text('Search')).style!;
-      expect(style.color, MorphSearchFieldStyle.dark.restingPlaceholderColor);
+      expect(
+        style.color,
+        MorphSearchFieldAppearance.dark.restingPlaceholderColor,
+      );
     });
 
     testWidgets('screen readers see a labelled text field', (tester) async {

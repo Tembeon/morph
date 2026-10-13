@@ -86,7 +86,7 @@ void main() {
         if (widget is! DecoratedBox) return false;
         final decoration = widget.decoration;
         return decoration is BoxDecoration &&
-            decoration.color == MorphMenuStyle.light.highlightColor;
+            decoration.color == MorphMenuAppearance.light.highlightColor;
       }),
     );
     await tester.tap(find.byType(MorphMenuButton));

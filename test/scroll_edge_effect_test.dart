@@ -52,7 +52,7 @@ void main() {
                 extent: 116,
                 style: style,
                 edge: edge,
-                theme: MorphScrollEdgeEffectThemeData.light,
+                appearance: MorphScrollEdgeEffectAppearance.light,
                 opacity: () => opacity.value,
                 repaint: opacity,
               ),
@@ -96,7 +96,7 @@ void main() {
     test('hard: blur, saturation and brightness, uniform fade, hairline', () {
       final states = _states('hard-light');
       final pocket = states.lastWhere((s) => _filter(s, 'colorMatrix') != null);
-      final look = MorphScrollEdgeEffectThemeData.light;
+      final look = MorphScrollEdgeEffectAppearance.light;
       expect(
         _filter(pocket, 'variableBlur')!['inputRadius'],
         look.hardBlurRadius,
@@ -129,7 +129,7 @@ void main() {
       final pocket = states.lastWhere(
         (s) => _filter(s, 'variableBlur') != null,
       );
-      final look = MorphScrollEdgeEffectThemeData.light;
+      final look = MorphScrollEdgeEffectAppearance.light;
       expect(
         _filter(pocket, 'variableBlur')!['inputRadius'],
         look.softBlurRadius,
@@ -149,7 +149,7 @@ void main() {
             (s['path']! as String).endsWith('L0/L0') &&
             (s['h']! as num) > 100,
       );
-      expect(replay['a'], MorphScrollEdgeEffectThemeData.dark.fadeOpacity);
+      expect(replay['a'], MorphScrollEdgeEffectAppearance.dark.fadeOpacity);
     });
 
     testWidgets('the band ends at the bar, or 40 past it when soft', (

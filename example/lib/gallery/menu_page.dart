@@ -243,7 +243,7 @@ class _MenuPageState extends State<MenuPage> {
         SliverFillRemaining(
           hasScrollBody: false,
           child: MorphGlassContainer(
-            solidBackdrop: MorphListStyle.resolve(
+            solidBackdrop: MorphListAppearance.resolve(
               context,
               null,
             ).backgroundColor,

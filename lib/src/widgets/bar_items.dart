@@ -228,7 +228,7 @@ class MorphBarButtonGroup {
   /// one).
   final Object? id;
 
-  /// Whether the capsule is tinted with the style's prominent color.
+  /// Whether the capsule is tinted with the appearance's prominent color.
   final bool prominent;
 
   @override
@@ -402,9 +402,9 @@ class MorphBarMetrics {
 
 /// The look of a glass bar: its capsules, buttons and titles.
 @immutable
-class MorphBarStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphBarStyle({
+class MorphBarAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphBarAppearance({
     this.capsuleColor = const Color(0xD9FFFFFF),
     this.rimColor = const Color(0x1F000000),
     this.shadowColor = const Color(0x1A000000),
@@ -458,10 +458,10 @@ class MorphBarStyle {
   final Color disabledProminentColor;
 
   /// The light appearance.
-  static const light = MorphBarStyle();
+  static const light = MorphBarAppearance();
 
   /// The dark appearance.
-  static const dark = MorphBarStyle(
+  static const dark = MorphBarAppearance(
     capsuleColor: Color(0xB82C2C2E),
     rimColor: Color(0x33FFFFFF),
     shadowColor: Color(0x40000000),
@@ -475,7 +475,7 @@ class MorphBarStyle {
 
   @override
   bool operator ==(Object other) =>
-      other is MorphBarStyle &&
+      other is MorphBarAppearance &&
       other.capsuleColor == capsuleColor &&
       other.rimColor == rimColor &&
       other.shadowColor == shadowColor &&
@@ -503,7 +503,10 @@ class MorphBarStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphBarStyle resolve(BuildContext context, MorphBarStyle? explicit) =>
+  static MorphBarAppearance resolve(
+    BuildContext context,
+    MorphBarAppearance? explicit,
+  ) =>
       explicit ??
       MorphWidgetsTheme.maybeOf(context)?.bar ??
       switch (morphBrightnessOf(context)) {
@@ -795,8 +798,8 @@ class MorphBarItems extends StatefulWidget {
     required this.top,
     required this.leadingInset,
     required this.trailingInset,
-    this.style,
-    this.menuStyle,
+    this.appearance,
+    this.menuAppearance,
     this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.onLayout,
@@ -823,10 +826,10 @@ class MorphBarItems extends StatefulWidget {
   final double trailingInset;
 
   /// The look; null resolves it from the theme.
-  final MorphBarStyle? style;
+  final MorphBarAppearance? appearance;
 
   /// The look of the buttons' menus; null resolves it from the theme.
-  final MorphMenuStyle? menuStyle;
+  final MorphMenuAppearance? menuAppearance;
 
   /// The buttons' menu recognition, opening delay and menu motion.
   final MorphBarMenuTuning menuTuning;
@@ -920,7 +923,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   final _Ticks _rebuilds = _Ticks();
   ValueListenable<double>? _driftSource;
   Listenable? _hostFrames;
-  MorphBarStyle? _rowStyle;
+  MorphBarAppearance? _rowStyle;
   Brightness? _rowBrightness;
   _RowFrame _row = _RowFrame.empty;
   List<MorphPlacedGroup>? _rawGroups;
@@ -1055,8 +1058,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
         old.top == w.top &&
         old.leadingInset == w.leadingInset &&
         old.trailingInset == w.trailingInset &&
-        old.style == w.style &&
-        old.menuStyle == w.menuStyle &&
+        old.appearance == w.appearance &&
+        old.menuAppearance == w.menuAppearance &&
         old.menuTuning == w.menuTuning &&
         identical(old.menuOverlay, w.menuOverlay) &&
         (old.onLayout == null) == (w.onLayout == null) &&
@@ -1165,7 +1168,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
       state: this,
       button: button,
       capsule: capsuleId!,
-      style: MorphMenuStyle.resolve(context, widget.menuStyle),
+      style: MorphMenuAppearance.resolve(context, widget.menuAppearance),
       overlay: overlay,
       origin: origin,
     );
@@ -1660,7 +1663,10 @@ class _MorphBarItemsState extends State<MorphBarItems>
   _ItemPlace _placeOf(Object id) => _row.places[id] ?? _ItemPlace.gone;
 
   Widget _buildRow(BuildContext context) {
-    final style = _rowStyle = MorphBarStyle.resolve(context, widget.style);
+    final style = _rowStyle = MorphBarAppearance.resolve(
+      context,
+      widget.appearance,
+    );
     final glass = MorphGlass.maybeOf(context);
     _rowBrightness = morphBrightnessOf(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
@@ -1779,7 +1785,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
     return MorphScope(child: grouped);
   }
 
-  Color _capsuleColor(Object id, MorphBarStyle style) {
+  Color _capsuleColor(Object id, MorphBarAppearance style) {
     if (!(_prominent[id] ?? false)) return style.capsuleColor;
     return (_disabled[id] ?? false)
         ? style.disabledProminentColor
@@ -1797,7 +1803,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   Widget _item(
     MorphBarButton button,
     Object id,
-    MorphBarStyle style,
+    MorphBarAppearance style,
     TextDirection direction,
   ) {
     final capsuleId = _capsuleOf[id];
@@ -1828,7 +1834,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
   Widget _buildItem(
     MorphBarButton button,
     Object id,
-    MorphBarStyle style,
+    MorphBarAppearance style,
     TextDirection direction, {
     required Object? capsuleId,
   }) {
@@ -2212,7 +2218,7 @@ class _BarMenu {
   final _MorphBarItemsState state;
   MorphBarButton button;
   final Object capsule;
-  final MorphMenuStyle style;
+  final MorphMenuAppearance style;
   final OverlayState overlay;
   final Offset origin;
   late final MorphMenuController host = MorphMenuController(
@@ -2247,8 +2253,10 @@ class _BarMenu {
     );
   }
 
-  Color get _color =>
-      MorphBarStyle.resolve(state.context, state.widget.style).foregroundColor;
+  Color get _color => MorphBarAppearance.resolve(
+    state.context,
+    state.widget.appearance,
+  ).foregroundColor;
 
   TextDirection get _direction =>
       Directionality.maybeOf(state.context) ?? TextDirection.ltr;
@@ -2459,7 +2467,7 @@ class _CapsulePainter extends CustomPainter {
 
   /// The bodies now.
   final List<(Color, Object, double)> Function() bodies;
-  final MorphBarStyle style;
+  final MorphBarAppearance style;
   List<(Color, Object, double)>? _painted;
 
   /// The device pixels per logical pixel of the view.

@@ -182,9 +182,9 @@ class MorphGlassButtonMotion {
 
 /// The look of a [MorphGlassButton].
 @immutable
-class MorphGlassButtonStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphGlassButtonStyle({
+class MorphGlassButtonAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphGlassButtonAppearance({
     this.fillColor = const Color(0xD9FFFFFF),
     this.rimColor = const Color(0x1F000000),
     this.tintedRimColor = const Color(0x33FFFFFF),
@@ -226,10 +226,10 @@ class MorphGlassButtonStyle {
   final Color disabledTintColor;
 
   /// The light appearance.
-  static const light = MorphGlassButtonStyle();
+  static const light = MorphGlassButtonAppearance();
 
   /// The dark appearance.
-  static const dark = MorphGlassButtonStyle(
+  static const dark = MorphGlassButtonAppearance(
     fillColor: Color(0xB82C2C2E),
     rimColor: Color(0x33FFFFFF),
     foregroundColor: Color(0xFFFFFFFF),
@@ -240,10 +240,10 @@ class MorphGlassButtonStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphGlassButtonStyle resolve(
+  static MorphGlassButtonAppearance resolve(
     BuildContext context,
-    MorphGlassButtonStyle? explicit,
-  ) => morphResolveStyle(
+    MorphGlassButtonAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.glassButton,
@@ -263,9 +263,9 @@ class MorphGlassButtonStyle {
 /// The button is focusable; Space and Enter press it. With the
 /// platform's reduced motion on, it glows but never lifts or leans.
 ///
-/// A disabled button keeps its glass and draws its label in the style's
-/// [MorphGlassButtonStyle.disabledForegroundColor]; a prominent one swaps
-/// its tint for [MorphGlassButtonStyle.disabledTintColor]. It ignores
+/// A disabled button keeps its glass and draws its label in the appearance's
+/// [MorphGlassButtonAppearance.disabledForegroundColor]; a prominent one swaps
+/// its tint for [MorphGlassButtonAppearance.disabledTintColor]. It ignores
 /// touches: no lift, no glow, no lean. The change shows in one frame.
 ///
 /// With a [menu] the button is a [MorphMenuSource]: it turns into its
@@ -280,7 +280,7 @@ class MorphGlassButton extends StatefulWidget {
     this.tint,
     this.padding = const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
     this.minSize = const Size(44, 44),
-    this.style,
+    this.appearance,
     this.menu,
     this.enabled = true,
     super.key,
@@ -324,7 +324,7 @@ class MorphGlassButton extends StatefulWidget {
   final Size minSize;
 
   /// The look of the button; null resolves it from the theme.
-  final MorphGlassButtonStyle? style;
+  final MorphGlassButtonAppearance? appearance;
 
   @override
   State<MorphGlassButton> createState() => _MorphGlassButtonState();
@@ -389,14 +389,17 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
       oldWidget.tint == widget.tint &&
       oldWidget.padding == widget.padding &&
       oldWidget.minSize == widget.minSize &&
-      oldWidget.style == widget.style &&
+      oldWidget.appearance == widget.appearance &&
       identical(oldWidget.menu, widget.menu);
 
   void _press() => widget.onPressed?.call();
 
   @override
   Widget buildControl(BuildContext context) {
-    final style = MorphGlassButtonStyle.resolve(context, widget.style);
+    final style = MorphGlassButtonAppearance.resolve(
+      context,
+      widget.appearance,
+    );
     final brightness = morphBrightnessOf(context);
     final glass = MorphGlass.maybeOf(context);
     _motion.reducedMotion = morphReducedMotionOf(context);

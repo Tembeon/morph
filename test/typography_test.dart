@@ -152,7 +152,10 @@ void main() {
     });
 
     test('match the default style tables', () {
-      for (final s in [MorphSegmentedStyle.light, MorphSegmentedStyle.dark]) {
+      for (final s in [
+        MorphSegmentedControlAppearance.light,
+        MorphSegmentedControlAppearance.dark,
+      ]) {
         expect(s.textStyle.fontSize, MorphTypography.segment.fontSize);
         expect(s.textStyle.fontWeight, MorphTypography.segment.fontWeight);
         expect(
@@ -160,7 +163,7 @@ void main() {
           MorphTypography.segmentSelected.fontWeight,
         );
       }
-      for (final s in [MorphMenuStyle.light, MorphMenuStyle.dark]) {
+      for (final s in [MorphMenuAppearance.light, MorphMenuAppearance.dark]) {
         expect(s.textStyle.fontSize, MorphTypography.menuItem.fontSize);
         expect(s.textStyle.letterSpacing, isNull);
       }

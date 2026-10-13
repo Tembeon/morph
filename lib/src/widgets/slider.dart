@@ -14,9 +14,9 @@ import 'package:morph/src/widgets/small_lens.dart';
 
 /// The look of a [MorphSlider].
 @immutable
-class MorphSliderStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphSliderStyle({
+class MorphSliderAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphSliderAppearance({
     this.activeColor = const Color(0xFF0088FF),
     this.trackColor = const Color(0x1A000000),
     this.thumbColor = const Color(0xFFFFFFFF),
@@ -42,10 +42,10 @@ class MorphSliderStyle {
   final double disabledOpacity;
 
   /// The light appearance.
-  static const light = MorphSliderStyle();
+  static const light = MorphSliderAppearance();
 
   /// The dark appearance, from the iOS dark system colors.
-  static const dark = MorphSliderStyle(
+  static const dark = MorphSliderAppearance(
     activeColor: Color(0xFF0091FF),
     trackColor: Color(0x1AFFFFFF),
     tickColor: Color(0xFF38383A),
@@ -53,10 +53,10 @@ class MorphSliderStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphSliderStyle resolve(
+  static MorphSliderAppearance resolve(
     BuildContext context,
-    MorphSliderStyle? explicit,
-  ) => morphResolveStyle(
+    MorphSliderAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.slider,
@@ -87,7 +87,7 @@ class MorphSlider extends StatefulWidget {
     this.onChangeEnd,
     this.activeColor,
     this.trackColor,
-    this.style,
+    this.appearance,
     this.semanticLabel,
     this.ticks = 0,
     super.key,
@@ -111,14 +111,14 @@ class MorphSlider extends StatefulWidget {
   /// Called with the final value when a drag and its glide end.
   final ValueChanged<double>? onChangeEnd;
 
-  /// The fill of the track below the value, overriding [style].
+  /// The fill of the track below the value, overriding [appearance].
   final Color? activeColor;
 
-  /// The fill of the track above the value, overriding [style].
+  /// The fill of the track above the value, overriding [appearance].
   final Color? trackColor;
 
   /// The look of the slider; null resolves it from the theme.
-  final MorphSliderStyle? style;
+  final MorphSliderAppearance? appearance;
 
   /// The label screen readers announce for the slider.
   final String? semanticLabel;
@@ -146,7 +146,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
     _trackShape,
   );
   VelocityTracker? _tracker;
-  MorphSliderStyle _style = MorphSliderStyle.light;
+  MorphSliderAppearance _style = MorphSliderAppearance.light;
   Brightness _brightness = Brightness.light;
   bool _rtl = false;
 
@@ -347,12 +347,12 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
       oldWidget.activeColor == widget.activeColor &&
       oldWidget.trackColor == widget.trackColor &&
-      oldWidget.style == widget.style &&
+      oldWidget.appearance == widget.appearance &&
       oldWidget.semanticLabel == widget.semanticLabel;
 
   @override
   Widget buildControl(BuildContext context) {
-    _style = MorphSliderStyle.resolve(context, widget.style);
+    _style = MorphSliderAppearance.resolve(context, widget.appearance);
     _brightness = morphBrightnessOf(context);
     _rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     _motion.lens.reducedMotion = morphReducedMotionOf(context);

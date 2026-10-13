@@ -64,12 +64,12 @@ const _tabs = [
 Widget _segmented(
   ValueChanged<int>? onChanged, {
   int selected = 0,
-  MorphSegmentedStyle? style,
+  MorphSegmentedControlAppearance? style,
 }) => MorphSegmentedControl(
   segments: const ['A', 'B', 'C'],
   selected: selected,
   onChanged: onChanged,
-  style: style,
+  appearance: style,
 );
 
 double _opacityAbove(WidgetTester tester, Finder finder) => tester
@@ -932,11 +932,11 @@ void main() {
       final tracks = recorder.of(MorphGlassKind.track);
       final segmented = tracks.lastWhere((s) => s.bounds.width == 360);
       final toggle = tracks.lastWhere((s) => s.bounds.width == 63);
-      expect(segmented.color, MorphSegmentedStyle.dark.trackColor);
+      expect(segmented.color, MorphSegmentedControlAppearance.dark.trackColor);
       expect(segmented.brightness, Brightness.dark);
       expect(
         toggle.color.toARGB32(),
-        MorphSwitchStyle.dark.activeColor.toARGB32(),
+        MorphSwitchAppearance.dark.activeColor.toARGB32(),
       );
     });
 
@@ -958,22 +958,26 @@ void main() {
       );
       expect(
         recorder.of(MorphGlassKind.track).first.color,
-        MorphSegmentedStyle.light.trackColor,
+        MorphSegmentedControlAppearance.light.trackColor,
       );
     });
 
     testWidgets('an explicit style beats the theme, which beats the table', (
       tester,
     ) async {
-      const themed = MorphSegmentedStyle(trackColor: Color(0xFF00FF00));
-      const explicit = MorphSegmentedStyle(trackColor: Color(0xFFFF0000));
+      const themed = MorphSegmentedControlAppearance(
+        trackColor: Color(0xFF00FF00),
+      );
+      const explicit = MorphSegmentedControlAppearance(
+        trackColor: Color(0xFFFF0000),
+      );
       final recorder = _Recorder();
-      Future<Color> track(MorphSegmentedStyle? style) async {
+      Future<Color> track(MorphSegmentedControlAppearance? style) async {
         recorder.seen.clear();
         await tester.pumpWidget(
           Theme(
             data: ThemeData(
-              extensions: const [MorphWidgetsTheme(segmented: themed)],
+              extensions: const [MorphWidgetsTheme(segmentedControl: themed)],
             ),
             child: MorphGlass(
               painter: recorder,

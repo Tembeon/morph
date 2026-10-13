@@ -22,9 +22,9 @@ import 'package:morph/src/widgets/zoom_source.dart';
 
 /// The look of a sheet presented with [presentMorphSheet].
 @immutable
-class MorphSheetStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphSheetStyle({
+class MorphSheetAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphSheetAppearance({
     this.dockedColor = const Color(0xFFFFFFFF),
     this.floatingColor = const Color(0xF2F9F9F9),
     this.grabberColor = const Color(0x4D3C3C43),
@@ -51,10 +51,10 @@ class MorphSheetStyle {
   final Color textColor;
 
   /// The light appearance.
-  static const light = MorphSheetStyle();
+  static const light = MorphSheetAppearance();
 
   /// The dark appearance: the docked fill as the simulator renders it.
-  static const dark = MorphSheetStyle(
+  static const dark = MorphSheetAppearance(
     dockedColor: Color(0xFF2C2C2E),
     floatingColor: Color(0xF2232325),
     grabberColor: Color(0x4DEBEBF5),
@@ -63,9 +63,9 @@ class MorphSheetStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphSheetStyle resolve(
+  static MorphSheetAppearance resolve(
     BuildContext context,
-    MorphSheetStyle? explicit,
+    MorphSheetAppearance? explicit,
   ) =>
       explicit ??
       MorphWidgetsTheme.maybeOf(context)?.sheet ??
@@ -125,7 +125,7 @@ Future<T?> presentMorphSheet<T>(
   MorphSheetDetent? largestUndimmedDetent,
   bool grabberVisible = false,
   bool dismissible = true,
-  MorphSheetStyle? style,
+  MorphSheetAppearance? appearance,
   String? semanticLabel,
   bool? useRootNavigator,
 }) {
@@ -139,7 +139,7 @@ Future<T?> presentMorphSheet<T>(
     largestUndimmedDetent: largestUndimmedDetent,
     grabberVisible: grabberVisible,
     dismissible: dismissible,
-    style: style,
+    appearance: appearance,
     semanticLabel: semanticLabel,
   );
   route._zoomSource = MorphZoomSource.resolve(context, from);
@@ -166,7 +166,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
     this.largestUndimmedDetent,
     this.grabberVisible = false,
     this.dismissible = true,
-    this.style,
+    this.appearance,
     this.semanticLabel,
     super.settings,
   });
@@ -202,7 +202,7 @@ class MorphSheetRoute<T> extends PopupRoute<T>
   final bool dismissible;
 
   /// The look of the sheet; null resolves it from the theme.
-  final MorphSheetStyle? style;
+  final MorphSheetAppearance? appearance;
 
   /// The label screen readers announce for the sheet.
   final String? semanticLabel;
@@ -328,7 +328,7 @@ class _SheetViewState extends State<_SheetView>
   int _index = 0;
   Size _size = Size.zero;
   EdgeInsets _padding = EdgeInsets.zero;
-  MorphSheetStyle _style = MorphSheetStyle.light;
+  MorphSheetAppearance _style = MorphSheetAppearance.light;
   double _floatingRadius = 0;
   double _dockedRadius = 0;
 
@@ -711,7 +711,7 @@ class _SheetViewState extends State<_SheetView>
   Widget? _builtContent;
   (MorphSheetDetent, Color, bool)? _builtFor;
 
-  Widget _contentFor(MorphSheetStyle style) {
+  Widget _contentFor(MorphSheetAppearance style) {
     final inputs = (
       detent,
       style.textColor,
@@ -740,7 +740,7 @@ class _SheetViewState extends State<_SheetView>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphSheetStyle.resolve(context, _route.style);
+    final style = MorphSheetAppearance.resolve(context, _route.appearance);
     final media = MediaQuery.of(context);
     final glass = MorphGlass.maybeOf(context);
     final brightness = morphBrightnessOf(context);
@@ -1050,7 +1050,7 @@ extension on _SheetViewState {
 
   Widget _buildZoom({
     required Size size,
-    required MorphSheetStyle style,
+    required MorphSheetAppearance style,
     required Widget sheet,
     required bool opening,
   }) {
@@ -1235,7 +1235,7 @@ class _SheetBody extends StatelessWidget {
   /// otherwise.
   final bool clipped;
 
-  final MorphSheetStyle style;
+  final MorphSheetAppearance style;
   final MorphGlassPainter? glass;
   final Brightness brightness;
   final bool grabber;

@@ -483,7 +483,9 @@ void main() {
     await _settle(tester);
     final boxes = tester.widgetList<ColoredBox>(find.byType(ColoredBox));
     expect(
-      boxes.any((ColoredBox b) => b.color == MorphSheetStyle.dark.dockedColor),
+      boxes.any(
+        (ColoredBox b) => b.color == MorphSheetAppearance.dark.dockedColor,
+      ),
       isTrue,
     );
     expect(tester.getRect(find.byKey(_contentKey)).width, 800);

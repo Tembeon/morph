@@ -132,8 +132,8 @@ class MorphNavigationStack extends StatefulWidget {
   /// Creates a stack showing [home] first.
   const MorphNavigationStack({
     required this.home,
-    this.style,
-    this.menuStyle,
+    this.appearance,
+    this.menuAppearance,
     this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.backLabel = 'Back',
@@ -149,10 +149,10 @@ class MorphNavigationStack extends StatefulWidget {
   final Widget home;
 
   /// The look of the bars; null resolves it from the theme.
-  final MorphBarStyle? style;
+  final MorphBarAppearance? appearance;
 
   /// The look of the back button's menu; null resolves it from the theme.
-  final MorphMenuStyle? menuStyle;
+  final MorphMenuAppearance? menuAppearance;
 
   /// The bar buttons' menu recognition, opening delay and menu motion.
   final MorphBarMenuTuning menuTuning;
@@ -372,8 +372,8 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
                   edgeEffect: config?.edgeEffect,
                   titleExitShift: _titleExit,
                   drift: drift,
-                  style: widget.style,
-                  menuStyle: widget.menuStyle,
+                  appearance: widget.appearance,
+                  menuAppearance: widget.menuAppearance,
                   menuTuning: widget.menuTuning,
                   menuOverlay: widget.menuOverlay,
                 ),
@@ -388,8 +388,8 @@ class _MorphNavigationStackState extends State<MorphNavigationStack> {
                   MorphToolbar(
                     leading: config?.toolbarLeading ?? const [],
                     trailing: config?.toolbarTrailing ?? const [],
-                    style: widget.style,
-                    menuStyle: widget.menuStyle,
+                    appearance: widget.appearance,
+                    menuAppearance: widget.menuAppearance,
                     menuTuning: widget.menuTuning,
                     menuOverlay: widget.menuOverlay,
                   ),
@@ -891,7 +891,7 @@ class MorphNavigationScaffold extends StatefulWidget {
     this.backTitle,
     this.backLabel = 'Back',
     this.controller,
-    this.style,
+    this.appearance,
     super.key,
   });
 
@@ -922,7 +922,7 @@ class MorphNavigationScaffold extends StatefulWidget {
   final MorphScrollEdgeEffectStyle? edgeEffect;
 
   /// The color behind the content; defaults to the
-  /// [MorphScrollEdgeEffectThemeData.backgroundColor] of the ambient theme
+  /// [MorphScrollEdgeEffectAppearance.backgroundColor] of the ambient theme
   /// (the system background), the color the edge effect fades toward.
   final Color? backgroundColor;
 
@@ -937,7 +937,7 @@ class MorphNavigationScaffold extends StatefulWidget {
   final ScrollController? controller;
 
   /// The look of the bars; null resolves it from the theme.
-  final MorphBarStyle? style;
+  final MorphBarAppearance? appearance;
 
   @override
   State<MorphNavigationScaffold> createState() =>
@@ -1027,7 +1027,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
     final hasToolbar = config.hasToolbar;
     final background =
         widget.backgroundColor ??
-        MorphScrollEdgeEffectThemeData.resolve(context, null).backgroundColor;
+        MorphScrollEdgeEffectAppearance.resolve(context, null).backgroundColor;
     final physics = widget.largeTitle
         ? const MorphLargeTitleScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(
@@ -1051,7 +1051,10 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
           ),
           if (widget.largeTitle)
             SliverToBoxAdapter(
-              child: MorphLargeTitle(widget.title, style: widget.style),
+              child: MorphLargeTitle(
+                widget.title,
+                appearance: widget.appearance,
+              ),
             ),
           ...widget.slivers,
           SliverPadding(padding: EdgeInsets.only(bottom: toolbarExtent)),
@@ -1063,7 +1066,10 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
       child: DefaultTextStyle(
         style: MorphTypography.resolve(
           MorphTypography.body.copyWith(
-            color: MorphBarStyle.resolve(context, widget.style).titleColor,
+            color: MorphBarAppearance.resolve(
+              context,
+              widget.appearance,
+            ).titleColor,
           ),
         ),
         child: scroll,
@@ -1095,7 +1101,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
               scrolledUnder: _scrolledUnder,
               animate: _animate,
               edgeEffect: widget.edgeEffect,
-              style: widget.style,
+              appearance: widget.appearance,
             ),
           ),
         ),
@@ -1108,7 +1114,7 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
               MorphToolbar(
                 leading: widget.toolbarLeading,
                 trailing: widget.toolbarTrailing,
-                style: widget.style,
+                appearance: widget.appearance,
               ),
             ),
           ),

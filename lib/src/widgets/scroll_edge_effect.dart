@@ -39,9 +39,9 @@ enum MorphScrollEdgeEffectStyle {
 /// content over it); the soft fade starts to dissolve at [softFadeStart]
 /// of the band and is gone at its far end.
 @immutable
-class MorphScrollEdgeEffectThemeData {
+class MorphScrollEdgeEffectAppearance {
   /// Creates a look; the defaults are the iOS light appearance.
-  const MorphScrollEdgeEffectThemeData({
+  const MorphScrollEdgeEffectAppearance({
     this.backgroundColor = const Color(0xFFFFFFFF),
     this.fadeOpacity = 0.5,
     this.separatorColor = const Color(0x1A000000),
@@ -85,10 +85,10 @@ class MorphScrollEdgeEffectThemeData {
   final double hardBrightness;
 
   /// The light appearance.
-  static const light = MorphScrollEdgeEffectThemeData();
+  static const light = MorphScrollEdgeEffectAppearance();
 
   /// The dark appearance.
-  static const dark = MorphScrollEdgeEffectThemeData(
+  static const dark = MorphScrollEdgeEffectAppearance(
     backgroundColor: Color(0xFF000000),
     fadeOpacity: 0.6,
     separatorColor: Color(0x1AFFFFFF),
@@ -96,9 +96,9 @@ class MorphScrollEdgeEffectThemeData {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphScrollEdgeEffectThemeData resolve(
+  static MorphScrollEdgeEffectAppearance resolve(
     BuildContext context,
-    MorphScrollEdgeEffectThemeData? explicit,
+    MorphScrollEdgeEffectAppearance? explicit,
   ) =>
       explicit ??
       MorphWidgetsTheme.maybeOf(context)?.scrollEdgeEffect ??
@@ -125,7 +125,7 @@ class MorphScrollEdgeEffectThemeData {
 
   @override
   bool operator ==(Object other) =>
-      other is MorphScrollEdgeEffectThemeData &&
+      other is MorphScrollEdgeEffectAppearance &&
       other.backgroundColor == backgroundColor &&
       other.fadeOpacity == fadeOpacity &&
       other.separatorColor == separatorColor &&
@@ -156,7 +156,7 @@ class MorphScrollEdgeEffectThemeData {
 /// Place it over the scroll content, under the bar, filling the area the
 /// bar covers. [extent] is the bar's far edge measured from the screen
 /// edge (status bar included for a top bar); the soft style reaches
-/// [MorphScrollEdgeEffectThemeData.softOverhang] further. The effect
+/// [MorphScrollEdgeEffectAppearance.softOverhang] further. The effect
 /// shows only while [active] - while content lies under the edge; UIKit
 /// switches it on and off from one frame to the next.
 ///
@@ -171,7 +171,7 @@ class MorphScrollEdgeEffect extends StatelessWidget {
     this.edge = AxisDirection.up,
     this.style = MorphScrollEdgeEffectStyle.soft,
     this.active = true,
-    this.theme,
+    this.appearance,
     double opacity = 1,
     super.key,
   }) : _opacity = null,
@@ -188,7 +188,7 @@ class MorphScrollEdgeEffect extends StatelessWidget {
     this.edge = AxisDirection.up,
     this.style = MorphScrollEdgeEffectStyle.soft,
     this.active = true,
-    this.theme,
+    this.appearance,
     super.key,
   }) : _fixedOpacity = 1;
 
@@ -206,7 +206,7 @@ class MorphScrollEdgeEffect extends StatelessWidget {
   final bool active;
 
   /// The look; null resolves it from the theme.
-  final MorphScrollEdgeEffectThemeData? theme;
+  final MorphScrollEdgeEffectAppearance? appearance;
 
   final double Function()? _opacity;
   final double _fixedOpacity;
@@ -225,9 +225,9 @@ class MorphScrollEdgeEffect extends StatelessWidget {
   static double bandExtent(
     MorphScrollEdgeEffectStyle style,
     double extent,
-    MorphScrollEdgeEffectThemeData theme,
+    MorphScrollEdgeEffectAppearance appearance,
   ) => switch (style) {
-    MorphScrollEdgeEffectStyle.soft => extent + theme.softOverhang,
+    MorphScrollEdgeEffectStyle.soft => extent + appearance.softOverhang,
     MorphScrollEdgeEffectStyle.hard => extent,
   };
 
@@ -236,7 +236,7 @@ class MorphScrollEdgeEffect extends StatelessWidget {
     if (!active || extent <= 0 || (_opacity == null && _fixedOpacity <= 0)) {
       return const SizedBox.shrink();
     }
-    final look = MorphScrollEdgeEffectThemeData.resolve(context, theme);
+    final look = MorphScrollEdgeEffectAppearance.resolve(context, appearance);
     final band = bandExtent(style, extent, look);
     final top = edge == AxisDirection.up;
     return RepaintBoundary(
@@ -277,7 +277,7 @@ class _EdgePaint extends LeafRenderObjectWidget {
   final bool blurs;
   final MorphScrollEdgeEffectStyle style;
   final bool top;
-  final MorphScrollEdgeEffectThemeData look;
+  final MorphScrollEdgeEffectAppearance look;
   final double Function() opacity;
   final Listenable? repaint;
   final double devicePixelRatio;
@@ -355,9 +355,9 @@ class _RenderEdge extends RenderBox {
     markNeedsPaint();
   }
 
-  MorphScrollEdgeEffectThemeData _look;
-  MorphScrollEdgeEffectThemeData get look => _look;
-  set look(MorphScrollEdgeEffectThemeData value) {
+  MorphScrollEdgeEffectAppearance _look;
+  MorphScrollEdgeEffectAppearance get look => _look;
+  set look(MorphScrollEdgeEffectAppearance value) {
     if (value == _look) return;
     _look = value;
     markNeedsPaint();

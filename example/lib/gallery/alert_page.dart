@@ -162,7 +162,7 @@ class _AlertPageState extends State<AlertPage> {
                   ),
                   const SizedBox(height: 16),
                   MorphGlassContainer(
-                    solidBackdrop: MorphListStyle.resolve(
+                    solidBackdrop: MorphListAppearance.resolve(
                       context,
                       null,
                     ).backgroundColor,

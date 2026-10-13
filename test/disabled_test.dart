@@ -257,8 +257,8 @@ void main() {
           brightness,
         );
         final style = brightness == Brightness.dark
-            ? MorphStepperStyle.dark
-            : MorphStepperStyle.light;
+            ? MorphStepperAppearance.dark
+            : MorphStepperAppearance.light;
         expect(style.limitForegroundColor, _sameColor(limit));
         expect(style.dividerColor, _sameColor(_tertiaryLabel(brightness)));
         final background = brightness == Brightness.dark
@@ -302,8 +302,8 @@ void main() {
             : const Color(0xFFF2F2F7);
         final bg = [background.r * 255, background.g * 255, background.b * 255];
         final style = brightness == Brightness.dark
-            ? MorphStepperStyle.dark
-            : MorphStepperStyle.light;
+            ? MorphStepperAppearance.dark
+            : MorphStepperAppearance.light;
         await tester.pumpWidget(
           _scene(
             MorphStepper(value: 3, max: 9, onChanged: (double _) {}),
@@ -388,8 +388,8 @@ void main() {
           ),
         );
         final style = brightness == Brightness.dark
-            ? MorphGlassButtonStyle.dark
-            : MorphGlassButtonStyle.light;
+            ? MorphGlassButtonAppearance.dark
+            : MorphGlassButtonAppearance.light;
         final buttons = [
           for (final s in recorder.surfaces)
             if (s.kind == MorphGlassKind.button) s.color,
@@ -451,8 +451,8 @@ void main() {
           ),
         );
         final style = brightness == Brightness.dark
-            ? MorphMenuStyle.dark
-            : MorphMenuStyle.light;
+            ? MorphMenuAppearance.dark
+            : MorphMenuAppearance.light;
         expect(
           recorder.surfaces
               .where((s) => s.kind == MorphGlassKind.button)
@@ -469,8 +469,8 @@ void main() {
     test('the light menu material renders 249, 249, 255 over the grouped '
         'background, as the light date picker overlay does', () {
       for (final color in [
-        MorphMenuStyle.light.glassColor,
-        MorphDatePickerStyle.light.platterColor,
+        MorphMenuAppearance.light.glassColor,
+        MorphDatePickerAppearance.light.platterColor,
       ]) {
         expect(color, const Color(0xF2F9F9FF));
         final shown = _over(color, [242, 242, 247]);
@@ -478,8 +478,11 @@ void main() {
         expect(shown[1], closeTo(249, 0.5));
         expect(shown[2], closeTo(255, 0.5));
       }
-      expect(MorphMenuStyle.dark.glassColor, const Color(0xF2222222));
-      expect(MorphDatePickerStyle.dark.platterColor, const Color(0xF2222222));
+      expect(MorphMenuAppearance.dark.glassColor, const Color(0xF2222222));
+      expect(
+        MorphDatePickerAppearance.dark.platterColor,
+        const Color(0xF2222222),
+      );
     });
   });
 
@@ -495,8 +498,8 @@ void main() {
           _ => throw StateError('capsule'),
         };
         final style = brightness == Brightness.dark
-            ? MorphBarStyle.dark
-            : MorphBarStyle.light;
+            ? MorphBarAppearance.dark
+            : MorphBarAppearance.light;
         for (final (kind, color) in [
           ('icon', style.disabledIconColor),
           ('text', style.disabledLabelColor),
@@ -555,7 +558,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      const style = MorphBarStyle.light;
+      const style = MorphBarAppearance.light;
       expect(icon, style.disabledIconColor);
       expect(
         tester.widget<Text>(find.text('Edit')).style?.color,
@@ -606,8 +609,8 @@ void main() {
         expect(recorder.surfaces, isEmpty);
         final fill = _appearance(_control('search_field')['fill'], brightness);
         final style = brightness == Brightness.dark
-            ? MorphSearchFieldStyle.dark
-            : MorphSearchFieldStyle.light;
+            ? MorphSearchFieldAppearance.dark
+            : MorphSearchFieldAppearance.light;
         expect(style.disabledFillColor, _sameColor(fill));
         final shot = await _shoot(tester);
         final field = tester
@@ -652,7 +655,10 @@ void main() {
         _control('date_picker_labels')['removed_fill'],
         Brightness.light,
       );
-      expect(MorphDatePickerStyle.light.labelFillColor, _sameColor(removed));
+      expect(
+        MorphDatePickerAppearance.light.labelFillColor,
+        _sameColor(removed),
+      );
     });
   });
 
@@ -677,7 +683,7 @@ void main() {
             ),
           ),
         );
-        final style = MorphAlertStyle.resolve(context, null);
+        final style = MorphAlertAppearance.resolve(context, null);
         expect(style.disabledLabelColor, _sameColor(title));
         unawaited(
           showMorphAlert(
@@ -803,7 +809,13 @@ void main() {
   }
 
   test('the activity indicator is 0x99EBEBF5 in dark', () {
-    expect(MorphActivityIndicatorStyle.dark.color, const Color(0x99EBEBF5));
-    expect(MorphActivityIndicatorStyle.light.color, const Color(0x993C3C43));
+    expect(
+      MorphActivityIndicatorAppearance.dark.color,
+      const Color(0x99EBEBF5),
+    );
+    expect(
+      MorphActivityIndicatorAppearance.light.color,
+      const Color(0x993C3C43),
+    );
   });
 }

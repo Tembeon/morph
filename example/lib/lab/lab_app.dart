@@ -420,7 +420,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
                   child: SizedBox(
                     height: 1,
                     child: ColoredBox(
-                      color: MorphMenuStyle.resolve(
+                      color: MorphMenuAppearance.resolve(
                         context,
                         null,
                       ).separatorColor,
@@ -443,7 +443,7 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
 
   static Widget _askSiriRow(BuildContext context) {
     const metrics = MorphMenuMetrics.standard;
-    final style = MorphMenuStyle.resolve(context, null);
+    final style = MorphMenuAppearance.resolve(context, null);
     final color = style.textStyle.color ?? style.iconColor;
     final inset = metrics.widgetInset;
     return Semantics(

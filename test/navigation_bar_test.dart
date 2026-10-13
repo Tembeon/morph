@@ -218,7 +218,7 @@ void main() {
     tester,
   ) async {
     await _setScreen(tester);
-    const custom = MorphBarStyle(titleColor: Color(0xFFFF0000));
+    const custom = MorphBarAppearance(titleColor: Color(0xFFFF0000));
     await tester.pumpWidget(
       _app(
         theme: ThemeData(extensions: const [MorphWidgetsTheme(bar: custom)]),
@@ -251,7 +251,7 @@ void main() {
     );
     expect(
       tester.widget<Text>(find.text('Dark')).style?.color,
-      MorphBarStyle.dark.titleColor,
+      MorphBarAppearance.dark.titleColor,
     );
   });
 

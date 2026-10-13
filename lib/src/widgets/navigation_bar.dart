@@ -121,11 +121,11 @@ class MorphNavigationBar extends StatefulWidget {
     this.scrolledUnder = false,
     this.animate = true,
     this.edgeEffect = MorphScrollEdgeEffectStyle.hard,
-    this.edgeEffectTheme,
+    this.edgeEffectAppearance,
     this.titleExitShift = -MorphNavigationTransition.parallax,
     this.drift,
-    this.style,
-    this.menuStyle,
+    this.appearance,
+    this.menuAppearance,
     this.menuTuning = MorphBarMenuTuning.standard,
     this.menuOverlay,
     this.sideInset = MorphNavigationBarMetrics.sideInset,
@@ -162,7 +162,7 @@ class MorphNavigationBar extends StatefulWidget {
   final MorphScrollEdgeEffectStyle? edgeEffect;
 
   /// The look of the edge effect; null resolves it from the theme.
-  final MorphScrollEdgeEffectThemeData? edgeEffectTheme;
+  final MorphScrollEdgeEffectAppearance? edgeEffectAppearance;
 
   /// How far a replaced title travels while it fades out, as a share of
   /// the bar's width: on a push the old title rides the page underneath
@@ -175,11 +175,11 @@ class MorphNavigationBar extends StatefulWidget {
   final MorphNavigationBarDrift? drift;
 
   /// The look; null resolves it from the theme.
-  final MorphBarStyle? style;
+  final MorphBarAppearance? appearance;
 
   /// The look of the buttons' menus, such as the back button's; null
   /// resolves it from the theme.
-  final MorphMenuStyle? menuStyle;
+  final MorphMenuAppearance? menuAppearance;
 
   /// The bar buttons' menu recognition, opening delay and menu motion.
   final MorphBarMenuTuning menuTuning;
@@ -293,7 +293,7 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphBarStyle.resolve(context, widget.style);
+    final style = MorphBarAppearance.resolve(context, widget.appearance);
     final top = MediaQuery.maybePaddingOf(context)?.top ?? 0;
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final leading = widget.leading;
@@ -324,8 +324,8 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
                       top: 0,
                       leadingInset: widget.sideInset,
                       trailingInset: widget.sideInset,
-                      style: widget.style,
-                      menuStyle: widget.menuStyle,
+                      appearance: widget.appearance,
+                      menuAppearance: widget.menuAppearance,
                       menuTuning: widget.menuTuning,
                       menuOverlay: widget.menuOverlay,
                       onLayout: (layout) => _onLayout([
@@ -387,15 +387,15 @@ class _MorphNavigationBarState extends State<MorphNavigationBar>
           height: MorphScrollEdgeEffect.bandExtent(
             edge,
             extent,
-            MorphScrollEdgeEffectThemeData.resolve(
+            MorphScrollEdgeEffectAppearance.resolve(
               context,
-              widget.edgeEffectTheme,
+              widget.edgeEffectAppearance,
             ),
           ),
           child: MorphScrollEdgeEffect.driven(
             extent: extent,
             style: edge,
-            theme: widget.edgeEffectTheme,
+            appearance: widget.edgeEffectAppearance,
             opacity: () => _motion.edgeOpacity,
             repaint: frames,
           ),
@@ -566,17 +566,17 @@ class _InlineTitleState extends State<_InlineTitle> {
 /// out or fully under, as UIKit does.
 class MorphLargeTitle extends StatelessWidget {
   /// Creates a large title.
-  const MorphLargeTitle(this.title, {this.style, super.key});
+  const MorphLargeTitle(this.title, {this.appearance, super.key});
 
   /// The title.
   final String title;
 
   /// The look; null resolves it from the theme.
-  final MorphBarStyle? style;
+  final MorphBarAppearance? appearance;
 
   @override
   Widget build(BuildContext context) {
-    final look = MorphBarStyle.resolve(context, style);
+    final look = MorphBarAppearance.resolve(context, appearance);
     return Semantics(
       header: true,
       child: SizedBox(

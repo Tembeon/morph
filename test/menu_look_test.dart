@@ -70,7 +70,7 @@ void main() {
     expect(_titleStyle(tester, 'Copy').color, const Color(0xF5FFFFFF));
     expect(
       _titleStyle(tester, 'Delete').color,
-      MorphMenuStyle.dark.destructiveColor,
+      MorphMenuAppearance.dark.destructiveColor,
     );
   });
 
@@ -80,7 +80,7 @@ void main() {
         theme: ThemeData(
           extensions: [
             MorphWidgetsTheme(
-              menu: MorphMenuStyle.light.copyWith(
+              menu: MorphMenuAppearance.light.copyWith(
                 textStyle: const TextStyle(
                   fontSize: 15,
                   color: Color(0xFF123456),

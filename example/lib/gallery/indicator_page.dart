@@ -68,11 +68,11 @@ class _IndicatorPageState extends State<IndicatorPage>
               const SizedBox(height: 20),
               MorphProgressView(
                 value: _progress,
-                viewStyle: MorphProgressViewStyle.bar,
+                style: MorphProgressViewStyle.bar,
               ),
               const SizedBox(height: 16),
               MorphGlassContainer(
-                solidBackdrop: MorphListStyle.resolve(
+                solidBackdrop: MorphListAppearance.resolve(
                   context,
                   null,
                 ).backgroundColor,
@@ -107,7 +107,7 @@ class _IndicatorPageState extends State<IndicatorPage>
                 child: MorphPageControl(
                   count: 5,
                   page: _page,
-                  background: MorphPageControlBackground.prominent,
+                  backgroundStyle: MorphPageControlBackgroundStyle.prominent,
                   onChanged: (int p) => setState(() => _page = p),
                 ),
               ),
@@ -128,7 +128,7 @@ class _IndicatorPageState extends State<IndicatorPage>
               ),
               const GalleryCaption('Activity indicators'),
               MorphGlassContainer(
-                solidBackdrop: MorphListStyle.resolve(
+                solidBackdrop: MorphListAppearance.resolve(
                   context,
                   null,
                 ).backgroundColor,

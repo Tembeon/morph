@@ -34,9 +34,9 @@ enum MorphDatePickerMode {
 
 /// The look of a [MorphDatePicker] and its overlay.
 @immutable
-class MorphDatePickerStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphDatePickerStyle({
+class MorphDatePickerAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphDatePickerAppearance({
     this.labelFillColor = const Color(0x1F767680),
     this.labelColor = const Color(0xFF000000),
     this.accentColor = const Color(0xFF0088FF),
@@ -123,14 +123,14 @@ class MorphDatePickerStyle {
   final double unavailableDayOpacity;
 
   /// The light appearance.
-  static const light = MorphDatePickerStyle();
+  static const light = MorphDatePickerAppearance();
 
   /// The dark appearance.
   ///
   /// The overlay's platter is the dark menu's material: over black the
   /// native overlay reads 32 gray on the iPhone 16 Pro film, as the native
   /// menu does.
-  static const dark = MorphDatePickerStyle(
+  static const dark = MorphDatePickerAppearance(
     labelFillColor: Color(0x3D767680),
     labelColor: Color(0xFFFFFFFF),
     accentColor: Color(0xFF0091FF),
@@ -149,10 +149,10 @@ class MorphDatePickerStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphDatePickerStyle resolve(
+  static MorphDatePickerAppearance resolve(
     BuildContext context,
-    MorphDatePickerStyle? explicit,
-  ) => morphResolveStyle(
+    MorphDatePickerAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.datePicker,
@@ -282,7 +282,7 @@ class MorphDatePicker extends StatefulWidget {
     this.use24HourFormat,
     this.firstDayOfWeek = DateTime.sunday,
     this.today,
-    this.style,
+    this.appearance,
     this.semanticLabel,
     this.localize,
     this.calendarTitleFormatter,
@@ -328,7 +328,7 @@ class MorphDatePicker extends StatefulWidget {
   final DateTime? today;
 
   /// The look; null resolves it from the theme.
-  final MorphDatePickerStyle? style;
+  final MorphDatePickerAppearance? appearance;
 
   /// The label screen readers announce before the value.
   final String? semanticLabel;
@@ -442,7 +442,7 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
                 : MorphDatePickerTuning.timeLabelHeight,
             open: _open == parts[i].$1,
             enabled: _enabled,
-            style: widget.style,
+            style: widget.appearance,
             semanticLabel: widget.semanticLabel,
             onOpen: (BuildContext anchor) => _show(parts[i].$1, anchor),
           ),
@@ -468,7 +468,7 @@ class _CompactLabel extends StatefulWidget {
   final double height;
   final bool open;
   final bool enabled;
-  final MorphDatePickerStyle? style;
+  final MorphDatePickerAppearance? style;
   final String? semanticLabel;
   final void Function(BuildContext anchor) onOpen;
 
@@ -524,7 +524,7 @@ class _CompactLabelState extends State<_CompactLabel>
 
   @override
   Widget build(BuildContext context) {
-    final style = MorphDatePickerStyle.resolve(context, widget.style);
+    final style = MorphDatePickerAppearance.resolve(context, widget.style);
     final scaler = MediaQuery.textScalerOf(context).clamp(maxScaleFactor: 2);
     final label = widget.semanticLabel;
     return MorphControlFocus(
@@ -900,7 +900,7 @@ class _OverlayViewState extends State<_OverlayView>
       a.lastDate == b.lastDate &&
       a.firstDayOfWeek == b.firstDayOfWeek &&
       a.today == b.today &&
-      a.style == b.style &&
+      a.appearance == b.appearance &&
       a.localize == b.localize &&
       a.numberFormatter == b.numberFormatter &&
       a.calendarTitleFormatter == b.calendarTitleFormatter &&
@@ -969,7 +969,10 @@ class _OverlayViewState extends State<_OverlayView>
   Widget build(BuildContext context) {
     _shown = _picker;
     _shownTwentyFour = _route.picker._twentyFour;
-    final style = MorphDatePickerStyle.resolve(context, _picker.style);
+    final style = MorphDatePickerAppearance.resolve(
+      context,
+      _picker.appearance,
+    );
     final media = MediaQuery.of(context);
     final direction = Directionality.maybeOf(context) ?? TextDirection.ltr;
     final glass = MorphGlass.maybeOf(context);
@@ -1127,7 +1130,7 @@ class _OverlayViewState extends State<_OverlayView>
   Widget _box({
     required MorphDatePickerPlacement target,
     required MorphDatePickerPlacement? source,
-    required MorphDatePickerStyle style,
+    required MorphDatePickerAppearance style,
     required MorphGlassPainter? glass,
     required Brightness brightness,
     required Widget child,
@@ -1329,7 +1332,7 @@ class _OverlayPainter extends CustomPainter {
   }) : super(repaint: repaint);
 
   final _BoxFrame Function() frame;
-  final MorphDatePickerStyle style;
+  final MorphDatePickerAppearance style;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1454,7 +1457,7 @@ class _Calendar extends StatelessWidget {
   final DateTime? firstDate;
   final DateTime? lastDate;
   final DateTime today;
-  final MorphDatePickerStyle style;
+  final MorphDatePickerAppearance style;
   final ValueChanged<DateTime> onPick;
   final ValueChanged<int> onTurn;
   final VoidCallback onTitle;
@@ -1914,7 +1917,7 @@ Widget _day({
   required bool selected,
   required bool today,
   required bool enabled,
-  required MorphDatePickerStyle style,
+  required MorphDatePickerAppearance style,
   required VoidCallback onTap,
 }) {
   final color = switch ((selected, today)) {
@@ -2220,7 +2223,7 @@ const Curve _wheelStepCurve = Cubic(0.25, 0.1, 0.25, 1);
 /// cylinder's edges.
 Widget _wheel({
   required _WheelGeometry geometry,
-  required MorphDatePickerStyle style,
+  required MorphDatePickerAppearance style,
   required FixedExtentScrollController controller,
   required int count,
   required String Function(int) text,
@@ -2291,7 +2294,7 @@ Widget _wheel({
 }
 
 /// The band behind a picker's selected row: a capsule across the wheels.
-Widget _wheelBand(MorphDatePickerStyle style) => DecoratedBox(
+Widget _wheelBand(MorphDatePickerAppearance style) => DecoratedBox(
   decoration: ShapeDecoration(
     color: style.wheelBandColor,
     shape: const StadiumBorder(),
@@ -2316,7 +2319,7 @@ class _TimeWheels extends StatefulWidget {
   final DateTime? lastDate;
   final String Function(String)? localize;
   final String Function(int)? numberFormatter;
-  final MorphDatePickerStyle style;
+  final MorphDatePickerAppearance style;
   final ValueChanged<DateTime> onChanged;
 
   @override
@@ -2564,7 +2567,7 @@ class _MonthYearWheels extends StatefulWidget {
   final DateTime? lastDate;
   final String Function(String)? localize;
   final String Function(int)? numberFormatter;
-  final MorphDatePickerStyle style;
+  final MorphDatePickerAppearance style;
   final void Function(int year, int month) onChanged;
 
   @override

@@ -468,7 +468,7 @@ void main() {
       );
       expect(find.text('October 2026'), findsOneWidget);
       final label = tester.widget<Text>(find.text('Oct 3, 2026'));
-      expect(label.style?.color, MorphDatePickerStyle.light.accentColor);
+      expect(label.style?.color, MorphDatePickerAppearance.light.accentColor);
       await tester.tap(find.text('15'));
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
@@ -512,7 +512,7 @@ void main() {
       );
       expect(find.text('October 2026'), findsOneWidget);
       final label = tester.widget<Text>(find.text('Oct 3, 2026'));
-      expect(label.style?.color, MorphDatePickerStyle.light.accentColor);
+      expect(label.style?.color, MorphDatePickerAppearance.light.accentColor);
       await tester.tapAt(const Offset(220, 900));
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
@@ -784,7 +784,7 @@ void main() {
         textScale: 2,
       );
       final label = tester.widget<Text>(find.text('Oct 3, 2026'));
-      expect(label.style?.color, MorphDatePickerStyle.dark.labelColor);
+      expect(label.style?.color, MorphDatePickerAppearance.dark.labelColor);
       await tester.tap(find.byType(MorphDatePicker));
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
@@ -864,16 +864,16 @@ void main() {
       );
       expect(
         _dayCell(tester, '15', 'fill'),
-        MorphDatePickerStyle.light.selectedDayFillColor,
+        MorphDatePickerAppearance.light.selectedDayFillColor,
       );
       expect(
         _dayCell(tester, '3', 'fill'),
-        MorphDatePickerStyle.light.todayFillColor,
+        MorphDatePickerAppearance.light.todayFillColor,
       );
       final text = tester.widget<Text>(find.text('15'));
       expect(
         text.style?.color,
-        MorphDatePickerStyle.light.selectedDayTextColor,
+        MorphDatePickerAppearance.light.selectedDayTextColor,
       );
     });
 
@@ -921,9 +921,9 @@ void main() {
       expect(find.text('October 2026'), findsNothing);
       expect(find.byType(ListWheelScrollView), findsNWidgets(2));
       final label = tester.widget<Text>(find.text('07:41').first);
-      expect(label.style?.color, MorphDatePickerStyle.light.accentColor);
+      expect(label.style?.color, MorphDatePickerAppearance.light.accentColor);
       final date = tester.widget<Text>(find.text('Oct 3, 2026'));
-      expect(date.style?.color, MorphDatePickerStyle.light.labelColor);
+      expect(date.style?.color, MorphDatePickerAppearance.light.labelColor);
       await tester.tapAt(const Offset(201, 800));
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
@@ -1247,7 +1247,7 @@ void main() {
       await tester.pump();
       expect(find.byType(ListWheelScrollView), findsNWidgets(2));
       final accent = tester.widget<Text>(find.text('October 2026'));
-      expect(accent.style?.color, MorphDatePickerStyle.light.accentColor);
+      expect(accent.style?.color, MorphDatePickerAppearance.light.accentColor);
       await tester.pumpAndSettle(
         const Duration(milliseconds: 100),
         EnginePhase.sendSemanticsUpdate,
@@ -1288,7 +1288,7 @@ void main() {
       expect(find.byType(ListWheelScrollView), findsNothing);
       expect(find.bySemanticsLabel('Show year picker'), findsOneWidget);
       final label = tester.widget<Text>(find.text('October 2026'));
-      expect(label.style?.color, MorphDatePickerStyle.light.titleColor);
+      expect(label.style?.color, MorphDatePickerAppearance.light.titleColor);
     });
 
     testWidgets('the change runs 0.25 s after UIKit\'s delay', (tester) async {

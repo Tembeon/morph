@@ -80,9 +80,9 @@ abstract final class MorphListMetrics {
 /// The colors are the iOS 27 system colors the table resolves (probe
 /// scene `list`, light and dark).
 @immutable
-class MorphListStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphListStyle({
+class MorphListAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphListAppearance({
     this.backgroundColor = const Color(0xFFF2F2F7),
     this.cellColor = const Color(0xFFFFFFFF),
     this.highlightColor = const Color(0xFFD1D1D6),
@@ -121,10 +121,10 @@ class MorphListStyle {
   final Color iconColor;
 
   /// The light appearance.
-  static const light = MorphListStyle();
+  static const light = MorphListAppearance();
 
   /// The dark appearance.
-  static const dark = MorphListStyle(
+  static const dark = MorphListAppearance(
     backgroundColor: Color(0xFF000000),
     cellColor: Color(0xFF1C1C1E),
     highlightColor: Color(0xFF3A3A3C),
@@ -137,10 +137,10 @@ class MorphListStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphListStyle resolve(
+  static MorphListAppearance resolve(
     BuildContext context,
-    MorphListStyle? explicit,
-  ) => morphResolveStyle(
+    MorphListAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.list,
@@ -148,8 +148,8 @@ class MorphListStyle {
     dark: dark,
   );
 
-  /// Copies this style with the given colors replaced.
-  MorphListStyle copyWith({
+  /// Copies this appearance with the given colors replaced.
+  MorphListAppearance copyWith({
     Color? backgroundColor,
     Color? cellColor,
     Color? highlightColor,
@@ -158,7 +158,7 @@ class MorphListStyle {
     Color? secondaryColor,
     Color? chevronColor,
     Color? iconColor,
-  }) => MorphListStyle(
+  }) => MorphListAppearance(
     backgroundColor: backgroundColor ?? this.backgroundColor,
     cellColor: cellColor ?? this.cellColor,
     highlightColor: highlightColor ?? this.highlightColor,
@@ -171,7 +171,7 @@ class MorphListStyle {
 
   @override
   bool operator ==(Object other) =>
-      other is MorphListStyle &&
+      other is MorphListAppearance &&
       other.backgroundColor == backgroundColor &&
       other.cellColor == cellColor &&
       other.highlightColor == highlightColor &&
@@ -229,7 +229,7 @@ class MorphListSection extends StatelessWidget {
     required this.children,
     this.header,
     this.footer,
-    this.style,
+    this.appearance,
     super.key,
   });
 
@@ -243,11 +243,11 @@ class MorphListSection extends StatelessWidget {
   final String? footer;
 
   /// The look; null resolves it from the theme.
-  final MorphListStyle? style;
+  final MorphListAppearance? appearance;
 
   @override
   Widget build(BuildContext context) {
-    final look = MorphListStyle.resolve(context, style);
+    final look = MorphListAppearance.resolve(context, appearance);
     final header = this.header;
     final footer = this.footer;
     return RepaintBoundary(
@@ -340,7 +340,7 @@ class _RowPlace extends InheritedWidget {
   });
 
   final bool last;
-  final MorphListStyle style;
+  final MorphListAppearance style;
 
   static _RowPlace? of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_RowPlace>();
@@ -385,7 +385,7 @@ class MorphListRow extends StatefulWidget {
     this.child,
     this.onTap,
     this.enabled = true,
-    this.style,
+    this.appearance,
     super.key,
   }) : assert(
          title != null || child != null,
@@ -422,7 +422,7 @@ class MorphListRow extends StatefulWidget {
   final bool enabled;
 
   /// The look; null takes the enclosing section's, then the theme's.
-  final MorphListStyle? style;
+  final MorphListAppearance? appearance;
 
   @override
   State<MorphListRow> createState() => _MorphListRowState();
@@ -448,7 +448,9 @@ class _MorphListRowState extends State<MorphListRow> {
   Widget build(BuildContext context) {
     final place = _RowPlace.of(context);
     final look =
-        widget.style ?? place?.style ?? MorphListStyle.resolve(context, null);
+        widget.appearance ??
+        place?.style ??
+        MorphListAppearance.resolve(context, null);
     final titleStyle = MorphTypography.resolve(
       MorphTypography.body.copyWith(color: look.titleColor),
     );

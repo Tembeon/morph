@@ -15,9 +15,9 @@ import 'package:morph/src/widgets/press.dart';
 /// divider a 1 x 24 point tertiaryLabel line, a half at its limit draws its
 /// glyph in tertiaryLabel.
 @immutable
-class MorphStepperStyle {
-  /// Creates a style; the defaults are the iOS light appearance.
-  const MorphStepperStyle({
+class MorphStepperAppearance {
+  /// Creates an appearance; the defaults are the iOS light appearance.
+  const MorphStepperAppearance({
     this.backgroundColor = const Color(0x163C3C43),
     this.foregroundColor = const Color(0xFF000000),
     this.limitForegroundColor = const Color(0x4C3C3C43),
@@ -53,10 +53,10 @@ class MorphStepperStyle {
   final double dividerHeight;
 
   /// The light appearance.
-  static const light = MorphStepperStyle();
+  static const light = MorphStepperAppearance();
 
   /// The dark appearance.
-  static const dark = MorphStepperStyle(
+  static const dark = MorphStepperAppearance(
     backgroundColor: Color(0x14EBEBF5),
     foregroundColor: Color(0xFFFFFFFF),
     limitForegroundColor: Color(0x4CEBEBF5),
@@ -66,10 +66,10 @@ class MorphStepperStyle {
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphStepperStyle resolve(
+  static MorphStepperAppearance resolve(
     BuildContext context,
-    MorphStepperStyle? explicit,
-  ) => morphResolveStyle(
+    MorphStepperAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.stepper,
@@ -105,7 +105,7 @@ class MorphStepper extends StatefulWidget {
     this.step = 1,
     this.backgroundColor,
     this.foregroundColor,
-    this.style,
+    this.appearance,
     this.decrementLabel = 'Decrement',
     this.incrementLabel = 'Increment',
     this.semanticValueFormatter,
@@ -128,14 +128,14 @@ class MorphStepper extends StatefulWidget {
   /// How much one step changes the value.
   final double step;
 
-  /// The fill of the control, overriding [style].
+  /// The fill of the control, overriding [appearance].
   final Color? backgroundColor;
 
-  /// The color of the minus and plus glyphs, overriding [style].
+  /// The color of the minus and plus glyphs, overriding [appearance].
   final Color? foregroundColor;
 
   /// The look of the stepper; null resolves it from the theme.
-  final MorphStepperStyle? style;
+  final MorphStepperAppearance? appearance;
 
   /// The label screen readers announce for the minus half.
   final String decrementLabel;
@@ -273,7 +273,7 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
       oldWidget.backgroundColor == widget.backgroundColor &&
       oldWidget.foregroundColor == widget.foregroundColor &&
-      oldWidget.style == widget.style &&
+      oldWidget.appearance == widget.appearance &&
       oldWidget.decrementLabel == widget.decrementLabel &&
       oldWidget.incrementLabel == widget.incrementLabel &&
       oldWidget.semanticValueFormatter == widget.semanticValueFormatter;
@@ -281,7 +281,7 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
   @override
   Widget buildControl(BuildContext context) {
     final enabled = widget.onChanged != null;
-    final style = MorphStepperStyle.resolve(context, widget.style);
+    final style = MorphStepperAppearance.resolve(context, widget.appearance);
     final background = widget.backgroundColor ?? style.backgroundColor;
     final glass = MorphGlass.maybeOf(context);
     const size = MorphStepper.size;

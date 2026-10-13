@@ -65,14 +65,14 @@ class _GalleryAppState extends State<GalleryApp> {
 
   static ThemeData _theme(Brightness brightness) {
     final list = switch (brightness) {
-      Brightness.light => MorphListStyle.light,
-      Brightness.dark => MorphListStyle.dark,
+      Brightness.light => MorphListAppearance.light,
+      Brightness.dark => MorphListAppearance.dark,
     };
     final edge = switch (brightness) {
-      Brightness.light => MorphScrollEdgeEffectThemeData(
+      Brightness.light => MorphScrollEdgeEffectAppearance(
         backgroundColor: list.backgroundColor,
       ),
-      Brightness.dark => MorphScrollEdgeEffectThemeData.dark,
+      Brightness.dark => MorphScrollEdgeEffectAppearance.dark,
     };
     return ThemeData(
       brightness: brightness,
@@ -153,18 +153,18 @@ class _GalleryChrome extends StatelessWidget {
 
 /// The grouped background of a gallery page: iOS systemGroupedBackground.
 Color galleryBackgroundColor(Brightness brightness) => switch (brightness) {
-  Brightness.light => MorphListStyle.light.backgroundColor,
-  Brightness.dark => MorphListStyle.dark.backgroundColor,
+  Brightness.light => MorphListAppearance.light.backgroundColor,
+  Brightness.dark => MorphListAppearance.dark.backgroundColor,
 };
 
 /// The fill of a grouped card on a gallery page: iOS
 /// secondarySystemGroupedBackground.
 Color galleryCardColor(BuildContext context) =>
-    MorphListStyle.resolve(context, null).cellColor;
+    MorphListAppearance.resolve(context, null).cellColor;
 
 /// The secondary text of a gallery page: iOS secondaryLabel.
 Color gallerySecondaryColor(BuildContext context) =>
-    MorphListStyle.resolve(context, null).secondaryColor;
+    MorphListAppearance.resolve(context, null).secondaryColor;
 
 /// One screen of the gallery: a [MorphNavigationScaffold] on the grouped
 /// background whose navigation bar ends with the slow-motion button.
@@ -259,7 +259,7 @@ class _GalleryPageState extends State<GalleryPage> {
       edgeEffect: widget.edgeEffect,
       backgroundColor:
           widget.backgroundColor ??
-          MorphListStyle.resolve(context, null).backgroundColor,
+          MorphListAppearance.resolve(context, null).backgroundColor,
       slivers: widget.slivers,
     );
   }

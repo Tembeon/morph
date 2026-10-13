@@ -142,7 +142,7 @@ void main() {
       tester.getCenter(find.text('Row')),
     );
     await tester.pump(const Duration(milliseconds: 200));
-    expect(fill('Row'), MorphListStyle.light.highlightColor);
+    expect(fill('Row'), MorphListAppearance.light.highlightColor);
     await gesture.up();
     await tester.pump();
     expect(fill('Row'), isNull);
@@ -235,7 +235,7 @@ void main() {
             ),
           )
           .color,
-      MorphListStyle.dark.cellColor,
+      MorphListAppearance.dark.cellColor,
     );
     expect(
       tester
@@ -248,9 +248,9 @@ void main() {
           .text
           .style
           ?.color,
-      MorphListStyle.dark.titleColor,
+      MorphListAppearance.dark.titleColor,
     );
-    const custom = MorphListStyle(cellColor: Color(0xFF123456));
+    const custom = MorphListAppearance(cellColor: Color(0xFF123456));
     await _pump(
       tester,
       const MorphListSection(children: [MorphListRow(title: Text('A'))]),
@@ -296,7 +296,7 @@ void main() {
         .style!;
     expect(style.fontSize, 17);
     expect(style.decoration, isNot(TextDecoration.underline));
-    expect(style.color, MorphBarStyle.light.titleColor);
+    expect(style.color, MorphBarAppearance.light.titleColor);
   });
 
   testWidgets('a section paints in its own repaint boundary', (tester) async {

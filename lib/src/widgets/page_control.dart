@@ -12,10 +12,10 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphPageControl].
 @immutable
-class MorphPageControlStyle {
-  /// Creates a style; the defaults are UIKit's page indicator colors,
+class MorphPageControlAppearance {
+  /// Creates an appearance; the defaults are UIKit's page indicator colors,
   /// meant for content behind the control.
-  const MorphPageControlStyle({
+  const MorphPageControlAppearance({
     this.indicatorColor = const Color(0x73FFFFFF),
     this.currentIndicatorColor = const Color(0xFFFFFFFF),
     this.platterColor = const Color(0xFFF0F0F2),
@@ -35,20 +35,20 @@ class MorphPageControlStyle {
   final Color platterIndicatorColor;
 
   /// The light appearance, as the simulator renders it.
-  static const light = MorphPageControlStyle();
+  static const light = MorphPageControlAppearance();
 
   /// The dark appearance, as the simulator renders it.
-  static const dark = MorphPageControlStyle(
+  static const dark = MorphPageControlAppearance(
     platterColor: Color(0xFF1F1F1F),
     platterIndicatorColor: Color(0x4DFFFFFF),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
   /// table for the ambient brightness.
-  static MorphPageControlStyle resolve(
+  static MorphPageControlAppearance resolve(
     BuildContext context,
-    MorphPageControlStyle? explicit,
-  ) => morphResolveStyle(
+    MorphPageControlAppearance? explicit,
+  ) => morphResolveAppearance(
     context,
     explicit,
     themed: (theme) => theme.pageControl,
@@ -59,7 +59,7 @@ class MorphPageControlStyle {
 
 /// When a [MorphPageControl] shows its platter, after
 /// UIPageControl.BackgroundStyle.
-enum MorphPageControlBackground {
+enum MorphPageControlBackgroundStyle {
   /// Only while the user interacts with the control.
   automatic,
 
@@ -100,7 +100,7 @@ abstract final class MorphPageControlTuning {
 
   /// Seconds a touch rests on the control before its platter shows (and
   /// the dots take the platter's colors) under
-  /// [MorphPageControlBackground.automatic]: 0.19 - 0.2 s on an iPhone 16
+  /// [MorphPageControlBackgroundStyle.automatic]: 0.19 - 0.2 s on an iPhone 16
   /// Pro at 120 Hz (the 60 Hz simulator read 0.2).
   static const double platterDelay = 0.193;
 
@@ -355,7 +355,7 @@ class MorphPageControlMotion {
 /// to the previous page, as UIKit's does. With [progress] the current
 /// indicator becomes a capsule whose fill shows how far the page has
 /// progressed (UIPageControlProgress); see [MorphPageControlMotion]. The
-/// platter behind the dots shows per [background].
+/// platter behind the dots shows per [backgroundStyle].
 ///
 /// The control is focusable: the arrows step through the pages; screen
 /// readers see an adjustable value "page n of count". In a right-to-left
@@ -367,8 +367,8 @@ class MorphPageControl extends StatefulWidget {
     required this.page,
     required this.onChanged,
     this.progress,
-    this.background = MorphPageControlBackground.automatic,
-    this.style,
+    this.backgroundStyle = MorphPageControlBackgroundStyle.automatic,
+    this.appearance,
     this.semanticLabel,
     this.semanticValueFormatter,
     super.key,
@@ -391,10 +391,10 @@ class MorphPageControl extends StatefulWidget {
   final double? progress;
 
   /// When the platter shows.
-  final MorphPageControlBackground background;
+  final MorphPageControlBackgroundStyle backgroundStyle;
 
   /// The look of the control; null resolves it from the theme.
-  final MorphPageControlStyle? style;
+  final MorphPageControlAppearance? appearance;
 
   /// The label screen readers announce for the control.
   final String? semanticLabel;
@@ -499,7 +499,10 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
 
   @override
   Widget buildControl(BuildContext context) {
-    final style = MorphPageControlStyle.resolve(context, widget.style);
+    final style = MorphPageControlAppearance.resolve(
+      context,
+      widget.appearance,
+    );
     final rtl = Directionality.maybeOf(context) == TextDirection.rtl;
     final count = _count;
     final page = _page;
@@ -532,10 +535,10 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
               motion: _motion,
               style: style,
               rtl: rtl,
-              platter: switch (widget.background) {
-                MorphPageControlBackground.prominent => true,
-                MorphPageControlBackground.minimal => false,
-                MorphPageControlBackground.automatic => null,
+              platter: switch (widget.backgroundStyle) {
+                MorphPageControlBackgroundStyle.prominent => true,
+                MorphPageControlBackgroundStyle.minimal => false,
+                MorphPageControlBackgroundStyle.automatic => null,
               },
               progress: widget.progress,
             ),
@@ -557,7 +560,7 @@ class _PageControlPainter extends CustomPainter {
   }) : super(repaint: frames);
 
   final MorphPageControlMotion motion;
-  final MorphPageControlStyle style;
+  final MorphPageControlAppearance style;
   final bool rtl;
   final bool? platter;
   final double? progress;

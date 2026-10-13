@@ -9,8 +9,8 @@ void main() {
   testWidgets('SDK Theme resolves extension, brightness and changes', (
     tester,
   ) async {
-    const custom = MorphStepperStyle(foregroundColor: Color(0xFF123456));
-    MorphStepperStyle? resolved;
+    const custom = MorphStepperAppearance(foregroundColor: Color(0xFF123456));
+    MorphStepperAppearance? resolved;
     Brightness? brightness;
     Widget scene({required bool dark}) => sdk.Theme(
       data: sdk.ThemeData(
@@ -19,7 +19,7 @@ void main() {
       ),
       child: Builder(
         builder: (context) {
-          resolved = MorphStepperStyle.resolve(context, null);
+          resolved = MorphStepperAppearance.resolve(context, null);
           brightness = morphBrightnessOf(context);
           return const SizedBox();
         },
@@ -35,10 +35,10 @@ void main() {
   testWidgets('nearest Material family wins and explicit style wins', (
     tester,
   ) async {
-    const outer = MorphStepperStyle(foregroundColor: Color(0xFF123456));
-    const inner = MorphStepperStyle(foregroundColor: Color(0xFF654321));
-    MorphStepperStyle? resolved;
-    MorphStepperStyle? explicit;
+    const outer = MorphStepperAppearance(foregroundColor: Color(0xFF123456));
+    const inner = MorphStepperAppearance(foregroundColor: Color(0xFF654321));
+    MorphStepperAppearance? resolved;
+    MorphStepperAppearance? explicit;
     await tester.pumpWidget(
       sdk.Theme(
         data: sdk.ThemeData.dark().copyWith(
@@ -50,8 +50,8 @@ void main() {
           ),
           child: Builder(
             builder: (context) {
-              resolved = MorphStepperStyle.resolve(context, null);
-              explicit = MorphStepperStyle.resolve(context, outer);
+              resolved = MorphStepperAppearance.resolve(context, null);
+              explicit = MorphStepperAppearance.resolve(context, outer);
               return const SizedBox();
             },
           ),
