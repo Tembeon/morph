@@ -143,8 +143,9 @@ of the morph container):
 
 ## Spec - finger dragged on and off the open menu [tuning + device, 2026-10-13]
 
-Mechanism confirmed live on the device; the derivation notes are kept
-privately, outside the repository.
+Mechanism confirmed live on the device; the equations, the spec numbers
+and the 40-point in-bounds term are read from UIKit, notes private (kept
+outside the repository).
 
 - It is `_UIFlexInteraction` in its menu variant (`preferredVariant` 5,
   spec `_UIFlexInteractionSpec.menu` = `MorphFlexSpec.menu`), attached by
@@ -217,10 +218,45 @@ privately, outside the repository.
     2s (the device's ~2.1x peaks). Continuous equivalent while the finger
     moves: x is a (1.148, 0.548) spring in wall time and v = 2 dx/dt; a
     held or lifted finger returns to the plain (0.574, 0.548) spring.
-- morph today (9d8f32c, `MorphMenuTuning.flex*`, `_flexAt`) is a fit to
-  `drag-out.jsonl` that predates this reading: its pull, release spring
-  (0.33/0.72 against UIKit's 0.6/0.5) and separate sway spring are
-  replaced by the above in the port plan of the audit.
+- morph (`MorphMenuTuning.flex`, `flexTargets`, `flexInBoundsPoints`,
+  `flexPulseSpring`, `flexPulseRate`, `flexPulseRetargetStep`,
+  `flexDelay`) ports the above; it replaces the fit of 9d8f32c (pull,
+  0.33/0.72 return, separate sway spring):
+  - origin = the touch-down on the open menu (a finger that opened the
+    menu by holding: where it was when it first moved on the open menu);
+    the channel is reset to (0, 0) there and its velocity zeroed at the
+    lift. W, H, the clamp bounds and the side come from the menu's rest
+    frame.
+  - while the finger is down the shape IS the targets (UIKit's
+    presentation is within about one frame) [APPROXIMATION, measured];
+    after the lift each of sx, sy, dx, dy returns on 0.6/0.5 from what
+    shows, with the rate its targets last changed at as velocity (zero
+    once they stood still for 1.5 of their last change spans).
+  - flexDelay 0.023 s = touch stamp to the flex's translation (14.4 /
+    15.9 ms median in drag-out-flex / the tap capture) plus the one
+    120 Hz frame the list's frame follows it by [device].
+  - the translationY clock is the observed rule above as a LABELED
+    APPROXIMATION: 30 steps a second counted from the flex's touch-down,
+    a changed target advances 1/60 s, an unchanged one the time that
+    passed. UIKit's rule for choosing the target and step from touches
+    alone is not frozen (rates other than 120 Hz and Reduce Motion are
+    unknown). No global time halving, no velocity factor.
+  - NEAR, awaiting approval by eye: while the finger rests the channel
+    stops stepping once its largest possible remaining swing cannot move
+    an edge by 0.25 pt (`flexPulseRest`, the old sway's rest; perf_counts
+    menu-held 224 frames, 238 at 0.01 pt). NEAR (invisible): the return
+    counts as at rest below 0.01 pt (`flexReturnRest`).
+  - Perf: a menu frame whose motion stood still since the previous one,
+    with no input or pending reaction in between, does not repaint the
+    menu layer (`MorphMenuMotion.revision` / `isStill`); between two
+    channel steps a resting finger draws nothing new.
+  - Input-only replay (touches in, list frame out; menu_drag_out_test),
+    pt rms over the four edges: drag-out-flex up 0.20, down 0.26, left
+    0.12, right 0.09; drag-out-upward-flex up 0.26, down 0.16; tap
+    capture 0.21 / 0.22; after the lifts alone 0.24 / 0.25 / 0.22 (0.45 -
+    0.49 with a return from rest). Holdout `drag-out.jsonl` (drawn
+    frames, the capture 9d8f32c was fitted to): 0.24 / 0.24 / 0.12 /
+    0.14 against the fit's 0.40 / 0.36 / 0.17 / 0.17.
 - CONTENT rides the flex 1:1 (`MorphMenuMotion.contentStretch`): rows,
   icons, the highlight, headers, the glow and submenu cards take the one
   affine map from the unflexed shape onto the flexed one, as UIKit

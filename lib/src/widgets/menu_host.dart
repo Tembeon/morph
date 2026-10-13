@@ -363,8 +363,26 @@ class MorphMenuController implements MorphMenuHost {
         : 0;
     _prebuilt.value = (_prebuildCount, _prebuildCount == 0 ? null : layout);
     _syncPrebuild();
-    _repaint.value++;
+    final revision = motion.revision;
+    final still = motion.isStill;
+    final same =
+        identical(motion, _drawnMotion) &&
+        revision == _drawnRevision &&
+        _drawnStill &&
+        still;
+    _drawnMotion = motion;
+    _drawnRevision = revision;
+    _drawnStill = still;
+    if (!same) _repaint.value++;
   }
+
+  // A frame whose motion stood still since the previous one, with no input
+  // or pending reaction in between, shows the same picture: it paints
+  // nothing (a finger resting on the open menu between two steps of its
+  // flex pulse, MorphMenuTuning.flexPulseRate).
+  MorphMenuMotion? _drawnMotion;
+  int _drawnRevision = -1;
+  bool _drawnStill = false;
 
   Offset _local(Offset global) {
     final box = _overlay?.context.findRenderObject();
