@@ -300,7 +300,7 @@ def dart_hot(samples, period_us, intervals):
             continue
         n += 1
         leaf[stack[0][0]] += 1
-        for name in {name for name, mine in stack if mine}:
+        for name in {name for name, mine in stack if mine in (True, 'morph')}:
             own[name] += 1
     ms = (period_us or 250) / 1000
     return {
@@ -308,6 +308,23 @@ def dart_hot(samples, period_us, intervals):
         'morph_inclusive_ms': {k: round(v * ms, 1) for k, v in own.most_common(8)},
         'self_ms': {k: round(v * ms, 1) for k, v in leaf.most_common(8)},
     }
+
+
+def owner_split(samples, period_us, intervals):
+    """Ms of the samples inside intervals (us) by the nearest owned frame
+    above the leaf: the package, the app, or the framework alone."""
+    intervals = sorted(intervals)
+    starts = [a for a, _ in intervals]
+    split = collections.Counter()
+    for ts, stack in samples:
+        i = bisect.bisect_right(starts, ts) - 1
+        if i < 0 or ts >= intervals[i][1] or not stack:
+            continue
+        # The bench's own binding sits under every frame; it owns nothing.
+        owner = next((mine for _, mine in stack if mine and mine != 'bench'), None)
+        split[{True: 'morph', None: 'framework'}.get(owner, owner)] += 1
+    ms = (period_us or 250) / 1000
+    return {k: v * ms for k, v in split.items()}
 
 
 def analyze(path, cpu=None, report=None):
@@ -508,6 +525,11 @@ def analyze(path, cpu=None, report=None):
             normal = [w for w in us if w[1] - w[0] <= 4 * budget_ms * 1000]
             dart = dart_hot(cpu['samples'], cpu.get('period_us'), normal)
             dart['over'] = bool(ui_bad)
+            every = [((a - offset) / 1000, (b - offset) / 1000) for a, b in ui_all]
+            split = owner_split(cpu['samples'], cpu.get('period_us'), every)
+            dart['ui_split_ms_per_frame'] = {
+                k: round(split.get(k, 0) / max(1, len(every)), 2)
+                for k in ('morph', 'app', 'framework')}
             dart['stalls'] = [
                 {'ms': round((b - a) / 1000, 1),
                  **dart_hot(cpu['samples'], cpu.get('period_us'), [(a, b)])}

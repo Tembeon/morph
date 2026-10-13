@@ -260,7 +260,10 @@ class DartSampler(threading.Thread):
     """Polls the main isolate's CPU samples over the VM service every 2 s
     (the VM keeps them in a ring buffer) and keeps each as its timeline
     timestamp (CLOCK_MONOTONIC us) and its stack of function names, leaf
-    first, marked with whether the function is the package's own."""
+    first, marked with its owner: the package (morph), the gallery (app),
+    the bench itself (bench) or none."""
+
+    lib = os.path.join(ROOT, 'lib') + '/'
 
     def __init__(self, url):
         super().__init__(daemon=True)
@@ -287,9 +290,12 @@ class DartSampler(threading.Thread):
             fn = f.get('function', {})
             owner = (fn.get('owner') or {}).get('name')
             name = f'{owner}.{fn.get("name")}' if owner and owner != fn.get('name') else fn.get('name')
-            url = (f.get('resolvedUrl') or ((fn.get('location') or {}).get('script') or {}).get('uri')
-                   or '')
-            names.append((name or '?', 'package:morph/' in url or '/morph/lib/' in url))
+            url = ' '.join(filter(None, [
+                f.get('resolvedUrl'), ((fn.get('location') or {}).get('script') or {}).get('uri')]))
+            owner = ('bench' if 'morph_example/perf/' in url or '/example/lib/perf/' in url else
+                     'app' if 'package:morph_example/' in url or '/example/lib/' in url else
+                     'morph' if 'package:morph/' in url or self.lib in url else None)
+            names.append((name or '?', owner))
         for smp in data.get('samples', []):
             self.samples.append((smp['timestamp'], [names[i] for i in smp.get('stack', [])]))
         return now
@@ -417,6 +423,9 @@ def table(results, baseline):
             d = s['dart']
             lines.append(f'{"":34}   dart ({d["samples"]} samples): ' + ', '.join(
                 f'{k} {v:.0f}' for k, v in list(d['morph_inclusive_ms'].items())[:4]) + ' ms')
+        if split := s.get('dart', {}).get('ui_split_ms_per_frame'):
+            lines.append(f'{"":34}   ui by code (nearest owner, ms/frame): ' + ', '.join(
+                f'{k} {v:.2f}' for k, v in split.items()))
         if owners := s.get('ui_owners'):
             lines.append(f'{"":34}   ui by owner (self ms/frame): ' + ', '.join(
                 f'{k[:40]} {v:.2f}' for k, v in list(owners.items())[:6]))
@@ -474,6 +483,7 @@ def main():
     tiers = [t for t in o.tiers.split(',') if t]
     py = ensure_venv()
     src, sha = source(o.rev)
+    DartSampler.lib = os.path.join(src, 'lib') + '/'
     label = o.label or sha
     trace_dir = f'/tmp/morph-perf/bench/{label}'
     tag = ''.join(f'-{d}' for d in o.define).replace('=', '_')
