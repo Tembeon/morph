@@ -31,6 +31,11 @@ struct LabScenario: Decodable {
     /// every flex interaction under it (`lab_flex`); `every` seconds apart,
     /// at most `max` dumps, ivar graph `depth` levels deep.
     struct Dumps: Decodable { let every: Double?; let max: Int?; let depth: Int? }
+    /// The public-API animation tap (`AnimationTap`): per-frame layer
+    /// animations of the tracked views `depth` sublayer levels deep (plus
+    /// views whose class matches `class`), every `add(_:forKey:)` when
+    /// `added` and every started UIViewPropertyAnimator when `animators`.
+    struct Animations: Decodable { let depth: Int?; let added: Bool?; let animators: Bool?; let `class`: String? }
     let id: String
     let canvas: Canvas
     let appearance: String
@@ -40,6 +45,7 @@ struct LabScenario: Decodable {
     let marker: [Double]?
     let scroll: Bool?
     let dumps: Dumps?
+    let animations: Animations?
 
     static func environment() -> LabScenario? {
         guard let raw = ProcessInfo.processInfo.environment["PROBE_LAB_JSON"],
@@ -219,6 +225,7 @@ final class LabCapture: NSObject {
         link.add(to: .main, forMode: .common)
         self.link = link
         if spec.dumps != nil { logSpringDefaults() }
+        if let animations = spec.animations { AnimationTap.shared.start(animations) }
     }
 
     /// The defaults of a fresh `UIViewSpringAnimationBehaviorSettings`, the
@@ -269,8 +276,10 @@ final class LabCapture: NSObject {
         marker?.sequence = sequence & 65535
         Recorder.shared.log(["k": "lab_marker", "sequence": sequence & 65535, "t": link.targetTimestamp, "sample_t": link.timestamp])
         let all = views()
+        var trackedViews: [UIView] = []
         for track in spec.tracks {
             let found = all.filter { matches($0, track.native) }
+            trackedViews += found
             let selected = track.native.all == true ? Array(found.enumerated()) : found.enumerated().filter { $0.offset == (track.native.index ?? 0) }
             if selected.isEmpty { Recorder.shared.log(["k": "lab_missing", "id": track.id, "t": link.timestamp]) }
             for (index, view) in selected {
@@ -361,6 +370,7 @@ final class LabCapture: NSObject {
             }
         }
         if let dumps = spec.dumps { menuProbe(all, dumps: dumps, now: link.timestamp) }
+        if spec.animations != nil { AnimationTap.shared.poll(trackedViews, all: all, now: link.timestamp) }
         Recorder.shared.log(["k": "lab_tick", "t": link.timestamp, "cost_ms": (CACurrentMediaTime() - began) * 1000])
     }
 

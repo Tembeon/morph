@@ -183,10 +183,40 @@ privately, outside the repository.
 - Validation (`lab/menu_flex_model.py`, fixtures
   `ios27-device/menu/drag-out-flex.jsonl` and `drag-out-upward-flex.jsonl`):
   0.25 / 0.26 pt edge rms with UIKit's recorded translationY velocity and
-  no fitted constant. OPEN: a plain (0.574, 0.548) spring under-drives
-  that velocity (device peaks ~2.1x the finger speed, the spring ~1.1x;
-  0.77 / 0.86 pt, vertical ~1 pt). AnimationKit's low-refresh-rate
-  retarget is not reproduced yet.
+  no fitted constant; 0.25 / 0.27 / 0.30 pt with the stepped spring
+  below (`menu_flex_model.py FIXTURE stepped`, the third the tap capture),
+  0.77 / 0.86 / 0.91 pt with the same spring run in wall time.
+- translationY is a stepped spring, and its velocity runs 2x its
+  presentation rate while the finger moves [observed live on iOS 27.0.1
+  via the probe's animation tap; fixture
+  `ios27-device/menu/drag-out-animation-tap.jsonl`]:
+  - Nothing reaches Core Animation: on every finger move UIKit adds no
+    animation to any layer (no CABasic / CASpring, additive or not, no
+    UIViewPropertyAnimator). The only adds are the touch-down CAMatch*
+    corner / bounds animations of the flex glow container and SDF
+    elements; the open and close add only CAMatch* and CATransition
+    animations too. The flex is evaluated by UIKit itself and reaches the
+    layers as plain model values.
+  - The channel advances in whole 1/60 s steps and, while the finger is
+    down, publishes at 30 Hz (every fourth 120 Hz frame). An update whose
+    target g = t.y changed since the previous one (a retarget) advances
+    the spring by ONE step, h = 1/60 s, although 1/30 s has passed; an
+    update with an unchanged target (finger held) advances it by the two
+    steps that passed, h = 1/30 s. After the lift it runs in wall time.
+  - Equation, per update n: (x, v) <- S(x, v; g_n, h_n), with S the exact
+    solution over h_n of x'' = w^2 (g - x) - 2 z w x', w = 2 pi / 0.574,
+    z = 0.548; h_n = 1/60 when g_n != g_(n-1), else t_n - t_(n-1). One
+    step reproduces the recorded presentation and velocity to 0.01 pt and
+    0.1 pt/s on 104 of 105 retargets and all 61 held updates of the tap
+    capture (84 / 87 and 79 / 79 in `drag-out-upward-flex.jsonl`); the
+    misses are the update where the finger stops.
+  - The 2x: with updates every D = 1/30 s and h = 1/60, the spring's clock
+    runs at h / D = 1/2 of wall time. Its velocity v (the one the pulse
+    reads) is per spring second, so v = (D / h) dx/dt = 2 dx/dt. On a
+    finger ramp of speed s the presentation approaches s and v approaches
+    2s (the device's ~2.1x peaks). Continuous equivalent while the finger
+    moves: x is a (1.148, 0.548) spring in wall time and v = 2 dx/dt; a
+    held or lifted finger returns to the plain (0.574, 0.548) spring.
 - morph today (9d8f32c, `MorphMenuTuning.flex*`, `_flexAt`) is a fit to
   `drag-out.jsonl` that predates this reading: its pull, release spring
   (0.33/0.72 against UIKit's 0.6/0.5) and separate sway spring are

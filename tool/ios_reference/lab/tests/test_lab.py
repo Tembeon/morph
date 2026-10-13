@@ -14,6 +14,7 @@ from morph_lab.images import compare_pair, compare_transfer, decode_marker, gest
 from morph_lab.report import write_report
 from morph_lab.scenario import LabError, digest, validate
 from morph_lab.fitting import fit_spring
+import menu_flex_model
 
 
 SCENE = Path(__file__).parents[1] / "scenarios/button-press-drag.json"
@@ -83,6 +84,27 @@ class ScenarioTests(unittest.TestCase):
         scene["widgets"][0]["systemFooter"] = "unknown"
         with self.assertRaises(LabError):
             validate(scene)
+
+    def test_animation_tap_options_validate(self):
+        scene = copy.deepcopy(self.scene)
+        scene["animations"] = {"depth": 3, "added": False, "animators": True, "class": "_UIContextMenu"}
+        validate(scene)
+        for bad in ({"depth": -1}, {"added": "yes"}, {"class": 3}, {"frames": 2}, []):
+            scene["animations"] = bad
+            with self.assertRaises(LabError):
+                validate(scene)
+
+
+class MenuFlexTests(unittest.TestCase):
+    def test_stepped_translation_spring_replays_the_tap_capture(self):
+        fixture = Path(__file__).parents[4] / "test/fixtures/ios27-device/menu/drag-out-animation-tap.jsonl"
+        rows = [json.loads(line) for line in fixture.read_text().splitlines()]
+        rms = {}
+        for source in ("stepped", "spring"):
+            every = [e for values in menu_flex_model.replay(rows, source).values() for e in values]
+            rms[source] = (sum(e * e for e in every) / len(every)) ** 0.5
+        self.assertLess(rms["stepped"], 0.35)
+        self.assertGreater(rms["spring"], 2 * rms["stepped"])
 
 
 class AnalysisTests(unittest.TestCase):

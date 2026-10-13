@@ -134,7 +134,29 @@ interaction under an open context menu each frame (`lab_flex`: model,
 presentation and velocity of scaleX/scaleY/driftX/driftY/translationY,
 translation, internalTranslation, frame, anchor), object-graph dumps of
 the menu (`lab_dump`) and the defaults of a fresh
-`UIViewSpringAnimationBehaviorSettings` (`lab_spring_defaults`). `scalars` maps a channel name to a getter path; missing
+`UIViewSpringAnimationBehaviorSettings` (`lab_spring_defaults`).
+A top-level `animations` (`depth`, `added`, `animators`, `class`; off when
+absent) turns on the public-API animation tap (`Sources/AnimationTap.swift`):
+every lab tick it reads `animationKeys()` / `animation(forKey:)` on the
+layers of the tracked views and their sublayers `depth` levels down (default
+2; `class` adds views whose class matches the regex) and logs each new or
+changed animation as `lab_anim` with `src: poll` (and `src: gone` when a key
+disappears); with `added` (default true) it exchanges CALayer's
+`addAnimation:forKey:` for the run and logs every added animation on any
+layer as `lab_anim` `src: add`, with the host layer, time, thread and the
+model and presentation values of its keyPath at that moment; with
+`animators` (default true) it logs every started UIViewPropertyAnimator
+(`lab_animator`: duration, interruptible, scrubsLinearly, delay, state, the
+cubic control points or the spring's initialVelocity, plus the arguments of
+the public UISpringTimingParameters initializer it was built with). A row's
+`anim` holds the class, keyPath, beginTime, duration, speed, timeOffset,
+fillMode, timing-function control points, additive / cumulative,
+from / to / byValue, CASpringAnimation mass / stiffness / damping /
+initialVelocity / settlingDuration, keyframe values and group children.
+Only animations that go through Core Animation are visible: UIKit motion
+it evaluates in-process and writes as model values each frame (the iOS 27
+context menu's morph and flex) adds nothing. Example:
+`scenarios/menu-drag-out-animations.json`. `scalars` maps a channel name to a getter path; missing
 getters stay unobserved. Private runtime inspection belongs only to the
 reference probe. Flutter selectors use widget type, ValueKey, Text, ancestor
 key, index or all matches. `paintChild: true` includes a Transform's painted

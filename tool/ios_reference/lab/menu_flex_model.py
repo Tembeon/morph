@@ -4,7 +4,11 @@ Usage: python3 menu_flex_model.py FIXTURE [rec|spring]
 
 FIXTURE is test/fixtures/ios27-device/menu/drag-out{,-upward}-flex.jsonl.
 `rec` drives the pulse with UIKit's recorded translationY velocity, `spring`
-with the nominal spring UIKit declares for that channel (0.574 / 0.548).
+with the nominal spring UIKit declares for that channel (0.574 / 0.548) run
+in wall time, `stepped` with that spring as UIKit steps it while the finger
+is down: the channel updates at 30 Hz and an update that retargets (the
+finger moved) advances the spring by a fixed 1/60 s, an update that does not
+by the elapsed time (observed live on iOS 27.0.1, menu-button.md).
 The derivation notes are kept privately, outside the repository.
 """
 import json
@@ -20,6 +24,8 @@ PULSE_DRIFT = 0.7
 MIN_SCALE, MAX_SCALE = 0.9, 1.1
 RELEASE = (0.6, 0.5)
 TRANSLATION_Y = (0.574, 0.548)
+TRACKING_UPDATE = 1 / 30
+RETARGET_STEP = 1 / 60
 
 
 def targets(tx, ty, itx, ity, w, h, velocity, ay):
@@ -51,6 +57,7 @@ def replay(rows, source):
     state = [1.0, 1.0, 0.0, 0.0]
     speed = [0.0] * 4
     ty_x = ty_v = 0.0
+    ty_goal = ty_at = None
     rest = None
     ay = 1.0
     drag = 0
@@ -67,6 +74,7 @@ def replay(rows, source):
                 active = True
                 drag += 1
                 ty_x = ty_v = 0.0
+                ty_goal, ty_at = 0.0, t
                 rest = row["frame"]
                 # +1: the menu hangs below its button (captures put it in the
                 # upper half), -1: above it.
@@ -75,6 +83,12 @@ def replay(rows, source):
             itx, ity = row["internalTranslation"]
             if source == "rec":
                 velocity = flex[index - 1].get("translationY_v", 0.0)
+            elif source == "stepped":
+                velocity = ty_v
+                if t - ty_at >= TRACKING_UPDATE - 0.002:
+                    step = RETARGET_STEP if ty != ty_goal else t - ty_at
+                    ty_x, ty_v = spring(ty_x, ty_v, ty, *TRANSLATION_Y, step, steps=64)
+                    ty_goal, ty_at = ty, t
             else:
                 ty_x, ty_v = spring(ty_x, ty_v, ty, *TRANSLATION_Y, dt)
                 velocity = ty_v

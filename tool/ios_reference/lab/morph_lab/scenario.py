@@ -169,6 +169,17 @@ def validate(data):
             raise LabError("dumps takes every, max and depth")
         for key in dumps:
             number(dumps[key], f"dumps.{key}", 0)
+    animations = data.get("animations")
+    if animations is not None:
+        if not isinstance(animations, dict) or set(animations) - {"depth", "added", "animators", "class"}:
+            raise LabError("animations takes depth, added, animators and class")
+        if "depth" in animations:
+            number(animations["depth"], "animations.depth", 0)
+        for key in ("added", "animators"):
+            if key in animations and not isinstance(animations[key], bool):
+                raise LabError(f"animations.{key} must be boolean")
+        if "class" in animations and not isinstance(animations["class"], str):
+            raise LabError("animations.class must be a regular expression string")
     return data
 
 
