@@ -1,0 +1,424 @@
+{
+  "schema": 1,
+  "canvas": {
+    "width": 402,
+    "height": 874,
+    "scale": 3
+  },
+  "appearance": "light",
+  "background": {
+    "kind": "solid",
+    "color": "#F2F2F7"
+  },
+  "marker": [
+    8,
+    56,
+    100,
+    10
+  ],
+  "id": "scroll-delay",
+  "scroll": true,
+  "widgets": [
+    {
+      "id": "glass",
+      "kind": "button",
+      "rect": [
+        141,
+        300,
+        120,
+        44
+      ],
+      "title": "Glass"
+    },
+    {
+      "id": "seg",
+      "kind": "segmented",
+      "rect": [
+        51,
+        500,
+        300,
+        32
+      ],
+      "labels": [
+        "A",
+        "B",
+        "C"
+      ],
+      "value": 0
+    }
+  ],
+  "tracks": [
+    {
+      "id": "button",
+      "native": {
+        "identifier": "glass"
+      },
+      "flutter": {
+        "key": "glass"
+      }
+    },
+    {
+      "id": "lift",
+      "properties": [
+        "scaleX",
+        "scaleY"
+      ],
+      "native": {
+        "identifier": "glass",
+        "source": "layer",
+        "layerClass": "_UIMultiLayer$"
+      },
+      "flutter": {
+        "type": "Transform",
+        "within": "glass",
+        "paintChild": true
+      }
+    }
+  ],
+  "regions": [],
+  "steps": [
+    {
+      "id": "rest",
+      "action": "shot"
+    },
+    {
+      "id": "hold-glass-0",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "t": 0.4,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.45,
+      "after": 1.0,
+      "anchor": {
+        "identifier": "glass"
+      }
+    },
+    {
+      "id": "hold-glass-1",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "t": 0.4,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.45,
+      "after": 1.0,
+      "anchor": {
+        "identifier": "glass"
+      }
+    },
+    {
+      "id": "hold-glass-2",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "t": 0.4,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.45,
+      "after": 1.0,
+      "anchor": {
+        "identifier": "glass"
+      }
+    },
+    {
+      "id": "swipe-glass-0",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "t": 0.008,
+          "x": 0,
+          "y": -12.0
+        },
+        {
+          "t": 0.016,
+          "x": 0,
+          "y": -24.0
+        },
+        {
+          "t": 0.024,
+          "x": 0,
+          "y": -36.0
+        },
+        {
+          "t": 0.032,
+          "x": 0,
+          "y": -48.0
+        },
+        {
+          "t": 0.04,
+          "x": 0,
+          "y": -60.0
+        },
+        {
+          "t": 0.048,
+          "x": 0,
+          "y": -72.0
+        },
+        {
+          "t": 0.056,
+          "x": 0,
+          "y": -84.0
+        },
+        {
+          "t": 0.064,
+          "x": 0,
+          "y": -96.0
+        },
+        {
+          "t": 0.072,
+          "x": 0,
+          "y": -108.0
+        },
+        {
+          "t": 0.08,
+          "x": 0,
+          "y": -120.0
+        }
+      ],
+      "upAt": 0.1,
+      "after": 1.5,
+      "anchor": {
+        "identifier": "glass"
+      }
+    },
+    {
+      "id": "swipe-glass-1",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "t": 0.015,
+          "x": 0,
+          "y": -12.0
+        },
+        {
+          "t": 0.03,
+          "x": 0,
+          "y": -24.0
+        },
+        {
+          "t": 0.045,
+          "x": 0,
+          "y": -36.0
+        },
+        {
+          "t": 0.06,
+          "x": 0,
+          "y": -48.0
+        },
+        {
+          "t": 0.075,
+          "x": 0,
+          "y": -60.0
+        },
+        {
+          "t": 0.09,
+          "x": 0,
+          "y": -72.0
+        },
+        {
+          "t": 0.105,
+          "x": 0,
+          "y": -84.0
+        },
+        {
+          "t": 0.12,
+          "x": 0,
+          "y": -96.0
+        },
+        {
+          "t": 0.135,
+          "x": 0,
+          "y": -108.0
+        },
+        {
+          "t": 0.15,
+          "x": 0,
+          "y": -120.0
+        }
+      ],
+      "upAt": 0.16999999999999998,
+      "after": 1.5,
+      "anchor": {
+        "identifier": "glass"
+      }
+    },
+    {
+      "id": "swipe-glass-2",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "t": 0.03,
+          "x": 0,
+          "y": -12.0
+        },
+        {
+          "t": 0.06,
+          "x": 0,
+          "y": -24.0
+        },
+        {
+          "t": 0.09,
+          "x": 0,
+          "y": -36.0
+        },
+        {
+          "t": 0.12,
+          "x": 0,
+          "y": -48.0
+        },
+        {
+          "t": 0.15,
+          "x": 0,
+          "y": -60.0
+        },
+        {
+          "t": 0.18,
+          "x": 0,
+          "y": -72.0
+        },
+        {
+          "t": 0.21,
+          "x": 0,
+          "y": -84.0
+        },
+        {
+          "t": 0.24,
+          "x": 0,
+          "y": -96.0
+        },
+        {
+          "t": 0.27,
+          "x": 0,
+          "y": -108.0
+        },
+        {
+          "t": 0.3,
+          "x": 0,
+          "y": -120.0
+        }
+      ],
+      "upAt": 0.32,
+      "after": 1.5,
+      "anchor": {
+        "identifier": "glass"
+      }
+    },
+    {
+      "id": "hold-seg-0",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "t": 0.4,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.45,
+      "after": 1.0,
+      "anchor": {
+        "identifier": "seg",
+        "fx": 0.83
+      }
+    },
+    {
+      "id": "reset-seg-0",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.08,
+      "after": 1.0,
+      "anchor": {
+        "identifier": "seg",
+        "fx": 0.17
+      }
+    },
+    {
+      "id": "hold-seg-1",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        },
+        {
+          "t": 0.4,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.45,
+      "after": 1.0,
+      "anchor": {
+        "identifier": "seg",
+        "fx": 0.83
+      }
+    },
+    {
+      "id": "reset-seg-1",
+      "action": "gesture",
+      "points": [
+        {
+          "t": 0,
+          "x": 0,
+          "y": 0
+        }
+      ],
+      "upAt": 0.08,
+      "after": 1.0,
+      "anchor": {
+        "identifier": "seg",
+        "fx": 0.17
+      }
+    }
+  ]
+}

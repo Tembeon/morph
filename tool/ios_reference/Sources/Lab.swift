@@ -34,6 +34,7 @@ struct LabScenario: Decodable {
     let widgets: [Widget]
     let tracks: [Track]
     let marker: [Double]?
+    let scroll: Bool?
 
     static func environment() -> LabScenario? {
         guard let raw = ProcessInfo.processInfo.environment["PROBE_LAB_JSON"],
@@ -99,6 +100,16 @@ final class LabScene: UIViewController {
         background.frame = view.bounds
         background.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         view.addSubview(background)
+        var host: UIView = view
+        if spec.scroll == true {
+            let scroller = UIScrollView(frame: view.bounds)
+            scroller.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+            scroller.contentSize = CGSize(width: view.bounds.width, height: view.bounds.height * 3)
+            scroller.alwaysBounceVertical = true
+            scroller.accessibilityIdentifier = "lab-scroll"
+            view.addSubview(scroller)
+            host = scroller
+        }
         for widget in spec.widgets {
             let control: UIControl
             switch widget.kind {
@@ -135,7 +146,7 @@ final class LabScene: UIViewController {
             control.isEnabled = widget.enabled ?? true
             control.addTarget(self, action: #selector(changed(_:)), for: .valueChanged)
             controls[widget.id] = control
-            view.addSubview(control)
+            host.addSubview(control)
         }
     }
 
