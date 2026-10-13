@@ -1,7 +1,10 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:morph/src/gesture.dart';
 import 'package:morph/src/widgets/flex_integrator.dart';
+import 'package:morph/src/widgets/flex_interaction.dart';
+import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -23,14 +26,15 @@ class MorphLensTuning {
     required this.hangFromTouch,
     required this.presentationSpring,
     required this.followSpring,
-    required this.restingGain,
-    required this.restingThreshold,
-    required this.restingWidthCap,
-    required this.restingStretchCoefficient,
-    required this.liftedGain,
-    required this.liftedThreshold,
     required this.rubberBand,
     required this.pressDelay,
+    this.flexMovement = false,
+    this.restingGain = 2.5e-5,
+    this.restingThreshold = 0.05,
+    this.restingWidthCap = 100,
+    this.restingStretchCoefficient = 2,
+    this.liftedGain = 2.626e-5,
+    this.liftedThreshold = 0.0555,
     this.dragGain = 1,
     this.pressHang = 0.25,
     this.releaseDelay = 0.03,
@@ -95,6 +99,20 @@ class MorphLensTuning {
 
   /// The spring that carries the deformation toward its target.
   final MorphSpring presentationSpring;
+
+  /// Whether the lens deforms by UIKit's flex movement law for a loupe of
+  /// its size ([MorphFlexSpec.loupeForSize], resting or lifted): a lens
+  /// speeding up grows along its motion by the filtered rate of change of
+  /// its speed over the spec's normalization, within the spec's movement
+  /// bounds eased by a soft clamp, narrows across it and its trailing edge
+  /// lags. Read from UIKit, notes private; it reproduces the fitted gains
+  /// below (resting 2.5e-5 per pixel of min(W, 100), lifted 2.626e-5 for
+  /// a 44 pixel tall lens) and replays the device segmented taps to sx
+  /// 0.0060 / sy 0.0055 rms against the fit's 0.0061 / 0.0058.
+  ///
+  /// Without it the lens takes the fitted law of [restingGain] to
+  /// [liftedStretchSoftness].
+  final bool flexMovement;
 
   /// The spring that makes a dragged lens follow the finger.
   final MorphSpring followSpring;
@@ -165,7 +183,8 @@ class MorphLensTuning {
   /// Seconds the press growth lags behind the finger.
   final double chromeLag;
 
-  /// The lens of a UISegmentedControl.
+  /// The lens of a UISegmentedControl: it deforms by the flex movement
+  /// law ([flexMovement]).
   static const segmented = MorphLensTuning(
     selectsOnPointerDown: false,
     liftWidth: 24,
@@ -175,17 +194,17 @@ class MorphLensTuning {
     hangFromTouch: true,
     presentationSpring: MorphSpring(0.442, 0.582),
     followSpring: MorphSpring(0.225, 1),
-    restingGain: 2.5e-5,
-    restingThreshold: 0.05,
-    restingWidthCap: 100,
-    restingStretchCoefficient: 2,
-    liftedGain: 2.626e-5,
-    liftedThreshold: 0.0555,
     rubberBand: (12, 0.55),
     pressDelay: 0.04,
+    flexMovement: true,
   );
 
-  /// The lens of a floating UITabBar.
+  /// The lens of a floating UITabBar: it keeps the fitted law. Its
+  /// resting gain and cross coefficient match the flex movement law for
+  /// a 54 pixel tall loupe, its soft knee and its lifted law (copied from
+  /// the segmented control's fit) do not, and the tab bar's deformation
+  /// cannot be replayed (UIKit's bar-local glitch frames), so the switch
+  /// waits for a device check.
   static const tabBar = MorphLensTuning(
     selectsOnPointerDown: true,
     liftWidth: 16,
@@ -292,6 +311,8 @@ class MorphLensMotion {
   final MorphSubClock _frames;
   final MorphFlexIntegrator _flex = MorphFlexIntegrator();
   bool _started = false;
+  Size? _loupeSize;
+  MorphFlexSpec _loupe = MorphFlexSpec.smallLoupe;
   double? _previousVisible;
   bool _flag = false;
 
@@ -563,6 +584,26 @@ class MorphLensMotion {
     final width = _restWidth;
     if (width <= 0) return;
     final af = _flex.af;
+    if (tuning.flexMovement) {
+      final size = _flag
+          ? Size(width + tuning.liftWidth, height + tuning.liftHeight)
+          : Size(width, height);
+      if (size != _loupeSize) {
+        _loupeSize = size;
+        _loupe = MorphFlexSpec.loupeForSize(size);
+      }
+      final v = MorphFlexInteraction.withMovement(
+        MorphFlexInteraction.rest,
+        spec: _loupe,
+        size: size,
+        acceleration: Offset(af, 0),
+        velocity: Offset(_flex.vf, 0),
+      );
+      _drift.retarget(t, v.driftX);
+      _scaleX.retarget(t, v.scaleX);
+      _scaleY.retarget(t, v.scaleY);
+      return;
+    }
     double drift;
     double sx;
     double sy;

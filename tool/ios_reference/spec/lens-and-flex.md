@@ -63,11 +63,17 @@ noted]:
 - Sources per control: glass button, bar capsule and alert platter lift
   and stretch [device]; search field and menu button press lift (a drag
   on them is not measured, morph does not stretch them).
-- The lens laws below are this movement law with `loupeForSize` of the
-  lens: the segmented resting gain 2.5e-5 per px of min(W, 100) is
-  0.5 x 0.1 / 2000 (smallLoupe; the cap is where (W + 10) / W reaches
-  1.1), the lifted gain 2.626e-5 is the loupe of a 44 pt tall lens. The
-  lens keeps its fitted knees until a device check.
+- The lens deformation is this movement law with `loupeForSize` of the
+  lens (resting or lifted size): the fitted segmented resting gain 2.5e-5
+  per px of min(W, 100) is 0.5 x 0.1 / 2000 (smallLoupe; the cap is where
+  (W + 10) / W reaches 1.1), the lifted gain 2.626e-5 the loupe of a 44 pt
+  tall lens, and the tab bar's resting 2.785e-5 / 2.82 a 54 pt one. The
+  segmented control runs on the law (`MorphLensTuning.flexMovement`;
+  device taps sx 0.0060 / sy 0.0055 rms against the fit's 0.0061 /
+  0.0058, simulator unchanged at 0.0036 / 0.0042). The tab bar keeps its
+  fit: its soft knee and lifted law differ from the law and its
+  deformation cannot be replayed (glitch frames), so it waits for a
+  device check.
 - morph: `MorphFlexInteraction` (flex_interaction.dart).
 
 Flex loop (`_UIVelocityIntegrator`) [tuning + device fit]:
@@ -77,8 +83,9 @@ Flex loop (`_UIVelocityIntegrator`) [tuning + device fit]:
 - runs every 120 Hz tick on the device. A fixed 60 Hz sub-clock or a
   time-normalized alpha is WRONG (sx error 0.051 vs 0.006).
 - input = the previous frame's VISIBLE center; filtered acceleration ->
-  drift target D = -T f(g af / T) (soft tanh knee). Gains: segmented
-  resting 2.5e-5 per px of min(W, 100), lifted 2.626e-5 per px of W + 24;
+  drift target D = -T f(g af / T) (soft tanh knee; the flex movement law
+  above). Fitted gains: segmented resting 2.5e-5 per px of min(W, 100),
+  lifted 2.626e-5 per px of W + 24;
   scale targets sx = 1 - 2D/W, sy per control; drift/sx/sy follow on a
   presentation spring (segmented 0.442/0.582, tab bar 0.5/0.73).
 - width changes by -2D, center shifts +D: the LEADING edge rides the
