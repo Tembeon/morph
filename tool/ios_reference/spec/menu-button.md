@@ -178,7 +178,17 @@ wraps its capsule in it. Declared approximations, not measured:
   the action; the long press of such a `UIButton` was not recorded;
 - a glass button with a menu lifts by the menu's press (pressDelay,
   flex lift over the height) instead of its own uniform lift, with no
-  touch glow or lean.
+  touch glow or lean;
+- a source with a surface of its own (`MorphMenuSource.color`, a glass
+  button's fill or tint) draws the source shape in that color at both
+  hand-offs and crosses it into the menu glass on the look fade
+  (lookFadeStart - lookFadeEnd of the progress); without a painter its
+  rim fades with it. Without a painter the fused body takes the mixed
+  color and the source shape keeps the menu's shadow, not the button's.
+  The color hand-off of a tinted `UIButton` was not recorded.
+
+The hold trigger's tap keeps the glass button's measured 70 pt
+touch-up-inside slop (glass-button.md) as `MorphMenuTuning.tapSlop`.
 
 ## Not reproduced (deliberate)
 

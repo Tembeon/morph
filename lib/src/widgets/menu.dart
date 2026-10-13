@@ -297,6 +297,8 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 
   VoidCallback? get _onTap;
 
+  ({Color color, Color? rim})? get _surface;
+
   @override
   State<_MorphMenuSourceWidget> createState() => _MorphMenuSourceState();
 }
@@ -338,6 +340,8 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
     this.shape = const StadiumBorder(),
     this.trigger = MorphMenuTrigger.tap,
     this.onTap,
+    this.color,
+    this.rimColor,
     super.style,
     super.tuning = MorphMenuTuning.standard,
     super.overlay,
@@ -363,9 +367,43 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
   /// What opens the menu.
   final MorphMenuTrigger trigger;
 
-  /// Called for a tap released on the source when [trigger] is
+  /// Called for a tap released on the source, or within
+  /// [MorphMenuTuning.tapSlop] of it, when [trigger] is
   /// [MorphMenuTrigger.hold].
   final VoidCallback? onTap;
+
+  /// The fill of [child]'s own surface at rest, such as a glass button's
+  /// fill or tint, or null for a [child] drawn on the menu's glass.
+  ///
+  /// The source shape the menu grows out of starts in this color, and the
+  /// one it lands back into ends in it, so the hand-offs to and from
+  /// [child] show no jump; in between it crosses into the menu's glass
+  /// as the [look] fades out ([MorphMenuTuning.lookFadeStart] to
+  /// [MorphMenuTuning.lookFadeEnd] of the morph). A glass painter tints
+  /// the source's glass with it.
+  final Color? color;
+
+  /// The rim of [child]'s surface without a glass painter, drawn around
+  /// the source shape at the [color]'s share; null draws none.
+  final Color? rimColor;
+
+  /// Opens the menu of the [MorphMenuSource] or [MorphMenuButton] above
+  /// [context], as a tap on it does; nothing happens when there is none,
+  /// it is disabled or its menu is already open.
+  ///
+  /// A [child] that takes keyboard focus calls this on Enter or Space.
+  static void open(BuildContext context) {
+    final state = context.findAncestorStateOfType<_MorphMenuSourceState>();
+    if (state == null || !state.widget.enabled) return;
+    if (state._motion?.isOpen ?? false) return;
+    state._openFromSemantics();
+  }
+
+  @override
+  ({Color color, Color? rim})? get _surface {
+    final color = this.color;
+    return color == null ? null : (color: color, rim: rimColor);
+  }
 
   @override
   Widget? get _source => child;
@@ -454,6 +492,9 @@ class MorphMenuButton extends _MorphMenuSourceWidget {
 
   @override
   VoidCallback? get _onTap => null;
+
+  @override
+  ({Color color, Color? rim})? get _surface => null;
 }
 
 /// The progress of a menu that flies on the engine: the measured spring
@@ -540,6 +581,10 @@ abstract interface class MorphMenuHost {
   /// The look of the menu.
   MorphMenuStyle get menuStyle;
 
+  /// The fill and flat rim of the source's own surface, which the source
+  /// shape starts and ends in, or null for a source on the menu's glass.
+  ({Color color, Color? rim})? get menuSourceSurface;
+
   /// The look of the source, shown inside the shrinking source shape.
   Widget get menuGlyph;
 
@@ -604,6 +649,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     stamp: stamp,
     wake: wake,
     style: () => _style,
+    surface: () => widget._surface,
     glyph: () => _glyphFor(_style, true),
     glyphKey: () => widget._source == null ? null : widget._look,
     semanticLabel: () => _semanticLabel,
@@ -867,6 +913,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
       glyph: glyph,
       frames: _ticks,
       shapes: () => _landingShapes!,
+      surface: widget._surface,
       menu: true,
     );
   }
@@ -921,7 +968,7 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
           return MorphTag(
             id: _tagId,
             shape: widget._shape,
-            surfaceColor: style.glassColor,
+            surfaceColor: widget._surface?.color ?? style.glassColor,
             child: ValueListenableBuilder<_ButtonStructure>(
               valueListenable: _structure,
               builder:
@@ -1005,6 +1052,7 @@ class _MenuShapes extends StatelessWidget {
     required this.style,
     required this.glyph,
     required this.shapes,
+    this.surface,
     this.frames,
     this.menu = false,
     this.look = false,
@@ -1016,6 +1064,7 @@ class _MenuShapes extends StatelessWidget {
   final MorphMenuStyle style;
   final Widget glyph;
   final _Shapes Function() shapes;
+  final ({Color color, Color? rim})? surface;
   final Listenable? frames;
   final bool menu;
   final bool look;
@@ -1053,6 +1102,8 @@ class _MenuShapes extends StatelessWidget {
               menu: now.menu,
               source: now.source,
               outline: now.outline,
+              surface: surface,
+              glassShare: surface == null ? 1 : 1 - now.look.opacity,
             ),
           );
         },
@@ -1066,13 +1117,19 @@ class _MenuShapes extends StatelessWidget {
         frame: () {
           final now = shapes();
           final menu = now.menu;
+          final own = surface?.color;
+          final share = 1 - now.look.opacity;
           return MorphGlassFrame(
             [
               MorphGlassSurface(
                 kind: MorphGlassKind.button,
                 shape: now.source,
-                color: style.glassColor,
-                tint: style.glassTint,
+                color: own == null
+                    ? style.glassColor
+                    : Color.lerp(own, style.glassColor, share)!,
+                tint: own == null
+                    ? style.glassTint
+                    : Color.lerp(own, style.glassTint, share),
                 blurRadius: menu == null ? null : menuBlur,
                 brightness: brightness,
               ),
@@ -1271,6 +1328,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
       motion: motion,
       painter: host.menuGlass,
       style: style,
+      surface: host.menuSourceSurface,
       glyph: host.menuGlyphKey,
       open: motion.isOpen,
       layouts: [for (final card in cards) card.layout],
@@ -1428,6 +1486,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
             glyph: glyph,
             frames: _ticks,
             shapes: () => _frame!.shapes,
+            surface: structure.surface,
             menu: true,
             look: true,
             menuBlur: motion.tuning.cardBlur,
@@ -2036,6 +2095,7 @@ class _LayerStructure {
     required this.motion,
     required this.painter,
     required this.style,
+    required this.surface,
     required this.glyph,
     required this.open,
     required this.layouts,
@@ -2050,6 +2110,7 @@ class _LayerStructure {
   final MorphMenuMotion motion;
   final MorphGlassPainter? painter;
   final MorphMenuStyle style;
+  final ({Color color, Color? rim})? surface;
   final Object? glyph;
   final bool open;
   final List<MorphMenuLayout> layouts;
@@ -2074,6 +2135,7 @@ class _LayerStructure {
       identical(other.motion, motion) &&
       identical(other.painter, painter) &&
       identical(other.style, style) &&
+      other.surface == surface &&
       other.glyph == glyph &&
       other.open == open &&
       _same(other.layouts, layouts) &&
@@ -3265,12 +3327,16 @@ class _GlassPainter extends CustomPainter {
     required this.source,
     this.menu,
     this.outline,
+    this.surface,
+    this.glassShare = 1,
   });
 
   final MorphMenuStyle style;
   final RRect source;
   final RRect? menu;
   final MorphGlassOutline? outline;
+  final ({Color color, Color? rim})? surface;
+  final double glassShare;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -3285,9 +3351,19 @@ class _GlassPainter extends CustomPainter {
       if (menu != null) shape.addRRect(menu);
     }
     canvas.drawShadow(shape, style.shadowColor, style.shadowElevation, true);
+    final surface = this.surface;
     final fill = Paint();
-    fill.color = style.glassColor;
+    fill.color = surface == null
+        ? style.glassColor
+        : Color.lerp(surface.color, style.glassColor, glassShare)!;
     canvas.drawPath(shape, fill);
+    final rim = surface?.rim;
+    if (rim == null || glassShare >= 1) return;
+    final stroke = Paint();
+    stroke.style = PaintingStyle.stroke;
+    stroke.strokeWidth = 0.5;
+    stroke.color = rim.withValues(alpha: rim.a * (1 - glassShare));
+    canvas.drawPath(shape, stroke);
   }
 
   @override
@@ -3295,7 +3371,9 @@ class _GlassPainter extends CustomPainter {
       oldDelegate.menu != menu ||
       oldDelegate.source != source ||
       oldDelegate.outline != outline ||
-      oldDelegate.style != style;
+      oldDelegate.style != style ||
+      oldDelegate.surface != surface ||
+      oldDelegate.glassShare != glassShare;
 }
 
 class _Ellipsis extends StatelessWidget {

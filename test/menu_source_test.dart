@@ -1,5 +1,8 @@
+import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:morph/src/widgets/menu.dart' show MorphMenuLayer;
 import 'package:morph/widgets.dart';
 
 Widget _app(Widget body) => WidgetsApp(
@@ -48,6 +51,20 @@ class _CountedState extends State<_Counted> {
   Widget build(BuildContext context) =>
       const SizedBox(width: 120, height: 40, child: Text('Source'));
 }
+
+Iterable<RenderCustomPaint> _menuGlass(Finder within) => find
+    .descendant(
+      of: within,
+      matching: find.byWidgetPredicate((Widget _) => true),
+    )
+    .evaluate()
+    .map((Element element) => element.renderObject)
+    .whereType<RenderCustomPaint>()
+    .toSet()
+    .where(
+      (RenderCustomPaint box) =>
+          box.painter.runtimeType.toString() == '_GlassPainter',
+    );
 
 void main() {
   test('the source shape keeps the corners of a rounded source', () {
@@ -182,5 +199,146 @@ void main() {
     await _settle(tester);
     expect(presses, 1);
     expect(find.text('Copy'), findsOneWidget);
+  });
+
+  testWidgets('a pressed button with a menu keeps its touch-up-inside slop', (
+    WidgetTester tester,
+  ) async {
+    var presses = 0;
+    await tester.pumpWidget(
+      _app(
+        MorphGlassButton(
+          onPressed: () => presses++,
+          menu: _items(<String>[]),
+          child: const Text('Back'),
+        ),
+      ),
+    );
+    final rect = tester.getRect(find.byType(MorphGlassButton));
+    Future<void> drift(Offset to) async {
+      final gesture = await tester.startGesture(rect.center);
+      await tester.pump(const Duration(milliseconds: 50));
+      await gesture.moveTo(to);
+      await tester.pump(const Duration(milliseconds: 50));
+      await gesture.up();
+      await _settle(tester);
+    }
+
+    await drift(rect.bottomCenter + const Offset(0, 10));
+    expect(presses, 1, reason: '10 pt outside still activates');
+    await drift(rect.bottomCenter + const Offset(0, 100));
+    expect(presses, 1, reason: '100 pt outside does not');
+    expect(find.text('Copy'), findsNothing);
+  });
+
+  testWidgets('a glass button with a menu is focusable and keyboard driven', (
+    WidgetTester tester,
+  ) async {
+    var presses = 0;
+    await tester.pumpWidget(
+      _app(
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            MorphGlassButton(
+              onPressed: null,
+              menu: _items(<String>[]),
+              child: const Text('Sort'),
+            ),
+            MorphGlassButton(
+              onPressed: () => presses++,
+              menu: _items(<String>[]),
+              child: const Text('Back'),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+    await _settle(tester);
+    expect(find.text('Copy'), findsOneWidget, reason: 'Enter opens the menu');
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape);
+    await _settle(tester);
+    expect(find.text('Copy'), findsNothing);
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.space);
+    await _settle(tester);
+    expect(presses, 1, reason: 'Space presses the button with an action');
+    expect(find.text('Copy'), findsNothing);
+  });
+
+  testWidgets('a disabled glass button with a menu keeps its tree', (
+    WidgetTester tester,
+  ) async {
+    Widget button({required bool enabled}) => _app(
+      MorphGlassButton(
+        onPressed: null,
+        enabled: enabled,
+        menu: _items(<String>[]),
+        child: const _Counted(),
+      ),
+    );
+    _Counted.states.clear();
+    await tester.pumpWidget(button(enabled: true));
+    final source = _Counted.states.single;
+    await tester.tap(find.byType(MorphGlassButton));
+    await _settle(tester);
+    expect(find.text('Copy'), findsOneWidget);
+    await tester.pumpWidget(button(enabled: false));
+    await _settle(tester);
+    expect(find.text('Copy'), findsNothing, reason: 'disabling closes it');
+    expect(tester.state(find.byType(_Counted)), same(source));
+    await tester.tap(find.byType(MorphGlassButton), warnIfMissed: false);
+    await _settle(tester);
+    expect(find.text('Copy'), findsNothing, reason: 'a disabled button');
+    final style = MorphGlassButtonStyle.resolve(
+      tester.element(find.byType(_Counted)),
+      null,
+    );
+    expect(
+      DefaultTextStyle.of(tester.element(find.byType(_Counted))).style.color,
+      style.disabledForegroundColor,
+    );
+  });
+
+  testWidgets('the source shape starts and lands in the button tint', (
+    WidgetTester tester,
+  ) async {
+    const tint = Color(0xFF0088FF);
+    final log = <String>[];
+    await tester.pumpWidget(
+      _app(
+        MorphGlassButton(
+          onPressed: null,
+          tint: tint,
+          menu: _items(log),
+          child: const Text('Sort'),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphGlassButton));
+    Iterable<RenderCustomPaint> overlay() =>
+        _menuGlass(find.byType(MorphMenuLayer));
+    for (var i = 0; i < 30 && overlay().isEmpty; i++) {
+      await tester.pump(const Duration(milliseconds: 4));
+    }
+    expect(overlay(), isNotEmpty);
+    expect(overlay().first, paints..path(color: tint));
+    await _settle(tester);
+    expect(overlay().first, isNot(paints..path(color: tint)));
+    await tester.tapAt(tester.getCenter(find.text('Copy')));
+    var landed = 0;
+    for (var i = 0; i < 200 && tester.binding.hasScheduledFrame; i++) {
+      await tester.pump(const Duration(milliseconds: 8));
+      for (final glass in _menuGlass(find.byType(MorphMenuSource))) {
+        expect(glass, paints..path(color: tint));
+        landed++;
+      }
+    }
+    expect(log, ['Copy']);
+    expect(landed, greaterThan(0), reason: 'the landing was drawn');
   });
 }

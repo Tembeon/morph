@@ -41,6 +41,7 @@ class MorphMenuTuning {
     this.contentKickBlur = 6,
     this.tapOpenDelay = 0.089,
     this.holdDuration = 0.22,
+    this.tapSlop = 70,
     this.dismissDelay = 0.059,
     this.earlyCloseDelay = 0.016,
     this.actionDelay = 0.016,
@@ -451,6 +452,13 @@ class MorphMenuTuning {
 
   /// Seconds a held finger needs to open the menu without a release.
   final double holdDuration;
+
+  /// How far outside the source, in points, a release still counts as a
+  /// tap on it when the menu opens only by holding
+  /// ([MorphMenuMotion.opensOnTap] false): the 70 pt touch-up-inside
+  /// slop of a glass `UIButton` measured in glass-button.md, the same as
+  /// `MorphGlassButtonMotion.highlightSlop`.
+  final double tapSlop;
 
   /// Seconds between a release that dismisses and the start of the
   /// closing: the mean glass close start of 13 device outside dismissals
@@ -1047,8 +1055,9 @@ class MorphMenuMotion {
   /// released on the button calls [onTap] instead.
   bool opensOnTap = true;
 
-  /// Called when a tap released on the button does not open the menu
-  /// because [opensOnTap] is false.
+  /// Called when a tap released on the button, or within
+  /// [MorphMenuTuning.tapSlop] of it, does not open the menu because
+  /// [opensOnTap] is false.
   void Function()? onTap;
 
   /// Called with the target whenever an action runs, on any card.
@@ -2054,7 +2063,8 @@ class MorphMenuMotion {
       _release(t);
       if (!pointer.openedByHold) {
         if (!opensOnTap) {
-          if (_phase != _Phase.opening && _button.contains(position)) {
+          if (_phase != _Phase.opening &&
+              _button.inflate(tuning.tapSlop).contains(position)) {
             onTap?.call();
           }
           return;

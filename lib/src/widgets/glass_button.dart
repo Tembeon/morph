@@ -367,7 +367,8 @@ class MorphGlassButtonStyle {
 ///
 /// With a [menu] the button is a [MorphMenuSource]: it turns into its
 /// menu with the measured motion of [MorphMenuButton], as a glass
-/// `UIButton` with a menu.
+/// `UIButton` with a menu. The shape the menu grows out of and lands back
+/// into starts and ends in the button's own fill or tint.
 class MorphGlassButton extends StatefulWidget {
   /// Creates a glass button.
   const MorphGlassButton({
@@ -378,6 +379,7 @@ class MorphGlassButton extends StatefulWidget {
     this.minSize = const Size(44, 44),
     this.style,
     this.menu,
+    this.enabled = true,
     super.key,
   });
 
@@ -387,6 +389,13 @@ class MorphGlassButton extends StatefulWidget {
   /// Called when the button is tapped; null disables a button without a
   /// [menu].
   final VoidCallback? onPressed;
+
+  /// Whether the button accepts input.
+  ///
+  /// False disables the button as a null [onPressed] does, and also one
+  /// with a [menu]: it keeps its tree, closes an open menu and draws
+  /// disabled.
+  final bool enabled;
 
   /// The entries of the button's menu (`UIButton.menu`), or null for a
   /// button without one.
@@ -398,7 +407,8 @@ class MorphGlassButton extends StatefulWidget {
   /// [onPressed] a tap presses the button and only a hold opens the menu
   /// ([MorphMenuTrigger.hold]). The button then lifts by the menu's
   /// measured press instead of its own, without the touch glow or the
-  /// lean, and takes no keyboard focus.
+  /// lean. It stays focusable: Space and Enter open the menu that is the
+  /// primary action, or press a button with [onPressed].
   final List<MorphMenuEntry>? menu;
 
   /// The fill of a prominent glass button; null for the clear glass.
@@ -428,7 +438,8 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
   @override
   bool get motionSettled => _motion.isSettled;
 
-  bool get _enabled => widget.onPressed != null || widget.menu != null;
+  bool get _enabled =>
+      widget.enabled && (widget.onPressed != null || widget.menu != null);
 
   @override
   bool get controlEnabled => _enabled;
@@ -468,6 +479,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
   bool buildsLike(MorphGlassButton oldWidget) =>
       identical(oldWidget.child, widget.child) &&
       (oldWidget.onPressed == null) == (widget.onPressed == null) &&
+      oldWidget.enabled == widget.enabled &&
       oldWidget.tint == widget.tint &&
       oldWidget.padding == widget.padding &&
       oldWidget.minSize == widget.minSize &&
@@ -517,21 +529,41 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
     );
     final menu = widget.menu;
     if (menu != null) {
+      final hold = widget.onPressed != null;
+      final color = tint ?? style.fillColor;
+      final rim = tint == null ? style.rimColor : style.tintedRimColor;
       return RepaintBoundary(
         child: MorphMenuSource(
           items: menu,
-          trigger: widget.onPressed == null ? .tap : .hold,
+          trigger: hold ? .hold : .tap,
           onTap: _press,
+          enabled: enabled,
+          color: color,
+          rimColor: rim,
           look: content,
-          child: MorphControlCapsule(
-            painter: glass,
-            frames: frames,
-            color: tint ?? style.fillColor,
-            rim: tint == null ? style.rimColor : style.tintedRimColor,
-            shadow: style.shadowColor,
-            brightness: brightness,
-            enabled: enabled,
-            child: content,
+          child: Builder(
+            builder: (BuildContext context) => MorphControlFocus(
+              enabled: enabled,
+              onHighlight: highlightControlFocus,
+              onActivate: !enabled
+                  ? null
+                  : hold
+                  ? _press
+                  : () => MorphMenuSource.open(context),
+              child: MorphFocusRing(
+                visible: controlFocused,
+                child: MorphControlCapsule(
+                  painter: glass,
+                  frames: frames,
+                  color: color,
+                  rim: rim,
+                  shadow: style.shadowColor,
+                  brightness: brightness,
+                  enabled: enabled,
+                  child: content,
+                ),
+              ),
+            ),
           ),
         ),
       );

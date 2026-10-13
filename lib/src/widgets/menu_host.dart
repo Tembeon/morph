@@ -29,6 +29,7 @@ class MorphMenuController implements MorphMenuHost {
     required this.stamp,
     required this.wake,
     required this.style,
+    this.surface,
     required this.glyph,
     this.glyphKey,
     required this.semanticLabel,
@@ -55,6 +56,10 @@ class MorphMenuController implements MorphMenuHost {
   /// Resolves the current menu appearance.
   final MorphMenuStyle Function() style;
 
+  /// Resolves the fill and flat rim of the source's own surface, or null
+  /// for a source drawn on the menu's glass.
+  final ({Color color, Color? rim})? Function()? surface;
+
   /// Builds the source content carried by the menu.
   final Widget Function() glyph;
 
@@ -78,6 +83,7 @@ class MorphMenuController implements MorphMenuHost {
   bool _disposed = false;
   bool _repaintDisposed = false;
   MorphMenuStyle? _lastStyle;
+  ({Color color, Color? rim})? _lastSurface;
   MorphGlassPainter? _lastGlass;
   Widget? _lastGlyph;
   Object? _lastGlyphKey;
@@ -97,6 +103,10 @@ class MorphMenuController implements MorphMenuHost {
   @override
   MorphMenuStyle get menuStyle =>
       _sourceGone ? _lastStyle ?? MorphMenuStyle.light : _lastStyle = style();
+
+  @override
+  ({Color color, Color? rim})? get menuSourceSurface =>
+      _sourceGone ? _lastSurface : _lastSurface = surface?.call();
 
   @override
   MorphGlassPainter? get menuGlass {
