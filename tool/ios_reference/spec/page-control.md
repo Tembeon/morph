@@ -50,8 +50,8 @@ Widgets2UITests.testW2Page.
 ## morph
 
 page_control.dart (`MorphPageControl`, `MorphPageControlMotion`,
-`MorphPageControlTuning`, `MorphPageControlStyle`,
-`MorphPageControlBackground`).
+`MorphPageControlTuning`, `MorphPageControlAppearance`,
+`MorphPageControlBackgroundStyle`).
 
 ## Not reproduced / open
 

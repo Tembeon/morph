@@ -82,8 +82,8 @@ filmed with MorphRecorder (the zoom is invisible to layer sampling).
 
 ## morph
 
-navigation_motion.dart (`MorphNavigationTransition`), navigation_stack.dart
-(`MorphNavigationStack`, `MorphNavigationRoute(zoomSource:)`,
+navigation_motion.dart (`MorphNavigationTuning`), navigation_stack.dart
+(`MorphNavigationStack`, `MorphNavigationRoute(from:)`,
 `MorphNavigationScaffold`, `MorphNavigationConfig`, `pushMorphZoom`),
 push_zoom.dart, push_zoom_motion.dart (`MorphPushZoomMotion`,
 `MorphPushZoomTuning`). The stack's navigator sits under a
@@ -117,7 +117,7 @@ its spread (glass-renderer.md "One glyph policy").
   `popVelocity`, `cancelVelocityScale`). Edge-swipe ownership: see bars.md
   (NavigatorPopHandler, MorphNavigationRoute's edge gesture).
 - PUSH ZOOM API: `pushMorphZoom(context, from: tagId, builder:)` /
-  `MorphNavigationRoute(zoomSource:)` - the page grows out of the tag as
+  `MorphNavigationRoute(from:)` - the page grows out of the tag as
   UIKit's `preferredTransition = .zoom` push. The route is non-opaque with a
   zero transition (the motion finalizes the pop, as the sheet does); the
   page below does not parallax (canTransitionTo is false toward a zoom

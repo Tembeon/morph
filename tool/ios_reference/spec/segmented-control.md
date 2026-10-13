@@ -72,7 +72,7 @@ ProbeUITests.testLens / testRecapLens.
 
 ## morph
 
-`MorphSegmentedControl` (+`MorphSegmentedStyle`), segmented_control.dart,
+`MorphSegmentedControl` (+`MorphSegmentedControlAppearance`), segmented_control.dart,
 lens_motion.dart (`MorphLensTuning.segmented`). Tests: lens_test (sim 60 Hz
 and device 120 Hz), lens_scrub_test, lens_widgets_test,
 lifted_lens_look_test, controls_scroll_test (the control owns a touch

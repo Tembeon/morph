@@ -44,7 +44,7 @@ PROBE_SETTINGS, script stop/start/hide); fixture
 
 activity_indicator.dart (`MorphActivityIndicator`,
 `MorphActivityIndicatorSize`, `MorphActivityIndicatorFrames`,
-`MorphActivityIndicatorStyle`). Test: indicators_test.
+`MorphActivityIndicatorAppearance`). Test: indicators_test.
 
 ## Open
 

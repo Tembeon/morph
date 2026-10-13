@@ -82,7 +82,7 @@ ExtrasUITests.testX3Shots.
 
 ## morph
 
-glass.dart (seam: `MorphGlass`, `MorphGlassPainter` buildSurface / buildFill
+glass.dart (seam: `MorphGlassScope`, `MorphGlassPainter` buildSurface / buildFill
 / buildLayer(spacing:, contentSlots:, outline:) / buildBody / buildGlow,
 `MorphGlassSurface`, `MorphGlassKind`, `MorphGlassOptics`), glass_outline.dart
 (`MorphGlassOutline`), glass_renderer.dart (`MorphGlassRenderer`,

@@ -31,7 +31,7 @@ per state.
   fills unchanged - enabled or not.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method and recapture in [states](states.md) (StatesUITests testDisabled, scenes x4dis / x4disbars / x4distab / x4disalert).
 - Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): no dim (pixel-identical test); the limit glyph
-  is `MorphStepperStyle.limitForegroundColor` (pixel-checked).
+  is `MorphStepperAppearance.limitForegroundColor` (pixel-checked).
 
 ## Device [iPhone 16 Pro, 2026-10-03, StatesUITests testStepperDevice]
 
@@ -75,7 +75,7 @@ then devicectl copy Documents).
 
 ## morph
 
-`MorphStepper`, `MorphStepperStyle` (stepper.dart); repeat on the motion
+`MorphStepper`, `MorphStepperAppearance` (stepper.dart); repeat on the motion
 clock (timeDilation-aware). Tests: controls_test.
 
 ## Open

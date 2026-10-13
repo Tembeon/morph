@@ -46,7 +46,7 @@ Recipes and applied patterns live there, not in this README.
   `MorphToolbar`, `MorphScrollEdgeEffect`, `MorphNavigationStack` (glass
   button groups that morph into each other as items change and screens
   push, large titles, the scroll edge effect); sheets with detents
-  (`presentMorphSheet`: a floating glass sheet that docks edge to edge
+  (`showMorphSheet`: a floating glass sheet that docks edge to edge
   at the large detent, dragged between detents, flicked away, handing
   scroll drags to the sheet); alerts and action sheets
   (`showMorphAlert`, `showMorphActionSheet`: a glass popover growing out
@@ -58,7 +58,8 @@ Recipes and applied patterns live there, not in this README.
   surface becomes its own context menu, satellites around it).
   Their motion objects
   (`MorphLensMotion`, `MorphSwitchMotion`, `MorphMenuMotion`, ...) are
-  pure functions of explicit time and work without the widgets.
+  pure functions of explicit time and work without the widgets; they
+  live in `package:morph/motion.dart`.
 
 The engine never depends on the widget layer. The package ships
 `MorphGlassRenderer` with flat, fake and liquid tiers;
@@ -66,9 +67,9 @@ The engine never depends on the widget layer. The package ships
 device's GPU class, or uses an explicit tier. Liquid glass needs Impeller and Flutter GPU;
 unsupported builds fall back to fake glass (the same layers without
 refraction). Controls draw flat fills
-without a painter. Custom painters still use `MorphGlass(painter:)`.
+without a painter. Custom painters still use `MorphGlassScope(painter:)`.
 Every tier shades the outlines computed by the package. Looks resolve
-from each control's `style`, then the `MorphWidgetsTheme` extension, then light and dark
+from each control's `appearance`, then the `MorphWidgetsTheme` extension, then light and dark
 tables from the iOS system colors.
 
 ## Performance: group neighbouring glass
@@ -141,7 +142,7 @@ screen needs more. Every public member is dartdoc'd - this is just the
 map.
 
 **1. A tag and a call** - wrap what you tap in `MorphTag`, call
-`showMorphDialog` or `showMorphSheet`:
+`showMorphDialogFlight` or `showMorphSheetFlight`:
 
 ```dart
 MorphTag(
@@ -152,7 +153,7 @@ MorphTag(
 );
 
 // Anywhere inside the tag's subtree - the source is inferred:
-showMorphDialog(context, builder: (context, flight) {
+showMorphDialogFlight(context, builder: (context, flight) {
   return ComposeForm(onDone: flight.close);
 });
 ```

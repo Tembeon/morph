@@ -57,9 +57,10 @@ anything themselves.
 ## Where things are
 
 - `lib/foundation.dart` - the engine export; `lib/widgets.dart` - the widget layer, which
-  re-exports the engine. Public names are `Morph*`.
+  re-exports the engine. Public names are `Morph*`. `lib/motion.dart` - the pure motion
+  objects, measured tunings and layout types; `lib/glass_painter.dart` - the painter seam.
 - `lib/src/` engine (flights, targets, routes, liquid skin, scope), `lib/src/widgets/`
-  measured controls (pure motion class + thin host + style tables),
+  measured controls (pure motion class + thin host + appearance tables),
   `lib/src/glass/renderer/` the one vendored glass renderer (tiers flat / fake / liquid).
 - `example/` is the measured gallery (also the device benches under `example/lib/perf/`).
 

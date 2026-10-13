@@ -58,7 +58,7 @@ Scenes `sw`, `swOn` (control at y 400, knob off 210 / on 232 on the sim
 
 ## morph
 
-`MorphSwitch`, `MorphSwitchStyle`, `MorphSwitchMotion` (switch.dart,
+`MorphSwitch`, `MorphSwitchAppearance`, `MorphSwitchMotion` (switch.dart,
 switch_motion.dart), small_lens.dart. Tests: switch_test, controls_test,
 controls_platform_test, release_bounds_test (replays release-outside.jsonl).
 
@@ -69,4 +69,4 @@ controls_platform_test, release_bounds_test (replays release-outside.jsonl).
 ## API gaps
 
 - `UISwitchStyle.checkbox` (Mac idiom mostly) and `title`.
-- `onImage` / `offImage`; `thumbTintColor` exists only as style knobColor.
+- `onImage` / `offImage`; `thumbTintColor` exists only as the appearance's `thumbColor`.

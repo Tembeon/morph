@@ -114,7 +114,7 @@ Scene `tabbar<N>` (N 2..5); env `PROBE_DARK`, `PROBE_TABLAYERS=1`,
 
 ## morph
 
-`MorphTabBar`, `MorphTabItem`, `MorphTabBarStyle` (tab_bar.dart),
+`MorphTabBar`, `MorphTabItem`, `MorphTabBarAppearance` (tab_bar.dart),
 `MorphLensTuning.tabBar`, `MorphTouchGlowMotion` + `MorphGlassGlow`
 (glass_glow.dart), touch_listener.dart (`delaysInScrollable`). Tests:
 lens_test (tab bar on the undeformed frame only), lens_scrub_test,

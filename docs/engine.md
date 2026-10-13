@@ -137,7 +137,7 @@ What is where:
 - The shuttle and the settled route page build everything under
   `MorphFlight.sourceThemes` - the InheritedThemes between the source
   tag and the flight's overlay (Theme, DefaultTextStyle, IconTheme,
-  MorphGlass, ...). This is Flutter's popup-route precedent with the
+  MorphGlassScope, ...). This is Flutter's popup-route precedent with the
   tag's context as the launching context, so target content gets the
   source's themes.
 - Captured once at launch (one ancestor walk). The flight makes the tag
@@ -281,7 +281,7 @@ What is where:
 - `surface:` wins over the individual fields; the shuttle publishes the
   target's resolved model so custom content reads it via
   `MorphTag.specOf`. Custom dialogs/sheets = a custom MorphTargetSpec
-  with your content builder; showMorphDialog/Sheet are presets over it
+  with your content builder; showMorphDialogFlight/Sheet are presets over it
   and adopt shape and color from DialogTheme/BottomSheetTheme unless
   overridden.
 - `clipBehavior` defaults to antiAlias. `Clip.none` is for a transparent
@@ -309,7 +309,7 @@ What is where:
 
 ### Measured targets (measure.dart)
 - `MorphTargetSpec.measured(constraintsFor:, placeFor:)` and
-  `fitContent:` on sheet/dialog/popover (and showMorphDialog/Sheet).
+  `fitContent:` on sheet/dialog/popover (and showMorphDialogFlight/Sheet).
 - The content lays out under constraintsFor inside `MorphContentMeasure`
   (@internal): an aligning shifted box that reports the child's size in
   a post-frame callback. A report retargets springs and rebuilds owners,

@@ -99,8 +99,8 @@ testSNZoomScrubTiming + MorphRecorder.
 
 ## morph
 
-sheet.dart (`presentMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
-`scrollControllerOf`, `MorphSheetStyle`), sheet_motion.dart
+sheet.dart (`showMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
+`scrollControllerOf`, `MorphSheetAppearance`), sheet_motion.dart
 (`MorphSheetMotion`, `MorphSheetDetent` medium / large / height / fraction,
 `MorphSheetTuning`), zoom_motion.dart (`MorphZoomMotion`,
 `MorphZoomTuning`). NOTE: a sheet bug fix is in flight in the working tree
@@ -130,12 +130,12 @@ sheet.dart (`presentMorphSheet(from:)`, `MorphSheetRoute`, `MorphSheet.of`,
 
 ## Implementation notes (morph side, moved from CLAUDE.md)
 
-- `presentMorphSheet` pushes a `MorphSheetRoute`, a PopupRoute:
+- `showMorphSheet` pushes a `MorphSheetRoute`, a PopupRoute:
   transitionDuration zero, the reverse controller is stopped in didPop and
   set to 0 when the motion's dismissal rests (which finalizes the route);
   buildModalBarrier is an IgnorePointer, so undimmed detents leave the
   page live and the dimming / tap-to-dismiss is drawn by the sheet itself.
-- ZOOM (`presentMorphSheet(from:)`, zoom_motion.dart): the zoom is
+- ZOOM (`showMorphSheet(from:)`, zoom_motion.dart): the zoom is
   INVISIBLE to presentation-layer sampling (the sheet's views sit at their
   final frames from the first tick; only the source's _UIReparentingView
   alpha and a portal alpha move) - measured from device film of probe

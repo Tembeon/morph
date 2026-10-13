@@ -70,7 +70,7 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
   Disabled / Delete / Cancel; row alert Cancel + disabled preferred OK with
   a text field).
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphAlertStyle.disabledLabelColor`; a disabled
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphAlertAppearance.disabledLabelColor`; a disabled
   preferred action takes `buttonColor` and keeps w600.
 
 ## Fixtures
@@ -91,7 +91,7 @@ testX3AlertVideo. Older scene `w2alert`.
 
 alert.dart (`showMorphAlert`, `showMorphActionSheet(anchor:/anchorRect:)`,
 `MorphAlertRoute`, `MorphAlertAction`, `MorphAlertActionStyle`,
-`MorphAlertTextField`, `MorphAlertStyle`), alert_motion.dart
+`MorphAlertTextField`, `MorphAlertAppearance`), alert_motion.dart
 (`MorphAlertMotion`, `MorphAlertTuning`, `MorphPopoverMotion`,
 `MorphPopoverTuning`, `morphPlacePopover`).
 

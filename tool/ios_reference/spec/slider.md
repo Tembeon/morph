@@ -77,7 +77,7 @@ example/integration_test/slider_video_test.dart.
 
 ## morph
 
-`MorphSlider` (`ticks`, `keyboardStep`, `onChangeEnd`), `MorphSliderStyle`,
+`MorphSlider` (`ticks`, `keyboardStep`, `onChangeEnd`), `MorphSliderAppearance`,
 `MorphSliderMotion` (slider.dart, slider_motion.dart). Tests:
 controls_test, controls_scroll_test (a drag taken over by the list returns
 to its start value).

@@ -32,7 +32,10 @@ and the approaches that are rejected on purpose.
 - Export diet: foundation.dart is the whole engine surface; liquid_field
   internals, RenderMorphSkin and the shared-element machinery are not
   exported (package-internal tests import src/ directly). widgets.dart
-  exports by explicit `show` lists; the widget machinery (clock,
+  exports by explicit `show` lists the controls, their `*Appearance`
+  tables and the tunings they take as parameters; motion.dart the pure
+  motion objects, the other measured tunings and layout types;
+  glass_painter.dart the painter seam; the widget machinery (clock,
   integrator, timeline, spring state, lens driver, focus, glass layer) is
   @internal. The minimal motor vocabulary (Motion, CupertinoMotion,
   MaterialSpringMotion, CurvedMotion) is re-exported.

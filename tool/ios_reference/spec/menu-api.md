@@ -396,7 +396,7 @@ class MorphMenuWidget extends MorphMenuEntry     // FREE-FORM (no UIKit twin)
       menu-wide; headers start at 28, 43 with a selection column; the
       submenu chevron centers at 219; the card header is 62 with the rows
       10 below it.
-- [x] Colors per appearance (MorphMenuStyle light / dark).
+- [x] Colors per appearance (MorphMenuAppearance light / dark).
 - [x] Submenus as stacked cards: springs, delays, 0.97 / 0.5, header back,
       dwell 0.525, sub action +0.019. The card's frame replays mm-sub-tap
       under 1 pt rms (progress under 0.01), the back and the deeper card
@@ -537,9 +537,9 @@ Shared laboratory audit [device film, 2026-10-04]:
   Row-container bounds and clips must not be promoted as glass contours.
 
 Painter scope and copied card material [macOS diagnostic + phone stills, 2026-10-05]:
-- ROOT CAUSE of the lab's missing rim: the lab adapter installs MorphGlass
+- ROOT CAUSE of the lab's missing rim: the lab adapter installs MorphGlassScope
   inside MaterialApp's home, below the Navigator. The menu vessel lives in
-  the navigator's overlay, so MorphGlass.maybeOf returned null there and
+  the navigator's overlay, so MorphGlassScope.maybeOf returned null there and
   the menu silently drew the no-renderer fallback: flat platter, no
   contour or glint, and the fallback card's rounded cutout (the "parent
   boundary inside the child"). Only the source button was liquid. The

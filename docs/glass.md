@@ -12,7 +12,7 @@ live in `tool/ios_reference/spec/glass-renderer.md` and
 
 ## The seam
 
-- `MorphGlass(painter:)` (glass.dart) installs a `MorphGlassPainter`.
+- `MorphGlassScope(painter:)` (glass.dart) installs a `MorphGlassPainter`.
   Controls build their glass surfaces (`MorphGlassKind`) every frame
   behind their content via `buildLayer(surfaces, content:, spacing:,
   contentSlots:, outline:)`, `buildSurface`, `buildFill` and `buildGlow`.
@@ -74,9 +74,9 @@ Rules:
 ## Painters across presentations
 
 - A surface presented above its source draws with the painter installed
-  above the source. A MorphGlass inside a page is invisible from the
+  above the source. A MorphGlassScope inside a page is invisible from the
   navigator's overlay.
-- `MorphGlass` is an InheritedTheme, and every presenter carries the
+- `MorphGlassScope` is an InheritedTheme, and every presenter carries the
   source's InheritedThemes (themes.dart, `MorphThemeCarrier`, the
   popup-route precedent):
   - engine flights: `MorphFlight.sourceThemes` wraps the whole shuttle

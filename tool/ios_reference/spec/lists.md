@@ -1,7 +1,7 @@
 # Lists passport (inset grouped sections and rows)
 
 Status: measured simulator (layout + colors, light and dark); ported
-(`MorphListSection`, `MorphListRow`, `MorphListStyle`, `MorphListMetrics`);
+(`MorphListSection`, `MorphListRow`, `MorphListAppearance`, `MorphListMetrics`);
 pinned by test/list_test.dart; rows' glass in one layer per section
 (test/list_glass_stage_test.dart). Motion (highlight timing) not measured.
 

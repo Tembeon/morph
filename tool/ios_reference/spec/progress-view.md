@@ -51,7 +51,7 @@ Scene `w2progress` (`PROBE_PV0` initial value, `PROBE_SCRIPT progress:<v>`).
 ## morph
 
 progress.dart (`MorphProgressView`, `MorphProgressMotion`,
-`MorphProgressStyle`, `MorphProgressViewStyle`).
+`MorphProgressViewAppearance`, `MorphProgressViewStyle`).
 
 ## Open
 

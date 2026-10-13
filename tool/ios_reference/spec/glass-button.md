@@ -90,7 +90,7 @@ Scenes `gb<W>x<H>`, `gbp<W>x<H>` (prominent); `PROBE_TINT`. Device plan
 
 ## morph
 
-`MorphGlassButton` (`tint`, `padding`, `minSize`), `MorphGlassButtonStyle`,
+`MorphGlassButton` and `MorphGlassButton.prominent(tint:)` (`padding`, `minSize`), `MorphGlassButtonAppearance`,
 `MorphGlassButtonMotion` (`reducedMotion`) (glass_button.dart) on
 `MorphFlexInteraction` (flex_interaction.dart, `glows: true`). Tests:
 controls_test (hold and drag-off replays, simulator and device),

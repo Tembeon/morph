@@ -127,7 +127,7 @@ of the morph container):
   One frame, no animation.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
 - Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphMenuButton.enabled`,
-  `MorphMenuStyle.disabledIconColor`; a tap does not open.
+  `MorphMenuAppearance.disabledIconColor`; a tap does not open.
 
 ## Platter color, light [device screenshot, 2026-10-03]
 
@@ -136,7 +136,7 @@ of the morph container):
   the shadow darkens the page to ~224 - 238 just outside. Dark: 32 over
   black (0xF2222222, ported in daa1bae).
 - Identical to the light date picker overlay platter (date-picker.md).
-- Ported 2026-10-03: `MorphMenuStyle.light.glassColor` 0xF2F9F9FF. Light
+- Ported 2026-10-03: `MorphMenuAppearance.light.glassColor` 0xF2F9F9FF. Light
   audit on the simulator (liquid tier): the renderer draws the interior
   246,246,252 - 3 levels under native; the renderer's light material, not
   the color, is off (see glass-optics.md).
@@ -293,7 +293,7 @@ menu_video_test, menu_anchor_video_test.
 
 ## morph
 
-`MorphMenuButton`, `MorphMenuItem`, `MorphMenuStyle`, `MorphMenuMotion`,
+`MorphMenuButton`, `MorphMenuItem`, `MorphMenuAppearance`, `MorphMenuMotion`,
 `MorphMenuTuning`, `MorphMenuProgress`, `MorphMenuBlob`,
 `MorphMenuMorphSpec` (menu.dart, menu_motion.dart, menu_morph_spec.dart,
 menu_fusion.dart); the button's press and the open menu's flex run on the

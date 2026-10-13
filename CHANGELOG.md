@@ -2,6 +2,92 @@
 
 Versions are git tags; pin one. Pre-1.0, minor versions may break API.
 
+## 0.8.0 - unreleased
+
+The public API takes UIKit's vocabulary before the first public
+release, following the API parity audit
+(tool/ios_reference/spec/api/). An iOS developer finds UIKit's concepts
+and option names, written in Flutter idioms. BREAKING throughout, with
+no behaviour or pixel change: every rename keeps what the old name did.
+
+- BREAKING: look tables are `*Appearance` and every widget takes its
+  table as `appearance:` (UIKit precedent: `UINavigationBarAppearance`);
+  `*Style` now names only variant enums, as in UIKit
+  (`MorphProgressViewStyle`, `MorphScrollEdgeEffectStyle`,
+  `MorphAlertActionStyle`, the new `MorphBarButtonStyle`,
+  `MorphPageControlBackgroundStyle`). `MorphWidgetsTheme` fields follow
+  the widgets: `segmentedControl`, `switchAppearance`, `progressView`.
+- BREAKING: color parameters use Flutter's Cupertino names, each
+  dartdoc naming the UIKit property.
+- BREAKING: `widgets.dart` exports the controls, their appearances and
+  the tunings they take as parameters. The pure motion objects, the
+  other measured tunings and the layout types are in the new
+  `package:morph/motion.dart`; the painter seam is in the new
+  `package:morph/glass_painter.dart`; the menu layout types are no
+  longer exported.
+- BREAKING: `MorphGlassButton` picks its variant by constructor:
+  `MorphGlassButton(...)` is regular glass, `MorphGlassButton.prominent
+  (tint: ...)` the tinted one. A tint no longer implies prominent.
+- BREAKING: navigation leading items are `List<MorphBarButtonGroup>`;
+  they still replace the back button, as UIKit's `leftBarButtonItems`
+  do while `leftItemsSupplementBackButton` is off.
+- BREAKING: `MorphDatePicker`'s six formatter callbacks fold into one
+  `MorphDatePickerLocalizations`; `MorphListSection` takes widgets as
+  header and footer and draws them in the measured text style;
+  `MorphSegmentedControl` takes `MorphSegment`s.
+- `MorphScrollEdgeEffect.edge` asserts a vertical edge, the only ones it
+  draws. `MorphNavigationBarDrift` and the bar's `drift` /
+  `titleExitShift` are `@internal`: the stack's interactive pop drives
+  them.
+
+Migration, old -> new:
+
+| old | new |
+|---|---|
+| `Morph<Control>Style` look tables (`MorphSwitchStyle`, `MorphSliderStyle`, `MorphStepperStyle`, `MorphTabBarStyle`, `MorphGlassButtonStyle`, `MorphMenuStyle`, `MorphSheetStyle`, `MorphAlertStyle`, `MorphBarStyle`, `MorphListStyle`, `MorphPageControlStyle`, `MorphDatePickerStyle`, `MorphSearchFieldStyle`, `MorphActivityIndicatorStyle`) | `Morph<Control>Appearance` |
+| `MorphSegmentedStyle` | `MorphSegmentedControlAppearance` |
+| `MorphProgressStyle` | `MorphProgressViewAppearance` |
+| `MorphScrollEdgeEffectThemeData` | `MorphScrollEdgeEffectAppearance` |
+| `style:` (look table) on every widget and presenter; `MorphScrollEdgeEffect.theme` | `appearance:` |
+| `menuStyle:` / `searchStyle:` / `MorphSearchToolbar.buttonStyle` / `MorphNavigationBar.edgeEffectTheme` | `menuAppearance:` / `searchAppearance:` / `buttonAppearance:` / `edgeEffectAppearance:` |
+| `MorphWidgetsTheme(segmented:, switchStyle:, progress:)` | `MorphWidgetsTheme(segmentedControl:, switchAppearance:, progressView:)` |
+| `MorphProgressView.viewStyle` | `style` |
+| `MorphPageControlBackground`, `MorphPageControl.background` | `MorphPageControlBackgroundStyle`, `backgroundStyle` |
+| `MorphSwitch` / `MorphSwitchStyle` `activeColor`, `trackColor`, `knobColor` | `activeTrackColor`, `inactiveTrackColor`, `thumbColor` |
+| `MorphSlider` / `MorphSliderStyle` `activeColor`, `trackColor` | `activeTrackColor`, `inactiveTrackColor` |
+| `MorphProgressView` / `MorphProgressStyle` `progressColor`, `trackColor` | `activeTrackColor`, `inactiveTrackColor` |
+| `MorphPageControlStyle.indicatorColor`, `currentIndicatorColor` | `pageIndicatorColor`, `currentPageIndicatorColor` |
+| `MorphGlassButtonStyle.tintedRimColor`, `tintedForegroundColor` | `prominentRimColor`, `prominentForegroundColor` |
+| `MorphGlassButton(tint: c, ...)` | `MorphGlassButton.prominent(tint: c, ...)` |
+| `MorphGlass` | `MorphGlassScope` |
+| `MorphSegmentedControl(segments: ['A'], selected:, sizeByContent:)` | `MorphSegmentedControl(segments: [MorphSegment('A')], selectedIndex:, proportionalWidth:)` |
+| `MorphStepper.semanticValueFormatter` | `semanticFormatterCallback` |
+| `MorphDatePicker.firstDate`, `lastDate` | `minimumDate`, `maximumDate` |
+| `MorphDatePicker(dateFormatter:, timeFormatter:, localize:, calendarTitleFormatter:, daySemanticFormatter:, numberFormatter:)` | `MorphDatePicker(localizations: MorphDatePickerLocalizations(...))` |
+| `MorphListSection(header: 'A', footer: 'B')` | `MorphListSection(header: Text('A'), footer: Text('B'))` |
+| `MorphListRow(chevron: true)` | `MorphListRow(accessory: .disclosureIndicator)` |
+| `MorphScrollEdgeEffect.active` | `scrolledUnder` |
+| `MorphActivityIndicator.semanticLabel` (`String`, default 'In progress') | `String?` (null announces "In progress") |
+| `MorphNavigationScaffold.largeTitle: true` / `false` | `largeTitleDisplayMode: .always` / `.never` |
+| `backTitle` (scaffold, config) | `backButtonTitle` |
+| `backLabel` (stack, scaffold) | `backButtonSemanticLabel` |
+| `leading: MorphBarButtonGroup(...)` (bar, scaffold, config) | `leading: [MorphBarButtonGroup(...)]` |
+| `MorphBarButtonGroup(..., prominent: true)` | `MorphBarButtonGroup(..., style: .prominent)` |
+| `MorphNavigationTransition` | `MorphNavigationTuning` (in `motion.dart`) |
+| `MorphNavigationRoute(zoomSource:)`, `MorphSheetRoute(source:)` | `from:` |
+| `MorphSearchTabBar(searching:, onSearchingChanged:)` | `active:`, `onActiveChanged:` |
+| `MorphSearchToolbar(leading: [button], trailing: [button])` | `leading: [MorphBarButtonGroup([button])]` (one button per group) |
+| `presentMorphSheet` | `showMorphSheet` |
+| engine `showMorphSheet`, `showMorphDialog` | `showMorphSheetFlight`, `showMorphDialogFlight` |
+| `showMorphAlert` / `showMorphActionSheet` `useRootNavigator: bool = true` | `bool?` (null keeps the root navigator) |
+| `MorphPopoverArrowEdge.bottom` / `.top` / `.left` / `.right`, `MorphPopoverPlacement.edge` | `MorphPopoverArrowDirection.down` / `.up` / `.left` / `.right`, `arrowDirection` |
+| `MorphMenuButton(items:)`, `MorphMenuSource(items:)` | `menu:` |
+| `MorphMenuItem` / `MorphSubmenu` `icon: Icons.x`, `selectedIcon: Icons.y` | `icon: Icon(Icons.x)`, `selectedIcon: Icon(Icons.y)` |
+| `MorphMenuStyle.buttonSize` | `MorphMenuButton.size` |
+| motion, tuning and layout types from `widgets.dart` (`MorphLensMotion`, `MorphSwitchMotion`, `MorphSliderMotion`, `MorphMenuMotion`, `MorphGlassButtonMotion`, `MorphBarMotion`, `MorphLensTuning`, `MorphSearchTuning`, `MorphSheetTuning`, `MorphPopoverPlacement`, `morphPlacePopover`, `MorphFlexSpec`, ...) | `import 'package:morph/motion.dart';` |
+| `MorphGlassSurface`, `MorphGlassKind`, `MorphGlassOptics`, `MorphGlassGlow`, `MorphGlassOutline` | `import 'package:morph/glass_painter.dart';` |
+| `MorphMenuLayout`, `MorphMenuMetrics`, `MorphMenuPlaced`, `MorphMenuPlacedKind`, `MorphMenuTarget`, `MorphMenuTargetKind` | internal |
+
 ## 0.7.0 - 2026-10-04
 
 The widget layer becomes the measured one. morph always meant to move

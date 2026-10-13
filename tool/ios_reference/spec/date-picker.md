@@ -112,7 +112,7 @@ wheel, hour wheel 1 - 12 right-aligned, AM/PM flips as hours pass 11/12.
   the same background, references/light/menu-open.png): one material.
 - Shots: `references/light/date-overlay.png`, `references/dark/date-overlay.png`
   (StatesUITests testDateOverlay).
-- Ported 2026-10-03: `MorphDatePickerStyle.light.platterColor`
+- Ported 2026-10-03: `MorphDatePickerAppearance.light.platterColor`
   0xF2F9F9FF.
 
 ## Fixtures
@@ -138,8 +138,8 @@ programmatically - touches only.
 ## morph
 
 date_picker.dart (`MorphDatePicker`, `MorphDatePickerMode` date / time /
-dateAndTime, `MorphDatePickerStyle`; `use24HourFormat`, `firstDayOfWeek`,
-`firstDate`/`lastDate`, formatters), date_picker_motion.dart
+dateAndTime, `MorphDatePickerAppearance`; `use24HourFormat`, `firstDayOfWeek`,
+`minimumDate`/`maximumDate`, `MorphDatePickerLocalizations`), date_picker_motion.dart
 (`MorphDatePickerMotion`, `MorphDatePickerTuning`, `morphPlaceDatePicker`).
 Calendar drawn by morph; wheels are ListWheelScrollViews.
 
@@ -283,7 +283,7 @@ backdrop.
   black (references/date-video/calendar-dark and wheels-dark, 32,31,34 /
   32,32,32), exactly the native dark menu's interior (references/dark/
   menu-open.png, 32): the platter is the menu's material.
-  `MorphDatePickerStyle.dark` platterColor is now the menu's measured dark
+  `MorphDatePickerAppearance.dark` platterColor is now the menu's measured dark
   glass 0xF2222222 (reads 33 - 34 through the renderer; 0xF22C2C2E drew
   44). Light: native 249,248,255 over the film's page vs ours 247,246,249
   with 0xF2F9F9FB - 2 darker and less blue; now 0xF2F9F9FF, the light

@@ -8,7 +8,7 @@ measurements.
 
 ## Contract (the seam)
 
-- `MorphGlass(painter:)` installs a `MorphGlassPainter`; every control
+- `MorphGlassScope(painter:)` installs a `MorphGlassPainter`; every control
   describes its glass surfaces (`MorphGlassKind`: track, lens, knob, thumb,
   button, bar, menu) every frame behind its content. Multi-surface
   controls hand them to `buildLayer(surfaces, content:)` (segmented labels
@@ -40,7 +40,7 @@ measurements.
 
 - OVERLAYS: a control whose glass flies into an overlay or a route
   carries the painter it resolves at its source; an overlay above the
-  installing MorphGlass otherwise draws the flat fallback. `MorphGlass`
+  installing MorphGlassScope otherwise draws the flat fallback. `MorphGlassScope`
   is an InheritedTheme and the package carries the source's
   InheritedThemes (`MorphThemeCarrier`): engine flights (`showMorph*`,
   `showMorphRoute`, `MorphAnchor`, the context menu) wrap the whole
@@ -888,7 +888,7 @@ color instead. A member that leaves the container (pressed, faded,
 clipped) reads its backdrop in its own layer as before; translucent
 colors, null, the fake tier and the flat tier keep their paths. The
 gallery's sheet, controls and menu pages declare their page background
-(`MorphListStyle.resolve(context, null).backgroundColor`). Host A/B
+(`MorphListAppearance.resolve(context, null).backgroundColor`). Host A/B
 (solid_backdrop_host_test, four buttons on the page color, whole shot
 against the container without a color): light max 1, dark 0, filters
 1 -> 0; a translucent color keeps the filter, max 0. Moto g86 (liquid,

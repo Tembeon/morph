@@ -222,7 +222,7 @@ One passport each: `MorphSegmentedControl`, `MorphTabBar`,
 `MorphGlassButton`, `MorphMenuButton`, `MorphContextMenuRegion` /
 `MorphSatellite`, the bars (`MorphNavigationBar`, `MorphToolbar`,
 `MorphNavigationStack`, `MorphScrollEdgeEffect`, push zoom), sheets
-(`presentMorphSheet` including zoom), alerts and action-sheet popovers,
+(`showMorphSheet` including zoom), alerts and action-sheet popovers,
 `MorphSearchField` / `MorphSearchToolbar`, `MorphDatePicker`,
 `MorphPageControl`, `MorphProgressView`, `MorphActivityIndicator`, the
 inset grouped list (`MorphListSection` / `MorphListRow`).
@@ -240,11 +240,28 @@ ports `_UIFlexInteractionSpec` (lens-and-flex.md).
 
 ## Cross-cutting policy
 
-Theming: explicit `style` > `MorphWidgetsTheme` (a ThemeExtension, one
-style per control) > the style class's `light`/`dark` table for
-`morphBrightnessOf` (Theme, else MediaQuery platform brightness, else
-light). A ThemeData is one brightness, so a dark style goes in the dark
-theme. An explicit color parameter still beats the style.
+Theming: explicit `appearance` > `MorphWidgetsTheme` (a ThemeExtension,
+one appearance per control) > the appearance class's `light`/`dark`
+table for `morphBrightnessOf` (Theme, else MediaQuery platform
+brightness, else light). A ThemeData is one brightness, so a dark
+appearance goes in the dark theme. An explicit color parameter still
+beats the appearance.
+
+Naming: a look table (colors and metrics) is `Morph<Control>Appearance`
+and every widget takes it as `appearance:` (UIKit precedent:
+`UINavigationBarAppearance`); `*Style` names a variant enum as UIKit does
+(`MorphProgressViewStyle`, `MorphScrollEdgeEffectStyle`,
+`MorphAlertActionStyle`, `MorphBarButtonStyle`,
+`MorphPageControlBackgroundStyle`). Color parameters use Flutter's
+Cupertino names (`activeTrackColor`, `inactiveTrackColor`, `thumbColor`)
+and the dartdoc names the UIKit property.
+
+Libraries: `widgets.dart` exports the controls, their appearances and
+the tunings they take as parameters (`MorphMenuTuning`,
+`MorphBarMenuTuning`, `MorphPushZoomTuning`, `MorphZoomTuning`);
+`motion.dart` the pure motion objects, the other measured tunings and
+the layout types; `glass_painter.dart` the surface description a custom
+`MorphGlassPainter` shades. Menu layout types are package-internal.
 
 Typography: every label a control paints goes through
 `MorphTypography.resolve(style)` (opsz, wght 510/590, CoreText tracking;

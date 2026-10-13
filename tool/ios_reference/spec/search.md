@@ -59,7 +59,7 @@ will/didPresent, will/didDismiss; UISearchBar scope buttons, tokens
   rendered 80 dark / 183 light on the flat fill).
 - One frame, no animation.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphSearchFieldStyle.disabledFillColor`; the
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphSearchFieldAppearance.disabledFillColor`; the
   body pixel matches 14,14,15 / 235,235,240.
 
 ## Fixtures
@@ -78,7 +78,7 @@ morph film side: example/integration_test/search_date_scenes.dart.
 
 ## morph
 
-search_field.dart (`MorphSearchField`, `MorphSearchFieldStyle`,
+search_field.dart (`MorphSearchField`, `MorphSearchFieldAppearance`,
 `MorphSearchToolbar`), search_motion.dart (`MorphSearchMotion`,
 `MorphSearchTuning`). The touch lift is the shared flex interaction
 (flex_interaction.dart, `MorphFlexInteraction` with `stretches: false`

@@ -256,7 +256,7 @@ action".
 - A disabled item shares its capsule group with enabled ones like any item.
 - One frame, no animation, both ways.
 - Fixture `ios27-device/disabled/disabled.json`, shots `references/disabled/{dark,light}/`, method in [states](states.md).
-- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphBarStyle.disabledIconColor` (0x55000000 /
+- Ported 2026-10-03 (test/disabled_test.dart replays disabled.json): `MorphBarAppearance.disabledIconColor` (0x55000000 /
   0x3CFFFFFF) and `disabledLabelColor` (0x19000000 / 0x12FFFFFF) render
   the measured peaks over the capsule; a prominent capsule whose items
   are all disabled takes `disabledProminentColor`, glyph white.
@@ -300,7 +300,7 @@ pushpop|all`, `PROBE_LARGE=0`, `PROBE_ROWS`, `PROBE_DARK`. Device:
 ## morph
 
 bar_items.dart (`MorphBarButton`, `.back`, `MorphBarButtonGroup`,
-`MorphBarMetrics`, `MorphBarStyle`, `MorphBarItems`), bar_motion.dart,
+`MorphBarMetrics`, `MorphBarAppearance`, `MorphBarItems`), bar_motion.dart,
 toolbar.dart (`MorphToolbar`), navigation_bar.dart (`MorphNavigationBar`,
 `MorphNavigationBarDrift`, `MorphLargeTitle`, `MorphLargeTitleScrollPhysics`,
 `MorphNavigationTitleMotion`), navigation_stack.dart,
@@ -376,7 +376,7 @@ scroll_edge_effect.dart (`MorphScrollEdgeEffect`, ThemeData).
 - Container spacing reaches the painter as `buildLayer(spacing:)`; the
   fused outline of capsules within spacing - 0.5 is traced by the package
   (`morphGlassContainerOutline`, skin law, step 2) - see glass-renderer.md.
-  The bar's own flat painter (no MorphGlass installed) draws the same
+  The bar's own flat painter (no MorphGlassScope installed) draws the same
   groups and outline as the glass tiers (`morphGlassContainerGroups` +
   `morphGlassContainerOutline`), no trace of its own. GROUPING RULE (one
   rule for every tier, 2026-10-04): capsules group by geometry alone -
