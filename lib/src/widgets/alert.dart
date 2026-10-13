@@ -192,8 +192,8 @@ class MorphAlertStyle {
 /// wide and centered in the room the safe area and the keyboard leave.
 /// Two actions sit side by side, the cancel action first; more stack,
 /// the cancel action last. A touch anywhere on the alert lifts the whole
-/// platter like a glass button (a dragging finger pulls it a quarter as
-/// far, [MorphAlertTuning.platterPull]), the button under the finger
+/// platter like a glass button of its size (a dragging finger stretches
+/// it and pulls it along by the platter's flex), the button under the finger
 /// highlights, and the finger may slide to another button before it
 /// lifts. A finger that scrolls an alert taller than the screen chooses
 /// nothing: the highlight goes and the platter settles. The
@@ -437,13 +437,6 @@ class _AlertView extends StatefulWidget {
   State<_AlertView> createState() => _AlertViewState();
 }
 
-MorphGlassButtonMotion _platterPress() {
-  final motion = MorphGlassButtonMotion(size: Size.zero);
-  motion.pull = MorphAlertTuning.platterPull;
-  motion.stretch = MorphAlertTuning.platterStretch;
-  return motion;
-}
-
 class _AlertViewState extends State<_AlertView>
     with SingleTickerProviderStateMixin<_AlertView>, MorphClock<_AlertView> {
   late final MorphAlertMotion? _alert = widget.route.isPopover
@@ -452,7 +445,7 @@ class _AlertViewState extends State<_AlertView>
   late final MorphPopoverMotion? _popover = widget.route.isPopover
       ? MorphPopoverMotion()
       : null;
-  final MorphGlassButtonMotion _press = _platterPress();
+  final MorphGlassButtonMotion _press = MorphGlassButtonMotion(size: Size.zero);
   final GlobalKey _card = GlobalKey();
   // One key per action, not per slot: when the row turns into a column the
   // cancel action moves, and its button state and focus move with it.

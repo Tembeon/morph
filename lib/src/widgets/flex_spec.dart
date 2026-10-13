@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:morph/src/spring.dart';
+import 'package:morph/src/widgets/channel.dart';
 
 /// The deformation tuning of a glass surface that responds to touch.
 ///
@@ -26,6 +27,7 @@ class MorphFlexSpec {
     this.interactionPulseDriftRatio = 0,
     this.littleGlowOpacity = 0,
     this.bigGlowOpacity = 0,
+    this.retargetImpulse = 0,
   });
 
   /// How many pixels the surface grows in each dimension while pressed.
@@ -69,6 +71,16 @@ class MorphFlexSpec {
 
   /// The opacity of the large touch glow.
   final double bigGlowOpacity;
+
+  /// The push, in seconds, a changed target gives a channel on these
+  /// springs ([MorphChannel.retargetImpulse]): its velocity grows by the
+  /// spring's stiffness times this times the change.
+  ///
+  /// Read from UIKit, notes private: 0.016 for [menu], 0.032 for
+  /// [smallLoupe], zero for the others. [loupeForSize] keeps zero: a
+  /// slider thumb's recorded drift replays best without it (0.136 pt rms,
+  /// 0.229 with 0.032).
+  final double retargetImpulse;
 
   /// The class for surfaces whose long side is under [compactLongSideLimit].
   static const ultraSmall = MorphFlexSpec(
@@ -126,6 +138,7 @@ class MorphFlexSpec {
     interactionPulseScaleY: 32,
     interactionPulseDriftRatio: 0.7,
     littleGlowOpacity: 0.5,
+    retargetImpulse: 0.016,
   );
 
   /// The large end of the loupe range, anchored at 70 pixels.
@@ -150,6 +163,7 @@ class MorphFlexSpec {
     movementMaxScale: 1.1,
     scaleSpring: MorphSpring(0.444, 0.56),
     trackingSpring: MorphSpring(0.444, 0.56),
+    retargetImpulse: 0.032,
   );
 
   /// Surfaces whose longer side is under this use [ultraSmall].
@@ -211,6 +225,15 @@ class MorphFlexSpec {
       ),
       bigGlowOpacity: _lerp(small.bigGlowOpacity, large.bigGlowOpacity, ts),
     );
+  }
+
+  /// The uniform scale of a fully lifted surface of [size]:
+  /// `(L + liftScalePoints) / L` on both axes, L its long side, so the
+  /// long side grows by [liftScalePoints] and the short side keeps the
+  /// proportion. Read from UIKit, notes private.
+  double liftScaleFor(Size size) {
+    final long = size.longestSide;
+    return long > 0 ? (long + liftScalePoints) / long : 1;
   }
 
   /// The spec UIKit derives for a magnifying loupe of [size].

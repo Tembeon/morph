@@ -14,6 +14,27 @@ moves on UIKit's measured liquid morph too. BREAKING throughout; the removed
 implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
 0.6.0 were never tagged).
 
+- Glass buttons, bar capsules and the alert platter stretch and shift
+  under a dragging finger by UIKit's flex interaction at their own size
+  instead of a fitted lean: the drag-off replay of a 120 x 44 button
+  drops from 0.17 to 0.03 pt rms (0.155 to 0.065 on the device), the
+  alert platter's from 0.06 to 0.02 - 0.04. BREAKING:
+  `MorphGlassButtonMotion.pull`, `.stretch`, `.leanDivisor`,
+  `.leanStretch` and `MorphAlertTuning.platterPull` / `.platterStretch`
+  are gone; the surface's size sets the response.
+- Segmented control and tab bar lenses deform by UIKit's flex movement
+  law for a loupe of the lens's size, which reproduces the targets UIKit
+  records (tab bar lifted scale 0.044 -> 0.00003 rms). BREAKING: the
+  fitted `MorphLensTuning` fields `restingGain` .. `liftedStretchSoftness`
+  are gone.
+- Switch knobs and slider thumbs deform by the same law and shift
+  along their motion while they speed up or slow down
+  (`MorphSmallLens.shift`), as UIKit's knob does (up to about 2 pt).
+  BREAKING: `MorphSmallLens.stretchGain` is gone.
+- The open menu's stretch under a finger follows UIKit's channels: a
+  tracking spring with a push on every change while the finger is down,
+  the scale spring from what shows after the lift. The input-only drag
+  replays drop from 0.09 - 0.26 to 0.09 - 0.15 pt rms.
 - `MorphMenuSource` takes keyboard focus itself, draws the focus ring
   around its child and answers Enter or Space as a tap. An app whose
   child takes the focus itself and calls `MorphMenuSource.open`, as the
