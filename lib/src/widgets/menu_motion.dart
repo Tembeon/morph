@@ -60,9 +60,16 @@ class MorphMenuTuning {
     this.glowOpacity = 0.5,
     this.glowFade = 0.07,
     this.highlightInset = 10,
-    this.flexGain = 0.033,
-    this.flexLimit = 2,
-    this.flexSpring = const MorphSpring(0.15, 0.5),
+    this.flexInsideGain = 0.007,
+    this.flexOutsideGain = 0.034,
+    this.flexTravel = 1.056,
+    this.flexDelay = 0.048,
+    this.flexReleaseSpring = const MorphSpring(0.33, 0.72),
+    this.flexSwayGain = 0.17,
+    this.flexSwaySpring = const MorphSpring(0.83, 0.42),
+    this.flexSwayNearEdge = 1.45,
+    this.flexSwayFarEdge = 3.6,
+    this.flexSwaySideInset = 1.62,
     this.fusionRadius = 20,
     this.fusionCloseAmplitude = 20.95,
     this.fusionOpenRise = 0.0161,
@@ -130,6 +137,18 @@ class MorphMenuTuning {
   ///
   /// This numerical optimization threshold is not a measured motion value.
   static const double kickSkipSpan = 1;
+
+  /// The swing, in points of the menu's far edge, below which the sway
+  /// counts as at rest.
+  ///
+  /// A NEAR trade, not a measured value (0.75 px on a 3x screen, awaiting
+  /// approval by eye): the sway stops driving frames once what is left of
+  /// it cannot move an edge by more than this, and the shape keeps that
+  /// remainder until the next frame drawn for any other reason. Without
+  /// it a 4 pt slide on a row keeps the menu ticking through about half a
+  /// second of sub-pixel ringing (the perf_counts menu-held scene: 272
+  /// frames at 0.1 pt, 226 at this value).
+  static const double flexSwayRest = 0.25;
 
   /// The row glyph size from the iOS 27 menu view tree, in points.
   static const double rowIconSize = 20;
@@ -549,15 +568,75 @@ class MorphMenuTuning {
   /// The horizontal inset of the highlight pill from the menu's sides.
   final double highlightInset;
 
-  /// How far the menu leans toward a finger on it, per pixel of distance
-  /// from its center.
-  final double flexGain;
+  /// How far the open menu is pulled toward a finger on it or dragged off
+  /// it, per point the finger travelled from where it started on the
+  /// open menu, along each axis.
+  ///
+  /// The pull along an axis is this gain times the finger's travel plus
+  /// [flexOutsideGain] times its distance beyond the menu's edge. The menu
+  /// moves [flexTravel] times the pull toward the finger and stretches by
+  /// the pull along that axis while it narrows by as much across it (its
+  /// area is kept), the stretch anchored on the edge facing the button
+  /// and centered across it. The pull follows the finger [flexDelay]
+  /// after each touch and springs back on [flexReleaseSpring] once the
+  /// finger lifts, starts to scroll or the menu closes.
+  ///
+  /// Fitted together with every other flex number below to the four
+  /// gestures of `ios27-device/menu/drag-out.jsonl` (iPhone 16 Pro,
+  /// iOS 27.0.1: a finger on the second row of an open 250 x 250 menu
+  /// slides 220 pt up, down, left and right in 0.6 s, holds, comes back,
+  /// goes out again and lifts): 0.32 pt rms over the frame edges of
+  /// `_UIContextMenuListView`, whose largest excursion is 12.4 pt (up
+  /// 0.40, down 0.36, left 0.17, right 0.17 pt rms; menu_drag_out_test).
+  final double flexInsideGain;
 
-  /// The largest lean toward a finger, in pixels per axis.
-  final double flexLimit;
+  /// How far the open menu is pulled per point a finger is beyond its
+  /// edge along an axis, on top of [flexInsideGain]: the response grows
+  /// about six times faster once the finger leaves the menu. Measured
+  /// with [flexInsideGain].
+  final double flexOutsideGain;
 
-  /// The spring of the lean toward a finger.
-  final MorphSpring flexSpring;
+  /// How far the menu's center moves toward the finger per point of pull.
+  /// Measured with [flexInsideGain].
+  final double flexTravel;
+
+  /// Seconds from a touch's time stamp to the menu's response to it:
+  /// UIKit's delivery latency and its one-frame begin, as every
+  /// device-fitted delay. Measured with [flexInsideGain].
+  final double flexDelay;
+
+  /// The spring that returns the pull to rest once the finger lifts.
+  /// Measured with [flexInsideGain]; while the finger is down the pull
+  /// follows it without a spring of its own (a free fit of one settles
+  /// at under 10 ms).
+  final MorphSpring flexReleaseSpring;
+
+  /// The sway a finger moving up or down gives the menu, as the velocity
+  /// the sway receives per point of vertical travel (1/s).
+  ///
+  /// UIKit's menu answers vertical finger motion with a damped sway that
+  /// horizontal motion does not cause: a finger moving down moves the
+  /// menu's edge facing the button down [flexSwayNearEdge] and its far
+  /// edge [flexSwayFarEdge] times the sway, and draws each side in by
+  /// [flexSwaySideInset] times it; it rings out on [flexSwaySpring] with
+  /// its target at rest. Measured with [flexInsideGain].
+  final double flexSwayGain;
+
+  /// The spring of the sway, resting at zero. Measured with
+  /// [flexInsideGain].
+  final MorphSpring flexSwaySpring;
+
+  /// How far the menu's edge facing the button moves per unit of sway.
+  /// Measured with [flexInsideGain].
+  final double flexSwayNearEdge;
+
+  /// How far the menu's far edge moves per unit of sway. Measured with
+  /// [flexInsideGain].
+  final double flexSwayFarEdge;
+
+  /// How far each side of the menu moves in per unit of sway. Measured
+  /// with [flexInsideGain].
+  final double flexSwaySideInset;
 
   /// The largest fusion radius: the standard deviation, in pixels, of
   /// the Gaussian that blurs the distance field of the two shapes.
@@ -728,6 +807,7 @@ class _Pointer {
   bool holdForfeited = false;
   bool scrolled = false;
   bool leftButton = false;
+  Offset? pullOrigin;
 }
 
 /// A damped spring driven by an input, integrated from samples.
@@ -969,8 +1049,9 @@ class MorphMenuMotion {
        _progress = progress ?? MorphMenuProgress.spring(tuning) {
     _radius = MorphSpringState(tuning.openSpring, 0);
     _press = MorphSpringState(_flex.trackingSpring, 1);
-    _leanX = MorphSpringState(tuning.flexSpring, 0);
-    _leanY = MorphSpringState(tuning.flexSpring, 0);
+    _pullX = MorphSpringState(tuning.flexReleaseSpring, 0);
+    _pullY = MorphSpringState(tuning.flexReleaseSpring, 0);
+    _sway = MorphSpringState(tuning.flexSwaySpring, 0);
     _root = _build(reversed: false);
     _rootHeight = MorphSpringState(tuning.growSpring, _visibleRoot(_root));
     _cardContainer = MorphSpringState(tuning.cardContainerSpring, 1);
@@ -993,8 +1074,9 @@ class MorphMenuMotion {
 
   late final MorphSpringState _radius;
   late final MorphSpringState _press;
-  late final MorphSpringState _leanX;
-  late final MorphSpringState _leanY;
+  late final MorphSpringState _pullX;
+  late final MorphSpringState _pullY;
+  late final MorphSpringState _sway;
   late MorphSpringState _rootHeight;
   late final MorphSpringState _cardContainer;
   bool _cardContainerActive = false;
@@ -1746,19 +1828,63 @@ class MorphMenuMotion {
     final from = _button.center;
     final to = frame.center;
     final sign = _down ? 1.0 : -1.0;
+    final flex = _flexAt(_now);
     final center = Offset(
-      from.dx + (to.dx - from.dx) * p + _leanX.value(_now),
-      from.dy + (to.dy - from.dy) * p + sign * menuKick + _leanY.value(_now),
+      from.dx + (to.dx - from.dx) * p + flex.shift.dx,
+      from.dy + (to.dy - from.dy) * p + sign * menuKick + flex.shift.dy,
     );
     return MorphMenuBlob(
       rect: Rect.fromCenter(
         center: center,
-        width: w * scale,
-        height: localHeight * scale,
+        width: w * scale + flex.width,
+        height: localHeight * scale + flex.height,
       ),
       radius: _localRadius(p, localHeight, h) * parentScale * scale,
       scale: scale,
       localSize: Size(w, localHeight),
+    );
+  }
+
+  bool _swayAtRest(double t) {
+    final omega = tuning.flexSwaySpring.omega;
+    final value = _sway.value(t);
+    final speed = _sway.velocity(t) / omega;
+    final reach = math.sqrt(value * value + speed * speed);
+    return reach * tuning.flexSwayFarEdge < MorphMenuTuning.flexSwayRest;
+  }
+
+  /// [menuRect] flexed by the finger on the menu, without the morph from
+  /// the button: the frame UIKit's `_UIContextMenuListView` takes.
+  @visibleForTesting
+  Rect get flexedMenuRect {
+    final frame = _menu;
+    final flex = _flexAt(_now);
+    return Rect.fromCenter(
+      center: frame.center + flex.shift,
+      width: frame.width + flex.width,
+      height: frame.height + flex.height,
+    );
+  }
+
+  /// The flex of the open menu under a finger at time [t]: the shift of
+  /// its center and the growth of its width and height, from the pull
+  /// toward the finger and the sway of its vertical motion
+  /// ([MorphMenuTuning.flexInsideGain], [MorphMenuTuning.flexSwayGain]).
+  ///
+  /// The measured menu opened downward; one that opens upward mirrors it,
+  /// the edge facing the button being its bottom.
+  ({Offset shift, double width, double height}) _flexAt(double t) {
+    final px = _pullX.value(t);
+    final sign = _down ? 1.0 : -1.0;
+    final py = sign * _pullY.value(t);
+    final sway = sign * _sway.value(t);
+    final across = px.abs() - py.abs();
+    final near = tuning.flexTravel * py + tuning.flexSwayNearEdge * sway;
+    final far = tuning.flexTravel * py - across + tuning.flexSwayFarEdge * sway;
+    return (
+      shift: Offset(tuning.flexTravel * px, sign * (near + far) / 2),
+      width: across - 2 * tuning.flexSwaySideInset * sway,
+      height: far - near,
     );
   }
 
@@ -1830,8 +1956,9 @@ class MorphMenuMotion {
     if (_pointer?.scrolled ?? false) return false;
     if (_phase == _Phase.closing) return false;
     if (!_press.isAtRest(t, 1e-3) ||
-        !_leanX.isAtRest(t) ||
-        !_leanY.isAtRest(t) ||
+        !_pullX.isAtRest(t) ||
+        !_pullY.isAtRest(t) ||
+        !_swayAtRest(t) ||
         !_glowAtRest(t)) {
       return false;
     }
@@ -2032,6 +2159,7 @@ class MorphMenuMotion {
     advance(t);
     final pointer = _pointer;
     if (pointer == null) return;
+    final previous = pointer.position;
     pointer.position = position;
     if (pointer.fromButton && !_button.contains(position)) {
       pointer.leftButton = true;
@@ -2046,10 +2174,46 @@ class MorphMenuMotion {
       _track(t, pointer, position);
     }
     _glowAt = position;
-    final lean = (position - _menu.center) * tuning.flexGain;
-    final limit = tuning.flexLimit;
-    _leanX.retarget(t, lean.dx.clamp(-limit, limit));
-    _leanY.retarget(t, lean.dy.clamp(-limit, limit));
+    final origin = pointer.pullOrigin ??= previous;
+    final rise = position.dy - previous.dy;
+    _timeline.at(t + tuning.flexDelay, (double s) {
+      if (_phase != _Phase.opening) return;
+      final frame = _menu;
+      _pullX.snap(
+        s,
+        _pullAlong(
+          position.dx - origin.dx,
+          position.dx,
+          frame.left,
+          frame.right,
+        ),
+      );
+      _pullY.snap(
+        s,
+        _pullAlong(
+          position.dy - origin.dy,
+          position.dy,
+          frame.top,
+          frame.bottom,
+        ),
+      );
+      _sway.setState(
+        s,
+        _sway.value(s),
+        _sway.velocity(s) + tuning.flexSwayGain * rise,
+      );
+    });
+  }
+
+  /// The pull along one axis of a finger that travelled [travel] from its
+  /// start and is now at [at] by a menu spanning [start] to [end]: signed
+  /// toward the finger's travel.
+  double _pullAlong(double travel, double at, double start, double end) {
+    if (travel == 0) return 0;
+    final beyond = math.max(0.0, math.max(start - at, at - end));
+    final pull =
+        tuning.flexInsideGain * travel.abs() + tuning.flexOutsideGain * beyond;
+    return travel < 0 ? -pull : pull;
   }
 
   /// The finger on the menu started to scroll its content: it no longer
@@ -2494,8 +2658,10 @@ class MorphMenuMotion {
   }
 
   void _relax(double t) {
-    _leanX.retarget(t, 0);
-    _leanY.retarget(t, 0);
+    _timeline.at(t + tuning.flexDelay, (double s) {
+      _pullX.retarget(s, 0, spring: tuning.flexReleaseSpring);
+      _pullY.retarget(s, 0, spring: tuning.flexReleaseSpring);
+    });
     _glow(t, _glowAt, on: false);
   }
 

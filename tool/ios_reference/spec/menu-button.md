@@ -141,12 +141,56 @@ of the morph container):
   246,246,252 - 3 levels under native; the renderer's light material, not
   the color, is off (see glass-optics.md).
 
+## Spec - finger dragged off the open menu [device, 2026-10-13]
+
+Fixture `ios27-device/menu/drag-out.jsonl` (iPhone 16 Pro, iOS 27.0.1,
+scenario `lab/scenarios/menu-drag-out.json`): a finger on the second row
+of an open downward 4-row menu (250 x 250, center 201, 417.5) slides
+220 pt up / down / left / right in 0.6 s (sideways it stops at the screen
+edge, 201 pt), holds 0.6 s, comes back, goes out again and lifts. Tracked:
+the presentation frame of `_UIContextMenuListView`. Fitted model
+(`MorphMenuTuning.flex*`, `MorphMenuMotion` `_flexAt`; replay
+menu_drag_out_test):
+
+- PULL per axis, signed toward the finger's travel from its touch-down:
+  0.007 x |travel| + 0.034 x (distance beyond the menu's edge). The knee
+  sits on the edge (a free fit puts it 2 pt inside), so the response is
+  small while the finger is on the menu and ~6x steeper off it.
+- The menu's center moves 1.056 x pull; it stretches by |pull| along the
+  axis and narrows by as much across it (area kept, w x h within 0.2 %).
+  The stretch is anchored on the edge facing the button (the top of this
+  downward menu) and centered across: dragged right, the top stays put
+  and the bottom rises by the pull; dragged down, the top moves by the
+  pull and the bottom by twice it.
+- The pull follows the finger with NO spring (a free tracking spring
+  settles under 10 ms), 0.048 s after each touch's time stamp (delivery
+  latency included); it returns on MorphSpring(0.33, 0.72) after the lift.
+- SWAY: vertical finger motion, and only vertical, kicks a spring
+  MorphSpring(0.83, 0.42) resting at 0 by 0.17 /s per point of travel
+  (on the same 0.048 s delay). Per unit of sway the top edge moves 1.45,
+  the bottom 3.6 and each side 1.62 inward, signed with the motion (a
+  finger moving up squashes the menu and lifts it). This is why the
+  vertical drags overshoot while the finger moves (center 8 pt at
+  220 pt) and settle back to ~4 pt during the hold, and why the menu
+  squashes while the finger returns.
+- Fit: 0.32 pt rms over the four frame edges, largest excursion 12.4 pt
+  (up 0.40, down 0.36, left 0.17, right 0.17 pt rms). Residuals peak in
+  the vertical release (its undershoot is up to 1 pt deeper on device).
+- NEAR trade (performance, awaiting approval by eye): the sway stops
+  driving frames once its far edge's swing is under 0.25 pt
+  (`MorphMenuTuning.flexSwayRest`); the remainder shows until the next
+  frame drawn for another reason.
+- Approximations (not measured): an upward menu mirrors the anchoring
+  and the sway; the rows are not re-laid inside the flexed shape (they
+  ride its center or top edge, as they ride the morph); a diagonal drag
+  combines the two axes independently.
+
 ## Fixtures
 
 Device `ios27-device/menu/*` (center3 tap/quicktap/hold700/dismiss/
 dragselect/select/closemidopen/retap-midopen/repeat/reopen*/early-outside-*,
 center-items{2,5,10}, pos-{tl,tr,bl,br,left}, bottom3, wide3, navbar3,
-tl-items{1,4,8}, fusion.json); simulator `ios27/menu/*` (manifest documents
+tl-items{1,4,8}, fusion.json, drag-out); simulator `ios27/menu/*` (manifest documents
 G_*/S_* row keys). Film crops `references/menu-video/`. Settings dump
 `/tmp/morph-native/menu-settings-dump.txt` (volatile).
 
