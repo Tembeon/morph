@@ -33,6 +33,9 @@
                      plus the floor: a control's own files select its
                      cells, anything shared (renderer, glass seam, clock,
                      engine) selects every cell
+  --define K=V       one more --dart-define for the build (repeatable),
+                     for compile-time switches such as
+                     MORPH_ANALYTIC_GEOMETRY=false; the APK cache keys on it
   --arg K=V          one more launch setting for every launch (repeatable),
                      for example --arg MORPH_GLASS_PROBE=shared
   --no-build         reuse the APKs of the last build of this source
@@ -208,11 +211,12 @@ def affected_cells(base):
     return ','.join(['m/empty/*'] + [f'm/{c}/*' for c in sorted(controls)])
 
 
-def build(src, suite, apk, sdk):
+def build(src, suite, apk, sdk, extra=()):
     target, report, defines = SUITES[suite]
     cmd = ['nice', '-n', '10', 'flutter-beta' if sdk == 'beta' else 'flutter', 'build', 'apk', '--profile',
            '--target-platform', 'android-arm64', '-t', target,
-           f'--dart-define=AUDIT_OUT={FILES}/{report}', *defines]
+           f'--dart-define=AUDIT_OUT={FILES}/{report}', *defines,
+           *[f'--dart-define={d}' for d in extra]]
     log('build', suite, 'from', src)
     t = time.time()
     r = subprocess.run(cmd, cwd=os.path.join(src, 'example'), capture_output=True, text=True)
@@ -444,6 +448,7 @@ def main():
     p.add_argument('--fixed', action='store_true')
     p.add_argument('--label')
     p.add_argument('--arg', action='append', default=[])
+    p.add_argument('--define', action='append', default=[])
     p.add_argument('--matrix', action='store_true')
     p.add_argument('--affected', nargs='?', const='audit/2026-10-12')
     p.add_argument('--sdk', default='stable', choices=['stable', 'beta'])
@@ -471,7 +476,8 @@ def main():
     src, sha = source(o.rev)
     label = o.label or sha
     trace_dir = f'/tmp/morph-perf/bench/{label}'
-    apk_dir = f'/tmp/morph-perf/bench/apk/{sha}-{o.sdk}'
+    tag = ''.join(f'-{d}' for d in o.define).replace('=', '_')
+    apk_dir = f'/tmp/morph-perf/bench/apk/{sha}-{o.sdk}{tag}'
     out_dir = os.path.join(ROOT, 'tool/ios_reference/perf',
                            f'{datetime.date.today()}-bench-{label}')
     os.makedirs(trace_dir, exist_ok=True)
@@ -480,7 +486,7 @@ def main():
     for suite in suites:
         apk = f'{apk_dir}/{suite}.apk'
         if not (o.no_build and os.path.exists(apk)):
-            build(src, suite, apk, o.sdk)
+            build(src, suite, apk, o.sdk, o.define)
 
     atexit.register(cleanup)
     for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
