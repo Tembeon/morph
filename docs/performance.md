@@ -235,10 +235,9 @@ Profile builds, ms unless stated; most recent measurement per scene.
 
 | device / tier / scene | figure | source |
 |---|---|---|
-| Pixel 6a liquid nested push (beta) | UI p95 21.641/19.984, raster p95 29.419/26.456, GPU 6.228/6.202 ms/frame; still over 16.667 | perf/2026-10-08-beta-sdk |
-| Pixel 6a liquid push / pop (stable, raster glyphs) | raster p95 25.341 / 26.671; UI over budget | perf/2026-10-08-navigation-stable |
-| Pixel 6a flat push (stable) | raster p95 19.916/21.350, GPU 2.574/2.625 ms/frame | perf/2026-10-08-navigation-stable |
-| Pixel 6a liquid first enter | raster p99 64.712 after precache | perf/2026-10-07-navigation |
+| Pixel 6a liquid nested push / pop / enter | raster p95 10.8 / 10.5 / 11.1, UI p95 9.8 / 10.0 / 8.0; over budget 1.2 - 1.3 percent, each a page's first layout (10 - 16 ms UI) | perf/2026-10-13-bench-nav-tip |
+| Pixel 6a flat nested push / pop / enter | raster p95 7.3 / 7.0 / 8.2, UI p95 6.1 / 6.2 / 5.4; same layout spikes | perf/2026-10-13-bench-nav-tip |
+| Pixel 6a liquid steady navigation | raster p95 14.5 (waitForBufferRelease 4.9 ms a bad frame) | perf/2026-10-13-bench-nav-tip |
 | Pixel 6a flat home-scroll / tab bar / list | raster p95 9.19 / 8.47 / 8.45; power 465 / 519 / 447 mW | perf/2026-10-06-round3-* |
 | Pixel 6a liquid tab bar | raster p95 17.32 | perf/2026-10-06-*-glyph-after |
 | Pixel 6a liquid / flat menu | build p95 13.4 / 11.1; raster p95 16.69 / 9.70 | perf/2026-10-06-fusion-ab, -glyph-after |
@@ -255,5 +254,5 @@ Profile builds, ms unless stated; most recent measurement per scene.
 | macOS AOT release bench | oneMoving/cached 57 us/op, manyPieces 436, megaCluster64 1 939 (8 239 unbounded); glacial flight raster p95 1.33 | release bench |
 
 All iPhone scenes fit the 8.3 ms (120 Hz) budget at p95 on every tier.
-On the Pixel, scroll and resting scenes fit 16.67 ms; nested navigation
-and the liquid menu / tab bar do not yet.
+On the Pixel every audit and navigation scene fits 16.67 ms at p95; the
+frames over budget left in navigation are a new page's first layout.
