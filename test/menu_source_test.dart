@@ -251,11 +251,13 @@ void main() {
         _app(KeyedSubtree(key: ValueKey(name), child: source)),
       );
       final rect = tester.getRect(find.byKey(ValueKey(name)));
-      Future<bool> drift(Offset to) async {
+      Future<bool> drift(Offset to, {int heldFrames = 3}) async {
         final gesture = await tester.startGesture(rect.center);
         await tester.pump(const Duration(milliseconds: 50));
         await gesture.moveTo(to);
-        await tester.pump(const Duration(milliseconds: 50));
+        for (var i = 0; i < heldFrames; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
         await gesture.up();
         await _settle(tester);
         final opened = find.text('Copy').evaluate().isNotEmpty;
@@ -275,6 +277,11 @@ void main() {
         await drift(rect.topCenter - const Offset(0, 100)),
         isFalse,
         reason: '$name: in any direction',
+      );
+      expect(
+        await drift(rect.bottomCenter + const Offset(0, 100), heldFrames: 20),
+        isFalse,
+        reason: '$name: a finger off past the hold duration opens nothing',
       );
       expect(
         await drift(rect.bottomCenter + const Offset(0, 10)),

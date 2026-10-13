@@ -142,6 +142,20 @@ void main() {
     expect(find.text('Copy'), findsNothing);
   });
 
+  testWidgets('a finger slid far off a bar menu button opens nothing by '
+      'holding', (WidgetTester tester) async {
+    await _stack(tester);
+    final start = _button(tester);
+    final gesture = await tester.startGesture(start);
+    await _frames(tester, 0.05);
+    await gesture.moveTo(start + const Offset(-150, 200));
+    await _frames(tester, MorphMenuTuning.standard.holdDuration + 0.2);
+    expect(find.text('Copy'), findsNothing);
+    await gesture.up();
+    await _settle(tester);
+    expect(find.text('Copy'), findsNothing);
+  });
+
   testWidgets('a hold opens the menu under the finger; a slide chooses a row', (
     WidgetTester tester,
   ) async {

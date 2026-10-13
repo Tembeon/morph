@@ -450,7 +450,9 @@ class MorphMenuTuning {
   /// s, median 0.085).
   final double tapOpenDelay;
 
-  /// Seconds a held finger needs to open the menu without a release.
+  /// Seconds a held finger needs to open the menu without a release. A
+  /// finger that slides beyond [tapSlop] of the source before then never
+  /// opens it by holding.
   final double holdDuration;
 
   /// How far outside the source, in points, a release still counts as a
@@ -723,6 +725,7 @@ class _Pointer {
   final bool startedInMenu;
   Offset position;
   bool openedByHold = false;
+  bool holdForfeited = false;
   bool scrolled = false;
   bool leftButton = false;
 }
@@ -1994,7 +1997,11 @@ class MorphMenuMotion {
       _press.retarget(s, lifted, spring: _flex.trackingSpring);
     });
     _timeline.at(t + tuning.holdDuration, (double s) {
-      if (!identical(_pointer, pointer) || _phase == _Phase.opening) return;
+      if (!identical(_pointer, pointer) ||
+          _phase == _Phase.opening ||
+          pointer.holdForfeited) {
+        return;
+      }
       pointer.openedByHold = true;
       _open(s);
       _glow(s, pointer.position, on: true);
@@ -2028,6 +2035,10 @@ class MorphMenuMotion {
     pointer.position = position;
     if (pointer.fromButton && !_button.contains(position)) {
       pointer.leftButton = true;
+      if (!pointer.openedByHold &&
+          !_button.inflate(tuning.tapSlop).contains(position)) {
+        pointer.holdForfeited = true;
+      }
     }
     if (_phase != _Phase.opening || pointer.scrolled) return;
     final hit = _hitAt(position);

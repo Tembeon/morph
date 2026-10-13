@@ -190,7 +190,9 @@ wraps its capsule in it. Declared approximations, not measured:
 Every menu source's tap (the tap trigger's opening tap as well as the hold
 trigger's tap through) keeps the glass button's measured 70 pt
 touch-up-inside slop (glass-button.md) as `MorphMenuTuning.tapSlop`: a
-release farther from the source cancels and opens nothing. No capture
+release farther from the source cancels and opens nothing. A finger
+that slides beyond the same slop before `holdDuration` forfeits the hold
+too: the menu never opens under a finger that is cancelling. No capture
 releases a menu button tap outside; the bound is the glass button's.
 
 ## Not reproduced (deliberate)
