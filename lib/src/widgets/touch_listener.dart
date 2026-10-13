@@ -9,6 +9,25 @@ import 'package:meta/meta.dart';
 @internal
 const Duration morphTouchOwnershipDelay = Duration(milliseconds: 150);
 
+/// Whether [notification] reports a finger moving a scrollable's
+/// content, also when the content is pinned against an edge and only
+/// overscrolls.
+///
+/// UIKit's scroll view cancels its content's touches once its pan
+/// begins, whether or not the content can move. The scrollable's own
+/// start notification does not tell that apart: a tap that the drag
+/// recognizer wins by default sends a start and an end with drag
+/// details and no move in between.
+@internal
+bool morphScrollDragged(ScrollNotification notification) =>
+    switch (notification) {
+      ScrollUpdateNotification(dragDetails: _?, :final scrollDelta?) =>
+        scrollDelta != 0,
+      OverscrollNotification(dragDetails: _?, :final overscroll) =>
+        overscroll != 0,
+      _ => false,
+    };
+
 /// A gesture-arena member that claims a control's touches the way UIKit
 /// hands touches to a control inside a scroll view.
 ///

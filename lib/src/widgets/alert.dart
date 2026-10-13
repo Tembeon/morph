@@ -13,6 +13,7 @@ import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/glass_button.dart';
+import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
@@ -616,9 +617,7 @@ class _AlertViewState extends State<_AlertView>
     if (_pointer == null ||
         _scrolled ||
         notification.depth != 0 ||
-        notification is! ScrollUpdateNotification ||
-        notification.dragDetails == null ||
-        (notification.scrollDelta ?? 0) == 0) {
+        !morphScrollDragged(notification)) {
       return false;
     }
     _scrolled = true;

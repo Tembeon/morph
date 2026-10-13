@@ -218,9 +218,9 @@ enum MorphMenuTrigger {
   /// without a primary action: a tap released on the source, or within
   /// [MorphMenuTuning.tapSlop] of it, opens it after
   /// [MorphMenuTuning.tapOpenDelay] (a release farther off opens
-  /// nothing), a held finger opens it after
-  /// [MorphMenuTuning.holdDuration] and may slide onto a row and choose
-  /// it on release.
+  /// nothing), a finger held within that slop opens it after
+  /// [MorphMenuTuning.holdDuration] and may then slide onto a row and
+  /// choose it on release.
   tap,
 
   /// The menu opens only by holding, after
@@ -1350,11 +1350,7 @@ class _MorphMenuLayerState extends State<MorphMenuLayer> {
   }
 
   bool _scrollStarted(ScrollNotification notification) {
-    if (notification is ScrollUpdateNotification &&
-        notification.dragDetails != null &&
-        (notification.scrollDelta ?? 0) != 0) {
-      _scrollGesture();
-    }
+    if (morphScrollDragged(notification)) _scrollGesture();
     return false;
   }
 

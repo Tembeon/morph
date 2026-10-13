@@ -205,4 +205,45 @@ void main() {
     await _settle(tester);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('a drag pinned at the top edge of the rows chooses nothing', (
+    WidgetTester tester,
+  ) async {
+    final chosen = <String>[];
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: const Alignment(0, -0.9),
+            child: MorphMenuButton(
+              items: [
+                for (var i = 0; i < 40; i++)
+                  MorphMenuItem(
+                    title: 'Row $i',
+                    onSelected: () => chosen.add('Row $i'),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.byType(MorphMenuButton));
+    await _settle(tester);
+    expect(_scroll(tester).offset, 0);
+    final start = tester.getCenter(find.text('Row 2').last);
+    final end = tester.getCenter(find.text('Row 5').last);
+    final gesture = await tester.startGesture(start);
+    await tester.pump(const Duration(milliseconds: 50));
+    const steps = 8;
+    for (var i = 0; i < steps; i++) {
+      await gesture.moveBy((end - start) / steps.toDouble());
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(_scroll(tester).offset, 0, reason: 'the rows cannot move');
+    await gesture.up();
+    await _settle(tester);
+    expect(chosen, isEmpty);
+    expect(find.text('Row 5'), findsWidgets, reason: 'the menu stays open');
+  });
 }

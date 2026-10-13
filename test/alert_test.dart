@@ -750,6 +750,79 @@ void main() {
       expect(find.text('Title'), findsOneWidget);
     });
 
+    testWidgets('dragging the alert against its top edge cancels the press', (
+      tester,
+    ) async {
+      var done = false;
+      await open(tester, (c) async {
+        await showMorphAlert(
+          c,
+          title: 'Title',
+          actions: [
+            for (var i = 0; i < 30; i++) MorphAlertAction(title: 'Action $i'),
+          ],
+        );
+        done = true;
+      });
+      final clip = find.ancestor(
+        of: find.text('Title'),
+        matching: find.byType(ClipRRect),
+      );
+      final rest = tester.getRect(clip.first);
+      final start = tester.getCenter(find.text('Action 2'));
+      final end = tester.getCenter(find.text('Action 4'));
+      final gesture = await tester.startGesture(start);
+      await tester.pump(const Duration(milliseconds: 50));
+      const steps = 8;
+      for (var i = 0; i < steps; i++) {
+        await gesture.moveBy((end - start) / steps.toDouble());
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      await tester.pump(const Duration(seconds: 1));
+      final list = tester.state<ScrollableState>(
+        find.ancestor(
+          of: find.text('Action 4'),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      expect(
+        list.position.pixels,
+        0,
+        reason: 'the content is pinned at its top edge',
+      );
+      expect(
+        tester.getRect(clip.first).width,
+        moreOrLessEquals(rest.width, epsilon: 0.5),
+        reason: 'the platter is released',
+      );
+      expect(
+        tester.getRect(clip.first).center,
+        offsetMoreOrLessEquals(rest.center, epsilon: 0.5),
+        reason: 'the platter no longer leans after the finger',
+      );
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(done, isFalse, reason: 'a drag of the content chooses no action');
+      expect(find.text('Title'), findsOneWidget);
+    });
+
+    testWidgets('a tap on an overflowing alert still chooses', (tester) async {
+      var done = false;
+      await open(tester, (c) async {
+        await showMorphAlert(
+          c,
+          title: 'Title',
+          actions: [
+            for (var i = 0; i < 30; i++) MorphAlertAction(title: 'Action $i'),
+          ],
+        );
+        done = true;
+      });
+      await tester.tap(find.text('Action 2'));
+      await tester.pumpAndSettle();
+      expect(done, isTrue);
+    });
+
     testWidgets('a disabled action does not choose', (tester) async {
       var done = false;
       await open(tester, (c) async {

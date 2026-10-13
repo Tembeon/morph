@@ -33,9 +33,11 @@ default / cancel / destructive, `enabled`, handler), `preferredAction`,
   finger pulls it with `platterPull` 0.25 and `platterStretch` 0.6 of a
   button's [device: 0.4 pt lean per 120 pt drag, 0.06 pt rms]; pressed
   button fill drops to 0.4 of its alpha; finger may slide between buttons.
-- A finger that scrolls an overflowing alert's content chooses nothing:
-  the press cancels (highlight off, platter released) as UIKit's scroll
-  view cancels its content touches. No recording scrolls an alert; the
+- A finger that drags an overflowing alert's content chooses nothing:
+  the press cancels (highlight off, platter released) as soon as the
+  content takes the drag, also when it is pinned against an edge and
+  cannot move, as UIKit's scroll view cancels its content touches when
+  its pan begins. No recording scrolls an alert; the
   rule is the menu rows' (menu.dart content scroll).
 - Handlers run after the dismissal (UIKit ~0.45 s after the touch-up).
 - Glass fades through `MorphGlassSurface.opacity` (no gray platter).
