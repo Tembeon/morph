@@ -3,6 +3,8 @@ import 'dart:ui';
 
 import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/flex_integrator.dart';
+import 'package:morph/src/widgets/flex_interaction.dart';
+import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -51,8 +53,13 @@ void paintMorphSmallLens(
 /// solid white to clear glass); the landing waits at least [hangTime]
 /// after the lift, fades the glass back on a critically damped spring and
 /// shrinks the lens on its own underdamped spring, so it dips below its
-/// rest size before it settles. While it moves, the lens stretches along
-/// its motion in proportion to its acceleration and squashes across it.
+/// rest size before it settles. While it moves, the lens deforms by
+/// UIKit's flex movement law for a loupe of its size
+/// ([MorphFlexSpec.loupeForSize]): speeding up it stretches along its
+/// motion, squashes across it and its trailing edge lags ([shift]), each
+/// eased into the loupe's movement bounds. Read from UIKit, notes
+/// private; fed UIKit's own filtered motion the law reproduces the knob
+/// and thumb targets UIKit records (flex_law_test).
 ///
 /// The owner calls [advance] with the frame time and the lens position
 /// as a function of time; the stretch filter steps once per frame of
@@ -100,12 +107,13 @@ class MorphSmallLens {
   /// The shortest time, in seconds, a lifted lens stays lifted.
   static const double hangTime = 0.22;
 
-  /// Stretch per pixel per second squared of acceleration.
-  static const double stretchGain = 5e-5;
-
   final MorphSpringState _progress = MorphSpringState(liftSpring, 0);
   final MorphSpringState _size = MorphSpringState(liftSpring, 0);
-  final MorphSpringState _stretch = MorphSpringState(stretchSpring, 1);
+  final MorphSpringState _scaleX = MorphSpringState(stretchSpring, 1);
+  final MorphSpringState _scaleY = MorphSpringState(stretchSpring, 1);
+  final MorphSpringState _drift = MorphSpringState(stretchSpring, 0);
+  Size? _loupeSize;
+  MorphFlexSpec _loupe = MorphFlexSpec.smallLoupe;
 
   final MorphTimeline _timeline = MorphTimeline();
   final MorphSubClock _frames;
@@ -173,8 +181,28 @@ class MorphSmallLens {
   void _sample(double t, double position) {
     final previous = _previous ?? position;
     final af = _flex.step(previous, _frames.frame);
-    _previous = position;
-    _stretch.retarget(t, reducedMotion ? 1 : 1 + stretchGain * af);
+    if (reducedMotion) {
+      _scaleX.retarget(t, 1);
+      _scaleY.retarget(t, 1);
+      _drift.retarget(t, 0);
+    } else {
+      final lens = size(t);
+      if (lens != _loupeSize) {
+        _loupeSize = lens;
+        _loupe = MorphFlexSpec.loupeForSize(lens);
+      }
+      final v = MorphFlexInteraction.withMovement(
+        MorphFlexInteraction.rest,
+        spec: _loupe,
+        size: lens,
+        acceleration: Offset(af, 0),
+        velocity: Offset(_flex.vf, 0),
+      );
+      _scaleX.retarget(t, v.scaleX);
+      _scaleY.retarget(t, v.scaleY);
+      _drift.retarget(t, v.driftX);
+    }
+    _previous = position + shift(t);
   }
 
   /// Primes the deformation loop at [position] after a discontinuous
@@ -182,7 +210,9 @@ class MorphSmallLens {
   void resetFlex(double t, double position) {
     _previous = position;
     _flex.reset(position);
-    _stretch.snap(t, 1);
+    _scaleX.snap(t, 1);
+    _scaleY.snap(t, 1);
+    _drift.snap(t, 0);
   }
 
   /// The lift progress at time [t]: 0 solid and resting, 1 clear and
@@ -199,15 +229,22 @@ class MorphSmallLens {
   }
 
   /// The stretch along the track at time [t].
-  double scaleX(double t) => _stretch.value(t);
+  double scaleX(double t) => _scaleX.value(t);
 
   /// The squash across the track at time [t].
-  double scaleY(double t) => math.max(1e-6, 2 - _stretch.value(t));
+  double scaleY(double t) => math.max(1e-6, _scaleY.value(t));
+
+  /// How far the lens shows shifted along the track at time [t]: its
+  /// trailing edge lags while it speeds up. The drift times the scale, as
+  /// UIKit scales the drifted lens.
+  double shift(double t) => _drift.value(t) * _scaleX.value(t);
 
   /// Whether the lens is at rest at time [t].
   bool isSettled(double t) =>
       _timeline.isEmpty &&
       _progress.isAtRest(t, 0.002) &&
       _size.isAtRest(t, 0.002) &&
-      _stretch.isAtRest(t, 1e-4);
+      _scaleX.isAtRest(t, 1e-4) &&
+      _scaleY.isAtRest(t, 1e-4) &&
+      _drift.isAtRest(t, 0.01);
 }

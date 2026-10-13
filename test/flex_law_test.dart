@@ -6,6 +6,9 @@ import 'dart:ui';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
+import 'package:morph/src/widgets/slider_motion.dart';
+
+import 'support/trace.dart';
 
 /// The flex movement law against the targets UIKit recorded on an iPhone
 /// 16 Pro (iOS 27.0.1): every lens, knob and thumb frame that logs UIKit's
@@ -108,5 +111,57 @@ void main() {
       expect(_rms(dx), lessThan(0.35), reason: '$name drift');
     }
     expect(checked, greaterThan(30));
+  });
+
+  test('a dragged slider thumb deforms and lags like the device', () {
+    const files = [
+      ('slider-w300-drag-slow.jsonl', 300.0, 0.3),
+      ('slider-w300-drag-pastend.jsonl', 300.0, 0.3),
+      ('slider-w300-drag-pastend-far.jsonl', 300.0, 0.3),
+      ('slider-w300-drag-paststart.jsonl', 300.0, 0.3),
+      ('slider-w300-glide-v150.jsonl', 300.0, 0.1),
+      ('slider-w300-glide-v250.jsonl', 300.0, 0.1),
+      ('slider-w300-glide-v400.jsonl', 300.0, 0.1),
+      ('slider-w200-glide-v250.jsonl', 200.0, 0.1),
+      ('slider-w300-fling-slow.jsonl', 300.0, 0.3),
+    ];
+    final sx = <double>[];
+    final sy = <double>[];
+    final shift = <double>[];
+    for (final (file, width, value) in files) {
+      final trace = Trace.load('$_device/controls/$file');
+      final motion = MorphSliderMotion(
+        width: width,
+        value: value,
+        frameRate: 120,
+      );
+      final left = 201 - width / 2;
+      motion.advance(trace.touches.first.t - 1);
+      var next = 0;
+      for (final f in trace.frames) {
+        if (f.t < trace.touches.first.t) continue;
+        while (next < trace.touches.length && trace.touches[next].t <= f.t) {
+          final touch = trace.touches[next++];
+          final x = touch.x - left;
+          switch (touch.phase) {
+            case 0:
+              motion.pointerDown(touch.t, x);
+            case 3:
+              motion.pointerUp(touch.t, x);
+            case _:
+              motion.pointerMove(touch.t, x);
+          }
+        }
+        motion.advance(f.t);
+        if (f.raw['lifted'] != 1) continue;
+        sx.add(motion.lens.scaleX(f.t) - f.sx);
+        sy.add(motion.lens.scaleY(f.t) - f.sy);
+        shift.add(motion.lens.shift(f.t) - f.tx);
+      }
+    }
+    expect(sx.length, greaterThan(800));
+    expect(_rms(sx), lessThan(0.021));
+    expect(_rms(sy), lessThan(0.021));
+    expect(_rms(shift), lessThan(0.65));
   });
 }

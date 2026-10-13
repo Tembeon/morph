@@ -100,8 +100,13 @@ Small lens (switch knob, slider thumb, `MorphSmallLens`) [fit, device]:
 lift 0.27/0.625 (peak 1.12; measured initial velocity part of the fit),
 initial velocity 18/s only from rest; a re-lift during landing carries
 the current value and velocity. Min hang 0.22 s from lift start; unlift glass progress 0.40/1.0, SIZE on
-its own 0.48/0.70 (dips under rest); stretch sx* = 1 + 5.0e-5 a,
-sy* = 2 - sx*, presentation on smallLoupe 0.444/0.56.
+its own 0.48/0.70 (dips under rest); deformation by the flex movement
+law for a loupe of the lens's current size (a small loupe: sx = 1 +
+5e-5 a below the 1.1 bound, sy across), the drift shown at the scale as
+a shift of the knob or thumb, all three on smallLoupe 0.444/0.56; the
+filter reads the visible center (position + shift) [device: slider
+drags and glides sx / sy 0.0205 / 0.0207 rms, shift 0.60 pt; switch
+drags and taps 0.0050 / 0.0053, shift 0.15 pt; flex_law_test].
 
 ## Fixtures
 

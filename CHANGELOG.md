@@ -27,6 +27,10 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   records (tab bar lifted scale 0.044 -> 0.00003 rms). BREAKING: the
   fitted `MorphLensTuning` fields `restingGain` .. `liftedStretchSoftness`
   are gone.
+- Switch knobs and slider thumbs deform by the same law and shift
+  along their motion while they speed up or slow down
+  (`MorphSmallLens.shift`), as UIKit's knob does (up to about 2 pt).
+  BREAKING: `MorphSmallLens.stretchGain` is gone.
 - `MorphMenuSource` takes keyboard focus itself, draws the focus ring
   around its child and answers Enter or Space as a tap. An app whose
   child takes the focus itself and calls `MorphMenuSource.open`, as the
