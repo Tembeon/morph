@@ -35,15 +35,36 @@ mixin TransformTrackingRenderObjectMixin on RenderProxyBox {
       ..renderObject = this
       ..trackedTransform = trackedTransform
       ..onTransformChanged = () {
-        if (attached) {
-          onTransformChanged();
-        }
+        if (attached) _whileCompositing(onTransformChanged);
       }
       ..onCompositing = () {
-        if (attached) {
-          onCompositing();
-        }
+        if (attached) _whileCompositing(onCompositing);
       };
+  }
+
+  bool _compositing = false;
+
+  void _whileCompositing(VoidCallback hook) {
+    _compositing = true;
+    try {
+      hook();
+    } finally {
+      _compositing = false;
+    }
+  }
+
+  /// Marks this object for paint; asked for from [onTransformChanged] or
+  /// [onCompositing], it also asks for the frame that paints it.
+  ///
+  /// Those hooks run after the frame's paint, while the scheduler is still
+  /// in its persistent callbacks, where a paint request schedules no frame:
+  /// without one the request waits for whatever repaints next, and a layer
+  /// that asked to show a shape that just joined it shows nothing until
+  /// then.
+  @override
+  void markNeedsPaint() {
+    super.markNeedsPaint();
+    if (_compositing) SchedulerBinding.instance.scheduleFrame();
   }
 
   void onTransformChanged();

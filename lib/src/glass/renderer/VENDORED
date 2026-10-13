@@ -499,3 +499,14 @@ Local patches (some commits include related package changes):
   opacity, so each shape no longer carries an OpacityLayer and a clip
   layer around empty content. Content, when given, is clipped and faded
   as before.
+- 2026-10-13 compositing repaints: a liquid layer's compositing hooks
+  (the transform watch and the compositor-translation poll) run after
+  the frame's paint, in the persistent callbacks, where markNeedsPaint
+  schedules no frame. A shape that joined or left the layer in a frame
+  the layer did not paint (it attached or detached under a nested
+  repaint boundary: a menu source landing, a bar button coming back)
+  was found by the poll, whose paint request then waited for whatever
+  repainted next: the joined glass was missing, the left glass stayed.
+  The per-frame raster-phase watch hid it until 2026-10-12. A paint
+  requested from those hooks now schedules its frame
+  (example/test/glass_repaint_host_test.dart).
