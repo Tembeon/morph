@@ -100,7 +100,9 @@ scale moves (present 1.199 -> 1, the lift, a popover's 0.01 -> 1) it is
 drawn from one raster, mipmapped - NEAR (resampled, at most 9 percent
 magnified); at rest exact - IDENTICAL; the fade is the drawing's own
 opacity layer - IDENTICAL (exact-mode frame hashes of every matrix cell
-unchanged). Host, exact vs policy every frame (glyph_scale_test): 110
+unchanged) - except while it draws from its raster, where the fade is the
+alpha of the one image draw, without an offscreen pass - NEAR: at most 1
+of 255 per channel (see date-picker.md). Host, exact vs policy every frame (glyph_scale_test): 110
 frames, 55 off live, worst mean 0.07 per channel, 0.07 percent of pixels
 over 15. Glyph strike frames over three bench runs (glyph_strikes_test,
 Impeller's atlas keys replayed): 67 -> 3; three rasters a run (two

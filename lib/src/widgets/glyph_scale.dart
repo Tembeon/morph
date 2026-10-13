@@ -451,8 +451,10 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
   /// against its edges): it draws from one raster while it moves, down to
   /// the slowest drift of its spring's tail (NEAR: resampled), and live at
   /// rest or while its content repaints on consecutive frames
-  /// (IDENTICAL). The fade is this drawing's own opacity layer, as an
-  /// [Opacity]'s would be (IDENTICAL).
+  /// (IDENTICAL). Drawn live, the fade is this drawing's own opacity
+  /// layer, as an [Opacity]'s would be (IDENTICAL); drawn from its raster,
+  /// the fade is the alpha of the image draw, with no offscreen pass
+  /// (NEAR: one rounding instead of two, at most 1 of 255 per channel).
   const MorphGlyphs.faded({
     required Listenable this.live,
     required double Function() this.opacityOf,
@@ -707,9 +709,10 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
 
   int _alpha = 255;
 
-  /// The opacity the child is drawn with, from 0 to 1, through an
-  /// opacity layer of this box's own while it is between them (unlike
-  /// [RenderOpacity], this box is no repaint boundary).
+  /// The opacity the child is drawn with, from 0 to 1: drawn live, through
+  /// an opacity layer of this box's own while it is between them (unlike
+  /// [RenderOpacity], this box is no repaint boundary); drawn from its
+  /// raster, through the alpha of the one image draw.
   double get opacity => _alpha / 255;
 
   set opacity(double value) {
@@ -1169,7 +1172,9 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
       if (mode != MorphGlyphMode.live) _tracker.settleNext();
       return;
     }
-    if (_alpha == 255) {
+    // A raster is one image draw: it takes the fade in its paint, with no
+    // offscreen pass over the card.
+    if (_alpha == 255 || mode == MorphGlyphMode.raster) {
       _opacityLayer.layer = null;
       _paintSharp(context, offset, screen, mode);
       return;
@@ -1206,6 +1211,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
         paint.filterQuality = _wantsPyramid
             ? FilterQuality.low
             : FilterQuality.medium;
+        paint.color = ui.Color.fromARGB(_alpha, 0, 0, 0);
         context.canvas.drawImageRect(
           _atlas!,
           Rect.fromLTWH(

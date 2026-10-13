@@ -206,7 +206,8 @@ class MorphAlertStyle {
 /// buttons are drawn from one raster of them, mipmapped, so the glyph
 /// atlas is not filled again at every scale of the sweep: NEAR
 /// (resampled, at most 9 percent magnified). At rest they are drawn
-/// exactly (IDENTICAL).
+/// exactly (IDENTICAL). A fading raster is drawn with the fade in its
+/// paint, without an offscreen pass: NEAR (at most 1 of 255 per channel).
 Future<MorphAlertAction?> showMorphAlert(
   BuildContext context, {
   String? title,

@@ -131,6 +131,17 @@
     "traces": 0.0,
     "idle": 0
   },
+  "date-picker/flat": {
+    "frames": 172,
+    "builds": 5.3,
+    "paints": 20.0,
+    "pictures": 2.1,
+    "captures": 0.0,
+    "offscreen": 0.0,
+    "snapshotImages": 0.0,
+    "traces": 0.0,
+    "idle": 0
+  },
   "density-rest-1/flat": {
     "frames": 40,
     "builds": 0.8,
@@ -373,6 +384,17 @@
     "traces": 0.0,
     "idle": 0
   },
+  "date-picker/fake": {
+    "frames": 172,
+    "builds": 5.4,
+    "paints": 23.8,
+    "pictures": 2.3,
+    "captures": 1.8,
+    "offscreen": 1.8,
+    "snapshotImages": 0.0,
+    "traces": 0.0,
+    "idle": 0
+  },
   "density-rest-1/fake": {
     "frames": 40,
     "builds": 0.8,
@@ -611,6 +633,17 @@
     "pictures": 1.0,
     "captures": 2.0,
     "offscreen": 2.0,
+    "snapshotImages": 0.0,
+    "traces": 0.0,
+    "idle": 0
+  },
+  "date-picker/liquid": {
+    "frames": 172,
+    "builds": 5.4,
+    "paints": 23.8,
+    "pictures": 2.3,
+    "captures": 1.8,
+    "offscreen": 1.8,
     "snapshotImages": 0.0,
     "traces": 0.0,
     "idle": 0

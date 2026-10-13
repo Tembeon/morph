@@ -256,7 +256,11 @@ String _defaultTime(DateTime d, {required bool twentyFour}) {
 /// scale of the sweep: NEAR (resampled, at most 9 percent magnified). At
 /// rest it is drawn exactly (IDENTICAL). The content fades inside the
 /// overlay's clip: NEAR (the clip's anti-aliased edge row differs by up
-/// to 23 of 255 in the first frames of the opening).
+/// to 23 of 255 in the first frames of the opening). A fading raster is
+/// drawn with the fade in its paint, without an offscreen pass over the
+/// card: NEAR (at most 1 of 255 per channel). Each month grid is a layer
+/// of its own, so a page turn moves recorded grids instead of painting
+/// every day again (IDENTICAL).
 class MorphDatePicker extends StatefulWidget {
   /// Creates a picker.
   const MorphDatePicker({
@@ -1473,7 +1477,9 @@ class _Calendar extends StatelessWidget {
         '${_text(_months[month.month - 1])} ${_number(month.year)}';
     // Built once per calendar build: the frame builders below only move
     // them, so a tick of any overlay motion leaves the days untouched.
-    final monthGrid = _month(month);
+    // Both grids share one shape, so a page turn's start and end keep the
+    // element (and the recorded layer) of the month that stays.
+    final monthGrid = ExcludeSemantics(excluding: false, child: _month(month));
     final previous = previousMonth;
     final previousGrid = previous == null
         ? null
@@ -1630,56 +1636,64 @@ class _Calendar extends StatelessWidget {
                             0,
                           ),
                           child: ClipRect(
-                            child: ValueListenableBuilder<bool>(
-                              valueListenable: pageTurning,
-                              builder:
-                                  (
-                                    BuildContext context,
-                                    bool turning,
-                                    Widget? _,
-                                  ) {
-                                    double p() => motion.page(motion.time);
-                                    double dir() =>
-                                        motion.pageDirection *
-                                        (rtl ? -1.0 : 1.0);
-                                    return Stack(
-                                      clipBehavior: Clip.none,
-                                      children: [
-                                        if (previousGrid != null && turning)
+                            // A page turn repaints the moving grids' offsets
+                            // only, not the weekday row above.
+                            child: RepaintBoundary(
+                              child: ValueListenableBuilder<bool>(
+                                valueListenable: pageTurning,
+                                builder:
+                                    (
+                                      BuildContext context,
+                                      bool turning,
+                                      Widget? _,
+                                    ) {
+                                      double p() => motion.page(motion.time);
+                                      double dir() =>
+                                          motion.pageDirection *
+                                          (rtl ? -1.0 : 1.0);
+                                      return Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          if (previousGrid != null && turning)
+                                            Positioned(
+                                              key: ValueKey<DateTime>(
+                                                previous!,
+                                              ),
+                                              left: 0,
+                                              top: 0,
+                                              width: grid,
+                                              child: MorphLiveShift(
+                                                live: frames,
+                                                offsetOf: () => Offset(
+                                                  -dir() * grid * p(),
+                                                  0,
+                                                ),
+                                                child: previousGrid,
+                                              ),
+                                            ),
                                           Positioned(
+                                            key: ValueKey<DateTime>(month),
                                             left: 0,
                                             top: 0,
                                             width: grid,
                                             child: MorphLiveShift(
                                               live: frames,
-                                              offsetOf: () => Offset(
-                                                -dir() * grid * p(),
-                                                0,
-                                              ),
-                                              child: previousGrid,
+                                              offsetOf: () {
+                                                final q = p();
+                                                return Offset(
+                                                  previousGrid != null && q < 1
+                                                      ? dir() * grid * (1 - q)
+                                                      : 0,
+                                                  0,
+                                                );
+                                              },
+                                              child: monthGrid,
                                             ),
                                           ),
-                                        Positioned(
-                                          left: 0,
-                                          top: 0,
-                                          width: grid,
-                                          child: MorphLiveShift(
-                                            live: frames,
-                                            offsetOf: () {
-                                              final q = p();
-                                              return Offset(
-                                                previousGrid != null && q < 1
-                                                    ? dir() * grid * (1 - q)
-                                                    : 0,
-                                                0,
-                                              );
-                                            },
-                                            child: monthGrid,
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  },
+                                        ],
+                                      );
+                                    },
+                              ),
                             ),
                           ),
                         ),
@@ -1743,51 +1757,55 @@ class _Calendar extends StatelessWidget {
     final row = weeks > 5
         ? MorphDatePickerTuning.sixWeekRowHeight
         : _CalendarMetrics.row;
-    return Column(
-      children: [
-        for (var w = 0; w < weeks; w++)
-          SizedBox(
-            height: row,
-            child: Row(
-              children: [
-                for (var d = 0; d < 7; d++)
-                  SizedBox(
-                    width: _CalendarMetrics.cell,
-                    child: () {
-                      final day = w * 7 + d - lead + 1;
-                      if (day < 1 || day > days) return const SizedBox();
-                      final date = DateTime(month.year, month.month, day);
-                      return _Day(
-                        date: date,
-                        semanticLabel:
-                            dayFormatter?.call(date) ??
-                            '${_number(date.day)} ${_text(_months[date.month - 1])} ${_number(date.year)}',
-                        text: _number(date.day),
-                        disc: math.min(_CalendarMetrics.cell, row),
-                        selected: _sameDay(date, value),
-                        today: _sameDay(date, today),
-                        enabled:
-                            !(firstDate != null &&
-                                date.isBefore(_dateOnly(firstDate!))) &&
-                            !(lastDate != null &&
-                                date.isAfter(_dateOnly(lastDate!))),
-                        style: style,
-                        onTap: () => onPick(
-                          DateTime(
-                            date.year,
-                            date.month,
-                            date.day,
-                            value.hour,
-                            value.minute,
+    // Its own layer: a page turn moves the recorded grid instead of
+    // painting every day again on each frame.
+    return RepaintBoundary(
+      child: Column(
+        children: [
+          for (var w = 0; w < weeks; w++)
+            SizedBox(
+              height: row,
+              child: Row(
+                children: [
+                  for (var d = 0; d < 7; d++)
+                    SizedBox(
+                      width: _CalendarMetrics.cell,
+                      child: () {
+                        final day = w * 7 + d - lead + 1;
+                        if (day < 1 || day > days) return const SizedBox();
+                        final date = DateTime(month.year, month.month, day);
+                        return _Day(
+                          date: date,
+                          semanticLabel:
+                              dayFormatter?.call(date) ??
+                              '${_number(date.day)} ${_text(_months[date.month - 1])} ${_number(date.year)}',
+                          text: _number(date.day),
+                          disc: math.min(_CalendarMetrics.cell, row),
+                          selected: _sameDay(date, value),
+                          today: _sameDay(date, today),
+                          enabled:
+                              !(firstDate != null &&
+                                  date.isBefore(_dateOnly(firstDate!))) &&
+                              !(lastDate != null &&
+                                  date.isAfter(_dateOnly(lastDate!))),
+                          style: style,
+                          onTap: () => onPick(
+                            DateTime(
+                              date.year,
+                              date.month,
+                              date.day,
+                              value.hour,
+                              value.minute,
+                            ),
                           ),
-                        ),
-                      );
-                    }(),
-                  ),
-              ],
+                        );
+                      }(),
+                    ),
+                ],
+              ),
             ),
-          ),
-      ],
+        ],
+      ),
     );
   }
 }

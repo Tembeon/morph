@@ -541,6 +541,32 @@ final glassScenes = <GlassScene>[
       }
     },
   ),
+  GlassScene(
+    'date-picker',
+    () => _page(
+      _Controlled(
+        (value, onChanged) => MorphDatePicker(
+          value: value as DateTime? ?? DateTime(2026, 10, 12),
+          today: DateTime(2026, 10, 12),
+          onChanged: onChanged,
+        ),
+      ),
+    ),
+    (tester) async {
+      await tester.tap(find.byType(MorphDatePicker));
+      for (var i = 0; i < 90; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+      }
+      await tester.tap(find.bySemanticsLabel('Next month'));
+      for (var i = 0; i < 60; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+      }
+      await tester.tapAt(const Offset(20, 840));
+      for (var i = 0; i < 120; i++) {
+        await tester.pump(const Duration(milliseconds: 8));
+      }
+    },
+  ),
   for (final n in _densities) ...[
     GlassScene('density-rest-$n', () => _density(n), (tester) async {
       await _drag(

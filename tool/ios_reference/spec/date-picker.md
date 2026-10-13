@@ -160,6 +160,21 @@ rasters a run. Pixel matrix before: m/date-picker/open-close 26 - 28
 percent strike frames, 4.4 - 7.7 ms UpdateAtlasBitmap in frames over
 budget (bench-matrix-night).
 
+Performance trade (2026-10-13, declared in `MorphDatePicker`): a fading
+raster takes the fade in the alpha of its one image draw instead of an
+opacity layer (an offscreen pass over the card) - NEAR: one rounding
+instead of two, at most 1 of 255 per channel (host, layer vs paint fade
+over the open-close and an alert, flat / fake / liquid at 1x and 2.625x:
+230 frames, 43 - 46 differ, every differing pixel by 1). Each month grid
+is its own repaint boundary, keyed by month so a turn's start and end
+keep the staying grid, and the grid area is a boundary of its own -
+IDENTICAL (control goldens unchanged with the layer fade). Host paints
+per frame of a page turn 388 -> 22 (first frame 657 -> 336, last 333 ->
+19). Pixel matrix before: m/date-picker/open-close 11.5 percent over
+budget, raster p95 21.8 ms, Canvas::saveLayer 10.4 ms in frames over
+budget, OpacityLayer 0.3 passes a frame (bench-matrix-night, before the
+glyph raster above).
+
 ## Not reproduced / open
 
 - Perspective of the month/year wheel rows (above).
