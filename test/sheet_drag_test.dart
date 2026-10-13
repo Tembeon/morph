@@ -261,4 +261,43 @@ void main() {
       });
     }
   });
+
+  test('a drag catching a returning stretch carries it on', () {
+    final motion = MorphSheetMotion(
+      heights: _heights,
+      width: _w,
+      initial: 0,
+      dockedIndex: 1,
+    );
+    motion.present(0);
+    motion.advance(2);
+    const step = 1 / 120;
+    var t = 2.0;
+    var y = 600.0;
+    motion.dragStart(t, y);
+    for (var i = 0; i < 16; i++) {
+      t += step;
+      y -= 1300 * step;
+      motion.dragUpdate(t, y);
+    }
+    motion.dragEnd(t, -1300);
+    final peak = motion.stretch(t);
+    expect(peak, greaterThan(1.02));
+    final regrab = t + 0.1;
+    motion.advance(regrab);
+    final before = motion.stretch(regrab);
+    expect(before, greaterThan(1.01));
+    expect(motion.dock(regrab), lessThan(1));
+    motion.dragStart(regrab, y);
+    expect(motion.stretch(regrab), closeTo(before, 1e-9));
+    var last = before;
+    for (var i = 1; i <= 24; i++) {
+      final s = regrab + i * step;
+      motion.dragUpdate(s, y);
+      final now = motion.stretch(s);
+      expect((now - last).abs(), lessThan(0.003));
+      last = now;
+    }
+    expect(last, lessThan(before));
+  });
 }

@@ -388,13 +388,17 @@ class MorphSheetMotion {
   /// The ratio of the sheet's vertical to its horizontal scale at time
   /// [t]: 1 at rest, above 1 while a drag stretches the sheet. The drawn
   /// height is the [scale]d height times its square root, the drawn width
-  /// the [scale]d width over it, about the bottom edge.
+  /// the [scale]d width over it, about the bottom edge. A drag that
+  /// catches the sheet while a stretch still returns stretches it on top
+  /// of that remainder, which keeps returning on
+  /// [MorphSheetTuning.stretchSpring].
   double stretch(double t) =>
       1 +
+      _stretch.value(t) +
       (_stretching
           ? MorphSheetTuning.stretchPerPoint * _travel +
                 MorphSheetTuning.stretchLagGain * _lag.value(t)
-          : _stretch.value(t));
+          : 0);
 
   void _holdStretch(double t) {
     if (!_stretching) return;
@@ -522,6 +526,7 @@ class MorphSheetMotion {
     unpress(t);
     _holdStretch(t);
     if (dock(t) < 1) {
+      _stretch.retarget(t, 0);
       _stretching = true;
       _travel = 0;
       _travelAt = t;
