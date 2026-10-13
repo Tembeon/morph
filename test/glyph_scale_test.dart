@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/rendering.dart';
@@ -9,92 +7,7 @@ import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/widgets.dart';
 
-const _frameKey = ValueKey<String>('frame');
-
-Widget _app(Widget body) => WidgetsApp(
-  color: const Color(0xFF007AFF),
-  pageRouteBuilder: <T>(RouteSettings settings, WidgetBuilder builder) =>
-      PageRouteBuilder<T>(
-        settings: settings,
-        pageBuilder:
-            (
-              BuildContext context,
-              Animation<double> animation,
-              Animation<double> secondaryAnimation,
-            ) => builder(context),
-      ),
-  builder: (BuildContext context, Widget? child) => RepaintBoundary(
-    key: _frameKey,
-    child: ColoredBox(color: const Color(0xFF000000), child: child),
-  ),
-  home: MorphGlass(
-    painter: const MorphGlassRenderer(tier: MorphGlassTier.liquid),
-    child: Center(child: body),
-  ),
-);
-
-Future<Uint8List> _frame(WidgetTester tester) async {
-  final boundary =
-      tester.renderObject(find.byKey(_frameKey)) as RenderRepaintBoundary;
-  final bytes = await tester.runAsync(() async {
-    final image = await boundary.toImage(pixelRatio: 3);
-    final data = await image.toByteData();
-    image.dispose();
-    return data!.buffer.asUint8List();
-  });
-  return bytes!;
-}
-
-/// The largest channel difference of two frames, their mean channel
-/// difference per pixel and the share of pixels over [threshold], in
-/// percent.
-({int max, double mean, double over}) _diff(
-  Uint8List a,
-  Uint8List b, {
-  int threshold = 15,
-}) {
-  var max = 0;
-  var sum = 0;
-  var over = 0;
-  for (var i = 0; i < a.length; i += 4) {
-    var m = 0;
-    for (var k = 0; k < 3; k++) {
-      m = math.max(m, (a[i + k] - b[i + k]).abs());
-    }
-    max = math.max(max, m);
-    sum += m;
-    if (m > threshold) over++;
-  }
-  final pixels = a.length / 4;
-  return (max: max, mean: sum / pixels, over: over / pixels * 100);
-}
-
-/// Plays [script] twice, once exact and once with the glyph grid, and
-/// returns every pumped frame of both.
-Future<List<(Uint8List, Uint8List, bool)>> _twice(
-  WidgetTester tester,
-  Widget Function() app,
-  Future<void> Function(Future<void> Function() frame) script,
-  bool Function() active,
-) async {
-  final runs = <List<(Uint8List, bool)>>[];
-  for (final exact in [true, false]) {
-    MorphGlyphScale.debugExact = exact;
-    await tester.pumpWidget(const SizedBox());
-    await tester.pumpWidget(app());
-    await tester.pump(const Duration(milliseconds: 100));
-    final frames = <(Uint8List, bool)>[];
-    await script(() async {
-      frames.add((await _frame(tester), active()));
-    });
-    runs.add(frames);
-  }
-  MorphGlyphScale.debugExact = false;
-  return [
-    for (var i = 0; i < runs[0].length; i++)
-      (runs[0][i].$1, runs[1][i].$1, runs[1][i].$2),
-  ];
-}
+import 'support/glyph_scale_frames.dart';
 
 void main() {
   setUpAll(() async {
@@ -126,7 +39,7 @@ void main() {
     final cover = ValueNotifier<double>(1);
     addTearDown(cover.dispose);
     const key = ValueKey<String>('retained');
-    Widget app(Color color, double scale) => _app(
+    Widget app(Color color, double scale) => glyphApp(
       Transform.scale(
         scale: scale,
         child: MorphGlyphs(
@@ -146,13 +59,14 @@ void main() {
       counting = false;
       final rect = tester.getRect(find.byKey(key));
       final boundary =
-          tester.renderObject(find.byKey(_frameKey)) as RenderRepaintBoundary;
+          tester.renderObject(find.byKey(glyphFrameKey))
+              as RenderRepaintBoundary;
       final width = (boundary.size.width * 3).ceil();
       final offset =
           ((rect.center.dy * 3).floor() * width +
               (rect.center.dx * 3).floor()) *
           4;
-      final pixel = (await _frame(tester)).sublist(offset, offset + 4);
+      final pixel = (await glyphFrame(tester)).sublist(offset, offset + 4);
       counting = true;
       return pixel;
     }
@@ -200,7 +114,7 @@ void main() {
     var selected = 0;
     Widget app() {
       selected = 0;
-      return _app(
+      return glyphApp(
         StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) => MorphTabBar(
             items: const [
@@ -216,7 +130,7 @@ void main() {
       );
     }
 
-    final frames = await _twice(tester, app, (frame) async {
+    final frames = await glyphTwice(tester, app, (frame) async {
       final bar = tester.getRect(find.byType(MorphTabBar));
       final from = Offset(bar.left + bar.width / 8, bar.center.dy);
       final to = Offset(bar.left + bar.width * 5 / 8, bar.center.dy);
@@ -239,7 +153,7 @@ void main() {
     var changed = 0;
     var worst = (max: 0, mean: 0.0, over: 0.0);
     for (final (exact, grid, _) in frames) {
-      final d = _diff(exact, grid);
+      final d = glyphDiff(exact, grid);
       if (d.max > 0) changed++;
       if (d.mean > worst.mean) worst = d;
     }
@@ -248,306 +162,8 @@ void main() {
       'max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
       'over15 ${worst.over.toStringAsFixed(3)}%',
     );
-    expect(_diff(frames.first.$1, frames.first.$2).max, 0);
-    expect(_diff(frames.last.$1, frames.last.$2).max, 0);
+    expect(glyphDiff(frames.first.$1, frames.first.$2).max, 0);
+    expect(glyphDiff(frames.last.$1, frames.last.$2).max, 0);
     expect(worst.over, lessThan(0.2));
-  });
-
-  testWidgets('menu rows draw from one raster only while they move', (
-    tester,
-  ) async {
-    Widget app() => _app(
-      const MorphMenuButton(
-        items: [
-          MorphMenuItem(title: 'Copy'),
-          MorphMenuItem(title: 'Share'),
-          MorphMenuItem(title: 'Rename'),
-          MorphMenuItem(title: 'Move to folder'),
-          MorphMenuItem(title: 'Delete', destructive: true),
-        ],
-      ),
-    );
-    final frames = await _twice(
-      tester,
-      app,
-      (frame) async {
-        await tester.tap(find.byType(MorphMenuButton));
-        for (var i = 0; i < 60; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          await frame();
-        }
-        await tester.tapAt(const Offset(20, 20));
-        for (var i = 0; i < 60; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          await frame();
-        }
-      },
-      () => tester
-          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
-          .any((g) => g.debugMode != MorphGlyphMode.live),
-    );
-    var rastered = 0;
-    var worst = (max: 0, mean: 0.0, over: 0.0);
-    for (final (exact, grid, active) in frames) {
-      final d = _diff(exact, grid);
-      if (active) {
-        rastered++;
-        if (d.mean > worst.mean) worst = d;
-      } else {
-        expect(d.max, 0);
-      }
-    }
-    debugPrint(
-      'menu: ${frames.length} frames, $rastered from the raster, worst '
-      'max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
-      'over15 ${worst.over.toStringAsFixed(3)}%',
-    );
-    expect(rastered, greaterThan(10));
-    expect(worst.over, lessThan(0.2));
-  });
-
-  testWidgets('an alert scales in from one raster and rests exact', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 2.625;
-    addTearDown(tester.view.resetDevicePixelRatio);
-    late BuildContext context;
-    Widget app() => _app(
-      Builder(
-        builder: (BuildContext c) {
-          context = c;
-          return const SizedBox(width: 10, height: 10);
-        },
-      ),
-    );
-    final frames = await _twice(
-      tester,
-      app,
-      (frame) async {
-        showMorphAlert(
-          context,
-          title: 'Title',
-          message: 'A message in the alert.',
-          actions: const [
-            MorphAlertAction(
-              title: 'Cancel',
-              style: MorphAlertActionStyle.cancel,
-            ),
-            MorphAlertAction(title: 'OK'),
-          ],
-        ).ignore();
-        for (var i = 0; i < 70; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          await frame();
-        }
-        await tester.tap(find.text('OK'));
-        for (var i = 0; i < 40; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          await frame();
-        }
-      },
-      () => tester
-          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
-          .any((g) => g.debugMode != MorphGlyphMode.live),
-    );
-    var moving = 0;
-    var worst = (max: 0, mean: 0.0, over: 0.0);
-    for (final (exact, grid, active) in frames) {
-      final d = _diff(exact, grid);
-      if (active) {
-        moving++;
-        if (d.mean > worst.mean) worst = d;
-      } else {
-        expect(d.max, 0);
-      }
-    }
-    debugPrint(
-      'alert: ${frames.length} frames, $moving off live, worst '
-      'max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
-      'over15 ${worst.over.toStringAsFixed(3)}%',
-    );
-    expect(moving, greaterThan(10));
-    expect(worst.over, lessThan(0.5));
-  });
-
-  testWidgets('a date picker overlay scales in from one raster', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 2.625;
-    addTearDown(tester.view.resetDevicePixelRatio);
-    Widget app() => _app(
-      MorphDatePicker(
-        value: DateTime(2026, 10, 12),
-        today: DateTime(2026, 10, 12),
-        onChanged: (_) {},
-      ),
-    );
-    final frames = await _twice(
-      tester,
-      app,
-      (frame) async {
-        await tester.tap(find.byType(MorphDatePicker));
-        for (var i = 0; i < 70; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          await frame();
-        }
-        await tester.tapAt(const Offset(20, 20));
-        for (var i = 0; i < 50; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          await frame();
-        }
-      },
-      () => tester
-          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
-          .any((g) => g.debugMode != MorphGlyphMode.live),
-    );
-    var moving = 0;
-    var worst = (max: 0, mean: 0.0, over: 0.0);
-    for (final (exact, grid, active) in frames) {
-      final d = _diff(exact, grid);
-      if (active) {
-        moving++;
-        if (d.mean > worst.mean) worst = d;
-      } else {
-        expect(d.max, 0);
-      }
-    }
-    debugPrint(
-      'date picker: ${frames.length} frames, $moving off live, worst '
-      'max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
-      'over15 ${worst.over.toStringAsFixed(3)}%',
-    );
-    expect(moving, greaterThan(10));
-    expect(worst.over, lessThan(0.5));
-  });
-
-  for (final (name, wait, act)
-      in <(String, int, Future<void> Function(WidgetTester))>[
-        ('a day', 36, (tester) => tester.tap(find.text('20').last)),
-        (
-          'the next month',
-          60,
-          (tester) {
-            final title = tester.getRect(find.text('October 2026').last);
-            final overlay = tester.getRect(find.byType(MorphGlyphs).last);
-            return tester.tapAt(Offset(overlay.right - 24, title.center.dy));
-          },
-        ),
-      ]) {
-    testWidgets('a date picker still settling draws $name changing', (
-      tester,
-    ) async {
-      tester.view.devicePixelRatio = 2.625;
-      addTearDown(tester.view.resetDevicePixelRatio);
-      Widget app() => _app(
-        MorphDatePicker(
-          value: DateTime(2026, 10, 12),
-          today: DateTime(2026, 10, 12),
-          onChanged: (_) {},
-        ),
-      );
-      final frames = await _twice(
-        tester,
-        app,
-        (frame) async {
-          await tester.tap(find.byType(MorphDatePicker));
-          for (var i = 0; i < wait; i++) {
-            await tester.pump(const Duration(milliseconds: 16));
-          }
-          await act(tester);
-          for (var i = 0; i < 40; i++) {
-            await tester.pump(const Duration(milliseconds: 16));
-            await frame();
-          }
-        },
-        () => tester
-            .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
-            .any((g) => g.debugMode != MorphGlyphMode.live),
-      );
-      var moving = 0;
-      var worst = (max: 0, mean: 0.0, over: 0.0);
-      for (final (exact, grid, active) in frames) {
-        final d = _diff(exact, grid);
-        if (active) moving++;
-        if (d.mean > worst.mean) worst = d;
-      }
-      debugPrint(
-        'date picker $name: ${frames.length} frames, $moving off live, '
-        'worst max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
-        'over15 ${worst.over.toStringAsFixed(3)}%',
-      );
-      expect(moving, greaterThan(0));
-      expect(worst.over, lessThan(0.5));
-    });
-  }
-
-  testWidgets('an alert draws its highlight moving under a pressed scale', (
-    tester,
-  ) async {
-    tester.view.devicePixelRatio = 2.625;
-    addTearDown(tester.view.resetDevicePixelRatio);
-    late BuildContext context;
-    Widget app() => _app(
-      Builder(
-        builder: (BuildContext c) {
-          context = c;
-          return const SizedBox(width: 10, height: 10);
-        },
-      ),
-    );
-    final frames = await _twice(
-      tester,
-      app,
-      (frame) async {
-        showMorphAlert(
-          context,
-          title: 'Title',
-          message: 'A message in the alert.',
-          actions: const [
-            MorphAlertAction(
-              title: 'Cancel',
-              style: MorphAlertActionStyle.cancel,
-            ),
-            MorphAlertAction(title: 'OK'),
-          ],
-        ).ignore();
-        for (var i = 0; i < 70; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-        }
-        final gesture = await tester.startGesture(
-          tester.getCenter(find.text('Cancel')),
-        );
-        for (var i = 0; i < 3; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          await frame();
-        }
-        await gesture.moveTo(tester.getCenter(find.text('OK')));
-        for (var i = 0; i < 30; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-          await frame();
-        }
-        await gesture.cancel();
-        for (var i = 0; i < 40; i++) {
-          await tester.pump(const Duration(milliseconds: 16));
-        }
-      },
-      () => tester
-          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
-          .any((g) => g.debugMode != MorphGlyphMode.live),
-    );
-    var moving = 0;
-    var worst = (max: 0, mean: 0.0, over: 0.0);
-    for (final (exact, grid, active) in frames) {
-      final d = _diff(exact, grid, threshold: 3);
-      if (active) moving++;
-      if (d.mean > worst.mean) worst = d;
-    }
-    debugPrint(
-      'alert highlight: ${frames.length} frames, $moving off live, worst '
-      'max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
-      'over3 ${worst.over.toStringAsFixed(3)}%',
-    );
-    expect(moving, greaterThan(0));
-    expect(worst.over, lessThan(0.5));
   });
 }
