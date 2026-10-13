@@ -215,8 +215,10 @@ class MorphMenuStyle {
 enum MorphMenuTrigger {
   /// The menu is the source's primary action, as a `UIButton` whose
   /// `showsMenuAsPrimaryAction` is on or a `UIBarButtonItem(menu:)`
-  /// without a primary action: a tap opens it on release after
-  /// [MorphMenuTuning.tapOpenDelay], a held finger opens it after
+  /// without a primary action: a tap released on the source, or within
+  /// [MorphMenuTuning.tapSlop] of it, opens it after
+  /// [MorphMenuTuning.tapOpenDelay] (a release farther off opens
+  /// nothing), a held finger opens it after
   /// [MorphMenuTuning.holdDuration] and may slide onto a row and choose
   /// it on release.
   tap,

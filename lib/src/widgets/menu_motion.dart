@@ -454,10 +454,11 @@ class MorphMenuTuning {
   final double holdDuration;
 
   /// How far outside the source, in points, a release still counts as a
-  /// tap on it when the menu opens only by holding
-  /// ([MorphMenuMotion.opensOnTap] false): the 70 pt touch-up-inside
-  /// slop of a glass `UIButton` measured in glass-button.md, the same as
-  /// `MorphGlassButtonMotion.highlightSlop`.
+  /// tap on it: within it a tap opens the menu (or calls
+  /// [MorphMenuMotion.onTap] when the menu opens only by holding), beyond
+  /// it the release cancels and nothing opens. It is the 70 pt
+  /// touch-up-inside slop of a glass `UIButton` measured in
+  /// glass-button.md, the same as `MorphGlassButtonMotion.highlightSlop`.
   final double tapSlop;
 
   /// Seconds between a release that dismisses and the start of the
@@ -2062,14 +2063,12 @@ class MorphMenuMotion {
     if (pointer.fromButton) {
       _release(t);
       if (!pointer.openedByHold) {
+        final inside = _button.inflate(tuning.tapSlop).contains(position);
         if (!opensOnTap) {
-          if (_phase != _Phase.opening &&
-              _button.inflate(tuning.tapSlop).contains(position)) {
-            onTap?.call();
-          }
+          if (_phase != _Phase.opening && inside) onTap?.call();
           return;
         }
-        if (_phase != _Phase.opening) {
+        if (_phase != _Phase.opening && inside) {
           _openPending = true;
           _timeline.at(t + tuning.tapOpenDelay, _open);
         }

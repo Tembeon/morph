@@ -231,6 +231,59 @@ void main() {
     expect(find.text('Copy'), findsNothing);
   });
 
+  testWidgets('every tap-trigger source opens only within its slop', (
+    WidgetTester tester,
+  ) async {
+    final sources = <String, Widget>{
+      'menu button': MorphMenuButton(items: _items(<String>[])),
+      'source': MorphMenuSource(
+        items: _items(<String>[]),
+        child: const SizedBox(width: 120, height: 40),
+      ),
+      'glass button': MorphGlassButton(
+        onPressed: null,
+        menu: _items(<String>[]),
+        child: const Text('Sort'),
+      ),
+    };
+    for (final MapEntry(key: name, value: source) in sources.entries) {
+      await tester.pumpWidget(
+        _app(KeyedSubtree(key: ValueKey(name), child: source)),
+      );
+      final rect = tester.getRect(find.byKey(ValueKey(name)));
+      Future<bool> drift(Offset to) async {
+        final gesture = await tester.startGesture(rect.center);
+        await tester.pump(const Duration(milliseconds: 50));
+        await gesture.moveTo(to);
+        await tester.pump(const Duration(milliseconds: 50));
+        await gesture.up();
+        await _settle(tester);
+        final opened = find.text('Copy').evaluate().isNotEmpty;
+        if (opened) {
+          await tester.tapAt(const Offset(5, 5));
+          await _settle(tester);
+        }
+        return opened;
+      }
+
+      expect(
+        await drift(rect.bottomCenter + const Offset(0, 100)),
+        isFalse,
+        reason: '$name: a release 100 pt off cancels',
+      );
+      expect(
+        await drift(rect.topCenter - const Offset(0, 100)),
+        isFalse,
+        reason: '$name: in any direction',
+      );
+      expect(
+        await drift(rect.bottomCenter + const Offset(0, 10)),
+        isTrue,
+        reason: '$name: a release 10 pt off still opens',
+      );
+    }
+  });
+
   testWidgets('a glass button with a menu is focusable and keyboard driven', (
     WidgetTester tester,
   ) async {

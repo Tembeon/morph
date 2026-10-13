@@ -187,8 +187,11 @@ wraps its capsule in it. Declared approximations, not measured:
   color and the source shape keeps the menu's shadow, not the button's.
   The color hand-off of a tinted `UIButton` was not recorded.
 
-The hold trigger's tap keeps the glass button's measured 70 pt
-touch-up-inside slop (glass-button.md) as `MorphMenuTuning.tapSlop`.
+Every menu source's tap (the tap trigger's opening tap as well as the hold
+trigger's tap through) keeps the glass button's measured 70 pt
+touch-up-inside slop (glass-button.md) as `MorphMenuTuning.tapSlop`: a
+release farther from the source cancels and opens nothing. No capture
+releases a menu button tap outside; the bound is the glass button's.
 
 ## Not reproduced (deliberate)
 
