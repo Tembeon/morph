@@ -78,7 +78,7 @@ class _SearchPageState extends State<SearchPage> {
                 Padding(
                   padding: const .symmetric(vertical: 8),
                   child: MorphSearchField(
-                    enabled: !GalleryGlassScope.of(context).disabled,
+                    enabled: !GalleryGlassScope.of(context, .disabled).disabled,
                     placeholder: 'Search fruit',
                     onChanged: (String q) => setState(() => _query = q),
                   ),

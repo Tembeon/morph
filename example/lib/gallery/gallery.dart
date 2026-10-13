@@ -95,43 +95,58 @@ class _GalleryAppState extends State<GalleryApp> {
   }
 
   @override
+  Widget build(BuildContext context) => GalleryGlassHost(
+    settings: _settings,
+    child: _GalleryMaterialApp(
+      home:
+          widget.home ??
+          MorphNavigationStack(
+            navigatorKey: widget.navigatorKey,
+            home: const GalleryHome(),
+          ),
+    ),
+  );
+}
+
+class _GalleryMaterialApp extends StatelessWidget {
+  const _GalleryMaterialApp({required this.home});
+
+  final Widget home;
+
+  static final _light = _GalleryAppState._theme(Brightness.light);
+  static final _dark = _GalleryAppState._theme(Brightness.dark);
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+    title: 'Morph widgets',
+    debugShowCheckedModeBanner: false,
+    theme: _light,
+    darkTheme: _dark,
+    themeMode: GalleryGlassScope.of(context, .appearance).appearance,
+    builder: (BuildContext context, Widget? child) =>
+        _GalleryChrome(child: child!),
+    home: home,
+  );
+}
+
+class _GalleryChrome extends StatelessWidget {
+  const _GalleryChrome({required this.child});
+
+  final Widget child;
+
+  @override
   Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: _settings,
-      builder: (BuildContext context, Widget? _) {
-        final renderer = _settings.renderer;
-        final tier = _settings.tier;
-        return MaterialApp(
-          title: 'Morph widgets',
-          debugShowCheckedModeBanner: false,
-          theme: _theme(Brightness.light),
-          darkTheme: _theme(Brightness.dark),
-          themeMode: _settings.appearance,
-          builder: (BuildContext context, Widget? child) {
-            final app = MorphAdaptiveGlass(
-              renderer: renderer,
-              tier: tier,
-              child: BackdropGroup(child: MorphScope(child: child!)),
-            );
-            return GalleryGlassScope(
-              settings: _settings,
-              child: Directionality(
-                textDirection: _settings.rtl ? .rtl : .ltr,
-                child: MorphGlassInspector(
-                  enabled: _settings.inspector,
-                  child: app,
-                ),
-              ),
-            );
-          },
-          home:
-              widget.home ??
-              MorphNavigationStack(
-                navigatorKey: widget.navigatorKey,
-                home: const GalleryHome(),
-              ),
-        );
-      },
+    final glass = GalleryGlassScope.of(context, .glass);
+    return Directionality(
+      textDirection: GalleryGlassScope.of(context, .rtl).rtl ? .rtl : .ltr,
+      child: MorphGlassInspector(
+        enabled: GalleryGlassScope.of(context, .inspector).inspector,
+        child: MorphAdaptiveGlass(
+          renderer: glass.renderer,
+          tier: glass.tier,
+          child: BackdropGroup(child: MorphScope(child: child)),
+        ),
+      ),
     );
   }
 }

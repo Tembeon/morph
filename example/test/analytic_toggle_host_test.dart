@@ -65,7 +65,7 @@ void main() {
         ),
       );
       await frames(10);
-      final settings = GalleryGlassScope.of(navigator.currentContext!);
+      final settings = GalleryGlassScope.read(navigator.currentContext!);
       settings.tier = MorphGlassTier.liquid;
       settings.appearance = ThemeMode.dark;
       await frames(10);

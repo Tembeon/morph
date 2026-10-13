@@ -474,7 +474,7 @@ class _BenchState extends State<_Bench> {
     _pageKey = GlobalKey();
     setState(() => _current = c);
     await SchedulerBinding.instance.endOfFrame;
-    final settings = GalleryGlassScope.of(_navigator.currentContext!);
+    final settings = GalleryGlassScope.read(_navigator.currentContext!);
     settings.appearance = ThemeMode.dark;
     settings.tier = c.mode == 'flat'
         ? MorphGlassTier.flat

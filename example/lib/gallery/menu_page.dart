@@ -234,7 +234,7 @@ class _MenuPageState extends State<MenuPage> {
             id: 'menu',
             icon: const Icon(Icons.more_horiz),
             semanticLabel: 'More',
-            enabled: !GalleryGlassScope.of(context).disabled,
+            enabled: !GalleryGlassScope.of(context, .disabled).disabled,
             menu: _items(3),
           ),
         ]),

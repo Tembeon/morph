@@ -103,7 +103,7 @@ void main() {
     final navigator = GlobalKey<NavigatorState>();
     await tester.pumpWidget(GalleryApp(navigatorKey: navigator));
     await frames(tester, 10);
-    final settings = GalleryGlassScope.of(navigator.currentContext!);
+    final settings = GalleryGlassScope.read(navigator.currentContext!);
     settings.tier = MorphGlassTier.liquid;
     settings.appearance = ThemeMode.dark;
     await frames(tester, 10);

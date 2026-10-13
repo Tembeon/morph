@@ -80,7 +80,7 @@ void main() {
   ) async {
     await _on(TargetPlatform.android, () async {
       await _openGlassPage(tester);
-      final settings = GalleryGlassScope.of(
+      final settings = GalleryGlassScope.read(
         tester.element(find.text('Frame rate')),
       );
       expect(settings.frameRate, GalleryFrameRate.auto);
@@ -105,7 +105,7 @@ void main() {
   testWidgets('no channel call is made off Android', (tester) async {
     await _on(TargetPlatform.iOS, () async {
       await _openGlassPage(tester);
-      final settings = GalleryGlassScope.of(
+      final settings = GalleryGlassScope.read(
         tester.element(find.text('Frame rate')),
       );
       await tester.tap(find.text('120 Hz'));

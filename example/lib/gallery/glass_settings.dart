@@ -154,25 +154,137 @@ class GalleryGlassSettings extends ChangeNotifier {
   );
 }
 
-/// Hands the gallery's [GalleryGlassSettings] to every page.
-class GalleryGlassScope extends InheritedNotifier<GalleryGlassSettings> {
-  /// Provides [settings] to [child].
-  const GalleryGlassScope({
-    required GalleryGlassSettings settings,
-    required super.child,
+/// The parts of [GalleryGlassSettings] a widget can depend on alone.
+enum GalleryGlassAspect {
+  /// The glass tier and the renderer's look: material, frost, refraction,
+  /// light, tint and frosted controls.
+  glass,
+
+  /// Light, dark or the system appearance.
+  appearance,
+
+  /// The text direction.
+  rtl,
+
+  /// Whether the demo controls are disabled.
+  disabled,
+
+  /// Whether the glass inspector runs.
+  inspector,
+
+  /// The display refresh rate.
+  frameRate,
+}
+
+/// Rebuilds the [GalleryGlassScope] under it whenever [settings] change,
+/// so only the widgets that depend on a changed aspect rebuild.
+class GalleryGlassHost extends StatefulWidget {
+  /// Hands [settings] to [child].
+  const GalleryGlassHost({
+    required this.settings,
+    required this.child,
     super.key,
-  }) : super(notifier: settings);
+  });
+
+  /// The settings handed down.
+  final GalleryGlassSettings settings;
+
+  /// The widget below.
+  final Widget child;
+
+  @override
+  State<GalleryGlassHost> createState() => _GalleryGlassHostState();
+}
+
+class _GalleryGlassHostState extends State<GalleryGlassHost> {
+  @override
+  void initState() {
+    super.initState();
+    widget.settings.addListener(_changed);
+  }
+
+  @override
+  void didUpdateWidget(GalleryGlassHost old) {
+    super.didUpdateWidget(old);
+    if (old.settings == widget.settings) return;
+    old.settings.removeListener(_changed);
+    widget.settings.addListener(_changed);
+  }
+
+  @override
+  void dispose() {
+    widget.settings.removeListener(_changed);
+    super.dispose();
+  }
+
+  void _changed() => setState(() {});
+
+  @override
+  Widget build(BuildContext context) =>
+      GalleryGlassScope._(widget.settings, child: widget.child);
+}
+
+/// Hands the gallery's [GalleryGlassSettings] to every page, and rebuilds
+/// a dependent only when the [GalleryGlassAspect] it reads changes.
+class GalleryGlassScope extends InheritedModel<GalleryGlassAspect> {
+  GalleryGlassScope._(this.settings, {required super.child})
+    : _glass = (settings.tier, settings.renderer),
+      _appearance = settings.appearance,
+      _rtl = settings.rtl,
+      _disabled = settings.disabled,
+      _inspector = settings.inspector,
+      _frameRate = settings.frameRate;
+
+  /// The settings handed down.
+  final GalleryGlassSettings settings;
+
+  final (MorphGlassTier?, MorphGlassRenderer) _glass;
+  final ThemeMode _appearance;
+  final bool _rtl;
+  final bool _disabled;
+  final bool _inspector;
+  final GalleryFrameRate _frameRate;
 
   static final _defaults = GalleryGlassSettings();
 
-  /// The settings above [context], or the defaults outside a scope.
-  static GalleryGlassSettings of(BuildContext context) =>
-      context
-          .dependOnInheritedWidgetOfExactType<GalleryGlassScope>()
-          ?.notifier ??
+  Object? _value(GalleryGlassAspect aspect) => switch (aspect) {
+    .glass => _glass,
+    .appearance => _appearance,
+    .rtl => _rtl,
+    .disabled => _disabled,
+    .inspector => _inspector,
+    .frameRate => _frameRate,
+  };
+
+  @override
+  bool updateShouldNotify(GalleryGlassScope old) =>
+      GalleryGlassAspect.values.any((a) => _value(a) != old._value(a));
+
+  @override
+  bool updateShouldNotifyDependent(
+    GalleryGlassScope old,
+    Set<GalleryGlassAspect> dependencies,
+  ) => dependencies.any((a) => _value(a) != old._value(a));
+
+  /// The settings above [context], or the defaults outside a scope;
+  /// [context] rebuilds when [aspect] changes, or any aspect when null.
+  static GalleryGlassSettings of(
+    BuildContext context, [
+    GalleryGlassAspect? aspect,
+  ]) =>
+      InheritedModel.inheritFrom<GalleryGlassScope>(
+        context,
+        aspect: aspect,
+      )?.settings ??
+      _defaults;
+
+  /// The settings above [context] without depending on them, for a
+  /// caller that only writes them.
+  static GalleryGlassSettings read(BuildContext context) =>
+      context.getInheritedWidgetOfExactType<GalleryGlassScope>()?.settings ??
       _defaults;
 
   /// [callback] while the gallery's demo controls are enabled, else null.
   static T? enabled<T extends Function>(BuildContext context, T callback) =>
-      of(context).disabled ? null : callback;
+      of(context, .disabled).disabled ? null : callback;
 }

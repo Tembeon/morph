@@ -41,7 +41,7 @@ class _GlassPageState extends State<GlassPage> {
   Widget _scene(BuildContext context) {
     T? on<T extends Function>(T callback) =>
         GalleryGlassScope.enabled(context, callback);
-    final enabled = !GalleryGlassScope.of(context).disabled;
+    final enabled = !GalleryGlassScope.of(context, .disabled).disabled;
     return Padding(
       padding: const .fromLTRB(20, 24, 20, 28),
       child: Column(
