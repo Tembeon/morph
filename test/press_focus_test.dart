@@ -35,8 +35,8 @@ void main() {
     'slider': const MorphSlider(value: 0.5, onChanged: _ignore),
     'stepper': const MorphStepper(value: 1, onChanged: _ignore),
     'segmented': const MorphSegmentedControl(
-      segments: ['A', 'B'],
-      selected: 0,
+      segments: [MorphSegment('A'), MorphSegment('B')],
+      selectedIndex: 0,
       onChanged: _ignore,
     ),
     'page control': const MorphPageControl(

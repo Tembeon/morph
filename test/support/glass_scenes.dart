@@ -123,8 +123,12 @@ class _ControlsPageState extends State<_ControlsPage> {
       SizedBox(
         width: 300,
         child: MorphSegmentedControl(
-          segments: const ['A', 'B', 'C'],
-          selected: _segment,
+          segments: const [
+            MorphSegment('A'),
+            MorphSegment('B'),
+            MorphSegment('C'),
+          ],
+          selectedIndex: _segment,
           onChanged: (int v) => setState(() => _segment = v),
         ),
       ),
@@ -303,8 +307,12 @@ final glassScenes = <GlassScene>[
         (value, onChanged) => SizedBox(
           width: 300,
           child: MorphSegmentedControl(
-            segments: const ['A', 'B', 'C'],
-            selected: value as int? ?? 0,
+            segments: const [
+              MorphSegment('A'),
+              MorphSegment('B'),
+              MorphSegment('C'),
+            ],
+            selectedIndex: value as int? ?? 0,
             onChanged: onChanged,
           ),
         ),
@@ -323,8 +331,12 @@ final glassScenes = <GlassScene>[
         (value, onChanged) => SizedBox(
           width: 300,
           child: MorphSegmentedControl(
-            segments: const ['A', 'B', 'C'],
-            selected: value as int? ?? 0,
+            segments: const [
+              MorphSegment('A'),
+              MorphSegment('B'),
+              MorphSegment('C'),
+            ],
+            selectedIndex: value as int? ?? 0,
             onChanged: onChanged,
           ),
         ),

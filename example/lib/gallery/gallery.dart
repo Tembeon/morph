@@ -389,7 +389,7 @@ class GalleryHome extends StatelessWidget {
                 MorphListRow(
                   title: Text(entry.title),
                   subtitle: Text(entry.subtitle),
-                  chevron: true,
+                  accessory: .disclosureIndicator,
                   onTap: () => Navigator.of(
                     context,
                   ).push(MorphNavigationRoute<void>(builder: entry.builder)),

@@ -244,8 +244,12 @@ final List<MatrixControl> matrixControls = [
       child: _Holder<int>(
         0,
         (v, set) => MorphSegmentedControl(
-          segments: const ['One', 'Two', 'Three'],
-          selected: v,
+          segments: const [
+            MorphSegment('One'),
+            MorphSegment('Two'),
+            MorphSegment('Three'),
+          ],
+          selectedIndex: v,
           onChanged: set,
         ),
       ),

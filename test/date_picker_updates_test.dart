@@ -23,8 +23,8 @@ void main() {
               return Center(
                 child: MorphDatePicker(
                   value: value,
-                  firstDate: first,
-                  lastDate: last,
+                  minimumDate: first,
+                  maximumDate: last,
                   mode: MorphDatePickerMode.time,
                   use24HourFormat: true,
                   onChanged: (next) {
@@ -154,9 +154,11 @@ void main() {
                 value: DateTime(2026, 10, 3, 7, 41),
                 today: DateTime(2026, 10, 3),
                 onChanged: (_) {},
-                calendarTitleFormatter: title == 'Plain'
-                    ? null
-                    : (DateTime month) => '$shown ${month.month}',
+                localizations: MorphDatePickerLocalizations(
+                  calendarTitleFormatter: title == 'Plain'
+                      ? null
+                      : (DateTime month) => '$shown ${month.month}',
+                ),
               ),
             );
           },

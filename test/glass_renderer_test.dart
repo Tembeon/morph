@@ -180,8 +180,8 @@ void main() {
             child: MorphGlass(
               painter: const MorphGlassRenderer(),
               child: MorphSegmentedControl(
-                segments: const ['Day', 'Night'],
-                selected: 1,
+                segments: const [MorphSegment('Day'), MorphSegment('Night')],
+                selectedIndex: 1,
                 onChanged: (int _) {},
               ),
             ),

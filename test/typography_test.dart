@@ -178,8 +178,11 @@ void main() {
       await tester.pumpWidget(
         _host(
           MorphSegmentedControl(
-            segments: const ['All', 'Unread messages'],
-            selected: 0,
+            segments: const [
+              MorphSegment('All'),
+              MorphSegment('Unread messages'),
+            ],
+            selectedIndex: 0,
             onChanged: (_) {},
           ),
         ),

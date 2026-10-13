@@ -27,25 +27,28 @@ class MorphSegmentedControl extends StatefulWidget {
   /// Creates a segmented control.
   const MorphSegmentedControl({
     required this.segments,
-    required this.selected,
+    required this.selectedIndex,
     required this.onChanged,
-    this.sizeByContent = false,
+    this.proportionalWidth = false,
     this.appearance,
     super.key,
   });
 
-  /// The labels of the segments; an empty list draws an inert empty control.
-  final List<String> segments;
+  /// The segments, left to right; an empty list draws an inert empty
+  /// control.
+  final List<MorphSegment> segments;
 
-  /// The index of the selected segment, clamped to the available segments.
-  final int selected;
+  /// The index of the selected segment, clamped to the available segments
+  /// (UIKit `selectedSegmentIndex`).
+  final int selectedIndex;
 
   /// Called with the new index when the user selects a segment; null
   /// disables the control.
   final ValueChanged<int>? onChanged;
 
-  /// Whether segments are as wide as their labels instead of equal.
-  final bool sizeByContent;
+  /// Whether segments are as wide as their labels instead of equal (UIKit
+  /// `apportionsSegmentWidthsByContent`).
+  final bool proportionalWidth;
 
   /// The colors and metrics of the control; null resolves them from the
   /// theme.
@@ -69,6 +72,24 @@ class MorphSegmentedControl extends StatefulWidget {
 
   @override
   State<MorphSegmentedControl> createState() => _MorphSegmentedControlState();
+}
+
+/// One segment of a [MorphSegmentedControl]: UIKit's segment title
+/// (`insertSegment(withTitle:at:animated:)`).
+@immutable
+class MorphSegment {
+  /// Creates a segment labelled [title].
+  const MorphSegment(this.title);
+
+  /// The label of the segment.
+  final String title;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphSegment && other.title == title;
+
+  @override
+  int get hashCode => title.hashCode;
 }
 
 /// The look of a [MorphSegmentedControl].
@@ -193,16 +214,17 @@ class _MorphSegmentedControlState
 
   final MorphLabelWidths _labelWidths = MorphLabelWidths();
 
-  List<double> _labelSpans() => _labelWidths.of(widget.segments, [
-    _style.textStyle,
-    _style.selectedTextStyle,
-  ], _scaler);
+  List<double> _labelSpans() => _labelWidths.of(
+    [for (final segment in widget.segments) segment.title],
+    [_style.textStyle, _style.selectedTextStyle],
+    _scaler,
+  );
 
   List<MorphLensSlot> _layout(double width) {
     final style = _style;
     final count = widget.segments.length;
     final List<double> widths;
-    if (widget.sizeByContent) {
+    if (widget.proportionalWidth) {
       final natural = [
         for (final w in _labelSpans()) w + 2 * style.contentPadding,
       ];
@@ -233,7 +255,7 @@ class _MorphSegmentedControlState
       final created = MorphLensMotion(
         tuning: MorphLensTuning.segmented,
         slots: slots,
-        selected: widget.selected,
+        selected: widget.selectedIndex,
         height: _style.height - 2 * _style.inset,
         frameRate: motionFrameRate,
       );
@@ -245,7 +267,7 @@ class _MorphSegmentedControlState
     _slots = slots;
     final selected = slots.isEmpty
         ? -1
-        : widget.selected.clamp(0, slots.length - 1);
+        : widget.selectedIndex.clamp(0, slots.length - 1);
     if (motion.selected != selected) {
       motion.select(clock, selected, notify: false);
       wake();
@@ -253,11 +275,11 @@ class _MorphSegmentedControlState
   }
 
   void _selected(int index) {
-    if (index != widget.selected) widget.onChanged?.call(index);
+    if (index != widget.selectedIndex) widget.onChanged?.call(index);
     reconcileSelection(
       () => widget.segments.isEmpty
           ? -1
-          : widget.selected.clamp(0, widget.segments.length - 1),
+          : widget.selectedIndex.clamp(0, widget.segments.length - 1),
     );
   }
 
@@ -344,9 +366,9 @@ class _MorphSegmentedControlState
   @override
   bool buildsLike(MorphSegmentedControl oldWidget) =>
       listEquals(oldWidget.segments, widget.segments) &&
-      oldWidget.selected == widget.selected &&
+      oldWidget.selectedIndex == widget.selectedIndex &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
-      oldWidget.sizeByContent == widget.sizeByContent &&
+      oldWidget.proportionalWidth == widget.proportionalWidth &&
       oldWidget.appearance == widget.appearance;
 
   @override
@@ -387,12 +409,12 @@ class _MorphSegmentedControlState
                   inMutuallyExclusiveGroup: true,
                   selected: i == selected,
                   enabled: _enabled,
-                  label: widget.segments[i],
+                  label: widget.segments[i].title,
                   onTap: _enabled ? () => _select(i) : null,
                   child: ExcludeSemantics(
                     child: Center(
                       child: Text(
-                        widget.segments[i],
+                        widget.segments[i].title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textScaler: _scaler,

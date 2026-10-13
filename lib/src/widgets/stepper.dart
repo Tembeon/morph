@@ -108,7 +108,7 @@ class MorphStepper extends StatefulWidget {
     this.appearance,
     this.decrementLabel = 'Decrement',
     this.incrementLabel = 'Increment',
-    this.semanticValueFormatter,
+    this.semanticFormatterCallback,
     super.key,
   });
 
@@ -145,7 +145,7 @@ class MorphStepper extends StatefulWidget {
 
   /// Formats the value announced by each half. Null uses up to twelve
   /// significant digits, without binary floating-point tails.
-  final String Function(double)? semanticValueFormatter;
+  final String Function(double)? semanticFormatterCallback;
 
   /// The size of the control.
   static const Size size = Size(94, 32);
@@ -276,7 +276,7 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
       oldWidget.appearance == widget.appearance &&
       oldWidget.decrementLabel == widget.decrementLabel &&
       oldWidget.incrementLabel == widget.incrementLabel &&
-      oldWidget.semanticValueFormatter == widget.semanticValueFormatter;
+      oldWidget.semanticFormatterCallback == widget.semanticFormatterCallback;
 
   @override
   Widget buildControl(BuildContext context) {
@@ -286,7 +286,7 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
     final glass = MorphGlass.maybeOf(context);
     const size = MorphStepper.size;
     final value =
-        widget.semanticValueFormatter?.call(_value) ?? _format(_value);
+        widget.semanticFormatterCallback?.call(_value) ?? _format(_value);
     final foreground = widget.foregroundColor ?? style.foregroundColor;
     final painter = _StepperPainter(
       pressed: _pressed,

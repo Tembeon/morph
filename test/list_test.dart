@@ -44,13 +44,13 @@ void main() {
     await _pump(
       tester,
       MorphListSection(
-        header: 'Controls',
-        footer: 'A footer.',
+        header: const Text('Controls'),
+        footer: const Text('A footer.'),
         children: [
           MorphListRow(
             key: const Key('plain'),
             title: const Text('Segmented control'),
-            chevron: true,
+            accessory: .disclosureIndicator,
             onTap: () {},
           ),
           const MorphListRow(
@@ -67,7 +67,7 @@ void main() {
             key: Key('icon'),
             title: Text('Settings'),
             leading: Icon(Icons.settings),
-            chevron: true,
+            accessory: .disclosureIndicator,
           ),
           MorphListRow(
             key: const Key('switch'),
@@ -188,7 +188,7 @@ void main() {
           MorphListRow(
             title: Text('Title'),
             detail: Text('Value'),
-            chevron: true,
+            accessory: .disclosureIndicator,
           ),
         ],
       ),
@@ -312,7 +312,7 @@ void main() {
           slivers: [
             SliverToBoxAdapter(
               child: MorphListSection(
-                header: 'Controls',
+                header: const Text('Controls'),
                 children: [
                   MorphListRow(
                     key: const Key('counted'),

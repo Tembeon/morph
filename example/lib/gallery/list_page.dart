@@ -55,7 +55,7 @@ class _ListPageState extends State<ListPage> {
         SliverToBoxAdapter(
           child: BackdropGroup(
             child: MorphListSection(
-              header: 'Apps',
+              header: const Text('Apps'),
               children: [
                 for (final (name, kind, icon) in _apps)
                   MorphListRow(
@@ -80,11 +80,12 @@ class _ListPageState extends State<ListPage> {
         SliverToBoxAdapter(
           child: BackdropGroup(
             child: MorphListSection(
-              header: 'Episodes',
-              footer:
-                  'Each section shades the resting glass of its rows in one '
-                  'layer. A pressed row draws its button in a layer of its '
-                  'own while its highlight shows.',
+              header: const Text('Episodes'),
+              footer: const Text(
+                'Each section shades the resting glass of its rows in one '
+                'layer. A pressed row draws its button in a layer of its '
+                'own while its highlight shows.',
+              ),
               children: [
                 for (final (name, length) in _shows)
                   MorphListRow(

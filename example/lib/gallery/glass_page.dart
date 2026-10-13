@@ -47,8 +47,12 @@ class _GlassPageState extends State<GlassPage> {
       child: Column(
         children: [
           MorphSegmentedControl(
-            segments: const ['Photos', 'Albums', 'Search'],
-            selected: _segment,
+            segments: const [
+              MorphSegment('Photos'),
+              MorphSegment('Albums'),
+              MorphSegment('Search'),
+            ],
+            selectedIndex: _segment,
             onChanged: on((int i) => setState(() => _segment = i)),
           ),
           const SizedBox(height: 28),
@@ -157,7 +161,7 @@ class _GlassPageState extends State<GlassPage> {
         SliverToBoxAdapter(
           child: BackdropGroup(
             child: MorphListSection(
-              header: 'Renderer',
+              header: const Text('Renderer'),
               children: [
                 _Choice(
                   label: 'Tier',
@@ -236,13 +240,14 @@ class _GlassPageState extends State<GlassPage> {
         SliverToBoxAdapter(
           child: BackdropGroup(
             child: MorphListSection(
-              header: 'Gallery',
-              footer:
-                  'These settings apply to every page of the gallery. The '
-                  'glass inspector counts the glass layers of each frame '
-                  'and names neighbouring resting glass that one '
-                  'MorphGlassContainer could shade together. Frame rate asks '
-                  'an Android display for that rate.',
+              header: const Text('Gallery'),
+              footer: const Text(
+                'These settings apply to every page of the gallery. The '
+                'glass inspector counts the glass layers of each frame '
+                'and names neighbouring resting glass that one '
+                'MorphGlassContainer could shade together. Frame rate asks '
+                'an Android display for that rate.',
+              ),
               children: [
                 _Choice(
                   label: 'Appearance',
@@ -304,8 +309,8 @@ class _Choice extends StatelessWidget {
           SizedBox(width: 96, child: Text(label)),
           Expanded(
             child: MorphSegmentedControl(
-              segments: segments,
-              selected: selected,
+              segments: [for (final s in segments) MorphSegment(s)],
+              selectedIndex: selected,
               onChanged: onChanged,
             ),
           ),

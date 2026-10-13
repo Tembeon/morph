@@ -42,9 +42,9 @@ class _SegmentedPageState extends State<SegmentedPage> {
                   ),
                 ),
                 MorphSegmentedControl(
-                  segments: segments,
-                  sizeByContent: byContent,
-                  selected: _selected[title] ?? 0,
+                  segments: [for (final s in segments) MorphSegment(s)],
+                  proportionalWidth: byContent,
+                  selectedIndex: _selected[title] ?? 0,
                   onChanged: GalleryGlassScope.enabled(
                     context,
                     (int i) => setState(() => _selected[title] = i),
@@ -63,8 +63,12 @@ class _SegmentedPageState extends State<SegmentedPage> {
                   child: SizedBox(
                     width: 150,
                     child: MorphSegmentedControl(
-                      segments: const ['X', 'Y', 'Z'],
-                      selected: _selected['narrow'] ?? 0,
+                      segments: const [
+                        MorphSegment('X'),
+                        MorphSegment('Y'),
+                        MorphSegment('Z'),
+                      ],
+                      selectedIndex: _selected['narrow'] ?? 0,
                       onChanged: GalleryGlassScope.enabled(
                         context,
                         (int i) => setState(() => _selected['narrow'] = i),
@@ -118,8 +122,13 @@ class _TabBarPageState extends State<TabBarPage> {
                     return Padding(
                       padding: const .only(bottom: 12),
                       child: MorphSegmentedControl(
-                        segments: const ['2', '3', '4', '5'],
-                        selected: _count - 2,
+                        segments: const [
+                          MorphSegment('2'),
+                          MorphSegment('3'),
+                          MorphSegment('4'),
+                          MorphSegment('5'),
+                        ],
+                        selectedIndex: _count - 2,
                         onChanged: (int v) => setState(() {
                           _count = v + 2;
                           _selected = _selected.clamp(0, _count - 1);

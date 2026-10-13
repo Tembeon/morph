@@ -310,8 +310,8 @@ void main() {
         'segmented': (called, {required bool enabled}) => SizedBox(
           width: 240,
           child: MorphSegmentedControl(
-            segments: const ['One', 'Two'],
-            selected: 0,
+            segments: const [MorphSegment('One'), MorphSegment('Two')],
+            selectedIndex: 0,
             onChanged: enabled ? (_) => called() : null,
           ),
         ),

@@ -187,33 +187,33 @@ class MorphGlassButtonAppearance {
   const MorphGlassButtonAppearance({
     this.fillColor = const Color(0xD9FFFFFF),
     this.rimColor = const Color(0x1F000000),
-    this.tintedRimColor = const Color(0x33FFFFFF),
+    this.prominentRimColor = const Color(0x33FFFFFF),
     this.foregroundColor = const Color(0xFF000000),
-    this.tintedForegroundColor = const Color(0xFFFFFFFF),
+    this.prominentForegroundColor = const Color(0xFFFFFFFF),
     this.shadowColor = const Color(0x1A000000),
     this.disabledForegroundColor = const Color(0x4C3C3C43),
     this.disabledTintColor = const Color(0xFFD1D1D6),
   });
 
-  /// The fill of the clear glass.
+  /// The fill of the regular glass.
   final Color fillColor;
 
-  /// The outline of the clear glass.
+  /// The outline of the regular glass.
   final Color rimColor;
 
-  /// The outline of a tinted button.
-  final Color tintedRimColor;
+  /// The outline of a prominent button.
+  final Color prominentRimColor;
 
-  /// The label color of the clear glass.
+  /// The label color of the regular glass.
   final Color foregroundColor;
 
-  /// The label color of a tinted button.
-  final Color tintedForegroundColor;
+  /// The label color of a prominent button.
+  final Color prominentForegroundColor;
 
   /// The shadow under the button.
   final Color shadowColor;
 
-  /// The label color of a disabled button, clear or tinted:
+  /// The label color of a disabled button, regular or prominent:
   /// tertiaryLabel.
   ///
   /// UIKit leaves the glass of a disabled `.glass()` button untouched and
@@ -314,7 +314,7 @@ class MorphGlassButton extends StatefulWidget {
   /// primary action, or press a button with [onPressed].
   final List<MorphMenuEntry>? menu;
 
-  /// The fill of a prominent glass button; null for the clear glass.
+  /// The fill of a prominent glass button; null for the regular glass.
   final Color? tint;
 
   /// The space around [child].
@@ -413,7 +413,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
         ? style.disabledForegroundColor
         : tint == null
         ? style.foregroundColor
-        : style.tintedForegroundColor;
+        : style.prominentForegroundColor;
     final Widget content = ConstrainedBox(
       constraints: BoxConstraints(
         minWidth: widget.minSize.width,
@@ -440,7 +440,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
     if (menu != null) {
       final hold = widget.onPressed != null;
       final color = tint ?? style.fillColor;
-      final rim = tint == null ? style.rimColor : style.tintedRimColor;
+      final rim = tint == null ? style.rimColor : style.prominentRimColor;
       return RepaintBoundary(
         child: MorphMenuSource(
           items: menu,
@@ -489,7 +489,7 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
               painter: glass,
               frames: frames,
               color: tint ?? style.fillColor,
-              rim: tint == null ? style.rimColor : style.tintedRimColor,
+              rim: tint == null ? style.rimColor : style.prominentRimColor,
               shadow: style.shadowColor,
               brightness: brightness,
               enabled: enabled,

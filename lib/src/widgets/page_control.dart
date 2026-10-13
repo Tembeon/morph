@@ -16,17 +16,19 @@ class MorphPageControlAppearance {
   /// Creates an appearance; the defaults are UIKit's page indicator colors,
   /// meant for content behind the control.
   const MorphPageControlAppearance({
-    this.indicatorColor = const Color(0x73FFFFFF),
-    this.currentIndicatorColor = const Color(0xFFFFFFFF),
+    this.pageIndicatorColor = const Color(0x73FFFFFF),
+    this.currentPageIndicatorColor = const Color(0xFFFFFFFF),
     this.platterColor = const Color(0xFFF0F0F2),
     this.platterIndicatorColor = const Color(0x40000000),
   });
 
-  /// The color of the other pages' dots: white at 45 percent.
-  final Color indicatorColor;
+  /// The color of the other pages' dots: white at 45 percent (UIKit
+  /// `pageIndicatorTintColor`).
+  final Color pageIndicatorColor;
 
-  /// The color of the current page's dot.
-  final Color currentIndicatorColor;
+  /// The color of the current page's dot (UIKit
+  /// `currentPageIndicatorTintColor`).
+  final Color currentPageIndicatorColor;
 
   /// The flat stand-in for the prominent background's platter.
   final Color platterColor;
@@ -587,7 +589,7 @@ class _PageControlPainter extends CustomPainter {
       );
     }
     final other = Color.lerp(
-      style.indicatorColor,
+      style.pageIndicatorColor,
       style.platterIndicatorColor,
       shown,
     )!;
@@ -611,7 +613,7 @@ class _PageControlPainter extends CustomPainter {
       final fill = progress == null ? 0.0 : motion.fillOpacity(i, t);
       final base = Paint();
       base.color = progress == null && i == motion.page
-          ? style.currentIndicatorColor
+          ? style.currentPageIndicatorColor
           : other;
       canvas.drawRRect(shape, base);
       if (fill > 0) {
@@ -619,8 +621,8 @@ class _PageControlPainter extends CustomPainter {
         final fillWidth = dot + (shape.width - dot) * fraction.clamp(0, 1);
         final left = rtl ? shape.right - fillWidth : shape.left;
         final paint = Paint();
-        paint.color = style.currentIndicatorColor.withValues(
-          alpha: style.currentIndicatorColor.a * fill,
+        paint.color = style.currentPageIndicatorColor.withValues(
+          alpha: style.currentPageIndicatorColor.a * fill,
         );
         canvas.drawRRect(
           RRect.fromRectAndRadius(

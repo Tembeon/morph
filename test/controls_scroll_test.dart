@@ -30,8 +30,8 @@ List<Widget> _controls(_State s, StateSetter setState) => [
   SizedBox(
     width: 300,
     child: MorphSegmentedControl(
-      segments: const ['A', 'B'],
-      selected: s.segment,
+      segments: const [MorphSegment('A'), MorphSegment('B')],
+      selectedIndex: s.segment,
       onChanged: (int v) => setState(() => s.segment = v),
     ),
   ),

@@ -9,23 +9,24 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 class MorphProgressViewAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphProgressViewAppearance({
-    this.trackColor = const Color(0x33787880),
-    this.progressColor = const Color(0xFF0088FF),
+    this.inactiveTrackColor = const Color(0x33787880),
+    this.activeTrackColor = const Color(0xFF0088FF),
   });
 
-  /// The fill of the unfilled track: systemFill.
-  final Color trackColor;
+  /// The fill of the unfilled track: systemFill (UIKit `trackTintColor`).
+  final Color inactiveTrackColor;
 
-  /// The fill of the filled part: iOS 27's systemBlue, as rendered.
-  final Color progressColor;
+  /// The fill of the filled part: iOS 27's systemBlue, as rendered (UIKit
+  /// `progressTintColor`).
+  final Color activeTrackColor;
 
   /// The light appearance.
   static const light = MorphProgressViewAppearance();
 
   /// The dark appearance, from the iOS dark system colors.
   static const dark = MorphProgressViewAppearance(
-    trackColor: Color(0x5C787880),
-    progressColor: Color(0xFF0091FF),
+    inactiveTrackColor: Color(0x5C787880),
+    activeTrackColor: Color(0xFF0091FF),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -180,8 +181,8 @@ class MorphProgressView extends StatefulWidget {
     required this.value,
     this.animated = true,
     this.style = MorphProgressViewStyle.standard,
-    this.progressColor,
-    this.trackColor,
+    this.activeTrackColor,
+    this.inactiveTrackColor,
     this.appearance,
     this.semanticLabel,
     super.key,
@@ -196,11 +197,13 @@ class MorphProgressView extends StatefulWidget {
   /// The shape of the bar.
   final MorphProgressViewStyle style;
 
-  /// The fill of the filled part, overriding [appearance].
-  final Color? progressColor;
+  /// The fill of the filled part, overriding [appearance] (UIKit
+  /// `progressTintColor`).
+  final Color? activeTrackColor;
 
-  /// The fill of the track, overriding [appearance].
-  final Color? trackColor;
+  /// The fill of the track, overriding [appearance] (UIKit
+  /// `trackTintColor`).
+  final Color? inactiveTrackColor;
 
   /// The look of the bar; null resolves it from the theme.
   final MorphProgressViewAppearance? appearance;
@@ -266,9 +269,9 @@ class _MorphProgressViewState extends State<MorphProgressView>
             painter: _ProgressPainter(
               state: this,
               track: widget.style == MorphProgressViewStyle.standard
-                  ? widget.trackColor ?? style.trackColor
+                  ? widget.inactiveTrackColor ?? style.inactiveTrackColor
                   : null,
-              fill: widget.progressColor ?? style.progressColor,
+              fill: widget.activeTrackColor ?? style.activeTrackColor,
               rtl: rtl,
             ),
           ),

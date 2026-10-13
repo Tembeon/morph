@@ -16,8 +16,12 @@ void main() {
       _host(
         StatefulBuilder(
           builder: (context, setState) => MorphSegmentedControl(
-            segments: const ['A', 'B', 'C'],
-            selected: selected,
+            segments: const [
+              MorphSegment('A'),
+              MorphSegment('B'),
+              MorphSegment('C'),
+            ],
+            selectedIndex: selected,
             onChanged: (i) => setState(() => selected = i),
           ),
         ),

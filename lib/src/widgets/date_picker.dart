@@ -32,6 +32,67 @@ enum MorphDatePickerMode {
   dateAndTime,
 }
 
+/// The texts and formats of a [MorphDatePicker], in one place as UIKit's
+/// `UIDatePicker.locale`: every field null keeps the measured en_US
+/// labels.
+@immutable
+class MorphDatePickerLocalizations {
+  /// Creates the localizations; null fields keep the English defaults.
+  const MorphDatePickerLocalizations({
+    this.dateFormatter,
+    this.timeFormatter,
+    this.localize,
+    this.calendarTitleFormatter,
+    this.daySemanticFormatter,
+    this.numberFormatter,
+  });
+
+  /// Formats the date label; null for English, such as "Oct 3, 2026".
+  final String Function(DateTime)? dateFormatter;
+
+  /// Formats the time label; null for "09:41" or "9:41 AM".
+  final String Function(DateTime)? timeFormatter;
+
+  /// Translates fixed English text: full month names, uppercase weekday
+  /// abbreviations, "Show year picker", "Hide year picker", "Previous
+  /// month", "Next month", "Hour", "Minute", "AM/PM", "AM", "PM",
+  /// "Month" and "Year". Null preserves the measured en_US labels.
+  /// Use [dateFormatter] and [timeFormatter] for the compact labels.
+  final String Function(String)? localize;
+
+  /// Formats the calendar header from its displayed month.
+  /// Null joins the translated month name and formatted year.
+  final String Function(DateTime)? calendarTitleFormatter;
+
+  /// Formats each calendar day's screen-reader label.
+  /// Null joins its formatted day, translated month name and year.
+  final String Function(DateTime)? daySemanticFormatter;
+
+  /// Formats day numbers and wheel values, including years, hours and
+  /// minutes. Null preserves the measured English digits and padding.
+  final String Function(int)? numberFormatter;
+
+  @override
+  bool operator ==(Object other) =>
+      other is MorphDatePickerLocalizations &&
+      other.dateFormatter == dateFormatter &&
+      other.timeFormatter == timeFormatter &&
+      other.localize == localize &&
+      other.calendarTitleFormatter == calendarTitleFormatter &&
+      other.daySemanticFormatter == daySemanticFormatter &&
+      other.numberFormatter == numberFormatter;
+
+  @override
+  int get hashCode => Object.hash(
+    dateFormatter,
+    timeFormatter,
+    localize,
+    calendarTitleFormatter,
+    daySemanticFormatter,
+    numberFormatter,
+  );
+}
+
 /// The look of a [MorphDatePicker] and its overlay.
 @immutable
 class MorphDatePickerAppearance {
@@ -248,8 +309,7 @@ String _defaultTime(DateTime d, {required bool twentyFour}) {
 /// of the month where the month has it (the 31st turned to November is
 /// the 30th), and another tap on the title returns to the grid. The
 /// labels are
-/// formatted in English by default ([dateFormatter] and [timeFormatter]
-/// localize them). The label is a focusable button; Space and Enter open
+/// formatted in English by default ([localizations] translates them). The label is a focusable button; Space and Enter open
 /// it. A disabled picker draws its labels as text without their capsules
 /// and does not open.
 ///
@@ -275,19 +335,14 @@ class MorphDatePicker extends StatefulWidget {
     required this.value,
     required this.onChanged,
     this.mode = MorphDatePickerMode.date,
-    this.firstDate,
-    this.lastDate,
-    this.dateFormatter,
-    this.timeFormatter,
+    this.minimumDate,
+    this.maximumDate,
     this.use24HourFormat,
     this.firstDayOfWeek = DateTime.sunday,
     this.today,
     this.appearance,
     this.semanticLabel,
-    this.localize,
-    this.calendarTitleFormatter,
-    this.daySemanticFormatter,
-    this.numberFormatter,
+    this.localizations = const MorphDatePickerLocalizations(),
     super.key,
   });
 
@@ -304,17 +359,11 @@ class MorphDatePicker extends StatefulWidget {
   /// The earliest moment that can be picked; null for no limit. The
   /// calendar disables earlier days and the time wheels honor the time
   /// on the boundary day.
-  final DateTime? firstDate;
+  final DateTime? minimumDate;
 
   /// The latest moment that can be picked; null for no limit. The time
   /// wheels honor its time on the boundary day.
-  final DateTime? lastDate;
-
-  /// Formats the date label; null for English, such as "Oct 3, 2026".
-  final String Function(DateTime)? dateFormatter;
-
-  /// Formats the time label; null for "09:41" or "9:41 AM".
-  final String Function(DateTime)? timeFormatter;
+  final DateTime? maximumDate;
 
   /// Whether times use 24 hours; null follows the platform's
   /// [MediaQueryData.alwaysUse24HourFormat] (the device's 24-Hour Time
@@ -333,24 +382,9 @@ class MorphDatePicker extends StatefulWidget {
   /// The label screen readers announce before the value.
   final String? semanticLabel;
 
-  /// Translates fixed English text: full month names, uppercase weekday
-  /// abbreviations, "Show year picker", "Hide year picker", "Previous
-  /// month", "Next month", "Hour", "Minute", "AM/PM", "AM", "PM",
-  /// "Month" and "Year". Null preserves the measured en_US labels.
-  /// Use [dateFormatter] and [timeFormatter] for the compact labels.
-  final String Function(String)? localize;
-
-  /// Formats the calendar header from its displayed month.
-  /// Null joins the translated month name and formatted year.
-  final String Function(DateTime)? calendarTitleFormatter;
-
-  /// Formats each calendar day's screen-reader label.
-  /// Null joins its formatted day, translated month name and year.
-  final String Function(DateTime)? daySemanticFormatter;
-
-  /// Formats day numbers and wheel values, including years, hours and
-  /// minutes. Null preserves the measured English digits and padding.
-  final String Function(int)? numberFormatter;
+  /// The texts and formats of the picker; the default keeps the
+  /// measured en_US labels.
+  final MorphDatePickerLocalizations localizations;
 
   @override
   State<MorphDatePicker> createState() => _MorphDatePickerState();
@@ -417,9 +451,10 @@ class _MorphDatePickerState extends State<MorphDatePicker> {
   @override
   Widget build(BuildContext context) {
     final value = widget.value;
-    final date = widget.dateFormatter?.call(value) ?? _defaultDate(value);
+    final date =
+        widget.localizations.dateFormatter?.call(value) ?? _defaultDate(value);
     final time =
-        widget.timeFormatter?.call(value) ??
+        widget.localizations.timeFormatter?.call(value) ??
         _defaultTime(value, twentyFour: _twentyFour);
     final parts = switch (widget.mode) {
       MorphDatePickerMode.date => [(_Part.date, date)],
@@ -851,8 +886,8 @@ class _OverlayViewState extends State<_OverlayView>
   }
 
   DateTime _bounded(DateTime value) {
-    final first = _picker.firstDate;
-    final last = _picker.lastDate;
+    final first = _picker.minimumDate;
+    final last = _picker.maximumDate;
     if (first != null && last != null && last.isBefore(first)) return first;
     if (first != null && value.isBefore(first)) return first;
     if (last != null && value.isAfter(last)) return last;
@@ -896,15 +931,17 @@ class _OverlayViewState extends State<_OverlayView>
 
   static bool _showsAlike(MorphDatePicker a, MorphDatePicker b) =>
       a.mode == b.mode &&
-      a.firstDate == b.firstDate &&
-      a.lastDate == b.lastDate &&
+      a.minimumDate == b.minimumDate &&
+      a.maximumDate == b.maximumDate &&
       a.firstDayOfWeek == b.firstDayOfWeek &&
       a.today == b.today &&
       a.appearance == b.appearance &&
-      a.localize == b.localize &&
-      a.numberFormatter == b.numberFormatter &&
-      a.calendarTitleFormatter == b.calendarTitleFormatter &&
-      a.daySemanticFormatter == b.daySemanticFormatter;
+      a.localizations.localize == b.localizations.localize &&
+      a.localizations.numberFormatter == b.localizations.numberFormatter &&
+      a.localizations.calendarTitleFormatter ==
+          b.localizations.calendarTitleFormatter &&
+      a.localizations.daySemanticFormatter ==
+          b.localizations.daySemanticFormatter;
 
   void _turn(int direction) {
     if (_motion.page(clock) < 1) {
@@ -915,8 +952,8 @@ class _OverlayViewState extends State<_OverlayView>
     if (!_canTurnMonth(
       _month,
       direction,
-      _picker.firstDate,
-      _picker.lastDate,
+      _picker.minimumDate,
+      _picker.maximumDate,
     )) {
       return;
     }
@@ -946,8 +983,8 @@ class _OverlayViewState extends State<_OverlayView>
       v.hour,
       v.minute,
     );
-    final first = _picker.firstDate;
-    final last = _picker.lastDate;
+    final first = _picker.minimumDate;
+    final last = _picker.maximumDate;
     if (first != null && next.isBefore(_dateOnly(first))) {
       next = DateTime(first.year, first.month, first.day, v.hour, v.minute);
     }
@@ -985,10 +1022,10 @@ class _OverlayViewState extends State<_OverlayView>
     Widget contentFor(_Part part) => part == _Part.time
         ? _TimeWheels(
             value: _value,
-            firstDate: _picker.firstDate,
-            lastDate: _picker.lastDate,
-            localize: _picker.localize,
-            numberFormatter: _picker.numberFormatter,
+            firstDate: _picker.minimumDate,
+            lastDate: _picker.maximumDate,
+            localize: _picker.localizations.localize,
+            numberFormatter: _picker.localizations.numberFormatter,
             twentyFour: _route.picker._twentyFour,
             style: style,
             onChanged: _pick,
@@ -1003,12 +1040,12 @@ class _OverlayViewState extends State<_OverlayView>
             gridReady: _contentReady,
             yearsVisible: _yearsVisible,
             firstDayOfWeek: _picker.firstDayOfWeek,
-            localize: _picker.localize,
-            numberFormatter: _picker.numberFormatter,
-            titleFormatter: _picker.calendarTitleFormatter,
-            dayFormatter: _picker.daySemanticFormatter,
-            firstDate: _picker.firstDate,
-            lastDate: _picker.lastDate,
+            localize: _picker.localizations.localize,
+            numberFormatter: _picker.localizations.numberFormatter,
+            titleFormatter: _picker.localizations.calendarTitleFormatter,
+            dayFormatter: _picker.localizations.daySemanticFormatter,
+            firstDate: _picker.minimumDate,
+            lastDate: _picker.maximumDate,
             today: _picker.today ?? _dateOnly(DateTime.now()),
             style: style,
             onPick: _pick,

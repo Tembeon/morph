@@ -115,7 +115,7 @@ class MorphActivityIndicator extends StatefulWidget {
     this.size = MorphActivityIndicatorSize.medium,
     this.color,
     this.appearance,
-    this.semanticLabel = 'In progress',
+    this.semanticLabel,
     super.key,
   });
 
@@ -134,8 +134,9 @@ class MorphActivityIndicator extends StatefulWidget {
   /// The look of the spinner; null resolves it from the theme.
   final MorphActivityIndicatorAppearance? appearance;
 
-  /// The label screen readers announce while it turns.
-  final String semanticLabel;
+  /// The label screen readers announce while it turns; null announces
+  /// "In progress".
+  final String? semanticLabel;
 
   /// The box of a spinner of [size], with the spoke width and the inner
   /// and outer radius of each spoke, caps included.
@@ -219,7 +220,7 @@ class _MorphActivityIndicatorState extends State<MorphActivityIndicator>
     final hidden = !widget.animating && widget.hidesWhenStopped;
     return Semantics(
       container: true,
-      label: widget.animating ? widget.semanticLabel : null,
+      label: widget.animating ? widget.semanticLabel ?? 'In progress' : null,
       child: SizedBox.square(
         dimension: m.box,
         child: hidden

@@ -104,9 +104,13 @@ void main() {
           child: SizedBox(
             width: 360,
             child: MorphSegmentedControl(
-              segments: const ['All', 'Unread messages', 'VIP'],
-              selected: 0,
-              sizeByContent: true,
+              segments: const [
+                MorphSegment('All'),
+                MorphSegment('Unread messages'),
+                MorphSegment('VIP'),
+              ],
+              selectedIndex: 0,
+              proportionalWidth: true,
               onChanged: (_) {},
             ),
           ),

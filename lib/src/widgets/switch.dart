@@ -15,20 +15,20 @@ import 'package:morph/src/widgets/small_lens.dart';
 class MorphSwitchAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphSwitchAppearance({
-    this.activeColor = const Color(0xFF34C759),
-    this.trackColor = const Color(0x29787880),
-    this.knobColor = const Color(0xFFFFFFFF),
+    this.activeTrackColor = const Color(0xFF34C759),
+    this.inactiveTrackColor = const Color(0x29787880),
+    this.thumbColor = const Color(0xFFFFFFFF),
     this.disabledOpacity = 0.5,
   });
 
-  /// The track color when on: systemGreen.
-  final Color activeColor;
+  /// The track color when on: systemGreen (UIKit `onTintColor`).
+  final Color activeTrackColor;
 
   /// The track color when off: secondarySystemFill.
-  final Color trackColor;
+  final Color inactiveTrackColor;
 
-  /// The fill of the resting knob.
-  final Color knobColor;
+  /// The fill of the resting knob (UIKit `thumbTintColor`).
+  final Color thumbColor;
 
   /// The opacity of a disabled switch, applied to track and knob as one
   /// layer: UIKit sets its visual element's opacity to 0.5 (iPhone 16 Pro,
@@ -40,8 +40,8 @@ class MorphSwitchAppearance {
 
   /// The dark appearance, from the iOS dark system colors.
   static const dark = MorphSwitchAppearance(
-    activeColor: Color(0xFF30D158),
-    trackColor: Color(0x52787880),
+    activeTrackColor: Color(0xFF30D158),
+    inactiveTrackColor: Color(0x52787880),
   );
 
   /// Resolves [explicit], then the ambient [MorphWidgetsTheme], then the
@@ -73,8 +73,8 @@ class MorphSwitch extends StatefulWidget {
   const MorphSwitch({
     required this.value,
     required this.onChanged,
-    this.activeColor,
-    this.trackColor,
+    this.activeTrackColor,
+    this.inactiveTrackColor,
     this.appearance,
     this.semanticLabel,
     super.key,
@@ -87,11 +87,12 @@ class MorphSwitch extends StatefulWidget {
   /// disables the switch.
   final ValueChanged<bool>? onChanged;
 
-  /// The track color when on, overriding [appearance].
-  final Color? activeColor;
+  /// The track color when on, overriding [appearance] (UIKit
+  /// `onTintColor`).
+  final Color? activeTrackColor;
 
   /// The track color when off, overriding [appearance].
-  final Color? trackColor;
+  final Color? inactiveTrackColor;
 
   /// The look of the switch; null resolves it from the theme.
   final MorphSwitchAppearance? appearance;
@@ -169,9 +170,9 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
 
   void _toggle() => widget.onChanged?.call(!widget.value);
 
-  Color get _activeColor => widget.activeColor ?? _style.activeColor;
+  Color get _activeColor => widget.activeTrackColor ?? _style.activeTrackColor;
 
-  Color get _offColor => widget.trackColor ?? _style.trackColor;
+  Color get _offColor => widget.inactiveTrackColor ?? _style.inactiveTrackColor;
 
   ({RRect track, RRect knob, double progress, Color trackColor}) _frame(
     Size size,
@@ -221,7 +222,7 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
       MorphGlassSurface(
         kind: MorphGlassKind.knob,
         shape: frame.knob,
-        color: morphSmallLensFill(_style.knobColor, frame.progress),
+        color: morphSmallLensFill(_style.thumbColor, frame.progress),
         brightness: _brightness,
         lift: frame.progress,
         scaleX: _motion.lens.scaleX(t),
@@ -236,8 +237,8 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
   bool buildsLike(MorphSwitch oldWidget) =>
       oldWidget.value == widget.value &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
-      oldWidget.activeColor == widget.activeColor &&
-      oldWidget.trackColor == widget.trackColor &&
+      oldWidget.activeTrackColor == widget.activeTrackColor &&
+      oldWidget.inactiveTrackColor == widget.inactiveTrackColor &&
       oldWidget.appearance == widget.appearance &&
       oldWidget.semanticLabel == widget.semanticLabel;
 
@@ -302,7 +303,7 @@ class _SwitchPainter extends CustomPainter {
     paintMorphSmallLens(
       canvas,
       knob,
-      color: state._style.knobColor,
+      color: state._style.thumbColor,
       progress: progress,
       brightness: state._brightness,
     );

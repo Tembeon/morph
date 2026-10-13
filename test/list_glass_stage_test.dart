@@ -28,7 +28,7 @@ Widget _list({
         child: Align(
           alignment: .topCenter,
           child: MorphListSection(
-            header: 'Accessories',
+            header: const Text('Accessories'),
             children: [
               for (var i = 0; i < rows; i++)
                 MorphListRow(

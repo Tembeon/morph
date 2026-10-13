@@ -305,7 +305,7 @@ Widget _section({
               for (final header in ['Accessories', 'More'])
                 BackdropGroup(
                   child: MorphListSection(
-                    header: header,
+                    header: Text(header),
                     children: [
                       for (var i = 0; i < 3; i++)
                         MorphListRow(

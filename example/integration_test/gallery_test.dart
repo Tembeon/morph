@@ -250,7 +250,7 @@ class _Qa {
   }
 
   int _selectedOf(Finder control) =>
-      tester.widget<MorphSegmentedControl>(control).selected;
+      tester.widget<MorphSegmentedControl>(control).selectedIndex;
 
   Future<void> _tabBar() async {
     await open('Tab bar');
@@ -659,7 +659,7 @@ class _Qa {
     await settle();
     check(
       'RTL tap on Search selects it',
-      ok: tester.widget<MorphSegmentedControl>(rtlSeg).selected == 2,
+      ok: tester.widget<MorphSegmentedControl>(rtlSeg).selectedIndex == 2,
     );
     final slider = find.byType(MorphSlider).first;
     final sr = tester.getRect(slider);
@@ -675,12 +675,12 @@ class _Qa {
     await _setting(_switchNamed('Disabled'));
     await _sceneTop();
     await shot('glass-dark-rtl-disabled');
-    final before = tester.widget<MorphSegmentedControl>(rtlSeg).selected;
+    final before = tester.widget<MorphSegmentedControl>(rtlSeg).selectedIndex;
     await tap(textIn(rtlSeg, 'Photos'));
     await settle();
     check(
       'disabled segmented ignores taps',
-      ok: tester.widget<MorphSegmentedControl>(rtlSeg).selected == before,
+      ok: tester.widget<MorphSegmentedControl>(rtlSeg).selectedIndex == before,
     );
     await _setting(_switchNamed('Right to left'));
     await _setting(find.text('Light'));

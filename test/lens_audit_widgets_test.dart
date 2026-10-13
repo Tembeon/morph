@@ -42,8 +42,12 @@ void main() {
             : SizedBox(
                 width: 360,
                 child: MorphSegmentedControl(
-                  segments: const ['One', 'Two', 'Three'],
-                  selected: 0,
+                  segments: const [
+                    MorphSegment('One'),
+                    MorphSegment('Two'),
+                    MorphSegment('Three'),
+                  ],
+                  selectedIndex: 0,
                   onChanged: changes.add,
                 ),
               );
@@ -295,8 +299,12 @@ void main() {
           width: 360,
           child: StatefulBuilder(
             builder: (context, update) => MorphSegmentedControl(
-              segments: const ['One', 'Two', 'Three'],
-              selected: selected,
+              segments: const [
+                MorphSegment('One'),
+                MorphSegment('Two'),
+                MorphSegment('Three'),
+              ],
+              selectedIndex: selected,
               onChanged: (i) => update(() => selected = i),
             ),
           ),
@@ -422,8 +430,8 @@ void main() {
       SizedBox(
         width: 360,
         child: MorphSegmentedControl(
-          segments: labels,
-          selected: selected,
+          segments: [for (final s in labels) MorphSegment(s)],
+          selectedIndex: selected,
           onChanged: (_) {},
         ),
       ),
@@ -446,8 +454,10 @@ void main() {
             SizedBox(
               width: 360,
               child: MorphSegmentedControl(
-                segments: empty ? const [] : const ['One', 'Two'],
-                selected: selected,
+                segments: empty
+                    ? const []
+                    : const [MorphSegment('One'), MorphSegment('Two')],
+                selectedIndex: selected,
                 onChanged: (_) {},
               ),
             ),
@@ -494,8 +504,8 @@ void main() {
           mainAxisSize: MainAxisSize.min,
           children: [
             MorphSegmentedControl(
-              segments: const ['One', 'Two'],
-              selected: 0,
+              segments: const [MorphSegment('One'), MorphSegment('Two')],
+              selectedIndex: 0,
               onChanged: (_) {},
             ),
           ],

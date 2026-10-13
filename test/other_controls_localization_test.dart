@@ -22,7 +22,7 @@ void main() {
             MorphStepper(
               value: 4,
               onChanged: (_) {},
-              semanticValueFormatter: (value) => 'count=$value',
+              semanticFormatterCallback: (value) => 'count=$value',
             ),
           ],
         ),
@@ -45,10 +45,12 @@ void main() {
             child: MorphDatePicker(
               value: DateTime(2026, 10, 3),
               onChanged: (_) {},
-              localize: (text) => 'L:$text',
-              calendarTitleFormatter: (date) => 'title:${date.month}',
-              daySemanticFormatter: (date) => 'day:${date.day}',
-              numberFormatter: (number) => 'n:$number',
+              localizations: MorphDatePickerLocalizations(
+                localize: (text) => 'L:$text',
+                calendarTitleFormatter: (date) => 'title:${date.month}',
+                daySemanticFormatter: (date) => 'day:${date.day}',
+                numberFormatter: (number) => 'n:$number',
+              ),
             ),
           ),
         ),

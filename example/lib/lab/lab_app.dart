@@ -404,8 +404,11 @@ class _LabAppState extends State<LabApp> with SingleTickerProviderStateMixin {
         semanticLabel: id,
       ),
       'segmented' => MorphSegmentedControl(
-        segments: (spec['labels']! as List<Object?>).cast<String>(),
-        selected: (_values[id] ?? _number(spec['value'])).toInt(),
+        segments: [
+          for (final s in (spec['labels']! as List<Object?>).cast<String>())
+            MorphSegment(s),
+        ],
+        selectedIndex: (_values[id] ?? _number(spec['value'])).toInt(),
         onChanged: enabled ? (next) => changed(next.toDouble()) : null,
       ),
       'menu' => MorphMenuButton(

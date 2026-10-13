@@ -157,7 +157,7 @@ class MorphScrollEdgeEffectAppearance {
 /// bar covers. [extent] is the bar's far edge measured from the screen
 /// edge (status bar included for a top bar); the soft style reaches
 /// [MorphScrollEdgeEffectAppearance.softOverhang] further. The effect
-/// shows only while [active] - while content lies under the edge; UIKit
+/// shows only while [scrolledUnder] - while content lies under the edge; UIKit
 /// switches it on and off from one frame to the next.
 ///
 /// On the flat glass tier only the fade and hairline are drawn. Other
@@ -170,11 +170,15 @@ class MorphScrollEdgeEffect extends StatelessWidget {
     required this.extent,
     this.edge = AxisDirection.up,
     this.style = MorphScrollEdgeEffectStyle.soft,
-    this.active = true,
+    this.scrolledUnder = true,
     this.appearance,
     double opacity = 1,
     super.key,
-  }) : _opacity = null,
+  }) : assert(
+         edge == AxisDirection.up || edge == AxisDirection.down,
+         'The scroll edge effect draws only the top and bottom edges.',
+       ),
+       _opacity = null,
        _fixedOpacity = opacity,
        _repaint = null;
 
@@ -187,23 +191,29 @@ class MorphScrollEdgeEffect extends StatelessWidget {
     required Listenable this._repaint,
     this.edge = AxisDirection.up,
     this.style = MorphScrollEdgeEffectStyle.soft,
-    this.active = true,
+    this.scrolledUnder = true,
     this.appearance,
     super.key,
-  }) : _fixedOpacity = 1;
+  }) : assert(
+         edge == AxisDirection.up || edge == AxisDirection.down,
+         'The scroll edge effect draws only the top and bottom edges.',
+       ),
+       _fixedOpacity = 1;
 
   /// The distance from the screen edge to the bar's far edge.
   final double extent;
 
   /// The edge of the scroll view: [AxisDirection.up] for a navigation
-  /// bar, [AxisDirection.down] for a toolbar.
+  /// bar, [AxisDirection.down] for a toolbar. Only these two vertical
+  /// edges are drawn; a horizontal one fails an assertion.
   final AxisDirection edge;
 
-  /// The style of the effect.
+  /// The style of the effect (UIKit `UIScrollEdgeEffect.Style`).
   final MorphScrollEdgeEffectStyle style;
 
-  /// Whether content lies under the edge.
-  final bool active;
+  /// Whether content lies under the edge, as a navigation bar's
+  /// `scrolledUnder`.
+  final bool scrolledUnder;
 
   /// The look; null resolves it from the theme.
   final MorphScrollEdgeEffectAppearance? appearance;
@@ -233,7 +243,9 @@ class MorphScrollEdgeEffect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (!active || extent <= 0 || (_opacity == null && _fixedOpacity <= 0)) {
+    if (!scrolledUnder ||
+        extent <= 0 ||
+        (_opacity == null && _fixedOpacity <= 0)) {
       return const SizedBox.shrink();
     }
     final look = MorphScrollEdgeEffectAppearance.resolve(context, appearance);

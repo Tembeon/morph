@@ -65,7 +65,7 @@ class _SpecInspectorPageState extends State<SpecInspectorPage> {
         ),
         SliverToBoxAdapter(
           child: MorphListSection(
-            header: 'Surface',
+            header: const Text('Surface'),
             children: [
               MorphListRow(
                 title: const Text('Loupe'),
@@ -94,7 +94,7 @@ class _SpecInspectorPageState extends State<SpecInspectorPage> {
         ),
         SliverToBoxAdapter(
           child: MorphListSection(
-            header: 'Physics',
+            header: const Text('Physics'),
             children: [
               for (final (label, value) in rows)
                 MorphListRow(

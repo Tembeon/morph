@@ -225,8 +225,12 @@ class _SegmentedState extends State<_Segmented> {
     child: SizedBox(
       width: 300,
       child: MorphSegmentedControl(
-        segments: const ['A', 'B', 'C'],
-        selected: _selected,
+        segments: const [
+          MorphSegment('A'),
+          MorphSegment('B'),
+          MorphSegment('C'),
+        ],
+        selectedIndex: _selected,
         onChanged: (int v) => setState(() => _selected = v),
       ),
     ),

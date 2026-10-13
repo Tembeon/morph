@@ -132,8 +132,11 @@ class _Inbox extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
             child: MorphSegmentedControl(
-              segments: const ['Hard edge', 'Soft edge'],
-              selected: edge == MorphScrollEdgeEffectStyle.hard ? 0 : 1,
+              segments: const [
+                MorphSegment('Hard edge'),
+                MorphSegment('Soft edge'),
+              ],
+              selectedIndex: edge == MorphScrollEdgeEffectStyle.hard ? 0 : 1,
               onChanged: (i) => onEdge(
                 i == 0
                     ? MorphScrollEdgeEffectStyle.hard

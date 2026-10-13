@@ -95,8 +95,12 @@ class _SceneState extends State<_Scene> {
           top: 600,
           width: 300,
           child: MorphSegmentedControl(
-            segments: const ['A', 'B', 'C'],
-            selected: _segment,
+            segments: const [
+              MorphSegment('A'),
+              MorphSegment('B'),
+              MorphSegment('C'),
+            ],
+            selectedIndex: _segment,
             onChanged: (int index) {
               widget.events.add(_event('seg', index));
               setState(() => _segment = index);
@@ -178,8 +182,12 @@ void main() {
           child: SizedBox(
             width: 300,
             child: MorphSegmentedControl(
-              segments: const ['A', 'B', 'C'],
-              selected: 0,
+              segments: const [
+                MorphSegment('A'),
+                MorphSegment('B'),
+                MorphSegment('C'),
+              ],
+              selectedIndex: 0,
               onChanged: picked.add,
             ),
           ),
@@ -212,9 +220,13 @@ void main() {
           child: SizedBox(
             width: 300,
             child: MorphSegmentedControl(
-              sizeByContent: true,
-              segments: const ['A', 'Long label', 'B'],
-              selected: 0,
+              proportionalWidth: true,
+              segments: const [
+                MorphSegment('A'),
+                MorphSegment('Long label'),
+                MorphSegment('B'),
+              ],
+              selectedIndex: 0,
               onChanged: picked.add,
             ),
           ),

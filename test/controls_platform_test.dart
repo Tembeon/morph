@@ -66,8 +66,8 @@ Widget _segmented(
   int selected = 0,
   MorphSegmentedControlAppearance? style,
 }) => MorphSegmentedControl(
-  segments: const ['A', 'B', 'C'],
-  selected: selected,
+  segments: const [MorphSegment('A'), MorphSegment('B'), MorphSegment('C')],
+  selectedIndex: selected,
   onChanged: onChanged,
   appearance: style,
 );
@@ -936,7 +936,7 @@ void main() {
       expect(segmented.brightness, Brightness.dark);
       expect(
         toggle.color.toARGB32(),
-        MorphSwitchAppearance.dark.activeColor.toARGB32(),
+        MorphSwitchAppearance.dark.activeTrackColor.toARGB32(),
       );
     });
 
@@ -1000,7 +1000,7 @@ void main() {
           child: _host(
             MorphSwitch(
               value: true,
-              activeColor: const Color(0xFF123456),
+              activeTrackColor: const Color(0xFF123456),
               onChanged: (_) {},
             ),
           ),

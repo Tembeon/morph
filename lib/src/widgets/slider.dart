@@ -17,20 +17,22 @@ import 'package:morph/src/widgets/small_lens.dart';
 class MorphSliderAppearance {
   /// Creates an appearance; the defaults are the iOS light appearance.
   const MorphSliderAppearance({
-    this.activeColor = const Color(0xFF0088FF),
-    this.trackColor = const Color(0x1A000000),
+    this.activeTrackColor = const Color(0xFF0088FF),
+    this.inactiveTrackColor = const Color(0x1A000000),
     this.thumbColor = const Color(0xFFFFFFFF),
     this.tickColor = const Color(0xFFC6C6C8),
     this.disabledOpacity = 0.5,
   });
 
-  /// The fill of the track below the value: iOS 27's systemBlue.
-  final Color activeColor;
+  /// The fill of the track below the value: iOS 27's systemBlue (UIKit
+  /// `minimumTrackTintColor`).
+  final Color activeTrackColor;
 
-  /// The fill of the track above the value.
-  final Color trackColor;
+  /// The fill of the track above the value (UIKit
+  /// `maximumTrackTintColor`).
+  final Color inactiveTrackColor;
 
-  /// The fill of the resting thumb.
+  /// The fill of the resting thumb (UIKit `thumbTintColor`).
   final Color thumbColor;
 
   /// The fill of the tick marks of a stepped slider.
@@ -46,8 +48,8 @@ class MorphSliderAppearance {
 
   /// The dark appearance, from the iOS dark system colors.
   static const dark = MorphSliderAppearance(
-    activeColor: Color(0xFF0091FF),
-    trackColor: Color(0x1AFFFFFF),
+    activeTrackColor: Color(0xFF0091FF),
+    inactiveTrackColor: Color(0x1AFFFFFF),
     tickColor: Color(0xFF38383A),
   );
 
@@ -85,8 +87,8 @@ class MorphSlider extends StatefulWidget {
     required this.value,
     required this.onChanged,
     this.onChangeEnd,
-    this.activeColor,
-    this.trackColor,
+    this.activeTrackColor,
+    this.inactiveTrackColor,
     this.appearance,
     this.semanticLabel,
     this.ticks = 0,
@@ -111,11 +113,13 @@ class MorphSlider extends StatefulWidget {
   /// Called with the final value when a drag and its glide end.
   final ValueChanged<double>? onChangeEnd;
 
-  /// The fill of the track below the value, overriding [appearance].
-  final Color? activeColor;
+  /// The fill of the track below the value, overriding [appearance]
+  /// (UIKit `minimumTrackTintColor`).
+  final Color? activeTrackColor;
 
-  /// The fill of the track above the value, overriding [appearance].
-  final Color? trackColor;
+  /// The fill of the track above the value, overriding [appearance]
+  /// (UIKit `maximumTrackTintColor`).
+  final Color? inactiveTrackColor;
 
   /// The look of the slider; null resolves it from the theme.
   final MorphSliderAppearance? appearance;
@@ -313,7 +317,7 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
     MorphGlassSurface(
       kind: MorphGlassKind.track,
       shape: _trackShape(),
-      color: widget.trackColor ?? _style.trackColor,
+      color: widget.inactiveTrackColor ?? _style.inactiveTrackColor,
       brightness: _brightness,
       enabled: _enabled,
       glass: false,
@@ -345,8 +349,8 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
           widget.value == _motion.reportedValue) &&
       oldWidget.ticks == widget.ticks &&
       (oldWidget.onChanged == null) == (widget.onChanged == null) &&
-      oldWidget.activeColor == widget.activeColor &&
-      oldWidget.trackColor == widget.trackColor &&
+      oldWidget.activeTrackColor == widget.activeTrackColor &&
+      oldWidget.inactiveTrackColor == widget.inactiveTrackColor &&
       oldWidget.appearance == widget.appearance &&
       oldWidget.semanticLabel == widget.semanticLabel;
 
@@ -459,7 +463,7 @@ class _SliderPainter extends CustomPainter {
     }
     if (track) {
       final rest = Paint();
-      rest.color = widget.trackColor ?? style.trackColor;
+      rest.color = widget.inactiveTrackColor ?? style.inactiveTrackColor;
       canvas.drawRRect(frame.track, rest);
     }
     final ticks = Paint();
@@ -474,7 +478,7 @@ class _SliderPainter extends CustomPainter {
     }
     if (frame.fill.width > 0) {
       final filled = Paint();
-      filled.color = widget.activeColor ?? style.activeColor;
+      filled.color = widget.activeTrackColor ?? style.activeTrackColor;
       canvas.drawRRect(frame.fill, filled);
     }
 

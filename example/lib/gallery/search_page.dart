@@ -65,8 +65,12 @@ class _SearchPageState extends State<SearchPage> {
               Padding(
                 padding: const .symmetric(vertical: 8),
                 child: MorphSegmentedControl(
-                  segments: const ['Toolbar', 'Tab bar', 'Inline'],
-                  selected: _mode,
+                  segments: const [
+                    MorphSegment('Toolbar'),
+                    MorphSegment('Tab bar'),
+                    MorphSegment('Inline'),
+                  ],
+                  selectedIndex: _mode,
                   onChanged: (int i) => setState(() {
                     _mode = i;
                     _query = '';

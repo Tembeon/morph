@@ -236,11 +236,13 @@ class MorphListSection extends StatelessWidget {
   /// The rows on the card.
   final List<Widget> children;
 
-  /// The label above the card: 17 pt semibold secondary text.
-  final String? header;
+  /// The label above the card, usually a [Text]: drawn 17 pt semibold in
+  /// the secondary color unless it sets its own style.
+  final Widget? header;
 
-  /// The label below the card: 13 pt secondary text.
-  final String? footer;
+  /// The label below the card, usually a [Text]: drawn 13 pt in the
+  /// secondary color unless it sets its own style.
+  final Widget? footer;
 
   /// The look; null resolves it from the theme.
   final MorphListAppearance? appearance;
@@ -270,13 +272,13 @@ class MorphListSection extends StatelessWidget {
                 ),
                 child: Semantics(
                   header: true,
-                  child: Text(
-                    header,
+                  child: DefaultTextStyle.merge(
                     style: MorphTypography.resolve(
                       MorphTypography.listHeader.copyWith(
                         color: look.secondaryColor,
                       ),
                     ),
+                    child: header,
                   ),
                 ),
               ),
@@ -316,13 +318,13 @@ class MorphListSection extends StatelessWidget {
                   MorphListMetrics.contentInset,
                   MorphListMetrics.footerBottom,
                 ),
-                child: Text(
-                  footer,
+                child: DefaultTextStyle.merge(
                   style: MorphTypography.resolve(
                     MorphTypography.listFooter.copyWith(
                       color: look.secondaryColor,
                     ),
                   ),
+                  child: footer,
                 ),
               ),
           ],
@@ -350,6 +352,13 @@ class _RowPlace extends InheritedWidget {
       last != oldWidget.last || style != oldWidget.style;
 }
 
+/// The standard accessory of a [MorphListRow], after UIKit's
+/// `UITableViewCell.AccessoryType`.
+enum MorphListAccessory {
+  /// The disclosure chevron of a row that pushes a screen.
+  disclosureIndicator,
+}
+
 /// A row of an inset grouped list in the manner of a UIKit list cell
 /// (`UIListContentConfiguration` cell, subtitle cell and value cell).
 ///
@@ -359,7 +368,7 @@ class _RowPlace extends InheritedWidget {
 /// area and wrapping past it; a [leading] symbol is centered in a
 /// slot 28 pt from the card's edge and moves the text and the separator
 /// to 56 pt; a [trailing] control (a switch, say) and the
-/// disclosure [chevron] end 20 pt from the card's edge. A single-line row
+/// [accessory] end 20 pt from the card's edge. A single-line row
 /// is 53 pt tall. Instead of a title, a [child] can fill the row's text
 /// area with any content.
 ///
@@ -381,7 +390,7 @@ class MorphListRow extends StatefulWidget {
     this.detail,
     this.leading,
     this.trailing,
-    this.chevron = false,
+    this.accessory,
     this.child,
     this.onTap,
     this.enabled = true,
@@ -408,9 +417,9 @@ class MorphListRow extends StatefulWidget {
   /// A control at the trailing edge, such as a switch.
   final Widget? trailing;
 
-  /// Whether the disclosure chevron shows at the trailing edge, as on a
-  /// row that pushes a screen.
-  final bool chevron;
+  /// The standard accessory at the trailing edge, after [trailing]
+  /// (UIKit `accessoryType`); null shows none.
+  final MorphListAccessory? accessory;
 
   /// Content that fills the text area instead of [title] and [subtitle].
   final Widget? child;
@@ -465,7 +474,8 @@ class _MorphListRowState extends State<MorphListRow> {
     final subtitle = widget.subtitle;
     final detail = widget.detail;
     final trailing = widget.trailing;
-    final accessory = trailing != null || widget.chevron;
+    final chevron = widget.accessory == MorphListAccessory.disclosureIndicator;
+    final accessory = trailing != null || chevron;
     final textStart =
         MorphListMetrics.contentInset +
         (leading == null
@@ -517,9 +527,9 @@ class _MorphListRowState extends State<MorphListRow> {
         ],
         if (accessory) const SizedBox(width: MorphListMetrics.gap),
         ?trailing,
-        if (trailing != null && widget.chevron)
+        if (trailing != null && chevron)
           const SizedBox(width: MorphListMetrics.gap),
-        if (widget.chevron) _Chevron(color: look.chevronColor),
+        if (chevron) _Chevron(color: look.chevronColor),
       ],
     );
     final row = ConstrainedBox(

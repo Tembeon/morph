@@ -66,7 +66,11 @@ export 'src/widgets/bar_motion.dart'
         MorphBarMotion,
         MorphBarTransitionSpec;
 export 'src/widgets/date_picker.dart'
-    show MorphDatePicker, MorphDatePickerMode, MorphDatePickerAppearance;
+    show
+        MorphDatePicker,
+        MorphDatePickerAppearance,
+        MorphDatePickerLocalizations,
+        MorphDatePickerMode;
 export 'src/widgets/date_picker_motion.dart'
     show
         MorphDatePickerMotion,
@@ -132,7 +136,12 @@ export 'src/widgets/menu_motion.dart'
 export 'src/widgets/morph_context_menu.dart'
     show MorphContextMenuRegion, MorphSatellite;
 export 'src/widgets/list.dart'
-    show MorphListMetrics, MorphListRow, MorphListSection, MorphListAppearance;
+    show
+        MorphListAccessory,
+        MorphListAppearance,
+        MorphListMetrics,
+        MorphListRow,
+        MorphListSection;
 export 'src/widgets/navigation_bar.dart'
     show
         MorphLargeTitle,
@@ -174,7 +183,7 @@ export 'src/widgets/search_motion.dart'
     show MorphSearchMotion, MorphSearchTuning;
 export 'src/widgets/search_tab_bar.dart' show MorphSearchTabBar;
 export 'src/widgets/segmented_control.dart'
-    show MorphSegmentedControl, MorphSegmentedControlAppearance;
+    show MorphSegment, MorphSegmentedControl, MorphSegmentedControlAppearance;
 export 'src/widgets/sheet.dart'
     show MorphSheet, MorphSheetRoute, MorphSheetAppearance, presentMorphSheet;
 export 'src/widgets/sheet_motion.dart'
