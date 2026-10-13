@@ -264,7 +264,11 @@ String _defaultTime(DateTime d, {required bool twentyFour}) {
 /// of its own, so a page turn moves recorded grids instead of painting
 /// every day again (IDENTICAL). The day grid (the time wheels) mounts on
 /// the frame after the overlay's, while the overlay is still transparent,
-/// so the open's layout spreads over two frames (IDENTICAL).
+/// so the open's layout spreads over two frames (IDENTICAL). A label
+/// dims under the finger through the alpha of its text color instead of
+/// an opacity layer: NEAR (one rounding instead of two, at most 1 of 255
+/// per channel, except where the anti-aliased edges of two glyphs share
+/// a pixel, which the layer covered once and the color covers twice).
 class MorphDatePicker extends StatefulWidget {
   /// Creates a picker.
   const MorphDatePicker({
@@ -477,10 +481,6 @@ class _CompactLabelState extends State<_CompactLabel>
         SingleTickerProviderStateMixin<_CompactLabel>,
         MorphClock<_CompactLabel> {
   final MorphDatePickerMotion _motion = MorphDatePickerMotion();
-  late final Animation<double> _highlight = _FrameValue(
-    frames,
-    () => _motion.highlight(_motion.time),
-  );
   bool _focused = false;
   int? _pointer;
 
@@ -561,21 +561,19 @@ class _CompactLabelState extends State<_CompactLabel>
                 child: Center(
                   widthFactor: 1,
                   heightFactor: 1,
-                  child: FadeTransition(
-                    opacity: widget.enabled
-                        ? _highlight
-                        : const AlwaysStoppedAnimation<double>(1),
-                    child: Text(
-                      widget.text,
-                      maxLines: 1,
-                      textScaler: scaler,
-                      style: MorphTypography.resolve(
-                        MorphTypography.datePickerCompact.copyWith(
-                          height: 20.33 / 17,
-                          color: widget.open
-                              ? style.accentColor
-                              : style.labelColor,
-                        ),
+                  child: MorphLiveFadedText(
+                    widget.text,
+                    live: frames,
+                    opacityOf: () =>
+                        widget.enabled ? _motion.highlight(_motion.time) : 1,
+                    maxLines: 1,
+                    textScaler: scaler,
+                    style: MorphTypography.resolve(
+                      MorphTypography.datePickerCompact.copyWith(
+                        height: 20.33 / 17,
+                        color: widget.open
+                            ? style.accentColor
+                            : style.labelColor,
                       ),
                     ),
                   ),

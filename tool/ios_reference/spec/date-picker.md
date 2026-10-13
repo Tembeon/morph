@@ -192,6 +192,20 @@ transparent for the open delay, 0.072 s at the least; control goldens
 unchanged). Host layouts: open frame 397 -> 94, next frame 0 -> 112;
 date_picker_test pins 100 / 120.
 
+Performance trade (2026-10-13, declared in `MorphDatePicker`): a
+compact label dims under the finger through the alpha of its text color
+(`MorphLiveFadedText`, a repaint boundary that repaints only itself)
+instead of a FadeTransition's opacity layer, an offscreen pass for every
+frame of the 0.47 s dim and its return - NEAR. Host, layer vs color over
+40 frames of a held then released press (light and dark, Ahem boxes at
+3x): the glyph interiors differ by at most 1 of 255; where two glyphs'
+anti-aliased edges share a pixel column the color fade covers it twice
+(12 - 26 of 255 at mid-dim, Ahem's abutting boxes being the worst case;
+SF digits keep more than a device pixel apart); the host's layer path
+also loses the text's top anti-aliased row, which the color fade draws.
+Pixel matrix before: m/date-picker/open-close 'opacity unknown
+OpacityLayer 0.2' passes a frame on flat and liquid (bench-r5-d3dbebd).
+
 ## Not reproduced / open
 
 - Perspective of the month/year wheel rows (above).

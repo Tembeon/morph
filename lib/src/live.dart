@@ -250,6 +250,169 @@ class _RenderLiveOpacity extends RenderOpacity with MorphLiveBinding {
   _RenderLiveOpacity({super.opacity});
 }
 
+/// A [Text] faded by an opacity that follows a live source.
+///
+/// The fade is the alpha of the text's color, so a fading text draws in
+/// the pass it belongs to instead of an opacity layer of its own (NEAR:
+/// one rounding instead of two, at most 1 of 255 per channel), and it
+/// repaints only itself: the text is a repaint boundary. A text whose
+/// style the fade cannot reach (no color, a foreground paint, children or
+/// a semantics label) fades through a [MorphLiveOpacity] instead.
+@internal
+class MorphLiveFadedText extends Text {
+  /// Shows [data] faded to [opacityOf], read again on every notification
+  /// of [live].
+  const MorphLiveFadedText(
+    super.data, {
+    required this.live,
+    required this.opacityOf,
+    super.style,
+    super.maxLines,
+    super.textScaler,
+    super.key,
+  });
+
+  /// The source of the opacity.
+  final Listenable live;
+
+  /// The opacity now, 0 to 1.
+  final double Function() opacityOf;
+
+  @override
+  Widget build(BuildContext context) {
+    final built = super.build(context);
+    if (built is RichText && _LiveFadedParagraph.fades(built.text)) {
+      return _LiveFadedRichText(built, live: live, opacityOf: opacityOf);
+    }
+    return MorphLiveOpacity(live: live, opacityOf: opacityOf, child: built);
+  }
+}
+
+class _LiveFadedRichText extends RichText {
+  _LiveFadedRichText(
+    RichText from, {
+    required this.live,
+    required this.opacityOf,
+  }) : super(
+         key: from.key,
+         text: from.text,
+         textAlign: from.textAlign,
+         textDirection: from.textDirection,
+         softWrap: from.softWrap,
+         overflow: from.overflow,
+         textScaler: from.textScaler,
+         maxLines: from.maxLines,
+         locale: from.locale,
+         strutStyle: from.strutStyle,
+         textWidthBasis: from.textWidthBasis,
+         textHeightBehavior: from.textHeightBehavior,
+         selectionRegistrar: from.selectionRegistrar,
+         selectionColor: from.selectionColor,
+       );
+
+  final Listenable live;
+  final double Function() opacityOf;
+
+  @override
+  RenderParagraph createRenderObject(BuildContext context) {
+    final paragraph = _LiveFadedParagraph(
+      text,
+      textAlign: textAlign,
+      textDirection: textDirection ?? Directionality.of(context),
+      softWrap: softWrap,
+      overflow: overflow,
+      textScaler: textScaler,
+      maxLines: maxLines,
+      strutStyle: strutStyle,
+      textWidthBasis: textWidthBasis,
+      textHeightBehavior: textHeightBehavior,
+      locale: locale ?? Localizations.maybeLocaleOf(context),
+      registrar: selectionRegistrar,
+      selectionColor: selectionColor,
+      devicePixelRatio:
+          MediaQuery.maybeDevicePixelRatioOf(context) ??
+          View.maybeOf(context)?.devicePixelRatio ??
+          1.0,
+    );
+    paragraph.bindLive(live, () => paragraph.opacity = opacityOf());
+    return paragraph;
+  }
+
+  @override
+  void updateRenderObject(BuildContext context, RenderParagraph renderObject) {
+    super.updateRenderObject(context, renderObject);
+    final paragraph = renderObject as _LiveFadedParagraph;
+    paragraph.bindLive(live, () => paragraph.opacity = opacityOf());
+  }
+}
+
+class _LiveFadedParagraph extends RenderParagraph with MorphLiveBinding {
+  _LiveFadedParagraph(
+    super.text, {
+    required super.textDirection,
+    super.textAlign,
+    super.softWrap,
+    super.overflow,
+    super.textScaler,
+    super.maxLines,
+    super.locale,
+    super.strutStyle,
+    super.textWidthBasis,
+    super.textHeightBehavior,
+    super.registrar,
+    super.selectionColor,
+    super.devicePixelRatio,
+  }) : _base = text;
+
+  /// Whether [span] is a plain run of text whose color can carry a fade.
+  static bool fades(InlineSpan span) =>
+      span is TextSpan &&
+      span.children == null &&
+      span.recognizer == null &&
+      span.semanticsLabel == null &&
+      span.style?.color != null &&
+      span.style?.foreground == null;
+
+  InlineSpan _base;
+  int _alpha = 255;
+
+  @override
+  bool get isRepaintBoundary => true;
+
+  @override
+  set text(InlineSpan value) {
+    _base = value;
+    super.text = _faded();
+  }
+
+  double get opacity => _alpha / 255;
+
+  set opacity(double value) {
+    final alpha = ui.Color.getAlphaFromOpacity(value.clamp(0.0, 1.0));
+    if (alpha == _alpha) return;
+    _alpha = alpha;
+    super.text = _faded();
+  }
+
+  InlineSpan _faded() {
+    final base = _base;
+    if (_alpha == 255 || base is! TextSpan || !fades(base)) return base;
+    final style = base.style!;
+    final color = style.color!;
+    return TextSpan(
+      text: base.text,
+      style: style.copyWith(
+        color: color.withValues(alpha: color.a * _alpha / 255),
+      ),
+      locale: base.locale,
+      spellOut: base.spellOut,
+      mouseCursor: base.mouseCursor,
+      onEnter: base.onEnter,
+      onExit: base.onExit,
+    );
+  }
+}
+
 /// A [Semantics] annotation whose properties follow a live source: a
 /// flag that changes with a motion, such as a menu's expanded state or a
 /// slider's value, reaches the semantics tree without a build.

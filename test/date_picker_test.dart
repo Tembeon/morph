@@ -539,6 +539,52 @@ void main() {
       );
     });
 
+    testWidgets('the label dims its text color, not through a layer', (
+      tester,
+    ) async {
+      await pump(tester, onChanged: (_) {});
+      double alpha() {
+        final paragraph = tester.renderObject<RenderParagraph>(
+          find.descendant(
+            of: find.text('Oct 3, 2026'),
+            matching: find.byWidgetPredicate((Widget w) => w is RichText),
+          ),
+        );
+        return (paragraph.text as TextSpan).style!.color!.a;
+      }
+
+      int fades() {
+        var count = 0;
+        void walk(Layer layer) {
+          if (layer is OpacityLayer && (layer.alpha ?? 255) < 255) count++;
+          if (layer is ContainerLayer) {
+            for (var c = layer.firstChild; c != null; c = c.nextSibling) {
+              walk(c);
+            }
+          }
+        }
+
+        walk(tester.binding.renderViews.first.debugLayer!);
+        return count;
+      }
+
+      final press = await tester.startGesture(
+        tester.getCenter(find.text('Oct 3, 2026')),
+      );
+      for (var i = 0; i < 15; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(alpha(), lessThan(0.9));
+      expect(fades(), 0);
+      await press.cancel();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      expect(alpha(), 1);
+    });
+
     testWidgets('the open lays out the overlay and its days on two frames', (
       tester,
     ) async {
