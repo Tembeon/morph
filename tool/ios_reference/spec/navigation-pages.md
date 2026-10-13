@@ -26,6 +26,26 @@ Tuning [tuning]: `_UIFluidNavigationTransitionsSpec`, `_UIZoomTransitionSpec`.
   popping one starts from rest ~0.03 s after the lift. +1.25 returned 3/3
   (synthesizer artifact or unmodelled rule - not reproduced).
 
+## Spec - a push whose first frame is slow [device, 2026-10-13]
+
+UINavigationController pushes a page whose view spends 60 ms in
+`layoutSubviews` (or 60 ms of work before the transaction commits), iPhone
+16 Pro, iOS 27.0.1, the incoming page's screen x on every display-link tick
+(lab captures; notes private):
+
+| push | x on the frames after the push (pt) |
+|---|---|
+| light | 402, 342, 282, 227, 181 |
+| 60 ms in layout | 402, 335, 275, 222, 176 |
+| 60 ms before commit | 378, 316, 258, 207, 164 |
+
+The stall delays the motion; it skips none of it: the first frame after it
+shows the page at the start of its path (within one step) and the motion
+moves on by its usual 60 - 67 pt a frame. morph: `MorphFirstFrameStart`
+counts the push spring from the frame after the one that builds the page,
+as if that frame had lasted one display period (unchanged without a slow
+first frame).
+
 ## Spec - push zoom [film, device 2026-10-03]
 
 - Center and width open on 0.317/1.0, height on 0.406/0.925 (0.98 pt rms over

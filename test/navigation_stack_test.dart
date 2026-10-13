@@ -718,7 +718,11 @@ void main() {
         context,
       ).push(MorphNavigationRoute<void>(builder: (_) => page('Message')));
       await tester.pump();
-      await tester.pump(const Duration(milliseconds: 100));
+      // Steady frames: one long pump would be a slow first frame, which
+      // delays the push (MorphFirstFrameStart).
+      for (var i = 0; i < 6; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
       final message = find.byWidgetPredicate(
         (w) => w is MorphNavigationScaffold && w.title == 'Message',
       );

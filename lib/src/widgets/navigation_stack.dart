@@ -551,13 +551,24 @@ class MorphNavigationRoute<T> extends PageRoute<T>
     final c = controller;
     if (c == null || _zooms) return future;
     return c.animateWith(
-      SpringSimulation(
-        MorphNavigationTransition.pushSpring.description,
-        c.value,
-        1,
-        _reduced ? 0 : MorphNavigationTransition.pushVelocity,
+      MorphFirstFrameStart(
+        SpringSimulation(
+          MorphNavigationTransition.pushSpring.description,
+          c.value,
+          1,
+          _reduced ? 0 : MorphNavigationTransition.pushVelocity,
+        ),
+        period: _framePeriod,
       ),
     );
+  }
+
+  double get _framePeriod {
+    final context = navigator?.context;
+    final rate = context == null
+        ? 0.0
+        : View.maybeOf(context)?.display.refreshRate ?? 0.0;
+    return rate > 0 ? 1 / rate : 1 / 60;
   }
 
   bool get _reduced {
@@ -1104,4 +1115,51 @@ class _MorphNavigationScaffoldState extends State<MorphNavigationScaffold> {
       ],
     );
   }
+}
+
+/// Starts [inner] as UIKit starts a push: the frame that builds the new
+/// page shows the motion's start, and the motion counts from the frame
+/// after it as if that first frame had lasted one display [period].
+///
+/// A slow first frame (the new page's first build and layout) then
+/// delays the motion instead of skipping its first steps. Measured on an
+/// iPhone 16 Pro, iOS 27.0.1: a push whose page takes 60 ms in
+/// `layoutSubviews`, or 60 ms before the transaction commits, shows the
+/// incoming page at the start of its path on the first frame after the
+/// stall and then moves by its usual 60 - 67 pt a frame, as a push without
+/// a stall does. Without a slow first frame the motion is unchanged.
+@internal
+class MorphFirstFrameStart extends Simulation {
+  /// Starts [inner] after its first frame; [period] is the display's frame
+  /// period in seconds.
+  MorphFirstFrameStart(this.inner, {required this.period});
+
+  /// The motion.
+  final Simulation inner;
+
+  /// The display's frame period, in seconds.
+  final double period;
+
+  double? _first;
+  double? _offset;
+
+  double _time(double t) {
+    final first = _first;
+    if (first == null) {
+      _first = t;
+      return 0;
+    }
+    if (t <= first) return 0;
+    final offset = _offset ??= (t - first - period).clamp(0.0, double.infinity);
+    return t - offset;
+  }
+
+  @override
+  double x(double time) => inner.x(_time(time));
+
+  @override
+  double dx(double time) => inner.dx(_time(time));
+
+  @override
+  bool isDone(double time) => inner.isDone(_time(time));
 }
