@@ -5,7 +5,7 @@ Usage: python3 menu_flex_model.py FIXTURE [rec|spring]
 FIXTURE is test/fixtures/ios27-device/menu/drag-out{,-upward}-flex.jsonl.
 `rec` drives the pulse with UIKit's recorded translationY velocity, `spring`
 with the nominal spring UIKit declares for that channel (0.574 / 0.548).
-See tool/audit/2026-10-13-uikit-menu-stretch.md for the derivation.
+The derivation notes are kept privately, outside the repository.
 """
 import json
 import math

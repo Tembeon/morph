@@ -143,8 +143,8 @@ of the morph container):
 
 ## Spec - finger dragged on and off the open menu [tuning + device, 2026-10-13]
 
-Mechanism read from UIKitCore and confirmed live; details, addresses and
-validation in `tool/audit/2026-10-13-uikit-menu-stretch.md`.
+Mechanism confirmed live on the device; the derivation notes are kept
+privately, outside the repository.
 
 - It is `_UIFlexInteraction` in its menu variant (`preferredVariant` 5,
   spec `_UIFlexInteractionSpec.menu` = `MorphFlexSpec.menu`), attached by
