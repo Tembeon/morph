@@ -15,10 +15,17 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         guard let windowScene = scene as? UIWindowScene else { return }
         let window = RecordingWindow(windowScene: windowScene)
-        let sceneName = ProcessInfo.processInfo.environment["PROBE_SCENE"]
+        let chosen = ProcessInfo.processInfo.environment["PROBE_SCENE"]
             ?? UserDefaults.standard.string(forKey: "scene")
-            ?? "segmented"
         if let d = ProcessInfo.processInfo.environment["PROBE_DARK"] { window.overrideUserInterfaceStyle = d == "1" ? .dark : .light }
+        guard let sceneName = chosen else {
+            // Launched by hand: a list of the native scenes to compare with
+            // the gallery; nothing records.
+            window.rootViewController = UINavigationController(rootViewController: ScenePickerController())
+            window.makeKeyAndVisible()
+            self.window = window
+            return
+        }
         window.rootViewController = Scenes.make(sceneName)
         window.makeKeyAndVisible()
         self.window = window
