@@ -112,6 +112,9 @@ void main() async {
       );
     }
   };
+  debugGlassCostProbe = GlassCostProbe.values.byName(
+    BenchArgs.string('MORPH_GLASS_PROBE', 'off'),
+  );
   if (BenchArgs.flag('AUDIT_PROFILE_WIDGETS', fallback: false)) {
     // Every build, layout and paint as a timeline event named by its type,
     // for the bench's UI time by owner (diagnostic pass only).
