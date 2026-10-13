@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/glass/renderer/internal/flutter_gpu_geometry_renderer.dart';
-import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart';
 import 'package:morph/src/glass/renderer/renderer.dart';
 import 'package:morph/src/scope.dart';
 import 'package:morph/src/widgets/glass.dart';
@@ -168,14 +167,6 @@ class _MorphGlassStageState extends State<MorphGlassStage> {
 @internal
 bool debugMorphGlassStageSolidBackdrops = true;
 
-/// Whether a liquid glass container under a closed
-/// [MorphGlassContainerGate] keeps the members it can shade analytically;
-/// false sends every member to its own layer there, the reference this is
-/// measured against.
-@visibleForTesting
-@internal
-bool debugMorphGlassContainersAnalyticUnderGate = true;
-
 /// Whether package stages shade their members together; false keeps every
 /// member in its own layer, the reference a stage is measured against.
 @visibleForTesting
@@ -277,27 +268,11 @@ Widget _containerLayer(
       painter.runtimeType != MorphGlassRenderer) {
     return child;
   }
-  final gateOpen = MorphGlassContainerGate.openAt(context);
-  return ListenableBuilder(
-    listenable: Listenable.merge([
-      morphLiquidGlassCapability,
-      RenderLiquidGlassLayer.analyticGeometryChanges,
-    ]),
-    builder: (BuildContext context, Widget? child) {
+  return ValueListenableBuilder<bool>(
+    valueListenable: morphLiquidGlassCapability,
+    builder: (BuildContext context, bool _, Widget? child) {
       final tier = painter.effectiveTier;
       if (tier == MorphGlassTier.flat) return child!;
-      // Under a closed gate the members' mattes would not meet on one grid;
-      // shapes evaluated in the final shader have no grid, so a liquid
-      // container keeps the members it can shade analytically. NEAR: the
-      // same pixels at rest; while the gate's owner moves them, the
-      // members' rims sit a fraction of a device pixel from where layers of
-      // their own would rasterize them (host max 66 on the rim line,
-      // container_gate_host_test).
-      final analyticOnly =
-          !gateOpen &&
-          debugMorphGlassContainersAnalyticUnderGate &&
-          tier == MorphGlassTier.liquid &&
-          RenderLiquidGlassLayer.analyticGeometryEnabled;
       final settings = morphLiquidSettings(
         painter,
         MorphGlassSurface(
@@ -316,31 +291,20 @@ Widget _containerLayer(
           brightness: morphBrightnessOf(context),
         ),
       );
-      link.configure(
-        painter,
-        settings,
-        appearance,
-        capacity: analyticOnly
-            ? RenderLiquidGlassLayer.analyticMaxShapes
-            : MorphGlassContainerLink.capacity,
-      );
+      link.configure(painter, settings, appearance);
       return LiquidGlassLayer(
         settings: settings,
         defaultAppearance: appearance,
         fake: tier == MorphGlassTier.fake,
         useBackdropGroup: true,
         solidBackdrop: solidBackdrop,
-        keepsAnalytic: analyticOnly,
         child: MorphGlassContainerScope(
           link: link,
           renderer: painter,
           settings: settings,
-          shapeLimit: analyticOnly
-              ? RenderLiquidGlassLayer.analyticMaxShapes
-              : MorphGlassContainerLink.capacity,
           open:
               open &&
-              (gateOpen || analyticOnly) &&
+              MorphGlassContainerGate.openAt(context) &&
               (!sharpOnly || settings.effectiveFrost == 0),
           child: child!,
         ),
@@ -454,17 +418,12 @@ class MorphGlassContainerScope extends InheritedWidget {
     required this.settings,
     required super.child,
     this.open = true,
-    this.shapeLimit = MorphGlassContainerLink.capacity,
     super.key,
   });
 
   /// Whether the container takes members now; a closed one is no
   /// container to them.
   final bool open;
-
-  /// The most shapes the container shades now: fewer while it may shade
-  /// only analytically.
-  final int shapeLimit;
 
   /// The container's admission record.
   final MorphGlassContainerLink link;
@@ -485,7 +444,6 @@ class MorphGlassContainerScope extends InheritedWidget {
   @override
   bool updateShouldNotify(MorphGlassContainerScope oldWidget) =>
       oldWidget.open != open ||
-      oldWidget.shapeLimit != shapeLimit ||
       oldWidget.link != link ||
       oldWidget.renderer != renderer ||
       oldWidget.settings != settings;
@@ -500,7 +458,6 @@ class MorphGlassContainerLink {
   LiquidGlassAppearance? _appearance;
   final Map<Object, int> _members = {};
   int _shapes = 0;
-  int _capacity = capacity;
 
   /// The most shapes the container's layer shades.
   static const int capacity = FlutterGpuGeometryRenderer.maxShapes;
@@ -508,17 +465,14 @@ class MorphGlassContainerLink {
   /// The shapes the container shades now.
   int get shapes => _shapes;
 
-  /// Sets the renderer and the layer settings members must match, the
-  /// layer's own [appearance] and the most shapes it takes now
-  /// ([capacity]); when the renderer, settings or appearance change, the
-  /// next member admitted sets the appearance the others must match.
+  /// Sets the renderer and the layer settings members must match, and the
+  /// layer's own [appearance]; when any of them changes, the next member
+  /// admitted sets the appearance the others must match.
   void configure(
     MorphGlassRenderer renderer,
     LiquidGlassSettings settings,
-    LiquidGlassAppearance appearance, {
-    int capacity = MorphGlassContainerLink.capacity,
-  }) {
-    _capacity = capacity;
+    LiquidGlassAppearance appearance,
+  ) {
     if (renderer != _renderer ||
         settings != _settings ||
         appearance != _default) {
@@ -536,7 +490,7 @@ class MorphGlassContainerLink {
   bool admit(Object host, MorphGlassRenderer renderer, MorphGlassFrame frame) {
     final count = _joinable(renderer, frame);
     final held = _members[host];
-    if (count == 0 || _shapes - (held ?? 0) + count > _capacity) {
+    if (count == 0 || _shapes - (held ?? 0) + count > capacity) {
       release(host);
       return false;
     }
