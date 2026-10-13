@@ -154,17 +154,39 @@ float sliderKeyframes(float s, float clearValue, float middle, float tinted) {
         : mix(middle, tinted, s * 2.0 - 1.0);
 }
 
+vec3 sliderKeyframes3(float s, vec3 clearValue, vec3 middle, vec3 tinted) {
+    return s <= 0.5
+        ? mix(clearValue, middle, s * 2.0)
+        : mix(middle, tinted, s * 2.0 - 1.0);
+}
+
+// Share of the large-surface dark face: controls up to 75 pt, surfaces from
+// 105 pt.
+float ios27LargeShare(float shortSide) {
+    return smoothstep(75.0, 105.0, shortSide);
+}
+
 // Transmittance of the dark regular face. Controls up to 75 pt keep the
 // light-mode density until the middle tick; surfaces from 105 pt are denser
-// from the start. Both roughly halve by Tinted.
+// from the start. Both roughly halve by Tinted. Clear: native panel centers
+// on the iPhone (glass-optics.md "Native face transfer").
 float ios27DarkTransmittance(float shortSide, float tintAmount) {
-    float large = smoothstep(75.0, 105.0, shortSide);
+    float large = ios27LargeShare(shortSide);
     return sliderKeyframes(
         tintAmount,
-        mix(0.597, 0.447, large),
+        mix(0.600, 0.415, large),
         mix(0.596, 0.346, large),
         mix(0.295, 0.195, large)
     );
+}
+
+// Luminance lift of the light Clear face by the shorter side: none up to
+// 64 pt, 0.126 at 120 pt and 0.219 at 260 pt, linear between, measured at
+// native panel centers.
+float ios27LightLift(float shortSide) {
+    return shortSide <= 120.0
+        ? 0.126 * clamp((shortSide - 64.0) / 56.0, 0.0, 1.0)
+        : mix(0.126, 0.219, clamp((shortSide - 120.0) / 140.0, 0.0, 1.0));
 }
 
 // Mixes two washes by their emission (premultiplied color) and opacity.
@@ -187,27 +209,45 @@ vec4 ios27NeutralTint(
         return vec4(vec3(0.126 / 0.046), 0.046);
     }
     float lightAlpha =
-        1.0 - sliderKeyframes(tintAmount, 0.592, 0.468, 0.286);
+        1.0 - sliderKeyframes(tintAmount, 0.582, 0.468, 0.286);
+    vec3 nearWhite = vec3(253.0, 252.0, 253.0) / 255.0;
+    // Premultiplied: the Clear face emits more than a near-white wash of its
+    // opacity would.
+    vec3 lightEmission = sliderKeyframes3(
+        tintAmount,
+        vec3(114.0 / 255.0),
+        nearWhite * 0.532,
+        nearWhite * 0.714
+    );
     float darkTransmittance = ios27DarkTransmittance(shortSide, tintAmount);
     vec4 dark = vec4(
         vec3((32.0 / 255.0) / (1.0 - darkTransmittance)),
         1.0 - darkTransmittance
     );
-    vec4 light = vec4(vec3(253.0, 252.0, 253.0) / 255.0, lightAlpha);
+    vec4 light = vec4(lightEmission / lightAlpha, lightAlpha);
     return mixWash(light, dark, darkWeight);
 }
 
 // Luminance lift and chroma gain of the untinted face. The slider
 // desaturates both appearances and compresses dark highlights up to the
 // middle tick.
-vec2 ios27FaceTransfer(float darkWeight, bool clearGlass, float tintAmount) {
+vec2 ios27FaceTransfer(
+    float darkWeight,
+    float shortSide,
+    bool clearGlass,
+    float tintAmount
+) {
     if (clearGlass) {
         return vec2(0.0, 1.057);
     }
-    vec2 light = vec2(0.13, sliderKeyframes(tintAmount, 1.17, 0.982, 0.751));
+    float large = ios27LargeShare(shortSide);
+    vec2 light = vec2(
+        sliderKeyframes(tintAmount, ios27LightLift(shortSide), 0.13, 0.13),
+        sliderKeyframes(tintAmount, 1.17, 0.982, 0.751)
+    );
     vec2 dark = vec2(
-        sliderKeyframes(tintAmount, 1.0, 1.58, 1.13),
-        sliderKeyframes(tintAmount, 1.02, 0.955, 0.572)
+        sliderKeyframes(tintAmount, mix(0.667, 1.31, large), 1.58, 1.13),
+        sliderKeyframes(tintAmount, mix(1.13, 1.02, large), 0.955, 0.572)
     );
     return mix(light, dark, darkWeight);
 }
@@ -874,7 +914,12 @@ void main() {
             true,
             uTintAmount
         );
-        vec2 faceTransfer = ios27FaceTransfer(0.0, true, uTintAmount);
+        vec2 faceTransfer = ios27FaceTransfer(
+            0.0,
+            uAppearanceConfig.w,
+            true,
+            uTintAmount
+        );
         if (clearWeight < 1.0) {
             neutralTint = mixWash(
                 ios27NeutralTint(
@@ -887,7 +932,12 @@ void main() {
                 clearWeight
             );
             faceTransfer = mix(
-                ios27FaceTransfer(regularDarkWeight, false, uTintAmount),
+                ios27FaceTransfer(
+                    regularDarkWeight,
+                    uAppearanceConfig.w,
+                    false,
+                    uTintAmount
+                ),
                 faceTransfer,
                 clearWeight
             );

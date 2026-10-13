@@ -148,21 +148,29 @@ final class Ios27LiquidGlassColorModel extends LiquidGlassColorModel {
     if (brightness == Brightness.light) {
       // The Liquid Glass slider makes the near-white wash more opaque and
       // desaturates the transmitted backdrop.
-      final alpha = 1 - sliderKeyframes(tintAmount, 0.592, 0.468, 0.286);
+      final alpha = 1 - sliderKeyframes(tintAmount, 0.582, 0.468, 0.286);
+      // Clear emits more than a near-white wash of its opacity would.
+      double emission(double nearWhite) => sliderKeyframes(
+        tintAmount,
+        114 / 255,
+        0.532 * nearWhite / 255,
+        0.714 * nearWhite / 255,
+      );
       return (
         emission: Color.from(
           alpha: 1,
-          red: alpha * 253 / 255,
-          green: alpha * 252 / 255,
-          blue: alpha * 253 / 255,
+          red: emission(253),
+          green: emission(252),
+          blue: emission(253),
         ),
         transmittance: 1 - alpha,
-        lift: 0.13,
+        lift: sliderKeyframes(tintAmount, _lightLift(shortSide), 0.13, 0.13),
         chromaGain: sliderKeyframes(tintAmount, 1.17, 0.982, 0.751),
       );
     }
-    // Dark glass keeps its emission, becomes denser with size and slider,
-    // and compresses its highlights up to the middle tick.
+    // Dark glass becomes denser with size and slider, and compresses its
+    // highlights up to the middle tick.
+    final large = _largeShare(shortSide);
     return (
       emission: const Color.from(
         alpha: 1,
@@ -171,9 +179,33 @@ final class Ios27LiquidGlassColorModel extends LiquidGlassColorModel {
         blue: 32 / 255,
       ),
       transmittance: _darkTransmittance(shortSide, tintAmount),
-      lift: sliderKeyframes(tintAmount, 1, 1.58, 1.13),
-      chromaGain: sliderKeyframes(tintAmount, 1.02, 0.955, 0.572),
+      lift: sliderKeyframes(
+        tintAmount,
+        0.667 + (1.31 - 0.667) * large,
+        1.58,
+        1.13,
+      ),
+      chromaGain: sliderKeyframes(
+        tintAmount,
+        1.13 + (1.02 - 1.13) * large,
+        0.955,
+        0.572,
+      ),
     );
+  }
+
+  /// Luminance lift of the light Clear face by [shortSide]: none up to 64
+  /// pt, 0.126 at 120 pt and 0.219 at 260 pt, linear between, measured at
+  /// native panel centers (glass-optics.md "Native face transfer").
+  static double _lightLift(double shortSide) => shortSide <= 120
+      ? 0.126 * ((shortSide - 64) / 56).clamp(0.0, 1.0)
+      : 0.126 + (0.219 - 0.126) * ((shortSide - 120) / 140).clamp(0.0, 1.0);
+
+  /// Share of the large-surface dark face: controls up to 75 pt, surfaces
+  /// from 105 pt.
+  static double _largeShare(double shortSide) {
+    final t = ((shortSide - 75) / 30).clamp(0.0, 1.0);
+    return t * t * (3 - 2 * t);
   }
 
   @override
@@ -189,12 +221,11 @@ final class Ios27LiquidGlassColorModel extends LiquidGlassColorModel {
   /// surfaces from 105 pt are denser from the start. Both roughly halve by
   /// Tinted.
   static double _darkTransmittance(double shortSide, double tintAmount) {
-    final t = ((shortSide - 75) / 30).clamp(0.0, 1.0);
-    final large = t * t * (3 - 2 * t);
+    final large = _largeShare(shortSide);
     double blend(double small, double big) => small + (big - small) * large;
     return sliderKeyframes(
       tintAmount,
-      blend(0.597, 0.447),
+      blend(0.600, 0.415),
       blend(0.596, 0.346),
       blend(0.295, 0.195),
     );

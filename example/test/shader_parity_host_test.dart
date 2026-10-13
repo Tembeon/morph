@@ -9,7 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 // The oracle pins the renderer's geometry path.
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
-    show RenderLiquidGlassLayer;
+    show RenderLiquidGlassLayer, debugMorphShaderFrost;
 import 'package:morph/widgets.dart';
 
 import '../integration_test/support/shader_harness.dart';
@@ -46,6 +46,10 @@ void main() {
     // analytic_geometry_host_test.dart compares the two paths instead.
     RenderLiquidGlassLayer.debugAnalyticGeometry = false;
     addTearDown(() => RenderLiquidGlassLayer.debugAnalyticGeometry = null);
+    // The frozen copy has no frost of its own: the frost blurs in a pass.
+    final shaderFrost = debugMorphShaderFrost;
+    debugMorphShaderFrost = false;
+    addTearDown(() => debugMorphShaderFrost = shaderFrost);
     await tester.runAsync(MorphGlassRenderer.precache);
     if (_out.isNotEmpty) Directory(_out).createSync(recursive: true);
     final report = await runShaderParity(

@@ -103,7 +103,7 @@ class MorphMenuTuning {
     this.cardContainerEndWidth = 50,
     this.cardBlur = 10,
     this.cardDisplacement = 0,
-    this.cardTransmissionGamma = 1.07,
+    this.cardTransmissionGamma = 1.14,
     this.cardGone = 0.007,
     this.growSpring = const MorphSpring(0.565, 0.84),
     this.growDelay = 0.045,
@@ -347,7 +347,8 @@ class MorphMenuTuning {
   final double cardDisplacement;
 
   /// The unlifted card's transmission gamma, fitted to native dark face
-  /// levels: 57 over the root's 32, and 68 over two overlapping lists.
+  /// levels over the measured large dark face: 55.7 against the native 57
+  /// over the root's 32, and 68.1 against 68 over two overlapping lists.
   final double cardTransmissionGamma;
 
   /// The progress below which a card on its way back is gone: on the

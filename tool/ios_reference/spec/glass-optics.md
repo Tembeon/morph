@@ -111,8 +111,17 @@ stripes, iPhone 16 Pro, iOS 27.0.1, light and dark, read at the panel's center
 - The display's EDR state changes the isolated face (highlights compress
   when the headroom is 1.0), but the full default material read the same in
   both states.
-- morph's light face sits about 5 levels under these mid grays, the dark face
-  about 12 above: the fit is open (next).
+- The face model `emission + transmittance * Y(1 + lift (1 - Y))` fits every
+  curve within 0.2 - 1.3 levels. Clear keyframe, shader and
+  `Ios27LiquidGlassColorModel`: light emission 114/255, transmittance 0.582,
+  lift 0 up to 64 pt, 0.126 at 120 pt, 0.219 at 260 pt (linear between);
+  dark emission 32/255, transmittance 0.600 / 0.415 and lift 0.667 / 1.31
+  (controls up to 75 pt / surfaces from 105 pt), chroma gain 1.13 / 1.02
+  (light 1.17 kept: measured 1.14 - 1.17). Error against the table: light
+  max 0.5 - 2.8 (was 9 - 14), dark max 0.3 - 2.6 (was 7 - 13); the 260 pt
+  rows carry the frost reaching the center. Middle and Tinted keyframes
+  unchanged. The menu card's transmission gamma refits to 1.14 over the
+  new large dark face (57 / 68 native, 55.7 / 68.1).
 
 ## Open / gaps
 
