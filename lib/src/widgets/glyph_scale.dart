@@ -22,6 +22,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/glass/renderer/internal/content_snapshot.dart';
 import 'package:morph/src/glass/renderer/shaders.dart';
 import 'package:morph/src/live.dart';
 
@@ -140,6 +141,14 @@ enum MorphGlyphMode {
 /// pyramid shader where it is available ([MorphGlyphMode.shaded]), at
 /// any scale.
 ///
+/// A drawing that aligns ([MorphGlyphs.aligned]) snaps any motion of its
+/// scale, down to the slowest drift of a spring's tail, and draws a
+/// snapped frame with its origin on a whole device pixel across: the
+/// atlas also keys a glyph by its x position in quarter device pixels, so
+/// a label that moves while it scales meets new keys at every quarter
+/// pixel it crosses, and on a grid scale with a whole-pixel origin each
+/// glyph keeps one key per scale.
+///
 /// A drawing that does not snap (a card: a snap about its center would
 /// move its far text against the card's edges) draws from its raster
 /// whenever its scale moves at all, down to the slowest drift of a
@@ -181,7 +190,8 @@ abstract final class MorphGlyphPolicy {
   /// reduction shader has loaded and the content is not recorded again
   /// every frame); [stable] whether the content held still between the
   /// last two frames; [cover] the blur, in logical pixels, drawn over the
-  /// text by something above it; [snaps] whether the drawing may snap.
+  /// text by something above it; [snaps] whether the drawing may snap;
+  /// [aligned] whether it snaps any motion, down to the slowest drift.
   static MorphGlyphMode decide({
     required double? steps,
     MorphGlyphMode previous = MorphGlyphMode.live,
@@ -189,6 +199,7 @@ abstract final class MorphGlyphPolicy {
     bool stable = true,
     double cover = 0,
     bool snaps = true,
+    bool aligned = false,
   }) {
     final rasters = canRaster && stable;
     final hidden = cover >= coverBlur;
@@ -197,7 +208,7 @@ abstract final class MorphGlyphPolicy {
     }
     if (steps == 0) return MorphGlyphMode.live;
     if (!snaps) return rasters ? MorphGlyphMode.raster : MorphGlyphMode.live;
-    if (steps < restSteps) return MorphGlyphMode.live;
+    if (steps < restSteps && !aligned) return MorphGlyphMode.live;
     if (rasters &&
         (hidden ||
             steps >= fastSteps ||
@@ -266,6 +277,7 @@ class MorphGlyphTracker {
     bool stable = true,
     double cover = 0,
     bool snaps = true,
+    bool aligned = false,
     bool settle = true,
   }) {
     final steps = _stepsTo(screen);
@@ -280,6 +292,7 @@ class MorphGlyphTracker {
             stable: stable,
             cover: cover,
             snaps: snaps,
+            aligned: aligned,
           );
     if (_mode != MorphGlyphMode.live && settle) _settle();
     return _mode;
@@ -292,6 +305,7 @@ class MorphGlyphTracker {
     bool stable = true,
     double cover = 0,
     bool snaps = true,
+    bool aligned = false,
   }) => MorphGlyphScale.debugExact
       ? MorphGlyphMode.live
       : MorphGlyphPolicy.decide(
@@ -301,6 +315,7 @@ class MorphGlyphTracker {
           stable: stable,
           cover: cover,
           snaps: snaps,
+          aligned: aligned,
         );
 
   /// Asks for one more paint at the start of the next frame, as [observe]
@@ -329,9 +344,9 @@ class MorphGlyphTracker {
   }
 }
 
-/// Paints with [painter] and passes it the screen scale of its box: the
-/// largest axis scale of the transform from the box to the root render
-/// object, in logical pixels.
+/// Paints with [painter] and passes it the transform from its box to the
+/// root render object, in logical pixels; its screen scale is
+/// [MorphGlyphScale.of] that transform.
 ///
 /// The view's device pixel ratio is not included (the transform to the
 /// root stops before the view's own scale); multiply by
@@ -343,9 +358,9 @@ class MorphScreenScalePaint extends LeafRenderObjectWidget {
   /// notifies.
   const MorphScreenScalePaint({required this.painter, this.repaint, super.key});
 
-  /// Paints into the box of [Size] whose scale to the root, without the
-  /// device pixel ratio, is the [double].
-  final void Function(Canvas canvas, Size size, double screenScale) painter;
+  /// Paints into the box of [Size] whose transform to the root, without
+  /// the device pixel ratio, is the [Matrix4].
+  final void Function(Canvas canvas, Size size, Matrix4 toRoot) painter;
 
   /// Repaints the box when it notifies.
   final Listenable? repaint;
@@ -366,12 +381,12 @@ class MorphScreenScalePaint extends LeafRenderObjectWidget {
 class _RenderScreenScalePaint extends RenderBox {
   _RenderScreenScalePaint(this._painter, this._repaint);
 
-  void Function(Canvas canvas, Size size, double screenScale) _painter;
+  void Function(Canvas canvas, Size size, Matrix4 toRoot) _painter;
 
   Listenable? _repaint;
 
   void update(
-    void Function(Canvas canvas, Size size, double screenScale) painter,
+    void Function(Canvas canvas, Size size, Matrix4 toRoot) painter,
     Listenable? repaint,
   ) {
     _painter = painter;
@@ -402,11 +417,11 @@ class _RenderScreenScalePaint extends RenderBox {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    final scale = MorphGlyphScale.of(getTransformTo(null));
+    final toRoot = getTransformTo(null);
     final canvas = context.canvas;
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
-    _painter(canvas, size, scale);
+    _painter(canvas, size, toRoot);
     canvas.restore();
   }
 }
@@ -436,13 +451,18 @@ class _RenderScreenScalePaint extends RenderBox {
 class MorphGlyphs extends SingleChildRenderObjectWidget {
   /// Draws [child], whose screen scale may animate; [cover] is the blur,
   /// in logical pixels, something above draws over it (a fading menu
-  /// card), which hides a raster's resampling.
-  const MorphGlyphs({required super.child, this.cover, super.key})
-    : coverBlur = 0,
-      opacity = 1,
-      live = null,
-      opacityOf = null,
-      snaps = true;
+  /// card), which hides a raster's resampling; [aligned] draws a moving
+  /// child as [MorphGlyphPolicy] draws an aligned drawing.
+  const MorphGlyphs({
+    required super.child,
+    this.cover,
+    this.aligned = false,
+    super.key,
+  }) : coverBlur = 0,
+       opacity = 1,
+       live = null,
+       opacityOf = null,
+       snaps = true;
 
   /// Draws [child], a card whose screen scale may animate, faded to the
   /// opacity [opacityOf] reads, again on every notification of [live].
@@ -463,7 +483,8 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
   }) : cover = null,
        coverBlur = 0,
        opacity = 1,
-       snaps = false;
+       snaps = false,
+       aligned = false;
 
   const MorphGlyphs._veiled({
     required super.child,
@@ -472,7 +493,8 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
   }) : cover = null,
        live = null,
        opacityOf = null,
-       snaps = true;
+       snaps = true,
+       aligned = false;
 
   /// The blur drawn over the child from above, in logical pixels.
   final ValueListenable<double>? cover;
@@ -493,6 +515,18 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
 
   /// Whether a moving child may be drawn snapped to the grid of scales.
   final bool snaps;
+
+  /// Whether a moving child snaps down to the slowest drift of its scale
+  /// and is drawn snapped with its origin on a whole device pixel across,
+  /// for a label that moves while its scale animates (a tab bar's labels
+  /// as the bar swells about its center).
+  ///
+  /// NEAR: a snapped frame is drawn up to half a device pixel (a sixth of
+  /// a point at 3x) to the side of its exact place, besides the snap's
+  /// own error; a drift that [MorphGlyphPolicy] would draw live and exact
+  /// is snapped on the finest grid, at most 0.54 percent off its size. At
+  /// rest the child is drawn exactly where it is.
+  final bool aligned;
 
   /// The largest blur, in logical pixels, drawn sharp.
   static const double minBlur = 0.05;
@@ -534,6 +568,7 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
     glyphs.cover = cover;
     glyphs.coverBlur = coverBlur;
     glyphs.snaps = snaps;
+    glyphs.aligned = aligned;
     _bind(glyphs);
     return glyphs;
   }
@@ -555,6 +590,7 @@ class MorphGlyphs extends SingleChildRenderObjectWidget {
     renderObject.cover = cover;
     renderObject.coverBlur = coverBlur;
     renderObject.snaps = snaps;
+    renderObject.aligned = aligned;
     _bind(renderObject);
   }
 }
@@ -707,6 +743,19 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
     _repaint();
   }
 
+  bool _aligned = false;
+
+  /// Whether a moving child snaps down to the slowest drift of its scale
+  /// and is drawn snapped with its origin on a whole device pixel across
+  /// ([MorphGlyphs.aligned]).
+  bool get aligned => _aligned;
+
+  set aligned(bool value) {
+    if (value == _aligned) return;
+    _aligned = value;
+    _repaint();
+  }
+
   int _alpha = 255;
 
   /// The opacity the child is drawn with, from 0 to 1: drawn live, through
@@ -743,6 +792,13 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   @visibleForTesting
   double debugFactor = 1;
 
+  /// The transform the last paint drew the child with, in this box's
+  /// coordinates: identity unless it snapped.
+  @visibleForTesting
+  Matrix4 get debugPaintTransform => _childTransform;
+
+  final Matrix4 _childTransform = Matrix4.identity();
+
   /// The mode of the last paint.
   @visibleForTesting
   MorphGlyphMode get debugMode => _tracker.mode;
@@ -755,6 +811,10 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   /// The factor within which a snapped child paints untransformed: a
   /// scale off a grid scale by 1e-5 is keyed identically anyway.
   static const double _exactTolerance = 1e-4;
+
+  /// The shift, in device pixels, within which an aligned child paints
+  /// unshifted: far below the atlas's quarter pixel.
+  static const double _exactShift = 1e-3;
 
   /// Every attached drawing, for batching the rasters one frame needs.
   static final Set<RenderMorphGlyphs> _attached = <RenderMorphGlyphs>{};
@@ -977,6 +1037,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
         stable: _stable,
         cover: _coverNow,
         snaps: _snaps,
+        aligned: _aligned,
       ) ==
       MorphGlyphMode.raster;
 
@@ -1164,6 +1225,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
       stable: stable,
       cover: _coverNow,
       snaps: _snaps,
+      aligned: _aligned,
       settle: false,
     );
     if (_alpha == 0) {
@@ -1188,6 +1250,19 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
     );
   }
 
+  /// The shift across, in this box's coordinates, that puts the origin of
+  /// the child snapped by [factor] about the box's center on a whole
+  /// device pixel; 0 under a rotation or skew, where no shift aligns it.
+  double _alignment(double factor) {
+    final s = getTransformTo(null).storage;
+    if (s[1] != 0 || s[4] != 0 || s[3] != 0 || s[7] != 0 || s[0] <= 0) {
+      return 0;
+    }
+    final left = size.width / 2 * (1 - factor);
+    final x = (s[0] * left + s[12]) / s[15] * _devicePixelRatio;
+    return (x.roundToDouble() - x) / (s[0] / s[15] * _devicePixelRatio);
+  }
+
   /// Paints the child unblurred and opaque in [mode] at [screen].
   void _paintSharp(
     PaintingContext context,
@@ -1197,6 +1272,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   ) {
     final child = this.child!;
     debugFactor = 1;
+    _childTransform.setIdentity();
     if (mode != MorphGlyphMode.raster && !_keepsPyramid) _drop();
     if (mode != MorphGlyphMode.raster) _culledLayer.layer = null;
     switch (mode) {
@@ -1225,16 +1301,22 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
         );
         _paintCulled(context, offset);
       case MorphGlyphMode.snapped:
-        final factor =
+        final snapped =
             MorphGlyphScale.snap(
               screen,
               _devicePixelRatio,
               perOctave: _tracker.perOctave,
             ) /
             screen;
-        if (!factor.isFinite || (factor - 1).abs() < _exactTolerance) {
+        final factor =
+            !snapped.isFinite || (snapped - 1).abs() < _exactTolerance
+            ? 1.0
+            : snapped;
+        final shift = _aligned ? _alignment(factor) : 0.0;
+        if (factor == 1 && (shift * screen).abs() < _exactShift) {
           // Drawn exactly: no paint is needed to return to live.
           _transformLayer.layer = null;
+          _noteGlyphs();
           context.paintChild(child, offset);
           return;
         }
@@ -1242,9 +1324,14 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
         debugFactor = factor;
         final center = size.center(offset);
         _transform.setIdentity();
-        _transform.translateByDouble(center.dx, center.dy, 0, 1);
+        _transform.translateByDouble(center.dx + shift, center.dy, 0, 1);
         _transform.scaleByDouble(factor, factor, 1, 1);
         _transform.translateByDouble(-center.dx, -center.dy, 0, 1);
+        final half = size.center(Offset.zero);
+        _childTransform.translateByDouble(half.dx + shift, half.dy, 0, 1);
+        _childTransform.scaleByDouble(factor, factor, 1, 1);
+        _childTransform.translateByDouble(-half.dx, -half.dy, 0, 1);
+        _noteGlyphs();
         _transformLayer.layer = context.pushTransform(
           needsCompositing,
           Offset.zero,
@@ -1255,9 +1342,19 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
         );
       case MorphGlyphMode.live || MorphGlyphMode.shaded:
         _transformLayer.layer = null;
+        _noteGlyphs();
         context.paintChild(child, offset);
     }
   }
+
+  /// Tells a content source recording this paint for a lens copy how the
+  /// child's glyphs are drawn, so the copy can keep them on the grid.
+  void _noteGlyphs() => GlassContentSnapshot.noteGlyphs(
+    this,
+    _childTransform,
+    size,
+    aligned: _aligned,
+  );
 }
 
 /// The render object of [MorphVeiledGlyphs]: blurs and fades its child as one

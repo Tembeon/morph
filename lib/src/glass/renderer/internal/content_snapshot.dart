@@ -5,6 +5,13 @@ import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
 
+/// A drawing of glyphs a content source recorded: the transform from the
+/// coordinates its child paints in to the source's, the child's size,
+/// and whether the drawing aligns its moving text to device pixels
+/// (`MorphGlyphs.aligned`).
+@internal
+typedef GlassContentGlyphs = ({Matrix4 transform, Size size, bool aligned});
+
 /// A painted content source shared by the lens copies in one control.
 @internal
 class GlassContentSnapshot {
@@ -16,6 +23,35 @@ class GlassContentSnapshot {
   ui.Picture? _picture;
   ui.Image? _image;
   Size _size = Size.zero;
+  List<GlassContentGlyphs> _glyphs = const [];
+
+  /// The drawings of glyphs the recording replays, as they painted into
+  /// it; empty when it replays a GPU snapshot, which holds no glyphs.
+  List<GlassContentGlyphs> get glyphs => _glyphs;
+
+  /// Whether any drawing of glyphs the recording replays aligns its
+  /// moving text to device pixels.
+  bool get aligned => _glyphs.any((g) => g.aligned);
+
+  static _RenderContentSource? _recording;
+  static List<GlassContentGlyphs>? _recorded;
+
+  /// Notes a drawing of glyphs into the content being recorded now, if
+  /// any: [drawing] painted its child of [size] through [paintTransform],
+  /// in its own coordinates.
+  static void noteGlyphs(
+    RenderObject drawing,
+    Matrix4 paintTransform,
+    Size size, {
+    required bool aligned,
+  }) {
+    final source = _recording;
+    final recorded = _recorded;
+    if (source == null || recorded == null) return;
+    final transform = drawing.getTransformTo(source);
+    transform.multiply(paintTransform);
+    recorded.add((transform: transform, size: size, aligned: aligned));
+  }
 
   /// Replays the source without mounting or laying out another subtree.
   void paint(Canvas canvas) {
@@ -31,9 +67,15 @@ class GlassContentSnapshot {
     }
   }
 
-  void _capture(OffsetLayer layer, Size size, double pixelRatio) {
+  void _capture(
+    OffsetLayer layer,
+    Size size,
+    double pixelRatio,
+    List<GlassContentGlyphs> glyphs,
+  ) {
     _dispose();
     _size = size;
+    _glyphs = glyphs;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     bool replay(ContainerLayer parent) {
@@ -62,6 +104,7 @@ class GlassContentSnapshot {
     if (supported) {
       _picture = picture;
     } else {
+      _glyphs = const [];
       picture.dispose();
       assert(() {
         debugImageFallbackCount++;
@@ -81,11 +124,14 @@ class GlassContentSnapshot {
     _picture = other._picture;
     _image = other._image;
     _size = other._size;
+    _glyphs = other._glyphs;
     other._picture = null;
     other._image = null;
+    other._glyphs = const [];
   }
 
   void _dispose() {
+    _glyphs = const [];
     _picture?.dispose();
     _picture = null;
     _image?.dispose();
@@ -173,8 +219,18 @@ class _RenderContentSource extends RenderProxyBox with MorphLiveBinding {
     }
     final captured = _capture.layer ??= OffsetLayer();
     captured.offset = offset;
-    context.pushLayer(captured, super.paint, Offset.zero);
-    snapshot._capture(captured, size, pixelRatio);
+    final outerSource = GlassContentSnapshot._recording;
+    final outerRecorded = GlassContentSnapshot._recorded;
+    final recorded = <GlassContentGlyphs>[];
+    GlassContentSnapshot._recording = this;
+    GlassContentSnapshot._recorded = recorded;
+    try {
+      context.pushLayer(captured, super.paint, Offset.zero);
+    } finally {
+      GlassContentSnapshot._recording = outerSource;
+      GlassContentSnapshot._recorded = outerRecorded;
+    }
+    snapshot._capture(captured, size, pixelRatio, recorded);
   }
 
   @override

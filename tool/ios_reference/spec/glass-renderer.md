@@ -3311,3 +3311,23 @@ does not repaint them), search-press pictures 4.6 -> 4.9 (transform
 layers), menu-card +1 - 2 frames. The tab bar's remaining strikes are
 that drift and the first visits of grid scales at new x quarters while
 the bar swells (cached after the first run).
+
+## Aligned labels (2026-10-13)
+
+The tab bar's remaining strikes (above) were x quarters, not scales: the
+swell moves its labels sideways, so snapped frames met new quarter-pixel
+keys and the tail's drift struck more; on the liquid tier the lens copy
+struck most (Pixel r5 d3dbebd strike frames: flat 3.0 - 5.5 percent,
+liquid 11.6 - 19.2). The copy replays the content's recorded paint, so a
+label it shows is keyed at copy scale x the label's own snap, which the
+copy's snap of its own scale alone left off the grid. An aligned drawing
+(`MorphGlyphs.aligned`, opt-in) snaps down to the drift and shifts a
+snapped frame across so its origin lands on a whole device pixel; the
+content source records every glyph drawing's transform while it records
+for the copy (`GlassContentSnapshot.glyphs`), and the copy keeps an
+aligned label's product on the grid (per axis: the rim's middle strip
+grows one axis only) and its origin on a whole device pixel. Only the
+tab bar opts in: the drift's settling paints that kept this out of every
+drawing (menu-held paints, search-press pictures) do not arise there,
+and no perf count moved. Host atlas replay and pixels: tab-bar.md
+"Aligned labels".

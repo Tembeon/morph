@@ -131,7 +131,11 @@ supported.
   scale re-rasterizes glyphs nearly every frame. Wrap it in `MorphGlyphs`
   (the policy chooses); a raster pays an offscreen pass every time,
   while a repeated sweep's strikes are partly cached, so rasters win only
-  for fast sweeps of still content.
+  for fast sweeps of still content. The atlas also keys the x position in
+  quarter device pixels: a label that moves sideways while it scales (the
+  tab bar's, under the swell and in the lens copy) takes
+  `MorphGlyphs(aligned: true)`, which snaps down to the drift and puts
+  the snapped origin on a whole device pixel.
 - On the Pixel the nested-navigation raster tail is the bar button
   glyphs and their blur, not page painting or glass (hiding glyphs cut
   nested raster p95 24-33 -> 7-8 ms in ablation).

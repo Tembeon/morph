@@ -440,8 +440,11 @@ Widget morphGlassLiveBody(
         final ratio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
         return MorphScreenScalePaint(
           repaint: repaint,
-          painter: (canvas, size, scale) =>
-              _paintBody(canvas, data.value, scale * ratio),
+          painter: (canvas, size, toRoot) => _paintBody(
+            canvas,
+            data.value,
+            MorphGlyphScale.of(toRoot) * ratio,
+          ),
         );
       },
     ),

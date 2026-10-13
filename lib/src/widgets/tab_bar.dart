@@ -415,6 +415,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
         SizedBox(
           width: _layout.pitch,
           child: MorphGlyphs(
+            aligned: true,
             child: _TabLabel(
               item: item,
               scaler: scaler,
@@ -490,6 +491,7 @@ class _MorphTabBarState extends MorphControlHost<MorphTabBar>
                           onTap: _selectable(i) ? () => _select(i) : null,
                           child: ExcludeSemantics(
                             child: MorphGlyphs(
+                              aligned: true,
                               child: _TabLabel(
                                 item: widget.items[i],
                                 scaler: scaler,

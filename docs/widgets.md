@@ -143,7 +143,10 @@ the Android pyramid shader (veiled). The drawing reads its scale at
 paint: keep it below the animating transform with no repaint boundary in
 between (a boundary inside its child is fine). `MorphControlCapsule`
 wraps its content, so capsule controls get it for free; a custom painter
-uses `MorphGlyphTracker` (the lens copy does).
+uses `MorphGlyphTracker` (the lens copy does). A label that moves sideways
+while its scale animates passes `aligned: true` (the tab bar's); a lens
+copy keeps the aligned labels it replays on the grid and on whole device
+pixels too.
 
 `lens_driver.dart`, `lens_spec.dart`, `control_focus.dart`
 (`MorphControlFocus`, `MorphFocusRing` in systemBlue, `MorphDisabled`),

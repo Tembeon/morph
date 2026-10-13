@@ -102,6 +102,16 @@ void main() {
       expect(card(0.2, stable: false), MorphGlyphMode.live);
     });
 
+    test('an aligned drawing snaps a drift, and is live only when still', () {
+      MorphGlyphMode aligned(double? steps) =>
+          MorphGlyphPolicy.decide(steps: steps, aligned: true);
+      expect(aligned(null), MorphGlyphMode.live);
+      expect(aligned(0), MorphGlyphMode.live);
+      expect(aligned(0.001), MorphGlyphMode.snapped);
+      expect(aligned(0.2), MorphGlyphMode.snapped);
+      expect(aligned(3), MorphGlyphMode.raster);
+    });
+
     test('a slow scale snaps, a fast one rasters', () {
       expect(decide(0.2), MorphGlyphMode.snapped);
       expect(decide(0.5), MorphGlyphMode.raster);
@@ -166,6 +176,48 @@ void main() {
     expect(glyphs.debugFactor, 1);
     expect(rest.scale, plain.scale);
     expect(rest.center, plain.center);
+  });
+
+  testWidgets('an aligned label moving slowly lands on a whole device pixel', (
+    tester,
+  ) async {
+    final ratio = tester.view.devicePixelRatio;
+    Future<Float64List> paint(double scale) async {
+      final log = <Float64List>[];
+      await tester.pumpWidget(
+        Directionality(
+          textDirection: TextDirection.ltr,
+          child: Align(
+            alignment: Alignment.topLeft,
+            child: Padding(
+              padding: const EdgeInsets.only(left: 10.37),
+              child: Transform.scale(
+                scale: scale,
+                child: MorphGlyphs(
+                  aligned: true,
+                  child: CustomPaint(size: _box, painter: _Recorder(log)),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+      return log.last;
+    }
+
+    final rest = await paint(1);
+    expect(_only(tester).debugMode, MorphGlyphMode.live);
+    expect((rest[12] * ratio) % 1, isNot(closeTo(0, 1e-3)));
+    // A drift below MorphGlyphPolicy.restSteps snaps as a move does.
+    for (final scale in [1.00015, 1.0003, 1.0303, 1.0305]) {
+      final m = await paint(scale);
+      final glyphs = _only(tester);
+      expect(glyphs.debugMode, MorphGlyphMode.snapped);
+      final x = m[12] * ratio;
+      expect(x, closeTo(x.roundToDouble(), 1e-4));
+      final steps = math.log(m[0]) / math.ln2 * MorphGlyphScale.stepsPerOctave;
+      expect(steps, closeTo(steps.roundToDouble(), 1e-4));
+    }
   });
 
   testWidgets('a slowly moving label snaps about its center, then rests', (

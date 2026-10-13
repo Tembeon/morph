@@ -142,6 +142,34 @@ frames over budget and power within the run spread. Host pixels
 (glyph_scale_test, exact vs policy, 120 frames): 46 differ, worst mean
 0.06, 0.09 percent of pixels over 15; first and last frames identical.
 
+Aligned labels (2026-10-13): the atlas also keys a glyph by its x in
+quarter device pixels, and the swell moves every label but the middle one
+sideways, so the snapped frames still struck new keys at each quarter
+pixel and the tail's live drift struck more (Pixel r5 d3dbebd: 3.0 - 5.5
+percent strike frames flat, 11.6 - 19.2 liquid, UpdateAtlasBitmap 6 - 7
+ms in frames over budget). The labels are `MorphGlyphs(aligned: true)`:
+any motion of the scale snaps, down to the drift, and a snapped label is
+shifted across so its origin lands on a whole device pixel (NEAR: at most
+half a device pixel, a sixth of a point at 3x; the drift is drawn at most
+0.54 percent off its size). The lens copy replays the content's recorded
+paint, so it keys the replayed label at copy scale x the label's own
+snap: the content source records each glyph drawing's transform
+(`GlassContentSnapshot.glyphs`), and for an item whose label is aligned
+the copy snaps the product, larger axis on its grid and the other at its
+ratio to it snapped on the finest grid (the rim's middle strip grows one
+axis only), and shifts the item so the label's origin lands on a whole
+device pixel (NEAR: at most half a device pixel, per strip, and at most
+0.54 percent off its exact aspect, while the lens is lifted). At rest
+nothing moves: the bar draws as before. glyph_strikes_test replays the
+atlas over three jittered bench runs, strike frames (keys new in runs 1 /
+2 / 3): tap flat 16 (192 / 33 / 22) -> 4 (64 / 0 / 0), drag flat 39
+(492 / 56 / 13) -> 6 (132 / 0 / 0), tap liquid 124 (1369 / 612 / 235)
+-> 39 (510 / 28 / 26), drag liquid 161 (1783 / 559 / 223) -> 36 (553 /
+34 / 0). Host pixels (control goldens at 1x, aligned vs not, re-recorded):
+flat tap 6 frames differ, worst mean 0.04, 0.08 percent of pixels over
+15; flat drag 22, 0.08 / 0.14; fake tap 17, 0.08 / 0.15; fake drag 24,
+0.13 / 0.16.
+
 ## Not reproduced / open
 
 - Slow lift (above). Bar-local glitch (deliberate).

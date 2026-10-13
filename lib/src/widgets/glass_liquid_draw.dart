@@ -684,6 +684,19 @@ class MorphGlassContentCopy extends StatefulWidget {
   /// The single mounted content's current paint.
   final GlassContentSnapshot snapshot;
 
+  /// Called for every item a copy draws, with the strip it is clipped to
+  /// in the copy's own coordinates, the canvas transform at the start of
+  /// the copy's paint and the one the item's content is replayed with: for
+  /// tests that replay where the copy's glyphs land on screen.
+  @visibleForTesting
+  static void Function(
+    Rect slot,
+    Rect strip,
+    Float64List base,
+    Float64List item,
+  )?
+  debugOnItem;
+
   static Matrix4 _about(Offset center, double scale) {
     final transform = Matrix4.translationValues(center.dx, center.dy, 0);
     transform.multiply(Matrix4.diagonal3Values(scale, scale, 1));
@@ -768,25 +781,51 @@ class _ContentCopyPainter {
 
   final double devicePixelRatio;
 
-  double _glyphMagnification(double screenScale) {
+  /// The magnification the copy draws at, and whether its items that
+  /// replay aligned glyphs are drawn aligned: whenever the recording holds
+  /// any, as the copy exists only while its lens is lifted, and at the
+  /// copy's first frame or while its own scale holds still the aligned
+  /// items still move with the drawings they replay.
+  (double, bool) _glyphMagnification(double screenScale) {
     final magnification = copy.magnification;
     final base = screenScale * devicePixelRatio * copy.grow;
-    if (base <= 0) return magnification;
+    if (base <= 0) return (magnification, false);
     final screen = base * magnification;
+    final aligned = copy.snapshot.aligned;
     // No raster: a live lens records its source again every frame, so a
     // raster of the copy would be taken again every frame.
-    final mode = glyphs.observe(screen, canRaster: false);
-    if (mode == MorphGlyphMode.live) return magnification;
-    return MorphGlyphScale.snap(
-          screen,
-          devicePixelRatio,
-          perOctave: glyphs.perOctave,
-        ) /
-        base;
+    final mode = glyphs.observe(screen, canRaster: false, settle: !aligned);
+    if (aligned) return (magnification, true);
+    if (mode == MorphGlyphMode.live) return (magnification, false);
+    return (
+      MorphGlyphScale.snap(
+            screen,
+            devicePixelRatio,
+            perOctave: glyphs.perOctave,
+          ) /
+          base,
+      false,
+    );
   }
 
-  void paint(Canvas canvas, Size size, double screenScale) {
-    final magnification = _glyphMagnification(screenScale);
+  /// The aligned drawing of glyphs centered in [slot], if the recording
+  /// holds one.
+  GlassContentGlyphs? _alignedIn(Rect slot) {
+    for (final drawn in copy.snapshot.glyphs) {
+      if (!drawn.aligned) continue;
+      final center = MatrixUtils.transformPoint(
+        drawn.transform,
+        drawn.size.center(Offset.zero),
+      );
+      if (slot.contains(center)) return drawn;
+    }
+    return null;
+  }
+
+  void paint(Canvas canvas, Size size, Matrix4 toRoot) {
+    final (magnification, aligned) = _glyphMagnification(
+      MorphGlyphScale.of(toRoot),
+    );
     final bounds = copy.surface.bounds;
     final center = bounds.center;
     final axis = copy.axis;
@@ -809,37 +848,109 @@ class _ContentCopyPainter {
           ];
     final slots = copy.slots.isEmpty ? [Offset.zero & size] : copy.slots;
     final grow = copy.grow;
+    final onItem = MorphGlassContentCopy.debugOnItem;
+    final base = onItem == null ? null : canvas.getTransform();
+    final screen = toRoot.storage;
+    // Aligning needs an axis-aligned transform to the screen.
+    final aligns =
+        aligned &&
+        screen[1] == 0 &&
+        screen[4] == 0 &&
+        screen[3] == 0 &&
+        screen[7] == 0 &&
+        screen[0] > 0 &&
+        screen[5] > 0;
     canvas.save();
     canvas.clipRRect(copy.surface.shape);
     for (final (strip, clip) in strips.indexed) {
       canvas.save();
       canvas.clipRect(clip);
-      if (axis == Offset.zero) {
-        _scaleAbout(canvas, center, grow, grow);
-      } else if (strip == 0) {
-        _scaleAbout(canvas, start, grow, grow);
-      } else if (strip == 2) {
-        _scaleAbout(canvas, end, grow, grow);
-      } else {
-        _scaleAbout(
-          canvas,
-          center,
-          axis.dx == 0 ? grow : 1,
-          axis.dy == 0 ? grow : 1,
-        );
-      }
+      final (anchor, growX, growY) = axis == Offset.zero
+          ? (center, grow, grow)
+          : strip == 0
+          ? (start, grow, grow)
+          : strip == 2
+          ? (end, grow, grow)
+          : (center, axis.dx == 0 ? grow : 1.0, axis.dy == 0 ? grow : 1.0);
+      _scaleAbout(canvas, anchor, growX, growY);
       for (final slot in slots) {
         if (!slot.overlaps(bounds)) continue;
         canvas.save();
         canvas.clipRRect(copy.surface.shape);
         canvas.clipRect(slot);
-        _scaleAbout(canvas, slot.center, magnification, magnification);
+        final drawn = aligns ? _alignedIn(slot) : null;
+        if (drawn == null) {
+          _scaleAbout(canvas, slot.center, magnification, magnification);
+        } else {
+          _alignedItem(
+            canvas,
+            slot,
+            drawn,
+            screen,
+            anchor,
+            growX,
+            growY,
+            copy.magnification,
+          );
+        }
+        onItem?.call(slot, clip, base!, canvas.getTransform());
         copy.snapshot.paint(canvas);
         canvas.restore();
       }
       canvas.restore();
     }
     canvas.restore();
+  }
+
+  /// Magnifies [slot] by about [magnification] about its center so that
+  /// the glyphs of [drawn] land on grid scales with the drawing's origin
+  /// on a whole device pixel across, under the strip's growth by
+  /// ([growX], [growY]) about [anchor] and the box's transform [screen] to
+  /// the root.
+  ///
+  /// The axes snap apart: a strip grown across only scales one axis more
+  /// than the other, and the atlas keys the glyphs by the larger scale but
+  /// places them by the scale across. The larger snaps on the copy's grid
+  /// and the other keeps its ratio to it snapped on the finest grid, so
+  /// each grid scale meets few scales across, and the copy is at most
+  /// 0.54 percent wider or taller than it is exactly besides the snap.
+  void _alignedItem(
+    Canvas canvas,
+    Rect slot,
+    GlassContentGlyphs drawn,
+    Float64List screen,
+    Offset anchor,
+    double growX,
+    double growY,
+    double magnification,
+  ) {
+    final w = screen[15];
+    final scaleX = screen[0] / w * devicePixelRatio;
+    final scaleY = screen[5] / w * devicePixelRatio;
+    final inner = drawn.transform.storage;
+    final unmagnifiedX = scaleX * growX * inner[0];
+    final unmagnifiedY = scaleY * growY * inner[5];
+    if (unmagnifiedX <= 0 || unmagnifiedY <= 0) {
+      _scaleAbout(canvas, slot.center, magnification, magnification);
+      return;
+    }
+    final keyed = math.max(unmagnifiedX, unmagnifiedY);
+    final key = MorphGlyphScale.snap(
+      keyed * magnification,
+      devicePixelRatio,
+      perOctave: glyphs.perOctave,
+    );
+    double along(double unmagnified) =>
+        key * MorphGlyphScale.snap(unmagnified / keyed, 1) / unmagnified;
+    final magX = along(unmagnifiedX);
+    final magY = along(unmagnifiedY);
+    final c = slot.center.dx;
+    final origin =
+        growX * (magX * (inner[12] / inner[15] - c) + c - anchor.dx) +
+        anchor.dx;
+    final x = scaleX * origin + screen[12] / w * devicePixelRatio;
+    _scaleAbout(canvas, slot.center, magX, magY);
+    canvas.translate((x.roundToDouble() - x) / (scaleX * growX * magX), 0);
   }
 
   static final Float64List _matrix = Float64List(16);
