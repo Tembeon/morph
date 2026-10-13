@@ -16,6 +16,22 @@ Widget _host(
   ),
 );
 
+/// The focus node of the nearest focusable ancestor of [element], as
+/// [Focus.of] finds it below a [Focus] widget; the controls attach their
+/// node without one.
+FocusNode _focusOf(Element element) {
+  final nodes = <BuildContext, FocusNode>{
+    for (final node in FocusManager.instance.rootScope.descendants)
+      ?node.context: node,
+  };
+  FocusNode? found;
+  element.visitAncestorElements((Element ancestor) {
+    found = nodes[ancestor];
+    return found == null;
+  });
+  return found!;
+}
+
 class _Recorder extends MorphGlassPainter {
   final List<MorphGlassSurface> seen = [];
   final List<MorphGlassSurface> filled = [];
@@ -251,7 +267,7 @@ void main() {
             direction: direction,
           ),
         );
-        Focus.of(tester.element(find.text('A'))).requestFocus();
+        _focusOf(tester.element(find.text('A'))).requestFocus();
         await tester.pump();
         final forward = direction == TextDirection.ltr
             ? LogicalKeyboardKey.arrowRight
@@ -289,7 +305,7 @@ void main() {
           ),
         ),
       );
-      Focus.of(tester.element(find.text('One'))).requestFocus();
+      _focusOf(tester.element(find.text('One'))).requestFocus();
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
       await tester.pumpAndSettle(
@@ -331,7 +347,7 @@ void main() {
           ),
         ),
       );
-      final switchNode = Focus.of(
+      final switchNode = _focusOf(
         tester.element(
           find
               .descendant(
@@ -350,7 +366,7 @@ void main() {
         const Duration(seconds: 10),
       );
       expect(value, isTrue);
-      Focus.of(tester.element(find.text('Go'))).requestFocus();
+      _focusOf(tester.element(find.text('Go'))).requestFocus();
       await tester.pump();
       await tester.sendKeyEvent(LogicalKeyboardKey.enter);
       await tester.pump();
@@ -379,7 +395,7 @@ void main() {
           ),
         ),
       );
-      Focus.of(
+      _focusOf(
         tester.element(
           find
               .descendant(
@@ -407,7 +423,7 @@ void main() {
       );
       expect(slider, moreOrLessEquals(0.4));
 
-      Focus.of(
+      _focusOf(
         tester.element(
           find
               .descendant(

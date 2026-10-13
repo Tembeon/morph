@@ -315,6 +315,7 @@ const Set<String> _plumbing = {
   'MorphWidgetsTheme',
   'MorphFocusRing',
   'MorphTouchListener',
+  'MorphPress',
   'MorphControlCapsule',
   'MorphGlassLayer',
   'MorphChromeBackdrop',

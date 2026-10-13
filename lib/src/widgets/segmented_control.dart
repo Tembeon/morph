@@ -6,7 +6,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/lens_driver.dart';
 import 'package:morph/src/widgets/lens_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
-import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
 
 /// A segmented control whose selection lens moves exactly like
@@ -387,35 +387,29 @@ class _MorphSegmentedControlState
         return MorphDisabled(
           enabled: _enabled,
           opacity: style.disabledOpacity,
-          child: MorphControlFocus(
+          child: MorphPress(
+            target: this,
             enabled: _enabled,
             onHighlight: highlightControlFocus,
             onStep: _step,
+            dragAxis: .horizontal,
             child: MorphFocusRing(
               visible: controlFocused,
-              child: MorphTouchListener(
-                enabled: _enabled,
-                dragAxis: .horizontal,
-                onPointerDown: handleDown,
-                onPointerMove: handleMove,
-                onPointerUp: handleUp,
-                onPointerCancel: handleCancel,
-                child: SizedBox(
-                  height: style.height,
-                  width: width,
-                  child: glass == null
-                      ? CustomPaint(
-                          painter: _SegmentedPainter(this),
-                          child: labels,
-                        )
-                      : MorphGlassLayer(
-                          painter: glass,
-                          frames: frames,
-                          surfaces: _surfaces,
-                          content: labels,
-                          contentSlots: _contentSlots(width),
-                        ),
-                ),
+              child: SizedBox(
+                height: style.height,
+                width: width,
+                child: glass == null
+                    ? CustomPaint(
+                        painter: _SegmentedPainter(this),
+                        child: labels,
+                      )
+                    : MorphGlassLayer(
+                        painter: glass,
+                        frames: frames,
+                        surfaces: _surfaces,
+                        content: labels,
+                        contentSlots: _contentSlots(width),
+                      ),
               ),
             ),
           ),

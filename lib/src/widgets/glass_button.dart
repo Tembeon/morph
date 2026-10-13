@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
@@ -14,7 +15,7 @@ import 'package:morph/src/widgets/glass_glow.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
-import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
 
 /// The motion of an iOS 27 glass button: one uniform lift, a lean toward
@@ -445,6 +446,9 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
   bool get controlEnabled => _enabled;
 
   @override
+  double get pressSlop => MorphGlassButtonMotion.highlightSlop;
+
+  @override
   bool acceptsControlPointer(PointerDownEvent event) {
     final box = context.findRenderObject();
     if (box is! RenderBox || !box.hasSize) return false;
@@ -541,73 +545,53 @@ class _MorphGlassButtonState extends MorphControlHost<MorphGlassButton> {
           color: color,
           rimColor: rim,
           look: content,
-          child: Builder(
-            builder: (BuildContext context) => MorphControlFocus(
-              enabled: enabled,
-              onHighlight: highlightControlFocus,
-              onActivate: !enabled
-                  ? null
-                  : hold
-                  ? _press
-                  : () => MorphMenuSource.open(context),
-              child: MorphFocusRing(
-                visible: controlFocused,
-                child: MorphControlCapsule(
-                  painter: glass,
-                  frames: frames,
-                  color: color,
-                  rim: rim,
-                  shadow: style.shadowColor,
-                  brightness: brightness,
-                  enabled: enabled,
-                  child: content,
-                ),
-              ),
-            ),
+          child: MorphControlCapsule(
+            painter: glass,
+            frames: frames,
+            color: color,
+            rim: rim,
+            shadow: style.shadowColor,
+            brightness: brightness,
+            enabled: enabled,
+            child: content,
           ),
         ),
       );
     }
     return RepaintBoundary(
-      child: MorphControlFocus(
+      child: MorphPress(
+        target: this,
         enabled: _enabled,
         onHighlight: highlightControlFocus,
         onActivate: _enabled ? _press : null,
-        child: Semantics(
+        semantics: SemanticsProperties(
           button: true,
           enabled: _enabled,
           onTap: _enabled ? _press : null,
-          child: MorphTouchListener(
-            enabled: _enabled,
-            behavior: HitTestBehavior.opaque,
-            onPointerDown: handleDown,
-            onPointerMove: handleMove,
-            onPointerUp: handleUp,
-            onPointerCancel: handleCancel,
-            child: MorphLiveTransform(
-              live: frames,
-              writeInto: (Matrix4 into) {
-                if (_motion.isSettled) return;
-                final lean = _motion.lean;
-                into.translateByDouble(lean.dx, lean.dy, 0, 1);
-                into.scaleByDouble(_motion.scaleX, _motion.scaleY, 1, 1);
-              },
-              child: MorphFocusRing(
-                visible: controlFocused,
-                child: MorphControlCapsule(
-                  painter: glass,
-                  frames: frames,
-                  color: tint ?? style.fillColor,
-                  rim: tint == null ? style.rimColor : style.tintedRimColor,
-                  shadow: style.shadowColor,
-                  brightness: brightness,
-                  enabled: enabled,
-                  lift: () => _lift,
-                  glow: () => _motion.glowAt(brightness),
-                  still: () => _motion.isSettled,
-                  child: content,
-                ),
-              ),
+        ),
+        behavior: HitTestBehavior.opaque,
+        child: MorphLiveTransform(
+          live: frames,
+          writeInto: (Matrix4 into) {
+            if (_motion.isSettled) return;
+            final lean = _motion.lean;
+            into.translateByDouble(lean.dx, lean.dy, 0, 1);
+            into.scaleByDouble(_motion.scaleX, _motion.scaleY, 1, 1);
+          },
+          child: MorphFocusRing(
+            visible: controlFocused,
+            child: MorphControlCapsule(
+              painter: glass,
+              frames: frames,
+              color: tint ?? style.fillColor,
+              rim: tint == null ? style.rimColor : style.tintedRimColor,
+              shadow: style.shadowColor,
+              brightness: brightness,
+              enabled: enabled,
+              lift: () => _lift,
+              glow: () => _motion.glowAt(brightness),
+              still: () => _motion.isSettled,
+              child: content,
             ),
           ),
         ),

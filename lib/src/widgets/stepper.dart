@@ -1,3 +1,4 @@
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
@@ -5,7 +6,7 @@ import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
 import 'package:morph/src/widgets/timeline.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
-import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/press.dart';
 
 /// The look of a [MorphStepper].
 ///
@@ -322,76 +323,69 @@ class _MorphStepperState extends MorphControlHost<MorphStepper> {
       ),
     ];
     return RepaintBoundary(
-      child: MorphControlFocus(
+      child: MorphPress(
+        target: this,
         enabled: enabled,
         onHighlight: highlightControlFocus,
         onActivate: () => _key(_Half.plus),
         onStep: (int delta) => _key(delta > 0 ? _Half.plus : _Half.minus),
         verticalSteps: true,
+        semantics: const SemanticsProperties(),
+        semanticsContainer: true,
+        explicitChildNodes: true,
+        behavior: HitTestBehavior.opaque,
         child: MorphFocusRing(
           visible: controlFocused,
-          child: Semantics(
-            container: true,
-            explicitChildNodes: true,
-            child: MorphTouchListener(
-              enabled: enabled,
-              behavior: HitTestBehavior.opaque,
-              onPointerDown: handleDown,
-              onPointerMove: handleMove,
-              onPointerUp: handleUp,
-              onPointerCancel: handleCancel,
-              child: SizedBox.fromSize(
-                size: size,
-                child: Stack(
-                  children: [
-                    if (glass != null)
-                      for (final h in halves)
-                        if (!(style.pressedReplacesFill && _pressed == h.half))
-                          Positioned.fromRect(
-                            rect: h.shape.outerRect,
-                            child: MorphGlassHost(
-                              painter: glass,
-                              mode: MorphGlassMode.fill,
-                              frame: () => MorphGlassFrame([
-                                MorphGlassSurface(
-                                  kind: MorphGlassKind.track,
-                                  shape: h.shape,
-                                  color: background,
-                                  brightness: brightness,
-                                  enabled: enabled,
-                                  glass: false,
-                                ),
-                              ]),
+          child: SizedBox.fromSize(
+            size: size,
+            child: Stack(
+              children: [
+                if (glass != null)
+                  for (final h in halves)
+                    if (!(style.pressedReplacesFill && _pressed == h.half))
+                      Positioned.fromRect(
+                        rect: h.shape.outerRect,
+                        child: MorphGlassHost(
+                          painter: glass,
+                          mode: MorphGlassMode.fill,
+                          frame: () => MorphGlassFrame([
+                            MorphGlassSurface(
+                              kind: MorphGlassKind.track,
+                              shape: h.shape,
+                              color: background,
+                              brightness: brightness,
+                              enabled: enabled,
+                              glass: false,
                             ),
-                          ),
-                    Positioned.fill(child: CustomPaint(painter: painter)),
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: size.width / 2,
-                      child: _HalfSemantics(
-                        label: widget.decrementLabel,
-                        value: value,
-                        enabled: enabled && _canStep(_Half.minus),
-                        onTap: () => _key(_Half.minus),
+                          ]),
+                        ),
                       ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      bottom: 0,
-                      width: size.width / 2,
-                      child: _HalfSemantics(
-                        label: widget.incrementLabel,
-                        value: value,
-                        enabled: enabled && _canStep(_Half.plus),
-                        onTap: () => _key(_Half.plus),
-                      ),
-                    ),
-                  ],
+                Positioned.fill(child: CustomPaint(painter: painter)),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: size.width / 2,
+                  child: _HalfSemantics(
+                    label: widget.decrementLabel,
+                    value: value,
+                    enabled: enabled && _canStep(_Half.minus),
+                    onTap: () => _key(_Half.minus),
+                  ),
                 ),
-              ),
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: size.width / 2,
+                  child: _HalfSemantics(
+                    label: widget.incrementLabel,
+                    value: value,
+                    enabled: enabled && _canStep(_Half.plus),
+                    onTap: () => _key(_Half.plus),
+                  ),
+                ),
+              ],
             ),
           ),
         ),

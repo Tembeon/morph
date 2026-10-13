@@ -245,6 +245,64 @@ class _RenderLiveOpacity extends RenderOpacity with MorphLiveBinding {
   _RenderLiveOpacity({super.opacity});
 }
 
+/// A [Semantics] annotation whose properties follow a live source: a
+/// flag that changes with a motion, such as a menu's expanded state or a
+/// slider's value, reaches the semantics tree without a build.
+@internal
+class MorphLiveSemantics extends SingleChildRenderObjectWidget {
+  /// Annotates [child] with [propertiesOf], read again on every
+  /// notification of [live].
+  const MorphLiveSemantics({
+    required this.live,
+    required this.propertiesOf,
+    this.container = false,
+    super.child,
+    super.key,
+  });
+
+  /// The source of the properties, or null for fixed ones.
+  final Listenable? live;
+
+  /// The properties now.
+  final SemanticsProperties Function() propertiesOf;
+
+  /// Whether the annotation forms a node of its own.
+  final bool container;
+
+  @override
+  RenderSemanticsAnnotations createRenderObject(BuildContext context) {
+    final semantics = _RenderLiveSemantics(
+      properties: propertiesOf(),
+      container: container,
+      textDirection: Directionality.maybeOf(context),
+    );
+    semantics.bindLive(live, () => semantics.properties = propertiesOf());
+    return semantics;
+  }
+
+  @override
+  void updateRenderObject(
+    BuildContext context,
+    RenderSemanticsAnnotations renderObject,
+  ) {
+    renderObject.container = container;
+    renderObject.textDirection = Directionality.maybeOf(context);
+    (renderObject as _RenderLiveSemantics).bindLive(
+      live,
+      () => renderObject.properties = propertiesOf(),
+    );
+  }
+}
+
+class _RenderLiveSemantics extends RenderSemanticsAnnotations
+    with MorphLiveBinding {
+  _RenderLiveSemantics({
+    required super.properties,
+    super.container,
+    super.textDirection,
+  });
+}
+
 /// A [Transform] whose matrix follows a live source.
 @internal
 class MorphLiveTransform extends SingleChildRenderObjectWidget {

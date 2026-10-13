@@ -24,6 +24,7 @@ import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_layout.dart';
 import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/touch_listener.dart';
 import 'package:morph/src/widgets/typography.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
@@ -323,7 +324,9 @@ abstract class _MorphMenuSourceWidget extends StatefulWidget {
 ///
 /// The [child] should not handle the touches itself: this widget takes
 /// them, lifts the child and opens the menu; with [MorphMenuTrigger.hold]
-/// it calls [onTap] for a tap.
+/// it calls [onTap] for a tap. The source also takes keyboard focus, draws
+/// the focus ring around the child's box, and Enter or Space do what a
+/// tap does.
 ///
 /// The [shape] is the outline of the child at rest: [StadiumBorder] and
 /// [CircleBorder] are capsules, a [RoundedRectangleBorder],
@@ -393,7 +396,9 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
   /// [context], as a tap on it does; nothing happens when there is none,
   /// it is disabled or its menu is already open.
   ///
-  /// A [child] that takes keyboard focus calls this on Enter or Space.
+  /// The source takes keyboard focus itself, draws the focus ring around
+  /// its box and answers Enter or Space as a tap; this opens the menu from
+  /// anywhere else below it.
   static void open(BuildContext context) {
     final state = context.findAncestorStateOfType<_MorphMenuSourceState>();
     if (state == null || !state.widget.enabled) return;
@@ -441,9 +446,10 @@ class MorphMenuSource extends _MorphMenuSourceWidget {
 /// open as cards stacked over the menu, dividers, deferred groups and
 /// free-form [MorphMenuWidget] rows. The open menu follows the widget: a
 /// rebuild with other entries updates it in place and resizes it on the
-/// measured springs, as a SwiftUI menu follows its state. Arrow keys move
-/// the highlight, Enter or Space choose, Esc goes back out of a submenu
-/// and then closes the menu.
+/// measured springs, as a SwiftUI menu follows its state. The button
+/// takes keyboard focus and opens on Enter or Space; in the menu, arrow
+/// keys move the highlight, Enter or Space choose, Esc goes back out of a
+/// submenu and then closes the menu.
 ///
 /// The menu is a morph flight: the button is its source and the flight
 /// runs UIKit's measured progress spring. The menu evaluates the same
@@ -640,7 +646,8 @@ abstract interface class MorphMenuHost {
 class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     with
         SingleTickerProviderStateMixin<_MorphMenuSourceWidget>,
-        MorphClock<_MorphMenuSourceWidget> {
+        MorphClock<_MorphMenuSourceWidget>
+    implements MorphPressTarget {
   final Object _tagId = Object();
   BuildContext? _scopeContext;
   MorphMenuStyle _style = MorphMenuStyle.light;
@@ -833,6 +840,26 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
     _host.menuPointerDown(event);
   }
 
+  @override
+  void pressDown(PointerDownEvent event) => _buttonDown(event);
+
+  @override
+  void pressMove(PointerMoveEvent event) => _host.menuPointerMove(event);
+
+  @override
+  void pressUp(PointerUpEvent event) => _host.menuPointerUp(event);
+
+  @override
+  void pressCancel(PointerCancelEvent event) => _host.menuPointerCancel(event);
+
+  @override
+  void pressLost(PointerCancelEvent event) => _host.menuPointerCancel(event);
+
+  void _activate() {
+    if (_motion?.isOpen ?? false) return;
+    _openFromSemantics();
+  }
+
   void _openFromSemantics() {
     _prepare().open(clock);
     wake();
@@ -984,29 +1011,30 @@ class _MorphMenuSourceState extends State<_MorphMenuSourceWidget>
         },
       ),
     );
-    final Widget button = ValueListenableBuilder<bool>(
-      valueListenable: _expanded,
-      builder: (BuildContext context, bool expanded, Widget? child) =>
-          Semantics(
-            button: true,
-            enabled: enabled,
-            expanded: expanded,
-            label: _semanticLabel,
-            onTap: !enabled
-                ? null
-                : hold
-                ? _tapped
-                : _openFromSemantics,
-            onLongPress: enabled && hold ? _openFromSemantics : null,
-            child: child,
-          ),
-      child: MorphTouchListener(
+    final Widget button = MorphLiveSemantics(
+      live: _expanded,
+      propertiesOf: () => SemanticsProperties(
+        button: true,
+        enabled: enabled,
+        expanded: _expanded.value,
+        label: _semanticLabel,
+        onTap: !enabled
+            ? null
+            : hold
+            ? _tapped
+            : _openFromSemantics,
+        onLongPress: enabled && hold ? _openFromSemantics : null,
+      ),
+      child: MorphPress(
+        target: this,
         enabled: enabled,
         behavior: .opaque,
-        onPointerDown: _buttonDown,
-        onPointerMove: _host.menuPointerMove,
-        onPointerUp: _host.menuPointerUp,
-        onPointerCancel: _host.menuPointerCancel,
+        focusRing: true,
+        onActivate: !enabled
+            ? null
+            : hold
+            ? _tapped
+            : _activate,
         child: widget._source == null
             ? SizedBox.square(dimension: style.buttonSize, child: face)
             : face,

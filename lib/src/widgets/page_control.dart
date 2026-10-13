@@ -1,12 +1,13 @@
 import 'dart:math' as math;
 
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
-import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 
 /// The look of a [MorphPageControl].
@@ -506,43 +507,37 @@ class _MorphPageControlState extends MorphControlHost<MorphPageControl> {
         widget.semanticValueFormatter?.call(page, count) ??
         'page $page of $count';
     return RepaintBoundary(
-      child: MorphControlFocus(
+      child: MorphPress(
+        target: this,
         enabled: _enabled,
         onHighlight: highlightControlFocus,
         onStep: (int delta) => _step(rtl ? -delta : delta),
+        semantics: SemanticsProperties(
+          enabled: _enabled,
+          label: widget.semanticLabel,
+          value: count == 0 ? null : value(page + 1),
+          increasedValue: page + 1 < count ? value(page + 2) : null,
+          decreasedValue: page > 0 ? value(page) : null,
+          onIncrease: _enabled && page + 1 < count ? () => _step(1) : null,
+          onDecrease: _enabled && page > 0 ? () => _step(-1) : null,
+        ),
+        semanticsContainer: true,
+        behavior: HitTestBehavior.opaque,
         child: MorphFocusRing(
           visible: controlFocused,
-          child: Semantics(
-            container: true,
-            enabled: _enabled,
-            label: widget.semanticLabel,
-            value: count == 0 ? null : value(page + 1),
-            increasedValue: page + 1 < count ? value(page + 2) : null,
-            decreasedValue: page > 0 ? value(page) : null,
-            onIncrease: _enabled && page + 1 < count ? () => _step(1) : null,
-            onDecrease: _enabled && page > 0 ? () => _step(-1) : null,
-            child: MorphTouchListener(
-              enabled: _enabled,
-              behavior: HitTestBehavior.opaque,
-              onPointerDown: handleDown,
-              onPointerMove: handleMove,
-              onPointerUp: handleUp,
-              onPointerCancel: handleCancel,
-              child: CustomPaint(
-                size: _size,
-                painter: _PageControlPainter(
-                  frames: frames,
-                  motion: _motion,
-                  style: style,
-                  rtl: rtl,
-                  platter: switch (widget.background) {
-                    MorphPageControlBackground.prominent => true,
-                    MorphPageControlBackground.minimal => false,
-                    MorphPageControlBackground.automatic => null,
-                  },
-                  progress: widget.progress,
-                ),
-              ),
+          child: CustomPaint(
+            size: _size,
+            painter: _PageControlPainter(
+              frames: frames,
+              motion: _motion,
+              style: style,
+              rtl: rtl,
+              platter: switch (widget.background) {
+                MorphPageControlBackground.prominent => true,
+                MorphPageControlBackground.minimal => false,
+                MorphPageControlBackground.automatic => null,
+              },
+              progress: widget.progress,
             ),
           ),
         ),

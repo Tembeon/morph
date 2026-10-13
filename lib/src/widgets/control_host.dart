@@ -1,17 +1,20 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/widgets.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/widgets/clock.dart';
+import 'package:morph/src/widgets/press.dart';
 
 /// Hosts a measured control on one clock with one active primary pointer.
 ///
 /// Motions remain pure: subclasses advance them and report settlement to
-/// [MorphClock], which sleeps between gestures. Pointer hooks receive motion
-/// time, while keyboard focus and cancellation on disable belong to the host.
+/// [MorphClock], which sleeps between gestures. The host is the
+/// [MorphPressTarget] of the control's [MorphPress] and follows its press
+/// with a [MorphPressTracker]; pointer hooks receive motion time, while
+/// keyboard focus and cancellation on disable belong to the host.
 @internal
 abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
-    with SingleTickerProviderStateMixin<T>, MorphClock<T> {
-  int? _pointer;
+    with SingleTickerProviderStateMixin<T>, MorphClock<T>
+    implements MorphPressTarget {
+  final MorphPressTracker _press = MorphPressTracker();
   bool _focused = false;
 
   /// Whether this control accepts a new pointer gesture.
@@ -25,6 +28,14 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   /// Repeat-only controls use the latest frame for these events instead.
   bool get stampPointerUpdates => true;
 
+  /// How far outside the control's box a press still counts as inside
+  /// [press]; infinite by default, so a press never leaves.
+  double get pressSlop => .infinity;
+
+  /// The press of the active pointer.
+  @protected
+  MorphPressTracker get press => _press;
+
   /// Whether the keyboard focus ring is visible.
   bool get controlFocused => _focused;
 
@@ -34,7 +45,7 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   };
 
   /// Whether [event] belongs to the active gesture.
-  bool ownsPointer(PointerEvent event) => event.pointer == _pointer;
+  bool ownsPointer(PointerEvent event) => _press.owns(event.pointer);
 
   /// Whether the primary contact hits this control's handle.
   bool acceptsControlPointer(PointerDownEvent event) => true;
@@ -55,46 +66,58 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   void onControlLost(double t) => onControlCancel(t);
 
   /// Releases ownership when a gesture ends before its pointer lifts.
-  void releaseControlPointer() {
-    _pointer = null;
-  }
+  void releaseControlPointer() => _press.release();
 
   /// Accepts a primary contact when enabled and no pointer is active.
-  void handleDown(PointerDownEvent event) {
+  @override
+  void pressDown(PointerDownEvent event) {
     if (!controlEnabled ||
-        event.buttons != kPrimaryButton ||
-        _pointer != null ||
+        !_press.accepts(event.pointer, event.buttons) ||
         !acceptsControlPointer(event)) {
       return;
     }
-    _pointer = event.pointer;
+    final slop = pressSlop;
+    _press.slop = slop;
+    _press.down(
+      event.pointer,
+      event.buttons,
+      event.localPosition,
+      size: slop.isFinite ? _size() : Size.zero,
+    );
     onControlDown(stamp(event), event);
   }
 
+  Size _size() {
+    final box = context.findRenderObject();
+    return box is RenderBox && box.hasSize ? box.size : Size.zero;
+  }
+
   /// Dispatches a move belonging to the active pointer.
-  void handleMove(PointerMoveEvent event) {
+  @override
+  void pressMove(PointerMoveEvent event) {
     if (!ownsPointer(event)) return;
+    _press.move(event.pointer, event.localPosition);
     onControlMove(_eventTime(event), event);
   }
 
   /// Releases ownership before dispatching the active pointer's lift.
-  void handleUp(PointerUpEvent event) {
-    if (!ownsPointer(event)) return;
-    releaseControlPointer();
+  @override
+  void pressUp(PointerUpEvent event) {
+    if (_press.up(event.pointer, event.localPosition) == null) return;
     onControlUp(_eventTime(event), event);
   }
 
   /// Releases ownership and cancels the active pointer.
-  void handleCancel(PointerCancelEvent event) {
-    if (!ownsPointer(event)) return;
-    releaseControlPointer();
+  @override
+  void pressCancel(PointerCancelEvent event) {
+    if (_press.cancel(event.pointer, .platform) == null) return;
     onControlCancel(_eventTime(event));
   }
 
   /// Releases ownership and reports loss of the active pointer.
-  void handleLost(PointerCancelEvent event) {
-    if (!ownsPointer(event)) return;
-    releaseControlPointer();
+  @override
+  void pressLost(PointerCancelEvent event) {
+    if (_press.cancel(event.pointer, .scroll) == null) return;
     onControlLost(_eventTime(event));
   }
 
@@ -191,8 +214,7 @@ abstract class MorphControlHost<T extends StatefulWidget> extends State<T>
   void didUpdateWidget(T oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (!buildsLike(oldWidget)) _stale = true;
-    if (!controlEnabled && _pointer != null) {
-      releaseControlPointer();
+    if (!controlEnabled && _press.cancelActive(.disabled) != null) {
       onControlCancel(clock);
       wake();
     }

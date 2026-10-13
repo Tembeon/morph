@@ -101,27 +101,27 @@ void main() {
     tester,
   ) async {
     final state = await _probe(tester);
-    state.handleDown(
+    state.pressDown(
       const PointerDownEvent(pointer: 1, buttons: kSecondaryButton),
     );
-    state.handleMove(const PointerMoveEvent(pointer: 1));
-    state.handleUp(const PointerUpEvent(pointer: 1));
-    state.handleCancel(const PointerCancelEvent(pointer: 1));
+    state.pressMove(const PointerMoveEvent(pointer: 1));
+    state.pressUp(const PointerUpEvent(pointer: 1));
+    state.pressCancel(const PointerCancelEvent(pointer: 1));
     expect(state.events, isEmpty);
     expect(tester.binding.transientCallbackCount, 0);
 
-    state.handleDown(const PointerDownEvent(pointer: 1));
-    state.handleDown(const PointerDownEvent(pointer: 2));
-    state.handleMove(const PointerMoveEvent(pointer: 2));
-    state.handleUp(const PointerUpEvent(pointer: 2));
-    state.handleCancel(const PointerCancelEvent(pointer: 2));
-    state.handleLost(const PointerCancelEvent(pointer: 2));
+    state.pressDown(const PointerDownEvent(pointer: 1));
+    state.pressDown(const PointerDownEvent(pointer: 2));
+    state.pressMove(const PointerMoveEvent(pointer: 2));
+    state.pressUp(const PointerUpEvent(pointer: 2));
+    state.pressCancel(const PointerCancelEvent(pointer: 2));
+    state.pressLost(const PointerCancelEvent(pointer: 2));
     expect(state.events.map((event) => event.kind), ['down']);
     expect(state.ownsPointer(const PointerMoveEvent(pointer: 1)), isTrue);
-    state.handleMove(const PointerMoveEvent(pointer: 1));
-    state.handleUp(const PointerUpEvent(pointer: 1));
-    state.handleDown(const PointerDownEvent(pointer: 2));
-    state.handleCancel(const PointerCancelEvent(pointer: 2));
+    state.pressMove(const PointerMoveEvent(pointer: 1));
+    state.pressUp(const PointerUpEvent(pointer: 1));
+    state.pressDown(const PointerDownEvent(pointer: 2));
+    state.pressCancel(const PointerCancelEvent(pointer: 2));
     expect(state.events.map((event) => event.kind), [
       'down',
       'move',
@@ -137,12 +137,12 @@ void main() {
   ) async {
     final state = await _probe(tester);
     state.accept = false;
-    state.handleDown(const PointerDownEvent(pointer: 1));
+    state.pressDown(const PointerDownEvent(pointer: 1));
     expect(state.ownsPointer(const PointerUpEvent(pointer: 1)), isFalse);
     expect(tester.binding.transientCallbackCount, 0);
     state.accept = true;
-    state.handleDown(const PointerDownEvent(pointer: 2));
-    state.handleUp(const PointerUpEvent(pointer: 2));
+    state.pressDown(const PointerDownEvent(pointer: 2));
+    state.pressUp(const PointerUpEvent(pointer: 2));
     expect(state.events.map((event) => event.kind), ['down', 'up']);
     await tester.pumpAndSettle();
   });
@@ -154,22 +154,22 @@ void main() {
       addTearDown(() => timeDilation = previous);
       timeDilation = 2;
       final state = await _probe(tester);
-      state.handleDown(
+      state.pressDown(
         const PointerDownEvent(pointer: 1, timeStamp: Duration(seconds: 1)),
       );
-      state.handleMove(
+      state.pressMove(
         const PointerMoveEvent(
           pointer: 1,
           timeStamp: Duration(milliseconds: 1100),
         ),
       );
-      state.handleMove(
+      state.pressMove(
         const PointerMoveEvent(
           pointer: 1,
           timeStamp: Duration(milliseconds: 1050),
         ),
       );
-      state.handleUp(
+      state.pressUp(
         const PointerUpEvent(
           pointer: 1,
           timeStamp: Duration(milliseconds: 1200),
@@ -189,14 +189,14 @@ void main() {
       final state = await _probe(tester);
       var frames = 0;
       state.frames.addListener(() => frames++);
-      state.handleDown(const PointerDownEvent(pointer: 1));
+      state.pressDown(const PointerDownEvent(pointer: 1));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 40));
       final current = state.clock;
-      state.handleMove(
+      state.pressMove(
         const PointerMoveEvent(pointer: 1, timeStamp: Duration(seconds: 10)),
       );
-      state.handleUp(
+      state.pressUp(
         const PointerUpEvent(pointer: 1, timeStamp: Duration(seconds: 11)),
       );
       expect(state.events.last.time, current);
@@ -207,14 +207,14 @@ void main() {
       await tester.pump(const Duration(seconds: 5));
       expect(state.clock, asleep);
       expect(frames, sleepingFrames);
-      state.handleDown(
+      state.pressDown(
         const PointerDownEvent(pointer: 2, timeStamp: Duration(seconds: 20)),
       );
       expect(state.events.last.time, asleep);
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 20));
       expect(state.clock, asleep + 0.02);
-      state.handleCancel(const PointerCancelEvent(pointer: 2));
+      state.pressCancel(const PointerCancelEvent(pointer: 2));
       await tester.pumpAndSettle();
     },
   );
@@ -223,13 +223,13 @@ void main() {
     tester,
   ) async {
     final state = await _probe(tester, stampUpdates: false);
-    state.handleDown(
+    state.pressDown(
       const PointerDownEvent(pointer: 1, timeStamp: Duration(seconds: 1)),
     );
-    state.handleMove(
+    state.pressMove(
       const PointerMoveEvent(pointer: 1, timeStamp: Duration(seconds: 2)),
     );
-    state.handleUp(
+    state.pressUp(
       const PointerUpEvent(pointer: 1, timeStamp: Duration(seconds: 3)),
     );
     expect(state.events.map((event) => event.time), [0, 0, 0]);
@@ -240,11 +240,11 @@ void main() {
     tester,
   ) async {
     final state = await _probe(tester);
-    state.handleDown(const PointerDownEvent(pointer: 1));
-    state.handleLost(const PointerCancelEvent(pointer: 1));
-    state.handleUp(const PointerUpEvent(pointer: 1));
-    state.handleDown(const PointerDownEvent(pointer: 2));
-    state.handleCancel(const PointerCancelEvent(pointer: 2));
+    state.pressDown(const PointerDownEvent(pointer: 1));
+    state.pressLost(const PointerCancelEvent(pointer: 1));
+    state.pressUp(const PointerUpEvent(pointer: 1));
+    state.pressDown(const PointerDownEvent(pointer: 2));
+    state.pressCancel(const PointerCancelEvent(pointer: 2));
     expect(state.events.map((event) => event.kind), [
       'down',
       'lost',
@@ -258,20 +258,20 @@ void main() {
     'host cancels once on disable and does not revive the held pointer',
     (tester) async {
       final state = await _probe(tester);
-      state.handleDown(const PointerDownEvent(pointer: 1));
+      state.pressDown(const PointerDownEvent(pointer: 1));
       await tester.pump();
       final disabledAt = state.clock;
       await tester.pumpWidget(_scene(const _Probe(enabled: false)));
       await tester.pumpWidget(_scene(const _Probe(enabled: false)));
-      state.handleDown(const PointerDownEvent(pointer: 2));
-      state.handleMove(const PointerMoveEvent(pointer: 1));
-      state.handleUp(const PointerUpEvent(pointer: 1));
+      state.pressDown(const PointerDownEvent(pointer: 2));
+      state.pressMove(const PointerMoveEvent(pointer: 1));
+      state.pressUp(const PointerUpEvent(pointer: 1));
       expect(state.events.map((event) => event.kind), ['down', 'cancel']);
       expect(state.events.last.time, disabledAt);
       await tester.pumpWidget(_scene(const _Probe()));
-      state.handleUp(const PointerUpEvent(pointer: 1));
-      state.handleDown(const PointerDownEvent(pointer: 2));
-      state.handleUp(const PointerUpEvent(pointer: 2));
+      state.pressUp(const PointerUpEvent(pointer: 1));
+      state.pressDown(const PointerDownEvent(pointer: 2));
+      state.pressUp(const PointerUpEvent(pointer: 2));
       expect(state.events.map((event) => event.kind), [
         'down',
         'cancel',
@@ -299,7 +299,7 @@ void main() {
     focus.onHighlight(false);
     await tester.pump();
     expect(state.controlFocused, isFalse);
-    state.handleDown(const PointerDownEvent(pointer: 1));
+    state.pressDown(const PointerDownEvent(pointer: 1));
     await tester.pumpWidget(const SizedBox());
     expect(tester.binding.transientCallbackCount, 0);
     expect(tester.takeException(), isNull);

@@ -39,6 +39,21 @@ example the segmented control's selection) is unchanged. So a build must
 never capture a widget callback; it calls `widget.onX` at event time. A
 parent rebuilding a page of unchanged controls rebuilds none of them.
 
+A pressable control takes its input through one widget, `MorphPress`
+(`press.dart`): keyboard focus (Space / Enter call `onActivate`, what a
+tap does; arrows call `onStep`), its semantics and, with a `target`, a
+`MorphTouchListener` in the gesture arena. `MorphControlHost` is such a
+target and follows its press with the pure `MorphPressTracker`: one
+pointer id, the primary button only, the box extended by `pressSlop`
+with exit / enter edges, inside or outside at release, and the reason a
+press was lost (platform, scroll, disabled). The focus node is attached
+directly, not through a `Focus` widget, so a menu or sheet opening over
+a page rebuilds none of its controls, and the ring (`focusRing: true`,
+for controls that do not draw it themselves) is inserted only while it
+shows: focusability costs no build and no paint on a surface that
+repaints every frame. A descendant finds the control's node through
+`node.context`, not `Focus.of`.
+
 ## Internal machinery (all `@internal`)
 
 `spring_state.dart` - `MorphSpringState`: a damped spring in closed form
@@ -115,7 +130,8 @@ uses `MorphGlyphTracker` (the lens copy does).
 
 `lens_driver.dart`, `lens_spec.dart`, `control_focus.dart`
 (`MorphControlFocus`, `MorphFocusRing` in systemBlue, `MorphDisabled`),
-`touch_listener.dart` (`delaysInScrollable`).
+`touch_listener.dart` (`delaysInScrollable`), `press.dart`
+(`MorphPress`, `MorphPressTracker`, `MorphPressTarget`).
 
 `menu_fusion_worker*.dart` - `MorphFusionWorker`, the one background
 isolate pool in the package. The menu motion peeks its silhouette inputs

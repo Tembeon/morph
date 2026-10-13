@@ -11,6 +11,22 @@ Widget _scene(Widget child) => MediaQuery(
   ),
 );
 
+/// The focus node of the nearest focusable ancestor of [element], as
+/// [Focus.of] finds it below a [Focus] widget; the controls attach their
+/// node without one.
+FocusNode _focusOf(Element element) {
+  final nodes = <BuildContext, FocusNode>{
+    for (final node in FocusManager.instance.rootScope.descendants)
+      ?node.context: node,
+  };
+  FocusNode? found;
+  element.visitAncestorElements((Element ancestor) {
+    found = nodes[ancestor];
+    return found == null;
+  });
+  return found!;
+}
+
 void main() {
   testWidgets('C8 empty page control has no adjustable value or actions', (
     tester,
@@ -49,7 +65,7 @@ void main() {
           .any((s) => s.properties.value == 'page 3 of 3'),
       isTrue,
     );
-    Focus.of(tester.element(find.byType(CustomPaint).last)).requestFocus();
+    _focusOf(tester.element(find.byType(CustomPaint).last)).requestFocus();
     await tester.pump();
     await tester.sendKeyEvent(LogicalKeyboardKey.arrowLeft);
     await tester.pump();

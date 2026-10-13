@@ -7,6 +7,7 @@ import 'package:morph/src/widgets/chrome_group.dart';
 import 'package:morph/src/widgets/clock.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glass_channel.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/search_field.dart';
 import 'package:morph/src/widgets/search_motion.dart';
@@ -38,7 +39,9 @@ import 'package:morph/src/widgets/widgets_theme.dart';
 /// circle; the query clears at the end of that frame. The tab circle takes the tap while the morph into the field
 /// still runs (the morph turns around with its velocity, as UIKit's does)
 /// until the keyboard covers it; the search circle ignores taps until the
-/// morph back to the bar has settled, as UIKit's does.
+/// morph back to the bar has settled, as UIKit's does. Both circles take
+/// keyboard focus while they take taps, and Space or Enter do what a tap
+/// does.
 ///
 /// This is UIKit's search tab with `automaticallyActivatesSearch`: only
 /// then does iOS 27 set the search tab apart as a circle. A search tab
@@ -412,6 +415,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                       rtl: rtl,
                       label: widget.items[selected].label,
                       onTap: () => widget.onSearchingChanged(false),
+                      enabled: !structure.tabIgnoring,
                     ),
                   ),
                 ),
@@ -443,6 +447,7 @@ class _MorphSearchTabBarState extends State<MorphSearchTabBar>
                     brightness: brightness,
                     rtl: rtl,
                     onTap: () => widget.onSearchingChanged(true),
+                    enabled: structure.resting,
                   ),
                 ),
               ),
@@ -568,6 +573,7 @@ class _MorphingTabs extends StatelessWidget {
     required this.rtl,
     required this.label,
     required this.onTap,
+    required this.enabled,
   });
 
   final Listenable live;
@@ -583,6 +589,10 @@ class _MorphingTabs extends StatelessWidget {
   final bool rtl;
   final String label;
   final VoidCallback onTap;
+
+  /// Whether the circle takes keyboard focus; it does while it takes
+  /// touches.
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
@@ -601,103 +611,112 @@ class _MorphingTabs extends StatelessWidget {
       label: label,
       onTap: onTap,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: glass == null
-                  ? CustomPaint(
-                      painter: _BodyPainter(
-                        live: live,
-                        shape: () => _capsuleIn(rect()),
-                        color: () => style.barColor,
-                        shadow: style.shadowColor,
-                      ),
-                    )
-                  : MorphGlassHost(
-                      painter: glass,
-                      mode: MorphGlassMode.surface,
-                      frames: live,
-                      frame: () => MorphGlassFrame([
-                        MorphGlassSurface(
-                          kind: MorphGlassKind.bar,
-                          shape: _capsuleIn(rect()),
-                          color: style.barColor,
-                          brightness: brightness,
-                        ),
-                      ]),
-                    ),
-            ),
-            Positioned.fill(
-              child: MorphLiveClipRRect(
-                live: live,
-                borderRadiusOf: () =>
-                    BorderRadius.circular(_capsuleIn(rect()).tlRadiusX),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    for (var i = 0; i < items.length; i++)
-                      if (i != selected)
-                        MorphLivePositionedTemplate(
+      child: MorphPress(
+        enabled: enabled,
+        onActivate: onTap,
+        focusRing: true,
+        focusSemantics: false,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: glass == null
+                    ? CustomPaint(
+                        painter: _BodyPainter(
                           live: live,
-                          template: () {
-                            final now = rect();
-                            return Positioned(
-                              left:
-                                  restRect.left -
-                                  now.left +
-                                  MorphTabBarMetrics.sideInset +
-                                  pitch * (rtl ? items.length - 1 - i : i),
-                              top: restRect.top - now.top,
-                              width: pitch,
-                              height: restRect.height,
-                              child: morphLiveSlot,
-                            );
-                          },
-                          child: MorphLiveOpacity(
+                          shape: () => _capsuleIn(rect()),
+                          color: () => style.barColor,
+                          shadow: style.shadowColor,
+                        ),
+                      )
+                    : MorphGlassHost(
+                        painter: glass,
+                        mode: MorphGlassMode.surface,
+                        frames: live,
+                        frame: () => MorphGlassFrame([
+                          MorphGlassSurface(
+                            kind: MorphGlassKind.bar,
+                            shape: _capsuleIn(rect()),
+                            color: style.barColor,
+                            brightness: brightness,
+                          ),
+                        ]),
+                      ),
+              ),
+              Positioned.fill(
+                child: MorphLiveClipRRect(
+                  live: live,
+                  borderRadiusOf: () =>
+                      BorderRadius.circular(_capsuleIn(rect()).tlRadiusX),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      for (var i = 0; i < items.length; i++)
+                        if (i != selected)
+                          MorphLivePositionedTemplate(
                             live: live,
-                            opacityOf: fade,
-                            child: _TabGlyph(
-                              item: items[i],
-                              color: style.color,
-                              showLabel: true,
+                            template: () {
+                              final now = rect();
+                              return Positioned(
+                                left:
+                                    restRect.left -
+                                    now.left +
+                                    MorphTabBarMetrics.sideInset +
+                                    pitch * (rtl ? items.length - 1 - i : i),
+                                top: restRect.top - now.top,
+                                width: pitch,
+                                height: restRect.height,
+                                child: morphLiveSlot,
+                              );
+                            },
+                            child: MorphLiveOpacity(
+                              live: live,
+                              opacityOf: fade,
+                              child: _TabGlyph(
+                                item: items[i],
+                                color: style.color,
+                                showLabel: true,
+                              ),
                             ),
                           ),
-                        ),
-                    MorphLivePositionedTemplate(
-                      live: live,
-                      template: () {
-                        final now = rect();
-                        final center = Offset.lerp(
-                          selectedCenter - (now.topLeft - restRect.topLeft),
-                          now.size.center(Offset.zero),
-                          q(),
-                        )!;
-                        return Positioned(
-                          left: center.dx - pitch / 2,
-                          top: center.dy - restRect.height / 2,
-                          width: pitch,
-                          height: restRect.height,
-                          child: morphLiveSlot,
-                        );
-                      },
-                      child: _SelectedGlyph(
+                      MorphLivePositionedTemplate(
                         live: live,
-                        item: items[selected],
-                        color: () =>
-                            Color.lerp(style.selectedColor, style.color, q())!,
-                        fade: fade,
-                        labelShown: labelShown,
+                        template: () {
+                          final now = rect();
+                          final center = Offset.lerp(
+                            selectedCenter - (now.topLeft - restRect.topLeft),
+                            now.size.center(Offset.zero),
+                            q(),
+                          )!;
+                          return Positioned(
+                            left: center.dx - pitch / 2,
+                            top: center.dy - restRect.height / 2,
+                            width: pitch,
+                            height: restRect.height,
+                            child: morphLiveSlot,
+                          );
+                        },
+                        child: _SelectedGlyph(
+                          live: live,
+                          item: items[selected],
+                          color: () => Color.lerp(
+                            style.selectedColor,
+                            style.color,
+                            q(),
+                          )!,
+                          fade: fade,
+                          labelShown: labelShown,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -912,6 +931,7 @@ class _SearchCircle extends StatelessWidget {
     required this.brightness,
     required this.rtl,
     required this.onTap,
+    required this.enabled,
   });
 
   final Listenable live;
@@ -928,6 +948,10 @@ class _SearchCircle extends StatelessWidget {
   final bool rtl;
   final VoidCallback onTap;
 
+  /// Whether the circle takes keyboard focus; it does while it takes
+  /// touches.
+  final bool enabled;
+
   @override
   Widget build(BuildContext context) {
     double q() => progress().clamp(0.0, 1.0);
@@ -939,99 +963,105 @@ class _SearchCircle extends StatelessWidget {
       label: label,
       onTap: onTap,
       excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Positioned.fill(
-              child: glass == null
-                  ? CustomPaint(
-                      painter: _BodyPainter(
-                        live: live,
-                        shape: () => _capsuleIn(rect()),
-                        color: body,
-                        shadow: style.shadowColor,
-                      ),
-                    )
-                  : MorphGlassHost(
-                      painter: glass,
-                      mode: MorphGlassMode.surface,
-                      frames: live,
-                      frame: () => MorphGlassFrame([
-                        MorphGlassSurface(
-                          kind: MorphGlassKind.button,
-                          shape: _capsuleIn(rect()),
-                          color: body(),
-                          brightness: brightness,
+      child: MorphPress(
+        enabled: enabled,
+        onActivate: onTap,
+        focusRing: true,
+        focusSemantics: false,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: onTap,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Positioned.fill(
+                child: glass == null
+                    ? CustomPaint(
+                        painter: _BodyPainter(
+                          live: live,
+                          shape: () => _capsuleIn(rect()),
+                          color: body,
+                          shadow: style.shadowColor,
                         ),
-                      ]),
-                    ),
-            ),
-            MorphLivePositionedTemplate(
-              live: live,
-              template: () {
-                final now = rect();
-                final start = Offset(
-                  rtl
-                      ? now.width -
-                            MorphSearchTuning.glyphInset -
-                            glyph.width / 2
-                      : MorphSearchTuning.glyphInset + glyph.width / 2,
-                  now.height / 2,
-                );
-                final t = q();
-                final center = Offset.lerp(
-                  now.size.center(Offset.zero),
-                  start,
-                  t,
-                )!;
-                return Positioned(
-                  left: center.dx - glyph.width / 2 * (1 + 0.15 * (1 - t)),
-                  top: center.dy - glyph.height / 2 * (1 + 0.15 * (1 - t)),
-                  width: glyph.width * (1 + 0.15 * (1 - t)),
-                  height: glyph.height * (1 + 0.15 * (1 - t)),
-                  child: morphLiveSlot,
-                );
-              },
-              child: CustomPaint(
-                painter: _MagnifierGlyph(
-                  live: live,
-                  color: () =>
-                      Color.lerp(tabStyle.color, style.glyphColor, q())!,
+                      )
+                    : MorphGlassHost(
+                        painter: glass,
+                        mode: MorphGlassMode.surface,
+                        frames: live,
+                        frame: () => MorphGlassFrame([
+                          MorphGlassSurface(
+                            kind: MorphGlassKind.button,
+                            shape: _capsuleIn(rect()),
+                            color: body(),
+                            brightness: brightness,
+                          ),
+                        ]),
+                      ),
+              ),
+              MorphLivePositionedTemplate(
+                live: live,
+                template: () {
+                  final now = rect();
+                  final start = Offset(
+                    rtl
+                        ? now.width -
+                              MorphSearchTuning.glyphInset -
+                              glyph.width / 2
+                        : MorphSearchTuning.glyphInset + glyph.width / 2,
+                    now.height / 2,
+                  );
+                  final t = q();
+                  final center = Offset.lerp(
+                    now.size.center(Offset.zero),
+                    start,
+                    t,
+                  )!;
+                  return Positioned(
+                    left: center.dx - glyph.width / 2 * (1 + 0.15 * (1 - t)),
+                    top: center.dy - glyph.height / 2 * (1 + 0.15 * (1 - t)),
+                    width: glyph.width * (1 + 0.15 * (1 - t)),
+                    height: glyph.height * (1 + 0.15 * (1 - t)),
+                    child: morphLiveSlot,
+                  );
+                },
+                child: CustomPaint(
+                  painter: _MagnifierGlyph(
+                    live: live,
+                    color: () =>
+                        Color.lerp(tabStyle.color, style.glyphColor, q())!,
+                  ),
                 ),
               ),
-            ),
-            if (placeholderShown)
-              PositionedDirectional(
-                start: MorphSearchTuning.textInset,
-                end: 8,
-                top: 0,
-                bottom: 0,
-                child: ClipRect(
-                  child: Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: MorphLiveOpacity(
-                      live: live,
-                      opacityOf: () => ((q() - 0.4) / 0.6).clamp(0.0, 1.0),
-                      child: Text(
-                        placeholder,
-                        maxLines: 1,
-                        softWrap: false,
-                        overflow: TextOverflow.clip,
-                        style: MorphTypography.resolve(
-                          MorphTypography.searchField.copyWith(
-                            height: 1.2,
-                            color: style.placeholderColor,
+              if (placeholderShown)
+                PositionedDirectional(
+                  start: MorphSearchTuning.textInset,
+                  end: 8,
+                  top: 0,
+                  bottom: 0,
+                  child: ClipRect(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: MorphLiveOpacity(
+                        live: live,
+                        opacityOf: () => ((q() - 0.4) / 0.6).clamp(0.0, 1.0),
+                        child: Text(
+                          placeholder,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.clip,
+                          style: MorphTypography.resolve(
+                            MorphTypography.searchField.copyWith(
+                              height: 1.2,
+                              color: style.placeholderColor,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
       ),
     );

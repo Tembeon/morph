@@ -24,6 +24,7 @@ import 'package:morph/src/widgets/menu_content.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/menu_host.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/typography.dart';
 
@@ -31,7 +32,8 @@ import 'package:morph/src/widgets/typography.dart';
 ///
 /// Its [id] keeps its identity when the bar's items change: an item with
 /// the same id travels to its new place, a new id grows in, a missing one
-/// leaves.
+/// leaves. A usable button takes keyboard focus, shows the focus ring
+/// around its slot, and Space or Enter do what a tap does.
 @immutable
 class MorphBarButton {
   /// Creates a button showing [label] or [icon].
@@ -1674,6 +1676,13 @@ class _MorphBarItemsState extends State<MorphBarItems>
       ),
     );
     if (!frame.leaving) {
+      final VoidCallback? tap = !button.interactive
+          ? null
+          : button.opensMenuOnTap
+          ? (_menu == null ? () => _openMenu(clock, button.id) : null)
+          : button.onPressed == null
+          ? null
+          : () => _activate(button.id);
       content = Semantics(
         button: true,
         enabled: button.interactive,
@@ -1681,13 +1690,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
         expanded: (button.menu?.isNotEmpty ?? false)
             ? _menu?.button.id == button.id && (_menu?.motion.isOpen ?? false)
             : null,
-        onTap: !button.interactive
-            ? null
-            : button.opensMenuOnTap
-            ? (_menu == null ? () => _openMenu(clock, button.id) : null)
-            : button.onPressed == null
-            ? null
-            : () => _activate(button.id),
+        onTap: tap,
         onLongPress:
             button.interactive &&
                 !button.opensMenuOnTap &&
@@ -1695,13 +1698,19 @@ class _MorphBarItemsState extends State<MorphBarItems>
                 _menu == null
             ? () => _openMenu(clock, button.id)
             : null,
-        child: Listener(
-          behavior: HitTestBehavior.opaque,
-          onPointerDown: (PointerDownEvent e) => _down(button, e),
-          onPointerMove: _move,
-          onPointerUp: _up,
-          onPointerCancel: _cancel,
-          child: ExcludeSemantics(child: content),
+        child: MorphPress(
+          enabled: button.interactive,
+          onActivate: tap,
+          focusRing: true,
+          focusSemantics: false,
+          child: Listener(
+            behavior: HitTestBehavior.opaque,
+            onPointerDown: (PointerDownEvent e) => _down(button, e),
+            onPointerMove: _move,
+            onPointerUp: _up,
+            onPointerCancel: _cancel,
+            child: ExcludeSemantics(child: content),
+          ),
         ),
       );
     } else {

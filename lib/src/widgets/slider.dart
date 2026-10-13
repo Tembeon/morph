@@ -1,15 +1,15 @@
 import 'dart:math' as math;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/widgets.dart';
+import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/slider_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
-import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/small_lens.dart';
 
 /// The look of a [MorphSlider].
@@ -400,16 +400,20 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
         return MorphDisabled(
           enabled: _enabled,
           opacity: _style.disabledOpacity,
-          child: MorphControlFocus(
+          child: MorphPress(
+            target: this,
             enabled: _enabled,
             onHighlight: highlightControlFocus,
             onStep: (int delta) => _nudge(_rtl ? -delta : delta),
             verticalSteps: true,
-            child: MorphFocusRing(
-              visible: controlFocused,
-              child: _SliderSemantics(
-                value: _semanticValue,
-                properties: (double value) => SemanticsProperties(
+            dragAxis: .horizontal,
+            behavior: HitTestBehavior.opaque,
+            child: MorphLiveSemantics(
+              live: _semanticValue,
+              container: true,
+              propertiesOf: () {
+                final value = _semanticValue.value;
+                return SemanticsProperties(
                   slider: true,
                   enabled: _enabled,
                   label: widget.semanticLabel,
@@ -418,19 +422,9 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
                   decreasedValue: percent(value - widget._step),
                   onIncrease: _enabled && value < 1 ? () => _nudge(1) : null,
                   onDecrease: _enabled && value > 0 ? () => _nudge(-1) : null,
-                ),
-                child: MorphTouchListener(
-                  enabled: _enabled,
-                  dragAxis: .horizontal,
-                  behavior: HitTestBehavior.opaque,
-                  onPointerDown: handleDown,
-                  onPointerMove: handleMove,
-                  onPointerUp: handleUp,
-                  onPointerCancel: handleCancel,
-                  onPointerLost: handleLost,
-                  child: visual,
-                ),
-              ),
+                );
+              },
+              child: MorphFocusRing(visible: controlFocused, child: visual),
             ),
           ),
         );
@@ -467,79 +461,6 @@ class _TrackFrames extends ChangeNotifier {
 // A Semantics container whose properties follow [value] in the render
 // object: a value the parent changes on every frame of a drag updates the
 // semantics node without a widget rebuild.
-class _SliderSemantics extends SingleChildRenderObjectWidget {
-  const _SliderSemantics({
-    required this.value,
-    required this.properties,
-    required super.child,
-  });
-
-  final ValueListenable<double> value;
-  final SemanticsProperties Function(double value) properties;
-
-  @override
-  _RenderSliderSemantics createRenderObject(BuildContext context) =>
-      _RenderSliderSemantics(
-        value: value,
-        propertiesOf: properties,
-        textDirection: Directionality.maybeOf(context),
-      );
-
-  @override
-  void updateRenderObject(
-    BuildContext context,
-    _RenderSliderSemantics renderObject,
-  ) {
-    renderObject.value = value;
-    renderObject.propertiesOf = properties;
-    renderObject.textDirection = Directionality.maybeOf(context);
-  }
-}
-
-class _RenderSliderSemantics extends RenderSemanticsAnnotations {
-  _RenderSliderSemantics({
-    required ValueListenable<double> value,
-    required SemanticsProperties Function(double value) propertiesOf,
-    super.textDirection,
-  }) : _value = value,
-       _propertiesOf = propertiesOf,
-       super(properties: propertiesOf(value.value), container: true);
-
-  ValueListenable<double> _value;
-  ValueListenable<double> get value => _value;
-  set value(ValueListenable<double> value) {
-    if (identical(value, _value)) return;
-    if (attached) {
-      _value.removeListener(_changed);
-      value.addListener(_changed);
-    }
-    _value = value;
-    _changed();
-  }
-
-  SemanticsProperties Function(double value) _propertiesOf;
-  SemanticsProperties Function(double value) get propertiesOf => _propertiesOf;
-  set propertiesOf(SemanticsProperties Function(double value) value) {
-    if (identical(value, _propertiesOf)) return;
-    _propertiesOf = value;
-    _changed();
-  }
-
-  void _changed() => properties = _propertiesOf(_value.value);
-
-  @override
-  void attach(PipelineOwner owner) {
-    super.attach(owner);
-    _value.addListener(_changed);
-  }
-
-  @override
-  void detach() {
-    _value.removeListener(_changed);
-    super.detach();
-  }
-}
-
 class _SliderPainter extends CustomPainter {
   _SliderPainter(this.state, {required this.track, required this.thumb})
     : super(repaint: state.frames);

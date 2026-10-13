@@ -1,12 +1,13 @@
 import 'dart:math' as math;
 
+import 'package:flutter/semantics.dart';
 import 'package:flutter/widgets.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/switch_motion.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
-import 'package:morph/src/widgets/touch_listener.dart';
+import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/small_lens.dart';
 
 /// The look of a [MorphSwitch].
@@ -247,37 +248,31 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
     return MorphDisabled(
       enabled: _enabled,
       opacity: _style.disabledOpacity,
-      child: MorphControlFocus(
+      child: MorphPress(
+        target: this,
         enabled: _enabled,
         onHighlight: highlightControlFocus,
         onActivate: _toggle,
+        semantics: SemanticsProperties(
+          toggled: widget.value,
+          enabled: _enabled,
+          label: widget.semanticLabel,
+          onTap: _enabled ? _toggle : null,
+        ),
+        semanticsContainer: true,
+        dragAxis: .horizontal,
         child: MorphFocusRing(
           visible: controlFocused,
-          child: Semantics(
-            container: true,
-            toggled: widget.value,
-            enabled: _enabled,
-            label: widget.semanticLabel,
-            onTap: _enabled ? _toggle : null,
-            child: MorphTouchListener(
-              enabled: _enabled,
-              dragAxis: .horizontal,
-              onPointerDown: handleDown,
-              onPointerMove: handleMove,
-              onPointerUp: handleUp,
-              onPointerCancel: handleCancel,
-              child: glass == null
-                  ? CustomPaint(size: _trackSize, painter: _SwitchPainter(this))
-                  : SizedBox.fromSize(
-                      size: _trackSize,
-                      child: MorphGlassLayer(
-                        painter: glass,
-                        frames: frames,
-                        surfaces: _surfaces,
-                      ),
-                    ),
-            ),
-          ),
+          child: glass == null
+              ? CustomPaint(size: _trackSize, painter: _SwitchPainter(this))
+              : SizedBox.fromSize(
+                  size: _trackSize,
+                  child: MorphGlassLayer(
+                    painter: glass,
+                    frames: frames,
+                    surfaces: _surfaces,
+                  ),
+                ),
         ),
       ),
     );
