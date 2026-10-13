@@ -18,8 +18,10 @@ large), `cornerStyle` (fixed / dynamic / small / medium / large / capsule),
 
 ## Spec
 
-- ONE degree of freedom: uniform scale 1 + lift / width; lift from
-  `MorphFlexSpec.forSize` (16 px at short side 44 -> 4 px at 160) [tuning].
+- ONE degree of freedom: uniform scale (L + lift) / L, L the long side
+  (read from UIKit, notes private; 1 + lift / width on a wide button); lift
+  from `MorphFlexSpec.forSize` (16 px at short side 44 -> 4 px at 160)
+  [tuning].
 - Press on the tracking spring, release on the scale spring (small buttons
   ring below 1, wide ones barely).
 - Stays lifted for the whole touch, even far outside.

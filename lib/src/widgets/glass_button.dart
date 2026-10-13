@@ -21,7 +21,8 @@ import 'package:morph/src/widgets/typography.dart';
 /// The motion of an iOS 27 glass button: one uniform lift, a lean toward
 /// a finger that drags off, and the touch glow.
 ///
-/// A touch scales the whole button by `1 + lift / width`, where the lift
+/// A touch scales the whole button by [MorphFlexSpec.liftScaleFor], the
+/// lift over its long side, where the lift
 /// in pixels and both springs come from [MorphFlexSpec.forSize]:
 /// the press rides the tracking spring, the release the scale spring, so
 /// a small button rings below its size while a wide one barely does. The
@@ -117,8 +118,7 @@ class MorphGlassButtonMotion {
   MorphFlexSpec get spec => _spec;
 
   /// The scale of the fully lifted button.
-  double get liftedScale =>
-      _size.width > 0 ? 1 + _spec.liftScalePoints / _size.width : 1;
+  double get liftedScale => _spec.liftScaleFor(_size);
 
   /// The time the motion was last advanced to.
   double get time => _now;

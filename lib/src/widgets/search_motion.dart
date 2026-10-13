@@ -307,8 +307,7 @@ class MorphSearchMotion {
       _press.isAtRest(_now, 1e-4);
 
   /// The scale of the fully lifted field.
-  double get liftedScale =>
-      _size.width > 0 ? 1 + _spec.liftScalePoints / _size.width : 1;
+  double get liftedScale => _spec.liftScaleFor(_size);
 
   /// Advances the motion to time [t].
   void advance(double t) {

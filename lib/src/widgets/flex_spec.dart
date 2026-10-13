@@ -213,6 +213,15 @@ class MorphFlexSpec {
     );
   }
 
+  /// The uniform scale of a fully lifted surface of [size]:
+  /// `(L + liftScalePoints) / L` on both axes, L its long side, so the
+  /// long side grows by [liftScalePoints] and the short side keeps the
+  /// proportion. Read from UIKit, notes private.
+  double liftScaleFor(Size size) {
+    final long = size.longestSide;
+    return long > 0 ? (long + liftScalePoints) / long : 1;
+  }
+
   /// The spec UIKit derives for a magnifying loupe of [size].
   ///
   /// Every value blends [smallLoupe] into [loupe] by the short side over

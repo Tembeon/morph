@@ -2421,7 +2421,7 @@ class MorphMenuMotion {
     );
     _pointer = pointer;
     final generation = ++_pressGeneration;
-    final lifted = 1 + _flex.liftScalePoints / _button.height;
+    final lifted = _flex.liftScaleFor(_button.size);
     _timeline.at(t + tuning.pressDelay, (double s) {
       if (generation != _pressGeneration) return;
       _press.retarget(s, lifted, spring: _flex.trackingSpring);

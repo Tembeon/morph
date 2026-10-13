@@ -302,7 +302,7 @@ wraps its capsule in it. Declared approximations, not measured:
   opens on the round button's `holdDuration` (0.22 s) and its tap fires
   the action; the long press of such a `UIButton` was not recorded;
 - a glass button with a menu lifts by the menu's press (pressDelay,
-  flex lift over the height) instead of its own uniform lift, with no
+  flex lift over the long side, read from UIKit, notes private) instead of its own uniform lift, with no
   touch glow or lean;
 - a source with a surface of its own (`MorphMenuSource.color`, a glass
   button's fill or tint) draws the source shape in that color at both
