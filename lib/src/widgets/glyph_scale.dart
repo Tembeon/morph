@@ -636,6 +636,10 @@ class MorphVeiledGlyphs extends SingleChildRenderObjectWidget {
   }
 }
 
+/// What a repaint boundary inside a [RenderMorphGlyphs] drew: its layer's
+/// first child, alpha and offset.
+typedef _BoundaryContent = ({Layer? first, int? alpha, Offset? offset});
+
 /// The render object of [MorphGlyphs]: draws its child live, snapped or
 /// from a raster as [MorphGlyphPolicy] decides each paint.
 @internal
@@ -795,45 +799,53 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   bool _changedBefore = false;
 
   /// Every repaint boundary in the child's subtree (the child included)
-  /// when the raster was taken, with the first layer it held and its
-  /// opacity: a boundary repaints without marking this box, a repaint
-  /// replaces its layer's children, and a fading boundary only changes its
-  /// layer's alpha.
-  List<(RenderObject, Layer?, int?)> _boundaries = const [];
+  /// when the raster was taken, with what it drew then: a boundary
+  /// repaints without marking this box, a repaint replaces its layer's
+  /// children, a fading boundary only changes its layer's alpha, and a
+  /// boundary moved by a repainting boundary around it only changes its
+  /// layer's offset.
+  List<(RenderObject, _BoundaryContent)> _boundaries = const [];
 
-  static (Layer?, int?) _contentOf(RenderObject boundary) {
+  /// The boundaries of [_boundaries] that no other one contains.
+  List<RenderObject> _outerBoundaries = const [];
+
+  static _BoundaryContent _contentOf(RenderObject boundary) {
     // ignore: invalid_use_of_protected_member
     final layer = boundary.layer;
-    return (layer?.firstChild, layer is OpacityLayer ? layer.alpha : null);
+    return (
+      first: layer?.firstChild,
+      alpha: layer is OpacityLayer ? layer.alpha : null,
+      offset: layer is OffsetLayer ? layer.offset : null,
+    );
   }
 
   /// Records the repaint boundaries the raster just drew.
   void _recordBoundaries() {
-    final found = <(RenderObject, Layer?, int?)>[];
-    void visit(RenderObject object) {
-      if (object.isRepaintBoundary) {
-        final (first, alpha) = _contentOf(object);
-        found.add((object, first, alpha));
+    final found = <(RenderObject, _BoundaryContent)>[];
+    final outer = <RenderObject>[];
+    void visit(RenderObject object, {required bool inside}) {
+      final boundary = object.isRepaintBoundary;
+      if (boundary) {
+        found.add((object, _contentOf(object)));
+        if (!inside) outer.add(object);
       }
-      object.visitChildren(visit);
+      object.visitChildren(
+        (RenderObject child) => visit(child, inside: inside || boundary),
+      );
     }
 
     final child = this.child;
-    if (child != null && child.needsCompositing) visit(child);
+    if (child != null && child.needsCompositing) visit(child, inside: false);
     _boundaries = found;
+    _outerBoundaries = outer;
   }
 
   /// Notes a repaint of a repaint boundary inside the child since the
   /// raster was taken.
   void _checkChildContent() {
     if (_atlas == null) return;
-    for (final (boundary, first, alpha) in _boundaries) {
-      final (nowFirst, nowAlpha) = _contentOf(boundary);
-      if (boundary.attached &&
-          identical(nowFirst, first) &&
-          nowAlpha == alpha) {
-        continue;
-      }
+    for (final (boundary, content) in _boundaries) {
+      if (boundary.attached && _contentOf(boundary) == content) continue;
       _changed = true;
       _drop();
       return;
@@ -844,6 +856,40 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
     _atlas?.dispose();
     _atlas = null;
     _boundaries = const [];
+    _outerBoundaries = const [];
+  }
+
+  final LayerHandle<ClipRectLayer> _culledLayer = LayerHandle<ClipRectLayer>();
+
+  /// Keeps the layers of the repaint boundaries inside the child in the
+  /// scene, under an empty clip, while this box draws the child from a
+  /// raster. Taking the raster moved them out of the scene, and a
+  /// boundary whose layer is out of the scene skips its repaints, so
+  /// [_checkChildContent] would never see one. Back in the scene, a
+  /// boundary repaints before this box paints (deeper first), and
+  /// nothing else of the child paints again.
+  void _paintCulled(PaintingContext context, Offset offset) {
+    if (_outerBoundaries.isEmpty) {
+      _culledLayer.layer = null;
+      return;
+    }
+    final culled = _culledLayer.layer ??= ClipRectLayer();
+    culled.clipRect = Rect.zero;
+    context.pushLayer(culled, (PaintingContext context, Offset _) {
+      for (final boundary in _outerBoundaries) {
+        // ignore: invalid_use_of_protected_member
+        final layer = boundary.layer;
+        if (boundary.attached && layer != null) context.addLayer(layer);
+      }
+    }, offset);
+  }
+
+  /// Lets the raster go when the child is not painted at all: its
+  /// boundaries' layers leave the scene with this box's, and their
+  /// repaints until it paints again go unseen.
+  void _dropUnpainted() {
+    _culledLayer.layer = null;
+    if (child?.needsCompositing ?? false) _drop();
   }
 
   /// Paints again, keeping the raster: the child has not changed.
@@ -876,6 +922,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
   @override
   void dispose() {
     _drop();
+    _culledLayer.layer = null;
     _transformLayer.layer = null;
     _opacityLayer.layer = null;
     super.dispose();
@@ -1118,6 +1165,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
     );
     if (_alpha == 0) {
       _opacityLayer.layer = null;
+      _dropUnpainted();
       if (mode != MorphGlyphMode.live) _tracker.settleNext();
       return;
     }
@@ -1145,6 +1193,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
     final child = this.child!;
     debugFactor = 1;
     if (mode != MorphGlyphMode.raster && !_keepsPyramid) _drop();
+    if (mode != MorphGlyphMode.raster) _culledLayer.layer = null;
     switch (mode) {
       case MorphGlyphMode.raster:
         _tracker.settleNext();
@@ -1168,6 +1217,7 @@ class RenderMorphGlyphs extends RenderProxyBox with MorphLiveBinding {
           offset & size,
           paint,
         );
+        _paintCulled(context, offset);
       case MorphGlyphMode.snapped:
         final factor =
             MorphGlyphScale.snap(
@@ -1324,6 +1374,7 @@ class _RenderShadedGlyphs extends RenderMorphGlyphs {
   void paint(PaintingContext context, Offset offset) {
     if (child == null || _opacity <= 0 || size.isEmpty) {
       _filterLayer.layer = null;
+      _dropUnpainted();
       _setShaded(false);
       return;
     }
@@ -1333,6 +1384,7 @@ class _RenderShadedGlyphs extends RenderMorphGlyphs {
     if (!_shades(screen)) {
       _setShaded(false);
       if (_layerBlur) {
+        _culledLayer.layer = null;
         _tracker.observe(screen, settle: false);
         final layer = _filterLayer.layer ??= ImageFilterLayer();
         layer.imageFilter = ui.ImageFilter.blur(
@@ -1408,6 +1460,7 @@ class _RenderShadedGlyphs extends RenderMorphGlyphs {
       paint,
     );
     canvas.restore();
+    _paintCulled(context, offset);
   }
 
   /// Records which path paints, and sets this box's opacity layer to

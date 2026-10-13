@@ -3288,6 +3288,20 @@ Host replay of the atlas (glyph_strikes_test: every painted paragraph's
 glyphs keyed as above, three bench runs with jittered frame times),
 strike frames: tab bar 16 -> 16, alert 67 -> 3, date picker 124 -> 2.
 
+Taking a raster composites the child into the raster's own layer, which
+takes the layers of the repaint boundaries inside it out of the scene,
+and Flutter skips the repaint of a boundary whose layer is out of the
+scene. While a drawing draws from its raster, it therefore appends the
+outermost boundaries' layers again under an empty clip rect (drawn
+nowhere, no new pictures, no paint of anything else): a boundary inside
+repaints in the frame it changes, deeper first, and the drawing sees the
+new content and draws live. Without it a date picker opened 0.6 - 1 s
+ago froze its day highlight and page turn on the raster (exact vs policy
+over 15: 0.79 and 2.5 percent of pixels, 0.35 / 0.32 with it), and an
+alert kept the old button highlighted when the finger slid to another
+under the pressed scale (over 3: 1.76 percent, 0.14 with it). Perf
+counts did not move.
+
 Measured and not admitted: snapping the drift of a spring's tail (under
 0.02 steps a frame, drawn live) to the finest grid, which lands on the
 rest scale's grid point. Tab bar strike frames 16 -> 10 (runs 2 and 3

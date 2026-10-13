@@ -46,8 +46,13 @@ Future<Uint8List> _frame(WidgetTester tester) async {
 }
 
 /// The largest channel difference of two frames, their mean channel
-/// difference per pixel and the share of pixels over 15, in percent.
-({int max, double mean, double over}) _diff(Uint8List a, Uint8List b) {
+/// difference per pixel and the share of pixels over [threshold], in
+/// percent.
+({int max, double mean, double over}) _diff(
+  Uint8List a,
+  Uint8List b, {
+  int threshold = 15,
+}) {
   var max = 0;
   var sum = 0;
   var over = 0;
@@ -58,7 +63,7 @@ Future<Uint8List> _frame(WidgetTester tester) async {
     }
     max = math.max(max, m);
     sum += m;
-    if (m > 15) over++;
+    if (m > threshold) over++;
   }
   final pixels = a.length / 4;
   return (max: max, mean: sum / pixels, over: over / pixels * 100);
@@ -413,6 +418,136 @@ void main() {
       'over15 ${worst.over.toStringAsFixed(3)}%',
     );
     expect(moving, greaterThan(10));
+    expect(worst.over, lessThan(0.5));
+  });
+
+  for (final (name, wait, act)
+      in <(String, int, Future<void> Function(WidgetTester))>[
+        ('a day', 36, (tester) => tester.tap(find.text('20').last)),
+        (
+          'the next month',
+          60,
+          (tester) {
+            final title = tester.getRect(find.text('October 2026').last);
+            final overlay = tester.getRect(find.byType(MorphGlyphs).last);
+            return tester.tapAt(Offset(overlay.right - 24, title.center.dy));
+          },
+        ),
+      ]) {
+    testWidgets('a date picker still settling draws $name changing', (
+      tester,
+    ) async {
+      tester.view.devicePixelRatio = 2.625;
+      addTearDown(tester.view.resetDevicePixelRatio);
+      Widget app() => _app(
+        MorphDatePicker(
+          value: DateTime(2026, 10, 12),
+          today: DateTime(2026, 10, 12),
+          onChanged: (_) {},
+        ),
+      );
+      final frames = await _twice(
+        tester,
+        app,
+        (frame) async {
+          await tester.tap(find.byType(MorphDatePicker));
+          for (var i = 0; i < wait; i++) {
+            await tester.pump(const Duration(milliseconds: 16));
+          }
+          await act(tester);
+          for (var i = 0; i < 40; i++) {
+            await tester.pump(const Duration(milliseconds: 16));
+            await frame();
+          }
+        },
+        () => tester
+            .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
+            .any((g) => g.debugMode != MorphGlyphMode.live),
+      );
+      var moving = 0;
+      var worst = (max: 0, mean: 0.0, over: 0.0);
+      for (final (exact, grid, active) in frames) {
+        final d = _diff(exact, grid);
+        if (active) moving++;
+        if (d.mean > worst.mean) worst = d;
+      }
+      debugPrint(
+        'date picker $name: ${frames.length} frames, $moving off live, '
+        'worst max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
+        'over15 ${worst.over.toStringAsFixed(3)}%',
+      );
+      expect(moving, greaterThan(0));
+      expect(worst.over, lessThan(0.5));
+    });
+  }
+
+  testWidgets('an alert draws its highlight moving under a pressed scale', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 2.625;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    late BuildContext context;
+    Widget app() => _app(
+      Builder(
+        builder: (BuildContext c) {
+          context = c;
+          return const SizedBox(width: 10, height: 10);
+        },
+      ),
+    );
+    final frames = await _twice(
+      tester,
+      app,
+      (frame) async {
+        showMorphAlert(
+          context,
+          title: 'Title',
+          message: 'A message in the alert.',
+          actions: const [
+            MorphAlertAction(
+              title: 'Cancel',
+              style: MorphAlertActionStyle.cancel,
+            ),
+            MorphAlertAction(title: 'OK'),
+          ],
+        ).ignore();
+        for (var i = 0; i < 70; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        final gesture = await tester.startGesture(
+          tester.getCenter(find.text('Cancel')),
+        );
+        for (var i = 0; i < 3; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          await frame();
+        }
+        await gesture.moveTo(tester.getCenter(find.text('OK')));
+        for (var i = 0; i < 30; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+          await frame();
+        }
+        await gesture.cancel();
+        for (var i = 0; i < 40; i++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+      },
+      () => tester
+          .renderObjectList<RenderMorphGlyphs>(find.byType(MorphGlyphs))
+          .any((g) => g.debugMode != MorphGlyphMode.live),
+    );
+    var moving = 0;
+    var worst = (max: 0, mean: 0.0, over: 0.0);
+    for (final (exact, grid, active) in frames) {
+      final d = _diff(exact, grid, threshold: 3);
+      if (active) moving++;
+      if (d.mean > worst.mean) worst = d;
+    }
+    debugPrint(
+      'alert highlight: ${frames.length} frames, $moving off live, worst '
+      'max ${worst.max} mean ${worst.mean.toStringAsFixed(4)} '
+      'over3 ${worst.over.toStringAsFixed(3)}%',
+    );
+    expect(moving, greaterThan(0));
     expect(worst.over, lessThan(0.5));
   });
 }
