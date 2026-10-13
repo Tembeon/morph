@@ -2,7 +2,6 @@ import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:morph/src/spring.dart';
 import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/menu_motion.dart';
@@ -268,21 +267,6 @@ void main() {
       expect(a, b);
       final kx = (180 - 120 + 40 * 120 / 250) / 6000;
       expect(b.driftX, moreOrLessEquals(-kx * 250, epsilon: _eps));
-    });
-
-    test('the pulse steps a changed target by the retarget step', () {
-      const spring = MorphSpring(0.574, 0.548);
-      final pulse = MorphFlexPulse(spring);
-      final reference = MorphSpringState(spring, 0);
-      pulse.reset(0);
-      pulse.step(1 / 30, 10, retargetStep: 1 / 60);
-      reference.retarget(0, 10);
-      expect(pulse.value, moreOrLessEquals(reference.value(1 / 60)));
-      expect(pulse.velocity, moreOrLessEquals(reference.velocity(1 / 60)));
-      pulse.step(2 / 30, 10, retargetStep: 1 / 60);
-      expect(pulse.value, moreOrLessEquals(reference.value(1 / 60 + 1 / 30)));
-      expect(pulse.isAtRest(10, 1, 0.25), isFalse);
-      expect(pulse.isAtRest(11, 1e-9, 0.25), isFalse);
     });
   });
 

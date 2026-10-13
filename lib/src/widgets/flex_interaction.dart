@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:meta/meta.dart';
 import 'package:morph/src/spring.dart';
+import 'package:morph/src/widgets/channel.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -29,7 +30,9 @@ typedef MorphFlexValues = ({
 /// finger.
 ///
 /// The menu variant of the same machine is [menuTargets] with its pulse
-/// channel [MorphFlexPulse]; the open menu drives those itself.
+/// channel, a stepped [MorphChannel]; the open menu drives those itself.
+/// Each of the four channels is a [MorphChannel] on the spec's springs
+/// and retarget impulse.
 ///
 /// Times are seconds, positions pixels in the surface's own space.
 @internal
@@ -99,22 +102,19 @@ class MorphFlexInteraction {
   final bool _ownsTimeline;
   Size _size;
   MorphFlexSpec _spec;
-  final MorphSpringState _scaleX = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    1,
+  late final MorphChannel _scaleX = _channel(1);
+  late final MorphChannel _scaleY = _channel(1);
+  late final MorphChannel _driftX = _channel(0);
+  late final MorphChannel _driftY = _channel(0);
+
+  MorphChannel _channel(double value) => MorphChannel(
+    value,
+    spring: _spec.scaleSpring,
+    trackingSpring: _spec.trackingSpring,
+    retargetImpulse: _spec.retargetImpulse,
   );
-  final MorphSpringState _scaleY = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    1,
-  );
-  final MorphSpringState _driftX = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    0,
-  );
-  final MorphSpringState _driftY = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    0,
-  );
+
+  List<MorphChannel> get _channels => [_scaleX, _scaleY, _driftX, _driftY];
   final MorphSpringState _glowOut = MorphSpringState(glowSpring, 0);
   final MorphSpringState _littleScale = MorphSpringState(glowSpring, 1);
   final MorphSpringState _glowX = MorphSpringState(
@@ -140,6 +140,11 @@ class MorphFlexInteraction {
     if (value == _size) return;
     _size = value;
     _spec = MorphFlexSpec.forSize(value);
+    for (final channel in _channels) {
+      channel.spring = _spec.scaleSpring;
+      channel.trackingSpring = _spec.trackingSpring;
+      channel.retargetImpulse = _spec.retargetImpulse;
+    }
   }
 
   /// The deformation tuning UIKit derives for [size].
@@ -189,7 +194,7 @@ class MorphFlexInteraction {
     advance(t);
     if (_down == null) return;
     _position = position;
-    if (_active) _retarget(t, targets, _spec.trackingSpring);
+    if (_active) _retarget(t, targets, tracking: true);
     if (glows) {
       final at = _clamped(position);
       final tracking = _spec.trackingSpring;
@@ -216,7 +221,7 @@ class MorphFlexInteraction {
     final wasDown = _down != null;
     _down = null;
     _active = false;
-    _retarget(t, rest, _spec.scaleSpring);
+    _retarget(t, rest, tracking: false);
     if (glows && wasDown) {
       _glowOut.snap(t, strength);
       _glowOut.retarget(t, 0);
@@ -226,14 +231,14 @@ class MorphFlexInteraction {
 
   void _activate(double t) {
     _active = true;
-    _retarget(t, targets, _spec.trackingSpring);
+    _retarget(t, targets, tracking: true);
   }
 
-  void _retarget(double t, MorphFlexValues to, MorphSpring spring) {
-    _scaleX.retarget(t, to.scaleX, spring: spring);
-    _scaleY.retarget(t, to.scaleY, spring: spring);
-    _driftX.retarget(t, to.driftX, spring: spring);
-    _driftY.retarget(t, to.driftY, spring: spring);
+  void _retarget(double t, MorphFlexValues to, {required bool tracking}) {
+    _scaleX.set(t, to.scaleX, tracking: tracking);
+    _scaleY.set(t, to.scaleY, tracking: tracking);
+    _driftX.set(t, to.driftX, tracking: tracking);
+    _driftY.set(t, to.driftY, tracking: tracking);
   }
 
   /// What the channels head to now: [dynamicTargets] of the finger while
@@ -449,7 +454,7 @@ class MorphFlexInteraction {
   ///
   /// [translation] is the finger's travel from its touch-down, [inBounds]
   /// its travel clamped into the menu, [velocity] the pulse channel's
-  /// velocity ([MorphFlexPulse]) and [side] +1 for a menu below its
+  /// velocity (a stepped [MorphChannel]) and [side] +1 for a menu below its
   /// button, -1 above it. Along x (y likewise with H):
   ///
   /// ```
@@ -503,58 +508,5 @@ class MorphFlexInteraction {
     final e = math.exp(-2 * x.abs());
     final y = (1 - e) / (1 + e);
     return x.isNegative ? -y : y;
-  }
-}
-
-/// The pulse channel of UIKit's menu flex: a spring chasing the finger's
-/// vertical travel on a clock of its own, stepped by its owner.
-///
-/// A step whose target changed since the previous step advances the
-/// spring by a fixed retarget step; a step with the same target by the
-/// time that passed. Between steps the channel holds what it published.
-@internal
-class MorphFlexPulse {
-  /// Creates a channel at rest on zero, chasing on [spring].
-  MorphFlexPulse(MorphSpring spring) : _spring = MorphSpringState(spring, 0);
-
-  final MorphSpringState _spring;
-  double _clock = 0;
-  double _target = 0;
-  double _stepped = 0;
-
-  /// The published value.
-  double value = 0;
-
-  /// The published velocity, per second of the channel's clock.
-  double velocity = 0;
-
-  /// Puts the channel at rest on zero at wall time [t].
-  void reset(double t) {
-    _spring.snap(_clock, 0);
-    _target = 0;
-    _stepped = t;
-    value = 0;
-    velocity = 0;
-  }
-
-  /// Steps the channel at wall time [t] toward [target]; a changed
-  /// target advances the spring by [retargetStep].
-  void step(double t, double target, {required double retargetStep}) {
-    final h = target != _target ? retargetStep : t - _stepped;
-    _spring.retarget(_clock, target);
-    _clock += h;
-    _target = target;
-    _stepped = t;
-    value = _spring.value(_clock);
-    velocity = _spring.velocity(_clock);
-  }
-
-  /// Whether, with the finger held at [target], the most the channel can
-  /// still publish moves an edge by less than [rest]; [reach] is how far
-  /// an edge moves per point per second of published velocity.
-  bool isAtRest(double target, double reach, double rest) {
-    final omega = _spring.spring.omega;
-    return target == _target &&
-        (velocity.abs() + omega * (value - target).abs()) * reach < rest;
   }
 }

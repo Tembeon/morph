@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/spring.dart';
+import 'package:morph/src/widgets/channel.dart';
 import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
@@ -1144,7 +1145,11 @@ class MorphMenuMotion {
     _flexScaleY = MorphSpringState(tuning.flex.scaleSpring, 1);
     _flexDriftX = MorphSpringState(tuning.flex.scaleSpring, 0);
     _flexDriftY = MorphSpringState(tuning.flex.scaleSpring, 0);
-    _pulse = MorphFlexPulse(tuning.flexPulseSpring);
+    _pulse = MorphChannel.stepped(
+      0,
+      spring: tuning.flexPulseSpring,
+      retargetStep: tuning.flexPulseRetargetStep,
+    );
     _root = _build(reversed: false);
     _rootHeight = MorphSpringState(tuning.growSpring, _visibleRoot(_root));
     _cardContainer = MorphSpringState(tuning.cardContainerSpring, 1);
@@ -1170,7 +1175,7 @@ class MorphMenuMotion {
   late final MorphSpringState _flexScaleY;
   late final MorphSpringState _flexDriftX;
   late final MorphSpringState _flexDriftY;
-  late final MorphFlexPulse _pulse;
+  late final MorphChannel _pulse;
   _FlexTouch? _flexTouch;
   int _flexGeneration = 0;
   late MorphSpringState _rootHeight;
@@ -2035,7 +2040,7 @@ class MorphMenuMotion {
   /// clock.
   @visibleForTesting
   ({double value, double velocity}) get flexPulse =>
-      (value: _pulse.value, velocity: _pulse.velocity);
+      (value: _pulse.value(_now), velocity: _pulse.velocity(_now));
 
   /// [menuRect] flexed by the finger on the menu, without the morph from
   /// the button: the frame UIKit's `_UIContextMenuListView` takes.
@@ -2097,7 +2102,7 @@ class MorphMenuMotion {
       translation: at - touch.origin,
       inBounds: inside - touch.origin,
       size: frame.size,
-      velocity: _pulse.velocity,
+      velocity: _pulse.velocity(_now),
       side: _down ? 1.0 : -1.0,
     );
   }
@@ -2454,7 +2459,7 @@ class MorphMenuMotion {
       if (generation != _flexGeneration) return;
       _flexPending = false;
       if (_phase != _Phase.opening) return;
-      _pulse.reset(s);
+      _pulse.snap(s, 0);
       _flexTouch = _FlexTouch(position, s);
     });
   }
@@ -2475,7 +2480,7 @@ class MorphMenuMotion {
       touch.nextStep = null;
       final target = touch.position.dy - touch.origin.dy;
       final before = _targetsOf(touch);
-      _pulse.step(s, target, retargetStep: tuning.flexPulseRetargetStep);
+      _pulse.step(s, target);
       _noteChange(touch, s, before);
       final flex = tuning.flex;
       final reach =
@@ -2484,7 +2489,7 @@ class MorphMenuMotion {
             flex.interactionPulseScaleY * (1 + flex.interactionPulseDriftRatio),
           ) /
           flex.interactionPulseNormalizationFactor;
-      if (!_pulse.isAtRest(target, reach, MorphMenuTuning.flexPulseRest)) {
+      if (!_pulse.holdsWithin(target, reach, MorphMenuTuning.flexPulseRest)) {
         _schedulePulse(touch, s);
       }
     });
@@ -2952,7 +2957,7 @@ class MorphMenuMotion {
     if (touch == null) return;
     final d = _targetsOf(touch);
     _flexTouch = null;
-    _pulse.velocity = 0;
+    _pulse.clearPublishedVelocity();
     final rate = t - touch.changedAt < 1.5 * touch.changeSpan
         ? touch.rate
         : _noChange;
