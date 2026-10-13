@@ -451,6 +451,86 @@ Widget morphGlassLiveBody(
   );
 }
 
+/// [morphGlassLiveFill] of a slot: the surface [select] picks, or nothing
+/// while it picks none.
+@internal
+Widget morphGlassLiveFillSlot(
+  MorphGlassSource source,
+  MorphGlassSurface? Function(MorphGlassFrame frame) select,
+) => CustomPaint(
+  painter: _FillPainter(
+    source.pick((f) {
+      final surface = select(f);
+      return surface == null ? _noFill : _fillOf(surface);
+    }),
+  ),
+);
+
+const (RRect, Color) _noFill = (RRect.zero, Color(0x00000000));
+
+/// [morphGlassLiveBody] of a slot: the body [select] picks, or nothing
+/// while it picks none, when it neither paints nor takes hits. [merged]
+/// says whether the bodies the slot shows are merged boxes
+/// ([morphGlassOutlineMergedBoxes]), which must hold while the structure
+/// holds.
+@internal
+Widget morphGlassLiveBodySlot(
+  MorphGlassSource source,
+  (List<MorphGlassSurface>, MorphGlassOutline)? Function(MorphGlassFrame f)
+  select, {
+  required bool merged,
+}) {
+  final data = source.pick((f) {
+    final body = select(f);
+    return body == null ? null : _bodyOf(body.$2, body.$1);
+  });
+  final Widget body;
+  if (merged) {
+    MorphFlatBodyShader.precache().ignore();
+    final repaint = morphRepaintOn(data);
+    body = MetaData(
+      behavior: HitTestBehavior.opaque,
+      child: Builder(
+        builder: (context) {
+          final ratio = MediaQuery.maybeDevicePixelRatioOf(context) ?? 1;
+          return MorphScreenScalePaint(
+            repaint: repaint,
+            painter: (canvas, size, toRoot) {
+              final now = data.value;
+              if (now == null) return;
+              _paintBody(canvas, now, MorphGlyphScale.of(toRoot) * ratio);
+            },
+          );
+        },
+      ),
+    );
+  } else {
+    body = CustomPaint(painter: _BodySlotPainter(data));
+  }
+  return MorphLiveTemplate(
+    live: source.live,
+    template: () => IgnorePointer(ignoring: data.value == null),
+    child: body,
+  );
+}
+
+class _BodySlotPainter extends CustomPainter {
+  _BodySlotPainter(this.data) : super(repaint: morphRepaintOn(data));
+
+  final ValueListenable<(MorphGlassOutline, Color)?> data;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final body = data.value;
+    if (body != null) _paintBody(canvas, body, 1);
+  }
+
+  @override
+  bool shouldRepaint(_BodySlotPainter oldDelegate) =>
+      data is! MorphFixed<(MorphGlassOutline, Color)?> ||
+      oldDelegate.data.value != data.value;
+}
+
 /// The glow of the surface [select] picks from [source], as
 /// [MorphGlassPainter.buildGlow] draws it, following the source; the
 /// surface must keep a glow while the structure holds.

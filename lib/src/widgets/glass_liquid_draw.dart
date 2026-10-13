@@ -178,6 +178,10 @@ LiquidGlassShapeFrame _shapeFrame(
 /// surfaces' own circular rounded boxes instead of continuous corners. A
 /// lifted lens's layer shrinks its backdrop by [shrink] about a center
 /// line of [rim] weight.
+///
+/// With [slots] the layer holds that many shapes whatever [select] picks,
+/// the ones past its pick absent ([_slotShapes]), and reads its settings
+/// from [anchor] while the pick is empty.
 Widget _layer(
   MorphGlassRenderer renderer,
   MorphGlassSource source,
@@ -191,10 +195,17 @@ Widget _layer(
   bool exact = false,
   bool? fake,
   bool ownBackdrop = false,
+  int? slots,
+  MorphGlassSurface Function(MorphGlassFrame frame)? anchor,
 }) {
-  final count = select(source.frame).length;
+  MorphGlassSurface first(MorphGlassFrame f) {
+    final surfaces = select(f);
+    return surfaces.isEmpty ? anchor!(f) : surfaces.first;
+  }
+
+  final count = slots ?? select(source.frame).length;
   final settings = source.pick((f) {
-    final surface = select(f).first;
+    final surface = first(f);
     final settings = morphLiquidSettings(renderer, surface);
     final amount = shrink?.call(surface) ?? 0;
     return amount == 0
@@ -208,23 +219,30 @@ Widget _layer(
     child: LiquidGlassLayer.live(
       live: source.live,
       settingsOf: () => settings.value,
-      defaultAppearance: morphLiquidAppearance(
-        renderer,
-        select(source.frame).first,
-      ),
+      defaultAppearance: morphLiquidAppearance(renderer, first(source.frame)),
       fieldOf: fieldOf == null ? null : () => fieldOf.value,
       outlineOf: outlineOf == null ? null : () => outlineOf.value,
       fake: fake ?? renderer.effectiveTier == MorphGlassTier.fake,
       useBackdropGroup: shared,
       blursOwnBackdrop: ownBackdrop,
-      child: _shapes(
-        renderer,
-        source,
-        select,
-        count: count,
-        shadows: shadows,
-        exact: exact,
-      ),
+      child: slots == null
+          ? _shapes(
+              renderer,
+              source,
+              select,
+              count: count,
+              shadows: shadows,
+              exact: exact,
+            )
+          : _slotShapes(
+              renderer,
+              source,
+              select,
+              anchor!,
+              count: count,
+              shadows: shadows,
+              exact: exact,
+            ),
     ),
   );
 }
@@ -253,6 +271,57 @@ Widget _shapes(
               exact: exact,
             ),
           ),
+        ),
+      ),
+  ],
+);
+
+/// [count] shape slots, the first ones showing the surfaces [select]
+/// picks in its order and the rest absent from their layer
+/// ([LiquidGlassShapeFrame.present]): the same shapes as [_shapes] of the
+/// pick, whatever its length.
+///
+/// An absent slot keeps the kind of shadows of [anchor]'s surface, so a
+/// slot that turns present builds nothing.
+Widget _slotShapes(
+  MorphGlassRenderer renderer,
+  MorphGlassSource source,
+  List<MorphGlassSurface> Function(MorphGlassFrame frame) select,
+  MorphGlassSurface Function(MorphGlassFrame frame) anchor, {
+  required int count,
+  bool shadows = true,
+  bool exact = false,
+}) => MorphLiveStack(
+  live: source.live,
+  children: [
+    for (var i = 0; i < count; i++)
+      MorphLivePositioned(
+        rect: source.pick((f) {
+          final surfaces = select(f);
+          return i < surfaces.length ? surfaces[i].bounds : Rect.zero;
+        }),
+        child: LiquidGlass.live(
+          live: source.pick((f) {
+            final surfaces = select(f);
+            if (i < surfaces.length) {
+              return _shapeFrame(
+                renderer,
+                surfaces[i],
+                shadows: shadows,
+                exact: exact,
+              );
+            }
+            final surface = anchor(f);
+            return LiquidGlassShapeFrame(
+              shape: _shape(surface.localShape, exact: exact),
+              appearance: morphLiquidAppearance(
+                renderer,
+                surface,
+              ).copyWith(visibility: 0),
+              shadows: shadows ? _shadows(surface) : const [],
+              present: false,
+            );
+          }),
         ),
       ),
   ],
@@ -349,6 +418,61 @@ Widget morphLiquidBody(
   );
 }
 
+/// [morphLiquidBody] of a slot: the fused body [select] picks, shaded
+/// from its field, or nothing while it picks none, when it neither paints
+/// nor takes hits; a body of a container with spacing always carries a
+/// field. Its layer holds [count] member slots and reads its settings
+/// from [anchor] while it is empty.
+Widget _slotBody(
+  MorphGlassRenderer renderer,
+  MorphGlassSource source,
+  (List<MorphGlassSurface>, MorphGlassOutline)? Function(MorphGlassFrame f)
+  select,
+  MorphGlassSurface Function(MorphGlassFrame frame) anchor, {
+  required int count,
+}) {
+  final body = source.pick(select);
+  return MorphLiveTemplate(
+    live: source.live,
+    template: () => IgnorePointer(ignoring: body.value == null),
+    child: CustomPaint(
+      painter: MorphGlassBodyShadow.live(
+        source.pick((f) {
+          final body = select(f);
+          if (body == null) return _noBodyShadow;
+          final (surfaces, outline) = body;
+          return (
+            outline.path,
+            _shadows(surfaces.first),
+            surfaces.first.opacity.clamp(0.0, 1.0),
+            morphGlassOutlineShadowCover(outline),
+          );
+        }),
+      ),
+      child: _layer(
+        renderer,
+        source,
+        (f) => select(f)?.$1 ?? const [],
+        field: (f) => switch (select(f)) {
+          (_, final outline) => morphGlassOutlineField(outline),
+          null => null,
+        },
+        outline: (f) => select(f)?.$2.path,
+        shadows: false,
+        slots: count,
+        anchor: anchor,
+      ),
+    ),
+  );
+}
+
+final (Path, List<BoxShadow>, double, Path?) _noBodyShadow = (
+  Path(),
+  const <BoxShadow>[],
+  0.0,
+  null,
+);
+
 bool _chrome(MorphGlassSurface s) =>
     s.kind == MorphGlassKind.bar || s.kind == MorphGlassKind.menu;
 
@@ -396,6 +520,9 @@ Widget morphLiquidLayer(
   // The liquid tier with analytic geometry merges small fused bodies in
   // its shader; every other tier draws the package's fused outlines.
   final tier = renderer.effectiveTier;
+  if (source.live != null && morphGlassLayerSlots(source.frame)) {
+    return _slottedLayer(renderer, context, source, content: content);
+  }
   final parts = source.frame.partsFor(tier);
   final body = parts.body;
   final floating = parts.floating;
@@ -503,28 +630,12 @@ Widget morphLiquidLayer(
             ),
           ),
       if (content != null)
-        Positioned.fill(
-          key: const ValueKey<String>('content'),
-          child: ClipPath(
-            clipBehavior: lensed.isEmpty ? Clip.none : Clip.antiAlias,
-            clipper: live == null
-                ? _LensClip(lenses(source.frame), outside: true)
-                : source.keep('lens clip', () {
-                    final picked = source.pick(lenses);
-                    return MorphLiveClipper<Path>(
-                      live: live,
-                      keyOf: () => _LensRects(picked.value),
-                      clipOf: (Size size) =>
-                          _LensClip(picked.value, outside: true).getClip(size),
-                    );
-                  }),
-            child: GlassContentSource(
-              snapshot: snapshot,
-              capture: lensed.isNotEmpty,
-              live: live,
-              child: content,
-            ),
-          ),
+        _content(
+          source,
+          snapshot,
+          lenses,
+          lensed: lensed.isNotEmpty,
+          content: content,
         ),
       for (final (i, surface) in floating.indexed)
         if (lifted(surface)) ...[
@@ -567,6 +678,117 @@ Widget morphLiquidLayer(
             ),
           ),
         ],
+    ],
+  );
+}
+
+/// The control's content over its glass, outside the lifted [lenses]
+/// ([lensed] while there are any), which show it themselves.
+Widget _content(
+  MorphGlassSource source,
+  GlassContentSnapshot snapshot,
+  List<RRect> Function(MorphGlassFrame f) lenses, {
+  required bool lensed,
+  required Widget content,
+}) {
+  final live = source.live;
+  return Positioned.fill(
+    key: const ValueKey<String>('content'),
+    child: ClipPath(
+      clipBehavior: lensed ? Clip.antiAlias : Clip.none,
+      clipper: live == null
+          ? _LensClip(lenses(source.frame), outside: true)
+          : source.keep('lens clip', () {
+              final picked = source.pick(lenses);
+              return MorphLiveClipper<Path>(
+                live: live,
+                keyOf: () => _LensRects(picked.value),
+                clipOf: (Size size) =>
+                    _LensClip(picked.value, outside: true).getClip(size),
+              );
+            }),
+      child: GlassContentSource(
+        snapshot: snapshot,
+        capture: lensed,
+        live: live,
+        child: content,
+      ),
+    ),
+  );
+}
+
+/// The layer of a slotted frame ([morphGlassLayerSlots]): one layer of
+/// a slot for every surface drawn as its own shape, then a body for every
+/// fused group the surfaces can form, then the content, so a frame whose
+/// surfaces fuse, part, appear or vanish fills slots instead of building.
+/// The layers and keys are [morphLiquidLayer]'s, the separate shapes'
+/// layer first under the key of a layer without fused bodies, so a change
+/// that starts or ends at rest keeps its layers.
+Widget _slottedLayer(
+  MorphGlassRenderer renderer,
+  BuildContext context,
+  MorphGlassSource source, {
+  Widget? content,
+}) {
+  final tier = renderer.effectiveTier;
+  final count = source.frame.surfaces.length;
+  MorphGlassLayerParts partsOf(MorphGlassFrame f) => f.partsFor(tier);
+  MorphGlassSurface anchor(MorphGlassFrame f) {
+    final body = partsOf(f).body;
+    return body.isEmpty ? f.surfaces.first : body.first;
+  }
+
+  final joined =
+      MorphGlassContainerScope.maybeOf(context)?.holds(context) ?? false;
+  Widget fill(Object slot, Key key, Widget Function() child) =>
+      source.keep(slot, () => Positioned.fill(key: key, child: child()));
+  return MorphLiveStack(
+    live: source.live,
+    children: [
+      fill(
+        'separate',
+        const ValueKey<String>('body'),
+        () => joined
+            ? GlassRasterAnchor(
+                child: _slotShapes(
+                  renderer,
+                  source,
+                  (f) => partsOf(f).separate,
+                  anchor,
+                  count: count,
+                ),
+              )
+            : _layer(
+                renderer,
+                source,
+                (f) => partsOf(f).separate,
+                slots: count,
+                anchor: anchor,
+              ),
+      ),
+      for (var i = 0; i < count ~/ 2; i++)
+        fill(
+          ('fused', i),
+          ValueKey<(String, int)>(('fused', i)),
+          () => _slotBody(
+            renderer,
+            source,
+            (f) {
+              final fused = partsOf(f).fused;
+              return i < fused.length ? fused[i] : null;
+            },
+            anchor,
+            count: count,
+          ),
+        ),
+      if (content != null)
+        _content(
+          source,
+          source.keep('snapshot', GlassContentSnapshot.new),
+          (f) => const [],
+          lensed: false,
+          content: content,
+        ),
     ],
   );
 }

@@ -89,6 +89,7 @@ abstract class RenderLiquidGlassGeometry extends RenderProxyBox {
     required LiquidGlassSettings settings,
     required double devicePixelRatio,
     this._renderLink,
+    this._present = true,
   }) {
     _settings = settings;
     _devicePixelRatio = devicePixelRatio;
@@ -131,7 +132,24 @@ abstract class RenderLiquidGlassGeometry extends RenderProxyBox {
     if (_renderLink == value) return;
     _renderLink?.unregisterGeometry(this);
     _renderLink = value;
-    _renderLink?.registerGeometry(this);
+    if (_present) _renderLink?.registerGeometry(this);
+  }
+
+  bool _present;
+
+  /// Whether the geometry is registered with its layer while attached:
+  /// an absent geometry is none of the layer's shapes, as if it were not
+  /// in the tree, and its slot stays mounted for when it comes back.
+  bool get present => _present;
+  set present(bool value) {
+    if (_present == value) return;
+    _present = value;
+    if (!value) {
+      _renderLink?.unregisterGeometry(this);
+      return;
+    }
+    markGeometryNeedsUpdate(force: true);
+    if (attached) _renderLink?.registerGeometry(this);
   }
 
   /// The current state of the geometry.
@@ -227,7 +245,7 @@ abstract class RenderLiquidGlassGeometry extends RenderProxyBox {
   @override
   @mustCallSuper
   void attach(PipelineOwner owner) {
-    _renderLink?.registerGeometry(this);
+    if (_present) _renderLink?.registerGeometry(this);
     super.attach(owner);
   }
 

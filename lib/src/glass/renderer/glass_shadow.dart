@@ -268,7 +268,7 @@ class _RenderGlassShadow extends RenderProxyBox with MorphLiveBinding {
 
   @override
   void paint(PaintingContext context, Offset offset) {
-    if (shadows.isNotEmpty) {
+    if (shadows.isNotEmpty && visibility > 0) {
       final geometry = _geometryFor(size);
       if (!_paintShaded(context.canvas, offset, geometry)) {
         final outside = geometry.outside;

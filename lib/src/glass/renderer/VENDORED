@@ -534,3 +534,15 @@ Local patches (some commits include related package changes):
   nearestShapeTint. Host tests: example/test/analytic_geometry_host_test
   ("a shape inside a larger one") and analytic_gallery_host_test (an open
   gallery menu, analytic against the matte).
+- 2026-10-14 absent shapes: LiquidGlassShapeFrame.present (default true)
+  and RenderLiquidGlassGeometry.present: an absent geometry stays mounted
+  but is unregistered from its GeometryRenderLink (and registers again,
+  geometry forced, when it turns present), so the layer's shape list,
+  bounds, short side and appearance classes are exactly those of a tree
+  without it. Slotted glass layers (MorphGlassFrame.slotted) hold a slot
+  per surface this way and fill them from each frame instead of building.
+  LiquidGlass rebuilds on a change of shape kind only when it has content
+  to clip (its geometry takes the new kind through the live setters), and
+  GlassShadow paints nothing at visibility 0 instead of transparent
+  shadows. Host parity: every frame of a push, a pop and toolbar item
+  swaps is identical on the flat and fake tiers (exact glyphs).

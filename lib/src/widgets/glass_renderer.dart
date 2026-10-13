@@ -378,6 +378,14 @@ class MorphGlassRenderer extends MorphGlassPainter {
   }) {
     final tier = effectiveTier;
     return MorphListKey<Object?>(switch (mode) {
+      MorphGlassMode.layer when morphGlassLayerSlots(frame) => [
+        tier,
+        content,
+        'slots',
+        frame.surfaces.length,
+        frame.surfaces.first.brightness,
+        if (tier == MorphGlassTier.flat) _flatMerged(frame),
+      ],
       MorphGlassMode.layer => [
         tier,
         content,
@@ -416,6 +424,15 @@ class MorphGlassRenderer extends MorphGlassPainter {
       (f) => (f.surfaces, f.outline!),
     ),
   };
+
+  /// Whether the flat tier fills every fused body of [frame] by the merge
+  /// law per pixel: each body's widget is chosen when the tree is built.
+  static bool _flatMerged(MorphGlassFrame frame) =>
+      MorphFlatBodyShader.enabled &&
+      frame
+          .partsFor(MorphGlassTier.flat)
+          .fused
+          .every((body) => body.$1.length <= MorphFlatBodyShader.maxBoxes);
 
   static List<Object?> _surfaceStructure(
     MorphGlassTier tier,
@@ -520,6 +537,9 @@ class MorphGlassRenderer extends MorphGlassPainter {
     if (effectiveTier != MorphGlassTier.flat) {
       return morphLiquidLayer(this, context, source, content: content);
     }
+    if (_exact && source.live != null && morphGlassLayerSlots(source.frame)) {
+      return _flatSlots(source, content: content);
+    }
     MorphGlassLayerParts partsOf(MorphGlassFrame f) =>
         _exact ? f.partsFor(MorphGlassTier.flat) : f.parts;
     final parts = partsOf(source.frame);
@@ -586,6 +606,61 @@ class MorphGlassRenderer extends MorphGlassPainter {
     );
   }
 
+  /// The flat tier of a slotted layer ([morphGlassLayerSlots]): a fill for every
+  /// surface drawn as its own shape and a body for every fused group the
+  /// surfaces can form, each empty while the frame has nothing for it, in
+  /// the unslotted layer's order and keys.
+  Widget _flatSlots(MorphGlassSource source, {Widget? content}) {
+    final count = source.frame.surfaces.length;
+    final merged = _flatMerged(source.frame);
+    MorphGlassLayerParts partsOf(MorphGlassFrame f) =>
+        f.partsFor(MorphGlassTier.flat);
+    MorphGlassSurface? separate(MorphGlassFrame f, int i) {
+      final separate = partsOf(f).separate;
+      return i < separate.length ? separate[i] : null;
+    }
+
+    (List<MorphGlassSurface>, MorphGlassOutline)? fused(
+      MorphGlassFrame f,
+      int i,
+    ) {
+      final fused = partsOf(f).fused;
+      return i < fused.length ? fused[i] : null;
+    }
+
+    return MorphLiveStack(
+      live: source.live,
+      children: [
+        for (var i = 0; i < count; i++)
+          source.keep(
+            ('surface', i),
+            () => MorphLivePositioned(
+              key: ValueKey<(String, int)>(('surface', i)),
+              rect: source.pick((f) => separate(f, i)?.bounds ?? Rect.zero),
+              child: morphGlassLiveFillSlot(source, (f) => separate(f, i)),
+            ),
+          ),
+        for (var i = 0; i < count ~/ 2; i++)
+          source.keep(
+            ('body', i),
+            () => Positioned.fill(
+              key: ValueKey<(String, int)>(('body', i)),
+              child: morphGlassLiveBodySlot(
+                source,
+                (f) => fused(f, i),
+                merged: merged,
+              ),
+            ),
+          ),
+        if (content != null)
+          Positioned.fill(
+            key: const ValueKey<String>('content'),
+            child: content,
+          ),
+      ],
+    );
+  }
+
   static bool _visible(MorphGlassSurface surface) =>
       surface.bounds.width >= 0.5 && surface.bounds.height >= 0.5;
 
@@ -604,6 +679,26 @@ class MorphGlassRenderer extends MorphGlassPainter {
   int get hashCode =>
       Object.hash(tier, material, blur, refraction, light, tint, frostControls);
 }
+
+/// Whether a layer host keeps one tree of slots for [frame]: a
+/// [MorphGlassFrame.slotted] frame whose surfaces are all glass body
+/// surfaces of a container ([MorphGlassFrame.spacing] above 0) that
+/// neither float, glow nor frost, so any of them may be drawn as its own
+/// shape or as a member of any fused body without a change of tree.
+@internal
+bool morphGlassLayerSlots(MorphGlassFrame frame) =>
+    frame.slotted &&
+    frame.outline == null &&
+    frame.spacing > 0 &&
+    frame.surfaces.isNotEmpty &&
+    frame.surfaces.every(
+      (s) =>
+          s.glass &&
+          !MorphGlassRenderer.floats(s.kind) &&
+          s.glow == null &&
+          s.kind != MorphGlassKind.bar &&
+          s.kind != MorphGlassKind.menu,
+    );
 
 /// Whether a control drawing with [painter] needs the field of the
 /// outlines it fuses, or their edge alone.

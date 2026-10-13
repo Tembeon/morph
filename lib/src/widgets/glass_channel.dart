@@ -22,11 +22,25 @@ class MorphGlassFrame {
     this.contentSlots = const [],
     this.spacing = 0,
     this.still = false,
+    this.slotted = false,
   });
 
   /// Whether nothing of the control moves in this frame: no surface and
   /// no transform between the surfaces and an enclosing glass container.
   final bool still;
+
+  /// Whether the frame belongs to a change that keeps one glass tree
+  /// while its surfaces fuse, part, appear and vanish, as UIKit updates
+  /// the elements of one SDF layer through a bar's item change.
+  ///
+  /// A layer host given slotted frames ([morphGlassLayerSlots]) builds a
+  /// slot for every surface - a separate shape, or a member of any body the
+  /// surfaces can fuse into - and fills the slots from each frame, so its
+  /// tree holds while [surfaces] keeps its length. Pad [surfaces] with
+  /// invisible ones to hold the length. The pixels are those of the same
+  /// frame unslotted; a frame whose surfaces float, glow or frost builds
+  /// as an unslotted one.
+  final bool slotted;
 
   /// The surfaces, back to front.
   final List<MorphGlassSurface> surfaces;

@@ -16,6 +16,7 @@ class LiquidGlassShapeFrame {
     required this.shape,
     this.appearance,
     this.shadows = const [],
+    this.present = true,
   });
 
   /// The geometry shaded by the containing layer.
@@ -26,6 +27,11 @@ class LiquidGlassShapeFrame {
 
   /// Shadows around the shape.
   final List<BoxShadow> shadows;
+
+  /// Whether the shape is in its layer: an absent shape is left out of
+  /// the layer's shapes, as if it were not in the tree, until a frame
+  /// brings it back.
+  final bool present;
 }
 
 /// One independently shaded shape in a [LiquidGlassLayer].
@@ -88,14 +94,19 @@ class LiquidGlass extends StatefulWidget {
 class _LiquidGlassState extends State<LiquidGlass> {
   final _childKey = GlobalKey(debugLabel: 'LiquidGlass.child');
 
-  (Type, bool)? _form;
+  (Type?, bool)? _form;
 
   LiquidGlassShapeFrame? _resolvedFrame;
   LiquidGlassAppearance? _resolvedBase;
   double _resolvedFactor = 1;
   LiquidGlassAppearance? _resolved;
 
-  (Type, bool) _formOf() => (widget.shape.runtimeType, widget.shadows.isEmpty);
+  // A shape without content reaches its render objects through their live
+  // setters whatever its kind; only a clip around content is built for it.
+  (Type?, bool) _formOf() => (
+    widget.child == null ? null : widget.shape.runtimeType,
+    widget.shadows.isEmpty,
+  );
 
   @override
   void initState() {
@@ -178,6 +189,7 @@ class _LiquidGlassState extends State<LiquidGlass> {
     final content = _RawLiquidGlass(
       renderLink: InheritedGeometryRenderLink.of(context),
       live: live,
+      presentOf: () => widget.live?.value.present ?? true,
       settingsOf: settings,
       appearanceOf: appearance,
       devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
@@ -205,6 +217,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
   const _RawLiquidGlass({
     required super.child,
     required this.live,
+    required this.presentOf,
     required this.shapeOf,
     required this.layerShadowsOf,
     required this.renderLink,
@@ -214,6 +227,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
   });
 
   final Listenable? live;
+  final bool Function() presentOf;
   final LiquidShape Function() shapeOf;
   final List<BoxShadow> Function() layerShadowsOf;
   final GeometryRenderLink? renderLink;
@@ -222,6 +236,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
   final double devicePixelRatio;
 
   void _apply(RenderLiquidGlass renderObject) {
+    renderObject.present = presentOf();
     renderObject.shape = shapeOf();
     renderObject.layerShadows = layerShadowsOf();
     renderObject.settings = settingsOf();
@@ -237,6 +252,7 @@ class _RawLiquidGlass extends SingleChildRenderObjectWidget {
       settings: settingsOf(),
       appearance: appearanceOf(),
       devicePixelRatio: devicePixelRatio,
+      present: presentOf(),
     );
     glass.bindLive(live, () => _apply(glass));
     return glass;
@@ -265,6 +281,7 @@ class RenderLiquidGlass extends RenderLiquidGlassGeometry
     required this._appearance,
     required super.devicePixelRatio,
     super.renderLink,
+    super.present,
   });
 
   LiquidGlassAppearance _appearance;

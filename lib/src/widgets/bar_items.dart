@@ -811,6 +811,8 @@ class _MorphBarItemsState extends State<MorphBarItems>
   // Whether a capsule of the running change appears or leaves in place,
   // held until the change ends.
   bool _hasApart = false;
+  int _joinedSlots = 0;
+  int _apartSlots = 0;
   Object? _pressedCapsule;
   Object? _pressedButton;
   int? _pressPointer;
@@ -1443,6 +1445,20 @@ class _MorphBarItemsState extends State<MorphBarItems>
     final menu = _menu;
     final moving = !_motion.isSettled || _motion.isDrifting;
     _hasApart = moving && (_hasApart || apart.isNotEmpty);
+    // Through a change each glass host keeps as many surfaces as it had
+    // at the change's start (every capsule may join the bar's container),
+    // the ones it no longer draws invisible, so its tree holds while
+    // capsules fuse, part, land or leave.
+    _joinedSlots = moving
+        ? math.max(_joinedSlots, math.max(joined.length, capsules.length))
+        : 0;
+    _apartSlots = moving ? math.max(_apartSlots, apart.length) : 0;
+    MorphGlassSurface vacant() => MorphGlassSurface(
+      kind: MorphGlassKind.button,
+      shape: RRect.zero,
+      color: style.capsuleColor,
+      brightness: brightness,
+    );
     final frames = {for (final f in items) f.id: f};
     final shown = <Object>[];
     final places = <Object, _ItemPlace>{};
@@ -1470,8 +1486,15 @@ class _MorphBarItemsState extends State<MorphBarItems>
     _row = _RowFrame(
       items: items,
       shown: shown,
-      apart: apart,
-      joined: joined,
+      apart: [
+        ...apart,
+        for (var i = apart.length; i < _apartSlots; i++) vacant(),
+      ],
+      joined: [
+        ...joined,
+        for (var i = joined.length; i < _joinedSlots; i++) vacant(),
+      ],
+      slotted: moving,
       menuCapsule: menuCapsule,
       places: places,
       structure: structure,
@@ -1571,8 +1594,11 @@ class _MorphBarItemsState extends State<MorphBarItems>
                         painter: glass,
                         mode: MorphGlassMode.layer,
                         frames: _ticks,
-                        frame: () =>
-                            MorphGlassFrame(_row.apart, spacing: spacing),
+                        frame: () => MorphGlassFrame(
+                          _row.apart,
+                          spacing: spacing,
+                          slotted: _row.slotted,
+                        ),
                       ),
                     ),
                   ),
@@ -1631,6 +1657,7 @@ class _MorphBarItemsState extends State<MorphBarItems>
                         return MorphGlassFrame(
                           row.joined,
                           spacing: spacing,
+                          slotted: row.slotted,
                           still: widget.driftProgress == null && motionSettled,
                           contentSlots: [
                             for (final f in row.items)
@@ -1989,6 +2016,7 @@ class _RowFrame {
     required this.menuCapsule,
     required this.places,
     required this.structure,
+    this.slotted = false,
   });
 
   static const empty = _RowFrame(
@@ -2007,6 +2035,10 @@ class _RowFrame {
   final List<MorphGlassSurface> joined;
   final Rect? menuCapsule;
   final Map<Object, _ItemPlace> places;
+
+  /// Whether the frame belongs to a change, whose glass keeps its tree
+  /// ([MorphGlassFrame.slotted]).
+  final bool slotted;
 
   /// What the row's tree is built from; a frame whose structure differs
   /// from the built one builds.

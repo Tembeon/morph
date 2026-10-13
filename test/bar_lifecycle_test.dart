@@ -32,82 +32,124 @@ void main() {
   for (final tier in [null, ...MorphGlassTier.values]) {
     final name = tier?.name ?? 'no glass';
     group('bar items build only at the start and end ($name)', () {
-      testWidgets(
-        'push and pop of a navigation stack',
-        (tester) async {
-          await _setScreen(tester);
-          late BuildContext inbox;
-          await tester.pumpWidget(
-            _app(tier, MorphNavigationStack(home: _inbox((c) => inbox = c))),
-          );
-          await _settle(tester);
-          final push = await _record(tester, () {
-            Navigator.of(
-              inbox,
-            ).push(MorphNavigationRoute<void>(builder: (_) => _detail()));
-          });
-          if (log) {
-            debugPrint('push/$name/${defaultTargetPlatform.name}\n$push');
-          }
-          expect(find.text('Message'), findsWidgets);
-          final pop = await _record(tester, () {
-            Navigator.of(inbox).pop();
-          });
-          if (log) debugPrint('pop/$name/${defaultTargetPlatform.name}\n$pop');
-          expect(find.text('Message'), findsNothing);
-          push.expectLifecycle();
-          pop.expectLifecycle();
-        },
-        variant: platforms,
-        // Glass hosts still build when capsules fuse or part mid-change.
-        skip: tier != null,
-      );
+      testWidgets('push and pop of a navigation stack', (tester) async {
+        await _setScreen(tester);
+        late BuildContext inbox;
+        await tester.pumpWidget(
+          _app(tier, MorphNavigationStack(home: _inbox((c) => inbox = c))),
+        );
+        await _settle(tester);
+        final push = await _record(tester, () {
+          Navigator.of(
+            inbox,
+          ).push(MorphNavigationRoute<void>(builder: (_) => _detail()));
+        });
+        if (log) {
+          debugPrint('push/$name/${defaultTargetPlatform.name}\n$push');
+        }
+        expect(find.text('Message'), findsWidgets);
+        final pop = await _record(tester, () {
+          Navigator.of(inbox).pop();
+        });
+        if (log) debugPrint('pop/$name/${defaultTargetPlatform.name}\n$pop');
+        expect(find.text('Message'), findsNothing);
+        push.expectLifecycle();
+        pop.expectLifecycle();
+      }, variant: platforms);
 
-      testWidgets(
-        'toolbar item sets that split and join capsules',
-        (tester) async {
-          await _setScreen(tester);
-          final set = ValueNotifier<int>(0);
-          addTearDown(set.dispose);
-          await tester.pumpWidget(
-            _app(
-              tier,
-              ValueListenableBuilder<int>(
-                valueListenable: set,
-                builder: (BuildContext context, int value, Widget? _) {
-                  final (leading, trailing) = _sets[value];
-                  return Stack(
-                    children: [
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: MorphToolbar(
-                          leading: leading,
-                          trailing: trailing,
-                        ),
-                      ),
-                    ],
-                  );
-                },
+      testWidgets('toolbar item sets that split and join capsules', (
+        tester,
+      ) async {
+        await _setScreen(tester);
+        final set = ValueNotifier<int>(0);
+        addTearDown(set.dispose);
+        await tester.pumpWidget(
+          _app(
+            tier,
+            ValueListenableBuilder<int>(
+              valueListenable: set,
+              builder: (BuildContext context, int value, Widget? _) {
+                final (leading, trailing) = _sets[value];
+                return Stack(
+                  children: [
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: MorphToolbar(leading: leading, trailing: trailing),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+        await _settle(tester);
+        for (final next in [1, 2, 0, 2, 1]) {
+          final swap = await _record(tester, () => set.value = next);
+          if (log) {
+            debugPrint(
+              'toolbar $next/$name/${defaultTargetPlatform.name}\n$swap',
+            );
+          }
+          swap.expectLifecycle();
+        }
+      }, variant: platforms);
+    });
+  }
+
+  for (final tier in MorphGlassTier.values) {
+    testWidgets('a tap beside the capsules reaches the page while the items '
+        'change (${tier.name})', (tester) async {
+      await _setScreen(tester);
+      var taps = 0;
+      Widget page(List<MorphBarButtonGroup> leading) => _app(
+        tier,
+        Stack(
+          children: [
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => taps++,
               ),
             ),
-          );
-          await _settle(tester);
-          for (final next in [1, 2, 0, 2, 1]) {
-            final swap = await _record(tester, () => set.value = next);
-            if (log) {
-              debugPrint(
-                'toolbar $next/$name/${defaultTargetPlatform.name}\n$swap',
-              );
-            }
-            swap.expectLifecycle();
-          }
-        },
-        variant: platforms,
-        // Glass hosts still build when capsules fuse or part mid-change.
-        skip: tier != null,
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: MorphToolbar(
+                leading: leading,
+                trailing: [
+                  MorphBarButtonGroup([_icon('compose')]),
+                ],
+              ),
+            ),
+          ],
+        ),
       );
+      await tester.pumpWidget(
+        page([
+          MorphBarButtonGroup([_icon('trash'), _icon('folder')]),
+        ]),
+      );
+      await _settle(tester);
+      final row = tester.getRect(find.byType(MorphToolbar));
+      final beside = Offset(row.center.dx, row.bottom - 30);
+      await tester.tapAt(beside);
+      expect(taps, 1);
+      await tester.pumpWidget(
+        page([
+          MorphBarButtonGroup([_icon('trash')]),
+          MorphBarButtonGroup([_icon('folder')]),
+        ]),
+      );
+      for (var i = 0; i < 50; i++) {
+        await tester.pump(const Duration(milliseconds: 16));
+      }
+      expect(tester.binding.hasScheduledFrame, isTrue);
+      await tester.tapAt(beside);
+      expect(taps, 2);
+      await _settle(tester);
     });
   }
 }
