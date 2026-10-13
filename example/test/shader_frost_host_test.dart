@@ -34,7 +34,8 @@ void _main() {
       tester.view.physicalSize = const ui.Size(1080, 2400);
       tester.view.devicePixelRatio = 2.625;
       addTearDown(tester.view.reset);
-      addTearDown(() => debugMorphShaderFrost = false);
+      final frostBefore = debugMorphShaderFrost;
+      addTearDown(() => debugMorphShaderFrost = frostBefore);
       await tester.runAsync(MorphGlassRenderer.precache);
       if (!MorphGlassRenderer.liquidAvailable) return;
 
