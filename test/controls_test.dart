@@ -251,10 +251,12 @@ MorphSmallLens _lens() => MorphSmallLens(
 
 /// The lean of the 120 x 44 button while a finger drags 150 pixels off
 /// and back, against the model fed the recorded touches.
-({double lean, double stretch}) _leanReplay() {
-  final trace = Trace.load('$_dir/button-glass-120x44-drag-off-back.jsonl');
+({double lean, double stretch}) _leanReplay({bool device = false}) {
+  final trace = Trace.load(
+    '${device ? _deviceDir : _dir}/button-glass-120x44-drag-off-back.jsonl',
+  );
   const size = Size(120, 44);
-  const origin = Offset(_controlX - 60, 400 - 22);
+  final origin = Offset((device ? _deviceControlX : _controlX) - 60, 400 - 22);
   final m = MorphGlassButtonMotion(size: size);
   m.advance(trace.touches.first.t - 1);
   final touches = _Touches(trace);
@@ -556,8 +558,11 @@ void main() {
 
     test('a glass button leans after a finger that drags off', () {
       final e = _leanReplay();
-      expect(e.lean, lessThan(0.25));
-      expect(e.stretch, lessThan(0.004));
+      expect(e.lean, lessThan(0.05));
+      expect(e.stretch, lessThan(0.002));
+      final d = _leanReplay(device: true);
+      expect(d.lean, lessThan(0.1));
+      expect(d.stretch, lessThan(0.002));
     });
 
     test('the fill runs out to the track ends like the device', () {

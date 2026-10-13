@@ -3,7 +3,6 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/glass_button.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 
 /// The measured tuning and geometry of an iOS 27 alert
@@ -58,17 +57,6 @@ abstract final class MorphAlertTuning {
 
   /// The width of an alert.
   static const double width = 320;
-
-  /// How strongly a dragging finger pulls the lifted platter, relative to
-  /// a glass button ([MorphGlassButtonMotion.pull]): an iPhone 16 Pro
-  /// leans the 320 x 264 platter 0.4 points for a 120 point drag (0.06 pt
-  /// rms; the button's pull leaves 0.7 - 1.3).
-  static const double platterPull = 0.25;
-
-  /// How much the platter stretches along a drag per point of lean,
-  /// relative to a glass button ([MorphGlassButtonMotion.stretch]; 0.1 -
-  /// 0.2 pt rms in size on the device, the button's leaves 1 - 4).
-  static const double platterStretch = 0.6;
 
   /// The corner radius of an alert's platter.
   static const double cornerRadius = 34;

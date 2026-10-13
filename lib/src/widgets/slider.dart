@@ -281,8 +281,8 @@ class _MorphSliderState extends MorphControlHost<MorphSlider> {
       Rect.fromLTRB(ends.left, y - height / 2, fillEnd, y + height / 2),
       Radius.circular(math.min(height, fillEnd - ends.left) / 2),
     );
-    final thumbX = motion.thumbCenter;
     final lens = motion.lens;
+    final thumbX = motion.thumbCenter + lens.shift(t);
     final thumbSize = lens.size(t);
     final width = thumbSize.width * lens.scaleX(t);
     final thumbHeight = thumbSize.height * lens.scaleY(t);

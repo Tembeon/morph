@@ -187,7 +187,10 @@ class _MorphSwitchState extends MorphControlHost<MorphSwitch> {
     final width = knobSize.width * lens.scaleX(t);
     final height = knobSize.height * lens.scaleY(t);
     final center = Offset(
-      _inset + MorphSwitchMotion.knobSize.width / 2 + motion.knob,
+      _inset +
+          MorphSwitchMotion.knobSize.width / 2 +
+          motion.knob +
+          lens.shift(t),
       size.height / 2,
     );
     var knob = RRect.fromRectAndRadius(

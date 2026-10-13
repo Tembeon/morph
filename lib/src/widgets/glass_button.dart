@@ -6,172 +6,112 @@ import 'package:meta/meta.dart';
 import 'package:morph/src/live.dart';
 import 'package:morph/src/widgets/control_host.dart';
 import 'package:morph/src/widgets/control_focus.dart';
+import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass.dart';
 import 'package:morph/src/widgets/glyph_scale.dart';
 import 'package:morph/src/widgets/menu.dart';
 import 'package:morph/src/widgets/menu_entries.dart';
 import 'package:morph/src/widgets/glass_glow.dart';
-import 'package:morph/src/spring.dart';
-import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/widgets_theme.dart';
 import 'package:morph/src/widgets/press.dart';
 import 'package:morph/src/widgets/typography.dart';
 
-/// The motion of an iOS 27 glass button: one uniform lift, a lean toward
-/// a finger that drags off, and the touch glow.
+/// The motion of an iOS 27 glass button: the lift, the stretch and shift
+/// toward a finger that drags, and the touch glow.
 ///
-/// A touch scales the whole button by `1 + lift / width`, where the lift
-/// in pixels and both springs come from [MorphFlexSpec.forSize]:
-/// the press rides the tracking spring, the release the scale spring, so
-/// a small button rings below its size while a wide one barely does. The
-/// button stays lifted for the whole touch, even far outside; a finger
-/// that drags away pulls it along by `d * |d| / 10000` pixels and
-/// stretches it along the drag. A glow fades in under the finger and
-/// fades out on release while the little glow at the touch point grows.
+/// It is UIKit's flex interaction for a surface of the button's size
+/// ([MorphFlexSpec.forSize]). A touch scales the whole button by
+/// [MorphFlexSpec.liftScaleFor], the lift over its long side; the press
+/// rides the tracking spring, the release the scale spring, so a small
+/// button rings below its size while a wide one barely does. The button
+/// stays lifted for the whole touch, even far outside. A finger that
+/// drags stretches it along the drag, narrows it across and shifts it
+/// toward the finger: a quarter as much per pixel inside the button as
+/// beyond its edge, over the spec's stretch threshold. A glow fades in
+/// under the finger and fades out on release while the little glow at
+/// the touch point grows.
 ///
 /// Times are seconds and positions pixels in the button's own space.
 class MorphGlassButtonMotion {
   /// Creates the motion of a button of [size].
   MorphGlassButtonMotion({required Size size})
-    : _size = size,
-      _spec = MorphFlexSpec.forSize(size);
+    : _flex = MorphFlexInteraction(size: size, glows: true);
 
   /// The time constant of the glow fading in, in seconds.
-  static const double glowTime = 0.023;
+  static const double glowTime = MorphFlexInteraction.glowTime;
 
   /// The spring the glow fades out and the little glow grows on.
-  static const glowSpring = MorphSpring(0.5, 1);
-
-  /// The divisor of the lean: a drag of `d` pixels leans `d * |d|` over
-  /// this many pixels.
-  static const double leanDivisor = 10000;
-
-  /// How much the button stretches along the drag per pixel of lean.
-  static const double leanStretch = 0.0064;
+  static const glowSpring = MorphFlexInteraction.glowSpring;
 
   /// How far outside the button the touch still counts as inside.
   static const double highlightSlop = 70;
 
   /// The diameter of the little glow at the touch point.
-  static const double littleGlowSize = 66;
+  static const double littleGlowSize = MorphFlexInteraction.littleGlowSize;
 
   /// How much the little glow grows while it fades out.
-  static const double littleGlowGrowth = 4;
-
-  /// How strongly a dragging finger pulls this surface, relative to a
-  /// button: the lean is `pull * d * |d| / leanDivisor`. A large surface
-  /// that lifts like a button, such as an alert's platter, leans less.
-  double pull = 1;
-
-  /// How much this surface stretches along the drag per pixel of lean,
-  /// relative to a button's [leanStretch].
-  double stretch = 1;
+  static const double littleGlowGrowth = MorphFlexInteraction.littleGlowGrowth;
 
   /// Whether the button moves for Reduce Motion: it glows under the touch
   /// but never lifts or leans. This approximates the platform's behavior;
   /// it is not measured.
-  bool reducedMotion = false;
+  bool get reducedMotion => _flex.reducedMotion;
 
-  Size _size;
-  MorphFlexSpec _spec;
-  final MorphSpringState _scale = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    1,
-  );
-  final MorphSpringState _leanX = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    0,
-  );
-  final MorphSpringState _leanY = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    0,
-  );
-  final MorphSpringState _glowOut = MorphSpringState(glowSpring, 0);
-  final MorphSpringState _littleScale = MorphSpringState(glowSpring, 1);
-  final MorphSpringState _glowX = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    0,
-  );
-  final MorphSpringState _glowY = MorphSpringState(
-    MorphFlexSpec.ultraSmall.trackingSpring,
-    0,
-  );
+  set reducedMotion(bool value) => _flex.reducedMotion = value;
 
+  final MorphFlexInteraction _flex;
   double _now = 0;
-  Offset? _down;
   bool _inside = false;
-  double _glowStart = 0;
-  double _glowFrom = 0;
 
   /// The size of the button at rest.
-  Size get size => _size;
+  Size get size => _flex.size;
 
-  set size(Size value) {
-    if (value == _size) return;
-    _size = value;
-    _spec = MorphFlexSpec.forSize(value);
-  }
+  set size(Size value) => _flex.size = value;
 
   /// The deformation tuning UIKit derives for [size].
-  MorphFlexSpec get spec => _spec;
+  MorphFlexSpec get spec => _flex.spec;
 
   /// The scale of the fully lifted button.
-  double get liftedScale =>
-      _size.width > 0 ? 1 + _spec.liftScalePoints / _size.width : 1;
+  double get liftedScale => _flex.liftedScale;
 
   /// The time the motion was last advanced to.
   double get time => _now;
 
   /// Whether a finger is down on the button.
-  bool get isPressed => _down != null;
+  bool get isPressed => _flex.isPressed;
 
   /// Whether the finger is close enough that a release activates.
-  bool get isHighlighted => _down != null && _inside;
+  bool get isHighlighted => _flex.isPressed && _inside;
 
-  /// The uniform lift scale.
-  double get scale => _scale.value(_now);
+  /// The lift: the mean of [scaleX] and [scaleY], which the stretch
+  /// leaves alone.
+  double get scale => _flex.scale(_now);
 
   /// The horizontal scale, lift and drag stretch combined.
-  double get scaleX {
-    final e =
-        leanStretch *
-        stretch *
-        (_leanX.value(_now).abs() - _leanY.value(_now).abs());
-    return scale * (1 + e);
-  }
+  double get scaleX => _flex.scaleX(_now);
 
   /// The vertical scale, lift and drag stretch combined.
-  double get scaleY {
-    final e =
-        leanStretch *
-        stretch *
-        (_leanY.value(_now).abs() - _leanX.value(_now).abs());
-    return scale * (1 + e);
-  }
+  double get scaleY => _flex.scaleY(_now);
 
-  /// The lean toward the finger.
-  Offset get lean => Offset(_leanX.value(_now), _leanY.value(_now));
+  /// How far the button shows shifted toward the finger: the flex's
+  /// drift at the button's scale.
+  Offset get lean => _flex.translation(_now);
 
   /// The glow strength, 0 to 1.
-  double get glow {
-    if (_down != null) {
-      return 1 - (1 - _glowFrom) * math.exp(-(_now - _glowStart) / glowTime);
-    }
-    return _glowOut.value(_now).clamp(0.0, 1.0);
-  }
+  double get glow => _flex.glow(_now);
 
   /// The opacity of the glow over the whole button.
-  double get bigGlowOpacity => glow * _spec.bigGlowOpacity;
+  double get bigGlowOpacity => _flex.bigGlowOpacity(_now);
 
   /// The opacity of the little glow at the touch point.
-  double get littleGlowOpacity => glow * _spec.littleGlowOpacity;
+  double get littleGlowOpacity => _flex.littleGlowOpacity(_now);
 
   /// The scale of the little glow.
-  double get littleGlowScale => _littleScale.value(_now);
+  double get littleGlowScale => _flex.littleGlowScale(_now);
 
   /// The center of the little glow.
-  Offset get littleGlowCenter => Offset(_glowX.value(_now), _glowY.value(_now));
+  Offset get littleGlowCenter => _flex.littleGlowCenter(_now);
 
   /// The measured touch's glow through the shared glass color model.
   ///
@@ -194,13 +134,7 @@ class MorphGlassButtonMotion {
   }
 
   /// Whether every part of the button is at rest.
-  bool get isSettled =>
-      _down == null &&
-      _scale.isAtRest(_now, 1e-4) &&
-      _leanX.isAtRest(_now, 0.01) &&
-      _leanY.isAtRest(_now, 0.01) &&
-      _glowOut.isAtRest(_now, 0.002) &&
-      _littleScale.isAtRest(_now, 0.002);
+  bool get isSettled => !_flex.isPressed && _flex.isAtRest(_now);
 
   /// Advances the motion to time [t].
   void advance(double t) {
@@ -210,44 +144,23 @@ class MorphGlassButtonMotion {
   /// A finger touched the button at [position].
   void pointerDown(double t, Offset position) {
     advance(t);
-    _glowFrom = glow;
-    _glowStart = t;
-    _down = position;
     _inside = true;
-    _scale.retarget(
-      t,
-      reducedMotion ? 1 : liftedScale,
-      spring: _spec.trackingSpring,
-    );
-    _littleScale.snap(t, 1);
-    final glowAt = _clampToButton(position);
-    _glowX.snap(t, glowAt.dx);
-    _glowY.snap(t, glowAt.dy);
+    _flex.pointerDown(t, position);
   }
 
   /// The finger moved to [position].
   void pointerMove(double t, Offset position) {
     advance(t);
-    final down = _down;
-    if (down == null) return;
-    final d = position - down;
-    final lean = reducedMotion
-        ? Offset.zero
-        : d * d.distance * pull / leanDivisor;
-    final tracking = _spec.trackingSpring;
-    _leanX.retarget(t, lean.dx, spring: tracking);
-    _leanY.retarget(t, lean.dy, spring: tracking);
-    final glowAt = _clampToButton(position);
-    _glowX.retarget(t, glowAt.dx, spring: tracking);
-    _glowY.retarget(t, glowAt.dy, spring: tracking);
-    _inside = (Offset.zero & _size).inflate(highlightSlop).contains(position);
+    if (!_flex.isPressed) return;
+    _flex.pointerMove(t, position);
+    _inside = (Offset.zero & size).inflate(highlightSlop).contains(position);
   }
 
   /// The finger left the button at [position]; returns whether the
   /// release activates the button.
   bool pointerUp(double t, Offset position) {
     advance(t);
-    if (_down == null) return false;
+    if (!_flex.isPressed) return false;
     pointerMove(t, position);
     final activated = _inside;
     _release(t);
@@ -257,25 +170,14 @@ class MorphGlassButtonMotion {
   /// The touch was cancelled; the button returns without activating.
   void pointerCancel(double t) {
     advance(t);
-    if (_down == null) return;
+    if (!_flex.isPressed) return;
     _release(t);
   }
 
   void _release(double t) {
-    final strength = glow;
-    _down = null;
     _inside = false;
-    final spring = _spec.scaleSpring;
-    _scale.retarget(t, 1, spring: spring);
-    _leanX.retarget(t, 0, spring: spring);
-    _leanY.retarget(t, 0, spring: spring);
-    _glowOut.snap(t, strength);
-    _glowOut.retarget(t, 0);
-    _littleScale.retarget(t, littleGlowGrowth);
+    _flex.release(t);
   }
-
-  Offset _clampToButton(Offset p) =>
-      Offset(p.dx.clamp(0.0, _size.width), p.dy.clamp(0.0, _size.height));
 }
 
 /// The look of a [MorphGlassButton].

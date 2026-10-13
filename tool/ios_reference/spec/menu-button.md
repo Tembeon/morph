@@ -166,9 +166,13 @@ outside the repository).
   it through the view's anchor). Then sx *= 1 - 50 p / W,
   sy *= 1 + 32 p / H, driftY += ay 22.4 p; sx and sy are clamped to
   [0.9, 1.1]. Lifted: 1, 1, 0, 0.
-- The targets reach the screen directly while the finger is down (the
-  presentation is within one frame) and return on the spec's scaleSpring
-  MorphSpring(0.6, 0.5) after the lift [device fit lands on 0.6/0.5].
+- The four values are channels (lens-and-flex.md "Channels"): while the
+  finger is down they chase the targets on the spec's tracking spring
+  MorphSpring(0.15, 0.5), after the lift they return on its scaleSpring
+  MorphSpring(0.6, 0.5), and every changed target adds velocity
+  stiffness x 0.016 x the change [device: the recorded channel states
+  match this on every changed retarget; the release fit lands on
+  0.6/0.5].
 - Geometry [device]: width W sx, height H sy, center x + driftX, and the
   edge facing the button + driftY (the top of a downward menu, the bottom
   of an upward one). The transform is on the whole list, so the glass,
@@ -227,11 +231,11 @@ outside the repository).
     the channel is reset to (0, 0) there and its velocity zeroed at the
     lift. W, H, the clamp bounds and the side come from the menu's rest
     frame.
-  - while the finger is down the shape IS the targets (UIKit's
-    presentation is within about one frame) [APPROXIMATION, measured];
-    after the lift each of sx, sy, dx, dy returns on 0.6/0.5 from what
-    shows, with the rate its targets last changed at as velocity (zero
-    once they stood still for 1.5 of their last change spans).
+  - sx, sy, dx, dy are `MorphChannel`s retargeted whenever the targets
+    change (a finger move after flexDelay, a pulse step): tracking
+    0.15/0.5 while down, 0.6/0.5 after the lift from what shows with its
+    velocity, the 0.016 impulse on each change. NEAR: UIKit publishes them
+    at 60 Hz tracking / 30 Hz settling; morph evaluates every frame.
   - flexDelay 0.023 s = touch stamp to the flex's translation (14.4 /
     15.9 ms median in drag-out-flex / the tap capture) plus the one
     120 Hz frame the list's frame follows it by [device].
@@ -244,19 +248,22 @@ outside the repository).
   - NEAR, awaiting approval by eye: while the finger rests the channel
     stops stepping once its largest possible remaining swing cannot move
     an edge by 0.25 pt (`flexPulseRest`, the old sway's rest; perf_counts
-    menu-held 224 frames, 238 at 0.01 pt). NEAR (invisible): the return
-    counts as at rest below 0.01 pt (`flexReturnRest`).
+    menu-held 224 frames, 238 at 0.01 pt); the flex channels likewise
+    count as at rest within 0.25 pt of their targets while the finger is
+    down (UIKit itself lands a channel near its target on it). NEAR
+    (invisible): the return counts as at rest below 0.01 pt
+    (`flexReturnRest`).
   - Perf: a menu frame whose motion stood still since the previous one,
     with no input or pending reaction in between, does not repaint the
     menu layer (`MorphMenuMotion.revision` / `isStill`); between two
     channel steps a resting finger draws nothing new.
   - Input-only replay (touches in, list frame out; menu_drag_out_test),
-    pt rms over the four edges: drag-out-flex up 0.20, down 0.26, left
-    0.12, right 0.09; drag-out-upward-flex up 0.26, down 0.16; tap
-    capture 0.21 / 0.22; after the lifts alone 0.24 / 0.25 / 0.22 (0.45 -
-    0.49 with a return from rest). Holdout `drag-out.jsonl` (drawn
-    frames, the capture 9d8f32c was fitted to): 0.24 / 0.24 / 0.12 /
-    0.14 against the fit's 0.40 / 0.36 / 0.17 / 0.17.
+    pt rms over the four edges: drag-out-flex up 0.13, down 0.13, left
+    0.09, right 0.09; drag-out-upward-flex up 0.12, down 0.11; tap
+    capture 0.15 / 0.11; after the lifts alone 0.17 / 0.15 / 0.17.
+    Holdout `drag-out.jsonl` (drawn frames, the capture 9d8f32c was
+    fitted to): 0.16 / 0.12 / 0.06 / 0.06 against the fit's 0.40 / 0.36
+    / 0.17 / 0.17.
 - CONTENT rides the flex 1:1 (`MorphMenuMotion.contentStretch`): rows,
   icons, the highlight, headers, the glow and submenu cards take the one
   affine map from the unflexed shape onto the flexed one, as UIKit
@@ -289,7 +296,10 @@ menu_video_test, menu_anchor_video_test.
 `MorphMenuButton`, `MorphMenuItem`, `MorphMenuStyle`, `MorphMenuMotion`,
 `MorphMenuTuning`, `MorphMenuProgress`, `MorphMenuBlob`,
 `MorphMenuMorphSpec` (menu.dart, menu_motion.dart, menu_morph_spec.dart,
-menu_fusion.dart); flies on the engine as a vessel flight. Shared host
+menu_fusion.dart); the button's press and the open menu's flex run on the
+shared flex machine (flex_interaction.dart: `MorphFlexInteraction` lifts
+the button after `pressDelay` without the stretch, `menuTargets` and
+`MorphFlexPulse` are the menu variant); flies on the engine as a vessel flight. Shared host
 for bar menus: MorphMenuHost / MorphMenuLayer / MorphMenuFlightProgress.
 
 `MorphMenuSource` (menu.dart) turns any widget into this menu; the
@@ -302,7 +312,7 @@ wraps its capsule in it. Declared approximations, not measured:
   opens on the round button's `holdDuration` (0.22 s) and its tap fires
   the action; the long press of such a `UIButton` was not recorded;
 - a glass button with a menu lifts by the menu's press (pressDelay,
-  flex lift over the height) instead of its own uniform lift, with no
+  flex lift over the long side, read from UIKit, notes private) instead of its own uniform lift, with no
   touch glow or lean;
 - a source with a surface of its own (`MorphMenuSource.color`, a glass
   button's fill or tint) draws the source shape in that color at both
