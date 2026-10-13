@@ -7,6 +7,14 @@ run. Native numbers are quoted only from the passports in
 `tool/ios_reference/spec/` or from lib dartdoc that cites a measurement;
 everything else is marked UNMEASURED.
 
+Revised the same day after two iPhone captures (fixtures
+`test/fixtures/ios27-device/tracking/release-outside.jsonl` from 071dcdb
+and `scroll-delay.jsonl` from 87e2eb0): M1 and M2 are answered for the
+glass button, the segmented control and the switch (see "What needs an
+iPhone measurement first"), item 1 is native behaviour, item 4 is down
+to the page control, and the segmented control now cancels a release
+beyond 70 pt (test/release_bounds_test.dart replays the capture).
+
 ## TL;DR
 
 - There are two tracking families. Seven controls (glass button, segmented
@@ -19,27 +27,32 @@ everything else is marked UNMEASURED.
   search tab bar circles) each hand-roll their own `Listener` /
   `GestureDetector` logic, with different delays, slops, bounds and
   pointer bookkeeping.
-- What a user sees most: inside a scroll view the glass-family controls
-  react at contact (lift, glow, lens lift, highlight) and then drop when
-  the list takes the touch, because only the tab bar, the date picker
-  label and the search field set `delaysInScrollable`. UIKit holds a
-  touch back from scroll-view content (`delaysContentTouches`); the 150 ms
-  morph uses for that is NOT measured on the device anywhere in the repo.
+- Inside a scroll view the glass-family controls react at contact (lift,
+  glow, lens lift, highlight) and then drop when the list takes the
+  touch; only the tab bar, the date picker label and the search field set
+  `delaysInScrollable`. The device does the same for a glass button: in a
+  `UIScrollView` with the default `delaysContentTouches` it lifts 41-45 ms
+  after contact, and a swipe that starts on it lifts it to 1.02-1.09
+  before the scroll takes the touch (scroll-delay.jsonl). The 150 ms holds
+  of the tab bar, search field and date picker label stay unmeasured.
 - Likely bugs: (1) the menu button opens its menu on a release anywhere,
   however far the finger slid off; (2) an alert whose content scrolls
   (its card is a `ListView`) tracks on a raw `Listener` outside the arena,
   so a finger that scrolls the alert and lifts over an action CHOOSES it;
-  (3) the segmented control, the switch and the page control commit on a
-  release anywhere on screen, so sliding away never cancels; (4) the search
-  field tracks no pointer id, so a second finger corrupts the first
-  finger's tap test.
+  (3) the page control commits on a release anywhere on screen, so sliding
+  away never cancels (the segmented control now cancels beyond 70 pt; the
+  switch toggling on a release anywhere is native); (4) the search field
+  tracks no pointer id, so a second finger corrupts the first finger's tap
+  test.
 - The extended tracking bounds differ per control in morph: 70 pt around
-  the glass button and bar capsules, 0 for the date picker label, alert
-  actions and stepper, unbounded for segmented / switch / page control /
-  menu button, and an 18 pt travel test for the search field and the sheet
-  grabber. The passports measure only the stepper (no slop, stepper.md:
-  44-47) and state the button's 70 (glass-button.md:27) without a
-  recording that releases outside.
+  the glass button, bar capsules and segmented control, 0 for the date
+  picker label, alert actions and stepper, unbounded for switch / page
+  control / menu button, and an 18 pt travel test for the search field and
+  the sheet grabber. Measured: the stepper (no slop, stepper.md:44-47), the
+  glass button (in 70 above / out 80, in 60 beside / out 70), the segmented
+  control (in 60 below / out 70) and the switch (toggles at every distance
+  up to 130 pt); one 70 pt bound with the far edges excluded, as
+  `CGRectContainsPoint` tests, fits the button and segmented points.
 - Proposal: one `MorphPress` primitive (arena ownership + extended bounds
   + keyboard + semantics in one widget, a pure `MorphPressTracker` under
   it) that `MorphControlHost` adopts unchanged first, then alert, menu
@@ -63,13 +76,16 @@ measured in this repo unless a passport line is cited):
   `continueTrackingWithTouch`, `endTrackingWithTouch`,
   `cancelTrackingWithEvent`); `isTouchInside` and the touch-up-inside /
   touch-up-outside / drag-exit / drag-enter events are computed against
-  the bounds EXTENDED by a margin (folklore: 70 pt). `isHighlighted`
+  the bounds EXTENDED by a margin (folklore: 70 pt; M2 fits 70 with the
+  far edges excluded). `isHighlighted`
   follows drag-exit / drag-enter, so sliding back re-highlights.
 - Inside a `UIScrollView`, `delaysContentTouches` (default YES) holds a
   touch back from the content until it has stayed still for a short delay
   (folklore: 150 ms); a scroll that starts first never reaches the
   control. After delivery, `touchesShouldCancelInContentView:` returns NO
-  for a `UIControl`, so a scroll no longer takes the touch.
+  for a `UIControl`, so a scroll no longer takes the touch. The device
+  contradicts this for an iOS 27 glass button: it lifts at contact in a
+  scroll view and a swipe still takes the touch from it (M1).
 - Since iOS 6 a control's default action wins over an overlapping gesture
   recognizer on an ancestor (single tap on button / switch / stepper /
   segmented / page control; a swipe parallel to a slider's thumb or a
@@ -79,9 +95,12 @@ Measured in the passports:
 
 | fact | source |
 |------|--------|
-| glass button stays lifted for the whole touch "even far outside"; `onPressed` fires when the finger lifts within 70 px | glass-button.md:25-27 (no fixture releases outside: `button-glass-120x44-drag-off-back` returns to the center before lifting, test/controls_test.dart:251-281) |
+| glass button stays lifted for the whole touch "even far outside"; `onPressed` fires when the finger lifts within 70 px | glass-button.md:25-27; releases outside: activates 70 pt above the top edge, not 80; 60 pt beside the side edge, not 70 [device, tracking/release-outside.jsonl] |
+| segmented: a release 60 pt below selects, 70 pt below changes nothing | segmented-control.md [device, tracking/release-outside.jsonl] |
+| switch: a tap dragged straight away toggles at every distance up to 130 pt | switch.md [device, tracking/release-outside.jsonl] |
+| glass button in a `UIScrollView` (default `delaysContentTouches`): lifts 41-45 ms after contact; a swipe starting on it lifts it to 1.02-1.09, then the scroll takes the touch with no activation | glass-button.md [device, tracking/scroll-delay.jsonl] |
 | stepper: leaving the control through its edge (x 248 = maxX, NO slop) drops the highlight; a release outside changes nothing; crossing the divider moves the highlight and the repeat without a step | stepper.md:44-47 [device] |
-| tab bar: "Inside a Scrollable the WHOLE touch is held until owned: 0.15 s hold ... (UIKit delaysContentTouches)" | tab-bar.md:23-26 - the 0.15 s is NOT tagged as measured; no capture in the repo measures a scroll-view touch delay (`/usr/bin/grep -rn delaysContentTouches` finds only this line, segmented-control.md:68 and touch_listener.dart:196) |
+| tab bar: "Inside a Scrollable the WHOLE touch is held until owned: 0.15 s hold ... (UIKit delaysContentTouches)" | tab-bar.md:23-26 - the 0.15 s is NOT tagged as measured; the tab bar's hold is still not measured; scroll-delay.jsonl measures only a glass button, which is NOT held back |
 | segmented: selects on touch-UP; a press on a non-selected segment does nothing until release; press on the selected segment lifts after 40 ms | segmented-control.md:20-27 [device] |
 | tab bar selects on touch-DOWN; release picks the tab nearest the finger | tab-bar.md:23, 28-31 [device] |
 | switch: tap toggles on RELEASE; drag commit / uncommit rules | switch.md:21-24 [device recapture] |
@@ -109,9 +128,9 @@ recognizers. "Release rule" = where the finger may lift and still commit.
 |---|---|---|---|---|---|---|---|---|---|---|
 | glass button | MTL | lifts + glows at once, drops on cancel | lift, glow, lean d abs(d)/10000 + stretch | stays lifted, keeps leaning | n/a (no visual edge) | within 70 of the box (glass_button.dart:51, 240) | blocked | ignored | ignored | Space/Enter, ring |
 | bar items (capsule) | raw | (bars are not in scroll views) | glass-button model on the CAPSULE | stays lifted | n/a | within 70 of the CAPSULE, fires the button first pressed even if lifted over a sibling (bar_items.dart:1286-1311) | n/a (raw) | ignored (one per bar) | ignored | NONE (no focus) |
-| segmented | MTL, axis h | press on selected lifts after 40 ms, then drops | lens lift on selected only | lens follows (selected) / nothing (others) | follows | ANYWHERE: slot nearest finger x, y ignored (lens_motion.dart:457-466) | blocked | ignored | ignored | arrows |
+| segmented | MTL, axis h | press on selected lifts after 40 ms, then drops | lens lift on selected only | lens follows (selected) / nothing (others) | follows | within 70 of the box: slot nearest finger x; beyond it a cancel (segmented_control.dart `releaseSlop`, measured) | blocked | ignored | ignored | arrows |
 | tab bar | MTL+delay, axis h | nothing until owned | select on down, lift, swell, glow | lens scrubs, rubber band | follows | anywhere: nearest tab x | blocked | ignored | ignored | arrows |
-| switch | MTL, axis h | knob lifts at once, drops | knob lift (small lens) | knob drags, rubber band | follows | ANYWHERE: toggles if never committed (switch_motion.dart:160-167) | blocked | ignored | ignored | Space/Enter |
+| switch | MTL, axis h | knob lifts at once, drops | knob lift (small lens) | knob drags, rubber band | follows | anywhere: toggles if never committed (switch_motion.dart:160-167), as the device does up to 130 pt away (measured) | blocked | ignored | ignored | Space/Enter |
 | slider | MTL, axis h, onPointerLost reverts | thumb lifts at once, value reverts on loss | thumb lift | thumb keeps tracking (UIKit too) | follows | anywhere (drag), glide | blocked | ignored | ignored | arrows (keyboardStep) |
 | stepper | MTL | highlight at once, drops | instant 8 % overlay, repeat 0.5 s | ends tracking at the edge, no slop (stepper.dart:236-243) | NO (pointer released) | inside the box | blocked | ignored | ignored | Space/Enter = plus, arrows |
 | page control | MTL | nothing visible (platter 0.193 s > 150 ms) | platter after 0.193 s | scrub by x | follows | ANYWHERE: steps toward the side of x (page_control.dart:257-271) | blocked | ignored | ignored | arrows |
@@ -153,15 +172,7 @@ Notes on the table:
 
 ## Inconsistencies, ranked by how visible they are
 
-1. **Flash at the start of a scroll (very visible, every list).** Glass
-   button, segmented (selected segment), switch, slider, stepper and menu
-   button react at contact inside a scroll view and drop when the scroll
-   wins; the tab bar, date picker label and search field hold the whole
-   touch back. A finger that starts a scroll on a button in a list lifts
-   and glows it for one to several frames. Native: held back
-   (delaysContentTouches), delay UNMEASURED. Fix: `delaysInScrollable`
-   becomes the default; the 150 ms needs a capture (M1 below).
-2. **Menu button opens on a release anywhere (visible, bug).**
+1. **Menu button opens on a release anywhere (visible, bug).**
    `MorphMenuMotion.pointerUp` opens on any non-hold release from the
    button (menu_motion.dart:2038-2045); `leftButton` is recorded but only
    consulted once the menu is already open. A user who presses, slides
@@ -169,7 +180,7 @@ Notes on the table:
    not fire past the extended bounds; the menu button's own release-
    outside rule is UNMEASURED (menu-button.md has hold and slide rules
    only).
-3. **Alert actions are not cancelled by a scroll (bug, rare but
+2. **Alert actions are not cancelled by a scroll (bug, rare but
    destructive).** The alert tracks on a raw `Listener` (alert.dart:647)
    around a card whose content is a `ListView` (alert.dart:1155, scrolls
    when the text, fields or Dynamic Type overflow the screen). A finger
@@ -177,55 +188,66 @@ Notes on the table:
    action fires it (alert.dart:589-598), and the platter leans with the
    scroll. The menu rows already solve this with a scroll notification
    (menu.dart:1099-1112).
-4. **No way to cancel by sliding away: segmented, switch, page control
-   (visible to iOS users who cancel that way, likely bugs).** Segmented
-   picks the slot nearest the finger's x even 300 pt below the control;
-   the switch toggles on any release of a drag that never committed; the
-   page control steps toward the side of x. Glass button and bar items
-   use 70, alert / date picker / stepper use the exact box. Native release-
-   outside rules for these three are UNMEASURED (M2).
-5. **Date picker label (moderate).** The dim stays while the finger is
+3. **Date picker label (moderate).** The dim stays while the finger is
    outside and the commit bound is the exact box (no 70); the glass button
    next to it in a form accepts a release 70 pt away. Native UNMEASURED.
-6. **Three different touch-down delays (moderate, felt not seen).** 0 ms
+4. **Three different touch-down delays (moderate, felt not seen).** 0 ms
    (MTL without delay, raw listeners), 100 ms (`TapGestureRecognizer`
    deadline: context menu growth, list rows), 150 ms (MTL ownership).
    List rows highlight on tap-down after 100 ms; lists.md:106-108 already
    lists the native highlight timing as open.
-7. **Lean / stretch coverage differs among glass-model surfaces
+5. **Lean / stretch coverage differs among glass-model surfaces
    (moderate).** Glass button, bar capsules and alert platter lean after
    the finger; the menu button and the search field only scale; the
    search tab bar circles do not react at all. Whether the native menu
    button, search field and tab-bar circles lean is UNMEASURED.
-8. **Menu rows highlight under the finger (moderate, documented).** The
+6. **Menu rows highlight under the finger (moderate, documented).** The
    device shows no tap highlight on rows (menu-api.md:451-453); morph
    highlights at contact.
-9. **Keyboard (low on phones, high on desktop / web).** Glass button,
+7. **Keyboard (low on phones, high on desktop / web).** Glass button,
    segmented, tab bar, switch, slider, stepper, page control, date picker
    label, alert actions and list rows go through `MorphControlFocus`. Bar
    items, the menu button, the context menu region and the search tab bar
    circles are not focusable at all; only Semantics actions reach them. No
    control shows its press look on Space / Enter (native iPad behaviour
    UNMEASURED).
-10. **Bar items activate the first-pressed button anywhere in its capsule
+8. **No way to cancel by sliding away: page control (low, likely bug).**
+   The page control steps toward the side of x however far the finger
+   slid. Its native release-outside rule is UNMEASURED. The two other
+   controls first listed here are settled: the segmented control cancels
+   beyond 70 pt as the device does (60 in, 70 out), and the switch
+   toggling on a release anywhere is native (it toggles up to 130 pt
+   away).
+9. **Bar items activate the first-pressed button anywhere in its capsule
     + 70 (low).** Sliding from one bar button onto a sibling in the same
     capsule and lifting fires the first one. Native UNMEASURED.
-11. **Stepper does not re-highlight on slide-back (low).** It releases the
+10. **Stepper does not re-highlight on slide-back (low).** It releases the
     pointer at the edge (measured: no slop, no step on a release outside);
     whether UIKit re-highlights a re-entering finger is UNMEASURED.
-12. **Pointer bookkeeping (low, bugs).** Search field: no pointer id, a
+11. **Pointer bookkeeping (low, bugs).** Search field: no pointer id, a
     second finger's down replaces `_downAt`, so the first finger's lift is
     tested against the wrong origin (search_field.dart:239-258). Sheet: no
     button filter on `_down`, a secondary click swells the sheet and can
     cycle detents (sheet.dart:557-581).
-13. **Holding a control blocks ancestor pans (low, unmeasured).** After
+12. **Holding a control blocks ancestor pans (low, unmeasured).** After
     150 ms a held glass button inside a sheet or a zoom-pushed page keeps
     the sheet drag, push-zoom pan and edge pop from starting. Raw-listener
     controls (alert, bar items) never block. Native UNMEASURED.
 
-Bugs by confidence: 2 and 3 are bugs on any reading of UIKit; 12 is a bug;
-4 is very likely a bug (UIKit's touch-up-inside semantics) but needs M2
-before choosing the bound; 1 is a fidelity gap whose number needs M1.
+13. **Contact feedback in a scroll view (native, not a gap).** Glass
+    button, segmented (selected segment), switch, slider, stepper and menu
+    button react at contact inside a scroll view and drop when the scroll
+    wins. The device does the same for a glass button: lift 41-45 ms after
+    contact (a free-standing button's first recorded scale change is 62 ms
+    after contact in `controls/button-glass-120x44-hold800.jsonl`, so the
+    scroll view adds no hold), and a swipe starting on it lifts it to
+    1.02-1.09 before the scroll takes over (M1, scroll-delay.jsonl).
+    `delaysInScrollable` stays where it is: the tab bar, date picker label
+    and search field keep their 150 ms holds until their own capture.
+
+Bugs by confidence: 1 and 2 are bugs on any reading of UIKit; 11 is a bug;
+8 is very likely a bug but needs the page control's bound; 13 is native
+behaviour.
 
 ## Proposal: one press-tracking primitive
 
@@ -240,7 +262,7 @@ enter / exit, and the press policy as data.
 @immutable
 class MorphPressPolicy {
   const MorphPressPolicy({
-    this.holdBackInScrollable = true,   // delaysContentTouches
+    this.holdBackInScrollable = false,  // glass button: not held (M1)
     this.ownershipDelay = morphTouchOwnershipDelay, // M1
     this.dragAxis,                       // claims a drag along the axis
     this.trackingSlop = 70,              // M2, per control; 0 = exact box
@@ -299,16 +321,17 @@ keyboard activation through the same `onActivate` the tap uses.
 Order of moves:
 
 1. `MorphControlHost` builds `MorphPress` instead of `MorphTouchListener`
-   + `MorphControlFocus`; behaviour unchanged except `holdBackInScrollable`
-   (needs M1). Glass button is the reference and keeps its 70.
+   + `MorphControlFocus`; behaviour unchanged (M1 shows the glass button
+   is not held back in a scroll view). Glass button is the reference and
+   keeps its 70, which M2 confirms.
 2. Alert actions (bug 3): the inner `ListView` scroll cancels; exact
    button boxes stay until M2 says otherwise.
 3. Menu button (bug 2) and bar items (keyboard, sibling slide): the menu
    motion asks the tracker's `inside` at release; bar items get focus.
 4. Search field and date picker label: replace the kTouchSlop travel test
    and the exact box with the policy's bounds; add pointer ids.
-5. Segmented, switch, page control: release-outside cancel once M2 gives
-   their bounds.
+5. Page control: release-outside cancel once it is measured (segmented
+   done at 70; the switch needs none).
 6. Sheet and context menu keep their recognizers (they are drags and
    holds, not presses) but take the button filter and pointer rules.
 
@@ -317,18 +340,24 @@ Order of moves:
 All on the iPhone 16 Pro with the device lock; probe scenes exist for
 every control (README recapture lines in each passport).
 
-- M1. Scroll-view touch delay: a glass button, a segmented control and a
-  stepper inside a `UIScrollView`; still holds of 50 / 100 / 130 / 150 /
-  170 / 200 ms, frame of first lift / highlight; quick swipes starting on
-  them (does anything flash?). Replaces the unmeasured 150 ms
-  (touch_listener.dart:10) and the tab bar's 0.15 s (tab-bar.md:24).
-- M2. Extended tracking bounds: press, slide off by 30 / 50 / 60 / 70 /
-  80 / 100 pt in each direction, release; per control: glass button
-  (confirms glass-button.md:27), menu button tap, bar button (and onto a
-  sibling in the same capsule), alert action, date picker label,
-  segmented (non-selected and selected), switch tap-drag-away
-  perpendicular, page control, search field. Record the highlight /
-  lift edges too (drag-exit, drag-enter).
+- M1. ANSWERED for the glass button (scroll-delay.jsonl, 87e2eb0): in a
+  `UIScrollView` with the default `delaysContentTouches` a still hold
+  lifts it 41-45 ms after contact (three runs, peak 1.144) and a swipe
+  starting on it lifts it to 1.02-1.09 before the scroll takes the touch,
+  with no activation. UIKit does not hold a glass button's touch back, so
+  the flash is native. Still open: the 150 ms holds of the tab bar,
+  search field and date picker label (tab-bar.md:24), and the segmented
+  control, stepper and switch in a scroll view (the capture logged only
+  the button's scale).
+- M2. ANSWERED for three controls (release-outside.jsonl, 071dcdb):
+  glass button activates 70 pt above its top edge, not 80, and 60 pt
+  beside its side edge, not 70 (morph's 70 agrees at all four points,
+  test/release_bounds_test.dart); segmented selects 60 pt below, not 70
+  (morph now cancels beyond 70); switch toggles at every distance up to
+  130 pt (morph agrees). Still open: menu button tap, bar button (and onto
+  a sibling), alert action, date picker label, segmented selected-segment
+  drag off, page control, search field, and the drag-exit / drag-enter
+  edges of the highlight.
 - M3. Slide-back: stepper and alert action, leave and re-enter, release
   inside.
 - M4. Scroll after ownership: hold a glass button 300 ms in a scroll view,
