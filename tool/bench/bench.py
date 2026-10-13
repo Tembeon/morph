@@ -550,7 +550,8 @@ def main():
             if not parts:
                 continue
             args.update(NAV_MOTIONS=','.join(dict.fromkeys(m for m, _ in parts)),
-                        NAV_MODES=','.join(dict.fromkeys(t for _, t in parts)))
+                        NAV_MODES=','.join(dict.fromkeys(t for _, t in parts)),
+                        AUDIT_PROFILE_WIDGETS='true')
         if installed != suite:
             adb('install', '-r', '-d', f'{apk_dir}/{suite}.apk', timeout=300)
             installed = suite

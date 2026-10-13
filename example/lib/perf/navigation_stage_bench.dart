@@ -93,6 +93,13 @@ const _offsetSelection = String.fromEnvironment(
 void main() async {
   BenchArgs.load(_out);
   _BenchBinding();
+  if (BenchArgs.flag('AUDIT_PROFILE_WIDGETS', fallback: false)) {
+    // Every build, layout and paint as a timeline event named by its type,
+    // for the bench's UI time by owner (diagnostic pass only).
+    debugProfileBuildsEnabled = true;
+    debugProfileLayoutsEnabled = true;
+    debugProfilePaintsEnabled = true;
+  }
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   runApp(const _Bench());
 }

@@ -1,0 +1,25 @@
+{
+ "sdk": "stable",
+ "sha": "5add2c5-dirty",
+ "source": "/Users/tembeon/IdeaProjects/morph/.claude/worktrees/nifty-swanson-e3b33c",
+ "fixed": false,
+ "runs": 3,
+ "date": "2026-10-13 21:56:10.563658",
+ "launches": {
+  "nav": {
+   "args": {
+    "NAV_MODES": "liquid",
+    "NAV_MOTIONS": "enter,nested-push,nested-pop",
+    "NAV_RUNS": "3"
+   },
+   "thermal_before": [
+    0,
+    30.288652
+   ],
+   "thermal_after": [
+    0,
+    30.977154
+   ]
+  }
+ }
+}
