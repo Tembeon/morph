@@ -190,6 +190,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   late final TextSelectionGestureDetectorBuilder _gestures =
       TextSelectionGestureDetectorBuilder(delegate: this);
   final GlobalKey<EditableTextState> _editable = GlobalKey<EditableTextState>();
+  int? _pointer;
   Offset? _downAt;
 
   TextEditingController get _controller =>
@@ -222,6 +223,7 @@ class _MorphSearchFieldState extends State<MorphSearchField>
     super.didUpdateWidget(oldWidget);
     if (!widget.enabled && (oldWidget.enabled || _motion.isPressed)) {
       if (_focus.hasFocus) _focus.unfocus();
+      _pointer = null;
       _downAt = null;
       _motion.pointerCancel(clock);
       wake();
@@ -237,7 +239,12 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   }
 
   void _down(PointerDownEvent event) {
-    if (!widget.enabled || event.buttons != kPrimaryButton) return;
+    if (!widget.enabled ||
+        event.buttons != kPrimaryButton ||
+        _pointer != null) {
+      return;
+    }
+    _pointer = event.pointer;
     _downAt = event.position;
     final box = context.findRenderObject();
     if (box is RenderBox && box.hasSize) _motion.size = box.size;
@@ -246,6 +253,8 @@ class _MorphSearchFieldState extends State<MorphSearchField>
   }
 
   void _up(PointerEvent event) {
+    if (event.pointer != _pointer) return;
+    _pointer = null;
     final from = _downAt;
     _downAt = null;
     if (event is PointerUpEvent &&

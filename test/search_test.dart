@@ -878,6 +878,31 @@ void main() {
       expect(tester.testTextInput.isVisible, isTrue);
     });
 
+    testWidgets('a second finger leaves the first finger\'s touch alone', (
+      tester,
+    ) async {
+      final active = <bool>[];
+      await pump(tester, onActive: active.add);
+      final center = tester.getCenter(find.byType(MorphSearchField));
+      final first = await tester.startGesture(center, pointer: 1);
+      await tester.pump(const Duration(milliseconds: 300));
+      final second = await tester.startGesture(
+        center + const Offset(100, 0),
+        pointer: 2,
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      await first.up();
+      await tester.pumpAndSettle(
+        const Duration(milliseconds: 100),
+        EnginePhase.sendSemanticsUpdate,
+        const Duration(seconds: 10),
+      );
+      expect(active, [true], reason: 'the first finger lifted where it landed');
+      await second.up();
+      await tester.pumpAndSettle();
+      expect(active, [true]);
+    });
+
     testWidgets('closing falls straight to rest while the keyboard drops', (
       tester,
     ) async {

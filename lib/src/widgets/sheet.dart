@@ -570,7 +570,12 @@ class _SheetViewState extends State<_SheetView>
   void _down(PointerDownEvent event) {
     _stampEvent(event);
     final motion = _motion;
-    if (motion == null || _leaving || _touch != null) return;
+    if (motion == null ||
+        _leaving ||
+        _touch != null ||
+        event.buttons != kPrimaryButton) {
+      return;
+    }
     _touch = event.pointer;
     _touchFrom = event.localPosition;
     _touchDragged = false;

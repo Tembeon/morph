@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:morph/widgets.dart';
@@ -76,6 +77,48 @@ void main() {
     expect(large.top, moreOrLessEquals(62, epsilon: 0.05));
     expect(large.width, moreOrLessEquals(402, epsilon: 0.05));
     expect(sheet.detent, MorphSheetDetent.large);
+  });
+
+  testWidgets('a secondary click neither swells the sheet nor cycles it', (
+    WidgetTester tester,
+  ) async {
+    tester.view.physicalSize = const Size(402, 874) * 3;
+    tester.view.devicePixelRatio = 3;
+    tester.view.padding = const FakeViewPadding(top: 62 * 3, bottom: 34 * 3);
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      _app(
+        onPresent: (BuildContext context) => presentMorphSheet<void>(
+          context,
+          detents: const [MorphSheetDetent.medium, MorphSheetDetent.large],
+          grabberVisible: true,
+          builder: _content,
+        ),
+      ),
+    );
+    await tester.tap(find.text('present'));
+    await _settle(tester);
+    final rest = tester.getRect(find.byKey(_contentKey));
+    final sheet = MorphSheet.of(tester.element(find.byKey(_contentKey)));
+    final click = await tester.startGesture(
+      rest.topCenter + const Offset(0, 4),
+      kind: PointerDeviceKind.mouse,
+      buttons: kSecondaryMouseButton,
+    );
+    await tester.pump(const Duration(milliseconds: 16));
+    expect(
+      tester.binding.hasScheduledFrame,
+      isFalse,
+      reason: 'a secondary button does not press the sheet',
+    );
+    await tester.pump(const Duration(milliseconds: 200));
+    await click.up();
+    await _settle(tester);
+    expect(sheet.detent, MorphSheetDetent.medium);
+    expect(
+      tester.getRect(find.byKey(_contentKey)),
+      rectMoreOrLessEquals(rest, epsilon: 0.01),
+    );
   });
 
   testWidgets('a drag up docks it, a drag down dismisses it with no result', (
