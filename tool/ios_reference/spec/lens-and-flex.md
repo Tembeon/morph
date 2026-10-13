@@ -73,7 +73,18 @@ noted]:
   px of min(W, 100) at rest (smallLoupe: 0.5 x 0.1 / 2000, the cap where
   (W + 10) / W reaches 1.1) and 2.626e-5 per px lifted (the loupe of a
   44 pt tall lens). `MorphLensMotion` runs on it.
-- morph: `MorphFlexInteraction` (flex_interaction.dart).
+- Channels (`_UIDebouncingAnimatableFloat`) [device, iOS 27.0.1, read
+  from UIKit, notes private]: an unchanged target is skipped; a changed
+  one retargets from the presentation with its velocity, on the tracking
+  pair while a finger tracks, else the plain pair, and adds velocity
+  stiffness x retargetImpulse x (new - old target): the menu's 0.016
+  replays every recorded menu retarget (dv / (k imp dT) = 1.0000) and a
+  release to 1e-4 over 11 updates; dynamic specs carry 0; a slider
+  thumb's drift replays best with 0 (0.136 pt rms, 0.229 with the small
+  loupe's 0.032). UIKit publishes channels at 60 Hz tracking and 30 Hz
+  settling (not reproduced, NEAR).
+- morph: `MorphFlexInteraction` (flex_interaction.dart) on `MorphChannel`
+  (channel.dart).
 
 Flex loop (`_UIVelocityIntegrator`) [tuning + device fit]:
 - three one-pole filters (position, velocity, rate of change of SPEED

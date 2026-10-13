@@ -28,8 +28,9 @@ Measured constants live in tuning classes (`MorphLensTuning`,
 `MorphMenuTuning`, `MorphFlexSpec`, `MorphSheetTuning`, the `*Motion`
 statics, ...) with the measurement in their dartdoc, never as a bare
 literal in a widget. Motions use `MorphSpringState` for every spring,
-`MorphTimeline` for every delay and `MorphSubClock` for every per-frame
-filter. A control's ticker sleeps when its motion settles.
+`MorphChannel` for every value UIKit drives as an animatable channel (a
+flex scale or drift, a pulse), `MorphTimeline` for every delay and
+`MorphSubClock` for every per-frame filter. A control's ticker sleeps when its motion settles.
 
 `MorphControlHost` hosts build in `buildControl`; `build` hands back the
 last result while `buildsLike(oldWidget)` holds (every field the build
@@ -159,6 +160,17 @@ Measured per control and kept apart: the tab bar's touch glow
 (`MorphTouchGlowMotion`, its own rise lag and drag growth), the context
 menu preview's hold growth, the menu's center drift (not multiplied by
 its scale: the menu replays cannot tell the two apart).
+
+`channel.dart` - `MorphChannel` ports UIKit's animatable channel: a
+`MorphSpringState` whose targets switch between a tracking spring (a
+finger down) and a settling spring, skip an unchanged target (the spring
+switch included) and push the velocity by `stiffness x retargetImpulse x
+change` on a changed one (`MorphFlexSpec.retargetImpulse`: the open
+menu's 0.016). `MorphChannel.stepped` runs the spring on a clock of its
+own advanced by `step` (the menu's pulse channel). Not reproduced, NEAR:
+UIKit publishes channels at 60 Hz while tracking and 30 Hz while
+settling, and lands a channel within about 1e-3 of its target on it;
+morph evaluates every frame. Evidence: spec/lens-and-flex.md.
 
 `glyph_scale.dart` - text under an animated transform. Wrap a label (or
 any child holding text) whose scale, blur or fade animates in
