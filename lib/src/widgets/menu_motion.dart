@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/painting.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/spring.dart';
+import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/glass_outline.dart';
 import 'package:morph/src/widgets/menu_fusion.dart';
@@ -678,30 +679,15 @@ class MorphMenuTuning {
     required Size size,
     required double velocity,
     required double side,
-  }) {
-    double k(double t, double it, double extent) => t == 0
-        ? 0
-        : (t.abs() - it.abs() + flexInBoundsPoints * it.abs() / extent) /
-              flex.scaleDistanceThreshold;
-    final w = size.width;
-    final h = size.height;
-    final kx = k(translation.dx, inBounds.dx, w);
-    final ky = k(translation.dy, inBounds.dy, h);
-    final p = velocity * side / flex.interactionPulseNormalizationFactor;
-    final sx = (1 + kx - ky) * (1 - p * flex.interactionPulseScaleX / w);
-    final sy = (1 - kx + ky) * (1 + p * flex.interactionPulseScaleY / h);
-    return (
-      scaleX: sx.clamp(flex.movementMinScale, flex.movementMaxScale),
-      scaleY: sy.clamp(flex.movementMinScale, flex.movementMaxScale),
-      driftX: translation.dx.sign * kx * w,
-      driftY:
-          translation.dy.sign * ky * h +
-          side *
-              flex.interactionPulseDriftRatio *
-              flex.interactionPulseScaleY *
-              p,
-    );
-  }
+  }) => MorphFlexInteraction.menuTargets(
+    spec: flex,
+    inBoundsPoints: flexInBoundsPoints,
+    translation: translation,
+    inBounds: inBounds,
+    size: size,
+    velocity: velocity,
+    side: side,
+  );
 
   /// The largest fusion radius: the standard deviation, in pixels, of
   /// the Gaussian that blurs the distance field of the two shapes.
@@ -909,60 +895,6 @@ class _FlexTouch {
 
   /// When the pulse channel steps next, or null while it rests.
   double? nextStep;
-}
-
-/// UIKit's pulse channel of the open menu's flex: a spring chasing the
-/// finger's vertical travel, stepped [MorphMenuTuning.flexPulseRate] times
-/// a second on a clock of its own.
-///
-/// A step whose target changed since the previous step advances the
-/// spring by [MorphMenuTuning.flexPulseRetargetStep]; a step with the
-/// same target by the time that passed. Between steps the channel holds
-/// what it published.
-class _FlexPulse {
-  _FlexPulse(MorphSpring spring) : _spring = MorphSpringState(spring, 0);
-
-  final MorphSpringState _spring;
-  double _clock = 0;
-  double _target = 0;
-  double _stepped = 0;
-
-  /// The published value.
-  double value = 0;
-
-  /// The published velocity, per second of the channel's clock.
-  double velocity = 0;
-
-  /// Puts the channel at rest on zero at wall time [t].
-  void reset(double t) {
-    _spring.snap(_clock, 0);
-    _target = 0;
-    _stepped = t;
-    value = 0;
-    velocity = 0;
-  }
-
-  /// Steps the channel at wall time [t] toward [target].
-  void step(double t, double target, {required double retargetStep}) {
-    final h = target != _target ? retargetStep : t - _stepped;
-    _spring.retarget(_clock, target);
-    _clock += h;
-    _target = target;
-    _stepped = t;
-    value = _spring.value(_clock);
-    velocity = _spring.velocity(_clock);
-  }
-
-  /// Whether, with the finger held at [target], the most the channel can
-  /// still publish moves a menu edge by less than
-  /// [MorphMenuTuning.flexPulseRest]; [reach] is how far an edge moves per
-  /// point per second of published velocity.
-  bool isAtRest(double target, double reach) {
-    final omega = _spring.spring.omega;
-    return target == _target &&
-        (velocity.abs() + omega * (value - target).abs()) * reach <
-            MorphMenuTuning.flexPulseRest;
-  }
 }
 
 /// A damped spring driven by an input, integrated from samples.
@@ -1208,7 +1140,7 @@ class MorphMenuMotion {
     _flexScaleY = MorphSpringState(tuning.flex.scaleSpring, 1);
     _flexDriftX = MorphSpringState(tuning.flex.scaleSpring, 0);
     _flexDriftY = MorphSpringState(tuning.flex.scaleSpring, 0);
-    _pulse = _FlexPulse(tuning.flexPulseSpring);
+    _pulse = MorphFlexPulse(tuning.flexPulseSpring);
     _root = _build(reversed: false);
     _rootHeight = MorphSpringState(tuning.growSpring, _visibleRoot(_root));
     _cardContainer = MorphSpringState(tuning.cardContainerSpring, 1);
@@ -1235,7 +1167,7 @@ class MorphMenuMotion {
   late final MorphSpringState _flexScaleY;
   late final MorphSpringState _flexDriftX;
   late final MorphSpringState _flexDriftY;
-  late final _FlexPulse _pulse;
+  late final MorphFlexPulse _pulse;
   _FlexTouch? _flexTouch;
   int _flexGeneration = 0;
   late MorphSpringState _rootHeight;
@@ -2553,7 +2485,9 @@ class MorphMenuMotion {
             flex.interactionPulseScaleY * (1 + flex.interactionPulseDriftRatio),
           ) /
           flex.interactionPulseNormalizationFactor;
-      if (!_pulse.isAtRest(target, reach)) _schedulePulse(touch, s);
+      if (!_pulse.isAtRest(target, reach, MorphMenuTuning.flexPulseRest)) {
+        _schedulePulse(touch, s);
+      }
     });
   }
 

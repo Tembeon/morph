@@ -132,6 +132,18 @@ boundary crossed is reported (at most 600 per advance), so the
 deformation is identical on a 60 or 120 Hz host, under `timeDilation`
 and under coarse test pumps.
 
+`flex_interaction.dart` - `MorphFlexInteraction` ports UIKit's
+`_UIFlexInteraction`, the one machine behind every flexible glass
+surface: four channels (scale x, scale y, drift x, drift y) chase targets
+on the size spec's tracking spring while a finger is down and return on
+its scale spring. Its pure equations are the shared contract:
+`dynamicTargets` (the lift over the long side and the stretch of a
+dragging finger), `withMovement` (the deformation of a moving surface,
+`movementBounds` and `softClamp`) and the menu variant `menuTargets` with
+its pulse channel `MorphFlexPulse`. A surface shows its drift times its
+scale (`translation`). Options per control: `stretches`, `glows`,
+`activationDelay`, a shared `MorphTimeline`. Passport: lens-and-flex.md.
+
 `glyph_scale.dart` - text under an animated transform. Wrap a label (or
 any child holding text) whose scale, blur or fade animates in
 `MorphGlyphs` (`morphVeiledGlyphs` when the control blurs and fades it);
