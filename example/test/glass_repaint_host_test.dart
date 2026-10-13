@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 // The test drives and reads the renderer's own layers.
@@ -12,6 +13,9 @@ import 'package:morph/src/glass/renderer/renderer.dart';
 // ignore: implementation_imports
 import 'package:morph/src/glass/renderer/rendering/liquid_glass_layer.dart'
     show RenderLiquidGlassLayer;
+// ignore: implementation_imports
+import 'package:morph/src/glass/renderer/rendering/liquid_glass_render_object.dart'
+    show GlassFrameState;
 import 'package:morph/widgets.dart';
 import 'package:morph_example/gallery/gallery.dart';
 import 'package:morph_example/gallery/glass_settings.dart';
@@ -60,6 +64,27 @@ void main() {
         layer.shapesWithGeometry.length,
         layer.link.shapes.length,
         reason: '$moment: a layer went idle without its registered shapes',
+      );
+    }
+  }
+
+  // Every layer holds exactly the shapes registered with it at the end of
+  // a frame: a shape that joined is drawn, a shape that left is gone.
+  void expectCommittedNow(WidgetTester tester, String moment) {
+    for (final layer
+        in tester.allRenderObjects.whereType<RenderLiquidGlassLayer>()) {
+      if (!layer.attached) continue;
+      final committed = {
+        for (final entry in layer.shapesWithGeometry) entry.$1,
+      };
+      final registered = {
+        for (final shape in layer.link.shapes)
+          if (shape.attached && shape.hasSize) shape,
+      };
+      expect(
+        committed,
+        registered,
+        reason: '$moment: a layer committed other shapes than it holds',
       );
     }
   }
@@ -159,6 +184,77 @@ void main() {
     await settle(tester);
     expectGlassPainted(tester, 'left');
     expect(layer.shapesWithGeometry, hasLength(1));
+
+    // The frame a shape comes or goes already draws the layer without lag.
+    second.value = true;
+    await frames(tester, 1);
+    expectCommittedNow(tester, 'the frame it joined');
+    expect(layer.shapesWithGeometry, hasLength(2));
+    await settle(tester);
+    second.value = false;
+    await frames(tester, 1);
+    expectCommittedNow(tester, 'the frame it left');
+    expect(layer.shapesWithGeometry, hasLength(1));
+  });
+
+  testWidgets('a hidden shape under a repaint boundary shows on the frame '
+      'it turns visible', (WidgetTester tester) async {
+    if (!ui.ImageFilter.isShaderFilterSupported) return;
+    tester.view.physicalSize = const ui.Size(600, 600);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    await tester.runAsync(MorphGlassRenderer.precache);
+    if (!MorphGlassRenderer.liquidAvailable) return;
+    final visible = ValueNotifier(true);
+    addTearDown(visible.dispose);
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: ColoredBox(
+          color: const Color(0xFF406080),
+          child: LiquidGlassLayer(
+            settings: const LiquidGlassSettings(frost: 0),
+            child: RepaintBoundary(
+              child: ValueListenableBuilder<bool>(
+                valueListenable: visible,
+                builder: (context, shown, _) => Stack(
+                  children: [
+                    Positioned(
+                      left: 20,
+                      top: 40,
+                      width: 96,
+                      height: 44,
+                      child: LiquidGlass(
+                        shape: const LiquidRoundedSuperellipse(
+                          borderRadius: 22,
+                        ),
+                        appearance: LiquidGlassAppearance.ios27RegularDark(
+                          visibility: shown ? 1 : 0,
+                        ),
+                        child: const SizedBox.expand(),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await settle(tester);
+    final layer = tester.allRenderObjects
+        .whereType<RenderLiquidGlassLayer>()
+        .toSet()
+        .single;
+    expect(layer.frameState, GlassFrameState.active);
+    visible.value = false;
+    await frames(tester, 1);
+    expect(layer.frameState, isNot(GlassFrameState.active));
+    await settle(tester);
+    visible.value = true;
+    await frames(tester, 1);
+    expect(layer.frameState, GlassFrameState.active);
   });
 
   testWidgets('a menu source shows its glass after the menu closes', (
@@ -171,6 +267,100 @@ void main() {
     expectGlassPainted(tester, 'menu open');
     await tester.tapAt(const Offset(200, 900));
     await settle(tester);
+    expectGlassPainted(tester, 'menu closed');
+  });
+
+  testWidgets('a menu source hands its glass over on the frame it hides or '
+      'shows', (WidgetTester tester) async {
+    if (await openGallery(tester, 'Menu') == null) return;
+    final source = find.byType(MorphMenuButton).at(1);
+    final button = tester.renderObject<RenderBox>(source);
+    final center = tester.getCenter(source);
+
+    // The committed glass over the button's center, split into the
+    // button's own (shown through every opacity above it) and the menu's.
+    // [shrunk] says the menu's glass there is no wider than the button.
+    ({bool button, bool menu, bool shrunk}) cover() {
+      var own = false;
+      var menu = false;
+      var shrunk = false;
+      final layers = tester.allRenderObjects
+          .whereType<RenderLiquidGlassLayer>()
+          .toSet();
+      for (final layer in layers) {
+        if (!layer.attached) continue;
+        for (final (_, cache, _) in layer.shapesWithGeometry) {
+          for (final shape in cache.shapes) {
+            final glass = shape.renderObject;
+            if (shape.appearance.visibility <= 0) continue;
+            final rect = MatrixUtils.transformRect(
+              glass.getTransformTo(null),
+              Offset.zero & glass.size,
+            );
+            if (!rect.contains(center)) continue;
+            var opacity = 1.0;
+            var inButton = false;
+            for (RenderObject? node = glass; node != null; node = node.parent) {
+              if (node is RenderOpacity) opacity *= node.opacity;
+              if (identical(node, button)) inButton = true;
+            }
+            if (opacity <= 0) continue;
+            if (inButton) {
+              own = true;
+            } else {
+              menu = true;
+              shrunk |= rect.width <= button.size.width * 1.5;
+            }
+          }
+        }
+      }
+      return (button: own, menu: menu, shrunk: shrunk);
+    }
+
+    await tester.tapAt(center);
+    var menuSeen = false;
+    for (var i = 0; tester.binding.hasScheduledFrame; i++) {
+      expect(i, lessThan(300), reason: 'the app never went idle');
+      await frames(tester, 1);
+      expectCommittedNow(tester, 'opening, frame $i');
+      final now = cover();
+      menuSeen |= now.menu;
+      expect(
+        now.button && now.menu,
+        isFalse,
+        reason: 'opening, frame $i: the button and the menu both draw it',
+      );
+      if (!menuSeen) {
+        expect(now.button, isTrue, reason: 'opening, frame $i: no glass');
+      }
+    }
+    expect(menuSeen, isTrue);
+
+    await tester.tapAt(const Offset(200, 900));
+    var returned = false;
+    for (var i = 0; tester.binding.hasScheduledFrame; i++) {
+      expect(i, lessThan(300), reason: 'the app never went idle');
+      await frames(tester, 1);
+      expectCommittedNow(tester, 'closing, frame $i');
+      final now = cover();
+      expect(
+        now.button && now.menu,
+        isFalse,
+        reason: 'closing, frame $i: the button and the menu both draw it',
+      );
+      // Once the shrinking menu is back over the button, one of the two
+      // draws the button on every frame through the landing.
+      returned |= now.shrunk;
+      if (returned) {
+        expect(
+          now.button || now.menu,
+          isTrue,
+          reason: 'closing, frame $i: the button shows no glass',
+        );
+      }
+    }
+    expect(returned, isTrue);
+    expect(cover(), (button: true, menu: false, shrunk: false));
     expectGlassPainted(tester, 'menu closed');
   });
 

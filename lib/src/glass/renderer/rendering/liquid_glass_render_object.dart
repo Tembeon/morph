@@ -140,8 +140,22 @@ abstract class LiquidGlassRenderObject extends RenderProxyBox
   GeometryRenderLink get link => _link;
   set link(GeometryRenderLink value) {
     if (_link == value) return;
+    _link.releaseOwner(this);
     _link = value;
+    if (attached) _link.owner = this;
     markNeedsPaint();
+  }
+
+  @override
+  void attach(PipelineOwner owner) {
+    _link.owner = this;
+    super.attach(owner);
+  }
+
+  @override
+  void detach() {
+    _link.releaseOwner(this);
+    super.detach();
   }
 
   LiquidGlassSettings _settings;
@@ -881,24 +895,47 @@ class GeometryRenderLink {
     }
   }
 
+  /// The layer that paints the registered shapes while it is attached.
+  RenderObject? owner;
+
+  /// Forgets [layer] as the [owner] if it still is.
+  void releaseOwner(RenderObject layer) {
+    if (identical(owner, layer)) owner = null;
+  }
+
   void registerGeometry(RenderLiquidGlassGeometry renderObject) {
     if (_shapeGeometries.contains(renderObject)) return;
     _dirty = true;
     _shapeGeometries.add(renderObject);
+    markShapesChanged();
   }
 
   void markDirty() {
     _dirty = true;
   }
 
+  /// Asks the [owner] to paint in the current frame, for a shape that
+  /// joined, left, or turned visible or hidden.
+  ///
+  /// The shape may sit under a repaint boundary of its own that repaints
+  /// without the layer: the layer's compositing poll would find the change
+  /// only after this frame painted, and the frame would show a shape that
+  /// joined without glass and keep the glass of a shape that left.
+  void markShapesChanged() {
+    _dirty = true;
+    final layer = owner;
+    if (layer == null || !layer.attached) return;
+    if (layer.owner?.debugDoingPaint ?? false) return;
+    layer.markNeedsPaint();
+  }
+
   void unregisterGeometry(RenderLiquidGlassGeometry renderObject) {
-    if (_shapeGeometries.remove(renderObject)) {
-      _dirty = true;
-    }
+    if (_shapeGeometries.remove(renderObject)) markShapesChanged();
   }
 
   void dispose() {
     _shapeGeometries.clear();
+    owner = null;
   }
 }
 

@@ -275,9 +275,11 @@ class RenderLiquidGlass extends RenderLiquidGlassGeometry
   /// The material registered with the layer.
   set appearance(LiquidGlassAppearance value) {
     if (_appearance == value) return;
+    final shown = _appearance.visibility > 0;
     _appearance = value;
     markGeometryNeedsUpdate();
     markNeedsPaint();
+    if (shown != value.visibility > 0) renderLink?.markShapesChanged();
   }
 
   LiquidShape _shape;
