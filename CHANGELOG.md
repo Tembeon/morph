@@ -22,6 +22,11 @@ implementations stay reachable at the v0.1.0 - v0.4.0 tags (0.5.0 and
   `MorphGlassButtonMotion.pull`, `.stretch`, `.leanDivisor`,
   `.leanStretch` and `MorphAlertTuning.platterPull` / `.platterStretch`
   are gone; the surface's size sets the response.
+- Segmented control and tab bar lenses deform by UIKit's flex movement
+  law for a loupe of the lens's size, which reproduces the targets UIKit
+  records (tab bar lifted scale 0.044 -> 0.00003 rms). BREAKING: the
+  fitted `MorphLensTuning` fields `restingGain` .. `liftedStretchSoftness`
+  are gone.
 - `MorphMenuSource` takes keyboard focus itself, draws the focus ring
   around its child and answers Enter or Space as a tap. An app whose
   child takes the focus itself and calls `MorphMenuSource.open`, as the

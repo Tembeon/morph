@@ -28,13 +28,6 @@ class MorphLensTuning {
     required this.followSpring,
     required this.rubberBand,
     required this.pressDelay,
-    this.flexMovement = false,
-    this.restingGain = 2.5e-5,
-    this.restingThreshold = 0.05,
-    this.restingWidthCap = 100,
-    this.restingStretchCoefficient = 2,
-    this.liftedGain = 2.626e-5,
-    this.liftedThreshold = 0.0555,
     this.dragGain = 1,
     this.pressHang = 0.25,
     this.releaseDelay = 0.03,
@@ -43,11 +36,6 @@ class MorphLensTuning {
     this.startDelay = 0.02,
     this.flagLead = 0.025,
     this.hangReferenceDistance = 70,
-    this.restingSoftness = (0.55, 1.26),
-    this.liftedSoftness = (0.54, 1.34),
-    this.liftedStretchRatio = 1.191,
-    this.liftedStretchKnee = 0.158,
-    this.liftedStretchSoftness = (0.961, 0.0847),
     this.chromeGrowth = 0,
     this.chromeSpring = const MorphSpring(0.356, 0.593),
     this.chromeLag = 0.02,
@@ -98,57 +86,18 @@ class MorphLensTuning {
   final double hangReferenceDistance;
 
   /// The spring that carries the deformation toward its target.
-  final MorphSpring presentationSpring;
-
-  /// Whether the lens deforms by UIKit's flex movement law for a loupe of
-  /// its size ([MorphFlexSpec.loupeForSize], resting or lifted): a lens
-  /// speeding up grows along its motion by the filtered rate of change of
-  /// its speed over the spec's normalization, within the spec's movement
-  /// bounds eased by a soft clamp, narrows across it and its trailing edge
-  /// lags. Read from UIKit, notes private; it reproduces the fitted gains
-  /// below (resting 2.5e-5 per pixel of min(W, 100), lifted 2.626e-5 for
-  /// a 44 pixel tall lens) and replays the device segmented taps to sx
-  /// 0.0060 / sy 0.0055 rms against the fit's 0.0061 / 0.0058.
   ///
-  /// Without it the lens takes the fitted law of [restingGain] to
-  /// [liftedStretchSoftness].
-  final bool flexMovement;
+  /// The targets are UIKit's flex movement law for a loupe of the lens's
+  /// size ([MorphFlexSpec.loupeForSize] of the resting lens, or of the
+  /// fully lifted one while it is lifted). Read from UIKit, notes private;
+  /// fed UIKit's own filtered motion, the law reproduces the targets UIKit
+  /// recorded on an iPhone 16 Pro (`ios27-device/lens`): scale x to
+  /// 0.0053 / 0.0003 rms on the segmented control resting / lifted and
+  /// 0.0028 / 0.00003 on the tab bar.
+  final MorphSpring presentationSpring;
 
   /// The spring that makes a dragged lens follow the finger.
   final MorphSpring followSpring;
-
-  /// Drift per unit of filtered acceleration per pixel of resting width.
-  final double restingGain;
-
-  /// Where the resting drift turns soft, as a fraction of the width.
-  final double restingThreshold;
-
-  /// The width beyond which the resting deformation stops growing.
-  final double restingWidthCap;
-
-  /// How strongly resting drift squashes the lens across its motion.
-  final double restingStretchCoefficient;
-
-  /// The soft knee of the resting drift as (strength, width).
-  final (double, double) restingSoftness;
-
-  /// Drift per unit of filtered acceleration per pixel of lifted width.
-  final double liftedGain;
-
-  /// Where the lifted drift turns soft, as a fraction of the width.
-  final double liftedThreshold;
-
-  /// The soft knee of the lifted drift as (strength, width).
-  final (double, double) liftedSoftness;
-
-  /// How strongly lifted stretch squashes the lens across its motion.
-  final double liftedStretchRatio;
-
-  /// The cross-axis squash at which the lifted response turns soft.
-  final double liftedStretchKnee;
-
-  /// The soft knee of the lifted squash as (strength, width).
-  final (double, double) liftedStretchSoftness;
 
   /// The rubber band past the first and last slots as (limit, stiffness):
   /// a lens dragged past an end slot travels at most limit pixels beyond
@@ -183,8 +132,7 @@ class MorphLensTuning {
   /// Seconds the press growth lags behind the finger.
   final double chromeLag;
 
-  /// The lens of a UISegmentedControl: it deforms by the flex movement
-  /// law ([flexMovement]).
+  /// The lens of a UISegmentedControl.
   static const segmented = MorphLensTuning(
     selectsOnPointerDown: false,
     liftWidth: 24,
@@ -196,15 +144,9 @@ class MorphLensTuning {
     followSpring: MorphSpring(0.225, 1),
     rubberBand: (12, 0.55),
     pressDelay: 0.04,
-    flexMovement: true,
   );
 
-  /// The lens of a floating UITabBar: it keeps the fitted law. Its
-  /// resting gain and cross coefficient match the flex movement law for
-  /// a 54 pixel tall loupe, its soft knee and its lifted law (copied from
-  /// the segmented control's fit) do not, and the tab bar's deformation
-  /// cannot be replayed (UIKit's bar-local glitch frames), so the switch
-  /// waits for a device check.
+  /// The lens of a floating UITabBar.
   static const tabBar = MorphLensTuning(
     selectsOnPointerDown: true,
     liftWidth: 16,
@@ -214,12 +156,6 @@ class MorphLensTuning {
     hangFromTouch: false,
     presentationSpring: MorphSpring(0.5, 0.73),
     followSpring: MorphSpring(0.271, 0.803),
-    restingGain: 2.785e-5,
-    restingThreshold: 0.069,
-    restingWidthCap: double.infinity,
-    restingStretchCoefficient: 2.82,
-    liftedGain: 3.0e-5,
-    liftedThreshold: 0.0555,
     rubberBand: (4.55, 0.95),
     pressDelay: 0.05,
     dragGain: 1.013,
@@ -583,64 +519,23 @@ class MorphLensMotion {
     }
     final width = _restWidth;
     if (width <= 0) return;
-    final af = _flex.af;
-    if (tuning.flexMovement) {
-      final size = _flag
-          ? Size(width + tuning.liftWidth, height + tuning.liftHeight)
-          : Size(width, height);
-      if (size != _loupeSize) {
-        _loupeSize = size;
-        _loupe = MorphFlexSpec.loupeForSize(size);
-      }
-      final v = MorphFlexInteraction.withMovement(
-        MorphFlexInteraction.rest,
-        spec: _loupe,
-        size: size,
-        acceleration: Offset(af, 0),
-        velocity: Offset(_flex.vf, 0),
-      );
-      _drift.retarget(t, v.driftX);
-      _scaleX.retarget(t, v.scaleX);
-      _scaleY.retarget(t, v.scaleY);
-      return;
+    final size = _flag
+        ? Size(width + tuning.liftWidth, height + tuning.liftHeight)
+        : Size(width, height);
+    if (size != _loupeSize) {
+      _loupeSize = size;
+      _loupe = MorphFlexSpec.loupeForSize(size);
     }
-    double drift;
-    double sx;
-    double sy;
-    if (_flag) {
-      final lifted = width + tuning.liftWidth;
-      final threshold = tuning.liftedThreshold * lifted;
-      drift =
-          -threshold *
-          _soft(
-            tuning.liftedGain * lifted * af / threshold,
-            tuning.liftedSoftness,
-          );
-      final e = -2 * drift / lifted;
-      sx = 1 + e;
-      final q = tuning.liftedStretchRatio * e;
-      final knee = tuning.liftedStretchKnee;
-      final (strength, softWidth) = tuning.liftedStretchSoftness;
-      sy =
-          1 -
-          (q <= knee
-              ? q
-              : knee + strength * softWidth * _tanh((q - knee) / softWidth));
-    } else {
-      final capped = math.min(width, tuning.restingWidthCap);
-      final threshold = tuning.restingThreshold * capped;
-      drift =
-          -threshold *
-          _soft(
-            tuning.restingGain * capped * af / threshold,
-            tuning.restingSoftness,
-          );
-      sx = 1 - 2 * drift / width;
-      sy = 1 + tuning.restingStretchCoefficient * drift / capped;
-    }
-    _drift.retarget(t, drift * _flex.vf.sign);
-    _scaleX.retarget(t, sx);
-    _scaleY.retarget(t, sy);
+    final v = MorphFlexInteraction.withMovement(
+      MorphFlexInteraction.rest,
+      spec: _loupe,
+      size: size,
+      acceleration: Offset(_flex.af, 0),
+      velocity: Offset(_flex.vf, 0),
+    );
+    _drift.retarget(t, v.driftX);
+    _scaleX.retarget(t, v.scaleX);
+    _scaleY.retarget(t, v.scaleY);
   }
 
   void _follow(double t, _Pointer pointer) {
@@ -710,19 +605,6 @@ class MorphLensMotion {
   void _setSelected(int index) {
     _selected = index;
     onSelect?.call(index);
-  }
-
-  static double _soft(double x, (double, double) softness) {
-    final ax = x.abs();
-    if (ax <= 1) return x;
-    final (strength, width) = softness;
-    return x.sign * (1 + strength * width * _tanh((ax - 1) / width));
-  }
-
-  static double _tanh(double x) {
-    if (x.isNaN) return 0;
-    final e = math.exp(-2 * x.abs());
-    return x.sign * (1 - e) / (1 + e);
   }
 }
 
