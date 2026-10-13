@@ -1,0 +1,8 @@
+d28957b  runs 5  fixed-perf False  2026-10-13 06:50
+
+scene                                fr  ui50  ui95  ra50  ra95 gpu95 over% drop    mW  causes / where
+------------------------------------------------------------------------------------------------------
+audit/liquid/m/empty/frames         559   1.0   2.0   6.2   7.6   1.1   0.0    0   489  
+audit/liquid/m/context-menu/hold-c  943   2.1   3.7   6.4   9.5   1.7   0.2    6   579  ui-layout:1 raster-cpu:1 bad ui: layout 13.4, paint 4.0, other 1.5
+audit/flat/m/empty/frames           560   1.0   2.1   6.1  10.7   1.2   0.0    2   490  
+audit/flat/m/context-menu/hold-clo  942   2.1   3.6   6.4   9.6   1.7   0.1    6   442  raster-sched:1 bad raster: LayerTree::Preroll 7.6, QueueSubmit 4.0, SurfaceFrame::Encode 2.6

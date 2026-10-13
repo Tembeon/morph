@@ -1,0 +1,177 @@
+{
+ "budget_ms": 16.666666666666668,
+ "gpu_uid": 10378,
+ "gpu_events": 4340,
+ "scenes": {
+  "m/empty/frames": {
+   "budget_ms": 16.666666666666668,
+   "runs": 5,
+   "seconds": 9.84,
+   "frames": 559,
+   "fps": 56.8,
+   "ui_p50": 1.018677,
+   "ui_p95": 1.955811,
+   "ui_max": 3.451985,
+   "raster_p50": 6.240235,
+   "raster_p95": 7.615967,
+   "raster_max": 9.656169,
+   "gpu_p50": 0.858601,
+   "gpu_p95": 1.058105,
+   "gpu_ms_per_s": 47.22,
+   "save_layers_per_frame": 1.0,
+   "submits_per_frame": 1.0,
+   "over": 0,
+   "over_pct": 0.0,
+   "causes": {},
+   "ui_phase_ms_per_frame": {
+    "other": 0.527,
+    "compositing": 0.478,
+    "paint": 0.047,
+    "layout": 0.037,
+    "finalize": 0.018
+   },
+   "ui_owner_ms_per_frame": {
+    "Dart_InvokeClosure": 0.372,
+    "Dart_NewInteger": 0.024,
+    "POST_FRAME": 0.014
+   },
+   "raster_self_ms_per_frame": {
+    "SurfaceFrame::Encode": 2.295,
+    "QueueSubmit": 1.696,
+    "CreateGlyphAtlas": 0.509,
+    "acquireNextBufferLocked": 0.258,
+    "QueuePresentKHR": 0.175,
+    "Rasterizer::DrawToSurfaces": 0.163,
+    "queueBuffer": 0.14,
+    "AcquireNextImageKHR": 0.094
+   },
+   "glyph_atlas_ms_per_frame": 0.509,
+   "glyph_strike_frames_pct": 0.0,
+   "bad_glyph_atlas_ms_per_frame": 0.0,
+   "bad_raster_self_ms_per_frame": {},
+   "bad_ui_phase_ms_per_frame": {},
+   "ui_runnable_share": 0.002,
+   "raster_runnable_share": 0.049,
+   "dropped": 0,
+   "cpu_mhz": {
+    "little": 637,
+    "mid": 479,
+    "big": 510
+   },
+   "gpu_mhz": 290,
+   "power_mw": 489,
+   "rails_mw": {
+    "display": 182,
+    "cpu.little": 71,
+    "ddr.c": 47,
+    "memory.interface": 46,
+    "cpu.mid": 32,
+    "system.fabric": 30,
+    "gpu": 23,
+    "cpu.big": 20,
+    "tpu": 12,
+    "ddr.b": 9,
+    "ddr.a": 7,
+    "aoc.logic": 6,
+    "aoc.memory": 2,
+    "gps": 1
+   }
+  },
+  "m/context-menu/hold-close": {
+   "budget_ms": 16.666666666666668,
+   "runs": 5,
+   "seconds": 22.25,
+   "frames": 943,
+   "fps": 42.4,
+   "ui_p50": 2.082397,
+   "ui_p95": 3.673136,
+   "ui_max": 20.906657,
+   "raster_p50": 6.444295,
+   "raster_p95": 9.524943,
+   "raster_max": 17.223511,
+   "gpu_p50": 1.411254,
+   "gpu_p95": 1.681397,
+   "gpu_ms_per_s": 53.23,
+   "save_layers_per_frame": 1.04,
+   "submits_per_frame": 1.15,
+   "over": 2,
+   "over_pct": 0.2,
+   "causes": {
+    "ui-layout": 1,
+    "raster-cpu": 1
+   },
+   "ui_phase_ms_per_frame": {
+    "paint": 0.962,
+    "other": 0.508,
+    "compositing": 0.426,
+    "layout": 0.232,
+    "finalize": 0.02,
+    "build": 0.018
+   },
+   "ui_owner_ms_per_frame": {
+    "Dart_InvokeClosure": 0.371,
+    "Dart_NewInteger": 0.02,
+    "POST_FRAME": 0.013,
+    "Dart_StringToUTF8": 0.001,
+    "Dart_StringToUTF16": 0.001
+   },
+   "raster_self_ms_per_frame": {
+    "SurfaceFrame::Encode": 2.358,
+    "QueueSubmit": 1.565,
+    "CreateGlyphAtlas": 0.535,
+    "acquireNextBufferLocked": 0.238,
+    "Rasterizer::DrawToSurfaces": 0.204,
+    "UpdateAtlasBitmap": 0.202,
+    "QueuePresentKHR": 0.166,
+    "queueBuffer": 0.128
+   },
+   "glyph_atlas_ms_per_frame": 0.737,
+   "glyph_strike_frames_pct": 13.6,
+   "bad_glyph_atlas_ms_per_frame": 7.06,
+   "bad_raster_self_ms_per_frame": {
+    "UpdateAtlasBitmap": 5.55,
+    "SurfaceFrame::Encode": 3.9,
+    "QueueSubmit": 2.73,
+    "CreateGlyphAtlas": 1.51,
+    "Canvas::saveLayer": 1.07,
+    "AppendToExistingAtlas": 0.43,
+    "acquireNextBufferLocked": 0.31,
+    "Rasterizer::DrawToSurfaces": 0.2
+   },
+   "bad_ui_phase_ms_per_frame": {
+    "layout": 13.4,
+    "paint": 3.99,
+    "other": 1.51,
+    "build": 1.18,
+    "compositing": 0.82,
+    "finalize": 0.02
+   },
+   "ui_runnable_share": 0.004,
+   "raster_runnable_share": 0.039,
+   "dropped": 6,
+   "cpu_mhz": {
+    "little": 682,
+    "mid": 606,
+    "big": 616
+   },
+   "gpu_mhz": 251,
+   "power_mw": 579,
+   "rails_mw": {
+    "display": 173,
+    "cpu.little": 99,
+    "cpu.big": 62,
+    "cpu.mid": 57,
+    "memory.interface": 55,
+    "ddr.c": 45,
+    "system.fabric": 29,
+    "gpu": 22,
+    "tpu": 12,
+    "ddr.b": 8,
+    "ddr.a": 8,
+    "aoc.logic": 6,
+    "aoc.memory": 2,
+    "gps": 1
+   }
+  }
+ }
+}
