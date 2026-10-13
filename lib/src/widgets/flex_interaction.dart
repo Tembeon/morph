@@ -300,14 +300,14 @@ class MorphFlexInteraction {
   /// The center of the little glow at time [t].
   Offset littleGlowCenter(double t) => Offset(_glowX.value(t), _glowY.value(t));
 
-  /// Whether the channels are within [scaleTolerance] and
-  /// [driftTolerance] pixels of rest at time [t], and the glow has faded.
+  /// Whether the channels hold still within [scaleTolerance] and
+  /// [driftTolerance] pixels at time [t], and the glow has faded; a
+  /// surface held still under a finger counts too.
   bool isAtRest(
     double t, {
     double scaleTolerance = 1e-4,
     double driftTolerance = 0.01,
   }) =>
-      _down == null &&
       _scaleX.isAtRest(t, scaleTolerance) &&
       _scaleY.isAtRest(t, scaleTolerance) &&
       _driftX.isAtRest(t, driftTolerance) &&

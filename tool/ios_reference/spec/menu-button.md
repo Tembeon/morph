@@ -289,7 +289,10 @@ menu_video_test, menu_anchor_video_test.
 `MorphMenuButton`, `MorphMenuItem`, `MorphMenuStyle`, `MorphMenuMotion`,
 `MorphMenuTuning`, `MorphMenuProgress`, `MorphMenuBlob`,
 `MorphMenuMorphSpec` (menu.dart, menu_motion.dart, menu_morph_spec.dart,
-menu_fusion.dart); flies on the engine as a vessel flight. Shared host
+menu_fusion.dart); the button's press and the open menu's flex run on the
+shared flex machine (flex_interaction.dart: `MorphFlexInteraction` lifts
+the button after `pressDelay` without the stretch, `menuTargets` and
+`MorphFlexPulse` are the menu variant); flies on the engine as a vessel flight. Shared host
 for bar menus: MorphMenuHost / MorphMenuLayer / MorphMenuFlightProgress.
 
 `MorphMenuSource` (menu.dart) turns any widget into this menu; the

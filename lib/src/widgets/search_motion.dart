@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:meta/meta.dart';
 import 'package:morph/src/spring.dart';
+import 'package:morph/src/widgets/flex_interaction.dart';
 import 'package:morph/src/widgets/flex_spec.dart';
 import 'package:morph/src/widgets/spring_state.dart';
 import 'package:morph/src/widgets/timeline.dart';
@@ -248,9 +249,11 @@ MorphSearchTabGeometry morphSearchTabLayout({
 /// way in reverse. A change in the middle of another reverses from where
 /// it stands, velocity included.
 ///
-/// A touch lifts the field like a glass button of its size
-/// ([MorphFlexSpec.forSize]: the tracking spring up, the scale spring
-/// back), [MorphSearchTuning.pressDelay] after the contact.
+/// A touch lifts the field like a glass button of its size, through the
+/// shared flex interaction ([MorphFlexSpec.forSize]: the tracking spring
+/// up, the scale spring back), [MorphSearchTuning.pressDelay] after the
+/// contact. The field only lifts: no drag on it was measured, so it does
+/// not stretch.
 ///
 /// Times are seconds on the caller's clock.
 class MorphSearchMotion {
@@ -259,36 +262,32 @@ class MorphSearchMotion {
   MorphSearchMotion({
     Size size = const Size(346, 48),
     MorphSpring spring = MorphSearchTuning.transitionSpring,
-  }) : _size = size,
-       _spec = MorphFlexSpec.forSize(size),
-       _progress = MorphSpringState(spring, 0);
+  }) : _progress = MorphSpringState(spring, 0) {
+    _lift = MorphFlexInteraction(
+      size: size,
+      stretches: false,
+      activationDelay: MorphSearchTuning.pressDelay,
+      timeline: _timeline,
+    );
+  }
 
   final MorphTimeline _timeline = MorphTimeline(now: 0);
   final MorphSpringState _progress;
-  final MorphSpringState _press = MorphSpringState(
-    MorphFlexSpec.large.trackingSpring,
-    1,
-  );
-  Size _size;
-  MorphFlexSpec _spec;
+  late final MorphFlexInteraction _lift;
   double _now = 0;
   bool _focused = false;
-  bool _pressed = false;
   int _focusGeneration = 0;
-  int _pressGeneration = 0;
 
   /// Whether the field moves for Reduce Motion: the transition still runs,
   /// but nothing lifts. An approximation; it is not measured.
-  bool reducedMotion = false;
+  bool get reducedMotion => _lift.reducedMotion;
+
+  set reducedMotion(bool value) => _lift.reducedMotion = value;
 
   /// The size of the field at rest, which sets its lift.
-  Size get size => _size;
+  Size get size => _lift.size;
 
-  set size(Size value) {
-    if (value == _size) return;
-    _size = value;
-    _spec = MorphFlexSpec.forSize(value);
-  }
+  set size(Size value) => _lift.size = value;
 
   /// The time the motion was last advanced to.
   double get time => _now;
@@ -297,17 +296,17 @@ class MorphSearchMotion {
   bool get isFocused => _focused;
 
   /// Whether a finger is down on the field.
-  bool get isPressed => _pressed;
+  bool get isPressed => _lift.isPressed;
 
   /// Whether nothing moves and nothing is pending.
   bool get isSettled =>
       _timeline.isEmpty &&
-      !_pressed &&
+      !_lift.isPressed &&
       _progress.isAtRest(_now, 0.001) &&
-      _press.isAtRest(_now, 1e-4);
+      _lift.isAtRest(_now);
 
   /// The scale of the fully lifted field.
-  double get liftedScale => _spec.liftScaleFor(_size);
+  double get liftedScale => _lift.liftedScale;
 
   /// Advances the motion to time [t].
   void advance(double t) {
@@ -351,24 +350,14 @@ class MorphSearchMotion {
   /// A finger touched the field at time [t].
   void pointerDown(double t) {
     advance(t);
-    _pressed = true;
-    final generation = ++_pressGeneration;
-    _timeline.at(t + MorphSearchTuning.pressDelay, (double at) {
-      if (!_pressed || generation != _pressGeneration) return;
-      _press.retarget(
-        at,
-        reducedMotion ? 1 : liftedScale,
-        spring: _spec.trackingSpring,
-      );
-    });
+    _lift.pointerDown(t, Offset.zero);
   }
 
   /// The finger left the field at time [t].
   void pointerUp(double t) {
     advance(t);
-    if (!_pressed) return;
-    _pressed = false;
-    _press.retarget(t, 1, spring: _spec.scaleSpring);
+    if (!_lift.isPressed) return;
+    _lift.release(t);
   }
 
   /// The touch was cancelled at time [t].
@@ -378,7 +367,7 @@ class MorphSearchMotion {
   double progress(double t) => _progress.value(t);
 
   /// The lift scale of the field at time [t].
-  double pressScale(double t) => _press.value(t);
+  double pressScale(double t) => _lift.scale(t);
 
   /// The scale of an item that is [presence] there (0 gone, 1 fully
   /// there): [MorphSearchTuning.appearScale] at nothing.

@@ -1132,10 +1132,14 @@ class MorphMenuMotion {
   }) : _button = button,
        _layoutFor = layout,
        _sourceHeight = sourceHeight ?? button.height,
-       _flex = MorphFlexSpec.forSize(button.size),
        _progress = progress ?? MorphMenuProgress.spring(tuning) {
     _radius = MorphSpringState(tuning.openSpring, 0);
-    _press = MorphSpringState(_flex.trackingSpring, 1);
+    _press = MorphFlexInteraction(
+      size: button.size,
+      stretches: false,
+      activationDelay: tuning.pressDelay,
+      timeline: _timeline,
+    );
     _flexScaleX = MorphSpringState(tuning.flex.scaleSpring, 1);
     _flexScaleY = MorphSpringState(tuning.flex.scaleSpring, 1);
     _flexDriftX = MorphSpringState(tuning.flex.scaleSpring, 0);
@@ -1159,10 +1163,9 @@ class MorphMenuMotion {
   EdgeInsets _padding;
   double _sourceHeight;
   double? _sourceRadius;
-  MorphFlexSpec _flex;
 
   late final MorphSpringState _radius;
-  late final MorphSpringState _press;
+  late final MorphFlexInteraction _press;
   late final MorphSpringState _flexScaleX;
   late final MorphSpringState _flexScaleY;
   late final MorphSpringState _flexDriftX;
@@ -1212,7 +1215,6 @@ class MorphMenuMotion {
   double _fadeAnchor = 0;
   double _fadeEnd = 1;
   int _openGeneration = 0;
-  int _pressGeneration = 0;
   bool _openPending = false;
   ({double t, Offset position})? _earlyRelease;
   _Pointer? _pointer;
@@ -1342,10 +1344,10 @@ class MorphMenuMotion {
     _padding = padding;
     _itemCount = itemCount ?? _itemCount;
     _sourceHeight = sourceHeight ?? button.height;
-    _flex = MorphFlexSpec.forSize(button.size);
+    _press.size = button.size;
     _root = _build(reversed: _reversed);
     _rootHeight.snap(_now, _visibleRoot(_root));
-    _place(_press.value(_now));
+    _place(_press.scale(_now));
   }
 
   /// Lays the content out again at time [t], as after a change of the
@@ -1388,7 +1390,7 @@ class MorphMenuMotion {
     if (_phase == _Phase.idle || !animate) {
       _resizeGeneration++;
       _rootHeight.snap(t, height);
-      if (_phase == _Phase.idle) _place(_press.value(t));
+      if (_phase == _Phase.idle) _place(_press.scale(t));
       return;
     }
     final unchanged = (height - _rootHeight.target).abs() < 1e-6;
@@ -1612,7 +1614,7 @@ class MorphMenuMotion {
   Rect get pressedButtonRect => _pressed;
 
   /// The scale of the button's press growth.
-  double get pressScale => _press.value(_now);
+  double get pressScale => _press.scale(_now);
 
   /// The highlighted target of [highlightedCard] - under the finger, or
   /// the chosen one while the menu closes.
@@ -2179,7 +2181,9 @@ class MorphMenuMotion {
     final t = _now;
     if (_pointer?.scrolled ?? false) return false;
     if (_phase == _Phase.closing) return false;
-    if (!_press.isAtRest(t, 1e-3) || !_flexAtRest(t) || !_glowAtRest(t)) {
+    if (!_press.isAtRest(t, scaleTolerance: 1e-3) ||
+        !_flexAtRest(t) ||
+        !_glowAtRest(t)) {
       return false;
     }
     if (_phase == _Phase.opening) {
@@ -2352,12 +2356,7 @@ class MorphMenuMotion {
       startedInMenu: false,
     );
     _pointer = pointer;
-    final generation = ++_pressGeneration;
-    final lifted = _flex.liftScaleFor(_button.size);
-    _timeline.at(t + tuning.pressDelay, (double s) {
-      if (generation != _pressGeneration) return;
-      _press.retarget(s, lifted, spring: _flex.trackingSpring);
-    });
+    _press.pointerDown(t, position - _button.topLeft);
     _timeline.at(t + tuning.holdDuration, (double s) {
       if (!identical(_pointer, pointer) ||
           _phase == _Phase.opening ||
@@ -2714,7 +2713,7 @@ class MorphMenuMotion {
     final fresh = _phase == _Phase.idle;
     final opacity = fresh ? 0.0 : _contentOpacityAt(t);
     if (_phase == _Phase.idle) {
-      _place(sourceScale ?? _press.value(t));
+      _place(sourceScale ?? _press.scale(t));
       _radiusFrom = tuning.openingRadius;
     } else {
       _sourceScale = sourceScale ?? _sourceScaleAt(t);
@@ -2779,7 +2778,7 @@ class MorphMenuMotion {
     _closeProgress = _progress.valueAt(t);
     _closeStart = t;
     _closeSource = _sourceScale;
-    _closeLive = _press.value(t);
+    _closeLive = _press.scale(t);
     _openGeneration++;
     _resizeGeneration++;
     _phase = _Phase.closing;
@@ -2932,8 +2931,7 @@ class MorphMenuMotion {
   }
 
   void _release(double t) {
-    _pressGeneration++;
-    _press.retarget(t, 1, spring: _flex.scaleSpring);
+    _press.release(t);
   }
 
   void _relax(double t) {
@@ -2979,7 +2977,7 @@ class MorphMenuMotion {
 
   double _sourceScaleAt(double t) {
     if (_phase != _Phase.closing) return _sourceScale;
-    final live = _press.value(t);
+    final live = _press.scale(t);
     final decay = math.exp(-(t - _closeStart) / tuning.sourceRelax);
     return live + (_closeSource - _closeLive) * decay;
   }

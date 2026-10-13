@@ -80,7 +80,10 @@ morph film side: example/integration_test/search_date_scenes.dart.
 
 search_field.dart (`MorphSearchField`, `MorphSearchFieldStyle`,
 `MorphSearchToolbar`), search_motion.dart (`MorphSearchMotion`,
-`MorphSearchTuning`).
+`MorphSearchTuning`). The touch lift is the shared flex interaction
+(flex_interaction.dart, `MorphFlexInteraction` with `stretches: false`
+and `activationDelay` = `pressDelay`); a drag on the field is not
+measured, so it lifts without the stretch.
 
 ## Not reproduced / open
 
