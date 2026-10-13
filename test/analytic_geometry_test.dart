@@ -148,11 +148,10 @@ void main() {
                 'ANALYTIC_MAX_SHAPES': max,
                 'ANALYTIC_MAX_BOXES': boxes,
               });
-          expect(layout['uAnalyticOptics'], (
+          expect(layout['uAnalyticHeader'], (
             RenderLiquidGlassLayer.analyticUniformIndex,
-            4,
+            8,
           ));
-          expect(layout['uAnalyticRanges'], (73, 4));
           expect(layout['uShapeData'], (
             RenderLiquidGlassLayer.analyticShapeDataIndex,
             max * 12,
@@ -165,13 +164,13 @@ void main() {
           expect(RenderLiquidGlassLayer.analyticRseDataIndex, 173);
           expect(layout['uShapeBounds'], (
             RenderLiquidGlassLayer.analyticBoundsIndex,
-            max * 4,
+            max * 5,
           ));
           expect(RenderLiquidGlassLayer.analyticBoundsIndex, 269);
-          expect(layout['uShapeCull'], (
+          expect(
             RenderLiquidGlassLayer.analyticCullIndex,
-            max,
-          ));
+            RenderLiquidGlassLayer.analyticBoundsIndex + max * 4,
+          );
           expect(RenderLiquidGlassLayer.analyticCullIndex, 301);
           expect(layout['uAnalyticFlatFace'], (
             RenderLiquidGlassLayer.analyticFlatFaceIndex,
@@ -197,16 +196,36 @@ void main() {
             expect(layout.containsKey('uShapeTints'), isFalse);
           }
           expect(layout.keys, [
-            'uAnalyticOptics',
-            'uAnalyticRanges',
+            'uAnalyticHeader',
             'uShapeData',
             'uRseData',
             'uShapeBounds',
-            'uShapeCull',
             'uAnalyticFlatFace',
             if (fused) 'uFusedBoxes',
             if (tint) 'uShapeTints',
           ]);
+        });
+      }
+    }
+
+    // Metal gives each uniform declaration a buffer slot by declaration
+    // order and has 31; a shader past that fails to compile on iOS and
+    // macOS, and Impeller retries the compile on every frame it draws.
+    for (final fused in [false, true]) {
+      for (final tint in [false, true]) {
+        test('the analytic shader fits Metal\'s 31 buffer slots: '
+            '${fused ? 'fused ' : ''}${tint ? 'tint' : 'one appearance'}', () {
+          final core = File(
+            '${_shaders}liquid_glass_final_render_core.glsl',
+          ).readAsLinesSync();
+          final include = core.indexWhere(
+            (line) => line.contains('#include "analytic_geometry.glsl"'),
+          );
+          final declarations = [
+            ...core.take(include),
+            ..._analyticLines(tint: tint, fused: fused),
+          ].where((line) => _uniform.hasMatch(line.trim())).length;
+          expect(declarations, lessThanOrEqualTo(31));
         });
       }
     }

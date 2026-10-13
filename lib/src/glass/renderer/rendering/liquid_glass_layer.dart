@@ -1763,12 +1763,13 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   @visibleForTesting
   static bool get debugHasBlankImage => _blankImage != null;
 
-  /// Float index of uAnalyticOptics, the first analytic uniform, after the
-  /// 69 common floats (shaders/analytic_geometry.glsl).
+  /// Float index of uAnalyticHeader (the optics vec4, then the ranges
+  /// vec4), the first analytic uniform, after the 69 common floats
+  /// (shaders/analytic_geometry.glsl).
   @visibleForTesting
   static const int analyticUniformIndex = 69;
 
-  /// Float index of uShapeData, after uAnalyticOptics and uAnalyticRanges.
+  /// Float index of uShapeData, after the two vec4 of uAnalyticHeader.
   @visibleForTesting
   static const int analyticShapeDataIndex = analyticUniformIndex + 8;
 
@@ -1782,13 +1783,13 @@ class RenderLiquidGlassLayer extends LiquidGlassRenderObject
   static const int analyticBoundsIndex =
       analyticRseDataIndex + analyticMaxShapes * 12;
 
-  /// Float index of uShapeCull, after one vec4 of uShapeBounds per shape:
-  /// one float per shape, four to a vec4.
+  /// Float index of the cull factors, the tail of uShapeBounds after one
+  /// vec4 of bounds per shape: one float per shape, four to a vec4.
   @visibleForTesting
   static const int analyticCullIndex =
       analyticBoundsIndex + analyticMaxShapes * 4;
 
-  /// Float index of uAnalyticFlatFace, after uShapeCull.
+  /// Float index of uAnalyticFlatFace, after the cull factors.
   @visibleForTesting
   static const int analyticFlatFaceIndex =
       analyticCullIndex + analyticMaxShapes;

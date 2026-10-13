@@ -25,6 +25,13 @@
 //
 // Included by liquid_glass_final_render_core.glsl after its uniforms, so
 // these uniforms follow its float uniforms (from float index 69).
+//
+// Metal gives every uniform declaration its own buffer slot, numbered by
+// declaration order over the core's uniforms and these, and has 31 (0 to
+// 30). A final shader that declares more fails to compile there, and
+// Impeller then retries the compile on every frame that draws it. So
+// neighbours share one array where their float layout allows it: the
+// header vectors, and the cull factors behind the shape bounds.
 
 #ifndef ANALYTIC_FUSED
 #define ANALYTIC_FUSED 0
@@ -34,22 +41,26 @@
 #define ANALYTIC_MAX_BOXES 4
 #define MAX_SHAPES ANALYTIC_MAX_SHAPES
 
+// [0] uAnalyticOptics, [1] uAnalyticRanges.
+uniform vec4 uAnalyticHeader[2];
 // x: refraction height, y: edge displacement (the encode scale), z: 1 when
 // the refraction fits the shape, w: the number of shapes. Device px.
-uniform vec4 uAnalyticOptics;
+#define uAnalyticOptics uAnalyticHeader[0]
 // x: the exterior range the matte encodes (the contour extent the geometry
 // pass receives), y: the fused body's box count (0 for separate shapes),
 // z: the merge spacing, w: the narrowest merge width that blends. Device
 // px.
-uniform vec4 uAnalyticRanges;
+#define uAnalyticRanges uAnalyticHeader[1]
 uniform vec4 uShapeData[MAX_SHAPES * 3];
 uniform vec4 uRseData[MAX_SHAPES * 3];
-uniform vec4 uShapeBounds[MAX_SHAPES];
+// MAX_SHAPES shape bounds (what gpu/sdf.glsl reads), then the cull
+// factors, MAX_SHAPES / 4 vec4s.
+uniform vec4 uShapeBounds[MAX_SHAPES * 5 / 4];
 // Per shape, four to a vec4: the factor that turns its box distance into
 // a lower bound of its distance (the smaller over the larger singular
 // value of its basis, over sqrt 2 for the corner solvers' Chebyshev
 // branches).
-uniform vec4 uShapeCull[MAX_SHAPES / 4];
+#define shapeCull(i) uShapeBounds[MAX_SHAPES + (i) / 4][(i) - ((i) / 4) * 4]
 // 1 lets the separate shapes skip a continuous-corner shape's distance
 // solve on its flat face (flatFaceSample), 0 solves every pixel. The two
 // draw the same pixels.
@@ -253,7 +264,7 @@ SceneSample nearestShape(
         if (i >= count) break;
         // A lower bound of the shape's distance that cannot beat the
         // nearest so far: the shape cannot win, not even a tie.
-        float bound = sqrt(shapeBoundsDistanceSquared(uShapeBounds[i], p)) * uShapeCull[i / 4][i - (i / 4) * 4];
+        float bound = sqrt(shapeBoundsDistanceSquared(uShapeBounds[i], p)) * shapeCull(i);
         if (bound > best.distance) continue;
         SceneSample shape = i == container
             ? flatFaceSample(i, p)
@@ -314,7 +325,7 @@ vec4 nearestShapeTint(vec2 p, int count) {
         if (i >= count) break;
         float boxDistance = shapeBoundsDistanceSquared(uShapeBounds[i], p);
         nearestBox = min(nearestBox, boxDistance);
-        float bound = sqrt(boxDistance) * uShapeCull[i / 4][i - (i / 4) * 4];
+        float bound = sqrt(boxDistance) * shapeCull(i);
         if (bound > bestDistance) continue;
         float distance = getShapeDistanceFromArray(i, p);
         bool nearer = i == count - 1

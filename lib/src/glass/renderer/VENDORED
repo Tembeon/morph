@@ -510,3 +510,14 @@ Local patches (some commits include related package changes):
   The per-frame raster-phase watch hid it until 2026-10-12. A paint
   requested from those hooks now schedules its frame
   (example/test/glass_repaint_host_test.dart).
+- 2026-10-13 Metal buffer slots: Metal gives each uniform declaration its
+  own buffer slot by declaration order and has 31 (0 to 30). The tint and
+  fused analytic variants declared 32 to 33 (slots up to 31 and 32), so
+  their MSL failed to compile on iOS and macOS; Impeller does not remember
+  the failure and recompiled them (newLibraryWithSource, ~55-90 ms on an
+  iPhone 16 Pro) on every frame that drew them, and drew nothing. The
+  header vectors now share uAnalyticHeader[2] (uAnalyticOptics and
+  uAnalyticRanges are macros onto it) and the cull factors are the tail of
+  uShapeBounds[MAX_SHAPES * 5 / 4] (shapeCull(i)); the float layout and
+  the Vulkan UBO layout are unchanged. test/analytic_geometry_test.dart
+  counts the declarations of each variant against the 31 slots.
