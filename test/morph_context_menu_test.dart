@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flutter/gestures.dart';
+import 'package:flutter/rendering.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:morph/widgets.dart';
@@ -584,6 +585,75 @@ void main() {
     expect(find.text('reply'), findsNothing);
   });
 
+  testWidgets('the menu column and its satellites build nothing per flight '
+      'frame', (WidgetTester tester) async {
+    frame(tester);
+    await tester.pumpWidget(const _Host());
+    await tester.tap(find.text('more'));
+    await settle(tester);
+    final MorphFlight flight = _host(tester).flight!;
+    var built = 0;
+    debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
+      bool inside = false;
+      element.visitAncestorElements((Element ancestor) {
+        inside = ancestor.widget.runtimeType.toString() == '_Retract';
+        return !inside;
+      });
+      if (inside) built++;
+    };
+    addTearDown(() => debugOnRebuildDirtyWidget = null);
+    flight.close();
+    await tester.pump();
+    for (int i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(flight.controller.value, inExclusiveRange(0.05, 0.95));
+    expect(built, 0, reason: 'the satellites retract without a build');
+    debugOnRebuildDirtyWidget = null;
+    await settle(tester);
+  });
+
+  testWidgets('the satellite semantics stand where they paint, open and '
+      'unfolding', (WidgetTester tester) async {
+    final SemanticsHandle semantics = tester.ensureSemantics();
+    frame(tester);
+    await tester.pumpWidget(const _Host());
+    await tester.tap(find.text('more'));
+    await settle(tester);
+    Rect global(SemanticsNode node) {
+      Rect rect = node.rect;
+      for (SemanticsNode? n = node; n != null; n = n.parent) {
+        final Matrix4? transform = n.transform;
+        if (transform != null) {
+          rect = MatrixUtils.transformRect(transform, rect);
+        }
+      }
+      return rect;
+    }
+
+    void follows(String when) {
+      for (final String row in <String>['reply', 'delete']) {
+        final Offset painted = tester.getCenter(find.text(row));
+        final Offset read = global(tester.getSemantics(find.text(row))).center;
+        expect((read - painted).distance, lessThan(1), reason: '$row $when');
+      }
+    }
+
+    follows('open');
+    _host(tester).flight!.close();
+    await settle(tester);
+    await tester.tap(find.text('more'));
+    await tester.pump();
+    for (int i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    expect(_host(tester).flight!.controller.value, lessThan(0.95));
+    follows('opening');
+    _host(tester).flight!.close();
+    await settle(tester);
+    semantics.dispose();
+  });
+
   testWidgets('a scroll cancels the press and never opens', (
     WidgetTester tester,
   ) async {
@@ -886,10 +956,19 @@ void liveSlots() {
         .flight!;
     final Rect before = flight.lastTargetRect;
     final Rect hero = heroCopy(tester);
+    var columnBuilds = 0;
+    debugOnRebuildDirtyWidget = (Element element, bool builtOnce) {
+      if (element.widget.runtimeType.toString() == '_MenuColumn') {
+        columnBuilds++;
+      }
+    };
+    addTearDown(() => debugOnRebuildDirtyWidget = null);
     expanded.value = true;
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 16));
     await tester.pump(const Duration(milliseconds: 60));
+    debugOnRebuildDirtyWidget = null;
+    expect(columnBuilds, 0, reason: 'the column springs without a build');
     final Rect mid = flight.lastTargetRect;
     expect(mid.height, greaterThan(before.height));
     expect(mid.height, lessThan(before.height + 60));

@@ -821,126 +821,14 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
         ? null
         : MorphChromeBackdrop(child: below.builder(context, flight));
     final Widget hero = MorphChromeBackdrop(child: _flightHero());
-    return ListenableBuilder(
-      listenable: geometry,
-      builder: (BuildContext context, Widget? _) {
-        return SizedBox(
-          width: geometry.width,
-          height: geometry.height,
-          child: Column(
-            mainAxisSize: .min,
-            crossAxisAlignment: .stretch,
-            children: <Widget>[
-              if (above != null) ...<Widget>[
-                _Retract(
-                  flight: flight,
-                  geometry: geometry,
-                  slot: Rect.fromLTWH(0, 0, geometry.width, geometry.above),
-                  child: _slot(
-                    extent: geometry.above,
-                    fixed: above.height != null,
-                    alignment: Alignment.bottomCenter,
-                    width: geometry.width,
-                    onSize: geometry.reportAbove,
-                    child: aboveContent!,
-                  ),
-                ),
-                SizedBox(height: geometry.gap),
-              ],
-              Align(
-                alignment: Alignment(geometry.alignment.x, 0),
-                child: SizedBox(
-                  width: geometry.slotWidth,
-                  height: geometry.slotHeight,
-                  // The same content on both sides: the target copy
-                  // flies alone at full opacity - a fade-through of
-                  // identical pixels would read as a blink.
-                  child: MorphSharedElement(
-                    id: _heroId,
-                    fade: .none,
-                    // The copy lays out at its natural size and is
-                    // painted lifted, as UIKit scales its preview: text
-                    // never rewraps at the lifted size. The slot is
-                    // seeded at the hero's launch size and springs to
-                    // what the copy becomes; the copy is never narrower
-                    // than at launch, never wider than the menu, and
-                    // overflows the slot until it catches up.
-                    child: Transform.scale(
-                      scale: geometry.scale,
-                      alignment: Alignment.topLeft,
-                      child: OverflowBox(
-                        alignment: Alignment.topLeft,
-                        minWidth: geometry.heroWidth,
-                        maxWidth: geometry.heroWidth,
-                        minHeight: geometry.heroHeight,
-                        maxHeight: geometry.heroHeight,
-                        child: MorphContentMeasure(
-                          childConstraints: BoxConstraints(
-                            minWidth: geometry.hero.width,
-                            maxWidth: geometry.width / geometry.scale,
-                          ),
-                          alignment: AlignmentDirectional.topStart,
-                          onSize: geometry.reportHero,
-                          child: hero,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              if (below != null) ...<Widget>[
-                SizedBox(height: geometry.gap),
-                _Retract(
-                  flight: flight,
-                  geometry: geometry,
-                  slot: Rect.fromLTWH(
-                    0,
-                    geometry.aboveExtent + geometry.slotHeight + geometry.gap,
-                    geometry.width,
-                    geometry.below,
-                  ),
-                  child: _slot(
-                    extent: geometry.below,
-                    fixed: below.height != null,
-                    alignment: Alignment.topCenter,
-                    width: geometry.width,
-                    onSize: geometry.reportBelow,
-                    child: belowContent!,
-                  ),
-                ),
-              ],
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  /// A satellite slot: a fixed box, or a box of the live extent whose
-  /// content lays out at its natural height under the menu's width,
-  /// clipped while the extent catches up - the growth reveals from the
-  /// hero's side outward.
-  static Widget _slot({
-    required double extent,
-    required bool fixed,
-    required Alignment alignment,
-    required double width,
-    required ValueChanged<Size> onSize,
-    required Widget child,
-  }) {
-    if (fixed) {
-      return SizedBox(height: extent, child: child);
-    }
-    return SizedBox(
-      height: extent,
-      child: ClipRect(
-        child: MorphContentMeasure(
-          childConstraints: BoxConstraints(minWidth: width, maxWidth: width),
-          alignment: alignment,
-          onSize: onSize,
-          child: child,
-        ),
-      ),
+    return _MenuColumn(
+      flight: flight,
+      geometry: geometry,
+      above: above,
+      below: below,
+      aboveContent: aboveContent,
+      belowContent: belowContent,
+      hero: hero,
     );
   }
 
@@ -985,14 +873,207 @@ class _MorphContextMenuRegionState extends State<MorphContextMenuRegion>
   }
 }
 
+/// The menu column `[above, gap, hero, gap, below]` around the flying
+/// hero. It builds when the menu builds or a satellite appears or leaves;
+/// every other change of the column's extents reaches its render objects
+/// once per frame, after every spring of the frame ran, without a build.
+class _MenuColumn extends StatefulWidget {
+  const _MenuColumn({
+    required this.flight,
+    required this.geometry,
+    required this.above,
+    required this.below,
+    required this.aboveContent,
+    required this.belowContent,
+    required this.hero,
+  });
+
+  final MorphFlight flight;
+  final _MenuGeometry geometry;
+  final MorphSatellite? above;
+  final MorphSatellite? below;
+  final Widget? aboveContent;
+  final Widget? belowContent;
+  final Widget hero;
+
+  @override
+  State<_MenuColumn> createState() => _MenuColumnState();
+}
+
+class _MenuColumnState extends State<_MenuColumn> {
+  late final MorphFrameSync<(bool, bool)> _sync = MorphFrameSync<(bool, bool)>(
+    structure: () => (widget.geometry._hasAbove, widget.geometry._hasBelow),
+    rebuild: (_) => setState(() {}),
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _sync.follow(widget.geometry);
+  }
+
+  @override
+  void didUpdateWidget(_MenuColumn oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _sync.follow(widget.geometry);
+  }
+
+  @override
+  void dispose() {
+    _sync.dispose();
+    super.dispose();
+  }
+
+  Widget _live(RenderObjectWidget Function() template, {Widget? child}) =>
+      MorphLiveTemplate(live: _sync, template: template, child: child);
+
+  /// A satellite slot: a fixed box, or a box of the live extent whose
+  /// content lays out at its natural height under the menu's width,
+  /// clipped while the extent catches up - the growth reveals from the
+  /// hero's side outward.
+  Widget _slot({
+    required double Function() extent,
+    required bool fixed,
+    required Alignment alignment,
+    required ValueChanged<Size> onSize,
+    required Widget child,
+  }) {
+    final _MenuGeometry geometry = widget.geometry;
+    if (fixed) {
+      return _live(() => SizedBox(height: extent()), child: child);
+    }
+    return _live(
+      () => SizedBox(height: extent()),
+      child: ClipRect(
+        child: _live(
+          () => MorphContentMeasure(
+            childConstraints: BoxConstraints(
+              minWidth: geometry.width,
+              maxWidth: geometry.width,
+            ),
+            alignment: alignment,
+            onSize: onSize,
+          ),
+          child: child,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    _sync.read();
+    final MorphFlight flight = widget.flight;
+    final _MenuGeometry geometry = widget.geometry;
+    final MorphSatellite? above = widget.above;
+    final MorphSatellite? below = widget.below;
+    return _live(
+      () => SizedBox(width: geometry.width, height: geometry.height),
+      child: Column(
+        mainAxisSize: .min,
+        crossAxisAlignment: .stretch,
+        children: <Widget>[
+          if (above != null) ...<Widget>[
+            _Retract(
+              flight: flight,
+              geometry: geometry,
+              slot: () => Rect.fromLTWH(0, 0, geometry.width, geometry.above),
+              child: _slot(
+                extent: () => geometry.above,
+                fixed: above.height != null,
+                alignment: Alignment.bottomCenter,
+                onSize: geometry.reportAbove,
+                child: widget.aboveContent!,
+              ),
+            ),
+            _live(() => SizedBox(height: geometry.gap)),
+          ],
+          _live(
+            () => Align(alignment: Alignment(geometry.alignment.x, 0)),
+            child: _live(
+              () => SizedBox(
+                width: geometry.slotWidth,
+                height: geometry.slotHeight,
+              ),
+              // The same content on both sides: the target copy flies
+              // alone at full opacity - a fade-through of identical
+              // pixels would read as a blink.
+              child: MorphSharedElement(
+                id: _heroId,
+                fade: .none,
+                // The copy lays out at its natural size and is painted
+                // lifted, as UIKit scales its preview: text never
+                // rewraps at the lifted size. The slot is seeded at the
+                // hero's launch size and springs to what the copy
+                // becomes; the copy is never narrower than at launch,
+                // never wider than the menu, and overflows the slot
+                // until it catches up.
+                child: _live(
+                  () => Transform.scale(
+                    scale: geometry.scale,
+                    alignment: Alignment.topLeft,
+                  ),
+                  child: _live(
+                    () => OverflowBox(
+                      alignment: Alignment.topLeft,
+                      minWidth: geometry.heroWidth,
+                      maxWidth: geometry.heroWidth,
+                      minHeight: geometry.heroHeight,
+                      maxHeight: geometry.heroHeight,
+                    ),
+                    child: _live(
+                      () => MorphContentMeasure(
+                        childConstraints: BoxConstraints(
+                          minWidth: geometry.hero.width,
+                          maxWidth: geometry.width / geometry.scale,
+                        ),
+                        alignment: AlignmentDirectional.topStart,
+                        onSize: geometry.reportHero,
+                      ),
+                      child: widget.hero,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (below != null) ...<Widget>[
+            _live(() => SizedBox(height: geometry.gap)),
+            _Retract(
+              flight: flight,
+              geometry: geometry,
+              slot: () => Rect.fromLTWH(
+                0,
+                geometry.aboveExtent + geometry.slotHeight + geometry.gap,
+                geometry.width,
+                geometry.below,
+              ),
+              child: _slot(
+                extent: () => geometry.below,
+                fixed: below.height != null,
+                alignment: Alignment.topCenter,
+                onSize: geometry.reportBelow,
+                child: widget.belowContent!,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 /// A satellite unfolding out of the hero: at flight value 0 the slot is
 /// squeezed into a blob of [MorphContextMenuRegion.measuredRetractScale]
 /// times the hero's natural size at the hero's center, at 1 it stands in
-/// place - the
-/// menu grows out of the held surface and retracts into it on the way
-/// home, a pure function of the flight's value. The satellite rect uses
-/// the engine's flight geometry, including its size overshoot above 1;
-/// the column's content remains laid out at its natural size.
+/// place - the menu grows out of the held surface and retracts into it on
+/// the way home, a pure function of the flight's value. The satellite
+/// rect uses the engine's flight geometry, including its size overshoot
+/// above 1; the column's content remains laid out at its natural size.
+///
+/// The transform is read when the box paints, after the frame's springs
+/// ran and the shuttle re-read the source's rect; a flight frame repaints
+/// the box and builds nothing.
 class _Retract extends StatelessWidget {
   const _Retract({
     required this.flight,
@@ -1004,69 +1085,66 @@ class _Retract extends StatelessWidget {
   final MorphFlight flight;
   final _MenuGeometry geometry;
 
-  /// The slot's rect in the column.
-  final Rect slot;
+  /// The slot's rect in the column now.
+  final Rect Function() slot;
   final Widget child;
 
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: flight.frameTicks,
-      child: child,
-      builder: (BuildContext context, Widget? child) {
-        final double value = math.max(flight.controller.value, 0);
-        // One Transform on every frame, identity at rest: a tree that
-        // changed shape at the boundary would remount the satellite.
-        if (value == 1 || slot.width <= 0 || slot.height <= 0) {
-          return Transform(transform: Matrix4.identity(), child: child);
-        }
-        // The blob is placed where it is SEEN: at the center of the held
-        // view, which the vessel stands on at value 0. The column
-        // overflows that rect by its content alignment and is painted at
-        // the reveal scale about its own center, so both are divided out.
-        final Size source = flight.sourceRect.size;
-        final Alignment align = geometry.contentAlignment;
-        final Offset seen = Offset(
-          source.width / 2 -
-              (source.width - geometry.width) * (align.x + 1) / 2,
-          source.height / 2 -
-              (source.height - geometry.height) * (align.y + 1) / 2,
-        );
-        final double reveal = morphTargetRevealScale(value);
-        final Offset middle = Offset(geometry.width / 2, geometry.height / 2);
-        final Rect blob = Rect.fromCenter(
-          center: middle + (seen - middle) / reveal,
-          width:
-              geometry.heroWidth *
-              MorphContextMenuRegion.measuredRetractScale /
-              reveal,
-          height:
-              geometry.heroHeight *
-              MorphContextMenuRegion.measuredRetractScale /
-              reveal,
-        );
-        final Rect now = morphFlightGeometry(
-          value: value,
-          sourceRect: blob,
-          targetRect: slot,
-          sourceShape: flight.tag.shape,
-          targetShape: flight.target.shape,
-        ).rect;
-        final Matrix4 transform = Matrix4.translationValues(
-          now.left - slot.left,
-          now.top - slot.top,
-          0,
-        );
-        transform.scaleByDouble(
-          now.width / slot.width,
-          now.height / slot.height,
-          1,
-          1,
-        );
-        return Transform(transform: transform, child: child);
-      },
+  Matrix4 _transform() {
+    final double value = math.max(flight.controller.value, 0);
+    final Rect slot = this.slot();
+    if (value == 1 || slot.width <= 0 || slot.height <= 0) {
+      return Matrix4.identity();
+    }
+    // The blob is placed where it is SEEN: at the center of the held
+    // view, which the vessel stands on at value 0. The column overflows
+    // that rect by its content alignment and is painted at the reveal
+    // scale about its own center, so both are divided out.
+    final Size source = flight.sourceRect.size;
+    final Alignment align = geometry.contentAlignment;
+    final Offset seen = Offset(
+      source.width / 2 - (source.width - geometry.width) * (align.x + 1) / 2,
+      source.height / 2 - (source.height - geometry.height) * (align.y + 1) / 2,
     );
+    final double reveal = morphTargetRevealScale(value);
+    final Offset middle = Offset(geometry.width / 2, geometry.height / 2);
+    final Rect blob = Rect.fromCenter(
+      center: middle + (seen - middle) / reveal,
+      width:
+          geometry.heroWidth *
+          MorphContextMenuRegion.measuredRetractScale /
+          reveal,
+      height:
+          geometry.heroHeight *
+          MorphContextMenuRegion.measuredRetractScale /
+          reveal,
+    );
+    final Rect now = morphFlightGeometry(
+      value: value,
+      sourceRect: blob,
+      targetRect: slot,
+      sourceShape: flight.tag.shape,
+      targetShape: flight.target.shape,
+    ).rect;
+    final Matrix4 transform = Matrix4.translationValues(
+      now.left - slot.left,
+      now.top - slot.top,
+      0,
+    );
+    transform.scaleByDouble(
+      now.width / slot.width,
+      now.height / slot.height,
+      1,
+      1,
+    );
+    return transform;
   }
+
+  @override
+  Widget build(BuildContext context) => MorphLiveBox(
+    live: flight.frameTicks,
+    transform: _transform,
+    child: child,
+  );
 }
 
 /// The identity transport behind [MorphContextMenuRegion.open]. Lives
